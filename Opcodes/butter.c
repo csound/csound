@@ -81,7 +81,7 @@ static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = tan((double)(csound->pidsr * p->lkf));
+      c = tan((double)(CS_PIDSR * p->lkf));
 
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = -(a[1] + a[1]);
@@ -118,7 +118,7 @@ static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       
       double     *a, c;
       a = p->a;
       p->lkf = *p->kfc;
-      c = 1.0 / tan((double)(csound->pidsr * p->lkf));
+      c = 1.0 / tan((double)(CS_PIDSR * p->lkf));
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = a[1] + a[1];
       a[3] = a[1];

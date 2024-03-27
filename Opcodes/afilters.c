@@ -51,12 +51,12 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
         double ans;
         if (p->kcf[n] != (MYFLT)p->prvcf) {
           p->prvcf = (double)p->kcf[n];
-          p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+          p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
           flag = 1;
         }
         if (p->kbw[n] != (MYFLT)p->prvbw) {
           p->prvbw = (double)p->kbw[n];
-          p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+          p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
           flag = 1;
         }
         if (flag) {
@@ -83,12 +83,12 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
         double ans;
         if (p->kcf[n] != (MYFLT)p->prvcf) {
           p->prvcf = (double)p->kcf[n];
-          p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+          p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
           flag = 1;
         }
         if (p->kbw[n] != (MYFLT)p->prvbw) {
           p->prvbw = (double)p->kbw[n];
-          p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+          p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
           flag = 1;
         }
         if (flag) {
@@ -125,7 +125,7 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
 
     if (*p->kbw != (MYFLT)p->prvbw) {
       p->prvbw = (double)*p->kbw;
-      p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+      p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
       c3p1 = p->c3 + 1.0;
       c3t4 = p->c3 * 4.0;
       omc3 = 1.0 - p->c3;
@@ -151,7 +151,7 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
         double ans;
         if (p->kcf[n] != (MYFLT)p->prvcf) {
           p->prvcf = (double)p->kcf[n];
-          p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+          p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
           c3p1 = p->c3 + 1.0;
           c3t4 = p->c3 * 4.0;
           omc3 = 1.0 - p->c3;
@@ -175,7 +175,7 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
         double ans;
         if (p->kcf[n] != (MYFLT)p->prvcf) {
           p->prvcf = (double)p->kcf[n];
-          p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+          p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
           c3p1 = p->c3 + 1.0;
           c3t4 = p->c3 * 4.0;
           omc3 = 1.0 - p->c3;
@@ -209,7 +209,7 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
 
     if (*p->kcf != (MYFLT)p->prvcf) {
       p->prvcf = (double)*p->kcf;
-      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
       c3p1 = p->c3 + 1.0;
       c3t4 = p->c3 * 4.0;
       omc3 = 1.0 - p->c3;
@@ -235,7 +235,7 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
         double ans;
         if (p->kbw[n] != (MYFLT)p->prvbw) {
           p->prvbw = (double)p->kbw[n];
-          p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+          p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
           c3p1 = p->c3 + 1.0;
           c3t4 = p->c3 * 4.0;
           omc3 = 1.0 - p->c3;
@@ -259,7 +259,7 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
         double ans;
         if (p->kbw[n] != (MYFLT)p->prvbw) {
           p->prvbw = (double)p->kbw[n];
-          p->c3 = exp(p->prvbw * (double)(csound->mtpdsr));
+          p->c3 = exp(p->prvbw * (double)(CS_MTPIDSR));
           c3p1 = p->c3 + 1.0;
           c3t4 = p->c3 * 4.0;
           omc3 = 1.0 - p->c3;
@@ -305,7 +305,7 @@ static int32_t atonea(CSOUND *csound, TONE *p)
       if (p->khp[n] != p->prvhp) {
         double b;
         p->prvhp = p->khp[n];
-        b = 2.0 - cos((double)(p->khp[n] * csound->tpidsr));
+        b = 2.0 - cos((double)(p->khp[n] * CS_TPIDSR));
         p->c2 = c2 = b - sqrt(b * b - 1.0);
         /*      p->c1 = c1 = 1.0 - c2; */
       }
@@ -338,7 +338,7 @@ static int32_t tonea(CSOUND *csound, TONE *p)
       if (p->khp[n] != prvhp) {
         double b;
         prvhp = (double)p->khp[n];
-        b = 2.0 - cos((double)(prvhp * csound->tpidsr));
+        b = 2.0 - cos((double)(prvhp * CS_TPIDSR));
         c2 = b - sqrt(b * b - 1.0);
         c1 = 1.0 - c2;
       }
@@ -374,7 +374,7 @@ static int32_t tonexa(CSOUND *csound, TONEX *p) /* From G Maldonado, modified */
         if (p->khp[n] != p->prvhp) {
           double b;
           p->prvhp = (double)p->khp[n];
-          b = 2.0 - cos(p->prvhp * (double)csound->tpidsr);
+          b = 2.0 - cos(p->prvhp * (double)CS_TPIDSR);
           p->c2 = b - sqrt(b * b - 1.0);
           p->c1 = 1.0 - p->c2;
         }
@@ -409,7 +409,7 @@ static int32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified 
         if (p->khp[n] != prvhp) {
           double b;
           prvhp = p->khp[n];
-          b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+          b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
           c2 = b - sqrt(b * b - 1.0);
         }
         x = c2 * (yt1[j] + sig);
@@ -479,7 +479,7 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 
     /* if (p->afc[0] != p->lkf)      { */
     /*   p->lkf = p->afc[0]; */
-    /*   c = tan((double)(csound->pidsr * p->lkf)); */
+    /*   c = tan((double)(CS_PIDSR * p->lkf)); */
 
     /*   a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c); */
     /*   a[2] = -(a[1] + a[1]); */
@@ -491,7 +491,7 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
       if (p->afc[nn] != p->lkf)      {
         double c;
         p->lkf = p->afc[nn];
-        c = tan((double)(csound->pidsr * p->lkf));
+        c = tan((double)(CS_PIDSR * p->lkf));
 
         a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
         a[2] = -(a[1] + a[1]);
@@ -535,7 +535,7 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
 
     /* if (p->afc[0] != p->lkf)      { */
     /*   p->lkf = p->afc[0]; */
-    /*   c = 1.0 / tan((double)(csound->pidsr * p->lkf)); */
+    /*   c = 1.0 / tan((double)(CS_PIDSR * p->lkf)); */
     /*   a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c); */
     /*   a[2] = a[1] + a[1]; */
     /*   a[3] = a[1]; */
@@ -547,7 +547,7 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
       if (p->afc[nn] != p->lkf) {
         double c;
         p->lkf = p->afc[nn];
-        c = 1.0 / tan((double)(csound->pidsr * p->lkf));
+        c = 1.0 / tan((double)(CS_PIDSR * p->lkf));
         a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
         a[2] = a[1] + a[1];
         a[3] = a[1];
@@ -589,8 +589,8 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
     /* if (p->kbw[0] != p->lkb || p->kfo[0] != p->lkf) { */
     /*   p->lkf = p->kfo[0]; */
     /*   p->lkb = p->kbw[0]; */
-    /*   c = 1.0 / tan((double)(csound->pidsr * p->lkb)); */
-    /*   d = 2.0 * cos((double)(csound->tpidsr * p->lkf)); */
+    /*   c = 1.0 / tan((double)(CS_PIDSR * p->lkb)); */
+    /*   d = 2.0 * cos((double)(CS_TPIDSR * p->lkf)); */
     /*   a[1] = 1.0 / (1.0 + c); */
     /*   a[2] = 0.0; */
     /*   a[3] = -a[1]; */
@@ -606,8 +606,8 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
         double c, d;
         p->lkf = fr;
         p->lkb = bw;
-        c = 1.0 / tan((double)(csound->pidsr * bw));
-        d = 2.0 * cos((double)(csound->tpidsr * fr));
+        c = 1.0 / tan((double)(CS_PIDSR * bw));
+        d = 2.0 * cos((double)(CS_TPIDSR * fr));
         a[1] = 1.0 / (1.0 + c);
         a[2] = 0.0;
         a[3] = -a[1];
@@ -657,8 +657,8 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
         double c, d;
         p->lkf = fr;
         p->lkb = bw;
-        c = tan((double)(csound->pidsr * bw));
-        d = 2.0 * cos((double)(csound->tpidsr * fr));
+        c = tan((double)(CS_PIDSR * bw));
+        d = 2.0 * cos((double)(CS_TPIDSR * fr));
         a[1] = 1.0 / (1.0 + c);
         a[2] = - d * a[1];
         a[3] = a[1];

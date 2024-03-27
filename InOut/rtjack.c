@@ -395,9 +395,9 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
-    csound->system_sr(csound, jack_get_sample_rate(p->client));
+    csound->GetSystemSr(csound, jack_get_sample_rate(p->client));
     if(oparms.msglevel || oparms.odebug)
-      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+      csound->Message(csound, "system sr: %f\n", csound->GetSystemSr(csound,0));
     if(p->sampleRate < 0) p->sampleRate = jack_get_sample_rate(p->client);
 
     /* check consistency of parameters */

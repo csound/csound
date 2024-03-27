@@ -477,7 +477,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
         snd_pcm_hw_params_any(dev->handle, pms);
         snd_pcm_hw_params_get_rate(pms, &hwsr, 0);
         if(hwsr == 0) hwsr = 44100;
-        csound->system_sr(csound, hwsr);
+        csound->GetSystemSr(csound, hwsr);
         target = dev->srate = hwsr;
         MSG(p, "alsa hw sampling rate: %d\n", hwsr);
       }
@@ -492,7 +492,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       }
       if (dev->srate!=target)
         p->MessageS(p, CSOUNDMSG_WARNING, Str(" *** rate set to %d\n"), dev->srate);
-      csound->system_sr(csound, dev->srate);
+      csound->GetSystemSr(csound, dev->srate);
     }
 
     /* buffer size, */

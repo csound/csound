@@ -86,7 +86,7 @@ extern  char *          asctime(const struct tm *);
 
 typedef struct winEPS_globals_ {
     FILE    *psFile;
-    void    *psfd;                      /* CSFILE* returned by FileOpen2()  */
+    void    *psfd;                      /* CSFILE* returned by FileOpen()  */
     char    ps_date[40];                /* Print time & date on every plot  */
     int     currentPage;                /* Current page number              */
 } winEPS_globals_t;
@@ -129,7 +129,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
     strlcat(pathnam, ".eps", 1024);
-    pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
+    pp->psfd = csound->FileOpen(csound, &(pp->psFile), CSFILE_STD, pathnam,
                                    "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
     if (UNLIKELY(pp->psfd == NULL)) {
       csound->Message(csound, Str("** Warning **  PostScript file %s "

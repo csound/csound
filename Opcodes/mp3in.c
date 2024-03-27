@@ -106,13 +106,13 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
 
     /* FIXME: name can overflow with very long string -- truncates safely */
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->iFileCode))
+      if (csound->IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -139,7 +139,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     /*          *mpainfo.frames; */
     /* csound->Message(csound, "maxsize = %li\n", maxsize); */
     /* print file information */
-    /* if (UNLIKELY(csound->oparms_.msglevel & WARNMSG)) */ {
+    /* if (UNLIKELY(csound->GetOParms_.msglevel & WARNMSG)) */ {
       char temp[80];            /* Could be as low as 20 */
       if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
       else if (mpainfo.frequency < 32000) strcpy(temp, "MPEG-2 ");
@@ -154,7 +154,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     }
     /* check number of channels in file (must equal the number of outargs) */
     /* if (UNLIKELY(sfinfo.channels != p->nChannels && */
-    /*              (csound->oparms_.msglevel & WARNMSG) != 0)) { */
+    /*              (csound->GetOParms_.msglevel & WARNMSG) != 0)) { */
     /*   mp3dec_uninit(mpa); */
     /*   return csound->InitError(csound, */
     /*                      Str("mp3in: number of output args " */
@@ -243,7 +243,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
           }
           pos = 0;
         }
-        xx = ((MYFLT)bb[pos]/(MYFLT)0x7fff) * csound->e0dbfs;
+        xx = ((MYFLT)bb[pos]/(MYFLT)0x7fff) * csound->Get0dBFS(csound);
         if (i==0) al[n] = xx;
         else      ar[n] = xx;
         pos++;
@@ -284,12 +284,12 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
     }
     /* FIXME: name can overflow with very long string -- safely truncated */
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->iFileCode))
+      if (csound->IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -307,13 +307,13 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
     close(fd);
-    if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len.i"))
+    if(!strcmp(GetOpcodeName(&p->h), "mp3len.i"))
       *p->ir = (MYFLT)mpainfo.duration;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr.i"))
+    else if(!strcmp(GetOpcodeName(&p->h), "mp3sr.i"))
       *p->ir = (MYFLT) mpainfo.frequency;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate.i"))
+    else if(!strcmp(GetOpcodeName(&p->h), "mp3bitrate.i"))
       *p->ir = (MYFLT) mpainfo.bitrate;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls.i"))
+    else if(!strcmp(GetOpcodeName(&p->h), "mp3nchnls.i"))
       *p->ir = (MYFLT) mpainfo.channels;
 
     mp3dec_uninit(mpa);
@@ -432,8 +432,8 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     /*clock_gettime(CLOCK_MONOTONIC, &ts);
       dtime = ts.tv_sec + 1e-9*ts.tv_nsec - dtime;
       csound->Message(csound, "SINIT time %f ms", dtime*1000);*/
-    p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound,N,FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound,N,FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound,N,FFT_INV);
     return OK;
 }
 
@@ -464,7 +464,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
       p->mpa = NULL;
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -762,10 +762,10 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
           }
 
 
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
-          csound->RealFFT2(csound, p->fwdsetup, fwin);
+          csound->RealFFT(csound, p->fwdsetup, fwin);
           fwin[N] = fwin[1];
           fwin[N+1] = FL(0.0);
 
@@ -817,7 +817,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
           }
 
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
           framecnt[curframe] = curframe*N;
           for (i=0;i<N;i++)
             outframe[framecnt[curframe]+i] = win[i]*fwin[i];
@@ -1060,7 +1060,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
       p->error = r;
       return NOTOK;
     }
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -1306,8 +1306,8 @@ static int32_t player_init(CSOUND *csound, PLAYER *p){
     p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
 #else
     while(!p->p->N) usleep(1000);
-    p->fwdsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound,p->p->N,FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound,p->p->N,FFT_INV);
 #endif
     p->start_flag = 1;
     return OK;
@@ -1786,8 +1786,8 @@ static int32_t player_play(CSOUND *csound, PLAYER *pp)
           bwin[N] = bw[1];
           fwin[N] = fw[1];
 #else
-          csound->RealFFT2(csound, pp->fwdsetup, bwin);
-          csound->RealFFT2(csound, pp->fwdsetup, fwin);
+          csound->RealFFT(csound, pp->fwdsetup, bwin);
+          csound->RealFFT(csound, pp->fwdsetup, fwin);
 #endif
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
@@ -1836,7 +1836,7 @@ static int32_t player_play(CSOUND *csound, PLAYER *pp)
           for(i=0; i < N+2; i++)
             fwin[i] = prev[i];
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, pp->invsetup, fwin);
+          csound->RealFFT(csound, pp->invsetup, fwin);
 #endif
           framecnt[curframe] = curframe*N;
           for (i=0;i<N;i++)
@@ -1977,7 +1977,7 @@ static int32_t filinit2(CSOUND *csound, LOADER *pp)
       p->error = r;
       return NOTOK;
     }
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen(csound, &fd, CSFILE_FD_R,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -2112,8 +2112,8 @@ static int32_t player_init2(CSOUND *csound, PLAYER *p){
     p->fw = pffft_aligned_malloc(p->p->N*sizeof(float));
 #else
     while(!p->p->N) usleep(1000);
-    p->fwdsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound,p->p->N,FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound,p->p->N,FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound,p->p->N,FFT_INV);
 #endif
     p->start_flag = 1;
     return OK;
@@ -2343,8 +2343,8 @@ static int32_t player_play2(CSOUND *csound, PLAYER *pp)
           bwin[N] = bw[1];
           fwin[N] = fw[1];
 #else
-          csound->RealFFT2(csound, pp->fwdsetup, bwin);
-          csound->RealFFT2(csound, pp->fwdsetup, fwin);
+          csound->RealFFT(csound, pp->fwdsetup, bwin);
+          csound->RealFFT(csound, pp->fwdsetup, fwin);
 #endif
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);

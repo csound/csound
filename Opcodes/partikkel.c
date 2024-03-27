@@ -229,7 +229,7 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
     /* set grainphase to 1.0 to make grain scheduler create a grain immediately
      * after starting opcode */
     p->grainphase = 1.0;
-    p->num_outputs = csound->GetOutputArgCnt(p); /* save for faster access */
+    p->num_outputs = GetOutputArgCnt(p); /* save for faster access */
     /* resolve tables with no default table handling */
     p->costab = csound->FTFind(csound, p->cosine);
     /* resolve some tables with default table handling */
@@ -483,8 +483,8 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             curwav->gain *= normalize;
         }
 
-        curwav->delta = startfreq*csound->onedsr;
-        enddelta = endfreq*csound->onedsr;
+        curwav->delta = startfreq*CS_ONEDSR;
+        enddelta = endfreq*CS_ONEDSR;
 
         if (i != WAV_TRAINLET) {
             /* set wavphase to samplepos parameter */
@@ -496,7 +496,7 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
         }
         /* place grain between samples. this is especially important to make
          * high frequency synchronous grain streams sounds right */
-        curwav->phase += phase_corr*startfreq*csound->onedsr;
+        curwav->phase += phase_corr*startfreq*CS_ONEDSR;
 
         /* clamp phase in case it's out of bounds */
         curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
@@ -652,7 +652,7 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
         if (p->grainfreq_arate)
             grainfreq = fabs(p->grainfreq[n]);
-        p->graininc = grainfreq*csound->onedsr;
+        p->graininc = grainfreq*CS_ONEDSR;
         p->grainphase += p->graininc;
     }
     return OK;
@@ -853,7 +853,7 @@ static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
             Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
     /* find out if we're supposed to output grain scheduler phase too */
-    p->output_schedphase = csound->GetOutputArgCnt(p) > 1;
+    p->output_schedphase = GetOutputArgCnt(p) > 1;
     return OK;
 }
 

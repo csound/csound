@@ -155,7 +155,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
 
   p->factor = CS_ESR / TWOPI_F;
   p->fund = CS_ESR / fftsize;
-  p->setup = csound->RealFFT2Setup(csound, fftsize, FFT_FWD);
+  p->setup = csound->RealFFTSetup(csound, fftsize, FFT_FWD);
   return OK;
 }
 
@@ -189,8 +189,8 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
     signal[i + hsize] = tmp2;
     }
 
-  csound->RealFFT2(csound, p->setup, signal);
-  csound->RealFFT2(csound, p->setup,diffsig);
+  csound->RealFFT(csound, p->setup, signal);
+  csound->RealFFT(csound, p->setup,diffsig);
 
   for (i = 2; i < fftsize; i += 2) {
 

@@ -298,8 +298,8 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->cnt = 0;
     p->rbCnt = 0;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, (p->partSize << 1), FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, (p->partSize << 1), FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, (p->partSize << 1), FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, (p->partSize << 1), FFT_INV);
 
     /* clear IR buffer to zero */
     memset(p->IR_Data, 0, n*sizeof(MYFLT));
@@ -431,7 +431,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
             p->IR_Data[n + k] = FL(0.0);
 
           /* calculate FFT (replace in the same buffer) */
-          csound->RealFFT2(csound, p->fwdsetup, &(p->IR_Data[n]));
+          csound->RealFFT(csound, p->fwdsetup, &(p->IR_Data[n]));
 
         }
         else if (load_ptr->status == UNLOADING) {
@@ -467,7 +467,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
         rBuf[i] = FL(0.0);
 
       /* calculate FFT of input */
-      csound->RealFFT2(csound, p->fwdsetup, rBuf);
+      csound->RealFFT(csound, p->fwdsetup, rBuf);
 
       /* update ring buffer position */
       p->rbCnt++;
@@ -484,7 +484,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
                            nSamples, p->nPartitions, rBufPos);
 
       /* inverse FFT */
-      csound->RealFFT2(csound, p->invsetup, p->tmpBuf);
+      csound->RealFFT(csound, p->invsetup, p->tmpBuf);
 
       /*
       ** Copy IFFT result to output buffer

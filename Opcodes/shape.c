@@ -108,7 +108,7 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t   ncoeff =    /* index of the last coefficient */
-                   csound->GetInputArgCnt(p) - 2;
+                   GetInputArgCnt(p) - 2;
     MYFLT *out = p->aout;
     MYFLT *in = p->ain;
     MYFLT **coeff = p->kcoefficients;
@@ -141,7 +141,7 @@ typedef struct {
 
 static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
-    int32_t     ncoeff = csound->GetInputArgCnt(p) - 1;
+    int32_t     ncoeff = GetInputArgCnt(p) - 1;
 
     /* Need two MYFLT arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
@@ -162,7 +162,7 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     ncoeff =            /* index of the last coefficient */
-                     csound->GetInputArgCnt(p) - 2;
+                     GetInputArgCnt(p) - 2;
     MYFLT   *out = p->aout;
     MYFLT   *in = p->ain;
     MYFLT   **chebcoeff = p->kcoefficients;
@@ -462,7 +462,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          incr = (double)(cps[n] * csound->onedsr);
+          incr = (double)(cps[n] * CS_ONEDSR);
           out[n] = (MYFLT)phase;
           phase += incr;
           if (phase >= 1.0) {
@@ -478,7 +478,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
       }
     }
     else {
-      incr = (double)(*p->xcps * csound->onedsr);
+      incr = (double)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;

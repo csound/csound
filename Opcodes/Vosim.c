@@ -101,7 +101,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
                           *p->kfund);
         }
     }
-    p->pulseinc = (int32)(*p->kform * csound->sicvt);
+    p->pulseinc = (int32)(*p->kform * CS_SICVT);
     p->pulsephs = (p->pulseinc >= 0)? MAXLEN : -1;   /* starts a new pulse */
     p->ampdecay = *p->kdamp;
     /* increase initial amp, since it's reduced at pulse start */

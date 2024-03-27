@@ -51,7 +51,7 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
       het_export_usage(csound);
       return 1;
     }
-    inf = csound->ldmemfile2withCB(csound, argv[1], CSFTYPE_HETRO,NULL);
+    inf = csound->LoadMemoryFile(csound, argv[1], CSFTYPE_HETRO,NULL);
     if (UNLIKELY(inf == NULL)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;

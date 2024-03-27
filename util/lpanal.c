@@ -416,23 +416,23 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&sr); break;
+                        sscanf(s,"%lf",&sr); break;
 #else
-                        csound->sscanf(s,"%f",&sr); break;
+                        sscanf(s,"%f",&sr); break;
 #endif
         case 'c':       FIND(Str("no channel"))
                         sscanf(s,"%d",&channel); break;
         case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&beg_time); break;
+                        sscanf(s,"%lf",&beg_time); break;
 #else
-                        csound->sscanf(s,"%f",&beg_time); break;
+                        sscanf(s,"%f",&beg_time); break;
 #endif
         case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&input_dur); break;
+                        sscanf(s,"%lf",&input_dur); break;
 #else
-                        csound->sscanf(s,"%f",&input_dur); break;
+                        sscanf(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
                         sscanf(s,"%d",&lpc.poleCount);
@@ -455,18 +455,18 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&pchlow);
+                        sscanf(s,"%lf",&pchlow);
 #else
-                        csound->sscanf(s,"%f",&pchlow);
+                        sscanf(s,"%f",&pchlow);
 #endif
                         if (pchlow == 0.0)
                           lpc.doPitch = 0; /* -P0 inhibits ptrack */
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&pchhigh); break;
+                        sscanf(s,"%lf",&pchhigh); break;
 #else
-                        csound->sscanf(s,"%f",&pchhigh); break;
+                        sscanf(s,"%f",&pchhigh); break;
 #endif
         case 'v':       FIND(Str("no verbose level"))
                         sscanf(s,"%d",&lpc.verbose);
@@ -545,7 +545,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     lpg = (LPANAL_GLOBALS*) csound->Calloc(csound, sizeof(LPANAL_GLOBALS));
     lpg->firstcall = 1;
 
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = csound->SndInputFileOpen(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       char errmsg[256];
       snprintf(errmsg,256,Str("error while opening %s"), infilnam);
@@ -554,11 +554,11 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* Try to open output file */
     if (new_format) {
-      if (UNLIKELY(csound->FileOpen2(csound, &oFd, CSFILE_STD,
+      if (UNLIKELY(csound->FileOpen(csound, &oFd, CSFILE_STD,
                                      outfilnam, "w", "", CSFTYPE_LPC, 0) == NULL))
         quit(csound, Str("cannot create output file"));
     }
-    else if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, outfilnam,
+    else if (UNLIKELY(csound->FileOpen(csound, &ofd, CSFILE_FD_W, outfilnam,
                                         NULL, "", CSFTYPE_LPC, 0) == NULL))
       quit(csound, Str("cannot create output file"));
 
@@ -598,7 +598,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     sigbuf2 = sigbuf + slice;
 
     /* Try to read first frame in buffer */
-    if (UNLIKELY((n = csound->getsndin(csound, infd, sigbuf, lpc.WINDIN, p)) <
+    if (UNLIKELY((n = csound->SndInputRead(csound, infd, sigbuf, lpc.WINDIN, p)) <
                  lpc.WINDIN))
       quit(csound,Str("soundfile read error, could not fill first frame"));
 
@@ -613,7 +613,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     /* Some display stuff */
 #if 0
     dispinit(csound);
-    csound->dispset(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
+    csound->SetDisplay(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
     /* Space for a array */
@@ -622,7 +622,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     lpc.x = (double *) csound->Malloc(csound,   /* alloc a double array */
                                       lpc.WINDIN * sizeof(double));
 #ifdef TRACE
-    csound->FileOpen2(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
+    csound->FileOpen(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
                       CSFTYPE_OTHER_TEXT, 0);
 #endif
 
@@ -764,7 +764,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       /*              *fp1++ = *fp2++;} */
 
       /* Get next sound frame */
-      if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
+      if ((n = csound->SndInputRead(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
       if (UNLIKELY(!csound->CheckEvents(csound)))
         return -1;

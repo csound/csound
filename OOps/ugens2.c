@@ -286,7 +286,7 @@ static int32_t ptblchk(CSOUND *csound, TABLE *p)
 int32_t tblset(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
-      const char  *opname = csound->GetOpcodeName(p);
+      const char  *opname = GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (UNLIKELY(CS_KSMPS == 1))
         csound->Warning(csound, msg, opname);
@@ -303,7 +303,7 @@ int32_t tblset(CSOUND *csound, TABLE *p)
 int32_t tblsetkt(CSOUND *csound, TABLE *p)
 {
     if (UNLIKELY(p->XINCODE != p->XOUTCODE)) {
-      const char  *opname = csound->GetOpcodeName(p);
+      const char  *opname = GetOpcodeName(p);
       const char  *msg = Str("%s: table index type inconsistent with output");
       if (UNLIKELY(CS_KSMPS == 1))
         csound->Warning(csound, msg, opname);

@@ -425,7 +425,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (csound->IsStringCode(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
       insno = (int32_t)strarg2insno_p(csound, ss);
     }
@@ -468,7 +468,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || csound->ISSTRCOD(*p->args[0])) {
+    if (*p->args[0] >= FL(0.0) || csound->IsStringCode(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -490,14 +490,14 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
 
     /* Create the new event */
     if (stringname) {
-      evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
+      evt.p[1] = csound->StringArg2Insno(csound,((STRINGDAT *)p->args[0])->data, 1);
       evt.strarg = NULL; evt.scnt = 0;
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (csound->IsStringCode(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
-      evt.p[1] = csound->strarg2insno(csound,name, 1);
+      evt.p[1] = csound->StringArg2Insno(csound,name, 1);
       evt.strarg = NULL;
       /* evt.strarg = name; */
       evt.scnt = 0;
@@ -598,6 +598,84 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
           }
         }
       }
+    }
+    return OK;
+}
+
+
+int32_t pcount(CSOUND *csound, PFIELD *p)
+{
+    *p->ians = (MYFLT) csound->init_event->pcnt;
+    return OK;
+}
+
+int32_t pvalue(CSOUND *csound, PFIELD *p)
+{
+    int32_t n = (int32_t)(*p->index);
+    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+      return csound->InitError(csound, Str("invalid p field index"));
+    }
+    *p->ians = csound->init_event->p[n];
+    return OK;
+}
+
+int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
+{
+    int32_t n = (int32_t)(*p->index);
+    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+      return csound->InitError(csound, Str("invalid p field index"));
+    }
+
+    if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
+
+    if (LIKELY(csound->IsStringCode(csound->init_event->p[n]))) {
+        p->ians->data = cs_strdup(csound,
+                get_arg_string(csound, csound->init_event->p[n]));
+        p->ians->size = strlen(p->ians->data) + 1;
+    }
+    return OK;
+}
+
+int32_t pinit(CSOUND *csound, PINIT *p)
+{
+    int32_t n;
+    int32_t    nargs = p->OUTOCOUNT;
+    int32_t    pargs = csound->init_event->pcnt;
+    int32_t    start = (int32_t)(*p->start);
+    /* Should check that inits exist> */
+    int32_t    k = (int32_t)(*p->end);
+    if (*p->end!=FL(0.0)) {
+      if (k<pargs) pargs = k;
+    }
+    if (UNLIKELY(nargs>pargs))
+      csound->Warning(csound, Str("More arguments than p fields"));
+    pargs -= (int)*p->end;
+    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+      //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
+      if (csound->IsStringCode(csound->init_event->p[n+start])) {
+        ((STRINGDAT *)p->inits[n])->data =
+          cs_strdup(csound, get_arg_string(csound, csound->init_event->p[n+start]));
+        ((STRINGDAT *)p->inits[n])->size =
+          strlen(((STRINGDAT *)p->inits[n])->data)+1;
+      }
+      else  *p->inits[n] = csound->init_event->p[n+start];
+    }
+    return OK;
+}
+
+#include "arrays.h"
+int32_t painit(CSOUND *csound, PAINIT *p)
+{
+    int32_t n;
+    int32_t    pargs = csound->init_event->pcnt;
+    int32_t    start = (int32_t)(*p->start);
+    int32_t    k = (int32_t)(*p->end);
+    if (*p->end!=FL(0.0)) {
+      if (k<pargs) pargs = k;
+    }
+    tabinit(csound, p->inits, pargs-start+1);
+    for (n=0; n<=pargs-start; n++) {
+      ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
     }
     return OK;
 }

@@ -45,17 +45,20 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
 
     if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
     else {
-      if(csound->ISSTRCOD(*p->Sfname))
+      if(csound->IsStringCode(*p->Sfname))
         fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
       else
-        fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
+        fname = csound->StringArg2Name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
     }
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sampleFormat = (int32_t) MYFLT2LRND(*(p->iFormat));
     sfinfo.format = (int32_t) TYPE2SF(TYP_RAW);
+    OPARMS parms;
+    csound->GetOParms(csound, &parms);
+    
     switch (sampleFormat) {
     case -1: sfinfo.format = 0; break;
-    case 0:  sfinfo.format |= (int32_t) FORMAT2SF(csound->oparms->outformat); break;
+    case 0:  sfinfo.format |= (int32_t) FORMAT2SF(parms.outformat); break;
     case 1:  sfinfo.format |= (int32_t) FORMAT2SF(AE_CHAR);   break;
     case 2:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ALAW);   break;
     case 3:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ULAW);   break;
@@ -208,12 +211,12 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     double  frqScale = 1.0;
 
     p->dataPtr = NULL;
-    nChannels = csound->GetOutputArgCnt(p);
+    nChannels = GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
       return csound->InitError(csound,
                                Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
-    if (csound->ISSTRCOD(*p->ifn)) {
+    if (csound->IsStringCode(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
@@ -251,7 +254,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {
@@ -362,7 +365,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     double  frqScale = 1.0;
 
     p->dataPtr = NULL;
-    if (csound->ISSTRCOD(*p->ifn)) {
+    if (csound->IsStringCode(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
@@ -398,7 +401,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {

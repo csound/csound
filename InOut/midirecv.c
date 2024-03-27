@@ -384,6 +384,7 @@ void m_chn_init_all(CSOUND *csound)
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] =
         chn = (MCHNBLK*) csound->Calloc(csound, sizeof(MCHNBLK));
+      csound->m_chnbp[chan]->channel = chan;
       n = (int) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (csound->engineState.instrtxtp &&

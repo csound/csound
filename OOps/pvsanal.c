@@ -264,7 +264,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->sliding = 0;
 
     if (!(N & (N - 1))) /* if pow of two use this */
-     p->setup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+     p->setup = csound->RealFFTSetup(csound,N,FFT_FWD);
     return OK;
 }
 
@@ -330,14 +330,12 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       /* *(anal + k) += *(analWindow + i) * *(input + j); */
       anal[k] += analWindow[i] * input[j];
     }
+     csound->RealFFT(csound,p->setup,anal);    
     if (!(N & (N - 1))) {
-      /* csound->RealFFT(csound, anal, N);*/
-      csound->RealFFT2(csound,p->setup,anal);
       anal[N] = anal[1];
       anal[1] = anal[N + 1] = FL(0.0);
     }
-    else
-      csound->RealFFTnp2(csound, anal, N);
+
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -838,7 +836,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->buflen = buflen;
 
     if (!(N & (N - 1))) /* if pow of two use this */
-      p->setup = csound->RealFFT2Setup(csound,N,FFT_INV);
+      p->setup = csound->RealFFTSetup(csound,N,FFT_INV);
     return OK;
 }
 
@@ -943,11 +941,11 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
       /*printf("N %d %d \n", NO, NO & (NO-1));*/
       syn[1] = syn[NO];
       /* csound->InverseRealFFT(csound, syn, NO);*/
-      csound->RealFFT2(csound,p->setup,syn);
+      csound->RealFFT(csound,p->setup,syn);
       syn[NO] = syn[NO + 1] = FL(0.0);
     }
-    else
-      csound->InverseRealFFTnp2(csound, syn, NO);
+    else // np2
+      csound->RealFFT(csound,p->setup,syn);
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;

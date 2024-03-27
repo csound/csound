@@ -278,17 +278,21 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     BiQuad_setGain(p->m4.filters[2], FL(0.11)*temp); /* 3rd mode function of pos.*/
                                 /* Strike */
     {
+      OPARMS parm;
+      csound->GetOParms(csound, &parm);
       int32_t triples = (*p->triples<=FL(0.0) ? 20 : (int32_t)*p->triples);
       int32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int32_t)*p->doubles);
       itemp = csound->Rand31(&(csound->randSeed1)) % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
-        if (csound->oparms->msglevel & CS_RNGEMSG)
+        if (parm.msglevel & CS_RNGEMSG)
           csound->Message(csound, Str("striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
+        OPARMS parm;
+       csound->GetOParms(csound, &parm);
         p->multiStrike = 1;
-        if (csound->oparms->msglevel & CS_RNGEMSG)
+        if (parm.msglevel & CS_RNGEMSG)
           csound->Message(csound, Str("striking twice here!!\n"));
       }
       else p->multiStrike = 0;

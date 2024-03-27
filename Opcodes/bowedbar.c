@@ -157,7 +157,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
         return csound->InitError(csound,
                                  Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
-        MYFLT R = FL(1.0) - p->freq * p->modes[i] * csound->pidsr;
+        MYFLT R = FL(1.0) - p->freq * p->modes[i] * CS_PIDSR;
         BiQuad_clear(&p->bandpass[i]);
         BiQuad_setFreqAndReson(p->bandpass[i], p->freq * p->modes[i], R);
         BiQuad_setEqualGainZeroes(p->bandpass[i]);

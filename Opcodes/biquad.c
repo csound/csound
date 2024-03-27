@@ -128,7 +128,7 @@ static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
     }
     p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
     p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
-    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
+    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->Get0dBFS(csound);
 
     return OK;
 }
@@ -147,7 +147,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
     double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-    MYFLT zerodb = csound->e0dbfs;
+    MYFLT zerodb = csound->Get0dBFS(csound);
 
     in      = p->in;
     out     = p->out;
@@ -159,7 +159,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   /* Only need to calculate once */
     if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       double fcon;
-      fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
+      fcon  = 2.0*fco*(double)CS_ONEDSR; /* normalised freq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
       pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
       scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
@@ -180,7 +180,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
         double fcon;
-        fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
+        fcon  = 2.0*fco*(double)CS_ONEDSR; /* normalised frq. 0 to Nyquist */
         kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
         pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
@@ -514,10 +514,10 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
       shape2    *=  FL(0.000125);
     }
     else if (*p->imode < FL(1.5)) {     /* mode 1: same with 0dBFS support */
-      pregain   *=  (FL(6.5536) * csound->dbfs_to_float);
-      postgain  *=  (FL(0.61035156) * csound->e0dbfs);
-      shape1    *=  (FL(4.096) * csound->dbfs_to_float);
-      shape2    *=  (FL(4.096) * csound->dbfs_to_float);
+      pregain   *=  (FL(6.5536) * CS_DBFS_FLOAT);
+      postgain  *=  (FL(0.61035156) * csound->Get0dBFS(csound));
+      shape1    *=  (FL(4.096) * CS_DBFS_FLOAT);
+      shape2    *=  (FL(4.096) * CS_DBFS_FLOAT);
     }
     else {                              /* mode 2: "raw" mode (+/- 1 amp.) */
       shape1 *= pregain;
@@ -633,7 +633,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     /* End of VDelay insert */
 
     ftbl = ftp->ftable;
-    sicvt2 = csound->sicvt * FL(0.5);  /* for theta/2 */
+    sicvt2 = CS_SICVT * FL(0.5);  /* for theta/2 */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;
@@ -923,7 +923,7 @@ static int32_t pareq(CSOUND *csound, PAREQ *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
-      double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
+      double omega = (double)(CS_TPIDSR * *p->fc), k, kk, vkk, vk, vkdq, a0;
       p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
       switch (p->imode) {
         /* Low Shelf */
@@ -1323,7 +1323,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
       q1   = res/(1.0 + sqrt(dist));
       fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
       q    = q1*fco1*fco1*0.0005;
-      fc   = fco1*(double)csound->onedsr*(44100.0/8.0);
+      fc   = fco1*(double)CS_ONEDSR*(44100.0/8.0);
     }
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1342,7 +1342,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
         q1  = res/(1.0 + sqrt(dist));
         fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
         q  = q1*fco1*fco1*0.0005;
-        fc  = fco1*(double)csound->onedsr*(44100.0/8.0);
+        fc  = fco1*(double)CS_ONEDSR*(44100.0/8.0);
       }
       x  = (double)in[n];
       fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
@@ -1390,7 +1390,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     rez    = (double)*rezptr;
 
     if ((p->rezcod == 0) && (p->fcocod == 0)) {
-      theta = fco * (double)csound->tpidsr;
+      theta = fco * (double)CS_TPIDSR;
       sin2 = sin(theta) * 0.5;
       cos2 = cos(theta);
       beta = (rez - sin2) / (rez + sin2);
@@ -1430,7 +1430,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) CS_TPIDSR;
           sin2 = sin(theta) * 0.5;
           cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);
@@ -1459,7 +1459,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) CS_TPIDSR;
           sin2  = sin(theta) * 0.5;
           cos2  = cos(theta);
           beta  = (rez - sin2) / (rez + sin2);
@@ -1487,7 +1487,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) CS_TPIDSR;
           sin2 = sin(theta) * 0.5;
           cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);

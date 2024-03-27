@@ -76,7 +76,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
       }
       else {
         csound->NotifyFileOpened(csound, fname,
-                            csound->sftype2csfiletype(sflib_info.format), 0, 0);
+                            csound->SndfileType2CsfileType(sflib_info.format), 0, 0);
         csound->Message(csound, "%s:\n", fname);
         csound->Free(csound, fname);
         switch (sflib_info.channels) {
@@ -103,8 +103,8 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
         csound->Message(csound,
                         Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
                         (long) sflib_info.samplerate, channame,
-                        (long) (csound->sfsampsize(sflib_info.format) * 8),
-                        csound->type2string(SF2TYPE(sflib_info.format)),
+                        (long) (csound->SndfileSampleSize(sflib_info.format) * 8),
+                       csound->Type2String(SF2TYPE(sflib_info.format)),
                         (MYFLT) sflib_info.frames / sflib_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sflib_info.frames);

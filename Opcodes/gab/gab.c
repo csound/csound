@@ -68,12 +68,12 @@ static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modifie
 
     if (*p->kcf != p->prvcf) {
       p->prvcf = *p->kcf;
-      p->cosf = COS(*p->kcf * csound->tpidsr * CS_KSMPS);
+      p->cosf = COS(*p->kcf * CS_TPIDSR * CS_KSMPS);
       flag = 1;
     }
     if (*p->kbw != p->prvbw) {
       p->prvbw = *p->kbw;
-      p->c3 = EXP(*p->kbw * csound->mtpdsr * CS_KSMPS);
+      p->c3 = EXP(*p->kbw * CS_MTPIDSR * CS_KSMPS);
       flag = 1;
     }
     if (flag) {
@@ -270,7 +270,7 @@ static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
     STDOPCOD_GLOBALS  *pp;
     if (UNLIKELY(csoundGetTable(csound, &ft, MYFLT2LRND(*p->ifn)) < 0))
       return csound->InitError(csound, Str("tab_init: incorrect table number"));
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     pp->tb_ptrs[ndx] = ft;
     return OK;
 }
@@ -285,7 +285,7 @@ static CS_NOINLINE int32_t tab_perf(CSOUND *csound, FASTB *p)
 static CS_NOINLINE int32_t tab_i_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
     STDOPCOD_GLOBALS  *pp;
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     p->tb_ptr = &(pp->tb_ptrs[ndx]);
     p->h.iopadr = (SUBR) tab_perf;
     return tab_perf(csound, p);
@@ -294,7 +294,7 @@ static CS_NOINLINE int32_t tab_i_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 static CS_NOINLINE int32_t tab_k_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
     STDOPCOD_GLOBALS  *pp;
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     p->tb_ptr = &(pp->tb_ptrs[ndx]);
     p->h.opadr = (SUBR) tab_perf;
     return tab_perf(csound, p);
@@ -533,7 +533,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       amp2 = prevAmp[c];
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
-      inc = (int32) (cps * csound->sicvt);
+      inc = (int32) (cps * CS_SICVT);
       phs = lphs[c];
       ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       for (n=offset; n<nsmps; n++) {

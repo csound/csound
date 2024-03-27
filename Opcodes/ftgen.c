@@ -135,7 +135,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     else {
       fp[5] = *p->p5;                                   /* else no string */
     }
-    n = csound->GetInputArgCnt(p);
+    n = GetInputArgCnt(p);
     ftevt->pcnt = (int16) n;
     n -= 5;
     if (n > 0) {
@@ -248,13 +248,13 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     MYFLT **argp = p->argums;
     FUNC  *ftp;
     char  filename[MAXNAME];
-    int32_t   nargs = csound->GetInputArgCnt(p) - 2;
+    int32_t   nargs = GetInputArgCnt(p) - 2;
     FILE  *file = NULL;
     int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftloadk", 7) == 0) {
+    if (strncmp(GetOpcodeName(p), "ftloadk", 7) == 0) {
       nargs--;
       ft_func = csound->FTnp2Finde;
       err_func = csound->PerfError;
@@ -268,15 +268,15 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       goto err2;
 
     if (!istring) {
-      if (csound->ISSTRCOD(*p->ifilno))
-        csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
+      if (csound->IsStringCode(*p->ifilno))
+        csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
       else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
       strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "rb",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "rb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -305,7 +305,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       }
     }
     else {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "r",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "r",
                                "", CSFTYPE_FTABLES_TEXT, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -489,18 +489,18 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
     MYFLT **argp = p->argums;
     char  filename[MAXNAME];
-    int32_t   nargs = csound->GetInputArgCnt(p) - 3;
+    int32_t   nargs = GetInputArgCnt(p) - 3;
     FILE  *file = NULL;
     int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftsave.", 7) != 0) {
+    if (strncmp(GetOpcodeName(p), "ftsave.", 7) != 0) {
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
     }
     else {
-      nargs = csound->GetInputArgCnt(p) - 2;
+      nargs = GetInputArgCnt(p) - 2;
       ft_func = csound->FTnp2Finde;
       err_func = myInitError;
     }
@@ -509,15 +509,15 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       goto err2;
 
     if (!istring) {
-      if (csound->ISSTRCOD(*p->ifilno))
-        csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
+      if (csound->IsStringCode(*p->ifilno))
+        csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
       else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
       strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "wb",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "wb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -537,7 +537,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       }
     }
     else {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "w",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "w",
                                "", CSFTYPE_FTABLES_TEXT, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -620,7 +620,7 @@ static int32_t ftsave_k_set(CSOUND *csound, FTLOAD_K *p)
     p->p.ifilno = p->ifilno;
     p->p.iflag = p->iflag;
     memcpy(p->p.argums, p->argums,
-           sizeof(MYFLT*) * (csound->GetInputArgCnt(p) - 3));
+           sizeof(MYFLT*) * (GetInputArgCnt(p) - 3));
     return OK;
 }
 

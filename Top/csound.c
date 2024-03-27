@@ -86,7 +86,6 @@ static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void reset(CSOUND *);
-static int  csoundPerformKsmpsInternal(CSOUND *csound);
 void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
@@ -229,14 +228,6 @@ static int csoundGetRandSeed(CSOUND *csound, int which){
     else return csound->randSeed2;
 }
 
-static char *csoundGetStrsets(CSOUND *csound, long p){
-    if (csound->strsets == NULL) return NULL;
-    else return csound->strsets[p];
-}
-
-static int csoundGetStrsmax(CSOUND *csound){
-    return csound->strsmax;
-}
 
 static void csoundGetOParms(CSOUND *csound, OPARMS *p){
     memcpy(p, csound->oparms, sizeof(OPARMS));
@@ -244,29 +235,6 @@ static void csoundGetOParms(CSOUND *csound, OPARMS *p){
 
 static int csoundGetDitherMode(CSOUND *csound){
     return  csound->dither_output;
-}
-
-#include "Opcodes/zak.h"
-static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
-    ZAK_GLOBALS *zz;
-    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
-    if (zz==NULL) {
-      *zkstart = NULL;
-      return -1;
-    }
-    *zkstart = zz->zkstart;
-    return zz->zklast;
-}
-
-static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
-    ZAK_GLOBALS *zz;
-    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
-    if (zz==NULL) {
-      *zastart = NULL;
-      return -1;
-    }
-    *zastart = zz->zastart;
-    return zz->zalast;
 }
 
 static int csoundGetReinitFlag(CSOUND *csound){
@@ -291,16 +259,31 @@ static const CSOUND cenviron_ = {
     csoundGetNchnlsInput,
     csoundGet0dBFS,
     csoundGetKcounter,
+    csoundGetA4,
+    csoundGetTieFlag,
+    csoundGetReinitFlag,
+    csoundGetInstrumentList,
+    csoundGetHostData,
     csoundGetCurrentTimeSamples,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
     csoundGetInputBuffer,
     csoundGetOutputBuffer,
-    csoundSetDebug,
     csoundGetDebug,
     csoundGetSizeOfMYFLT,
     csoundGetOParms,
     csoundGetEnv,
+    /* channels */
+    csoundGetChannelPtr,
+    csoundListChannels,
+   /* events and performance */
+    csoundYield,
+    insert_score_event,
+    csoundGetScoreOffsetSeconds,
+    csoundSetScoreOffsetSeconds,
+    csoundRewindScore,
+    csoundInputMessageInternal,
+    isstrcod,
     /* message printout */
     csoundMessage,
     csoundMessageS,
@@ -308,36 +291,13 @@ static const CSOUND cenviron_ = {
     csoundGetMessageLevel,
     csoundSetMessageLevel,
     csoundSetMessageCallback,
-    /* Event and MIDI functionality for opcodes */
-    csoundSetReleaseLength,
-    csoundSetReleaseLengthSeconds,
-    csoundGetMidiChannelNumber,
-    csoundGetMidiChannel,
-    csoundGetMidiNoteNumber,
-    csoundGetMidiVelocity,
-    csoundGetReleaseFlag,
-    csoundGetOffTime,
-    csoundGetPFields,
-    csoundGetInstrumentNumber,
-    csoundGetZakBounds,
-    csoundGetTieFlag,
-    csoundGetReinitFlag,
-    csoundGetStrsmax,
-    csoundGetStrsets,
-    csoundPow2,
-    intpow,
-    type2string,
     /* arguments to opcodes */
-    csoundGetTypeForArg,
-    csoundGetInputArgCnt,
-    csoundGetInputArgName,
-    csoundGetOutputArgCnt,
-    csoundGetOutputArgName,
     get_arg_string,
     strarg2insno,
     strarg2name,
     /* memory allocation */
     csoundAuxAlloc,
+    csoundAuxAllocAsync,
     mmalloc,
     mcalloc,
     mrealloc,
@@ -350,6 +310,7 @@ static const CSOUND cenviron_ = {
     csoundFTFind,
     csoundFTFindP,
     csoundFTnp2Find,
+    csoundFTnp2Finde,
     csoundGetTable,
     csoundTableLength,
     csoundTableGet,
@@ -368,15 +329,23 @@ static const CSOUND cenviron_ = {
     csoundDeleteConfigurationVariable,
     csoundCfgErrorCodeToString,
     /* FFT support */
-    csoundGetInverseComplexFFTScale,
+    csoundRealFFT2Setup,
+    csoundRealFFT2,
     csoundGetInverseRealFFTScale,
     csoundComplexFFT,
     csoundInverseComplexFFT,
-    csoundRealFFT,
-    csoundInverseRealFFT,
+    csoundGetInverseComplexFFTScale,
     csoundRealFFTMult,
-    csoundRealFFTnp2,
-    csoundInverseRealFFTnp2,
+    csoundDCTSetup,
+    csoundDCT,
+    /* LPC support */
+    csoundAutoCorrelation,
+    csoundLPsetup,
+    csoundLPfree,
+    csoundLPred,
+    csoundLPCeps,
+    csoundCepsLP,
+    csoundLPrms,
     /* PVOC-EX system */
     pvoc_createfile,
     pvoc_openfile,
@@ -391,6 +360,7 @@ static const CSOUND cenviron_ = {
     csoundDie,
     csoundInitError,
     csoundPerfError,
+    fterror,
     csoundWarning,
     csoundDebugMsg,
     csoundLongJmp,
@@ -427,6 +397,7 @@ static const CSOUND cenviron_ = {
     csoundCreateCircularBuffer,
     csoundReadCircularBuffer,
     csoundWriteCircularBuffer,
+    csoundPeekCircularBuffer,
     csoundFlushCircularBuffer,
     csoundDestroyCircularBuffer,
     /* File access */
@@ -435,24 +406,46 @@ static const CSOUND cenviron_ = {
     SAsndgetset,
     sndgetset,
     getsndin,
-    rewriteheader,
-    csoundLoadSoundFile,
-    fdrecord,
-    csound_fd_close,
-    csoundCreateFileHandle,
-    csoundGetFileName,
-    csoundFileClose,
     csoundFileOpenWithType,
-    type2csfiletype,
     csoundNotifyFileOpened,
-    sftype2csfiletype,
-    ldmemfile2withCB,
+    csoundFileClose,
     csoundFileOpenWithType_Async,
     csoundReadAsync,
     csoundWriteAsync,
     csoundFSeekAsync,
+    rewriteheader,
+    csoundLoadSoundFile,
+    ldmemfile2withCB,
+    fdrecord,
+    csound_fd_close,
+    csoundCreateFileHandle,
+    csoundGetFileName,
+    type2csfiletype,
+    sftype2csfiletype,
+    type2string,
     getstrformat,
     sfsampsize,
+    /* generic callbacks */
+    csoundSetYieldCallback,
+    csoundRegisterKeyboardCallback,
+    csoundRemoveKeyboardCallback,
+    csoundRegisterSenseEventCallback,
+    csoundRegisterDeinitCallback,
+    csoundRegisterResetCallback,
+    SetInternalYieldCallback,
+    /* hash table funcs */
+    cs_hash_table_create,
+    cs_hash_table_get,
+    cs_hash_table_put,
+    cs_hash_table_remove,
+    cs_hash_table_free,
+    cs_hash_table_get_key,
+    cs_hash_table_keys,
+    cs_hash_table_values,
+    /* opcodes and instruments  */
+    csoundAppendOpcode,
+    csoundAppendOpcodes,
+    find_opcode_exact,
     /* RT audio IO and callbacks */
     csoundSetPlayopenCallback,
     csoundSetRtplayCallback,
@@ -473,6 +466,14 @@ static const CSOUND cenviron_ = {
     csoundSetExternalMidiErrorStringCallback,
     csoundSetMIDIDeviceListCallback,
     module_list_add,
+    /* utilities */
+    csoundAddUtility,
+    csoundRunUtility,
+    csoundListUtilities,
+    csoundSetUtilityDescription,
+    csoundGetUtilityDescription,
+    set_util_sr,
+    set_util_nchnls,
     /* displays & graphs */
     dispset,
     display,
@@ -483,80 +484,14 @@ static const CSOUND cenviron_ = {
     csoundSetDrawGraphCallback,
     csoundSetKillGraphCallback,
     csoundSetExitGraphCallback,
-    /* generic callbacks */
-    csoundSetYieldCallback,
-    csoundRegisterKeyboardCallback,
-    csoundRemoveKeyboardCallback,
-    csoundRegisterSenseEventCallback,
-    csoundRegisterDeinitCallback,
-    csoundRegisterResetCallback,
-    SetInternalYieldCallback,
-    /* opcodes and instruments  */
-    csoundAppendOpcode,
-    csoundAppendOpcodes,
-    csoundGetOpcodeName,
-    csoundGetInstrumentList,
-    /* events and performance */
-    csoundYield,
-    insert_score_event,
-    insert_score_event_at_sample,
-    csoundPerformKsmpsInternal,
-    /* utilities */
-    csoundAddUtility,
-    csoundRunUtility,
-    csoundListUtilities,
-    csoundSetUtilityDescription,
-    csoundGetUtilityDescription,
-    set_util_sr,
-    set_util_nchnls,
     /* miscellaneous */
+    csoundPow2,
     csoundRunCommand,
     csoundOpenLibrary,
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-    cs_strtok_r,
-    cs_strtod,
-    cs_sprintf,
-    cs_sscanf,
     csoundSystemSr,
-    csoundGetScoreOffsetSeconds,
-    csoundSetScoreOffsetSeconds,
-    csoundRewindScore,
-    csoundInputMessageInternal,
-    isstrcod,
-    csoundRealFFT2Setup,
-    csoundRealFFT2,
-    fterror,
-    csoundGetA4,
-    csoundAuxAllocAsync,
-    csoundGetHostData,
-    strNcpy,
-    csoundGetZaBounds,
-    find_opcode_new,
-    find_opcode_exact,
-    csoundGetChannelPtr,
-    csoundListChannels,
-    csoundErrCnt,
-    csoundFTnp2Finde,
-    csoundGetInstrument,
-    csoundAutoCorrelation,
-    csoundLPsetup,
-    csoundLPfree,
-    csoundLPred,
-    csoundLPCeps,
-    csoundCepsLP,
-    csoundLPrms,
-    csoundCreateThread2,
-    cs_hash_table_create,
-    cs_hash_table_get,
-    cs_hash_table_put,
-    cs_hash_table_remove,
-    cs_hash_table_free,
-    cs_hash_table_get_key,
-    cs_hash_table_keys,
-    cs_hash_table_values,
-    csoundPeekCircularBuffer,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL
@@ -2220,35 +2155,6 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     return 0;
 }
 
-static int csoundPerformKsmpsInternal(CSOUND *csound)
-{
-    int done;
-    int returnValue;
-
-    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called\n"));
-      return CSOUND_ERROR;
-    }
-    /* setup jmp for return after an exit() */
-        if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
-      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
-#endif
-      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-   do {
-     if (UNLIKELY((done = sensevents(csound)))) {
-       csoundMessage(csound,
-                     Str("Score finished in csoundPerformKsmpsInternal().\n"));
-        return done;
-      }
-    } while (csound->kperf(csound));
-    return 0;
-}
-
 /* external host's outbuffer passed in csoundPerformBuffer() */
 PUBLIC int csoundPerformBuffer(CSOUND *csound)
 {
@@ -3856,7 +3762,7 @@ PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
 
 /* csoundNotifyFileOpened() should be called by plugins via
    csound->NotifyFileOpened() to let Csound know that they opened a file
-   without using one of the standard mechanisms (csound->FileOpen2() or
+   without using one of the standard mechanisms (csound->FileOpen() or
    ldmemfile2withCB()).  The notification is passed on to the host if it
    has set the FileOpen callback. */
 void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
@@ -4214,94 +4120,7 @@ MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n)
             * ((OPDS*) p)->insdshead->csound->onedkr);
 }
 
-/**
- * Returns MIDI channel number (0 to 15) for the instrument instance
- * that called opcode 'p'.
- * In the case of score notes, -1 is returned.
- */
-int csoundGetMidiChannelNumber(void *p)
-{
-    MCHNBLK *chn = ((OPDS*) p)->insdshead->m_chnbp;
-    int     i;
-    if (chn == NULL)
-      return -1;
-    for (i = 0; i < 256; i++) {
-      if (chn == ((OPDS*) p)->insdshead->csound->m_chnbp[i])
-        return i;
-    }
-    return -1;
-}
 
-/**
- * Returns a pointer to the MIDI channel structure for the instrument
- * instance that called opcode 'p'.
- * In the case of score notes, NULL is returned.
- */
-MCHNBLK *csoundGetMidiChannel(void *p)
-{
-    return ((OPDS*) p)->insdshead->m_chnbp;
-}
-
-/**
- * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiNoteNumber(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->m_pitch;
-}
-
-/**
- * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiVelocity(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->m_veloc;
-}
-
-/**
- * Returns non-zero if the current note (owning opcode 'p') is releasing.
- */
-int csoundGetReleaseFlag(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->relesing;
-}
-
-/**
- * Returns the note-off time in seconds (measured from the beginning of
- * performance) of the current instrument instance, from which opcode 'p'
- * was called. The return value may be negative if the note has indefinite
- * duration.
- */
-double csoundGetOffTime(void *p)
-{
-    return (double) ((OPDS*) p)->insdshead->offtim;
-}
-
-/**
- * Returns the array of p-fields passed to the instrument instance
- * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
- * guaranteed to be available. p2 is measured in seconds from the
- * beginning of the current section.
- */
-MYFLT *csoundGetPFields(void *p)
-{
-
-    /* FIXME - this is no longer valid, should return CS_VAR_MEM*
-       and use ->p0_type */
-    return (MYFLT*) &(((OPDS*) p)->insdshead->p0);
-}
-
-/**
- * Returns the instrument number (p1) for opcode 'p'.
- */
-int csoundGetInstrumentNumber(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->p1.value;
-}
 
 typedef struct csMsgStruct_ {
   struct csMsgStruct_  *nxt;

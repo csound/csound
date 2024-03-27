@@ -92,7 +92,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
-    MYFLT scal = FL(32768.0)/csound->e0dbfs;
+    MYFLT scal = FL(32768.0)/csound->Get0dBFS(csound);
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -120,17 +120,17 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
         p->kneemul = FL(1.0);
     }
     if (*p->katt != p->curatt) {
-      if ((p->curatt = *p->katt) < csound->onedsr)
+      if ((p->curatt = *p->katt) < CS_ONEDSR)
         p->c2 = 0.0;
       else
-        p->c2 = pow(0.5, csound->onedsr / p->curatt);
+        p->c2 = pow(0.5, CS_ONEDSR / p->curatt);
       p->c1 = 1.0 - p->c2;
     }
     if (*p->krls != p->currls) {
-      if ((p->currls = *p->krls) < csound->onedsr)
+      if ((p->currls = *p->krls) < CS_ONEDSR)
         p->d2 = 0.0;
       else
-        p->d2 = pow(0.5, csound->onedsr / p->currls);
+        p->d2 = pow(0.5, CS_ONEDSR / p->currls);
       p->d1 = 1.0 - p->d2;
     }
     ar = p->ar;
@@ -213,10 +213,10 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((double) (*p->ihp * csound->tpidsr)); /*  and rms coefs */
+    b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
-    p->min_rms = csound->e0dbfs * DV32768;
+    p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor) {
       p->prvq = FL(0.0);
       p->prvd = FL(1000.0) * p->min_rms;

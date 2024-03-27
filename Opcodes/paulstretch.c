@@ -59,6 +59,7 @@ typedef struct {
     AUXCH m_hinv_buf;
     AUXCH m_output;
     AUXCH m_tmp;
+    void *setup, *isetup;
 } PAULSTRETCH;
 
 static void compute_block(CSOUND *csound, PAULSTRETCH *p)
@@ -85,7 +86,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     /* re-order bins and take FFT */
     tmp[p->windowsize] = tmp[1];
     tmp[p->windowsize + 1] = FL(0.0);
-    csoundRealFFTnp2(csound, tmp, p->windowsize);
+    csound->RealFFT(csound, p->setup, tmp);
 
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
@@ -106,7 +107,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 
     /* re-order bins and take inverse FFT */
     tmp[1] = tmp[p->windowsize];
-    csoundInverseRealFFTnp2(csound, tmp, p->windowsize);
+    csound->RealFFT(csound, p->isetup, tmp);
 
     /* apply window and overlap */
     for (i = 0; i < windowsize; i++) {
@@ -170,7 +171,8 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     }
     p->start_pos = FL(0.0);
     p->counter = 0;
-
+    p->setup = csound->RealFFTSetup(csound, p->windowsize, FFT_FWD);
+    p->isetup = csound->RealFFTSetup(csound, p->windowsize, FFT_INV);
     return OK;
 }
 

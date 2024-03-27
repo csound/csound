@@ -1,5 +1,5 @@
 /*
-    xtrct.c
+    xtrct.c!
 
     Copyright (C) 1995 John ffitch
 
@@ -275,7 +275,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     xtrc.outputs = xtrc.p->nchanls;
 
     O.outformat = xtrc.p->format; /* Copy from input file */
-    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+    O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     O.filetyp = xtrc.p->filetyp; /* Copy from input file */
     O.sfheader = 1;
     if (O.outfilename == NULL)
@@ -302,9 +302,9 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
       }
     }
     else
-      fd = csound->FileOpen2(csound, &outfd, CSFILE_SND_W,
+      fd = csound->FileOpen(csound, &outfd, CSFILE_SND_W,
                        O.outfilename, &sfinfo, "SFDIR",
-                       csound->type2csfiletype(O.filetyp, O.outformat), 0);
+                       csound->Type2CsfileType(O.filetyp, O.outformat), 0);
     if (UNLIKELY(fd == NULL))
       csound->Die(csound, Str("Failed to open output file %s: %s"),
                   O.outfilename, Str(sflib_strerror(NULL)));
@@ -325,7 +325,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     x->p->channel = ALLCHNLS;
     x->p->skiptime = FL(0.0);
     strNcpy(x->p->sfname, name,  MAXSNDNAME-1);
-    if ((infd = csound->sndgetset(csound, x->p)) == 0) /*open sndfil, do skiptime*/
+    if ((infd = csound->SndInputOpen(csound, x->p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     x->p->getframes = x->p->framesrem;
     dur = (MYFLT) x->p->getframes / x->p->sr;

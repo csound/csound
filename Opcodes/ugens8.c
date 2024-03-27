@@ -49,9 +49,9 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
     p->pp = PVOC_GetGlobals(csound);
 
      if (stringname==0){
-      if (csound->ISSTRCOD(*p->ifilno))
+      if (csound->IsStringCode(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
@@ -129,6 +129,7 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
 
+    p->setup = csound->RealFFTSetup(csound, pvfrsiz(p), FFT_INV);
     return OK;
 }
 
@@ -189,7 +190,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
      }
 
-    Polar2Real_PVOC(csound, buf, size);
+    Polar2Real_PVOC(csound, buf, p->setup);
 
     if (pex != FL(1.0))
       UDSample(p->pp, buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),
