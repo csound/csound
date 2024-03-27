@@ -78,3 +78,27 @@ You can pass in default arguments to the csound instance by right-clicking on "c
 ### Profiling
 
 Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
+
+## Compiling Csound with MSVC on Windows
+
+### Instructions
+
+1. Install chocolatey by running the following in powershell as administrator:
+
+```powershell
+.\system-dependencies.ps1
+```
+
+2. Install required dependencies:
+
+```powershell
+.\dependencies.ps1
+```
+
+2. Build csound from base dir:
+
+```powershell
+cd csound
+.\platform\windows\build_release.ps1
+.\platform\windows\build_debug.ps1
+```
