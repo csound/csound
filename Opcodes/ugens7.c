@@ -103,8 +103,7 @@ static int32_t fofset2(CSOUND *csound, FOFS *p)
 {
   return fofset0(csound, p, 0);
 }
-#define CS_SICVT csound->sicvt
-#define CS_ONEDSR csound->onedsr
+
 
 static int32_t fof(CSOUND *csound, FOFS *p)
 {

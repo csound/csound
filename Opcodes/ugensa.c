@@ -97,9 +97,6 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
   return OK;
 }
 
-#define CS_SICVT csound->sicvt
-#define CS_ONEDSR csound->onedsr
-
 static int32_t fog(CSOUND *csound, FOGS *p)
 {
   OVERLAP *ovp;

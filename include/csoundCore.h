@@ -105,6 +105,8 @@ typedef struct {
 #define CSFILE_SND_R    4
 #define CSFILE_SND_W    5
 
+#define IS_POW_TWO(N) ((N != 0) ? !(N & (N - 1)) : 0)
+
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)
@@ -605,6 +607,12 @@ typedef struct CORFIL {
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
+
+#define CS_SICVT (csound->sicvt)
+#define CS_ONEDSR (csound->onedsr)
+
+#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+  
   typedef int (*SUBR)(CSOUND *, void *);
 
   /**
