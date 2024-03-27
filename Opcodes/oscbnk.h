@@ -124,7 +124,7 @@ typedef struct {
         MYFLT   grain_frq, frq_scl;     /* grain frequency              */
         MYFLT   *wft, wft_pfrac;        /* window table                 */
         uint32   wft_lobits, wft_mask;
-  int32   floatph, wflen;
+        int32   floatph, wflen;
         AUXCH   auxdata;
         GRAIN2_OSC      *osc;           /* oscillator array             */
 } GRAIN2;
@@ -148,11 +148,13 @@ typedef struct {
         int32_t     p_rnd_mode, pm_wrap;    /* random distribution (phase)  */
         MYFLT   p_rnd_pow;
         uint32   grain_frq;      /* grain frequency              */
-        MYFLT   frq_scl;
+         MYFLT   frq_scl, grain_frqf;
         MYFLT   phs0;                   /* prev. kphs value for interp. */
         uint32   x_phs;
         MYFLT   *wft, wft_pfrac;        /* window table                 */
         uint32   wft_lobits, wft_mask;
+  int32   wflen, floatph;
+        double  x_phsf, *phasef;
         AUXCH   auxdata;
         uint32   *phase;         /* grain phase offset           */
         GRAIN2_OSC      *osc;           /* oscillator array             */
