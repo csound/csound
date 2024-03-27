@@ -504,4 +504,20 @@ int32_t coef2parm(CSOUND *csound, void *p);
 int32_t resonbnk_init(CSOUND *csound, void *p);
 int32_t resonbnk(CSOUND *csound, void *p);
 int32_t schedule_array(CSOUND *csound, void *p);
+int32_t posc_set(CSOUND *csound, void *p);
+int32_t posckk(CSOUND *csound, void *p);
+int32_t poscaa(CSOUND *csound, void *p);
+int32_t poscka(CSOUND *csound, void *p);
+int32_t poscak(CSOUND *csound,void *p);
+int32_t kposc(CSOUND *csound, void *p);
+int32_t posc3kk(CSOUND *csound, void *p);
+int32_t posc3ak(CSOUND *csound, void *p);
+int32_t posc3ka(CSOUND *csound, void *p);
+int32_t posc3aa(CSOUND *csound, void *p);
+int32_t kposc3(CSOUND *csound, void *p);
+int32_t lposc_set(CSOUND *csound, void *p);
+int32_t lposc(CSOUND *csound, void *p);
+int32_t lposc3(CSOUND *csound, void *p);
+int32_t lposca(CSOUND *csound, LPOSC *p);
+
 

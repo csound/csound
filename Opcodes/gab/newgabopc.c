@@ -113,69 +113,9 @@ static int32_t inRange(CSOUND *csound, INRANGE *p)
 
 }
 
-#include "Opcodes/uggab.h"
 
-static int32_t lposc_set(CSOUND *csound, LPOSC *p)
-{
-    FUNC *ftp;
-    MYFLT  loop, end, looplength;
-    if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
-      return csound->InitError(csound, Str("invalid function"));
-    if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))){
-       csound->Message(csound,
-                       Str("lposc: no sample rate stored in function;"
-                           " assuming=sr\n"));
-       p->fsr=CS_ESR;
-    }
-    p->ftp    = ftp;
-    p->tablen = ftp->flen;
-    /* changed from
-       p->phs    = *p->iphs * p->tablen;   */
 
-    if ((loop = *p->kloop) < 0) loop=FL(0.0);
-    if ((end = *p->kend) > p->tablen || end <=0 ) end = (MYFLT)p->tablen;
-    looplength = end - loop;
 
-    if (*p->iphs >= 0)
-      p->phs = *p->iphs;
-    while (p->phs >= end)
-      p->phs -= looplength;
-    return OK;
-}
-
-static int32_t lposca(CSOUND *csound, LPOSC *p)
-{
-    double  *phs= &p->phs;
-    double  si= *p->freq * (p->fsr/CS_ESR);
-    MYFLT   *out = p->out,  *amp=p->amp;
-    MYFLT   *ft =  p->ftp->ftable, *curr_samp;
-    MYFLT   fract;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32   loop, end, looplength /* = p->looplength */ ;
-
-    if ((loop = (int64_t) *p->kloop) < 0) loop=0;/* gab */
-    else if (loop > p->tablen-3) loop = p->tablen-3;
-    if ((end = (int64_t) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
-    else if (end <= 2) end = 2;
-    if (end < loop+2) end = loop + 2;
-    looplength = end - loop;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      curr_samp= ft + (int64_t)*phs;
-      fract= (MYFLT)(*phs - (int64_t)*phs);
-      out[n] = amp[n] * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      *phs += si;
-      while (*phs  >= end) *phs -= looplength;
-      while (*phs  < loop) *phs += looplength;
-    }
-    return OK;
-}
 
 /* -------------------------------------------------------------------- */
 
@@ -301,7 +241,10 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 /* -------------------------------------------------------------------- */
 
 #include "vectorial.h"
-
+#define oneUp31Bit      (4.656612875245796924105750827168e-10)
+#define randGab   (MYFLT) ((double)                                       \
+        (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
+         & 0x7fffffff) * oneUp31Bit)
 typedef struct  {       /* gab d5*/
         OPDS    h;
         MYFLT   *out, *ktrig, *min, *max;
@@ -356,8 +299,6 @@ static OENTRY localops[] = {
                   (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
   { "trandom",        S(TRANGERAND),          0,    2,  "k", "kkk",
                     NULL,                                   (SUBR)trRangeRand },
-  { "lposcila", S(LPOSC),      TR, 3, "a", "akkkio",
-                                           (SUBR)lposc_set, (SUBR)lposca},
   { "lposcilsa", S(LPOSC_ST),  TR, 3, "aa","akkkio",
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
   { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
