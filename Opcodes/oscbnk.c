@@ -177,7 +177,26 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     MYFLT   lfo1val = FL(0.0), lfo2val = FL(0.0);
 
     /* lfo1val = LFO1 output, lfo2val = LFO2 output */
-
+    if(p->floatph) {
+    if (p->ilfomode & 0xF0) {
+      MYFLT frac, pos = o->LFO1phsf*p->flen1;
+      n = (int) pos;
+      frac = pos - n;
+      lfo1val = p->l1t[n] + frac*(p->l1t[n+1] - p->l1t[n+1]); 
+      /* update phase */
+      f = o->LFO1frq * p->lf1_scl + p->lf1_ofs;
+      o->LFO1phsf = PHMOD1(o->LFO1phsf + f);
+    }
+    if (p->ilfomode & 0x0F) {                       /* LFO 2 */
+      MYFLT frac, pos = o->LFO2phsf*p->flen2;
+      n = (int) pos;
+      frac = pos - n;
+      lfo2val = p->l2t[n] + frac*(p->l2t[n+1] - p->l2t[n+1]); 
+      /* update phase */
+      f = o->LFO2frq * p->lf2_scl + p->lf2_ofs;
+      o->LFO2phsf = PHMOD1(o->LFO2phsf + f);
+    }
+    } else {  
     if (p->ilfomode & 0xF0) {                       /* LFO 1 */
       n = o->LFO1phs >> p->l1t_lobits; lfo1val = p->l1t[n++];
       lfo1val += (p->l1t[n] - lfo1val)
@@ -194,6 +213,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
       /* update phase */
       f = o->LFO2frq * p->lf2_scl + p->lf2_ofs;
       o->LFO2phs = (o->LFO2phs + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
+    }
     }
 
     /* modulate phase, frequency, and amplitude */
@@ -303,10 +323,11 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     /* set up ftables */
 
     if (p->ilfomode & 0xF0) {
-      ftp = csound->FTFind(csound, p->args[20]);    /* LFO 1 */
+      ftp = csound->FTnp2Find(csound, p->args[20]);    /* LFO 1 */
       if ((ftp == NULL) || ((p->l1t = ftp->ftable) == NULL)) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->l1t_mask), &(p->l1t_lobits),
                          &(p->l1t_pfrac));
+      p->flen1 = ftp->flen;
     }
     else {
       p->l1t = NULL;          /* LFO1 not used */
@@ -314,11 +335,12 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     }
 
     if (p->ilfomode & 0x0F) {
-      ftp = csound->FTFind(csound, p->args[21]);    /* LFO 2 */
+      ftp = csound->FTnp2Find(csound, p->args[21]);    /* LFO 2 */
       if (UNLIKELY((ftp == NULL) || ((p->l2t = ftp->ftable) == NULL)))
         return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->l2t_mask), &(p->l2t_lobits),
                          &(p->l2t_pfrac));
+      p->flen2 = ftp->flen;
     }
     else {
       p->l2t = NULL;          /* LFO2 not used */
@@ -326,17 +348,17 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     }
 
     if (p->ieqmode >= 0) {
-      ftp = csound->FTFind(csound, p->args[22]);    /* EQ frequency */
+      ftp = csound->FTnp2Find(csound, p->args[22]);    /* EQ frequency */
       if (UNLIKELY((ftp == NULL) || ((p->eqft = ftp->ftable) == NULL)))
         return NOTOK;
       p->eqft_len = ftp->flen;
 
-      ftp = csound->FTFind(csound, p->args[23]);    /* EQ level */
+      ftp = csound->FTnp2Find(csound, p->args[23]);    /* EQ level */
       if (UNLIKELY((ftp == NULL) || ((p->eqlt = ftp->ftable) == NULL)))
         return NOTOK;
       p->eqlt_len = ftp->flen;
 
-      ftp = csound->FTFind(csound, p->args[24]);    /* EQ Q */
+      ftp = csound->FTnp2Find(csound, p->args[24]);    /* EQ Q */
       if (UNLIKELY((ftp == NULL) || ((p->eqqt = ftp->ftable) == NULL)))
         return NOTOK;
       p->eqqt_len = ftp->flen;
@@ -347,7 +369,7 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     }
 
     if (*(p->args[25]) >= FL(1.0)) {        /* parameter table */
-      ftp = csound->FTFind(csound, p->args[25]);
+      ftp = csound->FTnp2Find(csound, p->args[25]);
       if (UNLIKELY((ftp == NULL) || ((p->tabl = ftp->ftable) == NULL)))
         return NOTOK;
       p->tabl_len = ftp->flen;
@@ -358,7 +380,7 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
     p->tabl_cnt = 0L;   /* table ptr. */
 
     if (*(p->args[26]) >= FL(1.0)) {        /* output table */
-      ftp = csound->FTFind(csound, p->args[26]);
+      ftp = csound->FTnp2Find(csound, p->args[26]);
       if (UNLIKELY((ftp == NULL) || ((p->outft = ftp->ftable) == NULL)))
         return NOTOK;
       p->outft_len = ftp->flen;
@@ -377,17 +399,22 @@ static int32_t oscbnkset(CSOUND *csound, OSCBNK *p)
 
     memset(p->outft, 0, p->outft_len*sizeof(MYFLT));
 
+    p->floatph = (!IS_POW_TWO(p->flen1)) | (!IS_POW_TWO(p->flen2)); 
     /* initialise oscillators */
 
     for (i = 0; i < (uint32_t)p->nr_osc; i++) {
       /* oscillator phase */
-      x = oscbnk_rand(p); p->osc[i].osc_phs = OSCBNK_PHS2INT(x);
+      x = oscbnk_rand(p);
+      p->osc[i].osc_phsf = x;
+      p->osc[i].osc_phs = OSCBNK_PHS2INT(x);
       /* LFO1 phase */
-      x = oscbnk_rand(p); p->osc[i].LFO1phs = OSCBNK_PHS2INT(x);
+      p->osc[i].LFO1phsf = x;
+      p->osc[i].LFO1phs = OSCBNK_PHS2INT(x);
       /* LFO1 frequency */
       p->osc[i].LFO1frq = oscbnk_rand(p);
       /* LFO2 phase */
-      x = oscbnk_rand(p); p->osc[i].LFO2phs = OSCBNK_PHS2INT(x);
+      p->osc[i].LFO2phsf = x;
+      p->osc[i].LFO2phs = OSCBNK_PHS2INT(x);     
       /* LFO2 frequency */
       p->osc[i].LFO2frq = oscbnk_rand(p);
       /* EQ data */
@@ -407,8 +434,8 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     int32_t osc_cnt, pm_enabled, am_enabled;
     FUNC    *ftp;
     MYFLT   *ft;
-    uint32  n, lobits, mask, ph, f_i;
-    MYFLT   pfrac, pm, a, f, a1, a2, b0, b1, b2;
+    uint32  n, lobits, mask, ph, f_i, flen;
+    MYFLT   pfrac, pm, a, f, a1, a2, b0, b1, b2, phf;
     MYFLT   k, a_d = FL(0.0), a1_d = FL(0.0), a2_d = FL(0.0),
               b0_d = FL(0.0), b1_d = FL(0.0), b2_d = FL(0.0);
     MYFLT   yn, xnm1 = FL(0.0), xnm2 = FL(0.0), ynm1 = FL(0.0), ynm2 = FL(0.0);
@@ -416,6 +443,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
+    int32_t floatph;
 
     /* clear output signal */
     memset(p->args[0], '\0', nsmps*sizeof(MYFLT));
@@ -426,12 +454,13 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     else if (UNLIKELY((p->seed == 0L) || (p->osc == NULL))) goto err1;
 
     /* check oscillator ftable */
-
     ftp = csound->FTFindP(csound, p->args[19]);
     if (UNLIKELY((ftp == NULL) || ((ft = ftp->ftable) == NULL)))
       return NOTOK;
     oscbnk_flen_setup(ftp->flen, &(mask), &(lobits), &(pfrac));
-
+    flen = ftp->flen;
+    floatph = !(IS_POW_TWO(flen));
+ 
     /* some constants */
     pm_enabled = (p->ilfomode & 0x22 ? 1 : 0);
     am_enabled = (p->ilfomode & 0x44 ? 1 : 0);
@@ -455,11 +484,13 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     if (UNLIKELY(early)) nsmps -= early;
     for (osc_cnt = 0, o = p->osc; osc_cnt < p->nr_osc; osc_cnt++, o++) {
       if (p->init_k) oscbnk_lfo(p, o);
-      ph = o->osc_phs;                        /* phase        */
+      ph = o->osc_phs;   /* phase        */
+      phf = o->osc_phsf;
       pm = o->osc_phm;                        /* phase mod.   */
       if ((p->init_k) && (pm_enabled)) {
         f = pm - (MYFLT) ((int32) pm);
-        ph = (ph + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
+        if(floatph) phf = PHMOD1(phf + f);
+        else ph = (ph + OSCBNK_PHS2INT(f)) & OSCBNK_PHSMSK;
       }
       a = o->osc_amp;                         /* amplitude    */
       f = o->osc_frq;                         /* frequency    */
@@ -476,14 +507,24 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
         /* oscillator */
         for (nn = offset; nn < nsmps; nn++) {
           /* read from table */
+          if(floatph) {
+            MYFLT frac;
+            MYFLT pos = phf*flen;
+            n = (int) pos;
+            frac = pos - n;
+            k = ft[n] + frac*(ft[n+1] - ft[n]);
+            phf = PHMOD1(phf + f);
+          } else {
           n = ph >> lobits; k = ft[n++];
           k += (ft[n] - k) * (MYFLT) ((int32) (ph & mask)) * pfrac;
+          /* update phase */
+          ph = (ph + f_i) & OSCBNK_PHSMSK;
+          }
           /* amplitude modulation */
           if (am_enabled) k *= (a += a_d);
           /* mix to output */
           p->args[0][nn] += k;
-          /* update phase */
-          ph = (ph + f_i) & OSCBNK_PHSMSK;
+
         }
       }
       else {                        /* EQ enabled */
@@ -512,8 +553,19 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
             a1 += a1_d; a2 += a2_d;
             b0 += b0_d; b1 += b1_d; b2 += b2_d;
             /* read from table */
+            if(floatph) {
+            MYFLT frac;
+            MYFLT pos = phf*flen;
+            n = (int) pos;
+            frac = pos - n;
+            k = ft[n] + frac*(ft[n+1] - ft[n]);
+            phf = PHMOD1(phf + f);
+          } else {
             n = ph >> lobits; k = ft[n++];
             k += (ft[n] - k) * (MYFLT) ((int32) (ph & mask)) * pfrac;
+            /* update phase */
+            ph = (ph + f_i) & OSCBNK_PHSMSK;
+            }
             /* amplitude modulation */
             if (am_enabled) k *= (a += a_d);
             /* EQ */
@@ -528,8 +580,6 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
             p->args[0][nn] += yn;
             //if (p->args[0][nn]>1)
             //  printf("**** (%d) out%d = %f\n", __LINE__, nn, p->args[0][nn]);
-            /* update phase */
-            ph = (ph + f_i) & OSCBNK_PHSMSK;
           }
           /* save EQ coeffs */
           o->a1 = a1; o->a2 = a2;
@@ -541,8 +591,19 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
           b0 = o->b0; b1 = o->b1; b2 = o->b2;
           for (nn = offset; nn < nsmps; nn++) {
             /* read from table */
+           if(floatph) {
+            MYFLT frac;
+            MYFLT pos = phf*flen;
+            n = (int) pos;
+            frac = pos - n;
+            k = ft[n] + frac*(ft[n+1] - ft[n]);
+            phf = PHMOD1(phf + f);
+          } else {            
             n = ph >> lobits; k = ft[n++];
             k += (ft[n] - k) * (MYFLT) ((int32) (ph & mask)) * pfrac;
+            /* update phase */
+            ph = (ph + f_i) & OSCBNK_PHSMSK;
+           }
             /* amplitude modulation */
             if (am_enabled) k *= (a += a_d);
             /* EQ */
@@ -550,8 +611,6 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
             yn -= a2 * ynm2; yn -= a1 * (ynm2 = ynm1); ynm1 = yn;
             /* mix to output */
             p->args[0][nn] += yn;
-            /* update phase */
-            ph = (ph + f_i) & OSCBNK_PHSMSK;
           }
           /* save EQ coeffs */
           o->a1 = a1; o->a2 = a2;

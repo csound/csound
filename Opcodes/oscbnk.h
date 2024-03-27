@@ -62,6 +62,7 @@ typedef struct {
         MYFLT   osc_frq, osc_amp;       /* osc. freq. / sr, amplitude   */
         MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
         MYFLT   a1, a2, b0, b1, b2;     /* EQ coeffs saved for interp.  */
+        MYFLT   osc_phsf, LFO1phsf, LFO2phsf;
 } OSCBNK_OSC;
 
 typedef struct {
@@ -93,6 +94,7 @@ typedef struct {
         MYFLT   *outft;                 /* parameter output table       */
         int32    outft_len;              /* (optional)                   */
         int32    tabl_cnt;               /* current param in table       */
+        int32    floatph, flen1, flen2;
         AUXCH   auxdata;
         OSCBNK_OSC      *osc;           /* oscillator array             */
 } OSCBNK;
