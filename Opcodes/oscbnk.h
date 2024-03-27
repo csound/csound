@@ -62,7 +62,7 @@ typedef struct {
         MYFLT   osc_frq, osc_amp;       /* osc. freq. / sr, amplitude   */
         MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
         MYFLT   a1, a2, b0, b1, b2;     /* EQ coeffs saved for interp.  */
-        MYFLT   osc_phsf, LFO1phsf, LFO2phsf;
+        double  osc_phsf, LFO1phsf, LFO2phsf;
 } OSCBNK_OSC;
 
 typedef struct {
@@ -106,6 +106,7 @@ typedef struct {
         uint32   grain_frq_int;  /* grain frequency (integer)    */
         MYFLT           grain_frq_flt;  /* grain frequency (float)      */
         uint32   window_phs;     /* window phase                 */
+        MYFLT    grain_frq, grain_phsf, window_phsf; 
 } GRAIN2_OSC;
 
 typedef struct {
@@ -123,6 +124,7 @@ typedef struct {
         MYFLT   grain_frq, frq_scl;     /* grain frequency              */
         MYFLT   *wft, wft_pfrac;        /* window table                 */
         uint32   wft_lobits, wft_mask;
+  int32   floatph, wflen;
         AUXCH   auxdata;
         GRAIN2_OSC      *osc;           /* oscillator array             */
 } GRAIN2;
