@@ -1390,6 +1390,58 @@ OENTRY opcodlst_1[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
   (SUBR)islider32bit14, NULL, NULL  },
+{ "slider8table", S(SLIDER8t), 0, 3, "k",  "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
+{ "slider16table", S(SLIDER8t), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
+{ "slider32table", S(SLIDER8t), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
+{ "slider64table", S(SLIDER8t), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
+{ "slider8tablef", S(SLIDER8tf), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
+{ "slider16tablef",S(SLIDER16tf), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
+{ "slider32tablef",S(SLIDER32tf), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
+{ "slider64tablef",S(SLIDER64tf), 0, 3, "k", "iii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
+{ "sliderKawai", S(SLIDERKAWAI),  0, 3, "kkkkkkkkkkkkkkkk",
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
+{ "ctrl7.a", S(CTRL7a),  0, 3, "a",    "iikkoo",
+  (SUBR) ctrl7a_set,    (SUBR) ctrl7a },
   { "cpuprc", S(CPU_PERC),0, 1,     "",     "Si",   (SUBR)cpuperc_S, NULL, NULL   },
 { "maxalloc", S(CPU_PERC),0, 1,   "",     "Si",   (SUBR)maxalloc_S, NULL, NULL  },
 { "cpuprc", S(CPU_PERC),0, 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },

@@ -331,7 +331,6 @@ int32_t newgabopc_ModuleInit(CSOUND *csound)
         int32_t               err = 0;
         err |= hvs_init_(csound);
         err |= newgabopc_init_(csound);
-        err |= slidertable_init_(csound);
         err |= tabmorph_init_(csound);
         /*      err |= rbatonopc_init_(csound); */
 

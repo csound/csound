@@ -770,7 +770,6 @@ set(libcsound_SRCS
     Opcodes/bowedbar.c
     Opcodes/gab/tabmorph.c
     Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
     Opcodes/ftest.c
     Opcodes/hrtfearly.c
