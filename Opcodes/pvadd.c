@@ -71,9 +71,10 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
     int32     memsize;
 
     //if (*p->ifn > FL(0.0))
-      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
         return NOTOK;
     p->ftp = ftp;
+    p->floatph = !IS_POW_TWO(ftp->flen);
 
     if (*p->igatefun > FL(0.0))
       if (UNLIKELY((AmpGateFunc = csound->FTnp2Finde(csound, p->igatefun)) == NULL))
@@ -143,10 +144,10 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   amp, frq, v1, fract, *oscphase;
+    MYFLT   amp, frq, v1, fract, *oscphase, phasef, incrf;
     int32    phase, incr;
     FUNC    *ftp;
-    int32    lobits;
+    int32    lobits, floatph = p->floatph;
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     ftp = p->ftp;
@@ -176,23 +177,31 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
       phase = (int32) *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
       if (p->buf[i * 2 + 1] == FL(0.0) || frq >= CS_ESR * FL(0.5)) {
-        incr = 0;               /* Hope then does not matter */
+        incr = incrf = 0;               /* Hope then does not matter */
         amp = FL(0.0);
       }
       else {
-        MYFLT tmp = frq * csound->sicvt;
-        incr = (int32) MYFLT2LONG(tmp);
+        if(floatph) incrf = frq * CS_ONEDSR;
+        else incr = (int32) MYFLT2LONG(frq * CS_SICVT);
         amp = p->buf[i * 2];
       }
       for (n=offset;n<nsmps;n++) {
+        if(!floatph) {
         fract = PFRAC(phase);
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         ar[n] += (v1 + (*ftab - v1) * fract) * amp;
         phase += incr;
         phase &= PHMASK;
+        } else {
+          MYFLT pos = phasef * ftp->flen;
+          MYFLT frac = pos - (int32_t) pos;
+          v1 = *ftab++;
+          ar[n] += (v1 + (*ftab - v1) * frac) * amp;
+          phasef = PHMOD1(phasef + incrf);
+        }
       }
-      *oscphase = (MYFLT) phase;
+      *oscphase = floatph ? phasef : (MYFLT) phase;
       oscphase++;
     }
     return OK;
