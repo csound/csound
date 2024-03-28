@@ -1006,34 +1006,48 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
                                Str("specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
-    if (UNLIKELY((ftp=csound->FTFind(csound, p->ifscale)) == NULL)) {
+    if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifscale)) == NULL)) {
       /* if fscale given,        */
       return csound->InitError(csound, Str("missing fscale table"));
     }
     else {
+      int32_t floatph = !IS_POW_TWO(ftp->flen);
       int32_t nn; // = npts;
       int32_t phs = 0;
       int32_t inc = (int32_t)PHMASK / npts;
       int32_t lobits = ftp->lobits;
+      MYFLT incf = ((MYFLT)ftp->flen)/npts, phsf = FL(0.0);
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fscale;
       for (nn=0;nn<npts;nn++) {
-        flp[nn] = *(ftable + (phs >> lobits));   /*  sample into scale area */
+        if(floatph) {
+          flp[nn] = ftable[(int32_t) phsf];
+          phsf += incf;
+        } else {
+          flp[nn] = *(ftable + (phs >> lobits));   /*  sample into scale area */
         phs += inc;
+          }
       }
     }
     if ((p->thresh = (int32_t)*p->ifthresh) &&
-        (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
+        (ftp=csound->FTnp2Find(csound, p->ifthresh)) != NULL) {
       /* if fthresh given,       */
+      int32_t floatph = !IS_POW_TWO(ftp->flen);
       int32_t nn; // = npts;
       int32_t phs = 0;
       int32_t inc = (int32_t)PHMASK / npts;
       int32_t lobits = ftp->lobits;
+      MYFLT incf = ((MYFLT)ftp->flen)/npts, phsf = FL(0.0);
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->fthresh;
       for (nn=0;nn<npts;nn++) {
+                if(floatph) {
+          flp[nn] = ftable[(int32_t) phsf];
+          phsf += incf;
+                } else {
         flp[nn] = *(ftable + (phs >> lobits));   /*  sample into thresh area */
         phs += inc;
+                }
       }
     }
     else p->thresh = 0;
@@ -1162,15 +1176,22 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
       return csound->InitError(csound, Str("missing htim ftable"));
     }
     {
+            int32_t floatph = !IS_POW_TWO(ftp->flen);
       int32_t nn;
       int32_t phs = 0;
       int32_t inc = (int32_t)PHMASK / npts;
       int32_t lobits = ftp->lobits;
+            MYFLT incf = ((MYFLT)ftp->flen)/npts, phsf = FL(0.0);
       MYFLT *ftable = ftp->ftable;
       MYFLT *flp = p->coefs;
       for (nn=0;nn<npts;nn++) {
+                if(floatph) {
+          flp[nn] = ftable[(int32_t) phsf];
+          phsf += incf;
+        } else {
         flp[nn] = *(ftable + (phs >> lobits));    /*  sample into coefs area */
         phs += inc;
+                }
       }
     }
     {
