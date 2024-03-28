@@ -196,6 +196,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
         } else {
           MYFLT pos = phasef * ftp->flen;
           MYFLT frac = pos - (int32_t) pos;
+          ftab = ftp->ftable + (int32_t) pos;
           v1 = *ftab++;
           ar[n] += (v1 + (*ftab - v1) * frac) * amp;
           phasef = PHMOD1(phasef + incrf);
