@@ -109,8 +109,9 @@ typedef struct {
         MYFLT   *rslt, *xamp, *irise, *idur, *idec, *ifn, *iatss;
         MYFLT   *iatdec, *ixmod;
         int32   phs, ki, cnt1;
-        double  val, mlt1, mlt2, asym;
+  double  val, mlt1, mlt2, asym, phsf, kif;
         FUNC    *ftp;
+  int32  floatph;
 } ENVLPX;
 
 typedef struct {
@@ -118,8 +119,9 @@ typedef struct {
         MYFLT   *rslt, *xamp, *irise, *idec, *ifn, *iatss, *iatdec;
         MYFLT   *ixmod, *irind;
         int32   phs, ki, rlsing, rlscnt, rindep;
-        double  val, mlt1, mlt2, asym, atdec;
+  double  val, mlt1, mlt2, asym, atdec, kif, phsf;
         FUNC    *ftp;
+    int32  floatph;
 } ENVLPR;
 
 typedef struct {
