@@ -1498,8 +1498,8 @@ static int32_t osckkikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * a;
   }
   /* save new phase */
-  if(floatph) p->phsf = phsf;
-  else p->phs = phs;
+  p->phsf = phsf;
+  p->phs = phs;
   return OK;
 }
 
@@ -1557,8 +1557,8 @@ static int32_t osckaikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * a;
   }
   /* save new phase */
-  if(floatph) p->phsf = phsf;
-  else p->phs = phs;
+  p->phsf = phsf;
+  p->phs = phs;
   return OK;
 }
 
@@ -1635,8 +1635,8 @@ static int32_t oscakikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * *(xamp++);
   }
   /* save new phase */
-  if(floatph) p->phsf = phsf;
-  else p->phs = phs;
+  p->phsf = phsf;
+  p->phs = phs;
   return OK;
 }
 
@@ -1694,8 +1694,8 @@ static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
     ar[nn] = v * xamp[nn];
   }
   /* save new phase */
-  if(floatph) p->phsf = phsf;
-  else p->phs = phs;
+  p->phsf = phsf;
+  p->phs = phs;
   return OK;
 }
 
@@ -1792,8 +1792,8 @@ static int32_t oscktp(CSOUND *csound, OSCKTP *p)
     ar[nn] = v;
   }
   /* save new phase */
-  if(floatph) p->phsf = phsf;
-  else p->phs = phs;
+  p->phsf = phsf;
+  p->phs = phs;
   return OK;
 }
 
@@ -1899,6 +1899,7 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
   }
   /* save new phase */
   p->phs = phs;
+  p->phsf = phsf;
   return OK;
 }
 
