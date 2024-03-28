@@ -618,16 +618,19 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
     FUNC    *ftp;
     uint32_t     count;
     int32   *lphs;
+    double *fphs;
 
     p->inerr = 0;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
       p->inerr = 1;
       return csound->InitError(csound, Str("adsynt: wavetable not found!"));
     }
+
+    p->floatph = !(IS_POW_TWO(ftp->flen));
 
     count = (uint32_t)*p->icnt;
     if (UNLIKELY(count < 1))
@@ -660,22 +663,28 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
                     "adsynt: partial count is greater than amptable size!"));
     }
 
-    if (p->lphs.auxp==NULL || p->lphs.size < (size_t)sizeof(int32)*count)
+    if (p->lphs.auxp==NULL || p->lphs.size < (size_t)sizeof(double)*count)
       csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
 
     lphs = (int32*)p->lphs.auxp;
+    fphs = (double*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
+        if(p->floatph)
+        *fphs++ = PHMOD1(rand_31(csound) / 2147483645.0);
+        else
         *lphs++ = ((int32) ((MYFLT) ((double) rand_31(csound) / 2147483645.0)
                            * FMAXLEN)) & PHMASK;
       } while (--count);
     }
     else if (*p->iphs >= 0) {
       do {
+        if(p->floatph)
+        *fphs++ = *p->iphs;
+        else
         *lphs++ = ((int32) (*p->iphs * FMAXLEN)) & PHMASK;
       } while (--count);
     }
-
     return OK;
 }
 
@@ -683,13 +692,14 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl;
-    MYFLT    amp0, amp, cps0, cps;
+    MYFLT    amp0, amp, cps0, cps, incf;
+    double   phsf, *fphs;
     int32    phs, inc, lobits;
     int32   *lphs;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t      c, count;
+    int32_t   c, count, flen = p->ftp->flen, floatph = p->floatph;
 
     if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, &(p->h),
@@ -702,8 +712,9 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
     freqtbl = freqtp->ftable;
     amptp = p->amptp;
     amptbl = amptp->ftable;
-    lphs = (int32*)p->lphs.auxp;
-
+    if(floatph) fphs = (double*) p->lphs.auxp;
+    else lphs = (int32*) p->lphs.auxp;
+    
     cps0 = *p->kcps;
     amp0 = *p->kamp;
     count = p->count;
@@ -715,14 +726,25 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
     for (c=0; c<count; c++) {
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
-      inc = (int32) (cps * csound->sicvt);
-      phs = lphs[c];
+      if(!floatph) {
+       inc = (int32) (cps * csound->sicvt);
+       phs = lphs[c];
+      } else {
+      incf = (cps * CS_ONEDSR);   
+      phsf = fphs[c];
+      }
       for (n=offset; n<nsmps; n++) {
+        if(!floatph) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp;
         phs += inc;
         phs &= PHMASK;
+        } else {
+          ar[n] += ftbl[(int32_t) (phsf*flen)]*amp;
+          phsf = PHMOD1(incf+phsf);
+        }
       }
       lphs[c] = phs;
+      fphs[c] = phsf;
     }
     return OK;
 }
