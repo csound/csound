@@ -182,23 +182,26 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xamp, *xcps, *kfn, *iphs, *istor;
         uint32    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn;
+  MYFLT   pfrac, *ft, oldfn, phsf;
+  int32 flen, floatph;
 } OSCKT;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *kcps, *kfn, *kphs, *istor;
+        MYFLT   *sr, *xcps, *kfn, *kphs, *istor;
         uint32    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn, old_phs;
+  MYFLT   pfrac, *ft, oldfn, old_phs, phsf;
         int32_t     init_k;
+          int32 flen, floatph;
 } OSCKTP;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *kfn, *async, *kphs, *istor;
         uint32    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn;
+  MYFLT   pfrac, *ft, oldfn, phsf;
         int32_t     init_k;
+            int32 flen, floatph;
 } OSCKTS;
 
 /* ---- vco2init, vco2ft, and vco2 opcodes by Istvan Varga, Sep 2002 ---- */
