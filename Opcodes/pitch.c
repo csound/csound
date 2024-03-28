@@ -664,16 +664,16 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
     }
 
     if (p->lphs.auxp==NULL || p->lphs.size < (size_t)sizeof(double)*count)
-      csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
+      csound->AuxAlloc(csound, sizeof(double)*count, &p->lphs);
 
     lphs = (int32*)p->lphs.auxp;
     fphs = (double*)p->lphs.auxp;
     if (*p->iphs > 1) {
       do {
         if(p->floatph)
-        *fphs++ = PHMOD1(rand_31(csound) / 2147483645.0);
+        *fphs++ = PHMOD1((csound->Rand31(&(csound->randSeed1)) - 1)/ 2147483645.0);
         else
-        *lphs++ = ((int32) ((MYFLT) ((double) rand_31(csound) / 2147483645.0)
+         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(&(csound->randSeed1)) - 1) / 2147483645.0)
                            * FMAXLEN)) & PHMASK;
       } while (--count);
     }
@@ -727,7 +727,7 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
       if(!floatph) {
-       inc = (int32) (cps * csound->sicvt);
+       inc = (int32) (cps * CS_SICVT);
        phs = lphs[c];
       } else {
       incf = (cps * CS_ONEDSR);   
@@ -743,8 +743,8 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
           phsf = PHMOD1(incf+phsf);
         }
       }
-      lphs[c] = phs;
-      fphs[c] = phsf;
+      if(!floatph) lphs[c] = phs;
+      else fphs[c] = phsf;
     }
     return OK;
 }

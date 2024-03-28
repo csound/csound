@@ -420,17 +420,19 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     FUNC    *ftp;
     uint32_t count;
     int32   *lphs;
+    double *fphs;
     MYFLT    iphs = *p->iphs;
 
     p->inerr = 0;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
       p->inerr = 1;
       return csound->InitError(csound, Str("adsynt2: wavetable not found!"));
     }
+    p->floatph = !IS_POW_TWO(ftp->flen);    
 
     count = (uint32_t)*p->icnt;
     if (UNLIKELY(count < 1)) count = 1;
@@ -465,23 +467,25 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
 
     if (p->lphs.auxp==NULL ||
-        p->lphs.size < sizeof(int32)*count)
-      csound->AuxAlloc(csound, sizeof(int32)*count, &p->lphs);
+        p->lphs.size < sizeof(double)*count)
+      csound->AuxAlloc(csound, sizeof(double)*count, &p->lphs);
     lphs = (int32*)p->lphs.auxp;
-
-    if (iphs > 1) {
-      uint32_t c;
-      for (c=0; c<count; c++) {
-        lphs[c] = ((int32)
-                   ((MYFLT) ((double) (csound->Rand31(&(csound->randSeed1)) - 1)
-                             / 2147483645.0) * FMAXLEN)) & PHMASK;
-      }
+    fphs = (double*)p->lphs.auxp;
+    if (*p->iphs > 1) {
+      do {
+        if(p->floatph)
+        *fphs++ = PHMOD1((csound->Rand31(&(csound->randSeed1)) - 1)/ 2147483645.0);
+        else
+         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(&(csound->randSeed1)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
+      } while (--count);
     }
-    else if (iphs >= 0) {
-      uint32_t c;
-      for (c=0; c<count; c++) {
-        lphs[c] = ((int32)(iphs * FMAXLEN)) & PHMASK;
-      }
+    else if (*p->iphs >= 0) {
+      do {
+        if(p->floatph)
+        *fphs++ = *p->iphs;
+        else
+        *lphs++ = ((int32) (*p->iphs * FMAXLEN)) & PHMASK;
+      } while (--count);
     }
     if (p->pamp.auxp==NULL ||
         p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
@@ -495,10 +499,11 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
 {
     FUNC    *ftp, *freqtp, *amptp;
     MYFLT   *ar, *ftbl, *freqtbl, *amptbl, *prevAmp;
-    MYFLT   amp0, amp, cps0, cps, ampIncr, amp2;
+    MYFLT   amp0, amp, cps0, cps, ampIncr, amp2, incf;
     int32   phs, inc, lobits;
+    double  *fphs, phsf;
     int32   *lphs;
-    int32_t     c, count;
+    int32_t     c, count, flen = p->ftp->flen, floatph = p->floatph;;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -516,6 +521,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
     amptp = p->amptp;
     amptbl = amptp->ftable;
     lphs = (int32*)p->lphs.auxp;
+        fphs = (double*)p->lphs.auxp;
     prevAmp = (MYFLT*)p->pamp.auxp;
 
     cps0 = *p->kcps;
@@ -533,17 +539,28 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       amp2 = prevAmp[c];
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
-      inc = (int32) (cps * csound->sicvt);
-      phs = lphs[c];
+      if(!floatph) {
+       inc = (int32) (cps * CS_SICVT);
+       phs = lphs[c];
+      } else {
+      incf = (cps * CS_ONEDSR);   
+      phsf = fphs[c];
+      }
       ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       for (n=offset; n<nsmps; n++) {
+        if(!floatph) {        
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
         phs &= PHMASK;
+        } else {
+          ar[n] += ftbl[(int32_t) (phsf*flen)]*amp2;
+          phsf = PHMOD1(incf+phsf);
+        }    
         amp2 += ampIncr;
       }
       prevAmp[c] = amp;
-      lphs[c] = phs;
+      if(!floatph) lphs[c] = phs;
+      else fphs[c] = phsf;
     }
     return OK;
 }
