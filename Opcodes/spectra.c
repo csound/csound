@@ -1171,7 +1171,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
   outspecp->nfreqs = inspecp->nfreqs;
   outspecp->dbout = inspecp->dbout;
   outspecp->downsrcp = inspecp->downsrcp;
-  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifhtim)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifhtim)) == NULL)) {
     /* if fhtim table given,    */
     return csound->InitError(csound, Str("missing htim ftable"));
   }

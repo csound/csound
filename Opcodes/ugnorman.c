@@ -2683,7 +2683,7 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, Str("ATSCROSS: Function table number for "
                                          "synthesis waveform not valid"));
   }

@@ -282,7 +282,7 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
                        ? csound->FTnp2Find(csound, p->wavfreq_endmuls)
                        : p->globals->zzo_tab;
     p->fmamptab = *p->fm_indices >= FL(0.0)
-                  ? csound->FTFind(csound, p->fm_indices)
+                  ? csound->FTnp2Find(csound, p->fm_indices)
                   : p->globals->zzo_tab;
     p->wavgaintab = *p->waveamps >= FL(0.0)
                     ? csound->FTnp2Find(csound, p->waveamps)

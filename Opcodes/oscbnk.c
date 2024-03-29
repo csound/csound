@@ -2256,11 +2256,15 @@ static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
       }
     }
     else {                      /* user defined, requires source ftable */
-      if (UNLIKELY((ftp = csound->FTFind(csound, p->isrcft)) == NULL ||
+      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->isrcft)) == NULL ||
                    ftp->flen < 4)) {
         return csound->InitError(csound,
                                  Str("vco2init: invalid source ftable"));
       }
+      if(!IS_POW_TWO(ftp->flen))
+                return csound->InitError(csound,
+                                 Str("vco2init FFT requires power-of-two size source table"));
+         
       /* analyze source table, and store results in table params structure */
       i = ftp->flen;
       tp.w_npart = i >> 1;

@@ -347,7 +347,6 @@ static const CSOUND cenviron_ = {
     hfgens,
     csoundFTAlloc,
     csoundFTDelete,
-    csoundFTFind,
     csoundFTFindP,
     csoundFTnp2Find,
     csoundGetTable,
