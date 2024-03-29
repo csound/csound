@@ -105,6 +105,7 @@ typedef struct {
 #define CSFILE_SND_R    4
 #define CSFILE_SND_W    5
 
+  /* check for power of two ftable sizes */
 #define IS_POW_TWO(N) ((N != 0) ? !(N & (N - 1)) : 0)
 
 #define MAXINSNO  (200)
@@ -611,6 +612,7 @@ typedef struct CORFIL {
 #define CS_SICVT (csound->sicvt)
 #define CS_ONEDSR (csound->onedsr)
 
+  /* macro for MOD1 used in floating-point phase lookup */
 #define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
   
   typedef int (*SUBR)(CSOUND *, void *);

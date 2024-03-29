@@ -27,11 +27,7 @@
 #include "ugens7.h"
 #include <math.h>
 
-static inline unsigned int isPowerOfTwo (unsigned int x) {
-  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
-}
-
-#define MOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
@@ -45,7 +41,7 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
     OVRLAP *ovp, *nxtovp;
     int32  olaps;
     // VL 22.03.24 check len to set float phase flag
-    if(isPowerOfTwo(p->ftp1->flen) && isPowerOfTwo(p->ftp1->flen))
+    if(IS_POW_TWO(p->ftp1->flen) && IS_POW_TWO(p->ftp1->flen))
       p->floatph = 0;
     else p->floatph = 1;
  
@@ -59,7 +55,7 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
       } else {
         if (*p->iphs == FL(0.0))                /* if fundphs zero,  */
           p->fundphsf = 1.;                  /*   trigger new FOF */
-        else p->fundphsf = MOD1(*p->iphs);
+        else p->fundphsf = PHMOD1(*p->iphs);
         p->fundphs = 0;
       }
       if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
@@ -144,7 +140,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
         p->fundphsf >= 1.) {
       /* if phs has wrapped */
       if (floatph) 
-        p->fundphsf = MOD1(p->fundphsf);
+        p->fundphsf = PHMOD1(p->fundphsf);
       else 
         p->fundphs &= PHMASK;
       
@@ -173,7 +169,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
           else formphsf += ovp->formincf;
         } else 
           formphsf += (ovp->formincf + ovp->glissbas * ovp->sampct++);
-        ovp->formphsf = MOD1(formphsf);
+        ovp->formphsf = PHMOD1(formphsf);
         if (ovp->risphsf < 1.) {             /*  formant ris envlp */
           result *= *(ftp2->ftable + (size_t) (ovp->risphsf * ftp2->flen));
           ovp->risphsf += ovp->risincf;
@@ -271,7 +267,7 @@ static int32_t newpulse(CSOUND *csound,
   if(p->floatph) {
     if (*fund == FL(0.0))                               /* formant phs */
       ovp->formphsf = 0.;
-    else ovp->formphsf =  MOD1(p->fundphsf * *form / *fund);
+    else ovp->formphsf =  PHMOD1(p->fundphsf * *form / *fund);
     ovp->formincf = (*form * CS_ONEDSR);
   }
   else{
@@ -327,7 +323,7 @@ static int32_t newpulse(CSOUND *csound,
   if(p->floatph) {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) 
       ovp->decincf = (CS_ONEDSR / *p->kdec);
-    ovp->decphsf = MOD1(ovp->decphsf);
+    ovp->decphsf = PHMOD1(ovp->decphsf);
   } else {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) 
       ovp->decinc = (int32)(csound->sicvt / *p->kdec);
@@ -339,7 +335,7 @@ static int32_t newpulse(CSOUND *csound,
        Add current iphs to initial form phase */
     if(p->floatph) {
       ovp->formphsf += *p->iphs;
-      ovp->formphsf = MOD1(ovp->formphsf);
+      ovp->formphsf = PHMOD1(ovp->formphsf);
       ovp->glissbas = ovp->formincf * (MYFLT)pow(2.0, (double)*p->kgliss);
       ovp->glissbas -= ovp->formincf;
       ovp->glissbas /= ovp->timrem;

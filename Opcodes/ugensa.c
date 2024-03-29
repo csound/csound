@@ -27,11 +27,8 @@
 #include <math.h>
 
 
-static inline unsigned int isPowerOfTwo (unsigned int x) {
-  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
-}
 
-#define MOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
 
 /* FOG generator */
 
@@ -42,11 +39,12 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
   /* legato test, not sure if the last bit (auxch) is correct? */
   int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
   // VL 22.03.24 check len to set float phase flag
-  if(isPowerOfTwo(p->ftp1->flen) && isPowerOfTwo(p->ftp1->flen))
-    p->floatph = 0;
-  else p->floatph = 1;
   if (LIKELY((p->ftp1 = csound->FTnp2Find(csound, p->ifna)) != NULL &&
              (p->ftp2 = csound->FTnp2Find(csound, p->ifnb)) != NULL)) {
+   if(IS_POW_TWO(p->ftp1->flen) && IS_POW_TWO(p->ftp2->flen))
+    p->floatph = 0;
+   else p->floatph = 1;
+    
     OVERLAP *ovp, *nxtovp;
     int32   olaps;
     if(!p->floatph)
@@ -63,7 +61,7 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
       else {
         if (*p->iphs == FL(0.0))                /* if fundphs zero,  */
           p->fundphsf = 1.;                  /*   trigger new FOF */
-        else p->fundphsf = MOD1(*p->iphs);
+        else p->fundphsf = PHMOD1(*p->iphs);
         p->fundphs = 0;
       }
       if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
@@ -134,7 +132,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     if (p->fundphs & MAXLEN ||
         p->fundphsf >= 1.) {                       /* if phs has wrapped */
       if (floatph) 
-        p->fundphsf = MOD1(p->fundphsf);
+        p->fundphsf = PHMOD1(p->fundphsf);
       else 
         p->fundphs &= PHMASK;  
       if (UNLIKELY((ovp = p->basovrlap.nxtfree) == NULL)) goto err1;
@@ -159,7 +157,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
         if (p->fmtmod)
           formphsf += form_incf;           /* inc phs on mode */
         else formphsf += ovp->formincf;
-        ovp->formphsf = MOD1(formphsf);
+        ovp->formphsf = PHMOD1(formphsf);
         if (ovp->risphsf < 1.) {             /*  formant ris envlp */
           result *= *(ftp2->ftable + (size_t) (ovp->risphsf * ftp2->flen));
           ovp->risphsf += ovp->risincf;
@@ -201,7 +199,7 @@ static int32_t fog(CSOUND *csound, FOGS *p)
     }
     if(floatph) {
       p->fundphsf  += fund_incf;
-      p->spdphsf = MOD1(speed[n]); 
+      p->spdphsf = PHMOD1(speed[n]); 
       if (p->xincod) {
         if (p->ampcod)    amp++;
         if (p->fundcod)   fund_incf = (*++fund * CS_ONEDSR);
@@ -250,7 +248,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
   if(p->floatph) {
     if (*fund == FL(0.0))                               /* formant phs */
       ovp->formphsf = 0.;
-    else ovp->formphsf =  MOD1(p->fundphsf * form / *fund);
+    else ovp->formphsf =  PHMOD1(p->fundphsf * form / *fund);
     ovp->formincf = *ptch;
   }
   else{
@@ -292,7 +290,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
      ovp->formphs (sound ftable reading rate)
      AFTER ovp-risphs is calculated */
   if(p->floatph)
-    ovp->formphsf = MOD1(ovp->formphsf + p->spdphsf);
+    ovp->formphsf = PHMOD1(ovp->formphsf + p->spdphsf);
   else
     ovp->formphs = (ovp->formphs + p->spdphs) & PHMASK;
 
@@ -308,7 +306,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
   if(p->floatph) {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0)
       ovp->decincf = (CS_ONEDSR / *p->kdec);
-    ovp->decphsf = MOD1(ovp->decphsf);
+    ovp->decphsf = PHMOD1(ovp->decphsf);
   } else {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0)
       ovp->decinc = (int32)(csound->sicvt / *p->kdec);

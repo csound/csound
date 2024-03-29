@@ -184,17 +184,13 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
   return OK;
 }
 
-static inline unsigned int isPowerOfTwo (unsigned int x) {
-  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
-}
-
 int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 {
   FUNC        *ftp;
 
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
     return NOTOK;
-  if(isPowerOfTwo(ftp->flen)) { 
+  if(IS_POW_TWO(ftp->flen)) { 
   if (UNLIKELY(*p->idur <= FL(0.0))) {
     p->phs = MAXLEN-1;
   }
@@ -1006,7 +1002,7 @@ int32_t oscset(CSOUND *csound, OSC *p)
   if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))  
     return csound->InitError(csound, Str("table not found"));
   p->ftp = ftp;
-  if(isPowerOfTwo(ftp->flen)) {
+  if(IS_POW_TWO(ftp->flen)) {
     if (*p->iphs >= 0)
       p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
     return OK;
@@ -1050,7 +1046,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
   FUNC        *ftp = &p->FF;
   p->ftp = ftp;
   fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
-  if(isPowerOfTwo(ftp->flen)) {
+  if(IS_POW_TWO(ftp->flen)) {
   if (*p->iphs >= 0)
     p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
     return OK;
