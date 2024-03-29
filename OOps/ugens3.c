@@ -29,10 +29,13 @@ int32_t foscset(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
 
-    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
-      if (*p->iphs >= 0)
+      p->floatph = !IS_POW_TWO(p->ftp->flen);
+      if (*p->iphs >= 0) {
         p->cphs = p->mphs = (int32_t)(*p->iphs * FMAXLEN);
+        p->cphsf = p->mphsf = *p->iphs * FMAXLEN;
+      }  
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->carcod = IS_ASIG_ARG(p->xcar) ? 1 : 0;
       p->modcod = IS_ASIG_ARG(p->xmod) ? 1 : 0;
@@ -46,11 +49,12 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     FUNC    *ftp;
     MYFLT   *ar, *ampp, *modp, cps, amp;
     MYFLT   xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
-    int32_t    mphs, cphs, minc, cinc, lobits;
+    int32_t    mphs, cphs, minc, cinc, lobits, floatph = p->floatph;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT, mincf, cincf;
+    double cphsf, mphsf;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -59,6 +63,8 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     lobits = ftp->lobits;
     mphs = p->mphs;
     cphs = p->cphs;
+    mphsf = p->mphsf;
+    cphsf = p->cphsf;
     ampp = p->xamp;
     cps  = *p->kcps;
     carp = p->xcar;
@@ -80,6 +86,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
+        if(!floatph) {
         minc = (int32_t)(mod * sicvt);
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
@@ -89,6 +96,17 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
+        } else {
+        mincf = mod * CS_ONEDSR;
+        mphsf = PHMOD1(mphsf);
+        fmod = *(ftab + (int32_t) mphsf) * ndx;
+        mphs += mincf;
+        cfreq = car + fmod;
+        cincf = cfreq * CS_ONEDSR;
+        cphsf = PHMOD1(cphsf);
+        ar[n] = *(ftab + (int32_t) cphsf) * amp;
+        cphsf += cincf;
+        }
       }
     }
     else {
@@ -98,7 +116,9 @@ int32_t foscil(CSOUND *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (int32_t)(mod * sicvt);
+      mincf = mod * CS_ONEDSR;
       for (n=offset;n<nsmps;n++) {
+       if(!floatph) {      
         mphs &= PHMASK;
         fmod = *(ftab + (mphs >>lobits)) * ndx;
         mphs += minc;
@@ -107,10 +127,22 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         cphs &= PHMASK;
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
+       } else {
+        mphsf = PHMOD1(mphsf);
+        fmod = *(ftab + (int32_t) mphsf) * ndx;
+        mphs += mincf;
+        cfreq = car + fmod;
+        cincf = cfreq * CS_ONEDSR;
+        cphsf = PHMOD1(cphsf);
+        ar[n] = *(ftab + (int32_t) cphsf) * amp;
+        cphsf += cincf;
+       }
       }
     }
     p->mphs = mphs;
     p->cphs = cphs;
+    p->mphsf = mphsf;
+    p->cphsf = cphsf;
 
     return OK;
  err1:
@@ -123,12 +155,13 @@ int32_t foscili(CSOUND *csound, FOSC *p)
     FUNC   *ftp;
     MYFLT  *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
     MYFLT  *carp, *modp, xcar, xmod, ndx, *ftab;
-    int32_t  mphs, cphs, minc, cinc, lobits;
+    int32_t  mphs, cphs, minc, cinc, lobits, floatph = p->floatph;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT  sicvt = csound->sicvt;
-    MYFLT  *ft;
+    MYFLT  sicvt = CS_SICVT;
+    MYFLT  *ft, cincf, mincf;
+    double cphsf = p->cphsf, mphsf = p->mphsf;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -157,6 +190,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         car = cps * xcar;
         mod = cps * xmod;
         ndx = *p->kndx * mod;
+        if(!floatph) {
         minc = (int32_t)(mod * sicvt);
         mphs &= PHMASK;
         fract = PFRAC(mphs);
@@ -172,6 +206,23 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         v1 = *ftab++;
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
+        } else {
+        mincf = mod * CS_ONEDSR;
+        mphsf = PHMOD1(mphsf);
+        fract = mphsf - (int32_t) mphsf;
+        ftab = ft + (int32_t) mphsf;
+        v1 = *ftab++;
+        fmod = (v1 + (*ftab - v1) * fract) * ndx;
+        mphs += mincf;
+        cfreq = car + fmod;
+        cincf = cfreq * CS_ONEDSR;
+        cphsf = PHMOD1(cphsf);
+        fract = cphsf - (int32_t) cphsf;
+        ftab = ft + (int32_t) cphsf;
+        v1 = *ftab++;
+        ar[n] = (v1 + (*ftab - v1) * fract) * amp;
+        cphsf += cincf;
+        }
       }
     }
     else {
@@ -180,7 +231,9 @@ int32_t foscili(CSOUND *csound, FOSC *p)
       mod = cps * *modp;
       ndx = *p->kndx * mod;
       minc = (int32_t)(mod * sicvt);
+      mincf = mod * CS_ONEDSR;
       for (n=offset;n<nsmps;n++) {
+        if(floatph) {
         mphs &= PHMASK;
         fract = PFRAC(mphs);
         ftab = ft + (mphs >>lobits);
@@ -195,11 +248,28 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         v1 = *ftab++;
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
+        } else {
+        mphsf = PHMOD1(mphsf);
+        fract = mphsf - (int32_t) mphsf;
+        ftab = ft + (int32_t) mphsf;
+        v1 = *ftab++;
+        fmod = (v1 + (*ftab - v1) * fract) * ndx;
+        mphs += mincf;
+        cfreq = car + fmod;
+        cincf = cfreq * CS_ONEDSR;
+        cphsf = PHMOD1(cphsf);
+        fract = cphsf - (int32_t) cphsf;
+        ftab = ft + (int32_t) cphsf;
+        v1 = *ftab++;
+        ar[n] = (v1 + (*ftab - v1) * fract) * amp;
+        cphsf += cincf;
+        }
       }
     }
     p->mphs = mphs;
     p->cphs = cphs;
-
+    p->mphsf = mphsf;
+    p->cphsf = cphsf;
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),

@@ -32,6 +32,8 @@ typedef struct {
         int32    lphs;
         FUNC    *ftp;
         int     reported;
+  int32_t  floatph;
+  double fphs;
 } BUZZ;
 
 typedef struct {
@@ -43,6 +45,8 @@ typedef struct {
         FUNC    *ftp;
         int     reported;
         MYFLT   last;
+    int32_t  floatph;
+  double fphs;
 } GBUZZ;
 
 typedef struct {

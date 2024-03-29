@@ -28,7 +28,8 @@
 typedef struct {
         OPDS    h;
         MYFLT   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
-        int32   mphs, cphs;
+  double mphsf, cphsf;
+  int32   mphs, cphs, floatph;
         int16   ampcod, carcod, modcod;
         FUNC    *ftp;
 } FOSC;
