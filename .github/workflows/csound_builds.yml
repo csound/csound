@@ -84,22 +84,36 @@ jobs:
     name: iOS build
     runs-on: macos-12
     steps:
-      - name: update bison
-        run: brew install bison && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
+      - name: Install dependencies
+        run: brew install bison
+
       - name: Checkout Source Code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+
       - name: Build libsndfile xcframework
-        run: cd iOS && chmod +x build_libsndfile.sh && ./build_libsndfile.sh
+        working-directory: iOs
+        run: |
+          chmod +x build_libsndfile.sh
+          ./build_libsndfile.sh
+
       - name: Build Csound iOS xcframework
-        run: cd iOS && ./build.sh
+        working-directory: iOs
+        run: |
+          ./build.sh
+
       - name: Create package zip
-        run: cd iOS && ./release.sh
+        if: github.ref == 'refs/heads/develop'
+        working-directory: iOs
+        run: |
+          ./release.sh
+
       - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/develop'
         with:
           name: iOS-builds
-          path: iOS/csound-iOS-7.0.0 # or path/to/artifact
+          path: iOS/csound-iOS-${{env.CSOUND_VERSION}}
 
   macos_build_brew:
     name: MacOS build (brew)
