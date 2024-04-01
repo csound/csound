@@ -123,7 +123,7 @@ typedef struct oentry {
         char    *intypes;
         int     (*iopadr)(void *, void *p);
         int     (*kopadr)(void *, void *p);
-        int     (*aopadr)(void *, void *p);
+        int     (*dopadr)(void *, void *p);
         void    *useropinfo;    /* user opcode parameters */
 } OENTRY;
 

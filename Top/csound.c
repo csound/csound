@@ -718,6 +718,7 @@ static const CSOUND cenviron_ = {
     NULL,
     NULL,
     NULL,
+    //NULL, /*nxtdd*/
     NULL,
     NULL,
     NULL,
@@ -3189,7 +3190,6 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
     entryCopy = csound->Malloc(csound, sizeof(OENTRY));
-    //printf("%p\n", entryCopy);
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -3213,7 +3213,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
                                           const char *intypes,
                               int (*iopadr)(CSOUND *, void *),
                               int (*kopadr)(CSOUND *, void *),
-                              int (*aopadr)(CSOUND *, void *))
+                              int (*dopadr)(CSOUND *, void *))
 {
   OENTRY  tmpEntry;
     int     err;
@@ -3226,7 +3226,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.intypes    = (char*) intypes;
     tmpEntry.iopadr     = iopadr;
     tmpEntry.kopadr     = kopadr;
-    tmpEntry.aopadr     = aopadr;
+    tmpEntry.dopadr     = dopadr;
     err = opcode_list_new_oentry(csound, &tmpEntry);
     //add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))

@@ -352,7 +352,6 @@ PUBLIC int ugen_init(UGEN* ugen) {
 }
 
 PUBLIC int ugen_perform(UGEN* ugen) {
-    // TODO - check how csound chooses kopadr vs. aopadr
     OENTRY* oentry = ugen->oentry;
     CSOUND* csound = ugen->csound;
     void* opcodeMem = ugen->opcodeMem;
@@ -361,13 +360,7 @@ PUBLIC int ugen_perform(UGEN* ugen) {
             return (*oentry->kopadr)(csound, opcodeMem);
         }
     }
-    if((oentry->thread & 4) == 4) {
-        if (oentry->aopadr != NULL) {
-            return (*oentry->aopadr)(csound, opcodeMem);
-        }
-    }
-    
-    return CSOUND_SUCCESS;
+ return CSOUND_SUCCESS;
 }
 
 PUBLIC bool ugen_delete(UGEN* ugen) {

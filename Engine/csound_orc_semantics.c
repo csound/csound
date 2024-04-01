@@ -2223,7 +2223,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.thread = 1;
   oentry.iopadr = initStructVar;
   oentry.kopadr = NULL;
-  oentry.aopadr = NULL;
+  oentry.dopadr = NULL;
   oentry.useropinfo = NULL;
 
   /* FIXME - this is not yet implemented */

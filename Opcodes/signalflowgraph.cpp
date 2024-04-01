@@ -1502,7 +1502,7 @@ PUBLIC int csoundModuleInit_signalflowgraph(CSOUND *csound) {
                                 ep->thread, ep->outypes, ep->intypes,
                                 (int (*)(CSOUND *, void *))ep->iopadr,
                                 (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->aopadr);
+                                (int (*)(CSOUND *, void *))ep->dopadr);
     ep++;
   }
   return err;

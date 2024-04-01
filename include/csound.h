@@ -2122,7 +2122,7 @@ extern "C" {
                                 const char *outypes, const char *intypes,
                                 int (*iopadr)(CSOUND *, void *),
                                 int (*kopadr)(CSOUND *, void *),
-                                int (*aopadr)(CSOUND *, void *));
+                                int (*dopadr)(CSOUND *, void *));
 
   /** @}*/
   /** @defgroup THREADING Threading and concurrency

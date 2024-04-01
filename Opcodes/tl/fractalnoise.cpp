@@ -469,7 +469,7 @@ PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
                                    oentry->outypes, oentry->intypes,
                                    (int32_t (*)(CSOUND *, void *))oentry->iopadr,
                                    (int32_t (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
+                                   (int32_t (*)(CSOUND *, void *))oentry->dopadr);
   }
   return status;
 }

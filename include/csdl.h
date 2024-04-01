@@ -81,7 +81,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
                                   ep->outypes, ep->intypes,
                                   (int (*)(CSOUND *, void *)) ep->iopadr,
                                   (int (*)(CSOUND *, void *)) ep->kopadr,
-                                  (int (*)(CSOUND *, void *)) ep->aopadr);
+                                  (int (*)(CSOUND *, void *)) ep->dopadr);
       ep++;
     }
     return err;

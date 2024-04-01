@@ -901,6 +901,39 @@ static void schedofftim(CSOUND *csound, INSDS *ip)
 extern  int     csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
 int     useropcd(CSOUND *, UOPCODE*);
 
+
+int deinit_pass(CSOUND *csound, INSDS *ip) {
+  int error = 0;
+  /*  
+  if(csound->oparms->realtime)
+    csoundLockMutex(csound->init_pass_threadlock);
+  csound->mode=1
+  */
+  OPDS *dds = (OPDS *) ip;
+  const char* op;
+  while (error == 0 && (dds = dds->nxtp) != NULL) {
+    if (UNLIKELY(csound->oparms->odebug)) {
+      op = dds->optext->t.oentry->opname;
+      csound->Message(csound, "deinit %s:\n", op);
+    }
+    error = (*dds->dopadr)(csound, dds);
+    if(error) {
+      op = dds->optext->t.oentry->opname;
+      csound->ErrorMsg(csound, "%s deinit error\n", op);
+    }
+  }
+  /*
+ csound->mode = 1;
+  if(csound->oparms->realtime)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+  */
+  return error;
+}
+
+
+
+
+
 static void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
   INSDS  *nxtp;               /*      and mark it inactive            */
@@ -2404,7 +2437,7 @@ static void instance(CSOUND *csound, int insno)
   INSTRTXT  *tp;
   INSDS     *ip;
   OPTXT     *optxt;
-  OPDS      *opds, *prvids, *prvpds;
+  OPDS      *opds, *prvids, *prvpds, *prvpdd;
   const OENTRY  *ep;
   int       i, n, pextent, pextra, pextrab;
   char      *nxtopds, *opdslim;
@@ -2477,7 +2510,7 @@ static void instance(CSOUND *csound, int insno)
                     Str("instr %d allocated at %p\n\tlclbas %p, opds %p\n"),
                     insno, ip, lclbas, nxtopds);
   optxt = (OPTXT*) tp;
-  prvids = prvpds = (OPDS*) ip;
+  prvids = prvpds = prvpdd = (OPDS*) ip;
   //    prvids->insdshead = ip;
 
   /* initialize vars for CS_TYPE */
@@ -2510,18 +2543,23 @@ static void instance(CSOUND *csound, int insno)
       LBLBLK  *lblbp = (LBLBLK *) opds;
       lblbp->prvi = prvids;                   /*    save i/p links */
       lblbp->prvp = prvpds;
+      lblbp->prvd = prvpdd;
       continue;                               /*    for later refs */
     }
     // ******** This needs revisipn with no distinction between k- and a- rate ****
     if ((ep->thread & 03) == 0) {             /* thread 1 OR 2:  */
       if (ttp->pftype == 'b') {
-        prvids = prvids->nxti = opds;
+        prvids = prvids->nxti = opds;        
         opds->iopadr = ep->iopadr;
       }
       else {
         prvpds = prvpds->nxtp = opds;
         opds->opadr = ep->kopadr;
       }
+      /*if(ep->dopadr != NULL) {              
+           prvpdd = prvpdd->nxtd = opds;
+           opds->dopadr = ep->dopadr;
+           } */
       goto args;
     }
     if ((ep->thread & 01) != 0) {             /* thread 1:        */
@@ -2532,15 +2570,16 @@ static void instance(CSOUND *csound, int insno)
     }
     if ((n = ep->thread & 02) != 0) {         /* thread 2     :   */
       prvpds = prvpds->nxtp = opds;           /* link into pchain */
-      /* if (!(n & 04) || */
-      /*     ((ttp->pftype == 'k' || ttp->pftype == 'c') && ep->kopadr != NULL)) */
-        opds->opadr = ep->kopadr;             /*      krate or    */
-      /* else opds->opadr = ep->aopadr;          /\*      arate       *\/ */
+        opds->opadr = ep->kopadr;             /*     perf   */
       if (UNLIKELY(odebug))
         csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
       if (UNLIKELY(opds->opadr == NULL))
         csoundDie(csound, Str("null opadr"));
     }
+    /*if(ep->dopadr != NULL) {   
+      prvpdd = prvpdd->nxtd = opds;
+      opds->dopadr = ep->dopadr;
+      }*/
   args:
     if (ep->useropinfo == NULL)
       argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));

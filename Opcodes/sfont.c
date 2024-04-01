@@ -2803,7 +2803,7 @@ int32_t sfont_ModuleInit(CSOUND *csound)
                                   (int32_t (*)(CSOUND *, void*)) ep->iopadr,
                                   (int32_t (*)(CSOUND *, void*)) ep->kopadr,
                                   (int32_t
-                                   (*)(CSOUND *, void*)) ep->aopadr);
+                                   (*)(CSOUND *, void*)) ep->dopadr);
       ep++;
     }
     return err;

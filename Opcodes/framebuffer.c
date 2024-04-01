@@ -438,7 +438,7 @@ static OENTRY framebuffer_localops[] = {
         .intypes = "*",
         .iopadr = (SUBR)Framebuffer_initialise,
         .kopadr = (SUBR)Framebuffer_process,
-        .aopadr = NULL
+        .dopadr = NULL
     },
     {
         .opname = "olabuffer",
@@ -448,7 +448,7 @@ static OENTRY framebuffer_localops[] = {
         .intypes = "k[]i",
         .iopadr = (SUBR)OLABuffer_initialise,
         .kopadr = (SUBR)OLABuffer_process,
-        .aopadr = NULL
+        .dopadr = NULL
     }
 };
 

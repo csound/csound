@@ -302,7 +302,7 @@ typedef struct CORFIL {
         char    *intypes;
         int     (*iopadr)(CSOUND *, void *p);
         int     (*kopadr)(CSOUND *, void *p);
-        int     (*aopadr)(CSOUND *, void *p);
+        int     (*dopadr)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
@@ -521,6 +521,8 @@ typedef struct CORFIL {
     struct opds * nxti;
     /* Chain of performance-time opcodes */
     struct opds * nxtp;
+    /* Chain of performance-time opcodes */ 
+    //struct opds * nxtdd;
     /* Next allocated instance */
     struct insds * nxtinstance;
     /* Previous allocated instance */
@@ -616,10 +618,14 @@ typedef struct CORFIL {
     struct opds * nxti;
     /** Next opcode in perf-time chain */
     struct opds * nxtp;
+    /** Next opcode in deinit chain */
+    //struct opds * nxtd;
     /** Initialization (i-time) function pointer */
     SUBR    iopadr;
     /** Perf-time (k- or a-rate) function pointer */
     SUBR    opadr;
+    /** deinit function pointer */
+    SUBR    dopadr;
     /** Orch file template part for this opcode */
     OPTXT   *optext;
     /** Owner instrument instance data structure */
@@ -630,6 +636,7 @@ typedef struct CORFIL {
     OPDS    h;
     OPDS    *prvi;
     OPDS    *prvp;
+    OPDS    *prvd;
   } LBLBLK;
 
   typedef struct {
@@ -1348,7 +1355,7 @@ typedef struct _message_queue_t_ {
                         int thread, const char *outypes, const char *intypes,
                         int (*iopadr)(CSOUND *, void *),
                         int (*kopadr)(CSOUND *, void *),
-                        int (*aopadr)(CSOUND *, void *));
+                        int (*dopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     char *(*GetOpcodeName)(void *p);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
