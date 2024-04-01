@@ -902,7 +902,7 @@ extern  int     csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
 int     useropcd(CSOUND *, UOPCODE*);
 
 
-int deinit_pass(CSOUND *csound, INSDS *ip) {
+void deinit_pass(CSOUND *csound, INSDS *ip) {
   int error = 0;
   /*  
   if(csound->oparms->realtime)
@@ -911,7 +911,7 @@ int deinit_pass(CSOUND *csound, INSDS *ip) {
   */
   OPDS *dds = (OPDS *) ip;
   const char* op;
-  while (error == 0 && (dds = dds->nxtp) != NULL) {
+  while (error == 0 && (dds = dds->nxtd) != NULL) {
     if (UNLIKELY(csound->oparms->odebug)) {
       op = dds->optext->t.oentry->opname;
       csound->Message(csound, "deinit %s:\n", op);
@@ -926,13 +926,8 @@ int deinit_pass(CSOUND *csound, INSDS *ip) {
  csound->mode = 1;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
-  */
-  return error;
+CSL  */
 }
-
-
-
-
 
 static void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
@@ -941,6 +936,9 @@ static void deact(CSOUND *csound, INSDS *ip)
 
   if (ip->nxtd != NULL)
     csoundDeinitialiseOpcodes(csound, ip);
+
+  /* do deinit pass */
+  deinit_pass(csound, ip);
   /* remove an active instrument */
   csound->engineState.instrtxtp[ip->insno]->active--;
   if (ip->xtratim > 0)
@@ -1506,7 +1504,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       } 
     */
     n = p->OUTOCOUNT + p->INCOUNT - 1;
-  
+
 
     if (!p->ip) {
 
@@ -1652,6 +1650,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                       lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
+    p->h.dopadr = NULL;
     return OK;
 }
 
@@ -2556,10 +2555,11 @@ static void instance(CSOUND *csound, int insno)
         prvpds = prvpds->nxtp = opds;
         opds->opadr = ep->kopadr;
       }
-      /*if(ep->dopadr != NULL) {              
+      if(ep->dopadr != NULL) {
+          printf("1DOP %p\n", ep->dopadr);
            prvpdd = prvpdd->nxtd = opds;
            opds->dopadr = ep->dopadr;
-           } */
+      } 
       goto args;
     }
     if ((ep->thread & 01) != 0) {             /* thread 1:        */
@@ -2571,15 +2571,16 @@ static void instance(CSOUND *csound, int insno)
     if ((n = ep->thread & 02) != 0) {         /* thread 2     :   */
       prvpds = prvpds->nxtp = opds;           /* link into pchain */
         opds->opadr = ep->kopadr;             /*     perf   */
-      if (UNLIKELY(odebug))
-        csound->Message(csound, "opadr = %p\n", (void*) opds->opadr);
+        //if (UNLIKELY(odebug))
+        csound->Message(csound, "%s opadr = %p\n", ep->opname, (void*) opds->opadr);
       if (UNLIKELY(opds->opadr == NULL))
         csoundDie(csound, Str("null opadr"));
     }
-    /*if(ep->dopadr != NULL) {   
+    if(ep->dopadr != NULL) {
+      printf("DOP %p %s\n", ep->dopadr, ep->opname);
       prvpdd = prvpdd->nxtd = opds;
       opds->dopadr = ep->dopadr;
-      }*/
+      }
   args:
     if (ep->useropinfo == NULL)
       argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));

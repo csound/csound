@@ -718,7 +718,7 @@ static const CSOUND cenviron_ = {
     NULL,
     NULL,
     NULL,
-    //NULL, /*nxtdd*/
+    NULL, /*nxtdd*/
     NULL,
     NULL,
     NULL,

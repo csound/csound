@@ -41,8 +41,10 @@ int32_t kgoto(CSOUND *csound, GOTO *p)
   CS_PDS = p->lblblk->prvp;
   /* VL 16.2.23 fix for UDOs where the
      label gets confused */
-  if(CS_PDS->insdshead == NULL) 
-    CS_PDS->insdshead =  p->h.insdshead;
+  // not sure it's right 1.4.24
+  // with changes to OPDS, this leads to infinite deact loop
+  //if(CS_PDS->insdshead == NULL) 
+  //CS_PDS->insdshead =  p->h.insdshead;
   return OK;
 }
 

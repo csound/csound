@@ -388,6 +388,7 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
         ep = items->value;
         if (oentry->iopadr == ep->iopadr &&
             oentry->kopadr == ep->kopadr &&
+            oentry->dopadr == ep->dopadr &&
             strcmp(oentry->opname, ep->opname) == 0 &&
             strcmp(oentry->outypes, ep->outypes) == 0 &&
             strcmp(oentry->intypes, ep->intypes) == 0) {
@@ -480,6 +481,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
       opc = find_opcode(csound, "##userOpcode");
+      opc->dopadr = NULL; // UDOs do not have a deinit, so we NULL it
       memcpy(&tmpEntry, opc, sizeof(OENTRY));
       tmpEntry.opname = cs_strdup(csound, opname);
 

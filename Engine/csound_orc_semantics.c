@@ -2205,7 +2205,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
 
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
-    member->value = var;
+   member->value = var;
     type->members = cs_cons_append(type->members, member);
     current = current->next;
   }

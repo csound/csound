@@ -522,7 +522,7 @@ typedef struct CORFIL {
     /* Chain of performance-time opcodes */
     struct opds * nxtp;
     /* Chain of performance-time opcodes */ 
-    //struct opds * nxtdd;
+    struct opds * nxtdd;
     /* Next allocated instance */
     struct insds * nxtinstance;
     /* Previous allocated instance */
@@ -619,13 +619,13 @@ typedef struct CORFIL {
     /** Next opcode in perf-time chain */
     struct opds * nxtp;
     /** Next opcode in deinit chain */
-    //struct opds * nxtd;
+    struct opds * nxtd;
     /** Initialization (i-time) function pointer */
     SUBR    iopadr;
     /** Perf-time (k- or a-rate) function pointer */
     SUBR    opadr;
     /** deinit function pointer */
-    SUBR    dopadr;
+     SUBR    dopadr;
     /** Orch file template part for this opcode */
     OPTXT   *optext;
     /** Owner instrument instance data structure */

@@ -125,6 +125,9 @@ int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
 int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
 int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
 int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p);
+int32_t soundout_deinit(CSOUND *csound, void *pp);
+int32_t diskin2_async_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;
