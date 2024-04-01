@@ -91,7 +91,7 @@
 #endif
 #endif
 
-#if !(defined (NACL)) && !(defined (__wasi__))
+#if !(defined (__wasi__))
 #if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
 #elif defined(WIN32)
@@ -138,7 +138,7 @@ static  const   char    *plugindir_envvar =   "OPCODE7DIR";
 static  const   char    *plugindir64_envvar = "OPCODE7DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
-#if !(defined (NACL)) && !(defined (__wasi__))
+#if  !(defined (__wasi__))
 #ifdef __HAIKU__
 # ifndef USE_DOUBLE
    static char haikudirs[] = "/boot/system/lib/csound7/plugins:"
@@ -406,7 +406,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
- #if !(defined(NACL)) && (defined(LINUX) || defined(__HAIKU__))
+ #if (defined(LINUX) || defined(__HAIKU__))
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
                libraryPath, dlerror());
  #else
@@ -1057,7 +1057,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif  !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -1254,7 +1254,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  cpumeter_localops_init,
 #endif
 
-#if !(defined(NACL)) && !(defined(__wasi__))
+#if !(defined(__wasi__))
                                  counter_localops_init,
 #ifdef HAVE_SOCKETS
                                  sockrecv_localops_init,

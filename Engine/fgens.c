@@ -85,9 +85,8 @@ static int gn1314(FGDATA *, FUNC *, MYFLT, MYFLT);
 static int gen51(FGDATA *, FUNC *), gen52(FGDATA *, FUNC *);
 static int gen53(FGDATA *, FUNC *);
 static int GENUL(FGDATA *, FUNC *);
-#ifndef NACL
 static int gen49(FGDATA *, FUNC *);
-#endif
+
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
@@ -96,11 +95,7 @@ static const GEN or_sub[GENMAX + 1] = {
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
     gen41, gen42, gen43, gen44, GENUL, GENUL, GENUL, GENUL,
-#ifndef NACL
     gen49,
-#else
-    GENUL,
-#endif
     GENUL,
     gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
 };
@@ -2963,7 +2958,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-#ifndef NACL
+
 #include "mp3dec.h"
 
 static int gen49raw(FGDATA *ff, FUNC *ftp)
@@ -3143,7 +3138,7 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     }
     return gen49raw(ff, ftp);
 }
-#endif
+
 
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
