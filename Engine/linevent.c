@@ -508,6 +508,11 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.p[1] *= -1;
     }
 
+    if (opcod == 'e' && (int) evt.pcnt >= 1 && evt.p[1] > 0) {
+      evt.p[2] = evt.p[1];
+      if(evt.pcnt == 1) evt.pcnt++;
+    }
+
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
       return csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
@@ -595,6 +600,11 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
       err = csound->hfgens(csound, &dummyftp, &evt, 0);
+    }
+    else if (opcod == 'e' && (int) evt.pcnt >= 1 && evt.p[1] > 0) {
+      evt.p[2] = evt.p[1];
+      if(evt.pcnt == 1) evt.pcnt++;
+      err = insert_score_event_at_sample(csound, &evt, csound->icurTime);
     }
     else
       err = insert_score_event_at_sample(csound, &evt, csound->icurTime);
