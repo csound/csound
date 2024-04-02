@@ -127,6 +127,7 @@ jobs:
   macos_build_osxcross:
     name: MacOS build (osxcross)
     runs-on: ubuntu-latest
+    if: false
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1

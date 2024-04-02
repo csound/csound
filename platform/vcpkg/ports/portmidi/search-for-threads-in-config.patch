@@ -9,4 +9,4 @@ index a04928a..203ba30 100644
 +find_dependency(Threads)
  
  include("${CMAKE_CURRENT_LIST_DIR}/PortMidiTargets.cmake")
- 
+
