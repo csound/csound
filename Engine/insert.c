@@ -2540,24 +2540,7 @@ static void instance(CSOUND *csound, int insno)
       lblbp->prvd = prvpdd;
       continue;                               /*    for later refs */
     }
-
-    if ((ep->iopadr == NULL && ep->kopadr != NULL) ||
-        (ep->iopadr != NULL && ep->kopadr == NULL)) {
-      /* init EXOR perf:  */
-      if (ep->iopadr != NULL) { /* init */
-        prvids = prvids->nxti = opds;        
-        opds->iopadr = ep->iopadr;
-      }
-      else {  /* perf */
-        prvpds = prvpds->nxtp = opds;
-        opds->opadr = ep->kopadr;
-      }
-      if(ep->dopadr != NULL) { /* deinit */
-           prvpdd = prvpdd->nxtd = opds;
-           opds->dopadr = ep->dopadr;
-      } 
-      goto args;
-    }
+    
     if (ep->iopadr != NULL) {  /* init */
       prvids = prvids->nxti = opds; /* link into ichain */
       opds->iopadr = ep->iopadr; /*   & set exec adr */
@@ -2579,7 +2562,7 @@ static void instance(CSOUND *csound, int insno)
         csound->Message(csound, "%s dopadr = %p\n",
                         ep->opname,(void*) opds->opadr);
       }
-  args:
+    
     if (ep->useropinfo == NULL)
       argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
     else          /* user defined opcodes are a special case */
