@@ -932,11 +932,6 @@ CSL  */
 static void deact(CSOUND *csound, INSDS *ip)
 {                               /* unlink single instr from activ chain */
   INSDS  *nxtp;               /*      and mark it inactive            */
-  /*   close any files in fd chain        */
-
-  if (ip->nxtd != NULL)
-    csoundDeinitialiseOpcodes(csound, ip);
-
   /* do deinit pass */
   deinit_pass(csound, ip);
   /* remove an active instrument */
@@ -2572,7 +2567,7 @@ static void instance(CSOUND *csound, int insno)
       prvpds = prvpds->nxtp = opds;           /* link into pchain */
         opds->opadr = ep->kopadr;             /*     perf   */
         //if (UNLIKELY(odebug))
-        csound->Message(csound, "%s opadr = %p\n", ep->opname, (void*) opds->opadr);
+        csound->Message(csound, "%s opadr = %p\n", ep->opname,(void*) opds->opadr);
       if (UNLIKELY(opds->opadr == NULL))
         csoundDie(csound, Str("null opadr"));
     }

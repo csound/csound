@@ -439,8 +439,6 @@ int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->cs_interface = new csUI;
   p->faust->init((int32_t)csound->GetSr(csound));
   p->faust->buildUserInterface(p->cs_interface);
-  csound->RegisterDeinitCallback(
-      csound, p, (int32_t (*)(CSOUND *, void *))fractalnoise_cleanup);
   return OK;
 }
 
@@ -452,7 +450,7 @@ int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
 
   static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 3,
                                (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
-                               (SUBR)fractalnoise_process},
+                               (SUBR)fractalnoise_process, (SUBR) fractalnoise_cleanup },
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
 #ifndef INIT_STATIC_MODULES

@@ -481,7 +481,6 @@ int add_udo_definition(CSOUND *csound, char *opname,
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
       opc = find_opcode(csound, "##userOpcode");
-      opc->dopadr = NULL; // UDOs do not have a deinit, so we NULL it
       memcpy(&tmpEntry, opc, sizeof(OENTRY));
       tmpEntry.opname = cs_strdup(csound, opname);
 

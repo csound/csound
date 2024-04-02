@@ -261,7 +261,6 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
         csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->frame);
       p->async = 0;
     }
-  csound->RegisterDeinitCallback(csound, p, pvsfwrite_destroy);
   p->lastframe = 0;
   return OK;
 }
@@ -2849,9 +2848,9 @@ int32_t  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
 
 static OENTRY localops[] = {
   {"pvsfwrite", sizeof(PVSFWRITE),0, 3, "", "fS", (SUBR) pvsfwriteset_S,
-   (SUBR) pvsfwrite},
+   (SUBR) pvsfwrite, (SUBR)  pvsfwrite_destroy},
   {"pvsfwrite.i", sizeof(PVSFWRITE),0, 3, "", "fi", (SUBR) pvsfwriteset,
-   (SUBR) pvsfwrite},
+   (SUBR) pvsfwrite, (SUBR)  pvsfwrite_destroy},
   {"pvsfilter", sizeof(PVSFILTER),0, 3, "f", "ffxp", (SUBR) pvsfilterset,
    (SUBR) pvsfilter},
   {"pvscale", sizeof(PVSSCALE),0, 3, "f", "fxOPO", (SUBR) pvsscaleset,

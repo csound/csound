@@ -448,7 +448,6 @@ struct TPrint : csnd::Plugin<0, 1> {
   PrintThread t;
 
   int init() {
-    csound->plugin_deinit(this);
     csnd::constr(&t, csound);
     return OK;
   }

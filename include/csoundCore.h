@@ -521,8 +521,8 @@ typedef struct CORFIL {
     struct opds * nxti;
     /* Chain of performance-time opcodes */
     struct opds * nxtp;
-    /* Chain of performance-time opcodes */ 
-    struct opds * nxtdd;
+    /* Chain of deinit opcodes */ 
+    struct opds * nxtd;
     /* Next allocated instance */
     struct insds * nxtinstance;
     /* Previous allocated instance */
@@ -575,8 +575,6 @@ typedef struct CORFIL {
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
     void    *opcod_deact, *subins_deact;
-    /* opcodes to be run at note deactivation */
-    void    *nxtd;
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     uint32_t no_end;      /* samps left at the end for sample accuracy
                              (calculated) */
@@ -1342,8 +1340,6 @@ typedef struct _message_queue_t_ {
                             int (*func)(void *, void *, unsigned int));
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
-    int (*RegisterDeinitCallback)(CSOUND *, void *p,
-                                            int (*func)(CSOUND *, void *));
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                            int (*func)(CSOUND *, void *));
     void (*SetInternalYieldCallback)(CSOUND *,

@@ -254,14 +254,20 @@ public:
       IGN(csound);
         return NOTOK;
     }
+
+    static int deinit_(CSOUND *csound, void *opcode)
+    {
+      if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
+        return noteoff_(csound, opcode);
+      }
+      return OK;
+    }
+
     static int init_(CSOUND *csound, void *opcode)
     {
-        if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
-            csound->RegisterDeinitCallback(csound, opcode,
-                                           &OpcodeNoteoffBase<T>::noteoff_);
-        }
         return reinterpret_cast<T *>(opcode)->init(csound);
     }
+  
     int kontrol(CSOUND *csound)
     {
         IGN(csound);

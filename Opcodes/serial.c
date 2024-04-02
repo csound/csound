@@ -642,8 +642,6 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     // Start listening thread
     q->stop = 0;
     q->thread = csound->CreateThread(arduino_listen, (void *)q);
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) arduino_deinit);
     *p->returnedPort = xx;
  return OK;
 }
@@ -760,7 +758,8 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-    { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
+    { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL,
+      (SUBR) arduino_deinit},
     { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio",
       (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
     { "arduinoReadF", S(ARD_READF), 0, 3, "k", "iiii",

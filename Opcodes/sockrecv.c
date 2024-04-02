@@ -227,7 +227,6 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
     return OK;
@@ -283,7 +282,6 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv_S, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv_S);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
     return OK;
@@ -397,7 +395,6 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
     p->buffsize = p->buffer.size/sizeof(MYFLT);
@@ -615,8 +612,6 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
       buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-
-    csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
     if(p->sout->data == NULL)
       tabinit(csound, p->sout, 2);
 
@@ -766,20 +761,21 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
 static OENTRY sockrecv_localops[] = {
   { "sockrecv.k", S(SOCKRECV), 0, 3, "k", "ii",
-    (SUBR) init_recv, (SUBR) send_recv_k, NULL },
+    (SUBR) init_recv, (SUBR) send_recv_k, NULL, (SUBR) deinit_udpRecv },
   { "sockrecv.a", S(SOCKRECV), 0, 3, "a", "ii",
-    (SUBR) init_recv, (SUBR) send_recv, NULL },
+    (SUBR) init_recv, (SUBR) send_recv, (SUBR) deinit_udpRecv },
   { "sockrecv.S", S(SOCKRECVSTR), 0, 3, "S", "ii",
     (SUBR) init_recv_S,
-    (SUBR) send_recv_S, NULL },
+    (SUBR) send_recv_S, NULL, (SUBR) deinit_udpRecv_S },
   { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii",
     (SUBR) init_recvS,
-    (SUBR) send_recvS, NULL },
+    (SUBR) send_recvS,  (SUBR) deinit_udpRecv },
   { "strecv", S(SOCKRECVT), 0, 3, "az", "Si",
     (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
   { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",
-    (SUBR) init_raw_osc, (SUBR) perf_raw_osc, NULL, NULL}
+    (SUBR) init_raw_osc, (SUBR) perf_raw_osc,
+    (SUBR) destroy_raw_osc, NULL}
 };
 
 LINKAGE_BUILTIN(sockrecv_localops)

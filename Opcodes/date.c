@@ -179,7 +179,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     }
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, "%s", Str("readf: failed to open file"));
-    return csound->RegisterDeinitCallback(csound, p, readf_delete);
+    return OK; // csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
 
 static int32_t readf_init(CSOUND *csound, READF *p){
@@ -238,9 +238,9 @@ static OENTRY date_localops[] =
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
     { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,     },
     { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
-      (SUBR)readf                                                          },
+      (SUBR)readf, (SUBR)readf_delete                                                          },
     { "readf.S",  sizeof(READF),    0, 3, "Sk",   "S", (SUBR)readf_init_S,
-                                                       (SUBR)readf         }
+      (SUBR)readf, (SUBR)readf_delete         }
 
 };
 

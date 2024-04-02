@@ -488,7 +488,6 @@ static const CSOUND cenviron_ = {
     csoundRegisterKeyboardCallback,
     csoundRemoveKeyboardCallback,
     csoundRegisterSenseEventCallback,
-    csoundRegisterDeinitCallback,
     csoundRegisterResetCallback,
     SetInternalYieldCallback,
     /* opcodes and instruments  */
@@ -745,7 +744,6 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),
     NULL,
     {FL(0.0), FL(0.0), FL(0.0), FL(0.0)},
-   NULL,
    NULL,NULL,
    NULL,
     0,
@@ -4059,37 +4057,13 @@ PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
     return &(csound->rtPlay_userdata);
 }
 
+
 typedef struct opcodeDeinit_s {
   void    *p;
   int     (*func)(CSOUND *, void *);
   void    *nxt;
 } opcodeDeinit_t;
 
-/**
- * Register a function to be called at note deactivation.
- * Should be called from the initialisation routine of an opcode.
- * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
- * is the function to be called, with the same arguments and return
- * value as in the case of opcode init/perf functions.
- * The functions are called in reverse order of registration.
- * Returns zero on success.
- */
-
-int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
-                                 int (*func)(CSOUND *, void *))
-{
-    INSDS           *ip = ((OPDS*) p)->insdshead;
-    opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
-
-    (void) csound;
-    if (UNLIKELY(dp == NULL))
-      return CSOUND_MEMORY;
-    dp->p = p;
-    dp->func = func;
-    dp->nxt = ip->nxtd;
-    ip->nxtd = dp;
-    return CSOUND_SUCCESS;
-}
 
 /**
  * Register a function to be called by csoundReset(), in reverse order
@@ -4112,22 +4086,6 @@ int csoundRegisterResetCallback(CSOUND *csound, void *userData,
     dp->nxt = csound->reset_list;
     csound->reset_list = (void*) dp;
     return CSOUND_SUCCESS;
-}
-
-/* call the opcode deinitialisation routines of an instrument instance */
-/* called from deact() in insert.c */
-
-int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
-{
-    int err = 0;
-
-    while (ip->nxtd != NULL) {
-      opcodeDeinit_t  *dp = (opcodeDeinit_t*) ip->nxtd;
-      err |= dp->func(csound, dp->p);
-      ip->nxtd = (void*) dp->nxt;
-      free(dp);
-    }
-    return err;
 }
 
 /**
