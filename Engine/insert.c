@@ -2540,41 +2540,44 @@ static void instance(CSOUND *csound, int insno)
       lblbp->prvd = prvpdd;
       continue;                               /*    for later refs */
     }
-    // ******** This needs revisipn with no distinction between k- and a- rate ****
-    if ((ep->thread & 03) == 0) {             /* thread 1 OR 2:  */
-      if (ttp->pftype == 'b') {
+
+    if ((ep->iopadr == NULL && ep->kopadr != NULL) ||
+        (ep->iopadr != NULL && ep->kopadr == NULL)) {
+      /* init EXOR perf:  */
+      if (ep->iopadr != NULL) { /* init */
         prvids = prvids->nxti = opds;        
         opds->iopadr = ep->iopadr;
       }
-      else {
+      else {  /* perf */
         prvpds = prvpds->nxtp = opds;
         opds->opadr = ep->kopadr;
       }
-      if(ep->dopadr != NULL) {
-          printf("1DOP %p\n", ep->dopadr);
+      if(ep->dopadr != NULL) { /* deinit */
            prvpdd = prvpdd->nxtd = opds;
            opds->dopadr = ep->dopadr;
       } 
       goto args;
     }
-    if ((ep->thread & 01) != 0) {             /* thread 1:        */
-      prvids = prvids->nxti = opds;           /* link into ichain */
-      opds->iopadr = ep->iopadr;              /*   & set exec adr */
-      if (UNLIKELY(opds->iopadr == NULL))
-        csoundDie(csound, Str("null iopadr"));
+    if (ep->iopadr != NULL) {  /* init */
+      prvids = prvids->nxti = opds; /* link into ichain */
+      opds->iopadr = ep->iopadr; /*   & set exec adr */
+      if (UNLIKELY(odebug))
+        csound->Message(csound, "%s iopadr = %p\n",
+                        ep->opname,(void*) opds->opadr);
     }
-    if ((n = ep->thread & 02) != 0) {         /* thread 2     :   */
-      prvpds = prvpds->nxtp = opds;           /* link into pchain */
-        opds->opadr = ep->kopadr;             /*     perf   */
-        //if (UNLIKELY(odebug))
-        csound->Message(csound, "%s opadr = %p\n", ep->opname,(void*) opds->opadr);
-      if (UNLIKELY(opds->opadr == NULL))
-        csoundDie(csound, Str("null opadr"));
+    if (ep->kopadr != NULL) {  /* perf */
+      prvpds = prvpds->nxtp = opds; /* link into pchain */
+        opds->opadr = ep->kopadr;  /*     perf   */
+        if (UNLIKELY(odebug))
+        csound->Message(csound, "%s opadr = %p\n",
+                        ep->opname,(void*) opds->opadr);
     }
-    if(ep->dopadr != NULL) {
-      printf("DOP %p %s\n", ep->dopadr, ep->opname);
+    if(ep->dopadr != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds;
       opds->dopadr = ep->dopadr;
+      if (UNLIKELY(odebug))
+        csound->Message(csound, "%s dopadr = %p\n",
+                        ep->opname,(void*) opds->opadr);
       }
   args:
     if (ep->useropinfo == NULL)
