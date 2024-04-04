@@ -1243,7 +1243,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
 
     memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
-    if (p->h.opadr != (SUBR) NULL)      /* fprintks */
+    if (p->h.perf != (SUBR) NULL)      /* fprintks */
       pp = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
                          p->fname, istring, "w", 1);
     else                                /* fprints */

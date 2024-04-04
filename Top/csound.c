@@ -1606,7 +1606,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               /* In case of jumping need this repeat of opstart */
               opstart->insdshead->pds = opstart;
               csound->op = opstart->optext->t.opcod;
-              (*opstart->opadr)(csound, opstart); /* run each opcode */
+              (*opstart->perf)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
             csound->mode = 0;
@@ -1640,7 +1640,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
-                (*opstart->opadr)(csound, opstart); /* run each opcode */
+                (*opstart->perf)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
@@ -1801,7 +1801,7 @@ int kperf_nodebug(CSOUND *csound)
                      ip->actflg) {
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
-                error = (*opstart->opadr)(csound, opstart); /* run each opcode */
+                error = (*opstart->perf)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
@@ -1837,7 +1837,7 @@ int kperf_nodebug(CSOUND *csound)
                     opstart->insdshead->pds = opstart;
                     csound->op = opstart->optext->t.opcod;
                     //csound->ids->optext->t.oentry->opname;
-                    error = (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    error = (*opstart->perf)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
                   csound->mode = 0;
@@ -1903,7 +1903,7 @@ static inline void opcode_perf_debug(CSOUND *csound,
         }
       opstart->insdshead->pds = opstart;
       csound->mode = 2;
-      (*opstart->opadr)(csound, opstart); /* run each opcode */
+      (*opstart->perf)(csound, opstart); /* run each opcode */
       opstart = opstart->insdshead->pds;
       csound->mode = 0;
     }

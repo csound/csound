@@ -356,7 +356,7 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       p->pp = csoundStack_GetGlobals(csound);
       if (UNLIKELY(csoundStack_CreateArgMap(p, (int32_t*)&(p->argMap[0]), 0) != OK))
         return NOTOK;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) push_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) push_opcode_perf;
       p->initDone = 1;
     }
     if (p->argMap[1] != 0) {
@@ -461,7 +461,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
       if (UNLIKELY(csoundStack_CreateArgMap((PUSH_OPCODE*)p,
                                             &(p->argMap[0]), 1) != OK))
         return NOTOK;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) pop_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) pop_opcode_perf;
       p->initDone = 1;
     }
     if (p->argMap[1] != 0) {
@@ -565,7 +565,7 @@ static int32_t push_f_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       offs = csoundStack_Align(offs);
       p->argMap[1] = offs;
       p->argMap[2] = offs;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) push_f_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) push_f_opcode_perf;
       p->initDone = 1;
     }
     if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset))
@@ -634,7 +634,7 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
       offs = csoundStack_Align(offs);
       p->argMap[1] = offs;
       p->argMap[2] = offs;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) pop_f_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) pop_f_opcode_perf;
       p->initDone = 1;
     }
     if (UNLIKELY(p->pp->curBundle == NULL))

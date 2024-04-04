@@ -1136,7 +1136,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
-      return this->opadr ? true : false;
+      return this->perf ? true : false;
   }
 
 };

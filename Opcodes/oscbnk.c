@@ -1923,7 +1923,7 @@ static int32_t vco2ftset(CSOUND *csound, VCO2FT *p)
     if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
       vco2ftp(csound, p);
     else                                /* else set perf routine to avoid */
-      p->h.opadr = (SUBR) vco2ftp;      /* "not initialised" error */
+      p->h.perf = (SUBR) vco2ftp;      /* "not initialised" error */
     return OK;
 }
 

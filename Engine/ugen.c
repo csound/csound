@@ -255,7 +255,7 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     opds = ugen->opcodeMem;
     opds->insdshead = insds;
     opds->init = oentry->init;
-    opds->opadr = oentry->perf;
+    opds->perf = oentry->perf;
     opds->optext = optxt;
 
     

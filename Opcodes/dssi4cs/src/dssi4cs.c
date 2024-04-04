@@ -927,10 +927,10 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 #endif
 
 //    if ((int) csound->GetInputArgAMask(p) & 4) {
-//      p->h.opadr = (SUBR) dssictls_ak;  /* "iiak" */
+//      p->h.perf = (SUBR) dssictls_ak;  /* "iiak" */
 //    }
 //    else {
-//      p->h.opadr = (SUBR) dssictls_kk;  /* "iikk" */
+//      p->h.perf = (SUBR) dssictls_kk;  /* "iikk" */
 //    }
 
     return OK;

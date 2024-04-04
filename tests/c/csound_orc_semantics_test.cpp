@@ -93,7 +93,7 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
     // TODO this test is failing
     // opc = resolve_opcode(csound, entries, "a", "k");
-    // ASSERT_TRUE (opc->aopadr != NULL);
+    // ASSERT_TRUE (opc->aperf != NULL);
 
     csound->Free(csound, entries);
 }

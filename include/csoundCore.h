@@ -620,7 +620,7 @@ typedef struct CORFIL {
     /** Initialization (i-time) function pointer */
     SUBR    init;
     /** Perf-time (k- or a-rate) function pointer */
-    SUBR    opadr;
+    SUBR    perf;
     /** deinit function pointer */
      SUBR    deinit;
     /** Orch file template part for this opcode */

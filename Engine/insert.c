@@ -946,7 +946,7 @@ static void deact(CSOUND *csound, INSDS *ip)
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
-    p->h.opadr = (SUBR) useropcd;
+    p->h.perf = (SUBR) useropcd;
     ip->opcod_deact = NULL;
   }
   if (ip->subins_deact) {
@@ -1269,7 +1269,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   int     n, init_op, inarg_ofs;
   INSDS  *pip = p->h.insdshead;
 
-  init_op = (p->h.opadr == NULL ? 1 : 0);
+  init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   if (UNLIKELY(instno < 0)) return NOTOK;
   /* IV - Oct 9 2002: need this check */
@@ -1417,7 +1417,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 int subinstrset_S(CSOUND *csound, SUBINST *p){
   int instno, init_op, inarg_ofs;
   /* check if we are using subinstrinit or subinstr */
-  init_op = (p->h.opadr == NULL ? 1 : 0);
+  init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   instno = strarg2insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
   if (UNLIKELY(instno==NOT_AN_INSTRUMENT)) instno = -1;
@@ -1428,7 +1428,7 @@ int subinstrset_S(CSOUND *csound, SUBINST *p){
 int subinstrset(CSOUND *csound, SUBINST *p){
   int instno, init_op, inarg_ofs;
   /* check if we are using subinstrinit or subinstr */
-  init_op = (p->h.opadr == NULL ? 1 : 0);
+  init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   instno = (int) *(p->ar[inarg_ofs]);
   return subinstrset_(csound,p,instno);
@@ -1636,11 +1636,11 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (local_ksmps != CS_KSMPS) {
       ksmps_scale = CS_KSMPS / local_ksmps;
       parent_ip->xtratim = lcurip->xtratim / ksmps_scale;
-      p->h.opadr = (SUBR) useropcd1;
+      p->h.perf = (SUBR) useropcd1;
     }
     else {
       parent_ip->xtratim = lcurip->xtratim;
-      p->h.opadr = (SUBR) useropcd2;
+      p->h.perf = (SUBR) useropcd2;
     }
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
@@ -1924,7 +1924,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
       CS_PDS->insdshead->pds = NULL;
       do {
-        error = (*CS_PDS->opadr)(csound, CS_PDS);
+        error = (*CS_PDS->perf)(csound, CS_PDS);
         if (CS_PDS->insdshead->pds != NULL) {
           CS_PDS = CS_PDS->insdshead->pds;
           CS_PDS->insdshead->pds = NULL;
@@ -1966,7 +1966,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
             memset(p->ar, 0, sizeof(MYFLT)*CS_KSMPS*p->OUTCOUNT);
             goto endin;
           }
-          error = (*CS_PDS->opadr)(csound, CS_PDS);
+          error = (*CS_PDS->perf)(csound, CS_PDS);
           if (CS_PDS->insdshead->pds != NULL) {
             CS_PDS = CS_PDS->insdshead->pds;
             CS_PDS->insdshead->pds = NULL;
@@ -2082,7 +2082,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         CS_PDS->insdshead->pds = NULL;
         do {
           if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-          error = (*CS_PDS->opadr)(csound, CS_PDS);
+          error = (*CS_PDS->perf)(csound, CS_PDS);
           if (CS_PDS->insdshead->pds != NULL &&
               CS_PDS->insdshead->pds->insdshead) {
             CS_PDS = CS_PDS->insdshead->pds;
@@ -2191,7 +2191,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         CS_PDS->insdshead->pds = NULL;
         do {
           if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-          error = (*CS_PDS->opadr)(csound, CS_PDS);
+          error = (*CS_PDS->perf)(csound, CS_PDS);
           if (CS_PDS->insdshead->pds != NULL &&
               CS_PDS->insdshead->pds->insdshead) {
             CS_PDS = CS_PDS->insdshead->pds;
@@ -2359,7 +2359,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   CS_PDS->insdshead->pds = NULL;
   do {
     if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-    error = (*CS_PDS->opadr)(csound, CS_PDS);
+    error = (*CS_PDS->perf)(csound, CS_PDS);
     if (CS_PDS->insdshead->pds != NULL &&
         CS_PDS->insdshead->pds->insdshead) {
       CS_PDS = CS_PDS->insdshead->pds;
@@ -2546,21 +2546,21 @@ static void instance(CSOUND *csound, int insno)
       opds->init = ep->init; /*   & set exec adr */
       if (UNLIKELY(odebug))
         csound->Message(csound, "%s init = %p\n",
-                        ep->opname,(void*) opds->opadr);
+                        ep->opname,(void*) opds->perf);
     }
     if (ep->perf != NULL) {  /* perf */
       prvpds = prvpds->nxtp = opds; /* link into pchain */
-        opds->opadr = ep->perf;  /*     perf   */
+        opds->perf = ep->perf;  /*     perf   */
         if (UNLIKELY(odebug))
-        csound->Message(csound, "%s opadr = %p\n",
-                        ep->opname,(void*) opds->opadr);
+        csound->Message(csound, "%s perf = %p\n",
+                        ep->opname,(void*) opds->perf);
     }
     if(ep->deinit != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds; /* link into dchain */
       opds->deinit = ep->deinit;  /*   deinit   */
       if (UNLIKELY(odebug))
         csound->Message(csound, "%s deinit = %p\n",
-                        ep->opname,(void*) opds->opadr);
+                        ep->opname,(void*) opds->perf);
       }
     
     if (ep->useropinfo == NULL)
