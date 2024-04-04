@@ -254,8 +254,8 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 
     opds = ugen->opcodeMem;
     opds->insdshead = insds;
-    opds->iopadr = oentry->iopadr;
-    opds->opadr = oentry->kopadr;
+    opds->init = oentry->init;
+    opds->opadr = oentry->perf;
     opds->optext = optxt;
 
     
@@ -346,8 +346,8 @@ PUBLIC int ugen_init(UGEN* ugen) {
   OPDS* opds = (OPDS*)ugen->opcodeMem;
   OENTRY* oentry = ugen->oentry;
   opds->optext->t.inArgCount = ugen->inocount;
-  if (oentry->iopadr != NULL) {
-      return (*oentry->iopadr)(ugen->csound, ugen->opcodeMem);
+  if (oentry->init != NULL) {
+      return (*oentry->init)(ugen->csound, ugen->opcodeMem);
   }
   return CSOUND_SUCCESS;
 }
@@ -356,8 +356,8 @@ PUBLIC int ugen_perform(UGEN* ugen) {
     OENTRY* oentry = ugen->oentry;
     CSOUND* csound = ugen->csound;
     void* opcodeMem = ugen->opcodeMem;
-    if (oentry->kopadr != NULL) 
-            return (*oentry->kopadr)(csound, opcodeMem);    
+    if (oentry->perf != NULL) 
+            return (*oentry->perf)(csound, opcodeMem);    
     return CSOUND_SUCCESS;
 }
 

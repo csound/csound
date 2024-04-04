@@ -435,18 +435,18 @@ static OENTRY framebuffer_localops[] = {
         .dsblksiz = sizeof(Framebuffer),
         .outypes = "*",
         .intypes = "*",
-        .iopadr = (SUBR)Framebuffer_initialise,
-        .kopadr = (SUBR)Framebuffer_process,
-        .dopadr = NULL
+        .init = (SUBR)Framebuffer_initialise,
+        .perf = (SUBR)Framebuffer_process,
+        .deinit = NULL
     },
     {
         .opname = "olabuffer",
         .dsblksiz = sizeof(OLABuffer),
         .outypes = "a",
         .intypes = "k[]i",
-        .iopadr = (SUBR)OLABuffer_initialise,
-        .kopadr = (SUBR)OLABuffer_process,
-        .dopadr = NULL
+        .init = (SUBR)OLABuffer_initialise,
+        .perf = (SUBR)OLABuffer_process,
+        .deinit = NULL
     }
 };
 

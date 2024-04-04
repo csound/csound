@@ -2220,9 +2220,9 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.opname = cs_strdup(csound, temp);
   oentry.dsblksiz = sizeof(INIT_STRUCT_VAR);
   oentry.flags = 0;
-  oentry.iopadr = initStructVar;
-  oentry.kopadr = NULL;
-  oentry.dopadr = NULL;
+  oentry.init = initStructVar;
+  oentry.perf = NULL;
+  oentry.deinit = NULL;
   oentry.useropinfo = NULL;
 
   /* FIXME - this is not yet implemented */

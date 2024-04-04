@@ -287,7 +287,7 @@ static CS_NOINLINE int32_t tab_i_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
     STDOPCOD_GLOBALS  *pp;
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     p->tb_ptr = &(pp->tb_ptrs[ndx]);
-    p->h.iopadr = (SUBR) tab_perf;
+    p->h.init = (SUBR) tab_perf;
     return tab_perf(csound, p);
 }
 

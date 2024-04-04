@@ -3227,7 +3227,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
-      opc->iopadr(csound, (void *) &eval);
+      opc->init(csound, (void *) &eval);
     }
 
     opc = find_opcode_new(csound, p->str->data, "k", "k");
@@ -3258,7 +3258,7 @@ static int32_t tabmap_perf(CSOUND *csound, TABMAP *p)
     for (n=0; n < size; n++) {
       eval.a = &tabin[n];
       eval.r = &data[n];
-      opc->kopadr(csound, (void *) &eval);
+      opc->perf(csound, (void *) &eval);
     }
 
     return OK;

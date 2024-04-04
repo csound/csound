@@ -386,9 +386,9 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
 
     while (items != NULL) {
         ep = items->value;
-        if (oentry->iopadr == ep->iopadr &&
-            oentry->kopadr == ep->kopadr &&
-            oentry->dopadr == ep->dopadr &&
+        if (oentry->init == ep->init &&
+            oentry->perf == ep->perf &&
+            oentry->deinit == ep->deinit &&
             strcmp(oentry->opname, ep->opname) == 0 &&
             strcmp(oentry->outypes, ep->outypes) == 0 &&
             strcmp(oentry->intypes, ep->intypes) == 0) {

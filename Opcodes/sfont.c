@@ -2800,10 +2800,10 @@ int32_t sfont_ModuleInit(CSOUND *csound)
       err |= csound->AppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->flags,
                                   ep->outypes, ep->intypes,
-                                  (int32_t (*)(CSOUND *, void*)) ep->iopadr,
-                                  (int32_t (*)(CSOUND *, void*)) ep->kopadr,
+                                  (int32_t (*)(CSOUND *, void*)) ep->init,
+                                  (int32_t (*)(CSOUND *, void*)) ep->perf,
                                   (int32_t
-                                   (*)(CSOUND *, void*)) ep->dopadr);
+                                   (*)(CSOUND *, void*)) ep->deinit);
       ep++;
     }
     return err;

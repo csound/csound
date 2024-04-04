@@ -299,9 +299,9 @@ typedef struct CORFIL {
         uint16  flags;
         char    *outypes;
         char    *intypes;
-        int     (*iopadr)(CSOUND *, void *p);
-        int     (*kopadr)(CSOUND *, void *p);
-        int     (*dopadr)(CSOUND *, void *p);
+        int     (*init)(CSOUND *, void *p);
+        int     (*perf)(CSOUND *, void *p);
+        int     (*deinit)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
@@ -618,11 +618,11 @@ typedef struct CORFIL {
     /** Next opcode in deinit chain */
     struct opds * nxtd;
     /** Initialization (i-time) function pointer */
-    SUBR    iopadr;
+    SUBR    init;
     /** Perf-time (k- or a-rate) function pointer */
     SUBR    opadr;
     /** deinit function pointer */
-     SUBR    dopadr;
+     SUBR    deinit;
     /** Orch file template part for this opcode */
     OPTXT   *optext;
     /** Owner instrument instance data structure */
@@ -1348,9 +1348,9 @@ typedef struct _message_queue_t_ {
     /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         const char *outypes, const char *intypes,
-                        int (*iopadr)(CSOUND *, void *),
-                        int (*kopadr)(CSOUND *, void *),
-                        int (*dopadr)(CSOUND *, void *));
+                        int (*init)(CSOUND *, void *),
+                        int (*perf)(CSOUND *, void *),
+                        int (*deinit)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     char *(*GetOpcodeName)(void *p);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);

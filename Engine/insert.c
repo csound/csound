@@ -116,7 +116,7 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csound->op = csound->ids->optext->t.oentry->opname;
       csound->Message(csound, "init %s:\n", csound->op);
     }
-    error = (*csound->ids->iopadr)(csound, csound->ids);
+    error = (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
   if(csound->oparms->realtime)
@@ -135,11 +135,11 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   csound->ids = ids;
   csound->mode = 1;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
-         (csound->ids->iopadr != (SUBR) rireturn)){
+         (csound->ids->init != (SUBR) rireturn)){
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "reinit %s:\n", csound->op);
-    error = (*csound->ids->iopadr)(csound, csound->ids);
+    error = (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
 
@@ -254,7 +254,7 @@ int init0(CSOUND *csound)
   csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    (*csound->ids->iopadr)(csound, csound->ids);  /*   run all i-code     */
+    (*csound->ids->init)(csound, csound->ids);  /*   run all i-code     */
   }
   csound->mode = 0;
   return csound->inerrcnt;                        /*   return errcnt      */
@@ -916,7 +916,7 @@ void deinit_pass(CSOUND *csound, INSDS *ip) {
       op = dds->optext->t.oentry->opname;
       csound->Message(csound, "deinit %s:\n", op);
     }
-    error = (*dds->dopadr)(csound, dds);
+    error = (*dds->deinit)(csound, dds);
     if(error) {
       op = dds->optext->t.oentry->opname;
       csound->ErrorMsg(csound, "%s deinit error\n", op);
@@ -1397,7 +1397,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    (*csound->ids->iopadr)(csound, csound->ids);
+    (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
   p->ip->init_done = 1;
@@ -1616,7 +1616,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->mode = 1;
     while (csound->ids != NULL) {
       csound->op = csound->ids->optext->t.oentry->opname;
-      (*csound->ids->iopadr)(csound, csound->ids);
+      (*csound->ids->init)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
     }
     csound->mode = 0;
@@ -1645,7 +1645,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                       lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
-    p->h.dopadr = NULL;
+    p->h.deinit = NULL;
     return OK;
 }
 
@@ -2541,25 +2541,25 @@ static void instance(CSOUND *csound, int insno)
       continue;                               /*    for later refs */
     }
     
-    if (ep->iopadr != NULL) {  /* init */
+    if (ep->init != NULL) {  /* init */
       prvids = prvids->nxti = opds; /* link into ichain */
-      opds->iopadr = ep->iopadr; /*   & set exec adr */
+      opds->init = ep->init; /*   & set exec adr */
       if (UNLIKELY(odebug))
-        csound->Message(csound, "%s iopadr = %p\n",
+        csound->Message(csound, "%s init = %p\n",
                         ep->opname,(void*) opds->opadr);
     }
-    if (ep->kopadr != NULL) {  /* perf */
+    if (ep->perf != NULL) {  /* perf */
       prvpds = prvpds->nxtp = opds; /* link into pchain */
-        opds->opadr = ep->kopadr;  /*     perf   */
+        opds->opadr = ep->perf;  /*     perf   */
         if (UNLIKELY(odebug))
         csound->Message(csound, "%s opadr = %p\n",
                         ep->opname,(void*) opds->opadr);
     }
-    if(ep->dopadr != NULL) {  /* deinit */
+    if(ep->deinit != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds; /* link into dchain */
-      opds->dopadr = ep->dopadr;  /*   deinit   */
+      opds->deinit = ep->deinit;  /*   deinit   */
       if (UNLIKELY(odebug))
-        csound->Message(csound, "%s dopadr = %p\n",
+        csound->Message(csound, "%s deinit = %p\n",
                         ep->opname,(void*) opds->opadr);
       }
     

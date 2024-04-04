@@ -3208,9 +3208,9 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
                                const char *outypes, const char *intypes,
-                              int (*iopadr)(CSOUND *, void *),
-                              int (*kopadr)(CSOUND *, void *),
-                              int (*dopadr)(CSOUND *, void *))
+                              int (*init)(CSOUND *, void *),
+                              int (*perf)(CSOUND *, void *),
+                              int (*deinit)(CSOUND *, void *))
 {
   OENTRY  tmpEntry;
     int     err;
@@ -3220,9 +3220,9 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.flags      = (uint16) flags;
     tmpEntry.outypes    = (char*) outypes;
     tmpEntry.intypes    = (char*) intypes;
-    tmpEntry.iopadr     = iopadr;
-    tmpEntry.kopadr     = kopadr;
-    tmpEntry.dopadr     = dopadr;
+    tmpEntry.init     = init;
+    tmpEntry.perf     = perf;
+    tmpEntry.deinit     = deinit;
     err = opcode_list_new_oentry(csound, &tmpEntry);
     //add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))

@@ -994,7 +994,7 @@ template <std::size_t N> struct InPlug : OPDS {
  /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->iopadr ? true : false;
+    return this->init ? true : false;
   }
 
   /** check if this opcode runs at perf time
@@ -1130,7 +1130,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->iopadr ? true : false;
+    return this->init ? true : false;
   }
 
   /** check if this opcode runs at perf time

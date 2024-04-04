@@ -294,7 +294,7 @@ int32_t tblset(CSOUND *csound, TABLE *p)
         return csound->InitError(csound, msg, opname);
       }
     }
-    p->h.iopadr = (SUBR) itblchk;
+    p->h.init = (SUBR) itblchk;
     return itblchk(csound, p);
 }
 
@@ -311,7 +311,7 @@ int32_t tblsetkt(CSOUND *csound, TABLE *p)
         return csound->InitError(csound, msg, opname);
       }
     }
-    p->h.iopadr = (SUBR) ptblchk;
+    p->h.init = (SUBR) ptblchk;
     return ptblchk(csound, p);
 }
 

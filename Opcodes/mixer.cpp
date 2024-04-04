@@ -334,9 +334,9 @@ PUBLIC int csoundModuleInit_mixer(CSOUND *csound) {
   while (ep->opname != NULL) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                  ep->outypes, ep->intypes,
-                                (int (*)(CSOUND *, void *))ep->iopadr,
-                                (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->dopadr);
+                                (int (*)(CSOUND *, void *))ep->init,
+                                (int (*)(CSOUND *, void *))ep->perf,
+                                (int (*)(CSOUND *, void *))ep->deinit);
     ep++;
   }
   return err;
