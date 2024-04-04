@@ -850,17 +850,17 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 
 static OENTRY mp3in_localops[] =
 {
-  {"mp3in",  S(MP3IN),  _QQ, 3, "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in, (SUBR) mp3in_cleanup},
-  {"mp3in.i",  S(MP3IN),  _QQ, 3, "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in, (SUBR) mp3in_cleanup},
-  {"mp3len", S(MP3LEN), _QQ, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3len.i", S(MP3LEN), _QQ, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-  {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3sr.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-  {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3bitrate.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-  {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
-  {"mp3scal", sizeof(DATASPACE), 0, 3, "aak", "SkkkoooPP",
+  {"mp3in",  S(MP3IN),  _QQ,  "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in, (SUBR) mp3in_cleanup},
+  {"mp3in.i",  S(MP3IN),  _QQ,  "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in, (SUBR) mp3in_cleanup},
+  {"mp3len", S(MP3LEN), _QQ,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3len.i", S(MP3LEN), _QQ,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3sr", S(MP3LEN), 0,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3sr.i", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3bitrate", S(MP3LEN), 0,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3bitrate.i", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3nchnls", S(MP3LEN), 0,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3nchnls.i", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3scal", sizeof(DATASPACE), 0,  "aak", "SkkkoooPP",
    (SUBR)sinit3,(SUBR)sprocess3, (SUBR) mp3scale_cleanup},
 };
 

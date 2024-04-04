@@ -200,7 +200,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY sterrain_localops[] = {
-  { "sterrain", S(SUPERTER), TR, 3,  "a", "kkkkkkkkkkkkkkkkk",
+  { "sterrain", S(SUPERTER), TR,   "a", "kkkkkkkkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 

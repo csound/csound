@@ -225,7 +225,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY wter_localops[] = {
-  { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk",
+  { "wterrain2", S(WAVETER), TR,   "a", "kkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 

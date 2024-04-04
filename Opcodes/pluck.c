@@ -356,7 +356,7 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 
 static OENTRY localops[] =
   {
-   { "wgpluck",S(WGPLUCK),0, 3,"a","iikiiia",
+   { "wgpluck",S(WGPLUCK),0, "a","iikiiia",
      (SUBR)pluckPluck,(SUBR)pluckGetSamps}
 };
 

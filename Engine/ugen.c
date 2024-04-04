@@ -308,6 +308,7 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     ugen->data = (MYFLT*)csound->Calloc(csound, ugen->outPool->poolSize + ugen->inPool->poolSize);
     
     /*MYFLT* temp = (MYFLT*)this->opcodeMem +(sizeof(OPDS) / sizeof(MYFLT));*/
+
     /*MYFLT** p = (MYFLT**) temp;*/
     /*int outOffset = outPool->poolSize / sizeof(MYFLT);*/
     /*int count = 0;*/
@@ -355,12 +356,9 @@ PUBLIC int ugen_perform(UGEN* ugen) {
     OENTRY* oentry = ugen->oentry;
     CSOUND* csound = ugen->csound;
     void* opcodeMem = ugen->opcodeMem;
-    if((oentry->thread & 2) == 2) {
-        if (oentry->kopadr != NULL) {
-            return (*oentry->kopadr)(csound, opcodeMem);
-        }
-    }
- return CSOUND_SUCCESS;
+    if (oentry->kopadr != NULL) 
+            return (*oentry->kopadr)(csound, opcodeMem);    
+    return CSOUND_SUCCESS;
 }
 
 PUBLIC bool ugen_delete(UGEN* ugen) {

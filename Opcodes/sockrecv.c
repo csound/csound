@@ -760,20 +760,20 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY sockrecv_localops[] = {
-  { "sockrecv.k", S(SOCKRECV), 0, 3, "k", "ii",
+  { "sockrecv.k", S(SOCKRECV), 0, "k", "ii",
     (SUBR) init_recv, (SUBR) send_recv_k, NULL, (SUBR) deinit_udpRecv },
-  { "sockrecv.a", S(SOCKRECV), 0, 3, "a", "ii",
+  { "sockrecv.a", S(SOCKRECV), 0, "a", "ii",
     (SUBR) init_recv, (SUBR) send_recv, (SUBR) deinit_udpRecv },
-  { "sockrecv.S", S(SOCKRECVSTR), 0, 3, "S", "ii",
+  { "sockrecv.S", S(SOCKRECVSTR), 0, "S", "ii",
     (SUBR) init_recv_S,
     (SUBR) send_recv_S, NULL, (SUBR) deinit_udpRecv_S },
-  { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii",
+  { "sockrecvs", S(SOCKRECV), 0, "aa", "ii",
     (SUBR) init_recvS,
     (SUBR) send_recvS,  (SUBR) deinit_udpRecv },
-  { "strecv", S(SOCKRECVT), 0, 3, "az", "Si",
+  { "strecv", S(SOCKRECVT), 0, "az", "Si",
     (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
-  { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",
+  { "OSCraw", S(RAWOSC), 0, "S[]k", "i",
     (SUBR) init_raw_osc, (SUBR) perf_raw_osc,
     (SUBR) destroy_raw_osc, NULL}
 };

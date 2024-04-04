@@ -3207,8 +3207,7 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
-                              int thread, const char *outypes,
-                                          const char *intypes,
+                               const char *outypes, const char *intypes,
                               int (*iopadr)(CSOUND *, void *),
                               int (*kopadr)(CSOUND *, void *),
                               int (*dopadr)(CSOUND *, void *))
@@ -3219,7 +3218,6 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.opname     = (char*) opname;
     tmpEntry.dsblksiz   = (uint16) dsblksiz;
     tmpEntry.flags      = (uint16) flags;
-    tmpEntry.thread     = (uint8_t) thread;
     tmpEntry.outypes    = (char*) outypes;
     tmpEntry.intypes    = (char*) intypes;
     tmpEntry.iopadr     = iopadr;

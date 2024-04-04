@@ -616,9 +616,9 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
 
 static OENTRY localops[] =
   {
-   { "fof",    S(FOFS),   TR, 3, "a","xxxkkkkkiiiiooo",(SUBR)fofset,(SUBR)fof   },
-   { "fof2",   S(FOFS),   TR, 3, "a","xxxkkkkkiiiikko",(SUBR)fofset2,(SUBR)fof  },
-   { "harmon", S(HARMON), 0,3, "a",  "akkkkiii",(SUBR)harmset,  (SUBR)harmon  }
+   { "fof",    S(FOFS),   TR,  "a","xxxkkkkkiiiiooo",(SUBR)fofset,(SUBR)fof   },
+   { "fof2",   S(FOFS),   TR,  "a","xxxkkkkkiiiikko",(SUBR)fofset2,(SUBR)fof  },
+   { "harmon", S(HARMON), 0, "a",  "akkkkiii",(SUBR)harmset,  (SUBR)harmon  }
 };
 
 int32_t ugens7_init_(CSOUND *csound)

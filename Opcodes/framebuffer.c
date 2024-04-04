@@ -433,7 +433,6 @@ static OENTRY framebuffer_localops[] = {
     {
         .opname = "framebuffer",
         .dsblksiz = sizeof(Framebuffer),
-        .thread = 3,
         .outypes = "*",
         .intypes = "*",
         .iopadr = (SUBR)Framebuffer_initialise,
@@ -443,7 +442,6 @@ static OENTRY framebuffer_localops[] = {
     {
         .opname = "olabuffer",
         .dsblksiz = sizeof(OLABuffer),
-        .thread = 3,
         .outypes = "a",
         .intypes = "k[]i",
         .iopadr = (SUBR)OLABuffer_initialise,

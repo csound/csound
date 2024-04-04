@@ -173,7 +173,7 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
 
 static OENTRY pinker_localops[] =
 {
- { "pinker", sizeof(PINKER),0,3, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
+ { "pinker", sizeof(PINKER),0, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
 };
 
 LINKAGE_BUILTIN(pinker_localops)

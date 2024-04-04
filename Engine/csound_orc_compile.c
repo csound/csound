@@ -1932,7 +1932,8 @@ if (engineState != &csound->engineState) {
       continue;
     if (PARSER_DEBUG)
       csound->DebugMsg(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
-    if (UNLIKELY((thread = oentry->thread) & 06 ||
+    thread =  oentry->iopadr && oentry->kopadr ? 3 : (oentry->iopadr ? 1 : 2);
+    if (UNLIKELY((thread & 06) ||
                  (!thread && bp->t.pftype != 'b'))) {
       csound->DebugMsg(csound, "***opcode=%s thread=%d pftype=%c\n",
                        bp->t.opcod, thread, bp->t.pftype);

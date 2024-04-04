@@ -267,10 +267,10 @@ systime(CSOUND *csound, SYST *p){
 #define S(x)    sizeof(x)
 
 static OENTRY cpumeter_localops[] = {
-  { "cpumeter",   S(CPUMETER),   0,3, "kzzzzzzzz", "i",
+  { "cpumeter",   S(CPUMETER),   0, "kzzzzzzzz", "i",
     (SUBR)cpupercent_init, (SUBR)cpupercent, (SUBR) deinit_cpupercent },
-{ "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
-{ "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
+{ "systime", S(SYST),0,  "k",    "", (SUBR)systime, (SUBR)systime},
+{ "systime", S(SYST),0,  "i",    "", (SUBR)systime}
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)

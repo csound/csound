@@ -329,11 +329,11 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
 /* static */
 static OENTRY pvsbuffer_localops[] = {
-  {"pvsbuffer", S(PVSBUFFER), 0, 3, "ik", "fi",
+  {"pvsbuffer", S(PVSBUFFER), 0,  "ik", "fi",
    (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
-  {"pvsbufread", S(PVSBUFFERREAD), 0, 3, "f", "kkOOo",
+  {"pvsbufread", S(PVSBUFFERREAD), 0,  "f", "kkOOo",
    (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL},
-  {"pvsbufread2", S(PVSBUFFERREAD), 0, 3, "f", "kkkk",
+  {"pvsbufread2", S(PVSBUFFERREAD), 0,  "f", "kkkk",
    (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
 };
 

@@ -297,7 +297,6 @@ typedef struct CORFIL {
         char    *opname;
         uint16  dsblksiz;
         uint16  flags;
-        uint8_t thread;
         char    *outypes;
         char    *intypes;
         int     (*iopadr)(CSOUND *, void *p);
@@ -1348,7 +1347,7 @@ typedef struct _message_queue_t_ {
     /** @name Opcodes and instruments */
     /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
-                        int thread, const char *outypes, const char *intypes,
+                        const char *outypes, const char *intypes,
                         int (*iopadr)(CSOUND *, void *),
                         int (*kopadr)(CSOUND *, void *),
                         int (*dopadr)(CSOUND *, void *));

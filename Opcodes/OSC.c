@@ -1115,19 +1115,19 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSN",
+  { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
     (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL },
-  { "OSCinit", S(OSCINIT), 0, 1, "i", "i",
+  { "OSCinit", S(OSCINIT), 0, "i", "i",
     (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL },
-  { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si",
+  { "OSCinitM", S(OSCINITM), 0,  "i", "Si",
     (SUBR)osc_listener_initMulti, NULL, (SUBR) OSC_deinit , NULL },
-  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSSN",
+  { "OSClisten", S(OSCLISTEN),0,  "k", "iSSN",
     (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL },
-  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
+  { "OSClisten", S(OSCLISTEN),0,  "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL },
-  { "OSClisten", S(OSCLISTENA),0, 3, "kk[]", "iSS",
+  { "OSClisten", S(OSCLISTENA),0,  "kk[]", "iSS",
     (SUBR)OSC_alist_init, (SUBR)OSC_alist, (SUBR) OSC_listadeinit, NULL },
-  { "OSCcount", S(OSCcount), 0, 3, "k", "",
+  { "OSCcount", S(OSCcount), 0,  "k", "",
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
 };
 

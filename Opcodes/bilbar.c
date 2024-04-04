@@ -574,9 +574,9 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY bilbar_localops[] = {
-  { "barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
+  { "barmodel", S(BAR), 0,  "a", "kkiikiiii", (SUBR) bar_init,
                                                (SUBR) bar_run},
-  { "prepiano", S(CSPP), 0, 3, "mm", "iiiiiikkiiiiiiioo",
+  { "prepiano", S(CSPP), 0,  "mm", "iiiiiikkiiiiiiioo",
                                 (SUBR)init_pp, (SUBR)play_pp },
 };
 

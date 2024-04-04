@@ -1295,18 +1295,18 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 
 static OENTRY phisem_localops[] =
   {
-   { "cabasa",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa},
-   { "crunch",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa},
-   { "sekere",  S(SEKERE),  0, 3, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere},
-   { "sandpaper", S(SEKERE),0, 3, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere},
-   { "stix", S(SEKERE),     0, 3, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere},
-   { "guiro", S(GUIRO),     0, 3, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro },
-   { "tambourine", S(TAMBOURINE),0, 3,"a", "kioooooo",
+   { "cabasa",  S(CABASA),  0, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa},
+   { "crunch",  S(CABASA),  0, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa},
+   { "sekere",  S(SEKERE),  0, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere},
+   { "sandpaper", S(SEKERE),0, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere},
+   { "stix", S(SEKERE),     0, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere},
+   { "guiro", S(GUIRO),     0, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro },
+   { "tambourine", S(TAMBOURINE),0,"a", "kioooooo",
                                         (SUBR)tambourset, (SUBR)tambourine},
-   { "bamboo", S(BAMBOO),   0, 3, "a", "kioooooo",
+   { "bamboo", S(BAMBOO),   0, "a", "kioooooo",
                                         (SUBR)bambooset, (SUBR)bamboo },
-   { "dripwater", S(WUTER), 0, 3, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter },
-   { "sleighbells", S(SLEIGHBELLS), 0, 3, "a","kioooooo",
+   { "dripwater", S(WUTER), 0, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter },
+   { "sleighbells", S(SLEIGHBELLS), 0, "a","kioooooo",
                                        (SUBR)sleighset, (SUBR)sleighbells }
 };
 

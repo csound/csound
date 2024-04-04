@@ -1022,19 +1022,19 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
 
 static OENTRY socksend_localops[] =
   {
-   { "socksend.a", S(SOCKSEND), 0, 3, "", "aSiio", (SUBR) init_send,
+   { "socksend.a", S(SOCKSEND), 0, "", "aSiio", (SUBR) init_send,
      (SUBR) send_send },
-   { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
+   { "socksend.k", S(SOCKSEND), 0, "", "kSiio", (SUBR) init_send,
      (SUBR) send_send_k, NULL },
-   { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
+   { "socksend.S", S(SOCKSENDT), 0, "", "SSiio", (SUBR) init_send,
      (SUBR) send_send_Str, NULL },
-   { "socksends", S(SOCKSENDS), 0, 3, "", "aaSiio", (SUBR) init_sendS,
+   { "socksends", S(SOCKSENDS), 0, "", "aaSiio", (SUBR) init_sendS,
      (SUBR) send_sendS },
-   { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
+   { "stsend", S(SOCKSEND), 0, "", "aSi", (SUBR) init_ssend,
      (SUBR) send_ssend, (SUBR) stsend_deinit },
-   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSN", (SUBR)osc_send2_init,
+   { "OSCsend", S(OSCSEND2), 0, "", "kSkSN", (SUBR)osc_send2_init,
      (SUBR)osc_send2, (SUBR) oscsend_deinit },
-   { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
+   { "OSCbundle", S(OSCBUNDLE), 0, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },
 };
 

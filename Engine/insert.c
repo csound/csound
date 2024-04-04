@@ -2556,8 +2556,8 @@ static void instance(CSOUND *csound, int insno)
                         ep->opname,(void*) opds->opadr);
     }
     if(ep->dopadr != NULL) {  /* deinit */
-      prvpdd = prvpdd->nxtd = opds;
-      opds->dopadr = ep->dopadr;
+      prvpdd = prvpdd->nxtd = opds; /* link into dchain */
+      opds->dopadr = ep->dopadr;  /*   deinit   */
       if (UNLIKELY(odebug))
         csound->Message(csound, "%s dopadr = %p\n",
                         ep->opname,(void*) opds->opadr);

@@ -352,17 +352,17 @@ static int32_t dashow(CSOUND *csound, DSH *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "vtable1k",       S(MTABLE1),         TR, 3,  "",  "kz",
+  { "vtable1k",       S(MTABLE1),         TR,   "",  "kz",
                   (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
-  { "trandom",        S(TRANGERAND),          0,    2,  "k", "kkk",
+  { "trandom",        S(TRANGERAND),          0,      "k", "kkk",
                     NULL,                                   (SUBR)trRangeRand },
-  { "lposcila", S(LPOSC),      TR, 3, "a", "akkkio",
+  { "lposcila", S(LPOSC),      TR,  "a", "akkkio",
                                            (SUBR)lposc_set, (SUBR)lposca},
-  { "lposcilsa", S(LPOSC_ST),  TR, 3, "aa","akkkio",
+  { "lposcilsa", S(LPOSC_ST),  TR, "aa","akkkio",
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
-  { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
+  { "lposcilsa2", S(LPOSC_ST), TR,  "aa","akkkio",
                     (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp},
-  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
+  { "inrg", S(INRANGE), WI, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
 
 
 };

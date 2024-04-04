@@ -662,16 +662,16 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY localops[] = { 
-  { "stack",  sizeof(STACK_OPCODE), SK|_QQ, 1,  "",   "i",
+  { "stack",  sizeof(STACK_OPCODE), SK|_QQ,   "",   "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "N",
+  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 3,
+  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 
                                    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ, 3,  "f",   "",
+  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ,   "f",   "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };
 

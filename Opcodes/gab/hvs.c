@@ -500,13 +500,13 @@ static int32_t vphaseseg(CSOUND *csound, VPSEG *p)
 #define S(x)    sizeof(x)
 
 OENTRY hvs_localops[] = {
-  { "hvs1",  S(HVS1), TB, 3,  "",  "kiiiiio",
+  { "hvs1",  S(HVS1), TB,   "",  "kiiiiio",
     (SUBR)hvs1_set, (SUBR)hvs1, (SUBR)NULL },
-  { "hvs2",  S(HVS2), TB, 3,  "",  "kkiiiiiio",
+  { "hvs2",  S(HVS2), TB,   "",  "kkiiiiiio",
     (SUBR)hvs2_set, (SUBR)hvs2, (SUBR)NULL },
-  { "hvs3",  S(HVS3), TB, 3,  "",  "kkkiiiiiiio",
+  { "hvs3",  S(HVS3), TB,   "",  "kkkiiiiiiio",
     (SUBR)hvs3_set, (SUBR)hvs3, (SUBR)NULL },
-  { "vphaseseg", S(VPSEG), TB, 3,  "",  "kiim",
+  { "vphaseseg", S(VPSEG), TB,   "",  "kiim",
     (SUBR)vphaseseg_set, (SUBR)vphaseseg }
 };
 

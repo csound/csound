@@ -201,7 +201,7 @@ static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 }
 
 static OENTRY paulstretch_localops[] = {
-  { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR, 3, "a", "iii",
+  { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR,  "a", "iii",
     (int32_t (*)(CSOUND *, void *)) ps_init,
     (int32_t (*)(CSOUND *, void *)) paulstretch_perf}
 };

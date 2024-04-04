@@ -256,8 +256,8 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "seqtime", S(SEQTIM),  TR, 3, "k",    "kkkkk", (SUBR)seqtim_set, (SUBR)seqtim   },
-{ "seqtime2", S(SEQTIM2),TR, 3, "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
+{ "seqtime", S(SEQTIM),  TR,  "k",    "kkkkk", (SUBR)seqtim_set, (SUBR)seqtim   },
+{ "seqtime2", S(SEQTIM2),TR,  "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
 };
 
 int32_t seqtime_init_(CSOUND *csound)
