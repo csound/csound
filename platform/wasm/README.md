@@ -8,18 +8,26 @@ of Csound from Linux.  These scripts were developed using Ubuntu.
 
 1. Install docker using apt:
 
-    sudo apt install docker.io
+```bash
+sudo apt install docker.io
+```
 
 2. Add user to docker group:
 
-    sudo usermod -a -G docker $USER
+```bash
+sudo usermod -a -G docker $USER
+```
 
 3. Build docker image from csound dir:
 
-    cd csound
-    docker build -t csound-wasm ./platform/wasm
+```bash
+cd csound
+docker build -t csound-wasm ./platform/wasm
+```
 
 4. Build csound:
 
-    docker run -it --rm -v .:/tmp/workdir --user ${UID}:${1000} -w /tmp/workdir csound-wasm './platform/wasm/build_release.sh'
-    docker run -it --rm -v .:/tmp/workdir --user ${UID}:${1000} -w /tmp/workdir csound-wasm './platform/wasm/build_debug.sh'
+```bash
+docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-wasm './platform/wasm/build_release.sh'
+docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-wasm './platform/wasm/build_debug.sh'
+```
