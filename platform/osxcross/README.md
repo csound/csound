@@ -34,3 +34,17 @@ docker build -t csound-osxcross ./platform/osxcross
 docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-osxcross './platform/osxcross/build_release.sh'
 docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-osxcross './platform/osxcross/build_debug.sh'
 ```
+
+## Build Github tar.gz
+
+1. To build image used for github build using docker:
+
+```bash
+docker build -t github-osxcross ./platform/osxcross -f ./platform/osxcross/Dockerfile.github_runner
+```
+
+2. Create osxcross.tar.gz:
+
+```bash
+docker run github-osxcross cat /home/runner/work/csound/csound/osxcross.tar.gz > osxcross.tar.gz
+```
