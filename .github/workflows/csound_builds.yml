@@ -163,9 +163,8 @@ jobs:
         run: cmake --build build --target test csdtests
 
   macos_build_osxcross:
-    name: MacOS build (osxcross)
+    name: MacOS build (osxcross/vcpkg)
     runs-on: ubuntu-latest
-    if: false
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
@@ -173,45 +172,24 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
-
-      - name: Setup NuGet credentials
-        shell: bash
-        run: |
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
-          sources add \
-          -source "https://nuget.pkg.github.com/csound/index.json" \
-          -storepasswordincleartext \
-          -name "GitHub" \
-          -username "csound" \
-          -password "${{ secrets.GITHUB_TOKEN }}"
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GITHUB_TOKEN }}" \
-            -source "https://nuget.pkg.github.com/csound/index.json"
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install build-essential liblzma-dev libxml2-dev libz-dev libbz2-dev cpio ninja-build
-
-      - name: Cache osxcross
-        id: osxcross
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/work/csound/csound/osxcross
-          key: ${{ runner.os }}-osxcross
   
-      - name: Build osxcross
-        if: steps.osxcross.outputs.cache-hit != 'true'
+      - name: Download osxcross
         run: |
-          git clone https://github.com/tpoechtrager/osxcross.git
-          sudo /home/runner/work/csound/csound/osxcross/tools/get_dependencies.sh
-          OSX_SDK="MacOSX14.0.sdk"
-          OSX_SDK_URL="https://github.com/joseluisq/macosx-sdks/releases/download/14.0/${OSX_SDK}.tar.xz"
-          curl -sSL "$OSX_SDK_URL" -o "/home/runner/work/csound/csound/osxcross/tarballs/$OSX_SDK.tar.xz"
-          UNATTENDED=1 /home/runner/work/csound/csound/osxcross/build_clang.sh
-          UNATTENDED=1 /home/runner/work/csound/csound/osxcross/build.sh
+          curl -L "https://drive.usercontent.google.com/download?id=1TKmFGbKE_F4ZF9f6m5VxuZ7yEHbDzQy5&confirm=xxx" | tar xvz
 
       - name: Configure Build
         run: |
