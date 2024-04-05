@@ -4,6 +4,8 @@ else()
     cmake_minimum_required(VERSION 3.13.4)
 endif()
 
+set (CMAKE_CXX_STANDARD 11)
+
 cmake_policy(SET CMP0077 NEW)
 
 include(cmake/cmake-utilities.cmake)
