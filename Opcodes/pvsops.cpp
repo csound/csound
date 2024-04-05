@@ -465,8 +465,7 @@ struct TPrint : csnd::Plugin<0, 1> {
 };
 */
 
-#include <modload.h>
-void csnd::on_load(Csound *csound) {
+void onload(csnd::Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
@@ -474,3 +473,15 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "akkkkk", csnd::thread::ia);
   csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "kkkkkk", csnd::thread::ia);
 }
+
+#ifdef BUILD_PLUGINS
+#include <modload.h>
+void csnd::onload(csnd::Csound *csound) {
+    on_load(csound);
+}
+#else
+extern "C" int32_t pvsops_init_modules(CSOUND *csound) {
+    onload((csnd::Csound *)csound);
+    return OK;
+  }
+#endif

@@ -23,7 +23,7 @@
 
 #include <stdlib.h>
 //#include <unistd.h>
-#include "csdl.h"
+//#include "csdl.h"
 #include <math.h>
 #include "csoundCore.h"
 #include <string.h>
@@ -2147,10 +2147,11 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, in
 }
 
 #define S(x)    sizeof(x)
-
-static OENTRY localops[] = {
+extern "C" {
+static OENTRY bformdec2_localops[] = {
   { (char*) "bformdec2.A", S(HOAMBDEC), 0, 3, (char*) "a[]", (char*) "ia[]ooooNN",
     (SUBR)ihoambdec, (SUBR)ahoambdec },
 };
 
-LINKAGE_BUILTIN(localops)
+LINKAGE_BUILTIN(bformdec2_localops)
+}

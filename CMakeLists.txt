@@ -913,7 +913,18 @@ set(oldpvoc_SRCS
     Opcodes/pvread.c
     Opcodes/ugens8.c
     Opcodes/vpvoc.c
-    Opcodes/pvoc.c)
+    Opcodes/pvoc.c
+)
+
+set(scanops_SRCS
+    Opcodes/scansyn.c   
+    Opcodes/scansynx.c
+)
+
+set(unixops_SRCS
+    Opcodes/control.c
+    Opcodes/urandom.c
+)
 
 set(mp3in_SRCS
     Opcodes/mp3in.c
@@ -925,29 +936,34 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+set(cppops_SRCS
+   Opcodes/ampmidid.cpp
+   Opcodes/mixer.cpp
+   Opcodes/bformdec2.cpp
+   Opcodes/doppler.cpp
+     Opcodes/ftsamplebank.cpp
+     Opcodes/padsynth_gen.cpp
+     Opcodes/signalflowgraph.cpp
+     Opcodes/arrayops.cpp
+     Opcodes/lfsr.cpp
+     Opcodes/pvsops.cpp
+     Opcodes/trigEnvSegs.cpp
+     Opcodes/tl/fractalnoise.cpp
+)
+
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS})
+
+if(UNIX)
+list(APPEND libcsound_SRCS ${unixops_SRCS})
+endif()
 
 if(BUILD_PERFTHREAD_CLASS)
     list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
 endif()
 
-if(INIT_STATIC_MODULES)
-    set(static_modules_SRCS
-        Top/init_static_modules.c
-        Opcodes/ampmidid.cpp
-        Opcodes/doppler.cpp
-        Opcodes/tl/fractalnoise.cpp
-        Opcodes/ftsamplebank.cpp
-        Opcodes/mixer.cpp
-        Opcodes/signalflowgraph.cpp)
-
-    set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
-    list(APPEND libcsound_SRCS ${static_modules_SRCS})
-    message(STATUS "Building static modules")
-endif()
 
 # Handling New Parser
-
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
 set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)

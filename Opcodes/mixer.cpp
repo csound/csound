@@ -327,20 +327,7 @@ PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
   return OK;
 }
 
-PUBLIC int csoundModuleInit_mixer(CSOUND *csound) {
-  OENTRY *ep = (OENTRY *)&(localops[0]);
-  int err = 0;
 
-  while (ep->opname != NULL) {
-    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
-                                ep->thread, ep->outypes, ep->intypes,
-                                (int (*)(CSOUND *, void *))ep->iopadr,
-                                (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->aopadr);
-    ep++;
-  }
-  return err;
-}
 
 /*
  * The mixer busses are laid out:
@@ -388,7 +375,31 @@ PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound) {
   return OK;
 }
 
-#ifndef INIT_STATIC_MODULES
+int32_t destroyMixer(CSOUND *csound, void *p) {
+  IGN(p);
+  return csoundModuleDestroy_mixer(csound);
+}
+
+PUBLIC int32_t csoundModuleInit_mixer(CSOUND *csound) {
+  OENTRY *ep = (OENTRY *)&(localops[0]);
+  int err = 0;
+
+  while (ep->opname != NULL) {
+    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
+                                ep->thread, ep->outypes, ep->intypes,
+                                (int (*)(CSOUND *, void *))ep->iopadr,
+                                (int (*)(CSOUND *, void *))ep->kopadr,
+                                (int (*)(CSOUND *, void *))ep->aopadr);
+    ep++;
+  }
+  // need to register reset callback
+  csound->RegisterResetCallback(csound, NULL, destroyMixer);
+  return err;
+}
+
+
+
+#ifdef BUILD_PLUGINS
 PUBLIC int csoundModuleCreate(CSOUND *csound) {
   return csoundModuleCreate_mixer(csound);
 }

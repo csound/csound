@@ -208,8 +208,7 @@ template <typename T, int I> struct Accum : csnd::Plugin<1, 1> {
 };
 
 
-#include <modload.h>
-void csnd::on_load(Csound *csound) {
+static void onload(csnd::Csound *csound) {
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]",
@@ -357,3 +356,17 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp3<std::fmin>>(csound, "fmin", "k[]", "k[]k",
                                     csnd::thread::ik);
 }
+
+
+
+#ifdef BUILD_PLUGINS
+#include <modload.h>
+void csnd::on_load(csnd::Csound *csound) {
+    onload(csound);
+}
+#else
+extern "C" int32_t arrayops_init_modules(CSOUND *csound) {
+    onload((csnd::Csound *)csound);
+    return OK;
+  }
+#endif

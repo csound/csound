@@ -280,7 +280,8 @@ PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
   }
   return status;
 }
-#ifndef INIT_STATIC_MODULES
+  
+#ifdef BUILD_PLUGINS
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;

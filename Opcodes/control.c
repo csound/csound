@@ -21,9 +21,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
 #include "control.h"
-
 #include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
