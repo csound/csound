@@ -119,8 +119,8 @@ Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs
 
 Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
-Source: "{#ReleaseDir}\ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+
+
 Source: "{#ReleaseDir}\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\cs.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csanalyze.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -133,45 +133,35 @@ Source: "{#ReleaseDir}\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversio
 Source: "{#ReleaseDir}\libcsound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\doppler.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\envext.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\extract.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\extractor.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core
-Source: "{#ReleaseDir}\fractalnoise.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\ftsamplebank.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\het_export.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\het_import.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\hetro.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core
-Source: "{#ReleaseDir}\ipmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\lpanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\lpc_export.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\lpc_import.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\makecsd.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
-Source: "{#ReleaseDir}\mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\mixer.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\osc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\padsynth.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pv_export.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pv_import.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pvlook.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\pvsops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\scale.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\scansyn.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\scot.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\scsort.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\sdif2ad.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\signalflowgraph.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\sndinfo.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\srconv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\src_conv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\deprecated.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
-Source: "{#ReleaseDir}\lfsr.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ; Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ; Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ; Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
