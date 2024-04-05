@@ -23,8 +23,8 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-#include "aops.h"
-#include "find_opcode.h"
+#include "arrays.h"
+
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -76,7 +76,7 @@ static int32_t array_del(CSOUND *csound, void *p)
 }
 #endif
 
-#include "arrays.h"
+
 
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -3206,7 +3206,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     MYFLT *data, *tabin = p->tabin->data;
     int32_t n, size;
     OENTRY *opc  = NULL;
-    EVAL  eval;
+    AEVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
       return csound->InitError(csound, "%s", Str("array-var not initialised"));
@@ -3242,7 +3242,7 @@ static int32_t tabmap_perf(CSOUND *csound, TABMAP *p)
     MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
     int32_t n, size;
     OENTRY *opc  = p->opc;
-    EVAL  eval;
+    AEVAL  eval;
 
     if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
       return csound->PerfError(csound,
