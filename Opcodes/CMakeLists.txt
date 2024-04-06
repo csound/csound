@@ -3,19 +3,47 @@ option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 
 ##########################################
-## Plugin opcodes are in the following categories ##
-# 1) opcodes in C++ with no external dependencies
-# 2) opcodes with special licensing conditions
-# 3) platform-specific opcodes
-# 4) opcodes with external dependencies
-# 5) deprecated opcodes
+##  External opcodes can be optionally built as plugins
+###########################################
+if(BUILD_PLUGINS)
+
+ foreach(SRC IN LISTS cppops_SRCS)
+  get_filename_component(LIBNAME ${SRC} NAME_WE)
+  get_filename_component(LIBSRC ${SRC} NAME)
+  make_plugin(${LIBNAME} ${LIBSRC})
+ endforeach()
+ 
+ foreach(SRC IN LISTS scanops_SRCS)
+  get_filename_component(SSRC ${SRC} NAME)
+  list(APPEND scanops ${SSRC})
+ endforeach()
+  make_plugin(scansyn "${scanops}")
+
+ 
+ foreach(SRC IN LISTS mp3in_SRCS)
+   string(CONCAT MSRC "../" ${SRC})
+  list(APPEND mp3inops ${MSRC})
+ endforeach()
+  make_plugin(mp3in "${mp3inops}")  
+
+
+endif() 
+
+
+
+
+
+##########################################
+##  Other plugin opcodes are in the following categories 
+# 1) platform-specific opcodes
+# 2) opcodes with external dependencies
+# 3) deprecated opcodes
 #
 #  if an opcode is not in one of the categories above,
 #  it should be added with BUILTIN linkage
 #  (i.e. not as plugins)
 #  See instructions in ../Top/csmodule.c
 ##########################################
-
 ## platform-dependent opcodes ##
 if(LINUX)
     make_plugin(joystick linuxjoystick.c)

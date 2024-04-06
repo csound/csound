@@ -22,10 +22,12 @@
  */
 
 #include <stdlib.h>
-//#include <unistd.h>
-//#include "csdl.h"
 #include <math.h>
-#include "csoundCore.h"
+#ifdef BUILD_PLUGINS
+ #include "csdl.h"
+#else
+ #include "csoundCore.h"
+#endif
 #include <string.h>
 #include <new>
 

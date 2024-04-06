@@ -476,8 +476,8 @@ void onload(csnd::Csound *csound) {
 
 #ifdef BUILD_PLUGINS
 #include <modload.h>
-void csnd::onload(csnd::Csound *csound) {
-    on_load(csound);
+void csnd::on_load(csnd::Csound *csound) {
+    onload(csound);
 }
 #else
 extern "C" int32_t pvsops_init_modules(CSOUND *csound) {

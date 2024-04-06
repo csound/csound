@@ -1232,14 +1232,15 @@ extern int32_t trigEnv_init_modules(CSOUND *csound);
 extern int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
 extern int32_t scansyn_init_(CSOUND *csound);
 extern int32_t scansynx_init_(CSOUND *csound);
-
+  
 const INITFN2 staticmodules2[] = {
   stdopc_ModuleInit,
   pvsopc_ModuleInit,
   sfont_ModuleInit,
   newgabopc_ModuleInit,
-  csoundModuleInit_ampmidid,
-  csoundModuleInit_mixer,
+#ifndef BUILD_PLUGINS  
+    csoundModuleInit_ampmidid,
+    csoundModuleInit_mixer,
     csoundModuleInit_doppler,
     csoundModuleInit_ftsamplebank,
     csoundModuleInit_signalflowgraph,
@@ -1250,6 +1251,7 @@ const INITFN2 staticmodules2[] = {
     csoundModuleInit_fractalnoise,
     scansyn_init_,
     scansynx_init_,
+#endif    
   NULL
     };
 
@@ -1288,8 +1290,10 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  system_localops_init,
 #ifndef NO_SERIAL_OPCODES                                 
                                  serial_localops_init,
-#endif                                 
+#endif
+#ifndef BUILD_PLUGINS                                 
                                  mp3in_localops_init,
+#endif                                 
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
@@ -1303,7 +1307,9 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  platerev_localops_init,
                                  pvsgendy_localops_init, scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
+#ifndef BUILD_PLUGINS  
                                    bformdec2_localops_init,
+#endif
                                  NULL };
 
 /**
@@ -1323,8 +1329,14 @@ NGFENS *quadbezier_fgens_init(CSOUND *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
 NGFENS *padsyn_fgen_init(CSOUND *); 
+NGFENS *mp3in_fgen_init(CSOUND *);
 
-const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,padsyn_fgen_init, NULL };
+const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,
+#ifndef BUILD_PLUGINS  
+                              padsyn_fgen_init,
+                              mp3in_fgen_init,
+#endif
+                              NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {

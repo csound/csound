@@ -601,10 +601,14 @@ typedef struct CORFIL {
 #define CS_ONEDKSMPS (p->h.insdshead->onedksmps)
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
-#define CS_ESR       (csound->esr)
+#define CS_ESR       (csound->GetSr(csound))
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
+
+
+#define CS_ONEDSR    (FL(1.0)/CS_ESR)
+  
   typedef int (*SUBR)(CSOUND *, void *);
 
   /**
@@ -1870,7 +1874,7 @@ typedef struct _message_queue_t_ {
  */
 
 #define LINKAGE_BUILTIN(name)                                         \
-long name##_init(CSOUND *csound, OENTRY **ep)                         \
+int32_t name##_init(CSOUND *csound, OENTRY **ep)                         \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  }
 
 #define FLINKAGE_BUILTIN(name)                                        \
