@@ -1480,43 +1480,8 @@ static OENTRY oentries[] = {
      (char *)"iiiSSm", (SUBR)&ftgenonce_SS, 0, 0},
     {0, 0, 0, 0, 0, 0, (SUBR)0, (SUBR)0, (SUBR)0}};
 
-PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound) {
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
-                    csound);
-  }
-  isstrcod = csound->ISSTRCOD;
-  SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
-  CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
-  return 0;
-}
-
-PUBLIC int csoundModuleInit_signalflowgraph(CSOUND *csound) {
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
-  }
-  OENTRY *ep = (OENTRY *)&(oentries[0]);
-  int err = 0;
-  while (ep->opname != 0) {
-    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
-                                ep->thread, ep->outypes, ep->intypes,
-                                (int (*)(CSOUND *, void *))ep->iopadr,
-                                (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->aopadr);
-    ep++;
-  }
-  return err;
-}
-#ifndef INIT_STATIC_MODULES
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
-  return csoundModuleCreate_signalflowgraph(csound);
-}
-
-PUBLIC int csoundModuleInit(CSOUND *csound) {
-  return csoundModuleInit_signalflowgraph(csound);
-}
-
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+  int32_t destroySignalflowgraph(CSOUND *csound, void *p) {
+    IGN(p);
   if (csound->GetDebug(csound)) {
     csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)...\n",
                     csound);
@@ -1544,6 +1509,50 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
                     csound);
   }
   return 0;
+}
+  
+
+PUBLIC int32_t csoundModuleCreate_signalflowgraph(CSOUND *csound) {
+  if (csound->GetDebug(csound)) {
+    csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
+                    csound);
+  }
+  isstrcod = csound->ISSTRCOD;
+  SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
+  CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
+  return 0;
+}
+
+PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
+  csoundModuleCreate_signalflowgraph(csound); 
+  if (csound->GetDebug(csound)) {
+    csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
+  }
+  OENTRY *ep = (OENTRY *)&(oentries[0]);
+  int err = 0;
+  while (ep->opname != 0) {
+    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
+                                ep->thread, ep->outypes, ep->intypes,
+                                (int (*)(CSOUND *, void *))ep->iopadr,
+                                (int (*)(CSOUND *, void *))ep->kopadr,
+                                (int (*)(CSOUND *, void *))ep->aopadr);
+    ep++;
+  }
+  // need to register reset callback
+  csound->RegisterResetCallback(csound, NULL, destroySignalflowgraph);
+  return err;
+}
+#ifdef BUILD_PLUGINS
+PUBLIC int csoundModuleCreate(CSOUND *csound) {
+  return csoundModuleCreate_signalflowgraph(csound);
+}
+
+PUBLIC int csoundModuleInit(CSOUND *csound) {
+  return csoundModuleInit_signalflowgraph(csound);
+}
+
+PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+  return destroySignalflowgraph(csound, NULL);
 }
 #endif
 }

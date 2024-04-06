@@ -117,10 +117,6 @@ int             closedir(DIR*);
 
 extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
 
-#if defined(INIT_STATIC_MODULES)
-extern int init_static_modules(CSOUND *);
-#endif
-
 /* module interface function names */
 
 static  const   char    *opcode_init_Name =   "csound_opcode_init";
@@ -804,19 +800,10 @@ int csoundLoadExternals(CSOUND *csound)
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
-
 int csoundInitModules(CSOUND *csound)
 {
     csoundModule_t  *m;
     int             i, retval = CSOUND_SUCCESS;
-    /* For regular Csound, init_static_modules is not compiled or called.
-     * For some builds of Csound, e.g. for PNaCl, init_static_modules is
-     * compiled and called to initialize statically linked opcodes and other
-     * plugins that are dynamically loaded on other platforms.
-     */
-#if defined(INIT_STATIC_MODULES)
-    retval = init_static_modules(csound);
-#endif
     /* call init functions */
     for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
       i = csoundInitModule(csound, m);
@@ -1189,6 +1176,7 @@ extern int32_t cpumeter_localops_init(CSOUND *, void *);
 extern int32_t scnoise_localops_init(CSOUND *, void *);
 
 extern int32_t mp3in_localops_init(CSOUND *, void *);
+extern int32_t bformdec2_localops_init(CSOUND *, void *);
 
 extern int32_t afilts_localops_init(CSOUND *, void *);
 extern int32_t pinker_localops_init(CSOUND *, void *);
@@ -1213,23 +1201,57 @@ extern int32_t sequencer_localops_init(CSOUND *, void *);
 extern int32_t pvsgendy_localops_init(CSOUND *, void *);
 extern int32_t scugens_localops_init(CSOUND *, void *);
 extern int32_t emugens_localops_init(CSOUND *, void *);
-
-extern int32_t stdopc_ModuleInit(CSOUND *csound);
-extern int32_t pvsopc_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleCreate(CSOUND *csound);
-extern int32_t newgabopc_ModuleInit(CSOUND *csound);
+extern int32_t control_localops_init(CSOUND *, void *);
+extern int32_t urandom_localops_init(CSOUND *, void *);
 
 #ifdef HAVE_SOCKETS
 extern int32_t socksend_localops_init(CSOUND *, void *);
 extern int32_t sockrecv_localops_init(CSOUND *, void *);
 #endif
 
-
 #ifndef NO_SERIAL_OPCODES
 extern int32_t serial_localops_init(CSOUND *, void *);
 #endif
 
+typedef int32_t (*INITFN2)(CSOUND *);
+
+extern int32_t stdopc_ModuleInit(CSOUND *csound);
+extern int32_t pvsopc_ModuleInit(CSOUND *csound);
+extern int32_t sfont_ModuleInit(CSOUND *csound);
+extern int32_t sfont_ModuleCreate(CSOUND *csound);
+extern int32_t newgabopc_ModuleInit(CSOUND *csound);
+extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
+extern int32_t csoundModuleInit_mixer(CSOUND *csound);
+extern int32_t csoundModuleInit_doppler(CSOUND *csound);
+extern int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
+extern int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
+extern int32_t arrayops_init_modules(CSOUND *csound);
+extern int32_t lfsr_init_modules(CSOUND *csound);
+extern int32_t pvsops_init_modules(CSOUND *csound);
+extern int32_t trigEnv_init_modules(CSOUND *csound);
+extern int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
+extern int32_t scansyn_init_(CSOUND *csound);
+extern int32_t scansynx_init_(CSOUND *csound);
+
+const INITFN2 staticmodules2[] = {
+  stdopc_ModuleInit,
+  pvsopc_ModuleInit,
+  sfont_ModuleInit,
+  newgabopc_ModuleInit,
+  csoundModuleInit_ampmidid,
+  csoundModuleInit_mixer,
+    csoundModuleInit_doppler,
+    csoundModuleInit_ftsamplebank,
+    csoundModuleInit_signalflowgraph,
+    arrayops_init_modules,
+    lfsr_init_modules,
+    pvsops_init_modules,
+    trigEnv_init_modules,
+    csoundModuleInit_fractalnoise,
+    scansyn_init_,
+    scansynx_init_,
+  NULL
+    };
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -1253,6 +1275,9 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
+#if defined(LINUX) || defined(__MACH__)                                 
+                                 control_localops_init, urandom_localops_init,
+#endif                                 
 
 #if !(defined(__wasi__))
                                  counter_localops_init,
@@ -1278,6 +1303,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  platerev_localops_init,
                                  pvsgendy_localops_init, scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
+                                   bformdec2_localops_init,
                                  NULL };
 
 /**
@@ -1296,8 +1322,9 @@ typedef NGFENS* (*FGINITFN)(CSOUND *);
 NGFENS *quadbezier_fgens_init(CSOUND *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
+NGFENS *padsyn_fgen_init(CSOUND *); 
 
-const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init, NULL };
+const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,padsyn_fgen_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
@@ -1315,18 +1342,10 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
           return CSOUND_ERROR;
       }
     }
-    /* stdopc module */
-    if (UNLIKELY(stdopc_ModuleInit(csound))) return CSOUND_ERROR;
 
-    /* pvs module */
-    if (UNLIKELY(pvsopc_ModuleInit(csound))) return CSOUND_ERROR;
-
-    /* sfont module */
-    sfont_ModuleCreate(csound);
-    if (UNLIKELY(sfont_ModuleInit(csound))) return CSOUND_ERROR;
-
-    /* newgabopc */
-    if (UNLIKELY(newgabopc_ModuleInit(csound))) return CSOUND_ERROR;
+    for (i=0; staticmodules2[i]!=NULL; i++) {
+      if(UNLIKELY(staticmodules2[i](csound))) return CSOUND_ERROR;
+    }
 
     /* modules were initialised successfully */
     /* Now fgens */

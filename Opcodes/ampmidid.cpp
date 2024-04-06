@@ -150,7 +150,7 @@ public:
 };
 
 extern "C" {
-    PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound) {
+    PUBLIC int32_t csoundModuleInit_ampmidid(CSOUND *csound) {
         int status = csound->AppendOpcode(
                          csound, (char *)"ampmidid.k", sizeof(KAMPMIDID), 0, 3, (char *)"k",
                          (char *)"kio",
@@ -182,7 +182,7 @@ extern "C" {
         return status;
     }
 
-#ifndef INIT_STATIC_MODULES
+#ifdef BUILD_PLUGINS
     PUBLIC int csoundModuleCreate(CSOUND *csound) {
         IGN(csound);
         return 0;
@@ -196,5 +196,10 @@ extern "C" {
         IGN(csound);
         return 0;
     }
+#else
+
+
+
+
 #endif
 }

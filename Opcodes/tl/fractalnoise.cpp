@@ -450,17 +450,13 @@ int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
   return OK;
 }
 
-  static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 3,
+
+static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 3,
                                (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
                                (SUBR)fractalnoise_process},
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-#ifndef INIT_STATIC_MODULES
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
-  IGN(csound);
-  return OK;
-}
-#endif
+
 PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
@@ -473,7 +469,13 @@ PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   }
   return status;
 }
-#ifndef INIT_STATIC_MODULES
+
+  
+#ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
+  IGN(csound);
+  return OK;
+} 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_fractalnoise(csound);
 }

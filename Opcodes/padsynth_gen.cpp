@@ -565,11 +565,14 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   return OK;
 }
 
+extern "C" {
+  
 static NGFENS padsynth_gens[] = {{(char *)"padsynth", padsynth_gen},
                                  {NULL, NULL}};
 
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound) {
+PUBLIC NGFENS *padsyn_fgen_init(CSOUND *csound) {
   IGN(csound);
   return padsynth_gens;
 }
 };
+}
