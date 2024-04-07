@@ -1533,9 +1533,9 @@ PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
   while (ep->opname != 0) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                 ep->thread, ep->outypes, ep->intypes,
-                                (int (*)(CSOUND *, void *))ep->iopadr,
-                                (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->aopadr);
+                                (int32_t (*)(CSOUND *, void *))ep->iopadr,
+                                (int32_t (*)(CSOUND *, void *))ep->kopadr,
+                                (int32_t (*)(CSOUND *, void *))ep->aopadr);
     ep++;
   }
   // need to register reset callback
