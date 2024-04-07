@@ -366,14 +366,15 @@ public:
     {
         return OK;
     }
-    static int noteoff_(CSOUND *csound, void *opcode)
+    static int32_t noteoff_(CSOUND *csound, void *opcode)
     {
         return reinterpret_cast<T *>(opcode)->noteoff(csound);
     }
     OPDS opds;
 };
 
-#if (__cplusplus >= 201103L) && !(defined(__wasi__)) && !(defined(BARE_METAL))
+
+#if (__cplusplus >= 201103L) && !(defined(__wasi__)) && !defined(BARE_METAL)
 #pragma message("Defining heap_object_manager_t.")
 
 /**

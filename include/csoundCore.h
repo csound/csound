@@ -300,9 +300,9 @@ typedef struct CORFIL {
         uint8_t thread;
         char    *outypes;
         char    *intypes;
-        int     (*iopadr)(CSOUND *, void *p);
-        int     (*kopadr)(CSOUND *, void *p);
-        int     (*aopadr)(CSOUND *, void *p);
+        int32_t     (*iopadr)(CSOUND *, void *p);
+        int32_t     (*kopadr)(CSOUND *, void *p);
+        int32_t     (*aopadr)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
@@ -408,7 +408,7 @@ typedef struct CORFIL {
 
   typedef struct {
     int      dimensions;
-    int*     sizes;             /* size of each dimensions */
+    int32_t*     sizes;             /* size of each dimensions */
     int      arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT*   data;
@@ -607,9 +607,11 @@ typedef struct CORFIL {
 #define CS_SPOUT     (p->h.insdshead->spout)
 
 
+
 #define CS_ONEDSR    (FL(1.0)/CS_ESR)
-  
-  typedef int (*SUBR)(CSOUND *, void *);
+
+typedef int32_t (*SUBR)(CSOUND *, void *);
+
 
   /**
    * This struct holds the info for one opcode in a concrete
@@ -1267,7 +1269,7 @@ typedef struct _message_queue_t_ {
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
-                                int (*callback)(CSOUND *, MEMFIL *));
+                                int32_t (*callback)(CSOUND *, MEMFIL *));
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
                            const char *, int, int, int);
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
@@ -1340,9 +1342,9 @@ typedef struct _message_queue_t_ {
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
     int (*RegisterDeinitCallback)(CSOUND *, void *p,
-                                            int (*func)(CSOUND *, void *));
+                                            int32_t (*func)(CSOUND *, void *));
     int (*RegisterResetCallback)(CSOUND *, void *userData,
-                                           int (*func)(CSOUND *, void *));
+                                           int32_t (*func)(CSOUND *, void *));
     void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
     /**@}*/
@@ -1350,9 +1352,9 @@ typedef struct _message_queue_t_ {
     /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         int thread, const char *outypes, const char *intypes,
-                        int (*iopadr)(CSOUND *, void *),
-                        int (*kopadr)(CSOUND *, void *),
-                        int (*aopadr)(CSOUND *, void *));
+                        int32_t (*iopadr)(CSOUND *, void *),
+                        int32_t (*kopadr)(CSOUND *, void *),
+                        int32_t (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     char *(*GetOpcodeName)(void *p);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
