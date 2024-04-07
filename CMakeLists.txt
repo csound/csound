@@ -4,6 +4,8 @@ else()
     cmake_minimum_required(VERSION 3.13.4)
 endif()
 
+set (CMAKE_CXX_STANDARD 11)
+
 cmake_policy(SET CMP0077 NEW)
 
 include(cmake/cmake-utilities.cmake)
@@ -17,7 +19,16 @@ option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
     # Detect correct triplet based on CMake env
-    if (CMAKE_SYSTEM_NAME STREQUAL "MinGW" AND UNIX)
+    if (OSXCROSS_TARGET)
+        if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+            set(VCPKG_TARGET_TRIPLET "x64-osxcross")
+        elseif(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+            set(VCPKG_TARGET_TRIPLET "arm64-osxcross")
+        endif()
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/osxcross/osx.cmake)
+        set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
+        set(VCPKG_TARGET_ARCHITECTURE "${CMAKE_OSX_ARCHITECTURES}")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "MinGW" AND UNIX)
         set(VCPKG_TARGET_TRIPLET "x64-mingw-static")
         set(VCPKG_INSTALL_OPTIONS "--allow-unsupported")
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/toolchains/mingw.cmake)
@@ -81,7 +92,12 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 set(SAMPLES_INSTALL_DIR "/samples")
-set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
+
+if(OSXCROSS_TARGET)
+    set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}/Library/Frameworks" CACHE PATH "Csound framework path")
+else()
+    set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
+endif()
 
 include(TestBigEndian)
 include(CheckFunctionExists)
@@ -160,12 +176,27 @@ option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
     if(CUSTOM_MALLOC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
     # the default is for STM32H7: -DMALLOC_BASE=0xC0000000 
     endif() 
 endif()
+
+# secret rabbit code
+if (USE_VCPKG)
+  find_package(SampleRate CONFIG REQUIRED)
+  assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
+else()
+   find_package(SampleRate MODULE)
+endif()
+
+if(SampleRate_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_SRC")
+    message(STATUS "Using Secret Rabbit Code")
+endif()
+
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -218,6 +249,12 @@ if(APPLE)
     else()
         message(STATUS  "clock_gettime() not found")
     endif()
+endif()
+
+if(OSXCROSS_TARGET)
+    set(CMAKE_C_FLAGS "-I${OSXCROSS_SDK}/usr/include ${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-I${OSXCROSS_SDK}/usr/include ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L${CMAKE_OSX_SYSROOT}/usr/lib")
 endif()
 
 # library installation directories
@@ -893,7 +930,18 @@ set(oldpvoc_SRCS
     Opcodes/pvread.c
     Opcodes/ugens8.c
     Opcodes/vpvoc.c
-    Opcodes/pvoc.c)
+    Opcodes/pvoc.c
+)
+
+set(scanops_SRCS
+    Opcodes/scansyn.c   
+    Opcodes/scansynx.c
+)
+
+set(unixops_SRCS
+    Opcodes/control.c
+    Opcodes/urandom.c
+)
 
 set(mp3in_SRCS
     Opcodes/mp3in.c
@@ -905,29 +953,34 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+set(cppops_SRCS
+   Opcodes/ampmidid.cpp
+   Opcodes/mixer.cpp
+   Opcodes/bformdec2.cpp
+   Opcodes/doppler.cpp
+     Opcodes/ftsamplebank.cpp
+     Opcodes/padsynth_gen.cpp
+     Opcodes/signalflowgraph.cpp
+     Opcodes/arrayops.cpp
+     Opcodes/lfsr.cpp
+     Opcodes/pvsops.cpp
+     Opcodes/trigEnvSegs.cpp
+     Opcodes/tl/fractalnoise.cpp
+)
+
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS})
+
+if(UNIX)
+list(APPEND libcsound_SRCS ${unixops_SRCS})
+endif()
 
 if(BUILD_PERFTHREAD_CLASS)
     list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
 endif()
 
-if(INIT_STATIC_MODULES)
-    set(static_modules_SRCS
-        Top/init_static_modules.c
-        Opcodes/ampmidid.cpp
-        Opcodes/doppler.cpp
-        Opcodes/tl/fractalnoise.cpp
-        Opcodes/ftsamplebank.cpp
-        Opcodes/mixer.cpp
-        Opcodes/signalflowgraph.cpp)
-
-    set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
-    list(APPEND libcsound_SRCS ${static_modules_SRCS})
-    message(STATUS "Building static modules")
-endif()
 
 # Handling New Parser
-
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
 set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
@@ -1279,6 +1332,10 @@ if(USE_LIBSNDFILE)
     endif()
 endif()
 
+if(SampleRate_FOUND)
+  target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
+endif()
+
 if(NOT IOS)
     set_target_properties(${CSOUNDLIB} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1301,6 +1358,11 @@ if(BUILD_STATIC_LIBRARY)
     if (USE_LIBSNDFILE)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
     endif()
+
+   if(SampleRate_FOUND)
+        target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SampleRate::samplerate)
+   endif()
+
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()

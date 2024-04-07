@@ -519,5 +519,6 @@ int32_t lposc_set(CSOUND *csound, void *p);
 int32_t lposc(CSOUND *csound, void *p);
 int32_t lposc3(CSOUND *csound, void *p);
 int32_t lposca(CSOUND *csound, LPOSC *p);
-
+int32_t oversampleset(CSOUND *csound, void *p);
+int32_t undersampleset(CSOUND *csound, void *p);
 

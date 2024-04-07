@@ -303,9 +303,9 @@ typedef struct CORFIL {
         uint8_t thread;
         char    *outypes;
         char    *intypes;
-        int     (*iopadr)(CSOUND *, void *p);
-        int     (*kopadr)(CSOUND *, void *p);
-        int     (*aopadr)(CSOUND *, void *p);
+        int32_t     (*iopadr)(CSOUND *, void *p);
+        int32_t     (*kopadr)(CSOUND *, void *p);
+        int32_t     (*aopadr)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
@@ -411,7 +411,7 @@ typedef struct CORFIL {
 
   typedef struct {
     int      dimensions;
-    int*     sizes;             /* size of each dimensions */
+    int32_t*     sizes;             /* size of each dimensions */
     int      arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT*   data;
@@ -562,13 +562,15 @@ typedef struct CORFIL {
     double   offbet;
     /* Time to turn off event, in seconds (negative on indef/tie) */
     double   offtim;
-    /* Python namespace for just this instance. */
-    void    *pylocal;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
     uint64_t kcounter;
-    unsigned int     ksmps;     /* Instrument copy of ksmps */
+    MYFLT    esr, sicvt, pidsr;                  /* local sr */
+    MYFLT    onedsr;
+    int     overmode;
+    unsigned int ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
+
     MYFLT    onedksmps, onedkr, kicvt;
     struct opds  *pds;          /* Used for jumping */
     MYFLT    scratchpad[4];      /* Persistent data */
@@ -604,18 +606,19 @@ typedef struct CORFIL {
 #define CS_ONEDKSMPS (p->h.insdshead->onedksmps)
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
-#define CS_ESR       (csound->esr)
+#define CS_ESR       (p->h.insdshead->esr)
+#define CS_ONEDSR    (p->h.insdshead->onedsr)
+#define CS_SICVT     (p->h.insdshead->sicvt)
+#define CS_TPIDSR    (2*p->h.insdshead->pidsr)
+#define CS_PIDSR     (p->h.insdshead->pidsr)
+#define CS_MPIDSR    (-p->h.insdshead->pidsr)
+#define CS_MTPIDSR   (-2*p->h.insdshead->pidsr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
 
-#define CS_SICVT (csound->sicvt)
-#define CS_ONEDSR (csound->onedsr)
-
-  /* macro for MOD1 used in floating-point phase lookup */
 #define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
-  
-  typedef int (*SUBR)(CSOUND *, void *);
+typedef int32_t (*SUBR)(CSOUND *, void *);
 
   /**
    * This struct holds the info for one opcode in a concrete
@@ -700,6 +703,8 @@ typedef struct CORFIL {
     int32    nchanls;
     /** table number */
     int32    fno;
+    /** table number */
+    MYFLT   sr;
     /** args  */
     MYFLT args[PMAX - 4];
     /** arg count */
@@ -1044,16 +1049,11 @@ typedef struct _message_queue_t_ {
 
     /** @name Attributes */
     /**@{ */
-    MYFLT (*GetSr)(CSOUND *);
-    MYFLT (*GetKr)(CSOUND *);
-    uint32_t (*GetKsmps)(CSOUND *);
      /** Get number of output channels */
     uint32_t (*GetNchnls)(CSOUND *);
     /** Get number of input channels */
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
-    /** Get number of control blocks elapsed */
-    uint64_t (*GetKcounter)(CSOUND *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
@@ -1270,7 +1270,7 @@ typedef struct _message_queue_t_ {
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
     int (*sftype2csfiletype)(int type);
     MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
-                                int (*callback)(CSOUND *, MEMFIL *));
+                                int32_t (*callback)(CSOUND *, MEMFIL *));
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
                            const char *, int, int, int);
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
@@ -1343,9 +1343,9 @@ typedef struct _message_queue_t_ {
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
     int (*RegisterDeinitCallback)(CSOUND *, void *p,
-                                            int (*func)(CSOUND *, void *));
+                                            int32_t (*func)(CSOUND *, void *));
     int (*RegisterResetCallback)(CSOUND *, void *userData,
-                                           int (*func)(CSOUND *, void *));
+                                           int32_t (*func)(CSOUND *, void *));
     void (*SetInternalYieldCallback)(CSOUND *,
                        int (*yieldCallback)(CSOUND *));
     /**@}*/
@@ -1353,9 +1353,9 @@ typedef struct _message_queue_t_ {
     /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         int thread, const char *outypes, const char *intypes,
-                        int (*iopadr)(CSOUND *, void *),
-                        int (*kopadr)(CSOUND *, void *),
-                        int (*aopadr)(CSOUND *, void *));
+                        int32_t (*iopadr)(CSOUND *, void *),
+                        int32_t (*kopadr)(CSOUND *, void *),
+                        int32_t (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     char *(*GetOpcodeName)(void *p);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);

@@ -846,7 +846,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     p->curframe = curframe;
     p->pos = spos;
     p->tstamp = tstamp + incrt;
-    *p->kstamp = (*p->skip + p->tstamp/csound->GetSr(csound))/p->resamp;
+    *p->kstamp = (*p->skip + p->tstamp/CS_ESR)/p->resamp;
     p->incr = incrt;
     return OK;
 
@@ -1158,7 +1158,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
     buffiller((void *)p);
     buffiller((void *)p);
 
-    p->pos = skip*csound->GetSr(csound)/p->orsr;
+    p->pos = skip*CS_ESR/p->orsr;
     p->tscale  = 0;
     p->accum = 0;
     p->tab[0] = (MYFLT *) p->fdata[0].auxp;

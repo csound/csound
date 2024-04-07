@@ -363,11 +363,11 @@ static int32_t resony(CSOUND *csound, RESONY *p)
       for (j = 0; j < loop; j++) {
         if (flag)                     /* linear separation in hertz */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
-                             * (double) csound->tpidsr);
+                             * (double) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
-                             * (double) csound->tpidsr);
-        c3 = EXP(*p->kbw * (cf / *p->kcf) * csound->mtpdsr);
+                             * (double) CS_TPIDSR);
+        c3 = EXP(*p->kbw * (cf / *p->kcf) * CS_MTPIDSR);
         c3p1 = c3 + FL(1.0);
         c3t4 = c3 * FL(4.0);
         c2 = c3t4 * cosf / c3p1;
@@ -1099,7 +1099,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         if (si == 0) si = 1; /* Is this necessary? */
         while (phs > 1.0)
           phs -= 1.0;
@@ -1332,7 +1332,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
     min = *p->min;
     amp =  (*p->max - min);
     ar = p->ar;
-    inc = (int32)(*cpsp++ * csound->sicvt);
+    inc = (int32)(*cpsp++ * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1342,7 +1342,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
       ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
       phs += inc;
       if (p->cpscod)
-        inc = (int32)(*cpsp++ * csound->sicvt);
+        inc = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -1399,7 +1399,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
     min  = *p->min;
     amp  = (*p->max - min);
     ar   = p->ar;
-    inc  = (int32)(*cpsp++ * csound->sicvt);
+    inc  = (int32)(*cpsp++ * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1409,7 +1409,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
       ar[n]     = p->num1 * amp + min;
       phs      += inc;
       if (p->cpscod)
-        inc     = (int32)(*cpsp++ * csound->sicvt);
+        inc     = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs    &= PHMASK;
         p->num1 = randGab;
@@ -1492,7 +1492,7 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         while (phs > 1.0) phs -= 1.0;
         f0     = p->num0 = p->num1;
         f1     = p->num1 = p->num2;

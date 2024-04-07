@@ -2517,7 +2517,7 @@ static int32_t
 lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     MYFLT p3 = p->h.insdshead->p3.value;
     p->numcycles = p3 < 0 ? 0 :
-        (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5);
+        (int)(p->h.insdshead->offtim * CS_EKR + 0.5);
     p->extracycles = p->h.insdshead->xtratim;
     if(p->extracycles == 0) {
         p->h.insdshead->xtratim = 1;

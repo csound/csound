@@ -32,7 +32,7 @@ int32_t linset(CSOUND *csound, LINE *p)
 {
   double       dur;
   if (LIKELY((dur = *p->idur) > FL(0.0))) {
-    p->incr = (*p->ib - *p->ia) / dur * csound->onedsr;
+    p->incr = (*p->ib - *p->ia) / dur * CS_ONEDSR;
     p->kincr = p->incr*CS_KSMPS;
     p->val = *p->ia;
   }
@@ -83,7 +83,7 @@ int32_t expset(CSOUND *csound, EXPON *p)
     a = *p->ia;
     b = *p->ib;
     if (LIKELY((a * b) > FL(0.0))) {
-      p->mlt = POWER(b/a, csound->onedsr/dur);
+      p->mlt = POWER(b/a, CS_ONEDSR/dur);
       p->kmlt = POWER(b/a, CS_ONEDKR/dur);
       p->val = a;
     }
@@ -1271,7 +1271,7 @@ int32_t alnrset(CSOUND *csound, LINENR *p)
     if (UNLIKELY(*p->iatdec <= FL(0.0))) {
       return csound->InitError(csound, Str("non-positive iatdec"));
     }
-    else p->mlt2 = POWER(*p->iatdec, csound->onedsr / *p->idec);
+    else p->mlt2 = POWER(*p->iatdec, CS_ONEDSR / *p->idec);
   }
   else p->mlt2 = FL(1.0);
   p->lin1 = FL(0.0);
@@ -1552,7 +1552,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
-      p->mlt2 = POWER(*p->iatdec, (csound->onedsr / *p->idec));
+      p->mlt2 = POWER(*p->iatdec, (CS_ONEDSR / *p->idec));
     }
     p->cnt1 = cnt1;
     p->asym = asym;
@@ -1751,7 +1751,7 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
   if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
     return csound->InitError(csound, Str("rise func ends with zero"));
   }
-  p->mlt1 = POWER(iatss, csound->onedsr);
+  p->mlt1 = POWER(iatss, CS_ONEDSR);
   if (*p->idec > FL(0.0)) {
     int32_t rlscnt = (int32_t)(*p->idec * CS_EKR + FL(0.5));
     if ((p->rindep = (int32_t)*p->irind))

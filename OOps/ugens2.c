@@ -69,13 +69,13 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
-  double      phase;
-  uint32_t    offset = p->h.insdshead->ksmps_offset;
-  uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  uint32_t    n, nsmps = CS_KSMPS;
-  MYFLT       *rs, *aphs, onedsr = csound->onedsr;
-  double      b = p->b;
-  double      incr, R = *p->kR;
+    double      phase;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    MYFLT       *rs, *aphs, onedsr = CS_ONEDSR;
+    double      b = p->b;
+    double      incr, R = *p->kR;
 
   rs = p->sr;
   if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
@@ -140,12 +140,14 @@ int32_t kphsor(CSOUND *csound, PHSOR *p)
 
 int32_t phsor(CSOUND *csound, PHSOR *p)
 {
-  double      phase;
-  uint32_t    offset = p->h.insdshead->ksmps_offset;
-  uint32_t    early  = p->h.insdshead->ksmps_no_end;
-  uint32_t    n, nsmps = CS_KSMPS;
-  MYFLT       *rs, onedsr = csound->onedsr;
-  double      incr;
+
+    double      phase;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    MYFLT       *rs, onedsr = CS_ONEDSR;
+    double      incr;
+
 
   rs = p->sr;
   if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
@@ -314,16 +316,17 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 
 int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
-  FUNC        *ftp;
-  if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
-    p->ftp = ftp;
-    p->inc = ftp->flen * *p->ifrq * csound->onedsr;
-    p->index = FL(0.0);
-    p->maxndx = ftp->flen - FL(1.0);
-    p->ntimes = (int32_t)*p->itimes;
-    return OK;
-  }
-  else return NOTOK;
+
+    FUNC        *ftp;
+    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+      p->ftp = ftp;
+      p->inc = ftp->flen * *p->ifrq * CS_ONEDSR;
+      p->index = FL(0.0);
+      p->maxndx = ftp->flen - FL(1.0);
+      p->ntimes = (int32_t)*p->itimes;
+      return OK;
+    }
+    else return NOTOK;
 }
 
 int32_t osciln(CSOUND *csound, OSCILN *p)
@@ -695,7 +698,7 @@ int32_t posc3kk(CSOUND *csound, OSC *p)
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
   double      phs  = p->phs;
-  double      si   = *p->xcps * p->tablen * csound->onedsr;
+  double      si   = *p->xcps * p->tablen * CS_ONEDSR;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -750,7 +753,7 @@ int32_t posc3ak(CSOUND *csound, OSC *p)
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
   double      phs  = p->phs;
-  double      si   = *p->xcps * p->tablen * csound->onedsr;
+  double      si   = *p->xcps * p->tablen * CS_ONEDSR;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -805,7 +808,7 @@ int32_t posc3ka(CSOUND *csound, OSC *p)
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
   double      phs  = p->phs;
-  /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
+  /*double      si   = *p->freq * p->tablen * CS_ONEDSR;*/
   MYFLT       *freq = p->xcps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -862,7 +865,7 @@ int32_t posc3aa(CSOUND *csound, OSC *p)
   MYFLT       *out = p->sr, *ftab;
   MYFLT       fract;
   double      phs  = p->phs;
-  /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
+  /*double      si   = *p->freq * p->tablen * CS_ONEDSR;*/
   MYFLT       *freq = p->xcps;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1091,19 +1094,19 @@ int32_t osckk(CSOUND *csound, OSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
-  ftp = p->ftp;
-  if (UNLIKELY(ftp==NULL)) goto err1;
-  ftbl = ftp->ftable;
-  phs = p->lphs;
-  inc = MYFLT2LONG(*p->xcps * csound->sicvt);
-  lobits = ftp->lobits;
-  amp = *p->xamp;
-  ar = p->sr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
+    ftp = p->ftp;
+    if (UNLIKELY(ftp==NULL)) goto err1;
+    ftbl = ftp->ftable;
+    phs = p->lphs;
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
+    lobits = ftp->lobits;
+    amp = *p->xamp;
+    ar = p->sr;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
 
   for (n=offset;n<nsmps;n++) {
     ar[n] = ftbl[phs >> lobits] * amp;
@@ -1120,13 +1123,14 @@ int32_t osckk(CSOUND *csound, OSC *p)
 
 int32_t oscka(CSOUND *csound, OSC *p)
 {
-  FUNC    *ftp;
-  MYFLT   *ar, amp, *cpsp, *ftbl;
-  int32_t    phs, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  MYFLT   sicvt = csound->sicvt;
+
+    FUNC    *ftp;
+    MYFLT   *ar, amp, *cpsp, *ftbl;
+    int32_t    phs, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT   sicvt = CS_SICVT;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1163,25 +1167,26 @@ int32_t oscak(CSOUND *csound, OSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
-  ftp = p->ftp;
-  if (UNLIKELY(ftp==NULL)) goto err1;
-  ftbl = ftp->ftable;
-  lobits = ftp->lobits;
-  phs = p->lphs;
-  inc = MYFLT2LONG(*p->xcps * csound->sicvt);
-  ampp = p->xamp;
-  ar = p->sr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  for (n=offset;n<nsmps;n++) {
-    ar[n] = ftbl[phs >> lobits] * ampp[n];
-    phs = (phs+inc) & PHMASK;
-  }
-  p->lphs = phs;
-  return OK;
+    ftp = p->ftp;
+    if (UNLIKELY(ftp==NULL)) goto err1;
+    ftbl = ftp->ftable;
+    lobits = ftp->lobits;
+    phs = p->lphs;
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
+    ampp = p->xamp;
+    ar = p->sr;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset;n<nsmps;n++) {
+      ar[n] = ftbl[phs >> lobits] * ampp[n];
+      phs = (phs+inc) & PHMASK;
+    }
+    p->lphs = phs;
+    return OK;
+
  err1:
   return csound->PerfError(csound, &(p->h),
                            Str("oscil: not initialised"));
@@ -1189,13 +1194,14 @@ int32_t oscak(CSOUND *csound, OSC *p)
 
 int32_t oscaa(CSOUND *csound, OSC *p)
 {
-  FUNC    *ftp;
-  MYFLT   *ar, *ampp, *cpsp, *ftbl;
-  int32_t    phs, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  MYFLT   sicvt = csound->sicvt;
+
+    FUNC    *ftp;
+    MYFLT   *ar, *ampp, *cpsp, *ftbl;
+    int32_t    phs, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT   sicvt = CS_SICVT;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1254,27 +1260,27 @@ int32_t osckki(CSOUND *csound, OSC   *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
-  if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
-  lobits = ftp->lobits;
-  phs = p->lphs;
-  inc = MYFLT2LONG(*p->xcps * csound->sicvt);
-  amp = *p->xamp;
-  ar = p->sr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  ft = ftp->ftable;
-  for (n=offset; n<nsmps; n++) {
-    fract = PFRAC(phs);
-    ftab = ft + (phs >> lobits);
-    v1 = ftab[0];
-    ar[n] = (v1 + (ftab[1] - v1) * fract) * amp;
-    phs = (phs+inc) & PHMASK;
-  }
-  p->lphs = phs;
-  return OK;
+    if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
+    lobits = ftp->lobits;
+    phs = p->lphs;
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
+    amp = *p->xamp;
+    ar = p->sr;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    ft = ftp->ftable;
+    for (n=offset; n<nsmps; n++) {
+      fract = PFRAC(phs);
+      ftab = ft + (phs >> lobits);
+      v1 = ftab[0];
+      ar[n] = (v1 + (ftab[1] - v1) * fract) * amp;
+      phs = (phs+inc) & PHMASK;
+    }
+    p->lphs = phs;
+    return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
                            Str("oscili: not initialised"));
@@ -1282,13 +1288,14 @@ int32_t osckki(CSOUND *csound, OSC   *p)
 
 int32_t osckai(CSOUND *csound, OSC   *p)
 {
-  FUNC    *ftp;
-  MYFLT   *ar, amp, *cpsp, fract, v1, *ftab, *ft;
-  int32_t    phs, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  MYFLT   sicvt = csound->sicvt;
+
+    FUNC    *ftp;
+    MYFLT   *ar, amp, *cpsp, fract, v1, *ftab, *ft;
+    int32_t    phs, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT   sicvt = CS_SICVT;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1329,28 +1336,29 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
-  ftp = p->ftp;
-  if (UNLIKELY(ftp==NULL)) goto err1;
-  lobits = ftp->lobits;
-  phs = p->lphs;
-  inc = MYFLT2LONG(*p->xcps * csound->sicvt);
-  ampp = p->xamp;
-  ar = p->sr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  ft = ftp->ftable;
-  for (n=offset;n<nsmps;n++) {
-    fract = (MYFLT) PFRAC(phs);
-    ftab = ft + (phs >> lobits);
-    v1 = ftab[0];
-    ar[n] = (v1 + (ftab[1] - v1) * fract) * ampp[n];
-    phs = (phs+inc) & PHMASK;
-  }
-  p->lphs = phs;
-  return OK;
+    ftp = p->ftp;
+    if (UNLIKELY(ftp==NULL)) goto err1;
+    lobits = ftp->lobits;
+    phs = p->lphs;
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
+    ampp = p->xamp;
+    ar = p->sr;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    ft = ftp->ftable;
+    for (n=offset;n<nsmps;n++) {
+      fract = (MYFLT) PFRAC(phs);
+      ftab = ft + (phs >> lobits);
+      v1 = ftab[0];
+      ar[n] = (v1 + (ftab[1] - v1) * fract) * ampp[n];
+      phs = (phs+inc) & PHMASK;
+    }
+    p->lphs = phs;
+    return OK;
+
  err1:
   return csound->PerfError(csound, &(p->h),
                            Str("oscili: not initialised"));
@@ -1358,13 +1366,14 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
 
 int32_t oscaai(CSOUND *csound, OSC   *p)
 {
-  FUNC    *ftp;
-  MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab, *ft;
-  int32_t   phs, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  MYFLT   sicvt = csound->sicvt;
+
+    FUNC    *ftp;
+    MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab, *ft;
+    int32_t   phs, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT   sicvt = CS_SICVT;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1436,119 +1445,120 @@ int32_t koscl3(CSOUND *csound, OSC   *p)
                            Str("oscil3(krate): not initialised"));
 }
 
+
 int32_t osckk3(CSOUND *csound, OSC   *p)
 {
-  FUNC    *ftp;
-  MYFLT   fract, amp, *ar, *ftab;
-  int32_t    phs, inc, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  int32_t   x0;
-  MYFLT   y0, y1, ym1, y2;
+    FUNC    *ftp;
+    MYFLT   fract, amp, *ar, *ftab;
+    int32_t    phs, inc, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t   x0;
+    MYFLT   y0, y1, ym1, y2;
 
-  ftp = p->ftp;
-  if (UNLIKELY(ftp==NULL)) goto err1;
-  ftab = ftp->ftable;
-  lobits = ftp->lobits;
-  phs = p->lphs;
-  inc = MYFLT2LONG(*p->xcps * csound->sicvt);
-  amp = *p->xamp;
-  ar = p->sr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  for (n=offset;n<nsmps;n++) {
-    fract = PFRAC(phs);
-    x0 = (phs >> lobits);
-    x0--;
-    if (UNLIKELY(x0<0)) {
-      ym1 = ftab[ftp->flen-1]; x0 = 0;
+    ftp = p->ftp;
+    if (UNLIKELY(ftp==NULL)) goto err1;
+    ftab = ftp->ftable;
+    lobits = ftp->lobits;
+    phs = p->lphs;
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
+    amp = *p->xamp;
+    ar = p->sr;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    else ym1 = ftab[x0++];
-    y0 = ftab[x0++];
-    y1 = ftab[x0++];
-    if (UNLIKELY(x0>(int32_t)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
-    /*    printf("fract = %f; y = %f, %f, %f, %f\n", fract,ym1,y0,y1,y2); */
-    {
-      MYFLT frsq = fract*fract;
-      MYFLT frcu = frsq*ym1;
-      MYFLT t1 = y2 + y0+y0+y0;
-      /*      MYFLT old = (y0 + (y1 - y0) * fract) * amp; */
-      /*      double x = ((double)(x0-2)+fract)*twopi/32.0; */
-      /*      MYFLT tr = amp*sin(x); */
-      ar[n] = amp * (y0 + FL(0.5)*frcu +
-                     fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                     frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                     frsq*(FL(0.5)* y1 - y0));
-      /*      printf("oscilkk3: old=%.4f new=%.4f true=%.4f (%f; %f)\n", */
-      /*                       old, *(ar-1), tr, fabs(*(ar-1)-tr), fabs(old-tr)); */
+    for (n=offset;n<nsmps;n++) {
+      fract = PFRAC(phs);
+      x0 = (phs >> lobits);
+      x0--;
+      if (UNLIKELY(x0<0)) {
+        ym1 = ftab[ftp->flen-1]; x0 = 0;
+      }
+      else ym1 = ftab[x0++];
+      y0 = ftab[x0++];
+      y1 = ftab[x0++];
+      if (UNLIKELY(x0>(int32_t)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+/*    printf("fract = %f; y = %f, %f, %f, %f\n", fract,ym1,y0,y1,y2); */
+      {
+        MYFLT frsq = fract*fract;
+        MYFLT frcu = frsq*ym1;
+        MYFLT t1 = y2 + y0+y0+y0;
+/*      MYFLT old = (y0 + (y1 - y0) * fract) * amp; */
+/*      double x = ((double)(x0-2)+fract)*twopi/32.0; */
+/*      MYFLT tr = amp*sin(x); */
+        ar[n] = amp * (y0 + FL(0.5)*frcu +
+                       fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
+                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
+                       frsq*(FL(0.5)* y1 - y0));
+/*      printf("oscilkk3: old=%.4f new=%.4f true=%.4f (%f; %f)\n", */
+/*                       old, *(ar-1), tr, fabs(*(ar-1)-tr), fabs(old-tr)); */
+      }
+      phs = (phs+inc) & PHMASK;
     }
-    phs = (phs+inc) & PHMASK;
-  }
-  p->lphs = phs;
-  return OK;
+    p->lphs = phs;
+    return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("oscil3: not initialised"));
+    return csound->PerfError(csound, &(p->h),
+                             Str("oscil3: not initialised"));
 }
 
 int32_t oscka3(CSOUND *csound, OSC   *p)
 {
-  FUNC    *ftp;
-  MYFLT   *ar, amp, *cpsp, fract, *ftab;
-  int32_t    phs, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  int32_t   x0;
-  MYFLT   y0, y1, ym1, y2;
-  MYFLT   sicvt = csound->sicvt;
+    FUNC    *ftp;
+    MYFLT   *ar, amp, *cpsp, fract, *ftab;
+    int32_t    phs, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t   x0;
+    MYFLT   y0, y1, ym1, y2;
+    MYFLT   sicvt = CS_SICVT;
 
-  ftp = p->ftp;
-  if (UNLIKELY(ftp==NULL)) goto err1;
-  ftab = ftp->ftable;
-  lobits = ftp->lobits;
-  amp = *p->xamp;
-  cpsp = p->xcps;
-  phs = p->lphs;
-  ar = p->sr;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  for (n=offset;n<nsmps;n++) {
-    int32_t inc;
-    inc = MYFLT2LONG(cpsp[n] * sicvt);
-    fract = PFRAC(phs);
-    x0 = (phs >> lobits);
-    x0--;
-    if (UNLIKELY(x0<0)) {
-      ym1 = ftab[ftp->flen-1]; x0 = 0;
+    ftp = p->ftp;
+    if (UNLIKELY(ftp==NULL)) goto err1;
+    ftab = ftp->ftable;
+    lobits = ftp->lobits;
+    amp = *p->xamp;
+    cpsp = p->xcps;
+    phs = p->lphs;
+    ar = p->sr;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    else ym1 = ftab[x0++];
-    y0 = ftab[x0++];
-    y1 = ftab[x0++];
-    if (UNLIKELY(x0>(int32_t)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
-    {
-      MYFLT frsq = fract*fract;
-      MYFLT frcu = frsq*ym1;
-      MYFLT t1 = y2 + y0+y0+y0;
-      ar[n] = amp * (y0 + FL(0.5)*frcu +
-                     fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
-                     frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)*
-                                                                  y1 - y0));
+    for (n=offset;n<nsmps;n++) {
+      int32_t inc;
+      inc = MYFLT2LONG(cpsp[n] * sicvt);
+      fract = PFRAC(phs);
+      x0 = (phs >> lobits);
+      x0--;
+      if (UNLIKELY(x0<0)) {
+        ym1 = ftab[ftp->flen-1]; x0 = 0;
+      }
+      else ym1 = ftab[x0++];
+      y0 = ftab[x0++];
+      y1 = ftab[x0++];
+      if (UNLIKELY(x0>(int32_t)ftp->flen)) y2 = ftab[1]; else y2 = ftab[x0];
+      {
+        MYFLT frsq = fract*fract;
+        MYFLT frcu = frsq*ym1;
+        MYFLT t1 = y2 + y0+y0+y0;
+        ar[n] = amp * (y0 + FL(0.5)*frcu +
+                       fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) +
+                       frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)*
+                                                                    y1 - y0));
+      }
+      phs = (phs+inc) & PHMASK;
     }
-    phs = (phs+inc) & PHMASK;
-  }
-  p->lphs = phs;
-  return OK;
+    p->lphs = phs;
+    return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("oscil3: not initialised"));
+    return csound->PerfError(csound, &(p->h),
+                             Str("oscil3: not initialised"));
 }
 
 int32_t oscak3(CSOUND *csound, OSC   *p)
@@ -1567,7 +1577,7 @@ int32_t oscak3(CSOUND *csound, OSC   *p)
   ftab = ftp->ftable;
   lobits = ftp->lobits;
   phs = p->lphs;
-  inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+  inc = MYFLT2LONG(*p->xcps * CS_SICVT);
   ampp = p->xamp;
   ar = p->sr;
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1606,15 +1616,15 @@ int32_t oscak3(CSOUND *csound, OSC   *p)
 
 int32_t oscaa3(CSOUND *csound, OSC   *p)
 {
-  FUNC    *ftp;
-  MYFLT    fract, *ar, *ampp, *cpsp, *ftab;
-  int32_t    phs, lobits;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
-  int32_t    x0;
-  MYFLT    y0, y1, ym1, y2;
-  MYFLT    sicvt = csound->sicvt;
+    FUNC    *ftp;
+    MYFLT    fract, *ar, *ampp, *cpsp, *ftab;
+    int32_t    phs, lobits;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t    x0;
+    MYFLT    y0, y1, ym1, y2;
+    MYFLT    sicvt = CS_SICVT;
 
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1727,7 +1737,7 @@ int32_t lposc(CSOUND *csound, LPOSC *p)
 {
   MYFLT       *out = p->out, *ft = p->ftp->ftable;
   MYFLT       *curr_samp, fract;
-  double      phs= p->phs, si= *p->freq * (p->fsr*csound->onedsr);
+  double      phs= p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -1759,7 +1769,7 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
 {
   MYFLT       *out = p->out, *ftab = p->ftp->ftable;
   MYFLT       fract;
-  double      phs = p->phs, si= *p->freq * (p->fsr*csound->onedsr);
+  double      phs = p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;

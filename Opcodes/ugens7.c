@@ -232,8 +232,8 @@ static int32_t fof(CSOUND *csound, FOFS *p)
       p->fundphs += fund_inc;
       if (p->xincod) {
         if (p->ampcod)    amp++;
-        if (p->fundcod)   fund_inc = (int32)(*++fund * csound->sicvt);
-        if (p->formcod)   form_inc = (int32)(*++form * csound->sicvt);
+        if (p->fundcod)   fund_inc = (int32)(*++fund * CS_SICVT);
+        if (p->formcod)   form_inc = (int32)(*++form * CS_SICVT);
       }
     }
     p->durtogo--;    
@@ -280,7 +280,7 @@ static int32_t newpulse(CSOUND *csound,
     
   if (*p->kband != p->prvband) {                    /* bw: exp dec */
     p->prvband = *p->kband;
-    p->expamp =  EXP(*p->kband * csound->mpidsr);
+    p->expamp =  EXP(*p->kband * -CS_PIDSR);
     newexp = 1;
   }
   /* Init grain rise ftable phase. Negative kform values make
@@ -301,7 +301,7 @@ static int32_t newpulse(CSOUND *csound,
         ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
       else
         ovp->risphs = (int32)(ovp->formphs / *form / *p->kris);
-      ovp->risinc = (int32)(csound->sicvt / *p->kris);
+      ovp->risinc = (int32)(CS_SICVT / *p->kris);
       rismps = MAXLEN / ovp->risinc;
     }
   }
@@ -326,7 +326,7 @@ static int32_t newpulse(CSOUND *csound,
     ovp->decphsf = PHMOD1(ovp->decphsf);
   } else {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) 
-      ovp->decinc = (int32)(csound->sicvt / *p->kdec);
+      ovp->decinc = (int32)(CS_SICVT / *p->kdec);
     ovp->decphs = PHMASK;
   }
  
@@ -389,7 +389,7 @@ static int32_t harmset(CSOUND *csound, HARMON *p)
   p->autokcnt = 1;              /* init for immediate autocorr attempt */
   printf("ekr = %f iptrk = %f, autocnt = %d; autotim = %d\n",
          CS_EKR, *p->iptrkprd, p->autokcnt, p->autoktim);
-  p->lsicvt = FL(65536.0) * csound->onedsr;
+  p->lsicvt = FL(65536.0) * CS_ONEDSR;
   p->cpsmode = ((*p->icpsmode != FL(0.0)));
   p->inp1 = p->bufp;
   p->inp2 = p->midp;
@@ -441,7 +441,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
   if (*p->kest != p->prvest &&
       *p->kest != FL(0.0)) {    /* if new pitch estimate */
     MYFLT estperiod = CS_ESR / *p->kest;
-    double b = 2.0 - cos((double)(*p->kest * csound->tpidsr));
+    double b = 2.0 - cos((double)(*p->kest * CS_TPIDSR));
     p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
     p->c1 = FL(1.0) - p->c2;
     p->prvest = *p->kest;

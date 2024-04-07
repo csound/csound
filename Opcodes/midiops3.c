@@ -177,7 +177,7 @@ static int32_t slider64(CSOUND *csound, SLIDER64 *p)
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
         b = (MYFLT)(2.0 - cos((double)(*(sld++)->ihp              \
-                                       * csound->tpidsr           \
+                                       * CS_TPIDSR           \
                                        * CS_KSMPS)));        \
         *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));       \
         *c1++ = FL(1.0) - *c2++;                                  \
