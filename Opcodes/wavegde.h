@@ -92,12 +92,13 @@ typedef struct{
   MYFLT p;             /* The tuning fitler state */
   MYFLT w0;            /* The fundamental frequency (PI normalized) */
   MYFLT f0;            /* The fundamental frequency (Hertz) */
+  MYFLT sr;
 } waveguide;
 
 static MYFLT filterAllpass(waveguide*,MYFLT);/* 1st-order allpass filtering*/
 
 /* waveguide member functions */
-static void waveguideWaveguide(CSOUND *, waveguide*, MYFLT, MYFLT*, MYFLT*);
+static void waveguideWaveguide(CSOUND *, waveguide*, MYFLT, MYFLT*, MYFLT*, MYFLT);
 static void waveguideSetTuning(CSOUND *,waveguide*, MYFLT); /* Set tuning filters */
 #endif
 

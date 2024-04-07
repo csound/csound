@@ -88,7 +88,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
 
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       npts = (int32)(*p->iprd * CS_EKR);
-    else npts = (int32)(*p->iprd * csound->esr);
+    else npts = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(npts <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in display"));
 
@@ -257,7 +257,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
     }
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       step_size = (int32)(*p->iprd * CS_EKR);
-    else step_size = (int32)(*p->iprd * csound->esr);
+    else step_size = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(step_size <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in ffy display"));
     }

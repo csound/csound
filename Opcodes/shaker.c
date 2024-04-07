@@ -60,7 +60,7 @@ int32_t shakerset(CSOUND *csound, SHAKER *p)
 
     p->shake_speed = FL(0.0008) + (amp * FL(0.0004));
     make_BiQuad(&p->filter);
-    make_ADSR(&p->envelope);
+    make_ADSR(&p->envelope, CS_ESR);
     p->res_freq = FL(3200.0);
     BiQuad_setFreqAndReson(p->filter, p->res_freq, FL(0.96));
     BiQuad_setEqualGainZeroes(p->filter);

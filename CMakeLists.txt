@@ -184,6 +184,20 @@ if(BARE_METAL)
     endif() 
 endif()
 
+# secret rabbit code
+if (USE_VCPKG)
+  find_package(SampleRate CONFIG REQUIRED)
+  assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
+else()
+   find_package(SampleRate MODULE)
+endif()
+
+if(SampleRate_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_SRC")
+    message(STATUS "Using Secret Rabbit Code")
+endif()
+
+
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
 # Also after user options so that the default values don't overwrite the custom files values
@@ -1318,6 +1332,10 @@ if(USE_LIBSNDFILE)
     endif()
 endif()
 
+if(SampleRate_FOUND)
+  target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
+endif()
+
 if(NOT IOS)
     set_target_properties(${CSOUNDLIB} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1340,6 +1358,11 @@ if(BUILD_STATIC_LIBRARY)
     if (USE_LIBSNDFILE)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
     endif()
+
+   if(SampleRate_FOUND)
+        target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SampleRate::samplerate)
+   endif()
+
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()

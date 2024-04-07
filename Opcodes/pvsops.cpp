@@ -325,8 +325,8 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     s = s  > 0  ? (s < 1 ? s : 1.) : 0.;
     if(gate > 0) {
       if(t == 0) {
-        a = inargs[1]*csound->kr();
-	d = inargs[2]*csound->kr();
+        a = inargs[1]*this->kr();
+	d = inargs[2]*this->kr();
 	if(a < 1) a = 1;
 	if(d < 1) d = 1;
 	ainc = 1./a;
@@ -343,7 +343,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       if (e < 0.00001)
         e = 0;
       else
-        e *= pow(0.001, 1. / (inargs[4]*csound->kr()));
+        e *= pow(0.001, 1. / (inargs[4]*this->kr()));
       t = 0;   
     }
     outargs[0] = e*inargs[0];
@@ -364,8 +364,8 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     for(auto n = offset; n < nsmps; n++) {
        if(gate > 0) {
       if(t == 0) {
-        a = inargs[1]*csound->sr();
-	d = inargs[2]*csound->sr();
+        a = inargs[1]*this->sr();
+	d = inargs[2]*this->sr();
 	if(a < 1) a = 1;
 	if(d < 1) d = 1;
 	ainc = 1./a;
@@ -382,7 +382,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       if (e < 0.00001)
         e = 0;
       else
-        e *= pow(0.001, 1. / (inargs[4]*csound->sr()));
+        e *= pow(0.001, 1. / (inargs[4]*this->sr()));
       t = 0;   
     }
        out[n] = sig ? sig[n]*e : amp*e;

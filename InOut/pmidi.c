@@ -461,9 +461,6 @@ static int WriteMidiData_(CSOUND *csound, void *userData,
       return 0;
     n = 0;
     do {
-      //int time = csound->GetCurrentTimeSamples(csound)/csound->GetSr(csound);
-      //printf("jitter: %d \n",
-      //       Pt_Time(NULL) - (int)(1000*time/csound->GetSr(csound)));
       st = (int)*(mbuf++);
       if (UNLIKELY(st < 0x80)) {
         portMidiErrMsg(csound, Str("invalid MIDI out data"));

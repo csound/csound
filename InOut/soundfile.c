@@ -20,12 +20,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
 #include <soundfile.h>
 
 #if USE_LIBSNDFILE
-
-
 const char *sflib_strerror(void *p){
   return sf_strerror((SNDFILE *)p); 
 }
@@ -174,6 +171,5 @@ int  sflib_set_string(void *sndfile, int str_type, const char* str){
 const char *sflib_strerror(void *p){
   return NULL;
 }
-
-
 #endif
+

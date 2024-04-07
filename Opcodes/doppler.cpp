@@ -137,7 +137,7 @@ public:
   int32_t currentIndex;
 
   int32_t init(CSOUND *csound) {
-    sampleRate = csound->GetSr(csound);
+    sampleRate = opds.insdshead->esr;
     blockRate = opds.insdshead->ekr;
     blockSize = opds.insdshead->ksmps;
     // Take care of default values.

@@ -32,7 +32,7 @@ int32_t linset(CSOUND *csound, LINE *p)
 {
     double       dur;
     if (LIKELY((dur = *p->idur) > FL(0.0))) {
-      p->incr = (*p->ib - *p->ia) / dur * csound->onedsr;
+      p->incr = (*p->ib - *p->ia) / dur * CS_ONEDSR;
       p->kincr = p->incr*CS_KSMPS;
       p->val = *p->ia;
     }
@@ -83,7 +83,7 @@ int32_t expset(CSOUND *csound, EXPON *p)
       a = *p->ia;
       b = *p->ib;
       if (LIKELY((a * b) > FL(0.0))) {
-        p->mlt = POWER(b/a, csound->onedsr/dur);
+        p->mlt = POWER(b/a, CS_ONEDSR/dur);
         p->kmlt = POWER(b/a, CS_ONEDKR/dur);
         p->val = a;
       }
@@ -171,7 +171,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
       segp->nxtpt = (double)**argp++;
       if (UNLIKELY((segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5))) < 0))
         segp->cnt = 0;
-      if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
+      if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
         segp->acnt = 0;
       segp++;
     } while (--nsegs);
@@ -333,7 +333,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     dur = (double)*argp[0];
     segp->nxtpt = FL(1.0);
     segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-    if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
+    if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
         segp->acnt = 0;
     //printf("attack: dur=%f cnt=%d acnt=%d nxt=%f\n",
     //       dur, segp->cnt, segp->acnt, segp->nxtpt);
@@ -342,7 +342,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     dur = *argp[1];
     segp->nxtpt = *argp[2];
     segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-    if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
+    if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
       segp->acnt = 0;
     //printf("decay: dur=%f cnt=%d acnt=%d nxt=%f\n",
     //       dur, segp->cnt, segp->acnt, segp->nxtpt);
@@ -354,7 +354,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
       csound->Warning(csound, Str("length of ADSR note too short"));
     segp->nxtpt = *argp[2];
     segp->cnt = (int32_t)(dur * CS_EKR + FL(0.5));
-    if (UNLIKELY((segp->acnt = (int32_t)(dur * csound->esr + FL(0.5))) < 0))
+    if (UNLIKELY((segp->acnt = (int32_t)(dur * CS_ESR + FL(0.5))) < 0))
       segp->acnt = 0;
     //printf("sustain: dur=%f cnt=%d acnt=%d nxt=%f\n",
     //       dur, segp->cnt, segp->acnt, segp->nxtpt);
@@ -363,7 +363,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     // **FIXME is this needed? dur = *argp[3];
     segp->nxtpt = FL(0.0);
     segp->cnt = (int32_t)(release * CS_EKR + FL(0.5));
-    if (UNLIKELY((segp->acnt = (int32_t)(release * csound->esr + FL(0.5))) < 0))
+    if (UNLIKELY((segp->acnt = (int32_t)(release * CS_ESR + FL(0.5))) < 0))
       segp->acnt = 0;
     //printf("release: dur=%f cnt=%d acnt=%d nxt=%f\n",
     //       dur, segp->cnt, segp->acnt, segp->nxtpt);
@@ -537,7 +537,7 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
       segp->val = val;
       segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->cnt = (int32_t) (d + FL(0.5));
-      d = dur * csound->esr;
+      d = dur * CS_ESR;
       segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->acnt = (int32_t) (d + FL(0.5));
     } while (--nsegs);
@@ -596,7 +596,7 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       segp->val = val;
       segp->mlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->cnt = (int32_t) (d + FL(0.5));
-      d = dur * csound->esr;
+      d = dur * CS_ESR;
       segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
       segp->acnt = (int32_t) (d + FL(0.5));
     } while (--nsegs);
@@ -652,11 +652,11 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
 /*       if (dur > FL(0.0)) { */
       if (UNLIKELY(val * nxtval <= FL(0.0)))
           goto experr;
-        d = dur * csound->esr;
+        d = dur * CS_ESR;
         segp->val = val;
         segp->mlt = POWER((nxtval / val), FL(1.0)/d);
         segp->cnt = (int32_t) (d + FL(0.5));
-         d = dur * csound->esr;
+         d = dur * CS_ESR;
          segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
          segp->acnt = (int32_t) (d + FL(0.5));
 /*       } */
@@ -708,11 +708,11 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 /*       if (dur > FL(0.0)) { */
       if (UNLIKELY(val * nxtval <= FL(0.0)))
           goto experr;
-        d = dur * csound->esr;
+        d = dur * CS_ESR;
         segp->val = val;
         segp->mlt = POWER((nxtval / val), FL(1.0)/d);
         segp->cnt = (int32_t) (d + FL(0.5));
-        d = dur * csound->esr;
+        d = dur * CS_ESR;
         segp->amlt = (MYFLT) pow((double)(nxtval / val), (1.0/(double)d));
         segp->acnt = (int32_t) (d + FL(0.5));
 /*       } */
@@ -1271,7 +1271,7 @@ int32_t alnrset(CSOUND *csound, LINENR *p)
       if (UNLIKELY(*p->iatdec <= FL(0.0))) {
         return csound->InitError(csound, Str("non-positive iatdec"));
       }
-      else p->mlt2 = POWER(*p->iatdec, csound->onedsr / *p->idec);
+      else p->mlt2 = POWER(*p->iatdec, CS_ONEDSR / *p->idec);
     }
     else p->mlt2 = FL(1.0);
     p->lin1 = FL(0.0);
@@ -1522,7 +1522,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
         if (UNLIKELY(*p->iatdec <= FL(0.0))) {
           return csound->InitError(csound, Str("non-positive iatdec"));
         }
-        p->mlt2 = POWER(*p->iatdec, (csound->onedsr / *p->idec));
+        p->mlt2 = POWER(*p->iatdec, (CS_ONEDSR / *p->idec));
       }
       p->cnt1 = cnt1;
       p->asym = asym;
@@ -1702,7 +1702,7 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
     if (UNLIKELY(!(*(ftp->ftable + ftp->flen)))) {
       return csound->InitError(csound, Str("rise func ends with zero"));
     }
-    p->mlt1 = POWER(iatss, csound->onedsr);
+    p->mlt1 = POWER(iatss, CS_ONEDSR);
     if (*p->idec > FL(0.0)) {
       int32_t rlscnt = (int32_t)(*p->idec * CS_EKR + FL(0.5));
       if ((p->rindep = (int32_t)*p->irind))
