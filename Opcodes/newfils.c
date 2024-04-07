@@ -2397,7 +2397,7 @@ typedef struct vcfnl {
 int vcfnl_init(CSOUND *csound, VCFNL *p) {
     MYFLT *tab;
    double g, *G = p->G;
-  p->piosr = PI/csound->GetSr(csound);
+   p->piosr = CS_PIDSR;
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
   G[0] = g/(1+g);
