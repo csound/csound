@@ -3456,8 +3456,7 @@ PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
-    char    *s;
-    int     i, max_len;
+    int     i;
     OPARMS  *O = csound->oparms;
 
 
@@ -3561,9 +3560,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     }
 #ifndef BARE_METAL
     /* allow selecting real time audio module */
-    max_len = 21;
+    int max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-    s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    char *s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
  #ifdef __HAIKU__
       strcpy(s, "haiku");
