@@ -25,26 +25,26 @@
 #undef FALSE
 #undef TRUE
 #define FALSE 0
-#define TRUE  1
+#define TRUE 1
 
 #define MPADEC_VERSION 0x0900
 
-#define MPADEC_RETCODE_OK                 0
-#define MPADEC_RETCODE_INVALID_HANDLE     1
-#define MPADEC_RETCODE_NOT_ENOUGH_MEMORY  2
-#define MPADEC_RETCODE_BAD_STATE          3
+#define MPADEC_RETCODE_OK 0
+#define MPADEC_RETCODE_INVALID_HANDLE 1
+#define MPADEC_RETCODE_NOT_ENOUGH_MEMORY 2
+#define MPADEC_RETCODE_BAD_STATE 3
 #define MPADEC_RETCODE_INVALID_PARAMETERS 4
-#define MPADEC_RETCODE_NEED_MORE_DATA     5
-#define MPADEC_RETCODE_BUFFER_TOO_SMALL   6
-#define MPADEC_RETCODE_NO_SYNC            7
-#define MPADEC_RETCODE_UNKNOWN            8
+#define MPADEC_RETCODE_NEED_MORE_DATA 5
+#define MPADEC_RETCODE_BUFFER_TOO_SMALL 6
+#define MPADEC_RETCODE_NO_SYNC 7
+#define MPADEC_RETCODE_UNKNOWN 8
 
 #define MPADEC_CONFIG_FULL_QUALITY 0
 #define MPADEC_CONFIG_HALF_QUALITY 1
 
-#define MPADEC_CONFIG_AUTO     0
-#define MPADEC_CONFIG_MONO     1
-#define MPADEC_CONFIG_STEREO   2
+#define MPADEC_CONFIG_AUTO 0
+#define MPADEC_CONFIG_MONO 1
+#define MPADEC_CONFIG_STEREO 2
 #define MPADEC_CONFIG_CHANNEL1 3
 #define MPADEC_CONFIG_CHANNEL2 4
 
@@ -54,18 +54,19 @@
 #define MPADEC_CONFIG_FLOAT 3
 
 #define MPADEC_CONFIG_LITTLE_ENDIAN 0
-#define MPADEC_CONFIG_BIG_ENDIAN    1
+#define MPADEC_CONFIG_BIG_ENDIAN 1
 
-#define MPADEC_CONFIG_REPLAYGAIN_NONE       0
-#define MPADEC_CONFIG_REPLAYGAIN_RADIO      1
+#define MPADEC_CONFIG_REPLAYGAIN_NONE 0
+#define MPADEC_CONFIG_REPLAYGAIN_RADIO 1
 #define MPADEC_CONFIG_REPLAYGAIN_AUDIOPHILE 2
-#define MPADEC_CONFIG_REPLAYGAIN_CUSTOM     3
+#define MPADEC_CONFIG_REPLAYGAIN_CUSTOM 3
 
 #define MPADEC_INFO_STREAM 0
-#define MPADEC_INFO_TAG    1
+#define MPADEC_INFO_TAG 1
 #define MPADEC_INFO_CONFIG 2
 
-typedef struct {
+typedef struct
+{
   uint8_t quality;
   uint8_t mode;
   uint8_t format;
@@ -77,7 +78,8 @@ typedef struct {
   float gain;
 } mpadec_config_t;
 
-typedef struct {
+typedef struct
+{
   int32_t layer;
   int32_t channels;
   int32_t frequency;
@@ -96,7 +98,8 @@ typedef struct {
   int32_t duration;
 } mpadec_info_t;
 
-typedef struct {
+typedef struct
+{
   uint32_t flags;
   uint32_t frames;
   uint32_t bytes;
@@ -110,27 +113,28 @@ typedef void *mpadec_t;
 typedef void *mpadec2_t;
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-mpadec_t mpadec_init(void);
-int mpadec_uninit(mpadec_t mpadec);
-int mpadec_reset(mpadec_t mpadec);
-int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg);
-int mpadec_get_info(mpadec_t mpadec, void *info, int info_type);
-int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
-                  uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused,
-                  uint32_t *dstused);
-char *mpadec_error(int code);
+  mpadec_t mpadec_init (void);
+  int mpadec_uninit (mpadec_t mpadec);
+  int mpadec_reset (mpadec_t mpadec);
+  int mpadec_configure (mpadec_t mpadec, mpadec_config_t *cfg);
+  int mpadec_get_info (mpadec_t mpadec, void *info, int info_type);
+  int mpadec_decode (mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+                     uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused,
+                     uint32_t *dstused);
+  char *mpadec_error (int code);
 
-mpadec2_t mpadec2_init(void);
-int mpadec2_uninit(mpadec2_t mpadec);
-int mpadec2_reset(mpadec2_t mpadec);
-int mpadec2_configure(mpadec2_t mpadec, mpadec_config_t *cfg);
-int mpadec2_get_info(mpadec2_t mpadec, void *info, int info_type);
-int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
-                   uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused);
-#define mpadec2_error(x) mpadec_error(x)
+  mpadec2_t mpadec2_init (void);
+  int mpadec2_uninit (mpadec2_t mpadec);
+  int mpadec2_reset (mpadec2_t mpadec);
+  int mpadec2_configure (mpadec2_t mpadec, mpadec_config_t *cfg);
+  int mpadec2_get_info (mpadec2_t mpadec, void *info, int info_type);
+  int mpadec2_decode (mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+                      uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused);
+#define mpadec2_error(x) mpadec_error (x)
 
 #ifdef __cplusplus
 }

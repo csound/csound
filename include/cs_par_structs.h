@@ -48,23 +48,29 @@ struct instr_semantics_t;
 typedef int taskID;
 
 /* Each task has a status */
-enum state { WAITING = 3,          /* Dependencies have not been finished */
-             AVAILABLE = 2,        /* Dependencies met, ready to be run */
-             INPROGRESS = 1,       /* Has been started */
-             DONE = 0 };           /* Has been completed */
+enum state
+{
+  WAITING = 3,    /* Dependencies have not been finished */
+  AVAILABLE = 2,  /* Dependencies met, ready to be run */
+  INPROGRESS = 1, /* Has been started */
+  DONE = 0
+}; /* Has been completed */
 
-typedef struct _stateWithPadding {
+typedef struct _stateWithPadding
+{
   enum state s;
-  uint8_t padding [(CONCURRENTPADDING - sizeof(enum state)) / sizeof(uint8_t)];
+  uint8_t
+      padding[(CONCURRENTPADDING - sizeof (enum state)) / sizeof (uint8_t)];
 } stateWithPadding;
 
 /* Sets of prerequiste tasks for each task */
-typedef struct _watchList {
+typedef struct _watchList
+{
   taskID id;
   struct _watchList *next;
-  uint8_t padding [(CONCURRENTPADDING -
-                    (sizeof(taskID) +
-                     sizeof(struct _watchList *))) / sizeof(uint8_t)];
+  uint8_t padding[(CONCURRENTPADDING
+                   - (sizeof (taskID) + sizeof (struct _watchList *)))
+                  / sizeof (uint8_t)];
 } watchList;
 
 #endif

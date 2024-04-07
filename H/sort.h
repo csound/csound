@@ -23,25 +23,25 @@
 
 #pragma once
 
-#include <stdio.h>                                 /*      SORT.H */
+#include <stdio.h> /*      SORT.H */
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
 #define SP ' '
 #define LF '\n'
 
-typedef struct srtblk {
-        struct srtblk *nxtblk;
-        struct srtblk *prvblk;
-        int16   insno;
-        int16   pcnt;
-        MYFLT   p1val;
-        MYFLT   p2val;
-        MYFLT   p3val;
-        MYFLT   newp2;
-        MYFLT   newp3;
-        int16   lineno;
-        char    preced;
-        char    text[9];
+typedef struct srtblk
+{
+  struct srtblk *nxtblk;
+  struct srtblk *prvblk;
+  int16 insno;
+  int16 pcnt;
+  MYFLT p1val;
+  MYFLT p2val;
+  MYFLT p3val;
+  MYFLT newp2;
+  MYFLT newp3;
+  int16 lineno;
+  char preced;
+  char text[9];
 } SRTBLK;
-

@@ -25,23 +25,25 @@
 
 #include <csoundCore.h>
 
-typedef struct _compile {
+typedef struct _compile
+{
   OPDS h;
   MYFLT *res;
   MYFLT *str;
   MYFLT *ktrig;
-}COMPILE;
+} COMPILE;
 
-typedef struct _retval {
+typedef struct _retval
+{
   OPDS h;
   MYFLT *ret;
 } RETVAL;
 
-int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
-int32_t compile_str_i(CSOUND *csound, COMPILE *c);
-int32_t compile_csd_i(CSOUND *csound, COMPILE *c);
-int32_t read_score_i(CSOUND *csound, COMPILE *c);
-int32_t eval_str_i(CSOUND *csound, COMPILE *p);
-int32_t eval_str_k(CSOUND *csound, COMPILE *p);
-int32_t retval_i(CSOUND *csound, RETVAL *p);
-int32_t eval_str_k(CSOUND *csound, COMPILE *p);
+int32_t compile_orc_i (CSOUND *csound, COMPILE *c);
+int32_t compile_str_i (CSOUND *csound, COMPILE *c);
+int32_t compile_csd_i (CSOUND *csound, COMPILE *c);
+int32_t read_score_i (CSOUND *csound, COMPILE *c);
+int32_t eval_str_i (CSOUND *csound, COMPILE *p);
+int32_t eval_str_k (CSOUND *csound, COMPILE *p);
+int32_t retval_i (CSOUND *csound, RETVAL *p);
+int32_t eval_str_k (CSOUND *csound, COMPILE *p);

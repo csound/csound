@@ -27,53 +27,58 @@
 
 #pragma once
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr, *ain, *adel, *imaxd, *istod;
-        uint32 maxd;
-        AUXCH   aux;
-        int32   left;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr, *ain, *adel, *imaxd, *istod;
+  uint32 maxd;
+  AUXCH aux;
+  int32 left;
 } VDEL;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr1, *sr2, *sr3, *sr4;
-        MYFLT   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
-        AUXCH   aux1, aux2, aux3, aux4;
-        uint32 maxd;
-        int     interp_size;
-        int32   left;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr1, *sr2, *sr3, *sr4;
+  MYFLT *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
+  AUXCH aux1, aux2, aux3, aux4;
+  uint32 maxd;
+  int interp_size;
+  int32 left;
 } VDELXQ;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
-        AUXCH   aux1, aux2;
-        uint32 maxd;
-        int     interp_size;
-        int32   left;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
+  AUXCH aux1, aux2;
+  uint32 maxd;
+  int interp_size;
+  int32 left;
 } VDELXS;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
-        AUXCH   aux1;
-        uint32 maxd;
-        int     interp_size;
-        int32   left;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
+  AUXCH aux1;
+  uint32 maxd;
+  int interp_size;
+  int32 left;
 } VDELX;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr, *ain, *ndel[VARGMAX-1];
-        AUXCH   aux;
-        int32   left, max;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr, *ain, *ndel[VARGMAX - 1];
+  AUXCH aux;
+  int32 left, max;
 } MDEL;
 
 #if 0
 
-#define Combs   6
-#define Alpas   5
+#define Combs 6
+#define Alpas 5
 
 typedef struct {
         OPDS    h;
@@ -107,41 +112,41 @@ typedef struct {
  * Sept 2000, by rasmus ekman.
  * Memory allocation fixed April 2001 by JPff
  */
-typedef struct {
-        OPDS    h;
-        MYFLT   *out, *in, *time, *hdif, *istor;
-        MYFLT   *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
-        /* Used to be [Combs]- and [Alpas]-sized arrays */
-        int     numCombs, numAlpas;
-        MYFLT   **cbuf_cur, **abuf_cur;
-        MYFLT   **pcbuf_cur, **pabuf_cur;
-        MYFLT   *c_time, *c_gain, *a_time, *a_gain;
-        const MYFLT *c_orggains, *a_orggains;
-        MYFLT   *z, *g;        /* [Combs] */
-        AUXCH   temp;
-        AUXCH   caux, aaux;
-        AUXCH   caux2, aaux2;  /* Used to hold space for all dynamized arrays */
-        MYFLT   prev_time, prev_hdif;
+typedef struct
+{
+  OPDS h;
+  MYFLT *out, *in, *time, *hdif, *istor;
+  MYFLT *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
+  /* Used to be [Combs]- and [Alpas]-sized arrays */
+  int numCombs, numAlpas;
+  MYFLT **cbuf_cur, **abuf_cur;
+  MYFLT **pcbuf_cur, **pabuf_cur;
+  MYFLT *c_time, *c_gain, *a_time, *a_gain;
+  const MYFLT *c_orggains, *a_orggains;
+  MYFLT *z, *g; /* [Combs] */
+  AUXCH temp;
+  AUXCH caux, aaux;
+  AUXCH caux2, aaux2; /* Used to hold space for all dynamized arrays */
+  MYFLT prev_time, prev_hdif;
 } NREV2;
 
-int32_t vdelset(CSOUND *, VDEL *p);
-int32_t vdelay(CSOUND *, VDEL *p);
-int32_t vdelay3(CSOUND *, VDEL *p);
-int32_t vdelxset(CSOUND *, VDELX *p);
-int32_t vdelxsset(CSOUND *, VDELXS *p);
-int32_t vdelxqset(CSOUND *, VDELXQ *p);
-int32_t vdelayx(CSOUND *, VDELX *p);
-int32_t vdelayxw(CSOUND *, VDELX *p);
-int32_t vdelayxs(CSOUND *, VDELXS *p);
-int32_t vdelayxws(CSOUND *, VDELXS *p);
-int32_t vdelayxq(CSOUND *, VDELXQ *p);
-int32_t vdelayxwq(CSOUND *, VDELXQ *p);
-int32_t multitap_set(CSOUND *, MDEL *p);
-int32_t multitap_play(CSOUND *, MDEL *p);
+int32_t vdelset (CSOUND *, VDEL *p);
+int32_t vdelay (CSOUND *, VDEL *p);
+int32_t vdelay3 (CSOUND *, VDEL *p);
+int32_t vdelxset (CSOUND *, VDELX *p);
+int32_t vdelxsset (CSOUND *, VDELXS *p);
+int32_t vdelxqset (CSOUND *, VDELXQ *p);
+int32_t vdelayx (CSOUND *, VDELX *p);
+int32_t vdelayxw (CSOUND *, VDELX *p);
+int32_t vdelayxs (CSOUND *, VDELXS *p);
+int32_t vdelayxws (CSOUND *, VDELXS *p);
+int32_t vdelayxq (CSOUND *, VDELXQ *p);
+int32_t vdelayxwq (CSOUND *, VDELXQ *p);
+int32_t multitap_set (CSOUND *, MDEL *p);
+int32_t multitap_play (CSOUND *, MDEL *p);
 #if 0
 int nreverb_set(CSOUND *, NREV *p);
 int nreverb(CSOUND *, NREV *p);
 #endif
-int32_t reverbx_set(CSOUND *, NREV2 *p);
-int32_t reverbx(CSOUND *, NREV2 *p);
-
+int32_t reverbx_set (CSOUND *, NREV2 *p);
+int32_t reverbx (CSOUND *, NREV2 *p);

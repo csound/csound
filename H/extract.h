@@ -24,25 +24,25 @@
 #ifndef EXTRACT_H
 #define EXTRACT_H
 
-#define INSMAX  4096
+#define INSMAX 4096
 
-typedef struct extractStatics__ {
-    char    inslst[INSMAX];         /*   values set by readxfil         */
-    int     sectno, a0done;
-    int     onsect, offsect;        /*      "       "       "           */
-    MYFLT   onbeat, offbeat;        /*      "       "       "           */
-    MYFLT   ontime, offtime;        /* set by readxfil, mod by w-stmnt  */
-    SRTBLK  *frstout, *prvout;      /* links for building new outlist   */
-    SRTBLK  a0;
-    SRTBLK  f0;
-    SRTBLK  e;
+typedef struct extractStatics__
+{
+  char inslst[INSMAX]; /*   values set by readxfil         */
+  int sectno, a0done;
+  int onsect, offsect;      /*      "       "       "           */
+  MYFLT onbeat, offbeat;    /*      "       "       "           */
+  MYFLT ontime, offtime;    /* set by readxfil, mod by w-stmnt  */
+  SRTBLK *frstout, *prvout; /* links for building new outlist   */
+  SRTBLK a0;
+  SRTBLK f0;
+  SRTBLK e;
 } EXTRACT_STATICS;
 
 /* read the extract control file */
-void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics, FILE *xfp);
+void readxfil (CSOUND *csound, EXTRACT_STATICS *extractStatics, FILE *xfp);
 
 /* extract instr events within the time period */
-void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics);
-
+void extract (CSOUND *csound, EXTRACT_STATICS *extractStatics);
 
 #endif

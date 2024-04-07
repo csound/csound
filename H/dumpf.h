@@ -21,96 +21,104 @@
     02110-1301 USA
 */
 
-                                                        /*  DUMPF.H  */
+/*  DUMPF.H  */
 #pragma once
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *ksig, *ifilcod, *iformat, *iprd;
-        int    format;
-        int32   countdown, timcount;
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *ksig, *ifilcod, *iformat, *iprd;
+  int format;
+  int32 countdown, timcount;
+  FILE *f;
+  FDCH fdch;
 } KDUMP;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *ksig1, *ksig2, *ifilcod, *iformat, *iprd;
-        int    format;
-        int32   countdown, timcount;
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *ksig1, *ksig2, *ifilcod, *iformat, *iprd;
+  int format;
+  int32 countdown, timcount;
+  FILE *f;
+  FDCH fdch;
 } KDUMP2;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *ksig1, *ksig2, *ksig3, *ifilcod, *iformat, *iprd;
-        int    format;
-        int32   countdown, timcount;
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *ksig1, *ksig2, *ksig3, *ifilcod, *iformat, *iprd;
+  int format;
+  int32 countdown, timcount;
+  FILE *f;
+  FDCH fdch;
 } KDUMP3;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *ksig1, *ksig2, *ksig3, *ksig4, *ifilcod, *iformat, *iprd;
-        int    format;
-        int32   countdown, timcount;
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *ksig1, *ksig2, *ksig3, *ksig4, *ifilcod, *iformat, *iprd;
+  int format;
+  int32 countdown, timcount;
+  FILE *f;
+  FDCH fdch;
 } KDUMP4;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *k1, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
-        int    format;
-        int32   countdown, timcount;
-        MYFLT  k[4];
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *k1, *ifilcod, *iformat, *iprd;
+  /* MYFLT  *interp; */
+  int format;
+  int32 countdown, timcount;
+  MYFLT k[4];
+  FILE *f;
+  FDCH fdch;
 } KREAD;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *k1, *k2, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
-        int    format;
-        int32   countdown, timcount;
-        MYFLT  k[4];
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *k1, *k2, *ifilcod, *iformat, *iprd;
+  /* MYFLT  *interp; */
+  int format;
+  int32 countdown, timcount;
+  MYFLT k[4];
+  FILE *f;
+  FDCH fdch;
 } KREAD2;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *k1, *k2, *k3, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
-        int    format;
-        int32   countdown, timcount;
-        MYFLT  k[4];
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *k1, *k2, *k3, *ifilcod, *iformat, *iprd;
+  /* MYFLT  *interp; */
+  int format;
+  int32 countdown, timcount;
+  MYFLT k[4];
+  FILE *f;
+  FDCH fdch;
 } KREAD3;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd;
-        /* MYFLT  *interp; */
-        int    format;
-        int32  countdown, timcount;
-        MYFLT  k[4];
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd;
+  /* MYFLT  *interp; */
+  int format;
+  int32 countdown, timcount;
+  MYFLT k[4];
+  FILE *f;
+  FDCH fdch;
 } KREAD4;
 
-typedef struct {
-        OPDS   h;
-        STRINGDAT  *str;
-        MYFLT *ifilcod, *iprd;
-        int32  countdown, timcount;
-        char   *lasts;
-        FILE   *f;
-        FDCH   fdch;
+typedef struct
+{
+  OPDS h;
+  STRINGDAT *str;
+  MYFLT *ifilcod, *iprd;
+  int32 countdown, timcount;
+  char *lasts;
+  FILE *f;
+  FDCH fdch;
 } KREADS;
-

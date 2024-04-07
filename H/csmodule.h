@@ -73,10 +73,12 @@
  ******************************************************************************/
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-  /* ------------------------ INTERNAL API FUNCTIONS ------------------------ */
+  /* ------------------------ INTERNAL API FUNCTIONS ------------------------
+   */
 
   /**
    * Load plugin libraries for Csound instance 'csound', and call
@@ -85,7 +87,7 @@ extern "C" {
    * some modules could not be loaded or initialised, and CSOUND_MEMORY
    * if a memory allocation failure has occured.
    */
-  int csoundLoadModules(CSOUND *csound);
+  int csoundLoadModules (CSOUND *csound);
 
   /**
    * Call initialisation functions of all loaded modules that have a
@@ -93,11 +95,11 @@ extern "C" {
    * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
    * some modules could not be initialised.
    */
-  int csoundInitModules(CSOUND *csound);
+  int csoundInitModules (CSOUND *csound);
 
   /** Load and initialise all modules from one directory
    */
-  int csoundLoadAndInitModules(CSOUND *csound, const char *opdir);
+  int csoundLoadAndInitModules (CSOUND *csound, const char *opdir);
 
   /**
    * Call destructor functions of all loaded modules that have a
@@ -105,16 +107,15 @@ extern "C" {
    * Return value is CSOUND_SUCCESS if there was no error, and
    * CSOUND_ERROR if some modules could not be de-initialised.
    */
-  int csoundDestroyModules(CSOUND *csound);
+  int csoundDestroyModules (CSOUND *csound);
 
   /**
    * Initialise opcodes not in entry1.c
    */
-  int csoundInitSaticModules(CSOUND *csound);
+  int csoundInitSaticModules (CSOUND *csound);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* CSOUND_CSMODULE_H */
-

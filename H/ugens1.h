@@ -25,110 +25,122 @@
 
 #pragma once
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *xr, *ia, *idur, *ib;
-         double   val, incr, kincr;
+typedef struct
+{
+  OPDS h;
+  MYFLT *xr, *ia, *idur, *ib;
+  double val, incr, kincr;
 } LINE;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *xr, *ia, *idur, *ib;
-        double   val, mlt, kmlt;
+typedef struct
+{
+  OPDS h;
+  MYFLT *xr, *ia, *idur, *ib;
+  double val, mlt, kmlt;
 } EXPON;
 
-typedef struct {
-        int32  cnt, acnt;
-         MYFLT  val, mlt, amlt;
+typedef struct
+{
+  int32 cnt, acnt;
+  MYFLT val, mlt, amlt;
 } XSEG;
 
-typedef struct {
-        int32   cnt, acnt;
-        double  nxtpt;
+typedef struct
+{
+  int32 cnt, acnt;
+  double nxtpt;
 } SEG;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *argums[VARGMAX];
-        SEG     *cursegp;
-        int32   nsegs;
-        int32   segsrem, curcnt;
-        double  curval, curinc, curainc;
-        AUXCH   auxch;
-        int32   xtra;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *argums[VARGMAX];
+  SEG *cursegp;
+  int32 nsegs;
+  int32 segsrem, curcnt;
+  double curval, curinc, curainc;
+  AUXCH auxch;
+  int32 xtra;
 } LINSEG;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *argums[VARGMAX];
-        SEG     *cursegp;
-        int32   nsegs;
-        int32   segsrem, curcnt;
-        double  y1, y2, x, inc, val;
-        AUXCH   auxch;
-        int32   xtra;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *argums[VARGMAX];
+  SEG *cursegp;
+  int32 nsegs;
+  int32 segsrem, curcnt;
+  double y1, y2, x, inc, val;
+  AUXCH auxch;
+  int32 xtra;
 } COSSEG;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *argums[VARGMAX];
-        SEG     *cursegp;
-        int32   segsrem, curcnt;
-        double  curval, curmlt, curamlt;
-        int32   nsegs;
-        AUXCH   auxch;
-        int32   xtra;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *argums[VARGMAX];
+  SEG *cursegp;
+  int32 segsrem, curcnt;
+  double curval, curmlt, curamlt;
+  int32 nsegs;
+  AUXCH auxch;
+  int32 xtra;
 } EXPSEG;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *argums[VARGMAX];
-        XSEG    *cursegp;
-        int32   segsrem, curcnt;
-        double  curval, curmlt, curamlt;
-        int32   nsegs;
-        AUXCH   auxch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *argums[VARGMAX];
+  XSEG *cursegp;
+  int32 segsrem, curcnt;
+  double curval, curmlt, curamlt;
+  int32 nsegs;
+  AUXCH auxch;
 } EXXPSEG;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *sig, *iris, *idur, *idec;
-        double  lin1, inc1, lin2, inc2;
-        int64_t  cnt1, cnt2;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *sig, *iris, *idur, *idec;
+  double lin1, inc1, lin2, inc2;
+  int64_t cnt1, cnt2;
 } LINEN;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *sig, *iris, *idec, *iatdec;
-        double  lin1, inc1, val, val2, mlt2;
-        int64_t  cnt1;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *sig, *iris, *idec, *iatdec;
+  double lin1, inc1, val, val2, mlt2;
+  int64_t cnt1;
 } LINENR;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *xamp, *irise, *idur, *idec, *ifn, *iatss;
-        MYFLT   *iatdec, *ixmod;
-        int32   phs, ki, cnt1;
-  double  val, mlt1, mlt2, asym, phsf, kif;
-        FUNC    *ftp;
-  int32  floatph;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *xamp, *irise, *idur, *idec, *ifn, *iatss;
+  MYFLT *iatdec, *ixmod;
+  int32 phs, ki, cnt1;
+  double val, mlt1, mlt2, asym, phsf, kif;
+  FUNC *ftp;
+  int32 floatph;
 } ENVLPX;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *xamp, *irise, *idec, *ifn, *iatss, *iatdec;
-        MYFLT   *ixmod, *irind;
-        int32   phs, ki, rlsing, rlscnt, rindep;
-  double  val, mlt1, mlt2, asym, atdec, kif, phsf;
-        FUNC    *ftp;
-    int32  floatph;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *xamp, *irise, *idec, *ifn, *iatss, *iatdec;
+  MYFLT *ixmod, *irind;
+  int32 phs, ki, rlsing, rlscnt, rindep;
+  double val, mlt1, mlt2, asym, atdec, kif, phsf;
+  FUNC *ftp;
+  int32 floatph;
 } ENVLPR;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *argums[VARGMAX];
-        XSEG    *cursegp;
-        int32   nsegs;
-        AUXCH   auxch;
-} EXPSEG2;                         /*gab-A1*/
-
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *argums[VARGMAX];
+  XSEG *cursegp;
+  int32 nsegs;
+  AUXCH auxch;
+} EXPSEG2; /*gab-A1*/

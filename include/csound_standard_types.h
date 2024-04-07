@@ -27,44 +27,43 @@
 #include "csound_type_system.h"
 #include "csound.h"
 
-#ifdef  __cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-    PUBLIC void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
+  PUBLIC void csoundAddStandardTypes (CSOUND *csound, TYPE_POOL *pool);
 
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_A;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_K;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_I;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_S;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_P;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_R;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_C;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_W;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_F;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_B;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_b;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_ARRAY;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_A;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_K;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_I;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_S;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_P;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_R;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_C;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_W;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_F;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_B;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_b;
+  PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_ARRAY;
 
-    typedef struct arrayVarInit {
-        int dimensions;
-        CS_TYPE* type;
-    } ARRAY_VAR_INIT;
+  typedef struct arrayVarInit
+  {
+    int dimensions;
+    CS_TYPE *type;
+  } ARRAY_VAR_INIT;
 
+  /* Type maps for poly, optional, and var arg types
+   * format is in pairs of specified type and types it can resolve into,
+   * termintated by a NULL */
+  extern const char *POLY_IN_TYPES[];
+  extern const char *OPTIONAL_IN_TYPES[];
+  extern const char *VAR_ARG_IN_TYPES[];
+  extern const char *POLY_OUT_TYPES[];
+  extern const char *VAR_ARG_OUT_TYPES[];
 
-    /* Type maps for poly, optional, and var arg types
-     * format is in pairs of specified type and types it can resolve into,
-     * termintated by a NULL */
-    extern const char* POLY_IN_TYPES[];
-    extern const char* OPTIONAL_IN_TYPES[];
-    extern const char* VAR_ARG_IN_TYPES[];
-    extern const char* POLY_OUT_TYPES[];
-    extern const char* VAR_ARG_OUT_TYPES[];
-
-
-
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif  /* CSOUND_STANDARD_TYPES_H */
+#endif /* CSOUND_STANDARD_TYPES_H */

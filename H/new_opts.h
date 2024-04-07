@@ -25,33 +25,34 @@
 #define CSOUND_NEW_OPTS_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
- * Assignment to configuration variables from the command line can be done
- * with '-+NAME=VALUE'. Boolean variables can be set to true with any of
- * '-+NAME', '-+NAME=1', '-+NAME=yes', '-+NAME=on', and '-+NAME=true',
- * while setting to false is possible with any of '-+no-NAME', '-+NAME=0',
- *  '-+NAME=no', '-+NAME=off', and '-+NAME=false'.
- */
+  /**
+   * Assignment to configuration variables from the command line can be done
+   * with '-+NAME=VALUE'. Boolean variables can be set to true with any of
+   * '-+NAME', '-+NAME=1', '-+NAME=yes', '-+NAME=on', and '-+NAME=true',
+   * while setting to false is possible with any of '-+no-NAME', '-+NAME=0',
+   *  '-+NAME=no', '-+NAME=off', and '-+NAME=false'.
+   */
 
-/* ------------------------ INTERNAL API FUNCTIONS ------------------------ */
+  /* ------------------------ INTERNAL API FUNCTIONS ------------------------
+   */
 
-/* list command line usage of all registered configuration variables */
+  /* list command line usage of all registered configuration variables */
 
-void dump_cfg_variables(CSOUND *csound);
+  void dump_cfg_variables (CSOUND *csound);
 
-/* Parse 's' as an assignment to a configuration variable in the format */
-/* '-+NAME=VALUE'. In the case of boolean variables, the format may also */
-/* be '-+NAME' for true, and '-+no-NAME' for false. */
-/* Return value is zero on success. */
+  /* Parse 's' as an assignment to a configuration variable in the format */
+  /* '-+NAME=VALUE'. In the case of boolean variables, the format may also */
+  /* be '-+NAME' for true, and '-+no-NAME' for false. */
+  /* Return value is zero on success. */
 
-int parse_option_as_cfgvar(CSOUND *csound, const char *s);
+  int parse_option_as_cfgvar (CSOUND *csound, const char *s);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* CSOUND_NEW_OPTS_H */
-
+#endif /* CSOUND_NEW_OPTS_H */

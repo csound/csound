@@ -26,141 +26,147 @@
 
 #include "soundio.h"
 
-#define DISKIN2_MAXCHN  40              /* for consistency with soundin   */
-#define POS_FRAC_SHIFT  28              /* allows pitch accuracy of 2^-28 */
-#define POS_FRAC_SCALE  0x10000000
-#define POS_FRAC_MASK   0x0FFFFFFF
+#define DISKIN2_MAXCHN 40 /* for consistency with soundin   */
+#define POS_FRAC_SHIFT 28 /* allows pitch accuracy of 2^-28 */
+#define POS_FRAC_SCALE 0x10000000
+#define POS_FRAC_MASK 0x0FFFFFFF
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *aOut[DISKIN2_MAXCHN];
-    MYFLT   *iFileCode;
-    MYFLT   *kTranspose;
-    MYFLT   *iSkipTime;
-    MYFLT   *iWrapMode;
-    MYFLT   *iSampleFormat;
-    MYFLT   *iWinSize;
-    MYFLT   *iBufSize;
-    MYFLT   *iSkipInit;
-    MYFLT   *forceSync;
- /* ------------------------------------- */
-    MYFLT   WinSize;
-    MYFLT   BufSize;
-    MYFLT   SkipInit;
-    MYFLT   fforceSync;
+typedef struct
+{
+  OPDS h;
+  MYFLT *aOut[DISKIN2_MAXCHN];
+  MYFLT *iFileCode;
+  MYFLT *kTranspose;
+  MYFLT *iSkipTime;
+  MYFLT *iWrapMode;
+  MYFLT *iSampleFormat;
+  MYFLT *iWinSize;
+  MYFLT *iBufSize;
+  MYFLT *iSkipInit;
+  MYFLT *forceSync;
+  /* ------------------------------------- */
+  MYFLT WinSize;
+  MYFLT BufSize;
+  MYFLT SkipInit;
+  MYFLT fforceSync;
 
-    int     initDone;
-    int     nChannels;
-    int     bufSize;            /* in sample frames, power of two */
-    int     wrapMode;
-    int32   fileLength;         /* in sample frames */
-    int32   bufStartPos;
-    int64_t pos_frac;           /* type should be defined in sysdep.h */
-    int64_t pos_frac_inc;
-    int32   prvBufStartPos;
-    int32   winSize;
-    MYFLT   *buf;
-    MYFLT   *prvBuf;
-    MYFLT   prv_kTranspose;
-    MYFLT   winFact;
-    double  warpScale;
-    void *sf;
-    FDCH    fdch;
-    AUXCH   auxData;            /* for dynamically allocated buffers */
-    AUXCH   auxData2;
-    MYFLT   *aOut_buf;
-    MYFLT   aOut_bufsize;
-    void    *cb;
-    int     async;
-  MYFLT     transpose;
-} DISKIN2;
-
-typedef struct {
-    OPDS    h;
-    ARRAYDAT *aOut;
-    MYFLT   *iFileCode;
-    MYFLT   *kTranspose;
-    MYFLT   *iSkipTime;
-    MYFLT   *iWrapMode;
-    MYFLT   *iSampleFormat;
-    MYFLT   *iWinSize;
-    MYFLT   *iBufSize;
-    MYFLT   *iSkipInit;
-    MYFLT   *forceSync;
- /* ------------------------------------- */
-    MYFLT   WinSize;
-    MYFLT   BufSize;
-    MYFLT   SkipInit;
-    MYFLT   fforceSync;
-    int     initDone;
-    int     nChannels;
-    int     bufSize;            /* in sample frames, power of two */
-    int     wrapMode;
-    int32    fileLength;         /* in sample frames */
-    int32    bufStartPos;
-    int64_t pos_frac;           /* type should be defined in sysdep.h */
-    int64_t pos_frac_inc;
-    int32    prvBufStartPos;
-    int32    winSize;
-    MYFLT   *buf;
-    MYFLT   *prvBuf;
-    MYFLT   prv_kTranspose;
-    MYFLT   winFact;
-    double  warpScale;
-    void *sf;
-    FDCH    fdch;
-    AUXCH   auxData;            /* for dynamically allocated buffers */
-    AUXCH   auxData2;
+  int initDone;
+  int nChannels;
+  int bufSize; /* in sample frames, power of two */
+  int wrapMode;
+  int32 fileLength; /* in sample frames */
+  int32 bufStartPos;
+  int64_t pos_frac; /* type should be defined in sysdep.h */
+  int64_t pos_frac_inc;
+  int32 prvBufStartPos;
+  int32 winSize;
+  MYFLT *buf;
+  MYFLT *prvBuf;
+  MYFLT prv_kTranspose;
+  MYFLT winFact;
+  double warpScale;
+  void *sf;
+  FDCH fdch;
+  AUXCH auxData; /* for dynamically allocated buffers */
+  AUXCH auxData2;
   MYFLT *aOut_buf;
   MYFLT aOut_bufsize;
   void *cb;
-  int  async;
+  int async;
+  MYFLT transpose;
+} DISKIN2;
+
+typedef struct
+{
+  OPDS h;
+  ARRAYDAT *aOut;
+  MYFLT *iFileCode;
+  MYFLT *kTranspose;
+  MYFLT *iSkipTime;
+  MYFLT *iWrapMode;
+  MYFLT *iSampleFormat;
+  MYFLT *iWinSize;
+  MYFLT *iBufSize;
+  MYFLT *iSkipInit;
+  MYFLT *forceSync;
+  /* ------------------------------------- */
+  MYFLT WinSize;
+  MYFLT BufSize;
+  MYFLT SkipInit;
+  MYFLT fforceSync;
+  int initDone;
+  int nChannels;
+  int bufSize; /* in sample frames, power of two */
+  int wrapMode;
+  int32 fileLength; /* in sample frames */
+  int32 bufStartPos;
+  int64_t pos_frac; /* type should be defined in sysdep.h */
+  int64_t pos_frac_inc;
+  int32 prvBufStartPos;
+  int32 winSize;
+  MYFLT *buf;
+  MYFLT *prvBuf;
+  MYFLT prv_kTranspose;
+  MYFLT winFact;
+  double warpScale;
+  void *sf;
+  FDCH fdch;
+  AUXCH auxData; /* for dynamically allocated buffers */
+  AUXCH auxData2;
+  MYFLT *aOut_buf;
+  MYFLT aOut_bufsize;
+  void *cb;
+  int async;
 } DISKIN2_ARRAY;
 
-int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p);
-int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_init (CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_init_S (CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_perf (CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_init_array_I (CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_init_array_S (CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin_init_array_I (CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin_init_array_S (CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_perf_array (CSOUND *csound, DISKIN2_ARRAY *p);
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *aOut[DISKIN2_MAXCHN];
-    MYFLT   *iFileCode, *iSkipTime, *iSampleFormat, *iSkipInit, *iBufSize;
-    int     nChannels;
-    int     bufSize;            /* in sample frames (power of two) */
-    int_least64_t   fileLength; /* in sample frames */
-    int_least64_t   bufStartPos;
-    int_least64_t   read_pos;   /* current sample frame being read */
-    MYFLT   *buf;
-    void *sf;
-    MYFLT   scaleFac;
-    FDCH    fdch;
-    AUXCH   auxData;            /* for dynamically allocated buffers */
+typedef struct
+{
+  OPDS h;
+  MYFLT *aOut[DISKIN2_MAXCHN];
+  MYFLT *iFileCode, *iSkipTime, *iSampleFormat, *iSkipInit, *iBufSize;
+  int nChannels;
+  int bufSize;              /* in sample frames (power of two) */
+  int_least64_t fileLength; /* in sample frames */
+  int_least64_t bufStartPos;
+  int_least64_t read_pos; /* current sample frame being read */
+  MYFLT *buf;
+  void *sf;
+  MYFLT scaleFac;
+  FDCH fdch;
+  AUXCH auxData; /* for dynamically allocated buffers */
 } SOUNDIN_;
 
-#define SNDOUTSMPS  (1024)
+#define SNDOUTSMPS (1024)
 
-typedef struct {
-     void *sf;
-    void    *fd;
-    MYFLT   *outbufp, *bufend;
-    MYFLT   outbuf[SNDOUTSMPS];
+typedef struct
+{
+  void *sf;
+  void *fd;
+  MYFLT *outbufp, *bufend;
+  MYFLT outbuf[SNDOUTSMPS];
 } SNDCOM;
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig, *ifilcod, *iformat;
-    SNDCOM  c;
+typedef struct
+{
+  OPDS h;
+  MYFLT *asig, *ifilcod, *iformat;
+  SNDCOM c;
 } SNDOUT;
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *asig1, *asig2, *ifilcod, *iformat;
-    SNDCOM  c;
+typedef struct
+{
+  OPDS h;
+  MYFLT *asig1, *asig2, *ifilcod, *iformat;
+  SNDCOM c;
 } SNDOUTS;
 
-#endif      /* CSOUND_DISKIN2_H */
+#endif /* CSOUND_DISKIN2_H */

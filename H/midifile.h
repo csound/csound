@@ -25,36 +25,38 @@
 #define CSOUND_MIDIFILE_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/* open MIDI file, read all tracks, and create event list */
+  /* open MIDI file, read all tracks, and create event list */
 
-int csoundMIDIFileOpen(CSOUND *csound, const char *name);
+  int csoundMIDIFileOpen (CSOUND *csound, const char *name);
 
-/* read MIDI file event data at performace time */
+  /* read MIDI file event data at performace time */
 
-int csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int nBytes);
+  int csoundMIDIFileRead (CSOUND *csound, unsigned char *buf, int nBytes);
 
-/* destroy MIDI file event list */
+  /* destroy MIDI file event list */
 
-int csoundMIDIFileClose(CSOUND *csound);
+  int csoundMIDIFileClose (CSOUND *csound);
 
- /* ------------------------------------------------------------------------ */
+  /* ------------------------------------------------------------------------
+   */
 
-typedef struct {
-    OPDS    h;
-    MYFLT   *kResult;
-} MIDITEMPO;
+  typedef struct
+  {
+    OPDS h;
+    MYFLT *kResult;
+  } MIDITEMPO;
 
-/* miditempo opcode: returns the current tempo of MIDI file */
+  /* miditempo opcode: returns the current tempo of MIDI file */
 
-extern int midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
-extern int midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+  extern int midiTempoOpcode (CSOUND *csound, MIDITEMPO *p);
+  extern int midiFileStatus (CSOUND *csound, MIDITEMPO *p);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif      /* CSOUND_MIDIFILE_H */
-
+#endif /* CSOUND_MIDIFILE_H */

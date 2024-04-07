@@ -29,6 +29,6 @@
 
 /* typedef int    (*SUBR)(void *, void *); */
 
-extern ORCTOKEN *new_token(CSOUND *, int);
+extern ORCTOKEN *new_token (CSOUND *, int);
 
 #endif

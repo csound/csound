@@ -21,63 +21,68 @@
     02110-1301 USA
 */
 
-                        /*                                      DISPREP.H       */
+/*                                      DISPREP.H       */
 #pragma once
 
 #include "pstream.h"
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *iargs[VARGMAX];
+typedef struct
+{
+  OPDS h;
+  MYFLT *iargs[VARGMAX];
 } PRINTV;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *signal, *iprd, *inprds, *iwtflg;
-        int32    npts, nprds, bufpts, totpts, pntcnt;
-        WINDAT  dwindow;
-        MYFLT   *nxtp, *begp, *endp;
-        AUXCH   auxch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *signal, *iprd, *inprds, *iwtflg;
+  int32 npts, nprds, bufpts, totpts, pntcnt;
+  WINDAT dwindow;
+  MYFLT *nxtp, *begp, *endp;
+  AUXCH auxch;
 } DSPLAY;
 
-typedef struct {
-        OPDS    h;
-        PVSDAT  *fin;
-        MYFLT   *points, *flag;
-        int     size;
-        WINDAT  dwindow;
-        AUXCH   fdata;
-        uint32  lastframe;
+typedef struct
+{
+  OPDS h;
+  PVSDAT *fin;
+  MYFLT *points, *flag;
+  int size;
+  WINDAT dwindow;
+  AUXCH fdata;
+  uint32 lastframe;
 } FSIGDISP;
 
 #define WINDMAX 16384
 #define WINDMIN 16
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg, *imin, *imax;
-        MYFLT   *sampbuf, *bufp, *endp, overN;
-        int32   windsize, overlap, ncoefs;
-        int     hanning, dbout;
-        int     npts, start;
-        WINDAT  dwindow;
-        AUXCH   auxch;
-        AUXCH  smpbuf;
+typedef struct
+{
+  OPDS h;
+  MYFLT *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg, *imin, *imax;
+  MYFLT *sampbuf, *bufp, *endp, overN;
+  int32 windsize, overlap, ncoefs;
+  int hanning, dbout;
+  int npts, start;
+  WINDAT dwindow;
+  AUXCH auxch;
+  AUXCH smpbuf;
 } DSPFFT;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *kout,*kin,*iprd,*imindur,*imemdur,*ihp,*ithresh,*ihtim,*ixfdbak;
-        MYFLT   *istartempo,*ifn,*idisprd,*itweek;
-        int     countdown, timcount, npts, minlam, maxlam;
-        MYFLT   *hbeg, *hcur, *hend;
-        MYFLT   *xbeg, *xcur, *xend;
-        MYFLT   *stmemp, *linexp, *ftable, *xscale, *lmults;
-        int16   *lambdas;
-        MYFLT   *stmemnow, ncross, coef0, coef1, yt1, thresh;
-        MYFLT   fwdcoef, fwdmask, xfdbak, avglam, tempscal, tempo, tweek;
-        int     dcntdown, dtimcnt;
-        WINDAT  dwindow;
-        AUXCH   auxch;
+typedef struct
+{
+  OPDS h;
+  MYFLT *kout, *kin, *iprd, *imindur, *imemdur, *ihp, *ithresh, *ihtim,
+      *ixfdbak;
+  MYFLT *istartempo, *ifn, *idisprd, *itweek;
+  int countdown, timcount, npts, minlam, maxlam;
+  MYFLT *hbeg, *hcur, *hend;
+  MYFLT *xbeg, *xcur, *xend;
+  MYFLT *stmemp, *linexp, *ftable, *xscale, *lmults;
+  int16 *lambdas;
+  MYFLT *stmemnow, ncross, coef0, coef1, yt1, thresh;
+  MYFLT fwdcoef, fwdmask, xfdbak, avglam, tempscal, tempo, tweek;
+  int dcntdown, dtimcnt;
+  WINDAT dwindow;
+  AUXCH auxch;
 } TEMPEST;
-

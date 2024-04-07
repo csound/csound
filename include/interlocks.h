@@ -31,20 +31,20 @@
 // Writes to inputs
 #define WI (0x0004)
 
-//Tables
+// Tables
 #define TR (0x0008)
 #define TW (0x0010)
 #define TB (0x0018)
 
-//Channels
+// Channels
 #define _CR (0x0020)
 #define _CW (0x0040)
 #define _CB (0x0060)
 
-//Stack
+// Stack
 #define SK (0x0080)
 
-//Printing
+// Printing
 #define WR (0x0100)
 
 // Internal oddities -- SPOUT
@@ -55,5 +55,5 @@
 // Declare but not defined
 #define UNDEFINED (0x0800)
 
-//Deprecated
+// Deprecated
 #define _QQ (0x8000)

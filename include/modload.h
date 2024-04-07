@@ -29,28 +29,36 @@
 #include <plugin.h>
 
 #if defined(__wasi__)
-  #undef PUBLIC
-  #define PUBLIC extern __attribute__((used))
+#undef PUBLIC
+#define PUBLIC extern __attribute__ ((used))
 #endif
 
-namespace csnd {
+namespace csnd
+{
 /** Plugin library entry point
  */
-void on_load(Csound *);
+void on_load (Csound *);
 }
 
-extern "C" {
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
-  IGN(csound);
-  return 0;
-}
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
-  IGN(csound);
-  return 0;
-}
-PUBLIC int csoundModuleInit(CSOUND *csound) {
-  csnd::on_load((csnd::Csound *)csound);
-  return 0;
-}
+extern "C"
+{
+  PUBLIC int
+  csoundModuleCreate (CSOUND *csound)
+  {
+    IGN (csound);
+    return 0;
+  }
+  PUBLIC int
+  csoundModuleDestroy (CSOUND *csound)
+  {
+    IGN (csound);
+    return 0;
+  }
+  PUBLIC int
+  csoundModuleInit (CSOUND *csound)
+  {
+    csnd::on_load ((csnd::Csound *)csound);
+    return 0;
+  }
 }
 #endif

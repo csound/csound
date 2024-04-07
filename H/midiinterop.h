@@ -35,12 +35,11 @@ midinoteonkey                   xkey, xvelocity
 midinoteoncps                   xcps, xvelocity
 midinoteonoct                   xoct, xvelocity
 midinoteonpch                   xpch, xvelocity
-midipolyaftertouch              xpolyaftertouch, xcontrollervalue [, olow, hhigh]
-midicontrolchange,              xcontroller, xcontrollervalue [, olow, hhigh]
-midiprogramchange               xprogram
-midichannelaftertouch           xchannelaftertouch [, olow, hhigh]
-midipitchbend                   xpitchbend [, olow, hhigh]
-mididefault                     xdefault, xvalue
+midipolyaftertouch              xpolyaftertouch, xcontrollervalue [, olow,
+hhigh] midicontrolchange,              xcontroller, xcontrollervalue [, olow,
+hhigh] midiprogramchange               xprogram midichannelaftertouch
+xchannelaftertouch [, olow, hhigh] midipitchbend                   xpitchbend
+[, olow, hhigh] mididefault                     xdefault, xvalue
 
 Description
 
@@ -131,63 +130,56 @@ Author: Michael Gogins
 
 typedef struct MIDINOTEON_
 {
-        OPDS h;
-        MYFLT *xkey;
-        MYFLT *xvelocity;
-}
-MIDINOTEON;
+  OPDS h;
+  MYFLT *xkey;
+  MYFLT *xvelocity;
+} MIDINOTEON;
 
 typedef struct MIDIPOLYAFTERTOUCH_
 {
-        OPDS h;
-        MYFLT *xpolyaftertouch;
-        MYFLT *xcontroller;
-        MYFLT *olow;
-        MYFLT *hhigh;
-}
-MIDIPOLYAFTERTOUCH;
+  OPDS h;
+  MYFLT *xpolyaftertouch;
+  MYFLT *xcontroller;
+  MYFLT *olow;
+  MYFLT *hhigh;
+} MIDIPOLYAFTERTOUCH;
 
 typedef struct MIDICONTROLCHANGE_
 {
-        OPDS h;
-        MYFLT *xcontroller;
-        MYFLT *xcontrollervalue;
-        MYFLT *olow;
-        MYFLT *hhigh;
-}
-MIDICONTROLCHANGE;
+  OPDS h;
+  MYFLT *xcontroller;
+  MYFLT *xcontrollervalue;
+  MYFLT *olow;
+  MYFLT *hhigh;
+} MIDICONTROLCHANGE;
 
 typedef struct MIDIPROGRAMCHANGE_
 {
-        OPDS h;
-        MYFLT *xprogram;
-}
-MIDIPROGRAMCHANGE;
+  OPDS h;
+  MYFLT *xprogram;
+} MIDIPROGRAMCHANGE;
 
 typedef struct MIDICHANNELAFTERTOUCH_
 {
-        OPDS h;
-        MYFLT *xchannelaftertouch;
-        MYFLT *olow;
-        MYFLT *hhigh;
-}
-MIDICHANNELAFTERTOUCH;
+  OPDS h;
+  MYFLT *xchannelaftertouch;
+  MYFLT *olow;
+  MYFLT *hhigh;
+} MIDICHANNELAFTERTOUCH;
 
 typedef struct MIDIPITCHBEND_
 {
-        OPDS h;
-        MYFLT *xpitchbend;
-        MYFLT *olow;
-        MYFLT *hhigh;
-}
-MIDIPITCHBEND;
+  OPDS h;
+  MYFLT *xpitchbend;
+  MYFLT *olow;
+  MYFLT *hhigh;
+} MIDIPITCHBEND;
 
 typedef struct MIDIDEFAULT_
 {
-        OPDS h;
-        MYFLT *xdefault;
-        MYFLT *xvalue;
-}
-MIDIDEFAULT;
+  OPDS h;
+  MYFLT *xdefault;
+  MYFLT *xvalue;
+} MIDIDEFAULT;
 
 #endif

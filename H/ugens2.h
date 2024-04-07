@@ -21,67 +21,73 @@
     02110-1301 USA
 */
 
-/*                                                              UGENS2.H        */
+/*                                                              UGENS2.H */
 
 #pragma once
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr, *xcps, *iphs;
-        double  curphs;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr, *xcps, *iphs;
+  double curphs;
 } PHSOR;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr,*aphs, *xcps, *kR, *iphs;
-        double  curphs;
-        double  b;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr, *aphs, *xcps, *kR, *iphs;
+  double curphs;
+  double b;
 } EPHSOR;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
-        MYFLT   offset;
-        int32   pfn;
-        int32   xbmul;
-        int     wrap;
-        FUNC    *ftp;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *xndx, *xfn, *ixmode, *ixoff, *iwrap;
+  MYFLT offset;
+  int32 pfn;
+  int32 xbmul;
+  int wrap;
+  FUNC *ftp;
 } TABLE;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *rslt, *idel, *kamp, *idur, *ifn;
-        int32   kinc, phs;
-        double   fphs, inc;
-        int32   dcnt;
-        FUNC    *ftp;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *idel, *kamp, *idur, *ifn;
+  int32 kinc, phs;
+  double fphs, inc;
+  int32 dcnt;
+  FUNC *ftp;
 } OSCIL1;
 
-typedef struct  {
-        OPDS    h;
-        MYFLT   *rslt, *kamp, *ifrq, *ifn, *itimes;
-        MYFLT   index, inc, maxndx;
-        int32   ntimes;
-        FUNC    *ftp;
+typedef struct
+{
+  OPDS h;
+  MYFLT *rslt, *kamp, *ifrq, *ifn, *itimes;
+  MYFLT index, inc, maxndx;
+  int32 ntimes;
+  FUNC *ftp;
 } OSCILN;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
-        int32   lphs;
-        double   phs;
-        FUNC    *ftp;
-        int32       tablen;
-        double      tablenUPsr;
-        FUNC    FF;
+typedef struct
+{
+  OPDS h;
+  MYFLT *sr, *xamp, *xcps, *ifn, *iphs;
+  int32 lphs;
+  double phs;
+  FUNC *ftp;
+  int32 tablen;
+  double tablenUPsr;
+  FUNC FF;
 } OSC;
 
-typedef struct  {
-    OPDS        h;
-    MYFLT       *out, *amp, *freq, *kloop, *kend, *ift, *iphs;
-    FUNC        *ftp;
-    int32        tablen;
-    MYFLT       fsr;
-    double      phs, looplength;
+typedef struct
+{
+  OPDS h;
+  MYFLT *out, *amp, *freq, *kloop, *kend, *ift, *iphs;
+  FUNC *ftp;
+  int32 tablen;
+  MYFLT fsr;
+  double phs, looplength;
 } LPOSC;
-

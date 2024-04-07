@@ -24,33 +24,36 @@
 
 #pragma once
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *which, *when, *dur;
-        MYFLT  *argums[VARGMAX-3];
-        int    midi;
-        INSDS  *kicked;
+typedef struct
+{
+  OPDS h;
+  MYFLT *which, *when, *dur;
+  MYFLT *argums[VARGMAX - 3];
+  int midi;
+  INSDS *kicked;
 } SCHED;
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *trigger;
-        MYFLT  *which, *when, *dur;
-        MYFLT  *argums[VARGMAX-3];
-        int    todo;
-        MYFLT  abs_when;
-        int    midi;
-        INSDS  *kicked;
+typedef struct
+{
+  OPDS h;
+  MYFLT *trigger;
+  MYFLT *which, *when, *dur;
+  MYFLT *argums[VARGMAX - 3];
+  int todo;
+  MYFLT abs_when;
+  int midi;
+  INSDS *kicked;
 } WSCHED;
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *res;
-        MYFLT   *kamp, *xcps, *type;
-        AUXCH   auxd;
-        MYFLT   *sine;
-        int     lasttype;
-        int32    phs;
+typedef struct
+{
+  OPDS h;
+  MYFLT *res;
+  MYFLT *kamp, *xcps, *type;
+  AUXCH auxd;
+  MYFLT *sine;
+  int lasttype;
+  int32 phs;
 } LFO;
 
 /*****************************************************************/
@@ -58,12 +61,13 @@ typedef struct {
 /* August 1999 by rasmus ekman.                                  */
 /*****************************************************************/
 
-typedef struct {
-        OPDS   h;
-        MYFLT  *trigger, *mintime, *maxinst;
-        MYFLT  *args[PMAX+1];
-        MYFLT  prvmintim;
-        int32   timrem, prvktim, kadjust;
+typedef struct
+{
+  OPDS h;
+  MYFLT *trigger, *mintime, *maxinst;
+  MYFLT *args[PMAX + 1];
+  MYFLT prvmintim;
+  int32 timrem, prvktim, kadjust;
 } TRIGINSTR;
 
 /*****************************************************************/
@@ -71,22 +75,23 @@ typedef struct {
 /* May 2000 by Gabriel Maldonado                                 */
 /*****************************************************************/
 
-typedef struct {
-  OPDS  h;
+typedef struct
+{
+  OPDS h;
   MYFLT *ktrig, *kstart, *kloop, *initndx, *kfn, *outargs[VARGMAX];
-  int32  ndx;
-  int   nargs, done;
-  int32  pfn;
+  int32 ndx;
+  int nargs, done;
+  int32 pfn;
   MYFLT *table;
 } TRIGSEQ;
 
-typedef struct {
-  OPDS  h;
+typedef struct
+{
+  OPDS h;
   MYFLT *ktrig, *unit_time, *kstart, *kloop, *initndx, *kfn;
   int32 ndx;
-  int   done;
+  int done;
   double start, newtime;
   int32 pfn;
   MYFLT *table;
 } SEQTIM;
-
