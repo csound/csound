@@ -44,7 +44,7 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
     int32_t m, nsec;
     MYFLT pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
     p->prvfreq = *p->freq;
-    tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
+    tanfpi = (MYFLT)tan(-CS_MPIDSR*(*p->freq));
     tanfpi2 = tanfpi*tanfpi;
     cotfpi = FL(1.0)/tanfpi;
     cotfpi2 = cotfpi*cotfpi;
@@ -310,7 +310,7 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
     }
     if (*p->freq != p->prvfreq) {      /* Only reset if freq changes */
       p->prvfreq = *p->freq;
-      tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
+      tanfpi = (MYFLT)tan(-CS_MPIDSR*(*p->freq));
       tanfpi2 = tanfpi*tanfpi;
       cotfpi = FL(1.0)/tanfpi;
       cotfpi2 = cotfpi*cotfpi;

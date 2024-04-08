@@ -78,7 +78,7 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -149,7 +149,7 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -223,7 +223,7 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -294,7 +294,7 @@ int32_t xpmi(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -368,7 +368,7 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -439,7 +439,7 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;

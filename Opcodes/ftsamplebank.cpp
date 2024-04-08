@@ -19,6 +19,8 @@
     02110-1301 USA
  */
 
+#ifdef HAVE_DIRENT_H
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -326,7 +328,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
 
 extern "C" {
 
-PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit_ftsamplebank(CSOUND *csound) {
 
   int status = csound->AppendOpcode(
       csound, (char *)"ftsamplebank.k", sizeof(kftsamplebank), 0,
@@ -359,7 +361,7 @@ PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound) {
   return status;
 }
 
-#ifndef INIT_STATIC_MODULES
+#ifdef BUILD_PLUGINS
 PUBLIC int csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;
@@ -375,3 +377,4 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
 }
 #endif
 }
+#endif

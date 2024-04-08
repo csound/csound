@@ -840,7 +840,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     p->curframe = curframe;
     p->pos = spos;
     p->tstamp = tstamp + incrt;
-    *p->kstamp = (*p->skip + p->tstamp/csound->GetSr(csound))/p->resamp;
+    *p->kstamp = (*p->skip + p->tstamp/CS_ESR)/p->resamp;
     p->incr = incrt;
     return OK;
 

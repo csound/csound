@@ -111,6 +111,8 @@ OENTRY opcodlst_1[] = {
     xinset,  NULL, NULL },*/
   { "xout", S(XOUT_MAX),0,    "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,    "",   "i", setksmpsset, NULL, NULL },
+  { "oversample", S(OVSMPLE),0,    "",   "io", oversampleset, NULL, NULL },
+  { "undersample", S(OVSMPLE),0,   "",   "io", oversampleset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,      "",  "im", ctrlinit, NULL, NULL, NULL},
   { "ctrlinit.S",S(CTLINITS),0,      "",  "Sm", ctrlnameinit, NULL, NULL, NULL},
   { "ctrlsave",S(SAVECTRL),0,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},

@@ -419,7 +419,7 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
+    p->rate = (int32_t)(*p->i_rate * CS_ESR);
 
       /* Initialize index */
     p->idx  = 0;
@@ -634,7 +634,7 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
+    p->fix = (MYFLT)p->tlen*(1.0/CS_ESR);
     return OK;
 }
 

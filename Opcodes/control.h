@@ -26,9 +26,7 @@
 /********************************************/
 
 #pragma once
-
-#include "csdl.h"
-
+#include "csoundCore.h"
 typedef struct CONTROL_GLOBALS_ {
     CSOUND  *csound;
     char    cmd[100];

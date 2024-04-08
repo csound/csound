@@ -437,7 +437,7 @@ int32_t fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
 int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->faust = new mydsp;
   p->cs_interface = new csUI;
-  p->faust->init((int32_t)csound->GetSr(csound));
+  p->faust->init((int32_t)CS_ESR);
   p->faust->buildUserInterface(p->cs_interface);
   return OK;
 }
@@ -453,12 +453,7 @@ int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
                                (SUBR)fractalnoise_process, (SUBR) fractalnoise_cleanup },
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-#ifndef INIT_STATIC_MODULES
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
-  IGN(csound);
-  return OK;
-}
-#endif
+
 PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
@@ -471,7 +466,13 @@ PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   }
   return status;
 }
-#ifndef INIT_STATIC_MODULES
+
+  
+#ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
+  IGN(csound);
+  return OK;
+} 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_fractalnoise(csound);
 }

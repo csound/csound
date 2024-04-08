@@ -54,8 +54,8 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
 {
     FUNC *inp, *outp;
     double a = *p->asp;
-    double dt = (p->dt = 1.0/csound->GetSr(csound)); /* time step */
-    double sig = (csound->GetSr(csound)+csound->GetSr(csound))*
+    double dt = (p->dt = 1.0/CS_ESR); /* time step */
+    double sig = (CS_ESR+CS_ESR)*
                  (POWER(10.0, FL(3.0)*dt/(*p->decay))-FL(1.0)); /* loss constant */
     double b2 = *p->loss;
     double dxmin = 2.0*sqrt(dt*(b2+hypot(*p->loss, *p->stiff)));

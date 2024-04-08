@@ -115,6 +115,7 @@ typedef struct {
         MYFLT   *adr1, *adr2, *adr3, *adr4, *adr5, *adr6;
         AUXCH   auxch;
         int32   revlpsum;
+        int32   revlpsiza[6];
         AUXCH   revlpsiz;
 } REVERB;
 
@@ -159,7 +160,6 @@ int32_t cmbset(CSOUND *, COMB *p);
 int32_t comb(CSOUND *, COMB *p);
 int32_t invcomb(CSOUND *, COMB *p);
 int32_t alpass(CSOUND *, COMB *p);
-void reverbinit(CSOUND *);
 int32_t rvbset(CSOUND *, REVERB *p);
 int32_t reverb(CSOUND *, REVERB *p);
 int32_t panset(CSOUND *, PAN *p);

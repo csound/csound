@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 //#include <ieee754.h>
 
 #ifdef __HAIKU__

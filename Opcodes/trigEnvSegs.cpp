@@ -23,8 +23,6 @@
 #include <plugin.h>
 #include <vector>
 #include <numeric>
-#include <modload.h>
-
 
 // linseg type opcode with trigger mechanism
 struct TrigLinseg : csnd::Plugin<1, 64>
@@ -33,7 +31,7 @@ struct TrigLinseg : csnd::Plugin<1, 64>
     {
         uint32_t argCnt = 1;
         totalLength = 0;
-        samplingRate = csound->sr();
+        samplingRate = this->sr();
         playEnv = 0;
         counter = 0;
         outargs[0] = inargs[1];
@@ -124,7 +122,7 @@ struct TrigExpseg : csnd::Plugin<1, 64>
     int init()
     {
         uint32_t argCnt = 1;
-        samplingRate = csound->sr();
+        samplingRate = this->sr();
         playEnv = 0;
         counter = 0;
         outargs[0] = inargs[1];
@@ -217,7 +215,7 @@ struct TrigExpseg : csnd::Plugin<1, 64>
 
 
 
-void csnd::on_load (Csound* csound)
+static void onload (csnd::Csound* csound)
 {
     csnd::plugin<TrigExpseg> (csound, "trigExpseg.aa", "a", "km", csnd::thread::ia);
     csnd::plugin<TrigExpseg> (csound, "trigExpseg.kk", "k", "km", csnd::thread::ik);
@@ -228,3 +226,15 @@ void csnd::on_load (Csound* csound)
     csnd::plugin<TrigLinseg> (csound, "triglinseg.aa", "a", "km", csnd::thread::ia);
     csnd::plugin<TrigLinseg> (csound, "triglinseg.kk", "k", "km", csnd::thread::ik);
 }
+
+#ifdef BUILD_PLUGINS
+#include <modload.h>
+void csnd::on_load(csnd::Csound *csound) {
+    onload(csound);
+}
+#else
+extern "C" int32_t trigEnv_init_modules(CSOUND *csound) {
+    onload((csnd::Csound *)csound);
+    return OK;
+  }
+#endif
