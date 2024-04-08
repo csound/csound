@@ -24,35 +24,32 @@
 #ifndef CSOUND_OLOAD_H
 #define CSOUND_OLOAD_H
 
-#define NCONSTS 256 /* gbl */ /*      OLOAD.H         */
-// #define NLABELS 5      /* lcl */
-// #define NGOTOS  40
+#define NCONSTS 256    /* gbl */                /*      OLOAD.H         */
+//#define NLABELS 5      /* lcl */
+//#define NGOTOS  40
 
-#define LABELOFS (-0x40000000)
-#define LABELIM (-0x38000000)
-#define STR_OFS (0x78000000) /* string constant index base */
+#define LABELOFS    (-0x40000000)
+#define LABELIM     (-0x38000000)
+#define STR_OFS      (0x78000000)       /* string constant index base */
 
-typedef struct
-{
-  char *lbltxt;
-  int *ndxp;
+typedef struct {
+        char    *lbltxt;
+        int     *ndxp;
 } LBLARG;
 
-typedef struct
-{
-  int lblno;
-  MYFLT **argpp;
+typedef struct {
+        int     lblno;
+        MYFLT   **argpp;
 } LARGNO;
 
-typedef struct
-{
-  MYFLT *sets[PMAX];
+typedef struct {
+        MYFLT   *sets[PMAX];
 } PVSET;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *insno, *itime;
+typedef struct {
+        OPDS    h;
+        MYFLT   *insno, *itime;
 } TURNON;
 
-#endif /* CSOUND_OLOAD_H */
+#endif  /* CSOUND_OLOAD_H */
+

@@ -23,20 +23,17 @@
 
 #pragma once
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r1, *ifilno, *irawfiles;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r1, *ifilno, *irawfiles;
 } SNDINFO;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r1, *ifilno, *channel;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r1, *ifilno, *channel;
 } SNDINFOPEAK;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r1, *ifilno;
+typedef struct {
+    OPDS  h;
+    MYFLT *r1, *ifilno;
 } FILEVALID;

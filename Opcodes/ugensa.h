@@ -25,6 +25,8 @@
 
 #pragma once
 
+#define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
+
 typedef struct overlap {
   struct overlap *nxtact;
   struct overlap *nxtfree;

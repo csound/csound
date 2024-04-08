@@ -25,35 +25,33 @@
 #include <stdint.h>
 #include "mpadec.h"
 
-#define MP3DEC_RETCODE_OK 0
-#define MP3DEC_RETCODE_INVALID_HANDLE 1
-#define MP3DEC_RETCODE_BAD_STATE 2
+#define MP3DEC_RETCODE_OK                 0
+#define MP3DEC_RETCODE_INVALID_HANDLE     1
+#define MP3DEC_RETCODE_BAD_STATE          2
 #define MP3DEC_RETCODE_INVALID_PARAMETERS 3
-#define MP3DEC_RETCODE_NOT_MPEG_STREAM 4
-#define MP3DEC_RETCODE_SEEK_FAILED 5
-#define MP3DEC_RETCODE_UNKNOWN 6
+#define MP3DEC_RETCODE_NOT_MPEG_STREAM    4
+#define MP3DEC_RETCODE_SEEK_FAILED        5
+#define MP3DEC_RETCODE_UNKNOWN            6
 
-#define MP3DEC_SEEK_BYTES 0
+#define MP3DEC_SEEK_BYTES   0
 #define MP3DEC_SEEK_SAMPLES 1
 #define MP3DEC_SEEK_SECONDS 2
 
 typedef void *mp3dec_t;
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  mp3dec_t mp3dec_init (void);
-  int mp3dec_init_file (mp3dec_t mp3dec, int fd, int64_t length, int nogap);
-  int mp3dec_uninit (mp3dec_t mp3dec);
-  int mp3dec_reset (mp3dec_t mp3dec);
-  int mp3dec_configure (mp3dec_t mp3dec, mpadec_config_t *cfg);
-  int mp3dec_get_info (mp3dec_t mp3dec, void *info, int info_type);
-  int mp3dec_decode (mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize,
-                     uint32_t *used);
-  int mp3dec_seek (mp3dec_t mp3dec, int64_t pos, int units);
-  char *mp3dec_error (int code);
+mp3dec_t mp3dec_init(void);
+int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap);
+int mp3dec_uninit(mp3dec_t mp3dec);
+int mp3dec_reset(mp3dec_t mp3dec);
+int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg);
+int mp3dec_get_info(mp3dec_t mp3dec, void *info, int info_type);
+int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used);
+int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units);
+char *mp3dec_error(int code);
 
 #ifdef __cplusplus
 }

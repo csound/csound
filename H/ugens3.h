@@ -21,70 +21,64 @@
     02110-1301 USA
 */
 
-/*                                                              UGENS3.H */
+/*                                                              UGENS3.H        */
 
 #pragma once
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
+typedef struct {
+        OPDS    h;
+        MYFLT   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
   double mphsf, cphsf;
-  int32 mphs, cphs, floatph;
-  int16 ampcod, carcod, modcod;
-  FUNC *ftp;
+  int32   mphs, cphs, floatph;
+        int16   ampcod, carcod, modcod;
+        FUNC    *ftp;
 } FOSC;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar1, *ar2, *xamp, *kcps, *ifn, *ibas, *imod1, *ibeg1, *iend1, *imod2,
-      *ibeg2, *iend2;
-  MYFLT cpscvt;
-  MYFLT lphs;
-  int16 mod1, mod2;
-  MYFLT beg1, beg2;
-  MYFLT end1, end2;
-  int16 seg1, curmod, looping, stereo;
-  FUNC *ftp;
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
+                *imod2,*ibeg2,*iend2;
+        MYFLT   cpscvt;
+        MYFLT   lphs;
+        int16   mod1, mod2;
+        MYFLT   beg1, beg2;
+        MYFLT   end1, end2;
+        int16   seg1, curmod, looping, stereo;
+        FUNC    *ftp;
 } LOSC;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *sphs, *ar1, *ar2, *xamp, *kcps, *ifn, *ibas, *imod1, *ibeg1, *iend1,
-      *imod2, *ibeg2, *iend2;
-  MYFLT cpscvt;
-  MYFLT lphs;
-  int16 mod1, mod2;
-  MYFLT beg1, beg2;
-  MYFLT end1, end2;
-  int16 seg1, curmod, looping, stereo;
-  FUNC *ftp;
+typedef struct {
+        OPDS    h;
+        MYFLT   *sphs, *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
+                *imod2,*ibeg2,*iend2;
+        MYFLT   cpscvt;
+        MYFLT   lphs;
+        int16   mod1, mod2;
+        MYFLT   beg1, beg2;
+        MYFLT   end1, end2;
+        int16   seg1, curmod, looping, stereo;
+        FUNC    *ftp;
 } LOSCPHS;
 
-typedef struct
-{
-  int16 tim;
-  int16 val;
+typedef struct {
+        int16   tim;
+        int16   val;
 } DUPLE;
 
-typedef struct ptlptr
-{
-  struct ptlptr *nxtp;
-  DUPLE *ap;
-  DUPLE *fp;
-  int16 amp, frq;
-  int32 phs;
+typedef struct ptlptr {
+        struct ptlptr *nxtp;
+        DUPLE   *ap;
+        DUPLE   *fp;
+        int16   amp,frq;
+        int32   phs;
 } PTLPTR;
 
-#define MAXPTLS 50 /* must agree with hetro.c */
+#define MAXPTLS 50    /* must agree with hetro.c */
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *rslt, *kamod, *kfmod, *ksmod, *ifilcod, *dum;
-  MEMFIL *mfp;
-  int32 mksecs;
-  AUXCH aux; /* PTLPTR  ptlptrs[MAXPTLS + 1]; make dynamic */
+typedef struct {
+        OPDS    h;
+        MYFLT   *rslt, *kamod, *kfmod, *ksmod, *ifilcod, *dum;
+        MEMFIL  *mfp;
+        int32   mksecs;
+        AUXCH   aux;            /* PTLPTR  ptlptrs[MAXPTLS + 1]; make dynamic */
 } ADSYN;

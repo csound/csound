@@ -81,8 +81,7 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
   /* opaque struct holding internal stuff (precomputed twiddle factors)
@@ -92,26 +91,18 @@ extern "C"
   typedef struct PFFFT_Setup PFFFT_Setup;
 
   /* direction of the transform */
-  typedef enum
-  {
-    PFFFT_FORWARD,
-    PFFFT_BACKWARD
-  } pffft_direction_t;
+  typedef enum { PFFFT_FORWARD, PFFFT_BACKWARD } pffft_direction_t;
 
   /* type of transform */
-  typedef enum
-  {
-    PFFFT_REAL,
-    PFFFT_COMPLEX
-  } pffft_transform_t;
+  typedef enum { PFFFT_REAL, PFFFT_COMPLEX } pffft_transform_t;
 
   /*
     prepare for performing transforms of size N -- the returned
     PFFFT_Setup structure is read-only so it can safely be shared by
     multiple concurrent threads.
   */
-  PFFFT_Setup *pffft_new_setup (int32_t N, pffft_transform_t transform);
-  void pffft_destroy_setup (PFFFT_Setup *);
+  PFFFT_Setup *pffft_new_setup(int32_t N, pffft_transform_t transform);
+  void pffft_destroy_setup(PFFFT_Setup *);
   /*
      Perform a Fourier transform , The z-domain data is stored in the
      most efficient order for transforming it back, or using it for
@@ -130,8 +121,8 @@ extern "C"
 
      input and output may alias.
   */
-  void pffft_transform (PFFFT_Setup *setup, const float *input, float *output,
-                        float *work, pffft_direction_t direction);
+  void pffft_transform(PFFFT_Setup *setup, const float *input, float *output,
+                       float *work, pffft_direction_t direction);
 
   /*
      Similar to pffft_transform, but makes sure that the output is
@@ -140,9 +131,9 @@ extern "C"
 
      input and output may alias.
   */
-  void pffft_transform_ordered (PFFFT_Setup *setup, const float *input,
-                                float *output, float *work,
-                                pffft_direction_t direction);
+  void pffft_transform_ordered(PFFFT_Setup *setup, const float *input,
+                               float *output, float *work,
+                               pffft_direction_t direction);
 
   /*
      call pffft_zreorder(.., PFFFT_FORWARD) after pffft_transform(...,
@@ -156,8 +147,8 @@ extern "C"
 
      input and output should not alias.
   */
-  void pffft_zreorder (PFFFT_Setup *setup, const float *input, float *output,
-                       pffft_direction_t direction);
+  void pffft_zreorder(PFFFT_Setup *setup, const float *input, float *output,
+                      pffft_direction_t direction);
 
   /*
      Perform a multiplication of the frequency components of dft_a and
@@ -171,21 +162,20 @@ extern "C"
 
      The dft_a, dft_b and dft_ab pointers may alias.
   */
-  void pffft_zconvolve_accumulate (PFFFT_Setup *setup, const float *dft_a,
-                                   const float *dft_b, float *dft_ab,
-                                   float scaling);
+  void pffft_zconvolve_accumulate(PFFFT_Setup *setup, const float *dft_a,
+                                  const float *dft_b, float *dft_ab, float scaling);
 
   /*
     the float buffers must have the correct alignment (16-byte boundary
     on intel and powerpc). This function may be used to obtain such
     correctly aligned buffers.
   */
-  void *pffft_aligned_malloc (size_t nb_bytes);
-  void pffft_aligned_free (void *);
+  void *pffft_aligned_malloc(size_t nb_bytes);
+  void pffft_aligned_free(void *);
 
   /* return 4 or 1 whether support SSE/Altivec instructions was enable when
      building pffft.c */
-  int32_t pffft_simd_size (void);
+  int32_t pffft_simd_size(void);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,9 @@
 #include <math.h>
 
 
+
+#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+
 /* FOG generator */
 
 static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);

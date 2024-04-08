@@ -27,6 +27,8 @@
 #include "ugens7.h"
 #include <math.h>
 
+#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
 static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);

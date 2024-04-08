@@ -30,39 +30,39 @@
 #define NULL 0L
 #endif /* !NULL */
 
-#define CVMAGIC 666 /* Evil, eh? */
+#define CVMAGIC 666     /* Evil, eh? */
 
 #define CVDFLTBYTS 4
 
 typedef struct cvstruct
 {
-  int32 magic;           /* magic number to identify */
-  int32 headBsize;       /* byte offset from start to data */
-  int32 dataBsize;       /* total number of bytes of data */
-  int32 dataFormat;      /* (int) format specifier */
-  MYFLT samplingRate;    /* of original sample */
-  int32 src_chnls;       /* no. of channels in source */
-  int32 channel;         /* requested channel(s) */
-  int32 Hlen;            /* length of impulse reponse */
-  int32 Format;          /* (int) how words are org'd in frm */
-  char info[CVDFLTBYTS]; /* extendable byte area */
+    int32        magic;                  /* magic number to identify */
+    int32        headBsize;              /* byte offset from start to data */
+    int32        dataBsize;              /* total number of bytes of data */
+    int32        dataFormat;             /* (int) format specifier */
+    MYFLT        samplingRate;           /* of original sample */
+    int32        src_chnls;              /* no. of channels in source */
+    int32        channel;                /* requested channel(s) */
+    int32        Hlen;                   /* length of impulse reponse */
+    int32        Format;                 /* (int) how words are org'd in frm */
+    char         info[CVDFLTBYTS];       /* extendable byte area */
 } CVSTRUCT;
 
 /* Error codes returned by CONVOLVE file functions */
-#define CVE_OK 0      /* no error*/
-#define CVE_NOPEN -1  /* couldn't open file */
-#define CVE_NCV -2    /* not a CONVOLVE file */
-#define CVE_MALLOC -3 /* couldn't allocate memory */
-#define CVE_RDERR -4  /* read error */
-#define CVE_WRERR -5  /* write error */
+#define CVE_OK          0       /* no error*/
+#define CVE_NOPEN       -1      /* couldn't open file */
+#define CVE_NCV         -2      /* not a CONVOLVE file */
+#define CVE_MALLOC      -3      /* couldn't allocate memory */
+#define CVE_RDERR       -4      /* read error */
+#define CVE_WRERR       -5      /* write error */
 
-#define CV_UNK_LEN -1L /* flag if dataBsize unknown in hdr */
+#define CV_UNK_LEN      -1L     /* flag if dataBsize unknown in hdr */
 
 /* values for dataFormat field */
-#define CVMYFLT (4 + 32) /* 32 bit float data */
+#define CVMYFLT (4+32)  /* 32 bit float data */
 
 /* values for frameFormat field */
-#define CVRECT 1 /* real, imag pairs */
+#define CVRECT  1       /* real, imag pairs */
 
 /********************************/
 /* exported function prototypes */

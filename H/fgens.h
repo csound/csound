@@ -20,12 +20,12 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-/*      FGENS.H         */
+                                                /*      FGENS.H         */
 #ifndef CSOUND_FGENS_H
 #define CSOUND_FGENS_H
 
 #define MAXFNUM 100
-#define GENMAX 60
+#define GENMAX  60
 
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
@@ -33,19 +33,20 @@
  * number is automatically assigned.
  * Returns zero on success.
  */
-int hfgens (CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode);
+int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode);
 
 /**
  * Allocates space for 'tableNum' with a length (not including the guard
  * point) of 'len' samples. The table data is not cleared to zero.
  * Return value is zero on success.
  */
-int csoundFTAlloc (CSOUND *csound, int tableNum, int len);
+int csoundFTAlloc(CSOUND *csound, int tableNum, int len);
 
 /**
  * Deletes a function table.
  * Return value is zero on success.
  */
-int csoundFTDelete (CSOUND *csound, int tableNum);
+int csoundFTDelete(CSOUND *csound, int tableNum);
 
-#endif /* CSOUND_FGENS_H */
+#endif  /* CSOUND_FGENS_H */
+

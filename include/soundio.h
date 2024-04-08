@@ -20,61 +20,60 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-/*                      SOUNDIO.H       */
+                                /*                      SOUNDIO.H       */
 #ifndef CSOUND_SOUNDIO_H
 #define CSOUND_SOUNDIO_H
 
 #include "soundfile.h"
 
+
 #ifdef WIN32
-#define IOBUFSAMPS 4096  /* default sampframes in audio iobuf, -b settable */
-#define IODACSAMPS 16384 /* default samps in hardware buffer,  -B settable */
+#define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   16384  /* default samps in hardware buffer,  -B settable */
 #elif defined(NeXT) || defined(__MACH__)
-#define IOBUFSAMPS 1024 /* default sampframes in audio iobuf, -b settable */
-#define IODACSAMPS 4096 /* default samps in hardware buffer,  -B settable */
+#define IOBUFSAMPS   1024   /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   4096   /* default samps in hardware buffer,  -B settable */
 #elif defined(ANDROID)
-#define IOBUFSAMPS 2048 /* default sampframes in audio iobuf, -b settable */
-#define IODACSAMPS 4096 /* default samps in hardware buffer,  -B settable */
+#define IOBUFSAMPS   2048   /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   4096   /* default samps in hardware buffer,  -B settable */
 #else
-#define IOBUFSAMPS 256  /* default sampframes in audio iobuf, -b settable */
-#define IODACSAMPS 1024 /* default samps in hardware buffer,  -B settable */
+#define IOBUFSAMPS   256    /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   1024   /* default samps in hardware buffer,  -B settable */
 #endif
 
-#define SNDINBUFSIZ 4096 /* soundin bufsize;   must be > sizeof(SFHEADER), */
-                         /*                 but small is kind to net rexec */
-#define MAXSNDNAME 1024
+#define SNDINBUFSIZ  4096   /* soundin bufsize;   must be > sizeof(SFHEADER), */
+                            /*                 but small is kind to net rexec */
+#define MAXSNDNAME   1024
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-  /* generic sound input structure */
+/* generic sound input structure */
 
-  typedef struct
-  {
-    void *sinfd;            /* sound file handle                    */
-    MYFLT *inbufp, *bufend; /* current buffer position, end of buf  */
-    void *fd;               /* handle returned by csoundFileOpen()  */
-    int bufsmps;            /* number of mono samples in buffer     */
-    int format;             /* sample format (AE_SHORT, etc.)       */
-    int channel;            /* requested channel (ALLCHNLS: all)    */
-    int nchanls;            /* number of channels in file           */
-    int sampframsiz;        /* sample frame size in bytes           */
-    int filetyp;            /* file format (TYP_WAV, etc.)          */
-    int analonly;           /* non-zero for analysis utilities      */
-    int endfile;            /* end of file reached ? non-zero: yes  */
-    int sr;                 /* sample rate in Hz                    */
-    int do_floatscaling;    /* scale floats by fscalefac ? 0: no    */
-    int64_t audrem, framesrem, getframes; /* samples, frames, frames */
-    MYFLT fscalefac;
-    MYFLT skiptime;
-    char sfname[MAXSNDNAME];
-    MYFLT inbuf[SNDINBUFSIZ];
-  } SOUNDIN;
+typedef struct {
+        void   *sinfd;             /* sound file handle                    */
+        MYFLT   *inbufp, *bufend;   /* current buffer position, end of buf  */
+        void    *fd;                /* handle returned by csoundFileOpen()  */
+        int     bufsmps;            /* number of mono samples in buffer     */
+        int     format;             /* sample format (AE_SHORT, etc.)       */
+        int     channel;            /* requested channel (ALLCHNLS: all)    */
+        int     nchanls;            /* number of channels in file           */
+        int     sampframsiz;        /* sample frame size in bytes           */
+        int     filetyp;            /* file format (TYP_WAV, etc.)          */
+        int     analonly;           /* non-zero for analysis utilities      */
+        int     endfile;            /* end of file reached ? non-zero: yes  */
+        int     sr;                 /* sample rate in Hz                    */
+        int     do_floatscaling;    /* scale floats by fscalefac ? 0: no    */
+        int64_t audrem, framesrem, getframes;   /* samples, frames, frames */
+        MYFLT   fscalefac;
+        MYFLT   skiptime;
+        char    sfname[MAXSNDNAME];
+        MYFLT   inbuf[SNDINBUFSIZ];
+} SOUNDIN;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CSOUND_SOUNDIO_H */
+#endif      /* CSOUND_SOUNDIO_H */

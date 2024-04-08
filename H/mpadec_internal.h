@@ -26,20 +26,19 @@
 #include "mpadec.h"
 
 #define MPADEC_STATE_UNDEFINED 0
-#define MPADEC_STATE_START 1
-#define MPADEC_STATE_DECODE 2
+#define MPADEC_STATE_START     1
+#define MPADEC_STATE_DECODE    2
 
-#define MPG_MD_STEREO 0
+#define MPG_MD_STEREO       0
 #define MPG_MD_JOINT_STEREO 1
 #define MPG_MD_DUAL_CHANNEL 2
-#define MPG_MD_MONO 3
+#define MPG_MD_MONO         3
 
-#define SBLIMIT 32
-#define SSLIMIT 18
+#define SBLIMIT     32
+#define SSLIMIT     18
 #define SCALE_BLOCK 12
 
-typedef struct
-{
+typedef struct {
   MYFLT decwin[512 + 32];
   MYFLT muls[27][64];
   MYFLT gainpow2[256 + 122];
@@ -64,33 +63,29 @@ typedef struct
   int32_t *map[9][3];
   int32_t *mapend[9][3];
   uint8_t *mp2tables[10];
-  uint8_t grp3tab[32 * 3];
-  uint8_t grp5tab[128 * 3];
-  uint8_t grp9tab[1024 * 3];
+  uint8_t grp3tab[32*3];
+  uint8_t grp5tab[128*3];
+  uint8_t grp9tab[1024*3];
 } mpadec_tables_t;
 
-typedef struct
-{
+typedef struct {
   uint16_t bits;
   int16_t d;
 } alloc_table_t;
 
-typedef struct
-{
+typedef struct {
   uint32_t linbits;
   int16_t *table;
 } newhuff_t;
 
-typedef struct
-{
+typedef struct {
   int16_t long_idx[23];
   int16_t long_diff[22];
   int16_t short_idx[14];
   int16_t short_diff[13];
 } bandinfo_t;
 
-typedef struct
-{
+typedef struct {
   uint8_t layer;
   uint8_t mode;
   uint8_t channels;
@@ -122,8 +117,7 @@ typedef struct
   alloc_table_t *alloc_table;
 } frameinfo_t;
 
-typedef struct
-{
+typedef struct {
   int32_t scfsi;
   uint32_t part2_3_length;
   uint32_t big_values;
@@ -144,18 +138,15 @@ typedef struct
   MYFLT *pow2gain;
 } grinfo_t;
 
-typedef struct
-{
+typedef struct {
   uint32_t main_data_begin;
   uint32_t private_bits;
-  struct
-  {
+  struct {
     grinfo_t gr[2];
   } ch[2];
 } sideinfo_t;
 
-struct mpadec_t
-{
+struct mpadec_t {
   uint32_t size;
   uint32_t state;
   uint8_t *next_byte;
@@ -181,8 +172,8 @@ struct mpadec_t
   mp3tag_info_t tag_info;
   uint32_t synth_size;
   MYFLT replay_gain;
-  void (*synth_func) (void *mpadec, MYFLT block[SBLIMIT], int channel,
-                      uint8_t *buffer);
+  void (*synth_func)(void *mpadec, MYFLT block[SBLIMIT],
+                     int channel, uint8_t *buffer);
   uint32_t reservoir_size;
   uint8_t reservoir[2048];
   frameinfo_t frame;
@@ -191,14 +182,13 @@ struct mpadec_t
   mpadec_tables_t tables;
   uint32_t synth_bufoffs;
   uint8_t hybrid_block[4];
-  MYFLT hybrid_in[2][SBLIMIT + 1][SSLIMIT];
-  MYFLT hybrid_out[2][SSLIMIT + 1][SBLIMIT];
-  MYFLT hybrid_buffers[2][2][SBLIMIT * SSLIMIT + SBLIMIT + SSLIMIT];
+  MYFLT hybrid_in[2][SBLIMIT+1][SSLIMIT];
+  MYFLT hybrid_out[2][SSLIMIT+1][SBLIMIT];
+  MYFLT hybrid_buffers[2][2][SBLIMIT*SSLIMIT+SBLIMIT+SSLIMIT];
   MYFLT synth_buffers[2][2][0x110];
 };
 
-struct mpabuffer_t
-{
+struct mpabuffer_t {
   uint32_t size;
   uint32_t offset;
   uint32_t used;
@@ -206,8 +196,7 @@ struct mpabuffer_t
   struct mpabuffer_t *next;
 };
 
-struct mpadec2_t
-{
+struct mpadec2_t {
   uint32_t size;
   mpadec_t mpadec;
   struct mpabuffer_t *buffers;
@@ -216,12 +205,11 @@ struct mpadec2_t
   uint32_t out_buffer_offset;
   uint32_t out_buffer_used;
   uint8_t in_buffer[0x10000];
-  uint8_t out_buffer[8 * 1152];
+  uint8_t out_buffer[8*1152];
 };
 
-#define GETBITS(n)                                                            \
-  ((mpa->bits_left >= (uint8_t)(n))                                           \
-       ? ((mpa->bit_buffer >> (mpa->bits_left -= (uint8_t)(n))) & bitmask[n]) \
-       : getbits (mpa, n))
+#define GETBITS(n) ((mpa->bits_left >= \
+   (uint8_t)(n)) ? ((mpa->bit_buffer >> (mpa->bits_left -= (uint8_t)(n))) \
+                    & bitmask[n]) : getbits(mpa, n))
 
 #endif

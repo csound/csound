@@ -21,21 +21,19 @@
     02110-1301 USA
 */
 
-/*                                                                      LPC.H
- */
+/*                                                                      LPC.H   */
 
 #pragma once
 
-#define LP_MAGIC 999
-#define LP_MAGIC2 2399 /* pole file type */
-#define LPBUFSIZ 4096  /* in lpanal */
-#define MAXWINDIN 1000 /* was for 10ms hops at 50 KC */
-#define MAXPOLES 5000
-#define NDATA 4 /* number of data values stored with frame */
+#define LP_MAGIC    999
+#define LP_MAGIC2   2399           /* pole file type */
+#define LPBUFSIZ    4096           /* in lpanal */
+#define MAXWINDIN   1000           /* was for 10ms hops at 50 KC */
+#define MAXPOLES    5000
+#define NDATA       4   /* number of data values stored with frame */
 
-typedef struct
-{
-  uint32_t headersize, lpmagic, npoles, nvals;
-  MYFLT framrate, srate, duration;
-  char text[4];
+typedef struct {
+        uint32_t headersize, lpmagic, npoles, nvals;
+        MYFLT   framrate, srate, duration;
+        char    text[4];
 } LPHEADER;

@@ -33,46 +33,43 @@
 
 #include "csound.h"
 
-#define CAPSIZE 60
+#define CAPSIZE  60
 
-struct windat_
-{
-  uintptr_t windid;      /* set by MakeGraph() */
-  MYFLT *fdata;          /* data passed to DrawGraph */
-  int32 npts;            /* size of above array */
-  char caption[CAPSIZE]; /* caption string for graph */
-  int16 waitflg;         /* set =1 to wait for ms after Draw */
-  int16 polarity;        /* controls positioning of X axis */
-  MYFLT max, min;        /* workspace .. extrema this frame */
-  MYFLT absmax;          /* workspace .. largest of above */
-  MYFLT oabsmax;         /* Y axis scaling factor */
-  int danflag;           /* set to 1 for extra Yaxis mid span */
-  int absflag;           /* set to 1 to skip abs check */
+struct windat_ {
+    uintptr_t windid;           /* set by MakeGraph() */
+    MYFLT   *fdata;             /* data passed to DrawGraph */
+    int32   npts;               /* size of above array */
+    char    caption[CAPSIZE];   /* caption string for graph */
+    int16   waitflg;            /* set =1 to wait for ms after Draw */
+    int16   polarity;           /* controls positioning of X axis */
+    MYFLT   max, min;           /* workspace .. extrema this frame */
+    MYFLT   absmax;             /* workspace .. largest of above */
+    MYFLT   oabsmax;            /* Y axis scaling factor */
+    int     danflag;            /* set to 1 for extra Yaxis mid span */
+    int     absflag;            /* set to 1 to skip abs check */
 };
 
-enum
-{ /* symbols for WINDAT.polarity field */
-  NOPOL,
-  NEGPOL,
-  POSPOL,
-  BIPOL
+enum {                  /* symbols for WINDAT.polarity field */
+    NOPOL,
+    NEGPOL,
+    POSPOL,
+    BIPOL
 };
 
-struct xyindat_
-{                   /* for 'joystick' input window */
-  uintptr_t windid; /* xwindow handle */
-  int m_x, m_y;     /* current crosshair pixel adr */
-  MYFLT x, y;       /* current proportions of fsd */
-  int down;
+struct xyindat_ {       /* for 'joystick' input window */
+    uintptr_t windid;   /* xwindow handle */
+    int     m_x,m_y;    /* current crosshair pixel adr */
+    MYFLT   x,y;        /* current proportions of fsd */
+    int     down;
 };
 
-/* ------------------------------------------------------------------------ */
+ /* ------------------------------------------------------------------------ */
 
 #ifdef __BUILDING_LIBCSOUND
 
-void dispset (CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
-int dispexit (CSOUND *);
-void display (CSOUND *, WINDAT *);
+void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
+int dispexit(CSOUND *);
+void display(CSOUND *, WINDAT*);
 #if 0
 /* create window for a graph */
 void MakeGraph(CSOUND *, WINDAT *, const char *);
@@ -90,6 +87,7 @@ void KillXYin(CSOUND *, XYINDAT *);
 int  ExitGraph(CSOUND *);
 #endif
 
-#endif /*  __BUILDING_LIBCSOUND */
+#endif  /*  __BUILDING_LIBCSOUND */
 
-#endif /*  CWINDOW_H */
+#endif  /*  CWINDOW_H */
+

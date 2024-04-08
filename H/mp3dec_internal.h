@@ -25,10 +25,9 @@
 #include "mp3dec.h"
 
 #define MP3DEC_FLAG_INITIALIZED 1
-#define MP3DEC_FLAG_SEEKABLE 2
+#define MP3DEC_FLAG_SEEKABLE    2
 
-struct mp3dec_t
-{
+struct mp3dec_t {
   uint32_t size;
   mpadec_t mpadec;
   int32_t fd;
@@ -43,7 +42,8 @@ struct mp3dec_t
   uint32_t out_buffer_offset;
   uint32_t out_buffer_used;
   uint8_t in_buffer[0x10000];
-  uint8_t out_buffer[8 * 1152];
+  uint8_t out_buffer[8*1152];
 };
 
 #endif
+

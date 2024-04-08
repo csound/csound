@@ -25,12 +25,11 @@
 #define CSOUND_ENVVAR_H
 
 #if !defined(__BUILDING_LIBCSOUND)
-#error "Csound plugins and host applications should not include envvar.h"
+#  error "Csound plugins and host applications should not include envvar.h"
 #endif
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
   /**
@@ -38,7 +37,7 @@ extern "C"
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundSetEnv (CSOUND *csound, const char *name, const char *value);
+  int csoundSetEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Append 'value' to environment variable 'name', using ';' as
@@ -46,7 +45,7 @@ extern "C"
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundAppendEnv (CSOUND *csound, const char *name, const char *value);
+  int csoundAppendEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Prepend 'value' to environment variable 'name', using ';' as
@@ -54,7 +53,7 @@ extern "C"
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundPrependEnv (CSOUND *csound, const char *name, const char *value);
+  int csoundPrependEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Initialise environment variable database, and copy system
@@ -62,7 +61,7 @@ extern "C"
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY in case of an error.
    */
-  int csoundInitEnv (CSOUND *csound);
+  int csoundInitEnv(CSOUND *csound);
 
   /**
    * Parse 's' as an assignment to environment variable, in the format
@@ -71,22 +70,21 @@ extern "C"
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY in case of an error.
    */
-  int csoundParseEnv (CSOUND *csound, const char *s);
+  int csoundParseEnv(CSOUND *csound, const char *s);
 
-  /** Check if file name is valid, and copy with converting pathname delimiters
-   */
-  char *csoundConvertPathname (CSOUND *csound, const char *filename);
+  /** Check if file name is valid, and copy with converting pathname delimiters */
+  char *csoundConvertPathname(CSOUND *csound, const char *filename);
 
   /**  Check if name is a full pathname for the platform we are running on. */
-  int csoundIsNameFullpath (const char *name);
+  int csoundIsNameFullpath(const char *name);
 
   /** Check if name is a relative pathname for this platform.  Bare
    *  filenames with no path information are not counted.
    */
-  int csoundIsNameRelativePath (const char *name);
+  int csoundIsNameRelativePath(const char *name);
 
   /** Check if name is a "leaf" (bare) filename for this platform. */
-  int csoundIsNameJustFilename (const char *name);
+  int csoundIsNameJustFilename(const char *name);
 
   /** Properly concatenates the full or relative pathname in path1 with
    *  the relative pathname or filename in path2 according to the rules
@@ -95,8 +93,8 @@ extern "C"
    *  conform to the conventions for the current platform (begin with ':'
    *  on MacOS 9 and not begin with DIRSEP on others).
    */
-  char *csoundConcatenatePaths (CSOUND *csound, const char *path1,
-                                const char *path2);
+  char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
+                                               const char *path2);
 
   /** Converts a pathname to native format and returns just the part of
    *  the path that specifies the directory.  Does not return the final
@@ -104,10 +102,10 @@ extern "C"
    *  the filename.  Returns NULL if unable to carry out the operation
    *  for some reason.
    */
-  char *csoundSplitDirectoryFromPath (CSOUND *csound, const char *path);
+  char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path);
 
   /** Return just the final component of a full path */
-  char *csoundSplitFilenameFromPath (CSOUND *csound, const char *path);
+  char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path);
 
   /**
    * Search for input file 'filename'.
@@ -129,8 +127,8 @@ extern "C"
    * or an error has occured. The caller is responsible for freeing the memory
    * pointed to by the return value, by calling mfree().
    */
-  char *csoundFindInputFile (CSOUND *csound, const char *filename,
-                             const char *envList);
+  char *csoundFindInputFile(CSOUND *csound,
+                            const char *filename, const char *envList);
 
   /**
    * Search for a location to write file 'filename'.
@@ -153,8 +151,8 @@ extern "C"
    * The caller is responsible for freeing the memory pointed to by the return
    * value, by calling mfree().
    */
-  char *csoundFindOutputFile (CSOUND *csound, const char *filename,
-                              const char *envList);
+  char *csoundFindOutputFile(CSOUND *csound,
+                             const char *filename, const char *envList);
 
   /**
    * Open a file and return handle.
@@ -177,22 +175,28 @@ extern "C"
    *   parameters, depending on type:
    *     CSFILE_FD_R:     unused (should be NULL)
    *     CSFILE_FD_W:     unused (should be NULL)
-   *     CSFILE_STD:      mode parameter (of type char*) to be passed to
-   * fopen() CSFILE_SND_R:    SF_INFO* parameter for sf_open(), with defaults
-   * for raw file; the actual format paramaters of the opened file will be
-   * stored in this structure CSFILE_SND_W:    SF_INFO* parameter for
-   * sf_open(), output file format const char *env: list of environment
-   * variables for search path (see csoundFindInputFile() for details); if
-   * NULL, the specified name is used as it is, without any conversion or
-   * search. int csFileType: A value from the enumeration CSOUND_FILETYPES (see
-   * CsoundCore.h) int isTemporary: 1 if this file will be deleted when Csound
-   * is finished. Otherwise, 0. return value: opaque handle to the opened file,
-   * for use with csoundGetFileName() or csoundFileClose(), or storing in
-   * FDCH.fd. On failure, NULL is returned.
+   *     CSFILE_STD:      mode parameter (of type char*) to be passed to fopen()
+   *     CSFILE_SND_R:    SF_INFO* parameter for sf_open(), with defaults for
+   *                      raw file; the actual format paramaters of the opened
+   *                      file will be stored in this structure
+   *     CSFILE_SND_W:    SF_INFO* parameter for sf_open(), output file format
+   * const char *env:
+   *   list of environment variables for search path (see csoundFindInputFile()
+   *   for details); if NULL, the specified name is used as it is, without any
+   *   conversion or search.
+   * int csFileType:
+   *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
+   * int isTemporary:
+   *   1 if this file will be deleted when Csound is finished.
+   *   Otherwise, 0.
+   * return value:
+   *   opaque handle to the opened file, for use with csoundGetFileName() or
+   *   csoundFileClose(), or storing in FDCH.fd.
+   *   On failure, NULL is returned.
    */
-  void *csoundFileOpenWithType (CSOUND *csound, void *fd, int type,
-                                const char *name, void *param, const char *env,
-                                int csFileType, int isTemporary);
+  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
+                               const char *name, void *param, const char *env,
+                               int csFileType, int isTemporary);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),
@@ -204,39 +208,42 @@ extern "C"
    * fullName is the name that will be returned by a later call to
    * csoundGetFileName().
    */
-  void *csoundCreateFileHandle (CSOUND *, void *fd, int type,
-                                const char *fullName);
+  void *csoundCreateFileHandle(CSOUND *,
+                               void *fd, int type, const char *fullName);
 
   /**
    * Get the full name of a file previously opened with csoundFileOpen().
    */
-  char *csoundGetFileName (void *fd);
+  char *csoundGetFileName(void *fd);
 
   /**
    * Close a file previously opened with csoundFileOpen().
    */
-  int csoundFileClose (CSOUND *, void *fd);
+  int csoundFileClose(CSOUND *, void *fd);
 
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists
    */
-  char *csoundGetDirectoryForPath (CSOUND *csound, const char *path);
+  char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
 
-  void *csoundFileOpenWithType_Async (CSOUND *csound, void *fd, int type,
-                                      const char *name, void *param,
-                                      const char *env, int csFileType,
-                                      int buffsize, int isTemporary);
 
-  unsigned int csoundReadAsync (CSOUND *csound, void *handle, MYFLT *buf,
-                                int items);
+  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
+                                     const char *name, void *param,
+                                     const char *env,
+                                     int csFileType, int buffsize,
+                                     int isTemporary);
 
-  unsigned int csoundWriteAsync (CSOUND *csound, void *handle, MYFLT *buf,
-                                 int items);
+  unsigned int csoundReadAsync(CSOUND *csound, void *handle,
+                               MYFLT *buf, int items);
 
-  int csoundFSeekAsync (CSOUND *csound, void *handle, int pos, int whence);
+  unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
+                                MYFLT *buf, int items);
+
+  int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence);
+
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CSOUND_ENVVAR_H */
+#endif  /* CSOUND_ENVVAR_H */

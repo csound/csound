@@ -25,209 +25,180 @@
 
 #pragma once
 
-#define CSOUND_SPIN_SPINLOCK csoundSpinLock (&csound->spinlock);
-#define CSOUND_SPIN_SPINUNLOCK csoundSpinUnLock (&csound->spinlock);
-#define CSOUND_SPOUT_SPINLOCK csoundSpinLock (&csound->spoutlock);
-#define CSOUND_SPOUT_SPINUNLOCK csoundSpinUnLock (&csound->spoutlock);
+#define CSOUND_SPIN_SPINLOCK csoundSpinLock(&csound->spinlock);
+#define CSOUND_SPIN_SPINUNLOCK csoundSpinUnLock(&csound->spinlock);
+#define CSOUND_SPOUT_SPINLOCK csoundSpinLock(&csound->spoutlock);
+#define CSOUND_SPOUT_SPINUNLOCK csoundSpinUnLock(&csound->spoutlock);
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *a;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *a;
 } ASSIGN;
 
 #define ASSIGNM_MAX (24)
-typedef struct
-{
-  OPDS h;
-  MYFLT *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
+typedef struct {
+    OPDS    h;
+    MYFLT   *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
 } ASSIGNM;
 
-typedef struct
-{
-  OPDS h;
-  TABDAT *a;
-  MYFLT *size, *value;
+typedef struct {
+    OPDS    h;
+    TABDAT  *a;
+    MYFLT   *size, *value;
 } INITT;
 
-typedef struct
-{
-  OPDS h;
-  TABDAT *tab;
-  MYFLT *ind;
-  MYFLT *val;
+typedef struct {
+    OPDS    h;
+    TABDAT  *tab;
+    MYFLT   *ind;
+    MYFLT   *val;
 } ASSIGNT;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ans;
-  TABDAT *tab;
-  MYFLT *ind;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ans;
+    TABDAT  *tab;
+    MYFLT   *ind;
 } TABREF;
 
-typedef struct
-{
-  OPDS h;
-  int32_t *rbool;
-  MYFLT *a, *b;
+
+typedef struct {
+    OPDS    h;
+    int32_t     *rbool;
+    MYFLT   *a, *b;
 } RELAT;
 
-typedef struct
-{
-  OPDS h;
-  int32_t *rbool, *ibool, *jbool;
+typedef struct {
+    OPDS    h;
+    int32_t     *rbool, *ibool, *jbool;
 } LOGCL;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r;
-  int32_t *cond;
-  MYFLT *a, *b;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r;
+    int32_t     *cond;
+    MYFLT   *a, *b;
 } CONVAL;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *a, *b;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *a, *b;
 } AOP;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *a, *b, *def;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *a, *b, *def;
 } DIVZ;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *a;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *a;
 } EVAL;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar;
 } INM;
 
-typedef struct
-{
-  OPDS h;
-  ARRAYDAT *tabout;
+typedef struct {
+    OPDS    h;
+    ARRAYDAT   *tabout;
 } INA;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar1, *ar2;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar1, *ar2;
 } INS;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar1, *ar2, *ar3, *ar4;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar1, *ar2, *ar3, *ar4;
 } INQ;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
 } INH;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
 } INO;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar[40]; /* array size should be consistent with entry2.c */
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar[40];    /* array size should be consistent with entry2.c */
 } INALL;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar[40];
-  MYFLT *ch[VARGMAX];
-  int32_t init;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar[40];
+    MYFLT   *ch[VARGMAX];
+    int32_t     init;
 } INCH;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *ar;
-  MYFLT *ch;
-  int32_t init;
+typedef struct {
+    OPDS    h;
+    MYFLT   *ar;
+    MYFLT   *ch;
+    int32_t     init;
 } INCH1;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *asig[VARGMAX];
+typedef struct {
+    OPDS    h;
+    MYFLT   *asig[VARGMAX];
 } OUTX;
 
-typedef struct
-{
-  OPDS h;
-  ARRAYDAT *tabin;
-  int32_t nowarn;
+typedef struct {
+    OPDS       h;
+    ARRAYDAT   *tabin;
+    int32_t    nowarn;
 } OUTARRAY;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *asig;
+typedef struct {
+    OPDS    h;
+    MYFLT   *asig;
 } OUTM;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *args[VARGMAX];
+typedef struct {
+    OPDS    h;
+    MYFLT   *args[VARGMAX];
 } OUTCH;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *pc, *et, *cy, *ref;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *pc, *et, *cy, *ref;
 } XENH;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *ktrig, *kinput, *tablenum;
-  MYFLT old_r;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *ktrig, *kinput, *tablenum;
+    MYFLT   old_r;
 } CPSTUN;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *r, *input, *tablenum;
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *input, *tablenum;
 } CPSTUNI;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *res, *arg;
+typedef struct {
+    OPDS    h;
+    MYFLT   *res, *arg;
 } ERRFN;
 
-typedef struct MONITOR_OPCODE_
-{
-  OPDS h;
-  MYFLT *ar[24];
+typedef struct MONITOR_OPCODE_ {
+    OPDS    h;
+    MYFLT   *ar[24];
 } MONITOR_OPCODE;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *kstartChan, *argums[VARGMAX];
-  int32_t narg;
+typedef struct {
+        OPDS    h;
+        MYFLT   *kstartChan, *argums[VARGMAX];
+        int32_t narg;
 } OUTRANGE;
 
-int32_t monitor_opcode_perf (CSOUND *csound, MONITOR_OPCODE *p);
-int32_t monitor_opcode_init (CSOUND *csound, MONITOR_OPCODE *p);
-int32_t outRange_i (CSOUND *csound, OUTRANGE *p);
-int32_t outRange (CSOUND *csound, OUTRANGE *p);
-int32_t hw_channels (CSOUND *csound, ASSIGN *p);
+int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
+int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
+int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
+int32_t outRange(CSOUND *csound, OUTRANGE *p);
+int32_t hw_channels(CSOUND *csound, ASSIGN *p);

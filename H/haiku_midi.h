@@ -25,49 +25,35 @@
 
 */
 
+
 #ifndef _HAIKU_MIDI
 #define _HAIKU_MIDI
 
-class MidiIn
-{
-public:
-  MidiIn (const char *name);
-  ~MidiIn ();
-  uint32 GetEvent ();
 
-  const char *nodename;
-  class BMidiProducer *extSource;
+class MidiIn {
+ public:
+        MidiIn(const char *name);
+        ~MidiIn();
+        uint32 GetEvent();
 
+        const char *nodename;
+        class BMidiProducer *extSource;
 private:
-  class MidiInHandler *handler;
+        class MidiInHandler *handler;
 };
 
-struct MidiEvent
-{
-  uint8 nbytes, status, data1, data2;
-  MidiEvent (uint8 n, uint8 s = 0, uint8 d1 = 0, uint8 d2 = 0)
-      : nbytes (n), status (s), data1 (d1), data2 (d2)
-  {
-  }
-  MidiEvent (uint32 seq) { *(uint32 *)&nbytes = seq; }
-  int
-  Size ()
-  {
-    return nbytes;
-  }
-  uint8 *
-  Bytes ()
-  {
-    return (uint8 *)&status;
-  }
-  operator uint32 () { return *(uint32 *)&nbytes; }
-  operator uint8 * () { return (uint8 *)&nbytes; }
-  MidiEvent &
-  operator= (uint32 seq)
-  {
-    *(uint32 *)&nbytes = seq;
-    return *this;
-  }
+struct MidiEvent {
+        uint8 nbytes, status, data1, data2;
+        MidiEvent(uint8 n, uint8 s=0, uint8 d1=0, uint8 d2=0) :
+                nbytes(n), status(s), data1(d1), data2(d2) {}
+        MidiEvent(uint32 seq) {*(uint32 *)&nbytes = seq;}
+        int Size() {return nbytes;}
+        uint8 * Bytes() {return (uint8 *)&status;}
+        operator uint32() {return *(uint32 *)&nbytes;}
+        operator uint8 *() {return (uint8 *)&nbytes;}
+        MidiEvent& operator = (uint32 seq)
+                        {*(uint32 *)&nbytes = seq; return *this;}
 };
+
 
 #endif

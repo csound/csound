@@ -21,12 +21,11 @@
     02110-1301 USA
 */
 
-/*                                                      CS_PAR_OPS.H */
+/*                                                      CS_PAR_OPS.H          */
 
 #pragma once
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *gvar_ix;
+typedef struct {
+    OPDS    h;
+    MYFLT   *gvar_ix;
 } GLOBAL_LOCK_UNLOCK;

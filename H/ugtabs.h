@@ -23,8 +23,7 @@
 
 #pragma once
 
-typedef struct _tabl
-{
+typedef struct _tabl {
   OPDS h;
   MYFLT *sig, *ndx, *ftable, *mode, *offset, *wrap;
   MYFLT mul;
@@ -34,33 +33,28 @@ typedef struct _tabl
   FUNC *ftp;
 } TABL;
 
-typedef struct _tlen
-{
+typedef struct _tlen {
   OPDS h;
   MYFLT *ans, *ftable;
 } TLEN;
 
-typedef struct _tgp
-{
+typedef struct _tgp {
   OPDS h;
-  MYFLT *ftable, *ftsrc;
+  MYFLT  *ftable, *ftsrc;
 } TGP;
 
-typedef struct _tablmix
-{
+typedef struct _tablmix {
   OPDS h;
   MYFLT *tab, *off, *len, *tab1, *off1, *g1, *tab2, *off2, *g2;
 } TABLMIX;
 
-typedef struct _tablra
-{
+typedef struct _tablra {
   OPDS h;
-  MYFLT *sig, *ftable, *strt, *off;
+  MYFLT *sig,*ftable,*strt,*off;
 } TABLRA;
 
-typedef struct _tablwa
-{
+typedef struct _tablwa {
   OPDS h;
-  MYFLT *strt, *ftable, *sig, *off, *skipinit;
+  MYFLT *strt,*ftable,*sig,*off,*skipinit;
   MYFLT pos;
 } TABLWA;

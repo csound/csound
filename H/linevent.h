@@ -28,20 +28,19 @@
 /* linevent                                                      */
 /* Dec 2001 by matt ingalls                                      */
 /*****************************************************************/
-typedef struct
-{
-  OPDS h;
-  MYFLT *args[VARGMAX];
-  int argno;
-  int flag;
+typedef struct {
+    OPDS   h;
+    MYFLT  *args[VARGMAX];
+    int argno;
+    int flag;
 } LINEVENT;
 
-typedef struct
-{
-  OPDS h;
-  MYFLT *inst;
-  MYFLT *args[VARGMAX];
-  int argno;
+
+typedef struct {
+    OPDS   h;
+    MYFLT  *inst;
+    MYFLT  *args[VARGMAX];
+    int argno;
 } LINEVENT2;
 
-#endif /* CSOUND_LINEVENT_H */
+#endif      /* CSOUND_LINEVENT_H */

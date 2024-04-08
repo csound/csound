@@ -37,109 +37,100 @@
 
 typedef struct
 {
-  uint32_t Data1;
-  uint16_t Data2;
-  uint16_t Data3;
-  unsigned char Data4[8];
+    uint32_t        Data1;
+    uint16_t        Data2;
+    uint16_t        Data3;
+    unsigned char   Data4[8];
 } GUID;
 
-typedef struct /* waveformatex */
-{
-  uint16_t wFormatTag;
-  uint16_t nChannels;
-  uint32_t nSamplesPerSec;
-  uint32_t nAvgBytesPerSec;
-  uint16_t nBlockAlign;
-  uint16_t wBitsPerSample;
-  uint16_t cbSize;
+typedef struct /* waveformatex */ {
+    uint16_t    wFormatTag;
+    uint16_t    nChannels;
+    uint32_t    nSamplesPerSec;
+    uint32_t    nAvgBytesPerSec;
+    uint16_t    nBlockAlign;
+    uint16_t    wBitsPerSample;
+    uint16_t    cbSize;
 } WAVEFORMATEX;
 
 #endif
 
 /* NB no support provided for double format (yet) */
 
-typedef enum pvoc_wordformat
-{
-  PVOC_IEEE_FLOAT,
-  PVOC_IEEE_DOUBLE
+typedef enum pvoc_wordformat {
+    PVOC_IEEE_FLOAT,
+    PVOC_IEEE_DOUBLE
 } pvoc_wordformat;
 
 /* include PVOC_COMPLEX for some parity with SDIF */
 
-typedef enum pvoc_frametype
-{
-  PVOC_AMP_FREQ = 0,
-  PVOC_AMP_PHASE,
-  PVOC_COMPLEX
+typedef enum pvoc_frametype {
+    PVOC_AMP_FREQ = 0,
+    PVOC_AMP_PHASE,
+    PVOC_COMPLEX
 } pvoc_frametype;
 
 /* a minimal list */
 
-typedef enum pvoc_windowtype
-{
-  PVOC_DEFAULT = 0,
-  PVOC_HAMMING = 0,
-  PVOC_HANN,
-  PVOC_KAISER,
-  PVOC_RECT,
-  PVOC_CUSTOM
+typedef enum pvoc_windowtype {
+    PVOC_DEFAULT = 0,
+    PVOC_HAMMING = 0,
+    PVOC_HANN,
+    PVOC_KAISER,
+    PVOC_RECT,
+    PVOC_CUSTOM
 } pv_wtype;
 
 /* Renderer information: source is presumed to be of this type */
 
-typedef enum pvoc_sampletype
-{
-  STYPE_16,
-  STYPE_24,
-  STYPE_32,
-  STYPE_IEEE_FLOAT
+typedef enum pvoc_sampletype {
+    STYPE_16,
+    STYPE_24,
+    STYPE_32,
+    STYPE_IEEE_FLOAT
 } pv_stype;
 
-typedef struct pvoc_data
-{                         /* 32 bytes */
-  uint16_t wWordFormat;   /* pvoc_wordformat                           */
-  uint16_t wAnalFormat;   /* pvoc_frametype                            */
-  uint16_t wSourceFormat; /* WAVE_FORMAT_PCM or WAVE_FORMAT_IEEE_FLOAT */
-  uint16_t wWindowType;   /* pvoc_windowtype                           */
-  uint32_t nAnalysisBins; /* implicit FFT size = (nAnalysisBins-1) * 2 */
-  uint32_t dwWinlen;      /* analysis winlen, in samples               */
-                          /*   NB may be != FFT size                   */
-  uint32_t dwOverlap;     /* samples                                   */
-  uint32_t dwFrameAlign;  /* usually nAnalysisBins * 2 * sizeof(float) */
-  float fAnalysisRate;
-  float fWindowParam; /* default 0.0f unless needed                */
+typedef struct pvoc_data {   /* 32 bytes */
+    uint16_t    wWordFormat;    /* pvoc_wordformat                           */
+    uint16_t    wAnalFormat;    /* pvoc_frametype                            */
+    uint16_t    wSourceFormat;  /* WAVE_FORMAT_PCM or WAVE_FORMAT_IEEE_FLOAT */
+    uint16_t    wWindowType;    /* pvoc_windowtype                           */
+    uint32_t    nAnalysisBins;  /* implicit FFT size = (nAnalysisBins-1) * 2 */
+    uint32_t    dwWinlen;       /* analysis winlen, in samples               */
+                                /*   NB may be != FFT size                   */
+    uint32_t    dwOverlap;      /* samples                                   */
+    uint32_t    dwFrameAlign;   /* usually nAnalysisBins * 2 * sizeof(float) */
+    float       fAnalysisRate;
+    float       fWindowParam;   /* default 0.0f unless needed                */
 } PVOCDATA;
 
-typedef struct
-{
-  WAVEFORMATEX Format; /* 18 bytes: info for renderer   */
-                       /*           as well as for pvoc */
-  union
-  {                               /* 2 bytes */
-    uint16_t wValidBitsPerSample; /* as per standard WAVE_EX:      */
-                                  /*           applies to renderer */
-    uint16_t wSamplesPerBlock;
-    uint16_t wReserved;
-  } Samples;
-  uint32_t dwChannelMask; /* 4 bytes: can be used as in    */
-                          /*          standrad WAVE_EX     */
-  GUID SubFormat;         /* 16 bytes */
+typedef struct {
+    WAVEFORMATEX    Format;                 /* 18 bytes: info for renderer   */
+                                            /*           as well as for pvoc */
+    union {                                 /* 2 bytes */
+      uint16_t      wValidBitsPerSample;    /* as per standard WAVE_EX:      */
+                                            /*           applies to renderer */
+      uint16_t      wSamplesPerBlock;
+      uint16_t      wReserved;
+    } Samples;
+    uint32_t        dwChannelMask;          /* 4 bytes: can be used as in    */
+                                            /*          standrad WAVE_EX     */
+    GUID            SubFormat;              /* 16 bytes */
 } WAVEFORMATEXTENSIBLE, *PWAVEFORMATEXTENSIBLE;
 
-typedef struct
-{
-  WAVEFORMATEXTENSIBLE wxFormat; /* 40 bytes                              */
-  uint32_t dwVersion;            /* 4 bytes                               */
-  uint32_t dwDataSize;           /* 4 bytes: sizeof PVOCDATA data block   */
-  PVOCDATA data;                 /* 32 bytes                              */
-} WAVEFORMATPVOCEX;              /* total 80 bytes                        */
+typedef struct {
+    WAVEFORMATEXTENSIBLE wxFormat;  /* 40 bytes                              */
+    uint32_t    dwVersion;          /* 4 bytes                               */
+    uint32_t    dwDataSize;         /* 4 bytes: sizeof PVOCDATA data block   */
+    PVOCDATA    data;               /* 32 bytes                              */
+} WAVEFORMATPVOCEX;                 /* total 80 bytes                        */
 
 /* at least VC++ will give 84 for sizeof(WAVEFORMATPVOCEX), */
 /* so we need our own version */
-#define SIZEOF_FMTPVOCEX (80)
+#define SIZEOF_FMTPVOCEX    (80)
 /* for the same reason: */
-#define SIZEOF_WFMTEX (18)
-#define PVX_VERSION (1)
+#define SIZEOF_WFMTEX       (18)
+#define PVX_VERSION         (1)
 
 /******* the all-important PVOC GUID
 
@@ -149,25 +140,28 @@ typedef struct
 
 #ifndef CSOUND_CSDL_H
 
-extern const GUID KSDATAFORMAT_SUBTYPE_PVOC;
+extern  const GUID KSDATAFORMAT_SUBTYPE_PVOC;
 
 /* pvoc file handling functions */
 
-const char *pvoc_errorstr (CSOUND *);
-int32_t init_pvsys (CSOUND *);
-int32_t pvoc_createfile (CSOUND *, const char *, uint32, uint32, uint32,
-                         uint32, int32, int32_t, int32_t, float, float *,
-                         uint32);
-int32_t pvoc_openfile (CSOUND *, const char *filename, void *data_,
-                       void *fmt_);
-int32_t pvoc_closefile (CSOUND *, int32_t);
-int32_t pvoc_putframes (CSOUND *, int32_t ofd, const float *frame,
-                        int32 numframes);
-int32_t pvoc_getframes (CSOUND *, int32_t ifd, float *frames, uint32 nframes);
-int32_t pvoc_framecount (CSOUND *, int32_t ifd);
-int32_t pvoc_fseek (CSOUND *, int32_t ifd, int32_t offset);
-int32_t pvsys_release (CSOUND *);
+const char *pvoc_errorstr(CSOUND *);
+int32_t     init_pvsys(CSOUND *);
+int32_t     pvoc_createfile(CSOUND *, const char *,
+                        uint32, uint32, uint32,
+                        uint32, int32, int32_t, int32_t,
+                        float, float *, uint32);
+int32_t     pvoc_openfile(CSOUND *,
+                      const char *filename, void *data_, void *fmt_);
+int32_t     pvoc_closefile(CSOUND *, int32_t);
+int32_t     pvoc_putframes(CSOUND *,
+                       int32_t ofd, const float *frame, int32 numframes);
+int32_t     pvoc_getframes(CSOUND *,
+                       int32_t ifd, float *frames, uint32 nframes);
+int32_t     pvoc_framecount(CSOUND *, int32_t ifd);
+int32_t     pvoc_fseek(CSOUND *, int32_t ifd, int32_t offset);
+int32_t     pvsys_release(CSOUND *);
 
-#endif /* CSOUND_CSDL_H */
+#endif  /* CSOUND_CSDL_H */
 
-#endif /* __PVFILEIO_H_INCLUDED */
+#endif  /* __PVFILEIO_H_INCLUDED */
+

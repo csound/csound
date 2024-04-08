@@ -89,14 +89,13 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)
 {
-    // Called when the plugin opcode is unloaded, usually when Csound
-terminates. return 0;
+    // Called when the plugin opcode is unloaded, usually when Csound terminates.
+    return 0;
 }
 
 static OENTRY localops[] =
 {
-  { "opcode",   sizeof(OPCODE),  0, 3, "i",    "ii", (SUBR)op_init, (SUBR)op_k
-}}
+  { "opcode",   sizeof(OPCODE),  0, 3, "i",    "ii", (SUBR)op_init, (SUBR)op_k }}
 };
 
 LINKAGE(localops)
@@ -111,14 +110,14 @@ LINKAGE(localops)
 #include "interlocks.h"
 #include "csoundCore.h"
 
+
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #if defined(__wasi__)
-#undef PUBLIC
-#define PUBLIC extern
+  #undef PUBLIC
+  #define PUBLIC extern
 #endif
 
 /* Use the Str() macro for translations of strings */
@@ -129,83 +128,57 @@ extern "C"
      This would allows us to keep an eye on
      -Wformat-security warnings
   */
-// #ifndef GNU_GETTEXT
-// #define Str(x)  (x)
-// #else
-#define Str(x) (csound->LocalizeString (x))
-  // #endif
+//#ifndef GNU_GETTEXT
+//#define Str(x)  (x)
+//#else
+#define Str(x)  (csound->LocalizeString(x))
+//#endif
 
-  PUBLIC int64_t csound_opcode_init (CSOUND *, OENTRY **);
-  PUBLIC NGFENS *csound_fgen_init (CSOUND *);
+PUBLIC  int64_t  csound_opcode_init(CSOUND *, OENTRY **);
+PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);
 
-  PUBLIC int csoundModuleCreate (CSOUND *);
-  PUBLIC int csoundModuleInit (CSOUND *);
-  PUBLIC int csoundModuleDestroy (CSOUND *);
-  PUBLIC const char *csoundModuleErrorCodeToString (int);
+PUBLIC  int     csoundModuleCreate(CSOUND *);
+PUBLIC  int     csoundModuleInit(CSOUND *);
+PUBLIC  int     csoundModuleDestroy(CSOUND *);
+PUBLIC  const char  *csoundModuleErrorCodeToString(int);
 
-  PUBLIC int csoundModuleInfo (void);
+PUBLIC  int     csoundModuleInfo(void);
 
-  /** The LINKAGE macro sets up linking of opcode list*/
+/** The LINKAGE macro sets up linking of opcode list*/
 
-#define LINKAGE                                                               \
-  PUBLIC int64_t csound_opcode_init (CSOUND *csound, OENTRY **ep)             \
-  {                                                                           \
-    (void)csound;                                                             \
-    *ep = localops;                                                           \
-    return (int64_t)sizeof (localops);                                        \
-  }                                                                           \
-  PUBLIC int csoundModuleInfo (void)                                          \
-  {                                                                           \
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8)                       \
-            + (int)sizeof (MYFLT));                                           \
-  }
+#define LINKAGE                                                         \
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{ (void) csound; *ep = localops; return (int64_t) sizeof(localops);  } \
+PUBLIC int csoundModuleInfo(void)                                       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
-  /** The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin
-   * opcodes which must have unique function names */
+/** The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin opcodes
+ * which must have unique function names */
 
 #undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(name)                                                 \
-  PUBLIC int64_t csound_opcode_init (CSOUND *csound, OENTRY **ep)             \
-  {                                                                           \
-    (void)csound;                                                             \
-    *ep = name;                                                               \
-    return (int64_t)(sizeof (name));                                          \
-  }                                                                           \
-  PUBLIC int csoundModuleInfo (void)                                          \
-  {                                                                           \
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8)                       \
-            + (int)sizeof (MYFLT));                                           \
-  }
+#define LINKAGE_BUILTIN(name)                                           \
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
+PUBLIC int csoundModuleInfo(void)                                       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
-  /** LINKAGE for f-table plugins */
+/** LINKAGE for f-table plugins */
 
-#define FLINKAGE                                                              \
-  PUBLIC NGFENS *csound_fgen_init (CSOUND *csound)                            \
-  {                                                                           \
-    (void)csound;                                                             \
-    return localfgens;                                                        \
-  }                                                                           \
-  PUBLIC int csoundModuleInfo (void)                                          \
-  {                                                                           \
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8)                       \
-            + (int)sizeof (MYFLT));                                           \
-  }
+#define FLINKAGE                                                        \
+PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+{   (void) csound; return localfgens;                               }   \
+PUBLIC int csoundModuleInfo(void)                                       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
 #undef FLINKAGE_BUILTIN
-#define FLINKAGE_BUILTIN(name)                                                \
-  PUBLIC NGFENS *csound_fgen_init (CSOUND *csound)                            \
-  {                                                                           \
-    (void)csound;                                                             \
-    return name;                                                              \
-  }                                                                           \
-  PUBLIC int csoundModuleInfo (void)                                          \
-  {                                                                           \
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8)                       \
-            + (int)sizeof (MYFLT));                                           \
-  }
+#define FLINKAGE_BUILTIN(name)                                          \
+PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+{   (void) csound; return name;                                     }   \
+PUBLIC int csoundModuleInfo(void)                                       \
+{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* CSOUND_CSDL_H */
+#endif      /* CSOUND_CSDL_H */
