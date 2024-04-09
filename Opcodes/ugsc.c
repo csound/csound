@@ -88,7 +88,7 @@ static int32_t svf(CSOUND *csound, SVF *p)
       if (fco != lfco || q != lq) {
         lfco = fco; lq = q;
         /* calculate frequency and Q coefficients */
-        f1 = FL(2.0) * (MYFLT)sin((double)(fco * csound->pidsr));
+        f1 = FL(2.0) * (MYFLT)sin((double)(fco * CS_PIDSR));
         /* Protect against division by zero */
         if (UNLIKELY(q<FL(0.000001))) q = FL(1.0);
         q1 = FL(1.0) / q;
@@ -134,7 +134,7 @@ static int32_t hilbertset(CSOUND *csound, HILBERT *p)
       polefreq = poles[j] * 15.0;
       rc = 1.0 / (2.0 * PI * polefreq);
       alpha = 1.0 / rc;
-      alpha = alpha * 0.5 * (double)csound->onedsr;
+      alpha = alpha * 0.5 * (double)CS_ONEDSR;
       beta = (1.0 - alpha) / (1.0 + alpha);
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta;
@@ -263,8 +263,8 @@ static int32_t resonr(CSOUND *csound, RESONZ *p)
       MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
-        r = exp((double)(bw * csound->mpidsr));
-        c1 = 2.0 * r * cos((double)(cf * csound->tpidsr));
+        r = exp((double)(bw * CS_MPIDSR));
+        c1 = 2.0 * r * cos((double)(cf * CS_TPIDSR));
         c2 = r * r;
         if (p->scaletype == 1)
           scale = 1.0 - r;
@@ -331,8 +331,8 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
       MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
-        r = exp(-(double)(bw * csound->pidsr));
-        c1 = 2.0 * r * cos((double)(csound->tpidsr*cf));
+        r = exp(-(double)(bw * CS_PIDSR));
+        c1 = 2.0 * r * cos((double)(CS_TPIDSR*cf));
         c2 = r * r;
         if (p->scaletype == 1)
           scale = (1.0 - c2) * 0.5;
@@ -409,7 +409,7 @@ static int32_t phaser1(CSOUND *csound, PHASER1 *p)
      * frequency value into a useable coefficient for the
      * allpass filters.
      */
-    wp = csound->pidsr * coef;
+    wp = CS_PIDSR * coef;
     beta = (FL(1.0) - wp)/(FL(1.0) + wp);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -519,8 +519,8 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
          * notch, while the pole radius determines the q of
          * the notch.
          */
-        r = EXP(-(freq * csound->pidsr / kq));
-        b = -FL(2.0) * r * COS(freq * csound->tpidsr);
+        r = EXP(-(freq * CS_PIDSR / kq));
+        b = -FL(2.0) * r * COS(freq * CS_TPIDSR);
         a = r * r;
 
         /* Difference equations for implementing canonical
@@ -560,9 +560,9 @@ static int32_t lp2(CSOUND *csound, LP2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(csound->mpidsr * kfco / kres);
+    temp = (double)(CS_MPIDSR * kfco / kres);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (kfco * csound->tpidsr)) * exp(temp);
+    a = 2.0 * cos((double) (kfco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -597,9 +597,9 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(csound->mpidsr * fco / res);
+    temp = (double)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+    a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -616,9 +616,9 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
     for (n=offset; n<nsmps; n++) {
       if (res!=resp[n] || fco!=fcop[n]) {
         res=resp[n]; fco=fcop[n];
-        temp = (double)(csound->mpidsr * fco / res);
+        temp = (double)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+        a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
         b = exp(temp+temp);
         c = 1.0 - a + b;
       }
@@ -642,9 +642,9 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(csound->mpidsr * fco / res);
+    temp = (double)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+    a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -661,9 +661,9 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
     for (n=offset; n<nsmps; n++) {
       if (res!=resp[n]) {
         res=resp[n];
-        temp = (double)(csound->mpidsr * fco / res);
+        temp = (double)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+        a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
         b = exp(temp+temp);
         c = 1.0 - a + b;
       }
@@ -687,9 +687,9 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    temp = (double)(csound->mpidsr * fco / res);
+    temp = (double)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+    a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
     b = exp(temp+temp);
     c = 1.0 - a + b;
 
@@ -706,9 +706,9 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
     for (n=offset; n<nsmps; n++) {
       if (fco!=fcop[n]) {
         fco=fcop[n];
-        temp = (double)(csound->mpidsr * fco / res);
+        temp = (double)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((double) (fco * csound->tpidsr)) * exp(temp);
+        a = 2.0 * cos((double) (fco * CS_TPIDSR)) * exp(temp);
         b = exp(temp+temp);
         c = 1.0 - a + b;
       }

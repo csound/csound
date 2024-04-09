@@ -31,7 +31,7 @@ struct TrigLinseg : csnd::Plugin<1, 64>
     {
         uint32_t argCnt = 1;
         totalLength = 0;
-        samplingRate = csound->sr();
+        samplingRate = this->sr();
         playEnv = 0;
         counter = 0;
         outargs[0] = inargs[1];
@@ -122,7 +122,7 @@ struct TrigExpseg : csnd::Plugin<1, 64>
     int init()
     {
         uint32_t argCnt = 1;
-        samplingRate = csound->sr();
+        samplingRate = this->sr();
         playEnv = 0;
         counter = 0;
         outargs[0] = inargs[1];

@@ -177,7 +177,7 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
     p->outputGain = amp + FL(0.001);
     DLineL_setDelay(&p->delayLine, /* length - approx filter delay */
         (CS_ESR/ *p->frequency) * FL(0.5) - FL(1.5));
-    p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
+    p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
                                 /* Check to see if into decay yet */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -310,7 +310,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
       make_OnePole(&p->filter);
       make_DCBlock(&p->dcBlock);
       make_Noise(p->noise);
-      make_ADSR(&p->adsr);
+      make_ADSR(&p->adsr, CS_ESR);
                                 /* Clear */
 /*     OnePole_clear(&p->filter); */
 /*     DCBlock_clear(&p->dcBlock); */
@@ -366,7 +366,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
       p->outputGain = amp + FL(0.001);
       p->lastamp = amp;
     }
-    p->v_rate = *p->vibFreq * v_len * csound->onedsr;
+    p->v_rate = *p->vibFreq * v_len * CS_ONEDSR;
                                 /* Start SetFreq */
     if (p->lastFreq != *p->frequency) { /* It changed */
       p->lastFreq = *p->frequency;
@@ -530,7 +530,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
       p->bowTabl.slope = FL(3.0);
       make_OnePole(&p->reflFilt);
       make_BiQuad(&p->bodyFilt);
-      make_ADSR(&p->adsr);
+      make_ADSR(&p->adsr, CS_ESR);
 
       DLineL_setDelay(&p->neckDelay, FL(100.0));
       DLineL_setDelay(&p->bridgeDelay, FL(29.0));
@@ -596,7 +596,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
       DLineL_setDelay(&p->neckDelay, /* bow to nut (finger) length */
                       p->baseDelay *(FL(1.0) - p->lastbeta));
     }
-    p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
+    p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
       ADSR_setDecayRate(csound, &p->adsr, (FL(1.0) - p->adsr.value) * FL(0.005));
@@ -757,14 +757,14 @@ MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
 
 #define make_LipFilt(p) make_BiQuad(p)
 
-void LipFilt_setFreq(CSOUND *csound, LipFilt *p, MYFLT frequency)
+void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
 {
     MYFLT coeffs[2];
     coeffs[0] = FL(2.0) * FL(0.997) *
-      (MYFLT)cos(csound->tpidsr * (double)frequency);   /* damping should  */
+      (MYFLT)cos(CS_TPIDSR * (double)frequency);   /* damping should  */
     coeffs[1] = -FL(0.997) * FL(0.997);                 /* change with lip */
-    BiQuad_setPoleCoeffs(p, coeffs);                    /* parameters, but */
-    BiQuad_setGain(*p, FL(0.03));                       /* not yet.        */
+    BiQuad_setPoleCoeffs(pp, coeffs);                    /* parameters, but */
+    BiQuad_setGain(*pp, FL(0.03));                       /* not yet.        */
 }
 
 /*  NOTE:  Here we should add lip tension                 */
@@ -815,7 +815,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
       make_DLineA(csound, &p->delayLine, p->length);
       make_LipFilt(&p->lipFilter);
       make_DCBlock(&p->dcBlock);
-      make_ADSR(&p->adsr);
+      make_ADSR(&p->adsr, CS_ESR);
       ADSR_setAllTimes(csound, &p->adsr, FL(0.005), FL(0.001), FL(1.0), FL(0.010));
 /*        ADSR_setAll(&p->adsr, 0.02f, 0.05f, FL(1.0), 0.001f); */
 
@@ -862,7 +862,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
 
-    p->v_rate = *p->vibFreq * v_len * csound->onedsr;
+    p->v_rate = *p->vibFreq * v_len * CS_ONEDSR;
     /*   vibr->setFreq(6.137); */
     /* vibrGain = 0.05; */            /* breath periodic vibrato component  */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
@@ -885,7 +885,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
     } /* End of set frequency */
     if (*p->liptension != p->lipT) {
       p->lipT = *p->liptension;
-      LipFilt_setFreq(csound, &p->lipFilter,
+      LipFilt_setFreq(p, &p->lipFilter,
                       p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
     }
 

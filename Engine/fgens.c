@@ -236,6 +236,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
       i = (*csound->gensub[genum])(&ff, NULL);
       ftp = csound->flist[ff.fno];
+      ftp->sr = csound->esr;
       if (i != 0) {
         csound->flist[ff.fno] = NULL;
         csound->Free(csound, ftp);
@@ -370,6 +371,7 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
     ftp->flenfrms = (int32) len;
     ftp->nchanls = 1L;
     ftp->fno = (int32) tableNum;
+    ftp->sr = csound->esr;
     return 0;
 }
 

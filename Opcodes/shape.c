@@ -462,7 +462,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          incr = (double)(cps[n] * csound->onedsr);
+          incr = (double)(cps[n] * CS_ONEDSR);
           out[n] = (MYFLT)phase;
           phase += incr;
           if (phase >= 1.0) {
@@ -478,7 +478,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
       }
     }
     else {
-      incr = (double)(*p->xcps * csound->onedsr);
+      incr = (double)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;

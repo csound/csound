@@ -854,7 +854,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     p->curframe = curframe;
     p->pos = spos;
     p->tstamp = tstamp + incrt;
-    *p->kstamp = (*p->skip + p->tstamp/csound->GetSr(csound))/p->resamp;
+    *p->kstamp = (*p->skip + p->tstamp/CS_ESR)/p->resamp;
     p->incr = incrt;
     return OK;
 
@@ -1166,7 +1166,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
     buffiller((void *)p);
     buffiller((void *)p);
 
-    p->pos = skip*csound->GetSr(csound)/p->orsr;
+    p->pos = skip*CS_ESR/p->orsr;
     p->tscale  = 0;
     p->accum = 0;
     p->tab[0] = (MYFLT *) p->fdata[0].auxp;
@@ -2651,7 +2651,7 @@ else if (mpainfo.layer == 2) strcat(temp, "Layer II");
       def = 1;
     }
     ftp->gen01args.sample_rate = mpainfo.frequency;
-    ftp->cvtbas = LOFACT * mpainfo.frequency * CS_ONEDSR;
+    ftp->cvtbas = LOFACT * mpainfo.frequency * ftp->sr;
     flen = ftp->flen;
     //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
     while ((r == MP3DEC_RETCODE_OK) && bufused) {

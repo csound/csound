@@ -908,7 +908,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
       inca = (amp-oldamps[i])/nsmps;
       a = oldamps[i];
       /* put in * kfmod */
-      inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
       for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
@@ -1010,9 +1010,9 @@ static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
  * the intermediate values.
  */
 
-static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat)
+static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat, MYFLT sr)
 {
-    radat->size = (int32_t) MYFLT2LRND(CS_ESR / freq);
+    radat->size = (int32_t) MYFLT2LRND(sr / freq);
     radat->cnt = 0;
     radat->a1 = (int32) csound->Rand31(&(csound->randSeed1));
     radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
@@ -1191,7 +1191,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     /* p->nfreq[24] = 4500.0; */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
 
       /* initialise frequencies to modulate noise by */
       p->phaseinc[0] = 50.0 * tmp;
@@ -1250,7 +1250,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < 25; i++) {
-      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
+      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]), CS_ESR);
     }
 
     /* flag set to reduce the amount of warnings sent out */
@@ -1361,7 +1361,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     /* p->nfreq[24] = 4500.0; */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
 
       /* initialise frequencies to modulate noise by */
       p->phaseinc[0] = 50.0 * tmp;
@@ -1420,7 +1420,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < 25; i++) {
-      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
+      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]), CS_ESR);
     }
 
     /* flag set to reduce the amount of warnings sent out */
@@ -1669,7 +1669,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     p->prFlg = 1;               /* true */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
       p->phaseinc[0] = 50.0 * tmp;
       p->phaseinc[1] = 150.0 * tmp;
       p->phaseinc[2] = 250.0 * tmp;
@@ -1727,7 +1727,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < (int32_t) *p->iptls; i++) {
-      randiats_setup(csound, freqs[i], &(p->randinoise[i]));
+      randiats_setup(csound, freqs[i], &(p->randinoise[i]), CS_ESR);
     }
 
     return OK;
@@ -1858,7 +1858,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     p->prFlg = 1;               /* true */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
       p->phaseinc[0] = 50.0 * tmp;
       p->phaseinc[1] = 150.0 * tmp;
       p->phaseinc[2] = 250.0 * tmp;
@@ -1891,7 +1891,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < (int32_t) *p->iptls; i++) {
-      randiats_setup(csound, freqs[i], &(p->randinoise[i]));
+      randiats_setup(csound, freqs[i], &(p->randinoise[i]), CS_ESR);
     }
 
     return OK;
@@ -1962,7 +1962,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         ar = p->aoutput;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq * csound->onedsr;
+        inc = TWOPI * freq * CS_ONEDSR;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
         for (n=offset; n<nsmps;n++) {
@@ -1991,7 +1991,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         ar = p->aoutput;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq * csound->onedsr;
+        inc = TWOPI * freq * CS_ONEDSR;
         for (n=offset; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase) * amp;
@@ -2920,7 +2920,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
-      inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
       a =  oldamps[i];
       for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
