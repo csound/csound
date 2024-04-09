@@ -18,7 +18,8 @@
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    02110-1301 USA58
+
 */
 #include <map>
 #include <vector>
@@ -46,7 +47,7 @@ using namespace csound;
 /**
  * Creates the buss if it does not already exist.
  */
-static void createBuss(CSOUND *csound, size_t buss) {
+static void createBuss(CSOUND *csound, size_t buss, int ksmps) {
 #ifdef ENABLE_MIXER_IDEBUG
   csound->Message(csound, "createBuss: csound %p buss %d...\n", csound, buss);
 #endif
@@ -55,7 +56,7 @@ static void createBuss(CSOUND *csound, size_t buss) {
   csound::QueryGlobalPointer(csound, "busses", busses);
   if ((*busses)[csound].find(buss) == (*busses)[csound].end()) {
     size_t channels = csound->GetNchnls(csound);
-    size_t frames = csound->GetKsmps(csound);
+    size_t frames = ksmps;
     (*busses)[csound][buss].resize(channels);
     for (size_t channel = 0; channel < channels; channel++) {
       (*busses)[csound][buss][channel].resize(frames);
@@ -92,7 +93,7 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel> {
     csound::QueryGlobalPointer(csound, "matrix", matrix);
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    createBuss(csound, buss);
+    createBuss(csound, buss, opds.insdshead->ksmps);
     (*matrix)[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerSetLevel::init: csound %p send %d buss %d gain %f\n",
@@ -133,7 +134,7 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel> {
     csound::QueryGlobalPointer(csound, "matrix", matrix);
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    createBuss(csound, buss);
+    createBuss(csound, buss, opds.insdshead->ksmps);
     return OK;
   }
   int noteoff(CSOUND *) { return OK; }
@@ -174,7 +175,7 @@ struct MixerSend : public OpcodeBase<MixerSend> {
     csound::QueryGlobalPointer(csound, "matrix", matrix);
     send = static_cast<size_t>(*isend);
     buss = static_cast<size_t>(*ibuss);
-    createBuss(csound, buss);
+    createBuss(csound, buss, opds.insdshead->ksmps);
     channel = static_cast<size_t>(*ichannel);
     frames = opds.insdshead->ksmps;
     busspointer = &(*busses)[csound][buss][channel].front();
@@ -227,7 +228,7 @@ struct MixerReceive : public OpcodeBase<MixerReceive> {
     buss = static_cast<size_t>(*ibuss);
     channel = static_cast<size_t>(*ichannel);
     frames = opds.insdshead->ksmps;
-    createBuss(csound, buss);
+    createBuss(csound, buss, opds.insdshead->ksmps);
 #ifdef ENABLE_MIXER_IDEBUG
     warn(csound, "MixerReceive::init...\n");
 #endif
@@ -327,20 +328,7 @@ PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
   return OK;
 }
 
-PUBLIC int csoundModuleInit_mixer(CSOUND *csound) {
-  OENTRY *ep = (OENTRY *)&(localops[0]);
-  int err = 0;
 
-  while (ep->opname != NULL) {
-    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
-                                ep->thread, ep->outypes, ep->intypes,
-                                (int (*)(CSOUND *, void *))ep->iopadr,
-                                (int (*)(CSOUND *, void *))ep->kopadr,
-                                (int (*)(CSOUND *, void *))ep->aopadr);
-    ep++;
-  }
-  return err;
-}
 
 /*
  * The mixer busses are laid out:
@@ -388,7 +376,31 @@ PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound) {
   return OK;
 }
 
-#ifndef INIT_STATIC_MODULES
+int32_t destroyMixer(CSOUND *csound, void *p) {
+  IGN(p);
+  return csoundModuleDestroy_mixer(csound);
+}
+
+PUBLIC int32_t csoundModuleInit_mixer(CSOUND *csound) {
+  OENTRY *ep = (OENTRY *)&(localops[0]);
+  int err = 0;
+
+  while (ep->opname != NULL) {
+    err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
+                                ep->thread, ep->outypes, ep->intypes,
+                                (int32_t (*)(CSOUND *, void *))ep->iopadr,
+                                (int32_t (*)(CSOUND *, void *))ep->kopadr,
+                                (int32_t (*)(CSOUND *, void *))ep->aopadr);
+    ep++;
+  }
+  // need to register reset callback
+  csound->RegisterResetCallback(csound, NULL, destroyMixer);
+  return err;
+}
+
+
+
+#ifdef BUILD_PLUGINS
 PUBLIC int csoundModuleCreate(CSOUND *csound) {
   return csoundModuleCreate_mixer(csound);
 }

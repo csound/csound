@@ -1524,7 +1524,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     }
     p->lfq = -FL(1.0); p->lq = -FL(1.0);
     /* set a limit below theoretical sr/pi */
-    p->limit = csound->GetSr(csound)*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
+    p->limit = CS_ESR*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
     //printf("*** limit = %lf\n", p->limit);
     return OK;
 }
@@ -1603,7 +1603,7 @@ int mvmfilterset(CSOUND *csound, MVMFILT *p)
 int mvmfilter(CSOUND *csound, MVMFILT *p) {
   uint32_t      offset   = p->h.insdshead->ksmps_offset;
   uint32_t      early    = p->h.insdshead->ksmps_no_end;
-  MYFLT fs       = csound->GetSr(csound);
+  MYFLT fs       = CS_ESR;
   uint32_t      n, nsmps = CS_KSMPS;
   int32_t       asigtau, asigf0;
   asigtau = IS_ASIG_ARG(p->tau);
@@ -1618,7 +1618,7 @@ int mvmfilter(CSOUND *csound, MVMFILT *p) {
   MYFLT theta,r1,x1,y1,x,y,limit;
   x  = p->x;
   y  = p->y;
-  limit = csound->GetSr(csound) / FL(2.0);
+  limit = CS_ESR / FL(2.0);
 
   MYFLT f0val=*p->f0;
   f0val = f0val > limit ? limit : f0val;

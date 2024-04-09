@@ -137,7 +137,7 @@ public:
   int32_t currentIndex;
 
   int32_t init(CSOUND *csound) {
-    sampleRate = csound->GetSr(csound);
+    sampleRate = opds.insdshead->esr;
     blockRate = opds.insdshead->ekr;
     blockSize = opds.insdshead->ksmps;
     // Take care of default values.
@@ -280,7 +280,8 @@ PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
   }
   return status;
 }
-#ifndef INIT_STATIC_MODULES
+  
+#ifdef BUILD_PLUGINS
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;

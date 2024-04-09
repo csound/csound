@@ -150,39 +150,39 @@ public:
 };
 
 extern "C" {
-    PUBLIC int csoundModuleInit_ampmidid(CSOUND *csound) {
+    PUBLIC int32_t csoundModuleInit_ampmidid(CSOUND *csound) {
         int status = csound->AppendOpcode(
                          csound, (char *)"ampmidid.k", sizeof(KAMPMIDID), 0, 3, (char *)"k",
                          (char *)"kio",
-                         (int (*)(CSOUND *, void *))KAMPMIDID::init_,
-                         (int (*)(CSOUND *, void *))KAMPMIDID::kontrol_,
-                         (int (*)(CSOUND *, void *))0);
+                         (int32_t (*)(CSOUND *, void *))KAMPMIDID::init_,
+                         (int32_t (*)(CSOUND *, void *))KAMPMIDID::kontrol_,
+                         (int32_t (*)(CSOUND *, void *))0);
         status |= csound->AppendOpcode(
                       csound, (char *)"ampmidid.i", sizeof(IAMPMIDID), 0, 1, (char *)"i",
                       (char *)"iio",
-                      (int (*)(CSOUND *, void *))IAMPMIDID::init_,
-                      (int (*)(CSOUND *, void *))0,
-                      (int (*)(CSOUND *, void *))0);
+                      (int32_t (*)(CSOUND *, void *))IAMPMIDID::init_,
+                      (int32_t (*)(CSOUND *, void *))0,
+                      (int32_t (*)(CSOUND *, void *))0);
         status |= csound->AppendOpcode(csound, (char *)"ampmidid", 0xffff, 0, 0, 0, 0,
                                        0, 0, 0);
         status = csound->AppendOpcode(
                      csound, (char *)"ampmidicurve.k", sizeof(AMPMIDICURVE), 0, 3, (char *)"k",
                      (char *)"kkk",
-                     (int (*)(CSOUND *, void *))AMPMIDICURVE::init_,
-                     (int (*)(CSOUND *, void *))AMPMIDICURVE::kontrol_,
-                     (int (*)(CSOUND *, void *))0);
+                     (int32_t (*)(CSOUND *, void *))AMPMIDICURVE::init_,
+                     (int32_t (*)(CSOUND *, void *))AMPMIDICURVE::kontrol_,
+                     (int32_t (*)(CSOUND *, void *))0);
         status |= csound->AppendOpcode(
                       csound, (char *)"ampmidicurve.i", sizeof(AMPMIDICURVE), 0, 1, (char *)"i",
                       (char *)"iii",
-                      (int (*)(CSOUND *, void *))AMPMIDICURVE::init_,
-                      (int (*)(CSOUND *, void *))0,
-                      (int (*)(CSOUND *, void *))0);
+                      (int32_t (*)(CSOUND *, void *))AMPMIDICURVE::init_,
+                      (int32_t (*)(CSOUND *, void *))0,
+                      (int32_t (*)(CSOUND *, void *))0);
         status |= csound->AppendOpcode(csound, (char *)"ampmidicurve", 0xffff, 0, 0, 0, 0,
                                        0, 0, 0);
         return status;
     }
 
-#ifndef INIT_STATIC_MODULES
+#ifdef BUILD_PLUGINS
     PUBLIC int csoundModuleCreate(CSOUND *csound) {
         IGN(csound);
         return 0;
@@ -196,5 +196,10 @@ extern "C" {
         IGN(csound);
         return 0;
     }
+#else
+
+
+
+
 #endif
 }

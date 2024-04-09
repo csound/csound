@@ -595,3 +595,6 @@ int32_t sliderKawai_i(CSOUND *csound,  void *p);
 int32_t sliderKawai(CSOUND *csound,  void *p);
 int32_t ctrl7a_set(CSOUND *csound, void *p);
 int32_t ctrl7a(CSOUND *csound, void *p);
+int32_t oversampleset(CSOUND *csound, void *p);
+int32_t undersampleset(CSOUND *csound, void *p);
+

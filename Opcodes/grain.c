@@ -102,14 +102,14 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     gtp  = p->gftp;
     gtbl = gtp->ftable;
     glen = gtp->flen;
-    gcvt = glen/csound->GetSr(csound);
+    gcvt = glen/CS_ESR;
 
     pow2tab = ISPOW2(glen);
 
     etp  = p->eftp;
     etbl = etp->ftable;
     elen = etp->flen;
-    ecvt = elen/csound->GetSr(csound);
+    ecvt = elen/CS_ESR;
 
     lb   = gtp->lobits;
     lb2  = etp->lobits;

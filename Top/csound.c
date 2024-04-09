@@ -250,11 +250,9 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   return csound->_system_sr;
 }
 
+
 static const CSOUND cenviron_ = {
     /* attributes  */
-    csoundGetSr,
-    csoundGetKr,
-    csoundGetKsmps,
     csoundGetNchnls,
     csoundGetNchnlsInput,
     csoundGet0dBFS,
@@ -671,9 +669,14 @@ static const CSOUND cenviron_ = {
     0,
     0.0,
     0.0,
-    NULL,
+    //    NULL,
     NULL,
     0,
+    FL(0.0),  /* esr */
+    FL(0.0),
+    FL(0.0),
+    FL(0.0),
+    0,       /* overmode */
     0,
     FL(0.0),
     FL(0.0), FL(0.0), FL(0.0),
@@ -1168,7 +1171,7 @@ static void psignal_(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(HAVE_EXECINFO) && !defined(ANDROID) && !defined(NACL)
+#if defined(HAVE_EXECINFO) && !defined(ANDROID) 
     #include <execinfo.h>
 
     {

@@ -101,7 +101,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
     p->hmrngflg = 0;
     /*if (p->auxch.auxp == NULL || minoct < p->minoct ) */ {
       MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
-      int16 nbufs = (int16)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
+      int16 nbufs = (int16)(CS_EKR * 3 / minfrq) + 1;/* recalc max pulse prd */
       int16 nbufsmps = nbufs * CS_KSMPS;
       int16 maxprd = (int16)(CS_ESR * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
@@ -344,7 +344,6 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     for (vdp=p->vocdat; vdp<p->vlim; vdp++)     /* get new frequencies  */
       vdp->phsinc = (int32)(*vdp->kfrq * p->sicvt);
     outp = p->ar;
-    //nsmps = CS_KSMPS;
     vocamp = p->vocamp;
     diramp = FL(1.0) - vocamp;
     dirp = p->asig;

@@ -116,7 +116,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       }
       if (csFileType == CSFTYPE_UNKNOWN) {
         memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-        sfinfo.samplerate = (int32_t)(csound->esr + FL(0.5));
+        sfinfo.samplerate = (int32_t)(CS_ESR + FL(0.5));
         sfinfo.channels = 1;
         sfinfo.format = (int32_t)FORMAT2SF(csound->oparms->outformat)
                         | (int32_t)TYPE2SF(TYP_RAW);

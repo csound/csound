@@ -19,7 +19,7 @@
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
-*/
+ */
 
 /*******************************************/
 /*  4 Resonance Modal Synthesis Instrument */
@@ -96,12 +96,12 @@ void Modal4_setRatioAndReson(CSOUND *csound,
                              Modal4 *m, int32_t whichOne, MYFLT ratio,MYFLT reson)
 {
     MYFLT temp;
-    if (ratio* m->baseFreq < CS_ESR * FL(0.5)) {
+    if (ratio* m->baseFreq < m->sr * FL(0.5)) {
       m->ratios[whichOne] = ratio;
     }
     else {
       temp = ratio;
-      while (temp* m->baseFreq > FL(0.5)*CS_ESR) temp *= FL(0.5);
+      while (temp* m->baseFreq > FL(0.5)*m->sr) temp *= FL(0.5);
       m->ratios[whichOne] = temp;
     }
     m->resons[whichOne] = reson;
@@ -240,6 +240,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     MYFLT       temp,temp2;
     int32_t         itemp;
     FUNC        *ftp;
+    p->m4.sr = CS_ESR;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
       p->m4.wave = ftp;
@@ -366,6 +367,7 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
     Modal4      *m = &(p->m4);
     MYFLT       temp;
     FUNC        *ftp;
+    p->m4.sr = CS_ESR;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
       p->m4.wave = ftp;         /* Expect an impulslything */
@@ -454,6 +456,7 @@ int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
     Modal4      *m = &(p->m4);
     FUNC        *ftp;
     MYFLT       temp;
+    p->m4.sr = CS_ESR;
 
     /* Expect an impulslything */
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->m4.wave = ftp;

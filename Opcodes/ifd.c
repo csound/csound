@@ -356,7 +356,7 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
   uint32_t nsmps = CS_KSMPS;
 
   if(p->cnt >= hopsize){
-    MYFLT  pos = *p->in*csound->GetSr(csound);
+    MYFLT  pos = *p->in*CS_ESR;
     MYFLT  *sigframe = (MYFLT *) p->sigframe.auxp;
     MYFLT  pit = *p->p3;
     int32_t     fftsize = p->fftsize;

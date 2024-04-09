@@ -402,7 +402,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       p->rate = 0;
     }
     else
-      p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
+      p->rate = (int32_t)(*p->i_rate * CS_ESR);
 
       /* Initialize index */
     p->idx = 0;
@@ -637,7 +637,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
+    p->fix = (MYFLT)p->tlen*(1.0/CS_ESR);
     return OK;
 }
 
@@ -823,13 +823,13 @@ static OENTRY localops[] =
 
 };
 
-static int32_t scansyn_init_(CSOUND *csound)
+int32_t scansyn_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 
-
+#ifdef BUILD_PLUGINS
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
@@ -851,3 +851,4 @@ PUBLIC int32_t csoundModuleInfo(void)
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
                                                            ) sizeof(MYFLT));
 }
+#endif

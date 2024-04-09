@@ -706,8 +706,8 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
                      (unsigned int)p->bufSize != parm->bufSamp_SW))
           rtJack_Error(csound, -1,
                        Str("input and output parameters are not consistent"));
-        if (UNLIKELY((unsigned int)((parm->bufSamp_SW / csound->GetKsmps(csound)) *
-                                    csound->GetKsmps(csound)) != parm->bufSamp_SW))
+        if (UNLIKELY((unsigned int)((parm->bufSamp_SW / parm->ksmps) *
+                                    parm->ksmps) != parm->bufSamp_SW))
           rtJack_Error(csound, -1,
                        Str("period size (-b) must be an integer "
                            "multiple of ksmps"));
@@ -721,6 +721,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
 
     p->bufSize = parm->bufSamp_SW;
     p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
+    p->sr = parm->sampleRate;
 
 }
 
@@ -900,7 +901,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
         /* VL 28.03.15 -- timeout after wait for 10 buffer
            lengths */
         int ret = rtJack_LockTimeout(csound, &(p->bufs[bufcnt]->csndLock),
-                                     10000*(nframes/csound->GetSr(csound)));
+                                     10000*(nframes/p->sr));
         if (ret) {
           memset(inbuf_, 0, bytes_);
           OPARMS oparms;

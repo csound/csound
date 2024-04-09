@@ -1010,9 +1010,9 @@ static void AtsAmpGate(            /* adaption of PvAmpGate by Richard Karpen */
  * the intermediate values.
  */
 
-static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat)
+static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat, MYFLT sr)
 {
-    radat->size = (int32_t) MYFLT2LRND(CS_ESR / freq);
+    radat->size = (int32_t) MYFLT2LRND(sr / freq);
     radat->cnt = 0;
     radat->a1 = (int32) csound->Rand31(&(csound->randSeed1));
     radat->a2 = (int32) csound->Rand31(&(csound->randSeed1));
@@ -1250,7 +1250,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < 25; i++) {
-      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
+      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]), CS_ESR);
     }
 
     /* flag set to reduce the amount of warnings sent out */
@@ -1420,7 +1420,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < 25; i++) {
-      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]));
+      randiats_setup(csound, p->nfreq[i], &(p->randinoise[i]), CS_ESR);
     }
 
     /* flag set to reduce the amount of warnings sent out */
@@ -1727,7 +1727,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < (int32_t) *p->iptls; i++) {
-      randiats_setup(csound, freqs[i], &(p->randinoise[i]));
+      randiats_setup(csound, freqs[i], &(p->randinoise[i]), CS_ESR);
     }
 
     return OK;
@@ -1891,7 +1891,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
 
     /* initialise band limited noise parameters */
     for (i = 0; i < (int32_t) *p->iptls; i++) {
-      randiats_setup(csound, freqs[i], &(p->randinoise[i]));
+      randiats_setup(csound, freqs[i], &(p->randinoise[i]), CS_ESR);
     }
 
     return OK;

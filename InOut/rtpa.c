@@ -67,6 +67,7 @@ typedef struct PA_BLOCKING_STREAM_ {
 #endif
   int         paLockTimeout;
   int         complete;
+  int         ksmps;
 } PA_BLOCKING_STREAM;
 
 static int pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
@@ -335,8 +336,8 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
       pa_PrintErrMsg(csound, Str("Inconsistent full-duplex sample rates"));
       goto err_return;
     }
-    if (UNLIKELY(((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) *
-                  csound->GetKsmps(csound)) != pabs->inParm.bufSamp_SW))
+    if (UNLIKELY(((pabs->inParm.bufSamp_SW / pabs->ksmps) *
+                  pabs->ksmps) != pabs->inParm.bufSamp_SW))
       csound->Warning(csound,
                        "%s", Str("WARNING: buffer size should be an integer "
                                  "multiple of ksmps in full-duplex mode\n"));
@@ -581,7 +582,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   pabs->mode |= 1;
   memcpy(&(pabs->inParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtRecordUserData(p)) = (void*) pabs;
-
+  pabs->ksmps = parm->ksmps;
   pabs->complete = 0;
 
   return 0;
@@ -605,7 +606,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   pabs->mode |= 2;
   memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) pabs;
-
+  pabs->ksmps = parm->ksmps;
   pabs->complete = 0;
 
   return (paBlockingReadWriteOpen(p));

@@ -366,16 +366,16 @@ public:
     {
         return OK;
     }
-    static int noteoff_(CSOUND *csound, void *opcode)
+    static int32_t noteoff_(CSOUND *csound, void *opcode)
     {
         return reinterpret_cast<T *>(opcode)->noteoff(csound);
     }
     OPDS opds;
 };
 
-#if (__cplusplus >= 201103L) && !(defined(__wasi__))
-  //#pragma message("Defining heap_object_manager_t.")
 
+#if (__cplusplus >= 201103L) && !(defined(__wasi__)) && !defined(BARE_METAL)
+  // #pragma message("Defining heap_object_manager_t.")
 /**
  * The memory of non-POD C++ or C objects allocated on the heap by Csound
  * plugins is managed not by Csound, but by the plugin module. This class

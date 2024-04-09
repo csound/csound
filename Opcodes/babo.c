@@ -194,7 +194,7 @@ static void
 _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, MYFLT max_time)
 {
     size_t num_floats =
-      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*CS_ESR)));
+      (size_t)MYFLT2LRND((MYFLT)ceil((double)(max_time*this->sr)));
 
     BaboMemory_create(csound, &this->core, num_floats);
 }
@@ -260,7 +260,7 @@ BaboTapline_create(CSOUND *csound, BaboTapline *this, MYFLT x, MYFLT y, MYFLT z)
 static inline MYFLT
 BaboTapline_maxtime(CSOUND *csound, BaboDelay *this)
 {
-    return (((MYFLT) BaboMemory_samples(&this->core)) * CS_ONEDSR);
+  return (((MYFLT) BaboMemory_samples(&this->core)) * (1./this->sr));
 }
 
 static inline MYFLT
@@ -273,6 +273,7 @@ typedef struct
 {
     MYFLT   attenuation;
     MYFLT   delay_size;
+    MYFLT   sr;
 } BaboTapParameter;
 
 typedef struct
@@ -329,7 +330,7 @@ static inline void BaboTapline_preload_parameter(CSOUND *csound,
      *          direct_att=(1/2) when distance is 1 m
      *          direct_att=1     when distance is 0 m.
      */
-    this->delay_size    = (distance / sound_speed) * CS_ESR;
+    this->delay_size    = (distance / sound_speed) * this->sr;
     this->attenuation   = FL(1.0) / (FL(1.0) + distance);
 }
 
@@ -772,10 +773,11 @@ static int32_t
 baboset(CSOUND *csound, void *entry)
 {
     BABO *p = (BABO *) entry;   /* assuming the engine is right... :)   */
-
+    p->tapline.sr = CS_ESR;
+    p->matrix_delay.sr = CS_ESR;
     set_defaults(csound,p);
     verify_coherence(csound,p);        /* exits if call is wrong */
-
+    
     BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));
     BaboDelay_create(csound, &p->matrix_delay,
                      BaboTapline_maxtime(csound, &p->tapline));
@@ -845,6 +847,14 @@ babo(CSOUND *csound, void *entry)
     return OK;
 }
 
+/*
+typedef struct
+{
+    BaboTapParameter    direct;
+    BaboTapParameter    tap[BABO_TAPS];
+} BaboTaplineParameters;
+*/
+
 static int32_t
 babo2(CSOUND *csound, void *entry)
 {
@@ -855,9 +865,14 @@ babo2(CSOUND *csound, void *entry)
     MYFLT   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;
+    int i;
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
                           right = { {FL(0.0)}, {{FL(0.0)}} };
+    left.direct.sr = CS_ESR;
+    right.direct.sr = CS_ESR;
+    for(i = 0; i < BABO_TAPS; i++)
+      left.tap[i].sr = right.tap[i].sr = CS_ESR;
 
     BaboTapline_precalculate_parameters(csound, &left,
                                         p->receiver_x - p->inter_receiver_distance,

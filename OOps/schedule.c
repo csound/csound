@@ -293,7 +293,7 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     MYFLT       *ar, amp;
 
     phs = p->phs;
-    inc = (int32_t)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
+    inc = (int32_t)((*p->xcps * (MYFLT)MAXPHASE) * CS_ONEDSR);
     amp = *p->kamp;
     ar = p->res;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));

@@ -390,6 +390,7 @@ static void sensLine(CSOUND *csound, void *userData)
           e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
           cp = newcp - 1;
         } while (pcnt < PMAX);
+        
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
         else  /* Check for sufficient pfields (0-based, opcode counted already). */
           if (UNLIKELY(pcnt < 2 && e.opcod != 'e')) {
@@ -413,6 +414,10 @@ static void sensLine(CSOUND *csound, void *userData)
             ;
         }
         Linestart = (++cp);
+        if (e.opcod =='e' && e.p[1]>FL(0.0)) {
+          e.p[2] = e.p[1];
+          e.pcnt = 2;
+        }
         insert_score_event_at_sample(csound, &e, csound->icurTime);
         continue;
       Lerr:
@@ -508,6 +513,11 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       evt.p[1] *= -1;
     }
 
+    if (opcod == 'e' && (int) evt.pcnt >= 1 && evt.p[1] > 0) {
+      evt.p[2] = evt.p[1];
+      evt.pcnt = 2;
+    }
+
     if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
       return csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
@@ -595,6 +605,11 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
       err = csound->hfgens(csound, &dummyftp, &evt, 0);
+    }
+    else if (opcod == 'e' && (int) evt.pcnt >= 1 && evt.p[1] > 0) {
+      evt.p[2] = evt.p[1];
+      evt.pcnt = 2;
+      err = insert_score_event_at_sample(csound, &evt, csound->icurTime);
     }
     else
       err = insert_score_event_at_sample(csound, &evt, csound->icurTime);

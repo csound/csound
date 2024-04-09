@@ -298,7 +298,7 @@ static void pkinterp(LPCparam *p){
 MYFLT csoundLPcps(CSOUND *csound, void *parm){
   LPCparam *p = (LPCparam *) parm;
   int i;
-  MYFLT mx = FL(0.0), pmx, sr = csound->GetSr(csound);
+  MYFLT mx = FL(0.0), pmx, sr = csoundGetSr(csound);
   MYFLT *pk = p->pk, *am = p->am;
   pkpick(p);
   pkinterp(p);
@@ -968,7 +968,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
     cbuf[bp] = in[n];
     bp = bp != N - 1 ? bp + 1 : 0;
     if(--cp == 0) {
-      MYFLT k, incr = p->wlen/N, g, sr = csound->GetSr(csound);
+      MYFLT k, incr = p->wlen/N, g, sr = csoundGetSr(csound);
       MYFLT *fftframe =  (MYFLT *) p->fftframe.auxp;
       float *pvframe = (float *)p->fout->frame.auxp;
       int32_t j,i;
@@ -1075,7 +1075,7 @@ static int cmpfunc (const void * a, const void * b) {
 int32_t coef2parm(CSOUND *csound, CF2P *p) {
   MYCMPLX *pl;
   MYFLT *c = p->in->data, pm, pf, sum = 0.0;
-  MYFLT *pp = p->out->data, Nyq = csound->esr/2;
+  MYFLT *pp = p->out->data, Nyq = CS_ESR/2;
   int i,j;
   // simple check for new data
   for(i=0; i< p->M; i++) sum += c[i];
@@ -1085,7 +1085,7 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
     memset(pp,0,sizeof(MYFLT)*p->M);
     for(i = j = 0; i < p->M; i++) {
       pm = magc(pl[i]);
-      pf = phsc(pl[i])/csound->tpidsr;
+      pf = phsc(pl[i])/CS_TPIDSR;
       if(isnan(pf)) {
         pp[j] = 0;
         pp[j+1] = 0;
@@ -1093,7 +1093,7 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
       else {
         if(pf > 0 && pf < Nyq && j < p->M) {
           pp[j] = pf;
-          pp[j+1] = -LOG(pm)*2/csound->tpidsr;
+          pp[j+1] = -LOG(pm)*2/CS_TPIDSR;
           j += 2;
         }
       }
@@ -1189,7 +1189,7 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
         cf = p->kparm->data[k];
         bw = p->kparm->data[k+1];
         if(cf > fmin && cf < fmax) {
-          cosf = cos(cf * (double)(csound->tpidsr));
+          cosf = cos(cf * (double)(CS_TPIDSR));
           c3[j] = exp(bw * (double)(csound->mtpdsr));
           c3p1 = c3[j] + 1.0;
           c3t4 = c3[j] * 4.0;

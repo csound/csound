@@ -50,7 +50,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT;
 
     ar = p->rslt;
     ftp = p->ftp;
@@ -127,7 +127,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT  sicvt = csound->sicvt;
+    MYFLT  sicvt = CS_SICVT;
     MYFLT  *ft;
 
     ar = p->rslt;
@@ -1463,7 +1463,7 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     }
     /* IV - Jul 11 2002 */
     ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */
-    frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
+    frqscale = *p->kfmod * ISINSIZ * CS_ONEDSR;
     /* 1024 * msecs of analysis */
     memset(p->rslt,0,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(early)) nsmps -= early;

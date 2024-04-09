@@ -24,11 +24,6 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
-#undef CS_KSMPS
-#define CS_KSMPS     (csound->GetKsmps(csound))
-
-//#define DEBUG 1
-
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
 #if !defined(HAVE_STRLCAT) && !defined(strlcat)
@@ -102,7 +97,7 @@ strNcpy(char *dst, const char *src, size_t siz)
 *****************************************************************************/
 void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
 {
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     Ksmps = DSSIPlugin_->ksmps;
     uint64_t PortCount = 0;
     LADSPA_Descriptor *Descriptor;
     uint32 i;
@@ -248,8 +243,8 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
 {
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
-    int32_t     SampleRate = (int32_t) MYFLT2LRND(csound->GetSr(csound));
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     SampleRate = (int32_t) MYFLT2LRND(CS_ESR);
+    int32_t     Ksmps = CS_KSMPS;
     uint64_t     i;
     int32_t     verbose = (int32_t)*p->iverbose;
     LADSPA_Descriptor_Function pfDescriptorFunction;
@@ -265,7 +260,12 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
+<<<<<<< HEAD
     CS_TYPE* argType = GetTypeForArg(p->iplugin);
+=======
+    CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
+    DSSIPlugin->ksmps = Ksmps;
+>>>>>>> develop
 
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
@@ -811,9 +811,12 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     uint32_t i, j;
-    uint32_t icnt = GetInputArgCnt(p) - 1;
-    uint32_t ocnt = GetOutputArgCnt(p);
-    uint64_t Ksmps = (uint64_t) csound->GetKsmps(csound);
+
+
+    uint32_t icnt = csound->GetInputArgCnt(p) - 1;
+    uint32_t ocnt = csound->GetOutputArgCnt(p);
+    uint64_t Ksmps = (uint64_t) CS_KSMPS;
+
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
@@ -868,7 +871,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
             Crash if audio port selected */
     const LADSPA_Descriptor *Descriptor;
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     Sr = (int32_t) MYFLT2LRND(csound->GetSr(csound));
+    int32_t     Sr = (int32_t) MYFLT2LRND(CS_ESR);
     uint64_t PortIndex = *p->iport;
     uint32_t  i;
     uint64_t ControlPort = 0;

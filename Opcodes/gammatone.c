@@ -50,7 +50,7 @@ static int32_t gammatone_init(CSOUND *csound, GAMMA *p)
     if (p->n<0 || p->n>10)
       return csound->InitError(csound, Str("Invalid order %d\n"), p->n);
     else if (p->n==0) p->n = 4;
-    p->expmbt = EXP(-2.0*PI_F* *p->decay/*/csound->GetSr(csound)*/);
+    p->expmbt = EXP(-2.0*PI_F* *p->decay/*/CS_ESR*/);
     p->cosft = FL(1.0);
     p->sinft = FL(0.0);
     p->oldf = FL(0.0);
@@ -78,8 +78,8 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
     }
     if (*p->freq != freq) {
       freq = p->oldf = *p->freq;
-      p->cosft = COS(2.0*PI_F*freq/csound->GetSr(csound));
-      p->sinft = SIN(2.0*PI_F*freq/csound->GetSr(csound));
+      p->cosft = COS(2.0*PI_F*freq/CS_ESR);
+      p->sinft = SIN(2.0*PI_F*freq/CS_ESR);
       //printf("**** cos/sin = %f / %f\n", p->cosft, p->sinft);
       //printf("**** expmbt = %f\n", p->expmbt);
     }

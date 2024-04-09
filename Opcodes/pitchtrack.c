@@ -557,7 +557,7 @@ typedef struct plltrack_
 
 } PLLTRACK;
 
-void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t TYPE)
+void update_coefs(PLLTRACK *p, double fr, double Q, BIQUAD *biquad, int32_t TYPE)
 {
     double k, ksq, div, ksqQ;
 
@@ -604,7 +604,7 @@ int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
     p->x1 = p->cos_x = p->sin_x = 0.0;
     p->x2 = 1.0;
     p->klpf_o = p->klpfQ_o = p->klf_o = p->khf_o = 0.0;
-    update_coefs(csound,10.0, 0.0, &p->fils[4], LP1);
+    update_coefs(p,10.0, 0.0, &p->fils[4], LP1);
     p->ace = p->xce = 0.0;
     for (i=0; i < 6; i++)
       p->fils[i].del1 = p->fils[i].del2 = 0.0;
@@ -663,19 +663,19 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 
 
     if (p->khf_o != khf) {
-      update_coefs(csound, khf, 0.0, &biquad[0], LP1);
-      update_coefs(csound, khf, 0.0, &biquad[1], LP1);
-      update_coefs(csound, khf, 0.0, &biquad[2], LP1);
+      update_coefs(p, khf, 0.0, &biquad[0], LP1);
+      update_coefs(p, khf, 0.0, &biquad[1], LP1);
+      update_coefs(p, khf, 0.0, &biquad[2], LP1);
       p->khf_o = khf;
     }
 
     if (p->klf_o != klf) {
-      update_coefs(csound, klf, 0.0, &biquad[3], HP);
+      update_coefs(p, klf, 0.0, &biquad[3], HP);
       p->klf_o = klf;
     }
 
     if (p->klpf_o != klpf || p->klpfQ_o != klpfQ ) {
-      update_coefs(csound, klpf, klpfQ, &biquad[5], LP2);
+      update_coefs(p, klpf, klpfQ, &biquad[5], LP2);
       p->klpf_o = klpf; p->klpfQ_o = klpfQ;
     }
 

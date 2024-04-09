@@ -182,7 +182,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
     if (*p->ptime < CS_ONEDKR)
       p->ctime = FL(0.0);
     else
-      p->ctime = *p->ptime * csound->ekr;
+      p->ctime = *p->ptime * CS_EKR;
 
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
@@ -220,7 +220,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
       csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
                                (int32_t)p->h.insdshead->p1.value);
       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
-                               csound->icurTime/csound->esr-CS_ONEDKR);
+                               csound->icurTime/CS_ESR-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
@@ -255,7 +255,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     if (*p->ptime < CS_ONEDKR)
       p->ctime = CS_ONEDKR;
     else
-      p->ctime = *p->ptime * csound->ekr;
+      p->ctime = *p->ptime * CS_EKR;
     if(!p->h.insdshead->reinitflag)
        p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */

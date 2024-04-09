@@ -85,7 +85,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
     make_BiQuad(&p->bandpass[1]);
     make_BiQuad(&p->bandpass[2]);
     make_BiQuad(&p->bandpass[3]);
-    make_ADSR(&p->adsr);
+    make_ADSR(&p->adsr, CS_ESR);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
     if (LIKELY(*p->lowestFreq>=FL(0.0))) {      /* If no init skip */
