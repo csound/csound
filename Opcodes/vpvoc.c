@@ -200,7 +200,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
       p->window = fltp;
     }
     if (stringname==0){
-      if (csound->IsStringCode(*p->ifilno))
+      if (IsStringCode(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }

@@ -45,7 +45,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
 
     if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
     else {
-      if(csound->IsStringCode(*p->Sfname))
+      if(IsStringCode(*p->Sfname))
         fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
       else
         fname = csound->StringArg2Name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
@@ -216,7 +216,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       return csound->InitError(csound,
                                Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
-    if (csound->IsStringCode(*p->ifn)) {
+    if (IsStringCode(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
@@ -365,7 +365,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     double  frqScale = 1.0;
 
     p->dataPtr = NULL;
-    if (csound->IsStringCode(*p->ifn)) {
+    if (IsStringCode(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;

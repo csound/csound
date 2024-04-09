@@ -332,7 +332,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
-      if (csound->IsStringCode(*p->iFileCode))
+      if (IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
@@ -1065,7 +1065,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     csound->RegisterDeinitCallback(csound, pp, soundout_deinit);
 
     if (stringname==0){
-      if (csound->IsStringCode(*ifilcod))
+      if (IsStringCode(*ifilcod))
         strNcpy(name,get_arg_string(csound, *ifilcod), 1023);
       else csound->StringArg2Name(csound, name, ifilcod, "soundout.",0);
     }
@@ -1594,7 +1594,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
-      if (csound->IsStringCode(*p->iFileCode))
+      if (IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
@@ -2165,7 +2165,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
-      if (csound->IsStringCode(*p->iFileCode))
+      if (IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
       else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }

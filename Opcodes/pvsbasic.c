@@ -218,7 +218,7 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
        csound->GetOParms(csound, &parm);
 
   if (stringname==0) {
-    if (csound->IsStringCode(*p->file))
+    if (IsStringCode(*p->file))
       strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
   }
@@ -355,7 +355,7 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
   char fname[MAXNAME];
 
   if (stringname==0){
-    if (csound->IsStringCode(*p->file))
+    if (IsStringCode(*p->file))
       strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
   }

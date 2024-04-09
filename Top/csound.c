@@ -281,7 +281,6 @@ static const CSOUND cenviron_ = {
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
     csoundInputMessageInternal,
-    isstrcod,
     /* message printout */
     csoundMessage,
     csoundMessageS,

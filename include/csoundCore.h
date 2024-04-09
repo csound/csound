@@ -1254,7 +1254,6 @@ typedef struct _message_queue_t_ {
     void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
-    int  (*IsStringCode)(MYFLT);
     /**@}*/
     
     /** @name Message printout */

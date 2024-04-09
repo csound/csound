@@ -307,7 +307,7 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
       csound->StringArg2Name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
-    else if (csound->IsStringCode(*p->val)) {
+    else if (IsStringCode(*p->val)) {
       csound->StringArg2Name(csound, buffer,
                           csound->GetString(csound, *p->val), "", 1);
     }

@@ -425,7 +425,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
-    else if (csound->IsStringCode(*p->args[0])) {
+    else if (IsStringCode(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
       insno = (int32_t)strarg2insno_p(csound, ss);
     }
@@ -468,7 +468,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || csound->IsStringCode(*p->args[0])) {
+    if (*p->args[0] >= FL(0.0) || IsStringCode(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -495,7 +495,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
-    else if (csound->IsStringCode(*p->args[0])) {
+    else if (IsStringCode(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
       evt.p[1] = csound->StringArg2Insno(csound,name, 1);
       evt.strarg = NULL;
@@ -628,7 +628,7 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 
     if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
 
-    if (LIKELY(csound->IsStringCode(csound->init_event->p[n]))) {
+    if (LIKELY(IsStringCode(csound->init_event->p[n]))) {
         p->ians->data = cs_strdup(csound,
                 get_arg_string(csound, csound->init_event->p[n]));
         p->ians->size = strlen(p->ians->data) + 1;
@@ -652,7 +652,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
     pargs -= (int)*p->end;
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
       //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
-      if (csound->IsStringCode(csound->init_event->p[n+start])) {
+      if (IsStringCode(csound->init_event->p[n+start])) {
         ((STRINGDAT *)p->inits[n])->data =
           cs_strdup(csound, get_arg_string(csound, csound->init_event->p[n+start]));
         ((STRINGDAT *)p->inits[n])->size =

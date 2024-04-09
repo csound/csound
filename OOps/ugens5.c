@@ -609,7 +609,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
 
     /* Build file name */
     if (stringname) strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (csound->IsStringCode(*p->ifilcod))
+    else if (IsStringCode(*p->ifilcod))
       strNcpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->StringArg2Name(csound, lpfilname, p->ifilcod, "lp.", 0);
 

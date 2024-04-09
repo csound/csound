@@ -45,7 +45,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     if (stringname==0){
-      if (csound->IsStringCode(*p->ifilno))
+      if (IsStringCode(*p->ifilno))
         strNcpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->StringArg2Name(csound, cvfilnam,p->ifilno, "convolve.",0);
     }
@@ -398,7 +398,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     IRfile.skiptime = FL(0.0);
 
      if (stringname==0){
-      if (csound->IsStringCode(*p->ifilno))
+      if (IsStringCode(*p->ifilno))
         strNcpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
       else csound->StringArg2Name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
     }

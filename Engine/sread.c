@@ -803,7 +803,7 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
     SRTBLK *p = (csound->sread.bp);
     int16 n;
 
-    if (csound->IsStringCode((csound->sread.bp)->p1val) &&
+    if (IsStringCode((csound->sread.bp)->p1val) &&
         *(csound->sread.sp) == '"') {
       /* IV - Oct 31 2002 */
       int sign = 0;

@@ -75,7 +75,7 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -128,7 +128,7 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -183,7 +183,7 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -235,7 +235,7 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
@@ -384,7 +384,7 @@ int32_t krdset_p(CSOUND *csound, KREAD *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-     if (csound->IsStringCode(*p->ifilcod))
+     if (IsStringCode(*p->ifilcod))
        strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -464,7 +464,7 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -518,7 +518,7 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -572,7 +572,7 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here"));
     }
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
@@ -796,7 +796,7 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    if (csound->IsStringCode(*p->ifilcod))
+    if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)

@@ -381,7 +381,7 @@ static void sensLine(CSOUND *csound, void *userData)
               goto Lerr;
             }                                   /*        pfld carry   */
             e.p[pcnt] = STA(prve).p[pcnt];
-            if (UNLIKELY(csound->IsStringCode(e.p[pcnt]))) {
+            if (UNLIKELY(IsStringCode(e.p[pcnt]))) {
               csound->ErrorMsg(csound, Str("cannot carry string p-field"));
               goto Lerr;
             }
@@ -486,7 +486,7 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       }
       else {
         int res;
-        if (csound->IsStringCode(*p->args[1])) {
+        if (IsStringCode(*p->args[1])) {
           res = csound->StringArg2Insno(csound,
                                      get_arg_string(csound, *p->args[1]), 1);
           if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
@@ -573,7 +573,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
       }
       else {
         evt.strarg = NULL; evt.scnt = 0;
-        if (csound->IsStringCode(*p->args[1])) {
+        if (IsStringCode(*p->args[1])) {
           int res = csound->StringArg2Insno(csound,
                                          get_arg_string(csound, *p->args[1]), 1);
           if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
@@ -653,7 +653,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
-        if (csound->IsStringCode(*p->args[0])) {
+        if (IsStringCode(*p->args[0])) {
           res = csound->StringArg2Insno(csound,
                                      get_arg_string(csound, *p->args[0]), 1);
           if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;

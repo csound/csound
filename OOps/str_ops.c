@@ -129,7 +129,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 {
   int32_t   indx;
   p->r->timestamp = 0;
-  if (csound->IsStringCode(*(p->indx))) {
+  if (IsStringCode(*(p->indx))) {
     char *ss = csound->init_event->strarg;
     if (ss == NULL)
       return OK;
@@ -206,7 +206,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
-  if (csound->IsStringCode(*p->indx)) {
+  if (IsStringCode(*p->indx)) {
     char *ss;
     ss = get_arg_string(csound, *p->indx);
     if (ss == NULL){
@@ -621,7 +621,7 @@ int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
   char    *s = NULL, *tmp;
   double  x;
 
-  if (csound->IsStringCode(*p->str))
+  if (IsStringCode(*p->str))
     s = get_arg_string(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
@@ -718,7 +718,7 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
   int32_t   sgn = 0, radix = 10;
   int32_t   x = 0L;
 
-  if (csound->IsStringCode(*p->str))
+  if (IsStringCode(*p->str))
     s = get_arg_string(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
