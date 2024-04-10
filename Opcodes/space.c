@@ -56,7 +56,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
       p->rrev4 = fltp;   //fltp += CS_KSMPS;
     }
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     pp->spaceaddr = (void*) p;
     return OK;
 }
@@ -184,7 +184,7 @@ static int32_t spsendset(CSOUND *csound, SPSEND *p)
 {
     STDOPCOD_GLOBALS  *pp;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     p->space = (SPACE*) pp->spaceaddr;
     return OK;
 }

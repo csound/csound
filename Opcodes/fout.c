@@ -40,7 +40,9 @@ static CS_NOINLINE int32_t fout_deinit_callback(CSOUND *csound, void *p_)
     p->sf = (SNDFILE*) NULL;
     p->f = (FILE*) NULL;
     if (p->idx) {
-      pp = &(((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[p->idx - 1]);
+      pp = &(((STDOPCOD_GLOBALS*)
+              csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS")
+              )->file_opened[p->idx - 1]);
       p->idx = 0;
       if (pp->refCount) {
         pp->refCount--;
@@ -73,7 +75,8 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
                                           int32_t isString,
                                           void *fileParams, int32_t forceSync)
 {
-    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
+      csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     char              *name;
     int32_t               idx, csFileType, need_deinit = 0;
 
@@ -467,7 +470,9 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+    if (((STDOPCOD_GLOBALS*)
+         csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
+        ->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
@@ -525,7 +530,7 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+    if (((STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
@@ -593,7 +598,7 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+    if (((STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))->file_opened[n].do_scale)
       p->scaleFac = csound->dbfs_to_float;
     else
       p->scaleFac = FL(1.0);
@@ -649,7 +654,7 @@ static int32_t fiopen_S(CSOUND *csound, FIOPEN *p){
 
 static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
 {
-    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+  STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     int32_t               idx = -1;
 
     if (istring || csound->ISSTRCOD(*(p->iFile))) {
@@ -719,7 +724,7 @@ static int32_t ficlose_opcode_S(CSOUND *csound, FICLOSE *p){
 
 static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
 {
-    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+   STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     MYFLT   **args = p->argums;
     FILE    *rfil;
     uint32_t j;
@@ -778,7 +783,7 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
 
 static int32_t ioutfile_set_r(CSOUND *csound, IOUTFILE_R *p)
 {
-    STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+   STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     if (p->h.insdshead->xtratim < 1)
       p->h.insdshead->xtratim = 1;
     p->counter =  CS_KCNT;
@@ -799,7 +804,7 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     if (!p->h.insdshead->relesing || !p->done)
       return OK;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     args = p->argums;
     n = (int32_t) MYFLT2LRND(*p->ihandle);
     if (UNLIKELY(n < 0 || n > pp->file_num))
@@ -883,7 +888,9 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+    if (((STDOPCOD_GLOBALS*)
+         csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
+        ->file_opened[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
@@ -942,7 +949,9 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+    if (((STDOPCOD_GLOBALS*)
+         csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
+        ->file_opened[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);
@@ -1105,7 +1114,9 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->stdOp_Env)->file_opened[n].do_scale)
+    if (((STDOPCOD_GLOBALS*)
+         csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
+        ->file_opened[n].do_scale)
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);

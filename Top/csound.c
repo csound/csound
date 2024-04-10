@@ -666,7 +666,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-    NULL,           /*  stdOp_Env           */
     2345678,        /*  holdrand            */
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */

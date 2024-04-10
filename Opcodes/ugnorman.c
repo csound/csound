@@ -78,7 +78,9 @@ kamp            ATSinterpread   kfreq
 /* static variables used for atsbufread and atsbufreadnz */
 static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound)
 {
-    return &(((STDOPCOD_GLOBALS*) csound->stdOp_Env)->atsbufreadaddr);
+    return  &(((STDOPCOD_GLOBALS*)
+              csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS")
+              )->atsbufreadaddr);
 }
 
 /* byte swaps a double */
@@ -143,7 +145,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                opname, fname);
       return NOTOK;
     }
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     if (pp->swapped_warning)
       return 1;
     csound->Warning(csound,

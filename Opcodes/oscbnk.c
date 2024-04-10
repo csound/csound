@@ -27,7 +27,7 @@
 
 static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {
-    return ((STDOPCOD_GLOBALS*) csound->stdOp_Env);
+  return (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
 }
 
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
