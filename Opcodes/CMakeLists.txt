@@ -28,7 +28,12 @@ endif()
  endforeach()
   make_plugin(scansyn "${scanops}")
 
- 
+ foreach(SRC IN LISTS cs_pvs_ops_SRCS)
+  get_filename_component(PSRC ${SRC} NAME)
+  list(APPEND pvsops ${PSRC})
+ endforeach()
+  make_plugin(pvsopcodes "${pvsops}")
+
  foreach(SRC IN LISTS mp3in_SRCS)
    string(CONCAT MSRC "../" ${SRC})
   list(APPEND mp3inops ${MSRC})

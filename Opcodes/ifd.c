@@ -2,7 +2,7 @@
 
     Copyright (c) Victor Lazzarini, 2005
 
-    This file is part of Csound.
+    This file is part of Csound. 
 
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
@@ -71,12 +71,12 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
   frames = fftsize / hopsize;
 
   if (UNLIKELY((frames - (float) fftsize / hopsize) != 0.0f))
-    return csound->InitError(csound, Str("pvsifd: fftsize should "
+    return csound->InitError(csound, "%s", Str("pvsifd: fftsize should "
                                          "be an integral multiple of hopsize"));
 
   if (UNLIKELY((fftsize & (fftsize - 1))))
     return csound->InitError(csound,
-                             Str("pvsifd: fftsize should be power-of-two"));
+                             "%s", Str("pvsifd: fftsize should be power-of-two"));
 
   p->frames = frames;
 
@@ -139,7 +139,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
     break;
   default:
     return csound->InitError(csound,
-                             Str("pvsifd: unsupported value for iwintype\n"));
+                             "%s", Str("pvsifd: unsupported value for iwintype\n"));
     break;
   }
   fac = TWOPI / (fftsize - 1.0);
@@ -270,7 +270,7 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
 
   if (UNLIKELY((fftsize & (fftsize - 1))))
     return csound->InitError(csound,
-                             Str("pvsifd: fftsize should be power-of-two"));
+                             "%s", Str("pvsifd: fftsize should be power-of-two"));
 
   if (p->sigframe.auxp == NULL ||
       fftsize * sizeof(MYFLT) > (uint32_t) p->sigframe.size)
@@ -329,7 +329,7 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
     break;
   default:
     return csound->InitError(csound,
-                             Str("pvsifd: unsupported value for iwintype\n"));
+                             "%s", Str("pvsifd: unsupported value for iwintype\n"));
     break;
   }
   fac = TWOPI / (fftsize - 1.0);

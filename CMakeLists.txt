@@ -786,7 +786,6 @@ set(libcsound_SRCS
     Opcodes/select.c
     Opcodes/platerev.c
     Opcodes/sequencer.c
-    Opcodes/pvsgendy.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
     Opcodes/ambicode1.c
@@ -943,7 +942,9 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsdemix.c
     Opcodes/pvs_ops.c
     Opcodes/pvsband.c
-    Opcodes/pvsbuffer.c)
+    Opcodes/pvsbuffer.c
+    Opcodes/pvsgendy.c
+    )
 
 set(oldpvoc_SRCS
     Opcodes/dsputil.c
@@ -992,18 +993,18 @@ set(cppops_SRCS
      Opcodes/fractalnoise.cpp
 )
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} 
 ${pitch_ops_SRCS} ${oldpvoc_SRCS})
 
 list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
 ${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
-${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS}
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} 
 )
 
 if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS}
  ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
- ${gens_SRCS}
+ ${gens_SRCS} ${cs_pvs_ops_SRCS}
 )
 endif()
 

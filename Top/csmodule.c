@@ -1237,9 +1237,9 @@ extern int32_t scansynx_init_(CSOUND *csound);
   
 const INITFN2 staticmodules2[] = {
   stdopc_ModuleInit,
-  pvsopc_ModuleInit,
   newgabopc_ModuleInit,
 #ifndef BUILD_PLUGINS
+    pvsopc_ModuleInit,
     sfont_ModuleInit,
     csoundModuleInit_ampmidid,
     csoundModuleInit_mixer,
@@ -1257,7 +1257,7 @@ const INITFN2 staticmodules2[] = {
   NULL
     };
 
-const INITFN staticmodules[] = { pvsbuffer_localops_init,  modal4_localops_init,
+const INITFN staticmodules[] = {  modal4_localops_init,
                                  scoreline_localops_init, physmod_localops_init,
                                  modmatrix_localops_init, spectra_localops_init,
                                  ambicode1_localops_init, grain4_localops_init,
@@ -1275,8 +1275,7 @@ const INITFN staticmodules[] = { pvsbuffer_localops_init,  modal4_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
                                  select_localops_init,
-                                 platerev_localops_init,
-                                 pvsgendy_localops_init, scugens_localops_init,
+                                 platerev_localops_init, scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
                                                       
 #ifndef BUILD_PLUGINS
@@ -1307,7 +1306,7 @@ const INITFN staticmodules[] = { pvsbuffer_localops_init,  modal4_localops_init,
                                  hrtfopcodes_localops_init, lufs_localops_init,
                                  sterrain_localops_init,date_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
-                                 wpfilters_localops_init, gendy_localops_init,
+                                  wpfilters_localops_init, gendy_localops_init,
 #endif // !plugins
                                  NULL };
 

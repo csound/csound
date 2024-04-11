@@ -39,6 +39,7 @@
 #include "corfile.h"
 #include "csound_standard_types.h"
 #include "csGblMtx.h"
+#include "fftlib.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -567,6 +568,8 @@ static const CSOUND cenviron_ = {
     csoundPeekCircularBuffer,
     StringType,
     AsigType,
+    csoundInverseComplexFFTnp2,
+    csoundComplexFFTnp2,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL

@@ -2811,13 +2811,22 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
 
 #ifdef BUILD_PLUGINS
 
-int csoundModuleCreate(CSOUND *csound){
+PUBLIC int csoundModuleCreate(CSOUND *csound){
   return sfont_ModuleCreate(csound);
 }
 
-int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int csoundModuleInit(CSOUND *csound){
+  return csound->AppendOpcodes(csound, &(localops[0]),
+                               (int32_t) (sizeof(localops) / sizeof(OENTRY)));
+}
+
+PUBLIC int csoundModuleDestroy(CSOUND *csound) {
   return sfont_ModuleDestroy(csound);
 }
 
-LINKAGE
+PUBLIC int32_t csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
+) sizeof(MYFLT));
+}
 #endif
