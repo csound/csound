@@ -145,12 +145,11 @@ int32_t shaker(CSOUND *csound, SHAKER *p)
     /* Energy of Each Collision is Weighted by Exponentially   */
     /* Decaying System Energy.  All add together for total     */
     /* exponentially decaying sound energy.                    */
-        int rnd = csound->GetRandSeed(csound, 1);
-        if (csound->Rand31(&rnd) <= p->wait_time) {
+        if (csound->Rand31(csound->RandSeed1(csound)) <= p->wait_time) {
           ngain += gain * sEnergy;
         }
         /* Actual Sound is Random */
-        lastOutput = ngain * ((MYFLT) csound->Rand31(&rnd)
+        lastOutput = ngain * ((MYFLT) csound->Rand31(csound->RandSeed1(csound))
                               - FL(1073741823.5))
                            * (MYFLT) (1.0 / 1073741823.0);
         /* Each (all) event(s) decay(s) exponentially */

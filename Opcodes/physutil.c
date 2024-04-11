@@ -44,8 +44,7 @@
 
 MYFLT Noise_tick(CSOUND *csound, Noise *n)
 {
-  int32 tmp  = csound->GetRandSeed(csound,1);
-    MYFLT temp = (MYFLT) csound->Rand31(&tmp) - FL(1073741823.5);
+    MYFLT temp = (MYFLT) csound->Rand31(csound->RandSeed1(csound)) - FL(1073741823.5);
     temp *= (MYFLT) (1.0 / 1073741823.0);
     *n = (Noise) temp;
     return temp;

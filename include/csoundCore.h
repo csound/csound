@@ -1445,7 +1445,8 @@ typedef struct _message_queue_t_ {
     const CS_TYPE *(*StringType)(CSOUND *csound);
     const CS_TYPE *(*AsigType)(CSOUND *csound);
     void (*InverseComplexFFTnp2)(CSOUND *, MYFLT *, int);
-          void (*ComplexFFTnp2)(CSOUND *, MYFLT *, int);   
+          void (*ComplexFFTnp2)(CSOUND *, MYFLT *, int);
+    int32_t *(*RandSeed1)(CSOUND *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */

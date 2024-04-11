@@ -62,14 +62,12 @@
 
 static inline int32_t my_random(CSOUND *csound, int32_t max)
 {                                   /* Return Random Int Between 0 and max */
-    int32_t temp = csound->GetRandSeed(csound, 1);
-    return (csound->Rand31(&temp) % (max + 1));
+  return (csound->Rand31(csound->RandSeed1(csound)) % (max + 1));
 }
 
 static MYFLT noise_tick(CSOUND *csound)
 {                         /* Return random MYFLT float between -1.0 and 1.0 */
-    int32_t temp = csound->GetRandSeed(csound, 1);
-    MYFLT rnd = (MYFLT) csound->Rand31(&temp) - FL(1073741823.5);
+    MYFLT rnd = (MYFLT) csound->Rand31(csound->RandSeed1(csound)) - FL(1073741823.5);
     return (rnd * (MYFLT) (1.0 / 1073741823.0));
 }
 

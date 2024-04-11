@@ -231,6 +231,11 @@ static int csoundGetRandSeed(CSOUND *csound, int which){
     else return csound->randSeed2;
 }
 
+static int *RandSeed1(CSOUND *csound){
+  return &(csound->randSeed1);
+}
+
+
 static char *csoundGetStrsets(CSOUND *csound, long p){
     if (csound->strsets == NULL) return NULL;
     else return csound->strsets[p];
@@ -570,6 +575,7 @@ static const CSOUND cenviron_ = {
     AsigType,
     csoundInverseComplexFFTnp2,
     csoundComplexFFTnp2,
+    RandSeed1,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL

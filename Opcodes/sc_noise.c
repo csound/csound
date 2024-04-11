@@ -61,8 +61,7 @@ static int32_t dust_init(CSOUND *csound, DUST *p)
     p->density0 = FL(0.0);
     p->thresh   = FL(0.0);
     p->scale    = FL(0.0);
-    p->rand = csound->GetRandSeed(csound,1);
-    p->rand  = csound->Rand31(&p->rand);
+    p->rand  = csound->Rand31(csound->RandSeed1(csound));
     return OK;
 }
 
@@ -175,8 +174,7 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
 /* gausstrig opcode based on Bhob Rainey's GaussTrig ugen */
 static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 {
-    p->rand = csound->GetRandSeed(csound,1);
-    p->rand  = csound->Rand31(&p->rand);
+    p->rand  = csound->Rand31(csound->RandSeed1(csound));
     p->first = *p->ifrst1;
 #if 0
     if (*p->ifrst1 > FL(0.0)) {
@@ -222,8 +220,7 @@ static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 /* a separate k-time init for proper work of gausstrig */
 static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
 {
-    p->rand = csound->GetRandSeed(csound,1);
-    p->rand  = csound->Rand31(&p->rand);
+    p->rand  = csound->Rand31(csound->RandSeed1(csound));
     p->first = *p->ifrst1;
 #if 0
     if (*p->ifrst1 > FL(0.0)) {
