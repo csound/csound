@@ -50,8 +50,12 @@ This code would implement individual grain envelopes
 
 But we're smarter than that!!!  See below
 */
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "shaker.h"
 
 int32_t shakerset(CSOUND *csound, SHAKER *p)
@@ -141,12 +145,12 @@ int32_t shaker(CSOUND *csound, SHAKER *p)
     /* Energy of Each Collision is Weighted by Exponentially   */
     /* Decaying System Energy.  All add together for total     */
     /* exponentially decaying sound energy.                    */
-
-        if (csound->Rand31(&(csound->randSeed1)) <= p->wait_time) {
+        int rnd = csound->GetRandSeed(csound, 1);
+        if (csound->Rand31(&rnd) <= p->wait_time) {
           ngain += gain * sEnergy;
         }
         /* Actual Sound is Random */
-        lastOutput = ngain * ((MYFLT) csound->Rand31(&(csound->randSeed1))
+        lastOutput = ngain * ((MYFLT) csound->Rand31(&rnd)
                               - FL(1073741823.5))
                            * (MYFLT) (1.0 / 1073741823.0);
         /* Each (all) event(s) decay(s) exponentially */

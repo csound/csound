@@ -24,7 +24,6 @@
 #ifndef CSOUND_PVS_OPS_H
 #define CSOUND_PVS_OPS_H
 
-/* #include "csdl.h" */
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else

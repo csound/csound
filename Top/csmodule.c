@@ -1257,13 +1257,13 @@ const INITFN2 staticmodules2[] = {
   NULL
     };
 
-const INITFN staticmodules[] = {  modal4_localops_init,
-                                 scoreline_localops_init, physmod_localops_init,
+const INITFN staticmodules[] = {  
+                                 scoreline_localops_init, 
                                  modmatrix_localops_init, spectra_localops_init,
                                  ambicode1_localops_init, grain4_localops_init,
                                  loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
-                                 phisem_localops_init, pvoc_localops_init,
+                                 pvoc_localops_init,
                                  vbap_localops_init,
                                  ugakbari_localops_init, harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
@@ -1307,6 +1307,7 @@ const INITFN staticmodules[] = {  modal4_localops_init,
                                  sterrain_localops_init,date_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
                                   wpfilters_localops_init, gendy_localops_init,
+                                  phisem_localops_init, physmod_localops_init,
 #endif // !plugins
                                  NULL };
 

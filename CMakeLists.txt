@@ -794,7 +794,7 @@ set(libcsound_SRCS
     Opcodes/minmax.c
     Opcodes/pan2.c
     Opcodes/arrays.c
-    Opcodes/phisem.c
+
     Opcodes/vbap.c
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
@@ -812,15 +812,6 @@ set(libcsound_SRCS
     Opcodes/fareyseq.c
     Opcodes/modmatrix.c
     Opcodes/scoreline.c
-    Opcodes/modal4.c
-    Opcodes/physutil.c
-    Opcodes/physmod.c
-    Opcodes/mandolin.c
-    Opcodes/singwave.c
-    Opcodes/fm4op.c
-    Opcodes/moog1.c
-    Opcodes/shaker.c
-    Opcodes/bowedbar.c
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
@@ -834,6 +825,19 @@ if(NOT MSVC)
     set_source_files_properties(Opcodes/sfont.c PROPERTIES
         COMPILE_FLAGS -Wno-address-of-packed-member)
 endif()
+
+set(physmod_SRCS
+    Opcodes/physutil.c
+    Opcodes/modal4.c
+    Opcodes/physmod.c
+    Opcodes/mandolin.c
+    Opcodes/singwave.c
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
+    Opcodes/bowedbar.c
+)
+
 
 set(externs_SRCS
     Opcodes/babo.c
@@ -857,6 +861,7 @@ set(externs_SRCS
     Opcodes/gammatone.c
     Opcodes/sfont.c
     Opcodes/gendy.c
+    Opcodes/phisem.c
 )
 
 set(gens_SRCS
@@ -927,7 +932,7 @@ set(sock_ops_SRCS
 
 
 set(hrtf_ops_SRCS
-        Opcodes/hrtfopcodes.c
+    Opcodes/hrtfopcodes.c
     Opcodes/hrtfearly.c
     Opcodes/hrtfreverb.c
     Opcodes/hrtferX.c
@@ -983,26 +988,26 @@ set(cppops_SRCS
    Opcodes/mixer.cpp
    Opcodes/bformdec2.cpp
    Opcodes/doppler.cpp
-     Opcodes/ftsamplebank.cpp
-     Opcodes/padsynth_gen.cpp
-     Opcodes/signalflowgraph.cpp
-     Opcodes/arrayops.cpp
-     Opcodes/lfsr.cpp
-     Opcodes/pvsops.cpp
-     Opcodes/trigEnvSegs.cpp
-     Opcodes/fractalnoise.cpp
+   Opcodes/ftsamplebank.cpp
+   Opcodes/padsynth_gen.cpp
+   Opcodes/signalflowgraph.cpp
+   Opcodes/arrayops.cpp
+   Opcodes/lfsr.cpp
+   Opcodes/pvsops.cpp
+   Opcodes/trigEnvSegs.cpp
+   Opcodes/fractalnoise.cpp
 )
 
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} 
-${pitch_ops_SRCS} ${oldpvoc_SRCS})
+${pitch_ops_SRCS} ${oldpvoc_SRCS} ${physmod_SRCS})
 
-list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
 ${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
 ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} 
 )
 
 if(NOT BUILD_PLUGINS)
- list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS}
+ list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
  ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
  ${gens_SRCS} ${cs_pvs_ops_SRCS}
 )

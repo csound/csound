@@ -45,8 +45,13 @@
 /*  Sandpapr (sandpaper)                                  */
 /**********************************************************/
 
-// #include "csdl.h"
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include "phisem.h"
 #include <math.h>
@@ -57,14 +62,15 @@
 
 static inline int32_t my_random(CSOUND *csound, int32_t max)
 {                                   /* Return Random Int Between 0 and max */
-    return (csound->Rand31(&(csound->randSeed1)) % (max + 1));
+    int32_t temp = csound->GetRandSeed(csound, 1);
+    return (csound->Rand31(&temp) % (max + 1));
 }
 
 static MYFLT noise_tick(CSOUND *csound)
 {                         /* Return random MYFLT float between -1.0 and 1.0 */
-    MYFLT temp;
-    temp = (MYFLT) csound->Rand31(&(csound->randSeed1)) - FL(1073741823.5);
-    return (temp * (MYFLT) (1.0 / 1073741823.0));
+    int32_t temp = csound->GetRandSeed(csound, 1);
+    MYFLT rnd = (MYFLT) csound->Rand31(&temp) - FL(1073741823.5);
+    return (rnd * (MYFLT) (1.0 / 1073741823.0));
 }
 
 /************************* MARACA *****************************/
@@ -421,7 +427,7 @@ static int32_t sandset(CSOUND *csound, SEKERE *p)
     p->coeffs0 = - SANDPAPR_RESON * FL(2.0) *
       COS(SANDPAPR_CENTER_FREQ * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(128.0);
     return OK;
@@ -448,7 +454,7 @@ static int32_t stixset(CSOUND *csound, SEKERE *p)
     p->coeffs0 = - STIX1_RESON * FL(2.0) *
       COS(STIX1_CENTER_FREQ * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(30.0);
     return OK;
@@ -473,7 +479,7 @@ static int32_t crunchset(CSOUND *csound, CABASA *p)
     p->coeffs0 = - CRUNCH1_RESON * FL(2.0) *
       COS(CRUNCH1_CENTER_FREQ * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(0.0);
     return OK;
@@ -693,7 +699,7 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
     p->coeffs20        = -TAMB_CYMB_RESON * FL(2.0) *
       COS(TAMB_CYMB_FREQ2 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
@@ -834,7 +840,7 @@ static int32_t bambooset(CSOUND *csound, BAMBOO *p)
     p->coeffs20        = -BAMB_RESON * FL(2.0) *
       COS(BAMB_CENTER_FREQ2 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy     = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
@@ -975,7 +981,7 @@ static int32_t wuterset(CSOUND *csound, WUTER *p)
     p->coeffs20        = -WUTR_RESON * FL(2.0) *
       COS(WUTR_CENTER_FREQ2 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy     = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->shake_maxSave = FL(0.0);
@@ -1167,7 +1173,7 @@ static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
     p->coeffs40        = -SLEI_CYMB_RESON * FL(2.0) *
       COS(SLEI_CYMB_FREQ4 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;

@@ -35,6 +35,7 @@
 #include "physutil.h"
 
 typedef struct Modal4 {
+    OPDS h;
     Envelope envelope;
     FUNC        *wave;
 /*     int32_t              w_looping; */
@@ -69,9 +70,9 @@ void Modal4_setRatioAndReson(CSOUND*,Modal4 *m, int32_t
 #define Modal4_setDirectGain(m,aGain)   (m->directGain = aGain)
 #define Modal4_setFiltGain(m,whichOne,gain) \
                     (BiQuad_setGain(m->filters[whichOne], gain))
-static void Modal4_strike(CSOUND *, Modal4 *m, MYFLT amplitude);
-static void Modal4_damp(CSOUND *, Modal4 *m, MYFLT amplitude);
-static MYFLT Modal4_tick(Modal4 *);
+/*void Modal4_strike(CSOUND *, Modal4 *m, MYFLT amplitude);
+void Modal4_damp(CSOUND *, Modal4 *m, MYFLT amplitude);
+MYFLT Modal4_tick(Modal4 *);*/
 
 #endif
 

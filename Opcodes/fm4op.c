@@ -34,7 +34,12 @@
 /*                                                       */
 /*********************************************************/
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "fm4op.h"
 
 /***********************************************************/
@@ -149,7 +154,7 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->vifn)) == NULL))
       goto err1;
     p->vibWave = ftp;
-    p->baseFreq = csound->A4;
+    p->baseFreq = csound->GetA4(csound);
     p->ratios[0] = FL(1.0);
     p->ratios[1] = FL(1.0);
     p->ratios[2] = FL(1.0);
@@ -164,7 +169,7 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     return OK;
  err1:
 /* Expect sine wave */
-    return csound->InitError(csound, Str("No table for VibWaveato"));
+    return csound->InitError(csound, "%s", Str("No table for VibWaveato"));
 }
 
 static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
@@ -182,7 +187,7 @@ static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
  err1:
-    return csound->InitError(csound, Str("No table for FM4Op"));
+    return csound->InitError(csound, "%s", Str("No table for FM4Op"));
 }
 
 void FM4Op_setRatio(FM4OP *p, int32_t whichOne, MYFLT ratio)

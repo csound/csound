@@ -6,7 +6,7 @@ option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 ##  External opcodes can be optionally built as plugins
 ###########################################
 if(BUILD_PLUGINS)
-
+# these are single-source plugin libraries
  foreach(SRC IN LISTS cppops_SRCS hrtf_ops_SRCS
  sock_ops_SRCS externs_SRCS gens_SRCS)
   get_filename_component(LIBNAME ${SRC} NAME_WE)
@@ -21,30 +21,37 @@ if(UNIX)
   make_plugin(${LIBNAME} ${LIBSRC})
    endforeach()
 endif()
- 
+
+# these are multiple-source plugin libraries
+# scansyn
  foreach(SRC IN LISTS scanops_SRCS)
   get_filename_component(SSRC ${SRC} NAME)
   list(APPEND scanops ${SSRC})
  endforeach()
   make_plugin(scansyn "${scanops}")
 
+# fsig ops
  foreach(SRC IN LISTS cs_pvs_ops_SRCS)
   get_filename_component(PSRC ${SRC} NAME)
   list(APPEND pvsops ${PSRC})
  endforeach()
   make_plugin(pvsopcodes "${pvsops}")
 
+# physical model ops
+ foreach(SRC IN LISTS physmod_SRCS)
+  get_filename_component(PHSRC ${SRC} NAME)
+  list(APPEND physmod ${PHSRC})
+ endforeach()
+  make_plugin(physmod "${physmod}")
+
+# mp3in ops and gen
  foreach(SRC IN LISTS mp3in_SRCS)
    string(CONCAT MSRC "../" ${SRC})
   list(APPEND mp3inops ${MSRC})
  endforeach()
   make_plugin(mp3in "${mp3inops}")  
 
-
 endif() 
-
-
-
 
 
 ##########################################
