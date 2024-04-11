@@ -1262,7 +1262,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  scoreline_localops_init, physmod_localops_init,
                                  modmatrix_localops_init, spectra_localops_init,
                                  ambicode1_localops_init, grain4_localops_init,
-                                 hrtferX_localops_init, loscilx_localops_init,
+                                loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
                                  vbap_localops_init,
@@ -1270,17 +1270,13 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init, tabsum_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
-                                 fareyseq_localops_init, hrtfearly_localops_init,
-                                 hrtfreverb_localops_init, minmax_localops_init,
+                                 fareyseq_localops_init, minmax_localops_init,
                                  vaops_localops_init, paulstretch_localops_init,
                                  squinewave_localops_init, tabaudio_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
-#if defined(LINUX) || defined(__MACH__)                                 
-                                 control_localops_init, urandom_localops_init,
-#endif                                 
-
+                               
 #if !(defined(__wasi__))
                                  counter_localops_init,
 #ifdef HAVE_SOCKETS
@@ -1291,8 +1287,12 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #ifndef NO_SERIAL_OPCODES                                 
                                  serial_localops_init,
 #endif
-#ifndef BUILD_PLUGINS                                 
-                                 mp3in_localops_init,
+#ifndef BUILD_PLUGINS
+#if defined(LINUX) || defined(__MACH__)                         
+                                 control_localops_init, urandom_localops_init,
+#endif  
+                                 mp3in_localops_init, hrtferX_localops_init,
+                                 hrtfearly_localops_init, hrtfreverb_localops_init,
 #endif                                 
 #endif
                                  scnoise_localops_init, afilts_localops_init,

@@ -773,7 +773,6 @@ set(libcsound_SRCS
     Opcodes/ambicode1.c
     Opcodes/sfont.c
     Opcodes/grain4.c
-    Opcodes/hrtferX.c
     Opcodes/loscilx.c
     Opcodes/minmax.c
     Opcodes/pan2.c
@@ -811,8 +810,6 @@ set(libcsound_SRCS
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
     Opcodes/ftest.c
-    Opcodes/hrtfearly.c
-    Opcodes/hrtfreverb.c
     Opcodes/cpumeter.c
     Opcodes/gendy.c
     Opcodes/sc_noise.c
@@ -916,6 +913,12 @@ set(stdopcod_SRCS
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
 
+set(hrtf_ops_SRCS
+    Opcodes/hrtfearly.c
+    Opcodes/hrtfreverb.c
+    Opcodes/hrtferX.c
+)
+
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c
     Opcodes/partials.c
@@ -978,14 +981,17 @@ list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
 ${oldpvoc_SRCS})
 
 list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
-${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS})
+${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS} ${hrtf_ops_SRCS})
 
 if(NOT BUILD_PLUGINS)
- list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${mp3in_SRCS})
+ list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS}
+ ${mp3in_SRCS} ${hrtf_ops_SRCS})
 endif()
 
 if(UNIX)
+if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${unixops_SRCS})
+endif()
  list(APPEND libcsound_static_SRCS ${unixops_SRCS})
 endif()
 
