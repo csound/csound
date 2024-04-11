@@ -1271,8 +1271,7 @@ const INITFN staticmodules[] = { pvsbuffer_localops_init,  modal4_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, minmax_localops_init,
                                  vaops_localops_init, paulstretch_localops_init,
-                                 tabaudio_localops_init,
-                                 gendy_localops_init, zak_localops_init,
+                                 tabaudio_localops_init, zak_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
                                  select_localops_init,
@@ -1308,7 +1307,7 @@ const INITFN staticmodules[] = { pvsbuffer_localops_init,  modal4_localops_init,
                                  hrtfopcodes_localops_init, lufs_localops_init,
                                  sterrain_localops_init,date_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
-                                 wpfilters_localops_init,
+                                 wpfilters_localops_init, gendy_localops_init,
 #endif // !plugins
                                  NULL };
 
@@ -1331,10 +1330,10 @@ NGFENS *farey_fgens_init(CSOUND *);
 NGFENS *padsyn_fgen_init(CSOUND *); 
 NGFENS *mp3in_fgen_init(CSOUND *);
 
-const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,
-#ifndef BUILD_PLUGINS  
-                              padsyn_fgen_init,
-                              mp3in_fgen_init,
+const FGINITFN fgentab[] = {  
+#ifndef BUILD_PLUGINS
+  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,
+  padsyn_fgen_init, mp3in_fgen_init,
 #endif
                               NULL };
 

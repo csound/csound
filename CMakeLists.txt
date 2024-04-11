@@ -778,10 +778,6 @@ set(libcsound_SRCS
     Opcodes/gab/hvs.c
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
-    Opcodes/ftest.c
-    Opcodes/gendy.c
-    Opcodes/fareygen.c
-    Opcodes/quadbezier.c
     Opcodes/zak.c
     Opcodes/framebuffer.c
     Opcodes/cellular.c
@@ -861,6 +857,13 @@ set(externs_SRCS
     Opcodes/sterrain.c
     Opcodes/gammatone.c
     Opcodes/sfont.c
+    Opcodes/gendy.c
+)
+
+set(gens_SRCS
+    Opcodes/ftest.c
+    Opcodes/fareygen.c
+    Opcodes/quadbezier.c
 )
 
 set(pitch_ops_SRCS
@@ -994,12 +997,14 @@ ${pitch_ops_SRCS} ${oldpvoc_SRCS})
 
 list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
 ${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
-${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS}
 )
 
 if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS}
- ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS})
+ ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
+ ${gens_SRCS}
+)
 endif()
 
 if(UNIX)

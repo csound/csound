@@ -26,7 +26,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 
 typedef struct {
         OPDS    h;
@@ -124,11 +128,12 @@ static int32_t gendyset(CSOUND *csound, GENDY *p)
     csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
-    p->rand = csoundRand31(&csound->randSeed1);
+    p->rand = csound->GetRandSeed(csound,1);
+    p->rand = csound->Rand31(&p->rand);
     for (i=0; i < p->points; i++) {
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       memdur[i] = (MYFLT)p->rand * dv2_31;
     }
     return OK;
@@ -150,7 +155,7 @@ static int32_t kgendy(CSOUND *csound, GENDY *p)
         knum = p->points;
       p->index = index = (index+1) % knum;
       p->amp = p->nextamp;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
       p->nextamp = memamp[index] + *p->ampscl * dist;
       /* amplitude variations within the boundaries of a mirror */
@@ -164,7 +169,7 @@ static int32_t kgendy(CSOUND *csound, GENDY *p)
         }
       }
       memamp[index] = p->nextamp;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
       p->dur = memdur[index] + *p->durscl * dist;
       /* time variations within the boundaries of a mirror */
@@ -207,7 +212,7 @@ static int32_t agendy(CSOUND *csound, GENDY *p)
           knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
         p->nextamp = memamp[index] + *p->ampscl * dist;
         if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
@@ -220,7 +225,7 @@ static int32_t agendy(CSOUND *csound, GENDY *p)
           }
         }
         memamp[index] = p->nextamp;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
         p->dur = memdur[index] + *p->durscl * dist;
         if (p->dur > FL(1.0))
@@ -256,11 +261,12 @@ static int32_t gendyxset(CSOUND *csound, GENDYX *p)
     csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
-    p->rand = csoundRand31(&csound->randSeed1);
+    p->rand = csound->GetRandSeed(csound,1);
+    p->rand = csound->Rand31(&p->rand);
     for (i=0; i < p->points; i++) {
-      p->rand   = (int32)csoundRand31(&p->rand);
+      p->rand   = (int32)csound->Rand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
-      p->rand   = csoundRand31(&p->rand);
+      p->rand   = csound->Rand31(&p->rand);
       memdur[i] = (MYFLT)p->rand * dv2_31;
     }
     return OK;
@@ -282,7 +288,7 @@ static int32_t kgendyx(CSOUND *csound, GENDYX *p)
         knum = p->points;
       p->index = index = (index+1) % knum;
       p->amp = p->nextamp;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
       p->nextamp = memamp[index] + *p->ampscl * dist;
       if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
@@ -295,7 +301,7 @@ static int32_t kgendyx(CSOUND *csound, GENDYX *p)
         }
       }
       memamp[index] = p->nextamp;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
       p->dur = memdur[index] + *p->durscl * dist;
       if (p->dur > FL(1.0))
@@ -342,7 +348,7 @@ static int32_t agendyx(CSOUND *csound, GENDYX *p)
           knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
         p->nextamp = memamp[index] + *p->ampscl * dist;
         if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
@@ -355,7 +361,7 @@ static int32_t agendyx(CSOUND *csound, GENDYX *p)
           }
         }
         memamp[index] = p->nextamp;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
         p->dur = memdur[index] + *p->durscl * dist;
         if (p->dur > FL(1.0))
@@ -399,11 +405,12 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
     csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
     memamp  = p->memamp.auxp;
     memdur  = p->memdur.auxp;
-    p->rand = csoundRand31(&csound->randSeed1);
+    p->rand = csound->GetRandSeed(csound,1);
+    p->rand = csound->Rand31(&p->rand);
     for (i=0; i < p->points; i++) {
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       memdur[i] = (MYFLT)p->rand * dv2_31;
     }
     return OK;
@@ -425,7 +432,7 @@ static int32_t kgendyc(CSOUND *csound, GENDYC *p)
         knum = p->points;
       p->index = index = (index+1) % knum;
       p->amp = p->nextamp;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
       p->nextamp = memamp[index] + *p->ampscl * dist;
       if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
@@ -439,7 +446,7 @@ static int32_t kgendyc(CSOUND *csound, GENDYC *p)
       }
       next_midpnt = (p->amp + p->nextamp) * 0.5;
       memamp[index] = p->nextamp;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
       p->dur = memdur[index] + *p->durscl * dist;
       if (p->dur > FL(1.0))
@@ -488,7 +495,7 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
           knum = p->points;
         p->index = index = (index+1) % knum;
         p->amp = p->nextamp;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         dist = gendy_distribution(csound, *p->ampdist, *p->adpar, p->rand);
         p->nextamp = memamp[index] + *p->ampscl * dist;
         if (p->nextamp < FL(-1.0) || p->nextamp > FL(1.0)) {
@@ -502,7 +509,7 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
         }
         next_midpnt = (p->amp + p->nextamp) * 0.5;
         memamp[index] = p->nextamp;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         dist = gendy_distribution(csound, *p->durdist, *p->ddpar, p->rand);
         p->dur = memdur[index] + *p->durscl * dist;
         if (p->dur > FL(1.0))
