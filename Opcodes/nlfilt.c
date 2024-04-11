@@ -107,7 +107,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
-    maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
+    maxamp = csound->Get0dBFS(csound) * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -182,7 +182,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
     nsmps = CS_KSMPS;
-    maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
+    maxamp = csound->Get0dBFS(csound) * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));

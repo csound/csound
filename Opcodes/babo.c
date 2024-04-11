@@ -123,8 +123,11 @@ input  |    |------>|
                     Move static fn declarations out of function
  */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "babo.h"
 #include <math.h>
 #include "interlocks.h"

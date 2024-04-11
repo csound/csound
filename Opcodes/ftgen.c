@@ -270,9 +270,9 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
         csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
-      else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
+      else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
-      strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+      strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {
@@ -511,9 +511,9 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
         csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
-      else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
+      else strncpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
-      strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+      strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {

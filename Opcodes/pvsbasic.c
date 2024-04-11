@@ -217,10 +217,10 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
 
   if (stringname==0) {
     if (csound->ISSTRCOD(*p->file))
-      strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
+      strncpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
-  else strNcpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
+  else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
 
 
@@ -354,10 +354,10 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
 
   if (stringname==0){
     if (csound->ISSTRCOD(*p->file))
-      strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
+      strncpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
-  else strNcpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
+  else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
   if (UNLIKELY(p->fout->sliding))
     return csound->InitError(csound,
@@ -431,7 +431,7 @@ static int32_t pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
   float *buffer = (float *) p->buffer.auxp;
   float *frame1 = buffer + (N+2)*p->chn;
   float *frame2 = buffer + (N+2)*(p->chans + p->chn);
-  float amp = (float) (*p->kgain * csound->e0dbfs);
+  float amp = (float) (*p->kgain * csound->Get0dBFS(csound));
 
   if (p->scnt >= overlap) {
     posi = (uint32_t) pos;

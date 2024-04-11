@@ -691,6 +691,20 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/argdecode.c    
+    Top/csdebug.c
+    Top/cscore_internal.c
+    Top/cscorfns.c
+    Top/csmodule.c
+    Top/getstring.c
+    Top/main.c
+    Top/new_opts.c
+    Top/one_file.c
+    Top/opcode.c
+    Top/threads.c
+    Top/utility.c
+    Top/threadsafe.c
+    Top/server.c    
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
@@ -760,25 +774,32 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/vdelay.c
     OOps/compile_ops.c
-    Opcodes/babo.c
-    Opcodes/bilbar.c
-    Opcodes/compress.c
-    Opcodes/eqfil.c
-    Opcodes/Vosim.c
-    Opcodes/squinewave.c
-    Opcodes/pinker.c
-    Opcodes/pitch.c
-    Opcodes/pitch0.c
-    Opcodes/spectra.c
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
+    Opcodes/ftest.c
+    Opcodes/gendy.c
+    Opcodes/fareygen.c
+    Opcodes/quadbezier.c
+    Opcodes/zak.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
+    Opcodes/exciter.c
+    Opcodes/buchla.c
+    Opcodes/select.c
+    Opcodes/platerev.c
+    Opcodes/sequencer.c
+    Opcodes/pvsgendy.c
+    Opcodes/emugens/emugens.c
+    Opcodes/emugens/scugens.c
     Opcodes/ambicode1.c
-    Opcodes/sfont.c
     Opcodes/grain4.c
     Opcodes/loscilx.c
     Opcodes/minmax.c
     Opcodes/pan2.c
     Opcodes/arrays.c
     Opcodes/phisem.c
-    Opcodes/hrtfopcodes.c
     Opcodes/vbap.c
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
@@ -805,51 +826,7 @@ set(libcsound_SRCS
     Opcodes/moog1.c
     Opcodes/shaker.c
     Opcodes/bowedbar.c
-    Opcodes/gab/tabmorph.c
-    Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-    Opcodes/ftest.c
-    Opcodes/cpumeter.c
-    Opcodes/gendy.c
-    Opcodes/sc_noise.c
-    Opcodes/afilters.c
-    Opcodes/wpfilters.c
-    Opcodes/zak.c
-    Opcodes/lufs.c
-    Opcodes/date.c
-    Opcodes/system_call.c
-    Opcodes/liveconv.c
-    Opcodes/sterrain.c
-    Opcodes/gammatone.c
-    Opcodes/fareygen.c
-    Opcodes/quadbezier.c
-    Opcodes/framebuffer.c
-    Opcodes/cellular.c
-    Opcodes/exciter.c
-    Opcodes/buchla.c
-    Opcodes/select.c
-    Opcodes/serial.c
-    Opcodes/counter.c
-    Opcodes/platerev.c
-    Opcodes/sequencer.c
-    Opcodes/pvsgendy.c
-    Opcodes/emugens/emugens.c
-    Opcodes/emugens/scugens.c
-    Top/argdecode.c
-    Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
-    Top/csmodule.c
-    Top/getstring.c
-    Top/main.c
-    Top/new_opts.c
-    Top/one_file.c
-    Top/opcode.c
-    Top/threads.c
-    Top/utility.c
-    Top/threadsafe.c
-    Top/server.c)
+)
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
 
@@ -862,6 +839,35 @@ if(NOT MSVC)
     set_source_files_properties(Opcodes/sfont.c PROPERTIES
         COMPILE_FLAGS -Wno-address-of-packed-member)
 endif()
+
+set(externs_SRCS
+    Opcodes/babo.c
+    Opcodes/bilbar.c
+    Opcodes/compress.c
+    Opcodes/eqfil.c
+    Opcodes/Vosim.c
+    Opcodes/squinewave.c
+    Opcodes/pinker.c
+    Opcodes/cpumeter.c
+    Opcodes/sc_noise.c
+    Opcodes/afilters.c
+    Opcodes/wpfilters.c
+    Opcodes/lufs.c
+    Opcodes/date.c
+    Opcodes/system_call.c
+    Opcodes/serial.c
+    Opcodes/counter.c
+    Opcodes/liveconv.c
+    Opcodes/sterrain.c
+    Opcodes/gammatone.c
+    Opcodes/sfont.c
+)
+
+set(pitch_ops_SRCS
+    Opcodes/pitch0.c
+    Opcodes/pitch.c
+    Opcodes/spectra.c
+)
 
 set(stdopcod_SRCS
     Opcodes/ambicode.c
@@ -910,10 +916,16 @@ set(stdopcod_SRCS
     Opcodes/wave-terrain.c
     Opcodes/wterrain2.c
     Opcodes/stdopcod.c
+    )
+
+set(sock_ops_SRCS
     Opcodes/socksend.c
-    Opcodes/sockrecv.c)
+    Opcodes/sockrecv.c
+)
+
 
 set(hrtf_ops_SRCS
+        Opcodes/hrtfopcodes.c
     Opcodes/hrtfearly.c
     Opcodes/hrtfreverb.c
     Opcodes/hrtferX.c
@@ -978,14 +990,16 @@ set(cppops_SRCS
 )
 
 list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
-${oldpvoc_SRCS})
+${pitch_ops_SRCS} ${oldpvoc_SRCS})
 
 list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
-${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS} ${hrtf_ops_SRCS})
+${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
+)
 
 if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS}
- ${mp3in_SRCS} ${hrtf_ops_SRCS})
+ ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS})
 endif()
 
 if(UNIX)

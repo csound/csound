@@ -22,7 +22,15 @@
 */
 
 
+
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
+#if !(defined(__wasi__))
 
 typedef struct {
   OPDS  h;
@@ -120,6 +128,30 @@ call_system_k(CSOUND *csound, SYSTEM *p)
       return (call_system(csound, p));
     return OK;
 }
+
+#else
+
+int32_t call_system_i(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+int32_t call_system_set(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+int32_t
+call_system_k(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+
+}
+
+#endif // !wasi
 
 #define S(x)    sizeof(x)
 

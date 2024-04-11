@@ -128,7 +128,7 @@ static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
     }
     p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
     p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
-    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
+    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->Get0dBFS(csound);
 
     return OK;
 }
@@ -147,7 +147,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
     double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-    MYFLT zerodb = csound->e0dbfs;
+    MYFLT zerodb = csound->Get0dBFS(csound);
 
     in      = p->in;
     out     = p->out;
@@ -515,7 +515,7 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
     }
     else if (*p->imode < FL(1.5)) {     /* mode 1: same with 0dBFS support */
       pregain   *=  (FL(6.5536) * csound->dbfs_to_float);
-      postgain  *=  (FL(0.61035156) * csound->e0dbfs);
+      postgain  *=  (FL(0.61035156) * csound->Get0dBFS(csound));
       shape1    *=  (FL(4.096) * csound->dbfs_to_float);
       shape2    *=  (FL(4.096) * csound->dbfs_to_float);
     }

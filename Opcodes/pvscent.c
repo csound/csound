@@ -348,7 +348,7 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
     int32_t PrevNotAdj          = FALSE;
 
     /* Un-normalise the threshold value */
-    Threshold *= csound->e0dbfs;
+    Threshold *= csound->Get0dBFS(csound);
 
     /* If a new frame is ready... */
     if (p->lastframe < p->fin->framecount) {

@@ -21,11 +21,66 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      AFILTERS.C        */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif      /*                      AFILTERS.C        */
 #include "ugens5.h"
 #include <math.h>
 
-extern int32_t rsnset(CSOUND *csound, RESON *p);
+
+static int32_t atonset(CSOUND *csound, TONE *p)
+{
+    double b;
+    p->prvhp = (double)*p->khp;
+    b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
+    p->c2 = b - sqrt(b * b - 1.0);
+    p->c1 = 1.0 - p->c2;
+
+    if (LIKELY(!(*p->istor)))
+      p->yt1 = 0.0;
+    return OK;
+}
+
+
+static int32_t atonsetx(CSOUND *csound, TONEX *p)
+{                   /* From Gabriel Maldonado, modified for arbitrary order */
+    {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
+    }
+    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
+    if (!*p->istor && (p->aux.auxp == NULL ||
+                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
+        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
+    p->yt1 = (double*)p->aux.auxp;
+    if (LIKELY(!(*p->istor))) {
+    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+    }
+    return OK;
+}
+
+
+static int32_t arsnset(CSOUND *csound, RESON *p)
+{
+    int32_t scale;
+    p->scale = scale = (int32_t)*p->iscl;
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                                       *p->iscl);
+    }
+    p->prvcf = p->prvbw = -100.0;
+    if (!(*p->istor))
+      p->yt1 = p->yt2 = 0.0;
+    p->asigf = IS_ASIG_ARG(p->kcf);
+    p->asigw = IS_ASIG_ARG(p->kbw);
+
+    return OK;
+}
 
 static int32_t aresonaa(CSOUND *csound, RESON *p)
 {
@@ -438,8 +493,16 @@ typedef struct  {
 } BBFIL;
 
 //#define ROOT2 (1.4142135623730950488)
+static int32_t butseta(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
+{
+     IGN(csound);
+    if (*p->istor==FL(0.0)) {
+      p->a[6] = p->a[7] = 0.0;
+      p->lkf = FL(0.0);
+    }
+    return OK;
+}
 
-extern int32_t butset(CSOUND *csound, BFIL *p);
 
 static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
@@ -679,17 +742,17 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
 
 static OENTRY afilts_localops[] =
 {
-  { "areson.aa", sizeof(RESON), 0,3,"a","aaaoo",(SUBR)rsnset,(SUBR)aresonaa},
-  { "areson.ak", sizeof(RESON), 0,3,"a","aakoo",(SUBR)rsnset,(SUBR)aresonak},
-  { "areson.ka", sizeof(RESON), 0,3,"a","akaoo",(SUBR)rsnset,(SUBR)aresonka},
-  { "atone.a",  sizeof(TONE),   0,3,"a","ako",  (SUBR)tonset,(SUBR)atonea  },
-  { "atonex.a", sizeof(TONEX),  0,3, "a","aaoo",(SUBR)tonsetx,(SUBR)atonexa},
-  { "tone.a",  sizeof(TONE),    0,3,"a","aao",  (SUBR)tonset,(SUBR)tonea   },
-  { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)tonsetx,(SUBR)tonexa },
-  { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
-  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
-  { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
-  { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
+  { "areson.aa", sizeof(RESON), 0,3,"a","aaaoo",(SUBR)arsnset,(SUBR)aresonaa},
+  { "areson.ak", sizeof(RESON), 0,3,"a","aakoo",(SUBR)arsnset,(SUBR)aresonak},
+  { "areson.ka", sizeof(RESON), 0,3,"a","akaoo",(SUBR)arsnset,(SUBR)aresonka},
+  { "atone.a",  sizeof(TONE),   0,3,"a","ako",  (SUBR)atonset,(SUBR)atonea  },
+  { "atonex.a", sizeof(TONEX),  0,3, "a","aaoo",(SUBR)atonsetx,(SUBR)atonexa},
+  { "tone.a",  sizeof(TONE),    0,3,"a","aao",  (SUBR)atonset,(SUBR)tonea   },
+  { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)atonsetx,(SUBR)tonexa },
+  { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butseta,(SUBR)hibuta  },
+  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butseta,(SUBR)lobuta  },
+  { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butseta,(SUBR)hibuta  },
+  { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butseta,(SUBR)lobuta  },
   { "butterbp",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
   { "butbp",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
   { "butterbr",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},

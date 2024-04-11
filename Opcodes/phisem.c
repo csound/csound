@@ -276,7 +276,7 @@ static int32_t cabasa(CSOUND *csound, CABASA *p)
       data =  outputs0 - outputs1;
 /*          if (data > 10000.0f)        data = 10000.0f; */
 /*          if (data < -10000.0f) data = -10000.0f; */
-      ar[n] = data * FL(0.0005) * csound->e0dbfs ;
+      ar[n] = data * FL(0.0005) * csound->Get0dBFS(csound) ;
 /*        } */
 /*        else { */
 /*          *ar++ = 0.0f; */
@@ -385,7 +385,7 @@ static int32_t sekere(CSOUND *csound, SEKERE *p)
       data = p->finalZ0 - p->finalZ2;
 /*          if (data > 10000.0f)        data = 10000.0f; */
 /*          if (data < -10000.0f) data = -10000.0f; */
-      ar[n] = data * FL(0.0005) * csound->e0dbfs ;
+      ar[n] = data * FL(0.0005) * csound->Get0dBFS(csound) ;
 /*        } */
 /*        else { */
 /*          ar[n] = 0.0f; */
@@ -594,7 +594,7 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
       MYFLT finalZ2      = p->finalZ2;
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
-      MYFLT amp          = *p->amp*csound->e0dbfs;
+      MYFLT amp          = *p->amp*csound->Get0dBFS(csound);
       if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
@@ -789,7 +789,7 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
         p->finalZ0 += p->gains2 * p->outputs21;
         data = p->finalZ0 - p->finalZ2;         /* Extra zero(s) for shape */
         lastOutput = data * FL(0.0009);
-        ar[n] = lastOutput*csound->e0dbfs;
+        ar[n] = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
@@ -932,7 +932,7 @@ static int32_t bamboo(CSOUND *csound, BAMBOO *p)
 /*            if (data > 10000.0f)      data = 10000.0f; */
 /*            if (data < -10000.0f) data = -10000.0f; */
         lastOutput   = data * FL(0.00051);
-        ar[n]        = lastOutput*csound->e0dbfs;
+        ar[n]        = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel    = sndLevel;
@@ -1112,7 +1112,7 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
 
         lastOutput   = p->finalZ2 - p->finalZ0;
         lastOutput  *= FL(0.005);
-        ar[n]        = lastOutput*csound->e0dbfs;
+        ar[n]        = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
@@ -1283,7 +1283,7 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
         p->finalZ0   = data;
         data         = p->finalZ2 - p->finalZ0;
         lastOutput   = data * FL(0.001);
-        ar[n]        = lastOutput*csound->e0dbfs;
+        ar[n]        = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;

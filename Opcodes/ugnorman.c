@@ -113,16 +113,16 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     ATSSTRUCT         *atsh;
     int32_t               i;
 
-    strNcpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
+    strncpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
     opname[63]='\0';
     for (i = 0; opname[i] != '\0'; i++)
       opname[i] = toupper(opname[i]);           /* converted to upper case */
 
     /* copy in ats file name */
-    if (istring) strNcpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
+    if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
     else {
       if (csound->ISSTRCOD(*((MYFLT*)name_arg)))
-        strNcpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+        strncpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
          else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }
     /* load memfile */
@@ -904,7 +904,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
-      amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
+      amp = csound->Get0dBFS(csound) * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG(*oscphase);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       inca = (amp-oldamps[i])/nsmps;
@@ -1479,7 +1479,7 @@ static int32_t atsaddnz(CSOUND *csound, ATSADDNZ *p)
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
       if (i == synthme && nsynthed < p->bands) { /* synthesize cosine */
-        amp = csound->e0dbfs*
+        amp = csound->Get0dBFS(csound)*
           SQRT((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         for (n=offset; n<nsmps; n++) {
           ar[n] += (COS(p->oscphase[i])
@@ -1980,7 +1980,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
           }
           else noise = FL(0.0);
           /* calc output */
-          ar[n] += csound->e0dbfs *
+          ar[n] += csound->Get0dBFS(csound) *
             (MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
         }
         p->oscphase[i] = phase;
@@ -1999,7 +1999,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
           sinewave = cos(phase) * amp;
           phase += inc;
           /* calc output */
-          ar[n] += csound->e0dbfs * (MYFLT)sinewave * *p->ksinamp;
+          ar[n] += csound->Get0dBFS(csound) * (MYFLT)sinewave * *p->ksinamp;
         }
         p->oscphase[i] = phase;
       }
@@ -2917,7 +2917,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
-      amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
+      amp = csound->Get0dBFS(csound) * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       inca = (amp-oldamps[i])/nsmps;

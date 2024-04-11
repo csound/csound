@@ -23,8 +23,9 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"       /*                              PITCH.C         */
+
+
+#include "csoundCore.h"   /*                              PITCH.C         */
 #include <math.h>
 #include <limits.h>
 #include "cwindow.h"
@@ -268,7 +269,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       memset(&asig[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT as = asig[n]*DFLT_DBFS/csound->e0dbfs; /* Normalise.... */
+      MYFLT as = asig[n]*DFLT_DBFS/csound->Get0dBFS(csound); /* Normalise.... */
       q = c1 * as * as + c2 * q;
       SIG = as;                              /* for each source sample: */
       octp = downp->octdata;                /*   align onto top octave */
@@ -2163,7 +2164,7 @@ int32_t lpf18db(CSOUND *csound, LPF18 *p)
     int32_t   flag = 1;
     MYFLT lfc=0, lrs=0, kres=0, kfcn=0, kp=0, kp1=0,  kp1h=0;
     double lds = 0.0;
-    MYFLT zerodb = csound->e0dbfs;
+    MYFLT zerodb = csound->Get0dBFS(csound);
     int32_t   asgf = IS_ASIG_ARG(p->fco), asgr = IS_ASIG_ARG(p->res),
           asgd = IS_ASIG_ARG(p->dist);
 

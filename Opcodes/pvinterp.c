@@ -60,10 +60,10 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVBUFREAD cannot load %s"),
@@ -177,10 +177,10 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVINTERP cannot load %s"),
                                        pvfilnam);
@@ -368,10 +368,10 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
     }
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVCROSS cannot load %s"), pvfilnam);

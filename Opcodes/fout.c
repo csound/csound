@@ -891,7 +891,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     if (((STDOPCOD_GLOBALS*)
          csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
         ->file_opened[n].do_scale)
-      p->scaleFac = csound->e0dbfs;
+      p->scaleFac = csound->Get0dBFS(csound);
     else
       p->scaleFac = FL(1.0);
 
@@ -952,7 +952,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     if (((STDOPCOD_GLOBALS*)
          csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
         ->file_opened[n].do_scale)
-      p->scaleFac = csound->e0dbfs;
+      p->scaleFac = csound->Get0dBFS(csound);
     else
       p->scaleFac = FL(1.0);
 
@@ -1117,7 +1117,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
     if (((STDOPCOD_GLOBALS*)
          csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
         ->file_opened[n].do_scale)
-      p->scaleFac = csound->e0dbfs;
+      p->scaleFac = csound->Get0dBFS(csound);
     else
       p->scaleFac = FL(1.0);
 
@@ -1434,7 +1434,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
           strseg[i] = '\0';
           switch (*segwaiting) {
           case '%':
-            strNcpy(outstring, "%%", len);
+            strncpy(outstring, "%%", len);
             j--;
             break;
           case 'd':
@@ -1486,7 +1486,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
       if (segwaiting) {
         switch (*segwaiting) {
           case '%':
-            strNcpy(outstring, "%%", len);
+            strncpy(outstring, "%%", len);
             j--;
             break;
         case 'd':

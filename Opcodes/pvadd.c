@@ -82,10 +82,10 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;

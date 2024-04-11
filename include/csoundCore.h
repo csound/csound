@@ -117,8 +117,8 @@ typedef struct {
 //#define OUTOCOUNT   ORTXT.outoffs->count
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
-#define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
-#define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_ASIG_ARG(x) (csound->GetTypeForArg(x) == csound->AsigType(csound))
+#define IS_STR_ARG(x) (csound->GetTypeForArg(x) == csound->StringType(csound))
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -1028,6 +1028,7 @@ typedef struct _message_queue_t_ {
     char str[MAX_MESSAGE_STR];
 } message_string_queue_t;
 
+  
 
 #include "find_opcode.h"
 
@@ -1441,6 +1442,8 @@ typedef struct _message_queue_t_ {
     CONS_CELL *(*GetHashTableKeys)(CSOUND *, CS_HASH_TABLE *);
     CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
     int (*PeekCircularBuffer)(CSOUND *csound, void *p, void *out, int items);
+    const CS_TYPE *(*StringType)(CSOUND *csound);
+    const CS_TYPE *(*AsigType)(CSOUND *csound);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
@@ -1517,6 +1520,18 @@ typedef struct _message_queue_t_ {
     INSTRTXT      **dead_instr_pool;
     int           dead_instr_no;
     TYPE_POOL*    typePool;
+    const CS_TYPE  *asigType;   /* standard type constants */
+    const CS_TYPE  *ksigType;
+    const CS_TYPE  *initType;
+    const    CS_TYPE  *stringType;
+    const    CS_TYPE  *pfieldType;
+    const    CS_TYPE  *rType;
+    const    CS_TYPE  *constType;
+    const    CS_TYPE  *wsigType;
+    const    CS_TYPE  *fsigType;
+    const    CS_TYPE  *kboleanType;
+    const    CS_TYPE  *iboleanType;
+    const    CS_TYPE  *arrayType;    
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;

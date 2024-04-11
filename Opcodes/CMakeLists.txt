@@ -7,7 +7,8 @@ option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 ###########################################
 if(BUILD_PLUGINS)
 
- foreach(SRC IN LISTS cppops_SRCS hrtf_ops_SRCS)
+ foreach(SRC IN LISTS cppops_SRCS hrtf_ops_SRCS
+ sock_ops_SRCS externs_SRCS)
   get_filename_component(LIBNAME ${SRC} NAME_WE)
   get_filename_component(LIBSRC ${SRC} NAME)
   make_plugin(${LIBNAME} ${LIBSRC})

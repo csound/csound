@@ -37,6 +37,7 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 #include "corfile.h"
+#include "csound_standard_types.h"
 #include "csGblMtx.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -280,6 +281,16 @@ static int csoundGetTieFlag(CSOUND *csound){
 MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
+}
+
+
+// Get Types  
+static inline const CS_TYPE *StringType(CSOUND *csound) {
+  return csound->stringType;
+}
+
+static inline const CS_TYPE *AsigType(CSOUND *csound) {
+    return csound->asigType;
 }
 
 
@@ -554,6 +565,8 @@ static const CSOUND cenviron_ = {
     cs_hash_table_keys,
     cs_hash_table_values,
     csoundPeekCircularBuffer,
+    StringType,
+    AsigType,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL
@@ -631,6 +644,18 @@ static const CSOUND cenviron_ = {
     (INSTRTXT**)NULL,  /* dead_instr_pool */
     0,                /* dead_instr_no */
     (TYPE_POOL*)NULL,
+    &CS_VAR_TYPE_A,   /* standard types */
+    &CS_VAR_TYPE_K,
+    &CS_VAR_TYPE_I,
+    &CS_VAR_TYPE_S,
+    &CS_VAR_TYPE_P,
+    &CS_VAR_TYPE_R,
+    &CS_VAR_TYPE_C,
+    &CS_VAR_TYPE_W,
+    &CS_VAR_TYPE_F,
+    &CS_VAR_TYPE_B,
+    &CS_VAR_TYPE_b,
+    &CS_VAR_TYPE_ARRAY,    
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_NCHNLS,    /*  nchnls              */
     -1,             /*  inchns              */

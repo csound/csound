@@ -35,6 +35,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     STDOPCOD_GLOBALS  *p;
     int32_t               err = 0;
 
+    
     if (UNLIKELY(csound->QueryGlobalVariable(csound, "STDOPC_GLOBALS") != NULL)) {
       csound->ErrorMsg(csound,
                        Str("stdopcod.c: error: globals already allocated"));

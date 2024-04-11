@@ -34,7 +34,11 @@
 
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 
 typedef struct {
         OPDS    h;
@@ -57,7 +61,8 @@ static int32_t dust_init(CSOUND *csound, DUST *p)
     p->density0 = FL(0.0);
     p->thresh   = FL(0.0);
     p->scale    = FL(0.0);
-    p->rand     = csoundRand31(&csound->randSeed1);
+    p->rand = csound->GetRandSeed(csound,1);
+    p->rand  = csound->Rand31(&p->rand);
     return OK;
 }
 
@@ -75,7 +80,7 @@ static int32_t dust_process_krate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-    p->rand = csoundRand31(&p->rand);
+    p->rand = csound->Rand31(&p->rand);
     r = (MYFLT)p->rand * dv2_31;
     *p->out = *p->kamp * (r < thresh ? r*scale : FL(0.0));
     return OK;
@@ -107,7 +112,7 @@ static int32_t dust_process_arate(CSOUND *csound, DUST *p)
     //memset(out, '\0', offset*sizeof(MYFLT));
    for (n=offset; n<nsmps; n++) {
       MYFLT r;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r = (MYFLT)p->rand * dv2_31;
       out[n] = *p->kamp * (r < thresh ? r*scale : FL(0.0));
     }
@@ -128,7 +133,7 @@ static int32_t dust2_process_krate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-    p->rand = csoundRand31(&p->rand);
+    p->rand = csound->Rand31(&p->rand);
     r = (MYFLT)p->rand * dv2_31;
     *p->out = *p->kamp * (r < thresh ? r*scale - FL(1.0) : FL(0.0));
     return OK;
@@ -160,7 +165,7 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
     //memset(out, '\0', offset*sizeof(MYFLT));
     for (n=offset; n<nsmps; n++) {
       MYFLT r;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r = (MYFLT)p->rand * dv2_31;
       out[n] = *p->kamp * (r < thresh ? r*scale - FL(1.0) : FL(0.0));
     }
@@ -170,7 +175,8 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
 /* gausstrig opcode based on Bhob Rainey's GaussTrig ugen */
 static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 {
-    p->rand  = csoundRand31(&csound->randSeed1);
+    p->rand = csound->GetRandSeed(csound,1);
+    p->rand  = csound->Rand31(&p->rand);
     p->first = *p->ifrst1;
 #if 0
     if (*p->ifrst1 > FL(0.0)) {
@@ -183,9 +189,9 @@ static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
       dev = *p->kdev;
 
       nextsamps = (int32_t)(csound->GetSr(csound) / frq);
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r2 = (MYFLT)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
@@ -216,7 +222,8 @@ static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 /* a separate k-time init for proper work of gausstrig */
 static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
 {
-    p->rand  = csoundRand31(&csound->randSeed1);
+    p->rand = csound->GetRandSeed(csound,1);
+    p->rand  = csound->Rand31(&p->rand);
     p->first = *p->ifrst1;
 #if 0
     if (*p->ifrst1 > FL(0.0)) {
@@ -229,9 +236,9 @@ static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
       dev = *p->kdev;
       /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int32_t)(csound->GetKr(csound) / frq);
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r2 = (MYFLT)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
@@ -265,9 +272,9 @@ static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       MYFLT   nextcount, r1, r2;
       /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int32_t)(CS_EKR / frq);
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r2 = (MYFLT)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
@@ -286,9 +293,9 @@ static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       MYFLT   nextcount, r1, r2;
 /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int32_t)(CS_EKR / frq);
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r2 = (MYFLT)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
@@ -336,9 +343,9 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
       //frq = (p->frq0 > FL(0.001) ? p->frq0 : FL(0.001));
       dev = *p->kdev;
       nextsamps = (int32_t)(CS_ESR / frq);
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r1 = (MYFLT)p->rand * dv2_31;
-      p->rand = csoundRand31(&p->rand);
+      p->rand = csound->Rand31(&p->rand);
       r2 = (MYFLT)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
@@ -357,9 +364,9 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
         int32_t     nextsamps;
         MYFLT   nextcount, r1, r2;
         nextsamps = (int32_t)(CS_ESR / frq);
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         r1 = (MYFLT)p->rand * dv2_31;
-        p->rand = csoundRand31(&p->rand);
+        p->rand = csound->Rand31(&p->rand);
         r2 = (MYFLT)p->rand * dv2_31;
         nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
         if (nextcount < FL(-1.0)) {

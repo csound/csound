@@ -251,7 +251,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {
@@ -398,7 +398,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {

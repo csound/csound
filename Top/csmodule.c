@@ -479,7 +479,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     if (UNLIKELY(p == NULL)) {
       csoundCloseLibrary(h);
       csound->ErrorMsg(csound,
-                       Str("csoundLoadExternal(): memory allocation failure"));
+                       "%s", Str("csoundLoadExternal(): memory allocation failure"));
       return CSOUND_MEMORY;
     }
     mp = (csoundModule_t*) p;
@@ -630,9 +630,9 @@ int csoundLoadModules(CSOUND *csound)
       size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
 
       if(pos + prefixlen + 2 > searchpath_buflen - 1) {
-        csound->ErrorMsg(csound, Str("Plugins search path too long\n"));
+        csound->ErrorMsg(csound, "%s", Str("Plugins search path too long\n"));
       } else if(userplugindirlen + prefixlen + 1 >= buflen) {
-        csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
+        csound->ErrorMsg(csound, "%s", Str("User plugin dir too long\n"));
       } else {
       
         snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
@@ -760,7 +760,7 @@ int csoundLoadExternals(CSOUND *csound)
       return 0;
     /* IV - Feb 19 2005 */
     csound->dl_opcodes_oplibs = NULL;
-    csoundMessage(csound, Str("Loading command-line libraries:\n"));
+    csoundMessage(csound, "%s", Str("Loading command-line libraries:\n"));
     cnt = 1;
     i = 0;
     do {
@@ -1017,7 +1017,9 @@ int csoundDestroyModules(CSOUND *csound)
       csound->Free(csound, (void*) m);
 
     }
+#ifndef BUILD_PLUGINS    
     sfont_ModuleDestroy(csound);
+#endif    
     /* return with error code */
     return retval;
 }
@@ -1236,9 +1238,9 @@ extern int32_t scansynx_init_(CSOUND *csound);
 const INITFN2 staticmodules2[] = {
   stdopc_ModuleInit,
   pvsopc_ModuleInit,
-  sfont_ModuleInit,
   newgabopc_ModuleInit,
-#ifndef BUILD_PLUGINS  
+#ifndef BUILD_PLUGINS
+    sfont_ModuleInit,
     csoundModuleInit_ampmidid,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
@@ -1255,14 +1257,11 @@ const INITFN2 staticmodules2[] = {
   NULL
     };
 
-const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
-                                 bilbar_localops_init, vosim_localops_init,
-                                 compress_localops_init, pvsbuffer_localops_init,
-                                 eqfil_localops_init, modal4_localops_init,
+const INITFN staticmodules[] = { pvsbuffer_localops_init,  modal4_localops_init,
                                  scoreline_localops_init, physmod_localops_init,
                                  modmatrix_localops_init, spectra_localops_init,
                                  ambicode1_localops_init, grain4_localops_init,
-                                loscilx_localops_init,
+                                 loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
                                  vbap_localops_init,
@@ -1272,44 +1271,45 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
                                  fareyseq_localops_init, minmax_localops_init,
                                  vaops_localops_init, paulstretch_localops_init,
-                                 squinewave_localops_init, tabaudio_localops_init,
-#ifdef LINUX
-                                 cpumeter_localops_init,
-#endif
-                               
-#if !(defined(__wasi__))
-                                 counter_localops_init,
-#ifdef HAVE_SOCKETS
-                                 sockrecv_localops_init,
-                                 socksend_localops_init,
-#endif
-                                 system_localops_init,
-#ifndef NO_SERIAL_OPCODES                                 
-                                 serial_localops_init,
-#endif
-#ifndef BUILD_PLUGINS
-#if defined(LINUX) || defined(__MACH__)                         
-                                 control_localops_init, urandom_localops_init,
-#endif  
-                                 mp3in_localops_init, hrtferX_localops_init,
-                                 hrtfearly_localops_init, hrtfreverb_localops_init,
-#endif                                 
-#endif
-                                 scnoise_localops_init, afilts_localops_init,
-                                 pinker_localops_init, gendy_localops_init,
-                                 wpfilters_localops_init, zak_localops_init,
-                                 lufs_localops_init, sterrain_localops_init,
-                                 date_localops_init,
-                                 liveconv_localops_init, gamma_localops_init,
+                                 tabaudio_localops_init,
+                                 gendy_localops_init, zak_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
                                  select_localops_init,
                                  platerev_localops_init,
                                  pvsgendy_localops_init, scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
-#ifndef BUILD_PLUGINS  
-                                   bformdec2_localops_init,
+                                                      
+#ifndef BUILD_PLUGINS
+#ifdef LINUX
+                                 cpumeter_localops_init,
 #endif
+#if !(defined(__wasi__))
+                                 counter_localops_init,
+                                 system_localops_init,
+#ifndef NO_SERIAL_OPCODES                                 
+                                 serial_localops_init,
+#endif                                 
+#ifdef HAVE_SOCKETS
+                                 sockrecv_localops_init,
+                                 socksend_localops_init,
+#endif
+#endif  // !wasi                           
+#if defined(LINUX) || defined(__MACH__)                         
+                                 control_localops_init, urandom_localops_init,
+#endif
+                                 scnoise_localops_init, afilts_localops_init,
+                                 mp3in_localops_init, hrtferX_localops_init,
+                                 hrtfearly_localops_init, hrtfreverb_localops_init,
+                                 bformdec2_localops_init, babo_localops_init,
+                                 bilbar_localops_init, vosim_localops_init,
+                                 compress_localops_init,  pinker_localops_init,
+                                 squinewave_localops_init,  eqfil_localops_init,
+                                 hrtfopcodes_localops_init, lufs_localops_init,
+                                 sterrain_localops_init,date_localops_init,
+                                 liveconv_localops_init, gamma_localops_init,
+                                 wpfilters_localops_init,
+#endif // !plugins
                                  NULL };
 
 /**
