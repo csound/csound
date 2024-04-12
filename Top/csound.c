@@ -107,6 +107,11 @@ extern int fterror(const FGDATA *ff, const char *s, ...);
 PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
+void *csoundDCTSetup(CSOUND *csound,
+                     int32_t FFTsize, int32_t d);
+void csoundDCT(CSOUND *csound,
+               void *p, MYFLT *sig);
+
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
@@ -122,6 +127,19 @@ extern OENTRY opcodlst_1[];
 */
 int csoundIsInitThread(CSOUND *csound) {
   return csound->ids ? 1 : 0;
+}
+
+
+static const char *csoundFileError(CSOUND *csound, void *ff) {
+  CSFILE *f = (CSFILE *) ff;
+  switch(f->type) {
+  case CSFILE_SND_W:
+  case CSFILE_SND_R: 
+   return sflib_strerror(ff);
+   break;
+  default:
+    return "";
+  }
 }
 
 void print_csound_version(CSOUND* csound)
@@ -207,6 +225,21 @@ static void create_opcode_table(CSOUND *csound)
     if (UNLIKELY(err))
       csoundDie(csound, Str("Error allocating opcode list"));
 
+}
+
+
+static int32_t sndfileWrite(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
+  IGN(csound);
+  return sflib_writef_MYFLT(h,p,frames); 
+}
+
+static int32_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
+  IGN(csound);
+  return sflib_readf_MYFLT(h,p,frames); 
+}
+
+static int32_t sndfileSeek(CSOUND *csound, void *h, int frames, int whence){
+  return sflib_seek(h, frames, whence);
 }
 
 #define MAX_MODULES 64
@@ -576,6 +609,13 @@ static const CSOUND cenviron_ = {
     csoundInverseComplexFFTnp2,
     csoundComplexFFTnp2,
     RandSeed1,
+    csoundReadScore,
+    sndfileWrite,
+    sndfileRead,
+    sndfileSeek,
+    csoundFileError,
+    csoundDCTSetup,
+    csoundDCT,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL

@@ -779,39 +779,14 @@ set(libcsound_SRCS
     Opcodes/gab/sliderTable.c
     Opcodes/gab/newgabopc.c
     Opcodes/zak.c
-    Opcodes/framebuffer.c
-    Opcodes/cellular.c
-    Opcodes/exciter.c
-    Opcodes/buchla.c
-    Opcodes/select.c
-    Opcodes/platerev.c
-    Opcodes/sequencer.c
+    
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
-    Opcodes/ambicode1.c
-    Opcodes/grain4.c
-    Opcodes/loscilx.c
-    Opcodes/minmax.c
-    Opcodes/pan2.c
-    Opcodes/arrays.c
 
     Opcodes/vbap.c
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
     Opcodes/vbap_zak.c
-    Opcodes/vaops.c
-    Opcodes/ugakbari.c
-    Opcodes/harmon.c
-    Opcodes/pitchtrack.c
-    Opcodes/partikkel.c
-    Opcodes/shape.c
-    Opcodes/tabaudio.c
-    Opcodes/tabsum.c
-    Opcodes/crossfm.c
-    Opcodes/pvlock.c
-    Opcodes/fareyseq.c
-    Opcodes/modmatrix.c
-    Opcodes/scoreline.c
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
@@ -862,6 +837,32 @@ set(externs_SRCS
     Opcodes/sfont.c
     Opcodes/gendy.c
     Opcodes/phisem.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
+    Opcodes/exciter.c
+    Opcodes/buchla.c
+    Opcodes/select.c
+    Opcodes/platerev.c
+    Opcodes/sequencer.c
+    Opcodes/grain4.c
+    Opcodes/loscilx.c
+    Opcodes/minmax.c
+    Opcodes/pan2.c
+    Opcodes/vaops.c
+    Opcodes/ugakbari.c
+    Opcodes/harmon.c
+    Opcodes/pitchtrack.c
+    Opcodes/partikkel.c
+    Opcodes/shape.c
+    Opcodes/tabaudio.c
+    Opcodes/tabsum.c
+    Opcodes/crossfm.c
+    Opcodes/pvlock.c
+    Opcodes/fareyseq.c
+    Opcodes/modmatrix.c
+    Opcodes/scoreline.c
+    Opcodes/ambicode1.c
+    Opcodes/arrays.c
 )
 
 set(gens_SRCS

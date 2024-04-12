@@ -184,7 +184,7 @@ extern int ISSTRCOD(MYFLT);
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
          /* A440 tuning factor */
-#define ONEPT           (csound->A4/430.5389646099018460319362438314060262605)
+#define ONEPT           (csound->GetA4(csound)/430.5389646099018460319362438314060262605)
 #define LOG10D20        0.11512925              /* for db to ampfac   */
 #define DV32768         FL(0.000030517578125)
 
@@ -229,6 +229,23 @@ enum {FFT_FWD=0, FFT_INV};
   API  message queue struct
 */
 struct _message_queue;
+
+typedef struct CSFILE_ {
+    struct CSFILE_  *nxt;
+    struct CSFILE_  *prv;
+    int             type;
+    int             fd;
+    FILE            *f;
+    SNDFILE         *sf;
+    void            *cb;
+    int             async_flag;
+    int             items;
+    int             pos;
+    MYFLT           *buf;
+    int             bufsize;
+    char            fullName[1];
+} CSFILE;
+
 
 typedef struct CORFIL {
     char    *body;
@@ -1447,6 +1464,13 @@ typedef struct _message_queue_t_ {
     void (*InverseComplexFFTnp2)(CSOUND *, MYFLT *, int);
           void (*ComplexFFTnp2)(CSOUND *, MYFLT *, int);
     int32_t *(*RandSeed1)(CSOUND *);
+    int32_t (*ReadScore)(CSOUND *, const char*);
+    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
+    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
+    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t); 
+    const char *(*FileError)(CSOUND *, void *);
+    void *(*DCTSetup)(CSOUND *, int, int);
+    void (*DCT)(CSOUND *, void *, MYFLT *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */

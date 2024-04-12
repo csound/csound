@@ -1258,25 +1258,10 @@ const INITFN2 staticmodules2[] = {
     };
 
 const INITFN staticmodules[] = {  
-                                 scoreline_localops_init, 
-                                 modmatrix_localops_init, spectra_localops_init,
-                                 ambicode1_localops_init, grain4_localops_init,
-                                 loscilx_localops_init,
-                                 pan2_localops_init, arrayvars_localops_init,
+                                 spectra_localops_init, 
                                  pvoc_localops_init,
-                                 vbap_localops_init,
-                                 ugakbari_localops_init, harmon_localops_init,
-                                 pitchtrack_localops_init, partikkel_localops_init,
-                                 shape_localops_init, tabsum_localops_init,
-                                 crossfm_localops_init, pvlock_localops_init,
-                                 fareyseq_localops_init, minmax_localops_init,
-                                 vaops_localops_init, paulstretch_localops_init,
-                                 tabaudio_localops_init, zak_localops_init,
-                                 framebuffer_localops_init, cell_localops_init,
-                                 exciter_localops_init, buchla_localops_init,
-                                 select_localops_init,
-                                 platerev_localops_init, scugens_localops_init,
-                                 emugens_localops_init, sequencer_localops_init,
+                                 vbap_localops_init, zak_localops_init,
+                                 scugens_localops_init, emugens_localops_init, 
                                                       
 #ifndef BUILD_PLUGINS
 #ifdef LINUX
@@ -1306,8 +1291,22 @@ const INITFN staticmodules[] = {
                                  hrtfopcodes_localops_init, lufs_localops_init,
                                  sterrain_localops_init,date_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
-                                  wpfilters_localops_init, gendy_localops_init,
-                                  phisem_localops_init, physmod_localops_init,
+                                 wpfilters_localops_init, gendy_localops_init,
+                                 phisem_localops_init, physmod_localops_init,
+                                 framebuffer_localops_init, cell_localops_init,
+                                 exciter_localops_init, buchla_localops_init,
+                                 select_localops_init, platerev_localops_init,
+                                 sequencer_localops_init,grain4_localops_init,
+                                 loscilx_localops_init, pan2_localops_init,
+                                 minmax_localops_init, vaops_localops_init,
+                                 ugakbari_localops_init, harmon_localops_init,
+                                 pitchtrack_localops_init, partikkel_localops_init,
+                                 shape_localops_init, tabsum_localops_init,
+                                 crossfm_localops_init, pvlock_localops_init,
+                                 fareyseq_localops_init,  paulstretch_localops_init,
+                                 tabaudio_localops_init,  scoreline_localops_init, 
+                                 modmatrix_localops_init, ambicode1_localops_init,
+                                 arrayvars_localops_init,
 #endif // !plugins
                                  NULL };
 

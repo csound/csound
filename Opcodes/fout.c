@@ -308,7 +308,8 @@ static int32_t outfile(CSOUND *csound, OUTFILE *p)
         //#endif
         if (p->f.async==1)
           csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-        else sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        else //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+          csound->SndfileWrite(csound, p->f.sf, buf, p->buf_pos/nargs); // in frames
         p->buf_pos = 0;
       }
 
@@ -351,7 +352,8 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
         if (p->f.async==1)
           csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
         else
-          sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+          //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+           csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
         p->buf_pos = 0;
        }
 
@@ -405,7 +407,8 @@ static int32_t fout_flush_callback(CSOUND *csound, void *p_)
       if (p->f.async == 1)
         csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
       else
-        sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+        // sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+        csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->nargs); // in frames
     }
     return OK;
 }
@@ -423,7 +426,8 @@ static int32_t fouta_flush_callback(CSOUND *csound, void *p_)
       if (p->f.async == 1)
         csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
       else
-        sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+        // sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+      csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->tabin->sizes[0]); // in frames
     }
     return OK;
 }
@@ -557,7 +561,8 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
         //#endif
       if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-      else sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+      else //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
       p->buf_pos = 0;
     }
     return OK;
@@ -986,9 +991,9 @@ static int32_t infile_act(CSOUND *csound, INFILE *p)
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         if (UNLIKELY(p->f.async == 0)) {
-          sflib_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-          p->remain = (uint32_t) sflib_read_MYFLT(p->f.sf, (MYFLT*) buf,
-                                               p->frames*p->f.nchnls);
+          csound->SndfileSeek(csound, p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+          p->remain = (uint32_t) csound->SndfileRead(csound, p->f.sf, (MYFLT*) buf,
+                                                  p->frames);
           p->remain /= p->f.nchnls;
         } else {
           p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
@@ -1041,9 +1046,9 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         if (UNLIKELY(p->f.async == 0)) {
-          sflib_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-          p->remain = (uint32_t) sflib_read_MYFLT(p->f.sf, (MYFLT*) buf,
-                                               p->frames*p->f.nchnls);
+          csound->SndfileSeek(csound,p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+          p->remain = (uint32_t) csound->SndfileRead(csound, p->f.sf, (MYFLT*) buf,
+                                               p->frames);
           p->remain /= p->f.nchnls;
         } else {
           p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
@@ -1148,9 +1153,9 @@ static int32_t kinfile(CSOUND *csound, KINFILE *p)
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         if (UNLIKELY(p->f.async == 0)) {
-          sflib_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-          p->remain = (uint32_t) sflib_read_MYFLT(p->f.sf, (MYFLT*) buf,
-                                               p->frames*p->f.nchnls);
+          csound->SndfileSeek(csound,p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+          p->remain = (uint32_t) csound->SndfileRead(csound, p->f.sf, (MYFLT*) buf,
+                                               p->frames);
           p->remain /= p->f.nchnls;
         } else {
           p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
