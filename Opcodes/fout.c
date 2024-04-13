@@ -37,12 +37,12 @@ static CS_NOINLINE int32_t fout_deinit_callback(CSOUND *csound, void *p_)
 {
     FOUT_FILE         *p = (FOUT_FILE*) p_;
     struct fileinTag  *pp;
+    STDOPCOD_GLOBALS *ppp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                        "STDOPC_GLOBALS");
     p->sf = (SNDFILE*) NULL;
     p->f = (FILE*) NULL;
     if (p->idx) {
-      pp = &(((STDOPCOD_GLOBALS*)
-              csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS")
-              )->file_opened[p->idx - 1]);
+      pp = &(ppp->file_opened[p->idx - 1]);
       p->idx = 0;
       if (pp->refCount) {
         pp->refCount--;
@@ -57,7 +57,7 @@ static CS_NOINLINE int32_t fout_deinit_callback(CSOUND *csound, void *p_)
           pp->refCount = 0U;
 
           if (pp->fd != NULL) {
-            if ((csound->oparms->msglevel & 7) == 7)
+            if ((ppp->oparms.msglevel & 7) == 7)
               csound->Message(csound, Str("Closing file '%s'...\n"),
                                       csound->GetFileName(pp->fd));
             csound->FileClose(csound, pp->fd);
@@ -95,9 +95,9 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
         need_deinit = 1;
     }
     /* get file name, */
-    if (isString) name = cs_strdup(csound, ((STRINGDAT *)iFile)->data);
+    if (isString) name = csound->Strdup(csound, ((STRINGDAT *)iFile)->data);
     else if (csound->ISSTRCOD(*iFile))
-      name = cs_strdup(csound, get_arg_string(csound, *iFile));
+      name = csound->Strdup(csound, csound->GetString(csound, *iFile));
     /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
     else {
       /* or handle to previously opened file */
@@ -105,14 +105,14 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if (UNLIKELY(idx < 0 || idx > pp->file_num ||
                    (fileType == CSFILE_STD && pp->file_opened[idx].raw == NULL) ||
                    (fileType != CSFILE_STD && pp->file_opened[idx].file == NULL))) {
-        return csound->InitError(csound, Str("invalid file handle"));
+        return csound->InitError(csound, "%s", Str("invalid file handle"));
       }
       goto returnHandle;
     }
     /* check for a valid name */
     if (UNLIKELY(name == NULL || name[0] == '\0')) {
       csound->Free(csound, name);
-      return csound->InitError(csound, Str("invalid file name"));
+      return csound->InitError(csound, "%s", Str("invalid file name"));
     }
     /* is this file already open ? */
     if (fileType == CSFILE_STD) {
@@ -186,7 +186,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SFLIB_INFO*) fileParams)->format;
         csFileType = csound->sftype2csfiletype(do_scale);
-        if (csound->oparms->realtime == 0 || forceSync == 1) {
+        if (pp->oparms.realtime == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
                                 "SFDIR", csFileType, 0);
           p->async = 0;
@@ -201,7 +201,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
         p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
       }
       else {
-        if (csound->oparms->realtime == 0 || forceSync == 1) {
+        if (pp->oparms.realtime == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
                                  "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
           p->async = 0;
@@ -224,9 +224,9 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       }
       if (!do_scale) {
 #ifdef USE_DOUBLE
-        sflib_command(sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
+        csound->FileCommand(csound,sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
 #else
-        sflib_command(sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
+        csound->FileCommand(csound,sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
 #endif
       }
       /* if (CS_KSMPS >= 512)
@@ -267,7 +267,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       p->idx = idx + 1;
       pp->file_opened[idx].refCount++;
       if (need_deinit) {
-        p->h.insdshead = csound->ids->insdshead;
+        //        p->h.insdshead = csound->ids->insdshead;
         /* FIXME: should check for error here */
         csound->RegisterDeinitCallback(csound, p, fout_deinit_callback);
       }
@@ -437,20 +437,22 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
     SFLIB_INFO sfinfo;
     int32_t     format_, n, buf_reqd;
     int32_t istring = 1;
+    STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                        "STDOPC_GLOBALS");
 
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
     if (format_ >= 51)
       sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else if (format_ < 0) {
-      sfinfo.format = FORMAT2SF(csound->oparms->outformat);
-      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+      sfinfo.format = FORMAT2SF(pp->oparms.outformat);
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
     }
     else sfinfo.format = fout_format_table[format_];
     if (!SF2FORMAT(sfinfo.format))
-      sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
+      sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
     if (!SF2TYPE(sfinfo.format))
-      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
@@ -474,10 +476,8 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*)
-         csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
-        ->file_opened[n].do_scale)
-      p->scaleFac = csound->dbfs_to_float;
+    if (pp->file_opened[n].do_scale)
+      p->scaleFac = (FL(1.)/csound->Get0dBFS(csound));
     else
       p->scaleFac = FL(1.0);
 
@@ -498,21 +498,23 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
     SFLIB_INFO sfinfo;
     int32_t     format_, n, buf_reqd;
     int32_t len = p->tabin->sizes[0];
+    STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                        "STDOPC_GLOBALS");    
 
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
      if (format_ >=  51)
       sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else if (format_ < 0) {
-      sfinfo.format = FORMAT2SF(csound->oparms->outformat);
-      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+      sfinfo.format = FORMAT2SF(pp->oparms.outformat);
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
     }
     else
       sfinfo.format = fout_format_table[format_];
     if (!SF2FORMAT(sfinfo.format))
-      sfinfo.format |= FORMAT2SF(csound->oparms->outformat);
+      sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
     if (!SF2TYPE(sfinfo.format))
-      sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     p->buf_pos = 0;
 
@@ -534,8 +536,8 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
     if (UNLIKELY(n < 0))
       return NOTOK;
 
-    if (((STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))->file_opened[n].do_scale)
-      p->scaleFac = csound->dbfs_to_float;
+    if (pp->file_opened[n].do_scale)
+      p->scaleFac = (FL(1.)/csound->Get0dBFS(csound));
     else
       p->scaleFac = FL(1.0);
 
@@ -604,7 +606,7 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
       return NOTOK;
 
     if (((STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))->file_opened[n].do_scale)
-      p->scaleFac = csound->dbfs_to_float;
+      p->scaleFac = (FL(1.)/csound->Get0dBFS(csound));
     else
       p->scaleFac = FL(1.0);
 
@@ -664,12 +666,12 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
 
     if (istring || csound->ISSTRCOD(*(p->iFile))) {
       char    *fname = NULL;
-      if (istring) fname = cs_strdup(csound, ((STRINGDAT *)p->iFile)->data);
+      if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->iFile)->data);
       else if (csound->ISSTRCOD(*(p->iFile)))
-        fname = cs_strdup(csound, get_arg_string(csound, *p->iFile));
+        fname = csound->Strdup(csound, csound->GetString(csound, *p->iFile));
       if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
         if (fname != NULL) csound->Free(csound, fname);
-        return csound->InitError(csound, Str("invalid file name"));
+        return csound->InitError(csound, "%s", Str("invalid file name"));
       }
       for (idx = 0; idx <= pp->file_num; idx++) {
         if (pp->file_opened[idx].fd != NULL &&
@@ -736,10 +738,10 @@ static int32_t ioutfile_set(CSOUND *csound, IOUTFILE *p)
     int32_t     n = (int32_t) MYFLT2LRND(*p->ihandle);
 
     if (UNLIKELY(n < 0 || n > pp->file_num))
-      return csound->InitError(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
     rfil = pp->file_opened[n].raw;
     if (UNLIKELY(rfil == NULL))
-      return csound->InitError(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int32_t) MYFLT2LRND(*p->iflag)) {
       case 1:
@@ -813,10 +815,10 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
     args = p->argums;
     n = (int32_t) MYFLT2LRND(*p->ihandle);
     if (UNLIKELY(n < 0 || n > pp->file_num))
-      return csound->InitError(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
     rfil = pp->file_opened[n].raw;
     if (UNLIKELY(rfil == NULL))
-      return csound->InitError(csound, Str("fouti: invalid file handle"));
+      return csound->InitError(csound, "%s", Str("fouti: invalid file handle"));
     if (*p->iascii == 0) { /* ascii format */
       switch ((int32_t) MYFLT2LRND(*p->iflag)) {
       case 1:
@@ -996,7 +998,7 @@ static int32_t infile_act(CSOUND *csound, INFILE *p)
                                                   p->frames);
           p->remain /= p->f.nchnls;
         } else {
-          p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
+          p->remain = csound->ReadAsync(csound,p->f.fd,(MYFLT *)buf,
                                       p->frames*p->f.nchnls);
           p->remain /= p->f.nchnls;
         }
@@ -1051,7 +1053,7 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
                                                p->frames);
           p->remain /= p->f.nchnls;
         } else {
-          p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
+          p->remain = csound->ReadAsync(csound,p->f.fd,(MYFLT *)buf,
                                       p->frames*p->f.nchnls);
           p->remain /= p->f.nchnls;
         }
@@ -1158,7 +1160,7 @@ static int32_t kinfile(CSOUND *csound, KINFILE *p)
                                                p->frames);
           p->remain /= p->f.nchnls;
         } else {
-          p->remain = csoundReadAsync(csound,p->f.fd,(MYFLT *)buf,
+          p->remain = csound->ReadAsync(csound,p->f.fd,(MYFLT *)buf,
                                       p->frames*p->f.nchnls);
           p->remain /= p->f.nchnls;
         }

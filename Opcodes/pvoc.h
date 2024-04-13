@@ -24,8 +24,11 @@
 #ifndef CSOUND_PVOC_H
 #define CSOUND_PVOC_H
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;

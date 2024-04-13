@@ -38,13 +38,15 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     int32     Hlenpadded = 1, obufsiz, Hlen;
     uint32_t  nchanls;
     uint32_t  nsmps = CS_KSMPS;
+    STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
+      csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
 
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(pp->oparms.odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(cvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(cvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, cvfilnam,p->ifilno, "convolve.",0);
     }
     else strncpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
@@ -72,7 +74,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
         p->nchanls = nchanls;
       else {
         return csound->InitError(csound,
-                                 Str("CONVOLVE: output channels not equal "
+                                 "%s", Str("CONVOLVE: output channels not equal "
                                      "to number of channels in source"));
       }
     }
@@ -80,7 +82,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
       if (*p->channel <= nchanls) {
         if (UNLIKELY(p->OUTOCOUNT != 1)) {
           return csound->InitError(csound,
-                                   Str("CONVOLVE: output channels not equal "
+                                   "%s", Str("CONVOLVE: output channels not equal "
                                         "to number of channels in source"));
         }
         else
@@ -88,7 +90,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
       }
       else {
         return csound->InitError(csound,
-                                 Str("CONVOLVE: channel number greater than "
+                                 "%s", Str("CONVOLVE: channel number greater than "
                                      "number of channels in source"));
       }
     }
@@ -365,7 +367,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("convolve: not initialised"));
+                             "%s", Str("convolve: not initialised"));
 }
 
 /* partitioned (low latency) overlap-save convolution.
@@ -387,6 +389,8 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     MYFLT   *IRblock;
     MYFLT   ainput_dur, scaleFac;
     MYFLT   partitionSize;
+    STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
+      csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
 
     /* IV - 2005-04-06: fixed bug: was uninitialised */
     memset(&IRfile, 0, sizeof(SOUNDIN));
@@ -395,7 +399,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
      if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(IRfile.sfname,get_arg_string(csound, *p->ifilno), 511);
+        strncpy(IRfile.sfname,csound->GetString(csound, *p->ifilno), 511);
       else csound->strarg2name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
     }
     else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
@@ -407,17 +411,17 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     IRfile.channel = channel;
     IRfile.analonly = 1;
     if (UNLIKELY((infd = csound->sndgetset(csound, &IRfile)) == NULL)) {
-      return csound->InitError(csound, Str("pconvolve: error while impulse file"));
+      return csound->InitError(csound, "%s", Str("pconvolve: error while impulse file"));
     }
 
     if (UNLIKELY(IRfile.framesrem < 0)) {
-      csound->Warning(csound, Str("undetermined file length, "
+      csound->Warning(csound, "%s", Str("undetermined file length, "
                                   "will attempt requested duration"));
       ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
     }
     else {
       IRfile.getframes = IRfile.framesrem;
-      if (UNLIKELY(IRfile.sr==0)) return csound->InitError(csound, Str("SR zero"));
+      if (UNLIKELY(IRfile.sr==0)) return csound->InitError(csound, "%s", Str("SR zero"));
       ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
       }
 
@@ -426,18 +430,18 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
     p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
     if (UNLIKELY(p->nchanls != (int32_t)p->OUTOCOUNT)) {
-      return csound->InitError(csound, Str("PCONVOLVE: number of output channels "
+      return csound->InitError(csound, "%s", Str("PCONVOLVE: number of output channels "
                                            "not equal to input channels"));
     }
 
     if (UNLIKELY(IRfile.sr != CS_ESR)) {
       /* ## RWD suggests performing sr conversion here! */
-      csound->Warning(csound, Str("IR srate != orch's srate"));
+      csound->Warning(csound, "%s", Str("IR srate != orch's srate"));
     }
 
     /* make sure the partition size is nonzero and a power of 2  */
     if (*p->partitionSize <= 0)
-      partitionSize = csound->oparms->outbufsamps / csound->GetNchnls(csound);
+      partitionSize = pp->oparms.outbufsamps / csound->GetNchnls(csound);
     else
       partitionSize = *p->partitionSize;
 
@@ -465,10 +469,10 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
       if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
                                                p->Hlen*p->nchanls, &IRfile)) <= 0))
         return csound->InitError(csound,
-                                 Str("PCONVOLVE: less sound than expected!"));
+                                 "%s", Str("PCONVOLVE: less sound than expected!"));
 
       /* take FFT of each channel */
-      scaleFac = csound->dbfs_to_float
+      scaleFac = (FL(1.)/csound->Get0dBFS(csound))
                  * csound->GetInverseRealFFTScale(csound, (int32_t) p->Hlenpadded);
       for (i = 0; i < p->nchanls; i++) {
         fp1 = inbuf + i;

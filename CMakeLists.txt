@@ -774,15 +774,9 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/vdelay.c
     OOps/compile_ops.c
-    Opcodes/gab/tabmorph.c
-    Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-    Opcodes/zak.c
-    
-    Opcodes/emugens/emugens.c
-    Opcodes/emugens/scugens.c
+)
 
+set(vbap_ops
     Opcodes/vbap.c
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
@@ -812,7 +806,6 @@ set(physmod_SRCS
     Opcodes/shaker.c
     Opcodes/bowedbar.c
 )
-
 
 set(externs_SRCS
     Opcodes/babo.c
@@ -863,6 +856,16 @@ set(externs_SRCS
     Opcodes/scoreline.c
     Opcodes/ambicode1.c
     Opcodes/arrays.c
+    Opcodes/emugens/emugens.c
+    Opcodes/emugens/scugens.c
+    Opcodes/zak.c
+    Opcodes/paulstretch.c
+)
+
+set(newgabops_SRCS
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/newgabopc.c
 )
 
 set(gens_SRCS
@@ -872,7 +875,6 @@ set(gens_SRCS
 )
 
 set(pitch_ops_SRCS
-    Opcodes/pitch0.c
     Opcodes/pitch.c
     Opcodes/spectra.c
 )
@@ -899,13 +901,10 @@ set(stdopcod_SRCS
     Opcodes/locsig.c
     Opcodes/lowpassr.c
     Opcodes/metro.c
-    Opcodes/midiops2.c
-    Opcodes/midiops3.c
     Opcodes/newfils.c
     Opcodes/nlfilt.c
     Opcodes/oscbnk.c
     Opcodes/pluck.c
-    Opcodes/paulstretch.c
     Opcodes/repluck.c
     Opcodes/reverbsc.c
     Opcodes/seqtime.c
@@ -996,21 +995,22 @@ set(cppops_SRCS
    Opcodes/lfsr.cpp
    Opcodes/pvsops.cpp
    Opcodes/trigEnvSegs.cpp
-   Opcodes/fractalnoise.cpp
+   Opcodes/tl/fractalnoise.cpp
 )
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} 
-${pitch_ops_SRCS} ${oldpvoc_SRCS} ${physmod_SRCS})
+list(APPEND libcsound_SRCS)
 
 list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
 ${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
-${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} 
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
+${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
 )
 
 if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
  ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
- ${gens_SRCS} ${cs_pvs_ops_SRCS}
+ ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
+ ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS} 
 )
 endif()
 

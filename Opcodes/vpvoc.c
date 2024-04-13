@@ -201,7 +201,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     }
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strncpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
@@ -318,7 +318,7 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
       frIndx = (MYFLT)p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
       }
     }
 
@@ -343,7 +343,7 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
       if (UNLIKELY(specwp < 0))
-        csound->Warning(csound, Str("PVOC debug: one frame gets through\n"));
+        csound->Warning(csound, "%s", Str("PVOC debug: one frame gets through\n"));
       if (specwp > 0)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
@@ -377,15 +377,15 @@ int32_t vpvoc(CSOUND *csound, VPVOC *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vpvoc: not initialised"));
+                             "%s", Str("vpvoc: not initialised"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too low"));
+                             "%s", Str("PVOC transpose too low"));
  err3:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too high"));
+                             "%s", Str("PVOC transpose too high"));
  err4:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC timpnt < 0"));
+                             "%s", Str("PVOC timpnt < 0"));
 }
 

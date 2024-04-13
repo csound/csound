@@ -1461,13 +1461,15 @@ typedef struct _message_queue_t_ {
     int (*PeekCircularBuffer)(CSOUND *csound, void *p, void *out, int items);
     const CS_TYPE *(*StringType)(CSOUND *csound);
     const CS_TYPE *(*AsigType)(CSOUND *csound);
+    const CS_TYPE *(*KsigType)(CSOUND *csound);
     void (*InverseComplexFFTnp2)(CSOUND *, MYFLT *, int);
           void (*ComplexFFTnp2)(CSOUND *, MYFLT *, int);
     int32_t *(*RandSeed1)(CSOUND *);
     int32_t (*ReadScore)(CSOUND *, const char*);
     int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
     int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t); 
+    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int32_t (*FileCommand)(CSOUND *, void *, int , void *, int );
     const char *(*FileError)(CSOUND *, void *);
     void *(*DCTSetup)(CSOUND *, int, int);
     void (*DCT)(CSOUND *, void *, MYFLT *);
@@ -1596,7 +1598,6 @@ typedef struct _message_queue_t_ {
     FILE*         scoreout;
     int           *argoffspace;
     INSDS         *frstoff;
-    int           holdrand;
     int           randSeed1;
     int           randSeed2;
     CsoundRandMTState *csRandState;

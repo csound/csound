@@ -23,7 +23,7 @@
     02110-1301 USA
 */
 
-#include "OpcodeBase.hpp"
+#include "../OpcodeBase.hpp"
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))

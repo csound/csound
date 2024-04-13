@@ -2481,7 +2481,7 @@ static int32_t
 ftexists_init(CSOUND *csound, FTEXISTS *p) {
     int ifn = (int)*p->ifn;
     if(ifn == 0) {
-        csound->DebugMsg(csound, Str("ftexists: table number is 0"));
+        csound->DebugMsg(csound, "%s", Str("ftexists: table number is 0"));
         *p->iout = 0.;
     }
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);

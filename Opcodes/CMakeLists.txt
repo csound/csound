@@ -10,7 +10,8 @@ if(BUILD_PLUGINS)
  foreach(SRC IN LISTS cppops_SRCS hrtf_ops_SRCS
  sock_ops_SRCS externs_SRCS gens_SRCS)
   get_filename_component(LIBNAME ${SRC} NAME_WE)
-  get_filename_component(LIBSRC ${SRC} NAME)
+ # get_filename_component(LIBSRC ${SRC} NAME)
+  string(CONCAT LIBSRC "../" ${SRC})
   make_plugin(${LIBNAME} ${LIBSRC})
  endforeach()
 
@@ -23,12 +24,35 @@ if(UNIX)
 endif()
 
 # these are multiple-source plugin libraries
+# stdopcs
+ foreach(SRC IN LISTS stdopcod_SRCS)
+  string(CONCAT STSRC "../" ${SRC})
+  list(APPEND stdopcodes ${STSRC})
+ endforeach()
+   message(STATUS ${STSRC})
+  make_plugin(stdopcodes "${stdopcodes}")
+
 # scansyn
  foreach(SRC IN LISTS scanops_SRCS)
   get_filename_component(SSRC ${SRC} NAME)
   list(APPEND scanops ${SSRC})
  endforeach()
   make_plugin(scansyn "${scanops}")
+
+# spectraops
+ foreach(SRC IN LISTS pitch_ops_SRCS)
+  get_filename_component(SPSRC ${SRC} NAME)
+  list(APPEND spectra ${SPSRC})
+ endforeach()
+  make_plugin(spectra "${spectra}")
+
+# vbapops
+ foreach(SRC IN LISTS vbap_ops)
+  get_filename_component(VSRC ${SRC} NAME)
+  list(APPEND vbap ${VSRC})
+ endforeach()
+  make_plugin(vbap "${vbap}")
+
 
 # fsig ops
  foreach(SRC IN LISTS cs_pvs_ops_SRCS)
@@ -44,12 +68,28 @@ endif()
  endforeach()
   make_plugin(physmod "${physmod}")
 
+# old pvoc ops
+ foreach(SRC IN LISTS oldpvoc_SRCS)
+  get_filename_component(OHSRC ${SRC} NAME)
+  list(APPEND pvoc ${OHSRC})
+ endforeach()
+  make_plugin(pvoc "${pvoc}")
+
+
+
 # mp3in ops and gen
  foreach(SRC IN LISTS mp3in_SRCS)
-   string(CONCAT MSRC "../" ${SRC})
+  string(CONCAT MSRC "../" ${SRC})
   list(APPEND mp3inops ${MSRC})
  endforeach()
-  make_plugin(mp3in "${mp3inops}")  
+  make_plugin(mp3in "${mp3inops}")
+
+# newgabops
+ foreach(SRC IN LISTS newgabops_SRCS)
+   string(CONCAT GSRC "../" ${SRC})
+   list(APPEND newgabops ${GSRC})
+ endforeach()
+  make_plugin(newgabops "${newgabops}")
 
 endif() 
 

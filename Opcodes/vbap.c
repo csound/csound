@@ -28,7 +28,11 @@ functions for loudspeaker table initialization
 Re-written to take flexible number of outputs by JPff 2012 */
 
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include "vbap.h"
 #include <math.h>
@@ -72,7 +76,7 @@ static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int32_t ind)
     csound->DestroyGlobalVariable(csound, name);
     if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
                                               cnt * sizeof(MYFLT)) != 0)) {
-      csound->ErrorMsg(csound, Str("vbap: error allocating loudspeaker table"));
+      csound->ErrorMsg(csound, "%s", Str("vbap: error allocating loudspeaker table"));
       return NULL;
     }
     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
@@ -278,7 +282,7 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
     if (UNLIKELY(ls_amount == 0)) {
-      csound->ErrorMsg(csound, Str("Number of loudspeakers is zero\nExiting"));
+      csound->ErrorMsg(csound, "%s", Str("Number of loudspeakers is zero\nExiting"));
       return;
     }
 
@@ -611,7 +615,7 @@ static inline int32_t vbap_ls_init_sr (CSOUND *csound, int32_t dim, int32_t coun
     //ls_amount = (int32_t)*p->ls_amount;
     if (UNLIKELY(count < dim)) {
       free(lss);
-      csound->ErrorMsg(csound, Str("Too few loudspeakers"));
+      csound->ErrorMsg(csound, "%s", Str("Too few loudspeakers"));
       return NOTOK;
     }
 
@@ -640,7 +644,7 @@ int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
     MYFLT  layout = (*p->dim-dim)*100;
     int32_t i, n = (int32_t)*p->ls_amount;
     /* if (n>CHANNELS) */
-    /*   return csound->InitError(csound, Str("Too many speakers (%n)\n"), n); */
+    /*   return csound->InitError(csound, "%s", Str("Too many speakers (%n)\n"), n); */
     if (UNLIKELY(n>p->a->sizes[0]))
       return csound->InitError(csound, Str("Too little data speakers (%d)\n"),
                               n>p->a->sizes[0]);
@@ -665,7 +669,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     int32_t triplet_amount = 0, i,j,k;
 
     if (UNLIKELY(tr_ptr == NULL)) {
-      csound->ErrorMsg(csound, Str("Not valid 3-D configuration"));
+      csound->ErrorMsg(csound, "%s", Str("Not valid 3-D configuration"));
       return;
     }
 
@@ -712,7 +716,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     }
 
     k = 3;
-    csound->Warning(csound, Str("\nConfigured loudspeakers\n"));
+    csound->Warning(csound, "%s", Str("\nConfigured loudspeakers\n"));
     for (i = 0; i < triplet_amount; i++) {
       csound->Warning(csound, Str("Triplet %d Loudspeakers: "), i);
       for (j = 0; j < 3; j++) {
@@ -782,7 +786,7 @@ static void choose_ls_tuplets(CSOUND *csound,
                           lss[sorted_lss[0]].angles.azi*FL(180.0)/PI_F);
 
     if (UNLIKELY(amount==0)) {
-      csound->InitError(csound, Str("insufficient valid speakers"));
+      csound->InitError(csound, "%s", Str("insufficient valid speakers"));
       free(sorted_lss); free(exist); free(inv_mat);
       return;
     }
@@ -826,7 +830,7 @@ static void choose_ls_tuplets(CSOUND *csound,
       }
     }
     k=3;
-    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
+    csound->Message(csound, "%s", Str("\nConfigured loudspeakers\n"));
     for (i=0; i < amount; i++) {
       csound->Message(csound, Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {

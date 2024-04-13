@@ -142,6 +142,12 @@ static const char *csoundFileError(CSOUND *csound, void *ff) {
   }
 }
 
+static int32_t csoundFileCommand(CSOUND *csound, void *handle,
+                                     int cmd, void *data, int datasize){
+  return sflib_command(handle, cmd, data, datasize);
+
+}
+
 void print_csound_version(CSOUND* csound)
 {
 #ifdef USE_DOUBLE
@@ -268,7 +274,6 @@ static int *RandSeed1(CSOUND *csound){
   return &(csound->randSeed1);
 }
 
-
 static char *csoundGetStrsets(CSOUND *csound, long p){
     if (csound->strsets == NULL) return NULL;
     else return csound->strsets[p];
@@ -330,6 +335,11 @@ static inline const CS_TYPE *StringType(CSOUND *csound) {
 
 static inline const CS_TYPE *AsigType(CSOUND *csound) {
     return csound->asigType;
+}
+
+
+static inline const CS_TYPE *KsigType(CSOUND *csound) {
+    return csound->ksigType;
 }
 
 
@@ -606,6 +616,7 @@ static const CSOUND cenviron_ = {
     csoundPeekCircularBuffer,
     StringType,
     AsigType,
+    KsigType,
     csoundInverseComplexFFTnp2,
     csoundComplexFFTnp2,
     RandSeed1,
@@ -613,6 +624,7 @@ static const CSOUND cenviron_ = {
     sndfileWrite,
     sndfileRead,
     sndfileSeek,
+    csoundFileCommand,
     csoundFileError,
     csoundDCTSetup,
     csoundDCT,
@@ -740,7 +752,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-    2345678,        /*  holdrand            */
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */
     NULL,           /*  csRandState         */
@@ -3573,9 +3584,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
-
-      int err = csoundInitStaticModules(csound);
-
+      int err;
+ #ifndef BUILD_PLUGINS     
+      err = csoundInitStaticModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s",csound->delayederrormessages);
@@ -3584,7 +3595,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (UNLIKELY(err==CSOUND_ERROR))
         csound->Die(csound, Str("Failed during csoundInitStaticModules"));
-
+ #endif     
  #ifndef BARE_METAL
      csoundCreateGlobalVariable(csound, "_MODULES",
                                 (size_t) MAX_MODULES*sizeof(MODULE_INFO *));

@@ -16,7 +16,11 @@
   02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 /* (Shouldn't there be global decl's for these?) */
@@ -37,7 +41,7 @@ static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado *
 {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
-      return csound->InitError(csound, Str("vtable1: incorrect table number"));
+      return csound->InitError(csound, "%s", Str("vtable1: incorrect table number"));
     p->ftable = ftp->ftable;
     p->nargs = p->INOCOUNT-1;
     p->pfn = (int64_t) *p->xfn;
@@ -53,7 +57,7 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
       FUNC *ftp;
       if (UNLIKELY( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL))
         return csound->PerfError(csound, &(p->h),
-                                 Str("vtable1: incorrect table number"));
+                                 "%s", Str("vtable1: incorrect table number"));
       p->pfn = (int64_t)*p->xfn;
       p->ftable = ftp->ftable;
     }
@@ -65,53 +69,6 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
 
 /* -------------------------------------------------------------------- */
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *kstartChan, *argums[VARGMAX];
-        int32_t numChans, narg;
-} INRANGE;
-
-static int32_t inRange_i(CSOUND *csound, INRANGE *p)
-{
-    p->narg = p->INOCOUNT-1;
-    if (UNLIKELY(!csound->oparms->sfread))
-      return csound->InitError(csound, Str("inrg: audio input is not enabled"));
-    p->numChans = csound->GetNchnls(csound);
-    return OK;
-}
-
-static int32_t inRange(CSOUND *csound, INRANGE *p)
-{
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t j, nsmps = CS_KSMPS;
-    int32_t i;
-    MYFLT *ara[VARGMAX];
-    int32_t startChan = (int32_t) *p->kstartChan -1;
-    MYFLT *sp = csound->spin + startChan;
-    int32_t narg = p->narg, numchans = p->numChans;
-
-    if (UNLIKELY(startChan < 0))
-      return csound->PerfError(csound, &(p->h),
-                               Str("inrg: channel number cannot be < 1 "
-                                   "(1 is the first channel)"));
-
-    if (UNLIKELY(early)) nsmps -= early;
-    for (i = 0; i < narg; i++) {
-      ara[i] = p->argums[i];
-      if (UNLIKELY(offset)) memset(ara[i], '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
-      ara[i] += offset;
-    }
-    for (j=offset; j<nsmps; j++)  {
-      for (i=0; i<narg; i++) {
-        *ara[i]++ = sp[i];
-      }
-      sp += numchans;
-    }
-    return OK;
-
-}
 
 #include "Opcodes/uggab.h"
 
@@ -120,10 +77,10 @@ static int32_t lposc_set(CSOUND *csound, LPOSC *p)
     FUNC *ftp;
     MYFLT  loop, end, looplength;
     if ((ftp = csound->FTnp2Find(csound, p->ift)) == NULL)
-      return csound->InitError(csound, Str("invalid function"));
+      return csound->InitError(csound, "%s", Str("invalid function"));
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))){
        csound->Message(csound,
-                       Str("lposc: no sample rate stored in function;"
+                       "%s", Str("lposc: no sample rate stored in function;"
                            " assuming=sr\n"));
        p->fsr=CS_ESR;
     }
@@ -194,9 +151,9 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
     FUNC *ftp;
     double  loop, end, looplength, fsr;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
-      return csound->InitError(csound, Str("invalid function"));
+      return csound->InitError(csound, "%s", Str("invalid function"));
     if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
-      csound->Message(csound, Str("lposcil: no sample rate stored in function;"
+      csound->Message(csound, "%s", Str("lposcil: no sample rate stored in function;"
                                   " assuming=sr\n"));
       p->fsr=CS_ESR;
     }
@@ -311,7 +268,7 @@ typedef struct  {       /* gab d5*/
 static int32_t trRangeRand(CSOUND *csound, TRANGERAND *p)
 { /* gab d5*/
     if (*p->ktrig)
-      *p->out = p->lastvalue = randGab * (*p->max - *p->min) + *p->min;
+      *p->out = p->lastvalue = randGab(csound) * (*p->max - *p->min) + *p->min;
     else
       *p->out = p->lastvalue;
     return OK;
@@ -361,10 +318,7 @@ static OENTRY localops[] = {
   { "lposcilsa", S(LPOSC_ST),  TR, 3, "aa","akkkio",
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
   { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
-                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp},
-  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
-
-
+                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp}
 };
 
 int32_t newgabopc_init_(CSOUND *csound) {
@@ -383,7 +337,6 @@ int32_t newgabopc_ModuleInit(CSOUND *csound)
         int32_t               err = 0;
         err |= hvs_init_(csound);
         err |= newgabopc_init_(csound);
-        err |= slidertable_init_(csound);
         err |= tabmorph_init_(csound);
         /*      err |= rbatonopc_init_(csound); */
 
@@ -391,9 +344,28 @@ int32_t newgabopc_ModuleInit(CSOUND *csound)
         return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
-/*
+
+#ifdef BUILD_PLUGINS
+PUBLIC  int32_t     csoundModuleCreate(CSOUND *csound)
+{
+    return 0;
+}
+
+PUBLIC  int32_t     csoundModuleInit(CSOUND *csound)
+{
+  return  newgabopc_ModuleInit(csound);
+}
+
+
+PUBLIC int32_t csoundModuleInfo(void)
+{
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT));
+}
+
 PUBLIC  int32_t     csoundModuleDestroy(CSOUND *csound)
 {
     return 0;
 }
-*/
+
+#endif
+
