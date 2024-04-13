@@ -175,6 +175,7 @@ jobs:
 
   macos_build_osxcross:
     name: MacOS build (osxcross/vcpkg)
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
