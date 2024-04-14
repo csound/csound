@@ -46,10 +46,6 @@
 
 #if !defined(WIN32) || defined(__CYGWIN__)
 typedef uint32_t    DWORD;
-#else
-#if defined(BUILD_PLUGINS)  // to get around lack of DWORD def in plugin build
-typedef uint32_t    DWORD;
-#endif
 #endif
 
 /*  typedef int32_t     BOOL; */

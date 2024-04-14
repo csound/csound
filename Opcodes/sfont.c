@@ -29,7 +29,11 @@
    documentation of your C compiler to choose the appropriate compiler
    directive switch.  */
 
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <stdio.h>
 #include <stdlib.h>
