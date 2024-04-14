@@ -54,6 +54,8 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - uses: lukka/get-cmake@v3.29.0
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
@@ -140,6 +142,8 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - uses: lukka/get-cmake@v3.29.0
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
@@ -172,6 +176,8 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - uses: lukka/get-cmake@v3.29.0
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
@@ -186,7 +192,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install build-essential liblzma-dev libxml2-dev libz-dev libbz2-dev cpio ninja-build
-  
+
       - name: Download osxcross
         run: |
           curl -L "https://drive.usercontent.google.com/download?id=1TKmFGbKE_F4ZF9f6m5VxuZ7yEHbDzQy5&confirm=xxx" | tar xvz
@@ -219,6 +225,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -291,6 +299,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
