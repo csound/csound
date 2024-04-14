@@ -75,7 +75,9 @@ void init_getstring(void *cs)
     csound_c_locale = setlocale(LC_NUMERIC, "C"); /* and remwmber */
 #else
     if (csound_c_locale == NULL) {
-        csound_c_locale = newlocale (0, "C", NULL);
+      locale_t *lcl =  (locale_t *)
+        csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::"); 
+      *lcl = csound_c_locale = newlocale (0, "C", NULL);
     }
 #endif
 }
