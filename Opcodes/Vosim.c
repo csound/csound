@@ -37,8 +37,11 @@
  * a new pulse should start, and that pulseinc can be negative.
  */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <math.h>
 #include <limits.h>
@@ -67,9 +70,10 @@ int32_t vosimset(CSOUND* csound, VOSIM *p)
   if (*p->iskip)
     return OK;
 
+
   p->ftable = csound->FTnp2Find(csound, p->iftab);
   if (UNLIKELY(p->ftable == NULL)) {
-    return csound->InitError(csound, Str("vosim: pulse table not found"));
+    return csound->InitError(csound,  "%s", Str("vosim: pulse table not found"));
   }
   p->floatph = !(IS_POW_TWO(p->ftable->flen));
   p->pulsephsf = p->pulseincf = FL(0.0);
@@ -92,7 +96,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
   p->pulstogo = 1+(int32)*p->knofpulse;
   if (UNLIKELY(fundabs == FL(0.0))) {                /* infinitely long event */
     p->timrem = INT_MAX;
-    csound->Warning(csound,
+    csound->Warning(csound, "%s",
                     Str("vosim: zero kfund. 'Infinite' length event generated."));
   }
   else {
@@ -209,8 +213,8 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
   p->pulsephsf = pulsephsf;
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("vosim: not initialised"));
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("vosim: not initialised"));
 }
 
 

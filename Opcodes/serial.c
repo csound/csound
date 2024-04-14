@@ -47,7 +47,11 @@
 #include "winsock2.h"
 #endif
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 /* **************************************************

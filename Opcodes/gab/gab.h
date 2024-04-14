@@ -22,8 +22,6 @@
 #define GAB_H
 
 #include "../stdopcod.h"
-#include "H/ugrw1.h"    /* for zread function */
-#include "ugens6.h"     /* for a_k_set function */
 
 typedef struct {
     OPDS    h;

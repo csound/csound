@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 #define SQUARE(X) ((X)*(X))
@@ -314,21 +318,21 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       }
 
     /* copy in string name... */
-    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1);
-    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1);
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1);
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel,
                                    CSFTYPE_FLOATS_BINARY, swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     /* do not need to be in p, as only used in init */
@@ -507,7 +511,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           {
             basedelay = i - 1;
             if(primes[test] > meanfpordersamps)
-              csound->Message(csound, Str("\nfdn delay > earlies del..., fixed!"));
+              csound->Message(csound, "%s", Str("\nfdn delay > earlies del..., fixed!"));
             *p->idel = (meanfpordersamps - primes[test - 1]) / sr;
             break;
           }
@@ -855,7 +859,7 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
             if(aip[i] > FL(0.99) || aip[i] < -FL(0.99))
               {
-                csound->Message(csound,
+                csound->Message(csound, "%s",
                                 Str("\nwarning, approaching instability, "
                                     "fixed with a flat late reverb!"));
                 clipcheck = 1;
@@ -1131,7 +1135,7 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
               }
           }
 
-        sigin = in[i] * (FL(32767.0) / csound->e0dbfs);
+        sigin = in[i] * (FL(32767.0) / csound->Get0dBFS(csound));
 
         del1p[u] = outmatp[0] + sigin;
         del2p[v] = outmatp[1] + sigin;
@@ -1200,8 +1204,8 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         //                      outl[i] = hrtflp[counter];
         //                      outr[i] = hrtfrp[counter];
 
-        outl[i] = hrtflp[counter] * (csound->e0dbfs / FL(32767.0));
-        outr[i] = hrtfrp[counter] * (csound->e0dbfs / FL(32767.0));
+        outl[i] = hrtflp[counter] * (csound->Get0dBFS(csound)/ FL(32767.0));
+        outr[i] = hrtfrp[counter] * (csound->Get0dBFS(csound)/ FL(32767.0));
 
         counter++;
 

@@ -197,8 +197,43 @@ typedef struct {
         int32_t narg;
 } OUTRANGE;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *kstartChan, *argums[VARGMAX];
+        int32_t numChans, narg;
+} INRANGE;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ians;
+        MYFLT   *index;
+} PFIELD;
+
+typedef struct {
+        OPDS    h;
+        STRINGDAT   *ians;
+        MYFLT   *index;
+} PFIELDSTR;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *inits[24];
+        MYFLT   *start;
+        MYFLT   *end;
+} PINIT;
+
+typedef struct {
+        OPDS    h;
+        ARRAYDAT *inits;
+        MYFLT   *start;
+        MYFLT   *end;
+} PAINIT;
+
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
+int32_t inRange_i(CSOUND *csound, INRANGE *p);
+int32_t inRange(CSOUND *csound, INRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);

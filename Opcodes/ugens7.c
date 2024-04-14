@@ -59,7 +59,7 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
         p->fundphs = 0;
       }
       if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
-        return csound->InitError(csound, Str("illegal value for iolaps"));
+        return csound->InitError(csound, "%s", Str("illegal value for iolaps"));
       }
       if (*p->iphs >= FL(0.0))
         csound->AuxAlloc(csound, (size_t)olaps * sizeof(OVRLAP), &p->auxch);
@@ -240,11 +240,11 @@ static int32_t fof(CSOUND *csound, FOFS *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("fof: not initialised"));
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("fof: not initialised"));
  err2:
-  return csound->PerfError(csound, &(p->h),
-                           Str("FOF needs more overlaps"));
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("FOF needs more overlaps"));
 }
 
 static int32_t newpulse(CSOUND *csound,
@@ -356,15 +356,12 @@ static int32_t newpulse(CSOUND *csound,
   return(1);
 }
 
-#if 0
-static int32_t hrngflg=0;
-#endif
 
 static int32_t harmset(CSOUND *csound, HARMON *p)
 {
   MYFLT minfrq = *p->ilowest;
   if (UNLIKELY(minfrq < FL(64.0))) {
-    return csound->InitError(csound, Str("Minimum frequency too low"));
+    return csound->InitError(csound,  "%s", Str("Minimum frequency too low"));
   }
   if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
     int32 nbufs = (int32)(CS_EKR * FL(3.0) / minfrq) + 1;
@@ -410,312 +407,312 @@ static int32_t harmset(CSOUND *csound, HARMON *p)
 }
 
 #if 0
-static int32_t cycle = 0;
+static int32_t hrngflg=0;
 #endif
 static int32_t harmon(CSOUND *csound, HARMON *p)
 {
-  MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
-  MYFLT c1, c2, qval, *inq1, *inq2;
-  MYFLT sum, minval, *minqp = NULL, *minq1, *minq2, *endp;
-  MYFLT *pulstrt, lin1, lin2, lin3;
-  int32  cnt1, cnt2, cnt3;
-  int32  nn, phase1, phase2, phsinc1, phsinc2, period;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *src1, *src2, *src3, *inp1, *inp2, *outp;
+    MYFLT c1, c2, qval, *inq1, *inq2;
+    MYFLT sum, minval, *minqp = NULL, *minq1, *minq2, *endp;
+    MYFLT *pulstrt, lin1, lin2, lin3;
+    int32  cnt1, cnt2, cnt3;
+    int32  nn, phase1, phase2, phsinc1, phsinc2, period;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
 
-  outp = p->ar;
-#if 0
-  if (early || offset) printf("early=%d, offet=%d\n", early, offset);
-#endif
-  if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
-  if (UNLIKELY(early)) {
-    nsmps -= early;
-    memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
-  }
-  inp1 = p->inp1;
-  inp2 = p->inp2;
-  inq1 = p->inq1;
-  inq2 = p->inq2;
-  qval = p->prvq;
-  if (*p->kest != p->prvest &&
-      *p->kest != FL(0.0)) {    /* if new pitch estimate */
-    MYFLT estperiod = CS_ESR / *p->kest;
-    double b = 2.0 - cos((double)(*p->kest * CS_TPIDSR));
-    p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
-    p->c1 = FL(1.0) - p->c2;
-    p->prvest = *p->kest;
-    p->estprd = estperiod;
-    p->prvar = FL(0.0);
-  }
-  if (*p->kvar != p->prvar) {
-    MYFLT oneplusvar = FL(1.0) + *p->kvar;
-    /* prd window is prd +/- var int32_t */
-    p->mindist = (int32)(p->estprd/oneplusvar);
-    /*       if (p->mindist==0) p->mindist=1; */
-    p->maxdist = (int32)(p->estprd*oneplusvar);
-    if (p->maxdist > p->lomaxdist)
-      p->maxdist = p->lomaxdist;
-    p->max2dist = p->maxdist * 2;
-    p->prvar = *p->kvar;
-  }
-  c1 = p->c1;
-  c2 = p->c2;
-  //printf("cycle %d\n", ++cycle);
-  for (src1 = p->asig, n = offset; n<nsmps; n++) {
-    *inp1++ = *inp2++ = src1[n];            /* dbl store the wavform */
-    //printf("src[%d] = %f\n", n, src1[n]);
-    if (src1[n] > FL(0.0))
-      qval = c1 * src1[n] + c2 * qval;      /*  & its half-wave rect */
-    else qval = c2 * qval;
-    *inq1++ = *inq2++ = qval;
-  }
-  if (!(--p->autokcnt)) {                   /* if time for new autocorr  */
-    MYFLT *mid1, *mid2, *src4;
-    MYFLT *autop, *maxp;
-    MYFLT dsum, dinv, win, windec, maxval;
-    int32  dist;
-    //printf("AUTOCORRELATE min/max = %d,%d\n",p->mindist, p->maxdist);
-    p->autokcnt = p->autoktim;
-    mid2 = inp2 - p->max2dist;
-    mid1 = mid2 - 1;
-    autop = p->autobuf;
-    for (dist = p->mindist; dist <= p->maxdist; dist++) {
-      dsum = FL(0.0);
-      dinv = FL(1.0) / dist;
-      src1 = mid1;  src3 = mid1 + dist;
-      src2 = mid2;  src4 = mid2 + dist;
-      for (win = FL(1.0), windec = dinv, nn = dist; nn--; ) {
-        dsum += win * (*src1 * *src3 + *src2 * *src4);
-        //printf("dsum = %f from %f %f %f %f\n", dsum, *src1, *src2, *src3, *src4);
-        src1--; src2++; src3--; src4++;
-        win -= windec;
-      }
-      *autop++ = dsum * dinv;
-    }
-    maxval = FL(0.0);
-    maxp = autop = p->autobuf;
-    endp = autop + p->maxdist - p->mindist;
-    while (autop < endp) {
-      //printf("newval, maxval = %f, %f\n", *autop, maxval);
-      if (*autop > maxval) {          /* max autocorr gives new period */
-        maxval = *autop;
-        maxp = autop;
-#if 0
-        csound->Message(csound, "new maxval %f at %p\n", maxval, (int64_t)maxp);
-#endif
-      }
-      autop++;
-    }
-    //printf("**** maxval = %f ****\n", maxval);
-    period = p->mindist + maxp - p->autobuf;
-    if (period != p->period) {
-#if 0
-      csound->Message(csound, "New period %d %d\n", period, p->period);
-#endif
-      p->period = period;
-      if (!p->cpsmode)
-        p->lsicvt = FL(65536.0) / period;
-      p->pnt1 = (int32)((MYFLT)period * FL(0.2));
-      p->pnt2 = (int32)((MYFLT)period * FL(0.8));
-      p->pnt3 = period;
-      p->inc1 = FL(1.0) / p->pnt1;
-      p->inc2 = FL(1.0) / (period - p->pnt2);
-    }
-  }
-  else period = p->period;
-
-  minval = (MYFLT)HUGE_VAL;               /* Suitably large ! */
-  minq2 = inq2 - period;                  /* srch the qbuf for minima */
-  minq1 = minq2 - period;                 /* which are 1 period apart */
-  endp = inq2;                            /* move srch over 1 period  */
-  while (minq2 < endp) {
-    if ((sum = *minq1 + *minq2) < minval) {
-      minval = sum;
-      minqp = minq1;
-    }
-    minq1++; minq2++;
-  }
-  src1 = minqp - p->n2bufsmps;            /* get src equiv of 1st min  */
-  if (period==0) {
-    csound->Warning(csound, Str("Period zero\n"));
     outp = p->ar;
-    memset(outp, 0, sizeof(MYFLT)*CS_KSMPS);
-    return OK;
-  }
-  while (src1 + CS_KSMPS > inp2)     /* if not enough smps presnt */
-    src1 -= period;                       /*      back up 1 prd        */
-  pulstrt = src1;                         /* curr available pulse beg  */
+#if 0
+    if (early || offset) printf("early=%d, offet=%d\n", early, offset);
+#endif
+    if (UNLIKELY(offset)) memset(outp, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&outp[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    inp1 = p->inp1;
+    inp2 = p->inp2;
+    inq1 = p->inq1;
+    inq2 = p->inq2;
+    qval = p->prvq;
+    if (*p->kest != p->prvest &&
+        *p->kest != FL(0.0)) {    /* if new pitch estimate */
+      MYFLT estperiod = CS_ESR / *p->kest;
+      double b = 2.0 - cos((double)(*p->kest * CS_TPIDSR));
+      p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
+      p->c1 = FL(1.0) - p->c2;
+      p->prvest = *p->kest;
+      p->estprd = estperiod;
+      p->prvar = FL(0.0);
+    }
+    if (*p->kvar != p->prvar) {
+      MYFLT oneplusvar = FL(1.0) + *p->kvar;
+      /* prd window is prd +/- var int32_t */
+      p->mindist = (int32)(p->estprd/oneplusvar);
+/*       if (p->mindist==0) p->mindist=1; */
+      p->maxdist = (int32)(p->estprd*oneplusvar);
+      if (p->maxdist > p->lomaxdist)
+        p->maxdist = p->lomaxdist;
+      p->max2dist = p->maxdist * 2;
+      p->prvar = *p->kvar;
+    }
+    c1 = p->c1;
+    c2 = p->c2;
+    //printf("cycle %d\n", ++cycle);
+    for (src1 = p->asig, n = offset; n<nsmps; n++) {
+      *inp1++ = *inp2++ = src1[n];            /* dbl store the wavform */
+      //printf("src[%d] = %f\n", n, src1[n]);
+      if (src1[n] > FL(0.0))
+        qval = c1 * src1[n] + c2 * qval;      /*  & its half-wave rect */
+      else qval = c2 * qval;
+      *inq1++ = *inq2++ = qval;
+    }
+    if (!(--p->autokcnt)) {                   /* if time for new autocorr  */
+      MYFLT *mid1, *mid2, *src4;
+      MYFLT *autop, *maxp;
+      MYFLT dsum, dinv, win, windec, maxval;
+      int32  dist;
+      //printf("AUTOCORRELATE min/max = %d,%d\n",p->mindist, p->maxdist);
+      p->autokcnt = p->autoktim;
+      mid2 = inp2 - p->max2dist;
+      mid1 = mid2 - 1;
+      autop = p->autobuf;
+      for (dist = p->mindist; dist <= p->maxdist; dist++) {
+        dsum = FL(0.0);
+        dinv = FL(1.0) / dist;
+        src1 = mid1;  src3 = mid1 + dist;
+        src2 = mid2;  src4 = mid2 + dist;
+        for (win = FL(1.0), windec = dinv, nn = dist; nn--; ) {
+          dsum += win * (*src1 * *src3 + *src2 * *src4);
+          //printf("dsum = %f from %f %f %f %f\n", dsum, *src1, *src2, *src3, *src4);
+          src1--; src2++; src3--; src4++;
+          win -= windec;
+        }
+        *autop++ = dsum * dinv;
+      }
+      maxval = FL(0.0);
+      maxp = autop = p->autobuf;
+      endp = autop + p->maxdist - p->mindist;
+      while (autop < endp) {
+        //printf("newval, maxval = %f, %f\n", *autop, maxval);
+        if (*autop > maxval) {          /* max autocorr gives new period */
+          maxval = *autop;
+          maxp = autop;
+#if 0
+          csound->Message(csound, "new maxval %f at %p\n", maxval, (int64_t)maxp);
+#endif
+        }
+        autop++;
+      }
+      //printf("**** maxval = %f ****\n", maxval);
+      period = p->mindist + maxp - p->autobuf;
+      if (period != p->period) {
+#if 0
+        csound->Message(csound, "New period %d %d\n", period, p->period);
+#endif
+        p->period = period;
+        if (!p->cpsmode)
+          p->lsicvt = FL(65536.0) / period;
+        p->pnt1 = (int32)((MYFLT)period * FL(0.2));
+        p->pnt2 = (int32)((MYFLT)period * FL(0.8));
+        p->pnt3 = period;
+        p->inc1 = FL(1.0) / p->pnt1;
+        p->inc2 = FL(1.0) / (period - p->pnt2);
+      }
+    }
+    else period = p->period;
 
-  src1 = p->puls1;                        /* insert pulses into output */
-  src2 = p->puls2;
-  src3 = p->puls3;
-  lin1 = p->lin1;
-  lin2 = p->lin2;
-  lin3 = p->lin3;
-  cnt1 = p->cnt1;
-  cnt2 = p->cnt2;
-  cnt3 = p->cnt3;
-  phase1 = p->phase1;
-  phase2 = p->phase2;
-  phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
-  phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
-  for (n=offset; n<nsmps; n++) {
-    MYFLT sum;
-    if (src1 != NULL) {
-      if (++cnt1 < p->pnt11) {
-        sum = *src1++ * lin1;
-        lin1 += p->inc11;
+    minval = (MYFLT)HUGE_VAL;               /* Suitably large ! */
+    minq2 = inq2 - period;                  /* srch the qbuf for minima */
+    minq1 = minq2 - period;                 /* which are 1 period apart */
+    endp = inq2;                            /* move srch over 1 period  */
+    while (minq2 < endp) {
+      if ((sum = *minq1 + *minq2) < minval) {
+        minval = sum;
+        minqp = minq1;
       }
-      else if (cnt1 <= p->pnt12)
-        sum = *src1++;
-      else if (cnt1 <= p->pnt13) {
-        sum = *src1++ * lin1;
-        lin1 -= p->inc12;
-      }
-      else {
-        sum = FL(0.0);
-        src1 = NULL;
-      }
+      minq1++; minq2++;
     }
-    else sum = FL(0.0);
-    if (src2 != NULL) {
-      if (++cnt2 < p->pnt21) {
-        sum += *src2++ * lin2;
-        lin2 += p->inc21;
-      }
-      else if (cnt2 <= p->pnt22)
-        sum += *src2++;
-      else if (cnt2 <= p->pnt23) {
-        sum += *src2++ * lin2;
-        lin2 -= p->inc22;
-      }
-      else src2 = NULL;
+    src1 = minqp - p->n2bufsmps;            /* get src equiv of 1st min  */
+    if (period==0) {
+      csound->Warning(csound, "%s", Str("Period zero\n"));
+      outp = p->ar;
+      memset(outp, 0, sizeof(MYFLT)*CS_KSMPS);
+      return OK;
     }
-    if (src3 != NULL) {
-      if (++cnt3 < p->pnt31) {
-        sum += *src3++ * lin3;
-        lin3 += p->inc31;
+    while (src1 + CS_KSMPS > inp2)     /* if not enough smps presnt */
+      src1 -= period;                       /*      back up 1 prd        */
+    pulstrt = src1;                         /* curr available pulse beg  */
+
+    src1 = p->puls1;                        /* insert pulses into output */
+    src2 = p->puls2;
+    src3 = p->puls3;
+    lin1 = p->lin1;
+    lin2 = p->lin2;
+    lin3 = p->lin3;
+    cnt1 = p->cnt1;
+    cnt2 = p->cnt2;
+    cnt3 = p->cnt3;
+    phase1 = p->phase1;
+    phase2 = p->phase2;
+    phsinc1 = (int32)(*p->kfrq1 * p->lsicvt);
+    phsinc2 = (int32)(*p->kfrq2 * p->lsicvt);
+    for (n=offset; n<nsmps; n++) {
+      MYFLT sum;
+      if (src1 != NULL) {
+        if (++cnt1 < p->pnt11) {
+          sum = *src1++ * lin1;
+          lin1 += p->inc11;
+        }
+        else if (cnt1 <= p->pnt12)
+          sum = *src1++;
+        else if (cnt1 <= p->pnt13) {
+          sum = *src1++ * lin1;
+          lin1 -= p->inc12;
+        }
+        else {
+          sum = FL(0.0);
+          src1 = NULL;
+        }
       }
-      else if (cnt3 <= p->pnt32)
-        sum += *src3++;
-      else if (cnt3 <= p->pnt33) {
-        sum += *src3++ * lin3;
-        lin3 -= p->inc32;
+      else sum = FL(0.0);
+      if (src2 != NULL) {
+        if (++cnt2 < p->pnt21) {
+          sum += *src2++ * lin2;
+          lin2 += p->inc21;
+        }
+        else if (cnt2 <= p->pnt22)
+          sum += *src2++;
+        else if (cnt2 <= p->pnt23) {
+          sum += *src2++ * lin2;
+          lin2 -= p->inc22;
+        }
+        else src2 = NULL;
       }
-      else src3 = NULL;
-    }
-    if ((phase1 += phsinc1) & (~0xFFFFL)) { /* 64bit safe! */
-      phase1 &= 0x0000FFFFL;
-      if (src1 == NULL) {
-        src1 = pulstrt;
-        cnt1 = 0;
-        lin1 = p->inc1;
-        p->inc11 = p->inc1;
-        p->inc12 = p->inc2;
-        p->pnt11 = p->pnt1;
-        p->pnt12 = p->pnt2;
-        p->pnt13 = p->pnt3;
+      if (src3 != NULL) {
+        if (++cnt3 < p->pnt31) {
+          sum += *src3++ * lin3;
+          lin3 += p->inc31;
+        }
+        else if (cnt3 <= p->pnt32)
+          sum += *src3++;
+        else if (cnt3 <= p->pnt33) {
+          sum += *src3++ * lin3;
+          lin3 -= p->inc32;
+        }
+        else src3 = NULL;
       }
-      else if (src2 == NULL) {
-        src2 = pulstrt;
-        cnt2 = 0;
-        lin2 = p->inc1;
-        p->inc21 = p->inc1;
-        p->inc22 = p->inc2;
-        p->pnt21 = p->pnt1;
-        p->pnt22 = p->pnt2;
-        p->pnt23 = p->pnt3;
-      }
-      else if (src3 == NULL) {
-        src3 = pulstrt;
-        cnt3 = 0;
-        lin3 = p->inc1;
-        p->inc31 = p->inc1;
-        p->inc32 = p->inc2;
-        p->pnt31 = p->pnt1;
-        p->pnt32 = p->pnt2;
-        p->pnt33 = p->pnt3;
-      }
+      if ((phase1 += phsinc1) & (~0xFFFFL)) { /* 64bit safe! */
+        phase1 &= 0x0000FFFFL;
+        if (src1 == NULL) {
+          src1 = pulstrt;
+          cnt1 = 0;
+          lin1 = p->inc1;
+          p->inc11 = p->inc1;
+          p->inc12 = p->inc2;
+          p->pnt11 = p->pnt1;
+          p->pnt12 = p->pnt2;
+          p->pnt13 = p->pnt3;
+        }
+        else if (src2 == NULL) {
+          src2 = pulstrt;
+          cnt2 = 0;
+          lin2 = p->inc1;
+          p->inc21 = p->inc1;
+          p->inc22 = p->inc2;
+          p->pnt21 = p->pnt1;
+          p->pnt22 = p->pnt2;
+          p->pnt23 = p->pnt3;
+        }
+        else if (src3 == NULL) {
+          src3 = pulstrt;
+          cnt3 = 0;
+          lin3 = p->inc1;
+          p->inc31 = p->inc1;
+          p->inc32 = p->inc2;
+          p->pnt31 = p->pnt1;
+          p->pnt32 = p->pnt2;
+          p->pnt33 = p->pnt3;
+        }
 #if 0
-      else if (UNLIKELY(++hrngflg > 200)) {
-        csound->Message(csound, Str("harmon out of range...\n"));
-        hrngflg = 0;
-      }
+        else if (UNLIKELY(++hrngflg > 200)) {
+          csound->Message(csound, "%s", Str("harmon out of range...\n"));
+          hrngflg = 0;
+        }
 #endif
-    }
-    if ((phase2 += phsinc2) & (~0xFFFFL)) {
-      phase2 &= 0x0000FFFFL;
-      if (src1 == NULL) {
-        src1 = pulstrt;
-        cnt1 = 0;
-        lin1 = p->inc1;
-        p->inc11 = p->inc1;
-        p->inc12 = p->inc2;
-        p->pnt11 = p->pnt1;
-        p->pnt12 = p->pnt2;
-        p->pnt13 = p->pnt3;
       }
-      else if (src2 == NULL) {
-        src2 = pulstrt;
-        cnt2 = 0;
-        lin2 = p->inc1;
-        p->inc21 = p->inc1;
-        p->inc22 = p->inc2;
-        p->pnt21 = p->pnt1;
-        p->pnt22 = p->pnt2;
-        p->pnt23 = p->pnt3;
-      }
-      else if (src3 == NULL) {
-        src3 = pulstrt;
-        cnt3 = 0;
-        lin3 = p->inc1;
-        p->inc31 = p->inc1;
-        p->inc32 = p->inc2;
-        p->pnt31 = p->pnt1;
-        p->pnt32 = p->pnt2;
-        p->pnt33 = p->pnt3;
-      }
+      if ((phase2 += phsinc2) & (~0xFFFFL)) {
+        phase2 &= 0x0000FFFFL;
+        if (src1 == NULL) {
+          src1 = pulstrt;
+          cnt1 = 0;
+          lin1 = p->inc1;
+          p->inc11 = p->inc1;
+          p->inc12 = p->inc2;
+          p->pnt11 = p->pnt1;
+          p->pnt12 = p->pnt2;
+          p->pnt13 = p->pnt3;
+        }
+        else if (src2 == NULL) {
+          src2 = pulstrt;
+          cnt2 = 0;
+          lin2 = p->inc1;
+          p->inc21 = p->inc1;
+          p->inc22 = p->inc2;
+          p->pnt21 = p->pnt1;
+          p->pnt22 = p->pnt2;
+          p->pnt23 = p->pnt3;
+        }
+        else if (src3 == NULL) {
+          src3 = pulstrt;
+          cnt3 = 0;
+          lin3 = p->inc1;
+          p->inc31 = p->inc1;
+          p->inc32 = p->inc2;
+          p->pnt31 = p->pnt1;
+          p->pnt32 = p->pnt2;
+          p->pnt33 = p->pnt3;
+        }
 #if 0
-      else if (UNLIKELY(++hrngflg > 200)) {
-        csound->Message(csound, Str("harmon out of range\n"));
-        hrngflg = 0;
-      }
+        else if (UNLIKELY(++hrngflg > 200)) {
+          csound->Message(csound, "%s", Str("harmon out of range\n"));
+          hrngflg = 0;
+        }
 #endif
+      }
+      outp[n] = sum;
     }
-    outp[n] = sum;
-  }
-  if (inp1 >= p->midp) {
-    p->inp1 = p->bufp;
-    p->inp2 = p->midp;
-    p->inq1 = p->bufq;
-    p->inq2 = p->midq;
-    if (src1 != NULL)
-      src1 -= p->nbufsmps;
-    if (src2 != NULL)
-      src2 -= p->nbufsmps;
-    if (src3 != NULL)
-      src3 -= p->nbufsmps;
-  }
-  else {
-    p->inp1 = inp1;
-    p->inp2 = inp2;
-    p->inq1 = inq1;
-    p->inq2 = inq2;
-  }
-  p->puls1 = src1;
-  p->puls2 = src2;
-  p->puls3 = src3;
-  p->lin1 = lin1;
-  p->lin2 = lin2;
-  p->lin3 = lin3;
-  p->cnt1 = cnt1;
-  p->cnt2 = cnt2;
-  p->cnt3 = cnt3;
-  p->phase1 = phase1;
-  p->phase2 = phase2;
-  p->prvq = qval;
-  return OK;
+    if (inp1 >= p->midp) {
+      p->inp1 = p->bufp;
+      p->inp2 = p->midp;
+      p->inq1 = p->bufq;
+      p->inq2 = p->midq;
+      if (src1 != NULL)
+        src1 -= p->nbufsmps;
+      if (src2 != NULL)
+        src2 -= p->nbufsmps;
+      if (src3 != NULL)
+        src3 -= p->nbufsmps;
+    }
+    else {
+      p->inp1 = inp1;
+      p->inp2 = inp2;
+      p->inq1 = inq1;
+      p->inq2 = inq2;
+    }
+    p->puls1 = src1;
+    p->puls2 = src2;
+    p->puls3 = src3;
+    p->lin1 = lin1;
+    p->lin2 = lin2;
+    p->lin3 = lin3;
+    p->cnt1 = cnt1;
+    p->cnt2 = cnt2;
+    p->cnt3 = cnt3;
+    p->phase1 = phase1;
+    p->phase2 = phase2;
+    p->prvq = qval;
+    return OK;
 }
 
 #define S(x)    sizeof(x)

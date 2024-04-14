@@ -74,10 +74,10 @@ int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
 
     if (pvocex_loadfile(csound, pvfilnam, p) == OK) {
       p->prFlg = 1;
@@ -106,7 +106,7 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
       frIndx = (MYFLT)p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchInOne(p->frPtr, &(buf[0]), size, frIndx, p->mybin);
@@ -114,7 +114,7 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
     *p->kamp = buf[0];
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("PVOC timpnt < 0"));
 }
 
 static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)

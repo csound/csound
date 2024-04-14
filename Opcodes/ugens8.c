@@ -50,10 +50,10 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
 
      if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
@@ -171,7 +171,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
       frIndx = (MYFLT)p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchIn(p->frPtr, buf, size, frIndx);
@@ -220,16 +220,16 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pvoc: not initialised"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("pvoc: not initialised"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too low"));
+                             "%s", Str("PVOC transpose too low"));
  err3:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too high"));
+                             "%s", Str("PVOC transpose too high"));
  err4:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC timpnt < 0"));
+                             "%s", Str("PVOC timpnt < 0"));
 }
 
 /* RWD 8:2001: custom version of ldmemfile();

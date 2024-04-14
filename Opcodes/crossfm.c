@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include "crossfm.h"
 #include <math.h>
@@ -31,7 +35,7 @@ int32_t xfmset(CSOUND *csound, CROSSFM *p)
     FUNC *ftp1 = csound->FTnp2Find(csound, p->ifn1);
     FUNC *ftp2 = csound->FTnp2Find(csound, p->ifn2);
     if (UNLIKELY(ftp1 == NULL  ||  ftp2 == NULL)) {
-      return csound->InitError(csound, Str("crossfm: ftable not found"));
+      return csound->InitError(csound, "%s", Str("crossfm: ftable not found"));
     }
     p->siz1 = (MYFLT)ftp1->flen;
     p->siz2 = (MYFLT)ftp2->flen;

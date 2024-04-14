@@ -21,8 +21,11 @@
   02110-1301 USA
 */
 
-/* #include "csdl.h" */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 #ifdef __FAST_MATH__
@@ -318,22 +321,22 @@ static int32_t early_init(CSOUND *csound, early *p)
     }
 
     /* copy in string name...*/
-    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1]='\0';
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,
+        csound->InitError(csound,  "%s",
                           Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     /* file handles */

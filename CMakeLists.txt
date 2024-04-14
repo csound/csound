@@ -173,6 +173,9 @@ option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
+option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
+
+
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
@@ -688,6 +691,20 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/argdecode.c    
+    Top/csdebug.c
+    Top/cscore_internal.c
+    Top/cscorfns.c
+    Top/csmodule.c
+    Top/getstring.c
+    Top/main.c
+    Top/new_opts.c
+    Top/one_file.c
+    Top/opcode.c
+    Top/threads.c
+    Top/utility.c
+    Top/threadsafe.c
+    Top/server.c    
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
@@ -757,6 +774,40 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/vdelay.c
     OOps/compile_ops.c
+)
+
+set(vbap_ops
+    Opcodes/vbap.c
+    Opcodes/vbap1.c
+    Opcodes/vbap_n.c
+    Opcodes/vbap_zak.c
+)
+
+set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+if(WIN32 AND NOT MSVC)
+    set_source_files_properties(Opcodes/sfont.c PROPERTIES
+        COMPILE_FLAGS -mno-ms-bitfields)
+endif()
+
+if(NOT MSVC)
+    set_source_files_properties(Opcodes/sfont.c PROPERTIES
+        COMPILE_FLAGS -Wno-address-of-packed-member)
+endif()
+
+set(physmod_SRCS
+    Opcodes/physutil.c
+    Opcodes/modal4.c
+    Opcodes/physmod.c
+    Opcodes/mandolin.c
+    Opcodes/singwave.c
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
+    Opcodes/bowedbar.c
+)
+
+set(externs_SRCS
     Opcodes/babo.c
     Opcodes/bilbar.c
     Opcodes/compress.c
@@ -764,23 +815,32 @@ set(libcsound_SRCS
     Opcodes/Vosim.c
     Opcodes/squinewave.c
     Opcodes/pinker.c
-    Opcodes/pitch.c
-    Opcodes/pitch0.c
-    Opcodes/spectra.c
-    Opcodes/ambicode1.c
+    Opcodes/cpumeter.c
+    Opcodes/sc_noise.c
+    Opcodes/afilters.c
+    Opcodes/wpfilters.c
+    Opcodes/lufs.c
+    Opcodes/date.c
+    Opcodes/system_call.c
+    Opcodes/serial.c
+    Opcodes/counter.c
+    Opcodes/liveconv.c
+    Opcodes/sterrain.c
+    Opcodes/gammatone.c
     Opcodes/sfont.c
+    Opcodes/gendy.c
+    Opcodes/phisem.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
+    Opcodes/exciter.c
+    Opcodes/buchla.c
+    Opcodes/select.c
+    Opcodes/platerev.c
+    Opcodes/sequencer.c
     Opcodes/grain4.c
-    Opcodes/hrtferX.c
     Opcodes/loscilx.c
     Opcodes/minmax.c
     Opcodes/pan2.c
-    Opcodes/arrays.c
-    Opcodes/phisem.c
-    Opcodes/hrtfopcodes.c
-    Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
     Opcodes/vaops.c
     Opcodes/ugakbari.c
     Opcodes/harmon.c
@@ -794,72 +854,30 @@ set(libcsound_SRCS
     Opcodes/fareyseq.c
     Opcodes/modmatrix.c
     Opcodes/scoreline.c
-    Opcodes/modal4.c
-    Opcodes/physutil.c
-    Opcodes/physmod.c
-    Opcodes/mandolin.c
-    Opcodes/singwave.c
-    Opcodes/fm4op.c
-    Opcodes/moog1.c
-    Opcodes/shaker.c
-    Opcodes/bowedbar.c
-    Opcodes/gab/tabmorph.c
-    Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-    Opcodes/ftest.c
-    Opcodes/hrtfearly.c
-    Opcodes/hrtfreverb.c
-    Opcodes/cpumeter.c
-    Opcodes/gendy.c
-    Opcodes/tl/sc_noise.c
-    Opcodes/afilters.c
-    Opcodes/wpfilters.c
-    Opcodes/zak.c
-    Opcodes/lufs.c
-    Opcodes/date.c
-    Opcodes/system_call.c
-    Opcodes/liveconv.c
-    Opcodes/sterrain.c
-    Opcodes/gammatone.c
-    Opcodes/fareygen.c
-    Opcodes/quadbezier.c
-    Opcodes/framebuffer.c
-    Opcodes/cellular.c
-    Opcodes/exciter.c
-    Opcodes/buchla.c
-    Opcodes/select.c
-    Opcodes/serial.c
-    Opcodes/counter.c
-    Opcodes/platerev.c
-    Opcodes/sequencer.c
-    Opcodes/pvsgendy.c
+    Opcodes/ambicode1.c
+    Opcodes/arrays.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
-    Top/argdecode.c
-    Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
-    Top/csmodule.c
-    Top/getstring.c
-    Top/main.c
-    Top/new_opts.c
-    Top/one_file.c
-    Top/opcode.c
-    Top/threads.c
-    Top/utility.c
-    Top/threadsafe.c
-    Top/server.c)
+    Opcodes/zak.c
+    Opcodes/paulstretch.c
+)
 
-if(WIN32 AND NOT MSVC)
-    set_source_files_properties(Opcodes/sfont.c PROPERTIES
-        COMPILE_FLAGS -mno-ms-bitfields)
-endif()
+set(newgabops_SRCS
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/newgabopc.c
+)
 
-if(NOT MSVC)
-    set_source_files_properties(Opcodes/sfont.c PROPERTIES
-        COMPILE_FLAGS -Wno-address-of-packed-member)
-endif()
+set(gens_SRCS
+    Opcodes/ftest.c
+    Opcodes/fareygen.c
+    Opcodes/quadbezier.c
+)
+
+set(pitch_ops_SRCS
+    Opcodes/pitch.c
+    Opcodes/spectra.c
+)
 
 set(stdopcod_SRCS
     Opcodes/ambicode.c
@@ -883,13 +901,10 @@ set(stdopcod_SRCS
     Opcodes/locsig.c
     Opcodes/lowpassr.c
     Opcodes/metro.c
-    Opcodes/midiops2.c
-    Opcodes/midiops3.c
     Opcodes/newfils.c
     Opcodes/nlfilt.c
     Opcodes/oscbnk.c
     Opcodes/pluck.c
-    Opcodes/paulstretch.c
     Opcodes/repluck.c
     Opcodes/reverbsc.c
     Opcodes/seqtime.c
@@ -908,8 +923,20 @@ set(stdopcod_SRCS
     Opcodes/wave-terrain.c
     Opcodes/wterrain2.c
     Opcodes/stdopcod.c
+    )
+
+set(sock_ops_SRCS
     Opcodes/socksend.c
-    Opcodes/sockrecv.c)
+    Opcodes/sockrecv.c
+)
+
+
+set(hrtf_ops_SRCS
+    Opcodes/hrtfopcodes.c
+    Opcodes/hrtfearly.c
+    Opcodes/hrtfreverb.c
+    Opcodes/hrtferX.c
+)
 
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c
@@ -920,7 +947,9 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsdemix.c
     Opcodes/pvs_ops.c
     Opcodes/pvsband.c
-    Opcodes/pvsbuffer.c)
+    Opcodes/pvsbuffer.c
+    Opcodes/pvsgendy.c
+    )
 
 set(oldpvoc_SRCS
     Opcodes/dsputil.c
@@ -953,30 +982,48 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
+
 set(cppops_SRCS
    Opcodes/ampmidid.cpp
    Opcodes/mixer.cpp
    Opcodes/bformdec2.cpp
    Opcodes/doppler.cpp
-     Opcodes/ftsamplebank.cpp
-     Opcodes/padsynth_gen.cpp
-     Opcodes/signalflowgraph.cpp
-     Opcodes/arrayops.cpp
-     Opcodes/lfsr.cpp
-     Opcodes/pvsops.cpp
-     Opcodes/trigEnvSegs.cpp
-     Opcodes/tl/fractalnoise.cpp
+   Opcodes/ftsamplebank.cpp
+   Opcodes/padsynth_gen.cpp
+   Opcodes/signalflowgraph.cpp
+   Opcodes/arrayops.cpp
+   Opcodes/lfsr.cpp
+   Opcodes/pvsops.cpp
+   Opcodes/trigEnvSegs.cpp
+   Opcodes/tl/fractalnoise.cpp
 )
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
-${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS})
+list(APPEND libcsound_SRCS)
+
+list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
+${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
+${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
+)
+
+if(NOT BUILD_PLUGINS)
+ list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
+ ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
+ ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
+ ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS} 
+)
+endif()
 
 if(UNIX)
-list(APPEND libcsound_SRCS ${unixops_SRCS})
+if(NOT BUILD_PLUGINS)
+ list(APPEND libcsound_SRCS ${unixops_SRCS})
+endif()
+ list(APPEND libcsound_static_SRCS ${unixops_SRCS})
 endif()
 
 if(BUILD_PERFTHREAD_CLASS)
     list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
+    list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
 
 
@@ -1033,6 +1080,16 @@ list(APPEND libcsound_SRCS
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
+list(APPEND libcsound_static_SRCS
+    ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+    Engine/csound_orc_semantics.c
+    Engine/csound_orc_expressions.c
+    Engine/csound_orc_optimize.c
+    Engine/csound_orc_compile.c
+    Engine/new_orc_parser.c
+    Engine/symbtab.c)
+
+
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
@@ -1085,6 +1142,9 @@ add_custom_command(
 list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
     #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
+list(APPEND libcsound_static_SRCS ${PRELEX_SCOOUT})
+    #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+
 #set_source_files_properties(${YACC_SCOOUT} GENERATED)
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
@@ -1111,6 +1171,12 @@ if(BUILD_MULTI_CORE)
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c)
 
+    list(APPEND libcsound_static_SRCS
+        Engine/cs_new_dispatch.c
+        Engine/cs_par_base.c
+        Engine/cs_par_orc_semantic_analysis.c)
+   
+
     list(APPEND libcsound_CFLAGS -DPARCS)
 
 else()
@@ -1135,10 +1201,6 @@ if(NOT IOS)
     set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 endif()
 
-if(INIT_STATIC_MODULES)
-    set_target_properties(${CSOUNDLIB} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
-endif()
-
 if(APPLE)
     if(NOT IOS)
         set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
@@ -1147,6 +1209,12 @@ if(APPLE)
             "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
         )
     endif()
+endif()
+
+if(BUILD_PLUGINS)
+    message(STATUS "build external opcodes as plugins")
+    target_compile_definitions(${CSOUNDLIB} PUBLIC
+    "-DBUILD_PLUGINS")    
 endif()
 
 # Add the install target
@@ -1211,7 +1279,8 @@ endif()
 
 if(LINUX)
     message(STATUS "Building on Linux.")
-    add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
+    add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE
+    -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
 
     find_library(LIBRT_LIBRARY rt)
@@ -1344,16 +1413,13 @@ if(NOT IOS)
 endif()
 
 if(BUILD_STATIC_LIBRARY)
-    add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+    add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_static_SRCS})
     target_include_directories(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-    target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
-
-    if(INIT_STATIC_MODULES)
-        set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
-    endif()
+    target_compile_options(${CSOUNDLIB_STATIC} PRIVATE
+    ${libcsound_CFLAGS})
 
     if (USE_LIBSNDFILE)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)

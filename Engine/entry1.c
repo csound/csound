@@ -1242,6 +1242,13 @@ OENTRY opcodlst_1[] = {
   { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
+  { "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
+{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
+                                             (SUBR)pinit,     NULL, NULL },
+{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
+{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
   /* ----------------------------------------------------------------------- */
   // VL: 9.3.22 this is causing a problem in parsing arrays
   // I am modifying it to accept only i-time inputs
@@ -1274,6 +1281,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) coef2parm},
    {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
+  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

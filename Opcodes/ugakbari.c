@@ -24,7 +24,11 @@
 /* scale modified and scale2 written as a replacement by JPff Dec 2020 */
 
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <math.h>
 

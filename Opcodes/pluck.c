@@ -169,7 +169,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
     shape = (MYFLT *)csound->Malloc(csound, len*sizeof(MYFLT));
     if (UNLIKELY(!shape)) {
       csound->InitError(csound,
-                        Str("wgpluck:Could not allocate for initial shape"));
+                        "%s", Str("wgpluck:Could not allocate for initial shape"));
       return NULL;
     }
     scale = FL(0.5) * scale;      /* Scale was squared!! */
@@ -245,7 +245,7 @@ static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
     MYFLT *data = cb->data;
     /* if (UNLIKELY(!data)) */
     /*   return csound->InitError(csound, */
-    /*                            Str("wgpluck: Buffer memory not allocated!")); */
+    /*                            "%s", Str("wgpluck: Buffer memory not allocated!")); */
 
   /* Initialize pointers and variables */
     cb->size            = N;

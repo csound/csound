@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct _equ {

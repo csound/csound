@@ -41,7 +41,7 @@ static int32_t pvscentset(CSOUND *csound, PVSCENT *p)
     if (UNLIKELY(!((p->fin->format==PVS_AMP_FREQ) ||
                    (p->fin->format==PVS_AMP_PHASE))))
       return csound->InitError(csound,
-                               Str("pvscent: format must be amp-phase"
+                               "%s", Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));
     return OK;
 }
@@ -313,7 +313,7 @@ int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+      return csound->InitError(csound, "%s", Str("SDFT case not implemented yet"));
     size = sizeof(MYFLT)*(p->fin->N+2);
     if (p->peakfreq.auxp == NULL || p->peakfreq.size < size)
       csound->AuxAlloc(csound, size, &p->peakfreq);
@@ -321,7 +321,7 @@ int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
       csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
-                               Str("PV Frames must be in AMP_FREQ format!\n"));
+                               "%s", Str("PV Frames must be in AMP_FREQ format!\n"));
     }
 
     return OK;
@@ -348,7 +348,7 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
     int32_t PrevNotAdj          = FALSE;
 
     /* Un-normalise the threshold value */
-    Threshold *= csound->e0dbfs;
+    Threshold *= csound->Get0dBFS(csound);
 
     /* If a new frame is ready... */
     if (p->lastframe < p->fin->framecount) {

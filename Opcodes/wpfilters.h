@@ -40,7 +40,11 @@ Csound C versions by Steven Yi
 
 #pragma once
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 
 typedef struct {
   OPDS h;

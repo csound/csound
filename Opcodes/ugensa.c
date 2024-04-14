@@ -65,7 +65,7 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
         p->fundphs = 0;
       }
       if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
-        return csound->InitError(csound, Str("illegal value for iolaps")); 
+        return csound->InitError(csound, "%s", Str("illegal value for iolaps")); 
       }
       if (*p->iphs>=FL(0.0))
         csound->AuxAlloc(csound, (size_t)olaps * sizeof(OVERLAP), &p->auxch);
@@ -223,8 +223,8 @@ static int32_t fog(CSOUND *csound, FOGS *p)
   }
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h),
-                           Str("FOF needs more overlaps"));
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("FOF needs more overlaps"));
 }
 
 static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,

@@ -163,6 +163,10 @@ PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
 void csound_init_rand(CSOUND *csound)
 {
     uint32_t  tmp;
+    int32_t *holdrand;
+    csound->CreateGlobalVariable(csound, "::HOLDRAND::", sizeof(int32));
+    holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
+    *holdrand = 2345678;
 
     csound->csRandState = &(csound->randState_);
     csound->randSeed1 = 15937;

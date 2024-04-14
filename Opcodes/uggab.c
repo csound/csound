@@ -178,7 +178,7 @@ static int32_t trig(CSOUND *csound, TRIG *p)
       break;
     default:
       return
-        csound->PerfError(csound, &(p->h),
+        csound->PerfError(csound, &(p->h), "%s",
                           Str(" bad imode value"));
     }
     p->old_sig = sig;
@@ -200,7 +200,7 @@ static int32_t nterpol_init(CSOUND *csound, INTERPOL *p)
     if (LIKELY(*p->imax != *p->imin))
       p->point_factor = FL(1.0)/(*p->imax - *p->imin);
     else
-      return csound->InitError(csound, Str("Min and max the same"));
+      return csound->InitError(csound, "%s", Str("Min and max the same"));
     return OK;
  }
 
@@ -232,6 +232,7 @@ static int32_t anterpol(CSOUND *csound, INTERPOL *p)
     return OK;
 }
 
+      
 static int32_t sum_init(CSOUND *csound, SUM *p) {
     uint32_t nsmps = CS_KSMPS;
     if (p->aux.auxp == NULL || p->aux.size < nsmps * sizeof(MYFLT))
@@ -339,7 +340,7 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     double  cf;
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
-      return csound->InitError(csound, Str("loop cannot be zero"));
+      return csound->InitError(csound, "%s", Str("loop cannot be zero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
       int32_t     flag = (int32_t) *p->iflag;
@@ -441,7 +442,7 @@ static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
     p->nsegs   = p->INOCOUNT-3;
     // Should check this is even
     if (UNLIKELY((p->nsegs&1)!=0))
-      csound->Warning(csound, Str("loop opcode: wrong argument count"));
+      csound->Warning(csound, "%s", Str("loop opcode: wrong argument count"));
     p->args[0] = FL(0.0);
     p->phs     = *p->iphase;
     return OK;
@@ -789,12 +790,12 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (((int64_t)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
       else if (UNLIKELY(*p->iphs>=1.0))
-        return csound->InitError(csound, Str("vibrato@ Phase out of range"));
+        return csound->InitError(csound, "%s", Str("vibrato@ Phase out of range"));
     }
     else return NOTOK;
-    p->xcpsAmpRate = randGab *(*p->cpsMaxRate - *p->cpsMinRate) +
+    p->xcpsAmpRate = randGab(csound) *(*p->cpsMaxRate - *p->cpsMinRate) +
       *p->cpsMinRate;
-    p->xcpsFreqRate = randGab *(*p->ampMaxRate - *p->ampMinRate) +
+    p->xcpsFreqRate = randGab(csound) *(*p->ampMaxRate - *p->ampMinRate) +
       *p->ampMinRate;
     p->tablen = ftp->flen;
     p->tablenUPkr = p->tablen * CS_ONEDKR;
@@ -830,26 +831,26 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     p->lphs = phs;
     p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
     if (p->phsAmpRate >= MAXLEN) {
-      p->xcpsAmpRate =  randGab  * (*p->ampMaxRate - *p->ampMinRate) +
+      p->xcpsAmpRate =  randGab(csound)  * (*p->ampMaxRate - *p->ampMinRate) +
         *p->ampMinRate;
       p->phsAmpRate &= PHMASK;
       p->num1amp = p->num2amp;
-      p->num2amp = BiRandGab ;
+      p->num2amp = BiRandGab(csound) ;
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
     p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
     if (p->phsFreqRate >= MAXLEN) {
-      p->xcpsFreqRate =  randGab  * (*p->cpsMaxRate - *p->cpsMinRate) +
+      p->xcpsFreqRate =  randGab(csound)  * (*p->cpsMaxRate - *p->cpsMinRate) +
         *p->cpsMinRate;
       p->phsFreqRate &= PHMASK;
       p->num1freq = p->num2freq;
-      p->num2freq = BiRandGab ;
+      p->num2freq = BiRandGab(csound) ;
       p->dfdmaxFreq = (p->num2freq - p->num1freq) / FMAXLEN;
     }
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vibrato(krate): not initialised"));
+                             "%s", Str("vibrato(krate): not initialised"));
 }
 
 static int32_t vibr_set(CSOUND *csound, VIBR *p)
@@ -870,8 +871,8 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
       p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
     }
     else return NOTOK;
-    p->xcpsAmpRate = randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
-    p->xcpsFreqRate = randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
+    p->xcpsAmpRate = randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
+    p->xcpsFreqRate = randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
     p->tablen = ftp->flen;
     p->tablenUPkr = p->tablen * CS_ONEDKR;
     return OK;
@@ -892,7 +893,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("vibrato(krate): not initialised"));
+                               "%s", Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (int32)phs); /*PFRAC(phs);*/
     ftab = ftp->ftable + (int32)phs; /*(phs >> ftp->lobits);*/
@@ -909,19 +910,19 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
     p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
     if (p->phsAmpRate >= MAXLEN) {
-      p->xcpsAmpRate =  randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
+      p->xcpsAmpRate =  randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
       p->phsAmpRate &= PHMASK;
       p->num1amp = p->num2amp;
-      p->num2amp = BiRandGab;
+      p->num2amp = BiRandGab(csound);
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
 
     p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
     if (p->phsFreqRate >= MAXLEN) {
-      p->xcpsFreqRate =  randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
+      p->xcpsFreqRate =  randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
       p->phsFreqRate &= PHMASK;
       p->num1freq = p->num2freq;
-      p->num2freq = BiRandGab;
+      p->num2freq = BiRandGab(csound);
       p->dfdmaxFreq = (p->num2freq - p->num1freq) / FMAXLEN;
     }
 #undef  randAmountAmp
@@ -947,13 +948,13 @@ static int32_t jitter2_set(CSOUND *csound, JITTER2 *p)
     p->num1a = p->num1b = p->num1c = FL(0.0); /* JPff Jul 2016 */
     if (*p->option != FL(0.0)) {
       p->num1a   = p->num2a;
-      p->num2a   = BiRandGab;
+      p->num2a   = BiRandGab(csound);
       p->dfdmax1 = (p->num2a - p->num1a) / FMAXLEN;
       p->num1b   = p->num2b;
-      p->num2b   = BiRandGab;
+      p->num2b   = BiRandGab(csound);
       p->dfdmax2 = (p->num2b- p->num1b) / FMAXLEN;
       p->num1c   = p->num2c;
-      p->num2c   = BiRandGab;
+      p->num2c   = BiRandGab(csound);
       p->dfdmax3 = (p->num2c- p->num1c) / FMAXLEN;
     }
     return OK;
@@ -981,19 +982,19 @@ static int32_t jitter2(CSOUND *csound, JITTER2 *p)
     if (p->phs1 >= MAXLEN) {
       p->phs1   &= PHMASK;
       p->num1a   = p->num2a;
-      p->num2a   = BiRandGab;
+      p->num2a   = BiRandGab(csound);
       p->dfdmax1 = (p->num2a - p->num1a) / FMAXLEN;
     }
     if (p->phs2 >= MAXLEN) {
       p->phs2   &= PHMASK;
       p->num1b   = p->num2b;
-      p->num2b   = BiRandGab;
+      p->num2b   = BiRandGab(csound);
       p->dfdmax2 = (p->num2b - p->num1b) / FMAXLEN;
     }
     if (p->phs3 >= MAXLEN) {
       p->phs3   &= PHMASK;
       p->num1c   = p->num2c;
-      p->num2c   = BiRandGab;
+      p->num2c   = BiRandGab(csound);
       p->dfdmax3 = (p->num2c - p->num1c) / FMAXLEN;
     }
     return OK;
@@ -1001,7 +1002,7 @@ static int32_t jitter2(CSOUND *csound, JITTER2 *p)
 
 static int32_t jitter_set(CSOUND *csound, JITTER *p)
 {
-    p->num2     = BiRandGab;
+    p->num2     = BiRandGab(csound);
     p->initflag = 1;
     p->phs=0;
     return OK;
@@ -1019,10 +1020,10 @@ static int32_t jitter(CSOUND *csound, JITTER *p)
 
     if (p->phs >= MAXLEN) {
     next:
-      p->xcps   = randGab  * (*p->cpsMax - *p->cpsMin) + *p->cpsMin;
+      p->xcps   = randGab(csound)  * (*p->cpsMax - *p->cpsMin) + *p->cpsMin;
       p->phs   &= PHMASK;
       p->num1   = p->num2;
-      p->num2   = BiRandGab;
+      p->num2   = BiRandGab(csound);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -1030,8 +1031,8 @@ static int32_t jitter(CSOUND *csound, JITTER *p)
 
 static int32_t jitters_set(CSOUND *csound, JITTERS *p)
 {
-    p->num1     = BiRandGab;
-    p->num2     = BiRandGab;
+    p->num1     = BiRandGab(csound);
+    p->num2     = BiRandGab(csound);
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->cod      = IS_ASIG_ARG(p->amp) ? 1 : 0;
@@ -1052,13 +1053,13 @@ static int32_t jitters(CSOUND *csound, JITTERS *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
+      p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       if (p->si == 0) p->si = 1; /* Is this necessary? */
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0 = p->num0 = p->num1;
       f1 = p->num1 = p->num2;
-      f2 = p->num2 = BiRandGab;
+      f2 = p->num2 = BiRandGab(csound);
       df0 = p->df0 = p->df1;
       p->df1 = ( f2  - f0 ) * FL(0.5);
       slope = f1 - f0;
@@ -1099,13 +1100,13 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
+        si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         if (si == 0) si = 1; /* Is this necessary? */
         while (phs > 1.0)
           phs -= 1.0;
         f0 = p->num0 = p->num1;
         f1 = p->num1 = p->num2;
-        f2 = p->num2 = BiRandGab;
+        f2 = p->num2 = BiRandGab(csound);
         df0 = p->df0 = p->df1;
         p->df1 = ( f2 - f0 ) * FL(0.5);
         slope = f1 - f0;
@@ -1130,7 +1131,7 @@ static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    *p->out = p->ftp->ftable[(int32)(randGab * p->ftp->flen)];
+    *p->out = p->ftp->ftable[(int32)(randGab(csound) * p->ftp->flen)];
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
@@ -1165,7 +1166,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab) * flen];
+      out[n] = table[(int32)(randGab(csound)) * flen];
     }
     return OK;
  err1:
@@ -1183,7 +1184,7 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    findx = (MYFLT) (randGab * p->ftp->flen);
+    findx = (MYFLT) (randGab(csound) * p->ftp->flen);
     indx = (int32) findx;
     fract = findx - indx;
     v1 = *(p->ftp->ftable + indx);
@@ -1236,7 +1237,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      findx = (MYFLT) (randGab * flen);
+      findx = (MYFLT) (randGab(csound) * flen);
       indx = (int32) findx;
       fract = findx - indx;
       v1 = table[indx];
@@ -1252,7 +1253,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
 
 static int32_t ikRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
-    *p->out = randGab * (*p->max - *p->min) + *p->min;
+    *p->out = randGab(csound) * (*p->max - *p->min) + *p->min;
     return OK;
 }
 
@@ -1270,7 +1271,7 @@ static int32_t aRangeRand(CSOUND *csound, RANGERAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = randGab * rge + min;
+      out[n] = randGab(csound) * rge + min;
     }
     return OK;
 }
@@ -1284,18 +1285,18 @@ static int32_t randomi_set(CSOUND *csound, RANDOMI *p)
     switch (mode) {
     case 1: /* immediate interpolation between kmin and 1st random number */
         p->num1 = FL(0.0);
-        p->num2 = randGab;
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     case 2: /* immediate interpolation between ifirstval and 1st random number */
         p->num1 = (*p->max - *p->min) ?
           (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
-        p->num2 = randGab;
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     case 3: /* immediate interpolation between 1st and 2nd random number */
-        p->num1 = randGab;
-        p->num2 = randGab;
+        p->num1 = randGab(csound);
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     default: /* old behaviour as developped by Gabriel */
@@ -1313,7 +1314,7 @@ static int32_t krandomi(CSOUND *csound, RANDOMI *p)
     if (p->phs >= MAXLEN) {
       p->phs   &= PHMASK;
       p->num1   = p->num2;
-      p->num2   = randGab;
+      p->num2   = randGab(csound);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -1346,7 +1347,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
       if (phs >= MAXLEN) {
         phs &= PHMASK;
         p->num1 = p->num2;
-        p->num2 = randGab;
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
       }
     }
@@ -1366,7 +1367,7 @@ static int32_t randomh_set(CSOUND *csound, RANDOMH *p)
           (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
         break;
     case 3: /* the first output value is a random number within the defined range */
-        p->num1 = randGab;
+        p->num1 = randGab(csound);
         break;
     default: /* old behaviour as developped by Gabriel */
         p->num1 = FL(0.0);
@@ -1381,7 +1382,7 @@ static int32_t krandomh(CSOUND *csound, RANDOMH *p)
     p->phs += (int32)(*p->xcps * CS_KICVT);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
-      p->num1 = randGab;
+      p->num1 = randGab(csound);
     }
     return OK;
 }
@@ -1412,7 +1413,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
         inc     = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs    &= PHMASK;
-        p->num1 = randGab;
+        p->num1 = randGab(csound);
       }
     }
     p->phs = phs;
@@ -1421,8 +1422,8 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
 
 static int32_t random3_set(CSOUND *csound, RANDOM3 *p)
 {
-    p->num1     = randGab;
-    p->num2     = randGab;
+    p->num1     = randGab(csound);
+    p->num2     = randGab(csound);
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->rangeMin_cod = IS_ASIG_ARG(p->rangeMin);
@@ -1444,12 +1445,12 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
+      p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0     = p->num0 = p->num1;
       f1     = p->num1 = p->num2;
-      f2     = p->num2 = randGab;
+      f2     = p->num2 = randGab(csound);
       df0    = p->df0 = p->df1;
       p->df1 = ( f2  - f0 ) * FL(0.5);
       slope  = f1 - f0;
@@ -1492,11 +1493,11 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
+        si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         while (phs > 1.0) phs -= 1.0;
         f0     = p->num0 = p->num1;
         f1     = p->num1 = p->num2;
-        f2     = p->num2 = BiRandGab;
+        f2     = p->num2 = BiRandGab(csound);
         df0    = p->df0 = p->df1;
         p->df1 = ( f2 - f0 ) * FL(0.5);
         slope  = f1 - f0;
