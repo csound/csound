@@ -46,7 +46,10 @@
 
 #if !defined(WIN32) || defined(__CYGWIN__)
 typedef uint32_t    DWORD;
+#else
+#include <windows.h>
 #endif
+
 /*  typedef int32_t     BOOL; */
 typedef uint8_t     BYTE;
 typedef uint16_t    WORD;
