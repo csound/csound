@@ -108,8 +108,6 @@ void *csoundDCTSetup(CSOUND *csound,
                      int32_t FFTsize, int32_t d);
 void csoundDCT(CSOUND *csound,
                void *p, MYFLT *sig);
-
-double csoundStrtod(CSOUND *csound, char* nptr, char** endptr);
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 
@@ -194,6 +192,10 @@ void print_engine_parameters(CSOUND *csound) {
 }
 
 
+static double csoundStrtod(CSOUND *csound, char* nptr, char** endptr) {
+  IGN(csound);
+  return cs_strtod(nptr, endptr);
+}
 
 static void free_opcode_table(CSOUND* csound) {
   int i;

@@ -68,17 +68,13 @@ int closedir(DIR*);
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
-  CSOUND *csound  = (CSOUND *) cs;
-  csound->CreateGlobalVariable(csound, "::CSOUND::C_LOCALE::", sizeof(locale_t));
+   IGN(cs);
 #ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C");                   /* Ensure C syntax */
     csound_c_locale = setlocale(LC_NUMERIC, "C"); /* and remwmber */
 #else
     if (csound_c_locale == NULL) {
-      locale_t *lcl =  (locale_t *)
-        csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::");
-       csound_c_locale = newlocale (0, "C", NULL);
-       if(lcl != NULL) *lcl = csound_c_locale;
+        csound_c_locale = newlocale (0, "C", NULL);
     }
 #endif
 }
@@ -96,10 +92,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 #else
 void init_getstring(void *cs)
 {
-
-  CSOUND *csound  = (CSOUND *) cs;
-  csound->CreateGlobalVariable(csound, "::CSOUND::C_LOCALE::", sizeof(locale_t));
-  
+  IGN(cs);
 /*     s = csoundGetEnv(NULL, "CS_LANG"); */
 /*     if (s == NULL)              /\* Default locale *\/ */
 /*       setlocale (LC_MESSAGES, ""); */
@@ -114,13 +107,8 @@ void init_getstring(void *cs)
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
     if (csound_c_locale == NULL) {
-      locale_t *lcl =  (locale_t *)
-        csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::"); 
-      csound_c_locale = newlocale (0, "C", NULL);
-      if(lcl != NULL) *lcl = csound_c_locale;
+        csound_c_locale = newlocale (0, "C", NULL);
     }
-
-    
 #endif
 }
 
@@ -219,19 +207,6 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 }
 
 #endif
-
-double csoundStrtod(CSOUND *csound, char* nptr, char** endptr) {
-#ifdef HAVE_STRTOD_L
-  locale_t *lcl =  (locale_t *)
-    csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::");
-  if(lcl != NULL)
-    return strtod_l(nptr, endptr, *lcl);
-  else return strtod(nptr, endptr);
-#else
-    return strtod(nptr, endptr);
-#endif
-}
-
 
 PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
 #ifdef HAVE_STRTOK_R
