@@ -260,12 +260,9 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
-<<<<<<< HEAD
     CS_TYPE* argType = GetTypeForArg(p->iplugin);
-=======
-    CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
     DSSIPlugin->ksmps = Ksmps;
->>>>>>> develop
+
 
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
@@ -813,8 +810,8 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     uint32_t i, j;
 
 
-    uint32_t icnt = csound->GetInputArgCnt(p) - 1;
-    uint32_t ocnt = csound->GetOutputArgCnt(p);
+    uint32_t icnt = GetInputArgCnt(p) - 1;
+    uint32_t ocnt = GetOutputArgCnt(p);
     uint64_t Ksmps = (uint64_t) CS_KSMPS;
 
 
