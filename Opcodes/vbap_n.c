@@ -27,11 +27,4 @@ functions specific to four loudspeaker VBAP
 
 Ville Pulkki heavily modified by John ffitch 2012
 */
-
-/*
-#include "csoundCore.h"
-#include "vbap.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-*/
+// code moved to vbap.c

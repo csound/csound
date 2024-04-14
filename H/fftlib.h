@@ -141,6 +141,9 @@ extern "C" {
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
 
+  void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  
 #ifdef __cplusplus
 }
 #endif

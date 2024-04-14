@@ -379,6 +379,7 @@ public:
     OPDS opds;
 };
 
+
 #if (__cplusplus >= 201103L) && !(defined(__wasi__)) && !defined(BARE_METAL)
 #pragma message("Defining heap_object_manager_t.")
 
@@ -416,7 +417,7 @@ public:
  */
  template<typename O> class heap_object_manager_t {
     private:
-        std::map<CSOUND *, std::vector<O*>> objects_;
+        std::map<CSOUND *, std::vector<O*>> objects_;   
         std::recursive_mutex mutex;
         heap_object_manager_t(){};
         ~heap_object_manager_t(){};

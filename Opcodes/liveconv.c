@@ -23,7 +23,11 @@
 
 /* The implementation is indebted to the ftconv opcode by Istvan Varga 2005 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <math.h>
 

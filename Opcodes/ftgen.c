@@ -116,7 +116,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
         break;
       default:
         csound->Free(csound, ftevt);
-        return csound->InitError(csound, Str("ftgen string arg not allowed"));
+        return csound->InitError(csound, "%s", Str("ftgen string arg not allowed"));
       }
     }
     else {
@@ -135,7 +135,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
     csound->Free(csound, ftevt);
     if (UNLIKELY(n != 0))
-      return csound->InitError(csound, Str("ftgen error"));
+      return csound->InitError(csound, "%s", Str("ftgen error"));
     if (ftp != NULL)
       *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
     return OK;
@@ -270,9 +270,9 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
         csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
-      else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
+      else strncpy(filename, csound->GetString(csound,*p->ifilno), MAXNAME);
     } else {
-      strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+      strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {
@@ -295,7 +295,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
         ftp = ft_func(csound, &fno_f);
         // Do we need to check value of ftp->fflen? #27323
         if (ftp->flen > 0x40000000)
-          return csound->InitError(csound,Str("table length too long"));
+          return csound->InitError(csound,"%s", Str("table length too long"));
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT*) - SSTRSIZ);
         memset(ftp->ftable, 0, sizeof(MYFLT) * ((uint64_t) ftp->flen + 1));
         n = fread(ftp->ftable, sizeof(MYFLT), ftp->flen + 1l, file);
@@ -390,27 +390,27 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
         s1 = strchr(s, ' ')+1;
-        header.gen01args.gen01 = (MYFLT)cs_strtod(s1, &endptr);
+        header.gen01args.gen01 = (MYFLT)csound->strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) { goto err4;}
         s1 = strchr(s, ' ')+1;
-        header.gen01args.ifilno = (MYFLT)cs_strtod(s1, &endptr);
+        header.gen01args.ifilno = (MYFLT)csound->strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
         s1 = strchr(s, ' ')+1;
-        header.gen01args.iskptim = (MYFLT)cs_strtod(s1, &endptr);
+        header.gen01args.iskptim = (MYFLT)csound->strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
         s1 = strchr(s, ' ')+1;
-        header.gen01args.iformat = (MYFLT)cs_strtod(s1, &endptr);
+        header.gen01args.iformat = (MYFLT)csound->strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
         s1 = strchr(s, ' ')+1;
-        header.gen01args.channel = (MYFLT)cs_strtod(s1, &endptr);
+        header.gen01args.channel = (MYFLT)csound->strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
         s1 = strchr(s, ' ')+1;
-        header.gen01args.sample_rate = (MYFLT)cs_strtod(s1, &endptr);
+        header.gen01args.sample_rate = (MYFLT)csound->strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
         //s1 = strchr(s, ' ')+1;
@@ -438,7 +438,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
         
         for (j = 0; j <= ftp->flen; j++) {
           if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
-          ftp->ftable[j] = (MYFLT) cs_strtod(s, &endptr);
+          ftp->ftable[j] = (MYFLT) csound->strtod(s, &endptr);
           if (UNLIKELY(endptr==NULL)) goto err4;
         }
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
@@ -450,14 +450,14 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
  err:
     csound->FileClose(csound, fd);
     return err_func(csound, &(p->h),
-                    Str("ftload: error allocating ftable"));
+                    "%s", Str("ftload: error allocating ftable"));
  err2:
-    return err_func(csound, &(p->h), Str("ftload: no table numbers"));
+    return err_func(csound, &(p->h), "%s", Str("ftload: no table numbers"));
  err3:
-    return err_func(csound, &(p->h), Str("ftload: unable to open file"));
+    return err_func(csound, &(p->h), "%s", Str("ftload: unable to open file"));
  err4:
     csound->FileClose(csound, fd);
-    return err_func(csound, &(p->h), Str("ftload: incorrect file"));
+    return err_func(csound, &(p->h), "%s", Str("ftload: incorrect file"));
 }
 
 static int32_t ftload(CSOUND *csound, FTLOAD *p)
@@ -511,9 +511,9 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     if (!istring) {
       if (csound->ISSTRCOD(*p->ifilno))
         csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
-      else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
+      else strncpy(filename, csound->GetString(csound,*p->ifilno), MAXNAME);
     } else {
-      strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+      strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
     }
 
     if (*p->iflag <= FL(0.0)) {
@@ -595,14 +595,14 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
  err:
     csound->FileClose(csound, fd);
     return err_func(csound, &(p->h),
-                    Str("ftsave: Bad table number. Saving is possible "
+                    "%s", Str("ftsave: Bad table number. Saving is possible "
                         "only for existing tables."));
  err2:
-    return err_func(csound, &(p->h), Str("ftsave: no table numbers"));
+    return err_func(csound, &(p->h), "%s", Str("ftsave: no table numbers"));
  err3:
-    return err_func(csound, &(p->h), Str("ftsave: unable to open file"));
+    return err_func(csound, &(p->h), "%s", Str("ftsave: unable to open file"));
  err4:
-    return err_func(csound, &(p->h), Str("ftsave: failed to write file"));
+    return err_func(csound, &(p->h), "%s", Str("ftsave: failed to write file"));
 }
 
 static int32_t ftsave(CSOUND *csound, FTLOAD *p){
@@ -682,7 +682,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
     n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
     csound->Free(csound,ftevt);
     if (UNLIKELY(n != 0))
-      return csound->InitError(csound, Str("ftgen error"));
+      return csound->InitError(csound, "%s", Str("ftgen error"));
     if (ftp != NULL)
       *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
     return OK;

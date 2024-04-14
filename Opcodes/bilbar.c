@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
@@ -81,7 +84,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
     /*
     else {
       if (UNLIKELY(p->w_aux.auxp == NULL))
-        return csound->InitError(csound, Str("No data to continue"));
+        return csound->InitError(csound, "%s", Str("No data to continue"));
     }
     */
     p->first = 0;
@@ -113,7 +116,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound, &(p->h),
-                               Str("Ends must be clamped(1), "
+                               "%s", Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -186,7 +189,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
 /*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
-      ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
+      ar[n] = (csound->Get0dBFS(csound))*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
         double *ww = w2;
@@ -536,7 +539,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         for (qq=0; qq<NS; qq++) {
           out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
         }
-        ar[t] = FL(200.0)*out*csound->e0dbfs;
+        ar[t] = FL(200.0)*out*csound->Get0dBFS(csound);
         if (p->stereo) {
           /* Need to deal with stereo version here */
           xx = SINNW2*COS1W2 + COSNW2*SIN1W2;
@@ -548,7 +551,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
           for (qq=0; qq<NS; qq++) {
             out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
           }
-          ar1[t] = FL(200.0)*out*csound->e0dbfs;
+          ar1[t] = FL(200.0)*out*csound->Get0dBFS(csound);
           SINNW2 = xx;
           COSNW2 = yy;
         }

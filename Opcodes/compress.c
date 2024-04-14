@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct {
@@ -92,7 +95,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
-    MYFLT scal = FL(32768.0)/csound->e0dbfs;
+    MYFLT scal = FL(32768.0)/csound->Get0dBFS(csound);
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -216,7 +219,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
-    p->min_rms = csound->e0dbfs * DV32768;
+    p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor) {
       p->prvq = FL(0.0);
       p->prvd = FL(1000.0) * p->min_rms;

@@ -1,6 +1,5 @@
 /*
     ugrw1.h:
-
     Copyright (C) 1997 Robin Whittle
 
     This file is part of Csound.

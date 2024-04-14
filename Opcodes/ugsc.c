@@ -443,7 +443,7 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
     p->modetype = modetype = (int32_t)*p->mode;
     if (UNLIKELY(UNLIKELY(modetype && modetype != 1 && modetype != 2))) {
       return csound->InitError(csound,
-                               Str("Phaser mode must be either 1 or 2"));
+                               "%s", Str("Phaser mode must be either 1 or 2"));
     }
     loop = p->loop = (int32_t) MYFLT2LONG(*p->order);
 

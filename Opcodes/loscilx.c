@@ -21,8 +21,12 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include "soundio.h"
 
@@ -42,11 +46,14 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
     SNDMEMFILE  *sf;
     SFLIB_INFO     sfinfo;
     int32_t         sampleFormat, loopMode;
+    OPARMS parms;
+    csound->GetOParms(csound, &parms);
+
 
     if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
     else {
       if(csound->ISSTRCOD(*p->Sfname))
-        fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
+        fname = csound->Strdup(csound, csound->GetString(csound, *p->Sfname));
       else
         fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
     }
@@ -55,7 +62,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
     sfinfo.format = (int32_t) TYPE2SF(TYP_RAW);
     switch (sampleFormat) {
     case -1: sfinfo.format = 0; break;
-    case 0:  sfinfo.format |= (int32_t) FORMAT2SF(csound->oparms->outformat); break;
+    case 0:  sfinfo.format |= (int32_t) FORMAT2SF(parms.outformat); break;
     case 1:  sfinfo.format |= (int32_t) FORMAT2SF(AE_CHAR);   break;
     case 2:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ALAW);   break;
     case 3:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ULAW);   break;
@@ -211,14 +218,14 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     nChannels = csound->GetOutputArgCnt(p);
     if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
       return csound->InitError(csound,
-                               Str("loscilx: invalid number of output arguments"));
+                               "%s", Str("loscilx: invalid number of output arguments"));
     p->nChannels = nChannels;
     if (csound->ISSTRCOD(*p->ifn)) {
       SNDMEMFILE  *sf;
 
       p->usingFtable = 0;
       sf = csound->LoadSoundFile(csound,
-                                 (char*) get_arg_string(csound, *p->ifn),
+                                 (char*) csound->GetString(csound, *p->ifn),
                                  (SFLIB_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
@@ -233,7 +240,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
         sf->loopEnd = tmp;
       }
       if (UNLIKELY(sf->nChannels != nChannels))
-        return csound->InitError(csound, Str("number of output arguments "
+        return csound->InitError(csound, "%s", Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
       dataPtr = (void*) &(sf->data[0]);
@@ -251,7 +258,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {
@@ -262,7 +269,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       if (ftp == NULL)
         return NOTOK;
       if (UNLIKELY((int32_t) ftp->nchanls != nChannels))
-        return csound->InitError(csound, Str("number of output arguments "
+        return csound->InitError(csound, "%s", Str("number of output arguments "
                                              "inconsistent with number of "
                                              "sound file channels"));
       dataPtr = (void*) &(ftp->ftable[0]);
@@ -367,7 +374,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
 
       p->usingFtable = 0;
       sf = csound->LoadSoundFile(csound,
-                                 (char*) get_arg_string(csound, *p->ifn),
+                                 (char*) csound->GetString(csound, *p->ifn),
                                  (SFLIB_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
@@ -398,7 +405,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {
@@ -860,7 +867,7 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("loscilx: not initialised"));
+                             "%s", Str("loscilx: not initialised"));
 }
 
 static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
@@ -1128,7 +1135,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("loscilxa: not initialised"));
+                             "%s", Str("loscilxa: not initialised"));
 }
 
  /* ------------------------------------------------------------------------ */

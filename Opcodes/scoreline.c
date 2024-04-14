@@ -21,9 +21,13 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
-//extern void csoundInputMessageInternal(CSOUND *, const char *);
+#endif
+
 
 typedef struct _inmess {
   OPDS h;

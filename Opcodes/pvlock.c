@@ -21,7 +21,12 @@
   02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include "pstream.h"
 #include "soundio.h"
@@ -104,7 +109,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      return csound->InitError(csound, Str("invalid number of output arguments"));
+      return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++) {
@@ -173,7 +178,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      return csound->InitError(csound, Str("invalid number of output arguments"));
+      return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++) {
@@ -272,14 +277,14 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
         double resamp;
         ft = csound->FTnp2Finde(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, &(p->h), Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -477,14 +482,14 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
         double resamp;
         ft = csound->FTnp2Finde(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, &(p->h), Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -711,7 +716,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
         double resamp;
         ft = csound->FTnp2Finde(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
@@ -733,7 +738,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
           return csound->PerfError(csound, &(p->h),
-                                   Str("number of output arguments "
+                                   "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -931,7 +936,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
         double resamp;
         ft = csound->FTnp2Finde(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
@@ -953,7 +958,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
           return csound->PerfError(csound, &(p->h),
-                                   Str("number of output arguments "
+                                   "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -1152,7 +1157,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
 
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
+    csound->FDRecord(csound, &(p->fdch));
 
     // fill buffers
     p->curbuf = 0;
@@ -1176,8 +1181,8 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps) {
     IGN(csound);
     sf_count_t sampsread;
     // fill p->curbuf
-    sampsread = sflib_read_MYFLT(p->sf, p->indata[p->curbuf],
-                              nsmps);
+    sampsread = csound->SndfileRead(csound, p->sf, p->indata[p->curbuf],
+                              nsmps/p->nchans);
     if (sampsread < nsmps)
       memset(p->indata[p->curbuf]+sampsread, 0,
              sizeof(MYFLT)*(nsmps-sampsread));
@@ -1431,7 +1436,7 @@ static int32_t pvslockset(CSOUND *csound, PVSLOCK *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+      csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1443,7 +1448,7 @@ static int32_t pvslockset(CSOUND *csound, PVSLOCK *p)
         p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ))
-      return csound->InitError(csound, Str("pvsfreeze: signal format "
+      return csound->InitError(csound, "%s", Str("pvsfreeze: signal format "
                                            "must be amp-freq."));
 
     return OK;

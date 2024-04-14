@@ -192,10 +192,5 @@ extern "C" {
         IGN(csound);
         return 0;
     }
-#else
-
-
-
-
 #endif
 }

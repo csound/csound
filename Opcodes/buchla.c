@@ -22,7 +22,12 @@
 */
 
                                                         /* buchla.c */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #ifdef MSVC
 #define _USE_MATH_DEFINES
 #include <math.h>

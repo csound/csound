@@ -27,11 +27,4 @@
 
    Ville Pulkki & John ffitch
 */
-
-/*
-#include "csoundCore.h"
-#include "vbap.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-*/
+// code moved to vbap.c

@@ -24,8 +24,11 @@
 #ifndef CSOUND_STDOPCOD_H
 #define CSOUND_STDOPCOD_H
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 
 
 #include "interlocks.h"
@@ -71,6 +74,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     MYFLT       *tb[16];       /* gab: updated */
     int32_t         tb_ixmode[16]; /* gab: added */
     int32       tb_size[16];   /* gab: added */
+    OPARMS  oparms;
 } STDOPCOD_GLOBALS;
 
 extern int32_t ambicode_init_(CSOUND *);

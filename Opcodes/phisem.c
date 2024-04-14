@@ -45,8 +45,13 @@
 /*  Sandpapr (sandpaper)                                  */
 /**********************************************************/
 
-// #include "csdl.h"
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include "phisem.h"
 #include <math.h>
@@ -57,14 +62,13 @@
 
 static inline int32_t my_random(CSOUND *csound, int32_t max)
 {                                   /* Return Random Int Between 0 and max */
-    return (csound->Rand31(&(csound->randSeed1)) % (max + 1));
+  return (csound->Rand31(csound->RandSeed1(csound)) % (max + 1));
 }
 
 static MYFLT noise_tick(CSOUND *csound)
 {                         /* Return random MYFLT float between -1.0 and 1.0 */
-    MYFLT temp;
-    temp = (MYFLT) csound->Rand31(&(csound->randSeed1)) - FL(1073741823.5);
-    return (temp * (MYFLT) (1.0 / 1073741823.0));
+    MYFLT rnd = (MYFLT) csound->Rand31(csound->RandSeed1(csound)) - FL(1073741823.5);
+    return (rnd * (MYFLT) (1.0 / 1073741823.0));
 }
 
 /************************* MARACA *****************************/
@@ -276,7 +280,7 @@ static int32_t cabasa(CSOUND *csound, CABASA *p)
       data =  outputs0 - outputs1;
 /*          if (data > 10000.0f)        data = 10000.0f; */
 /*          if (data < -10000.0f) data = -10000.0f; */
-      ar[n] = data * FL(0.0005) * csound->e0dbfs ;
+      ar[n] = data * FL(0.0005) * csound->Get0dBFS(csound) ;
 /*        } */
 /*        else { */
 /*          *ar++ = 0.0f; */
@@ -385,7 +389,7 @@ static int32_t sekere(CSOUND *csound, SEKERE *p)
       data = p->finalZ0 - p->finalZ2;
 /*          if (data > 10000.0f)        data = 10000.0f; */
 /*          if (data < -10000.0f) data = -10000.0f; */
-      ar[n] = data * FL(0.0005) * csound->e0dbfs ;
+      ar[n] = data * FL(0.0005) * csound->Get0dBFS(csound) ;
 /*        } */
 /*        else { */
 /*          ar[n] = 0.0f; */
@@ -421,7 +425,7 @@ static int32_t sandset(CSOUND *csound, SEKERE *p)
     p->coeffs0 = - SANDPAPR_RESON * FL(2.0) *
       COS(SANDPAPR_CENTER_FREQ * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(128.0);
     return OK;
@@ -448,7 +452,7 @@ static int32_t stixset(CSOUND *csound, SEKERE *p)
     p->coeffs0 = - STIX1_RESON * FL(2.0) *
       COS(STIX1_CENTER_FREQ * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(30.0);
     return OK;
@@ -473,7 +477,7 @@ static int32_t crunchset(CSOUND *csound, CABASA *p)
     p->coeffs0 = - CRUNCH1_RESON * FL(2.0) *
       COS(CRUNCH1_CENTER_FREQ * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->last_num = FL(0.0);
     return OK;
@@ -594,7 +598,7 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
       MYFLT finalZ2      = p->finalZ2;
       MYFLT gains0       = p->gains0;
       MYFLT gains1       = p->gains1;
-      MYFLT amp          = *p->amp*csound->e0dbfs;
+      MYFLT amp          = *p->amp*csound->Get0dBFS(csound);
       if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) {
         nsmps -= early;
@@ -693,7 +697,7 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
     p->coeffs20        = -TAMB_CYMB_RESON * FL(2.0) *
       COS(TAMB_CYMB_FREQ2 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
@@ -789,7 +793,7 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
         p->finalZ0 += p->gains2 * p->outputs21;
         data = p->finalZ0 - p->finalZ2;         /* Extra zero(s) for shape */
         lastOutput = data * FL(0.0009);
-        ar[n] = lastOutput*csound->e0dbfs;
+        ar[n] = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
@@ -834,7 +838,7 @@ static int32_t bambooset(CSOUND *csound, BAMBOO *p)
     p->coeffs20        = -BAMB_RESON * FL(2.0) *
       COS(BAMB_CENTER_FREQ2 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy     = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
@@ -932,7 +936,7 @@ static int32_t bamboo(CSOUND *csound, BAMBOO *p)
 /*            if (data > 10000.0f)      data = 10000.0f; */
 /*            if (data < -10000.0f) data = -10000.0f; */
         lastOutput   = data * FL(0.00051);
-        ar[n]        = lastOutput*csound->e0dbfs;
+        ar[n]        = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel    = sndLevel;
@@ -975,7 +979,7 @@ static int32_t wuterset(CSOUND *csound, WUTER *p)
     p->coeffs20        = -WUTR_RESON * FL(2.0) *
       COS(WUTR_CENTER_FREQ2 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy     = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy     = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp      = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     p->shake_maxSave = FL(0.0);
@@ -1112,7 +1116,7 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
 
         lastOutput   = p->finalZ2 - p->finalZ0;
         lastOutput  *= FL(0.005);
-        ar[n]        = lastOutput*csound->e0dbfs;
+        ar[n]        = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;
@@ -1167,7 +1171,7 @@ static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
     p->coeffs40        = -SLEI_CYMB_RESON * FL(2.0) *
       COS(SLEI_CYMB_FREQ4 * CS_TPIDSR);
                                 /* Note On */
-    p->shakeEnergy = *p->amp * csound->dbfs_to_float * MAX_SHAKE * FL(0.1);
+    p->shakeEnergy = *p->amp * (FL(1.)/csound->Get0dBFS(csound)) * MAX_SHAKE * FL(0.1);
     p->shake_damp = FL(0.0);
     if (p->shakeEnergy > MAX_SHAKE) p->shakeEnergy = MAX_SHAKE;
     return OK;
@@ -1283,7 +1287,7 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
         p->finalZ0   = data;
         data         = p->finalZ2 - p->finalZ0;
         lastOutput   = data * FL(0.001);
-        ar[n]        = lastOutput*csound->e0dbfs;
+        ar[n]        = lastOutput*csound->Get0dBFS(csound);
       }
       p->shakeEnergy = shakeEnergy;
       p->sndLevel = sndLevel;

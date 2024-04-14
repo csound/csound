@@ -65,7 +65,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, Str("metro:init phase truncation"));
+        csound->Warning(csound, "%s", Str("metro:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }
     p->flag=1;
@@ -125,7 +125,7 @@ static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, Str("metro2:init phase truncation"));
+        csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
       p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
     }
@@ -195,7 +195,7 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
-      return csound->InitError(csound, Str("splitrig: incorrect table number"));
+      return csound->InitError(csound, "%s", Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;

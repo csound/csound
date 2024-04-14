@@ -67,15 +67,15 @@
 */
 
 /* outarg types include:
- i, k, a, S as  above
- *       multiple out args of any-type
- m       multiple out aargs
- z       multiple out kargs
- I       multiple out irate (not implemented yet)
- s       deprecated (use a or k as required)
- X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
- N       multiple args (a, k, i, or S-rate)
- F       multiple args (f-rate)#
+   i, k, a, S as  above
+   *       multiple out args of any-type
+   m       multiple out aargs
+   z       multiple out kargs
+   I       multiple out irate (not implemented yet)
+   s       deprecated (use a or k as required)
+   X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
+   N       multiple args (a, k, i, or S-rate)
+   F       multiple args (f-rate)#
 */
 
 /* inargs and outargs may also be arrays, e.g. "a[b]" is an array of
@@ -101,14 +101,14 @@ OENTRY opcodlst_1[] = {
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
   { "xin",  S(XIN_MAX),0,     "****************", "",  xinset,  NULL, NULL, NULL },
   /* { "xin.64",   S(XIN_HIGH),0,  
-    "****************************************************************", "",
-    xinset,  NULL, NULL },
-  { "##xin256",  S(XIN_MAX),0,   
-    "****************************************************************"
-    "****************************************************************"
-    "****************************************************************"
-    "****************************************************************", "",
-    xinset,  NULL, NULL },*/
+     "****************************************************************", "",
+     xinset,  NULL, NULL },
+     { "##xin256",  S(XIN_MAX),0,   
+     "****************************************************************"
+     "****************************************************************"
+     "****************************************************************"
+     "****************************************************************", "",
+     xinset,  NULL, NULL },*/
   { "xout", S(XOUT_MAX),0,    "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,    "",   "i", setksmpsset, NULL, NULL },
   { "oversample", S(OVSMPLE),0,    "",   "io", oversampleset, NULL, NULL },
@@ -158,13 +158,13 @@ OENTRY opcodlst_1[] = {
   { "init.k", S(ASSIGNM),0,       "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   { "init.a", S(ASSIGNM),0,       "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
   /* VL 4.4.24 removing thread field: 
-    These boolean were all marked thread 0, with both init and perf functions. 
-    At instance(), there was a check for NOT thread 3 (meaning init XOR perf),
-    and a check for type 'b' output was made, placing the opcode in the init chain,
-    or else perf chain.  
-    I'm Reinterpreting them as either init or perf by removing the relevant function.
-    This should take care of assigning these to the correct chain.
-   */
+     These boolean were all marked thread 0, with both init and perf functions. 
+     At instance(), there was a check for NOT thread 3 (meaning init XOR perf),
+     and a check for type 'b' output was made, placing the opcode in the init chain,
+     or else perf chain.  
+     I'm Reinterpreting them as either init or perf by removing the relevant function.
+     This should take care of assigning these to the correct chain.
+  */
   { ">",      S(RELAT),0,  /* 0,*/      "b",    "ii",   gt,    NULL            },
   { ">.0",      S(RELAT),0,  /* 0,*/     "B",    "kk",   NULL,     gt              },
   { ">=",     S(RELAT),0,  /* 0,*/       "b",    "ii",   ge,     NULL             },
@@ -860,10 +860,10 @@ OENTRY opcodlst_1[] = {
   { "schedwhen", S(WSCHED),0,     "",     "kSkkm",ifschedule, kschedule, NULL },
   { "schedkwhen", S(TRIGINSTR),0, "",     "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhen.S", S(TRIGINSTR),0, "",    "kkkSkz",
-                                             triginset_S, ktriginstr_S, NULL },
+    triginset_S, ktriginstr_S, NULL },
   { "schedkwhennamed", S(TRIGINSTR),0, "", "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhennamed.S", S(TRIGINSTR),0, "",
-                                        "kkkSkz",triginset_S, ktriginstr_S, NULL },
+    "kkkSkz",triginset_S, ktriginstr_S, NULL },
   { "trigseq", S(TRIGSEQ),0,      "",     "kkkkkz", trigseq_set, trigseq, NULL },
   { "event", S(LINEVENT),0,        "",     "Skz",  NULL, eventOpcode, NULL   },
   { "event_i", S(LINEVENT),0,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
@@ -920,20 +920,20 @@ OENTRY opcodlst_1[] = {
   { "miditempo", S(MIDITEMPO),0,  "k",    "",
     (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
   { "midifilestatus", S(MIDITEMPO),0,   "k",    "",
-   NULL, (SUBR) midiFileStatus, NULL },
+    NULL, (SUBR) midiFileStatus, NULL },
   { "midinoteoff", S(MIDINOTEON),0   ,"", "xx",   midinoteoff, midinoteoff, },
   { "midinoteonkey", S(MIDINOTEON),0, "", "xx",   midinoteonkey, midinoteonkey },
   { "midinoteoncps", S(MIDINOTEON),0,  "", "xx",  midinoteoncps,midinoteoncps },
   { "midinoteonoct", S(MIDINOTEON),0,  "", "xx",  midinoteonoct,midinoteonoct },
   { "midinoteonpch", S(MIDINOTEON),0,  "", "xx",  midinoteonpch, midinoteonpch },
   { "midipolyaftertouch", S(MIDIPOLYAFTERTOUCH),0,
-       "", "xxoh", midipolyaftertouch, midipolyaftertouch},
+    "", "xxoh", midipolyaftertouch, midipolyaftertouch},
   { "midicontrolchange", S(MIDICONTROLCHANGE),0,
-     "", "xxoh",midicontrolchange, midicontrolchange    },
+    "", "xxoh",midicontrolchange, midicontrolchange    },
   { "midiprogramchange", S(MIDIPROGRAMCHANGE),0,
-     "", "x", midiprogramchange, midiprogramchange      },
+    "", "x", midiprogramchange, midiprogramchange      },
   { "midichannelaftertouch", S(MIDICHANNELAFTERTOUCH),0,
-     "", "xoh",midichannelaftertouch, midichannelaftertouch },
+    "", "xoh",midichannelaftertouch, midichannelaftertouch },
   { "midipitchbend", S(MIDIPITCHBEND),0, "", "xoh",
     midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0,  "", "xx",   mididefault, mididefault },
@@ -943,19 +943,19 @@ OENTRY opcodlst_1[] = {
   { "invalue.iS", S(INVAL),_CR,  "i", "S", (SUBR) invalsetSgo, NULL, NULL },
   { "invalue.kS", S(INVAL),_CR,  "k", "S",(SUBR) invalset_S,(SUBR)kinval, NULL },
   { "invalue.S", S(INVAL),_CR,  "S", "i",
-                                      (SUBR) invalset_string, (SUBR)kinvalS, NULL },
+    (SUBR) invalset_string, (SUBR)kinvalS, NULL },
   { "invalue.SS", S(INVAL),_CR,  "S", "S",
-                                    (SUBR) invalset_string_S, (SUBR)kinvalS, NULL },
+    (SUBR) invalset_string_S, (SUBR)kinvalS, NULL },
   { "outvalue", S(OUTVAL), _CW,  "", "ik", (SUBR) outvalset, (SUBR)koutval, NULL},
   { "outvalue.i", S(OUTVAL), _CW,  "", "ii", (SUBR) outvalsetgo, NULL, NULL},
   { "outvalue.Si", S(OUTVAL), _CW,  "", "Si",
-                                          (SUBR) outvalsetSgo, NULL, NULL},
+    (SUBR) outvalsetSgo, NULL, NULL},
   { "outvalue.k", S(OUTVAL), _CW,  "", "Sk",
-                                          (SUBR) outvalset_S, (SUBR)koutval, NULL},
+    (SUBR) outvalset_S, (SUBR)koutval, NULL},
   { "outvalue.S", S(OUTVAL), _CW,  "", "iS",
-                                     (SUBR) outvalset_string, (SUBR)koutvalS, NULL},
+    (SUBR) outvalset_string, (SUBR)koutvalS, NULL},
   { "outvalue.SS", S(OUTVAL), _CW,  "", "SS",
-                                   (SUBR) outvalset_string_S, (SUBR)koutvalS, NULL},
+    (SUBR) outvalset_string_S, (SUBR)koutvalS, NULL},
   /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0,  "mmmmmmmm", "SN",  subinstrset_S, subinstr },
   { "subinstrinit", S(SUBINST),0,  "",    "SN",   subinstrset_S, NULL, NULL     },
@@ -1027,9 +1027,9 @@ OENTRY opcodlst_1[] = {
   { "combinv",S(COMB),0,      "a",  "akioo", (SUBR)cmbset, (SUBR)invcomb },
   { "alpass", S(COMB),0,      "a",  "axioo", (SUBR)cmbset, (SUBR)alpass  },
   { "strset",   S(STRSET_OP),0,     "",     "iS",
-     (SUBR) strset_init, NULL, NULL                        },
+    (SUBR) strset_init, NULL, NULL                        },
   { "strget",   S(STRGET_OP),0,     "S",    "i",
-     (SUBR) strget_init, NULL, NULL                        },
+    (SUBR) strget_init, NULL, NULL                        },
   {  "S",   S(STRGET_OP),0,     "S",    "i",
      (SUBR) s_opcode, NULL, NULL                           },
   {  "S",   S(STRGET_OP),0,     "S",    "k",
@@ -1235,6 +1235,14 @@ OENTRY opcodlst_1[] = {
   { "evalstr",  S(COMPILE), 0,   "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
   { "readscore",  S(COMPILE), 0,  "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0,  "", "i",  (SUBR) retval_i, NULL, NULL },
+  { "pcount", S(PFIELD),  0, "i", "",       (SUBR)pcount,    NULL, NULL },
+  { "pindex", S(PFIELD),  0,  "i", "i",      (SUBR)pvalue,    NULL, NULL },
+  { "pindex.S", S(PFIELDSTR), 0, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
+  { "passign", S(PINIT),  0,  "IIIIIIIIIIIIIIIIIIIIIIII", "po",
+    (SUBR)pinit,     NULL, NULL },
+  { "passign.i", S(PAINIT), 0,  "i[]", "po",  (SUBR)painit,    NULL, NULL },
+  { "passign.k", S(PAINIT), 0,  "k[]", "po",  (SUBR)painit,    NULL, NULL },
+
   /* ----------------------------------------------------------------------- */
   // VL: 9.3.22 this is causing a problem in parsing arrays
   // I am modifying it to accept only i-time inputs
@@ -1245,28 +1253,29 @@ OENTRY opcodlst_1[] = {
     (SUBR)outRange_i, (SUBR)outRange},
   { "nchnls_hw", S(ASSIGN), 0, "ii", "",
     (SUBR)hw_channels},
-   { "midiarp",   S(MIDIARP),0,      "kk", "kO",
-     midiarp_set, midiarp, NULL },
-   {"lpcfilter", S(LPCFIL), 0,  "a", "akkiiio",
+  { "midiarp",   S(MIDIARP),0,      "kk", "kO",
+    midiarp_set, midiarp, NULL },
+  {"lpcfilter", S(LPCFIL), 0,  "a", "akkiiio",
    (SUBR) lpfil_init, (SUBR) lpfil_perf},
-   {"lpcfilter", S(LPCFIL2), 0,  "a", "aakkiio",
+  {"lpcfilter", S(LPCFIL2), 0,  "a", "aakkiio",
    (SUBR) lpfil2_init, (SUBR) lpfil2_perf},
-   {"allpole", S(LPCFIL3), 0,  "a", "ak[]",
+  {"allpole", S(LPCFIL3), 0,  "a", "ak[]",
    (SUBR) lpfil3_init, (SUBR) lpfil3_perf},
-   {"lpcanal", S(LPREDA), 0,  "k[]kkk", "kkiiio",
+  {"lpcanal", S(LPREDA), 0,  "k[]kkk", "kkiiio",
    (SUBR) lpred_alloc, (SUBR) lpred_run},
-   {"lpcanal", S(LPREDA2), 0,  "k[]kkk", "akkiio",
+  {"lpcanal", S(LPREDA2), 0,  "k[]kkk", "akkiio",
    (SUBR) lpred_alloc2, (SUBR) lpred_run2},
-   {"lpcanal", S(LPREDA), 0,  "i[]iii", "iiii",
+  {"lpcanal", S(LPREDA), 0,  "i[]iii", "iiii",
    (SUBR) lpred_i, NULL},
-   {"pvslpc", S(LPCPVS), 0,  "f", "aiiio",
-    (SUBR) lpcpvs_init, (SUBR) lpcpvs},
-   {"pvscfs", S(PVSCFS), 0,  "k[]kk", "fip",
-    (SUBR) pvscoefs_init, (SUBR) pvscoefs},
-   {"apoleparams", S(CF2P), 0,  "k[]", "k[]",
-    (SUBR) coef2parm_init, (SUBR) coef2parm},
-   {"resonbnk", S(RESONB), 0,  "a", "ak[]kkipoo",
+  {"pvslpc", S(LPCPVS), 0,  "f", "aiiio",
+   (SUBR) lpcpvs_init, (SUBR) lpcpvs},
+  {"pvscfs", S(PVSCFS), 0,  "k[]kk", "fip",
+   (SUBR) pvscoefs_init, (SUBR) pvscoefs},
+  {"apoleparams", S(CF2P), 0,  "k[]", "k[]",
+   (SUBR) coef2parm_init, (SUBR) coef2parm},
+  {"resonbnk", S(RESONB), 0,  "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
+  { "inrg", S(INRANGE), WI, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

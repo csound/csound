@@ -201,7 +201,7 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->xdel2cod              = IS_ASIG_ARG(p->xdel2) ? 1 : 0;
 
     if (UNLIKELY(p->xdel1cod != p->xdel2cod))
-      return csound->InitError(csound, Str(
+      return csound->InitError(csound, "%s", Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));
     return OK;

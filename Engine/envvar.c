@@ -65,21 +65,6 @@ static const char *envVar_list[] = {
     NULL
 };
 
-typedef struct CSFILE_ {
-    struct CSFILE_  *nxt;
-    struct CSFILE_  *prv;
-    int             type;
-    int             fd;
-    FILE            *f;
-    SNDFILE         *sf;
-    void            *cb;
-    int             async_flag;
-    int             items;
-    int             pos;
-    MYFLT           *buf;
-    int             bufsize;
-    char            fullName[1];
-} CSFILE;
 
 #if defined(MSVC)
 #define RD_OPTS  _O_RDONLY | _O_BINARY

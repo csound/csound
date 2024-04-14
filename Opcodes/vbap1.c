@@ -28,11 +28,4 @@ functions specific gains for loudspeaker VBAP
 
 Ville Pulkki heavily modified by John ffitch 2012
 */
-
-/*
-#include "csoundCore.h"
-#include "vbap.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-*/
+// moved code to vbap.c

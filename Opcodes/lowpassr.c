@@ -54,7 +54,7 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
       if (UNLIKELY(kfco<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
-                                 Str("Cutoff parameter must be positive"));
+                                 "%s", Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
       p->k = k = 1000.0 / (double)kfco;
       p->coef1 = coef1 = (b+2.0 * k);
@@ -98,7 +98,7 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
     if (okf!= fco[0] || okr != res[0]) { /* Only if changed */
       if (UNLIKELY(fco[0]<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
-                                 Str("Cutoff parameter must be positive"));
+                                 "%s", Str("Cutoff parameter must be positive"));
       b = 10.0 / (res[0] * sqrt((double)fco[0])) - 1.0;
       p->k = k = 1000.0 / (double)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
@@ -120,7 +120,7 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
       if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
         if (UNLIKELY(fco[n]<=FL(0.0)))
           return csound->PerfError(csound, &(p->h),
-                                 Str("Cutoff parameter must be positive"));
+                                 "%s", Str("Cutoff parameter must be positive"));
         b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[0];
         p->coef1 = coef1 = (b+2.0 * k);
@@ -154,7 +154,7 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
     if (okf != fco[0] || okr != kres) { /* Only if changed */
       if (UNLIKELY(fco[0]<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
-                                 Str("Cutoff parameter must be positive"));
+                                 "%s", Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)fco[0])) - 1.0;
       p->k = k = 1000.0 / (double)fco[0];
       p->coef1 = coef1 = (b+2.0 * k);
@@ -175,7 +175,7 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
       if (okf != fco[n]) { /* Only if changed */
         if (UNLIKELY(fco[n]<=FL(0.0)))
           return csound->PerfError(csound, &(p->h),
-                                   Str("Cutoff parameter must be positive"));
+                                   "%s", Str("Cutoff parameter must be positive"));
         b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[n];
         p->coef1 = coef1 = (b+2.0 * k);
@@ -209,7 +209,7 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
     if (okf!= fco || okr != res[0]) { /* Only if changed */
       if (UNLIKELY(fco<=FL(0.0)))
         return csound->PerfError(csound, &(p->h),
-                                 Str("Cutoff parameter must be positive"));
+                                 "%s", Str("Cutoff parameter must be positive"));
       b = 10.0 / (res[0] * sqrt((double)fco)) - 1.0;
       p->k = k = 1000.0 / (double)fco;
       p->coef1 = coef1 = (b+2.0 * k);
@@ -251,7 +251,7 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
     int32_t j;
     if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
-      return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
+      return csound->InitError(csound, "%s", Str("illegal order num. (min 1, max 10)"));
     }
     if (*p->istor == FL(0.0))
       for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
@@ -312,7 +312,7 @@ static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
     if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
-      return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
+      return csound->InitError(csound, "%s", Str("illegal order num. (min 1, max 10)"));
     }
     for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
     return OK;

@@ -35,7 +35,7 @@ static int32_t flwset(CSOUND *csound, FOL *p)
     p->wgh = p->max = FL(0.0);
     p->length = (int32)(*p->len * CS_ESR);
     if (UNLIKELY(p->length<=0L)) {           /* RWD's suggestion */
-      csound->Warning(csound, Str("follow - zero length!"));
+      csound->Warning(csound, "%s", Str("follow - zero length!"));
       p->length = (int32)CS_ESR;
     }
     p->count = p->length;

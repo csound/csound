@@ -43,7 +43,7 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
           p->fundphs = MAXLEN;                  /*   trigger new FOF */
         else p->fundphs = (int32)(*p->iphs * FMAXLEN) & PHMASK;
         if (UNLIKELY((olaps = (int32)*p->iolaps) <= 0)) {
-          return csound->InitError(csound, Str("illegal value for iolaps"));
+          return csound->InitError(csound, "%s", Str("illegal value for iolaps"));
         }
         if (*p->iphs >= FL(0.0))
           csound->AuxAlloc(csound, (size_t)olaps * sizeof(OVRLAP), &p->auxch);
@@ -175,10 +175,10 @@ static int32_t fof(CSOUND *csound, FOFS *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("fof: not initialised"));
+                             "%s", Str("fof: not initialised"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             Str("FOF needs more overlaps"));
+                             "%s", Str("FOF needs more overlaps"));
 }
 
 static int32_t newpulse(CSOUND *csound,
@@ -258,7 +258,7 @@ static int32_t harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
     if (UNLIKELY(minfrq < FL(64.0))) {
-      return csound->InitError(csound, Str("Minimum frequency too low"));
+      return csound->InitError(csound, "%s", Str("Minimum frequency too low"));
     }
     if (p->auxch.auxp == NULL || minfrq < p->minfrq) {
       int32 nbufs = (int32)(CS_EKR * FL(3.0) / minfrq) + 1;
@@ -432,7 +432,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
     }
     src1 = minqp - p->n2bufsmps;            /* get src equiv of 1st min  */
     if (period==0) {
-      csound->Warning(csound, Str("Period zero\n"));
+      csound->Warning(csound, "%s", Str("Period zero\n"));
       outp = p->ar;
       memset(outp, 0, sizeof(MYFLT)*CS_KSMPS);
       return OK;
@@ -533,7 +533,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
         }
 #if 0
         else if (UNLIKELY(++hrngflg > 200)) {
-          csound->Message(csound, Str("harmon out of range...\n"));
+          csound->Message(csound, "%s", Str("harmon out of range...\n"));
           hrngflg = 0;
         }
 #endif
@@ -572,7 +572,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
         }
 #if 0
         else if (UNLIKELY(++hrngflg > 200)) {
-          csound->Message(csound, Str("harmon out of range\n"));
+          csound->Message(csound, "%s", Str("harmon out of range\n"));
           hrngflg = 0;
         }
 #endif

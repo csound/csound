@@ -60,10 +60,10 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVBUFREAD cannot load %s"),
@@ -132,7 +132,7 @@ int32_t pvbufread(CSOUND *csound, PVBUFREAD *p)
       frIndx = (MYFLT) p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchIn(p->frPtr, buf, size, frIndx);
@@ -141,9 +141,9 @@ int32_t pvbufread(CSOUND *csound, PVBUFREAD *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvbufread: not initialised"));
+                             "%s", Str("pvbufread: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("PVOC timpnt < 0"));
 }
 
 /************************************************************/
@@ -160,7 +160,7 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
     p->pvbufread = p->pp->pvbufreadaddr;
     if (UNLIKELY(p->pvbufread == NULL))
       return csound->InitError(csound,
-                               Str("pvinterp: associated pvbufread not found"));
+                               "%s", Str("pvinterp: associated pvbufread not found"));
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -177,10 +177,10 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
 
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
       return csound->InitError(csound, Str("PVINTERP cannot load %s"),
                                        pvfilnam);
@@ -282,7 +282,7 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
       frIndx = (MYFLT)p->maxFr;
       if (UNLIKELY(p->prFlg)) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
       }
     }
     FetchIn(p->frPtr, buf, size, frIndx);
@@ -327,15 +327,15 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvinterp: not initialised"));
+                             "%s", Str("pvinterp: not initialised"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too low"));
+                             "%s", Str("PVOC transpose too low"));
  err3:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too high"));
+                             "%s", Str("PVOC transpose too high"));
  err4:
-    return csound->PerfError(csound, &(p->h), Str("PVOC timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("PVOC timpnt < 0"));
 }
 
 /************************************************************/
@@ -352,7 +352,7 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
     p->pvbufread = p->pp->pvbufreadaddr;
     if (UNLIKELY(p->pvbufread == NULL))
       return csound->InitError(csound,
-                               Str("pvcross: associated pvbufread not found"));
+                               "%s", Str("pvcross: associated pvbufread not found"));
 
     if (p->auxch.auxp == NULL) {              /* if no buffers yet, alloc now */
       MYFLT *fltp;
@@ -368,13 +368,13 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
     }
     if (stringname==0){
       if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
-      return csound->InitError(csound, Str("PVCROSS cannot load %s"), pvfilnam);
+      return csound->InitError(csound,  Str("PVCROSS cannot load %s"), pvfilnam);
 
     p->frSiz = pp.fftsize;
     frInc    = pp.overlap;
@@ -474,7 +474,7 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVOC ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
       }
     }
 
@@ -498,7 +498,7 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
 
     // #ifdef BETA
     //  if (specwp < 0)
-    //    csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
+    //    csound->Message(csound, "%s", Str("PVOC debug: one frame gets through\n"));
     // #endif
 
     /* Since the code just above is plain wrong, I am assuming
@@ -538,14 +538,14 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvcross: not initialised"));
+                             "%s", Str("pvcross: not initialised"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too low"));
+                             "%s", Str("PVOC transpose too low"));
  err3:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC transpose too high"));
+                             "%s", Str("PVOC transpose too high"));
  err4:
     return csound->PerfError(csound, &(p->h),
-                             Str("PVOC timpnt < 0"));
+                             "%s", Str("PVOC timpnt < 0"));
 }

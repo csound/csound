@@ -18,7 +18,12 @@
 
 #ifndef WIN32
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include <time.h>
 #include <sys/resource.h>
 #include <sys/time.h>

@@ -21,7 +21,12 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 
 typedef struct {
@@ -37,7 +42,7 @@ typedef struct {
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-      return csound->InitError(csound, Str("tabsum: No table"));
+      return csound->InitError(csound, "%s", Str("tabsum: No table"));
     }
     return OK;
 }
@@ -54,7 +59,7 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
     if (UNLIKELY(ftp==NULL))
 
       return csound->PerfError(csound, &(p->h),
-                               Str("tabsum: Not initialised"));
+                               "%s", Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
     min = MYFLT2LRND(*p->kmin);
     max = MYFLT2LRND(*p->kmax);

@@ -16,7 +16,11 @@
   02110-1301 USA
 */
 //#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct {
@@ -40,11 +44,11 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
       if (UNLIKELY((ftp = csound->FTnp2Find(csound, *argp++)) == NULL))
-        return csound->InitError(csound, Str("tabmorph: invalid table number"));
+        return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            Str("tabmorph: all tables must have the "
+                            "%s", Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;

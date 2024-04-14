@@ -21,12 +21,14 @@
     02110-1301 USA
 */
 
-/*
-    The code for the tablefilter opcodes is based on the code for tablecopy
-    by Robin Whittle, see source OOps/ugrw1.c
-*/
 
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include <math.h>
 #include <time.h>
@@ -306,7 +308,7 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Farey: Filter type < 1"));
+                               "%s", Str("Farey: Filter type < 1"));
     }
 
     /* Check each table number in turn.  */

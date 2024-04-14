@@ -370,7 +370,7 @@ public:
       memset(&output0[nn], '\0', early * sizeof(MYFLT));
     }
     for (int32_t i = offset; i < nn; i++) {
-      iRec8[0] = (csound->GetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
+      iRec8[0] = (*csound->RandSeed1(csound) + (1103515245 * iRec8[1]));
       fRec7[0] =
           -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (iRec8[0] * dv2_31);
       fRec6[0] =

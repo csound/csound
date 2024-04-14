@@ -21,7 +21,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                              COUNTER.C         */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+
+#if !(defined(__wasi__))
+
 #include "interlocks.h"
 
 /* Structure of a counter */
@@ -206,6 +213,79 @@ static int32_t count_del(CSOUND *csound, COUNTER* p)
     *p->res = (MYFLT)n;
     return OK;
 }
+
+#else
+
+static int32_t setcnt(CSOUND *csound, void *p) {
+  IGN(csound); IGN(p);
+    return OK;
+
+}
+
+static int32_t count_init(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+
+}
+
+static int32_t count_init0(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_perf(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+
+}
+
+static int32_t count_init_perf(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_cycles(CSOUND *csound, void p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_read(CSOUND *csound, void p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_reset(CSOUND *csound, void p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_init3(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_state(CSOUND *csound,void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+static int32_t count_del(CSOUND *csound, void p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+#endif // !wasi
+
 
 #define S(x)    sizeof(x)
 

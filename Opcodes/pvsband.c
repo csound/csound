@@ -43,7 +43,7 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
     int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+      csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
@@ -176,7 +176,7 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
  err1:
 
     return csound->PerfError(csound, &(p->h),
-                             Str("pvsband: not initialised"));
+                             "%s", Str("pvsband: not initialised"));
 }
 
 static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
@@ -282,7 +282,7 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvsband: not initialised"));
+                             "%s", Str("pvsband: not initialised"));
 }
 
 static OENTRY localops[] = {

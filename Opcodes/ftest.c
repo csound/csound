@@ -22,8 +22,11 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
@@ -33,7 +36,7 @@ static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc  = ff->e.p[7];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return csound->ftError(ff, "%s", Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -52,7 +55,7 @@ static int32_t exptable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc  = ff->e.p[7];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return csound->ftError(ff, "%s", Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -74,7 +77,7 @@ static int32_t sonetable(FGDATA *ff, FUNC *ftp)
     MYFLT   end   = ff->e.p[6];
     MYFLT   eqlp  = ff->e.p[7];
     MYFLT   resc  = ff->e.p[8];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return csound->ftError(ff, "%s", Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -122,7 +125,6 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp_filter, *pInp, *pBuf;
     MYFLT   order = ff->e.p[6];
     MYFLT   resc = ff->e.p[7];
-    int32_t ffilno = (int32_t)ff->e.p[5];
     uint32_t     i;
     uint32_t     steps, newLen, *pnewLen;
     int32_t     nargs = ff->e.pcnt - 4;
@@ -133,11 +135,11 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
 
     if (ftp->flen <= 0)
       return csound->ftError(ff, Str("Illegal zero table size %d"));
-    if (ffilno >csound->maxfnum || csound->flist[ffilno]==NULL)
-      return csound->InitError(csound, Str("ftable number does not exist\n"));
-    srcfil = csound->flist[ffilno];
+    srcfil = csound->FTnp2Find(csound, &ff->e.p[5]);
+    if (srcfil==NULL)
+      return csound->InitError(csound, "%s", Str("ftable number does not exist\n"));
     if (UNLIKELY(nargs < 3))
-      csound->Warning(csound, Str("insufficient arguments"));
+      csound->Warning(csound, "%s", Str("insufficient arguments"));
     fp_filter = srcfil->ftable;
     newLen  = srcfil->flen;
     mirr = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*srcfil->flen);
