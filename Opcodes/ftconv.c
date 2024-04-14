@@ -157,12 +157,12 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
     /* check parameters */
     p->nChannels = (int32_t) p->OUTOCOUNT;
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > FTCONV_MAXCHN)) {
-      return csound->InitError(csound, Str("ftconv: invalid number of channels"));
+      return csound->InitError(csound, "%s", Str("ftconv: invalid number of channels"));
     }
     /* partition length */
     p->partSize = MYFLT2LRND(*(p->iPartLen));
     if (UNLIKELY(p->partSize < 4 || (p->partSize & (p->partSize - 1)) != 0)) {
-      return csound->InitError(csound, Str("ftconv: invalid impulse response "
+      return csound->InitError(csound, "%s", Str("ftconv: invalid impulse response "
                                            "partition length"));
     }
     ftp = csound->FTnp2Finde(csound, p->iFTNum);
@@ -176,7 +176,7 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
       n = MYFLT2LRND(*(p->iTotLen));
     if (UNLIKELY(n <= 0)) {
       return csound->InitError(csound,
-                               Str("ftconv: invalid length, or insufficient"
+                               "%s", Str("ftconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
     p->nPartitions = (n + (p->partSize - 1)) / p->partSize;
@@ -195,7 +195,7 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
       for (i = 0; i < n; i++) {
         if (UNLIKELY(ftp->ftable[i] != FL(0.0))) {
           csound->Warning(csound,
-                          Str("ftconv: skipped non-zero samples, "
+                          "%s", Str("ftconv: skipped non-zero samples, "
                               "impulse response may be truncated\n"));
           break;
         }
@@ -304,7 +304,7 @@ static int32_t ftconv_perf(CSOUND *csound, FTCONV *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("ftconv: not initialised"));
+                             "%s", Str("ftconv: not initialised"));
 }
 
 /* module interface functions */

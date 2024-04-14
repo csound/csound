@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                    EXCITER.C         */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif       /*                    EXCITER.C         */
 #include <math.h>
 
 /**********************************************************************

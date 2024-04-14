@@ -37,7 +37,9 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 #include "corfile.h"
+#include "csound_standard_types.h"
 #include "csGblMtx.h"
+#include "fftlib.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -105,6 +107,11 @@ extern int fterror(const FGDATA *ff, const char *s, ...);
 PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
+void *csoundDCTSetup(CSOUND *csound,
+                     int32_t FFTsize, int32_t d);
+void csoundDCT(CSOUND *csound,
+               void *p, MYFLT *sig);
+
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
@@ -120,6 +127,25 @@ extern OENTRY opcodlst_1[];
 */
 int csoundIsInitThread(CSOUND *csound) {
   return csound->ids ? 1 : 0;
+}
+
+
+static const char *csoundFileError(CSOUND *csound, void *ff) {
+  CSFILE *f = (CSFILE *) ff;
+  switch(f->type) {
+  case CSFILE_SND_W:
+  case CSFILE_SND_R: 
+   return sflib_strerror(ff);
+   break;
+  default:
+    return "";
+  }
+}
+
+static int32_t csoundFileCommand(CSOUND *csound, void *handle,
+                                     int cmd, void *data, int datasize){
+  return sflib_command(handle, cmd, data, datasize);
+
 }
 
 void print_csound_version(CSOUND* csound)
@@ -207,6 +233,21 @@ static void create_opcode_table(CSOUND *csound)
 
 }
 
+
+static int32_t sndfileWrite(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
+  IGN(csound);
+  return sflib_writef_MYFLT(h,p,frames); 
+}
+
+static int32_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
+  IGN(csound);
+  return sflib_readf_MYFLT(h,p,frames); 
+}
+
+static int32_t sndfileSeek(CSOUND *csound, void *h, int frames, int whence){
+  return sflib_seek(h, frames, whence);
+}
+
 #define MAX_MODULES 64
 
 static void module_list_add(CSOUND *csound, char *drv, char *type){
@@ -227,6 +268,10 @@ static void module_list_add(CSOUND *csound, char *drv, char *type){
 static int csoundGetRandSeed(CSOUND *csound, int which){
     if (which > 1) return csound->randSeed1;
     else return csound->randSeed2;
+}
+
+static int *RandSeed1(CSOUND *csound){
+  return &(csound->randSeed1);
 }
 
 static char *csoundGetStrsets(CSOUND *csound, long p){
@@ -280,6 +325,21 @@ static int csoundGetTieFlag(CSOUND *csound){
 MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
+}
+
+
+// Get Types  
+static inline const CS_TYPE *StringType(CSOUND *csound) {
+  return csound->stringType;
+}
+
+static inline const CS_TYPE *AsigType(CSOUND *csound) {
+    return csound->asigType;
+}
+
+
+static inline const CS_TYPE *KsigType(CSOUND *csound) {
+    return csound->ksigType;
 }
 
 
@@ -554,6 +614,20 @@ static const CSOUND cenviron_ = {
     cs_hash_table_keys,
     cs_hash_table_values,
     csoundPeekCircularBuffer,
+    StringType,
+    AsigType,
+    KsigType,
+    csoundInverseComplexFFTnp2,
+    csoundComplexFFTnp2,
+    RandSeed1,
+    csoundReadScore,
+    sndfileWrite,
+    sndfileRead,
+    sndfileSeek,
+    csoundFileCommand,
+    csoundFileError,
+    csoundDCTSetup,
+    csoundDCT,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL
@@ -631,6 +705,18 @@ static const CSOUND cenviron_ = {
     (INSTRTXT**)NULL,  /* dead_instr_pool */
     0,                /* dead_instr_no */
     (TYPE_POOL*)NULL,
+    &CS_VAR_TYPE_A,   /* standard types */
+    &CS_VAR_TYPE_K,
+    &CS_VAR_TYPE_I,
+    &CS_VAR_TYPE_S,
+    &CS_VAR_TYPE_P,
+    &CS_VAR_TYPE_R,
+    &CS_VAR_TYPE_C,
+    &CS_VAR_TYPE_W,
+    &CS_VAR_TYPE_F,
+    &CS_VAR_TYPE_B,
+    &CS_VAR_TYPE_b,
+    &CS_VAR_TYPE_ARRAY,    
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_NCHNLS,    /*  nchnls              */
     -1,             /*  inchns              */
@@ -666,8 +752,6 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  scorein, scoreout   */
     NULL,           /*  argoffspace         */
     NULL,           /*  frstoff             */
-    NULL,           /*  stdOp_Env           */
-    2345678,        /*  holdrand            */
     0,              /*  randSeed1           */
     0,              /*  randSeed2           */
     NULL,           /*  csRandState         */
@@ -3458,8 +3542,7 @@ PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
-    char    *s;
-    int     i, max_len;
+    int     i;
     OPARMS  *O = csound->oparms;
 
 
@@ -3501,9 +3584,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
-
-      int err = csoundInitStaticModules(csound);
-
+      int err;
+ #ifndef BUILD_PLUGINS     
+      err = csoundInitStaticModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s",csound->delayederrormessages);
@@ -3512,7 +3595,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (UNLIKELY(err==CSOUND_ERROR))
         csound->Die(csound, Str("Failed during csoundInitStaticModules"));
-
+ #endif     
  #ifndef BARE_METAL
      csoundCreateGlobalVariable(csound, "_MODULES",
                                 (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
@@ -3563,9 +3646,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     }
 #ifndef BARE_METAL
     /* allow selecting real time audio module */
-    max_len = 21;
+    int max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-    s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    char *s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
  #ifdef __HAIKU__
       strcpy(s, "haiku");

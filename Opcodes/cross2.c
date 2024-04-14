@@ -315,7 +315,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
 
     flen = (int32)*p->len;
     if (UNLIKELY(flen<1))
-      return csound->InitError(csound, Str("cross2: length must be at least 1"));
+      return csound->InitError(csound, "%s", Str("cross2: length must be at least 1"));
     p->m = plog2(flen);
     flen = 1L << p->m;
 

@@ -269,7 +269,7 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("freeverb: not initialised"));
+                             "%s", Str("freeverb: not initialised"));
 }
 
 /* module interface functions */

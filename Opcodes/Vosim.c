@@ -37,8 +37,11 @@
  * a new pulse should start, and that pulseinc can be negative.
  */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <math.h>
 #include <limits.h>
@@ -66,7 +69,7 @@ int32_t vosimset(CSOUND* csound, VOSIM *p)
 
     p->ftable = csound->FTFind(csound, p->iftab);
     if (UNLIKELY(p->ftable == NULL)) {
-      return csound->InitError(csound, Str("vosim: pulse table not found"));
+      return csound->InitError(csound, "%s", Str("vosim: pulse table not found"));
     }
 
      p->timrem = p->pulstogo = p->pulsephs = p->pulseinc = 0;
@@ -89,7 +92,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
     if (UNLIKELY(fundabs == FL(0.0))) {                /* infinitely long event */
       p->timrem = INT_MAX;
       csound->Warning(csound,
-                      Str("vosim: zero kfund. 'Infinite' length event generated."));
+                      "%s", Str("vosim: zero kfund. 'Infinite' length event generated."));
     }
     else {
         p->timrem = (int32)(CS_ESR / fundabs);
@@ -97,7 +100,7 @@ void vosim_event(CSOUND* csound, VOSIM *p)
           p->timrem = CS_KSMPS;
           p->pulstogo = 0;
           csound->Warning(csound,
-                          Str("vosim: kfund (%f) > sr. Generating ksmps silence."),
+                           Str("vosim: kfund (%f) > sr. Generating ksmps silence."),
                           *p->kfund);
         }
     }
@@ -184,7 +187,7 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vosim: not initialised"));
+                             "%s", Str("vosim: not initialised"));
 }
 
 

@@ -77,6 +77,7 @@ int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
     int32_t xx = (int32_t)((double)*p->out + 0.5);
+    int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
 
     if (xx > FL(0.0))
       seedVal = (uint32_t)xx;
@@ -88,7 +89,7 @@ int32_t seedrand(CSOUND *csound, PRAND *p)
     else
       csound->Warning(csound, Str("Seeding with %u\n"), (uint32_t)seedVal);
     csound->SeedRandMT(&(csound->randState_), NULL, seedVal);
-    csound->holdrand = (int32_t)(seedVal & (uint32_t) 0x7FFFFFFF);
+    *holdrand = (int32_t)(seedVal & (uint32_t) 0x7FFFFFFF);
     while (seedVal >= (uint32_t)0x7FFFFFFE)
       seedVal -= (uint32_t)0x7FFFFFFE;
     if (seedVal==0) csound->randSeed1 = ((int32_t)1);

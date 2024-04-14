@@ -25,7 +25,12 @@
   02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include <math.h>
 
@@ -428,7 +433,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->amplo = MINAMPS;
     p->amphi = MAXAMPS;
     p->npartial = 7;
-    p->dbfs = FL(32768.0)/csound->e0dbfs;
+    p->dbfs = FL(32768.0)/csound->Get0dBFS(csound);
     p->prevf = p->cps = 100.0;
     return (OK);
 }
@@ -627,7 +632,7 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     int32_t
       itest = 0;
 
-    _0dbfs = csound->e0dbfs;
+    _0dbfs = csound->Get0dBFS(csound);
     ksmps = CS_KSMPS;
     esr = CS_ESR;
     scal = 2.0*CS_PIDSR;

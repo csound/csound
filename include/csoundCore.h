@@ -117,8 +117,8 @@ typedef struct {
 //#define OUTOCOUNT   ORTXT.outoffs->count
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
-#define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
-#define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_ASIG_ARG(x) (csound->GetTypeForArg(x) == csound->AsigType(csound))
+#define IS_STR_ARG(x) (csound->GetTypeForArg(x) == csound->StringType(csound))
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -184,7 +184,7 @@ extern int ISSTRCOD(MYFLT);
 #define MAXCHAN         16      /* 16 MIDI channels; only one port for now */
 
          /* A440 tuning factor */
-#define ONEPT           (csound->A4/430.5389646099018460319362438314060262605)
+#define ONEPT           (csound->GetA4(csound)/430.5389646099018460319362438314060262605)
 #define LOG10D20        0.11512925              /* for db to ampfac   */
 #define DV32768         FL(0.000030517578125)
 
@@ -229,6 +229,23 @@ enum {FFT_FWD=0, FFT_INV};
   API  message queue struct
 */
 struct _message_queue;
+
+typedef struct CSFILE_ {
+    struct CSFILE_  *nxt;
+    struct CSFILE_  *prv;
+    int             type;
+    int             fd;
+    FILE            *f;
+    SNDFILE         *sf;
+    void            *cb;
+    int             async_flag;
+    int             items;
+    int             pos;
+    MYFLT           *buf;
+    int             bufsize;
+    char            fullName[1];
+} CSFILE;
+
 
 typedef struct CORFIL {
     char    *body;
@@ -613,7 +630,9 @@ typedef struct CORFIL {
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
-  typedef int32_t (*SUBR)(CSOUND *, void *);
+
+typedef int32_t (*SUBR)(CSOUND *, void *);
+
 
   /**
    * This struct holds the info for one opcode in a concrete
@@ -698,7 +717,7 @@ typedef struct CORFIL {
     int32    nchanls;
     /** table number */
     int32    fno;
-    /** table number */
+    /** sampling rate */
     MYFLT   sr;
     /** args  */
     MYFLT args[PMAX - 4];
@@ -1026,6 +1045,7 @@ typedef struct _message_queue_t_ {
     char str[MAX_MESSAGE_STR];
 } message_string_queue_t;
 
+  
 
 #include "find_opcode.h"
 
@@ -1439,6 +1459,20 @@ typedef struct _message_queue_t_ {
     CONS_CELL *(*GetHashTableKeys)(CSOUND *, CS_HASH_TABLE *);
     CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
     int (*PeekCircularBuffer)(CSOUND *csound, void *p, void *out, int items);
+    const CS_TYPE *(*StringType)(CSOUND *csound);
+    const CS_TYPE *(*AsigType)(CSOUND *csound);
+    const CS_TYPE *(*KsigType)(CSOUND *csound);
+    void (*InverseComplexFFTnp2)(CSOUND *, MYFLT *, int);
+          void (*ComplexFFTnp2)(CSOUND *, MYFLT *, int);
+    int32_t *(*RandSeed1)(CSOUND *);
+    int32_t (*ReadScore)(CSOUND *, const char*);
+    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
+    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
+    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int32_t (*FileCommand)(CSOUND *, void *, int , void *, int );
+    const char *(*FileError)(CSOUND *, void *);
+    void *(*DCTSetup)(CSOUND *, int, int);
+    void (*DCT)(CSOUND *, void *, MYFLT *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
@@ -1515,6 +1549,18 @@ typedef struct _message_queue_t_ {
     INSTRTXT      **dead_instr_pool;
     int           dead_instr_no;
     TYPE_POOL*    typePool;
+    const CS_TYPE  *asigType;   /* standard type constants */
+    const CS_TYPE  *ksigType;
+    const CS_TYPE  *initType;
+    const    CS_TYPE  *stringType;
+    const    CS_TYPE  *pfieldType;
+    const    CS_TYPE  *rType;
+    const    CS_TYPE  *constType;
+    const    CS_TYPE  *wsigType;
+    const    CS_TYPE  *fsigType;
+    const    CS_TYPE  *kboleanType;
+    const    CS_TYPE  *iboleanType;
+    const    CS_TYPE  *arrayType;    
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
@@ -1552,9 +1598,6 @@ typedef struct _message_queue_t_ {
     FILE*         scoreout;
     int           *argoffspace;
     INSDS         *frstoff;
-    /** reserved for std opcode library  */
-    void          *stdOp_Env;
-    int           holdrand;
     int           randSeed1;
     int           randSeed2;
     CsoundRandMTState *csRandState;
@@ -1875,7 +1918,7 @@ typedef struct _message_queue_t_ {
  */
 
 #define LINKAGE_BUILTIN(name)                                         \
-long name##_init(CSOUND *csound, OENTRY **ep)                         \
+int32_t name##_init(CSOUND *csound, OENTRY **ep)                         \
 {   (void) csound; *ep = name; return (long) (sizeof(name));  }
 
 #define FLINKAGE_BUILTIN(name)                                        \

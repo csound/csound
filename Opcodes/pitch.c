@@ -23,8 +23,12 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"       /*                              PITCH.C         */
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
 #include <math.h>
 #include <limits.h>
 #include "cwindow.h"
@@ -51,7 +55,7 @@ static const MYFLT bicoefs[] = {
      FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
 };
 
-#define rand_31(x) (x->Rand31(&(x->randSeed1)) - 1)
+#define rand_31(x) (x->Rand31(csound->RandSeed1(csound)) - 1)
 
 int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 {
@@ -81,11 +85,11 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     Q = *p->iq; if (UNLIKELY(Q<=FL(0.0))) Q = FL(15.0);
 
     if (UNLIKELY(p->timcount <= 0))
-      return csound->InitError(csound, Str("illegal iprd"));
+      return csound->InitError(csound, "%s", Str("illegal iprd"));
     if (UNLIKELY(nocts > MAXOCTS))
-      return csound->InitError(csound, Str("illegal iocts"));
+      return csound->InitError(csound, "%s", Str("illegal iocts"));
     if (UNLIKELY(nfreqs > MAXFRQS))
-      return csound->InitError(csound, Str("illegal ifrqs"));
+      return csound->InitError(csound, "%s", Str("illegal ifrqs"));
 
     if (nocts != dwnp->nocts ||
         nfreqs != p->nfreqs  || /* if anything has changed */
@@ -179,7 +183,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     if (UNLIKELY(*p->inptls<=FL(0.0))) nptls = 4;
     else nptls = (int32)*p->inptls;
     if (UNLIKELY(nptls > MAXPTL)) {
-      return csound->InitError(csound, Str("illegal no of partials"));
+      return csound->InitError(csound, "%s", Str("illegal no of partials"));
     }
     if (UNLIKELY(*p->irolloff<=FL(0.0))) p->rolloff = FL(0.6);
     else p->rolloff = *p->irolloff;
@@ -204,7 +208,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
         *fltp++    = weight;
       }
       if (UNLIKELY(*--fltp < FL(0.0))) {
-        return csound->InitError(csound, Str("per octave rolloff too steep"));
+        return csound->InitError(csound, "%s", Str("per octave rolloff too steep"));
       }
       p->rolloff = 1;
     }
@@ -218,7 +222,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     if (flop < fundp) flop = fundp;
     if (UNLIKELY(fhip > fendp)) fhip = fendp;
     if (UNLIKELY(flop >= fhip)) {                 /* chk hi-lo range valid */
-      return csound->InitError(csound, Str("illegal lo-hi values"));
+      return csound->InitError(csound, "%s", Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
       *fp++ = FL(0.0);                  /* clear unused lo and hi range */
@@ -268,7 +272,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       memset(&asig[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT as = asig[n]*DFLT_DBFS/csound->e0dbfs; /* Normalise.... */
+      MYFLT as = asig[n]*DFLT_DBFS/csound->Get0dBFS(csound); /* Normalise.... */
       q = c1 * as * as + c2 * q;
       SIG = as;                              /* for each source sample: */
       octp = downp->octdata;                /*   align onto top octave */
@@ -460,7 +464,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pitch: not initialised"));
+                             "%s", Str("pitch: not initialised"));
 }
 
 /* Multiply and accumulate opcodes */
@@ -469,7 +473,7 @@ int32_t macset(CSOUND *csound, SUM *p)
 {
     if (UNLIKELY((((int32_t)p->INOCOUNT)&1)==1)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Must have even number of arguments in mac\n"));
+                               "%s", Str("Must have even number of arguments in mac\n"));
     }
     return OK;
 }
@@ -578,7 +582,7 @@ int32_t clockread(CSOUND *csound, CLKRD *p)
     int32_t cnt = (int32_t) *p->a;
     if (UNLIKELY(cnt < 0 || cnt > 32)) cnt = 32;
     if (UNLIKELY(clk->running[cnt]))
-      return csound->InitError(csound, Str("clockread: clock still running, "
+      return csound->InitError(csound, "%s", Str("clockread: clock still running, "
                                            "call clockoff first"));
     /* result in ms */
 #ifdef JPFF
@@ -593,7 +597,7 @@ int32_t scratchread(CSOUND *csound, SCRATCHPAD *p)
     int32_t index = MYFLT2LRND(*p->index);
     if (index<0 || index>3)
       return csound->PerfError(csound, &(p->h),
-                               Str("scratchpad index out of range"));
+                               "%s", Str("scratchpad index out of range"));
     *p->val = p->h.insdshead->scratchpad[index];
     return OK;
 }
@@ -603,7 +607,7 @@ int32_t scratchwrite(CSOUND *csound, SCRATCHPAD *p)
     int32_t index = MYFLT2LRND(*p->index);
     if (index<0 || index>3)
       return csound->PerfError(csound, &(p->h),
-                               Str("scratchpad index out of range"));
+                               "%s", Str("scratchpad index out of range"));
     p->h.insdshead->scratchpad[index] = *p->val;
     return OK;
 }
@@ -626,7 +630,7 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, Str("adsynt: wavetable not found!"));
+      return csound->InitError(csound, "%s", Str("adsynt: wavetable not found!"));
     }
 
     count = (uint32_t)*p->icnt;
@@ -639,11 +643,11 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, Str("adsynt: freqtable not found!"));
+      return csound->InitError(csound, "%s", Str("adsynt: freqtable not found!"));
     }
     if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
-      return csound->InitError(csound, Str(
+      return csound->InitError(csound, "%s", Str(
                     "adsynt: partial count is greater than freqtable size!"));
     }
 
@@ -652,11 +656,11 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, Str("adsynt: amptable not found!"));
+      return csound->InitError(csound, "%s", Str("adsynt: amptable not found!"));
     }
     if (UNLIKELY(ftp->flen < count)) {
       p->inerr = 1;
-      return csound->InitError(csound, Str(
+      return csound->InitError(csound, "%s", Str(
                     "adsynt: partial count is greater than amptable size!"));
     }
 
@@ -693,7 +697,7 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
 
     if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("adsynt: not initialised"));
+                               "%s", Str("adsynt: not initialised"));
     }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -773,7 +777,7 @@ int32_t hsboscil(CSOUND *csound, HSBOSC   *p)
     mixtp = p->mixtp;
     if (UNLIKELY(ftp==NULL || mixtp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("hsboscil: not initialised"));
+                               "%s", Str("hsboscil: not initialised"));
     }
 
     tonal = *p->ktona;
@@ -859,7 +863,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     if (UNLIKELY(maxperi <= minperi)) {
       p->inerr = 1;
       return csound->InitError(csound,
-                               Str("pitchamdf: maxcps must be > mincps !"));
+                               "%s", Str("pitchamdf: maxcps must be > mincps !"));
     }
 
     if (*p->iexcps < 1)
@@ -1006,7 +1010,7 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
 
     if (UNLIKELY(p->inerr)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("pitchamdf: not initialised"));
+                               "%s", Str("pitchamdf: not initialised"));
     }
 
     if (upsamp) {
@@ -1187,7 +1191,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("phasorbnk: not initialised"));
+                               "%s", Str("phasorbnk: not initialised"));
     }
 
     if (UNLIKELY(index<0 || index>=size)) {
@@ -1217,7 +1221,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
 
     if (UNLIKELY(curphs == NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("phasorbnk: not initialised"));
+                               "%s", Str("phasorbnk: not initialised"));
     }
 
     if (UNLIKELY(index<0 || index>=size)) {
@@ -1284,7 +1288,7 @@ int32_t pinkset(CSOUND *csound, PINKISH *p)
         /* Check valid method */
     if (UNLIKELY(*p->imethod != GARDNER_PINK && *p->imethod != KELLET_PINK
                  && *p->imethod != KELLET_CHEAP_PINK)) {
-      return csound->InitError(csound, Str("pinkish: Invalid method code"));
+      return csound->InitError(csound, "%s", Str("pinkish: Invalid method code"));
     }
     /* User range scaling can be a- or k-rate for Gardner, a-rate only
        for filter */
@@ -1294,7 +1298,7 @@ int32_t pinkset(CSOUND *csound, PINKISH *p)
     else {
       /* Cannot accept k-rate input with filter method */
       if (UNLIKELY(*p->imethod != FL(0.0))) {
-        return csound->InitError(csound, Str(
+        return csound->InitError(csound, "%s", Str(
                       "pinkish: Filter method requires a-rate (noise) input"));
       }
       p->ampinc = 0;
@@ -1691,7 +1695,7 @@ int32_t trnset(CSOUND *csound, TRANSEG *p)
     MYFLT       **argp, val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
-      return csound->InitError(csound, Str("Incorrect argument count in transeg"));
+      return csound->InitError(csound, "%s", Str("Incorrect argument count in transeg"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1743,7 +1747,7 @@ int32_t trnset_bkpt(CSOUND *csound, TRANSEG *p)
     MYFLT       totdur = FL(0.0);
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
-      return csound->InitError(csound, Str("Incorrect argument count in transegb"));
+      return csound->InitError(csound, "%s", Str("Incorrect argument count in transegb"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1794,7 +1798,7 @@ int32_t ktrnseg(CSOUND *csound, TRANSEG *p)
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
       csound->PerfError(csound,&(p->h),
-                        Str("Error: transeg not initialised (krate)\n"));
+                        "%s", Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
@@ -1832,7 +1836,7 @@ int32_t trnseg(CSOUND *csound, TRANSEG *p)
     NSEG        *segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("transeg: not initialised (arate)\n"));
+                               "%s", Str("transeg: not initialised (arate)\n"));
     }
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1889,7 +1893,7 @@ int32_t trnsetr(CSOUND *csound, TRANSEG *p)
     double      val;
 
     if (UNLIKELY(p->INOCOUNT%3!=1))
-      return csound->InitError(csound, Str("Incorrect argument count in transegr"));
+      return csound->InitError(csound, "%s", Str("Incorrect argument count in transegr"));
     nsegs = p->INOCOUNT / 3;            /* count segs & alloc if nec */
     if ((segp = (NSEG *) p->auxch.auxp) == NULL ||
         (uint32_t)p->auxch.size < nsegs*sizeof(NSEG)) {
@@ -1953,7 +1957,7 @@ int32_t ktrnsegr(CSOUND *csound, TRANSEG *p)
     *p->rslt = p->curval;               /* put the cur value    */
     if (UNLIKELY(p->auxch.auxp==NULL)) { /* RWD fix */
       csound->PerfError(csound,&(p->h),
-                        Str("Error: transeg not initialised (krate)\n"));
+                        "%s", Str("Error: transeg not initialised (krate)\n"));
     }
     if (p->segsrem) {                   /* done if no more segs */
       NSEG        *segp;
@@ -2012,7 +2016,7 @@ int32_t trnsegr(CSOUND *csound, TRANSEG *p)
     uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->auxch.auxp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("transeg: not initialised (arate)\n"));
+                               "%s", Str("transeg: not initialised (arate)\n"));
     }
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -2163,7 +2167,7 @@ int32_t lpf18db(CSOUND *csound, LPF18 *p)
     int32_t   flag = 1;
     MYFLT lfc=0, lrs=0, kres=0, kfcn=0, kp=0, kp1=0,  kp1h=0;
     double lds = 0.0;
-    MYFLT zerodb = csound->e0dbfs;
+    MYFLT zerodb = csound->Get0dBFS(csound);
     int32_t   asgf = IS_ASIG_ARG(p->fco), asgr = IS_ASIG_ARG(p->res),
           asgd = IS_ASIG_ARG(p->dist);
 
@@ -2329,7 +2333,7 @@ int32_t medfilt(CSOUND *csound, MEDFILT *p)
     uint32_t n, nsmps = CS_KSMPS;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("median: not initialised (arate)\n"));
+                               "%s", Str("median: not initialised (arate)\n"));
     }
     if (UNLIKELY(kwind > maxwind)) {
       csound->Warning(csound,
@@ -2382,7 +2386,7 @@ int32_t kmedfilt(CSOUND *csound, MEDFILT *p)
     int32_t index = p->ind;
     if (UNLIKELY(p->b.auxp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("median: not initialised (krate)\n"));
+                               "%s", Str("median: not initialised (krate)\n"));
     }
     if (UNLIKELY(kwind > maxwind)) {
       csound->Warning(csound,
