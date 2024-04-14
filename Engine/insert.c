@@ -1262,12 +1262,6 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   return csound->perferrcnt;                /* contin from there */
 }
 
-static inline int32_t byte_order(void)
-{
-  const int32_t one = 1;
-  return (!*((char*) &one));
-}
-
 int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 {
   OPDS    *saved_ids = csound->ids;

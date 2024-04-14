@@ -23,8 +23,12 @@
 
 /* Collection of physical modelled instruments */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "clarinet.h"
 #include "flute.h"
 #include "bowed.h"
@@ -133,7 +137,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Clarinet"));
+      return csound->InitError(csound, "%s", Str("No table for Clarinet"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq)
@@ -141,7 +145,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
       else if (LIKELY(*p->frequency))
         p->length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
       else {
-        csound->Warning(csound, Str("No base frequency for clarinet "
+        csound->Warning(csound, "%s", Str("No base frequency for clarinet "
                                     "-- assuming 50Hz\n"));
         p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       }
@@ -301,7 +305,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                   /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Flute"));
+      return csound->InitError(csound, "%s", Str("No table for Flute"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
       if (*p->lowestFreq!=FL(0.0)) {
@@ -313,7 +317,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
         p->limit = *p->frequency;
       }
       else {
-        csound->Warning(csound, Str("No base frequency for flute "
+        csound->Warning(csound, "%s", Str("No base frequency for flute "
                                     "-- assumed to be 50Hz\n"));
         length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
@@ -386,7 +390,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
       p->lastFreq = *p->frequency;
       if (p->limit>p->lastFreq) {
         p->lastFreq = p->limit;
-        csound->Warning(csound, Str("frequency too low, set to minimum"));
+        csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
       }
       p->lastJet = *p->jetRatio;
       /* freq = (2/3)*p->frequency as we're overblowing here */
@@ -515,7 +519,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for wgbow vibrato"));
+      return csound->InitError(csound, "%s", Str("No table for wgbow vibrato"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0)) {
@@ -527,7 +531,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
         p->limit = *p->frequency;
       }
       else {
-        csound->Warning(csound, Str("unknown lowest frequency for bowed string "
+        csound->Warning(csound, "%s", Str("unknown lowest frequency for bowed string "
                                     "-- assuming 50Hz\n"));
         length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
@@ -597,7 +601,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
         p->lastfreq = *p->frequency;
       else {
         p->lastfreq = p->limit;
-        csound->Warning(csound, Str("frequency too low, set to minimum"));
+        csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
       }
       p->baseDelay = CS_ESR / p->lastfreq - FL(4.0);
       freq_changed = 1;
@@ -740,7 +744,7 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     p->coeff = (FL(1.0)-p->alpha)/(FL(1.0)+p->alpha); /* coefficient for all pass*/
     return 0;
  err1:
-    csound->ErrorMsg(csound, Str("DlineA not initialised"));
+    csound->ErrorMsg(csound, "%s", Str("DlineA not initialised"));
     return NOTOK;
 }
 
@@ -808,7 +812,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
 
     if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
     else {                                      /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Brass"));
+      return csound->InitError(csound, "%s", Str("No table for Brass"));
     }
     p->frq = *p->frequency;     /* Remember */
     if (*p->lowestFreq>=FL(0.0)) {
@@ -821,7 +825,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
         p->limit = p->frq;
       }
       else {
-        csound->Warning(csound, Str("No base frequency for brass "
+        csound->Warning(csound, "%s", Str("No base frequency for brass "
                                     "-- assumed to be 50Hz\n"));
         p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
         p->limit = FL(50.0);
@@ -888,7 +892,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
       p->frq = *p->frequency;
       if (p->limit > p->frq) {
         p->frq =p->limit;
-        csound->Warning(csound, Str("frequency too low, set to minimum"));
+        csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
       }
       p->slideTarget = (CS_ESR / p->frq * FL(2.0)) + FL(3.0);
                         /* fudge correction for filter delays */
@@ -965,6 +969,8 @@ int32_t brass(CSOUND *csound, BRASS *p)
 #include "shaker.h"
 #include "fm4op.h"
 #include "bowedbar.h"
+#include "marimba.h"
+#include "vibraphn.h"
 
 int32_t tubebellset(void*,void*);
 int32_t tubebell(void*,void*);
@@ -988,8 +994,14 @@ int32_t voicform(void*,void*);
 int32_t shakerset(void*,void*);
 int32_t shaker(void*,void*);
 int32_t bowedbarset(void*,void*);
-int32_t
-bowedbar(void*,void*);
+int32_t bowedbar(void*,void*);
+int32_t marimbaset(void*,void*);
+int32_t marimba(void*,void*);
+int32_t vibraphnset(void*,void*);
+int32_t vibraphn(void*,void*);
+int32_t agogobelset(void*,void*);
+int32_t agogobel(void*,void*);
+
 
 static OENTRY physmod_localops[] =
   {
@@ -1014,7 +1026,15 @@ static OENTRY physmod_localops[] =
    { "shaker", S(SHAKER), 0, 3, "a", "kkkkko",  (SUBR)shakerset,   (SUBR)shaker},
    { "wgbowedbar", S(BOWEDBAR), 0, 3, "a","kkkkkoooo",
      (SUBR)bowedbarset,(SUBR) bowedbar },
+   { "marimba", S(MARIMBA), TR, 3, "a", "kkiiikkiijj",
+     (SUBR)marimbaset, (SUBR)marimba},
+   { "vibes", S(VIBRAPHN),  TR, 3, "a", "kkiiikkii",
+     (SUBR)vibraphnset,(SUBR)vibraphn},
+   { "gogobel",S(VIBRAPHN), TR, 3, "a", "kkiiikki",
+     (SUBR)agogobelset, (SUBR)agogobel},
 };
+
+
 
 LINKAGE_BUILTIN(physmod_localops)
 

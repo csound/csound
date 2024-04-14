@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 #include <math.h>
@@ -281,8 +285,8 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
       }
 
     /* copy in string name */
-    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -290,14 +294,14 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\nCannot load left data file, exiting\n\n"));
+                          "%s", Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\nCannot load right data file, exiting\n\n"));
+                          "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
     p->irlengthpad = irlengthpad;
@@ -707,7 +711,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                             if(cross)
                               {
                                 csound->Message(csound,
-                                                Str("\nWARNING: fades are "
+                                                "%s", Str("\nWARNING: fades are "
                                                     "overlapping: this could lead"
                                                     " to noise: reduce fade size "
                                                     "or change trajectory\n\n"));
@@ -1474,8 +1478,8 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* copy in string name... */
-    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -1483,14 +1487,14 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\nCannot load left data file, exiting\n\n"));
+                          "%s", Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\nCannot load right data file, exiting\n\n"));
+                          "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
     p->irlengthpad = irlengthpad;
@@ -2093,7 +2097,7 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
     if (UNLIKELY(CS_ESR != sr))
       csound->Message(csound,
-                      Str("\n\nWARNING!!:\nOrchestra SR not compatible"
+                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           "with HRTF processing SR of: %.0f\n\n"), sr);
 
     /* setup as per sr */
@@ -2103,8 +2107,8 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
       irlength = 256;
 
     /* copy in string name... */
-    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1] = '\0';
-    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1] = '\0';
+    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1] = '\0';
+    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1] = '\0';
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -2112,14 +2116,14 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     if (UNLIKELY(fpl == NULL))
      return
         csound->InitError(csound,
-                          Str("\n\n\nCannot load left data file, exiting\n\n"));
+                          "%s", Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
-                          Str("\n\n\nCannot load right data file, exiting\n\n"));
+                          "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     p->irlength = irlength;
     p->sroverN = sr / irlength;

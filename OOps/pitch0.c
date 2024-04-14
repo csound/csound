@@ -158,7 +158,6 @@ int32_t cpuperc_S(CSOUND *csound, CPU_PERC *p)
 int32_t maxalloc(CSOUND *csound, CPU_PERC *p)
 {
     int32_t n;
-
     if (IsStringCode(*p->instrnum)) {
       char *ss = get_arg_string(csound,*p->instrnum);
       n = csound->StringArg2Insno(csound,ss,1);

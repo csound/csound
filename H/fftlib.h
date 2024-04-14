@@ -140,12 +140,10 @@ extern "C" {
    * setup:   an FFT setup created with csoundRealFFT2Setup()
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
-
   void csoundDCT(CSOUND *csound, void *p, MYFLT *sig);
   void *csoundDCTSetup(CSOUND *csound, int32_t FFTsize, int32_t d);
   void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
   void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
-
 #ifdef __cplusplus
 }
 #endif

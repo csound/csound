@@ -32,8 +32,6 @@
 
 #include "stdopcod.h"
 #include "nlfilt.h"
-
-
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
@@ -116,7 +114,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("nlfilt: not initialised"));
+                             "%s", Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
@@ -192,9 +190,9 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("nlfilt2: not initialised"));
+                             "%s", Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
-  
+
 
 #define S(x)    sizeof(x)
 

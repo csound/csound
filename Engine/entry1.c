@@ -67,15 +67,15 @@
 */
 
 /* outarg types include:
- i, k, a, S as  above
- *       multiple out args of any-type
- m       multiple out aargs
- z       multiple out kargs
- I       multiple out irate (not implemented yet)
- s       deprecated (use a or k as required)
- X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
- N       multiple args (a, k, i, or S-rate)
- F       multiple args (f-rate)#
+   i, k, a, S as  above
+   *       multiple out args of any-type
+   m       multiple out aargs
+   z       multiple out kargs
+   I       multiple out irate (not implemented yet)
+   s       deprecated (use a or k as required)
+   X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
+   N       multiple args (a, k, i, or S-rate)
+   F       multiple args (f-rate)#
 */
 
 /* inargs and outargs may also be arrays, e.g. "a[b]" is an array of
@@ -101,14 +101,14 @@ OENTRY opcodlst_1[] = {
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
   { "xin",  S(XIN_MAX),0,   1,  "****************", "",  xinset,  NULL, NULL, NULL },
   /* { "xin.64",   S(XIN_HIGH),0,  1,
-    "****************************************************************", "",
-    xinset,  NULL, NULL },
-  { "##xin256",  S(XIN_MAX),0,   1,
-    "****************************************************************"
-    "****************************************************************"
-    "****************************************************************"
-    "****************************************************************", "",
-    xinset,  NULL, NULL },*/
+     "****************************************************************", "",
+     xinset,  NULL, NULL },
+     { "##xin256",  S(XIN_MAX),0,   1,
+     "****************************************************************"
+     "****************************************************************"
+     "****************************************************************"
+     "****************************************************************", "",
+     xinset,  NULL, NULL },*/
   { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "oversample", S(OVSMPLE),0,  1,  "",   "io", oversampleset, NULL, NULL },
@@ -851,10 +851,10 @@ OENTRY opcodlst_1[] = {
   { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhen.S", S(TRIGINSTR),0, 3,"",    "kkkSkz",
-                                             triginset_S, ktriginstr_S, NULL },
+    triginset_S, ktriginstr_S, NULL },
   { "schedkwhennamed", S(TRIGINSTR),0, 3,"", "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhennamed.S", S(TRIGINSTR),0, 3,"",
-                                        "kkkSkz",triginset_S, ktriginstr_S, NULL },
+    "kkkSkz",triginset_S, ktriginstr_S, NULL },
   { "trigseq", S(TRIGSEQ),0, 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
   { "event", S(LINEVENT),0,  2,     "",     "Skz",  NULL, eventOpcode, NULL   },
   { "event_i", S(LINEVENT),0,1,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
@@ -911,7 +911,7 @@ OENTRY opcodlst_1[] = {
   { "miditempo", S(MIDITEMPO),0, 3, "k",    "",
     (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
   { "midifilestatus", S(MIDITEMPO),0, 2, "k",    "",
-   NULL, (SUBR) midiFileStatus, NULL },
+    NULL, (SUBR) midiFileStatus, NULL },
   { "midinoteoff", S(MIDINOTEON),0,3   ,"", "xx",   midinoteoff, midinoteoff, },
   { "midinoteonkey", S(MIDINOTEON),0,3, "", "xx",   midinoteonkey, midinoteonkey },
   { "midinoteoncps", S(MIDINOTEON),0, 3, "", "xx",  midinoteoncps,midinoteoncps },
@@ -934,19 +934,19 @@ OENTRY opcodlst_1[] = {
   { "invalue.iS", S(INVAL),_CR, 1, "i", "S", (SUBR) invalsetSgo, NULL, NULL },
   { "invalue.kS", S(INVAL),_CR, 3, "k", "S",(SUBR) invalset_S,(SUBR)kinval, NULL },
   { "invalue.S", S(INVAL),_CR, 3, "S", "i",
-                                      (SUBR) invalset_string, (SUBR)kinvalS, NULL },
+    (SUBR) invalset_string, (SUBR)kinvalS, NULL },
   { "invalue.SS", S(INVAL),_CR, 3, "S", "S",
-                                    (SUBR) invalset_string_S, (SUBR)kinvalS, NULL },
+    (SUBR) invalset_string_S, (SUBR)kinvalS, NULL },
   { "outvalue", S(OUTVAL), _CW, 3, "", "ik", (SUBR) outvalset, (SUBR)koutval, NULL},
   { "outvalue.i", S(OUTVAL), _CW, 1, "", "ii", (SUBR) outvalsetgo, NULL, NULL},
   { "outvalue.Si", S(OUTVAL), _CW, 1, "", "Si",
-                                          (SUBR) outvalsetSgo, NULL, NULL},
+    (SUBR) outvalsetSgo, NULL, NULL},
   { "outvalue.k", S(OUTVAL), _CW, 3, "", "Sk",
-                                          (SUBR) outvalset_S, (SUBR)koutval, NULL},
+    (SUBR) outvalset_S, (SUBR)koutval, NULL},
   { "outvalue.S", S(OUTVAL), _CW, 3, "", "iS",
-                                     (SUBR) outvalset_string, (SUBR)koutvalS, NULL},
+    (SUBR) outvalset_string, (SUBR)koutvalS, NULL},
   { "outvalue.SS", S(OUTVAL), _CW, 3, "", "SS",
-                                   (SUBR) outvalset_string_S, (SUBR)koutvalS, NULL},
+    (SUBR) outvalset_string_S, (SUBR)koutvalS, NULL},
   /* IV - Oct 20 2002 */
   { "subinstr", S(SUBINST),0, 3, "mmmmmmmm", "SN",  subinstrset_S, subinstr },
   { "subinstrinit", S(SUBINST),0, 1, "",    "SN",   subinstrset_S, NULL, NULL     },
@@ -1018,9 +1018,9 @@ OENTRY opcodlst_1[] = {
   { "combinv",S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)invcomb },
   { "alpass", S(COMB),0,    3,  "a",  "axioo", (SUBR)cmbset, (SUBR)alpass  },
   { "strset",   S(STRSET_OP),0,   1,  "",     "iS",
-     (SUBR) strset_init, NULL, NULL                        },
+    (SUBR) strset_init, NULL, NULL                        },
   { "strget",   S(STRGET_OP),0,   1,  "S",    "i",
-     (SUBR) strget_init, NULL, NULL                        },
+    (SUBR) strget_init, NULL, NULL                        },
   {  "S",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) s_opcode, NULL, NULL                           },
   {  "S",   S(STRGET_OP),0,   3,  "S",    "k",
@@ -1226,6 +1226,13 @@ OENTRY opcodlst_1[] = {
   { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
+  { "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
+  { "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+  { "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
+  { "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
+    (SUBR)pinit,     NULL, NULL },
+  { "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
+  { "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
   /* ----------------------------------------------------------------------- */
   // VL: 9.3.22 this is causing a problem in parsing arrays
   // I am modifying it to accept only i-time inputs
@@ -1236,235 +1243,229 @@ OENTRY opcodlst_1[] = {
     (SUBR)outRange_i, (SUBR)outRange},
   { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
     (SUBR)hw_channels},
-   { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
-     midiarp_set, midiarp, NULL },
-   {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiiio",
+  { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
+    midiarp_set, midiarp, NULL },
+  {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiiio",
    (SUBR) lpfil_init, (SUBR) lpfil_perf},
-   {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakkiio",
+  {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakkiio",
    (SUBR) lpfil2_init, (SUBR) lpfil2_perf},
-   {"allpole", S(LPCFIL3), 0, 3, "a", "ak[]",
+  {"allpole", S(LPCFIL3), 0, 3, "a", "ak[]",
    (SUBR) lpfil3_init, (SUBR) lpfil3_perf},
-   {"lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkiiio",
+  {"lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkiiio",
    (SUBR) lpred_alloc, (SUBR) lpred_run},
-   {"lpcanal", S(LPREDA2), 0, 3, "k[]kkk", "akkiio",
+  {"lpcanal", S(LPREDA2), 0, 3, "k[]kkk", "akkiio",
    (SUBR) lpred_alloc2, (SUBR) lpred_run2},
-   {"lpcanal", S(LPREDA), 0, 1, "i[]iii", "iiii",
+  {"lpcanal", S(LPREDA), 0, 1, "i[]iii", "iiii",
    (SUBR) lpred_i, NULL},
-   {"pvslpc", S(LPCPVS), 0, 3, "f", "aiiio",
-    (SUBR) lpcpvs_init, (SUBR) lpcpvs},
-   {"pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fip",
-    (SUBR) pvscoefs_init, (SUBR) pvscoefs},
-   {"apoleparams", S(CF2P), 0, 3, "k[]", "k[]",
-    (SUBR) coef2parm_init, (SUBR) coef2parm},
-   {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
+  {"pvslpc", S(LPCPVS), 0, 3, "f", "aiiio",
+   (SUBR) lpcpvs_init, (SUBR) lpcpvs},
+  {"pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fip",
+   (SUBR) pvscoefs_init, (SUBR) pvscoefs},
+  {"apoleparams", S(CF2P), 0, 3, "k[]", "k[]",
+   (SUBR) coef2parm_init, (SUBR) coef2parm},
+  {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
   { "midic7.i",S(MIDICTL2),0, 1,  "i", "iiio", (SUBR)imidic7, NULL, NULL  },
-{ "midic7.k", S(MIDICTL2),0, 3, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
-{ "midic14.i", S(MIDICTL3), 0, 1,"i", "iiiio",(SUBR)imidic14, NULL, NULL },
-{ "midic14.k", S(MIDICTL3), 0, 3,"k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
-{ "midic21.i", S(MIDICTL4),0, 1,"i", "iiiiio",(SUBR)imidic21, NULL, NULL },
-{ "midic21.k", S(MIDICTL4), 0, 3,"k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
-{ "ctrl7.i", S(CTRL7), 0, 1,    "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
-{ "ctrl7.k", S(CTRL7),  0, 3,   "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
-{ "ctrl14.i", S(CTRL14),0, 1,   "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
-{ "ctrl14.k", S(CTRL14), 0, 3,  "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
-{ "ctrl21.i", S(CTRL21),0, 1,   "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
-{ "ctrl21.k", S(CTRL21), 0, 3,  "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
-{ "initc7", S(INITC7), 0, 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
-{ "initc14", S(INITC14), 0, 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
-{ "initc21", S(INITC21), 0, 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
-{ "midipgm", S(MIDIPGM_OP), 0, 1, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL },
-{ "slider8.k", S(SLIDER8), 0, 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                              "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
-{ "slider8f", S(SLIDER8f), 0, 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiii",
-                                        (SUBR)slider_i8f, (SUBR)slider8f, NULL },
-{ "slider8.i", S(SLIDER8), 0, 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                          (SUBR)islider8, NULL, NULL },
-{ "slider16.k", S(SLIDER16), 0, 3, "kkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiii",
-                                        (SUBR)slider_i16, (SUBR)slider16, NULL },
-{ "slider16f", S(SLIDER16f), 0, 3, "kkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i16f, (SUBR)slider16f, NULL },
-{ "slider16.i", S(SLIDER16), 0, 1, "iiiiiiiiiiiiiiii",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)islider16, NULL, NULL       },
-{ "slider32.k", S(SLIDER32),  0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i32, (SUBR)slider32, NULL  },
-{ "slider32f", S(SLIDER32f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i32f, (SUBR)slider32f, NULL },
-{ "slider32.i", S(SLIDER32), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)islider32, NULL, NULL  },
-{ "slider64.k", S(SLIDER64), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
-                              "kkkkkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i64, (SUBR)slider64, NULL  },
-{ "slider64f", S(SLIDER64f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
-                                "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i64f, (SUBR)slider64f, NULL },
-{ "slider64.i", S(SLIDER64), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiii",
-                                        (SUBR)islider64, NULL, NULL  },
-{ "s16b14.k", S(SLIDER16BIT14), 0, 3, "kkkkkkkkkkkkkkkk",
-                                   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                 (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
-{ "s32b14.k", S(SLIDER32BIT14), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                 (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
-{ "s16b14.i", S(ISLIDER16BIT14), 0, 1, "iiiiiiiiiiiiiiii",
-                                        "iiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiii",
-                                        (SUBR)islider16bit14, NULL, NULL  },
-{ "s32b14.i", S(ISLIDER32BIT14), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)islider32bit14, NULL, NULL  },
-{ "slider8table", S(SLIDER8t), 0, 3, "k",  "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
-{ "slider16table", S(SLIDER8t), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
-{ "slider32table", S(SLIDER8t), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
-{ "slider64table", S(SLIDER8t), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
-{ "slider8tablef", S(SLIDER8tf), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
-{ "slider16tablef",S(SLIDER16tf), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
-{ "slider32tablef",S(SLIDER32tf), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
-{ "slider64tablef",S(SLIDER64tf), 0, 3, "k", "iii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
-{ "sliderKawai", S(SLIDERKAWAI),  0, 3, "kkkkkkkkkkkkkkkk",
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-  (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
-{ "ctrl7.a", S(CTRL7a),  0, 3, "a",    "iikkoo",
-  (SUBR) ctrl7a_set,    (SUBR) ctrl7a },
+  { "midic7.k", S(MIDICTL2),0, 3, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
+  { "midic14.i", S(MIDICTL3), 0, 1,"i", "iiiio",(SUBR)imidic14, NULL, NULL },
+  { "midic14.k", S(MIDICTL3), 0, 3,"k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
+  { "midic21.i", S(MIDICTL4),0, 1,"i", "iiiiio",(SUBR)imidic21, NULL, NULL },
+  { "midic21.k", S(MIDICTL4), 0, 3,"k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
+  { "ctrl7.i", S(CTRL7), 0, 1,    "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
+  { "ctrl7.k", S(CTRL7),  0, 3,   "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
+  { "ctrl14.i", S(CTRL14),0, 1,   "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
+  { "ctrl14.k", S(CTRL14), 0, 3,  "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
+  { "ctrl21.i", S(CTRL21),0, 1,   "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
+  { "ctrl21.k", S(CTRL21), 0, 3,  "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
+  { "initc7", S(INITC7), 0, 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
+  { "initc14", S(INITC14), 0, 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
+  { "initc21", S(INITC21), 0, 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
+  { "midipgm", S(MIDIPGM_OP), 0, 1, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL },
+  { "slider8.k", S(SLIDER8), 0, 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
+  { "slider8f", S(SLIDER8f), 0, 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiii",
+    (SUBR)slider_i8f, (SUBR)slider8f, NULL },
+  { "slider8.i", S(SLIDER8), 0, 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider8, NULL, NULL },
+  { "slider16.k", S(SLIDER16), 0, 3, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiii",
+    (SUBR)slider_i16, (SUBR)slider16, NULL },
+  { "slider16f", S(SLIDER16f), 0, 3, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i16f, (SUBR)slider16f, NULL },
+  { "slider16.i", S(SLIDER16), 0, 1, "iiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider16, NULL, NULL       },
+  { "slider32.k", S(SLIDER32),  0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i32, (SUBR)slider32, NULL  },
+  { "slider32f", S(SLIDER32f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i32f, (SUBR)slider32f, NULL },
+  { "slider32.i", S(SLIDER32), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider32, NULL, NULL  },
+  { "slider64.k", S(SLIDER64), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+    "kkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i64, (SUBR)slider64, NULL  },
+  { "slider64f", S(SLIDER64f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+    "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i64f, (SUBR)slider64f, NULL },
+  { "slider64.i", S(SLIDER64), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiii",
+    (SUBR)islider64, NULL, NULL  },
+  { "s16b14.k", S(SLIDER16BIT14), 0, 3, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
+  { "s32b14.k", S(SLIDER32BIT14), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
+  { "s16b14.i", S(ISLIDER16BIT14), 0, 1, "iiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii",
+    (SUBR)islider16bit14, NULL, NULL  },
+  { "s32b14.i", S(ISLIDER32BIT14), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider32bit14, NULL, NULL  },
+  { "slider8table", S(SLIDER8t), 0, 3, "k",  "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
+  { "slider16table", S(SLIDER8t), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
+  { "slider32table", S(SLIDER8t), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
+  { "slider64table", S(SLIDER8t), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
+  { "slider8tablef", S(SLIDER8tf), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
+  { "slider16tablef",S(SLIDER16tf), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
+  { "slider32tablef",S(SLIDER32tf), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
+  { "slider64tablef",S(SLIDER64tf), 0, 3, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
+  { "sliderKawai", S(SLIDERKAWAI),  0, 3, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
+  { "ctrl7.a", S(CTRL7a),  0, 3, "a",    "iikkoo",
+    (SUBR) ctrl7a_set,    (SUBR) ctrl7a },
   { "cpuprc", S(CPU_PERC),0, 1,     "",     "Si",   (SUBR)cpuperc_S, NULL, NULL   },
-{ "maxalloc", S(CPU_PERC),0, 1,   "",     "Si",   (SUBR)maxalloc_S, NULL, NULL  },
-{ "cpuprc", S(CPU_PERC),0, 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
-{ "maxalloc", S(CPU_PERC),0, 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
-{ "active.iS", S(INSTCNT),0,1,    "i",    "Soo",   (SUBR)instcount_S, NULL, NULL },
-{ "active.kS", S(INSTCNT),0,2,    "k",    "Soo",   NULL, (SUBR)instcount_S, NULL },
-{ "active.i", S(INSTCNT),0,1,     "i",    "ioo",   (SUBR)instcount, NULL, NULL },
-{ "active.k", S(INSTCNT),0,2,     "k",    "koo",   NULL, (SUBR)instcount, NULL },
-{ "p.i", S(PFUN),        0,1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
-{ "p.k", S(PFUNK),       0,3,     "k",    "k",
-                                          (SUBR)pfunk_init, (SUBR)pfunk, NULL },
-{ "mute", S(MUTE), 0,1,           "",      "So",   (SUBR)mute_inst_S             },
-{ "mute.i", S(MUTE), 0,1,         "",      "io",   (SUBR)mute_inst             },
-{ "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
-{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
-{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
-                                             (SUBR)pinit,     NULL, NULL },
-{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
-{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
-   { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
+  { "maxalloc", S(CPU_PERC),0, 1,   "",     "Si",   (SUBR)maxalloc_S, NULL, NULL  },
+  { "cpuprc", S(CPU_PERC),0, 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
+  { "maxalloc", S(CPU_PERC),0, 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
+  { "active.iS", S(INSTCNT),0,1,    "i",    "Soo",   (SUBR)instcount_S, NULL, NULL },
+  { "active.kS", S(INSTCNT),0,2,    "k",    "Soo",   NULL, (SUBR)instcount_S, NULL },
+  { "active.i", S(INSTCNT),0,1,     "i",    "ioo",   (SUBR)instcount, NULL, NULL },
+  { "active.k", S(INSTCNT),0,2,     "k",    "koo",   NULL, (SUBR)instcount, NULL },
+  { "p.i", S(PFUN),        0,1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
+  { "p.k", S(PFUNK),       0,3,     "k",    "k",
+    (SUBR)pfunk_init, (SUBR)pfunk, NULL },
+  { "mute", S(MUTE), 0,1,           "",      "So",   (SUBR)mute_inst_S             },
+  { "mute.i", S(MUTE), 0,1,         "",      "io",   (SUBR)mute_inst             },
+  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
+
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

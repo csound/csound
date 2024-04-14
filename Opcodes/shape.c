@@ -30,7 +30,12 @@
     02110-1301 USA
  */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 
 #include <math.h>
@@ -48,7 +53,7 @@ static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return
         csound->InitError(csound,
-                          Str("powershape: ifullscale must be strictly positive"));
+                          "%s", Str("powershape: ifullscale must be strictly positive"));
     p->one_over_maxamp = FL(1.0) / p->maxamplitude;
     return OK;
 }
@@ -426,7 +431,7 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 
     if ((phs = *p->initphase) >= FL(0.0)) {
       if (UNLIKELY((longphs = (int32)phs))) {
-        csound->Warning(csound, Str("init phase truncation\n"));
+        csound->Warning(csound, "%s", Str("init phase truncation\n"));
       }
       p->curphase = phs - (MYFLT)longphs;
     }

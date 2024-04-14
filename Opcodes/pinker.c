@@ -29,7 +29,11 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                              PINKER.C         */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif       /*                              PINKER.C         */
 
 typedef struct {
   OPDS h;

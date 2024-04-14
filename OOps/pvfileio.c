@@ -139,14 +139,6 @@ static  int32_t     pvoc_writeheader(CSOUND *csound, PVOCFILE *p);
 static  int32_t     pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                                  WAVEFORMATPVOCEX *pWfpx);
 
-/* thanks to the SNDAN programmers for this! */
-/* return 1 for big-endian machine, 0 for little-endian machine */
-
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
 
 /* low level file I/O */
 

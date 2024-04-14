@@ -21,8 +21,12 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "moog1.h"
 
 extern void make_TwoZero(TwoZero *);

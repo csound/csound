@@ -22,7 +22,11 @@
 */
 
 // #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <math.h>
 #include "cwindow.h"
@@ -76,15 +80,15 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       p->disprd = 0;
 
     if (UNLIKELY(p->timcount <= 0))
-      return csound->InitError(csound, Str("illegal iprd"));
+      return csound->InitError(csound, "%s", Str("illegal iprd"));
     if (UNLIKELY(nocts <= 0 || nocts > MAXOCTS))
-      return csound->InitError(csound, Str("illegal iocts"));
+      return csound->InitError(csound, "%s", Str("illegal iocts"));
     if (UNLIKELY(nfreqs <= 0 || nfreqs > MAXFRQS))
-      return csound->InitError(csound, Str("illegal ifrqs"));
+      return csound->InitError(csound, "%s", Str("illegal ifrqs"));
     if (UNLIKELY(Q <= FL(0.0)))
-      return csound->InitError(csound, Str("illegal Q value"));
+      return csound->InitError(csound, "%s", Str("illegal Q value"));
     if (UNLIKELY(p->dbout < 0 || p->dbout > 3))
-      return csound->InitError(csound, Str("unknown dbout code"));
+      return csound->InitError(csound, "%s", Str("unknown dbout code"));
 
     if (nocts != dwnp->nocts ||
         nfreqs != p->nfreqs  || /* if anything has changed */
@@ -104,10 +108,10 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       p->hanning = hanning;
       p->ncoefs = ncoefs;
       csound->Warning(csound,
-                      Str("spectrum: %s window, %s out, making tables ...\n"),
+                       Str("spectrum: %s window, %s out, making tables ...\n"),
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
-      if (GetTypeForArg(p->signal) == &CS_VAR_TYPE_K) {
+      if (GetTypeForArg(p->signal) == csound->KsigType(csound)) {
         dwnp->srate = CS_EKR;            /* define the srate */
         p->nsmps = 1;
       }
@@ -117,13 +121,13 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       }
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
-      if (GetTypeForArg(p->signal) != &CS_VAR_TYPE_K) {     /* for sr sampling:           */
+      if (GetTypeForArg(p->signal) != csound->KsigType(csound)) {     /* for sr sampling:           */
         oct = ((int32_t)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
         hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
       }
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
       locps = hicps / (1L << nocts);
-      csound->Warning(csound, Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
+      csound->Warning(csound,  Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
                               hicps, locps);
 
       basfrq = hicps/2.0;                     /* oct below retuned top */
@@ -138,7 +142,7 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       }
       windsiz = *(p->winlen);
       csound->Warning(csound,
-                      Str("\tQ %4.1f uses a %d sample window each octdown\n"),
+                       Str("\tQ %4.1f uses a %d sample window each octdown\n"),
                       Q, windsiz);
       auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
 
@@ -369,7 +373,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*     hanning = (*p->ihann) ? 1 : 0; */
 /*     if ((p->dbout = *p->idbout) && p->dbout != 1 && p->dbout != 2) { */
 /*       return csound->InitError(csound,
-                                  Str("noctdft: unknown dbout code of %d"), */
+                                  "%s", Str("noctdft: unknown dbout code of %d"), */
 /*                                        p->dbout); */
 /*     } */
 /*     nocts = downp->nocts; */
@@ -385,14 +389,14 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*       int64_t        auxsiz; */
 
 /*       csound->Message(csound, */
-/*                       Str("noctdft: %s window, %s out, making tables ...\n"), */
+/*                       "%s", Str("noctdft: %s window, %s out, making tables ...\n"), */
 /*                       (hanning) ? "hanning":"hamming", outstring[p->dbout]); */
 /*       if (p->timcount <= 0) */
-/*         return csound->InitError(csound, Str("illegal iprd")); */
+/*         return csound->InitError(csound, "%s", Str("illegal iprd")); */
 /*       if (nfreqs <= 0 || nfreqs > MAXFRQS) */
-/*         return csound->InitError(csound, Str("illegal ifrqs")); */
+/*         return csound->InitError(csound, "%s", Str("illegal ifrqs")); */
 /*       if (Q <= FL(0.0)) */
-/*         return csound->InitError(csound, Str("illegal Q value")); */
+/*         return csound->InitError(csound, "%s", Str("illegal Q value")); */
 /*       nsamps = downp->nsamps; */
 /*       p->nfreqs = nfreqs; */
 /*       p->curq = Q; */
@@ -409,11 +413,11 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*         curfrq *= frqmlt; */
 /*       } */
 /*       if ((windsiz = *(p->winlen)) > nsamps) {/\* chk longest windsiz *\/ */
-/*         return csound->InitError(csound, Str("Q %4.1f needs %d samples, " */
+/*         return csound->InitError(csound, "%s", Str("Q %4.1f needs %d samples, " */
 /*                                              "octdown has just %d"), */
 /*                                          Q, windsiz, nsamps); */
 /*       } */
-/*       else csound->Message(csound, Str("noctdft: Q %4.1f uses %d of " */
+/*       else csound->Message(csound, "%s", Str("noctdft: Q %4.1f uses %d of " */
 /*                                        "%d samps per octdown\n"), */
 /*                                    Q, windsiz, nsamps); */
 /*       auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);/\* calc local space reqd *\/ */
@@ -443,9 +447,6 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*       } */
 /*       if (*p->idsines != FL(0.0)) { */
 /*         /\* if reqd, display windowed sines immediately *\/ */
-/*         csound->SetDisplay(csound, &p->dwindow, p->sinp, (int32_t) sumk, */
-/*                                 Str("octdft windowed sines:"), 0, "octdft"); */
-/*         csound->Display(csound, &p->dwindow); */
 /*       } */
 /*       SPECset(csound, */
 /*               specp, (int64_t)ncoefs);          /\* prep the spec dspace *\/ */
@@ -473,7 +474,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
        /\* if not yet time for new spec, return *\/ */
 /*     if (p->auxch.auxp==NULL) { /\* RWD fix *\/ */
 /*       return csound->PerfError(csound, &(p->h), */
-/*                                Str("noctdft: not initialised")); */
+/*                                "%s", Str("noctdft: not initialised")); */
 /*     } */
 /*     p->countdown = p->timcount;      /\* else reset counter & proceed:   *\/ */
 /*     downp = p->dsig; */
@@ -525,24 +526,24 @@ int32_t spdspset(CSOUND *csound, SPECDISP *p)
     char  strmsg[256];
     /* RWD is this enough? */
     if (UNLIKELY(p->wsig->auxch.auxp==NULL)) {
-      return csound->InitError(csound, Str("specdisp: not initialised"));
+      return csound->InitError(csound, "%s", Str("specdisp: not initialised"));
     }
     if (UNLIKELY((p->timcount = (int32_t)(CS_EKR * *p->iprd)) <= 0)) {
-      return csound->InitError(csound, Str("illegal iperiod"));
+      return csound->InitError(csound, "%s", Str("illegal iperiod"));
     }
     if (!(p->dwindow.windid)) {
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
       if (downp->lofrq > FL(5.0)) {
         snprintf(strmsg, 256,
-                Str("instr %d %s, dft (%s), %d octaves (%d - %d Hz):"),
+                 Str("instr %d %s, dft (%s), %d octaves (%d - %d Hz):"),
                 (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, (int32_t)downp->lofrq, (int32_t)downp->hifrq);
       }
       else {                            /* more detail if low frequency  */
         snprintf(strmsg, 256,
-                Str("instr %d %s, dft (%s), %d octaves (%3.1f - %3.1f Hz):"),
+                 Str("instr %d %s, dft (%s), %d octaves (%3.1f - %3.1f Hz):"),
                 (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
                 outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
@@ -566,7 +567,7 @@ int32_t specdisp(CSOUND *csound, SPECDISP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specdisp: not initialised"));
+                             "%s", Str("specdisp: not initialised"));
 }
 
 int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
@@ -598,7 +599,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
     }
     else p->ftimcnt = 0;
     if (UNLIKELY((nptls = (int32_t)*p->inptls) <= 0 || nptls > MAXPTL)) {
-      return csound->InitError(csound, Str("illegal no of partials"));
+      return csound->InitError(csound, "%s", Str("illegal no of partials"));
     }
     p->nptls = nptls;        /* number, whether all or odd */
     if (*p->iodd == FL(0.0)) {
@@ -625,7 +626,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
         *fltp++ = weight;
       }
       if (UNLIKELY(*--fltp < FL(0.0))) {
-        return csound->InitError(csound, Str("per oct rolloff too steep"));
+        return csound->InitError(csound, "%s", Str("per oct rolloff too steep"));
       }
       p->rolloff = 1;
     }
@@ -639,19 +640,19 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
     if (flop < fundp) flop = fundp;
     if (fhip > fendp) fhip = fendp;
     if (UNLIKELY(flop >= fhip)) {         /* chk hi-lo range valid */
-      return csound->InitError(csound, Str("illegal lo-hi values"));
+      return csound->InitError(csound, "%s", Str("illegal lo-hi values"));
     }
     for (fp = fundp; fp < flop; )
       *fp++ = FL(0.0);   /* clear unused lo and hi range */
     for (fp = fhip; fp < fendp; )
       *fp++ = FL(0.0);
 
-    csound->Warning(csound, Str("specptrk: %d freqs, %d%s ptls at "),
+    csound->Warning(csound,  Str("specptrk: %d freqs, %d%s ptls at "),
                     (int32_t)nfreqs, (int32_t)nptls, inc==2 ? Str(" odd") : "");
     for (nn = 0; nn < nptls; nn++)
       csound->Warning(csound, "\t%d", p->pdist[nn]);
     if (p->rolloff) {
-      csound->Warning(csound, Str("\n\t\trolloff vals:"));
+      csound->Warning(csound, "%s", Str("\n\t\trolloff vals:"));
       for (nn = 0; nn < nptls; nn++)
         csound->Warning(csound, "\t%4.2f", p->pmult[nn]);
     }
@@ -674,7 +675,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
     }
     p->threshon *= weightsum;
     p->threshoff *= weightsum;
-    csound->Warning(csound, Str("\n\tdbthresh %4.1f: X-corr %s "
+    csound->Warning(csound,  Str("\n\tdbthresh %4.1f: X-corr %s "
                                 "threshon %4.1f, threshoff %4.1f\n"),
                             dbthresh, outstring[inspecp->dbout],
                             p->threshon, p->threshoff);
@@ -830,7 +831,7 @@ int32_t specptrk(CSOUND *csound, SPECPTRK *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specptrk: not initialised"));
+                             "%s", Str("specptrk: not initialised"));
 }
 
 int32_t spsumset(CSOUND *csound, SPECSUM *p)
@@ -864,7 +865,7 @@ int32_t specsum(CSOUND *csound, SPECSUM *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specsum: not initialised"));
+                             "%s", Str("specsum: not initialised"));
 }
 
 int32_t spadmset(CSOUND *csound, SPECADDM *p)
@@ -875,17 +876,17 @@ int32_t spadmset(CSOUND *csound, SPECADDM *p)
 
     if (UNLIKELY((npts = inspec1p->npts) != inspec2p->npts))
       /* inspecs must agree in size */
-      return csound->InitError(csound, Str("inputs have different sizes"));
+      return csound->InitError(csound, "%s", Str("inputs have different sizes"));
     if (UNLIKELY(inspec1p->ktimprd != inspec2p->ktimprd))
       /*                time period */
-      return csound->InitError(csound, Str("inputs have diff. time periods"));
+      return csound->InitError(csound, "%s", Str("inputs have diff. time periods"));
     if (UNLIKELY(inspec1p->nfreqs != inspec2p->nfreqs))
       /*                frq resoltn */
       return csound->InitError(csound,
-                               Str("inputs have different freq resolution"));
+                               "%s", Str("inputs have different freq resolution"));
     if (UNLIKELY(inspec1p->dbout != inspec2p->dbout))
       /*                and db type */
-      return csound->InitError(csound, Str("inputs have different amptypes"));
+      return csound->InitError(csound, "%s", Str("inputs have different amptypes"));
     if (npts != p->waddm->npts) {                 /* if out does not match ins */
       SPECset(csound,
               p->waddm, (int32_t)npts);              /*       reinit the out spec */
@@ -918,7 +919,7 @@ int32_t specaddm(CSOUND *csound, SPECADDM *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specaddm: not initialised"));
+                             "%s", Str("specaddm: not initialised"));
 }
 
 int32_t spdifset(CSOUND *csound, SPECDIFF *p)
@@ -942,7 +943,7 @@ int32_t spdifset(CSOUND *csound, SPECDIFF *p)
     outp = (MYFLT *) p->wdiff->auxch.auxp;
     if (UNLIKELY(lclp==NULL || outp==NULL)) { /* RWD  */
       return csound->InitError(csound,
-                               Str("specdiff: local buffers not initialised"));
+                               "%s", Str("specdiff: local buffers not initialised"));
     }
     memset(lclp, 0, npts*sizeof(MYFLT));          /* clr local & out spec bufs */
     memset(outp, 0, npts*sizeof(MYFLT));
@@ -981,7 +982,7 @@ int32_t specdiff(CSOUND *csound, SPECDIFF *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specdiff: not initialised"));
+                             "%s", Str("specdiff: not initialised"));
 }
 
 int32_t spsclset(CSOUND *csound, SPECSCAL *p)
@@ -1003,12 +1004,12 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
     p->fscale = (MYFLT *) p->auxch.auxp;       /* setup scale & thresh fn areas */
     if (UNLIKELY(p->fscale==NULL)) {  /* RWD fix */
       return csound->InitError(csound,
-                               Str("specscal: local buffer not initialised"));
+                               "%s", Str("specscal: local buffer not initialised"));
     }
     p->fthresh = p->fscale + npts;
     if (UNLIKELY((ftp=csound->FTFind(csound, p->ifscale)) == NULL)) {
       /* if fscale given,        */
-      return csound->InitError(csound, Str("missing fscale table"));
+      return csound->InitError(csound, "%s", Str("missing fscale table"));
     }
     else {
       int32_t nn; // = npts;
@@ -1073,7 +1074,7 @@ int32_t specscal(CSOUND *csound, SPECSCAL *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specscal: not initialised"));
+                             "%s", Str("specscal: not initialised"));
 }
 
 int32_t sphstset(CSOUND *csound, SPECHIST *p)
@@ -1097,7 +1098,7 @@ int32_t sphstset(CSOUND *csound, SPECHIST *p)
     outp = (MYFLT *) p->wacout->auxch.auxp;
     if (UNLIKELY(lclp==NULL || outp==NULL)) { /* RWD fix */
       return csound->InitError(csound,
-                               Str("spechist: local buffers not initialised"));
+                               "%s", Str("spechist: local buffers not initialised"));
     }
     memset(lclp,0,npts*sizeof(MYFLT));      /* clr local & out spec bufs */
     memset(outp,0,npts*sizeof(MYFLT));
@@ -1130,7 +1131,7 @@ int32_t spechist(CSOUND *csound, SPECHIST *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("spechist: not initialised"));
+                             "%s", Str("spechist: not initialised"));
 }
 
 int32_t spfilset(CSOUND *csound, SPECFILT *p)
@@ -1151,7 +1152,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
     }
     if (UNLIKELY(p->coefs==NULL || p->states==NULL)) { /* RWD fix */
       return csound->InitError(csound,
-                               Str("specfilt: local buffers not initialised"));
+                               "%s", Str("specfilt: local buffers not initialised"));
     }
     outspecp->ktimprd = inspecp->ktimprd;          /* pass other spect info */
     outspecp->nfreqs = inspecp->nfreqs;
@@ -1159,7 +1160,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
     outspecp->downsrcp = inspecp->downsrcp;
     if (UNLIKELY((ftp=csound->FTFind(csound, p->ifhtim)) == NULL)) {
       /* if fhtim table given,    */
-      return csound->InitError(csound, Str("missing htim ftable"));
+      return csound->InitError(csound, "%s", Str("missing htim ftable"));
     }
     {
       int32_t nn;
@@ -1182,7 +1183,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
           flp[nn] = (MYFLT)pow(0.5, reittim/halftim);
         else {
           return csound->InitError(csound,
-                                   Str("htim ftable must be all-positive"));
+                                   "%s", Str("htim ftable must be all-positive"));
         }
       }
     }
@@ -1219,7 +1220,7 @@ int32_t specfilt(CSOUND *csound, SPECFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("specfilt: not initialised"));
+                             "%s", Str("specfilt: not initialised"));
 }
 
 #define S       sizeof

@@ -29,7 +29,11 @@
 */
 
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
@@ -110,7 +114,7 @@ int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     if (*p->spread <FL(0.0))
@@ -220,11 +224,11 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > zalast)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("outz index > isizea. No output"));
+                               "%s", Str("outz index > isizea. No output"));
     }
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("outz index < 0. No output."));
+                               "%s", Str("outz index < 0. No output."));
     }
     if ((int32_t)*p->layout==0) strcpy(name, "vbap_ls_table");
     else snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout==0);
@@ -242,7 +246,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     ptr              = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (UNLIKELY(p->aux.auxp == NULL)) {
-      return csound->InitError(csound, Str("could not allocate memory"));
+      return csound->InitError(csound, "%s", Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -261,7 +265,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     /* other initialization */
     if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->ang_dir.azi = (MYFLT) *p->azi;
@@ -339,7 +343,7 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
     MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0); /* Array long enough */
     if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
 
@@ -367,12 +371,12 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       }
       if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
         return csound->PerfError(csound, &(p->h),
-                                 Str("Missing fields in vbapzmove\n"));
+                                 "%s", Str("Missing fields in vbapzmove\n"));
       if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld])
                           - 180.0) < 1.0))
           csound->Warning(csound,
-                          Str("Warning: Ambiguous transition 180 degrees.\n"));
+                          "%s", Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (*p->field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D */
@@ -412,7 +416,7 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       }
       else {
         return csound->PerfError(csound, &(p->h),
-                                 Str("Missing fields in vbapzmove\n"));
+                                 "%s", Str("Missing fields in vbapzmove\n"));
       }
     }
     else { /* angular velocities */
@@ -534,11 +538,11 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > zalast)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("outz index > isizea. No output"));
+                               "%s", Str("outz index > isizea. No output"));
     }
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("outz index < 0. No output."));
+                               "%s", Str("outz index < 0. No output."));
     }
     /* Now read from the array in za space and write to the output. */
     p->out_array     = zastart + (indx * CS_KSMPS);/* outputs */
@@ -556,7 +560,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     ptr              = &(ls_table[3]);
     csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
     if (UNLIKELY(p->aux.auxp == NULL)) {
-      return csound->InitError(csound, Str("could not allocate memory"));
+      return csound->InitError(csound, "%s", Str("could not allocate memory"));
     }
     p->ls_sets = (LS_SET*) p->aux.auxp;
     ls_set_ptr = p->ls_sets;
@@ -587,7 +591,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
       p->point_change_interval = (int32_t) (CS_EKR * *p->dur
                                         / (fabs(*p->field_am) * 0.5 - 1.0));
     else
-      return csound->InitError(csound, Str("Wrong dimension"));
+      return csound->InitError(csound, "%s", Str("Wrong dimension"));
     p->point_change_counter = 0;
     p->curr_fld = 0;
     p->next_fld = 1;

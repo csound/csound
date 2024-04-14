@@ -33,8 +33,12 @@
 /*  excitation source for other instruments*/
 /*******************************************/
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "singwave.h"
 #include "moog1.h"
 
@@ -82,7 +86,7 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
     if (LIKELY((ftp = csound->FTnp2Find(csound,i)) != NULL))
       p->wave = ftp;
     else { /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Modulatr"));
+      return csound->InitError(csound, "%s", Str("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*  p->v_rate = 6.0; */
@@ -124,7 +128,7 @@ static int32_t make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivf
 
     if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL)) p->wave = ftp;
     else {
-      return csound->InitError(csound, Str("No table for Singwave"));
+      return csound->InitError(csound, "%s", Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);
@@ -360,7 +364,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     {
       MYFLT temp, freq = *p->frequency;
       if ((freq * FL(22.0)) > CS_ESR)      {
-        csound->Warning(csound, Str("This note is too high!!\n"));
+        csound->Warning(csound, "%s", Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
       p->basef = freq;

@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
@@ -81,7 +84,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
     /*
     else {
       if (UNLIKELY(p->w_aux.auxp == NULL))
-        return csound->InitError(csound, Str("No data to continue"));
+        return csound->InitError(csound, "%s", Str("No data to continue"));
     }
     */
     p->first = 0;
@@ -113,7 +116,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound, &(p->h),
-                               Str("Ends must be clamped(1), "
+                               "%s", Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

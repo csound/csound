@@ -1,8 +1,11 @@
 #ifndef EMUGENS_COMMON_H
 #define EMUGENS_COMMON_H
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
-
+#endif
 
 #define INITERR(m) (csound->InitError(csound, "%s", m))
 #define INITERRF(fmt, ...) (csound->InitError(csound, fmt, __VA_ARGS__))

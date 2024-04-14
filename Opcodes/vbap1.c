@@ -30,7 +30,11 @@ Ville Pulkki heavily modified by John ffitch 2012
 */
 
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "vbap.h"
 #include <math.h>
 #include <stdio.h>
@@ -64,7 +68,7 @@ static int32_t vbap1_control(CSOUND *csound, VBAP1_DATA *p,
     MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
     if (UNLIKELY(p->dim == 2 && fabs(*ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       *ele = FL(0.0);
     }
 
@@ -182,11 +186,11 @@ int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
+      return csound->InitError(csound, "%s", Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
-      return csound->InitError(csound, Str("could not allocate memory"));
+      return csound->InitError(csound, "%s", Str("could not allocate memory"));
     }
     p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
     ls_set_ptr = p->q.ls_sets;
@@ -206,7 +210,7 @@ int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
     /* other initialization */
     if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->q.ang_dir.azi    = (MYFLT)*p->azi;
@@ -251,11 +255,11 @@ int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured.\nMissing"
+      return csound->InitError(csound, "%s", Str("vbap system NOT configured.\nMissing"
                                            " vbaplsinit opcode in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
-      return csound->InitError(csound, Str("could not allocate memory"));
+      return csound->InitError(csound, "%s", Str("could not allocate memory"));
     }
     p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
     ls_set_ptr = p->q.ls_sets;
@@ -273,7 +277,7 @@ int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     /* other initialization */
     if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       *p->ele = FL(0.0);
     }
     p->q.ang_dir.azi    = (MYFLT)*p->azi;
@@ -337,7 +341,7 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
 #endif
     if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
       csound->Warning(csound,
-                      Str("Warning: truncating elevation to 2-D plane\n"));
+                      "%s", Str("Warning: truncating elevation to 2-D plane\n"));
       p->ang_dir.ele = FL(0.0);
     }
     if (spread <FL(0.0))
@@ -365,13 +369,13 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       if (UNLIKELY((fld[abs(p->next_fld)]==NULL))) {
         free(tmp_gains);
         return csound->PerfError(csound, h,
-                                 Str("Missing fields in vbapmove\n"));
+                                 "%s", Str("Missing fields in vbapmove\n"));
       }
       if (field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
                                *fld[p->curr_fld]) - 180.0) < 1.0))
           csound->Warning(csound,
-                          Str("Warning: Ambiguous transition 180 degrees.\n"));
+                          "%s", Str("Warning: Ambiguous transition 180 degrees.\n"));
     }
     if (field_am >= FL(0.0)) { /* point-to-point */
       if (p->dim == 3) { /* 3-D*/
@@ -412,7 +416,7 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       else {
         free(tmp_gains);
         return csound->PerfError(csound, h,
-                                 Str("Missing fields in vbapmove\n"));
+                                 "%s", Str("Missing fields in vbapmove\n"));
       }
     }
     else { /* angular velocities */
@@ -537,12 +541,12 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (!p->q.ls_set_am)
-      return csound->InitError(csound, Str("vbap system NOT configured.\n"
+      return csound->InitError(csound, "%s", Str("vbap system NOT configured.\n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
-      return csound->InitError(csound, Str("could not allocate memory"));
+      return csound->InitError(csound, "%s", Str("could not allocate memory"));
     }
     p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
     ls_set_ptr = p->q.ls_sets;
@@ -572,7 +576,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
       p->q.point_change_interval =
         (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
-      return csound->InitError(csound, Str("Wrong dimension"));
+      return csound->InitError(csound, "%s", Str("Wrong dimension"));
     p->q.point_change_counter = 0;
     p->q.curr_fld = 0;
     p->q.next_fld = 1;
@@ -602,7 +606,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     LS_SET  *ls_set_ptr;
 
     if (UNLIKELY(p->tabout->data == NULL || p->tabout->dimensions!=1))
-      return csound->InitError(csound, Str("Output array not initialised"));
+      return csound->InitError(csound, "%s", Str("Output array not initialised"));
     p->q.number = p->tabout->sizes[0];
     ls_table =
       (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
@@ -612,12 +616,12 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     p->q.ls_set_am = (int32_t)ls_table[2];
     ptr = &(ls_table[3]);
     if (UNLIKELY(!p->q.ls_set_am))
-      return csound->InitError(csound, Str("vbap system NOT configured.\n"
+      return csound->InitError(csound, "%s", Str("vbap system NOT configured.\n"
                                            "Missing vbaplsinit opcode"
                                            " in orchestra?"));
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
-      return csound->InitError(csound, Str("could not allocate memory"));
+      return csound->InitError(csound, "%s", Str("could not allocate memory"));
     }
     p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
     ls_set_ptr = p->q.ls_sets;
@@ -647,7 +651,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
       p->q.point_change_interval =
         (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
     else
-      return csound->InitError(csound, Str("Wrong dimension"));
+      return csound->InitError(csound, "%s", Str("Wrong dimension"));
     p->q.point_change_counter = 0;
     p->q.curr_fld = 0;
     p->q.next_fld = 1;

@@ -79,6 +79,18 @@ void init_getstring(void *cs)
 #endif
 }
 
+
+double csoundStrtod(CSOUND *csound, char* nptr, char** endptr) {
+#ifdef HAVE_STRTOD_L
+  locale_t *lcl =  (locale_t *)
+    csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::");   
+  return strtod_l(nptr, endptr, *lcl);
+#else
+    return strtod(nptr, endptr);
+#endif
+}
+
+
 PUBLIC char *csoundLocalizeString(const char *s)
 {
     return (char*)s;
@@ -90,9 +102,12 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     return;
 }
 #else
-void init_getstring(void *cs)
+void init_getstring(void *csound)
 {
   IGN(cs);
+  CSOUND *csound  = (CSOUND *) cs;
+  csound->CreateGlobalVariable(csound, "::CSOUND::C_LOCALE::", sizeof(locale_t));
+  
 /*     s = csoundGetEnv(NULL, "CS_LANG"); */
 /*     if (s == NULL)              /\* Default locale *\/ */
 /*       setlocale (LC_MESSAGES, ""); */
@@ -107,8 +122,12 @@ void init_getstring(void *cs)
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
 #else
     if (csound_c_locale == NULL) {
-        csound_c_locale = newlocale (0, "C", NULL);
+      locale_t *lcl =  (locale_t *)
+        csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::"); 
+      *lcl = csound_c_locale = newlocale (0, "C", NULL);
     }
+
+    
 #endif
 }
 

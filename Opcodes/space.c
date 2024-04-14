@@ -177,7 +177,7 @@ static int32_t space(CSOUND *csound, SPACE *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("space: not initialised"));
+                             "%s", Str("space: not initialised"));
 }
 
 static int32_t spsendset(CSOUND *csound, SPSEND *p)
@@ -261,7 +261,7 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("spdist: not initialised"));
+                             "%s", Str("spdist: not initialised"));
 }
 
 #define S(x)    sizeof(x)

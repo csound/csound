@@ -29,8 +29,12 @@
 /*    Towards Physical Modelling of Bar      */
 /*    Percussion Instruments", ICMC'99       */
 /*********************************************/
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "bowedbar.h"
 
 /* Number of banded waveguide modes */
@@ -95,7 +99,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
         p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound,
-                        Str("unknown lowest frequency for bowed bar -- "
+                        "%s", Str("unknown lowest frequency for bowed bar -- "
                             "assuming 50Hz\n"));
         p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
       }
@@ -155,7 +159,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
       }
       if (UNLIKELY(p->nr_modes==0))
         return csound->InitError(csound,
-                                 Str("Bowedbar: cannot have zero modes\n"));
+                                 "%s", Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
         MYFLT R = FL(1.0) - p->freq * p->modes[i] * CS_PIDSR;
         BiQuad_clear(&p->bandpass[i]);

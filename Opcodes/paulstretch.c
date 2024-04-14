@@ -32,9 +32,12 @@
 #endif
 #include <math.h>
 #include <math.h>
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
-#include "H/fftlib.h"
 
 #ifdef ANDROID
 float crealf(_Complex float);
@@ -87,7 +90,6 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     tmp[p->windowsize] = tmp[1];
     tmp[p->windowsize + 1] = FL(0.0);
     csound->RealFFT(csound, p->setup, tmp);
-
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
@@ -108,7 +110,6 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     /* re-order bins and take inverse FFT */
     tmp[1] = tmp[p->windowsize];
     csound->RealFFT(csound, p->isetup, tmp);
-
     /* apply window and overlap */
     for (i = 0; i < windowsize; i++) {
       tmp[i] *= window[i];
@@ -128,7 +129,7 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     uint32_t size;
 
     if (ftp == NULL)
-      return csound->InitError(csound, Str("paulstretch: table not found"));
+      return csound->InitError(csound, "%s", Str("paulstretch: table not found"));
 
     p->ft = ftp;
     p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));

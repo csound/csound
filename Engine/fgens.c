@@ -36,32 +36,6 @@
 #include "fftlib.h"
 /* #undef ISSTRCOD */
 
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
-
-int isstrcod(MYFLT xx)
-{
-    int sel = (byte_order()+1)&1;
-#ifdef USE_DOUBLE
-    union {
-      double d;
-      int32_t i[2];
-    } z;
-    z.d = xx;
-    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
-#else
-    union {
-      float f;
-      int32_t j;
-    } z;
-    z.f = xx;
-    return ((z.j&0x7f800000) == 0x7f800000);
-#endif
-}
-
 extern double besseli(double);
 FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
@@ -2961,188 +2935,6 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-
-#include "mp3dec.h"
-
-static int gen49raw(FGDATA *ff, FUNC *ftp)
-{
-    CSOUND  *csound        = ff->csound;
-    MYFLT   *fp           = ftp == NULL ? NULL: ftp->ftable;
-    mp3dec_t mpa           = NULL;
-    mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_AUTO,
-                               MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
-                               MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
-                               0.0 };
-    int     skip              = 0, chan = 0, r, fd;
-    int p                     = 0;
-    char    sfname[1024];
-    mpadec_info_t mpainfo;
-    uint32_t bufsize, bufused = 0;
-    uint8_t *buffer;
-    int size = 0x1000;
-    int flen, nchanls, def = 0;
-
-    if (UNLIKELY(ff->e.pcnt < 7)) {
-      return fterror(ff, Str("insufficient arguments"));
-    }
-    /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); */ /* Is this necessary? */
-    {
-      int32 filno /*= (int32) MYFLT2LRND(ff->e.p[5])*/;
-      if (isstrcod(ff->e.p[5])) {
-        if (ff->e.strarg[0] == '"') {
-          int len = (int) strlen(ff->e.strarg) - 2;
-          strNcpy(sfname, ff->e.strarg + 1, 1024);
-          if (len >= 0 && sfname[len] == '"')
-            sfname[len] = '\0';
-        }
-        else
-          strNcpy(sfname, ff->e.strarg, 1024);
-      }
-      else if ((filno= (int32) MYFLT2LRND(ff->e.p[5])) >= 0 &&
-               filno <= csound->strsmax &&
-               csound->strsets && csound->strsets[filno])
-        strNcpy(sfname, csound->strsets[filno], 1024);
-      else
-        snprintf(sfname, 1024, "soundin.%d", filno);   /* soundin.filno */
-    }
-    chan  = (int) MYFLT2LRND(ff->e.p[7]);
-    if (UNLIKELY(chan < 0)) {
-      return fterror(ff, Str("channel %d illegal"), (int) chan);
-    }
-    switch (chan) {
-    case 0:
-      config.mode = MPADEC_CONFIG_AUTO; break;
-    case 1:
-      config.mode = MPADEC_CONFIG_MONO; break;
-    case 2:
-      config.mode = MPADEC_CONFIG_STEREO; break;
-    case 3:
-      config.mode = MPADEC_CONFIG_CHANNEL1; break;
-    case 4:
-      config.mode = MPADEC_CONFIG_CHANNEL2; break;
-    }
-    mpa = mp3dec_init();
-    if (UNLIKELY(!mpa)) {
-      return fterror(ff, Str("Not enough memory\n"));
-    }
-    if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
-      mp3dec_uninit(mpa);
-      return fterror(ff, mp3dec_error(r));
-    }
-    (void)csound->FileOpen(csound, &fd, CSFILE_FD_R,
-                                     sfname, NULL, "SFDIR;SSDIR",
-                                     CSFTYPE_UNKNOWN_AUDIO, 0);
-    //    fd = open(sfname, O_RDONLY); /* search paths */
-    if (UNLIKELY(fd < 0)) {
-      mp3dec_uninit(mpa);
-      return fterror(ff, "sfname");
-    }
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
-      mp3dec_uninit(mpa);
-      return fterror(ff, mp3dec_error(r));
-    }
-    if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
-                 MP3DEC_RETCODE_OK)) {
-      mp3dec_uninit(mpa);
-      return fterror(ff, mp3dec_error(r));
-    }
-    /* maxsize = mpainfo.decoded_sample_size */
-    /*   *mpainfo.decoded_frame_samples */
-    /*   *mpainfo.frames; */
-    {
-      char temp[80];
-      if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
-      else if (mpainfo.frequency < 32000) strcpy(temp, "MPEG-2 ");
-      else strcpy(temp, "MPEG-1 ");
-      if (mpainfo.layer == 1) strcat(temp, "Layer I");
-      else if (mpainfo.layer == 2) strcat(temp, "Layer II");
-      else strcat(temp, "Layer III");
-      csound->DebugMsg(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
-              temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
-              mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
-              mpainfo.duration%60);
-    }
-    buffer = (uint8_t *)csound->Malloc(csound,size);
-    bufsize = size/mpainfo.decoded_sample_size;
-    skip = (int)(ff->e.p[6] * mpainfo.frequency);
-    while (skip > 0) {
-      uint32_t xx = skip;
-      if ((uint32_t)xx > bufsize) xx = bufsize;
-      //      printf("gen49: skipping xx\n", xx);
-      skip -=xx;
-      mp3dec_decode(mpa, buffer, mpainfo.decoded_sample_size*xx, &bufused);
-    }
-    //bufsize *= mpainfo.decoded_sample_size;
-    r = mp3dec_decode(mpa, buffer, size, &bufused);
-    nchanls = (chan == 2 && mpainfo.channels == 2 ? 2 : 1);
-    if (ff->flen == 0) {    /* deferred ftalloc */
-      int fsize, frames;
-      frames = mpainfo.frames * mpainfo.decoded_frame_samples;
-      fsize  = frames * nchanls;
-      if (UNLIKELY((ff->flen = fsize) <= 0))
-        return fterror(ff, Str("deferred size, but filesize unknown"));
-      if (UNLIKELY(ff->flen > MAXLEN))
-        return fterror(ff, Str("illegal table length"));
-      if (UNLIKELY(csound->oparms->msglevel & 7))
-        csoundMessage(csound, Str("  defer length %d\n"), ff->flen);
-      ftp = ftalloc(ff);
-      ftp->lenmask  = 0L;
-      ftp->flenfrms = frames;
-      ftp->nchanls  = nchanls;
-      fp = ftp->ftable;
-      def = 1;
-    }
-    ftp->gen01args.sample_rate = mpainfo.frequency;
-    ftp->cvtbas = LOFACT * mpainfo.frequency * csound->onedsr;
-    flen = ftp->flen;
-    //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
-    while ((r == MP3DEC_RETCODE_OK) && bufused) {
-      unsigned int i;
-      short *bb = (short*)buffer;
-      //printf("gen49: p=%d bufused=%d\n", p, bufused);
-      for (i=0; i<bufused*nchanls/mpainfo.decoded_sample_size; i++)  {
-        if (UNLIKELY(p>=flen)) {
-          csound->Free(csound,buffer);
-          //printf("gen49: i=%d p=%d exit as at end of table\n", i, p);
-          return ((mp3dec_uninit(mpa) == MP3DEC_RETCODE_OK) ? OK : NOTOK);
-        }
-        fp[p] = ((MYFLT)bb[i]/(MYFLT)0x7fff) * csound->e0dbfs;
-        //printf("%d: %f %d\n", p, fp[p], bb[i]);
-        p++;
-       }
-      if (i <= 0) break;
-      //printf("gen49: new buffer\n");
-      r = mp3dec_decode(mpa, buffer, size, &bufused);
-    }
-
-    csound->Free(csound, buffer);
-    r |= mp3dec_uninit(mpa);
-    if (def) ftresdisp(ff, ftp);
-    return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
-}
-
-static int gen49(FGDATA *ff, FUNC *ftp)
-{
-    if (UNLIKELY(ff->e.pcnt < 7)) {
-      return fterror(ff, Str("insufficient arguments"));
-    }
-    if (ff->csound->oparms->gen01defer) {
-      /* We're deferring the soundfile load until performance time,
-         so allocate the function table descriptor, save the arguments,
-         and get out */
-      ftp = ftalloc(ff);
-      ftp->gen01args.gen01 = ff->e.p[4];
-      ftp->gen01args.ifilno = ff->e.p[5];
-      ftp->gen01args.iskptim = ff->e.p[6];
-      ftp->gen01args.iformat = ff->e.p[7];
-      ftp->gen01args.channel = ff->e.p[8];
-      strNcpy(ftp->gen01args.strarg, ff->e.strarg, SSTRSIZ);
-      return OK;
-    }
-    return gen49raw(ff, ftp);
-}
-
-
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
     int     j, notenum, grade, numgrades, basekeymidi, nvals;
@@ -3454,6 +3246,8 @@ int csoundIsNamedGEN(CSOUND *csound, int num) {
     return 0;
 }
 
+
+
 /* ODDITY:  does not stop when num found but continues to end; also not used!
    But has API use
  */
@@ -3467,6 +3261,26 @@ void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
       n = n->next;
     }
 }
+
+// GEN49 used to be internal, now external named so we're calling it here
+static int gen49(FGDATA *ff, FUNC *ftp) {
+  // need to call named gen49 here
+  CSOUND *csound = ff->csound;
+   NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
+   int32_t genum;
+    while (n) {
+     if (strcmp(n->name, "gen49") == 0) {    /* Look up by name */
+          ff->e.p[4] = genum = n->genum;
+          break;
+        }
+        n = n->next;                            /*  and round again         */
+      }
+   if (UNLIKELY(n == NULL)) {
+     return fterror(ff, "%s", Str("GEN49 not defined"));
+   }
+   return csound->gensub[genum](ff,ftp);
+}
+
 
 
 #include "resize.h"

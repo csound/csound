@@ -26,7 +26,11 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <sys/types.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
@@ -113,7 +117,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
 #endif
     /* create server address: where we want to send to and clear it out */
@@ -159,7 +163,7 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                             sizeof(p->server_addr)) == SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
         }
         wp = 0;
       }
@@ -196,7 +200,7 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
       /* send the package when we have a full buffer */
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                           sizeof(p->server_addr)) == SOCKET_ERROR)) {
-        return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+        return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
       }
       p->wp = 0;
     }
@@ -225,7 +229,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     int32_t     len = p->str->size;
 
     if (UNLIKELY(len>=buffersize)) {
-      csound->Warning(csound, Str("string truncated in socksend"));
+      csound->Warning(csound, "%s", Str("string truncated in socksend"));
       len = buffersize-1;
     }
     memcpy(out, q, len);
@@ -233,7 +237,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                         sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-      return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+      return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
     }
     return OK;
 }
@@ -264,7 +268,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -312,7 +316,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
         }
         wp = 0;
       }
@@ -371,7 +375,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
 #endif
     /* create server address: where we want to connect to */
@@ -426,7 +430,7 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, &(p->h),
-                               Str("write to socket failed"));
+                               "%s", Str("write to socket failed"));
     }
     return OK;
 }
@@ -475,13 +479,13 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     if(p->INOCOUNT > 4) {
       if(!IS_STR_ARG(p->type)) 
                return csound->InitError(csound,
-                             Str("Message type is not given as a string\n"));
+                             "%s", Str("Message type is not given as a string\n"));
     }
 
    
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) strlen(p->type->data) + 4))
        return csound->InitError(csound,
-                             Str("insufficient number of arguments for "
+                             "%s", Str("insufficient number of arguments for "
                                  "OSC message types\n"));
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -492,7 +496,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -539,7 +543,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         break;
       case 's':
         if (UNLIKELY(!IS_STR_ARG(p->arg[i])))
-          return csound->InitError(csound, Str("expecting a string argument\n"));
+          return csound->InitError(csound, "%s", Str("expecting a string argument\n"));
         s = (STRINGDAT *)p->arg[i];
         bsize += strlen(s->data) + 64;
         iarg++;
@@ -913,7 +917,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -1010,14 +1014,14 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           break;
           default:
             csound->Message(csound,
-                            Str("only bundles with i and f types are supported \n"));
+                            "%s", Str("only bundles with i and f types are supported \n"));
           }
         }
       }
 
       if (UNLIKELY(sendto(p->sock, (void*) p->aux.auxp, buffsize, 0, to,
                           sizeof(p->server_addr)) < 0))
-        return csound->PerfError(csound, &(p->h), Str("OSCbundle failed"));
+        return csound->PerfError(csound, &(p->h), "%s", Str("OSCbundle failed"));
       p->last = *p->kwhen;
     }
     return OK;

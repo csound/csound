@@ -50,8 +50,11 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <stdio.h>
 #include <math.h>
@@ -84,13 +87,13 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     }
 
     if (!strcmp("HRTFcompact", p->ifilno->data)) {
-      strNcpy(filename, p->ifilno->data, MAXNAME);
+      strncpy(filename, p->ifilno->data, MAXNAME);
       //filename[MAXNAME-1] = '\0';
     }
     else {
-      csound->Message(csound, Str("\nLast argument must be the string "
+      csound->Message(csound, "%s", Str("\nLast argument must be the string "
                                   "'HRTFcompact' ...correcting.\n"));
-      strNcpy(filename, "HRTFcompact", MAXNAME); /* for safety */
+      strncpy(filename, "HRTFcompact", MAXNAME); /* for safety */
     }
 
     if ((mfp = p->mfp) == NULL)
@@ -440,7 +443,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csound->PerfError(csound, &(p->h), "%s",
                              Str("hrtfer: not initialised"));
 }
 

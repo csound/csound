@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <limits.h>
 #include <math.h>
 
-#define INITERROR(x) csound->InitError(csound, Str("partikkel: " x))
-#define PERFERROR(x) csound->PerfError(csound, &(p->h),Str("partikkel: " x))
-#define WARNING(x) csound->Warning(csound, Str("partikkel: " x))
+#define INITERROR(x) csound->InitError(csound, "%s", Str("partikkel: " x))
+#define PERFERROR(x) csound->PerfError(csound, &(p->h), "%s", Str("partikkel: " x))
+#define WARNING(x) csound->Warning(csound, "%s", Str("partikkel: " x))
 
 /* Assume csound and p pointers are always available */
 #define frand() (csound->RandMT(&p->randstate)/(double)(0xffffffff))
@@ -840,17 +840,17 @@ static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 
     if (UNLIKELY((int32_t)*p->opcodeid == 0))
         return csound->InitError(csound,
-            Str("partikkelsync: opcode id needs to be a non-zero integer"));
+            "%s", Str("partikkelsync: opcode id needs to be a non-zero integer"));
     pg = csound->QueryGlobalVariable(csound, "partikkel");
     if (UNLIKELY(pg == NULL || pg->rootentry == NULL))
         return csound->InitError(csound,
-            Str("partikkelsync: could not find opcode id"));
+            "%s", Str("partikkelsync: could not find opcode id"));
     pe = pg->rootentry;
     while (pe->id != *p->opcodeid && pe->next != NULL)
         pe = pe->next;
     if (UNLIKELY(pe->id != *p->opcodeid))
         return csound->InitError(csound,
-            Str("partikkelsync: could not find opcode id"));
+            "%s", Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
     /* find out if we're supposed to output grain scheduler phase too */
     p->output_schedphase = GetOutputArgCnt(p) > 1;

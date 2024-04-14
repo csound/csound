@@ -26,7 +26,11 @@
 
 #include <math.h>
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 
 
 /* ================================================================== */

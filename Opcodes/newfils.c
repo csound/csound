@@ -2395,9 +2395,9 @@ typedef struct vcfnl {
 } VCFNL;
 
 int vcfnl_init(CSOUND *csound, VCFNL *p) {
-    MYFLT *tab;
-   double g, *G = p->G;
-   p->piosr = CS_PIDSR;
+  MYFLT *tab;
+  double g, *G = p->G;
+  p->piosr = CS_PIDSR;
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
   G[0] = g/(1+g);
@@ -2405,22 +2405,21 @@ int vcfnl_init(CSOUND *csound, VCFNL *p) {
   G[1] = G[0]*G[0]; // G^2
   G[2] = G[0]*G[1]; // G^3
   G[3] = G[0]*G[2]; // G^4
-  if(*p->istor == 0)
-    memset(p->s, 0, 4*sizeof(MYFLT));
-    tab = csound->QueryGlobalVariable(csound, "::TANH::");
-    if(tab == NULL) {
-      int i;
-      csound->CreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
-      tab =  csound->QueryGlobalVariable(csound, "::TANH::");
-      MYFLT step  = 8./TABSIZE, x = -4.;
-      for(i=0; i <= TABSIZE; x += step, i++)
-        tab[i] = TANH(x);
-    }
-    tab[TABSIZE] = tab[TABSIZE-1];
-    p->max = .125;
-    p->tab = tab;
-    p->size = TABSIZE;
-    return OK;
+  if(*p->istor == 0) memset(p->s, 0, 4*sizeof(MYFLT));
+  tab = csound->QueryGlobalVariable(csound, "::TANH::");
+  if(tab == NULL) {
+    int i;
+    csound->CreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
+    tab =  csound->QueryGlobalVariable(csound, "::TANH::");
+    MYFLT step  = 8./TABSIZE, x = -4.;
+    for(i=0; i <= TABSIZE; x += step, i++)
+      tab[i] = TANH(x);
+  }
+  tab[TABSIZE] = tab[TABSIZE-1];
+  p->max = .125;
+  p->tab = tab;
+  p->size = TABSIZE;
+  return OK;
 }
 
 int vcfnl_perfk(CSOUND *csound, VCFNL *p) {
@@ -3752,11 +3751,11 @@ static OENTRY localops[] =
      (SUBR) NULL, (SUBR) ms_decod },
     {"otafilter", sizeof(VCFNL), 0, 3, "aa", "akkko",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfk},
-        {"otafilter", sizeof(VCFNL), 0, 3, "aa", "aakko",
+    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "aakko",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfak},
-        {"otafilter", sizeof(VCFNL), 0, 3, "aa", "akako",
+    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "akako",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfka},
-        {"otafilter", sizeof(VCFNL), 0, 3, "aa", "aaako",
+    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "aaako",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfaa},
   };
 

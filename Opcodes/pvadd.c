@@ -82,10 +82,10 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
 
     if (stringname==0){
       if (IsStringCode(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
       else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
@@ -158,7 +158,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVADD ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVADD ktimpnt truncated to last frame"));
       }
     }
     FetchInForAdd(p->frPtr, p->buf, size, frIndx,
@@ -197,9 +197,9 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pvadd: not initialised"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("pvadd: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h), Str("PVADD timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("PVADD timpnt < 0"));
 }
 
 int32_t pvaddset(CSOUND *csound, PVADD *p){
