@@ -1011,15 +1011,15 @@ int32_t ftlptim(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL))
-      return NOTOK;
-    if (LIKELY(ftp->loopmode1))
-      *p->r = ftp->begin1 * CS_ONEDSR;
-    else {
-      *p->r = FL(0.0);
-      csound->Warning(csound, Str("non-looping sample"));
-    }
-    return OK;
+  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL))
+    return NOTOK;
+  if (LIKELY(ftp->loopmode1))
+    *p->r = ftp->begin1 * CS_ONEDSR;
+  else {
+    *p->r = FL(0.0);
+    csound->Warning(csound, Str("non-looping sample"));
+  }
+  return OK;
 }
 
 int32_t numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
@@ -1809,8 +1809,8 @@ int32_t inall_opcode(CSOUND *csound, INALL *p)
 }
 
 inline static int32_t outn(CSOUND *csound, uint32_t k,
-                             uint32_t n, MYFLT **asig,
-                             INSDS *p, MYFLT *arr)
+                           uint32_t n, MYFLT **asig,
+                           INSDS *p, MYFLT *arr)
 {
   uint32_t nsmps = p->ksmps, ksmps = csound->ksmps,  i, j;
   MYFLT *spout = p->spout; 
@@ -1820,15 +1820,15 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
   n -= k;
   k *= ksmps; 
   for (i=0; i<n; i++) {
-      // input comes from array of asigs
-      // or ksmps-interleaved audio array
-      MYFLT *p = asig ? asig[i] : &arr[k];
-      for (j=offset; j < early; j++) {
-        spout[k+j] += p[j];
-      }
-      // k always jumps by global ksmps 
-      k += ksmps;
+    // input comes from array of asigs
+    // or ksmps-interleaved audio array
+    MYFLT *p = asig ? asig[i] : &arr[k];
+    for (j=offset; j < early; j++) {
+      spout[k+j] += p[j];
     }
+    // k always jumps by global ksmps 
+    k += ksmps;
+  }
   return OK;
 }
 
@@ -1840,9 +1840,9 @@ int32_t outs1(CSOUND *csound, OUTM *p)
   return ret;
 }
 
-#define OUTCN(n)  if (n>csound->nchnls) return  \
- csound->InitError(csound, "%s", \
- Str("Channel greater than nchnls")); \
+#define OUTCN(n)  if (n>csound->nchnls) return                          \
+                                          csound->InitError(csound, "%s", \
+                                                            Str("Channel greater than nchnls")); \
   return OK;
 
 int32_t och2(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(2) }
@@ -1879,12 +1879,12 @@ int32_t outch(CSOUND *csound, OUTCH *p)
   int32_t ret;
   if (UNLIKELY((count&1)!=0))
     return csound->PerfError(csound, &(p->h),
-                        Str("outch must have an even number of arguments"));
+                             Str("outch must have an even number of arguments"));
   for(n=0; n < count; n+=2) {
     ch = (int) *p->args[n] - 1;
-   if (ch < nchnls)
-    ret = outn(csound, ch, ch+1, &p->args[n+1],
-               p->h.insdshead, NULL);
+    if (ch < nchnls)
+      ret = outn(csound, ch, ch+1, &p->args[n+1],
+                 p->h.insdshead, NULL);
   }
   return ret;
 }
@@ -2139,14 +2139,14 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
   uint32_t i, j, nsmps = CS_KSMPS, nchnls = csound->GetNchnls(csound);
   MYFLT *spout = csound->spout_tmp;
 
-    for (j = 0; j<nchnls; j++) {
-      for (i = 0; i<nsmps; i++) {
-        if (i<offset||i>nsmps-early)
-          p->ar[j][i] = FL(0.0);
-        else
-          p->ar[j][i] = spout[i+j*nsmps];
-      }
+  for (j = 0; j<nchnls; j++) {
+    for (i = 0; i<nsmps; i++) {
+      if (i<offset||i>nsmps-early)
+        p->ar[j][i] = FL(0.0);
+      else
+        p->ar[j][i] = spout[i+j*nsmps];
     }
+  }
   return OK;
 }
 
@@ -2187,12 +2187,12 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
   for (j = 0; j < narg; j++)
     ara[j] = p->argums[j];
 
-    for (i=0; i < narg; i++) {
-      for (n=offset; n<nsmps-early; n++) {
-        sp[n] += ara[i][n];
-      }
-      sp += nsmps;
+  for (i=0; i < narg; i++) {
+    for (n=offset; n<nsmps-early; n++) {
+      sp[n] += ara[i][n];
     }
+    sp += nsmps;
+  }
   
   return OK;
 }
@@ -2218,45 +2218,45 @@ int32_t hw_channels(CSOUND *csound, ASSIGN *p){
 
 int32_t inRange_i(CSOUND *csound, INRANGE *p)
 {
-    p->narg = p->INOCOUNT-1;
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
-    if (UNLIKELY(!oparms.sfread))
-      return csound->InitError(csound, "%s", Str("inrg: audio input is not enabled"));
-    p->numChans = csound->GetNchnls(csound);
-    return OK;
+  p->narg = p->INOCOUNT-1;
+  OPARMS oparms;
+  csound->GetOParms(csound, &oparms);
+  if (UNLIKELY(!oparms.sfread))
+    return csound->InitError(csound, "%s", Str("inrg: audio input is not enabled"));
+  p->numChans = csound->GetNchnls(csound);
+  return OK;
 }
 
 int32_t inRange(CSOUND *csound, INRANGE *p)
 {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t j, nsmps = CS_KSMPS;
-    int32_t i;
-    MYFLT *ara[VARGMAX];
-    int32_t startChan = (int32_t) *p->kstartChan -1;
-    MYFLT *sp = csound->spin + startChan;
-    int32_t narg = p->narg, numchans = p->numChans;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t j, nsmps = CS_KSMPS;
+  int32_t i;
+  MYFLT *ara[VARGMAX];
+  int32_t startChan = (int32_t) *p->kstartChan -1;
+  MYFLT *sp = csound->spin + startChan;
+  int32_t narg = p->narg, numchans = p->numChans;
 
-    if (UNLIKELY(startChan < 0))
-      return csound->PerfError(csound, &(p->h),
-                               "%s", Str("inrg: channel number cannot be < 1 "
-                                   "(1 is the first channel)"));
+  if (UNLIKELY(startChan < 0))
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("inrg: channel number cannot be < 1 "
+                                       "(1 is the first channel)"));
 
-    if (UNLIKELY(early)) nsmps -= early;
-    for (i = 0; i < narg; i++) {
-      ara[i] = p->argums[i];
-      if (UNLIKELY(offset)) memset(ara[i], '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
-      ara[i] += offset;
+  if (UNLIKELY(early)) nsmps -= early;
+  for (i = 0; i < narg; i++) {
+    ara[i] = p->argums[i];
+    if (UNLIKELY(offset)) memset(ara[i], '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
+    ara[i] += offset;
+  }
+  for (j=offset; j<nsmps; j++)  {
+    for (i=0; i<narg; i++) {
+      *ara[i]++ = sp[i];
     }
-    for (j=offset; j<nsmps; j++)  {
-      for (i=0; i<narg; i++) {
-        *ara[i]++ = sp[i];
-      }
-      sp += numchans;
-    }
-    return OK;
+    sp += numchans;
+  }
+  return OK;
 
 }
 
@@ -2268,77 +2268,77 @@ int32_t inRange(CSOUND *csound, INRANGE *p)
 /*     ival    pfld indx */
 int32_t pcount(CSOUND *csound, PFIELD *p)
 {
-    *p->ians = (MYFLT) csound->init_event->pcnt;
-    return OK;
+  *p->ians = (MYFLT) csound->init_event->pcnt;
+  return OK;
 }
 
 int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
-    int32_t n = (int32_t)(*p->index);
-    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      return csound->InitError(csound, "%s", Str("invalid p field index"));
-    }
-    *p->ians = csound->init_event->p[n];
-    return OK;
+  int32_t n = (int32_t)(*p->index);
+  if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+    return csound->InitError(csound, "%s", Str("invalid p field index"));
+  }
+  *p->ians = csound->init_event->p[n];
+  return OK;
 }
 
 int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 {
-    int32_t n = (int32_t)(*p->index);
-    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      return csound->InitError(csound, "%s", Str("invalid p field index"));
-    }
+  int32_t n = (int32_t)(*p->index);
+  if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+    return csound->InitError(csound, "%s", Str("invalid p field index"));
+  }
 
-    if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
+  if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
 
-    if (LIKELY(csound->ISSTRCOD(csound->init_event->p[n]))) {
-        p->ians->data = csound->Strdup(csound,
-                csound->GetString(csound, csound->init_event->p[n]));
-        p->ians->size = strlen(p->ians->data) + 1;
-    }
-    return OK;
+  if (LIKELY(csound->ISSTRCOD(csound->init_event->p[n]))) {
+    p->ians->data = csound->Strdup(csound,
+                                   csound->GetString(csound, csound->init_event->p[n]));
+    p->ians->size = strlen(p->ians->data) + 1;
+  }
+  return OK;
 }
 
 int32_t pinit(CSOUND *csound, PINIT *p)
 {
-    int32_t n;
-    int32_t    nargs = p->OUTOCOUNT;
-    int32_t    pargs = csound->init_event->pcnt;
-    int32_t    start = (int32_t)(*p->start);
-    /* Should check that inits exist> */
-    int32_t    k = (int32_t)(*p->end);
-    if (*p->end!=FL(0.0)) {
-      if (k<pargs) pargs = k;
+  int32_t n;
+  int32_t    nargs = p->OUTOCOUNT;
+  int32_t    pargs = csound->init_event->pcnt;
+  int32_t    start = (int32_t)(*p->start);
+  /* Should check that inits exist> */
+  int32_t    k = (int32_t)(*p->end);
+  if (*p->end!=FL(0.0)) {
+    if (k<pargs) pargs = k;
+  }
+  if (UNLIKELY(nargs>pargs))
+    csound->Warning(csound, "%s", Str("More arguments than p fields"));
+  pargs -= (int)*p->end;
+  for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+    //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
+    if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
+      ((STRINGDAT *)p->inits[n])->data =
+        csound->Strdup(csound, csound->GetString(csound, csound->init_event->p[n+start]));
+      ((STRINGDAT *)p->inits[n])->size =
+        strlen(((STRINGDAT *)p->inits[n])->data)+1;
     }
-    if (UNLIKELY(nargs>pargs))
-      csound->Warning(csound, "%s", Str("More arguments than p fields"));
-    pargs -= (int)*p->end;
-    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
-      //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
-      if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
-        ((STRINGDAT *)p->inits[n])->data =
-          csound->Strdup(csound, csound->GetString(csound, csound->init_event->p[n+start]));
-        ((STRINGDAT *)p->inits[n])->size =
-          strlen(((STRINGDAT *)p->inits[n])->data)+1;
-      }
-      else  *p->inits[n] = csound->init_event->p[n+start];
-    }
-    return OK;
+    else  *p->inits[n] = csound->init_event->p[n+start];
+  }
+  return OK;
 }
 
 #include "arrays.h"
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
-    int32_t n;
-    int32_t    pargs = csound->init_event->pcnt;
-    int32_t    start = (int32_t)(*p->start);
-    int32_t    k = (int32_t)(*p->end);
-    if (*p->end!=FL(0.0)) {
-      if (k<pargs) pargs = k;
-    }
-    tabinit(csound, p->inits, pargs-start+1);
-    for (n=0; n<=pargs-start; n++) {
-      ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
-    }
-    return OK;
+  int32_t n;
+  int32_t    pargs = csound->init_event->pcnt;
+  int32_t    start = (int32_t)(*p->start);
+  int32_t    k = (int32_t)(*p->end);
+  if (*p->end!=FL(0.0)) {
+    if (k<pargs) pargs = k;
+  }
+  tabinit(csound, p->inits, pargs-start+1);
+  for (n=0; n<=pargs-start; n++) {
+    ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
+  }
+  return OK;
 }
