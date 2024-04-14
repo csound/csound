@@ -68,7 +68,8 @@ int closedir(DIR*);
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
-   IGN(cs);
+  CSOUND *csound  = (CSOUND *) cs;
+  csound->CreateGlobalVariable(csound, "::CSOUND::C_LOCALE::", sizeof(locale_t));
 #ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C");                   /* Ensure C syntax */
     csound_c_locale = setlocale(LC_NUMERIC, "C"); /* and remwmber */
@@ -78,18 +79,6 @@ void init_getstring(void *cs)
     }
 #endif
 }
-
-
-double csoundStrtod(CSOUND *csound, char* nptr, char** endptr) {
-#ifdef HAVE_STRTOD_L
-  locale_t *lcl =  (locale_t *)
-    csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::");   
-  return strtod_l(nptr, endptr, *lcl);
-#else
-    return strtod(nptr, endptr);
-#endif
-}
-
 
 PUBLIC char *csoundLocalizeString(const char *s)
 {
@@ -102,9 +91,9 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
     return;
 }
 #else
-void init_getstring(void *csound)
+void init_getstring(void *cs)
 {
-  IGN(cs);
+
   CSOUND *csound  = (CSOUND *) cs;
   csound->CreateGlobalVariable(csound, "::CSOUND::C_LOCALE::", sizeof(locale_t));
   
@@ -226,6 +215,17 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 }
 
 #endif
+
+double csoundStrtod(CSOUND *csound, char* nptr, char** endptr) {
+#ifdef HAVE_STRTOD_L
+  locale_t *lcl =  (locale_t *)
+    csound->QueryGlobalVariable(csound, "::CSOUND::C_LOCALE::");   
+  return strtod_l(nptr, endptr, *lcl);
+#else
+    return strtod(nptr, endptr);
+#endif
+}
+
 
 PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
 #ifdef HAVE_STRTOK_R
