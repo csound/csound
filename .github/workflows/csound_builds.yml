@@ -226,6 +226,8 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - uses: lukka/get-cmake@v3.29.0
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
