@@ -54,9 +54,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.28.0"
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -144,9 +142,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.28.0"
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -180,9 +176,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.28.0"
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -304,9 +298,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@latest
-        with:
-          cmakeVersion: "~3.28.0"
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
