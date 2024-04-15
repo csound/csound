@@ -312,6 +312,44 @@ static inline const CS_TYPE *KsigType(CSOUND *csound) {
 }
 
 
+static inline const CS_TYPE *InitType(CSOUND *csound) {
+  return csound->initType;
+}
+
+static inline const CS_TYPE *ConstType(CSOUND *csound) {
+  return csound->constType;
+}
+
+
+static inline const CS_TYPE *PfieldType(CSOUND *csound) {
+  return csound->pfieldType;
+}
+
+static inline const CS_TYPE *RType(CSOUND *csound) {
+  return csound->rType;
+}
+
+static inline const CS_TYPE *WsigType(CSOUND *csound) {
+  return csound->wsigType;
+}
+
+static inline const CS_TYPE *FsigType(CSOUND *csound) {
+  return csound->fsigType;
+}
+
+static inline const CS_TYPE *IboolType(CSOUND *csound) {
+  return csound->ibooleanType;
+}
+
+static inline const CS_TYPE *KboolType(CSOUND *csound) {
+  return csound->kbooleanType;
+}
+
+static inline const CS_TYPE *ArrayType(CSOUND *csound) {
+  return csound->arrayType;
+}
+
+ 
 static const CSOUND cenviron_ = {
   /* attributes  */
   csoundGetNchnls,
@@ -356,7 +394,16 @@ static const CSOUND cenviron_ = {
   strarg2name,
   StringType,
   AsigType,
-  KsigType,    
+  KsigType,
+  InitType,
+  RType,
+  ConstType,
+  FsigType,
+  WsigType,
+  PfieldType,
+  KboolType,
+  IboolType,
+  ArrayType,
   /* memory allocation */
   csoundAuxAlloc,
   csoundAuxAllocAsync,

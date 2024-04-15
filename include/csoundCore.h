@@ -1314,14 +1314,24 @@ extern "C" {
                                                              va_list valist));
     /**@}*/
     
-    /** @name String Arguments */
+    /** @name Arguments and Types */
     /**@{ */
     char *(*GetString)(CSOUND *, MYFLT);
     int32 (*StringArg2Insno)(CSOUND *, void *p, int is_string);
     char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int);
     const CS_TYPE *(*StringType)(CSOUND *csound);
     const CS_TYPE *(*AsigType)(CSOUND *csound);
-    const CS_TYPE *(*KsigType)(CSOUND *csound);    
+    const CS_TYPE *(*KsigType)(CSOUND *csound);
+    const CS_TYPE *(*InitType)(CSOUND *csound);
+    const CS_TYPE *(*RType)(CSOUND *csound);
+    const CS_TYPE *(*ConstType)(CSOUND *csound);
+    const CS_TYPE *(*FsigType)(CSOUND *csound);
+    const CS_TYPE *(*WsigType)(CSOUND *csound);
+    const CS_TYPE *(*PfieldType)(CSOUND *csound);
+    const CS_TYPE *(*KboolType)(CSOUND *csound);
+    const CS_TYPE *(*IboolType)(CSOUND *csound);
+    const CS_TYPE *(*ArrayType)(CSOUND *csound);
+    
     /**@}*/
     
     /** @name Memory allocation */
@@ -1718,15 +1728,15 @@ extern "C" {
     const CS_TYPE  *asigType;   /* standard type constants */
     const CS_TYPE  *ksigType;
     const CS_TYPE  *initType;
-    const    CS_TYPE  *stringType;
-    const    CS_TYPE  *pfieldType;
-    const    CS_TYPE  *rType;
-    const    CS_TYPE  *constType;
-    const    CS_TYPE  *wsigType;
-    const    CS_TYPE  *fsigType;
-    const    CS_TYPE  *kboleanType;
-    const    CS_TYPE  *iboleanType;
-    const    CS_TYPE  *arrayType;    
+    const CS_TYPE  *stringType;
+    const CS_TYPE  *pfieldType;
+    const CS_TYPE  *rType;
+    const CS_TYPE  *constType;
+    const CS_TYPE  *wsigType;
+    const CS_TYPE  *fsigType;
+    const CS_TYPE  *kbooleanType;
+    const CS_TYPE  *ibooleanType;
+    const CS_TYPE  *arrayType;    
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
