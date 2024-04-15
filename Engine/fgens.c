@@ -120,10 +120,6 @@ static int GENUL(FGDATA *ff, FUNC *ftp)
     return fterror(ff, Str("unknown GEN number"));
 }
 
-static inline unsigned int isPowerOfTwo (unsigned int x) {
-  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
-}
-
 /**
  * Create ftable using evtblk data, and store pointer to new table in *ftpp.
  * If mode is zero, a zero table number is ignored, otherwise a new table
@@ -137,7 +133,6 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     int     lobits, msg_enabled, i;
     FUNC    *ftp;
     FGDATA  ff;
-    int nonpowof2_flag=0; /* gab: fixed for non-powoftwo function tables*/
 
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
@@ -245,35 +240,34 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       *ftpp = ftp;
       return 0;
     }
-    /* if user flen given */
-    if (ff.flen < 0L || !isPowerOfTwo(ff.flen&~1)) {
-      /* gab for non-pow-of-two-length    */
-      ff.guardreq = 1;
-      if (ff.flen<0) ff.flen = -(ff.flen);             /* gab: fixed */
-      if (!(ff.flen & (ff.flen - 1L)) || ff.flen > MAXLEN)
-        goto powOfTwoLen;
-      lobits = 0;                       /* Hope this is not needed! */
-      nonpowof2_flag = 1; /* gab: fixed for non-powoftwo function tables*/
+    // Rules for extended guard point
+    // (a) except for positive pow2 or pow2 + 1 flen
+    //     extended guard point is set by a flen with nonzero 
+    //     fractional part.
+    // (b) otherwise a positive pow2 + 1 flen indicates
+    //     extended guard point with pow2 flen
+    if (ff.flen < 0L) {
+      // flen < 0 means ALWAYS keep size as is
+      ff.flen = -(ff.flen);
+      if (ff.flen > MAXLEN)
+        return fterror(&ff, Str("illegal table length"));
     }
     else {
       ff.guardreq = ff.flen & 01;       /*  set guard request flg   */
       ff.flen &= -2L;                   /*  flen now w/o guardpt    */
- powOfTwoLen:
-      if (UNLIKELY(ff.flen <= 0L || ff.flen > MAXLEN)) {
-        return fterror(&ff, Str("illegal table length"));
-      }
-      for (ltest = ff.flen, lobits = 0;
-           (ltest & MAXLEN) == 0L;
-           lobits++, ltest <<= 1)
-        ;
-      if (UNLIKELY(ltest != MAXLEN)) {  /*  flen is not power-of-2 */
-        // return fterror(&ff, Str("illegal table length"));
-        //csound->Warning(csound, Str("table %d size not power of two"), ff.fno);
-        lobits = 0;
-        nonpowof2_flag = 1;
-        ff.guardreq = 1;
-      }
+      if (ff.flen > MAXLEN)
+        return fterror(&ff, Str("illegal table length"));    
     }
+    // test and set lobits
+    for (ltest = ff.flen, lobits = 0;
+           (ltest & MAXLEN) == 0L;
+           lobits++) ltest <<= 1;
+    if (UNLIKELY(ltest != MAXLEN)) {  /*  flen is not power-of-2 */
+     lobits = 0;
+     // nonzero fractional part sets extended guard point
+     // if guardreq is 0, then ftredisp() makes it a copy of the first pos
+     ff.guardreq = ff.flen - (int) ff.flen;       
+    }  
     ftp = ftalloc(&ff);                 /*  alloc ftable space now  */
     ftp->lenmask  = ((ff.flen & (ff.flen - 1L)) ?
                      0L : (ff.flen - 1L));      /*  init hdr w powof2 data  */
@@ -282,10 +276,9 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     ftp->lomask   = (int32) (i - 1);
     ftp->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
     ftp->nchanls  = 1;                          /*    presume mono for now  */
-    ftp->gen01args.sample_rate = csound->esr;  /* set table SR to esr */
+    ftp->gen01args.sample_rate = csound->esr;   /* set table SR to esr */
     ftp->flenfrms = ff.flen;
-    if (nonpowof2_flag)
-      ftp->lenmask = 0xFFFFFFFF; /* gab: fixed for non-powoftwo function tables */
+    if (!lobits) ftp->lenmask = 0xFFFFFFFF; 
 
     if (UNLIKELY(msg_enabled))
       csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
@@ -295,7 +288,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       return -1;
     }
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
-    ftresdisp(&ff, ftp);                        /* rescale and display      */
+    ftresdisp(&ff, ftp);           /* rescale and display      */
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
     ftp->argcnt = ff.e.pcnt - 3;
@@ -2303,7 +2296,6 @@ CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 }
 
 /* set guardpt, rescale the function, and display it */
-
 static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
@@ -2644,39 +2636,24 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     {
       int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
       int   fmt = (int) MYFLT2LRND(ff->e.p[7]);
-      /* union { */
-      /*   MYFLT d; */
-      /*   int32_t i[2]; */
-      /* } xx; */
-      /* xx.d = ff->e.p[5]; */
-      /* printf("****line %d: ff->e.p[5] %f %.8x %.8x\n", __LINE__, */
-      /*        ff->e.p[5], xx.i[1], xx.i[0]); */
-      /* printf("****line %d: isstrcod=%d %d file %s\n", __LINE__, */
-      /*        isstrcod(ff->e.p[5]), isnan(ff->e.p[5]), ff->e.strarg); */
       if (isstrcod(ff->e.p[5])) {
-        /* printf("****line %d\n" , __LINE__); */
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;
-          /* printf("****line %d\n" , __LINE__); */
           strNcpy(p->sfname, ff->e.strarg + 1, 512);
           if (len >= 0 && p->sfname[len] == '"')
             p->sfname[len] = '\0';
         }
         else {
-          /* printf("****line %d\n" , __LINE__); */
           strNcpy(p->sfname, ff->e.strarg, 512);
         }
       }
       else if (filno >= 0 && filno <= csound->strsmax &&
                csound->strsets && csound->strsets[filno]) {
-        /* printf("****line %d\n" , __LINE__); */
         strNcpy(p->sfname, csound->strsets[filno], 512);
       }
       else {
-        /* printf("****line %d\n" , __LINE__); */
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
-      //printf("****line %d: sfname=%s\n" , __LINE__, p->sfname);
       if (UNLIKELY(fmt < -9 || fmt > 9))
         return fterror(ff, Str("invalid sample format: %d"), fmt);
       if (fmt<0)
@@ -2709,18 +2686,13 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
        if (p->channel == ALLCHNLS)
          ff->flen *= p->nchanls;
       ff->guardreq  = 1;                      /* presum this includes guard */
-/*ff->flen     -= 1;*/ /* VL: this was causing tables to exclude last point */
       ftp           = ftalloc(ff);            /*   alloc now, and           */
       ftp->lenmask  = 0L;                     /*   mark hdr partly filled   */
-      /*if (p->channel==ALLCHNLS) ftp->nchanls  = p->nchanls;
-      else ftp->nchanls  = 1;
-      ftp->flenfrms = ff->flen / p->nchanls; */ /* ?????????? */
       def           = 1;
       ff->flen -= 1;
       table_length = ff->flen;
     }
     if (p->channel==ALLCHNLS) {
-      //ff->flen *= p->nchanls;
       ftp->nchanls  = p->nchanls;
     }
     else ftp->nchanls  = 1;
@@ -2752,10 +2724,6 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
 #endif
         natcps = pow(2.0, ((double) ((int) lpd.basenote - 69)
                            + (double) lpd.detune * 0.01) / 12.0) * csound->A4;
-        /* As far as I can tell this gainfac value is never used! */
-        //gainfac = exp((double) lpd.gain * LOG10D20);
-     /* if (lpd.basenote == 0)
-          lpd.basenote = ftp->cvtbas; */
         ftp->cpscvt = ftp->cvtbas / natcps;
         ftp->loopmode1 = (lpd.loops[0].mode == SF_LOOP_NONE ? 0 :
                           lpd.loops[0].mode == SF_LOOP_FORWARD ? 1 :
@@ -2801,7 +2769,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound, Str("GEN1: file truncated by ftable size"));
       csound->Warning(csound, Str("\taudio samps %d exceeds ftsize %d"),
                               (int32) p->framesrem, (int32) ff->flen);
-      needsiz(csound, ff, p->framesrem);     /* ????????????  */
+      needsiz(csound, ff, p->framesrem);    
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
     csound->FileClose(csound, p->fd);
