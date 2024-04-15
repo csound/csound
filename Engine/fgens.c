@@ -251,6 +251,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       ff.flen = -(ff.flen);
       if (ff.flen > MAXLEN)
         return fterror(&ff, Str("illegal table length"));
+      ff.guardreq = (ff.flen - (int) ff.flen) > 0 ? 1 : 0;  
     }
     else {
       ff.guardreq = ff.flen & 01;       /*  set guard request flg   */
@@ -266,8 +267,9 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
      lobits = 0;
      // nonzero fractional part sets extended guard point
      // if guardreq is 0, then ftredisp() makes it a copy of the first pos
-     ff.guardreq = ff.flen - (int) ff.flen;       
-    }  
+     ff.guardreq = (ff.flen - (int) ff.flen) > 0 ? 1 : 0;       
+    }
+    ff.flen = FLOOR(ff.flen);        /* get rid of frac part */
     ftp = ftalloc(&ff);                 /*  alloc ftable space now  */
     ftp->lenmask  = ((ff.flen & (ff.flen - 1L)) ?
                      0L : (ff.flen - 1L));      /*  init hdr w powof2 data  */
