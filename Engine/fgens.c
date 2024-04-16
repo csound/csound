@@ -225,7 +225,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         return fterror(&ff, Str("illegal gen number"));
       }
     }
-    ff.flen = (int32) (MYFLT2LRND(flen = ff.e.p[3]));
+    ff.flen = (int32) (MYFLT2LRND((flen = ff.e.p[3])));
     if (!ff.flen) {
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
