@@ -35,6 +35,11 @@
 #include <stdlib.h>
 /* #undef ISSTRCOD */
 
+static inline int32_t isPowTwo(int32_t N) {
+  return (N != 0) ? !(N & (N - 1)) : 0;
+}
+
+
 static inline int32_t byte_order(void)
 {
     const int32_t one = 1;
@@ -133,6 +138,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
     int     lobits, msg_enabled, i;
     FUNC    *ftp;
     FGDATA  ff;
+    MYFLT   flen;
 
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
@@ -219,7 +225,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
         return fterror(&ff, Str("illegal gen number"));
       }
     }
-    ff.flen = (int32) MYFLT2LRND(ff.e.p[3]);
+    ff.flen = (int32) (MYFLT2LRND(flen = ff.e.p[3]));
     if (!ff.flen) {
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
@@ -240,37 +246,35 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       *ftpp = ftp;
       return 0;
     }
-    // Rules for extended guard point
-    // (a) except for positive pow2 or pow2 + 1 flen
-    //     extended guard point is set by a flen with nonzero 
-    //     fractional part.
-    // (b) otherwise a positive pow2 + 1 flen indicates
-    //     extended guard point with pow2 flen
+
     if (ff.flen < 0L) {
       // flen < 0 means ALWAYS keep size as is
       ff.flen = -(ff.flen);
-      if (ff.flen > MAXLEN)
-        return fterror(&ff, Str("illegal table length"));
-      ff.guardreq = (ff.flen - (int) ff.flen) > 0 ? 1 : 0;  
+      flen = -flen;
+     // Negative flen sets extended guard point by default
+     // it can be suppressed by using a fractional flen      
+      ff.guardreq = (flen - (int) flen) > 0 ? 0 : 1;
     }
-    else {
+    else if(isPowTwo(ff.flen & ~1)) { // pow2 or pow2 + 1
       ff.guardreq = ff.flen & 01;       /*  set guard request flg   */
-      ff.flen &= -2L;                   /*  flen now w/o guardpt    */
-      if (ff.flen > MAXLEN)
-        return fterror(&ff, Str("illegal table length"));    
+      ff.flen &= -2L;                   /*  flen now w/o guardpt    */   
     }
+    if (ff.flen > MAXLEN)           
+        return fterror(&ff, Str("illegal table length"));
+    // now flen is set
     // test and set lobits
     for (ltest = ff.flen, lobits = 0;
            (ltest & MAXLEN) == 0L;
            lobits++) ltest <<= 1;
-    if (UNLIKELY(ltest != MAXLEN)) {  /*  flen is not power-of-2 */
+    // check flen again to set guard point
+    if (UNLIKELY(ltest != MAXLEN)) { // np2 case
      lobits = 0;
-     // nonzero fractional part sets extended guard point
-     // if guardreq is 0, then ftredisp() makes it a copy of the first pos
-     ff.guardreq = (ff.flen - (int) ff.flen) > 0 ? 1 : 0;       
-    }
-    ff.flen = FLOOR(ff.flen);        /* get rid of frac part */
-    ftp = ftalloc(&ff);                 /*  alloc ftable space now  */
+     // NP2 flen sets extended guard point by default
+     // it can be suppressed by using a fractional flen
+     ff.guardreq = (flen - (int) flen) > 0 ? 0 : 1;
+    } 
+
+    ftp = ftalloc(&ff);              /*  alloc ftable space now  */
     ftp->lenmask  = ((ff.flen & (ff.flen - 1L)) ?
                      0L : (ff.flen - 1L));      /*  init hdr w powof2 data  */
     ftp->lobits   = lobits;
