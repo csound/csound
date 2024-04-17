@@ -21,13 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                            /*  SCXTRACT.C  */
+#include "csoundCore.h" /*  SCXTRACT.C  */
 #include "corfile.h"
 #include "extract.h"
 
 extern void sfree(CSOUND *csound);
-extern int  sread(CSOUND *csound);
-//extern void sread_init(CSOUND *csound);
+extern int sread(CSOUND *csound);
+// extern void sread_init(CSOUND *csound);
 extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
 
 /* called from xmain.c or some other main */
@@ -36,31 +36,30 @@ extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
 
 extern void sread_initstr(CSOUND *, CORFIL *sco);
 
-int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
-{
-    int     n;
+int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile) {
+  int n;
 
-    EXTRACT_STATICS* extractStatics =  csound->Calloc(csound,
-                                                      sizeof(EXTRACT_STATICS));
-    corfile_seek(scin, 0, SEEK_END);
-    corfile_puts(csound, "\n#exit\n", scin);
-    corfile_rewind(scin);
-    csound->scoreout = NULL;
-    csound->scorestr = scin;
-    csound->scstr = corfile_create_w(csound);
-    csound->sectcnt = 0;
-    readxfil(csound, extractStatics, xfile);
-    sread_initstr(csound, scin);
+  EXTRACT_STATICS *extractStatics =
+      csound->Calloc(csound, sizeof(EXTRACT_STATICS));
+  corfile_seek(scin, 0, SEEK_END);
+  corfile_puts(csound, "\n#exit\n", scin);
+  corfile_rewind(scin);
+  csound->scoreout = NULL;
+  csound->scorestr = scin;
+  csound->scstr = corfile_create_w(csound);
+  csound->sectcnt = 0;
+  readxfil(csound, extractStatics, xfile);
+  sread_initstr(csound, scin);
 
-    while ((n = sread(csound)) > 0) {
-      /*  allout();   */
-      /*  textout();  */
-      extract(csound, extractStatics);
-      swritestr(csound, csound->scstr, 1);
-    }
-    //printf("***extracted: >>%s<<\n", csound->scstr->body);
-    corfile_flush(csound, csound->scstr);
-    sfree(csound);              /* return all memory used */
-    csound->Free(csound, extractStatics);
-    return 0;
+  while ((n = sread(csound)) > 0) {
+    /*  allout();   */
+    /*  textout();  */
+    extract(csound, extractStatics);
+    swritestr(csound, csound->scstr, 1);
+  }
+  // printf("***extracted: >>%s<<\n", csound->scstr->body);
+  corfile_flush(csound, csound->scstr);
+  sfree(csound); /* return all memory used */
+  csound->Free(csound, extractStatics);
+  return 0;
 }

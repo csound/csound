@@ -37,8 +37,8 @@
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
 //
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -50,14 +50,15 @@
 
 /**
  * Linear Feedback Shift Register (LFSR) opcode.
- * 
+ *
  * Description
- * 
- *      Output is a series of pseudo-random positive integers. This is the technique
- *      used in so-called "Turing machine" synth modules and is usually used to
- *      generate melodic sequences. This implementation is adapted from the firmware
- *      for the Ornament & Crime module, as used in the Quantermain and Meta-Q apps.
- * 
+ *
+ *      Output is a series of pseudo-random positive integers. This is the
+ * technique used in so-called "Turing machine" synth modules and is usually
+ * used to generate melodic sequences. This implementation is adapted from the
+ * firmware for the Ornament & Crime module, as used in the Quantermain and
+ * Meta-Q apps.
+ *
  * Syntax
  *
  *      knum lfsr ilen, iprob [, iseed]
@@ -65,20 +66,20 @@
  *      knum = lfsr(ilen, iprob [, iseed])
  *
  * Initialization
- * 
+ *
  *      ilen -- length of shift register, valid values are 1-31 (inclusive). The
  *      larger the length, the larger the resulting integers in the output. You
  *      can use this to constrain the output to a suitable range.
- * 
- *      iprob -- probability, valid values 1-255 (inclusive). Controls the spread
- *      of the output; larger values result in a wider spread of values.
- * 
- *      iseed (optional, default -1) -- initial state of the shift register, as a
- *      pattern of bits. The value is treated as an unsigned integer, so the default
- *      of -1 is effectively all bits on (0b11111111...).
- *  
+ *
+ *      iprob -- probability, valid values 1-255 (inclusive). Controls the
+ * spread of the output; larger values result in a wider spread of values.
+ *
+ *      iseed (optional, default -1) -- initial state of the shift register, as
+ * a pattern of bits. The value is treated as an unsigned integer, so the
+ * default of -1 is effectively all bits on (0b11111111...).
+ *
  * Performance
- * 
+ *
  *      knum -- Integer output.
  */
 
@@ -86,51 +87,52 @@
 #include <plugin.h>
 
 struct LFSR : csnd::Plugin<1, 3> {
-    static constexpr char const *otypes = "k";
-    static constexpr char const *itypes = "iij";
+  static constexpr char const *otypes = "k";
+  static constexpr char const *itypes = "iij";
 
-    uint8_t length_;
-    uint8_t probability_;
-    uint32_t shift_register_;
+  uint8_t length_;
+  uint8_t probability_;
+  uint32_t shift_register_;
 
-    uint32_t _process() {
-        uint32_t shift_register = shift_register_;
+  uint32_t _process() {
+    uint32_t shift_register = shift_register_;
 
-        // Toggle LSB; there might be better random options
-        if (255 == probability_ || static_cast<uint8_t>((rand() % (255 + 1)) < probability_)) {
-            shift_register ^= 0x1;
-        }
-
-        uint32_t lsb_mask = 0x1 << (length_ - 1);
-        if (shift_register & 0x1) {
-            shift_register = (shift_register >> 1) | lsb_mask;
-        } else {
-            shift_register = (shift_register >> 1) & ~lsb_mask;
-        }
-
-        // hack... don't turn all zero ...
-        if (!shift_register) {
-            shift_register |= ((rand() % (0x2 + 1)) << (length_ - 1));
-        }
-
-        shift_register_ = shift_register;
-        return shift_register & ~(0xffffffff << length_);
+    // Toggle LSB; there might be better random options
+    if (255 == probability_ ||
+        static_cast<uint8_t>((rand() % (255 + 1)) < probability_)) {
+      shift_register ^= 0x1;
     }
 
-    int init() {
-        srand(time(NULL));
-
-        length_ = inargs[0];
-        probability_ = inargs[1];
-        shift_register_ = in_count() == 3 ? inargs[2] : 0xffffffff;
-
-        return OK;
+    uint32_t lsb_mask = 0x1 << (length_ - 1);
+    if (shift_register & 0x1) {
+      shift_register = (shift_register >> 1) | lsb_mask;
+    } else {
+      shift_register = (shift_register >> 1) & ~lsb_mask;
     }
 
-    int kperf() {
-        outargs[0] = (int) _process();
-        return OK;
+    // hack... don't turn all zero ...
+    if (!shift_register) {
+      shift_register |= ((rand() % (0x2 + 1)) << (length_ - 1));
     }
+
+    shift_register_ = shift_register;
+    return shift_register & ~(0xffffffff << length_);
+  }
+
+  int init() {
+    srand(time(NULL));
+
+    length_ = inargs[0];
+    probability_ = inargs[1];
+    shift_register_ = in_count() == 3 ? inargs[2] : 0xffffffff;
+
+    return OK;
+  }
+
+  int kperf() {
+    outargs[0] = (int)_process();
+    return OK;
+  }
 };
 
 #ifdef BUILD_PLUGINS
@@ -138,14 +140,11 @@ struct LFSR : csnd::Plugin<1, 3> {
 void csnd::on_load(Csound *csound) {
   csnd::plugin<LFSR>(csound, "lfsr", "k", "iij", csnd::thread::ik);
 }
-#else 
+#else
 extern "C" int32_t lfsr_init_modules(CSOUND *csound) {
-  csnd::plugin<LFSR>((csnd::Csound *) csound, "lfsr", "k", "iij", csnd::thread::ik);
+  csnd::plugin<LFSR>((csnd::Csound *)csound, "lfsr", "k", "iij",
+                     csnd::thread::ik);
   return OK;
 }
 
 #endif
-
-
-
-

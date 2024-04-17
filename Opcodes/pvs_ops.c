@@ -31,39 +31,34 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 }
 */
 
-int32_t pvsopc_ModuleInit(CSOUND *csound)
-{
-    int32_t     err = 0;
+int32_t pvsopc_ModuleInit(CSOUND *csound) {
+  int32_t err = 0;
 
-    err |= ifd_init_(csound);
-    err |= partials_init_(csound);
-    err |= psynth_init_(csound);
-    err |= pvsbasic_init_(csound);
-    err |= pvscent_init_(csound);
-    err |= pvsdemix_init_(csound);
-    err |= pvsband_init_(csound);
-    err |= pvsbuffer_localops_init_(csound);
-    err |= pvsgendy_localops_init_(csound);
+  err |= ifd_init_(csound);
+  err |= partials_init_(csound);
+  err |= psynth_init_(csound);
+  err |= pvsbasic_init_(csound);
+  err |= pvscent_init_(csound);
+  err |= pvsdemix_init_(csound);
+  err |= pvsband_init_(csound);
+  err |= pvsbuffer_localops_init_(csound);
+  err |= pvsgendy_localops_init_(csound);
 
-    return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
+  return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
 #ifdef BUILD_PLUGINS
 
-PUBLIC int csoundModuleCreate(CSOUND *csound) {  
-        return 0;
+PUBLIC int csoundModuleCreate(CSOUND *csound) {
+  return 0;
 }
 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return pvsopc_ModuleInit(csound);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
-{
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
-) sizeof(MYFLT));
+PUBLIC int32_t csoundModuleInfo(void) {
+  return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t)sizeof(MYFLT));
 }
 
 #endif
-
-

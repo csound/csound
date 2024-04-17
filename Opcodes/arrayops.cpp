@@ -25,13 +25,14 @@
 #include <numeric>
 #include <plugin.h>
 
-
 inline MYFLT logb(MYFLT a, MYFLT b) {
-  return log(a)/log(b);
-}  
+  return log(a) / log(b);
+}
 
 // extern
-inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+inline MYFLT frac(MYFLT f) {
+  return std::modf(f, &f);
+}
 
 // extern
 inline MYFLT lim1(MYFLT f) {
@@ -56,7 +57,8 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
-    if (!is_perf()) process(out, in);
+    if (!is_perf())
+      process(out, in);
     return OK;
   }
 
@@ -83,7 +85,8 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
     out.init(csound, in1.len());
-    if (!is_perf()) process(out, in1, in2);
+    if (!is_perf())
+      process(out, in1, in2);
     return OK;
   }
   int kperf() {
@@ -107,7 +110,8 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
-    if (!is_perf()) process(out, in, inargs[1]);
+    if (!is_perf())
+      process(out, in, inargs[1]);
     return OK;
   }
 
@@ -133,7 +137,8 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
-    if(!is_perf()) process(out, in, inargs[1], inargs[2]);
+    if (!is_perf())
+      process(out, in, inargs[1], inargs[2]);
     return OK;
   }
 
@@ -157,7 +162,8 @@ template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
-    if (!is_perf()) process(out, in);
+    if (!is_perf())
+      process(out, in);
     return OK;
   }
 
@@ -206,7 +212,6 @@ template <typename T, int I> struct Accum : csnd::Plugin<1, 1> {
     return OK;
   }
 };
-
 
 static void onload(csnd::Csound *csound) {
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]", csnd::thread::i);
@@ -357,16 +362,14 @@ static void onload(csnd::Csound *csound) {
                                     csnd::thread::ik);
 }
 
-
-
 #ifdef BUILD_PLUGINS
 #include <modload.h>
 void csnd::on_load(csnd::Csound *csound) {
-    onload(csound);
+  onload(csound);
 }
 #else
 extern "C" int32_t arrayops_init_modules(CSOUND *csound) {
-    onload((csnd::Csound *)csound);
-    return OK;
-  }
+  onload((csnd::Csound *)csound);
+  return OK;
+}
 #endif

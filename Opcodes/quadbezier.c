@@ -56,62 +56,54 @@ static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
 
 */
 
-static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
-{
-    int32_t nvals, nargs, n;
-    MYFLT   *fp = ftp->ftable;
-    CSOUND *csound = ff->csound;
+static int32_t quadbeziertable(FGDATA *ff, FUNC *ftp) {
+  int32_t nvals, nargs, n;
+  MYFLT *fp = ftp->ftable;
+  CSOUND *csound = ff->csound;
 
-    nvals = ff->flen;
-    nargs = ff->e.pcnt - 4;
-    if (UNLIKELY(nargs < 5)) {
-      return csound->ftError(ff, Str("insufficient arguments"));
-    }
-    ff->e.p[4] *= -1;
+  nvals = ff->flen;
+  nargs = ff->e.pcnt - 4;
+  if (UNLIKELY(nargs < 5)) {
+    return csound->ftError(ff, Str("insufficient arguments"));
+  }
+  ff->e.p[4] *= -1;
 
-    for (n = 4; n < nargs; n += 4)
-    {
-      int32_t j, x1;
-      j = (n < 8) ? 0 : ff->e.p[n];
-      x1 = j;
-      while (j <= ff->e.p[n+4]) {
-        MYFLT t;
-        t = FindTforX(x1, ff->e.p[n+2], ff->e.p[n+4], j);
-        if (j <= nvals)
-          fp[j++] = (FL(1.0) - t) * (FL(1.0) - t) * ff->e.p[n+1] +
-            FL(2.0) * (FL(1.0) - t) * t * ff->e.p[n+3] + t * t * ff->e.p[n+5];
-      }
+  for (n = 4; n < nargs; n += 4) {
+    int32_t j, x1;
+    j = (n < 8) ? 0 : ff->e.p[n];
+    x1 = j;
+    while (j <= ff->e.p[n + 4]) {
+      MYFLT t;
+      t = FindTforX(x1, ff->e.p[n + 2], ff->e.p[n + 4], j);
+      if (j <= nvals)
+        fp[j++] = (FL(1.0) - t) * (FL(1.0) - t) * ff->e.p[n + 1] +
+                  FL(2.0) * (FL(1.0) - t) * t * ff->e.p[n + 3] +
+                  t * t * ff->e.p[n + 5];
     }
-    return OK;
+  }
+  return OK;
 }
 
 /* utility functions */
 
-inline static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c)
-{
-    MYFLT determinant;
-    determinant = b*b - 4*a*c;
-    if (determinant >= 0)
-      return (-b + SQRT(determinant)) / (FL(2.0)*a);
-    else
-      return 0;
+inline static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c) {
+  MYFLT determinant;
+  determinant = b * b - 4 * a * c;
+  if (determinant >= 0)
+    return (-b + SQRT(determinant)) / (FL(2.0) * a);
+  else
+    return 0;
 }
 
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t
-                       x)
-{
-    MYFLT a =  (x1 - FL(2.0)*x2 + x3), b = FL(2.0)* (-x1 + x2), c = x1 - x;
-    if (a)
-      return SolveQuadratic(a, b, c);
-    else
-      return (x-x1)/b;
+static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x) {
+  MYFLT a = (x1 - FL(2.0) * x2 + x3), b = FL(2.0) * (-x1 + x2), c = x1 - x;
+  if (a)
+    return SolveQuadratic(a, b, c);
+  else
+    return (x - x1) / b;
 }
 
-
-static NGFENS quadbezier_fgens[] = {
-  { "quadbezier", quadbeziertable },
-  { NULL, NULL }
-};
+static NGFENS quadbezier_fgens[] = {{"quadbezier", quadbeziertable},
+                                    {NULL, NULL}};
 
 FLINKAGE_BUILTIN(quadbezier_fgens)
-

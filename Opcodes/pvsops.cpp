@@ -46,7 +46,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
     if (framecount < fin.count()) {
-      int n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      int n = fin.len() - (int)(inargs[1] >= 1 ? inargs[1] : 1.);
       float thrsh;
       std::transform(fin.begin(), fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
@@ -100,39 +100,38 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
     csnd::AuxMem<binamp> &mbins = binlist;
 
     if (framecount < fin.count()) {
-      int n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      int n = fin.len() - (int)(inargs[1] >= 1 ? inargs[1] : 1.);
       float thrsh;
       int cnt = 0;
       int bin = 0;
-      int start = (int) inargs[3];
-      int end = (int) inargs[4];
-      std::transform(fin.begin() + start,
-                     end ? fin.begin() +
-                     ((unsigned int)end <= fin.len() ? end : fin.len()) :
-                     fin.end(), amps.begin(),
-                     [](csnd::pv_bin f) { return f.amp(); });
+      int start = (int)inargs[3];
+      int end = (int)inargs[4];
+      std::transform(
+          fin.begin() + start,
+          end ? fin.begin() + ((unsigned int)end <= fin.len() ? end : fin.len())
+              : fin.end(),
+          amps.begin(), [](csnd::pv_bin f) { return f.amp(); });
       std::nth_element(amps.begin(), amps.begin() + n, amps.end());
       thrsh = amps[n];
       std::transform(fin.begin(), fin.end(), fout.begin(),
                      [thrsh, &mbins, &cnt, &bin](csnd::pv_bin f) {
-                       if(f.amp() >= thrsh) {
-                       mbins[cnt].bin = bin++;
-                       mbins[cnt++].amp = f.amp();
-                       return f;
-                       }
-                       else {
-                        bin++;
-                        return csnd::pv_bin();
+                       if (f.amp() >= thrsh) {
+                         mbins[cnt].bin = bin++;
+                         mbins[cnt++].amp = f.amp();
+                         return f;
+                       } else {
+                         bin++;
+                         return csnd::pv_bin();
                        }
                      });
 
-      if(inargs[2] > 0)
-      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b){
-          return (a.amp > b.amp);});
+      if (inargs[2] > 0)
+        std::sort(binlist.begin(), binlist.begin() + cnt,
+                  [](binamp a, binamp b) { return (a.amp > b.amp); });
 
-      std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
-                     [](binamp a) { return (MYFLT) a.bin;});
-      std::fill(bins.begin()+cnt, bins.end(), FL(0.0));
+      std::transform(binlist.begin(), binlist.begin() + cnt, bins.begin(),
+                     [](binamp a) { return (MYFLT)a.bin; });
+      std::fill(bins.begin() + cnt, bins.end(), FL(0.0));
 
       framecount = fout.count(fin.count());
     }
@@ -140,8 +139,6 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
     return OK;
   }
 };
-
-
 
 struct TVConv : csnd::Plugin<1, 6> {
   csnd::AuxMem<MYFLT> ir;
@@ -171,7 +168,9 @@ struct TVConv : csnd::Plugin<1, 6> {
       return v;
   }
 
-  cmplx *to_cmplx(MYFLT *f) { return reinterpret_cast<cmplx *>(f); }
+  cmplx *to_cmplx(MYFLT *f) {
+    return reinterpret_cast<cmplx *>(f);
+  }
 
   cmplx real_prod(cmplx &a, cmplx &b) {
     return cmplx(a.real() * b.real(), a.imag() * b.imag());
@@ -220,11 +219,11 @@ struct TVConv : csnd::Plugin<1, 6> {
 
     for (auto &s : outsig) {
       if (*frz1 > 0)
-        itn[n] = *inp/_0dbfs;
+        itn[n] = *inp / _0dbfs;
       if (*frz2 > 0)
-        itr[n] = *irp/_0dbfs;
+        itr[n] = *irp / _0dbfs;
 
-      s = (out[n] + saved[n])*_0dbfs;
+      s = (out[n] + saved[n]) * _0dbfs;
       saved[n] = out[n + pars];
       if (++n == pars) {
         cmplx *ins, *irs, *ous = to_cmplx(out.data());
@@ -307,10 +306,9 @@ struct TVConv : csnd::Plugin<1, 6> {
   }
 };
 
-
-struct Gtadsr : public csnd::Plugin<1,6> {
-  uint64_t a,d;
-  MYFLT e,ainc,dfac;
+struct Gtadsr : public csnd::Plugin<1, 6> {
+  uint64_t a, d;
+  MYFLT e, ainc, dfac;
   uint64_t t;
 
   int init() {
@@ -322,31 +320,33 @@ struct Gtadsr : public csnd::Plugin<1,6> {
   int kperf() {
     MYFLT gate = inargs[5];
     MYFLT s = inargs[3];
-    s = s  > 0  ? (s < 1 ? s : 1.) : 0.;
-    if(gate > 0) {
-      if(t == 0) {
-        a = inargs[1]*this->kr();
-	d = inargs[2]*this->kr();
-	if(a < 1) a = 1;
-	if(d < 1) d = 1;
-	ainc = 1./a;
-	dfac = 1./d;
+    s = s > 0 ? (s < 1 ? s : 1.) : 0.;
+    if (gate > 0) {
+      if (t == 0) {
+        a = inargs[1] * this->kr();
+        d = inargs[2] * this->kr();
+        if (a < 1)
+          a = 1;
+        if (d < 1)
+          d = 1;
+        ainc = 1. / a;
+        dfac = 1. / d;
       }
       if (t < a && e < (1 - ainc))
-       e +=  ainc;
-     else if (t < a + d && e > s)
-       e += (s - 1) * dfac;
-     else
-       e = s;
+        e += ainc;
+      else if (t < a + d && e > s)
+        e += (s - 1) * dfac;
+      else
+        e = s;
       t += 1;
     } else {
       if (e < 0.00001)
         e = 0;
       else
-        e *= pow(0.001, 1. / (inargs[4]*this->kr()));
-      t = 0;   
+        e *= pow(0.001, 1. / (inargs[4] * this->kr()));
+      t = 0;
     }
-    outargs[0] = e*inargs[0];
+    outargs[0] = e * inargs[0];
     return OK;
   }
 
@@ -354,46 +354,44 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     MYFLT gate = inargs[5];
     MYFLT s = inargs[3];
     s = s > 0 ? (s < 1 ? s : 1.) : 0.;
-    MYFLT *sig  = NULL, amp = MYFLT(0);
-    if(csound->is_asig(inargs(0)))
-       sig = inargs(0);
+    MYFLT *sig = NULL, amp = MYFLT(0);
+    if (csound->is_asig(inargs(0)))
+      sig = inargs(0);
     else
       amp = inargs[0];
     MYFLT *out = outargs(0);
 
-    for(auto n = offset; n < nsmps; n++) {
-       if(gate > 0) {
-      if(t == 0) {
-        a = inargs[1]*this->sr();
-	d = inargs[2]*this->sr();
-	if(a < 1) a = 1;
-	if(d < 1) d = 1;
-	ainc = 1./a;
-	dfac = 1./d;
+    for (auto n = offset; n < nsmps; n++) {
+      if (gate > 0) {
+        if (t == 0) {
+          a = inargs[1] * this->sr();
+          d = inargs[2] * this->sr();
+          if (a < 1)
+            a = 1;
+          if (d < 1)
+            d = 1;
+          ainc = 1. / a;
+          dfac = 1. / d;
+        }
+        if (t < a && e < (1 - ainc))
+          e += ainc;
+        else if (t < a + d && e > s)
+          e += (s - 1) * dfac;
+        else
+          e = s;
+        t += 1;
+      } else {
+        if (e < 0.00001)
+          e = 0;
+        else
+          e *= pow(0.001, 1. / (inargs[4] * this->sr()));
+        t = 0;
       }
-      if (t < a && e < (1 - ainc))
-       e +=  ainc;
-     else if (t < a + d && e > s)
-       e += (s - 1) * dfac;
-     else
-       e = s;
-      t += 1;
-    } else {
-      if (e < 0.00001)
-        e = 0;
-      else
-        e *= pow(0.001, 1. / (inargs[4]*this->sr()));
-      t = 0;   
-    }
-       out[n] = sig ? sig[n]*e : amp*e;
- 
+      out[n] = sig ? sig[n] * e : amp * e;
     }
     return OK;
   }
-  
 };
-
-
 
 /*
 class PrintThread : public csnd::Thread {
@@ -466,7 +464,7 @@ struct TPrint : csnd::Plugin<0, 1> {
 */
 
 void onload(csnd::Csound *csound) {
-  csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
+  csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
   csnd::plugin<Gtadsr>(csound, "gtadsr", "k", "kkkkkk", csnd::thread::ik);
@@ -477,11 +475,11 @@ void onload(csnd::Csound *csound) {
 #ifdef BUILD_PLUGINS
 #include <modload.h>
 void csnd::on_load(csnd::Csound *csound) {
-    onload(csound);
+  onload(csound);
 }
 #else
 extern "C" int32_t pvsops_init_modules(CSOUND *csound) {
-    onload((csnd::Csound *)csound);
-    return OK;
-  }
+  onload((csnd::Csound *)csound);
+  return OK;
+}
 #endif

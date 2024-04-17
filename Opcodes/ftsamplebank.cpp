@@ -73,7 +73,9 @@ public:
     return OK;
   }
 
-  int noteoff(CSOUND *) { return OK; }
+  int noteoff(CSOUND *) {
+    return OK;
+  }
 };
 
 //-----------------------------------------------------------------
@@ -103,14 +105,15 @@ public:
   // init-pass
   int init(CSOUND *csound) {
     IGN(csound);
-    *numberOfFiles =
-          loadSamplesToTables(csound, *index, (char *)sDirectory->data,
-                              *skiptime, *format, *channel);
+    *numberOfFiles = loadSamplesToTables(
+        csound, *index, (char *)sDirectory->data, *skiptime, *format, *channel);
     *trigger = 0;
     return OK;
   }
 
-  int noteoff(CSOUND *) { return OK; }
+  int noteoff(CSOUND *) {
+    return OK;
+  }
 
   int kontrol(CSOUND *csound) {
     // if directry changes update tables..
@@ -146,23 +149,20 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
       while ((ent = readdir(dir)) != NULL) {
         std::ostringstream fullFileName;
         // only use supported file types
-        for (int i = 0; (size_t)i < fileExtensions.size(); i++)
-        {
+        for (int i = 0; (size_t)i < fileExtensions.size(); i++) {
           std::string fname = ent->d_name;
           std::string extension;
-          if(fname.find_last_of(".") != std::string::npos)
+          if (fname.find_last_of(".") != std::string::npos)
             extension = fname.substr(fname.find_last_of("."));
 
-          if(extension == fileExtensions[i])
-            {
-              if (strlen(directory) > 0) {
+          if (extension == fileExtensions[i]) {
+            if (strlen(directory) > 0) {
 #if defined(WIN32)
               fullFileName << directory << "\\" << ent->d_name;
 #else
               fullFileName << directory << "/" << ent->d_name;
 #endif
-            }
-            else
+            } else
               fullFileName << ent->d_name;
 
             noOfFiles++;
@@ -257,8 +257,8 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
       extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
       fileNames = searchDir(csound, p->directoryName->data, extension);
     } else
-      return csound->InitError(csound,
-                               "%s", Str("Error: second parameter to directory"
+      return csound->InitError(csound, "%s",
+                               Str("Error: second parameter to directory"
                                    " must be a string"));
   }
 
@@ -297,8 +297,8 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
         std::string fname = ent->d_name;
         size_t lastPos = fname.find_last_of(".");
         if (fname.length() > 0 && (fileExtension.empty() ||
-            (lastPos != std::string::npos &&
-            fname.substr(lastPos) == fileExtension))) {
+                                   (lastPos != std::string::npos &&
+                                    fname.substr(lastPos) == fileExtension))) {
           if (strlen(directory) > 0) {
 #if defined(WIN32)
             fullFileName << directory << "\\" << ent->d_name;
@@ -308,7 +308,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
           } else
             fullFileName << ent->d_name;
 
-          //noOfFiles++;
+          // noOfFiles++;
           fileNames.push_back(fullFileName.str());
         }
       }
@@ -316,8 +316,9 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
       // Sort names
       std::sort(fileNames.begin(), fileNames.end());
     } else {
-      csound->Message(csound, Str("Cannot find directory. "
-                                  "Error opening directory: %s\n"),
+      csound->Message(csound,
+                      Str("Cannot find directory. "
+                          "Error opening directory: %s\n"),
                       directory);
     }
     closedir(dir);

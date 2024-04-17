@@ -26,7 +26,6 @@
 #include <list>
 #include <vector>
 
-
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -54,7 +53,8 @@ protected:
 
 class LinearInterpolator {
 public:
-  LinearInterpolator() : priorValue(MYFLT(0.0)), currentValue(MYFLT(0.0)) {}
+  LinearInterpolator() : priorValue(MYFLT(0.0)), currentValue(MYFLT(0.0)) {
+  }
   virtual void put(MYFLT inputValue) {
     priorValue = currentValue;
     currentValue = inputValue;
@@ -128,7 +128,7 @@ public:
   MYFLT sampleRate;            // Hz
   MYFLT samplesPerDistance;    // usually samples/meter
   MYFLT blockRate;             // Hz
-  int32_t blockSize;               // samples
+  int32_t blockSize;           // samples
   RCLowpassFilter *smoothingFilter;
   LinearInterpolator *audioInterpolator;
   std::list<std::vector<MYFLT> *> *audioBufferQueue;
@@ -166,7 +166,8 @@ public:
 
     std::vector<MYFLT> *sourceBuffer = new std::vector<MYFLT>;
     sourceBuffer->resize(blockSize);
-    for (uint32_t inputFrame = 0; inputFrame<(uint32_t)blockSize; inputFrame++) {
+    for (uint32_t inputFrame = 0; inputFrame < (uint32_t)blockSize;
+         inputFrame++) {
       (*sourceBuffer)[inputFrame] = audioInput[inputFrame];
     }
     audioBufferQueue->push_back(sourceBuffer);
@@ -203,9 +204,7 @@ public:
            *kSourcePosition);
     }
 
-
-    for (size_t outputFrame = 0;
-         outputFrame < (uint32_t)blockSize;
+    for (size_t outputFrame = 0; outputFrame < (uint32_t)blockSize;
          outputFrame++) {
       MYFLT position = smoothingFilter->update(targetPosition);
       MYFLT distance = std::fabs(position);
@@ -260,27 +259,41 @@ public:
 
 extern "C" {
 OENTRY oentries[] = {{
-                         (char *)"doppler", sizeof(Doppler), 0, 3, (char *)"a",
-                         (char *)"akkjj", (SUBR)Doppler::init_,
+                         (char *)"doppler",
+                         sizeof(Doppler),
+                         0,
+                         3,
+                         (char *)"a",
+                         (char *)"akkjj",
+                         (SUBR)Doppler::init_,
                          (SUBR)Doppler::kontrol_,
                      },
                      {
-                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
+                         0,
                      }};
 
 PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
-    status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
-                                   oentry->flags, oentry->thread,
-                                   oentry->outypes, oentry->intypes,
-                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
+    status |= csound->AppendOpcode(
+        csound, oentry->opname, oentry->dsblksiz, oentry->flags, oentry->thread,
+        oentry->outypes, oentry->intypes,
+        (int32_t(*)(CSOUND *, void *))oentry->iopadr,
+        (int32_t(*)(CSOUND *, void *))oentry->kopadr,
+        (int32_t(*)(CSOUND *, void *))oentry->aopadr);
   }
   return status;
 }
-  
+
 #ifdef BUILD_PLUGINS
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);

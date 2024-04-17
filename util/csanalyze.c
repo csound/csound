@@ -23,33 +23,30 @@
 
 #include "csound.h"
 
-extern void     print_tree(CSOUND *, char *, TREE *);
+extern void print_tree(CSOUND *, char *, TREE *);
 
 void header() {
-    printf("csanalyze - developer utility program to analyze "
-           "Csound's compiler phases\n\n");
+  printf("csanalyze - developer utility program to analyze "
+         "Csound's compiler phases\n\n");
 }
 
 void usage() {
-
 }
 
+int main(int argc, char **argv) {
+  CSOUND *csound;
 
+  header();
 
-int main(int argc, char** argv) {
-    CSOUND* csound;
+  if (argc != 2) {
+    usage();
+    return 1;
+  }
 
-    header();
+  printf("Input File: %s", argv[1]);
 
-    if(argc != 2) {
-        usage();
-        return 1;
-    }
+  csound = csoundCreate(NULL);
 
-    printf("Input File: %s", argv[1]);
-
-    csound = csoundCreate(NULL);
-
-    printf("csound=%p\n", csound);
-    return 0;
+  printf("csound=%p\n", csound);
+  return 0;
 }

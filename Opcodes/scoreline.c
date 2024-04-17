@@ -21,13 +21,11 @@
     02110-1301 USA
 */
 
-
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else
 #include "csoundCore.h"
 #endif
-
 
 typedef struct _inmess {
   OPDS h;
@@ -35,41 +33,39 @@ typedef struct _inmess {
   MYFLT *ktrig;
 } INMESS;
 
-
 typedef struct _scorepos {
   OPDS h;
   MYFLT *spos;
 } SCOREPOS;
 
-int32_t messi(CSOUND *csound, INMESS *p)
-{
+int32_t messi(CSOUND *csound, INMESS *p) {
+  csound->InputMessage(csound, (char *)p->SMess->data);
+  return OK;
+}
+
+int32_t messk(CSOUND *csound, INMESS *p) {
+  if (*p->ktrig)
     csound->InputMessage(csound, (char *)p->SMess->data);
-    return OK;
+  return OK;
 }
 
-int32_t messk(CSOUND *csound, INMESS *p){
-    if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess->data);
-    return OK;
+int32_t setscorepos(CSOUND *csound, SCOREPOS *p) {
+  csound->SetScoreOffsetSeconds(csound, *p->spos);
+  return OK;
 }
 
-int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
-    csound->SetScoreOffsetSeconds(csound, *p->spos);
-    return OK;
+int32_t rewindscore(CSOUND *csound, SCOREPOS *p) {
+  IGN(p);
+  csound->RewindScore(csound);
+  return OK;
 }
-
-int32_t
-rewindscore(CSOUND *csound, SCOREPOS *p){
-    IGN(p);
-    csound->RewindScore(csound);
-    return OK;
-}
-
 
 static OENTRY scoreline_localops[] = {
-  {"scoreline_i", sizeof(INMESS), 0, 1, "", "S", (SUBR)messi, NULL, NULL},
-  {"scoreline", sizeof(INMESS), 0, 2, "", "Sk", NULL, (SUBR)messk, NULL},
-  {"setscorepos", sizeof(SCOREPOS), 0, 1, "", "i", (SUBR)setscorepos, NULL, NULL},
-  {"rewindscore", sizeof(SCOREPOS), 0, 1, "", "", (SUBR)rewindscore, NULL, NULL}
-};
+    {"scoreline_i", sizeof(INMESS), 0, 1, "", "S", (SUBR)messi, NULL, NULL},
+    {"scoreline", sizeof(INMESS), 0, 2, "", "Sk", NULL, (SUBR)messk, NULL},
+    {"setscorepos", sizeof(SCOREPOS), 0, 1, "", "i", (SUBR)setscorepos, NULL,
+     NULL},
+    {"rewindscore", sizeof(SCOREPOS), 0, 1, "", "", (SUBR)rewindscore, NULL,
+     NULL}};
 
 LINKAGE_BUILTIN(scoreline_localops)

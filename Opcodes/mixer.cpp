@@ -28,10 +28,10 @@
 using namespace csound;
 
 // Define ENABLE_MIXER_IDEBUG to enable i-rate debug messages.
-//#define ENABLE_MIXER_IDEBUG
+// #define ENABLE_MIXER_IDEBUG
 
 // Define ENABLE_MIXER_KDEBUG to enable -rate and a-rate debug messages.
-//#define ENABLE_MIXER_KDEBUG
+// #define ENABLE_MIXER_KDEBUG
 
 /**
  * The mixer busses are laid out:
@@ -104,8 +104,9 @@ struct MixerSetLevel : public OpcodeBase<MixerSetLevel> {
   int kontrol(CSOUND *csound) {
     (*matrix)[csound][send][buss] = *kgain;
 #ifdef ENABLE_MIXER_KDEBUG
-    warn(csound, "MixerSetLevel::kontrol: csound %p send %d buss "
-                 "%d gain %f\n",
+    warn(csound,
+         "MixerSetLevel::kontrol: csound %p send %d buss "
+         "%d gain %f\n",
          csound, send, buss, (*matrix)[csound][send][buss]);
 #endif
     return OK;
@@ -137,7 +138,9 @@ struct MixerGetLevel : public OpcodeBase<MixerGetLevel> {
     createBuss(csound, buss, opds.insdshead->ksmps);
     return OK;
   }
-  int noteoff(CSOUND *) { return OK; }
+  int noteoff(CSOUND *) {
+    return OK;
+  }
   int kontrol(CSOUND *csound) {
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerGetLevel::kontrol...\n");
@@ -180,13 +183,16 @@ struct MixerSend : public OpcodeBase<MixerSend> {
     frames = opds.insdshead->ksmps;
     busspointer = &(*busses)[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
-    warn(csound, "MixerSend::init: instance %p send %d buss "
-                 "%d channel %d frames %d busspointer %p\n",
+    warn(csound,
+         "MixerSend::init: instance %p send %d buss "
+         "%d channel %d frames %d busspointer %p\n",
          csound, send, buss, channel, frames, busspointer);
 #endif
     return OK;
   }
-  int noteoff(CSOUND *) { return OK; }
+  int noteoff(CSOUND *) {
+    return OK;
+  }
   int audio(CSOUND *csound) {
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerSend::audio...\n");
@@ -196,8 +202,9 @@ struct MixerSend : public OpcodeBase<MixerSend> {
       busspointer[i] += (ainput[i] * gain);
     }
 #ifdef ENABLE_MIXER_KDEBUG
-    warn(csound, "MixerSend::audio: instance %d send %d buss "
-                 "%d gain %f busspointer %p\n",
+    warn(csound,
+         "MixerSend::audio: instance %d send %d buss "
+         "%d gain %f busspointer %p\n",
          csound, send, buss, gain, busspointer);
 #endif
     return OK;
@@ -234,13 +241,16 @@ struct MixerReceive : public OpcodeBase<MixerReceive> {
 #endif
     busspointer = &(*busses)[csound][buss][channel].front();
 #ifdef ENABLE_MIXER_IDEBUG
-    warn(csound, "MixerReceive::init csound %p buss %d channel "
-                 "%d frames %d busspointer %p\n",
+    warn(csound,
+         "MixerReceive::init csound %p buss %d channel "
+         "%d frames %d busspointer %p\n",
          csound, buss, channel, frames, busspointer);
 #endif
     return OK;
   }
-  int noteoff(CSOUND *) { return OK; }
+  int noteoff(CSOUND *) {
+    return OK;
+  }
   int audio(CSOUND *csound) {
 #ifdef ENABLE_MIXER_KDEBUG
     warn(csound, "MixerReceive::audio...\n");
@@ -328,8 +338,6 @@ PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
   return OK;
 }
 
-
-
 /*
  * The mixer busses are laid out:
  * busses[csound][bus][channel][frame].
@@ -388,17 +396,15 @@ PUBLIC int32_t csoundModuleInit_mixer(CSOUND *csound) {
   while (ep->opname != NULL) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                 ep->thread, ep->outypes, ep->intypes,
-                                (int32_t (*)(CSOUND *, void *))ep->iopadr,
-                                (int32_t (*)(CSOUND *, void *))ep->kopadr,
-                                (int32_t (*)(CSOUND *, void *))ep->aopadr);
+                                (int32_t(*)(CSOUND *, void *))ep->iopadr,
+                                (int32_t(*)(CSOUND *, void *))ep->kopadr,
+                                (int32_t(*)(CSOUND *, void *))ep->aopadr);
     ep++;
   }
   // need to register reset callback
   csound->RegisterResetCallback(csound, NULL, destroyMixer);
   return err;
 }
-
-
 
 #ifdef BUILD_PLUGINS
 PUBLIC int csoundModuleCreate(CSOUND *csound) {

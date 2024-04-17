@@ -27,179 +27,177 @@
 #include "csoundCore.h"
 #include "aops.h"
 
-int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
-    CS_TYPE_ITEM* current = pool->head;
-    while (current != NULL) {
+int csTypeExistsWithSameName(TYPE_POOL *pool, CS_TYPE *typeInstance) {
+  CS_TYPE_ITEM *current = pool->head;
+  while (current != NULL) {
 
-      /* printf("Search if type [%s] == [%s]",
-         current->varTypeName, typeInstance->varTypeName); */
+    /* printf("Search if type [%s] == [%s]",
+       current->varTypeName, typeInstance->varTypeName); */
 
-      if (strcmp(current->cstype->varTypeName,
-                 typeInstance->varTypeName) == 0) {
-        return 1;
-      }
-      current = current->next;
+    if (strcmp(current->cstype->varTypeName, typeInstance->varTypeName) == 0) {
+      return 1;
     }
+    current = current->next;
+  }
 
+  return 0;
+}
+
+CS_TYPE *csoundGetTypeWithVarTypeName(TYPE_POOL *pool, char *typeName) {
+  CS_TYPE_ITEM *current = pool->head;
+  while (current != NULL) {
+    if (strcmp(typeName, current->cstype->varTypeName) == 0) {
+      return current->cstype;
+    }
+    current = current->next;
+  }
+  return NULL;
+}
+
+int csoundAddVariableType(CSOUND *csound, TYPE_POOL *pool,
+                          CS_TYPE *typeInstance) {
+  CS_TYPE_ITEM *item;
+  if (csTypeExistsWithSameName(pool, typeInstance)) {
     return 0;
-}
+  }
 
-CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName) {
-    CS_TYPE_ITEM* current = pool->head;
-    while (current != NULL) {
-      if (strcmp(typeName, current->cstype->varTypeName) == 0) {
-        return current->cstype;
-      }
+  item = (CS_TYPE_ITEM *)csound->Calloc(csound, sizeof(CS_TYPE_ITEM));
+  item->cstype = typeInstance;
+
+  if (pool->head == NULL) {
+    pool->head = item;
+  } else {
+    CS_TYPE_ITEM *current = pool->head;
+    while (current->next) {
       current = current->next;
     }
-    return NULL;
+    current->next = item;
+    item->next = NULL;
+  }
+
+  /* printf("Adding type with type name: %s\n", typeInstance->varTypeName); */
+
+  return 1;
 }
-
-int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance)
-{
-    CS_TYPE_ITEM* item;
-    if (csTypeExistsWithSameName(pool, typeInstance)) {
-      return 0;
-    }
-
-    item = (CS_TYPE_ITEM*)csound->Calloc(csound, sizeof(CS_TYPE_ITEM));
-    item->cstype = typeInstance;
-
-    if (pool->head == NULL) {
-      pool->head = item;
-    } else {
-      CS_TYPE_ITEM* current = pool->head;
-      while (current->next) {
-        current = current->next;
-      }
-      current->next = item;
-      item->next = NULL;
-    }
-
-    /* printf("Adding type with type name: %s\n", typeInstance->varTypeName); */
-
-    return 1;
-}
-
 
 /* VAR POOL FUNCTIONS */
 
-
-CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
-    CS_VAR_POOL* varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
-    varPool->table = cs_hash_table_create(csound);
-    return varPool;
+CS_VAR_POOL *csoundCreateVarPool(CSOUND *csound) {
+  CS_VAR_POOL *varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+  varPool->table = cs_hash_table_create(csound);
+  return varPool;
 }
 
-void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool) {
-    if(pool->table) cs_hash_table_mfree_complete(csound, pool->table);
-    csound->Free(csound, pool);
+void csoundFreeVarPool(CSOUND *csound, CS_VAR_POOL *pool) {
+  if (pool->table)
+    cs_hash_table_mfree_complete(csound, pool->table);
+  csound->Free(csound, pool);
 }
 
-char* getVarSimpleName(CSOUND* csound, const char* varName) {
-    char* retVal;
+char *getVarSimpleName(CSOUND *csound, const char *varName) {
+  char *retVal;
 
-    if (varName[0] != '[') {
-      retVal = (char*)csound->Calloc(csound, sizeof(char) * (strlen(varName) + 1));
-      strcpy(retVal, varName);
-    } else {
-      int start = 0;
-      int typeEnd = 0;
-      int len = strlen(varName);
-      int newFirstLen, newSecondLen, newTotalLen;
-      char* t = (char*) varName;
-      char* t2;
+  if (varName[0] != '[') {
+    retVal =
+        (char *)csound->Calloc(csound, sizeof(char) * (strlen(varName) + 1));
+    strcpy(retVal, varName);
+  } else {
+    int start = 0;
+    int typeEnd = 0;
+    int len = strlen(varName);
+    int newFirstLen, newSecondLen, newTotalLen;
+    char *t = (char *)varName;
+    char *t2;
 
-      while(*t == '[') {
-        t++;
-        start++;
-      }
-      typeEnd = start;
-      t2 = t;
-      while(*t2 != ']' && *t2 != (char)0) {
-        t2++;
-        typeEnd++;
-      }
+    while (*t == '[') {
+      t++;
+      start++;
+    }
+    typeEnd = start;
+    t2 = t;
+    while (*t2 != ']' && *t2 != (char)0) {
       t2++;
       typeEnd++;
-
-      newFirstLen = (typeEnd - start - 1);
-      newSecondLen = (len - typeEnd);
-      newTotalLen = newFirstLen + newSecondLen;
-
-      retVal = (char*)csound->Calloc(csound, sizeof(char) * (newTotalLen + 1));
-      strncpy(retVal, t, newFirstLen);
-      strncpy(retVal + newFirstLen, t2, newSecondLen);
     }
+    t2++;
+    typeEnd++;
 
-    return retVal;
+    newFirstLen = (typeEnd - start - 1);
+    newSecondLen = (len - typeEnd);
+    newTotalLen = newFirstLen + newSecondLen;
+
+    retVal = (char *)csound->Calloc(csound, sizeof(char) * (newTotalLen + 1));
+    strncpy(retVal, t, newFirstLen);
+    strncpy(retVal + newFirstLen, t2, newSecondLen);
+  }
+
+  return retVal;
 }
 
-CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                  CS_TYPE* type, char* name, void* typeArg)
-{
-    CS_TYPE_ITEM* current = pool->head;
-    if (LIKELY(type != NULL))
-      while (current != NULL) {
-        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
-          var->varType = type;
-          var->varName = cs_strdup(csound, name);
-          return var;
-        }
-        current = current->next;
+CS_VARIABLE *csoundCreateVariable(CSOUND *csound, TYPE_POOL *pool,
+                                  CS_TYPE *type, char *name, void *typeArg) {
+  CS_TYPE_ITEM *current = pool->head;
+  if (LIKELY(type != NULL))
+    while (current != NULL) {
+      if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
+        CS_VARIABLE *var = current->cstype->createVariable(csound, typeArg);
+        var->varType = type;
+        var->varName = cs_strdup(csound, name);
+        return var;
       }
-    else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type"),
-                                      name);
-    return NULL;
-}
-
-CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
-                                        const char* name)
-{
-
-    CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
-
-    if (returnValue == NULL && pool->parent != NULL) {
-      returnValue = csoundFindVariableWithName(csound, pool->parent, name);
-    }
-
-    return returnValue;
-}
-
-CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
-
-    CS_VARIABLE* current = pool->head;
-    int i;
-
-    for(i = 0; i < index || current != NULL; i++) {
-      /* THIS WAS WRONG!! && or || meant foR , ?? */
       current = current->next;
     }
-
-    return current;
+  else
+    ((CSOUND *)csound)
+        ->ErrorMsg(csound, Str("cannot create variable %s: NULL type"), name);
+  return NULL;
 }
 
-//int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
-//    CS_VARIABLE* current = pool->head;
-//    int index = 0;
-//
-//    if (current == NULL) {
-//        return -1;
-//    }
-//
-//    for (index = 0; current != NULL; index++) {
-//        if (current == var) {
-//            return index;
-//        }
-//    }
-//    return -1;
-//}
+CS_VARIABLE *csoundFindVariableWithName(CSOUND *csound, CS_VAR_POOL *pool,
+                                        const char *name) {
 
-int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
-  if(var != NULL) {
-    if(pool->head == NULL) {
+  CS_VARIABLE *returnValue =
+      cs_hash_table_get(csound, pool->table, (char *)name);
+
+  if (returnValue == NULL && pool->parent != NULL) {
+    returnValue = csoundFindVariableWithName(csound, pool->parent, name);
+  }
+
+  return returnValue;
+}
+
+CS_VARIABLE *csoundGetVariable(CS_VAR_POOL *pool, int index) {
+
+  CS_VARIABLE *current = pool->head;
+  int i;
+
+  for (i = 0; i < index || current != NULL; i++) {
+    /* THIS WAS WRONG!! && or || meant foR , ?? */
+    current = current->next;
+  }
+
+  return current;
+}
+
+// int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
+//     CS_VARIABLE* current = pool->head;
+//     int index = 0;
+//
+//     if (current == NULL) {
+//         return -1;
+//     }
+//
+//     for (index = 0; current != NULL; index++) {
+//         if (current == var) {
+//             return index;
+//         }
+//     }
+//     return -1;
+// }
+
+int csoundAddVariable(CSOUND *csound, CS_VAR_POOL *pool, CS_VARIABLE *var) {
+  if (var != NULL) {
+    if (pool->head == NULL) {
       pool->head = var;
       pool->tail = var;
     } else {
@@ -210,117 +208,116 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
     // may need to revise this; var pools are accessed as MYFLT*,
     // so need to ensure all memory is aligned to sizeof(MYFLT)
     var->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
-      ((pool->varCount + 1) * (CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT)));
+                         ((pool->varCount + 1) *
+                          (CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT)));
     pool->poolSize += var->memBlockSize;
     pool->varCount += 1;
     return 0;
-  } else return -1;
+  } else
+    return -1;
 }
 
-void recalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
-{
-    CS_VARIABLE* current = pool->head;
-    int varCount = 1;
-    pool->poolSize = 0;
+void recalculateVarPoolMemory(CSOUND *csound, CS_VAR_POOL *pool) {
+  CS_VARIABLE *current = pool->head;
+  int varCount = 1;
+  pool->poolSize = 0;
 
-    while (current != NULL) {
-      /* VL 26-12-12: had to revert these lines to avoid memory crashes
-         with higher ksmps */
-      if(current->updateMemBlockSize != NULL) {
-        current->updateMemBlockSize(csound, current);
-      }
+  while (current != NULL) {
+    /* VL 26-12-12: had to revert these lines to avoid memory crashes
+       with higher ksmps */
+    if (current->updateMemBlockSize != NULL) {
+      current->updateMemBlockSize(csound, current);
+    }
 
-      current->memBlockIndex = (pool->poolSize / sizeof(MYFLT)) +
+    current->memBlockIndex =
+        (pool->poolSize / sizeof(MYFLT)) +
         (varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT));
-      pool->poolSize += current->memBlockSize;
+    pool->poolSize += current->memBlockSize;
 
-      current = current->next;
-      varCount++;
-    }
+    current = current->next;
+    varCount++;
+  }
 }
 
-void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
-    CS_VARIABLE* current = pool->head;
-    CS_VAR_MEM* varMem = NULL;
-    size_t memSize;
-    pool->poolSize = 0;
+void reallocateVarPoolMemory(CSOUND *csound, CS_VAR_POOL *pool) {
+  CS_VARIABLE *current = pool->head;
+  CS_VAR_MEM *varMem = NULL;
+  size_t memSize;
+  pool->poolSize = 0;
 
-    while (current != NULL) {
-      varMem = current->memBlock;
-      memSize = current->memBlockSize;
+  while (current != NULL) {
+    varMem = current->memBlock;
+    memSize = current->memBlockSize;
 
-      if(current->updateMemBlockSize != NULL) {
-        current->updateMemBlockSize(csound, current);
-      }
-      // VL 14-3-2015 only realloc if we need to
-      if(memSize < (size_t)current->memBlockSize) {
-          memSize = CS_VAR_TYPE_OFFSET + current->memBlockSize;
-          varMem =
-               (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
-                                             memSize);
-          current->memBlock = varMem;
-       }
-       pool->poolSize += current->memBlockSize;
-       current = current->next;
+    if (current->updateMemBlockSize != NULL) {
+      current->updateMemBlockSize(csound, current);
     }
+    // VL 14-3-2015 only realloc if we need to
+    if (memSize < (size_t)current->memBlockSize) {
+      memSize = CS_VAR_TYPE_OFFSET + current->memBlockSize;
+      varMem =
+          (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound, varMem, memSize);
+      current->memBlock = varMem;
+    }
+    pool->poolSize += current->memBlockSize;
+    current = current->next;
+  }
 }
 
-void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
-    CS_VARIABLE* current = pool->head, *tmp;
-    CS_TYPE* type;
-    while (current != NULL) {
-      tmp = current;
-      type = current->subType;
-      if (type->freeVariableMemory != NULL) {
-        type->freeVariableMemory(csound, current->memBlock);
-      }
-      csound->Free(csound, current->memBlock);
-      current = current->next;
-      csound->Free(csound, tmp);
+void deleteVarPoolMemory(CSOUND *csound, CS_VAR_POOL *pool) {
+  CS_VARIABLE *current = pool->head, *tmp;
+  CS_TYPE *type;
+  while (current != NULL) {
+    tmp = current;
+    type = current->subType;
+    if (type->freeVariableMemory != NULL) {
+      type->freeVariableMemory(csound, current->memBlock);
     }
+    csound->Free(csound, current->memBlock);
+    current = current->next;
+    csound->Free(csound, tmp);
+  }
 }
 
+void initializeVarPool(CSOUND *csound, MYFLT *memBlock, CS_VAR_POOL *pool) {
+  CS_VARIABLE *current = pool->head;
+  // int varNum = 1;
 
-
-void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
-    CS_VARIABLE* current = pool->head;
-    //int varNum = 1;
-
-    while (current != NULL) {
-      if (current->initializeVariableMemory != NULL) {
-        current->initializeVariableMemory(csound, current,
-                                          memBlock + current->memBlockIndex);
-      }
-      //varNum++;
-      current = current->next;
+  while (current != NULL) {
+    if (current->initializeVariableMemory != NULL) {
+      current->initializeVariableMemory(csound, current,
+                                        memBlock + current->memBlockIndex);
     }
+    // varNum++;
+    current = current->next;
+  }
 }
 
-void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
-    CS_VARIABLE* gVar = pool->head;
-    int count = 0;
-    while(gVar != NULL) {
-      csound->Message(csound, "  %d) %s:%s\n", count++,
-                      gVar->varName, gVar->varType->varTypeName);
-      gVar = gVar->next;
-    }
+void debug_print_varpool(CSOUND *csound, CS_VAR_POOL *pool) {
+  CS_VARIABLE *gVar = pool->head;
+  int count = 0;
+  while (gVar != NULL) {
+    csound->Message(csound, "  %d) %s:%s\n", count++, gVar->varName,
+                    gVar->varType->varTypeName);
+    gVar = gVar->next;
+  }
 }
 
 /* GENERIC VARIABLE COPYING */
 
-
 int copyVarGeneric(CSOUND *csound, void *p) {
-    ASSIGN* assign = (ASSIGN*)p;
-    CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
-    CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
-    
-    if(typeR != typeA) {
-        csound->Warning(csound,
-                        Str("error: = opcode given variables with two different types: %s : %s\n"),
-                        typeR->varTypeName, typeA->varTypeName);
-        return NOTOK;
-    }
-    
-    typeR->copyValue(csound, typeR, assign->r, assign->a);
-    return OK;
+  ASSIGN *assign = (ASSIGN *)p;
+  CS_TYPE *typeR = csoundGetTypeForArg(assign->r);
+  CS_TYPE *typeA = csoundGetTypeForArg(assign->a);
+
+  if (typeR != typeA) {
+    csound->Warning(csound,
+                    Str("error: = opcode given variables with two different "
+                        "types: %s : %s\n"),
+                    typeR->varTypeName, typeA->varTypeName);
+    return NOTOK;
+  }
+
+  typeR->copyValue(csound, typeR, assign->r, assign->a);
+  return OK;
 }

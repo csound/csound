@@ -451,7 +451,7 @@ results are very close to zero
     };
 */
 
-//#define ROOT2 FL(1.41421356237309504880168872421)
+// #define ROOT2 FL(1.41421356237309504880168872421)
 
 /**
  * This function computes a Csound function table
@@ -462,7 +462,8 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
   int N = ff->flen;
-  if (N <= 0) return csound->ftError(ff, Str("Illegal table size %d"), N);
+  if (N <= 0)
+    return csound->ftError(ff, Str("Illegal table size %d"), N);
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];
@@ -566,7 +567,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
 }
 
 extern "C" {
-  
+
 static NGFENS padsynth_gens[] = {{(char *)"padsynth", padsynth_gen},
                                  {NULL, NULL}};
 

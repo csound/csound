@@ -24,30 +24,27 @@
 #include "csound.h"
 #include <stdarg.h>
 
-static void messageCallback_(CSOUND *csound, int attr,
-                             const char *fmt, va_list args)
-{
-    (void) csound;
-    switch (attr & CSOUNDMSG_TYPE_MASK) {
-    case CSOUNDMSG_ORCH:
-      vfprintf(stdout, fmt, args);
-      break;
-    default:
-      vfprintf(stderr, fmt, args);
-      break;
-    }
+static void messageCallback_(CSOUND *csound, int attr, const char *fmt,
+                             va_list args) {
+  (void)csound;
+  switch (attr & CSOUNDMSG_TYPE_MASK) {
+  case CSOUNDMSG_ORCH:
+    vfprintf(stdout, fmt, args);
+    break;
+  default:
+    vfprintf(stderr, fmt, args);
+    break;
+  }
 }
 
-int main(int argc, char **argv)
-{
-    CSOUND  *csound;
-    int     n = -1;
+int main(int argc, char **argv) {
+  CSOUND *csound;
+  int n = -1;
 
-    if ((csound = csoundCreate(NULL)) != NULL) {
-      csoundSetMessageCallback(csound, messageCallback_);
-      n = csoundRunUtility(csound, "pvlook", argc, argv);
-      csoundDestroy(csound);
-    }
-    return (n == CSOUND_EXITJMP_SUCCESS ? 0 : n);
+  if ((csound = csoundCreate(NULL)) != NULL) {
+    csoundSetMessageCallback(csound, messageCallback_);
+    n = csoundRunUtility(csound, "pvlook", argc, argv);
+    csoundDestroy(csound);
+  }
+  return (n == CSOUND_EXITJMP_SUCCESS ? 0 : n);
 }
-

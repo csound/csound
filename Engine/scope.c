@@ -2,21 +2,20 @@
 #include "corfile.h"
 #include "score_param.h"
 
-extern uint8_t file_to_int(CSOUND*, const char*);
-int scope(CSOUND *csound)
-{
-extern void print_csound_prsdata(void *);
-extern int csound_prslex_init(void *);
-extern void csound_prsset_extra(void *, void *);
+extern uint8_t file_to_int(CSOUND *, const char *);
+int scope(CSOUND *csound) {
+  extern void print_csound_prsdata(void *);
+  extern int csound_prslex_init(void *);
+  extern void csound_prsset_extra(void *, void *);
 
-extern int csound_prslex(CSOUND*, void*);
-extern int csound_prslex_destroy(void *);
-extern void csound_sco_scan_buffer (const char *, size_t, void*);
-extern int csound_scoparse(SCORE_PARM *, void *, CSOUND*, ScoreTree*);
-extern void csound_scolex_init(void *);
-extern void csound_scoset_extra(void *, void *);
-extern void csound_scoset_lineno(int, void*);
-extern void csound_scolex_destroy(void *);
+  extern int csound_prslex(CSOUND *, void *);
+  extern int csound_prslex_destroy(void *);
+  extern void csound_sco_scan_buffer(const char *, size_t, void *);
+  extern int csound_scoparse(SCORE_PARM *, void *, CSOUND *, ScoreTree *);
+  extern void csound_scolex_init(void *);
+  extern void csound_scoset_extra(void *, void *);
+  extern void csound_scoset_lineno(int, void *);
+  extern void csound_scolex_destroy(void *);
 #if 0
     {
       PRS_PARM  qq;
@@ -69,5 +68,5 @@ extern void csound_scolex_destroy(void *);
       }
     }
 #endif
-    return 0;
+  return 0;
 }

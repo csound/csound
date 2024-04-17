@@ -1534,3 +1534,7 @@ if(MINGW)
     file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libgcc_s_seh-1.dll DESTINATION "${BUILD_DIR}")
     file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
 endif()
+
+add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c
+    OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
+    util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}) 

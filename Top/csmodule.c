@@ -73,7 +73,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if !(defined (__wasi__))
+#if !(defined(__wasi__))
 #include <setjmp.h>
 #include <errno.h>
 #endif
@@ -84,14 +84,14 @@
 #if defined(__MACH__)
 #include <TargetConditionals.h>
 #if (TARGET_OS_IPHONE == 0) && (TARGET_IPHONE_SIMULATOR == 0)
-#if defined(MAC_OS_X_VERSION_10_6) &&                           \
-  (MAC_OS_X_VERSION_MIN_REQUIRED>=MAC_OS_X_VERSION_10_6)
+#if defined(MAC_OS_X_VERSION_10_6) &&                                          \
+    (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6)
 #define NEW_MACH_CODE
 #endif
 #endif
 #endif
 
-#if !(defined (__wasi__))
+#if !(defined(__wasi__))
 #if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
 #elif defined(WIN32)
@@ -99,146 +99,146 @@
 #endif
 #endif
 
-
 #if defined(HAVE_DIRENT_H)
-#  include <dirent.h>
-#  if 0 && defined(__MACH__)
+#include <dirent.h>
+#if 0 && defined(__MACH__)
 typedef void*   DIR;
 DIR             opendir(const char *);
 struct dirent   *readdir(DIR*);
 int             closedir(DIR*);
-#  endif
+#endif
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#  include <io.h>
-#  include <direct.h>
+#include <io.h>
+#include <direct.h>
 #endif
 
-extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
+extern int allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));
 
 /* module interface function names */
 
-static  const   char    *opcode_init_Name =   "csound_opcode_init";
-static  const   char    *fgen_init_Name =     "csound_fgen_init";
+static const char *opcode_init_Name = "csound_opcode_init";
+static const char *fgen_init_Name = "csound_fgen_init";
 
-static  const   char    *PreInitFunc_Name =   "csoundModuleCreate";
-static  const   char    *InitFunc_Name =      "csoundModuleInit";
-static  const   char    *DestFunc_Name =      "csoundModuleDestroy";
-static  const   char    *ErrCodeToStr_Name =  "csoundModuleErrorCodeToString";
+static const char *PreInitFunc_Name = "csoundModuleCreate";
+static const char *InitFunc_Name = "csoundModuleInit";
+static const char *DestFunc_Name = "csoundModuleDestroy";
+static const char *ErrCodeToStr_Name = "csoundModuleErrorCodeToString";
 
-static  const   char    *InfoFunc_Name =      "csoundModuleInfo";
+static const char *InfoFunc_Name = "csoundModuleInfo";
 
 /* environment variable storing path to plugin libraries */
-static  const   char    *plugindir_envvar =   "OPCODE7DIR";
-static  const   char    *plugindir64_envvar = "OPCODE7DIR64";
+static const char *plugindir_envvar = "OPCODE7DIR";
+static const char *plugindir64_envvar = "OPCODE7DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
-#if  !(defined (__wasi__))
+#if !(defined(__wasi__))
 #ifdef __HAIKU__
-# ifndef USE_DOUBLE
+#ifndef USE_DOUBLE
 static char haikudirs[] = "/boot/system/lib/csound7/plugins:"
-  "/boot/home/config/lib/csound7/plugins:"
-  "/boot/system/non-packaged/lib/csound7/plugins:"
-  "/boot/home/config/non-packaged/lib/csound7/plugins";
-# else
-static char haikudirs[] = "/boot/system/lib/csound7/plugins64:"
-  "/boot/home/config/lib/csound7/plugins64:"
-  "/boot/system/non-packaged/lib/csound7/plugins64:"
-  "/boot/home/config/non-packaged/lib/csound7/plugins64";
-# endif
-# define CS_DEFAULT_PLUGINDIR  haikudirs
-#elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
-#  define ENABLE_OPCODEDIR_WARNINGS 1
-#  ifdef CS_DEFAULT_PLUGINDIR
-#    undef CS_DEFAULT_PLUGINDIR
-#  endif
-#  define CS_DEFAULT_PLUGINDIR      "."
+                          "/boot/home/config/lib/csound7/plugins:"
+                          "/boot/system/non-packaged/lib/csound7/plugins:"
+                          "/boot/home/config/non-packaged/lib/csound7/plugins";
 #else
-#  define ENABLE_OPCODEDIR_WARNINGS 0
-#  ifndef CS_DEFAULT_PLUGINDIR
-#    ifndef USE_DOUBLE
-#      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins"
-#    else
-#      define CS_DEFAULT_PLUGINDIR  "/usr/local/lib/csound/plugins64"
-#    endif
-#  endif
+static char haikudirs[] =
+    "/boot/system/lib/csound7/plugins64:"
+    "/boot/home/config/lib/csound7/plugins64:"
+    "/boot/system/non-packaged/lib/csound7/plugins64:"
+    "/boot/home/config/non-packaged/lib/csound7/plugins64";
+#endif
+#define CS_DEFAULT_PLUGINDIR haikudirs
+#elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
+#define ENABLE_OPCODEDIR_WARNINGS 1
+#ifdef CS_DEFAULT_PLUGINDIR
+#undef CS_DEFAULT_PLUGINDIR
+#endif
+#define CS_DEFAULT_PLUGINDIR "."
+#else
+#define ENABLE_OPCODEDIR_WARNINGS 0
+#ifndef CS_DEFAULT_PLUGINDIR
+#ifndef USE_DOUBLE
+#define CS_DEFAULT_PLUGINDIR "/usr/local/lib/csound/plugins"
+#else
+#define CS_DEFAULT_PLUGINDIR "/usr/local/lib/csound/plugins64"
+#endif
+#endif
 #endif
 #endif
 
 #if (TARGET_OS_IPHONE != 0) && (TARGET_IPHONE_SIMULATOR != 0)
-#  define ENABLE_OPCODEDIR_WARNINGS 0
+#define ENABLE_OPCODEDIR_WARNINGS 0
 #endif
 
 typedef struct opcodeLibFunc_s {
-  int64_t  (*opcode_init)(CSOUND *, OENTRY **);  /* list of opcode entries  */
-  NGFENS  *(*fgen_init)(CSOUND *);        /* list of named GEN routines    */
-  void    (*dummy)(void);                 /* unused                        */
+  int64_t (*opcode_init)(CSOUND *, OENTRY **); /* list of opcode entries  */
+  NGFENS *(*fgen_init)(CSOUND *); /* list of named GEN routines    */
+  void (*dummy)(void);            /* unused                        */
 } opcodeLibFunc_t;
 
 typedef struct pluginLibFunc_s {
-  int         (*InitFunc)(CSOUND *);      /* initialisation routine        */
-  int         (*DestFunc)(CSOUND *);      /* destructor routine            */
-  const char  *(*ErrCodeToStr)(int);      /* convert error code to string  */
+  int (*InitFunc)(CSOUND *);        /* initialisation routine        */
+  int (*DestFunc)(CSOUND *);        /* destructor routine            */
+  const char *(*ErrCodeToStr)(int); /* convert error code to string  */
 } pluginLibFunc_t;
 
 typedef struct csoundModule_s {
-  struct csoundModule_s *nxt;             /* pointer to next link in chain */
-  void        *h;                         /* library handle                */
-  int         (*PreInitFunc)(CSOUND *);   /* pre-initialisation routine    */
+  struct csoundModule_s *nxt;   /* pointer to next link in chain */
+  void *h;                      /* library handle                */
+  int (*PreInitFunc)(CSOUND *); /* pre-initialisation routine    */
   /*   (always NULL if opcode lib) */
   union {
-    pluginLibFunc_t   p;                  /* generic plugin interface      */
-    opcodeLibFunc_t   o;                  /* opcode library interface      */
+    pluginLibFunc_t p; /* generic plugin interface      */
+    opcodeLibFunc_t o; /* opcode library interface      */
   } fn;
-  char        name[1];                    /* name of the module            */
+  char name[1]; /* name of the module            */
 } csoundModule_t;
 
-static CS_NOINLINE void print_module_error(CSOUND *csound,
-                                           const char *fmt, const char *fname,
-                                           const csoundModule_t *m, int err)
-{
+static CS_NOINLINE void print_module_error(CSOUND *csound, const char *fmt,
+                                           const char *fname,
+                                           const csoundModule_t *m, int err) {
   csoundMessageS(csound, CSOUNDMSG_ERROR, Str(fmt), fname);
   if (m != NULL && m->fn.p.ErrCodeToStr != NULL)
-    csoundMessageS(csound, CSOUNDMSG_ERROR,
-                   ": %s\n", Str(m->fn.p.ErrCodeToStr(err)));
+    csoundMessageS(csound, CSOUNDMSG_ERROR, ": %s\n",
+                   Str(m->fn.p.ErrCodeToStr(err)));
   else
     csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
-static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
-{
-  int     myfltSize, minorVersion, majorVersion;
+static int check_plugin_compatibility(CSOUND *csound, const char *fname,
+                                      int n) {
+  int myfltSize, minorVersion, majorVersion;
 
   myfltSize = n & 0xFF;
-  if (UNLIKELY(myfltSize != 0 && myfltSize != (int) sizeof(MYFLT))) {
-    csoundWarning(csound, Str("not loading '%s' (uses incompatible "
-                              "floating point type)"), fname);
+  if (UNLIKELY(myfltSize != 0 && myfltSize != (int)sizeof(MYFLT))) {
+    csoundWarning(csound,
+                  Str("not loading '%s' (uses incompatible "
+                      "floating point type)"),
+                  fname);
     return -1;
   }
   if (UNLIKELY(n & (~0xFF))) {
     minorVersion = (n & 0xFF00) >> 8;
     majorVersion = (n & (~0xFFFF)) >> 16;
-    if (majorVersion != (int) CS_APIVERSION ||
-        (minorVersion > (int) CS_APISUBVER)) { /* NOTE **** REFACTOR *** */
-      csoundWarning(csound, Str("not loading '%s' (incompatible "
-                                "with this version of Csound (%d.%d/%d.%d)"),
-                    fname, majorVersion,minorVersion,
-                    CS_APIVERSION,CS_APISUBVER);
+    if (majorVersion != (int)CS_APIVERSION ||
+        (minorVersion > (int)CS_APISUBVER)) { /* NOTE **** REFACTOR *** */
+      csoundWarning(csound,
+                    Str("not loading '%s' (incompatible "
+                        "with this version of Csound (%d.%d/%d.%d)"),
+                    fname, majorVersion, minorVersion, CS_APIVERSION,
+                    CS_APISUBVER);
       return -1;
     }
   }
   return 0;
 }
 
-
 /**
  * Initialise a single module.
  * Return value is CSOUND_SUCCESS if there was no error.
  */
-static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
-{
-  int     i;
+static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m) {
+  int i;
 
   if (m->PreInitFunc != NULL) {
     if (m->fn.p.InitFunc != NULL) {
@@ -249,25 +249,24 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
         return CSOUND_ERROR;
       }
     }
-  }
-  else {
+  } else {
     /* deal with fgens if there are any */
     if (m->fn.o.fgen_init != NULL) {
-      NGFENS  *names = m->fn.o.fgen_init(csound);
+      NGFENS *names = m->fn.o.fgen_init(csound);
       for (i = 0; names[i].name != NULL; i++)
         allocgen(csound, names[i].name, names[i].fn);
     }
     if (m->fn.o.opcode_init != NULL) {
-      OENTRY  *opcodlst_n;
-      int64_t    length;
+      OENTRY *opcodlst_n;
+      int64_t length;
       /* load opcodes */
       if (UNLIKELY((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L))
         return CSOUND_ERROR;
       else {
-        length /= (long) sizeof(OENTRY);
+        length /= (long)sizeof(OENTRY);
         if (length) {
-          if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
-                                           (int) length) != 0))
+          if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n, (int)length) !=
+                       0))
             return CSOUND_ERROR;
         }
       }
@@ -276,57 +275,58 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
   return CSOUND_SUCCESS;
 }
 
-
 #ifdef __wasi__
 
-__attribute__((used))
-void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
+__attribute__((used)) void csoundWasiLoadPlugin(CSOUND *csound,
+                                                void *preInitFunc,
+                                                void *initFunc, void *destFunc,
+                                                void *errCodeToStr) {
   csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
-  module->h = (void*) NULL;
+  module->h = (void *)NULL;
 
   // The javascript host must assert that this is provided
-  module->PreInitFunc = (int (*)(CSOUND *)) preInitFunc;
+  module->PreInitFunc = (int (*)(CSOUND *))preInitFunc;
   if (initFunc) {
-    module->fn.p.InitFunc = (int (*)(CSOUND *)) initFunc;
+    module->fn.p.InitFunc = (int (*)(CSOUND *))initFunc;
   }
   if (destFunc) {
-    module->fn.p.DestFunc = (int (*)(CSOUND *)) destFunc;
+    module->fn.p.DestFunc = (int (*)(CSOUND *))destFunc;
   }
   if (errCodeToStr) {
-    module->fn.p.ErrCodeToStr = (const char *(*)(int)) errCodeToStr;
+    module->fn.p.ErrCodeToStr = (const char *(*)(int))errCodeToStr;
   }
 
-  module->nxt = (csoundModule_t*) csound->csmodule_db;
+  module->nxt = (csoundModule_t *)csound->csmodule_db;
   csound->csmodule_db = module;
 
   module->PreInitFunc(csound);
 }
 
-__attribute__((used))
-void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
+__attribute__((used)) void csoundWasiLoadOpcodeLibrary(CSOUND *csound,
+                                                       void *fgenInitFunc,
+                                                       void *opcodeInitFunc) {
   csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
-  module->h = (void*) NULL;
+  module->h = (void *)NULL;
 
   if (fgenInitFunc) {
-    module->fn.o.fgen_init = (NGFENS *(*)(CSOUND *)) fgenInitFunc;
+    module->fn.o.fgen_init = (NGFENS * (*)(CSOUND *)) fgenInitFunc;
   }
 
   if (opcodeInitFunc) {
-    module->fn.o.opcode_init = (int64_t (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
+    module->fn.o.opcode_init = (int64_t(*)(CSOUND *, OENTRY **))opcodeInitFunc;
   }
 
-  module->nxt = (csoundModule_t*) csound->csmodule_db;
+  module->nxt = (csoundModule_t *)csound->csmodule_db;
   csound->csmodule_db = module;
 }
 
-__attribute__((used))
-int csoundDestroyModules(CSOUND *csound) {
-  csoundModule_t  *m;
+__attribute__((used)) int csoundDestroyModules(CSOUND *csound) {
+  csoundModule_t *m;
   int i;
   int retval = CSOUND_SUCCESS;
 
   while (csound->csmodule_db != NULL) {
-    m = (csoundModule_t*) csound->csmodule_db;
+    m = (csoundModule_t *)csound->csmodule_db;
     /* call destructor functions */
     if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
       i = m->fn.p.DestFunc(csound);
@@ -336,19 +336,18 @@ int csoundDestroyModules(CSOUND *csound) {
         retval = CSOUND_ERROR;
       }
     }
-    csound->csmodule_db = (void*) m->nxt;
+    csound->csmodule_db = (void *)m->nxt;
     /* free memory used by database */
-    csound->Free(csound, (void*) m);
+    csound->Free(csound, (void *)m);
   }
   /* return with error code */
   return retval;
 }
 
-__attribute__((used))
-int csoundInitModules(CSOUND *csound) {
-  csoundModule_t  *m;
+__attribute__((used)) int csoundInitModules(CSOUND *csound) {
+  csoundModule_t *m;
   int i, retval = CSOUND_SUCCESS;
-  for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
+  for (m = (csoundModule_t *)csound->csmodule_db; m != NULL; m = m->nxt) {
     i = csoundInitModule(csound, m);
     if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
       retval = i;
@@ -360,8 +359,7 @@ int csoundInitModules(CSOUND *csound) {
 // In browser-wasi, this function is replaced
 // by the js-host.
 
-__attribute__((used))
-extern int csoundLoadModules(CSOUND *csound);
+__attribute__((used)) extern int csoundLoadModules(CSOUND *csound);
 
 int csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;
@@ -369,27 +367,25 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
 
 #else /* __wasi__ */
 
-
 /* load a single plugin library, and run csoundModuleCreate() if present */
 /* returns zero on success */
 
 static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
-                                          const char *libraryPath)
-{
-  csoundModule_t  m;
+                                          const char *libraryPath) {
+  csoundModule_t m;
   volatile jmp_buf tmpExitJmp;
-  csoundModule_t  *mp;
-  char            *fname;
-  void            *h, *p;
-  int             (*infoFunc)(void);
-  int             err;
+  csoundModule_t *mp;
+  char *fname;
+  void *h, *p;
+  int (*infoFunc)(void);
+  int err;
 
   /* check for a valid name */
   if (UNLIKELY(libraryPath == NULL || libraryPath[0] == '\0'))
     return CSOUND_ERROR;
   /* remove leading directory components from name */
-  fname = (char*) libraryPath + (int) strlen(libraryPath);
-  for ( ; fname[0] != DIRSEP && fname != (char*) libraryPath; fname--)
+  fname = (char *)libraryPath + (int)strlen(libraryPath);
+  for (; fname[0] != DIRSEP && fname != (char *)libraryPath; fname--)
     ;
   if (fname[0] == DIRSEP)
     fname++;
@@ -397,27 +393,26 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_ERROR;
   /* load library */
   /*  #if defined(LINUX) */
-  //printf("About to open library '%s'\n", libraryPath);
+  // printf("About to open library '%s'\n", libraryPath);
   /* #endif */
   err = csoundOpenLibrary(&h, libraryPath);
   if (UNLIKELY(err)) {
     char ERRSTR[256];
 #if (defined(LINUX) || defined(__HAIKU__))
-    snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
-             libraryPath, dlerror());
+    snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"), libraryPath,
+             dlerror());
 #else
-    snprintf(ERRSTR, 256, Str("could not open library '%s' (%d)"),
-             libraryPath, err);
+    snprintf(ERRSTR, 256, Str("could not open library '%s' (%d)"), libraryPath,
+             err);
 #endif
     if (csound->delayederrormessages == NULL) {
-      csound->delayederrormessages = csound->Malloc(csound, strlen(ERRSTR)+1);
+      csound->delayederrormessages = csound->Malloc(csound, strlen(ERRSTR) + 1);
       strcpy(csound->delayederrormessages, ERRSTR);
-    }
-    else {
-      char *new =
-        csound->ReAlloc(csound, csound->delayederrormessages,
-                        strlen(csound->delayederrormessages)+strlen(ERRSTR)+11);
-      if (UNLIKELY(new==NULL)) {
+    } else {
+      char *new = csound->ReAlloc(csound, csound->delayederrormessages,
+                                  strlen(csound->delayederrormessages) +
+                                      strlen(ERRSTR) + 11);
+      if (UNLIKELY(new == NULL)) {
         csound->Free(csound, csound->delayederrormessages);
         return CSOUND_ERROR;
       }
@@ -428,7 +423,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     return CSOUND_ERROR;
   }
   /* check if the library is compatible with this version of Csound */
-  infoFunc = (int (*)(void)) csoundGetLibrarySymbol(h, InfoFunc_Name);
+  infoFunc = (int (*)(void))csoundGetLibrarySymbol(h, InfoFunc_Name);
   if (infoFunc != NULL) {
     if (UNLIKELY(check_plugin_compatibility(csound, fname, infoFunc()) != 0)) {
       csoundCloseLibrary(h);
@@ -436,7 +431,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     }
   }
   /* was this plugin already loaded ? */
-  for (mp = (csoundModule_t*) csound->csmodule_db; mp != NULL; mp = mp->nxt) {
+  for (mp = (csoundModule_t *)csound->csmodule_db; mp != NULL; mp = mp->nxt) {
     if (UNLIKELY(mp->h == h)) {
       csoundCloseLibrary(h);
       return CSOUND_SUCCESS;
@@ -446,23 +441,21 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
   memset(&m, 0, sizeof(csoundModule_t));
   m.h = h;
   m.PreInitFunc =
-    (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, PreInitFunc_Name);
+      (int (*)(CSOUND *))csoundGetLibrarySymbol(h, PreInitFunc_Name);
   if (m.PreInitFunc != NULL) {
     /* generic plugin library */
     m.fn.p.InitFunc =
-      (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, InitFunc_Name);
+        (int (*)(CSOUND *))csoundGetLibrarySymbol(h, InitFunc_Name);
     m.fn.p.DestFunc =
-      (int (*)(CSOUND *)) csoundGetLibrarySymbol(h, DestFunc_Name);
+        (int (*)(CSOUND *))csoundGetLibrarySymbol(h, DestFunc_Name);
     m.fn.p.ErrCodeToStr =
-      (const char *(*)(int)) csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
-  }
-  else {
+        (const char *(*)(int))csoundGetLibrarySymbol(h, ErrCodeToStr_Name);
+  } else {
     /* opcode library */
-    m.fn.o.opcode_init =
-      (int64_t (*)(CSOUND *, OENTRY **))
-      csoundGetLibrarySymbol(h, opcode_init_Name);
+    m.fn.o.opcode_init = (int64_t(*)(
+        CSOUND *, OENTRY **))csoundGetLibrarySymbol(h, opcode_init_Name);
     m.fn.o.fgen_init =
-      (NGFENS *(*)(CSOUND *)) csoundGetLibrarySymbol(h, fgen_init_Name);
+        (NGFENS * (*)(CSOUND *)) csoundGetLibrarySymbol(h, fgen_init_Name);
     if (UNLIKELY(m.fn.o.opcode_init == NULL && m.fn.o.fgen_init == NULL)) {
       /* must have csound_opcode_init() or csound_fgen_init() */
       csoundCloseLibrary(h);
@@ -474,35 +467,40 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
   }
   /* set up module info structure */
   /* (note: space for NUL character is already included in size of struct) */
-  p = (void*) csound->Malloc(csound,
-                             sizeof(csoundModule_t) + (size_t) strlen(fname));
+  p = (void *)csound->Malloc(csound,
+                             sizeof(csoundModule_t) + (size_t)strlen(fname));
   if (UNLIKELY(p == NULL)) {
     csoundCloseLibrary(h);
-    csound->ErrorMsg(csound,
-                     "%s", Str("csoundLoadExternal(): memory allocation failure"));
+    csound->ErrorMsg(csound, "%s",
+                     Str("csoundLoadExternal(): memory allocation failure"));
     return CSOUND_MEMORY;
   }
-  mp = (csoundModule_t*) p;
+  mp = (csoundModule_t *)p;
   memcpy(mp, &m, sizeof(csoundModule_t));
   strcpy(&(mp->name[0]), fname);
   /* link into database */
-  mp->nxt = (csoundModule_t*) csound->csmodule_db;
-  csound->csmodule_db = (void*) mp;
+  mp->nxt = (csoundModule_t *)csound->csmodule_db;
+  csound->csmodule_db = (void *)mp;
   /* call csoundModuleCreate() if available */
   if (m.PreInitFunc != NULL) {
-    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+    memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
-      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-      print_module_error(csound, Str("Error in pre-initialisation function "
-                                     "of module '%s'"), fname, NULL, 0);
-      return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
-              CSOUND_MEMORY : CSOUND_INITIALIZATION);
+      memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+      print_module_error(csound,
+                         Str("Error in pre-initialisation function "
+                             "of module '%s'"),
+                         fname, NULL, 0);
+      return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY)
+                  ? CSOUND_MEMORY
+                  : CSOUND_INITIALIZATION);
     }
     err = m.PreInitFunc(csound);
-    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     if (UNLIKELY(err != 0)) {
-      print_module_error(csound, Str("Error in pre-initialisation function "
-                                     "of module '%s'"), fname, &m, err);
+      print_module_error(csound,
+                         Str("Error in pre-initialisation function "
+                             "of module '%s'"),
+                         fname, &m, err);
       return CSOUND_INITIALIZATION;
     }
   }
@@ -510,8 +508,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
   return CSOUND_SUCCESS;
 }
 
-static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
-{
+static int csoundCheckOpcodeDeny(CSOUND *csound, const char *fname) {
   /* Check to see if the fname is on the do-not-load list */
   char buff[256];
   char *th;
@@ -519,15 +516,16 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   char *list = getenv("CS_OMIT_LIBS");
   /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
   /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
-  if (list==NULL) return 0;
-  strNcpy(buff, fname, 255); //buff[255]='\0';
+  if (list == NULL)
+    return 0;
+  strNcpy(buff, fname, 255);    // buff[255]='\0';
   strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
   p = cs_strdup(csound, list);
   deny = cs_strtok_r(p, ",", &th);
   /* printf("DEBUG %s(%d): check buff=%s\n", __FILE__, __LINE__, deny); */
   while (deny) {
     /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
-    if (strcmp(deny, buff)==0) {
+    if (strcmp(deny, buff) == 0) {
       csound->Free(csound, p);
       /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
       return 1;
@@ -539,14 +537,12 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   return 0;
 }
 
-
 static int _dir_exists(char *path) {
   // returns 1 if path is a directory and it exists
   struct stat s;
   int err = stat(path, &s);
   return (err == 0 && S_ISDIR(s.st_mode)) ? 1 : 0;
 }
-
 
 /**
  * Load plugin libraries for Csound instance 'csound', and call
@@ -555,8 +551,7 @@ static int _dir_exists(char *path) {
  * some modules could not be loaded or initialised, and CSOUND_MEMORY
  * if a memory allocation failure has occured.
  */
-int csoundLoadModules(CSOUND *csound)
-{
+int csoundLoadModules(CSOUND *csound) {
 #if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
   DIR *dir;
   struct dirent *f;
@@ -569,9 +564,9 @@ int csoundLoadModules(CSOUND *csound)
   char searchpath_buf[searchpath_buflen];
   char sep =
 #ifdef WIN32
-    ';';
+      ';';
 #else
-  ':';
+      ':';
 #endif
 #ifdef __HAIKU__
   int dfltdir = 0;
@@ -581,17 +576,18 @@ int csoundLoadModules(CSOUND *csound)
     return CSOUND_ERROR;
 
   /* open plugin directory */
-  dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
-                                plugindir_envvar : plugindir64_envvar));
+  dname = csoundGetEnv(
+      csound,
+      (sizeof(MYFLT) == sizeof(float) ? plugindir_envvar : plugindir64_envvar));
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS
     csound->opcodedirWasOK = 0;
-#  ifdef USE_DOUBLE
+#ifdef USE_DOUBLE
     dname = csoundGetEnv(csound, plugindir_envvar);
     if (dname == NULL)
-#  endif
 #endif
-#ifdef  CS_DEFAULT_PLUGINDIR
+#endif
+#ifdef CS_DEFAULT_PLUGINDIR
       dname = CS_DEFAULT_PLUGINDIR;
 #ifdef __HAIKU__
     dfltdir = 1;
@@ -610,8 +606,9 @@ int csoundLoadModules(CSOUND *csound)
   char *userplugindir = getenv("CS_USER_PLUGINDIR");
   // The user set a search path for plugins via an env variable. Paths here
   // should be absolute and should not need variable expansion
-  if(userplugindir != NULL) {
-    snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, userplugindir);
+  if (userplugindir != NULL) {
+    snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep,
+             userplugindir);
     dname = searchpath_buf;
   } else {
 #ifdef CS_DEFAULT_USER_PLUGINDIR
@@ -629,59 +626,59 @@ int csoundLoadModules(CSOUND *csound)
     size_t prefixlen = prefix ? strlen(prefix) : 0;
     size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
 
-    if(pos + prefixlen + 2 > searchpath_buflen - 1) {
+    if (pos + prefixlen + 2 > searchpath_buflen - 1) {
       csound->ErrorMsg(csound, "%s", Str("Plugins search path too long\n"));
-    } else if(userplugindirlen + prefixlen + 1 >= buflen) {
+    } else if (userplugindirlen + prefixlen + 1 >= buflen) {
       csound->ErrorMsg(csound, "%s", Str("User plugin dir too long\n"));
     } else {
-      
+
       snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
-      if(_dir_exists(buf)) {
+      if (_dir_exists(buf)) {
         snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
         dname = searchpath_buf;
       }
     }
 #endif
   }
- 
-  if(UNLIKELY(csound->oparms->odebug))
+
+  if (UNLIKELY(csound->oparms->odebug))
     csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
   /* We now loop through the directory list */
-  while(read_directory) {
+  while (read_directory) {
     /* find separator */
-    if((end = strchr(dname, sep)) != NULL) {
+    if ((end = strchr(dname, sep)) != NULL) {
       *end = '\0';
       /* copy directory name */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = cs_strdup(csound, (char *)dname);
 
-      *end = sep;  /* restore for re-execution */
+      *end = sep; /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
 
     } else {
       /* copy last directory name) */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = cs_strdup(csound, (char *)dname);
       read_directory = 0;
     }
 
     /* protect for the case where there is an
        extra separator at the end */
-    if(*dname1 == '\0') {
+    if (*dname1 == '\0') {
       csound->Free(csound, dname1);
       break;
     }
     dir = opendir(dname1);
-    if (UNLIKELY(dir == (DIR*) NULL)) {
+    if (UNLIKELY(dir == (DIR *)NULL)) {
 #if defined(__HAIKU__)
-      if(!dfltdir)
+      if (!dfltdir)
 #endif
         csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                         dname1, strerror(errno));
       csound->Free(csound, dname1);
       continue;
     }
-    if(UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
     /*     n = csoundLoadOpcodeDB(csound, dname); */
@@ -690,9 +687,11 @@ int csoundLoadModules(CSOUND *csound)
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);
-      if (UNLIKELY(fname[0]=='_')) continue;
-      n = len = (int) strlen(fname);
-      if (UNLIKELY(fname[0]=='_')) continue;
+      if (UNLIKELY(fname[0] == '_'))
+        continue;
+      n = len = (int)strlen(fname);
+      if (UNLIKELY(fname[0] == '_'))
+        continue;
 #if defined(WIN32)
       strcpy(buf, "dll");
       n -= 4;
@@ -707,18 +706,19 @@ int csoundLoadModules(CSOUND *csound)
         continue;
       i = 0;
       do {
-        if (UNLIKELY((fname[++n] | (char) 0x20) != buf[i]))
+        if (UNLIKELY((fname[++n] | (char)0x20) != buf[i]))
           break;
       } while (buf[++i] != '\0');
       if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
-      if (UNLIKELY(((int) strlen(dname) + len + 2) > 1024)) {
+      if (UNLIKELY(((int)strlen(dname) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'"),
                         fname);
         continue;
       }
-      /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
+      /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname);
+       */
       if (UNLIKELY(csoundCheckOpcodeDeny(csound, fname))) {
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
@@ -731,9 +731,9 @@ int csoundLoadModules(CSOUND *csound)
       }
       n = csoundLoadExternal(csound, buf);
       if (UNLIKELY(UNLIKELY(n == CSOUND_ERROR)))
-        continue;               /* ignore non-plugin files */
+        continue; /* ignore non-plugin files */
       if (UNLIKELY(n < err))
-        err = n;                /* record serious errors */
+        err = n; /* record serious errors */
     }
     closedir(dir);
     csound->Free(csound, dname1);
@@ -741,19 +741,16 @@ int csoundLoadModules(CSOUND *csound)
   return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
   return CSOUND_SUCCESS;
-#endif  /* HAVE_DIRENT_H */
+#endif /* HAVE_DIRENT_H */
 }
 
-
-static int cmp_func(const void *p1, const void *p2)
-{
-  return (strcmp(*((const char**) p1), *((const char**) p2)));
+static int cmp_func(const void *p1, const void *p2) {
+  return (strcmp(*((const char **)p1), *((const char **)p2)));
 }
 
-int csoundLoadExternals(CSOUND *csound)
-{
-  char    *s, **lst;
-  int     i, cnt, err;
+int csoundLoadExternals(CSOUND *csound) {
+  char *s, **lst;
+  int i, cnt, err;
 
   s = csound->dl_opcodes_oplibs;
   if (UNLIKELY(s == NULL || s[0] == '\0'))
@@ -767,7 +764,7 @@ int csoundLoadExternals(CSOUND *csound)
     if (s[i] == ',')
       cnt++;
   } while (s[++i] != '\0');
-  lst = (char**) csound->Malloc(csound, sizeof(char*) * cnt);
+  lst = (char **)csound->Malloc(csound, sizeof(char *) * cnt);
   i = cnt = 0;
   lst[cnt++] = s;
   do {
@@ -776,10 +773,10 @@ int csoundLoadExternals(CSOUND *csound)
       s[i] = '\0';
     }
   } while (s[++i] != '\0');
-  qsort((void*) lst, (size_t) cnt, sizeof(char*), cmp_func);
+  qsort((void *)lst, (size_t)cnt, sizeof(char *), cmp_func);
   i = 0;
   do {
-    char  *fname = lst[i];
+    char *fname = lst[i];
     if (fname[0] != '\0' && !(i && strcmp(fname, lst[i - 1]) == 0)) {
       err = csoundLoadExternal(csound, fname);
       if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
@@ -800,12 +797,11 @@ int csoundLoadExternals(CSOUND *csound)
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
  * some modules could not be initialised.
  */
-int csoundInitModules(CSOUND *csound)
-{
-  csoundModule_t  *m;
-  int             i, retval = CSOUND_SUCCESS;
+int csoundInitModules(CSOUND *csound) {
+  csoundModule_t *m;
+  int i, retval = CSOUND_SUCCESS;
   /* call init functions */
-  for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
+  for (m = (csoundModule_t *)csound->csmodule_db; m != NULL; m = m->nxt) {
     i = csoundInitModule(csound, m);
     if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
       retval = i;
@@ -817,66 +813,66 @@ int csoundInitModules(CSOUND *csound)
 /* load a plugin library and also initialise it */
 /* called on deferred loading of opcode plugins */
 
-int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
-{
-  volatile jmp_buf  tmpExitJmp;
-  volatile int      err;
+int csoundLoadAndInitModule(CSOUND *csound, const char *fname) {
+  volatile jmp_buf tmpExitJmp;
+  volatile int err;
 
   err = csoundLoadExternal(csound, fname);
   if (UNLIKELY(err != 0))
     return err;
-  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
   if (UNLIKELY((err = setjmp(csound->exitjmp)) != 0)) {
-    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-    return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
-            CSOUND_MEMORY : CSOUND_INITIALIZATION);
+    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+    return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY)
+                ? CSOUND_MEMORY
+                : CSOUND_INITIALIZATION);
   }
   /* NOTE: this depends on csound->csmodule_db being the most recently */
   /* loaded plugin library */
 
-  err = csoundInitModule(csound, (csoundModule_t*) csound->csmodule_db);
-  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  err = csoundInitModule(csound, (csoundModule_t *)csound->csmodule_db);
+  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
 
   return err;
 }
 
-int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
-{
+int csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
 #if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
-  DIR             *dir;
-  struct dirent   *f;
-  const char      *dname, *fname;
-  char            buf[1024];
-  int             i, n, len, err = CSOUND_SUCCESS;
-  char            *dname1, *end;
-  int             read_directory = 1;
+  DIR *dir;
+  struct dirent *f;
+  const char *dname, *fname;
+  char buf[1024];
+  int i, n, len, err = CSOUND_SUCCESS;
+  char *dname1, *end;
+  int read_directory = 1;
   char sep =
 #ifdef WIN32
-    ';';
+      ';';
 #else
-  ':';
+      ':';
 #endif
 #ifdef __HAIKU__
   int dfltdir = 0;
 #endif
   // VL: check is not wanted
-  //if (UNLIKELY(csound->csmodule_db != NULL))
-  ///return CSOUND_ERROR;
+  // if (UNLIKELY(csound->csmodule_db != NULL))
+  /// return CSOUND_ERROR;
 
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and
   // the value of dname will be discarded, see "dname = opdir" later
-  dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
-                                plugindir_envvar : plugindir64_envvar));
+  dname = csoundGetEnv(
+      csound,
+      (sizeof(MYFLT) == sizeof(float) ? plugindir_envvar : plugindir64_envvar));
   if (dname == NULL) {
 #if ENABLE_OPCODEDIR_WARNINGS
     csound->opcodedirWasOK = 0;
-#  ifdef USE_DOUBLE
+#ifdef USE_DOUBLE
     dname = csoundGetEnv(csound, plugindir_envvar);
     if (dname == NULL)
-#  endif
 #endif
-#ifdef  CS_DEFAULT_PLUGINDIR
+#endif
+#ifdef CS_DEFAULT_PLUGINDIR
       dname = CS_DEFAULT_PLUGINDIR;
 #ifdef __HAIKU__
     dfltdir = 1;
@@ -891,32 +887,32 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
   }
 
   /* We now loop through the directory list */
-  while(read_directory) {
+  while (read_directory) {
     /* find separator */
-    if((end = strchr(dname, sep)) != NULL) {
+    if ((end = strchr(dname, sep)) != NULL) {
       *end = '\0';
       /* copy directory name */
-      dname1 = cs_strdup(csound, (char *) dname);
-      *end = sep;  /* restore for re-execution */
+      dname1 = cs_strdup(csound, (char *)dname);
+      *end = sep; /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
     } else {
       /* copy last directory name) */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = cs_strdup(csound, (char *)dname);
       read_directory = 0;
     }
 
     /* protect for the case where there is an
        extra separator at the end */
-    if(*dname1 == '\0') {
+    if (*dname1 == '\0') {
       csound->Free(csound, dname1);
       break;
     }
 
     dir = opendir(dname1);
-    if (UNLIKELY(dir == (DIR*) NULL)) {
+    if (UNLIKELY(dir == (DIR *)NULL)) {
 #if defined(__HAIKU__)
-      if(!dfltdir)
+      if (!dfltdir)
 #endif
         csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                         dname1, strerror(errno));
@@ -924,7 +920,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
       continue;
     }
 
-    if(UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
     /*     n = csoundLoadOpcodeDB(csound, dname); */
@@ -933,9 +929,11 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
     /* scan all files in directory */
     while ((f = readdir(dir)) != NULL) {
       fname = &(f->d_name[0]);
-      if (UNLIKELY(fname[0]=='_')) continue;
-      n = len = (int) strlen(fname);
-      if (UNLIKELY(fname[0]=='_')) continue;
+      if (UNLIKELY(fname[0] == '_'))
+        continue;
+      n = len = (int)strlen(fname);
+      if (UNLIKELY(fname[0] == '_'))
+        continue;
 #if defined(WIN32)
       strcpy(buf, "dll");
       n -= 4;
@@ -950,18 +948,19 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
         continue;
       i = 0;
       do {
-        if (UNLIKELY((fname[++n] | (char) 0x20) != buf[i]))
+        if (UNLIKELY((fname[++n] | (char)0x20) != buf[i]))
           break;
       } while (buf[++i] != '\0');
       if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
-      if (UNLIKELY(((int) strlen(dname) + len + 2) > 1024)) {
+      if (UNLIKELY(((int)strlen(dname) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'"),
                         fname);
         continue;
       }
-      /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
+      /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname);
+       */
       if (UNLIKELY(csoundCheckOpcodeDeny(csound, fname))) {
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
@@ -972,9 +971,9 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
       }
       n = csoundLoadAndInitModule(csound, buf);
       if (UNLIKELY(UNLIKELY(n == CSOUND_ERROR)))
-        continue;               /* ignore non-plugin files */
+        continue; /* ignore non-plugin files */
       if (UNLIKELY(n < err))
-        err = n;                /* record serious errors */
+        err = n; /* record serious errors */
     }
     closedir(dir);
     csound->Free(csound, dname1);
@@ -982,7 +981,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
   return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
   return CSOUND_SUCCESS;
-#endif  /* HAVE_DIRENT_H */
+#endif /* HAVE_DIRENT_H */
 }
 
 /**
@@ -992,15 +991,14 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
  * CSOUND_ERROR if some modules could not be de-initialised.
  */
 extern int sfont_ModuleDestroy(CSOUND *csound);
-int csoundDestroyModules(CSOUND *csound)
-{
-  csoundModule_t  *m;
-  int             i, retval;
+int csoundDestroyModules(CSOUND *csound) {
+  csoundModule_t *m;
+  int i, retval;
 
   retval = CSOUND_SUCCESS;
   while (csound->csmodule_db != NULL) {
 
-    m = (csoundModule_t*) csound->csmodule_db;
+    m = (csoundModule_t *)csound->csmodule_db;
     /* call destructor functions */
     if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
       i = m->fn.p.DestFunc(csound);
@@ -1012,14 +1010,13 @@ int csoundDestroyModules(CSOUND *csound)
     }
     /* unload library */
     csoundCloseLibrary(m->h);
-    csound->csmodule_db = (void*) m->nxt;
+    csound->csmodule_db = (void *)m->nxt;
     /* free memory used by database */
-    csound->Free(csound, (void*) m);
-
+    csound->Free(csound, (void *)m);
   }
-#ifndef BUILD_PLUGINS    
+#ifndef BUILD_PLUGINS
   sfont_ModuleDestroy(csound);
-#endif    
+#endif
   /* return with error code */
   return retval;
 }
@@ -1030,64 +1027,57 @@ int csoundDestroyModules(CSOUND *csound)
 
 #if defined(WIN32)
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
-{
-  *library = (void*) LoadLibrary(libraryPath);
+PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath) {
+  *library = (void *)LoadLibrary(libraryPath);
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
-{
-  return (int) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
+PUBLIC int csoundCloseLibrary(void *library) {
+  return (int)(FreeLibrary((HMODULE)library) == FALSE ? -1 : 0);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-  return (void*) GetProcAddress((HMODULE) library, procedureName);
+PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName) {
+  return (void *)GetProcAddress((HMODULE)library, procedureName);
 }
 
-#elif  !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif !(defined(__wasi__)) &&                                                  \
+    (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
-{
+PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath) {
   int flg = RTLD_NOW;
   if (libraryPath != NULL) {
-    int len = (int) strlen(libraryPath);
+    int len = (int)strlen(libraryPath);
     /* ugly hack to fix importing modules in Python opcodes */
     if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
       flg |= RTLD_GLOBAL;
     if (len >= 12 && strcmp(&(libraryPath[len - 12]), "/libpy.dylib") == 0)
       flg |= RTLD_GLOBAL;
   }
-  *library = (void*) dlopen(libraryPath, flg);
+  *library = (void *)dlopen(libraryPath, flg);
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
-{
-  return (int) dlclose(library);
+PUBLIC int csoundCloseLibrary(void *library) {
+  return (int)dlclose(library);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-  return (void*) dlsym(library, procedureName);
+PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName) {
+  return (void *)dlsym(library, procedureName);
 }
 
-#else /* case for platforms without shared libraries -- added 062404, akozar */
+#else /* case for platforms without shared libraries -- added 062404, akozar   \
+       */
 
-int csoundOpenLibrary(void **library, const char *libraryPath)
-{
+int csoundOpenLibrary(void **library, const char *libraryPath) {
   *library = NULL;
   return -1;
 }
 
-int csoundCloseLibrary(void *library)
-{
+int csoundCloseLibrary(void *library) {
   return 0;
 }
 
-void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
+void *csoundGetLibrarySymbol(void *library, const char *procedureName) {
   return NULL;
 }
 
@@ -1095,30 +1085,28 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 
 #if ENABLE_OPCODEDIR_WARNINGS
 static const char *opcodedirWarnMsg[] = {
-  "################################################################",
+    "################################################################",
 #ifndef USE_DOUBLE
-  "#               WARNING: OPCODE7DIR IS NOT SET !               #",
+    "#               WARNING: OPCODE7DIR IS NOT SET !               #",
 #else
-  "#              WARNING: OPCODE7DIR64 IS NOT SET !              #",
+    "#              WARNING: OPCODE7DIR64 IS NOT SET !              #",
 #endif
-  "# Csound requires this environment variable to be set to find  #",
-  "# its plugin libraries. If it is not set, you may experience   #",
-  "# missing opcodes, audio/MIDI drivers, or utilities.           #",
-  "################################################################",
-  NULL
-};
+    "# Csound requires this environment variable to be set to find  #",
+    "# its plugin libraries. If it is not set, you may experience   #",
+    "# missing opcodes, audio/MIDI drivers, or utilities.           #",
+    "################################################################",
+    NULL};
 #endif
 
-void print_opcodedir_warning(CSOUND *p)
-{
+void print_opcodedir_warning(CSOUND *p) {
 #if ENABLE_OPCODEDIR_WARNINGS
   if (!p->opcodedirWasOK) {
-    const char  **sp;
+    const char **sp;
     for (sp = &(opcodedirWarnMsg[0]); *sp != NULL; sp++)
       p->MessageS(p, CSOUNDMSG_WARNING, "        %s\n", Str(*sp));
   }
 #else
-  (void) p;
+  (void)p;
 #endif
 }
 
@@ -1162,7 +1150,7 @@ extern int32_t hrtfearly_localops_init(CSOUND *, void *);
 extern int32_t minmax_localops_init(CSOUND *, void *);
 extern int32_t gendy_localops_init(CSOUND *, void *);
 extern int32_t vbap_localops_init(CSOUND *, void *);
-extern int32_t vaops_localops_init(CSOUND *, void*);
+extern int32_t vaops_localops_init(CSOUND *, void *);
 extern int32_t ugakbari_localops_init(CSOUND *, void *);
 extern int32_t harmon_localops_init(CSOUND *, void *);
 extern int32_t pitchtrack_localops_init(CSOUND *, void *);
@@ -1235,7 +1223,7 @@ extern int32_t trigEnv_init_modules(CSOUND *csound);
 extern int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
 extern int32_t scansyn_init_(CSOUND *csound);
 extern int32_t scansynx_init_(CSOUND *csound);
-  
+
 /**
    Builtin linkage for C fgens - Instructions:
    - use csoundCore.h instead of csdl.h.
@@ -1247,113 +1235,141 @@ extern int32_t scansynx_init_(CSOUND *csound);
    ftgenab[] array initialisation.
    - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
-typedef NGFENS* (*FGINITFN)(CSOUND *);
+typedef NGFENS *(*FGINITFN)(CSOUND *);
 
 NGFENS *quadbezier_fgens_init(CSOUND *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
-NGFENS *padsyn_fgen_init(CSOUND *); 
+NGFENS *padsyn_fgen_init(CSOUND *);
 NGFENS *mp3in_fgen_init(CSOUND *);
 
-CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
-{
-  int     i;
+CS_NOINLINE int csoundInitStaticModules(CSOUND *csound) {
+  int i;
   int32_t length;
-  OENTRY  *opcodlst_n;
-  const INITFN staticmodules[] = {                                               
+  OENTRY *opcodlst_n;
+  const INITFN staticmodules[] = {
 #if defined(LINUX)
     cpumeter_localops_init,
 #endif
 #if !(defined(__wasi__))
     counter_localops_init,
     system_localops_init,
-#ifndef NO_SERIAL_OPCODES                                 
+#ifndef NO_SERIAL_OPCODES
     serial_localops_init,
-#endif                                 
+#endif
 #ifdef HAVE_SOCKETS
     sockrecv_localops_init,
     socksend_localops_init,
 #endif
-#endif  // !wasi                           
-#if defined(LINUX) || defined(__MACH__)                         
-    control_localops_init, urandom_localops_init,
+#endif // !wasi
+#if defined(LINUX) || defined(__MACH__)
+    control_localops_init,
+    urandom_localops_init,
 #endif
-    scnoise_localops_init, afilts_localops_init,
-    mp3in_localops_init, hrtferX_localops_init,
-    hrtfearly_localops_init, hrtfreverb_localops_init,
-    bformdec2_localops_init, babo_localops_init,
-    bilbar_localops_init, vosim_localops_init,
-    compress_localops_init,  pinker_localops_init,
-    squinewave_localops_init,  eqfil_localops_init,
-    hrtfopcodes_localops_init, lufs_localops_init,
-    sterrain_localops_init,date_localops_init,
-    liveconv_localops_init, gamma_localops_init,
-    wpfilters_localops_init, gendy_localops_init,
-    phisem_localops_init, physmod_localops_init,
-    framebuffer_localops_init, cell_localops_init,
-    exciter_localops_init, buchla_localops_init,
-    select_localops_init, platerev_localops_init,
-    sequencer_localops_init,grain4_localops_init,
-    loscilx_localops_init, pan2_localops_init,
-    minmax_localops_init, vaops_localops_init,
-    ugakbari_localops_init, harmon_localops_init,
-    pitchtrack_localops_init, partikkel_localops_init,
-    shape_localops_init, tabsum_localops_init,
-    crossfm_localops_init, pvlock_localops_init,
-    fareyseq_localops_init,  paulstretch_localops_init,
-    tabaudio_localops_init,  scoreline_localops_init, 
-    modmatrix_localops_init, ambicode1_localops_init,
-    arrayvars_localops_init, zak_localops_init,  
-    scugens_localops_init, emugens_localops_init,
-    pvoc_localops_init, spectra_localops_init,
-    vbap_localops_init,        
-    NULL };
-  
-  const INITFN2 staticmodules2[] = {
-    stdopc_ModuleInit,
-    newgabopc_ModuleInit,
-    pvsopc_ModuleInit,
-    sfont_ModuleInit,
-    csoundModuleInit_ampmidid,
-    csoundModuleInit_mixer,
-    csoundModuleInit_doppler,
-    csoundModuleInit_ftsamplebank,
-    csoundModuleInit_signalflowgraph,
-    arrayops_init_modules,
-    lfsr_init_modules,
-    pvsops_init_modules,
-    trigEnv_init_modules,
-    csoundModuleInit_fractalnoise,
-    scansyn_init_,
-    scansynx_init_,  
+    scnoise_localops_init,
+    afilts_localops_init,
+    mp3in_localops_init,
+    hrtferX_localops_init,
+    hrtfearly_localops_init,
+    hrtfreverb_localops_init,
+    bformdec2_localops_init,
+    babo_localops_init,
+    bilbar_localops_init,
+    vosim_localops_init,
+    compress_localops_init,
+    pinker_localops_init,
+    squinewave_localops_init,
+    eqfil_localops_init,
+    hrtfopcodes_localops_init,
+    lufs_localops_init,
+    sterrain_localops_init,
+    date_localops_init,
+    liveconv_localops_init,
+    gamma_localops_init,
+    wpfilters_localops_init,
+    gendy_localops_init,
+    phisem_localops_init,
+    physmod_localops_init,
+    framebuffer_localops_init,
+    cell_localops_init,
+    exciter_localops_init,
+    buchla_localops_init,
+    select_localops_init,
+    platerev_localops_init,
+    sequencer_localops_init,
+    grain4_localops_init,
+    loscilx_localops_init,
+    pan2_localops_init,
+    minmax_localops_init,
+    vaops_localops_init,
+    ugakbari_localops_init,
+    harmon_localops_init,
+    pitchtrack_localops_init,
+    partikkel_localops_init,
+    shape_localops_init,
+    tabsum_localops_init,
+    crossfm_localops_init,
+    pvlock_localops_init,
+    fareyseq_localops_init,
+    paulstretch_localops_init,
+    tabaudio_localops_init,
+    scoreline_localops_init,
+    modmatrix_localops_init,
+    ambicode1_localops_init,
+    arrayvars_localops_init,
+    zak_localops_init,
+    scugens_localops_init,
+    emugens_localops_init,
+    pvoc_localops_init,
+    spectra_localops_init,
+    vbap_localops_init,
     NULL
   };
 
-  const FGINITFN fgentab[] = {  
-    ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,
-    padsyn_fgen_init, mp3in_fgen_init, NULL };
+  const INITFN2 staticmodules2[] = {stdopc_ModuleInit,
+                                    newgabopc_ModuleInit,
+                                    pvsopc_ModuleInit,
+                                    sfont_ModuleInit,
+                                    csoundModuleInit_ampmidid,
+                                    csoundModuleInit_mixer,
+                                    csoundModuleInit_doppler,
+                                    csoundModuleInit_ftsamplebank,
+                                    csoundModuleInit_signalflowgraph,
+                                    arrayops_init_modules,
+                                    lfsr_init_modules,
+                                    pvsops_init_modules,
+                                    trigEnv_init_modules,
+                                    csoundModuleInit_fractalnoise,
+                                    scansyn_init_,
+                                    scansynx_init_,
+                                    NULL};
 
- 
-  for (i=0; staticmodules[i]!=NULL; i++) {
+  const FGINITFN fgentab[] = {ftest_fgens_init,      farey_fgens_init,
+                              quadbezier_fgens_init, padsyn_fgen_init,
+                              mp3in_fgen_init,       NULL};
+
+  for (i = 0; staticmodules[i] != NULL; i++) {
     length = (staticmodules[i])(csound, &opcodlst_n);
 
-    if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
-    length /= (int32_t) sizeof(OENTRY);
+    if (UNLIKELY(length <= 0L))
+      return CSOUND_ERROR;
+    length /= (int32_t)sizeof(OENTRY);
     if (length) {
       if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n, length) != 0))
         return CSOUND_ERROR;
     }
   }
 
-  for (i=0; staticmodules2[i]!=NULL; i++) {
-    if(UNLIKELY(staticmodules2[i](csound))) return CSOUND_ERROR;
+  for (i = 0; staticmodules2[i] != NULL; i++) {
+    if (UNLIKELY(staticmodules2[i](csound)))
+      return CSOUND_ERROR;
   }
 
   /* modules were initialised successfully */
   /* Now fgens */
-  for (i = 0; fgentab[i]!=NULL; i++) {
+  for (i = 0; fgentab[i] != NULL; i++) {
     int j;
-    NGFENS  *names = (fgentab[i])(csound);
+    NGFENS *names = (fgentab[i])(csound);
     for (j = 0; names[j].name != NULL; j++)
       allocgen(csound, names[j].name, names[j].fn);
   }

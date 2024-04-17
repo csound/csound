@@ -49,19 +49,20 @@
 #include <math.h>
 #include <ctype.h>
 
-#define IBUF    (4096)
-#define IBUF2   (IBUF/2)
-#define OBUF    (4096)
+#define IBUF (4096)
+#define IBUF2 (IBUF / 2)
+#define OBUF (4096)
 
-#define FIND(MSG)                                                   \
-{                                                                   \
-    if (*s == '\0')                                                 \
-      if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) {    \
-        dieu(csound, MSG); return -1;                               \
-      }                                                             \
-}
+#define FIND(MSG)                                                              \
+  {                                                                            \
+    if (*s == '\0')                                                            \
+      if (!(--argc) || (((s = *argv++) != NULL) && *s == '-')) {               \
+        dieu(csound, MSG);                                                     \
+        return -1;                                                             \
+      }                                                                        \
+  }
 
-//static  void    kaiser(int, float *, int, int, double);
+// static  void    kaiser(int, float *, int, int, double);
 
 #if 0
 static  void    usage(CSOUND *);
@@ -761,15 +762,14 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 #include <unistd.h>
 #endif
 
-static int srconv(CSOUND *csound, int argc, char **argv)
-{
-  (void) argc;
-    csound->Message(csound, "%s",
-                    Str("Do not use srconv but the src_conv program\n"));
+static int srconv(CSOUND *csound, int argc, char **argv) {
+  (void)argc;
+  csound->Message(csound, "%s",
+                  Str("Do not use srconv but the src_conv program\n"));
 #ifndef MSVC
-    return execv("src_conv", argv);
+  return execv("src_conv", argv);
 #else
-    return 0;
+  return 0;
 #endif
 }
 #endif
@@ -861,12 +861,11 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 /* module interface */
 
-int srconv_init_(CSOUND *csound)
-{
-    int retval = csound->AddUtility(csound, "srconv", srconv);
-    if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "srconv",
-                                             Str("Sample rate conversion"));
-    }
-    return retval;
+int srconv_init_(CSOUND *csound) {
+  int retval = csound->AddUtility(csound, "srconv", srconv);
+  if (!retval) {
+    retval = csound->SetUtilityDescription(csound, "srconv",
+                                           Str("Sample rate conversion"));
+  }
+  return retval;
 }

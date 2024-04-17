@@ -36,83 +36,72 @@
 
 /* Spectral Extraction.  Based on ideas from Tom Erbe's SoundHack  */
 
-void SpectralExtract(
-    float   *inp,       /* pointer to input data */
-    float   *pvcopy,
-    int32    fsize,      /* frame size we're working with */
-    int32    MaxFrame,
-    int32_t     mode,
-    MYFLT   freqlim
-    )
-{
-    int32    i, j, k;
-    float   *frm_1;
-    int32    ampindex, freqindex;
-    MYFLT   freqTemp, freqframes[10]={0.0}, freqdiff=FL(0.0), ampscale;
-    int32            framecurb;
+void SpectralExtract(float *inp, /* pointer to input data */
+                     float *pvcopy,
+                     int32 fsize, /* frame size we're working with */
+                     int32 MaxFrame, int32_t mode, MYFLT freqlim) {
+  int32 i, j, k;
+  float *frm_1;
+  int32 ampindex, freqindex;
+  MYFLT freqTemp, freqframes[10] = {0.0}, freqdiff = FL(0.0), ampscale;
+  int32 framecurb;
 
-    memcpy(pvcopy, inp, (fsize+2L)*MaxFrame*sizeof(float));
-    frm_1 = pvcopy;
-    for (j=0; j<(fsize/2L + 1L); j++) {
-      ampindex = j + j;
-      freqindex = ampindex + 1L;
-      for (i=0; i<MaxFrame; i++) {
-        framecurb = minval(6, MaxFrame-i);
-        freqdiff = FL(0.0);
-        /* get frequencies from 6 or less consecutive frames */
-        for (k=0; k<=framecurb; k++)
-          freqframes[k] = *(frm_1 + freqindex + ((fsize+2L)*k) +
-                            ((fsize+2L)*i));
+  memcpy(pvcopy, inp, (fsize + 2L) * MaxFrame * sizeof(float));
+  frm_1 = pvcopy;
+  for (j = 0; j < (fsize / 2L + 1L); j++) {
+    ampindex = j + j;
+    freqindex = ampindex + 1L;
+    for (i = 0; i < MaxFrame; i++) {
+      framecurb = minval(6, MaxFrame - i);
+      freqdiff = FL(0.0);
+      /* get frequencies from 6 or less consecutive frames */
+      for (k = 0; k <= framecurb; k++)
+        freqframes[k] =
+            *(frm_1 + freqindex + ((fsize + 2L) * k) + ((fsize + 2L) * i));
 
-        /* average the deviation over framecurb interframe periods */
-        for (k=0; k<framecurb; k++) {
-          freqTemp = (MYFLT)fabs(freqframes[k] - freqframes[k+1L]);
-          freqdiff += freqTemp * (FL(1.0)/(MYFLT)framecurb);
-        }
+      /* average the deviation over framecurb interframe periods */
+      for (k = 0; k < framecurb; k++) {
+        freqTemp = (MYFLT)fabs(freqframes[k] - freqframes[k + 1L]);
+        freqdiff += freqTemp * (FL(1.0) / (MYFLT)framecurb);
+      }
 
-        if (mode==1) { /* lets through just the "noisy" parts */
-          if (freqdiff > freqlim && freqdiff < freqlim * 2) {
-            ampscale = (freqdiff - freqlim) / freqlim;
-            frm_1[ampindex+((fsize+2L)*i)] *= ampscale;
-          }
-          else if (freqdiff <= freqlim)
-            frm_1[ampindex+((fsize+2L)*i)] = FL(0.0);
-        }
-        else if (mode==2) { /* lets through just the stable-pitched parts */
-          if (freqdiff < freqlim) {
-            ampscale = (freqlim - freqdiff) / freqlim;
-            frm_1[ampindex+((fsize+2L)*i)] *= ampscale;
-          }
-          else
-            frm_1[ampindex+((fsize+2L)*i)] = FL(0.0);
-        }
+      if (mode == 1) { /* lets through just the "noisy" parts */
+        if (freqdiff > freqlim && freqdiff < freqlim * 2) {
+          ampscale = (freqdiff - freqlim) / freqlim;
+          frm_1[ampindex + ((fsize + 2L) * i)] *= ampscale;
+        } else if (freqdiff <= freqlim)
+          frm_1[ampindex + ((fsize + 2L) * i)] = FL(0.0);
+      } else if (mode == 2) { /* lets through just the stable-pitched parts */
+        if (freqdiff < freqlim) {
+          ampscale = (freqlim - freqdiff) / freqlim;
+          frm_1[ampindex + ((fsize + 2L) * i)] *= ampscale;
+        } else
+          frm_1[ampindex + ((fsize + 2L) * i)] = FL(0.0);
       }
     }
+  }
 }
 
-MYFLT PvocMaxAmp(
-    float   *inp,       /* pointer to input data */
-    int32    fsize,      /* frame size we're working with */
-    int32    MaxFrame
-    )
-{
-    int32    j, k;
-    float   *frm_0, *frmx;
-    int32    ampindex;
-    MYFLT   MaxAmpInData = FL(0.0);
+MYFLT PvocMaxAmp(float *inp,  /* pointer to input data */
+                 int32 fsize, /* frame size we're working with */
+                 int32 MaxFrame) {
+  int32 j, k;
+  float *frm_0, *frmx;
+  int32 ampindex;
+  MYFLT MaxAmpInData = FL(0.0);
 
-    frm_0 = inp;
+  frm_0 = inp;
 
-/* find max amp in the whole pvoc file */
-    for (j=0; j<(fsize/2L + 1L); ++j) {
-      ampindex = j + j;
-      for (k=0; k<=MaxFrame; k++) {
-        frmx = frm_0 + ((fsize+2L)*k);
-        MaxAmpInData = (frmx[ampindex] > MaxAmpInData ?
-                        frmx[ampindex] : MaxAmpInData);
-      }
+  /* find max amp in the whole pvoc file */
+  for (j = 0; j < (fsize / 2L + 1L); ++j) {
+    ampindex = j + j;
+    for (k = 0; k <= MaxFrame; k++) {
+      frmx = frm_0 + ((fsize + 2L) * k);
+      MaxAmpInData =
+          (frmx[ampindex] > MaxAmpInData ? frmx[ampindex] : MaxAmpInData);
     }
-    return(MaxAmpInData);
+  }
+  return (MaxAmpInData);
 }
 
 /*********************************************************************/
@@ -124,23 +113,18 @@ MYFLT PvocMaxAmp(
 /* of the table and an amplitude of 1 points to the end of the table */
 /*********************************************************************/
 
-void PvAmpGate(
-    MYFLT   *buf,       /* where to get our mag/pha pairs */
-    int32    fsize,      /* frame size we're working with */
-    FUNC    *ampfunc,
-    MYFLT   MaxAmpInData
-    )
-{
-    int32    j;
-    int32    ampindex, funclen, mapPoint;
+void PvAmpGate(MYFLT *buf,  /* where to get our mag/pha pairs */
+               int32 fsize, /* frame size we're working with */
+               FUNC *ampfunc, MYFLT MaxAmpInData) {
+  int32 j;
+  int32 ampindex, funclen, mapPoint;
 
-    funclen = ampfunc->flen;
+  funclen = ampfunc->flen;
 
-    for (j=0; j<(fsize/2L + 1L); ++j) {
-      ampindex = j + j;
-      /* use normalised amp as index into table for amp scaling */
-      mapPoint = (int32)((buf[ampindex] / MaxAmpInData) * funclen);
-      buf[ampindex] *= *(ampfunc->ftable + mapPoint);
-    }
+  for (j = 0; j < (fsize / 2L + 1L); ++j) {
+    ampindex = j + j;
+    /* use normalised amp as index into table for amp scaling */
+    mapPoint = (int32)((buf[ampindex] / MaxAmpInData) * funclen);
+    buf[ampindex] *= *(ampfunc->ftable + mapPoint);
+  }
 }
-

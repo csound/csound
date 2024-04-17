@@ -29,11 +29,12 @@
 #define min(x, y) (((x) < (y)) ? (x) : (y))
 #define dv2_31 (FL(4.656612873077392578125e-10))
 
-typedef struct opdata { OPDS h; } OPDATA;
+typedef struct opdata {
+  OPDS h;
+} OPDATA;
 
-inline int32_t lsr (int32_t x, int32_t n)
-{
-    return int32_t(((uint32_t)x) >> n);
+inline int32_t lsr(int32_t x, int32_t n) {
+  return int32_t(((uint32_t)x) >> n);
 }
 
 /* VECTOR INTRINSICS */
@@ -57,8 +58,10 @@ class UserInterface {
   bool fStopped;
 
 public:
-  UserInterface() : fStopped(false) {}
-  virtual ~UserInterface() {}
+  UserInterface() : fStopped(false) {
+  }
+  virtual ~UserInterface() {
+  }
   virtual void addButton(char *label, MYFLT *zone) = 0;
   virtual void addToggleButton(char *label, MYFLT *zone) = 0;
   virtual void addCheckButton(char *label, MYFLT *zone) = 0;
@@ -74,8 +77,12 @@ public:
   virtual void openVerticalBox(char *label) = 0;
   virtual void closeBox() = 0;
   virtual void run() = 0;
-  void stop() { fStopped = true; }
-  bool stopped() { return fStopped; }
+  void stop() {
+    fStopped = true;
+  }
+  bool stopped() {
+    return fStopped;
+  }
 };
 
 class csUI : public UserInterface {
@@ -83,10 +90,14 @@ private:
   MYFLT *args[2];
   int32_t ctrlCount;
 
-  void addZone(MYFLT *zone) { args[ctrlCount++] = zone; }
+  void addZone(MYFLT *zone) {
+    args[ctrlCount++] = zone;
+  }
 
 public:
-  csUI() : UserInterface(), ctrlCount(0) { args[0] = args[1] = NULL; };
+  csUI() : UserInterface(), ctrlCount(0) {
+    args[0] = args[1] = NULL;
+  };
   virtual ~csUI(){};
 
   virtual void addButton(char *label, MYFLT *zone) {
@@ -133,13 +144,20 @@ public:
     IGN(step);
     addZone(zone);
   }
-  virtual void openFrameBox(char *) {}
-  virtual void openTabBox(char *) {}
-  virtual void openHorizontalBox(char *) {}
-  virtual void openVerticalBox(char *) {}
-  virtual void closeBox() {}
-  virtual void show() {}
-  virtual void run() {}
+  virtual void openFrameBox(char *) {
+  }
+  virtual void openTabBox(char *) {
+  }
+  virtual void openHorizontalBox(char *) {
+  }
+  virtual void openVerticalBox(char *) {
+  }
+  virtual void closeBox() {
+  }
+  virtual void show() {
+  }
+  virtual void run() {
+  }
 
   void updateCtrlZones(MYFLT *cs_amp, MYFLT *cs_beta) {
     *args[0] = *cs_amp;
@@ -155,8 +173,11 @@ protected:
   int32_t fSamplingFreq;
 
 public:
-  dsp() { fSamplingFreq = -1; }
-  virtual ~dsp() {}
+  dsp() {
+    fSamplingFreq = -1;
+  }
+  virtual ~dsp() {
+  }
   virtual int32_t getNumInputs() = 0;
   virtual int32_t getNumOutputs() = 0;
   virtual void buildUserInterface(UserInterface *userInterface) = 0;
@@ -244,9 +265,15 @@ public:
     m->declare("math.lib/license", "LGPL");
   }
 
-  virtual int32_t getNumInputs() { return 0; }
-  virtual int32_t getNumOutputs() { return 1; }
-  static void classInit(int32_t sr) { IGN(sr); }
+  virtual int32_t getNumInputs() {
+    return 0;
+  }
+  virtual int32_t getNumOutputs() {
+    return 1;
+  }
+  static void classInit(int32_t sr) {
+    IGN(sr);
+  }
   virtual void instanceInit(int32_t samplingFreq) {
     fSamplingFreq = samplingFreq;
     iConst0 = min(192000, max(1, fSamplingFreq));
@@ -440,7 +467,7 @@ int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->faust->init((int32_t)CS_ESR);
   p->faust->buildUserInterface(p->cs_interface);
   csound->RegisterDeinitCallback(
-      csound, p, (int32_t (*)(CSOUND *, void *))fractalnoise_cleanup);
+      csound, p, (int32_t(*)(CSOUND *, void *))fractalnoise_cleanup);
   return OK;
 }
 
@@ -450,32 +477,29 @@ int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
   return OK;
 }
 
-
 static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 3,
-                               (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
-                               (SUBR)fractalnoise_process},
+                             (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
+                             (SUBR)fractalnoise_process},
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
-
 
 PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
-    status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
-                                   oentry->flags, oentry->thread,
-                                   oentry->outypes, oentry->intypes,
-                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
+    status |= csound->AppendOpcode(
+        csound, oentry->opname, oentry->dsblksiz, oentry->flags, oentry->thread,
+        oentry->outypes, oentry->intypes,
+        (int32_t(*)(CSOUND *, void *))oentry->iopadr,
+        (int32_t(*)(CSOUND *, void *))oentry->kopadr,
+        (int32_t(*)(CSOUND *, void *))oentry->aopadr);
   }
   return status;
 }
 
-  
 #ifdef BUILD_PLUGINS
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return OK;
-} 
+}
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_fractalnoise(csound);
 }

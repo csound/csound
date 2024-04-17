@@ -21,25 +21,26 @@
     02110-1301 USA
 */
 
-#include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
+#include "cscore.h" /*  CSCORE_DEFAULT.C   */
 
-void cscore_(CSOUND *cs)  /* callable from Csound or standalone cscore  */
-                          /* csound -C will run Csound scores as normal */
+void cscore_(CSOUND *cs) /* callable from Csound or standalone cscore  */
+                         /* csound -C will run Csound scores as normal */
 {
-    EVLIST *a;
+  EVLIST *a;
 
-    while ((a = cscoreListGetSection(cs)) != NULL
-           && a->nevents > 0) {                    /* read each sect from score */
-      a = cscoreListAppendStringEvent(cs, a,"s");  /* re-append the s statement */
-      cscoreListPlay(cs, a);                       /* play this section */
-      cscoreListFreeEvents(cs, a);                 /* reclaim the space */
-    }
+  while ((a = cscoreListGetSection(cs)) != NULL &&
+         a->nevents > 0) {                       /* read each sect from score */
+    a = cscoreListAppendStringEvent(cs, a, "s"); /* re-append the s statement */
+    cscoreListPlay(cs, a);                       /* play this section */
+    cscoreListFreeEvents(cs, a);                 /* reclaim the space */
+  }
 
-    if (a) cscoreListFreeEvents(cs, a);            /* reclaim space from lget() */
-    a = cscoreListCreate(cs, 1);
-    a = cscoreListAppendStringEvent(cs, a,"e");
-    cscoreListPlay(cs, a);                         /* end-of-score for summaries */
-    cscoreListFreeEvents(cs, a);
+  if (a)
+    cscoreListFreeEvents(cs, a); /* reclaim space from lget() */
+  a = cscoreListCreate(cs, 1);
+  a = cscoreListAppendStringEvent(cs, a, "e");
+  cscoreListPlay(cs, a); /* end-of-score for summaries */
+  cscoreListFreeEvents(cs, a);
 
-    return;
+  return;
 }

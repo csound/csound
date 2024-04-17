@@ -25,216 +25,190 @@
 #include <numeric>
 
 // linseg type opcode with trigger mechanism
-struct TrigLinseg : csnd::Plugin<1, 64>
-{
-    int init()
-    {
-        uint32_t argCnt = 1;
-        totalLength = 0;
-        samplingRate = this->sr();
-        playEnv = 0;
+struct TrigLinseg : csnd::Plugin<1, 64> {
+  int init() {
+    uint32_t argCnt = 1;
+    totalLength = 0;
+    samplingRate = this->sr();
+    playEnv = 0;
+    counter = 0;
+    outargs[0] = inargs[1];
+    segment = 0;
+    outValue = 0;
+    values.clear();
+    durations.clear();
+
+    while (argCnt < in_count()) {
+      if (argCnt % 2 == 0)
+        durations.push_back(inargs[argCnt] * samplingRate);
+      else
+        values.push_back(inargs[argCnt]);
+
+      argCnt++;
+    }
+
+    // values.push_back(inargs[argCnt - 1]);
+
+    incr = (values[1] - values[0]) / durations[0];
+    totalLength = std::accumulate(durations.begin(), durations.end(), 0);
+    return OK;
+  }
+
+  int kperf() {
+    for (uint32_t i = offset; i < nsmps; i++)
+      outargs[0] = envGenerator(1);
+    return OK;
+  }
+
+  int aperf() {
+    for (uint32_t i = offset; i < nsmps; i++)
+      outargs(0)[i] = envGenerator(1);
+
+    return OK;
+  }
+
+  MYFLT envGenerator(int sampIncr) {
+    // trigger envelope
+    if (inargs[0] == 1) {
+      incr = (values[1] - values[0]) / durations[0];
+      outValue = inargs[1];
+      playEnv = 1;
+    }
+
+    if (playEnv == 1 && segment < durations.size()) {
+      if (counter < durations[segment]) {
+        outValue += incr;
+        counter += sampIncr;
+      } else {
+        segment++;
         counter = 0;
-        outargs[0] = inargs[1];
-        segment = 0;
-        outValue = 0;
-        values.clear();
-        durations.clear();
-
-        while (argCnt < in_count())
-        {
-            if (argCnt % 2 == 0)
-                durations.push_back (inargs[argCnt]*samplingRate);
-            else
-                values.push_back (inargs[argCnt]);
-
-            argCnt++;
-        }
-
-        //values.push_back(inargs[argCnt - 1]);
-
-        incr = (values[1] - values[0]) / durations[0];
-        totalLength = std::accumulate (durations.begin(), durations.end(), 0);
-        return OK;
+        if (segment < durations.size())
+          incr = (values[segment + 1] - values[segment]) / durations[segment];
+      }
+    } else {
+      playEnv = 0;
+      counter = 0;
+      segment = 0;
+      outValue = values[values.size() - 1];
     }
 
-    int kperf()
-    {
-       for (uint32_t i = offset; i < nsmps; i++)
-            outargs[0] = envGenerator (1);
-        return OK;
-    }
+    return outValue;
+  }
 
-
-    int aperf()
-    {
-        for (uint32_t i = offset; i < nsmps; i++)
-            outargs (0)[i] = envGenerator (1);
-
-        return OK;
-    }
-
-    MYFLT envGenerator (int sampIncr)
-    {
-        // trigger envelope
-        if (inargs[0] == 1)
-          {
-            incr = (values[1] - values[0]) / durations[0];
-            outValue = inargs[1];
-            playEnv = 1;
-          }
-
-
-        if (playEnv == 1 && segment < durations.size())
-        {
-            if (counter < durations[segment])
-            {
-                outValue += incr;
-                counter += sampIncr;
-                        }
-            else
-            {
-                segment++;
-                counter = 0;
-                if (segment < durations.size())
-                  incr = (values[segment + 1] - values[segment]) / durations[segment];
-            }
-        }
-        else
-        {
-            playEnv = 0;
-            counter = 0;
-            segment = 0;
-            outValue = values[values.size() - 1];
-        }
-
-        return outValue;
-    }
-
-    uint32_t samplingRate, playEnv, counter, totalLength, segment;
-    MYFLT outValue, incr;
-    std::vector<MYFLT> values;
-    std::vector<MYFLT> durations;
+  uint32_t samplingRate, playEnv, counter, totalLength, segment;
+  MYFLT outValue, incr;
+  std::vector<MYFLT> values;
+  std::vector<MYFLT> durations;
 };
 
 // expseg type opcode with trigger mechanism
-struct TrigExpseg : csnd::Plugin<1, 64>
-{
-    int init()
-    {
-        uint32_t argCnt = 1;
-        samplingRate = this->sr();
-        playEnv = 0;
+struct TrigExpseg : csnd::Plugin<1, 64> {
+  int init() {
+    uint32_t argCnt = 1;
+    samplingRate = this->sr();
+    playEnv = 0;
+    counter = 0;
+    outargs[0] = inargs[1];
+    segment = 0;
+    outValue = inargs[1];
+    values.clear();
+    durations.clear();
+
+    while (argCnt < in_count()) {
+      if (argCnt % 2 == 0)
+        durations.push_back(inargs[argCnt] * samplingRate);
+      else {
+        if (inargs[argCnt] <= 0.0) {
+          csound->message("iVal is 0");
+          return NOTOK;
+        }
+
+        values.push_back(inargs[argCnt]);
+      }
+
+      argCnt++;
+    }
+
+    incr = pow(values[1] / values[0], 1 / (durations[0]));
+
+    return OK;
+  }
+
+  int kperf() {
+    for (uint32_t i = offset; i < nsmps; i++)
+      outargs[0] = envGenerator(1);
+    return OK;
+  }
+
+  int aperf() {
+    for (uint32_t i = offset; i < nsmps; i++)
+      outargs(0)[i] = envGenerator(1);
+
+    return OK;
+  }
+
+  MYFLT envGenerator(int sampIncr) {
+    // trigger envelope
+    if (inargs[0] == 1) {
+      incr = pow(values[1] / values[0], 1 / (durations[0]));
+      outValue = inargs[1];
+      playEnv = 1;
+    }
+
+    if (playEnv == 1 && segment < durations.size()) {
+      if (counter < durations[segment]) {
+        outValue *= incr;
+        counter += sampIncr;
+      } else {
+        segment++;
         counter = 0;
-        outargs[0] = inargs[1];
-        segment = 0;
-        outValue = inargs[1];
-        values.clear();
-        durations.clear();
-
-        while (argCnt < in_count())
-        {
-            if (argCnt % 2 == 0)
-                durations.push_back (inargs[argCnt]*samplingRate);
-            else
-            {
-                if (inargs[argCnt] <= 0.0)
-                {
-                    csound->message ("iVal is 0");
-                    return NOTOK;
-                }
-
-                values.push_back (inargs[argCnt]);
-            }
-
-            argCnt++;
-        }
-
-        incr = pow (values[1] / values[0], 1 / (durations[0]));
-
-        return OK;
+        if (segment < durations.size())
+          incr = pow(values[segment + 1] / values[segment],
+                     1 / (durations[segment]));
+      }
+    } else {
+      playEnv = 0;
+      counter = 0;
+      segment = 0;
+      outValue = values[values.size() - 1];
     }
 
-    int kperf()
-    {
-        for (uint32_t i = offset; i < nsmps; i++)
-            outargs[0] = envGenerator (1);
-        return OK;
-    }
+    return outValue;
+  }
 
-
-    int aperf()
-    {
-        for (uint32_t i = offset; i < nsmps; i++)
-            outargs (0)[i] = envGenerator (1);
-
-        return OK;
-    }
-
-    MYFLT envGenerator (int sampIncr)
-    {
-        // trigger envelope
-        if (inargs[0] == 1)
-          {
-            incr = pow(values[1] / values[0], 1 / (durations[0]));
-            outValue = inargs[1];
-            playEnv = 1;
-          }
-
-
-        if (playEnv == 1 && segment < durations.size())
-        {
-            if (counter < durations[segment])
-            {
-                outValue *= incr;
-                counter += sampIncr;
-            }
-            else
-            {
-                segment++;
-                counter = 0;
-                if(segment < durations.size())
-                  incr = pow (values[segment + 1] / values[segment], 1 / (durations[segment]));
-            }
-        }
-        else
-        {
-            playEnv = 0;
-            counter = 0;
-            segment = 0;
-            outValue = values[values.size() - 1];
-        }
-
-        return outValue;
-    }
-
-    uint32_t samplingRate, playEnv, counter, segment;
-    MYFLT outValue, incr;
-    std::vector<MYFLT> values;
-    std::vector<MYFLT> durations;
+  uint32_t samplingRate, playEnv, counter, segment;
+  MYFLT outValue, incr;
+  std::vector<MYFLT> values;
+  std::vector<MYFLT> durations;
 };
 
-
-
-static void onload (csnd::Csound* csound)
-{
-    csnd::plugin<TrigExpseg> (csound, "trigExpseg.aa", "a", "km", csnd::thread::ia);
-    csnd::plugin<TrigExpseg> (csound, "trigExpseg.kk", "k", "km", csnd::thread::ik);
-    csnd::plugin<TrigLinseg> (csound, "trigLinseg.aa", "a", "km", csnd::thread::ia);
-    csnd::plugin<TrigLinseg> (csound, "trigLinseg.kk", "k", "km", csnd::thread::ik);
-    csnd::plugin<TrigExpseg> (csound, "trigexpseg.aa", "a", "km", csnd::thread::ia);
-    csnd::plugin<TrigExpseg> (csound, "trigexpseg.kk", "k", "km", csnd::thread::ik);
-    csnd::plugin<TrigLinseg> (csound, "triglinseg.aa", "a", "km", csnd::thread::ia);
-    csnd::plugin<TrigLinseg> (csound, "triglinseg.kk", "k", "km", csnd::thread::ik);
+static void onload(csnd::Csound *csound) {
+  csnd::plugin<TrigExpseg>(csound, "trigExpseg.aa", "a", "km",
+                           csnd::thread::ia);
+  csnd::plugin<TrigExpseg>(csound, "trigExpseg.kk", "k", "km",
+                           csnd::thread::ik);
+  csnd::plugin<TrigLinseg>(csound, "trigLinseg.aa", "a", "km",
+                           csnd::thread::ia);
+  csnd::plugin<TrigLinseg>(csound, "trigLinseg.kk", "k", "km",
+                           csnd::thread::ik);
+  csnd::plugin<TrigExpseg>(csound, "trigexpseg.aa", "a", "km",
+                           csnd::thread::ia);
+  csnd::plugin<TrigExpseg>(csound, "trigexpseg.kk", "k", "km",
+                           csnd::thread::ik);
+  csnd::plugin<TrigLinseg>(csound, "triglinseg.aa", "a", "km",
+                           csnd::thread::ia);
+  csnd::plugin<TrigLinseg>(csound, "triglinseg.kk", "k", "km",
+                           csnd::thread::ik);
 }
 
 #ifdef BUILD_PLUGINS
 #include <modload.h>
 void csnd::on_load(csnd::Csound *csound) {
-    onload(csound);
+  onload(csound);
 }
 #else
 extern "C" int32_t trigEnv_init_modules(CSOUND *csound) {
-    onload((csnd::Csound *)csound);
-    return OK;
-  }
+  onload((csnd::Csound *)csound);
+  return OK;
+}
 #endif
