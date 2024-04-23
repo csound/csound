@@ -272,12 +272,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
     sed -i -e 's/LINUX/1/g' Opcodes/date.c
 
-    echo 'extern "C" {
-     extern int pvsops_init_(CSOUND *csound) {
-       csnd::on_load((csnd::Csound *)csound);
-       return 0;
-     }
-    }' >>  Opcodes/pvsops.cpp
   '';
 
   configurePhase = ''
@@ -548,7 +542,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \
       ../Opcodes/tabsum.c \
-      ../Opcodes/tl/sc_noise.c \
+      ../Opcodes/sc_noise.c \
       ../Opcodes/ugakbari.c \
       ../Opcodes/ugens7.c \
       ../Opcodes/ugens8.c \
