@@ -269,6 +269,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if (need_deinit) {
         //        p->h.insdshead = csound->ids->insdshead;
         /* FIXME: should check for error here */
+        p->h.insdshead  = p->head;
         csound->RegisterDeinitCallback(csound, p, fout_deinit_callback);
       }
     }
@@ -440,6 +441,8 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
     STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                         "STDOPC_GLOBALS");
 
+    p->f.head = p->h.insdshead;
+
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
     if (format_ >= 51)
@@ -501,6 +504,7 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
     STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                         "STDOPC_GLOBALS");    
 
+    p->f.head = p->h.insdshead;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
      if (format_ >=  51)
@@ -575,6 +579,7 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
     SFLIB_INFO sfinfo;
     int32_t     format_, n, buf_reqd;
 
+    p->f.head = p->h.insdshead;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
@@ -864,6 +869,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
 {
     SFLIB_INFO sfinfo;
     int32_t     n, buf_reqd;
+    p->f.head = p->h.insdshead;
     p->nargs = p->INOCOUNT - 3;
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
@@ -927,6 +933,8 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
     SFLIB_INFO sfinfo;
     int32_t     n, buf_reqd;
+
+    p->f.head = p->h.insdshead;
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
@@ -1089,6 +1097,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
     SFLIB_INFO sfinfo;
     int32_t     n, buf_reqd;
 
+    p->f.head = p->h.insdshead;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
     if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
@@ -1304,6 +1313,7 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
     int32_t     n;
     char    *sarg = (char*) p->fmt->data;
     char    *sdest = p->txtstring;
+    p->f.head = p->h.insdshead;
 
     memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 

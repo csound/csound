@@ -35,6 +35,7 @@ typedef struct FOUT_FILE_ {
     int32_t     nchnls;
     int32_t async;
     int32_t     idx;        /* file index + 1 */
+    INSDS *head;
 } FOUT_FILE;
 
 typedef struct {
