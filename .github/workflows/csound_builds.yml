@@ -82,7 +82,7 @@ jobs:
 
   iOS_build:
     name: iOS build
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: update bison
         run: brew install bison && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
@@ -134,7 +134,7 @@ jobs:
 
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
