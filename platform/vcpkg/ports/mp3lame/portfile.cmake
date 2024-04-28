@@ -103,8 +103,8 @@ else()
         list(APPEND OPTIONS --host "${VCPKG_OSX_ARCHITECTURES}-apple-darwin")
     endif()
 
-    if(VCPKG_CROSSCOMPILING)
-        execute_process(COMMAND "uname" "-m" OUTPUT_VARIABLE HOST_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE) 
+    if(VCPKG_TARGET_IS_EMSCRIPTEN AND VCPKG_CROSSCOMPILING)
+        execute_process(COMMAND "uname" "-m" OUTPUT_VARIABLE HOST_ARCH OUTPUT_STRIP_TRAILING_WHITESPACE)
         list(APPEND OPTIONS --host=${HOST_ARCH})
     endif()
 
