@@ -82,7 +82,7 @@ class PluggableHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
       delegate_class = getattr(module, 'HTTPRequestHandlerDelegate', None)
       delegate = delegate_class()
       if not delegate:
-        logging.warn(
+        logging.warning(
             'Unable to find symbol HTTPRequestHandlerDelegate in module %s.' %
             handler_script)
 
