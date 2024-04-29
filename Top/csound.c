@@ -3644,11 +3644,13 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundAddStandardTypes(csound, csound->typePool);
       /* csoundLoadExternals(csound); */
     }
+    int max_len = 21;
+    char *s;
+
 #ifndef BARE_METAL
     /* allow selecting real time audio module */
-    int max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-    char *s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
  #ifdef __HAIKU__
       strcpy(s, "haiku");
@@ -3662,11 +3664,11 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       0, NULL, &max_len,
                                       Str("Real time audio module name"), NULL);
 #endif
+
     /* initialise real time MIDI */
     csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
-#ifndef BARE_METAL    
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
     csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
     csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
@@ -3703,7 +3705,8 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       Str("Do not handle special MIDI controllers"
                                           " (sustain pedal etc.)"), NULL);
- 
+#ifndef BARE_METAL    
+
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);

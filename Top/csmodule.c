@@ -1226,7 +1226,9 @@ extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
 extern int32_t csoundModuleInit_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_doppler(CSOUND *csound);
+#ifndef BARE_METAL
 extern int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
+#endif
 extern int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
 extern int32_t arrayops_init_modules(CSOUND *csound);
 extern int32_t lfsr_init_modules(CSOUND *csound);
@@ -1317,7 +1319,9 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     csoundModuleInit_ampmidid,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
+#ifndef BARE_METAL
     csoundModuleInit_ftsamplebank,
+ #endif
     csoundModuleInit_signalflowgraph,
     arrayops_init_modules,
     lfsr_init_modules,
