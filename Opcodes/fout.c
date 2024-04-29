@@ -447,6 +447,7 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");    
 
+
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) MYFLT2LRND(*p->iflag);
   if (format_ >=  51)
@@ -463,6 +464,7 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
     sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   p->buf_pos = 0;
+
 
   if (CS_KSMPS >= 512)
     buf_reqd = p->guard_pos = CS_KSMPS * len;
@@ -808,6 +810,7 @@ int32_t infile_deinit(CSOUND *csound, INFILE *p) {
 
 static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
 {
+
   SFLIB_INFO sfinfo;
   int32_t     n, buf_reqd;
   p->nargs = p->INOCOUNT - 3;
@@ -827,6 +830,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     p->frames = CS_KSMPS;
   else
     p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
+
 
   if (CS_KSMPS >= 512)
     buf_reqd = CS_KSMPS * sfinfo.channels;
@@ -872,6 +876,7 @@ int32_t infilea_deinit(CSOUND *csound, INFILEA *p) {
 }
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
+
   SFLIB_INFO sfinfo;
   int32_t     n, buf_reqd;
   p->currpos = MYFLT2LRND(*p->iskpfrms);
@@ -903,6 +908,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     n = p->f.idx - 1;
   }
   else return NOTOK;
+
 
   if (((STDOPCOD_GLOBALS*)
        csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
@@ -1256,6 +1262,7 @@ int32_t fprintf_deinit(CSOUND *csound, FPRINTF *p) {
 
 static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
 {
+
   char    *sarg = (char*) p->fmt->data;
   char    *sdest = p->txtstring;
   FOUT_FILE* pp;
