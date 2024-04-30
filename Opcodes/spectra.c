@@ -1,3 +1,4 @@
+
 /*
   spectra.c:
 
@@ -121,13 +122,13 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
     }
     hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
     oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
-    if (csound->GetTypeForArg(p->signal) != csound->AsigType(csound)) {     /* for sr sampling:           */
+    if (csound->GetTypeForArg(p->signal) != csound->KsigType(csound)) {     /* for sr sampling:           */
       oct = ((int32_t)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
       hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
     }
     dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
     locps = hicps / (1L << nocts);
-    csound->Warning(csound,  Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
+    csound->Warning(csound, Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
                     hicps, locps);
 
     basfrq = hicps/2.0;                     /* oct below retuned top */
@@ -389,14 +390,14 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*       int64_t        auxsiz; */
 
 /*       csound->Message(csound, */
-/*                       "%s", Str("noctdft: %s window, %s out, making tables ...\n"), */
+/*                       Str("noctdft: %s window, %s out, making tables ...\n"), */
 /*                       (hanning) ? "hanning":"hamming", outstring[p->dbout]); */
 /*       if (p->timcount <= 0) */
-/*         return csound->InitError(csound, "%s", Str("illegal iprd")); */
+/*         return csound->InitError(csound, Str("illegal iprd")); */
 /*       if (nfreqs <= 0 || nfreqs > MAXFRQS) */
-/*         return csound->InitError(csound, "%s", Str("illegal ifrqs")); */
+/*         return csound->InitError(csound, Str("illegal ifrqs")); */
 /*       if (Q <= FL(0.0)) */
-/*         return csound->InitError(csound, "%s", Str("illegal Q value")); */
+/*         return csound->InitError(csound, Str("illegal Q value")); */
 /*       nsamps = downp->nsamps; */
 /*       p->nfreqs = nfreqs; */
 /*       p->curq = Q; */
@@ -413,11 +414,11 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*         curfrq *= frqmlt; */
 /*       } */
 /*       if ((windsiz = *(p->winlen)) > nsamps) {/\* chk longest windsiz *\/ */
-/*         return csound->InitError(csound, "%s", Str("Q %4.1f needs %d samples, " */
+/*         return csound->InitError(csound, Str("Q %4.1f needs %d samples, " */
 /*                                              "octdown has just %d"), */
 /*                                          Q, windsiz, nsamps); */
 /*       } */
-/*       else csound->Message(csound, "%s", Str("noctdft: Q %4.1f uses %d of " */
+/*       else csound->Message(csound, Str("noctdft: Q %4.1f uses %d of " */
 /*                                        "%d samps per octdown\n"), */
 /*                                    Q, windsiz, nsamps); */
 /*       auxsiz = (nsamps + 2*sumk) * sizeof(MYFLT);/\* calc local space reqd *\/ */
@@ -448,7 +449,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*       if (*p->idsines != FL(0.0)) { */
 /*         /\* if reqd, display windowed sines immediately *\/ */
 /*         csound->dispset(csound, &p->dwindow, p->sinp, (int32_t) sumk, */
-/*                                 "%s", Str("octdft windowed sines:"), 0, "octdft"); */
+/*                                 Str("octdft windowed sines:"), 0, "octdft"); */
 /*         csound->display(csound, &p->dwindow); */
 /*       } */
 /*       SPECset(csound, */
@@ -477,7 +478,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
        /\* if not yet time for new spec, return *\/ */
 /*     if (p->auxch.auxp==NULL) { /\* RWD fix *\/ */
 /*       return csound->PerfError(csound, &(p->h), */
-/*                                "%s", Str("noctdft: not initialised")); */
+/*                                Str("noctdft: not initialised")); */
 /*     } */
 /*     p->countdown = p->timcount;      /\* else reset counter & proceed:   *\/ */
 /*     downp = p->dsig; */
@@ -649,8 +650,7 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
     *fp++ = FL(0.0);   /* clear unused lo and hi range */
   for (fp = fhip; fp < fendp; )
     *fp++ = FL(0.0);
-
-  csound->Warning(csound,  Str("specptrk: %d freqs, %d%s ptls at "),
+  csound->Warning(csound, Str("specptrk: %d freqs, %d%s ptls at "),
                   (int32_t)nfreqs, (int32_t)nptls, inc==2 ? Str(" odd") : "");
   for (nn = 0; nn < nptls; nn++)
     csound->Warning(csound, "\t%d", p->pdist[nn]);
@@ -678,8 +678,8 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
   }
   p->threshon *= weightsum;
   p->threshoff *= weightsum;
-  csound->Warning(csound,  Str("\n\tdbthresh %4.1f: X-corr %s "
-                               "threshon %4.1f, threshoff %4.1f\n"),
+  csound->Warning(csound, Str("\n\tdbthresh %4.1f: X-corr %s "
+                              "threshon %4.1f, threshoff %4.1f\n"),
                   dbthresh, outstring[inspecp->dbout],
                   p->threshon, p->threshoff);
   p->oct0p = oct0p;                 /* virtual loc of oct 0 */
@@ -1010,34 +1010,48 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
                              "%s", Str("specscal: local buffer not initialised"));
   }
   p->fthresh = p->fscale + npts;
-  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifscale)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifscale)) == NULL)) {
     /* if fscale given,        */
     return csound->InitError(csound, "%s", Str("missing fscale table"));
   }
   else {
+    int32_t floatph = !IS_POW_TWO(ftp->flen);
     int32_t nn; // = npts;
     int32_t phs = 0;
     int32_t inc = (int32_t)PHMASK / npts;
     int32_t lobits = ftp->lobits;
+    MYFLT incf = ((MYFLT)ftp->flen)/npts, phsf = FL(0.0);
     MYFLT *ftable = ftp->ftable;
     MYFLT *flp = p->fscale;
     for (nn=0;nn<npts;nn++) {
-      flp[nn] = *(ftable + (phs >> lobits));   /*  sample into scale area */
-      phs += inc;
+      if(floatph) {
+        flp[nn] = ftable[(int32_t) phsf];
+        phsf += incf;
+      } else {
+        flp[nn] = *(ftable + (phs >> lobits));   /*  sample into scale area */
+        phs += inc;
+      }
     }
   }
   if ((p->thresh = (int32_t)*p->ifthresh) &&
-      (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
+      (ftp=csound->FTnp2Find(csound, p->ifthresh)) != NULL) {
     /* if fthresh given,       */
+    int32_t floatph = !IS_POW_TWO(ftp->flen);
     int32_t nn; // = npts;
     int32_t phs = 0;
     int32_t inc = (int32_t)PHMASK / npts;
     int32_t lobits = ftp->lobits;
+    MYFLT incf = ((MYFLT)ftp->flen)/npts, phsf = FL(0.0);
     MYFLT *ftable = ftp->ftable;
     MYFLT *flp = p->fthresh;
     for (nn=0;nn<npts;nn++) {
-      flp[nn] = *(ftable + (phs >> lobits));   /*  sample into thresh area */
-      phs += inc;
+      if(floatph) {
+        flp[nn] = ftable[(int32_t) phsf];
+        phsf += incf;
+      } else {
+        flp[nn] = *(ftable + (phs >> lobits));   /*  sample into thresh area */
+        phs += inc;
+      }
     }
   }
   else p->thresh = 0;
@@ -1161,20 +1175,27 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
   outspecp->nfreqs = inspecp->nfreqs;
   outspecp->dbout = inspecp->dbout;
   outspecp->downsrcp = inspecp->downsrcp;
-  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifhtim)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifhtim)) == NULL)) {
     /* if fhtim table given,    */
     return csound->InitError(csound, "%s", Str("missing htim ftable"));
   }
   {
+    int32_t floatph = !IS_POW_TWO(ftp->flen);
     int32_t nn;
     int32_t phs = 0;
     int32_t inc = (int32_t)PHMASK / npts;
     int32_t lobits = ftp->lobits;
+    MYFLT incf = ((MYFLT)ftp->flen)/npts, phsf = FL(0.0);
     MYFLT *ftable = ftp->ftable;
     MYFLT *flp = p->coefs;
     for (nn=0;nn<npts;nn++) {
-      flp[nn] = *(ftable + (phs >> lobits));    /*  sample into coefs area */
-      phs += inc;
+      if(floatph) {
+        flp[nn] = ftable[(int32_t) phsf];
+        phsf += incf;
+      } else {
+        flp[nn] = *(ftable + (phs >> lobits));    /*  sample into coefs area */
+        phs += inc;
+      }
     }
   }
   {
@@ -1254,7 +1275,6 @@ static OENTRY spectra_localops[] = {
   { "pitchamdf",S(PITCHAMDF),0, "kk","aiioppoo",
     (SUBR)pitchamdfset, (SUBR)pitchamdf },
   { "hsboscil",S(HSBOSC), TR, "a", "kkkiiioo",
-
     (SUBR)hsboscset,(SUBR)hsboscil },
   { "phasorbnk", S(PHSORBNK),0,"a", "xkio",
     (SUBR)phsbnkset, (SUBR)phsorbnk },

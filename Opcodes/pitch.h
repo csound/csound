@@ -99,6 +99,7 @@ typedef struct {
     uint32_t     count;
     int32_t     inerr;
     AUXCH   lphs;
+  MYFLT floatph;
 } ADSYNT;
 
 typedef struct {

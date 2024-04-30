@@ -3322,7 +3322,7 @@ int resize_table(CSOUND *csound, RESIZE *p)
       printf("WARNING: EXPERIMENTAL CODE\n");
       warned = 1;
     }
-    if (UNLIKELY((ftp = csound->FTFind(csound, p->fn)) == NULL))
+    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->fn)) == NULL))
       return NOTOK;
     if (ftp->flen<fsize)
       ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,

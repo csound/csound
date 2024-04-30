@@ -3,7 +3,7 @@
 
   Copyright (C) 1991 Barry Vercoe, John ffitch
 
-  This file is part of Csound.
+  This file is part of Csound
 
   The Csound Library is free software; you can redistribute it
   and/or modify it under the terms of the GNU Lesser General Public
@@ -475,6 +475,22 @@ OENTRY opcodlst_1[] = {
   { "oscil3.kaA",S(OSC),0,         "a",  "kai[]o", oscsetA, oscka3 },
   { "oscil3.akA",S(OSC),0,         "a",  "aki[]o", oscsetA, oscak3 },
   { "oscil3.aaA",S(OSC),0,         "a",  "aai[]o", oscsetA, oscaa3 },
+  { "poscil.a", S(OSC), TR, "a", "kkjo", (SUBR)posc_set,(SUBR)posckk },
+  { "poscil.kk", S(OSC), TR, "k", "kkjo", (SUBR)posc_set,(SUBR)kposc,NULL },
+  { "poscil.ka", S(OSC), TR, "a", "kajo", (SUBR)posc_set,  (SUBR)poscka },
+  { "poscil.ak", S(OSC), TR, "a", "akjo", (SUBR)posc_set,  (SUBR)poscak },
+  { "poscil.aa", S(OSC), TR, "a", "aajo", (SUBR)posc_set,  (SUBR)poscaa },
+  { "lposcil",  S(LPOSC), TR, "a", "kkkkjo", (SUBR)lposc_set, (SUBR)lposc},
+  { "poscil3.a",S(OSC), TR, "a", "kkjo",
+    (SUBR)posc_set,(SUBR)posc3kk },
+  { "poscil3.kk",S(OSC), TR, "k", "kkjo",
+    (SUBR)posc_set,(SUBR)kposc3,NULL},
+  { "poscil3.ak", S(OSC), TR, "a", "akjo", (SUBR)posc_set, (SUBR)posc3ak },
+  { "poscil3.ka", S(OSC), TR, "a", "kajo", (SUBR)posc_set, (SUBR)posc3ka },
+  { "poscil3.aa", S(OSC), TR, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
+  { "lposcil3", S(LPOSC), TR,  "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
+  { "lposcila", S(LPOSC),      TR,  "a", "akkkio",
+    (SUBR)lposc_set, (SUBR)lposca},    
   /* end change */
   { "foscil", S(FOSC),TR,        "a",  "xkxxkjo",foscset,   foscil  },
   { "foscili",S(FOSC),TR,        "a",  "xkxxkjo",foscset,   foscili },
