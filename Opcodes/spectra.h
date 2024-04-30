@@ -183,6 +183,7 @@ typedef struct {
     uint32_t     count;
     int32_t     inerr;
     AUXCH   lphs;
+    int32_t floatph;
 } ADSYNT;
 
 typedef struct {

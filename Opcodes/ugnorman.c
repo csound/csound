@@ -78,9 +78,8 @@
 /* static variables used for atsbufread and atsbufreadnz */
 static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound)
 {
-  return  &(((STDOPCOD_GLOBALS*)
-             csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS")
-             )->atsbufreadaddr);
+  STDOPCOD_GLOBALS* pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
+  return &(pp->atsbufreadaddr);
 }
 
 /* byte swaps a double */
@@ -186,7 +185,7 @@ static int32_t atsinfo_S(CSOUND *csound, ATSINFO *p)
   default:
     return csound->InitError(csound,
                              "%s", Str("ATSINFO: location is out of bounds: "
-                                       "0-8 are the only possible selections"));
+                                 "0-8 are the only possible selections"));
   }
   /* if not swapped then just return the data */
   if (!swapped) {
@@ -225,7 +224,7 @@ static int32_t atsinfo(CSOUND *csound, ATSINFO *p)
   default:
     return csound->InitError(csound,
                              "%s", Str("ATSINFO: location is out of bounds: "
-                                       "0-8 are the only possible selections"));
+                                 "0-8 are the only possible selections"));
   }
   /* if not swapped then just return the data */
   if (!swapped) {
@@ -315,7 +314,7 @@ static int32_t atsreadset(CSOUND *csound, ATSREAD *p)
   /* check to see if partial is valid */
   if (UNLIKELY((int32_t) (*p->ipartial) > n_partials ||
                (int32_t) (*p->ipartial) <= 0)) {
-    return csound->InitError(csound, Str("ATSREAD: partial %i out of range, "
+    return csound->InitError(csound,  Str("ATSREAD: partial %i out of range, "
                                          "max allowed is %i"),
                              (int32_t) (*p->ipartial), n_partials);
   }
@@ -428,7 +427,7 @@ static int32_t atsread(CSOUND *csound, ATSREAD *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSREAD: only positive time pointer "
-                                        "values allowed, setting to zero\n"));
+                                  "values allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {
@@ -437,7 +436,7 @@ static int32_t atsread(CSOUND *csound, ATSREAD *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSREAD: timepointer out of range, "
-                                        "truncated to last frame\n"));
+                                  "truncated to last frame\n"));
     }
   }
   else
@@ -531,7 +530,7 @@ static int32_t atsreadnzset(CSOUND *csound, ATSREADNZ *p)
   default:
     return csound->InitError(csound,
                              "%s", Str("ATSREADNZ: Type either not implemented "
-                                       "or does not contain noise"));
+                                 "or does not contain noise"));
   }
   /* flag set to reduce the amount of warnings sent out */
   /* for time pointer out of range */
@@ -591,7 +590,7 @@ static int32_t atsreadnzset_S(CSOUND *csound, ATSREADNZ *p)
   default:
     return csound->InitError(csound,
                              "%s", Str("ATSREADNZ: Type either not implemented "
-                                       "or does not contain noise"));
+                                 "or does not contain noise"));
   }
   /* flag set to reduce the amount of warnings sent out */
   /* for time pointer out of range */
@@ -611,7 +610,7 @@ static int32_t atsreadnz(CSOUND *csound, ATSREADNZ *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSREADNZ: only positive time pointer "
-                                        "values allowed, setting to zero\n"));
+                                  "values allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {
@@ -620,7 +619,7 @@ static int32_t atsreadnz(CSOUND *csound, ATSREADNZ *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSREADNZ: timepointer out of range, "
-                                        "truncated to last frame\n"));
+                                  "truncated to last frame\n"));
     }
   }
   else
@@ -646,21 +645,23 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
   int32_t   memsize, n_partials, type;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSADD: Function table number "
-                                               "for synthesis waveform not valid"));
+                                         "for synthesis waveform not valid"));
   }
   p->ftp = ftp;
-
+  p->floatph = !IS_POW_TWO(ftp->flen);
   /* set up gate function table */
   if (*p->igatefun > FL(0.0)) {
-    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
+    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL)) {
       return csound->InitError(csound, "%s", Str("ATSADD: Gate Function table "
-                                                 "number not valid"));
+                                           "number not valid"));
     }
     else
       p->AmpGateFunc = AmpGateFunc;
+    p->floatph |= !IS_POW_TWO(AmpGateFunc->flen);
   }
+
 
   /* load memfile */
   p->swapped = load_atsfile(csound,
@@ -701,7 +702,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
   /* make sure partials are in range */
   if (UNLIKELY((int32_t) (*p->iptloffset+*p->iptls * *p->iptlincr) > n_partials ||
                (int32_t) (*p->iptloffset) < 0)) {
-    return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
+    return csound->InitError(csound,  Str("ATSADD: Partial(s) out of range, "
                                          "max partial allowed is %i"),
                              n_partials);
   }
@@ -754,21 +755,24 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
   int32_t   memsize, n_partials, type;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSADD: Function table number "
-                                               "for synthesis waveform not valid"));
+                                         "for synthesis waveform not valid"));
   }
   p->ftp = ftp;
+  p->floatph = !IS_POW_TWO(ftp->flen);
 
   /* set up gate function table */
   if (*p->igatefun > FL(0.0)) {
-    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
+    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL)) {
       return csound->InitError(csound, "%s", Str("ATSADD: Gate Function table "
-                                                 "number not valid"));
+                                           "number not valid"));
     }
     else
       p->AmpGateFunc = AmpGateFunc;
+    p->floatph |= !IS_POW_TWO(AmpGateFunc->flen);
   }
+
 
   /* load memfile */
   p->swapped = load_atsfile(csound,
@@ -809,7 +813,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
   /* make sure partials are in range */
   if (UNLIKELY((int32_t) (*p->iptloffset+*p->iptls * *p->iptlincr) > n_partials ||
                (int32_t) (*p->iptloffset) < 0)) {
-    return csound->InitError(csound, Str("ATSADD: Partial(s) out of range, "
+    return csound->InitError(csound,  Str("ATSADD: Partial(s) out of range, "
                                          "max partial allowed is %i"),
                              n_partials);
   }
@@ -855,15 +859,16 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
 static int32_t atsadd(CSOUND *csound, ATSADD *p)
 {
   MYFLT   frIndx;
-  MYFLT   *ar, amp, fract, v1, *ftab,a,inca, *oldamps = p->oldamps;
+  MYFLT   *ar, amp, fract, v1, *ftab,a,inca, *oldamps = p->oldamps, incrf;
   FUNC    *ftp;
+  double  phasef;
   int32   lobits, phase, inc;
   double  *oscphase;
   int32_t i;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32_t  numpartials = (int32_t) *p->iptls;
+  int32_t  numpartials = (int32_t) *p->iptls, floatph = p->floatph;
   ATS_DATA_LOC *buf;
 
   buf = p->buf;
@@ -877,7 +882,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;
       csound->Warning(csound, "%s", Str("ATSADD: only positive time pointer "
-                                        "values are allowed, setting to zero\n"));
+                                  "values are allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {
@@ -886,7 +891,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSADD: time pointer out of range, "
-                                        "truncating to last frame\n"));
+                                  "truncating to last frame\n"));
     }
   }
   else
@@ -910,14 +915,27 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
     inca = (amp-oldamps[i])/nsmps;
     a = oldamps[i];
     /* put in * kfmod */
-    inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
+    if(floatph)
+      incrf = p->buf[i].freq * CS_ONEDSR * *p->kfmod;
+    else
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
+     
     for (n=offset; n<nsmps; n++) {
-      ftab = ftp->ftable + (phase >> lobits);
-      v1 = *ftab++;
-      fract = (MYFLT) PFRAC(phase);
-      ar[n] += (v1 + fract * (*ftab - v1)) * a;
-      phase += inc;
-      phase &= PHMASK;
+      if(!floatph) {
+        ftab = ftp->ftable + (phase >> lobits);
+        v1 = *ftab++;
+        fract = (MYFLT) PFRAC(phase);
+        ar[n] += (v1 + fract * (*ftab - v1)) * a;
+        phase += inc;
+        phase &= PHMASK;
+      } else {
+        MYFLT pos = phasef * ftp->flen;
+        MYFLT frac = pos - (int32_t) pos;
+        ftab = ftp->ftable + (int32_t) pos;
+        v1 = *ftab++;
+        ar[n] += (v1 + (*ftab - v1) * frac) * a;
+        phasef = PHMOD1(phasef + incrf);
+      } 
       a+=inca;
     }
     *oscphase = (double) phase;
@@ -1115,11 +1133,11 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     if (type < 5)
       return csound->InitError(csound,
                                "%s", Str("ATSADDNZ: "
-                                         "This file type contains no noise"));
+                                   "This file type contains no noise"));
     else
       return csound->InitError(csound,
                                "%s", Str("ATSADDNZ: This file type has not been "
-                                         "implemented in this code yet."));
+                                   "implemented in this code yet."));
   }
 
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
@@ -1285,11 +1303,11 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     if (type < 5)
       return csound->InitError(csound,
                                "%s", Str("ATSADDNZ: "
-                                         "This file type contains no noise"));
+                                   "This file type contains no noise"));
     else
       return csound->InitError(csound,
                                "%s", Str("ATSADDNZ: This file type has not been "
-                                         "implemented in this code yet."));
+                                   "implemented in this code yet."));
   }
 
   p->datastart = (double *) (p->atsmemfile->beginp + sizeof(ATSSTRUCT));
@@ -1312,7 +1330,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
                p->bands <0 || /* Allow zero bands for no good reason */
                p->bandoffset < 0)) {
     return csound->InitError(csound, "%s", Str("ATSADDNZ: Band(s) out of range, "
-                                               "max band allowed is 25"));
+                                         "max band allowed is 25"));
   }
 
   /* point the data pointer to the correct partials */
@@ -1449,7 +1467,7 @@ static int32_t atsaddnz(CSOUND *csound, ATSADDNZ *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;
       csound->Warning(csound, "%s", Str("ATSADDNZ: only positive time pointer "
-                                        "values are allowed, setting to zero\n"));
+                                  "values are allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {
@@ -1458,7 +1476,7 @@ static int32_t atsaddnz(CSOUND *csound, ATSADDNZ *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSADDNZ: time pointer out of range, "
-                                        "truncating to last frame\n"));
+                                  "truncating to last frame\n"));
     }
   }
   else
@@ -1609,7 +1627,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
   if (UNLIKELY((int32_t)(*p->iptloffset+*p->iptls* *p->iptlincr) > p->npartials ||
                (int32_t) (*p->iptloffset) < 0)) {
     return csound->InitError(csound,
-                             Str("ATSSINNOI: Partial(s) out of range, "
+                              Str("ATSSINNOI: Partial(s) out of range, "
                                  "max partial allowed is %i"), p->npartials);
   }
   /* get a pointer to the beginning of the data */
@@ -1797,7 +1815,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
                p->npartials ||
                (int32_t) (*p->iptloffset) < 0)) {
     return csound->InitError(csound,
-                             Str("ATSSINNOI: Partial(s) out of range, "
+                              Str("ATSSINNOI: Partial(s) out of range, "
                                  "max partial allowed is %i"), p->npartials);
   }
   /* get a pointer to the beginning of the data */
@@ -1923,7 +1941,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;
       csound->Warning(csound, "%s", Str("ATSSINNOI: only positive time pointer "
-                                        "values are allowed, setting to zero\n"));
+                                  "values are allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {
@@ -1931,8 +1949,9 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSSINNOI: time pointer out of range, "
-                                        "truncating to last frame\n")
- 
+                                  // "frIndx=%g maxFr=%g (%g %g) "
+                                  "truncating to last frame\n")
+                      //frIndx, (MYFLT)p->maxFr, *(p->ktimpnt), p->timefrmInc
                       );
     }
     frIndx = (MYFLT) p->maxFr;
@@ -2286,7 +2305,7 @@ static int32_t atsbufreadset_S(CSOUND *csound, ATSBUFREAD *p)
   if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
                n_partials ||
                (int32_t)(*p->iptloffset) < 0)) {
-    return csound->InitError(csound, Str("ATSBUFREAD: Partial out of range, "
+    return csound->InitError(csound,  Str("ATSBUFREAD: Partial out of range, "
                                          "max partial is %i"), n_partials);
   }
 
@@ -2433,7 +2452,7 @@ static int32_t atsbufread(CSOUND *csound, ATSBUFREAD *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;
       csound->Warning(csound, "%s", Str("ATSBUFREAD: only positive time pointer "
-                                        "values are allowed, setting to zero\n"));
+                                  "values are allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {
@@ -2442,7 +2461,7 @@ static int32_t atsbufread(CSOUND *csound, ATSBUFREAD *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSBUFREAD: time pointer out of range, "
-                                        "truncating to last frame\n"));
+                                  "truncating to last frame\n"));
     }
   }
   else
@@ -2472,16 +2491,16 @@ static int32_t atspartialtapset(CSOUND *csound, ATSPARTIALTAP *p)
   if (UNLIKELY(atsbufreadaddr == NULL)) {
     return csound->InitError(csound,
                              "%s", Str("ATSPARTIALTAP: you must have an "
-                                       "atsbufread before an atspartialtap"));
+                                 "atsbufread before an atspartialtap"));
   }
   if (UNLIKELY((int32_t) *p->iparnum > (int32_t) *(atsbufreadaddr->iptls))) {
-    return csound->InitError(csound, Str("ATSPARTIALTAP: exceeded "
+    return csound->InitError(csound,  Str("ATSPARTIALTAP: exceeded "
                                          "max partial %i"),
                              (int32_t) *(atsbufreadaddr->iptls));
   }
   if (UNLIKELY((int32_t) *p->iparnum <= 0)) {
     return csound->InitError(csound, "%s", Str("ATSPARTIALTAP: partial must be "
-                                               "positive and nonzero"));
+                                         "positive and nonzero"));
   }
   return OK;
 }
@@ -2498,7 +2517,7 @@ static int32_t atspartialtap(CSOUND *csound, ATSPARTIALTAP *p)
  err1:
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("ATSPARTIALTAP: you must have an "
-                                     "atsbufread before an atspartialtap"));
+                               "atsbufread before an atspartialtap"));
 }
 
 /* ATS interpread */
@@ -2508,7 +2527,7 @@ static int32_t atsinterpreadset(CSOUND *csound, ATSINTERPREAD *p)
   if (UNLIKELY(*(get_atsbufreadaddrp(csound)) == NULL))
     return csound->InitError(csound,
                              "%s", Str("ATSINTERPREAD: you must have an "
-                                       "atsbufread before an atsinterpread"));
+                                 "atsbufread before an atsinterpread"));
   p->overflowflag = 1;       /* true */
   return OK;
 }
@@ -2526,7 +2545,7 @@ static int32_t atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
   if (UNLIKELY(*p->kfreq <= FL(20.0) || *p->kfreq >= FL(20000.0))) {
     if (UNLIKELY(p->overflowflag)) {
       csound->Warning(csound, "%s", Str("ATSINTERPREAD: frequency must be greater "
-                                        "than 20 and less than 20000 Hz"));
+                                  "than 20 and less than 20000 Hz"));
       p->overflowflag = 0;
     }
     *p->kamp = FL(0.0);
@@ -2556,7 +2575,7 @@ static int32_t atsinterpread(CSOUND *csound, ATSINTERPREAD *p)
  err1:
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("ATSINTERPREAD: you must have an "
-                                     "atsbufread before an atsinterpread"));
+                               "atsbufread before an atsinterpread"));
 }
 
 /* ATS cross */
@@ -2570,11 +2589,13 @@ static int32_t atscrossset(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSCROSS: Function table number for "
-                                               "synthesis waveform not valid"));
+                                         "synthesis waveform not valid"));
   }
   p->ftp = ftp;
+  p->floatph = !IS_POW_TWO(ftp->flen);
+
 
   /* load memfile */
   p->swapped = load_atsfile(csound,
@@ -2664,11 +2685,12 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSCROSS: Function table number for "
-                                               "synthesis waveform not valid"));
+                                         "synthesis waveform not valid"));
   }
   p->ftp = ftp;
+  p->floatph = !IS_POW_TWO(ftp->flen);
 
   /* load memfile */
   p->swapped = load_atsfile(csound,
@@ -2705,8 +2727,8 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   /* make sure partials are in range */
   if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
                n_partials ||
-               (int32_t)(*p->iptloffset) < 0)) {
-    return csound->InitError(csound, Str("ATSCROSS: Partial(s) out of range, "
+               (int32_t)(*p->iptloffset) < 0)) { 
+    return csound->InitError(csound,  Str("ATSCROSS: Partial(s) out of range, "
                                          "max partial allowed is %i"),
                              n_partials);
   }
@@ -2858,7 +2880,8 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 {
   ATSBUFREAD  *atsbufreadaddr;
   MYFLT   frIndx, *oldamps = p->oldamps, a, inca;
-  MYFLT   *ar, amp, fract, v1, *ftab;
+  MYFLT   *ar, amp, fract, v1, *ftab, incrf;
+  double  phasef;
   FUNC    *ftp;
   int32    lobits, phase, inc;
   double  *oscphase;
@@ -2866,7 +2889,8 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  int32_t     numpartials = (int32_t) *p->iptls;
+
+  int32_t     numpartials = (int32_t) *p->iptls, floatph = p->floatph;
   ATS_DATA_LOC *buf;
 
   atsbufreadaddr = *(get_atsbufreadaddrp(csound));
@@ -2891,7 +2915,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;           /* set to false */
       csound->Warning(csound, "%s", Str("ATSCROSS: time pointer out of range, "
-                                        "truncating to last frame\n"));
+                                  "truncating to last frame\n"));
     }
   }
   else
@@ -2921,15 +2945,27 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
     ar = p->aoutput;         /* ar is a pointer to the audio output */
     inca = (amp-oldamps[i])/nsmps;
     /* put in * kfmod */
-    inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
+    if(floatph)
+      incrf = p->buf[i].freq * CS_ONEDSR * *p->kfmod;
+    else
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
     a =  oldamps[i];
     for (n=offset; n<nsmps; n++) {
-      ftab = ftp->ftable + (phase >> lobits);
-      v1 = ftab[0];
-      fract = (MYFLT) PFRAC(phase);
-      ar[n] += (v1 + fract * (ftab[1] - v1)) * a;
-      phase += inc;
-      phase &= PHMASK;
+      if(!floatph) {
+        ftab = ftp->ftable + (phase >> lobits);
+        v1 = ftab[0];
+        fract = (MYFLT) PFRAC(phase);
+        ar[n] += (v1 + fract * (ftab[1] - v1)) * a;
+        phase += inc;
+        phase &= PHMASK;
+      } else {
+        MYFLT pos = phasef * ftp->flen;
+        MYFLT frac = pos - (int32_t) pos;
+        ftab = ftp->ftable + (int32_t) pos;
+        v1 = *ftab++;
+        ar[n] += (v1 + (*ftab - v1) * frac) * amp;
+        phasef = PHMOD1(phasef + incrf);
+      }
       a += inca;
     }
     oscphase[i] = (double) phase;
@@ -2940,7 +2976,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
  err1:
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("ATSCROSS: you must have an "
-                                     "atsbufread before an atsinterpread"));
+                               "atsbufread before an atsinterpread"));
 }
 
 /* end of ugnorman.c */

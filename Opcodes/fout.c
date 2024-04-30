@@ -259,13 +259,22 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       *((SNDFILE**) fp) = pp->file_opened[idx].file;
   }
   if (p != (FOUT_FILE*) NULL) {
-    if (fileType == CSFILE_STD) {
-      p->sf = (SNDFILE*) NULL;
-      p->f = pp->file_opened[idx].raw;
-    }
-    else {
-      p->sf = pp->file_opened[idx].file;
-      p->f = (FILE*) NULL;
+      if (fileType == CSFILE_STD) {
+        p->sf = (SNDFILE*) NULL;
+        p->f = pp->file_opened[idx].raw;
+      }
+      else {
+        p->sf = pp->file_opened[idx].file;
+        p->f = (FILE*) NULL;
+      }
+      p->idx = idx + 1;
+      pp->file_opened[idx].refCount++;
+      if (need_deinit) {
+        //        p->h.insdshead = csound->ids->insdshead;
+        /* FIXME: should check for error here */
+        p->h.insdshead  = p->head;
+        csound->RegisterDeinitCallback(csound, p, fout_deinit_callback);
+      }
     }
     p->idx = idx + 1;
     pp->file_opened[idx].refCount++;
@@ -274,7 +283,6 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       /* FIXME: should check for error here */
       csound->RegisterDeinitCallback(csound, p, fout_deinit_callback);
     }
-  }
   return idx;
 }
 
@@ -443,19 +451,24 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");
 
-  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  format_ = (int32_t) MYFLT2LRND(*p->iflag);
-  if (format_ >= 51)
-    sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
-  else if (format_ < 0) {
-    sfinfo.format = FORMAT2SF(pp->oparms.outformat);
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
-  }
-  else sfinfo.format = fout_format_table[format_];
-  if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
-  if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    p->f.head = p->h.insdshead;
+
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    format_ = (int32_t) MYFLT2LRND(*p->iflag);
+    if (format_ >= 51)
+      sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
+    else if (format_ < 0) {
+      sfinfo.format = FORMAT2SF(pp->oparms.outformat);
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    }
+    else sfinfo.format = fout_format_table[format_];
+    if (!SF2FORMAT(sfinfo.format))
+      sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
+    if (!SF2TYPE(sfinfo.format))
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+    p->nargs = p->INOCOUNT - 2;
+    p->buf_pos = 0;
 
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   p->nargs = p->INOCOUNT - 2;
@@ -503,24 +516,26 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   int32_t     format_, n, buf_reqd;
   int32_t len = p->tabin->sizes[0];
 
+
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");    
-  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  format_ = (int32_t) MYFLT2LRND(*p->iflag);
-  if (format_ >=  51)
-    sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
-  else if (format_ < 0) {
-    sfinfo.format = FORMAT2SF(pp->oparms.outformat);
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
-  }
-  else
-    sfinfo.format = fout_format_table[format_];
-  if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
-  if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  p->buf_pos = 0;
+    p->f.head = p->h.insdshead;
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    format_ = (int32_t) MYFLT2LRND(*p->iflag);
+     if (format_ >=  51)
+      sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
+    else if (format_ < 0) {
+      sfinfo.format = FORMAT2SF(pp->oparms.outformat);
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    }
+    else
+      sfinfo.format = fout_format_table[format_];
+    if (!SF2FORMAT(sfinfo.format))
+      sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
+    if (!SF2TYPE(sfinfo.format))
+      sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+    p->buf_pos = 0;
 
   if (CS_KSMPS >= 512)
     buf_reqd = p->guard_pos = CS_KSMPS * len;
@@ -579,9 +594,10 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
   SFLIB_INFO sfinfo;
   int32_t     format_, n, buf_reqd;
 
-  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  p->nargs = p->INOCOUNT - 2;
-  p->buf_pos = 0;
+    p->f.head = p->h.insdshead;
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    p->nargs = p->INOCOUNT - 2;
+    p->buf_pos = 0;
 
   if (CS_KSMPS >= 512)
     p->guard_pos = CS_KSMPS * p->nargs;
@@ -869,26 +885,27 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 
 static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
 {
-  SFLIB_INFO sfinfo;
-  int32_t     n, buf_reqd;
-  p->nargs = p->INOCOUNT - 3;
-  p->currpos = MYFLT2LRND(*p->iskpfrms);
-  p->flag = 1;
-  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  /* Following code is seriously broken*/
-  if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
-    sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-  else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
-    sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
-  else
-    sfinfo.format = 0;
-  sfinfo.channels = p->INOCOUNT - 3;
-  if (CS_KSMPS >= 512)
-    p->frames = CS_KSMPS;
-  else
-    p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
-
+    SFLIB_INFO sfinfo;
+    int32_t     n, buf_reqd;
+    p->f.head = p->h.insdshead;
+    p->nargs = p->INOCOUNT - 3;
+    p->currpos = MYFLT2LRND(*p->iskpfrms);
+    p->flag = 1;
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+    /* Following code is seriously broken*/
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
+      sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
+      sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
+    sfinfo.channels = p->INOCOUNT - 3;
+     if (CS_KSMPS >= 512)
+      p->frames = CS_KSMPS;
+    else
+      p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
+     
   if (CS_KSMPS >= 512)
     buf_reqd = CS_KSMPS * sfinfo.channels;
   else
@@ -932,37 +949,38 @@ static int32_t infile_set_S(CSOUND *csound, INFILE *p){
 
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
-  SFLIB_INFO sfinfo;
-  int32_t     n, buf_reqd;
-  p->currpos = MYFLT2LRND(*p->iskpfrms);
-  p->flag = 1;
-  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-  if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
-    sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-  else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
-    sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
-  else
-    sfinfo.format = 0;
-  sfinfo.channels = p->INOCOUNT - 3;
-  if (CS_KSMPS >= 512)
-    p->frames = CS_KSMPS;
-  else
-    p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
-  p->chn = sfinfo.channels;
-  if (CS_KSMPS >= 512)
-    buf_reqd = CS_KSMPS * sfinfo.channels;
-  else
-    buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS * sfinfo.channels;
-  if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
-    csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
-  }
-  p->f.bufsize =  p->buf.size;
-  n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
-                     p->fname, 1, &sfinfo, 0);
-  if (UNLIKELY(n < 0))
-    return NOTOK;
+    SFLIB_INFO sfinfo;
+    int32_t     n, buf_reqd;
 
+    p->f.head = p->h.insdshead;
+    p->currpos = MYFLT2LRND(*p->iskpfrms);
+    p->flag = 1;
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
+      sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
+      sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
+    sfinfo.channels = p->INOCOUNT - 3;
+    if (CS_KSMPS >= 512)
+      p->frames = CS_KSMPS;
+    else
+      p->frames = (int32_t)(512 / CS_KSMPS) * CS_KSMPS;
+    p->chn = sfinfo.channels;
+    if (CS_KSMPS >= 512)
+      buf_reqd = CS_KSMPS * sfinfo.channels;
+    else
+      buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS * sfinfo.channels;
+    if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
+      csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
+    }
+    p->f.bufsize =  p->buf.size;
+    n = fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
+                       p->fname, 1, &sfinfo, 0);
+    if (UNLIKELY(n < 0))
+      return NOTOK;
 
   if (((STDOPCOD_GLOBALS*)
        csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))
@@ -1097,15 +1115,16 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   SFLIB_INFO sfinfo;
   int32_t     n, buf_reqd;
 
-  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
-  if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
-    sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-  else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
-    sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
-  else
-    sfinfo.format = 0;
-  sfinfo.channels = p->INOCOUNT - 3;
+    p->f.head = p->h.insdshead;
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
+      sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
+      sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
+    sfinfo.channels = p->INOCOUNT - 3;
 
   p->nargs = p->INOCOUNT - 3;
   p->currpos = MYFLT2LRND(*p->iskpfrms);
@@ -1309,9 +1328,10 @@ static int32_t clear(CSOUND *csound, CLEARS *p)
 
 static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
 {
-  int32_t     n;
-  char    *sarg = (char*) p->fmt->data;
-  char    *sdest = p->txtstring;
+    int32_t     n;
+    char    *sarg = (char*) p->fmt->data;
+    char    *sdest = p->txtstring;
+    p->f.head = p->h.insdshead;
 
   memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 

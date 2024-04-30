@@ -488,7 +488,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       return csound->InitError(csound, Str("illegal ihtim"));
     if (UNLIKELY(*p->istartempo <= FL(0.0)))
       return csound->InitError(csound, Str("illegal startempo"));
-    ftp = csound->FTFind(csound, p->ifn);
+    ftp = csound->FTnp2Find(csound, p->ifn);
     if (UNLIKELY(ftp != NULL && *ftp->ftable == FL(0.0)))
       return csound->InitError(csound, Str("ifn table begins with zero"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;
@@ -524,13 +524,15 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     }
     {
       MYFLT *funp = ftp->ftable;
-      int32_t phs = 0;
-      int32_t inc = (int32_t)PHMASK / npts;
-      int32_t nn, lobits = ftp->lobits;
+      MYFLT phs = 0;
+      MYFLT inc = ((MYFLT)ftp->flen)/npts;
+      //int32_t inc = (int32_t)PHMASK / npts;
+      int32_t nn;//, lobits = ftp->lobits;
       for (fltp=p->hbeg, nn=npts*4; nn--; )   /* clr 2 circ & 1st 2 lin bufs */
         *fltp++ = FL(0.0);
       for (fltp=p->ftable+npts, nn=npts; nn--; ) {  /* now sample the ftable  */
-        *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
+        *--fltp = *(funp + (int32_t) (phs*ftp->flen));
+        // *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
         phs += inc;
       }
     }

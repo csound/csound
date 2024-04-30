@@ -416,7 +416,6 @@ static const CSOUND cenviron_ = {
   hfgens,
   csoundFTAlloc,
   csoundFTDelete,
-  csoundFTFind,
   csoundFTFindP,
   csoundFTnp2Find,
   csoundFTnp2Finde,
@@ -3585,21 +3584,22 @@ PUBLIC void csoundReset(CSOUND *csound)
       print_csound_version(csound);
       print_sndfile_version(csound);
     */
+      /* do not know file type yet */
+      O->filetyp = -1;
+      O->sfheader = 0;
+      csound->peakchunks = 1;
+      csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
+      csound->engineState.varPool = csoundCreateVarPool(csound);
+      csoundAddStandardTypes(csound, csound->typePool);
+      /* csoundLoadExternals(csound); */
+    }
+    int max_len = 21;
+    char *s;
 
-    /* do not know file type yet */
-    O->filetyp = -1;
-    O->sfheader = 0;
-    csound->peakchunks = 1;
-    csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-    csound->engineState.varPool = csoundCreateVarPool(csound);
-    csoundAddStandardTypes(csound, csound->typePool);
-    /* csoundLoadExternals(csound); */
-  }
 #ifndef BARE_METAL
-  /* allow selecting real time audio module */
-  int max_len = 21;
-  csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-  char *s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+    /* allow selecting real time audio module */
+    csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+    s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
 #ifdef __HAIKU__
   strcpy(s, "haiku");
@@ -3609,21 +3609,21 @@ PUBLIC void csoundReset(CSOUND *csound)
 #else
   strcpy(s, "alsa");
 #endif
+
   csoundCreateConfigurationVariable(csound, "rtaudio", s, CSOUNDCFG_STRING,
                                     0, NULL, &max_len,
                                     Str("Real time audio module name"), NULL);
 #endif
-  /* initialise real time MIDI */
-  csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
-  csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
-  csound->midiGlobals->endatp = csound->midiGlobals->bufp;
-#ifndef BARE_METAL    
-  csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
-  csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
-  csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
-  csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
-  csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
-  csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
+    /* initialise real time MIDI */
+    csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
+    csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+    csound->midiGlobals->endatp = csound->midiGlobals->bufp;
+    csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
+    csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+    csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+    csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
+    csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+    csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
   
   s = csoundQueryGlobalVariable(csound, "_RTMIDI");
   strcpy(s, "null");
@@ -3639,67 +3639,66 @@ PUBLIC void csoundReset(CSOUND *csound)
 #endif
   else strcpy(s, "hostbased");
  
-  csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
-                                    0, NULL, &max_len,
-                                    Str("Real time MIDI module name"), NULL);
-  max_len = 256;  /* should be the same as in csoundCore.h */
-  csoundCreateConfigurationVariable(csound, "mute_tracks",
-                                    &(csound->midiGlobals->muteTrackList[0]),
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Ignore events (other than tempo "
-                                        "changes) in tracks defined by pattern"),
-                                    NULL);
-  csoundCreateConfigurationVariable(csound, "raw_controller_mode",
-                                    &(csound->midiGlobals->rawControllerMode),
-                                    CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                    Str("Do not handle special MIDI controllers"
-                                        " (sustain pedal etc.)"), NULL);
- 
-  /* sound file tag options */
-  max_len = 201;
-  i = (max_len + 7) & (~7);
-  csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
-  csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Title tag in output soundfile "
-                                        "(no spaces)"), NULL);
-  csound->SF_id_copyright = (char*) csound->SF_id_title + (int) i;
-  csoundCreateConfigurationVariable(csound, "id_copyright",
-                                    csound->SF_id_copyright,
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Copyright tag in output soundfile"
-                                        " (no spaces)"), NULL);
-  csoundCreateConfigurationVariable(csound, "id_scopyright",
-                                    &csound->SF_id_scopyright,
-                                    CSOUNDCFG_INTEGER, 0, NULL, &max_len,
-                                    Str("Short Copyright tag in"
-                                        " output soundfile"), NULL);
-  csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
-  csoundCreateConfigurationVariable(csound, "id_software",
-                                    csound->SF_id_software,
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Software tag in output soundfile"
-                                        " (no spaces)"), NULL);
-  csound->SF_id_artist = (char*) csound->SF_id_software + (int) i;
-  csoundCreateConfigurationVariable(csound, "id_artist", csound->SF_id_artist,
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Artist tag in output soundfile "
-                                        "(no spaces)"),
-                                    NULL);
-  csound->SF_id_comment = (char*) csound->SF_id_artist + (int) i;
-  csoundCreateConfigurationVariable(csound, "id_comment",
-                                    csound->SF_id_comment,
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Comment tag in output soundfile"
-                                        " (no spaces)"), NULL);
-  csound->SF_id_date = (char*) csound->SF_id_comment + (int) i;
-  csoundCreateConfigurationVariable(csound, "id_date", csound->SF_id_date,
-                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                    Str("Date tag in output soundfile "
-                                        "(no spaces)"),
-                                    NULL);
-  {
-
+    csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
+                                      0, NULL, &max_len,
+                                      Str("Real time MIDI module name"), NULL);
+    max_len = 256;  /* should be the same as in csoundCore.h */
+    csoundCreateConfigurationVariable(csound, "mute_tracks",
+                                      &(csound->midiGlobals->muteTrackList[0]),
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Ignore events (other than tempo "
+                                          "changes) in tracks defined by pattern"),
+                                      NULL);
+    csoundCreateConfigurationVariable(csound, "raw_controller_mode",
+                                      &(csound->midiGlobals->rawControllerMode),
+                                      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                      Str("Do not handle special MIDI controllers"
+                                          " (sustain pedal etc.)"), NULL);
+#ifndef BARE_METAL    
+    /* sound file tag options */
+    max_len = 201;
+    i = (max_len + 7) & (~7);
+    csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
+    csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Title tag in output soundfile "
+                                          "(no spaces)"), NULL);
+    csound->SF_id_copyright = (char*) csound->SF_id_title + (int) i;
+    csoundCreateConfigurationVariable(csound, "id_copyright",
+                                      csound->SF_id_copyright,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Copyright tag in output soundfile"
+                                          " (no spaces)"), NULL);
+    csoundCreateConfigurationVariable(csound, "id_scopyright",
+                                      &csound->SF_id_scopyright,
+                                      CSOUNDCFG_INTEGER, 0, NULL, &max_len,
+                                      Str("Short Copyright tag in"
+                                          " output soundfile"), NULL);
+    csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
+    csoundCreateConfigurationVariable(csound, "id_software",
+                                      csound->SF_id_software,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Software tag in output soundfile"
+                                          " (no spaces)"), NULL);
+    csound->SF_id_artist = (char*) csound->SF_id_software + (int) i;
+    csoundCreateConfigurationVariable(csound, "id_artist", csound->SF_id_artist,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Artist tag in output soundfile "
+                                          "(no spaces)"),
+                                      NULL);
+    csound->SF_id_comment = (char*) csound->SF_id_artist + (int) i;
+    csoundCreateConfigurationVariable(csound, "id_comment",
+                                      csound->SF_id_comment,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Comment tag in output soundfile"
+                                          " (no spaces)"), NULL);
+    csound->SF_id_date = (char*) csound->SF_id_comment + (int) i;
+    csoundCreateConfigurationVariable(csound, "id_date", csound->SF_id_date,
+                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                      Str("Date tag in output soundfile "
+                                          "(no spaces)"),
+                                      NULL);
+    {
     MYFLT minValF = FL(0.0);
 
     csoundCreateConfigurationVariable(csound, "msg_color",
