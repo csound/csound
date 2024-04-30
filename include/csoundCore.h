@@ -105,6 +105,9 @@ typedef struct {
 #define CSFILE_SND_R    4
 #define CSFILE_SND_W    5
 
+  /* check for power of two ftable sizes */
+#define IS_POW_TWO(N) ((N != 0) ? !(N & (N - 1)) : 0)
+
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)
@@ -631,6 +634,7 @@ typedef struct CORFIL {
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
 
+#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
 typedef int32_t (*SUBR)(CSOUND *, void *);
 
 
@@ -1147,9 +1151,6 @@ typedef struct _message_queue_t_ {
     int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
-    /** Find tables with power of two size. If table exists but is
-        not a power of 2, NULL is returned. */
-    FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
     /** Find any table, except deferred load tables. */
     FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
     /** Find any table. */

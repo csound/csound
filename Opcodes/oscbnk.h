@@ -62,6 +62,7 @@ typedef struct {
         MYFLT   osc_frq, osc_amp;       /* osc. freq. / sr, amplitude   */
         MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
         MYFLT   a1, a2, b0, b1, b2;     /* EQ coeffs saved for interp.  */
+        double  osc_phsf, LFO1phsf, LFO2phsf;
 } OSCBNK_OSC;
 
 typedef struct {
@@ -93,6 +94,7 @@ typedef struct {
         MYFLT   *outft;                 /* parameter output table       */
         int32    outft_len;              /* (optional)                   */
         int32    tabl_cnt;               /* current param in table       */
+        int32    floatph, flen1, flen2;
         AUXCH   auxdata;
         OSCBNK_OSC      *osc;           /* oscillator array             */
 } OSCBNK;
@@ -104,6 +106,7 @@ typedef struct {
         uint32   grain_frq_int;  /* grain frequency (integer)    */
         MYFLT           grain_frq_flt;  /* grain frequency (float)      */
         uint32   window_phs;     /* window phase                 */
+        MYFLT    grain_frq, grain_phsf, window_phsf; 
 } GRAIN2_OSC;
 
 typedef struct {
@@ -121,6 +124,7 @@ typedef struct {
         MYFLT   grain_frq, frq_scl;     /* grain frequency              */
         MYFLT   *wft, wft_pfrac;        /* window table                 */
         uint32   wft_lobits, wft_mask;
+        int32   floatph, wflen;
         AUXCH   auxdata;
         GRAIN2_OSC      *osc;           /* oscillator array             */
 } GRAIN2;
@@ -144,11 +148,13 @@ typedef struct {
         int32_t     p_rnd_mode, pm_wrap;    /* random distribution (phase)  */
         MYFLT   p_rnd_pow;
         uint32   grain_frq;      /* grain frequency              */
-        MYFLT   frq_scl;
+         MYFLT   frq_scl, grain_frqf;
         MYFLT   phs0;                   /* prev. kphs value for interp. */
         uint32   x_phs;
         MYFLT   *wft, wft_pfrac;        /* window table                 */
         uint32   wft_lobits, wft_mask;
+  int32   wflen, floatph;
+        double  x_phsf, *phasef;
         AUXCH   auxdata;
         uint32   *phase;         /* grain phase offset           */
         GRAIN2_OSC      *osc;           /* oscillator array             */
@@ -176,23 +182,26 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr, *xamp, *xcps, *kfn, *iphs, *istor;
         uint32    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn;
+  MYFLT   pfrac, *ft, oldfn, phsf;
+  int32 flen, floatph;
 } OSCKT;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *kcps, *kfn, *kphs, *istor;
+        MYFLT   *sr, *xcps, *kfn, *kphs, *istor;
         uint32    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn, old_phs;
+  MYFLT   pfrac, *ft, oldfn, old_phs, phsf;
         int32_t     init_k;
+          int32 flen, floatph;
 } OSCKTP;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *xamp, *xcps, *kfn, *async, *kphs, *istor;
         uint32    phs, lobits, mask;
-        MYFLT   pfrac, *ft, oldfn;
+  MYFLT   pfrac, *ft, oldfn, phsf;
         int32_t     init_k;
+            int32 flen, floatph;
 } OSCKTS;
 
 /* ---- vco2init, vco2ft, and vco2 opcodes by Istvan Varga, Sep 2002 ---- */

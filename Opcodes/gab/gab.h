@@ -77,6 +77,7 @@ typedef struct {
     int32_t inerr;
     AUXCH   lphs;
     AUXCH   pamp;
+  int32_t floatph;
 } ADSYNT2;
 
 typedef struct {
