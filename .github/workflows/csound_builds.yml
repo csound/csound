@@ -82,7 +82,7 @@ jobs:
 
   iOS_build:
     name: iOS build
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
       - name: update bison
         run: brew install bison && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
