@@ -294,8 +294,6 @@ int32_t soundin(CSOUND *csound, DISKIN2 *p){
     return ret;
 }
 
-//int32_t diskin2_async_deinit(CSOUND *csound, void *p);
-
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 {
     double  pos;
@@ -471,7 +469,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
         *start = 1;
       }
 #endif
-      //csound->RegisterDeinitCallback(csound, p, diskin2_async_deinit);
+
       p->async = 1;
 
       /* print file information */
@@ -1065,8 +1063,6 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
 
     if (q->fd != NULL)                  /* if file already open, */
       return OK;                        /* return now            */
-
-    //csound->RegisterDeinitCallback(csound, pp, soundout_deinit);
 
     if (stringname==0){
       if (csound->ISSTRCOD(*ifilcod))
@@ -1765,8 +1761,6 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
         csound->CreateThread(diskin_io_thread_array, *top);
       }
 #endif
-      //csound->RegisterDeinitCallback(csound, (DISKIN2 *) p,
-      //                             diskin2_async_deinit_array);
       p->async = 1;
 
       /* print file information */

@@ -188,8 +188,6 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
     if (UNLIKELY(p->multicast)) lo_address_set_ttl(p->addr, 1);
     p->cnt = 0;
     p->last = 0;
-    //    csound->RegisterDeinitCallback(csound, p,
-    //                               (int32_t (*)(CSOUND *, void *)) oscsend_deinit);
     p->thread = NULL;
     return OK;
 }
@@ -666,8 +664,7 @@ static int32_t osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
                     Str("OSC multicast listener #%d started on port %s\n"),
                     n, buff);
     *(p->ihandle) = (MYFLT) n;
-    //    csound->RegisterDeinitCallback(csound, p,
-    //                               (int32_t (*)(CSOUND *, void *)) OSC_deinit);
+
     return OK;
 }
 
@@ -789,8 +786,6 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     p->c.method = lo_server_thread_add_method(p->port->thread,
                                               p->c.saved_path, p->c.saved_types,
                                               OSC_handler, p->port);
-    // csound->RegisterDeinitCallback(csound, p,
-    //                          (int32_t (*)(CSOUND *, void *)) OSC_listdeinit);
     return OK;
 }
 
@@ -1069,8 +1064,6 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
     p->c.method = lo_server_thread_add_method(p->port->thread,
                                               p->c.saved_path, p->c.saved_types,
                                               OSC_ahandler, p->port);
-    // csound->RegisterDeinitCallback(csound, p,
-    //                               (int32_t (*)(CSOUND *, void *)) OSC_listadeinit);
     return OK;
 }
 

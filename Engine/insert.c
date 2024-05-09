@@ -921,11 +921,6 @@ int     useropcd(CSOUND *, UOPCODE*);
 
 void deinit_pass(CSOUND *csound, INSDS *ip) {
   int error = 0;
-  /*  
-  if(csound->oparms->realtime)
-    csoundLockMutex(csound->init_pass_threadlock);
-  csound->mode=1
-  */
   OPDS *dds = (OPDS *) ip;
   const char* op;
   while (error == 0 && (dds = dds->nxtd) != NULL) {
@@ -939,11 +934,6 @@ void deinit_pass(CSOUND *csound, INSDS *ip) {
       csound->ErrorMsg(csound, "%s deinit error\n", op);
     }
   }
-  /*
- csound->mode = 1;
-  if(csound->oparms->realtime)
-    csoundUnlockMutex(csound->init_pass_threadlock);
-CSL  */
 }
 
 static void deact(CSOUND *csound, INSDS *ip)

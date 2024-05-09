@@ -183,7 +183,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     }
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, "%s", Str("readf: failed to open file"));
-    return OK; // csound->RegisterDeinitCallback(csound, p, readf_delete);
+    return OK;
 }
 
 static int32_t readf_init(CSOUND *csound, READF *p){

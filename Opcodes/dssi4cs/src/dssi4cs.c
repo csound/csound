@@ -918,16 +918,8 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 #ifdef DEBUG
     csound->Message(csound, "DSSI4CS: Port %lu using internal port %lu.\n",
                     PortIndex, p->PortNumber);
-    /*csound->Message(csound, "DSSI4CS: ArgMask: %lu.\n",*/
-    /*                csound->GetInputArgAMask(p));*/
-#endif
 
-//    if ((int) csound->GetInputArgAMask(p) & 4) {
-//      p->h.perf = (SUBR) dssictls_ak;  /* "iiak" */
-//    }
-//    else {
-//      p->h.perf = (SUBR) dssictls_kk;  /* "iikk" */
-//    }
+#endif
 
     return OK;
 }

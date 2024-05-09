@@ -596,16 +596,6 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  /* if (p->afc[0] != p->lkf)      { */
-  /*   p->lkf = p->afc[0]; */
-  /*   c = 1.0 / tan((double)(CS_PIDSR * p->lkf)); */
-  /*   a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c); */
-  /*   a[2] = a[1] + a[1]; */
-  /*   a[3] = a[1]; */
-  /*   a[4] = 2.0 * ( 1.0 - c*c) * a[1]; */
-  /*   a[5] = ( 1.0 - ROOT2 * c + c * c) * a[1]; */
-  /* } */
-
   for (nn=offset; nn<nsmps; nn++) {
     if (p->afc[nn] != p->lkf) {
       double c;
@@ -649,18 +639,7 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
     nsmps -= early;
     memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
-  /* if (p->kbw[0] != p->lkb || p->kfo[0] != p->lkf) { */
-  /*   p->lkf = p->kfo[0]; */
-  /*   p->lkb = p->kbw[0]; */
-  /*   c = 1.0 / tan((double)(CS_PIDSR * p->lkb)); */
-  /*   d = 2.0 * cos((double)(CS_TPIDSR * p->lkf)); */
-  /*   a[1] = 1.0 / (1.0 + c); */
-  /*   a[2] = 0.0; */
-  /*   a[3] = -a[1]; */
-  /*   a[4] = - c * d * a[1]; */
-  /*   a[5] = (c - 1.0) * a[1]; */
-  /* } */
-  //butter_filter(nsmps, offset, in, out, p->a);
+
   for (nn=offset; nn<nsmps; nn++) {
     MYFLT bw, fr;
     bw = (asgbw ? p->kbw[nn] : *p->kbw);
