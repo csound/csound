@@ -653,7 +653,7 @@ typedef int32_t (*SUBR)(CSOUND *, void *);
     /** Perf-time (k- or a-rate) function pointer */
     SUBR    perf;
     /** deinit function pointer */
-     SUBR    deinit;
+    SUBR    deinit;
     /** Orch file template part for this opcode */
     OPTXT   *optext;
     /** Owner instrument instance data structure */

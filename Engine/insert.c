@@ -965,7 +965,7 @@ static void deact(CSOUND *csound, INSDS *ip)
         p->cvt_out[k] = NULL; // clear pointer
       }
       else break; // first null indicates end of cvt list
-           
+       
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
@@ -998,6 +998,7 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
+  csound->Message(csound, "deact end\n");
 }
 
 
@@ -1013,7 +1014,6 @@ int kill_instance(CSOUND *csound, KILLOP *p) {
 void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
 {                                         /* called by inexclus on ctrl 111 */
   MCHNBLK *chn;
-
   if (UNLIKELY(ip->relesing))
     return;                             /* already releasing: nothing to do */
 
@@ -2765,21 +2765,21 @@ static void instance(CSOUND *csound, int insno)
     if (ep->init != NULL) {  /* init */ 
         prvids = prvids->nxti = opds; /* link into ichain */
         opds->init = ep->init; /*   & set exec adr */
-        //if (UNLIKELY(odebug))
+        if (UNLIKELY(odebug))
           csound->Message(csound, "%s init = %p\n",
                           ep->opname,(void*) opds->init);
       }
       if (ep->perf != NULL) {  /* perf */
         prvpds = prvpds->nxtp = opds; /* link into pchain */
         opds->perf = ep->perf;  /*     perf   */
-        //if (UNLIKELY(odebug))
+        if (UNLIKELY(odebug))
           csound->Message(csound, "%s perf = %p\n",
                           ep->opname,(void*) opds->perf);
       }
     if(ep->deinit != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds; /* link into dchain */
       opds->deinit = ep->deinit;  /*   deinit   */
-      //if (UNLIKELY(odebug))
+      if (UNLIKELY(odebug))
         csound->Message(csound, "%s deinit = %p\n",
                         ep->opname,(void*) opds->deinit);
       }
