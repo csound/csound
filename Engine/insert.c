@@ -2760,41 +2760,28 @@ static void instance(CSOUND *csound, int insno)
       lblbp->prvp = prvpds;
       lblbp->prvd = prvpdd;
       continue;                               /*    for later refs */
-    }
-    int thread = (ep->init != NULL ? 1 : 0) + (ep->perf != NULL ? 2 : 0);
+    }  
 
-      
-    if((thread & 03) == 0) { /* thread 1 OR 2:  */
-      if (ttp->pftype == 'b') {
-        prvids = prvids->nxti = opds;
-        opds->init = ep->init;
-      }
-      else {
-        prvpds = prvpds->nxtp = opds;
-        opds->perf = ep->perf;
-      }
-    } else {  
-      if (ep->init != NULL) {  /* init */
+    if (ep->init != NULL) {  /* init */ 
         prvids = prvids->nxti = opds; /* link into ichain */
         opds->init = ep->init; /*   & set exec adr */
-        if (UNLIKELY(odebug))
+        //if (UNLIKELY(odebug))
           csound->Message(csound, "%s init = %p\n",
-                          ep->opname,(void*) opds->perf);
+                          ep->opname,(void*) opds->init);
       }
       if (ep->perf != NULL) {  /* perf */
         prvpds = prvpds->nxtp = opds; /* link into pchain */
         opds->perf = ep->perf;  /*     perf   */
-        if (UNLIKELY(odebug))
+        //if (UNLIKELY(odebug))
           csound->Message(csound, "%s perf = %p\n",
                           ep->opname,(void*) opds->perf);
       }
-    }
     if(ep->deinit != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds; /* link into dchain */
       opds->deinit = ep->deinit;  /*   deinit   */
-      if (UNLIKELY(odebug))
+      //if (UNLIKELY(odebug))
         csound->Message(csound, "%s deinit = %p\n",
-                        ep->opname,(void*) opds->perf);
+                        ep->opname,(void*) opds->deinit);
       }
     
     if (ep->useropinfo == NULL)
