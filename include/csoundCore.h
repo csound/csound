@@ -319,9 +319,9 @@ typedef struct CORFIL {
         uint16  flags;
         char    *outypes;
         char    *intypes;
-        int     (*init)(CSOUND *, void *p);
-        int     (*perf)(CSOUND *, void *p);
-        int     (*deinit)(CSOUND *, void *p);
+        int32_t  (*init)(CSOUND *, void *p);
+        int32_t  (*perf)(CSOUND *, void *p);
+        int32_t  (*deinit)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 

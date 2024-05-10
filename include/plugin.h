@@ -1130,7 +1130,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->init ? true : false;
+    return (this->init != NULL);
   }
 
   /** check if this opcode runs at perf time

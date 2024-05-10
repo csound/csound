@@ -1938,7 +1938,8 @@ if (engineState != &csound->engineState) {
     /* VL: now the check is simply for oentry->perf, which is the
        only condition possible for perf-time code 
     */
-    if (UNLIKELY(oentry->perf != NULL && bp->t.pftype != 'b')) {
+    if (UNLIKELY(oentry->perf  != NULL ||
+                 (oentry->init == NULL && bp->t.pftype != 'b'))) {
       thread =  oentry->init && oentry->perf ? 3 : (oentry->init ? 1 : 2);
       csound->DebugMsg(csound, "***opcode=%s thread=%d",
                        bp->t.opcod, thread);
