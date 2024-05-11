@@ -1050,9 +1050,9 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
   p->ftp = ftp;
   fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
   if(IS_POW_TWO(ftp->flen)) {
-  if (*p->iphs >= 0)
+  if (*p->iphs >= 0) 
     p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
-    return OK;
+  return OK; // Indentation not logical always onbeyed NEEDS FIX JPff May 10 2024
   }
   p->tablen     = ftp->flen;
   p->tablenUPsr = p->tablen * (FL(1.0)/CS_ESR);
