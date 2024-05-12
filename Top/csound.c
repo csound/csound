@@ -544,7 +544,6 @@ static const CSOUND cenviron_ = {
   csoundRegisterKeyboardCallback,
   csoundRemoveKeyboardCallback,
   csoundRegisterSenseEventCallback,
-  csoundRegisterDeinitCallback,
   csoundRegisterResetCallback,
   SetInternalYieldCallback,
   /* hash table funcs */
@@ -778,6 +777,7 @@ static const CSOUND cenviron_ = {
     NULL,
     NULL,
     NULL,
+    NULL, /*nxtdd*/
     NULL,
     NULL,
     NULL,
@@ -809,7 +809,6 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),
     NULL,
     {FL(0.0), FL(0.0), FL(0.0), FL(0.0)},
-    NULL,
     NULL,NULL,
     NULL,
     0,
@@ -1672,7 +1671,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
           /* In case of jumping need this repeat of opstart */
           opstart->insdshead->pds = opstart;
           csound->op = opstart->optext->t.opcod;
-          (*opstart->opadr)(csound, opstart); /* run each opcode */
+          (*opstart->perf)(csound, opstart); /* run each opcode */
           opstart = opstart->insdshead->pds;
         }
         csound->mode = 0;
@@ -1706,7 +1705,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
           while ((opstart = opstart->nxtp) != NULL) {
             opstart->insdshead->pds = opstart;
             csound->op = opstart->optext->t.opcod;
-            (*opstart->opadr)(csound, opstart); /* run each opcode */
+            (*opstart->perf)(csound, opstart); /* run each opcode */
             opstart = opstart->insdshead->pds;
           }
           csound->mode = 0;
@@ -1867,7 +1866,7 @@ int kperf_nodebug(CSOUND *csound)
                    ip->actflg) {
               opstart->insdshead->pds = opstart;
               csound->op = opstart->optext->t.opcod;
-              error = (*opstart->opadr)(csound, opstart); /* run each opcode */
+              error = (*opstart->perf)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
             csound->mode = 0;
@@ -1903,7 +1902,7 @@ int kperf_nodebug(CSOUND *csound)
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
                 //csound->ids->optext->t.oentry->opname;
-                error = (*opstart->opadr)(csound, opstart); /* run each opcode */
+                error = (*opstart->perf)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
@@ -1969,7 +1968,7 @@ static inline void opcode_perf_debug(CSOUND *csound,
     }
     opstart->insdshead->pds = opstart;
     csound->mode = 2;
-    (*opstart->opadr)(csound, opstart); /* run each opcode */
+    (*opstart->perf)(csound, opstart); /* run each opcode */
     opstart = opstart->insdshead->pds;
     csound->mode = 0;
   }
@@ -2214,7 +2213,6 @@ int kperf_debug(CSOUND *csound)
     
   return 0;
 }
-
 
 int csoundReadScoreInternal(CSOUND *csound, const char *str)
 {
@@ -3222,10 +3220,8 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
     return CSOUND_ERROR;
 
   shortName = get_opcode_short_name(csound, ep->opname);
-
   head = cs_hash_table_get(csound, csound->opcodes, shortName);
   entryCopy = csound->Malloc(csound, sizeof(OENTRY));
-  //printf("%p\n", entryCopy);
   memcpy(entryCopy, ep, sizeof(OENTRY));
   entryCopy->useropinfo = NULL;
 
@@ -3245,29 +3241,25 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
-                              int thread, const char *outypes,
-                              const char *intypes,
-                              int (*iopadr)(CSOUND *, void *),
-                              int (*kopadr)(CSOUND *, void *),
-                              int (*aopadr)(CSOUND *, void *))
+                              const char *outypes, const char *intypes,
+                              int (*init)(CSOUND *, void *),
+                              int (*perf)(CSOUND *, void *),
+                              int (*deinit)(CSOUND *, void *))
 {
   OENTRY  tmpEntry;
   int     err;
-
   tmpEntry.opname     = (char*) opname;
   tmpEntry.dsblksiz   = (uint16) dsblksiz;
   tmpEntry.flags      = (uint16) flags;
-  tmpEntry.thread     = (uint8_t) thread;
   tmpEntry.outypes    = (char*) outypes;
   tmpEntry.intypes    = (char*) intypes;
-  tmpEntry.iopadr     = iopadr;
-  tmpEntry.kopadr     = kopadr;
-  tmpEntry.aopadr     = aopadr;
+  tmpEntry.init     = init;
+  tmpEntry.perf     = perf;
+  tmpEntry.deinit     = deinit;
   err = opcode_list_new_oentry(csound, &tmpEntry);
   //add_to_symbtab(csound, &tmpEntry);
   if (UNLIKELY(err))
     csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
-
   return err;
 }
 
@@ -3584,22 +3576,22 @@ PUBLIC void csoundReset(CSOUND *csound)
       print_csound_version(csound);
       print_sndfile_version(csound);
     */
-      /* do not know file type yet */
-      O->filetyp = -1;
-      O->sfheader = 0;
-      csound->peakchunks = 1;
-      csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-      csound->engineState.varPool = csoundCreateVarPool(csound);
-      csoundAddStandardTypes(csound, csound->typePool);
-      /* csoundLoadExternals(csound); */
-    }
-    int max_len = 21;
-    char *s;
+    /* do not know file type yet */
+    O->filetyp = -1;
+    O->sfheader = 0;
+    csound->peakchunks = 1;
+    csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
+    csound->engineState.varPool = csoundCreateVarPool(csound);
+    csoundAddStandardTypes(csound, csound->typePool);
+    /* csoundLoadExternals(csound); */
+  }
+  int max_len = 21;
+  char *s;
 
 #ifndef BARE_METAL
-    /* allow selecting real time audio module */
-    csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
-    s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+  /* allow selecting real time audio module */
+  csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
+  s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
 #ifdef __HAIKU__
   strcpy(s, "haiku");
@@ -3614,16 +3606,16 @@ PUBLIC void csoundReset(CSOUND *csound)
                                     0, NULL, &max_len,
                                     Str("Real time audio module name"), NULL);
 #endif
-    /* initialise real time MIDI */
-    csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
-    csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
-    csound->midiGlobals->endatp = csound->midiGlobals->bufp;
-    csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
-    csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
-    csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
-    csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
-    csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
-    csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
+  /* initialise real time MIDI */
+  csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
+  csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+  csound->midiGlobals->endatp = csound->midiGlobals->bufp;
+  csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
+  csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
+  csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
+  csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
+  csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
+  csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
   
   s = csoundQueryGlobalVariable(csound, "_RTMIDI");
   strcpy(s, "null");
@@ -3639,66 +3631,66 @@ PUBLIC void csoundReset(CSOUND *csound)
 #endif
   else strcpy(s, "hostbased");
  
-    csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
-                                      0, NULL, &max_len,
-                                      Str("Real time MIDI module name"), NULL);
-    max_len = 256;  /* should be the same as in csoundCore.h */
-    csoundCreateConfigurationVariable(csound, "mute_tracks",
-                                      &(csound->midiGlobals->muteTrackList[0]),
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Ignore events (other than tempo "
-                                          "changes) in tracks defined by pattern"),
-                                      NULL);
-    csoundCreateConfigurationVariable(csound, "raw_controller_mode",
-                                      &(csound->midiGlobals->rawControllerMode),
-                                      CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
-                                      Str("Do not handle special MIDI controllers"
-                                          " (sustain pedal etc.)"), NULL);
+  csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
+                                    0, NULL, &max_len,
+                                    Str("Real time MIDI module name"), NULL);
+  max_len = 256;  /* should be the same as in csoundCore.h */
+  csoundCreateConfigurationVariable(csound, "mute_tracks",
+                                    &(csound->midiGlobals->muteTrackList[0]),
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Ignore events (other than tempo "
+                                        "changes) in tracks defined by pattern"),
+                                    NULL);
+  csoundCreateConfigurationVariable(csound, "raw_controller_mode",
+                                    &(csound->midiGlobals->rawControllerMode),
+                                    CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
+                                    Str("Do not handle special MIDI controllers"
+                                        " (sustain pedal etc.)"), NULL);
 #ifndef BARE_METAL    
-    /* sound file tag options */
-    max_len = 201;
-    i = (max_len + 7) & (~7);
-    csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
-    csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Title tag in output soundfile "
-                                          "(no spaces)"), NULL);
-    csound->SF_id_copyright = (char*) csound->SF_id_title + (int) i;
-    csoundCreateConfigurationVariable(csound, "id_copyright",
-                                      csound->SF_id_copyright,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Copyright tag in output soundfile"
-                                          " (no spaces)"), NULL);
-    csoundCreateConfigurationVariable(csound, "id_scopyright",
-                                      &csound->SF_id_scopyright,
-                                      CSOUNDCFG_INTEGER, 0, NULL, &max_len,
-                                      Str("Short Copyright tag in"
-                                          " output soundfile"), NULL);
-    csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
-    csoundCreateConfigurationVariable(csound, "id_software",
-                                      csound->SF_id_software,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Software tag in output soundfile"
-                                          " (no spaces)"), NULL);
-    csound->SF_id_artist = (char*) csound->SF_id_software + (int) i;
-    csoundCreateConfigurationVariable(csound, "id_artist", csound->SF_id_artist,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Artist tag in output soundfile "
-                                          "(no spaces)"),
-                                      NULL);
-    csound->SF_id_comment = (char*) csound->SF_id_artist + (int) i;
-    csoundCreateConfigurationVariable(csound, "id_comment",
-                                      csound->SF_id_comment,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Comment tag in output soundfile"
-                                          " (no spaces)"), NULL);
-    csound->SF_id_date = (char*) csound->SF_id_comment + (int) i;
-    csoundCreateConfigurationVariable(csound, "id_date", csound->SF_id_date,
-                                      CSOUNDCFG_STRING, 0, NULL, &max_len,
-                                      Str("Date tag in output soundfile "
-                                          "(no spaces)"),
-                                      NULL);
-    {
+  /* sound file tag options */
+  max_len = 201;
+  i = (max_len + 7) & (~7);
+  csound->SF_id_title = (char*) csound->Calloc(csound, (size_t) i * (size_t) 6);
+  csoundCreateConfigurationVariable(csound, "id_title", csound->SF_id_title,
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Title tag in output soundfile "
+                                        "(no spaces)"), NULL);
+  csound->SF_id_copyright = (char*) csound->SF_id_title + (int) i;
+  csoundCreateConfigurationVariable(csound, "id_copyright",
+                                    csound->SF_id_copyright,
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Copyright tag in output soundfile"
+                                        " (no spaces)"), NULL);
+  csoundCreateConfigurationVariable(csound, "id_scopyright",
+                                    &csound->SF_id_scopyright,
+                                    CSOUNDCFG_INTEGER, 0, NULL, &max_len,
+                                    Str("Short Copyright tag in"
+                                        " output soundfile"), NULL);
+  csound->SF_id_software = (char*) csound->SF_id_copyright + (int) i;
+  csoundCreateConfigurationVariable(csound, "id_software",
+                                    csound->SF_id_software,
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Software tag in output soundfile"
+                                        " (no spaces)"), NULL);
+  csound->SF_id_artist = (char*) csound->SF_id_software + (int) i;
+  csoundCreateConfigurationVariable(csound, "id_artist", csound->SF_id_artist,
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Artist tag in output soundfile "
+                                        "(no spaces)"),
+                                    NULL);
+  csound->SF_id_comment = (char*) csound->SF_id_artist + (int) i;
+  csoundCreateConfigurationVariable(csound, "id_comment",
+                                    csound->SF_id_comment,
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Comment tag in output soundfile"
+                                        " (no spaces)"), NULL);
+  csound->SF_id_date = (char*) csound->SF_id_comment + (int) i;
+  csoundCreateConfigurationVariable(csound, "id_date", csound->SF_id_date,
+                                    CSOUNDCFG_STRING, 0, NULL, &max_len,
+                                    Str("Date tag in output soundfile "
+                                        "(no spaces)"),
+                                    NULL);
+  {
     MYFLT minValF = FL(0.0);
 
     csoundCreateConfigurationVariable(csound, "msg_color",
@@ -4094,37 +4086,13 @@ PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
   return &(csound->rtPlay_userdata);
 }
 
+
 typedef struct opcodeDeinit_s {
   void    *p;
   int     (*func)(CSOUND *, void *);
   void    *nxt;
 } opcodeDeinit_t;
 
-/**
- * Register a function to be called at note deactivation.
- * Should be called from the initialisation routine of an opcode.
- * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
- * is the function to be called, with the same arguments and return
- * value as in the case of opcode init/perf functions.
- * The functions are called in reverse order of registration.
- * Returns zero on success.
- */
-
-int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
-                                 int (*func)(CSOUND *, void *))
-{
-  INSDS           *ip = ((OPDS*) p)->insdshead;
-  opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
-
-  (void) csound;
-  if (UNLIKELY(dp == NULL))
-    return CSOUND_MEMORY;
-  dp->p = p;
-  dp->func = func;
-  dp->nxt = ip->nxtd;
-  ip->nxtd = dp;
-  return CSOUND_SUCCESS;
-}
 
 /**
  * Register a function to be called by csoundReset(), in reverse order
@@ -4147,22 +4115,6 @@ int csoundRegisterResetCallback(CSOUND *csound, void *userData,
   dp->nxt = csound->reset_list;
   csound->reset_list = (void*) dp;
   return CSOUND_SUCCESS;
-}
-
-/* call the opcode deinitialisation routines of an instrument instance */
-/* called from deact() in insert.c */
-
-int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
-{
-  int err = 0;
-
-  while (ip->nxtd != NULL) {
-    opcodeDeinit_t  *dp = (opcodeDeinit_t*) ip->nxtd;
-    err |= dp->func(csound, dp->p);
-    ip->nxtd = (void*) dp->nxt;
-    free(dp);
-  }
-  return err;
 }
 
 /**

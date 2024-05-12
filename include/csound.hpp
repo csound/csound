@@ -604,13 +604,12 @@ public:
     csoundDisposeOpcodeList(csound, opcodelist);
   }
   virtual int AppendOpcode(const char *opname, int dsblksiz, int flags,
-                           int thread,
                            const char *outypes, const char *intypes,
                            int (*iopadr)(CSOUND *, void *),
                            int (*kopadr)(CSOUND *, void *),
                            int (*aopadr)(CSOUND *, void *))
   {
-      return csoundAppendOpcode(csound, opname, dsblksiz, flags, thread,
+      return csoundAppendOpcode(csound, opname, dsblksiz, flags, 
                               outypes, intypes, iopadr, kopadr, aopadr);
   }
   virtual void SetYieldCallback(int (*yieldCallback_)(CSOUND *))

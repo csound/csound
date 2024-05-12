@@ -1142,13 +1142,13 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
 /* ------------------------------------------------------------------------ */
 
 static OENTRY loscilx_localops[] = {
-  { "sndload",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "iooooojjoo",
+  { "sndload",  sizeof(SNDLOAD_OPCODE), _QQ,   "",                 "iooooojjoo",
     (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
-  { "sndload.S",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "Sooooojjoo",
+  { "sndload.S",  sizeof(SNDLOAD_OPCODE), _QQ,   "",                 "Sooooojjoo",
     (SUBR) sndload_opcode_init_S, (SUBR) NULL, (SUBR) NULL                      },
-  { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 3,  "mmmmmmmmmmmmmmmm", "xkioojjoo",
+  { "loscilx",  sizeof(LOSCILX_OPCODE), TR,   "mmmmmmmmmmmmmmmm", "xkioojjoo",
     (SUBR) loscilx_opcode_init, (SUBR) loscilx_opcode_perf       },
-  { "loscilx",  sizeof(LOSCILXA_OPCODE), TR, 3,  "a[]", "xkioojjoo",
+  { "loscilx",  sizeof(LOSCILXA_OPCODE), TR,   "a[]", "xkioojjoo",
     (SUBR) loscilxa_opcode_init, (SUBR) loscilxa_opcode_perf     }
 };
 

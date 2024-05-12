@@ -246,14 +246,14 @@ static int32_t dashow(CSOUND *csound, DSH *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "vtable1k",       S(MTABLE1),         TR, 3,  "",  "kz",
-    (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
-  { "trandom",        S(TRANGERAND),          0,    2,  "k", "kkk",
+  { "vtable1k",       S(MTABLE1),         TR,   "",  "kz",
+                  (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
+  { "trandom",        S(TRANGERAND),          0,      "k", "kkk",
                     NULL,                                   (SUBR)trRangeRand },
-  { "lposcilsa", S(LPOSC_ST),  TR, 3, "aa","akkkio",
-    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
-  { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
-    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp}
+  { "lposcilsa", S(LPOSC_ST),  TR,  "aa","akkkio",
+                             (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
+  { "lposcilsa2", S(LPOSC_ST), TR,  "aa","akkkio",
+                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp}
 };
 
 int32_t newgabopc_init_(CSOUND *csound) {

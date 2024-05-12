@@ -346,12 +346,12 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),  0,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
-  { "metro2", S(METRO2), 0,  3,      "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
-  { "metrobpm",S(METRO), 0,  3,      "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
-  { "splitrig", S(SPLIT_TRIG), 0, 3, "",  "kkiiz",
+  { "metro",  S(METRO),  0,        "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
+  { "metro2", S(METRO2), 0,        "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
+  { "metrobpm",S(METRO), 0,        "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
+  { "splitrig", S(SPLIT_TRIG), 0,  "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
-  { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
+  { "timedseq",S(TIMEDSEQ), TR,  "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
 };
 
 int32_t metro_init_(CSOUND *csound)

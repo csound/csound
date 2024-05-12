@@ -113,18 +113,6 @@ int     insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
 char *get_arg_string(CSOUND *, MYFLT);
 
 /**
- * Register a function to be called at note deactivation.
- * Should be called from the initialisation routine of an opcode.
- * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
- * is the function to be called, with the same arguments and return
- * value as in the case of opcode init/perf functions.
- * The functions are called in reverse order of registration.
- * Returns zero on success.
- */
-int csoundRegisterDeinitCallback(CSOUND *, void *p,
-                                 int (*func)(CSOUND *, void *));
-
-/**
  * Register a function to be called by csoundReset(), in reverse order
  * of registration, before unloading external modules. The function takes
  * the Csound instance pointer as the first argument, and the pointer

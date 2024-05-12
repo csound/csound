@@ -26,6 +26,7 @@
 typedef struct {
   OPDS    h;
   MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX-5];
+  int32_t fno;
 } FTGEN;
 
 typedef struct {
@@ -42,12 +43,9 @@ typedef struct {
 typedef struct {
   OPDS    h;
   MYFLT   *iftno, *ifreeTime;
+  int32_t fno, deinit;
 } FTFREE;
 
-typedef struct {
-  OPDS    h;
-  int32_t fno;
-} FTDELETE;
 
 typedef struct namedgen {
   char    *name;
@@ -55,24 +53,14 @@ typedef struct namedgen {
   struct  namedgen *next;
 } NAMEDGEN;
 
-static int32_t ftable_delete(CSOUND *csound, void *p)
+static int32_t ftable_delete(CSOUND *csound, FTGEN *p)
 {
-  int32_t err = csound->FTDelete(csound, ((FTDELETE*) p)->fno);
+  int32_t err = csound->FTDelete(csound, p->fno);
   if (UNLIKELY(err != OK))
     csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
-                     ((FTDELETE*) p)->fno);
+                     p->fno);
   csound->Free(csound, p);
   return err;
-}
-
-static int32_t register_ftable_delete(CSOUND *csound, void *p, int32_t tableNum)
-{
-  FTDELETE  *op = (FTDELETE*) csound->Calloc(csound, sizeof(FTDELETE));
-  if (UNLIKELY(op == NULL))
-    return csound->InitError(csound, "%s", Str("memory allocation failure"));
-  op->h.insdshead = ((OPDS*) p)->insdshead;
-  op->fno = tableNum;
-  return csound->RegisterDeinitCallback(csound, op, ftable_delete);
 }
 
 /* set up and call any GEN routine */
@@ -172,69 +160,81 @@ static int32_t ftgen_SS(CSOUND *csound, FTGEN *p) {
 
 static int32_t ftgentmp(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1, fno;
-
+  int32_t   p1;
   if (UNLIKELY(ftgen(csound, p) != OK))
     return NOTOK;
   p1 = (int32_t) MYFLT2LRND(*p->p1);
   if (p1)
     return OK;
-  fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return register_ftable_delete(csound, p, fno);
+  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
+  return OK;
 }
 
 
 static int32_t ftgentmp_S(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1, fno;
+  int32_t   p1;
 
   if (UNLIKELY(ftgen_(csound, p,0,1) != OK))
     return NOTOK;
   p1 = (int32_t) MYFLT2LRND(*p->p1);
   if (p1)
     return OK;
-  fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return register_ftable_delete(csound, p, fno);
+  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
+  return OK;
 }
 
 static int32_t ftgentmp_Si(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1, fno;
+  int32_t   p1;
 
   if (UNLIKELY(ftgen_(csound, p,1,0) != OK))
     return NOTOK;
   p1 = (int32_t) MYFLT2LRND(*p->p1);
   if (p1)
     return OK;
-  fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return register_ftable_delete(csound, p, fno);
+  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
+  return OK;
 }
 
 static int32_t ftgentmp_SS(CSOUND *csound, FTGEN *p)
 {
-  int32_t   p1, fno;
+  int32_t   p1;
 
   if (UNLIKELY(ftgen_(csound, p,1,1) != OK))
     return NOTOK;
   p1 = (int32_t) MYFLT2LRND(*p->p1);
   if (p1)
     return OK;
-  fno = (int32_t) MYFLT2LRND(*p->ifno);
-  return register_ftable_delete(csound, p, fno);
+  p->fno = (int32_t) MYFLT2LRND(*p->ifno);
+  return OK;
 }
 
+static int32_t ftfree_deinit(CSOUND *csound, FTFREE *p)
+{
+  if(p->deinit) {
+    int32_t err = csound->FTDelete(csound, p->fno);
+    if (UNLIKELY(err != OK))
+      csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
+                       p->fno);
+    csound->Free(csound, p);
+    return err;
+  } else return OK;
+}
 static int32_t ftfree(CSOUND *csound, FTFREE *p)
 {
-  int32_t fno = (int32_t) MYFLT2LRND(*p->iftno);
+  p->fno = (int32_t) MYFLT2LRND(*p->iftno);
 
-  if (UNLIKELY(fno <= 0))
-    return csound->InitError(csound, Str("Invalid table number: %d"), fno);
+  if (UNLIKELY(p->fno <= 0))
+    return csound->InitError(csound, Str("Invalid table number: %d"), p->fno);
   if (*p->ifreeTime == FL(0.0)) {
-    if (UNLIKELY(csound->FTDelete(csound, fno) != 0))
-      return csound->InitError(csound, Str("Error deleting ftable %d"), fno);
+    p->deinit = 0;
+    if (UNLIKELY(csound->FTDelete(csound, p->fno) != 0))
+      return csound->InitError(csound, Str("Error deleting ftable %d"), p->fno);
     return OK;
   }
-  return register_ftable_delete(csound, p, fno);
+  p->deinit = 1;
+  return OK;
 }
 
 static int32_t myInitError(CSOUND *csound, OPDS *p, const char *str, ...)
@@ -779,30 +779,35 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "ftgen",    S(FTGEN),     TW, 1,  "i",  "iiiiim", (SUBR) ftgen, NULL, NULL    },
-  { "ftgen.S",    S(FTGEN),   TW, 1,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL  },
-  { "ftgen.iS",    S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL },
-  { "ftgen.SS",    S(FTGEN),  TW, 1,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL },
-  { "ftgen",    S(FTGEN),     TW, 1,  "i",  "iiiii[]", (SUBR) ftgen_list_i, NULL  },
-  { "ftgen",    S(FTGEN),     TW, 1,  "i",  "iiiSi[]", (SUBR) ftgen_list_S, NULL  },
-  { "ftgentmp.i", S(FTGEN),   TW, 1,  "i",  "iiiiim", (SUBR) ftgentmp, NULL, NULL },
-  { "ftgentmp.iS", S(FTGEN),  TW, 1,  "i",  "iiiiSm", (SUBR) ftgentmp_S, NULL,NULL},
-  { "ftgentmp.Si", S(FTGEN),  TW, 1,  "i",  "iiiSim", (SUBR) ftgentmp_Si,NULL,NULL},
-  { "ftgentmp.SS", S(FTGEN),  TW, 1,  "i",  "iiiSSm", (SUBR) ftgentmp_SS,NULL,NULL},
-  { "ftfree",   S(FTFREE),    TW, 1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
-  { "ftsave",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftsave, NULL, NULL   },
-  { "ftsave.S",   S(FTLOAD),  TR, 1,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },
-  { "ftload",   S(FTLOAD),    TW, 1,  "",   "iim",    (SUBR) ftload, NULL, NULL   },
-  { "ftload.S",  S(FTLOAD), TW, 1,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL },
-  { "ftsavek",  S(FTLOAD_K),  TW, 3,  "",   "ikim",   (SUBR) ftsave_k_set,
+  { "ftgen",    S(FTGEN),     TW,  "i",  "iiiiim", (SUBR) ftgen, NULL, NULL    },
+  { "ftgen.S",    S(FTGEN),   TW,  "i",  "iiiSim", (SUBR) ftgen_S, NULL, NULL  },
+  { "ftgen.iS",    S(FTGEN),  TW,  "i",  "iiiiSm", (SUBR) ftgen_iS, NULL, NULL },
+  { "ftgen.SS",    S(FTGEN),  TW,  "i",  "iiiSSm", (SUBR) ftgen_SS, NULL, NULL },
+  { "ftgen",    S(FTGEN),     TW,  "i",  "iiiii[]", (SUBR) ftgen_list_i, NULL  },
+  { "ftgen",    S(FTGEN),     TW,  "i",  "iiiSi[]", (SUBR) ftgen_list_S, NULL  },
+  { "ftgentmp.i", S(FTGEN),   TW,  "i",  "iiiiim", (SUBR) ftgentmp, NULL,
+    (SUBR) ftable_delete },
+  { "ftgentmp.iS", S(FTGEN),  TW,  "i",  "iiiiSm", (SUBR) ftgentmp_S, NULL,
+    (SUBR) ftable_delete},
+  { "ftgentmp.Si", S(FTGEN),  TW,  "i",  "iiiSim", (SUBR) ftgentmp_Si,NULL,
+    (SUBR) ftable_delete},
+  { "ftgentmp.SS", S(FTGEN),  TW,  "i",  "iiiSSm", (SUBR) ftgentmp_SS,NULL,
+    (SUBR) ftable_delete},
+  { "ftfree",   S(FTFREE),    TW,  "",   "ii",     (SUBR) ftfree, NULL,
+    (SUBR) ftfree_deinit},
+  { "ftsave",   S(FTLOAD),    TR,  "",   "iim",    (SUBR) ftsave, NULL, NULL   },
+  { "ftsave.S",   S(FTLOAD),  TR,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },
+  { "ftload",   S(FTLOAD),    TW,  "",   "iim",    (SUBR) ftload, NULL, NULL   },
+  { "ftload.S",  S(FTLOAD), TW,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL },
+  { "ftsavek",  S(FTLOAD_K),  TW,   "",   "ikim",   (SUBR) ftsave_k_set,
     (SUBR) ftsave_k, NULL       },
-  { "ftsavek.S",  S(FTLOAD_K),  TW, 3,  "",   "Skim",   (SUBR) ftsave_k_set,
+  { "ftsavek.S",  S(FTLOAD_K),  TW,   "",   "Skim",   (SUBR) ftsave_k_set,
     (SUBR) ftsave_kS, NULL       },
-  { "ftloadk",  S(FTLOAD_K),  TW, 3,  "",   "ikim",   (SUBR) ftsave_k_set,
+  { "ftloadk",  S(FTLOAD_K),  TW,   "",   "ikim",   (SUBR) ftsave_k_set,
     (SUBR) ftload_k, NULL       },
-  { "ftloadk.S",  S(FTLOAD_K),  TW, 3,  "",   "Skim",   (SUBR) ftsave_k_set,
+  { "ftloadk.S",  S(FTLOAD_K),  TW,   "",   "Skim",   (SUBR) ftsave_k_set,
     (SUBR) ftload_kS, NULL       },
-  { "getftargs",   sizeof(FTARGS),  0, 3, "S", "ik",
+  { "getftargs",   sizeof(FTARGS),  0,  "S", "ik",
     (SUBR)getftargs_init, (SUBR)getftargs_process }
 
 };

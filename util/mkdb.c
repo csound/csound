@@ -118,12 +118,11 @@ typedef struct oentry {
         char    *opname;
         uint16_t dsblksiz;
         uint16_t flags;
-        uint8_t thread;
         char    *outypes;
         char    *intypes;
-        int     (*iopadr)(void *, void *p);
-        int     (*kopadr)(void *, void *p);
-        int     (*aopadr)(void *, void *p);
+        int     (*init)(void *, void *p);
+        int     (*perf)(void *, void *p);
+        int     (*deinit)(void *, void *p);
         void    *useropinfo;    /* user opcode parameters */
 } OENTRY;
 

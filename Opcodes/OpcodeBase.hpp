@@ -254,14 +254,20 @@ namespace csound {
       IGN(csound);
       return NOTOK;
     }
-    static int init_(CSOUND *csound, void *opcode)
+
+    static int deinit_(CSOUND *csound, void *opcode)
     {
       if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
-        csound->RegisterDeinitCallback(csound, opcode,
-                                       &OpcodeNoteoffBase<T>::noteoff_);
+        return noteoff_(csound, opcode);
       }
-      return reinterpret_cast<T *>(opcode)->init(csound);
+      return OK;
     }
+
+    static int init_(CSOUND *csound, void *opcode)
+    {
+        return reinterpret_cast<T *>(opcode)->init(csound);
+    }
+  
     int kontrol(CSOUND *csound)
     {
       IGN(csound);

@@ -373,7 +373,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*     hanning = (*p->ihann) ? 1 : 0; */
 /*     if ((p->dbout = *p->idbout) && p->dbout != 1 && p->dbout != 2) { */
 /*       return csound->InitError(csound,
-         Str("noctdft: unknown dbout code of %d"), */
+         "%s", Str("noctdft: unknown dbout code of %d"), */
 /*                                        p->dbout); */
 /*     } */
 /*     nocts = downp->nocts; */
@@ -649,7 +649,6 @@ int32_t sptrkset(CSOUND *csound, SPECPTRK *p)
     *fp++ = FL(0.0);   /* clear unused lo and hi range */
   for (fp = fhip; fp < fendp; )
     *fp++ = FL(0.0);
-
   csound->Warning(csound, Str("specptrk: %d freqs, %d%s ptls at "),
                   (int32_t)nfreqs, (int32_t)nptls, inc==2 ? Str(" odd") : "");
   for (nn = 0; nn < nptls; nn++)
@@ -1250,59 +1249,58 @@ int32_t specfilt(CSOUND *csound, SPECFILT *p)
 #define S       sizeof
 
 static OENTRY spectra_localops[] = {
-  { "spectrum", S(SPECTRUM),_QQ, 3, "w", "kiiiqoooo",
+  { "spectrum", S(SPECTRUM),_QQ, "w", "kiiiqoooo",
     (SUBR)spectset,(SUBR)spectrum },
-  { "spectrum", S(SPECTRUM),_QQ, 3, "w", "aiiiqoooo",
+  { "spectrum", S(SPECTRUM),_QQ, "w", "aiiiqoooo",
     (SUBR)spectset,(SUBR)spectrum },
-  { "specaddm", S(SPECADDM),_QQ, 3, "w", "wwp", (SUBR)spadmset,  (SUBR)specaddm},
-  { "specdiff", S(SPECDIFF),_QQ, 3, "w", "w",   (SUBR)spdifset,  (SUBR)specdiff},
-  { "specscal", S(SPECSCAL),_QQ, 3, "w", "wii", (SUBR)spsclset,  (SUBR)specscal},
-  { "spechist", S(SPECHIST),_QQ, 3, "w", "w",   (SUBR)sphstset,  (SUBR)spechist},
-  { "specfilt", S(SPECFILT),_QQ, 3, "w", "wi",  (SUBR)spfilset,  (SUBR)specfilt},
-  { "specptrk", S(SPECPTRK),_QQ, 3, "kk", "wkiiiiiioqooo",
+  { "specaddm", S(SPECADDM),_QQ, "w", "wwp", (SUBR)spadmset,  (SUBR)specaddm},
+  { "specdiff", S(SPECDIFF),_QQ, "w", "w",   (SUBR)spdifset,  (SUBR)specdiff},
+  { "specscal", S(SPECSCAL),_QQ, "w", "wii", (SUBR)spsclset,  (SUBR)specscal},
+  { "spechist", S(SPECHIST),_QQ, "w", "w",   (SUBR)sphstset,  (SUBR)spechist},
+  { "specfilt", S(SPECFILT),_QQ, "w", "wi",  (SUBR)spfilset,  (SUBR)specfilt},
+  { "specptrk", S(SPECPTRK),_QQ, "kk", "wkiiiiiioqooo",
     (SUBR)sptrkset,(SUBR)specptrk},
-  { "specsum",  S(SPECSUM), _QQ, 3, "k", "wo",  (SUBR)spsumset,  (SUBR)specsum },
-  { "specdisp", S(SPECDISP),_QQ, 3, "",  "wio", (SUBR)spdspset,  (SUBR)specdisp},
-  { "pitch", S(PITCH),   0,  3,    "kk", "aiiiiqooooojo",
+  { "specsum",  S(SPECSUM), _QQ, "k", "wo",  (SUBR)spsumset,  (SUBR)specsum },
+  { "specdisp", S(SPECDISP),_QQ, "",  "wio", (SUBR)spdspset,  (SUBR)specdisp},
+  { "pitch", S(PITCH),   0,     "kk", "aiiiiqooooojo",
     (SUBR)pitchset, (SUBR)pitch },
-  { "maca", S(SUM),      0,  3,  "a", "y",    (SUBR)macset, (SUBR)maca  },
-  { "mac", S(SUM),       0,  3,  "a", "Z",    (SUBR)macset, (SUBR)mac   },
-  { "clockon", S(CLOCK), 0,  3,  "",  "i",    (SUBR)clockset, (SUBR)clockon, NULL  },
-  { "clockoff", S(CLOCK),0,  3,  "",  "i",    (SUBR)clockset, (SUBR)clockoff, NULL },
-  { "readclock", S(CLKRD),0, 1,  "i", "i",    (SUBR)clockread, NULL, NULL          },
-  { "readscratch", S(SCRATCHPAD),0, 1, "i", "o", (SUBR)scratchread, NULL, NULL     },
-  { "writescratch", S(SCRATCHPAD),0, 1, "", "io", (SUBR)scratchwrite, NULL, NULL   },
-  { "pitchamdf",S(PITCHAMDF),0,3,"kk","aiioppoo",
+  { "maca", S(SUM),      0,   "a", "y",    (SUBR)macset, (SUBR)maca  },
+  { "mac", S(SUM),       0,   "a", "Z",    (SUBR)macset, (SUBR)mac   },
+  { "clockon", S(CLOCK), 0,   "",  "i",    (SUBR)clockset, (SUBR)clockon, NULL  },
+  { "clockoff", S(CLOCK),0,   "",  "i",    (SUBR)clockset, (SUBR)clockoff, NULL },
+  { "readclock", S(CLKRD),0,  "i", "i",    (SUBR)clockread, NULL, NULL          },
+  { "readscratch", S(SCRATCHPAD),0, "i", "o", (SUBR)scratchread, NULL, NULL     },
+  { "writescratch", S(SCRATCHPAD),0, "", "io", (SUBR)scratchwrite, NULL, NULL   },
+  { "pitchamdf",S(PITCHAMDF),0, "kk","aiioppoo",
     (SUBR)pitchamdfset, (SUBR)pitchamdf },
-  { "hsboscil",S(HSBOSC), TR, 3, "a", "kkkiiioo",
-
+  { "hsboscil",S(HSBOSC), TR, "a", "kkkiiioo",
     (SUBR)hsboscset,(SUBR)hsboscil },
-  { "phasorbnk", S(PHSORBNK),0,3,"a", "xkio",
+  { "phasorbnk", S(PHSORBNK),0,"a", "xkio",
     (SUBR)phsbnkset, (SUBR)phsorbnk },
-  { "phasorbnk.k", S(PHSORBNK),0,3,"k", "xkio",
+  { "phasorbnk.k", S(PHSORBNK),0,"k", "xkio",
     (SUBR)phsbnkset, (SUBR)kphsorbnk, NULL},
-  { "adsynt",S(HSBOSC), TR, 3,  "a", "kkiiiio", (SUBR)adsyntset, (SUBR)adsynt },
-  { "mpulse", S(IMPULSE), 0, 3,  "a", "kko",
+  { "adsynt",S(HSBOSC), TR,  "a", "kkiiiio", (SUBR)adsyntset, (SUBR)adsynt },
+  { "mpulse", S(IMPULSE), 0,  "a", "kko",
     (SUBR)impulse_set, (SUBR)impulse },
-  { "lpf18", S(LPF18), 0, 3,  "a", "axxxo",  (SUBR)lpf18set, (SUBR)lpf18db },
-  { "waveset", S(BARRI), 0, 3,  "a", "ako",  (SUBR)wavesetset, (SUBR)waveset},
-  { "pinkish", S(PINKISH), 0, 3, "a", "xoooo", (SUBR)pinkset, (SUBR)pinkish },
-  { "noise",  S(VARI), 0, 3,  "a", "xk",   (SUBR)varicolset, (SUBR)varicol },
-  { "transeg", S(TRANSEG),0, 3,  "k", "iiim",
+  { "lpf18", S(LPF18), 0,  "a", "axxxo",  (SUBR)lpf18set, (SUBR)lpf18db },
+  { "waveset", S(BARRI), 0,  "a", "ako",  (SUBR)wavesetset, (SUBR)waveset},
+  { "pinkish", S(PINKISH), 0, "a", "xoooo", (SUBR)pinkset, (SUBR)pinkish },
+  { "noise",  S(VARI), 0,  "a", "xk",   (SUBR)varicolset, (SUBR)varicol },
+  { "transeg", S(TRANSEG),0,  "k", "iiim",
     (SUBR)trnset,(SUBR)ktrnseg, NULL},
-  { "transeg.a", S(TRANSEG),0, 3,  "a", "iiim",
+  { "transeg.a", S(TRANSEG),0,  "a", "iiim",
     (SUBR)trnset,(SUBR)trnseg},
-  { "transegb", S(TRANSEG),0, 3,  "k", "iiim",
+  { "transegb", S(TRANSEG),0,  "k", "iiim",
     (SUBR)trnset_bkpt,(SUBR)ktrnseg,(SUBR)NULL},
-  { "transegb.a", S(TRANSEG),0, 3,  "a", "iiim",
+  { "transegb.a", S(TRANSEG),0,  "a", "iiim",
     (SUBR)trnset_bkpt,(SUBR)trnseg    },
-  { "transegr", S(TRANSEG),0, 3, "k", "iiim",
+  { "transegr", S(TRANSEG),0, "k", "iiim",
     (SUBR)trnsetr,(SUBR)ktrnsegr,(SUBR)NULL },
-  { "transegr.a", S(TRANSEG),0, 3, "a", "iiim",
+  { "transegr.a", S(TRANSEG),0, "a", "iiim",
     (SUBR)trnsetr,(SUBR)trnsegr      },
-  { "clip", S(CLIP),      0, 3,  "a", "aiiv", (SUBR)clip_set, (SUBR)clip  },
-  { "median", S(MEDFILT), 0, 3,     "a", "akio", (SUBR)medfiltset, (SUBR)medfilt },
-  { "mediank", S(MEDFILT), 0,3,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
+  { "clip", S(CLIP),      0,   "a", "aiiv", (SUBR)clip_set, (SUBR)clip  },
+  { "median", S(MEDFILT), 0,      "a", "akio", (SUBR)medfiltset, (SUBR)medfilt },
+  { "mediank", S(MEDFILT), 0,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
 
 LINKAGE_BUILTIN(spectra_localops)

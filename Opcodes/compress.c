@@ -285,9 +285,9 @@ static int32_t distort(CSOUND *csound, DIST *p)
 #define S(x)    sizeof(x)
 
 static OENTRY compress_localops[] = {
-  { "compress", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
-  { "compress2", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
-  { "distort", S(DIST), TR, 3, "a", "akiqo", (SUBR) distset, (SUBR) distort },
+  { "compress", S(CMPRS), 0,  "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
+  { "compress2", S(CMPRS), 0,  "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
+  { "distort", S(DIST), TR,  "a", "akiqo", (SUBR) distset, (SUBR) distort },
 };
 
 LINKAGE_BUILTIN(compress_localops)

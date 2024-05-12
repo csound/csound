@@ -312,7 +312,7 @@ static int32_t ftconv_perf(CSOUND *csound, FTCONV *p)
 int32_t ftconv_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "ftconv",
-                                (int32_t) sizeof(FTCONV), TR, 3,
+                                (int32_t) sizeof(FTCONV), TR,
                                 "mmmmmmmm", "aiiooo",
                                 (int32_t (*)(CSOUND *, void *)) ftconv_init,
                                 (int32_t (*)(CSOUND *, void *)) ftconv_perf,

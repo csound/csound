@@ -1438,51 +1438,53 @@ static int ftgenonce_SS(CSOUND *csound, FTGEN *p) {
 
 extern "C" {
 static OENTRY oentries[] = {
-    {(char *)"outleta", sizeof(Outleta), _CW, 3, (char *)"", (char *)"Sa",
-     (SUBR)&Outleta::init_, (SUBR)&Outleta::audio_},
-    {(char *)"inleta", sizeof(Inleta), _CR, 3, (char *)"a", (char *)"S",
+    {(char *)"outleta", sizeof(Outleta), _CW,  (char *)"", (char *)"Sa",
+     (SUBR)&Outleta::init_, (SUBR)&Outleta::audio_, (SUBR)&Outleta::deinit_},
+    {(char *)"inleta", sizeof(Inleta), _CR,  (char *)"a", (char *)"S",
      (SUBR)&Inleta::init_, (SUBR)&Inleta::audio_},
-    {(char *)"outletk", sizeof(Outletk), _CW, 3, (char *)"", (char *)"Sk",
-     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, 0},
-    {(char *)"inletk", sizeof(Inletk), _CR, 3, (char *)"k", (char *)"S",
+    {(char *)"outletk", sizeof(Outletk), _CW,  (char *)"", (char *)"Sk",
+     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, (SUBR)&Outleta::deinit_},
+    {(char *)"inletk", sizeof(Inletk), _CR,  (char *)"k", (char *)"S",
      (SUBR)&Inletk::init_, (SUBR)&Inletk::kontrol_, 0},
-    {(char *)"outletkid", sizeof(Outletkid), _CW, 3, (char *)"", (char *)"SSk",
-     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, 0},
-    {(char *)"inletkid", sizeof(Inletkid), _CR, 3, (char *)"k", (char *)"SS",
+    {(char *)"outletkid", sizeof(Outletkid), _CW,  (char *)"", (char *)"SSk",
+     (SUBR)&Outletk::init_, (SUBR)&Outletk::kontrol_, (SUBR)&Outleta::deinit_},
+    {(char *)"inletkid", sizeof(Inletkid), _CR,  (char *)"k", (char *)"SS",
      (SUBR)&Inletk::init_, (SUBR)&Inletk::kontrol_, 0},
-    {(char *)"outletf", sizeof(Outletf), _CW, 3, (char *)"", (char *)"Sf",
-     (SUBR)&Outletf::init_, (SUBR)&Outletf::audio_},
-    {(char *)"inletf", sizeof(Inletf), _CR, 3, (char *)"f", (char *)"S",
+    {(char *)"outletf", sizeof(Outletf), _CW,  (char *)"", (char *)"Sf",
+     (SUBR)&Outletf::init_, (SUBR)&Outletf::audio_, (SUBR)&Outleta::deinit_},
+    {(char *)"inletf", sizeof(Inletf), _CR,  (char *)"f", (char *)"S",
      (SUBR)&Inletf::init_, (SUBR)&Inletf::audio_},
-    {(char *)"outletv", sizeof(Outletv), _CW, 3, (char *)"", (char *)"Sa[]",
-     (SUBR)&Outletv::init_, (SUBR)&Outletv::audio_},
-    {(char *)"inletv", sizeof(Inletv), _CR, 3, (char *)"a[]", (char *)"S",
+    {(char *)"outletv", sizeof(Outletv), _CW,  (char *)"", (char *)"Sa[]",
+     (SUBR)&Outletv::init_, (SUBR)&Outletv::audio_, (SUBR)&Outleta::deinit_},
+    {(char *)"inletv", sizeof(Inletv), _CR,  (char *)"a[]", (char *)"S",
      (SUBR)&Inletv::init_, (SUBR)&Inletv::audio_},
-    {(char *)"connect", sizeof(Connect), 0, 1, (char *)"", (char *)"iSiSp",
+    {(char *)"connect", sizeof(Connect), 0,  (char *)"", (char *)"iSiSp",
      (SUBR)&Connect::init_, 0, 0},
-    {(char *)"connect.i", sizeof(Connecti), 0, 1, (char *)"", (char *)"iSSSp",
+    {(char *)"connect.i", sizeof(Connecti), 0,  (char *)"", (char *)"iSSSp",
      (SUBR)&Connecti::init_, 0, 0},
-    {(char *)"connect.ii", sizeof(Connectii), 0, 1, (char *)"", (char *)"SSiSp",
+    {(char *)"connect.ii", sizeof(Connectii), 0,  (char *)"", (char *)"SSiSp",
      (SUBR)&Connectii::init_, 0, 0},
-    {(char *)"connect.S", sizeof(ConnectS), 0, 1, (char *)"", (char *)"SSSSp",
+    {(char *)"connect.S", sizeof(ConnectS), 0,  (char *)"", (char *)"SSSSp",
      (SUBR)&ConnectS::init_, 0, 0},
-    {(char *)"alwayson", sizeof(AlwaysOn), 0, 1, (char *)"", (char *)"im",
+    {(char *)"alwayson", sizeof(AlwaysOn), 0,  (char *)"", (char *)"im",
      (SUBR)&AlwaysOn::init_, 0, 0},
-    {(char *)"alwayson.S", sizeof(AlwaysOnS), 0, 1, (char *)"", (char *)"Sm",
+    {(char *)"alwayson.S", sizeof(AlwaysOnS), 0,  (char *)"", (char *)"Sm",
      (SUBR)&AlwaysOnS::init_, 0, 0},
-    {(char *)"ftgenonce", sizeof(FTGEN), TW, 1, (char *)"i", (char *)"iiiiim",
+    {(char *)"ftgenonce", sizeof(FTGEN), TW,  (char *)"i", (char *)"iiiiim",
      (SUBR)&ftgenonce, 0, 0},
-    {(char *)"ftgenonce.S", sizeof(FTGEN), TW, 1, (char *)"i", (char *)"iiiSim",
+    {(char *)"ftgenonce.S", sizeof(FTGEN), TW,  (char *)"i", (char *)"iiiSim",
      (SUBR)&ftgenonce_S, 0, 0},
-    {(char *)"ftgenonce.iS", sizeof(FTGEN), TW, 1, (char *)"i",
+    {(char *)"ftgenonce.iS", sizeof(FTGEN), TW,  (char *)"i",
      (char *)"iiiiSm", (SUBR)&ftgenonce_iS, 0, 0},
-    {(char *)"ftgenonce.SS", sizeof(FTGEN), TW, 1, (char *)"i",
+    {(char *)"ftgenonce.SS", sizeof(FTGEN), TW,  (char *)"i",
      (char *)"iiiSSm", (SUBR)&ftgenonce_SS, 0, 0},
-    {0, 0, 0, 0, 0, 0, (SUBR)0, (SUBR)0, (SUBR)0}};
+    {0,  0, 0, 0, 0, (SUBR)0, (SUBR)0, (SUBR)0}};
+
 
 
 int32_t destroySignalflowgraph(CSOUND *csound, void *p) {
     IGN(p);
+    
   if (csound->GetDebug(csound)) {
     csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)...\n",
                     csound);
@@ -1533,10 +1535,10 @@ PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
   int err = 0;
   while (ep->opname != 0) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
-                                ep->thread, ep->outypes, ep->intypes,
-                                (int32_t (*)(CSOUND *, void *))ep->iopadr,
-                                (int32_t (*)(CSOUND *, void *))ep->kopadr,
-                                (int32_t (*)(CSOUND *, void *))ep->aopadr);
+                                ep->outypes, ep->intypes,
+                                (int32_t (*)(CSOUND *, void *))ep->init,
+                                (int32_t (*)(CSOUND *, void *))ep->perf,
+                                (int32_t (*)(CSOUND *, void *))ep->deinit);
     ep++;
   }
   // need to register reset callback

@@ -390,9 +390,9 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
 
 static OENTRY localops[] =
   {
-   { "pvsifd", sizeof(IFD), 0, 3, "ff", "aiiip",
+   { "pvsifd", sizeof(IFD), 0,  "ff", "aiiip",
      (SUBR) ifd_init, (SUBR) ifd_process},
-   { "tabifd", sizeof(IFD), 0, 3, "ff", "kkkiiii",
+   { "tabifd", sizeof(IFD), 0,  "ff", "kkkiiii",
      (SUBR) tifd_init, (SUBR) tifd_process}
   };
 

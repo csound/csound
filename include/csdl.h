@@ -79,9 +79,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       err |= csound->AppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->thread,
                                   ep->outypes, ep->intypes,
-                                  (int (*)(CSOUND *, void *)) ep->iopadr,
-                                  (int (*)(CSOUND *, void *)) ep->kopadr,
-                                  (int (*)(CSOUND *, void *)) ep->aopadr);
+                                  (int (*)(CSOUND *, void *)) ep->init,
+                                  (int (*)(CSOUND *, void *)) ep->perf,
+                                  (int (*)(CSOUND *, void *)) ep->deinit);
       ep++;
     }
     return err;

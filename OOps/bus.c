@@ -619,8 +619,8 @@ static CS_NOINLINE void print_chn_err_perf(void *p, int32_t err)
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
     const char  *msg;
 
-    if (((OPDS*) p)->opadr != (SUBR) NULL)
-        ((OPDS*) p)->opadr = (SUBR) notinit_opcode_stub;
+    if (((OPDS*) p)->perf != (SUBR) NULL)
+        ((OPDS*) p)->perf = (SUBR) notinit_opcode_stub;
     if (err == CSOUND_MEMORY)
         msg = "memory allocation failure";
     else if (err < 0)
@@ -635,8 +635,8 @@ static CS_NOINLINE int32_t print_chn_err(void *p, int32_t err)
     CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
     const char  *msg;
 
-    if (((OPDS*) p)->opadr != (SUBR) NULL)
-        ((OPDS*) p)->opadr = (SUBR) notinit_opcode_stub;
+    if (((OPDS*) p)->perf != (SUBR) NULL)
+        ((OPDS*) p)->perf = (SUBR) notinit_opcode_stub;
     if (err == CSOUND_MEMORY)
         msg = "memory allocation failure";
     else if (err < 0)
@@ -855,11 +855,11 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     }
 
     if(channelType == (CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL))
-        p->h.opadr = (SUBR) chnget_array_opcode_perf_k;
+        p->h.perf = (SUBR) chnget_array_opcode_perf_k;
     else if(channelType == (CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL))
-        p->h.opadr = (SUBR) chnget_array_opcode_perf_a;
+        p->h.perf = (SUBR) chnget_array_opcode_perf_a;
     else
-        p->h.opadr = (SUBR) chnget_array_opcode_perf_S;
+        p->h.perf = (SUBR) chnget_array_opcode_perf_S;
 
     return OK;
 }
@@ -1035,11 +1035,11 @@ int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     }
 
     if(channelType == (CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL))
-        p->h.opadr = (SUBR) chnset_array_opcode_perf_k;
+        p->h.perf = (SUBR) chnset_array_opcode_perf_k;
     else if(channelType == (CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL))
-        p->h.opadr = (SUBR) chnset_array_opcode_perf_a;
+        p->h.perf = (SUBR) chnset_array_opcode_perf_a;
     else
-        p->h.opadr = (SUBR) chnset_array_opcode_perf_S;
+        p->h.perf = (SUBR) chnset_array_opcode_perf_S;
 
     return OK;
 }
@@ -1161,7 +1161,7 @@ int32_t chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
         strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
 
-    p->h.opadr = (SUBR) chnget_opcode_perf_k;
+    p->h.perf = (SUBR) chnget_opcode_perf_k;
     return OK;
 }
 
@@ -1180,7 +1180,7 @@ int32_t chnget_opcode_init_a(CSOUND* csound, CHNGET* p)
         strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
 
-    p->h.opadr = (SUBR) chnget_opcode_perf_a;
+    p->h.perf = (SUBR) chnget_opcode_perf_a;
     return OK;
 }
 
@@ -1399,7 +1399,7 @@ int32_t chnset_opcode_init_k(CSOUND* csound, CHNGET* p)
         p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
     } else return print_chn_err(p, err);
 
-    p->h.opadr = (SUBR) chnset_opcode_perf_k;
+    p->h.perf = (SUBR) chnset_opcode_perf_k;
     return OK;
 }
 
@@ -1415,7 +1415,7 @@ int32_t chnset_opcode_init_a(CSOUND* csound, CHNGET* p)
         p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
     } else return print_chn_err(p, err);
 
-    p->h.opadr = (SUBR) chnset_opcode_perf_a;
+    p->h.perf = (SUBR) chnset_opcode_perf_a;
     return OK;
 }
 
@@ -1429,7 +1429,7 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
         p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
-        p->h.opadr = (SUBR) chnmix_opcode_perf;
+        p->h.perf = (SUBR) chnmix_opcode_perf;
         return OK;
     }
     return print_chn_err(p, err);
@@ -1451,7 +1451,7 @@ int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
         }
         else return print_chn_err(p, err);
     }
-    p->h.opadr = (SUBR) chnclear_opcode_perf;
+    p->h.perf = (SUBR) chnclear_opcode_perf;
     return OK;
 }
 

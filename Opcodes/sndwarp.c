@@ -376,9 +376,9 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
 
 static OENTRY localops[] =
   {
-   { "sndwarp", S(SNDWARP), TR, 3, "mm", "xxxiiiiiii",
+   { "sndwarp", S(SNDWARP), TR,  "mm", "xxxiiiiiii",
     (SUBR)sndwarpgetset, (SUBR)sndwarp},
-   { "sndwarpst", S(SNDWARPST), TR, 3, "mmmm","xxxiiiiiii",
+   { "sndwarpst", S(SNDWARPST), TR,  "mmmm","xxxiiiiiii",
     (SUBR)sndwarpstset,(SUBR)sndwarpst}
 };
 

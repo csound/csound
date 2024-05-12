@@ -182,12 +182,6 @@ public:
     return (const INSDS *) GetMidiChannel(p)->kinsptr;
   }
 
-  /** deinit registration for a given plugin class
-   */
-  template <typename T> void plugin_deinit(T *p) {
-    RegisterDeinitCallback(this, (void *)p, deinit<T>);
-  }
-
   /** Csound memory allocation - malloc style
    */
   void *malloc(size_t size) { return Malloc(this, size); }
@@ -895,6 +889,10 @@ template <std::size_t N> struct InPlug : OPDS {
    */
   int init() { return OK; }
 
+  /** deinit function placeholder
+   */
+  int deinit() { return OK; }
+
   /** k-rate function placeholder
    */
   int kperf() { return OK; }
@@ -990,7 +988,7 @@ template <std::size_t N> struct InPlug : OPDS {
  /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->iopadr ? true : false;
+    return this->init ? true : false;
   }
 
   /** check if this opcode runs at perf time
@@ -1019,6 +1017,10 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** i-time function placeholder
    */
   int init() { return OK; }
+
+  /** deinit function placeholder
+   */
+  int deinit() { return OK; }
 
   /** k-rate function placeholder
    */
@@ -1122,13 +1124,13 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->iopadr ? true : false;
+    return (this->init != NULL);
   }
 
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
-      return this->opadr ? true : false;
+    return (this->perf != NULL);
   }
 
 };
@@ -1150,6 +1152,16 @@ template <typename T> int init(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->init();
 }
+
+/**
+  @private
+  opcode thread function template (deinit)
+*/
+template <typename T> int deinit(CSOUND *csound, T *p) {
+  p->csound = (Csound *)csound;
+  return p->deinit();
+}
+ 
 
 /**
    @private
@@ -1178,15 +1190,14 @@ int plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
   if(thr == thread::ia || thr == thread::a) {
-  thr = thr == thread::ia ? 3 : 2;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)aperf<T>, NULL);
+                          (SUBR)aperf<T>, (SUBR)deinit<T>);
   }
   else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)kperf<T>, NULL);
+                          (SUBR)kperf<T>, (SUBR)deinit<T>);
 }
 
 /** plugin registration function template
@@ -1197,16 +1208,15 @@ int plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
   if(thr == thread::ia || thr == thread::a) {
-  thr = thr == thread::ia ? 3 : 2;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)aperf<T>, NULL);
+                          (SUBR)aperf<T>, (SUBR)deinit<T>);
 
   }
   else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)kperf<T>, NULL);
+                          (SUBR)kperf<T>, (SUBR)deinit<T>);
 
 }
 

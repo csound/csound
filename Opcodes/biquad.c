@@ -1720,32 +1720,32 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
 #define S(x)    sizeof(x)
 
-    static OENTRY localops[] = {
-      { "biquad", S(BIQUAD),   0, 3, "a", "akkkkkko",
-        (SUBR)biquadset,  (SUBR)biquad },
-      { "biquada", S(BIQUAD),  0, 3, "a", "aaaaaaao",
-        (SUBR)biquadset, (SUBR)biquada },
-      { "moogvcf", S(MOOGVCF), 0, 3, "a", "axxpo",
-        (SUBR)moogvcfset,  (SUBR)moogvcf },
-      { "moogvcf2", S(MOOGVCF),0, 3, "a", "axxoo",
-        (SUBR)moogvcfset,  (SUBR)moogvcf },
-      { "rezzy", S(REZZY),     0, 3, "a", "axxoo", (SUBR)rezzyset,  (SUBR)rezzy },
-      { "bqrez", S(REZZY),     0, 3, "a", "axxoo", (SUBR)bqrezset,  (SUBR)bqrez },
-      { "distort1", S(DISTORT),TR, 2, "a", "akkkko",  NULL,      (SUBR)distort   },
-      { "vco", S(VCO),      TR, 3, "a", "xxiVppovoo",(SUBR)vcoset,  (SUBR)vco },
-      { "tbvcf", S(TBVCF),     0, 3, "a", "axxkkp",
-        (SUBR)tbvcfset,  (SUBR)tbvcf   },
-      { "planet", S(PLANET),0, 3,"aaa","kkkiiiiiiioo",
-        (SUBR)planetset,  (SUBR)planet},
-      { "pareq", S(PAREQ),     0, 3, "a", "akkkoo",(SUBR)pareqset,  (SUBR)pareq },
-      { "nestedap", S(NESTEDAP),0, 3,"a", "aiiiiooooo",
-        (SUBR)nestedapset,  (SUBR)nestedap},
-      { "lorenz", S(LORENZ),0,  3, "aaa", "kkkkiiiio",
-        (SUBR)lorenzset,  (SUBR)lorenz},
-      { "mode",  S(MODE),   0, 3,      "a", "axxo", (SUBR)modeset,  (SUBR)mode   },
-      { "mvmfilter", S(MVMFILT), 0, 3, "a", "axxo",
-        (SUBR) mvmfilterset, (SUBR) mvmfilter },
-    };
+static OENTRY localops[] = {
+  { "biquad", S(BIQUAD),   0, "a", "akkkkkko",
+                                 (SUBR)biquadset,  (SUBR)biquad },
+{ "biquada", S(BIQUAD),  0, "a", "aaaaaaao",
+                                 (SUBR)biquadset, (SUBR)biquada },
+{ "moogvcf", S(MOOGVCF), 0, "a", "axxpo",
+                               (SUBR)moogvcfset,  (SUBR)moogvcf },
+{ "moogvcf2", S(MOOGVCF),0, "a", "axxoo",
+                               (SUBR)moogvcfset,  (SUBR)moogvcf },
+{ "rezzy", S(REZZY),     0, "a", "axxoo", (SUBR)rezzyset,  (SUBR)rezzy },
+{ "bqrez", S(REZZY),     0, "a", "axxoo", (SUBR)bqrezset,  (SUBR)bqrez },
+{ "distort1", S(DISTORT),TR,  "a", "akkkko",  NULL,      (SUBR)distort   },
+{ "vco", S(VCO),      TR, "a", "xxiVppovoo",(SUBR)vcoset,  (SUBR)vco },
+{ "tbvcf", S(TBVCF),     0, "a", "axxkkp",
+                                 (SUBR)tbvcfset,  (SUBR)tbvcf   },
+{ "planet", S(PLANET),0,"aaa","kkkiiiiiiioo",
+                                  (SUBR)planetset,  (SUBR)planet},
+{ "pareq", S(PAREQ),     0, "a", "akkkoo",(SUBR)pareqset,  (SUBR)pareq },
+{ "nestedap", S(NESTEDAP),0,"a", "aiiiiooooo",
+                                     (SUBR)nestedapset,  (SUBR)nestedap},
+{ "lorenz", S(LORENZ),0,  "aaa", "kkkkiiiio",
+                                  (SUBR)lorenzset,  (SUBR)lorenz},
+{ "mode",  S(MODE),   0,      "a", "axxo", (SUBR)modeset,  (SUBR)mode   },
+{ "mvmfilter", S(MVMFILT), 0, "a", "axxo",
+                                  (SUBR) mvmfilterset, (SUBR) mvmfilter },
+};
 
     int32_t biquad_init_(CSOUND *csound)
     {

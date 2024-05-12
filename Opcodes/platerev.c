@@ -251,7 +251,7 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
 
 static OENTRY platerev_localops[] =
   {
-   { "platerev", sizeof(PLATE), 0, 3, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+   { "platerev", sizeof(PLATE), 0,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
      "iikiiiiy",
      (SUBR) platerev_init, (SUBR) platerev
   },

@@ -1803,7 +1803,7 @@ static int32_t early_process(CSOUND *csound, early *p)
 static OENTRY hrtfearly_localops[] =
   {
     {
-     "hrtfearly",   sizeof(early), 0,3, "aaiii",
+     "hrtfearly",   sizeof(early), 0, "aaiii",
                                          "axxxxxxSSioopoOoooooooooooooooooo",
       (SUBR)early_init, (SUBR)early_process
     }

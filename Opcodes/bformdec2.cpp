@@ -2162,7 +2162,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, in
 #define S(x)    sizeof(x)
 extern "C" {
 static OENTRY bformdec2_localops[] = {
-  { (char*) "bformdec2.A", S(HOAMBDEC), 0, 3, (char*) "a[]", (char*) "ia[]ooooNN",
+  { (char*) "bformdec2.A", S(HOAMBDEC), 0, (char*) "a[]", (char*) "ia[]ooooNN",
     (SUBR)ihoambdec, (SUBR)ahoambdec },
 };
 

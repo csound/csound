@@ -262,8 +262,8 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
 
 static OENTRY tabaudio_localops[] =
   {
-    { "ftaudio.i",     S(TABAUDIO),  TR, 1, "i", "iSioo",   (SUBR)tabaudioi, NULL },
-    { "ftaudio.k",     S(TABAUDIOK), TR, 2, "k", "kkSkpOO",  NULL, (SUBR)tabaudiok },
+   { "ftaudio.i",     S(TABAUDIO),  TR,  "i", "iSioo",   (SUBR)tabaudioi, NULL },
+   { "ftaudio.k",     S(TABAUDIOK), TR,  "k", "kkSkpOO",  NULL, (SUBR)tabaudiok },
   };
 
 LINKAGE_BUILTIN(tabaudio_localops)

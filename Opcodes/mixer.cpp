@@ -300,21 +300,21 @@ struct MixerClear : public OpcodeBase<MixerClear> {
 extern "C" {
 
 static OENTRY localops[] = {
-    {(char *)"MixerSetLevel", sizeof(MixerSetLevel), _CW, 3, (char *)"",
+    {(char *)"MixerSetLevel", sizeof(MixerSetLevel), _CW,  (char *)"",
      (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
      0},
-    {(char *)"MixerSetLevel_i", sizeof(MixerSetLevel), _CW, 1, (char *)"",
+    {(char *)"MixerSetLevel_i", sizeof(MixerSetLevel), _CW,  (char *)"",
      (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0},
-    {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR, 3, (char *)"k",
+    {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
      (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
      0},
-    {(char *)"MixerSend", sizeof(MixerSend), _CW, 3, (char *)"", (char *)"aiii",
+    {(char *)"MixerSend", sizeof(MixerSend), _CW,  (char *)"", (char *)"aiii",
      (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_},
-    {(char *)"MixerReceive", sizeof(MixerReceive), _CR, 3, (char *)"a",
+    {(char *)"MixerReceive", sizeof(MixerReceive), _CR,  (char *)"a",
      (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_},
-    {(char *)"MixerClear", sizeof(MixerClear), 0, 3, (char *)"", (char *)"",
+    {(char *)"MixerClear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
      (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_},
-    {NULL, 0, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL}};
+    {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL}};
 
 PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>>
@@ -327,8 +327,6 @@ PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
   csound::CreateGlobalPointer(csound, "matrix", matrix);
   return OK;
 }
-
-
 
 /*
  * The mixer busses are laid out:
@@ -387,10 +385,10 @@ PUBLIC int32_t csoundModuleInit_mixer(CSOUND *csound) {
 
   while (ep->opname != NULL) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
-                                ep->thread, ep->outypes, ep->intypes,
-                                (int32_t (*)(CSOUND *, void *))ep->iopadr,
-                                (int32_t (*)(CSOUND *, void *))ep->kopadr,
-                                (int32_t (*)(CSOUND *, void *))ep->aopadr);
+                                 ep->outypes, ep->intypes,
+                                (int32_t (*)(CSOUND *, void *))ep->init,
+                                (int32_t (*)(CSOUND *, void *))ep->perf,
+                                (int32_t (*)(CSOUND *, void *))ep->deinit);
     ep++;
   }
   // need to register reset callback

@@ -781,9 +781,6 @@ set(libcsound_SRCS
 
 set(vbap_ops
     Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})

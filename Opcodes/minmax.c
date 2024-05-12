@@ -364,22 +364,22 @@ static int32_t MinAbs_krate(CSOUND *csound, MINMAX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY minmax_localops[] = {
-    {"maxaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL, (SUBR) MaxAccumulate},
-    {"minaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL, (SUBR) MinAccumulate},
-    {"maxabsaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL,
+    {"maxaccum", S(MINMAXACCUM), WI, "", "aa", NULL, (SUBR) MaxAccumulate},
+    {"minaccum", S(MINMAXACCUM), WI, "", "aa", NULL, (SUBR) MinAccumulate},
+    {"maxabsaccum", S(MINMAXACCUM), WI, "", "aa", NULL,
      (SUBR) MaxAbsAccumulate},
-    {"minabsaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL,
+    {"minabsaccum", S(MINMAXACCUM), WI, "", "aa", NULL,
      (SUBR) MinAbsAccumulate},
-    {"max.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) Max_arate},
-    {"min.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) Min_arate},
-    {"maxabs.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) MaxAbs_arate},
-    {"minabs.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) MinAbs_arate},
-    {"max.i", S(MINMAX), 0, 1, "i", "im", (SUBR) Max_krate, NULL, NULL},
-    {"max.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Max_krate, NULL},
-    {"min.i", S(MINMAX), 0, 1, "i", "im", (SUBR) Min_krate, NULL, NULL},
-    {"min.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) Min_krate, NULL},
-    {"maxabs.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) MaxAbs_krate, NULL},
-    {"minabs.k", S(MINMAX), 0, 2, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
+    {"max.a", S(MINMAX), 0, "a", "ay", NULL, (SUBR) Max_arate},
+    {"min.a", S(MINMAX), 0, "a", "ay", NULL, (SUBR) Min_arate},
+    {"maxabs.a", S(MINMAX), 0, "a", "ay", NULL, (SUBR) MaxAbs_arate},
+    {"minabs.a", S(MINMAX), 0, "a", "ay", NULL, (SUBR) MinAbs_arate},
+    {"max.i", S(MINMAX), 0,  "i", "im", (SUBR) Max_krate, NULL, NULL},
+    {"max.k", S(MINMAX), 0, "k", "kz", NULL, (SUBR) Max_krate, NULL},
+    {"min.i", S(MINMAX), 0,  "i", "im", (SUBR) Min_krate, NULL, NULL},
+    {"min.k", S(MINMAX), 0, "k", "kz", NULL, (SUBR) Min_krate, NULL},
+    {"maxabs.k", S(MINMAX), 0, "k", "kz", NULL, (SUBR) MaxAbs_krate, NULL},
+    {"minabs.k", S(MINMAX), 0, "k", "kz", NULL, (SUBR) MinAbs_krate, NULL}
 };
 
 LINKAGE_BUILTIN(minmax_localops)

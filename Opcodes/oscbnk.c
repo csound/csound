@@ -2318,20 +2318,20 @@ static int32_t vco2ftset(CSOUND *csound, VCO2FT *p)
     + (*(p->vco2_tables))[w]->ntabl;
   p->npart_old = p->nparts + ((*(p->vco2_tables))[w]->ntabl >> 1);
 #endif
-  p->base_ftnum = (*(p->vco2_tables))[w]->base_ftnum;
-  if (*(p->inyx) > FL(0.5))
-    p->p_scl = FL(0.5) * CS_ESR;
-  else if (*(p->inyx) < FL(0.001))
-    p->p_scl = FL(0.001) * CS_ESR;
-  else
-    p->p_scl = *(p->inyx) * CS_ESR;
-  p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
-  /* in case of vco2ift opcode, find table number now */
-  if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
-    vco2ftp(csound, p);
-  else                                /* else set perf routine to avoid */
-    p->h.opadr = (SUBR) vco2ftp;      /* "not initialised" error */
-  return OK;
+    p->base_ftnum = (*(p->vco2_tables))[w]->base_ftnum;
+    if (*(p->inyx) > FL(0.5))
+      p->p_scl = FL(0.5) * CS_ESR;
+    else if (*(p->inyx) < FL(0.001))
+      p->p_scl = FL(0.001) * CS_ESR;
+    else
+      p->p_scl = *(p->inyx) * CS_ESR;
+    p->p_min = p->p_scl / (MYFLT) VCO2_MAX_NPART;
+    /* in case of vco2ift opcode, find table number now */
+    if (!strcmp(p->h.optext->t.opcod, "vco2ift"))
+      vco2ftp(csound, p);
+    else                                /* else set perf routine to avoid */
+      p->h.perf = (SUBR) vco2ftp;      /* "not initialised" error */
+    return OK;
 }
 
 /* ---- vco2ft opcode (performance) ---- */
@@ -2993,56 +2993,54 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
 
   static const OENTRY localops[] =
     {
-      { "oscbnk",     sizeof(OSCBNK),     TR, 3,  "a",  "kkkkiikkkkikkkkkkikooooooo",
-        (SUBR) oscbnkset, (SUBR) oscbnk                },
-      { "grain2",     sizeof(GRAIN2),     TR, 3,      "a",    "kkkikiooo",
-        (SUBR) grain2set, (SUBR) grain2                },
-      { "grain3",     sizeof(GRAIN3),     TR, 3,      "a",    "kkkkkkikikkoo",
-        (SUBR) grain3set, (SUBR) grain3                },
-      { "rnd31",      0xFFFF,  0,            0,      NULL,   NULL,
-        (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                       },
-      { "rnd31.i",    sizeof(RND31),  0,     1,      "i",    "iio",
-        (SUBR) rnd31i, (SUBR) NULL, (SUBR) NULL                     },
-      { "rnd31.k",    sizeof(RND31),  0,     3,      "k",    "kko",
-        (SUBR) rnd31set, (SUBR) rnd31k, (SUBR) NULL                 },
-      { "rnd31.a",    sizeof(RND31),  0,     3,      "a",    "kko",
-        (SUBR) rnd31set, (SUBR) rnd31a                 },
-      { "oscilikt",   0xFFFE,   TR                                       },
-      { "oscilikt.a", sizeof(OSCKT),   0,   3,      "a",    "kkkoo",
-        (SUBR) oscktset, (SUBR)osckkikt      },
-      { "oscilikt.kk", sizeof(OSCKT),   0,   3,      "k",    "kkkoo",
-        (SUBR) oscktset, (SUBR) kosclikt, NULL          },
-      { "oscilikt.ka", sizeof(OSCKT),   0,   3,      "a",    "kakoo",
-        (SUBR) oscktset, (SUBR) osckaikt               },
-      { "oscilikt.ak", sizeof(OSCKT),   0,   3,      "a",    "akkoo",
-        (SUBR) oscktset, (SUBR) oscakikt               },
-      { "oscilikt.aa", sizeof(OSCKT),   0,   3,      "a",    "aakoo",
-        (SUBR) oscktset, (SUBR) oscaaikt               },
-      { "osciliktp",  sizeof(OSCKTP),     TR, 3,      "a",    "kkko",
-        (SUBR) oscktpset, (SUBR) oscktp                },
-      { "oscilikts",  sizeof(OSCKTS),     TR, 3,      "a",    "xxkako",
-        (SUBR) oscktsset, (SUBR) osckts                },
-      { "vco2init",   sizeof(VCO2INIT),   TW, 1,      "i",    "ijjjjj",
-        (SUBR) vco2init, (SUBR) NULL, (SUBR) NULL                   },
-      { "vco2ift",    sizeof(VCO2FT),     TW, 1,      "i",    "iov",
-        (SUBR) vco2ftset, (SUBR) NULL, (SUBR) NULL                  },
-      { "vco2ft",     sizeof(VCO2FT),     TW, 3,      "k",    "kov",
-        (SUBR) vco2ftset, (SUBR) vco2ft, (SUBR) NULL                },
-      //    { "vco2",       sizeof(VCO2),       TR, 3,      "a",    "kkoM",
-      { "vco2",       sizeof(VCO2),       TR, 3,      "a",    "kkoOOo",
-        (SUBR) vco2set, (SUBR) vco2                    },
-      { "denorm",     sizeof(DENORMS),   WI,  2,      "",     "y",
-        (SUBR) NULL, (SUBR) denorms                    },
-      { "delayk",     sizeof(DELAYK),    0,  3,      "k",    "kio",
-        (SUBR) delaykset, (SUBR) delayk, (SUBR) NULL                },
-      { "vdel_k",     sizeof(VDELAYK),   0,  3,      "k",    "kkio",
-        (SUBR) vdelaykset, (SUBR) vdelayk, (SUBR) NULL              },
-      { "rbjeq",      sizeof(RBJEQ),     0,  3,      "a",    "akkkko",
-        (SUBR) rbjeqset, (SUBR) rbjeq                  }
-    };
+   { "oscbnk",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
+     (SUBR) oscbnkset, (SUBR) oscbnk                },
+   { "grain2",     sizeof(GRAIN2),     TR,      "a",    "kkkikiooo",
+            (SUBR) grain2set, (SUBR) grain2                },
+   { "grain3",     sizeof(GRAIN3),     TR,      "a",    "kkkkkkikikkoo",
+            (SUBR) grain3set, (SUBR) grain3                },
+    { "rnd31.i",    sizeof(RND31),  0,           "i",    "iio",
+            (SUBR) rnd31i, (SUBR) NULL, (SUBR) NULL                     },
+    { "rnd31.k",    sizeof(RND31),  0,          "k",    "kko",
+            (SUBR) rnd31set, (SUBR) rnd31k, (SUBR) NULL                 },
+   { "rnd31.a",    sizeof(RND31),  0,          "a",    "kko",
+            (SUBR) rnd31set, (SUBR) rnd31a                 },
+    { "oscilikt",   0xFFFE,   TR                                       },
+   { "oscilikt.a", sizeof(OSCKT),   0,        "a",    "kkkoo",
+      (SUBR) oscktset, (SUBR)osckkikt      },
+    { "oscilikt.kk", sizeof(OSCKT),   0,        "k",    "kkkoo",
+            (SUBR) oscktset, (SUBR) kosclikt, NULL          },
+   { "oscilikt.ka", sizeof(OSCKT),   0,        "a",    "kakoo",
+            (SUBR) oscktset, (SUBR) osckaikt               },
+   { "oscilikt.ak", sizeof(OSCKT),   0,        "a",    "akkoo",
+            (SUBR) oscktset, (SUBR) oscakikt               },
+   { "oscilikt.aa", sizeof(OSCKT),   0,        "a",    "aakoo",
+            (SUBR) oscktset, (SUBR) oscaaikt               },
+   { "osciliktp",  sizeof(OSCKTP),     TR,      "a",    "kkko",
+            (SUBR) oscktpset, (SUBR) oscktp                },
+   { "oscilikts",  sizeof(OSCKTS),     TR,      "a",    "xxkako",
+            (SUBR) oscktsset, (SUBR) osckts                },
+    { "vco2init",   sizeof(VCO2INIT),   TW,       "i",    "ijjjjj",
+            (SUBR) vco2init, (SUBR) NULL, (SUBR) NULL                   },
+    { "vco2ift",    sizeof(VCO2FT),     TW,       "i",    "iov",
+            (SUBR) vco2ftset, (SUBR) NULL, (SUBR) NULL                  },
+    { "vco2ft",     sizeof(VCO2FT),     TW,      "k",    "kov",
+            (SUBR) vco2ftset, (SUBR) vco2ft, (SUBR) NULL                },
+//    { "vco2",       sizeof(VCO2),       TR,      "a",    "kkoM",
+   { "vco2",       sizeof(VCO2),       TR,      "a",    "kkoOOo",
+     (SUBR) vco2set, (SUBR) vco2                    },
+    { "denorm",     sizeof(DENORMS),   WI,        "",     "y",
+            (SUBR) NULL, (SUBR) denorms                    },
+    { "delayk",     sizeof(DELAYK),    0,       "k",    "kio",
+            (SUBR) delaykset, (SUBR) delayk, (SUBR) NULL                },
+    { "vdel_k",     sizeof(VDELAYK),   0,       "k",    "kkio",
+            (SUBR) vdelaykset, (SUBR) vdelayk, (SUBR) NULL              },
+   { "rbjeq",      sizeof(RBJEQ),     0,       "a",    "akkkko",
+            (SUBR) rbjeqset, (SUBR) rbjeq                  }
+};
 
-  int32_t oscbnk_init_(CSOUND *csound)
-  {
+int32_t oscbnk_init_(CSOUND *csound)
+{
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
