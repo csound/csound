@@ -317,12 +317,11 @@ typedef struct CORFIL {
         char    *opname;
         uint16  dsblksiz;
         uint16  flags;
-        uint8_t thread;
         char    *outypes;
         char    *intypes;
-        int32_t     (*iopadr)(CSOUND *, void *p);
-        int32_t     (*kopadr)(CSOUND *, void *p);
-        int32_t     (*aopadr)(CSOUND *, void *p);
+        int32_t  (*init)(CSOUND *, void *p);
+        int32_t  (*perf)(CSOUND *, void *p);
+        int32_t  (*deinit)(CSOUND *, void *p);
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
@@ -541,6 +540,8 @@ typedef struct CORFIL {
     struct opds * nxti;
     /* Chain of performance-time opcodes */
     struct opds * nxtp;
+    /* Chain of deinit opcodes */ 
+    struct opds * nxtd;
     /* Next allocated instance */
     struct insds * nxtinstance;
     /* Previous allocated instance */
@@ -595,8 +596,6 @@ typedef struct CORFIL {
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
     void    *opcod_deact, *subins_deact;
-    /* opcodes to be run at note deactivation */
-    void    *nxtd;
     uint32_t ksmps_offset; /* ksmps offset for sample accuracy */
     uint32_t no_end;      /* samps left at the end for sample accuracy
                              (calculated) */
@@ -647,10 +646,14 @@ typedef int32_t (*SUBR)(CSOUND *, void *);
     struct opds * nxti;
     /** Next opcode in perf-time chain */
     struct opds * nxtp;
+    /** Next opcode in deinit chain */
+    struct opds * nxtd;
     /** Initialization (i-time) function pointer */
-    SUBR    iopadr;
+    SUBR    init;
     /** Perf-time (k- or a-rate) function pointer */
-    SUBR    opadr;
+    SUBR    perf;
+    /** deinit function pointer */
+    SUBR    deinit;
     /** Orch file template part for this opcode */
     OPTXT   *optext;
     /** Owner instrument instance data structure */
@@ -661,6 +664,7 @@ typedef int32_t (*SUBR)(CSOUND *, void *);
     OPDS    h;
     OPDS    *prvi;
     OPDS    *prvp;
+    OPDS    *prvd;
   } LBLBLK;
 
   typedef struct {
@@ -1361,8 +1365,6 @@ typedef struct _message_queue_t_ {
                             int (*func)(void *, void *, unsigned int));
     int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
                                                 void *userData);
-    int (*RegisterDeinitCallback)(CSOUND *, void *p,
-                                            int32_t (*func)(CSOUND *, void *));
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                            int32_t (*func)(CSOUND *, void *));
     void (*SetInternalYieldCallback)(CSOUND *,
@@ -1371,10 +1373,11 @@ typedef struct _message_queue_t_ {
     /** @name Opcodes and instruments */
     /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
-                        int thread, const char *outypes, const char *intypes,
-                        int32_t (*iopadr)(CSOUND *, void *),
-                        int32_t (*kopadr)(CSOUND *, void *),
-                        int32_t (*aopadr)(CSOUND *, void *));
+                        const char *outypes, const char *intypes,
+                        int (*init)(CSOUND *, void *),
+                        int (*perf)(CSOUND *, void *),
+                        int (*deinit)(CSOUND *, void *));
+
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     char *(*GetOpcodeName)(void *p);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);

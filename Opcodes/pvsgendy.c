@@ -114,7 +114,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
 }
 
 static OENTRY pvsgendy_localops[] = {
-  { "pvsgendy", sizeof(PVSGENDY), 0, 3, "f", "fkk",
+  { "pvsgendy", sizeof(PVSGENDY), 0,  "f", "fkk",
                 (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
 };
 

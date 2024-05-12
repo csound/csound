@@ -1333,19 +1333,19 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 
 static OENTRY localops[] =
   {
-   {"sndloop", sizeof(sndloop),0, 3,
+   {"sndloop", sizeof(sndloop),0,
     "ak", "akkii", (SUBR)sndloop_init, (SUBR)sndloop_process},
-   {"flooper", sizeof(flooper), TR, 3,
+   {"flooper", sizeof(flooper), TR,
     "mm", "kkiiii", (SUBR)flooper_init, (SUBR)flooper_process},
-   {"pvsarp", sizeof(pvsarp), 0,3,
+   {"pvsarp", sizeof(pvsarp), 0,
     "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
-   {"pvsvoc", sizeof(pvsvoc), 0,3,
+   {"pvsvoc", sizeof(pvsvoc), 0,
     "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
-   {"flooper2", sizeof(flooper2), TR, 3,
+   {"flooper2", sizeof(flooper2), TR,
     "mm", "kkkkkiooooO", (SUBR)flooper2_init, (SUBR)flooper2_process},
-  /* {"flooper3", sizeof(flooper3), TR, 3,
+  /* {"flooper3", sizeof(flooper3), TR,
      "a", "kkkkkioooo", (SUBR)flooper3_init, (SUBR)flooper3_process},*/
-   {"pvsmorph", sizeof(pvsvoc), 0,3,
+   {"pvsmorph", sizeof(pvsvoc), 0,
     "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
 };
 

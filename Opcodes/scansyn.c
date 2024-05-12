@@ -180,9 +180,6 @@ static void listadd(SCANSYN_GLOBALS *pp, PSCSNU *p)
     i->p = p;
     i->next = (struct scsn_elem *) pp->scsn_list;
     pp->scsn_list = (void*) i;
-#if 0
-    csound->RegisterDeinitCallback(csound, p, (int32_t (*)(CSOUND*, void*)) listrm);
-#endif
 }
 
 /* Return from list according to id */
@@ -809,16 +806,16 @@ static int32_t scsnmapV(CSOUND *csound, PSCSNMAPV *p)
 
 static OENTRY localops[] =
   {
-    { "scanu", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
+    { "scanu", S(PSCSNU),TR,  "", "iiiiiiikkkkiikkaii",
      (SUBR)scsnu_init1, (SUBR)scsnu_play},
-   { "scanu2", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
+   { "scanu2", S(PSCSNU),TR,  "", "iiiiiiikkkkiikkaii",
      (SUBR)scsnu_init2, (SUBR)scsnu_play },
-   { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
-   { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
+   { "scans", S(PSCSNS),TR,  "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
+   { "scanmap", S(PSCSNMAP),TR,  "kk", "ikko",        (SUBR)scsnmap_init,
      (SUBR)scsnmap,NULL },
-   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "iPP",        (SUBR)scsnmapV_init,
+   { "scanmap.A", S(PSCSNMAPV),0,  "k[]k[]", "iPP",        (SUBR)scsnmapV_init,
      (SUBR)scsnmapV,NULL },
-   { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
+   { "scansmap", S(PSCSNMAP),TR, "",   "kkikko",      (SUBR)scsnmap_init,
      (SUBR)scsnsmap,NULL }
 
 };

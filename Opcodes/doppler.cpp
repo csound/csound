@@ -260,23 +260,23 @@ public:
 
 extern "C" {
 OENTRY oentries[] = {{
-                         (char *)"doppler", sizeof(Doppler), 0, 3, (char *)"a",
+                         (char *)"doppler", sizeof(Doppler), 0, (char *)"a",
                          (char *)"akkjj", (SUBR)Doppler::init_,
                          (SUBR)Doppler::kontrol_,
                      },
                      {
-                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                         0,  0, 0, 0, 0, 0, 0, 0, 0,
                      }};
 
 PUBLIC int32_t csoundModuleInit_doppler(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &oentries[0]; oentry->opname; oentry++) {
     status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
-                                   oentry->flags, oentry->thread,
+                                   oentry->flags,
                                    oentry->outypes, oentry->intypes,
-                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
+                                   (int32_t (*)(CSOUND *, void *))oentry->init,
+                                   (int32_t (*)(CSOUND *, void *))oentry->perf,
+                                   (int32_t (*)(CSOUND *, void *))oentry->deinit);
   }
   return status;
 }

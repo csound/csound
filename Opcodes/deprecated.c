@@ -356,7 +356,7 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       p->pp = csoundStack_GetGlobals(csound);
       if (UNLIKELY(csoundStack_CreateArgMap(p, (int32_t*)&(p->argMap[0]), 0) != OK))
         return NOTOK;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) push_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) push_opcode_perf;
       p->initDone = 1;
     }
     if (p->argMap[1] != 0) {
@@ -461,7 +461,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
       if (UNLIKELY(csoundStack_CreateArgMap((PUSH_OPCODE*)p,
                                             &(p->argMap[0]), 1) != OK))
         return NOTOK;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) pop_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) pop_opcode_perf;
       p->initDone = 1;
     }
     if (p->argMap[1] != 0) {
@@ -565,7 +565,7 @@ static int32_t push_f_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       offs = csoundStack_Align(offs);
       p->argMap[1] = offs;
       p->argMap[2] = offs;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) push_f_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) push_f_opcode_perf;
       p->initDone = 1;
     }
     if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset))
@@ -634,7 +634,7 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
       offs = csoundStack_Align(offs);
       p->argMap[1] = offs;
       p->argMap[2] = offs;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) pop_f_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) pop_f_opcode_perf;
       p->initDone = 1;
     }
     if (UNLIKELY(p->pp->curBundle == NULL))
@@ -662,16 +662,16 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY localops[] = { 
-  { "stack",  sizeof(STACK_OPCODE), SK|_QQ, 1,  "",   "i",
+  { "stack",  sizeof(STACK_OPCODE), SK|_QQ,   "",   "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "N",
+  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 3,
+  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 
                                    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ, 3,  "f",   "",
+  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ,   "f",   "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };
 

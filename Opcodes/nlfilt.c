@@ -199,8 +199,8 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
-{ "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
+{ "nlfilt",  S(NLFILT), 0, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
+{ "nlfilt2",  S(NLFILT), 0, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
 };
 
 int32_t nlfilt_init_(CSOUND *csound)

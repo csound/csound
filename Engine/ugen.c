@@ -254,8 +254,8 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 
     opds = ugen->opcodeMem;
     opds->insdshead = insds;
-    opds->iopadr = oentry->iopadr;
-    opds->opadr = oentry->kopadr;
+    opds->init = oentry->init;
+    opds->perf = oentry->perf;
     opds->optext = optxt;
 
     
@@ -308,6 +308,7 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     ugen->data = (MYFLT*)csound->Calloc(csound, ugen->outPool->poolSize + ugen->inPool->poolSize);
     
     /*MYFLT* temp = (MYFLT*)this->opcodeMem +(sizeof(OPDS) / sizeof(MYFLT));*/
+
     /*MYFLT** p = (MYFLT**) temp;*/
     /*int outOffset = outPool->poolSize / sizeof(MYFLT);*/
     /*int count = 0;*/
@@ -345,28 +346,18 @@ PUBLIC int ugen_init(UGEN* ugen) {
   OPDS* opds = (OPDS*)ugen->opcodeMem;
   OENTRY* oentry = ugen->oentry;
   opds->optext->t.inArgCount = ugen->inocount;
-  if (oentry->iopadr != NULL) {
-      return (*oentry->iopadr)(ugen->csound, ugen->opcodeMem);
+  if (oentry->init != NULL) {
+      return (*oentry->init)(ugen->csound, ugen->opcodeMem);
   }
   return CSOUND_SUCCESS;
 }
 
 PUBLIC int ugen_perform(UGEN* ugen) {
-    // TODO - check how csound chooses kopadr vs. aopadr
     OENTRY* oentry = ugen->oentry;
     CSOUND* csound = ugen->csound;
     void* opcodeMem = ugen->opcodeMem;
-    if((oentry->thread & 2) == 2) {
-        if (oentry->kopadr != NULL) {
-            return (*oentry->kopadr)(csound, opcodeMem);
-        }
-    }
-    if((oentry->thread & 4) == 4) {
-        if (oentry->aopadr != NULL) {
-            return (*oentry->aopadr)(csound, opcodeMem);
-        }
-    }
-    
+    if (oentry->perf != NULL) 
+            return (*oentry->perf)(csound, opcodeMem);    
     return CSOUND_SUCCESS;
 }
 

@@ -186,6 +186,7 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
   return OK;
 }
 
+
 int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 {
   FUNC        *ftp;
@@ -955,50 +956,50 @@ int32_t kposc3(CSOUND *csound, OSC *p)
   return OK;
 }
 
-static void reassign_opadr(CSOUND *csound, OSC *p) {
+static void reassign_perf(CSOUND *csound, OSC *p) {
   const char* name = p->h.optext->t.opcod;
   // check for arg types and change PDS
   if(!strcmp(name, "oscil")) {
     if(IS_ASIG_ARG(p->sr)) {
     if(IS_ASIG_ARG(p->xamp) && IS_ASIG_ARG(p->xcps)) // aa
-      p->h.opadr = (SUBR) poscaat;
+      p->h.perf = (SUBR) poscaat;
     else if(IS_ASIG_ARG(p->xamp)) // ak
-      p->h.opadr = (SUBR) poscakt;
+      p->h.perf = (SUBR) poscakt;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.opadr = (SUBR) posckat; 
+      p->h.perf = (SUBR) posckat; 
     else // kk
-      p->h.opadr = (SUBR) posckkt;
+      p->h.perf = (SUBR) posckkt;
     } else // kosc 
-    p->h.opadr = (SUBR) kposct;
+    p->h.perf = (SUBR) kposct;
   }
   else if(!strcmp(name, "oscili")) {
   if(IS_ASIG_ARG(p->sr)) {
     if(IS_ASIG_ARG(p->xamp) && IS_ASIG_ARG(p->xcps)) // aa
-      p->h.opadr = (SUBR) poscaa;
+      p->h.perf = (SUBR) poscaa;
     else if(IS_ASIG_ARG(p->xamp)) // ak
-      p->h.opadr = (SUBR) poscak;
+      p->h.perf = (SUBR) poscak;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.opadr = (SUBR) poscka; 
+      p->h.perf = (SUBR) poscka; 
     else // kk
-      p->h.opadr = (SUBR) posckk;
+      p->h.perf = (SUBR) posckk;
   } else // kosc 
-    p->h.opadr = (SUBR) kposc;
+    p->h.perf = (SUBR) kposc;
   } else {  // oscil3
    if(IS_ASIG_ARG(p->sr)) {
     if(IS_ASIG_ARG(p->xamp) && IS_ASIG_ARG(p->xcps)) // aa
-      p->h.opadr = (SUBR) poscaa;
+      p->h.perf = (SUBR) poscaa;
     else if(IS_ASIG_ARG(p->xamp)) // ak
-      p->h.opadr = (SUBR) poscak;
+      p->h.perf = (SUBR) poscak;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.opadr = (SUBR) poscka; 
+      p->h.perf = (SUBR) poscka; 
     else // kk
-      p->h.opadr = (SUBR) posckk;
+      p->h.perf = (SUBR) posckk;
   } else // kosc 
-    p->h.opadr = (SUBR) kposc;
+    p->h.perf = (SUBR) kposc;
   }
 }
 
-// this may select different opadr if non-pow of two is used.
+// this may select different perf if non-pow of two is used.
 int32_t oscset(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
@@ -1010,7 +1011,7 @@ int32_t oscset(CSOUND *csound, OSC *p)
       p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
     return OK;
   }
-  reassign_opadr(csound, p);
+  reassign_perf(csound, p);
   return posc_set(csound,p);
 }
 
@@ -1060,7 +1061,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
     p->phs      = *p->iphs * p->tablen;
   while (UNLIKELY(p->phs >= p->tablen))
     p->phs     -= p->tablen;
-  reassign_opadr(csound, p);  
+  reassign_perf(csound, p);  
   return OK;
 }
 

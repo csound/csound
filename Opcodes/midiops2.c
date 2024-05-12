@@ -617,28 +617,22 @@ static int32_t midipgm_opcode(CSOUND *csound, MIDIPGM_OP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "ctrl14", 0xffff,                                                     },
-{ "ctrl21", 0xffff,                                                     },
-{ "ctrl7", 0xffff,                                                      },
-{ "midic14", 0xffff,                                                    },
-{ "midic21", 0xffff,                                                    },
-{ "midic7", 0xffff,                                                     },
-{ "midic7.i",S(MIDICTL2),0, 1,  "i", "iiio", (SUBR)imidic7, NULL, NULL  },
-{ "midic7.k", S(MIDICTL2),0, 3, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
-{ "midic14.i", S(MIDICTL3), 0, 1,"i", "iiiio",(SUBR)imidic14, NULL, NULL },
-{ "midic14.k", S(MIDICTL3), 0, 3,"k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
-{ "midic21.i", S(MIDICTL4),0, 1,"i", "iiiiio",(SUBR)imidic21, NULL, NULL },
-{ "midic21.k", S(MIDICTL4), 0, 3,"k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
-{ "ctrl7.i", S(CTRL7), 0, 1,    "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
-{ "ctrl7.k", S(CTRL7),  0, 3,   "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
-{ "ctrl14.i", S(CTRL14),0, 1,   "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
-{ "ctrl14.k", S(CTRL14), 0, 3,  "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
-{ "ctrl21.i", S(CTRL21),0, 1,   "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
-{ "ctrl21.k", S(CTRL21), 0, 3,  "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
-{ "initc7", S(INITC7), 0, 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
-{ "initc14", S(INITC14), 0, 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
-{ "initc21", S(INITC21), 0, 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
-{ "midipgm", S(MIDIPGM_OP), 0, 1, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL }
+  { "midic7.i",S(MIDICTL2),0,  "i", "iiio", (SUBR)imidic7, NULL, NULL  },
+{ "midic7.k", S(MIDICTL2),0,  "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
+{ "midic14.i", S(MIDICTL3), 0,"i", "iiiio",(SUBR)imidic14, NULL, NULL },
+{ "midic14.k", S(MIDICTL3), 0, "k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
+{ "midic21.i", S(MIDICTL4),0,"i", "iiiiio",(SUBR)imidic21, NULL, NULL },
+{ "midic21.k", S(MIDICTL4), 0, "k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
+{ "ctrl7.i", S(CTRL7), 0,    "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
+{ "ctrl7.k", S(CTRL7),  0,    "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
+{ "ctrl14.i", S(CTRL14),0,   "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
+{ "ctrl14.k", S(CTRL14), 0,   "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
+{ "ctrl21.i", S(CTRL21),0,   "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
+{ "ctrl21.k", S(CTRL21), 0,   "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
+{ "initc7", S(INITC7), 0,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
+{ "initc14", S(INITC14), 0,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
+{ "initc21", S(INITC21), 0,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
+{ "midipgm", S(MIDIPGM_OP), 0, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL }
 };
 
 int32_t midiops2_init_(CSOUND *csound)

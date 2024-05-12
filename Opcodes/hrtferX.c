@@ -447,7 +447,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
 static OENTRY hrtferX_localops[] =
   {
-   { "hrtfer",   sizeof(HRTFER), _QQ, 3, "aa", "akkS",
+   { "hrtfer",   sizeof(HRTFER), _QQ,  "aa", "akkS",
      (SUBR)hrtferxkSet, (SUBR)hrtferxk},
 };
 

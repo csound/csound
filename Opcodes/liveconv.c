@@ -515,7 +515,7 @@ static OENTRY liveconv_localops[] = {
   {
     "liveconv",             // name of opcode
     sizeof(liveconv_t),     // data size of state block
-    TR, 3,                  // thread
+    TR,                   
     "a",                    // output arguments
     "aiikk",                // input arguments
     (SUBR) liveconv_init,   // init function

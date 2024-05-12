@@ -646,8 +646,6 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     // Start listening thread
     q->stop = 0;
     q->thread = csound->CreateThread(arduino_listen, (void *)q);
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) arduino_deinit);
     *p->returnedPort = xx;
  return OK;
 }
@@ -746,33 +744,34 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
 #define S(x)    sizeof(x)
 
 static OENTRY serial_localops[] = {
-    { (char *)"serialBegin", S(SERIALBEGIN), 0, 1, (char *)"i", (char *)"So",
+    { (char *)"serialBegin", S(SERIALBEGIN), 0,  (char *)"i", (char *)"So",
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialEnd", S(SERIALEND), 0, 2, (char *)"", (char *)"i",
+    { (char *)"serialEnd", S(SERIALEND), 0, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL   },
-    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"ii",
+    { (char *)"serialWrite_i", S(SERIALWRITE), 0,  (char *)"", (char *)"ii",
       (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL   },
-       { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iS",
+       { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, (char *)"", (char *)"iS",
       (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"ik",
+    { (char *)"serialWrite", S(SERIALWRITE), WR, (char *)"", (char *)"ik",
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
-    { (char *)"serialWrite.S", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iS",
+    { (char *)"serialWrite.S", S(SERIALWRITE), WR, (char *)"", (char *)"iS",
       (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL   },
-    { (char *)"serialRead", S(SERIALREAD), 0, 2, (char *)"k", (char *)"i",
+    { (char *)"serialRead", S(SERIALREAD), 0, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
-    { (char *)"serialPrint", S(SERIALPRINT), WR,2, (char *)"", (char *)"i",
+    { (char *)"serialPrint", S(SERIALPRINT), WR, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
-    { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
+    { (char *)"serialFlush", S(SERIALFLUSH), 0, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-    { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
-    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio",
+    { "arduinoStart", S(ARD_START), 0,  "i", "So", (SUBR)arduinoStart, NULL,
+      (SUBR) arduino_deinit},
+    { "arduinoRead", S(ARD_READ), 0, "k", "iio",
       (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
-    { "arduinoReadF", S(ARD_READF), 0, 3, "k", "iiii",
+    { "arduinoReadF", S(ARD_READF), 0, "k", "iiii",
       (SUBR)arduinoReadFSetup, (SUBR)arduinoReadF  },
-    { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
-/* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
+    { "arduinoStop", S(ARD_START), 0,  "", "i", (SUBR)arduinoStop, NULL  },
+/* { (char *)"serialAvailable", S(SERIALAVAIL), 0, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
-/* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
+/* { (char *)"serialPeekByte", S(SERIALPEEK),0,  (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
 

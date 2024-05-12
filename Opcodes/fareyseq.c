@@ -742,14 +742,14 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
 #define S sizeof
 
 static OENTRY fareyseq_localops[] = {
-    {"tablefilteri", S(TABFILT),TB, 1, "i", "iiii", (SUBR) tableifilter,NULL,NULL},
-    {"tablefilter", S(TABFILT), TB, 3, "k", "kkkk",
+    {"tablefilteri", S(TABFILT),TB,  "i", "iiii", (SUBR) tableifilter,NULL,NULL},
+    {"tablefilter", S(TABFILT), TB,  "k", "kkkk",
                                 (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
-    {"fareyleni", S(FAREYLEN), TR, 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S(FAREYLEN), TR, 2, "k", "k", NULL, (SUBR) fareylen, NULL},
-    {"tableshufflei", S(TABSHUFFLE), TB, 1, "", "i",
+    {"fareyleni", S(FAREYLEN), TR,  "i", "i", (SUBR) fareylen, NULL, NULL},
+    {"fareylen", S(FAREYLEN), TR,  "k", "k", NULL, (SUBR) fareylen, NULL},
+    {"tableshufflei", S(TABSHUFFLE), TB,  "", "i",
                                       (SUBR) tableishuffle, NULL, NULL},
-    {"tableshuffle", S(TABSHUFFLE), TB, 3, "", "k",
+    {"tableshuffle", S(TABSHUFFLE), TB,  "", "k",
                       (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
 };
 

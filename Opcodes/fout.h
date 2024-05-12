@@ -35,7 +35,7 @@ typedef struct FOUT_FILE_ {
     int32_t     nchnls;
     int32_t async;
     int32_t     idx;        /* file index + 1 */
-    INSDS *head;
+    int32_t need_deinit;
 } FOUT_FILE;
 
 typedef struct {
@@ -122,6 +122,7 @@ typedef struct {
     MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
     int32   currpos;
     int32_t     flag;
+        FOUT_FILE *f;
 } I_INFILE;
 
 typedef struct {
@@ -139,6 +140,7 @@ typedef struct {
     MYFLT   *ihandle, *fname;
     /* iascii=0 open ascii (default), iflag=1 open binary */
     MYFLT   *iascii;
+    FOUT_FILE *f;
 } FIOPEN;
 
 typedef struct {

@@ -544,7 +544,6 @@ static const CSOUND cenviron_ = {
     csoundRegisterKeyboardCallback,
     csoundRemoveKeyboardCallback,
     csoundRegisterSenseEventCallback,
-    csoundRegisterDeinitCallback,
     csoundRegisterResetCallback,
     SetInternalYieldCallback,
     /* opcodes and instruments  */
@@ -798,6 +797,7 @@ static const CSOUND cenviron_ = {
     NULL,
     NULL,
     NULL,
+    NULL, /*nxtdd*/
     NULL,
     NULL,
     NULL,
@@ -829,7 +829,6 @@ static const CSOUND cenviron_ = {
     FL(0.0), FL(0.0), FL(0.0),
     NULL,
     {FL(0.0), FL(0.0), FL(0.0), FL(0.0)},
-   NULL,
    NULL,NULL,
    NULL,
     0,
@@ -1692,7 +1691,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               /* In case of jumping need this repeat of opstart */
               opstart->insdshead->pds = opstart;
               csound->op = opstart->optext->t.opcod;
-              (*opstart->opadr)(csound, opstart); /* run each opcode */
+              (*opstart->perf)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
             csound->mode = 0;
@@ -1726,7 +1725,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
-                (*opstart->opadr)(csound, opstart); /* run each opcode */
+                (*opstart->perf)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
@@ -1887,7 +1886,7 @@ int kperf_nodebug(CSOUND *csound)
                      ip->actflg) {
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
-                error = (*opstart->opadr)(csound, opstart); /* run each opcode */
+                error = (*opstart->perf)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
@@ -1923,7 +1922,7 @@ int kperf_nodebug(CSOUND *csound)
                     opstart->insdshead->pds = opstart;
                     csound->op = opstart->optext->t.opcod;
                     //csound->ids->optext->t.oentry->opname;
-                    error = (*opstart->opadr)(csound, opstart); /* run each opcode */
+                    error = (*opstart->perf)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
                   csound->mode = 0;
@@ -1989,7 +1988,7 @@ static inline void opcode_perf_debug(CSOUND *csound,
         }
       opstart->insdshead->pds = opstart;
       csound->mode = 2;
-      (*opstart->opadr)(csound, opstart); /* run each opcode */
+      (*opstart->perf)(csound, opstart); /* run each opcode */
       opstart = opstart->insdshead->pds;
       csound->mode = 0;
     }
@@ -3274,7 +3273,6 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
     head = cs_hash_table_get(csound, csound->opcodes, shortName);
     entryCopy = csound->Malloc(csound, sizeof(OENTRY));
-    //printf("%p\n", entryCopy);
     memcpy(entryCopy, ep, sizeof(OENTRY));
     entryCopy->useropinfo = NULL;
 
@@ -3294,11 +3292,10 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
-                              int thread, const char *outypes,
-                                          const char *intypes,
-                              int (*iopadr)(CSOUND *, void *),
-                              int (*kopadr)(CSOUND *, void *),
-                              int (*aopadr)(CSOUND *, void *))
+                               const char *outypes, const char *intypes,
+                              int (*init)(CSOUND *, void *),
+                              int (*perf)(CSOUND *, void *),
+                              int (*deinit)(CSOUND *, void *))
 {
   OENTRY  tmpEntry;
     int     err;
@@ -3306,12 +3303,11 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.opname     = (char*) opname;
     tmpEntry.dsblksiz   = (uint16) dsblksiz;
     tmpEntry.flags      = (uint16) flags;
-    tmpEntry.thread     = (uint8_t) thread;
     tmpEntry.outypes    = (char*) outypes;
     tmpEntry.intypes    = (char*) intypes;
-    tmpEntry.iopadr     = iopadr;
-    tmpEntry.kopadr     = kopadr;
-    tmpEntry.aopadr     = aopadr;
+    tmpEntry.init     = init;
+    tmpEntry.perf     = perf;
+    tmpEntry.deinit     = deinit;
     err = opcode_list_new_oentry(csound, &tmpEntry);
     //add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))
@@ -4146,37 +4142,13 @@ PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
     return &(csound->rtPlay_userdata);
 }
 
+
 typedef struct opcodeDeinit_s {
   void    *p;
   int     (*func)(CSOUND *, void *);
   void    *nxt;
 } opcodeDeinit_t;
 
-/**
- * Register a function to be called at note deactivation.
- * Should be called from the initialisation routine of an opcode.
- * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
- * is the function to be called, with the same arguments and return
- * value as in the case of opcode init/perf functions.
- * The functions are called in reverse order of registration.
- * Returns zero on success.
- */
-
-int csoundRegisterDeinitCallback(CSOUND *csound, void *p,
-                                 int (*func)(CSOUND *, void *))
-{
-    INSDS           *ip = ((OPDS*) p)->insdshead;
-    opcodeDeinit_t  *dp = (opcodeDeinit_t*) malloc(sizeof(opcodeDeinit_t));
-
-    (void) csound;
-    if (UNLIKELY(dp == NULL))
-      return CSOUND_MEMORY;
-    dp->p = p;
-    dp->func = func;
-    dp->nxt = ip->nxtd;
-    ip->nxtd = dp;
-    return CSOUND_SUCCESS;
-}
 
 /**
  * Register a function to be called by csoundReset(), in reverse order
@@ -4199,22 +4171,6 @@ int csoundRegisterResetCallback(CSOUND *csound, void *userData,
     dp->nxt = csound->reset_list;
     csound->reset_list = (void*) dp;
     return CSOUND_SUCCESS;
-}
-
-/* call the opcode deinitialisation routines of an instrument instance */
-/* called from deact() in insert.c */
-
-int csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip)
-{
-    int err = 0;
-
-    while (ip->nxtd != NULL) {
-      opcodeDeinit_t  *dp = (opcodeDeinit_t*) ip->nxtd;
-      err |= dp->func(csound, dp->p);
-      ip->nxtd = (void*) dp->nxt;
-      free(dp);
-    }
-    return err;
 }
 
 /**
