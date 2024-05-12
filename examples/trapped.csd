@@ -691,6 +691,23 @@ e
 
 </CsScore>
 </CsoundSynthesizer>
+
+
+<MacOptions>
+Version: 3
+Render: Real
+Ask: Yes
+Functions: ioObject
+Listing: Window
+WindowBounds: 966 366 400 201
+CurrentView: io
+IOViewEdit: On
+Options:
+</MacOptions>
+<MacGUI>
+ioView nobackground {59367, 11822, 65535}
+ioSlider {5, 5} {20, 100} 0.000000 1.000000 0.000000 slider1
+</MacGUI>
 <bsbPanel>
  <label>Widgets</label>
  <objectName/>
@@ -715,6 +732,7 @@ e
   <visible>true</visible>
   <midichan>0</midichan>
   <midicc>-3</midicc>
+  <description/>
   <minimum>0.00000000</minimum>
   <maximum>1.00000000</maximum>
   <value>0.00000000</value>
@@ -726,18 +744,3 @@ e
 </bsbPanel>
 <bsbPresets>
 </bsbPresets>
-<MacOptions>
-Version: 3
-Render: Real
-Ask: Yes
-Functions: ioObject
-Listing: Window
-WindowBounds: 966 366 400 201
-CurrentView: io
-IOViewEdit: On
-Options:
-</MacOptions>
-<MacGUI>
-ioView nobackground {59367, 11822, 65535}
-ioSlider {5, 5} {20, 100} 0.000000 1.000000 0.000000 slider1
-</MacGUI>
