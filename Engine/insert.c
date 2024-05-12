@@ -998,7 +998,6 @@ static void deact(CSOUND *csound, INSDS *ip)
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
-  csound->Message(csound, "deact end\n");
 }
 
 
