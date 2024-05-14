@@ -1268,15 +1268,18 @@ extern "C" {
     uint32_t (*GetNchnls)(CSOUND *);
     /** Get number of input channels */
     uint32_t (*GetNchnls_i)(CSOUND *);
+   /** Get max peak amp */
     MYFLT (*Get0dBFS) (CSOUND *);
-
-    /** Get number of control blocks elapsed */
+   /** Get reference tuning */
     MYFLT (*GetA4)(CSOUND *);
+    /** Get current tie flag */    
     int (*GetTieFlag)(CSOUND *);
+    /** Get current reinit flag */     
     int (*GetReinitFlag)(CSOUND *);
+    /** Get current compiled instrument list */      
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
+  
     void *(*GetHostData)(CSOUND *);
-
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
