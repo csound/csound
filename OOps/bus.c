@@ -1654,9 +1654,9 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     CHNENTRY *chn;
 
     /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
-    if (UNLIKELY(GetOutputArgCnt(p) != 1))
+    if (UNLIKELY(GetOutputArgCnt((OPDS *) p) != 1))
         goto arg_err;
-    argName = GetOutputArgName(p, 0);
+    argName = GetOutputArgName((OPDS *) p, 0);
     if (UNLIKELY(argName == NULL))
         goto arg_err;
     if (UNLIKELY(argName[0] != 'g'))

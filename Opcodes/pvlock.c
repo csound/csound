@@ -225,7 +225,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
 }
 
 static int32_t sinit1(CSOUND *csound, DATASPACE *p) {
-    p->nchans = GetOutputArgCnt(p);
+    p->nchans = GetOutputArgCnt((OPDS *)p);
     return sinit(csound, p);
 }
 
@@ -648,7 +648,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
 static int32_t sinit2m(CSOUND *csound, DATASPACEM *p)
 {
     uint32_t size,i;
-    p->nchans = GetOutputArgCnt(p);
+    p->nchans = GetOutputArgCnt((OPDS *)p);
     sinitm(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
@@ -663,7 +663,7 @@ static int32_t sinit2m(CSOUND *csound, DATASPACEM *p)
 static int32_t sinit2(CSOUND *csound, DATASPACE *p)
 {
     uint32_t size,i;
-    p->nchans = GetOutputArgCnt(p);
+    p->nchans = GetOutputArgCnt((OPDS *)p);
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
@@ -1216,7 +1216,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     time *= p->resamp;
 
     {
-      int32_t outnum = GetOutputArgCnt(p);
+      int32_t outnum = GetOutputArgCnt((OPDS *)p);
       double _0dbfs = csound->Get0dBFS(csound);
 
       if (UNLIKELY(early)) {

@@ -216,7 +216,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
   double  frqScale = 1.0;
 
   p->dataPtr = NULL;
-  nChannels = GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > LOSCILX_MAXOUTS))
     return csound->InitError(csound,
                              "%s", Str("loscilx: invalid number of output arguments"));

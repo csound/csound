@@ -740,7 +740,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    n = GetInputArgCnt(p) - 3;
+    n = GetInputArgCnt((OPDS *)p) - 3;
     if (UNLIKELY(n < 0 || n > ARG_CNT-4))
       return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
@@ -750,7 +750,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       const char *s;
-      s = GetInputArgName(p, i + 3);
+      s = GetInputArgName((OPDS *)p, i + 3);
       if (s[0] == 'g')
         s++;
       switch (p->c.saved_types[i]) {

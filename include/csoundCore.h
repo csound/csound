@@ -692,49 +692,48 @@ extern "C" {
   /**
    * Returns true if argument is a string code
    */
-  static inline int IsStringCode(MYFLT f){
+  static inline int32_t IsStringCode(MYFLT f){
     return isstrcod(f);
   }
   
   /**
    * Returns the number of input arguments for opcode 'p'.
    */
-  static inline int GetInputArgCnt(void *p){
-    return (int) ((OPDS*) p)->optext->t.inArgCount;
+  static inline int32_t GetInputArgCnt(OPDS *p){
+    return (int32_t) p->optext->t.inArgCount;
   }
 
   /**
    * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
    */
-  static inline char *GetInputArgName(void *p, int n){
-    if ((unsigned int) n >=
-        (unsigned int) ((OPDS*) p)->optext->t.inArgCount)
+  static inline char *GetInputArgName(OPDS *p, uint32_t n){
+    if ( n >=
+        (uint32_t) p->optext->t.inArgCount)
       return (char*) NULL;
-    return (char*) ((OPDS*) p)->optext->t.inlist->arg[n];
+    return (char*) p->optext->t.inlist->arg[n];
   }
 
   /**
    * Returns the number of output arguments for opcode 'p'.
    */
-  static inline int GetOutputArgCnt(void *p){
-    return (int) ((OPDS*) p)->optext->t.outArgCount;
+  static inline int32_t GetOutputArgCnt(OPDS *p){
+    return (int32_t) p->optext->t.outArgCount;
   }
 
   /**
    * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
    */
-  static inline char *GetOutputArgName(void *p, int n){
-    if ((unsigned int) n
-        >= (unsigned int) ((OPDS*) p)->optext->t.outArgCount)
+  static inline char *GetOutputArgName(OPDS *p, uint32_t n){
+    if (n >= (uint32_t) p->optext->t.outArgCount)
       return (char*) NULL;
-    return (char*) ((OPDS*) p)->optext->t.outlist->arg[n];
+    return (char*) p->optext->t.outlist->arg[n];
   }
 
   /** 
    * Returns the CS_TYPE for an opcode argument argPtr 
    */
   static inline CS_TYPE* GetTypeForArg(void* argPtr) {
-    char* ptr = (char*)argPtr;
+    char* ptr = (char*) argPtr;
     CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     return varType;
   }
@@ -744,8 +743,8 @@ extern "C" {
    * that called opcode 'p'.
    * In the case of score notes, -1 is returned.
    */
-  static inline int GetMidiChannelNumber(void *p){
-    MCHNBLK *chn = ((OPDS*) p)->insdshead->m_chnbp;
+  static inline int32_t GetMidiChannelNumber(OPDS *p){
+    MCHNBLK *chn = p->insdshead->m_chnbp;
     return chn != NULL ? chn->channel : -1;
   }
 
@@ -754,8 +753,8 @@ extern "C" {
    * If the opcode was not called from a MIDI activated instrument
    * instance, the return value is undefined.
    */
-  static inline int GetMidiNoteNumber(void *p){
-    return (int) ((OPDS*) p)->insdshead->m_pitch;
+  static inline int32_t GetMidiNoteNumber(OPDS *p){
+    return (int32_t) p->insdshead->m_pitch;
   }
 
   /**
@@ -763,8 +762,8 @@ extern "C" {
    * If the opcode was not called from a MIDI activated instrument
    * instance, the return value is undefined.
    */
-  static inline int GetMidiVelocity(void *p){
-    return (int) ((OPDS*) p)->insdshead->m_veloc;
+  static inline int32_t GetMidiVelocity(OPDS *p){
+    return (int32_t) p->insdshead->m_veloc;
   }
 
   /**
@@ -772,16 +771,16 @@ extern "C" {
    * instance that called opcode 'p'.
    * In the case of score notes, NULL is returned.
    */
-  static inline MCHNBLK *GetMidiChannel(void *p){
-    return ((OPDS*) p)->insdshead->m_chnbp;
+  static inline MCHNBLK *GetMidiChannel(OPDS *p){
+    return p->insdshead->m_chnbp;
   }
 
 
   /**
    * Returns non-zero if the current note (owning opcode 'p') is releasing.
    */
-  static inline int GetReleaseFlag(void *p){
-    return (int) ((OPDS*) p)->insdshead->relesing;
+  static inline int32_t GetReleaseFlag(void *p){
+    return (int32_t) ((OPDS*) p)->insdshead->relesing;
   }
 
   /**
@@ -790,8 +789,8 @@ extern "C" {
    * was called. The return value may be negative if the note has indefinite
    * duration.
    */
-  static inline double GetOffTime(void *p){
-    return (double) ((OPDS*) p)->insdshead->offtim;
+  static inline double GetOffTime(OPDS *p){
+    return (double) p->insdshead->offtim;
   }
 
   /**
@@ -807,26 +806,26 @@ extern "C" {
   /**
    * Returns the instrument number (p1) for opcode 'p'.
    */
-  static inline int GetInstrumentNumber(void *p){
-    return (int) ((OPDS*) p)->insdshead->p1.value;
+  static inline int32_t GetInstrumentNumber(OPDS *p){
+    return (int32_t) p->insdshead->p1.value;
   }
 
   /**
    * Returns the local ksmps of instrument/UDO containing opcode p.
    * This is an alternative to the macro CS_KSMPS.
    */
-  static inline uint32_t GetLocalKsmps(void *p){
-    return (int32_t) ((OPDS*) p)->insdshead->ksmps;
+  static inline uint32_t GetLocalKsmps(OPDS *p){
+    return (uint32_t) p->insdshead->ksmps;
   }
 
   /**
    * Returns the local sr of instrument/UDO containing opcode p.
    * This is an alternative to the macro CS_ESR.
    */
-  static inline MYFLT GetLocalSr(void *p){
+  static inline MYFLT GetLocalSr(OPDS *p){
     // FIXME: this needs to be adjusted once local sr is
     // implemented
-    return 0;
+    return p->insdshead->esr;
   }
   
 
@@ -834,23 +833,23 @@ extern "C" {
    * Returns the local kr of instrument/UDO containing opcode p.
    * This is an alternative to the macro CS_EKR.
    */
-  static inline MYFLT GetLocalKr(void *p){
-    return ((OPDS*) p)->insdshead->ekr;
+  static inline MYFLT GetLocalKr(OPDS *p){
+    return p->insdshead->ekr;
   }
 
   /**
    * Returns the local kcount of instrument/UDO containing opcode p.
    * This is an alternative to the macro CS_KCOUNTER.
    */
-  static inline MYFLT GetLocalKcounter(void *p){
-    return (int) ((OPDS*) p)->insdshead->kcounter;
+  static inline uint64_t GetLocalKcounter(OPDS *p){
+    return p->insdshead->kcounter;
   }
 
   /**
    * Returns the opcode name for p.
    */
-  static inline char *GetOpcodeName(void *p){
-    return ((OPDS*) p)->optext->t.oentry->opname;
+  static inline char *GetOpcodeName(OPDS *p){
+    return p->optext->t.oentry->opname;
   }
   /**@}*/
 
@@ -1272,7 +1271,6 @@ extern "C" {
     MYFLT (*Get0dBFS) (CSOUND *);
 
     /** Get number of control blocks elapsed */
-    uint64_t (*GetKcounter)(CSOUND *);
     MYFLT (*GetA4)(CSOUND *);
     int (*GetTieFlag)(CSOUND *);
     int (*GetReinitFlag)(CSOUND *);

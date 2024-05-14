@@ -123,7 +123,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   else {
     fp[5] = *p->p5;                                   /* else no string */
   }
-  n = GetInputArgCnt(p);
+  n = GetInputArgCnt((OPDS *)p);
   ftevt->pcnt = (int16) n;
   n -= 5;
   if (n > 0) {
@@ -239,7 +239,7 @@ static int32_t ftfree(CSOUND *csound, FTFREE *p)
 
 static int32_t myInitError(CSOUND *csound, OPDS *p, const char *str, ...)
 {
-  IGN(p);
+  IGN((OPDS *)p);
   return csound->InitError(csound, "%s",str);
 }
 
@@ -248,13 +248,13 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
   MYFLT **argp = p->argums;
   FUNC  *ftp;
   char  filename[MAXNAME];
-  int32_t   nargs = GetInputArgCnt(p) - 2;
+  int32_t   nargs = GetInputArgCnt((OPDS *)p) - 2;
   FILE  *file = NULL;
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
   FUNC  *(*ft_func)(CSOUND *, MYFLT *);
   void  *fd;
 
-  if (strncmp(GetOpcodeName(p), "ftloadk", 7) == 0) {
+  if (strncmp(GetOpcodeName((OPDS *)p), "ftloadk", 7) == 0) {
     nargs--;
     ft_func = csound->FTnp2Finde;
     err_func = csound->PerfError;
@@ -489,18 +489,18 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 {
   MYFLT **argp = p->argums;
   char  filename[MAXNAME];
-  int32_t   nargs = GetInputArgCnt(p) - 3;
+  int32_t   nargs = GetInputArgCnt((OPDS *)p) - 3;
   FILE  *file = NULL;
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
   FUNC  *(*ft_func)(CSOUND *, MYFLT *);
   void  *fd;
 
-  if (strncmp(GetOpcodeName(p), "ftsave.", 7) != 0) {
+  if (strncmp(GetOpcodeName((OPDS *)p), "ftsave.", 7) != 0) {
     ft_func = csound->FTFindP;
     err_func = csound->PerfError;
   }
   else {
-    nargs = GetInputArgCnt(p) - 2;
+    nargs = GetInputArgCnt((OPDS *)p) - 2;
     ft_func = csound->FTnp2Finde;
     err_func = myInitError;
   }
@@ -620,7 +620,7 @@ static int32_t ftsave_k_set(CSOUND *csound, FTLOAD_K *p)
   p->p.ifilno = p->ifilno;
   p->p.iflag = p->iflag;
   memcpy(p->p.argums, p->argums,
-         sizeof(MYFLT*) * (GetInputArgCnt(p) - 3));
+         sizeof(MYFLT*) * (GetInputArgCnt((OPDS *)p) - 3));
   return OK;
 }
 

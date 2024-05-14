@@ -355,7 +355,6 @@ static const CSOUND cenviron_ = {
   csoundGetNchnls,
   csoundGetNchnlsInput,
   csoundGet0dBFS,
-  csoundGetKcounter,
   csoundGetA4,
   csoundGetTieFlag,
   csoundGetReinitFlag,

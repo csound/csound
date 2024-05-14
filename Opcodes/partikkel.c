@@ -250,7 +250,7 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
     /* set grainphase to 1.0 to make grain scheduler create a grain immediately
      * after starting opcode */
     p->grainphase = 1.0;
-    p->num_outputs = GetOutputArgCnt(p); /* save for faster access */
+    p->num_outputs = GetOutputArgCnt((OPDS *)p); /* save for faster access */
     /* resolve tables with no default table handling */
     p->costab = csound->FTnp2Find(csound, p->cosine);
     /* resolve some tables with default table handling */
@@ -902,7 +902,7 @@ static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
             "%s", Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
     /* find out if we're supposed to output grain scheduler phase too */
-    p->output_schedphase = GetOutputArgCnt(p) > 1;
+    p->output_schedphase = GetOutputArgCnt((OPDS *)p) > 1;
     return OK;
 }
 

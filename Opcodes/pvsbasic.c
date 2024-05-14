@@ -504,7 +504,7 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
   N = (*p->fftsize > 0 ? *p->fftsize : 2048);
   hsize = (*p->hsize > 0 ? *p->hsize : 512);
   p->init = 0;
-  nChannels = GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
     return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
   p->nchans = nChannels;
@@ -587,7 +587,7 @@ int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
   N = (*p->fftsize > 0 ? *p->fftsize : 2048);
   hsize = (*p->hsize > 0 ? *p->hsize : 512);
   p->init = 0;
-  nChannels = GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > 1))
     return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
   p->nchans = nChannels;

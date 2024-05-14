@@ -421,7 +421,7 @@ int32_t midiaft(CSOUND *csound, MIDICTL *p)
 
 int32_t midichn(CSOUND *csound, MIDICHN *p)
 {
-    *(p->ichn) = (MYFLT) (GetMidiChannelNumber(p) + 1);
+    *(p->ichn) = (MYFLT) (GetMidiChannelNumber((OPDS *)p) + 1);
     return OK;
 }
 

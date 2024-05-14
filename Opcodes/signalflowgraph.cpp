@@ -1213,7 +1213,7 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
     evtblk.p[1] = csound->StringArg2Insno(csound, Sinstrument->data, 1);
     evtblk.p[2] = evtblk.p2orig = offset;
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
-    size_t inArgCount = GetInputArgCnt(this);
+    size_t inArgCount = GetInputArgCnt((OPDS *)this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16)inArgCount + 2;
     // Subtract 1, for only required inarg p1.
@@ -1248,7 +1248,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
     evtblk.p[2] = evtblk.p2orig = offset;
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
 
-    size_t inArgCount = GetInputArgCnt(this);
+    size_t inArgCount = GetInputArgCnt((OPDS *) this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16)inArgCount + 2;
     // Subtract 1, for only required inarg p1.
@@ -1372,7 +1372,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     ftevt->p[5] = *p->p5;
   }
   // Copy the remaining parameters.
-  ftevt->pcnt = (int16)GetInputArgCnt(p);
+  ftevt->pcnt = (int16)GetInputArgCnt((OPDS *)p);
   int n = ftevt->pcnt - 5;
   if (n > 0) {
     MYFLT **argp = p->argums;
