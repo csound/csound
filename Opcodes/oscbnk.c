@@ -804,7 +804,7 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
   ftp = csound->FTnp2Find(csound, p->kfn);
   if (UNLIKELY((ftp == NULL) || ((ft = ftp->ftable) == NULL))) return NOTOK;
   flen = ftp->flen;
-  floatph |= (!IS_POW_TWO(flen) | p->floatph);
+  floatph |= (((!IS_POW_TWO(flen))) | p->floatph);
   if(!floatph)
     oscbnk_flen_setup(ftp->flen, &mask, &lobits, &pfrac);
   p->floatph = floatph;
@@ -1021,7 +1021,7 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
   ftp = csound->FTnp2Find(csound, p->kfn); /* check grain ftable  */
   if (UNLIKELY((ftp == NULL) || ((ft = ftp->ftable) == NULL))) return NOTOK;
   flen = ftp->flen;
-  floatph |= (!IS_POW_TWO(flen) | p->floatph);
+  floatph |= (((!IS_POW_TWO(flen))) | p->floatph);
   if(!floatph)
     oscbnk_flen_setup(ftp->flen, &mask, &lobits, &pfrac);
   p->floatph = floatph;
