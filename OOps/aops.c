@@ -218,7 +218,7 @@ int32_t asignum(CSOUND *csound, ASSIGN *p)
 
 #define RELATN(OPNAME,OP)                                       \
   int32_t OPNAME(CSOUND *csound, RELAT *p)                      \
-  {   IGN(csound); *p->rbool = (*p->a OP *p->b) ? 1 : 0;        \
+  {   IGN(csound); *p->rbool = (*p->a OP *p->b) ? 1 : 0; \
     return OK; }
 
 RELATN(gt,>)
