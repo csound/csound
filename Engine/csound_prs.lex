@@ -783,6 +783,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    // this inserts a new line in included score to avoid lexer crash
     strcat(cf->body, "\n");
     csound_prs_scan_string(cf->body, yyscanner);
     corfile_rm(csound, &cf);
