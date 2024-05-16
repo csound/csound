@@ -1730,7 +1730,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < l2; i++)
       x[i] = xsr * f2[i];
     /* filter */
-    csoundRealFFT(csound, x, l2);
+    csound->RealFFT(csound, csound->RealFFTSetup(csound,l2,FFT_FWD), x);
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
     for (i = 0; i < (minh << 1); i++)
@@ -1744,7 +1744,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
       x[i] = FL(0.0);
     x[1] = x[l1];
     x[l1] = x[l1 + 1] = FL(0.0);
-    csoundInverseRealFFT(csound, x, l1);
+    csound->RealFFT(csound, csound->RealFFTSetup(csound,l1,FFT_FWD), x);
     /* write dest. table */
     /* memcpy(f1, x, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
