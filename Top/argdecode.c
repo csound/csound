@@ -1557,11 +1557,10 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
               break;
             }
 #endif
-           if (!decode_long(csound, s, argc, argv))
-              // shouldn't need to long jump here -
-              // - it's crashing if csoundSetOption fails
-              //csound->LongJmp(csound, 1);
-             csound->Message(csound,"\n ...ignoring \n");
+            if (!decode_long(csound, s, argc, argv)) {
+              csound->Message(csound,"\n...failing to parse options\n");
+              return 0;  // fail
+            }
             while (*(++s));
             break;
           case 'j':
