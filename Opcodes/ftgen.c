@@ -133,7 +133,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
       *fp++ = **argp++;                               /* copy rem arglist */
     } while (--n);
   }
-  n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
+  n = csound->FTCreate(csound, &ftp, ftevt, 1);         /* call the fgen */
   csound->Free(csound, ftevt);
   if (UNLIKELY(n != 0))
     return csound->InitError(csound, "%s", Str("ftgen error"));
@@ -390,27 +390,27 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.gen01args.gen01 = (MYFLT)csound->Strtod(csound,s1, &endptr);
+      header.gen01args.gen01 = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) { goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.gen01args.ifilno = (MYFLT)csound->Strtod(csound,s1, &endptr);
+      header.gen01args.ifilno = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.gen01args.iskptim = (MYFLT)csound->Strtod(csound,s1, &endptr);
+      header.gen01args.iskptim = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.gen01args.iformat = (MYFLT)csound->Strtod(csound,s1, &endptr);
+      header.gen01args.iformat = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.gen01args.channel = (MYFLT)csound->Strtod(csound,s1, &endptr);
+      header.gen01args.channel = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.gen01args.sample_rate = (MYFLT)csound->Strtod(csound,s1, &endptr);
+      header.gen01args.sample_rate = (MYFLT)csound->Strtod(s1, &endptr);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       //s1 = strchr(s, ' ')+1;
@@ -438,7 +438,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
         
       for (j = 0; j <= ftp->flen; j++) {
         if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
-        ftp->ftable[j] = (MYFLT) csound->Strtod(csound,s, &endptr);
+        ftp->ftable[j] = (MYFLT) csound->Strtod(s, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
       }
       if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
@@ -679,7 +679,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   n = array->sizes[0];
   ftevt->pcnt = (int16) n+4;
   memcpy(&fp[5], array->data, n*sizeof(MYFLT));
-  n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
+  n = csound->FTCreate(csound, &ftp, ftevt, 1);         /* call the fgen */
   csound->Free(csound,ftevt);
   if (UNLIKELY(n != 0))
     return csound->InitError(csound, "%s", Str("ftgen error"));

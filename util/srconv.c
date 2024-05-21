@@ -292,7 +292,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'H':
             if (isdigit(*s)) {
               int n;
-              sscanf(s, "%d%n", &O.heartbeat, &n);
+              csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
               s += n;
             }
             else O.heartbeat = 1;
@@ -302,24 +302,24 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             break;
           case 'Q':
             FIND(Str("No Q argument"))
-            sscanf(s,"%d", &Q);
+            csound->Sscanf(s,"%d", &Q);
             while (*++s);
             break;
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf", &P);
+            csound->Sscanf(s,"%lf", &P);
 #else
-            sscanf(s,"%f", &P);
+            csound->Sscanf(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            sscanf(s,"%lf", &Rout);
+            csound->Sscanf(s,"%lf", &Rout);
 #else
-            sscanf(s,"%f", &Rout);
+            csound->Sscanf(s,"%f", &Rout);
 #endif
             while (*++s);
             break;

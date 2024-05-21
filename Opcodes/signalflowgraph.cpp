@@ -1396,7 +1396,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       warn(csound, Str("ftgenonce: re-using existing func: %f\n"), *p->ifno);
     } else {
       FUNC *func = 0;
-      int status = csound->hfgens(csound, &func, ftevt, 1);
+      int status = csound->FTCreate(csound, &func, ftevt, 1);
       if (UNLIKELY(status != 0)) {
         result = csound->InitError(csound, "%s", Str("ftgenonce error"));
       }

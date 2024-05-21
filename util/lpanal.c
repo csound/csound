@@ -416,26 +416,26 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&sr); break;
+                        csound->Sscanf(s,"%lf",&sr); break;
 #else
-                        sscanf(s,"%f",&sr); break;
+                        csound->Sscanf(s,"%f",&sr); break;
 #endif
         case 'c':       FIND(Str("no channel"))
-                        sscanf(s,"%d",&channel); break;
+                        csound->Sscanf(s,"%d",&channel); break;
         case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&beg_time); break;
+                        csound->Sscanf(s,"%lf",&beg_time); break;
 #else
-                        sscanf(s,"%f",&beg_time); break;
+                        csound->Sscanf(s,"%f",&beg_time); break;
 #endif
         case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&input_dur); break;
+                        csound->Sscanf(s,"%lf",&input_dur); break;
 #else
-                        sscanf(s,"%f",&input_dur); break;
+                        csound->Sscanf(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
-                        sscanf(s,"%d",&lpc.poleCount);
+                        csound->Sscanf(s,"%d",&lpc.poleCount);
                         if (lpc.poleCount<=0) {
                           csound->Message(csound, "%s",
                                           Str("Invalid pole count; set to 1\n"));
@@ -443,7 +443,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         }
                         break;
         case 'h':       FIND(Str("no hopsize"))
-                        sscanf(s,"%d",&slice); break;
+                        csound->Sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))
                         // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
                         //but wrong; corrected
@@ -455,21 +455,21 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&pchlow);
+                        csound->Sscanf(s,"%lf",&pchlow);
 #else
-                        sscanf(s,"%f",&pchlow);
+                        csound->Sscanf(s,"%f",&pchlow);
 #endif
                         if (pchlow == 0.0)
                           lpc.doPitch = 0; /* -P0 inhibits ptrack */
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
-                        sscanf(s,"%lf",&pchhigh); break;
+                        csound->Sscanf(s,"%lf",&pchhigh); break;
 #else
-                        sscanf(s,"%f",&pchhigh); break;
+                        csound->Sscanf(s,"%f",&pchhigh); break;
 #endif
         case 'v':       FIND(Str("no verbose level"))
-                        sscanf(s,"%d",&lpc.verbose);
+                        csound->Sscanf(s,"%d",&lpc.verbose);
                         if (lpc.verbose > 1)  lpc.debug = 1;
                         break;
         case 'g':

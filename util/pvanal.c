@@ -175,26 +175,26 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
-          sscanf(s, "%lf", &sr);
+          csound->Sscanf(s, "%lf", &sr);
 #else
-          sscanf(s, "%f", &sr);
+          csound->Sscanf(s, "%f", &sr);
 #endif
           break;
         case 'c':  FIND(Str("no channel"));
-          sscanf(s, "%d", &channel);
+          csound->Sscanf(s, "%d", &channel);
           break;
         case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
-          sscanf(s, "%lf", &beg_time);
+          csound->Sscanf(s, "%lf", &beg_time);
 #else
-          sscanf(s, "%f", &beg_time);
+          csound->Sscanf(s, "%f", &beg_time);
 #endif
           break;
         case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
-          sscanf(s, "%lf", &input_dur);
+          csound->Sscanf(s, "%lf", &input_dur);
 #else
-          sscanf(s, "%f", &input_dur);
+          csound->Sscanf(s, "%f", &input_dur);
 #endif
           break;
         case 'H':
@@ -205,10 +205,10 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'B':
           FIND(Str("no beta given"));
-            sscanf(s, "%lf", &beta);
+            csound->Sscanf(s, "%lf", &beta);
             break;
         case 'n':  FIND(Str("no framesize"));
-          sscanf(s, "%"PRId64, &frameSize);
+          csound->Sscanf(s, "%"PRId64, &frameSize);
           if (UNLIKELY(frameSize < MINFRMPTS || frameSize > MAXFRMPTS)) {
             snprintf(err_msg, 512, Str("frameSize must be between %d and %d"),
                      MINFRMPTS, MAXFRMPTS);
@@ -218,15 +218,15 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
             return quit(csound, Str("pvanal: frameSize must be even"));
           break;
         case 'w':  FIND(Str("no windfact"));
-          sscanf(s, "%d", &ovlp);
+          csound->Sscanf(s, "%d", &ovlp);
           break;
         case 'h':  FIND(Str("no hopsize"));
-          sscanf(s, "%"PRId64, &frameIncr);
+          csound->Sscanf(s, "%"PRId64, &frameIncr);
           break;
         case 'g':  displays = 1;
             break;
         case 'G':  FIND(Str("no latch"));
-          sscanf(s, "%d", &latch);
+          csound->Sscanf(s, "%d", &latch);
           displays = 1;
           break;
         case 'V':  FIND(Str("no output file for trace"));

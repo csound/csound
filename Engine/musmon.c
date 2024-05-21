@@ -30,6 +30,7 @@
 #include "remote.h"
 #include <math.h>
 #include "corfile.h"
+#include "fgens.h"
 
 #include "csdebug.h"
 
@@ -868,7 +869,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
   case 'f':                   /* f event: */
     {
       FUNC  *dummyftp;
-      csound->hfgens(csound, &dummyftp, evt, 0); /* construct locally */
+      hfgens(csound, &dummyftp, evt, 0); /* construct locally */
       if (getRemoteInsRfdCount(csound))
         insGlobevt(csound, evt); /* RM: & optionally send to all remotes      */
     }

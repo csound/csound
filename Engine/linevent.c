@@ -29,6 +29,7 @@
 #endif
 
 #include "linevent.h"
+#include "fgens.h"
 
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
@@ -604,7 +605,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
 
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
-      err = csound->hfgens(csound, &dummyftp, &evt, 0);
+      err = hfgens(csound, &dummyftp, &evt, 0);
     }
     else if (opcod == 'e' && (int) evt.pcnt >= 1 && evt.p[1] > 0) {
       evt.p[2] = evt.p[1];

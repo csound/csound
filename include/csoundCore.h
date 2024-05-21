@@ -1289,6 +1289,7 @@ extern "C" {
     int (*GetSizeOfMYFLT)(void);
     void (*GetOParms)(CSOUND *, OPARMS *parms);
     const char *(*GetEnv)(CSOUND *, const char *name);
+    MYFLT (*GetSystemSr)(CSOUND *, MYFLT );
     /**@}*/
     
     /** @name Software bus */
@@ -1354,7 +1355,7 @@ extern "C" {
     
     /** @name Function tables */
     /**@{ */
-    int (*hfgens)(CSOUND *, FUNC **, const EVTBLK *, int);
+    int (*FTCreate)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
     /** Find any table, except deferred load tables. */
@@ -1647,9 +1648,11 @@ extern "C" {
 #else
     char *(*LocalizeString)(const char *) __attribute__ ((format_arg (1)));
 #endif
-    double (*Strtod)(CSOUND *,char* nptr, char**); 
-    MYFLT (*GetSystemSr)(CSOUND *, MYFLT );
+    double (*Strtod)(char* nptr, char**);
+    int (*Sprintf)(char *str, const char *format, ...);
+    int (*Sscanf)(char *str, const char *format, ...);
     /**@}*/
+
     
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */

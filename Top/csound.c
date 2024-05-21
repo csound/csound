@@ -192,11 +192,6 @@ void print_engine_parameters(CSOUND *csound) {
 }
 
 
-static double csoundStrtod(CSOUND *csound, char* nptr, char** endptr) {
-  IGN(csound);
-  return cs_strtod(nptr, endptr);
-}
-
 static void free_opcode_table(CSOUND* csound) {
   int i;
   CS_HASH_TABLE_ITEM* bucket;
@@ -369,6 +364,7 @@ static const CSOUND cenviron_ = {
   csoundGetSizeOfMYFLT,
   csoundGetOParms,
   csoundGetEnv,
+  csoundSystemSr,
   /* channels */
   csoundGetChannelPtr,
   csoundListChannels,
@@ -603,8 +599,9 @@ static const CSOUND cenviron_ = {
   csoundCloseLibrary,
   csoundGetLibrarySymbol,
   csoundLocalizeString,
-  csoundStrtod,
-  csoundSystemSr,
+  cs_strtod,
+  cs_sprintf,
+  cs_sscanf,
   {
     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
     NULL, NULL, NULL

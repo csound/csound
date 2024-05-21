@@ -303,7 +303,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
           case 'H':
             if (isdigit(*s)) {
               int32_t n;
-              sscanf(s, "%d%n", &O.heartbeat, &n);
+              csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
               s += n;
             }
             else O.heartbeat = 1;

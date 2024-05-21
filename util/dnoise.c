@@ -312,7 +312,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 'H':
               if (isdigit(*s)) {
                 int32_t n;
-                sscanf(s, "%d%n", &O.heartbeat, &n);
+                csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
                 s += n;
               }
               else O.heartbeat = 1;
@@ -320,74 +320,74 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 't':
               FIND(Str("no t argument"));
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&th);
+              csound->Sscanf(s,"%lf",&th);
 #else
-              sscanf(s,"%f",&th);
+              csound->Sscanf(s,"%f",&th);
 #endif
               while (*++s);
               break;
             case 'S':
               FIND("no s arg");
-              sscanf(s,"%d", &sh);
+              csound->Sscanf(s,"%d", &sh);
               while (*++s);
               break;
             case 'm':
               FIND("no m arg");
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&g0);
+              csound->Sscanf(s,"%lf",&g0);
 #else
-              sscanf(s,"%f",&g0);
+              csound->Sscanf(s,"%f",&g0);
 #endif
               while (*++s);
               break;
             case 'n':
               FIND(Str("no n argument"));
-              sscanf(s,"%d", &m);
+              csound->Sscanf(s,"%d", &m);
               while (*++s);
               break;
             case 'b':
               FIND(Str("no b argument"));
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&beg);
+              csound->Sscanf(s,"%lf",&beg);
 #else
-              sscanf(s,"%f",&beg);
+              csound->Sscanf(s,"%f",&beg);
 #endif
               while (*++s);
               break;
             case 'B': FIND(Str("no B argument"));
-              sscanf(s,"%" SCNd64, &Beg);
+              csound->Sscanf(s,"%" SCNd64, &Beg);
               while (*++s);
               break;
             case 'e': FIND("no e arg");
 #if defined(USE_DOUBLE)
-              sscanf(s,"%lf",&end);
+              csound->Sscanf(s,"%lf",&end);
 #else
-              sscanf(s,"%f",&end);
+              csound->Sscanf(s,"%f",&end);
 #endif
               while (*++s);
               break;
             case 'E': FIND(Str("no E argument"));
-              sscanf(s,"%" PRId64, &End);
+              csound->Sscanf(s,"%" PRId64, &End);
               while (*++s);
               break;
             case 'N': FIND(Str("no N argument"));
-              sscanf(s,"%d", &N);
+              csound->Sscanf(s,"%d", &N);
               while (*++s);
               break;
             case 'M': FIND(Str("no M argument"));
-              sscanf(s,"%d", &M);
+              csound->Sscanf(s,"%d", &M);
               while (*++s);
               break;
             case 'L': FIND(Str("no L argument"));
-              sscanf(s,"%d", &L);
+              csound->Sscanf(s,"%d", &L);
               while (*++s);
               break;
             case 'w': FIND(Str("no w argument"));
-              sscanf(s,"%d", &W);
+              csound->Sscanf(s,"%d", &W);
               while (*++s);
               break;
             case 'D': FIND(Str("no D argument"));
-              sscanf(s,"%d", &D);
+              csound->Sscanf(s,"%d", &D);
               while (*++s);
               break;
             case 'V':

@@ -73,31 +73,31 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #ifdef USE_DOUBLE
-          sscanf(s, "%lf", &sr);
+          csound->Sscanf(s, "%lf", &sr);
 #else
-          sscanf(s, "%f", &sr);
+          csound->Sscanf(s, "%f", &sr);
 #endif
           break;
         case 'c':
           FIND(Str("no channel"))
-            sscanf(s, "%d", &channel);
+            csound->Sscanf(s, "%d", &channel);
           if (UNLIKELY((channel < 1) || (channel > 4)))
             return quit(csound, Str("channel must be in the range 1 to 4"));
           break;
         case 'b':
           FIND(Str("no begin time"))
 #ifdef USE_DOUBLE
-          sscanf(s, "%lf", &beg_time);
+          csound->Sscanf(s, "%lf", &beg_time);
 #else
-          sscanf(s, "%f", &beg_time);
+          csound->Sscanf(s, "%f", &beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #ifdef USE_DOUBLE
-          sscanf(s, "%lf", &input_dur);
+          csound->Sscanf(s, "%lf", &input_dur);
 #else
-          sscanf(s, "%f", &input_dur);
+          csound->Sscanf(s, "%f", &input_dur);
 #endif
           break;
         case 'X':
