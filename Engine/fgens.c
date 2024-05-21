@@ -1744,7 +1744,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
       x[i] = FL(0.0);
     x[1] = x[l1];
     x[l1] = x[l1 + 1] = FL(0.0);
-    csound->RealFFT(csound, csound->RealFFTSetup(csound,l1,FFT_FWD), x);
+    csound->RealFFT(csound, csound->RealFFTSetup(csound,l1,FFT_INV), x);
     /* write dest. table */
     /* memcpy(f1, x, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
