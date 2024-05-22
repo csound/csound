@@ -40,11 +40,11 @@
     /* where callers pass s/2+1, this recreates the parent fft frame size */
 
 /* assumes that FFTsize is an integer multiple of 4 */
-void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, void *setup)
+void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, CSOUND_FFT_SETUP * setup)
 {
     MYFLT re, im;
     int32_t   i;
-    int FFTsize = ((CSOUND_FFT_SETUP *) setup)->N;
+    int FFTsize = setup->N;
 
     for (i = 0; i < FFTsize; i += 4) {
       re = buf[i] * COS(buf[i + 1]);

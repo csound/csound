@@ -128,7 +128,7 @@ extern "C" {
    *
    *  returns: a pointer to the FFT setup.
    */
-  void *csoundRealFFT2Setup(CSOUND *csound, int32_t FFTsize, int32_t d);
+   void *csoundRealFFT2Setup(CSOUND *csound, int32_t FFTsize, int32_t d);
 
    /**
    * New Real FFT interface
