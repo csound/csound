@@ -425,9 +425,11 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Throw data into list or use table */
     p->id = (int32_t) *p->i_id;
     if (p->id < 0) {
-      if (UNLIKELY(csound->GetTable(csound, &(p->out), -(p->id)) < (int32_t)len)) {
+      FUNC *ftp = csound->FTnp2Find(csound, p->i_id);
+      if (UNLIKELY(ftp == NULL)) {
         return csound->InitError(csound, "%s", Str("scanu: invalid id table"));
       }
+      p->out = ftp->ftable;
     }
     else {
       listadd(pp, p);

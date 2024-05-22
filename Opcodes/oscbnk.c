@@ -2164,8 +2164,11 @@ static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
                       &(tables->tables[i].pfrac));
     /* if base ftable was specified, generate empty table ... */
     if (base_ftable > 0) {
+      FUNC *ftp;
+      MYFLT ftable = (MYFLT) base_ftable;
       csound->FTAlloc(csound, base_ftable, (int32_t) tables->tables[i].size);
-      csound->GetTable(csound, &(tables->tables[i].ftable), base_ftable);
+      ftp = csound->FTnp2Find(csound, &ftable);
+      tables->tables[i].ftable = ftp->ftable;
       base_ftable++;                /* next table number */
     }
     else    /* ... else allocate memory (cannot be accessed as a       */

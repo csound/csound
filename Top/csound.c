@@ -414,10 +414,6 @@ static const CSOUND cenviron_ = {
   csoundFTFindP,
   csoundFTnp2Find,
   csoundFTnp2Finde,
-  csoundGetTable,
-  csoundTableLength,
-  csoundTableGet,
-  csoundTableSetInternal,
   csoundGetNamedGens,
   /* global and config variable manipulation */
   csoundCreateGlobalVariable,

@@ -265,12 +265,13 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
 
 static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
 {
-  MYFLT             *ft;
   STDOPCOD_GLOBALS  *pp;
-  if (UNLIKELY(csound->GetTable(csound, &ft, MYFLT2LRND(*p->ifn)) < 0))
+  FUNC  *ftp = csound->FTnp2Find(csound,p->ifn);
+
+  if (UNLIKELY(ftp == NULL))
     return csound->InitError(csound, "%s", Str("tab_init: incorrect table number"));
   pp =  (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-  pp->tb_ptrs[ndx] = ft;
+  pp->tb_ptrs[ndx] = ftp->ftable;
   return OK;
 }
 
@@ -582,12 +583,11 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
 {
   if (*p->ktrig_start) {
     if (*p->kfn != p->old_fn) {
-      int32_t flen;
-      if (UNLIKELY((flen = csound->GetTable(csound,&(p->table),
-                                            (int32_t)*p->kfn)) < 0))
+      FUNC *ftp = csound->FTnp2Find(csound, p->kfn);
+      if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),
                                  Str("Invalid ftable no. %f"), *p->kfn);
-      p->tablen = (int64_t) flen;
+      p->tablen = (int64_t) ftp->flen;
       *(p->table++) = *p->numtics;
       p->old_fn = *p->kfn;
     }
@@ -639,12 +639,11 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
 {
   if (*p->ktrig) {
     if (*p->kfn != p->old_fn) {
-      int32_t flen;
-      if (UNLIKELY((flen = csound->GetTable(csound, &(p->table),
-                                            (int32_t)*p->kfn)) < 0))
+      FUNC *ftp = csound->FTnp2Find(csound, p->kfn);
+      if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),
                                  Str("Invalid ftable no. %f"), *p->kfn);
-      p->tablen = (int64_t) flen;
+      p->tablen = (int64_t) ftp->flen;
       p->currtic = 0;
       p->ndx = 0;
       *(p->table++) = *p->numtics;

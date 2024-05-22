@@ -1317,8 +1317,9 @@ extern "C" {
     int (*GetMessageLevel)(CSOUND *);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
     void (*SetMessageCallback)(CSOUND *,
-                               void (*csoundMessageCallback)(CSOUND *,int attr, const char *format,
-                                                             va_list valist));
+                               void (*csoundMessageCallback)
+                               (CSOUND *,int attr, const char *format,
+                                va_list valist));
     /**@}*/
     
     /** @name Arguments and Types */
@@ -1363,10 +1364,6 @@ extern "C" {
     /** Find any table. */
     FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
     FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
-    int (*GetTable)(CSOUND *, MYFLT **tablePtr, int tableNum);
-    int (*TableLength)(CSOUND *, int table);
-    MYFLT (*TableGet)(CSOUND *, int table, int index);
-    void (*TableSet)(CSOUND *, int table, int index, MYFLT value);
     void *(*GetNamedGens)(CSOUND *);
     /**@}*/
     
