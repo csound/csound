@@ -305,7 +305,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 durs;
     int32 len, i, nchnls;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn) ;  /* function table */
+    p->sfunc = csound->FTFind(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
@@ -442,11 +442,11 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
 static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
 {
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
+    p->sfunc = csound->FTFind(csound, p->ifn);  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
     else p->efunc = NULL;
 
     if (*p->iskip == 0) {
@@ -489,7 +489,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
 
-    func = csound->FTnp2Finde(csound, p->ifn);
+    func = csound->FTFind(csound, p->ifn);
     sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
@@ -843,7 +843,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 static int32_t flooper3_init(CSOUND *csound, flooper3 *p)
 {
     int32_t len,i,p2s,lomod;
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);
+    p->sfunc = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }

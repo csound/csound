@@ -659,7 +659,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
   if ((int32_t)p->scnt >= hsize) {
     double resamp;
     /* audio samples are stored in a function table */
-    ft = csound->FTnp2Find(csound,p->knum);
+    ft = csound->FTFind(csound,p->knum);
     if (ft == NULL){
       csound->PerfError(csound, &(p->h),
                         Str("could not find table number %d\n"), (int32_t) *p->knum);
@@ -814,7 +814,7 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
   if ((int32_t)p->scnt >= hsize) {
     double resamp;
     /* audio samples are stored in a function table */
-    ft = csound->FTnp2Find(csound,p->knum);
+    ft = csound->FTFind(csound,p->knum);
     if (ft == NULL){
       csound->PerfError(csound, &(p->h),
                         Str("could not find table number %d\n"), (int32_t) *p->knum);
@@ -2410,7 +2410,7 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
         return csound->InitError(csound, "%s", Str("pvstencil: signal format "
                                              "must be amp-phase or amp-freq."));
     }
-  p->func = csound->FTnp2Finde(csound, p->ifn);
+  p->func = csound->FTFind(csound, p->ifn);
   if (p->func == NULL)
     return OK;
 
@@ -2557,7 +2557,7 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
   int32_t coefs = (int32_t) *p->coefs;
-  FUNC  *ft = csound->FTnp2Find(csound, p->ftab);
+  FUNC  *ft = csound->FTFind(csound, p->ftab);
   int32_t size;
   MYFLT *ftab;
 

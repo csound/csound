@@ -362,7 +362,7 @@ static int32_t tifd_process(CSOUND * csound, IFD * p)
     int32_t     fftsize = p->fftsize;
     int32_t post;
     MYFLT frac;
-    FUNC *ft = csound->FTnp2Find(csound,p->p7);
+    FUNC *ft = csound->FTFind(csound,p->p7);
     if (UNLIKELY(ft == NULL)) {
       return csound->PerfError(csound, &(p->h),
                                "could not find table number %d\n", (int32_t) *p->p7);

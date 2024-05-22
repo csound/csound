@@ -46,7 +46,7 @@ static int32_t make_Modal4(CSOUND *csound,
 {
   FUNC        *ftp;
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL))
+  if (LIKELY((ftp = csound->FTFind(csound,ifn)) != NULL))
     m->vibr = ftp;
   else {                                              /* Expect sine wave */
     csound->ErrorMsg(csound, "%s", Str("No table for Modal4 case"));
@@ -252,7 +252,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
   p->m4.sr = CS_ESR;
   p->m4.h = p->h;
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
     p->m4.wave = ftp;
   else {                                    /* Expect an impulslything */
     return csound->InitError(csound, "%s", Str("No table for Marimba strike"));
@@ -378,7 +378,7 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
   p->m4.sr = CS_ESR;
   p->m4.h = p->h;
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
     p->m4.wave = ftp;         /* Expect an impulslything */
   else {
     return csound->InitError(csound, "%s", Str("No table for Vibraphone strike"));
@@ -469,7 +469,7 @@ int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
   p->m4.h = p->h;
 
   /* Expect an impulslything */
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->m4.wave = ftp;
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->m4.wave = ftp;
   else {
     return csound->InitError(csound, "%s", Str("No table for Agogobell strike"));
   }

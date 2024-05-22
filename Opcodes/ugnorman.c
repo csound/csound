@@ -645,7 +645,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
   int32_t   memsize, n_partials, type;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSADD: Function table number "
                                          "for synthesis waveform not valid"));
   }
@@ -653,7 +653,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
   p->floatph = !IS_POW_TWO(ftp->flen);
   /* set up gate function table */
   if (*p->igatefun > FL(0.0)) {
-    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL)) {
+    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
       return csound->InitError(csound, "%s", Str("ATSADD: Gate Function table "
                                            "number not valid"));
     }
@@ -755,7 +755,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
   int32_t   memsize, n_partials, type;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSADD: Function table number "
                                          "for synthesis waveform not valid"));
   }
@@ -764,7 +764,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
 
   /* set up gate function table */
   if (*p->igatefun > FL(0.0)) {
-    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL)) {
+    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
       return csound->InitError(csound, "%s", Str("ATSADD: Gate Function table "
                                            "number not valid"));
     }
@@ -2589,7 +2589,7 @@ static int32_t atscrossset(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSCROSS: Function table number for "
                                          "synthesis waveform not valid"));
   }
@@ -2685,7 +2685,7 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSCROSS: Function table number for "
                                          "synthesis waveform not valid"));
   }

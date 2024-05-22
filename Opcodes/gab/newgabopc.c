@@ -40,7 +40,7 @@ typedef struct {
 static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado */
 {
   FUNC *ftp;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL))
     return csound->InitError(csound, "%s", Str("vtable1: incorrect table number"));
   p->ftable = ftp->ftable;
   p->nargs = p->INOCOUNT-1;
@@ -55,7 +55,7 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
   MYFLT *table;
   if (p->pfn != (int64_t)*p->xfn) {
     FUNC *ftp;
-    if (UNLIKELY( (ftp = csound->FTFindP(csound, p->xfn) ) == NULL))
+    if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL))
       return csound->PerfError(csound, &(p->h),
                                "%s", Str("vtable1: incorrect table number"));
     p->pfn = (int64_t)*p->xfn;
@@ -88,7 +88,7 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
 {
   FUNC *ftp;
   double  loop, end, looplength, fsr;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ift)) == NULL))
     return csound->InitError(csound, "%s", Str("invalid function"));
   if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
     csound->Message(csound, "%s", Str("lposcil: no sample rate stored in function;"

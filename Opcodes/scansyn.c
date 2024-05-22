@@ -55,7 +55,7 @@
 static int32_t scsnu_initw(CSOUND *csound, PSCSNU *p)
 {
     int len = p->len*sizeof(MYFLT);
-    FUNC *fi = csound->FTnp2Find(csound,  p->i_init);
+    FUNC *fi = csound->FTFind(csound,  p->i_init);
     if (UNLIKELY(fi == NULL)) {
       return csound->InitError(csound,
                                "%s", Str("scanu: Could not find ifnnit ftable"));
@@ -90,7 +90,7 @@ static int32_t scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT wgt)
     /* Get table */
     //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
     if (fi == NULL)
-    if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
+    if (UNLIKELY((fi = csound->FTFind(csound, &tab)) == NULL)) {
       return csound->InitError(csound,
                                "%s", Str("scanu: Could not find ifninit ftable"));
     }
@@ -222,7 +222,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
     
     /* Mass */
-    if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
+    if (UNLIKELY((f = csound->FTFind(csound, p->i_m)) == NULL)) {
       return csound->InitError(csound,
                                "%s", Str("scanu: Could not find ifnmass table"));
     }
@@ -231,7 +231,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Centering */
-    if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_c)) == NULL)) {
+    if (UNLIKELY((f = csound->FTFind(csound, p->i_c)) == NULL)) {
       return csound->InitError(csound,
                                "%s", Str("scanu: Could not find ifncentr table"));
     }
@@ -243,7 +243,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Damping */
-    if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_d)) == NULL)) {
+    if (UNLIKELY((f = csound->FTFind(csound, p->i_d)) == NULL)) {
       return csound->InitError(csound,
                                "%s", Str("scanu: Could not find ifndamp table"));
     }
@@ -260,7 +260,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 
       // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
       /* Get the table */
-      if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
+      if (UNLIKELY((f = csound->FTFind(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
                                  "%s %p", Str("scanu: Could not find ifndisplace table"), p->i_f);
       }
@@ -379,7 +379,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Velocity gets presidential treatment */
     {
       uint32_t i;
-      FUNC *f = csound->FTnp2Find(csound, p->i_v);
+      FUNC *f = csound->FTFind(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
         return csound->InitError(csound,
                                  "%s", Str("scanu: Could not find ifnvel table"));
@@ -425,7 +425,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Throw data into list or use table */
     p->id = (int32_t) *p->i_id;
     if (p->id < 0) {
-      FUNC *ftp = csound->FTnp2Find(csound, p->i_id);
+      FUNC *ftp = csound->FTFind(csound, p->i_id);
       if (UNLIKELY(ftp == NULL)) {
         return csound->InitError(csound, "%s", Str("scanu: invalid id table"));
       }
@@ -607,7 +607,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     p->p = listget(csound, (int32_t) *p->i_id);
 
     /* Get trajectory matrix */
-    t = csound->FTnp2Find(csound, p->i_trj);
+    t = csound->FTFind(csound, p->i_trj);
     if (UNLIKELY(t == NULL)) {
       return csound->InitError(csound, "%s", Str("scans: Could not find "
                                           "the ifntraj table"));

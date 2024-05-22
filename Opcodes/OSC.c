@@ -316,7 +316,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             FUNC    *ftp;
             void *data;
             /* make sure fn exists */
-            if (LIKELY((ftp=csound->FTnp2Find(csound,arg[i]))!=NULL)) {
+            if (LIKELY((ftp=csound->FTFind(csound,arg[i]))!=NULL)) {
               len = ftp->flen;        /* and set it up */
               data = csound->Malloc(csound,
                                     olen=/*sizeof(FUNC)-sizeof(MYFLT*)+*/
@@ -892,7 +892,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
               return csound->PerfError(csound, &(p->h),
                                        Str("Invalid ftable no. %d"), fno);
 
-            ftp = csound->FTnp2Find(csound, p->args[i]);
+            ftp = csound->FTFind(csound, p->args[i]);
             if (UNLIKELY(ftp==NULL)) {
               return csound->PerfError(csound, &(p->h),
                                        "%s", Str("OSC internal error"));
@@ -903,7 +903,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             memcpy(ftp->ftable,data,len);
 
 #if 0
-            ftp = csound->FTFindP(csound, p->args[i]);
+            ftp = csound->FTFind(csound, p->args[i]);
             if (UNLIKELY(ftp==NULL)) { // need to allocate ***FIXME***
               return csound->PerfError(csound, &(p->h),
                                        "%s", Str("OSC internal error"));

@@ -47,6 +47,11 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len);
  * Return value is zero on success.
  */
 int csoundFTDelete(CSOUND *csound, int tableNum);
+/**
+ * Finds a function table.
+ * Returns a FUNC pointer or NULL if unsuccessful
+ */
+FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp);
 
 #endif  /* CSOUND_FGENS_H */
 

@@ -411,9 +411,7 @@ static const CSOUND cenviron_ = {
   hfgens,
   csoundFTAlloc,
   csoundFTDelete,
-  csoundFTFindP,
-  csoundFTnp2Find,
-  csoundFTnp2Finde,
+  csoundFTFind,
   csoundGetNamedGens,
   /* global and config variable manipulation */
   csoundCreateGlobalVariable,

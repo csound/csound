@@ -37,7 +37,7 @@
 /* #undef ISSTRCOD */
 
 extern double besseli(double);
-FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);static int gen01raw(FGDATA *, FUNC *);
+static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
 static int gen05(FGDATA *, FUNC *), gen06(FGDATA *, FUNC *);
@@ -2062,7 +2062,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTnp2Findint(csound, &(ff->e.p[5]), 1)) == NULL))
+    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -2376,64 +2376,6 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     return ftp;
 }
 
-/* find the ptr to an existing ftable structure */
-/*   called by oscils, etc at init time         */
-
-FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
-{
-    FUNC    *ftp;
-    int     fno;
-
-    fno = MYFLT2LONG(*argp);
-    if (UNLIKELY(fno == -1)) {
-      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
-      return csound->sinetable;
-    }
-    if (UNLIKELY(fno <= 0                    ||
-                 fno > csound->maxfnum       ||
-                 (ftp = csound->flist[fno]) == NULL)) {
-      csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
-      return NULL;
-    }
-    else if (UNLIKELY(ftp->lenmask == -1)) {
-      csoundInitError(csound, Str("illegal table length"));
-      return NULL;
-    }
-    else if (UNLIKELY(!ftp->lenmask)) {
-      csoundInitError(csound,
-                      Str("deferred-size ftable %f illegal here"), *argp);
-      return NULL;
-    }
-    return ftp;
-}
-
-/* find the ptr to an existing ftable structure */
-/*   called by oscils, etc at init time         */
-/* does not throw an error when a non-pow of two size table is found */
-
-FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
-{
-    FUNC    *ftp;
-    int     fno;
-
-    fno = MYFLT2LONG(*argp);
-    if (UNLIKELY(fno == -1)) {
-      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
-      return csound->sinetable;
-    }
-    if (UNLIKELY(fno <= 0                    ||
-                 fno > csound->maxfnum       ||
-                 (ftp = csound->flist[fno]) == NULL)) {
-      return NULL;
-    }
-    else if (UNLIKELY(ftp->lenmask == -1)) {
-      return NULL;
-    }
-    else if (UNLIKELY(!ftp->lenmask)) {
-      return NULL;
-    }
-    return ftp;
-}
 
 static FUNC *gen01_defer_load(CSOUND *csound, int fno);
 PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
@@ -2458,7 +2400,6 @@ PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
 }
 
 
-
 PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
 {
     FUNC    *ftp;
@@ -2475,56 +2416,13 @@ PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
     return -1;
 }
 
-/**************************************
- * csoundFTFindP()
- *
- * New function to find a function table at performance time.  Based
- * on csoundFTFind() which is intended to run at init time only.
- *
- * This function can be called from other modules - such as ugrw1.c.
- *
- * It returns a pointer to a FUNC data structure which contains all
- * the details of the desired table.  0 is returned if it cannot be
- * found.
- *
- * This does not handle deferred function table loads (gen01).
- *
- * Maybe this could be achieved, but some exploration would be
- * required to see that this is feasible at performance time.
- */
-FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
-{
-    FUNC    *ftp;
-    int     fno;
-
-    /* Check limits, and then index  directly into the flist[] which
-     * contains pointers to FUNC data structures for each table.
-     */
-    fno = MYFLT2LONG(*argp);
-    if (UNLIKELY(fno == -1)) {
-      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
-      return csound->sinetable;
-    }
-    if (UNLIKELY(fno <= 0                 ||
-                 fno > csound->maxfnum    ||
-                 (ftp = csound->flist[fno]) == NULL)) {
-      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
-      return NULL;
-    }
-    else if (UNLIKELY(!ftp->lenmask)) {
-      /* Now check that the table has a length > 0.  This should only
-       * occur for tables which have not been loaded yet.  */
-      csound->ErrorMsg(csound, Str("Deferred-size ftable %f load "
-                                  "not available at perf time."), *argp);
-      return NULL;
-    }
-    return ftp;
-}
-
+/************************************************/
+/* New FT interface, subsumming all previous    */
+/* functions into a single one, can be called   */
+/* at any stage                                 */
 /* find ptr to a deferred-size ftable structure */
-/*   called by loscil at init time, and ftlen   */
-
-FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose)
+/***********************************************/
+FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int     fno = MYFLT2LONG(*argp);
@@ -2536,29 +2434,20 @@ FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose)
     if (UNLIKELY(fno <= 0 ||
                  fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
-      if (verbose) csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
     if (ftp->flen == 0) {
      if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
        else {
-         if (verbose) csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+        csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
     }
       if (UNLIKELY(ftp == NULL))
       csound->inerrcnt++;
     }
     return ftp;
-}
-
-FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
-{
-    return csoundFTnp2Findint(csound, argp, 0);
-}
-FUNC *csoundFTnp2Finde(CSOUND *csound, MYFLT *argp)
-{
-    return csoundFTnp2Findint(csound, argp, 1);
 }
 
 /* read ftable values from a sound file */
@@ -3296,7 +3185,7 @@ int resize_table(CSOUND *csound, RESIZE *p)
       printf("WARNING: EXPERIMENTAL CODE\n");
       warned = 1;
     }
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->fn)) == NULL))
+    if (UNLIKELY((ftp = csoundFTFind(csound, p->fn)) == NULL))
       return NOTOK;
     if (ftp->flen<fsize)
       ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,

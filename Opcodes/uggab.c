@@ -785,7 +785,7 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (((int64_t)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
@@ -866,7 +866,7 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
     }
@@ -1127,7 +1127,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1154,7 +1154,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     uint32_t n, nsmps = CS_KSMPS, flen;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1180,7 +1180,7 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
     int32 indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1222,7 +1222,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }

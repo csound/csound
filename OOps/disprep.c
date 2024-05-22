@@ -488,7 +488,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       return csound->InitError(csound, Str("illegal ihtim"));
     if (UNLIKELY(*p->istartempo <= FL(0.0)))
       return csound->InitError(csound, Str("illegal startempo"));
-    ftp = csound->FTnp2Find(csound, p->ifn);
+    ftp = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(ftp != NULL && *ftp->ftable == FL(0.0)))
       return csound->InitError(csound, Str("ifn table begins with zero"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;

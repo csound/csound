@@ -256,11 +256,11 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
   if (strncmp(GetOpcodeName((OPDS *)p), "ftloadk", 7) == 0) {
     nargs--;
-    ft_func = csound->FTnp2Finde;
+    ft_func = csound->FTFind;
     err_func = csound->PerfError;
   }
   else {
-    ft_func = csound->FTnp2Finde;
+    ft_func = csound->FTFind;
     err_func = myInitError;
   }
 
@@ -492,16 +492,13 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
   int32_t   nargs = GetInputArgCnt((OPDS *)p) - 3;
   FILE  *file = NULL;
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
-  FUNC  *(*ft_func)(CSOUND *, MYFLT *);
   void  *fd;
 
   if (strncmp(GetOpcodeName((OPDS *)p), "ftsave.", 7) != 0) {
-    ft_func = csound->FTFindP;
     err_func = csound->PerfError;
   }
   else {
     nargs = GetInputArgCnt((OPDS *)p) - 2;
-    ft_func = csound->FTnp2Finde;
     err_func = myInitError;
   }
 
@@ -523,7 +520,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     while (nargs--) {
       FUNC *ftp;
       //csound->Message(csound, "saving table %f \n", **argp);
-      if ( *argp && (ftp = ft_func(csound, *argp)) != NULL) {
+      if ( *argp && (ftp = csound->FTFind(csound, *argp)) != NULL) {
         MYFLT *table = ftp->ftable;
         int32 flen = ftp->flen;
         int32_t n;
@@ -543,7 +540,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     while (nargs--) {
       FUNC *ftp;
 
-      if ((ftp = ft_func(csound, *argp)) != NULL) {
+      if ((ftp = csound->FTFind(csound, *argp)) != NULL) {
         int32 flen = ftp->flen;
         int32 j;
         MYFLT *table = ftp->ftable;
@@ -744,7 +741,7 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
   FUNC *src;
   int32 argcnt, i, strlen = 0;
 
-  if (UNLIKELY((src = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
+  if (UNLIKELY((src = csound->FTFind(csound, p->ftable)) == NULL)) {
     return csound->PerfError(csound, &(p->h),
                              Str("table: could not find ftable %d"),
                              (int32_t) *p->ftable);

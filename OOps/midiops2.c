@@ -60,7 +60,7 @@
     else {
       value = (MYFLT)(csound->curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
-        if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+        if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
           return NOTOK; /* if valid ftable, use value as index   */
         /* clamp it */
         value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
@@ -79,7 +79,7 @@
     }
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+      if (((p->ftp = csound->FTFind(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -133,7 +133,7 @@
         MYFLT top;
         MYFLT diff;
 
-        if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+        if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
           return NOTOK; /* if valid ftable,use value as index   */
 
         /* clamp it */
@@ -162,7 +162,7 @@
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -220,7 +220,7 @@
                        * oneTOf21bit);
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = csound->FTnp2Find(csound, p->ifn); /* gab-A1 */
+        FUNC *ftp = csound->FTFind(csound, p->ifn); /* gab-A1 */
         MYFLT phase, tmp, *tab;
          if (UNLIKELY(ftp == NULL))
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
@@ -253,7 +253,7 @@
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;
@@ -305,7 +305,7 @@
       value = (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[ctlno]
                        * oneTOf7bit);
       if (*p->ifn > 0) {
-        if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+        if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
           return NOTOK;               /* if valid ftable,use value as index   */
                 /* clamp it */
         value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
@@ -330,7 +330,7 @@
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -372,7 +372,7 @@
       if (*p->ifn > 0) {
         /* linear interpolation routine */
         /* linear interpolation routine */
-        FUNC *ftp = csound->FTnp2Find(csound, p->ifn); /* gab-A1 */
+        FUNC *ftp = csound->FTFind(csound, p->ifn); /* gab-A1 */
         MYFLT phase, tmp, *tab;
          if (UNLIKELY(ftp == NULL))
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
@@ -405,7 +405,7 @@
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -462,7 +462,7 @@
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = csound->FTnp2Find(csound, p->ifn); /* gab-A1 */
+        FUNC *ftp = csound->FTFind(csound, p->ifn); /* gab-A1 */
         MYFLT phase, tmp, *tab;
          if (UNLIKELY(ftp == NULL))
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
@@ -498,7 +498,7 @@
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;

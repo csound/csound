@@ -318,7 +318,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
-      FUNC *ftp = csound->FTnp2Find(csound, p->args[xift]);
+      FUNC *ftp = csound->FTFind(csound, p->args[xift]);
       if (ftp->flen < 53)
         p->ftable = NULL;
       else p->ftable = ftp->ftable;
@@ -330,7 +330,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (xirlen >= 0)                                /* IR length */
       p->irlen = (int32_t) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
     if (xioutft >= 0) {                             /* output table */
-      FUNC *ftp = csound->FTnp2Find(csound, p->args[xioutft]);
+      FUNC *ftp = csound->FTFind(csound, p->args[xioutft]);
       if (ftp->flen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }

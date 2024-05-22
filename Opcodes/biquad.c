@@ -559,7 +559,7 @@ static int32_t vcoset(CSOUND *csound, VCO *p)
   //MYFLT ndsave;
 
   //ndsave = (MYFLT) ndel;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->sine)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->sine)) == NULL))
     return NOTOK;
   p->floatph = !(IS_POW_TWO(p->ftp->flen));
 

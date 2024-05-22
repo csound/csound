@@ -259,7 +259,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     }
 
     /* Find and assign the function table numbered iFTNum */
-    ftp = csound->FTnp2Finde(csound, p->iFTNum);
+    ftp = csound->FTFind(csound, p->iFTNum);
     if (UNLIKELY(ftp == NULL))
       return NOTOK; /* ftfind should already have printed the error message */
 
@@ -339,7 +339,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     /* Only continue if initialized */
     if (UNLIKELY(p->initDone <= 0)) goto err1;
 
-    ftp = csound->FTnp2Finde(csound, p->iFTNum);
+    ftp = csound->FTFind(csound, p->iFTNum);
     nSamples = p->partSize;   /* Length of partition */
                               /* Pointer to a partition of the ring buffer */
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);

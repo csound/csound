@@ -71,13 +71,13 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
     int32     memsize;
 
     //if (*p->ifn > FL(0.0))
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
         return NOTOK;
     p->ftp = ftp;
     p->floatph = !IS_POW_TWO(ftp->flen);
 
     if (*p->igatefun > FL(0.0))
-      if (UNLIKELY((AmpGateFunc = csound->FTnp2Finde(csound, p->igatefun)) == NULL))
+      if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 

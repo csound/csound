@@ -558,7 +558,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'G':
-        ft = csound->FTnp2Finde(csound, p->arg[i]);
+        ft = csound->FTFind(csound, p->arg[i]);
         bsize += (sizeof(MYFLT)*ft->flen);
         iarg++;
         break;
@@ -760,7 +760,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'G':
-          ft = csound->FTnp2Finde(csound, p->arg[i]);
+          ft = csound->FTFind(csound, p->arg[i]);
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
           if(buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);

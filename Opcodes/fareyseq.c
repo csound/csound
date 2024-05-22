@@ -268,9 +268,9 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     /* Destination  */
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
-       * csound->FTFindP() for perf time. csound->FTFind() for init time.
+       * csound->FTFind() for perf time. csound->FTFind() for init time.
        */
-      if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
+      if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
         return
           csound->PerfError(csound, &(p->h),
                             Str("Farey: Destination dft table %.2f not found."),
@@ -282,7 +282,7 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     }
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
@@ -316,8 +316,8 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     /* Destination */
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
-       * csound->FTFindP() for perf time. csound->FTFind() for init time. */
-      if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
+       * csound->FTFind() for perf time. csound->FTFind() for init time. */
+      if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("Farey: Destination dft table %.2f not found."),
@@ -329,7 +329,7 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     }
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
@@ -454,7 +454,7 @@ int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
@@ -476,7 +476,7 @@ int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);

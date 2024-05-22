@@ -191,7 +191,7 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 {
   FUNC        *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return NOTOK;
   if(IS_POW_TWO(ftp->flen)) { 
   if (UNLIKELY(*p->idur <= FL(0.0))) {
@@ -319,7 +319,7 @@ int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
 
     FUNC        *ftp;
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->inc = ftp->flen * *p->ifrq * CS_ONEDSR;
       p->index = FL(0.0);
@@ -380,7 +380,7 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
 int32_t posc_set(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return csound->InitError(csound, Str("table not found in poscil"));
   p->ftp        = ftp;
   p->tablen     = ftp->flen;
@@ -1003,7 +1003,7 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
 int32_t oscset(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))  
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))  
     return csound->InitError(csound, Str("table not found"));
   p->ftp = ftp;
   if(IS_POW_TWO(ftp->flen)) {
@@ -1676,7 +1676,7 @@ int32_t lposc_set(CSOUND *csound, LPOSC *p)
   FUNC   *ftp;
   MYFLT  loop, end, looplength;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ift)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ift)) == NULL))
     return NOTOK;
   if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
     csound->Warning(csound, Str("lposc: no sample rate stored in function "

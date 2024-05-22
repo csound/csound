@@ -56,7 +56,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
     (segp+nsegs)->cnt = MAXPOS;
   }
   argp = p->argums;
-  if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound, *argp++)) == NULL))
+  if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
     return NOTOK;
   flength = nxtfunc->flen;
   p->outfunc =
@@ -76,7 +76,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
     segp++;                 /* init each seg ..  */
     curfunc = nxtfunc;
     dur = **argp++;
-    if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound, *argp++)) == NULL))
+    if (UNLIKELY((nxtfunc = csound->FTFind(csound, *argp++)) == NULL))
       return OK;
     if (LIKELY(dur > FL(0.0))) {
       segp->d = dur * CS_EKR;
@@ -177,7 +177,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     csound->AuxAlloc(csound, sizeof(TABLESEG), &p->auxtab);
     p->tableseg = (TABLESEG*) p->auxtab.auxp;
     if (UNLIKELY((p->tableseg->outfunc =
-                  csound->FTnp2Find(csound, p->isegtab)) == NULL)) {
+                  csound->FTFind(csound, p->isegtab)) == NULL)) {
       return csound->InitError(csound, "%s%f",
                                Str("vpvoc: Could not find ifnmagctrl table "),
                                *p->isegtab);

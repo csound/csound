@@ -266,7 +266,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
     FUNC  *ftp;
 
     p->usingFtable = 1;
-    ftp = csound->FTnp2Finde(csound, p->ifn);
+    ftp = csound->FTFind(csound, p->ifn);
     if (ftp == NULL)
       return NOTOK;
     if (UNLIKELY((int32_t) ftp->nchanls != nChannels))
@@ -413,7 +413,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     FUNC  *ftp;
 
     p->usingFtable = 1;
-    ftp = csound->FTnp2Finde(csound, p->ifn);
+    ftp = csound->FTFind(csound, p->ifn);
     if (ftp == NULL)
       return NOTOK;
     p->nChannels = ftp->nchanls;

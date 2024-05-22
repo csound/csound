@@ -1009,7 +1009,7 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
                              "%s", Str("specscal: local buffer not initialised"));
   }
   p->fthresh = p->fscale + npts;
-  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifscale)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifscale)) == NULL)) {
     /* if fscale given,        */
     return csound->InitError(csound, "%s", Str("missing fscale table"));
   }
@@ -1033,7 +1033,7 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
     }
   }
   if ((p->thresh = (int32_t)*p->ifthresh) &&
-      (ftp=csound->FTnp2Find(csound, p->ifthresh)) != NULL) {
+      (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
     /* if fthresh given,       */
     int32_t floatph = !IS_POW_TWO(ftp->flen);
     int32_t nn; // = npts;
@@ -1174,7 +1174,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
   outspecp->nfreqs = inspecp->nfreqs;
   outspecp->dbout = inspecp->dbout;
   outspecp->downsrcp = inspecp->downsrcp;
-  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifhtim)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifhtim)) == NULL)) {
     /* if fhtim table given,    */
     return csound->InitError(csound, "%s", Str("missing htim ftable"));
   }

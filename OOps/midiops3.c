@@ -64,7 +64,7 @@
                   j);                                             \
           return csound->InitError(csound, "%s", sbuf);           \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
         value =  (*(sld++)->initvalue - *min) / (*max++ - *min);  \
         min++;                                                    \
@@ -167,7 +167,7 @@
                   Str("illegal initvalue at position n.%d"), j);  \
           return csound->InitError(csound, "%s", sbuf);           \
         }                                                         \
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                       \
         value =  (*sld->initvalue - *min) / (*max++ - *min);      \
         min++;;                                                   \
@@ -274,7 +274,7 @@ if (UNLIKELY(chan  > 15))  {                                      \
         }                                                         \
         value = chanblock[slnum] * oneTOf7bit;                    \
         if (*sld->ifn > 0)  {                                     \
-          ftp = csound->FTnp2Finde(csound, sld->ifn);              \
+          ftp = csound->FTFind(csound, sld->ifn);              \
           value = *( ftp->ftable + (int32)(value * ftp->flen));   \
                                 /* no interpolation */            \
         }                                                         \
@@ -346,7 +346,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
                   Str("illegal initvalue at position n.%d"), j);       \
           return csound->InitError(csound, "%s", sbuf);                \
         }                                                              \
-        if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn); \
+        if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn); \
         else                 *ftp++ = NULL;                            \
         intvalue = (int32_t) (((*(sld++)->initvalue - *min) / (*max++ - *min)) \
                           * f14bit+FL(0.5));                           \
@@ -439,7 +439,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
         value = (MYFLT)((chanblock[slnum_msb]  * 128                   \
                          + chanblock[slnum_lsb]) * oneTOf14bit);       \
         if (*sld->ifn > 0) {    /* linear interpolation routine */     \
-          FUNC *ftp= csound->FTnp2Finde(csound, sld->ifn);              \
+          FUNC *ftp= csound->FTFind(csound, sld->ifn);              \
           MYFLT phase = value * ftp->flen;                             \
           MYFLT *base = ftp->ftable + (int32)(phase);                  \
           value = *base + (*(base + 1) - *base) * (phase - (int32) phase); \
@@ -478,7 +478,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
         FUNC *outftp, **ftp = p->ftp;                                   \
         MYFLT *chanblock = (MYFLT *)  csound->m_chnbp[chan]->ctl_val;   \
                                                                         \
-        if ((outftp = csound->FTnp2Finde(csound, p->ioutfn)) != NULL)    \
+        if ((outftp = csound->FTFind(csound, p->ioutfn)) != NULL)    \
           p->outTable = outftp->ftable;                                 \
         while (j < 8) {                                                 \
             int32_t t = (int32_t) *sld->ifn;                                    \
@@ -534,7 +534,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
             default: /* TABLE */                                        \
               value = value; /* unchanged, value must be in the 0 to 1 range, */ \
               /*   representing the phase of the table            */    \
-              if (*sld->ifn > 0)   *ftp = csound->FTnp2Finde(csound, sld->ifn); \
+              if (*sld->ifn > 0)   *ftp = csound->FTFind(csound, sld->ifn); \
             }                                                           \
             chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
             min++; max++; ftp++; j++; sld++;                            \
@@ -667,7 +667,7 @@ typedef struct {
       MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                        \
                                                                         \
                                                                         \
-      if((outftp = csound->FTnp2Finde(csound, p->ioutfn)) != NULL)       \
+      if((outftp = csound->FTFind(csound, p->ioutfn)) != NULL)       \
         p->outTable = outftp->ftable;                                   \
       while (j < n) {                                                   \
         int32_t t = (int32_t) *sld->ifn;                                        \
@@ -709,7 +709,7 @@ typedef struct {
         default: /* TABLE */                                            \
           value = value; /* unchanged, value must be in the 0 to 1 range, */ \
           /* representing the phase of the table */                     \
-          if (*sld->ifn > 0)   *ftp = csound->FTnp2Finde(csound, sld->ifn); \
+          if (*sld->ifn > 0)   *ftp = csound->FTFind(csound, sld->ifn); \
           if (UNLIKELY(value >= 1 || value < 0)) {                      \
             snprintf(sbuf, 120,                                         \
                     Str("sliderXtable: illegal initvalue at "           \
@@ -855,7 +855,7 @@ return OK;
         snprintf(sbuf, 120, Str("illegal initvalue at position n.%d"), j);
         return csound->InitError(csound, "%s", sbuf);
       }
-      if (*sld->ifn > 0)   *ftp++ = csound->FTnp2Finde(csound, sld->ifn);
+      if (*sld->ifn > 0)   *ftp++ = csound->FTFind(csound, sld->ifn);
       else                 *ftp++ = NULL;
       value =  (*(sld++)->initvalue - *min) / (*max++ - *min);
       min++;
@@ -898,7 +898,7 @@ return OK;
     else p->ctlno = ctlno;
 
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTFind(csound, p->ifn)) == NULL)))
         p->flag = 0;  /* invalid ftable */
       else p->flag= 1;
     }

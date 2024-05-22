@@ -542,7 +542,7 @@ int32_t ktriginstr(CSOUND *csound, TRIGINSTR *p){
 int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
       return csound->InitError(csound, Str("trigseq: incorrect table number"));
     }
     p->done  = 0;
@@ -564,7 +564,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
 
       if (p->pfn != (int32_t)*p->kfn) {
         FUNC *ftp;
-        if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
+        if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
           return csound->PerfError(csound, &(p->h),
                                    Str("trigseq: incorrect table number"));
         }

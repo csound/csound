@@ -46,8 +46,8 @@ static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT
 static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
 {
   int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-  if (LIKELY((p->ftp1 = csound->FTnp2Find(csound, p->ifna)) != NULL &&
-             (p->ftp2 = csound->FTnp2Find(csound, p->ifnb)) != NULL)) {  
+  if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
+             (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {  
     OVRLAP *ovp, *nxtovp;
     int32  olaps;
     // VL 22.03.24 check len to set float phase flag

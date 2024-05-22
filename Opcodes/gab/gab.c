@@ -108,7 +108,7 @@ static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modifie
 static int32_t fastab_set(CSOUND *csound, FASTAB *p)
 {
   FUNC *ftp;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("fastab: incorrect table number"));
   }
   p->table = ftp->ftable;
@@ -126,7 +126,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
+  FUNC *ftp = csound->FTFind(csound, p->xfn);
   p->table = ftp->ftable;
   MYFLT *tab = p->table;
   MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -191,7 +191,7 @@ static int32_t fastabi(CSOUND *csound, FASTAB *p)
   FUNC *ftp;
   int32 i;
 
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("tab_i: incorrect table number"));
   }
   if (*p->ixmode)
@@ -211,7 +211,7 @@ static int32_t fastabiw(CSOUND *csound, FASTAB *p)
   FUNC *ftp;
   int32 i;
   /*ftp = csound->FTFind(p->xfn); */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->xfn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("tabw_i: incorrect table number"));
   }
   if (*p->ixmode)
@@ -230,7 +230,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
-  FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
+  FUNC *ftp = csound->FTFind(csound, p->xfn);
   p->table = ftp->ftable;
   MYFLT *tab = p->table;
   MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -266,7 +266,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
 static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
 {
   STDOPCOD_GLOBALS  *pp;
-  FUNC  *ftp = csound->FTnp2Find(csound,p->ifn);
+  FUNC  *ftp = csound->FTFind(csound,p->ifn);
 
   if (UNLIKELY(ftp == NULL))
     return csound->InitError(csound, "%s", Str("tab_init: incorrect table number"));
@@ -422,7 +422,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     int32   *lphs;
     double *fphs;
     p->inerr = 0;
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
     }
     else {
@@ -434,7 +434,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   if (UNLIKELY(count < 1)) count = 1;
   p->count = count;
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifreqtbl)) != NULL)) {
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifreqtbl)) != NULL)) {
     p->freqtp = ftp;
   }
   else {
@@ -448,7 +448,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
                                        "than freqtable size!"));
   }
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->iamptbl)) != NULL)) {
+  if (LIKELY((ftp = csound->FTFind(csound, p->iamptbl)) != NULL)) {
     p->amptp = ftp;
   }
   else {
@@ -583,7 +583,7 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
 {
   if (*p->ktrig_start) {
     if (*p->kfn != p->old_fn) {
-      FUNC *ftp = csound->FTnp2Find(csound, p->kfn);
+      FUNC *ftp = csound->FTFind(csound, p->kfn);
       if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),
                                  Str("Invalid ftable no. %f"), *p->kfn);
@@ -639,7 +639,7 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
 {
   if (*p->ktrig) {
     if (*p->kfn != p->old_fn) {
-      FUNC *ftp = csound->FTnp2Find(csound, p->kfn);
+      FUNC *ftp = csound->FTFind(csound, p->kfn);
       if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),
                                  Str("Invalid ftable no. %f"), *p->kfn);

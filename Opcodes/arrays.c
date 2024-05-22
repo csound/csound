@@ -2952,7 +2952,7 @@ static int32_t tab2ftab(CSOUND *csound, TABCOPY *p)
   if (UNLIKELY(p->tab->data==NULL))
     return csound->PerfError(csound,
                              &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->PerfError(csound,
                              &(p->h), "%s", Str("No table for copy2ftab"));
   for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
@@ -2973,7 +2973,7 @@ static int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
 
   if (UNLIKELY(p->tab->data==NULL))
     return csound->InitError(csound,  "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
   for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
   fsize = ftp->flen;
@@ -2994,7 +2994,7 @@ static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
   int32_t i, tlen = 0, maxitems;
   if (UNLIKELY(t->data==NULL))
     return csound->PerfError(csound, &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->PerfError(csound, &(p->h), "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(offset >= fsize || offset < 0))
@@ -3020,7 +3020,7 @@ static int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
   int32_t i, tlen = 0, maxitems;
   if (UNLIKELY(t->data==NULL))
     return csound->InitError(csound, "%s",  Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->InitError(csound, "%s",  Str("No table for copy2ftab"));
   fsize = ftp->flen;
   fdata = ftp->ftable;
@@ -3083,7 +3083,7 @@ static int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
   MYFLT       *fdata;
   int32_t tlen;
 
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(p->tab->data==NULL)) {
@@ -3104,7 +3104,7 @@ static int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
   MYFLT       *fdata;
   int32_t      tlen;
 
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->PerfError(csound,
                              &(p->h), "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;

@@ -740,7 +740,7 @@ set_expert_values(CSOUND *csound, BABO *p)
     int32_t      n      = 0;
 
     if (p->expert_values > 0)
-        ftp = csound->FTnp2Finde(csound, &(p->expert_values));
+        ftp = csound->FTFind(csound, &(p->expert_values));
 
     p->decay        = load_value_or_default(ftp, n++, BABO_DEFAULT_DECAY);
     p->hidecay      = load_value_or_default(ftp, n++, BABO_DEFAULT_HIDECAY);

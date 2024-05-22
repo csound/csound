@@ -105,7 +105,7 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
   }
 
   if (*p->igatefun > 0)
-    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL))
+    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
       return NOTOK;
   p->AmpGateFunc = AmpGateFunc;
 

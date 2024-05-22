@@ -140,7 +140,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     int32_t  end = MYFLT2LRND(*p->end);
     OPARMS parms;
     csound->GetOParms(csound, &parms);
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
       return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
     }
     *p->kans = FL(0.0);
@@ -217,7 +217,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   OPARMS parms;
   csound->GetOParms(csound, &parms);
 
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
     return csound->InitError(csound, "%s", Str("tabaudio: No table"));
   }
   *p->kans = FL(0.0);

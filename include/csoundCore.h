@@ -1359,11 +1359,7 @@ extern "C" {
     int (*FTCreate)(CSOUND *, FUNC **, const EVTBLK *, int);
     int (*FTAlloc)(CSOUND *, int tableNum, int len);
     int (*FTDelete)(CSOUND *, int tableNum);
-    /** Find any table, except deferred load tables. */
-    FUNC *(*FTFindP)(CSOUND *, MYFLT *argp);
-    /** Find any table. */
-    FUNC *(*FTnp2Find)(CSOUND *, MYFLT *argp);
-    FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
+    FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
     void *(*GetNamedGens)(CSOUND *);
     /**@}*/
     

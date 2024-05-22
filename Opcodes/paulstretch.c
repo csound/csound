@@ -124,7 +124,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 
 static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
-    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
+    FUNC *ftp = csound->FTFind(csound, p->ifn);
     uint32_t i = 0;
     uint32_t size;
 

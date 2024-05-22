@@ -132,14 +132,14 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
   uint32_t     steps, newLen, *pnewLen;
   int32_t     nargs = ff->e.pcnt - 4;
   int32_t     *pOrder, *xfree;
-  FUNC    *srcfil = csound->FTnp2Find(csound, &(ff->e.p[5]));
+  FUNC    *srcfil = csound->FTFind(csound, &(ff->e.p[5]));
   MYFLT   *mirr;
   WAVELET wave, *pwaveS;
     
 
   if (ftp->flen <= 0)
     return csound->FtError(ff, "%s", Str("Illegal zero table size %d"));
-  srcfil = csound->FTnp2Find(csound, &ff->e.p[5]);
+  srcfil = csound->FTFind(csound, &ff->e.p[5]);
   if (srcfil==NULL)
     return csound->InitError(csound, "%s", Str("ftable number does not exist\n"));
   if (UNLIKELY(nargs < 3))
