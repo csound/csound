@@ -74,18 +74,6 @@ typedef struct dats1 {
 } DATASPACEM;
 
 
-
-static inline int32 intpowint(int32 x, uint32 n) /* Binary +ve power function */
-{
-    int32 ans = 1;
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
-    }
-    return ans;
-}
-
 static int32_t sinit(CSOUND *csound, DATASPACE *p)
 {
     int32_t N =  *p->iN, ui;
@@ -97,7 +85,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = intpowint(2, i-1);  /* faster than pow fn */
+      N = (int32_t)intpow1(2, i-1);  /* faster than pow fn */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -166,7 +154,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = intpowint(2, i-1);  /* faster than pow fn */
+      N = (int32_t)intpow1(2, i-1);  /* faster than pow fn */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -1511,12 +1499,12 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p) {
     for (i=0; N; i++) {
       N >>= 1;
     }
-    N = intpowint(2, i-1);
+    N = (int32_t)intpow1(2, i-1);
 
     for (i=0; h; i++) {
       h >>= 1;
     }
-    h = intpowint(2, i-1);
+    h = (int32_t)intpow1(2, i-1);
     decim = N/h;
 
     size = (N*decim)*sizeof(MYFLT);

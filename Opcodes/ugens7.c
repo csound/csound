@@ -27,18 +27,6 @@
 #include "ugens7.h"
 #include <math.h>
 
-static inline double intpow_(MYFLT x, uint32_t n)
-{
-    double ans = 1.0;
-
-    while (n != 0) {
-        if (n & 1)
-            ans *= x;
-        n >>= 1;
-        x *= x;
-    }
-    return ans;
-}
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
 static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
@@ -323,7 +311,7 @@ static int32_t newpulse(CSOUND *csound,
     
   if (newexp || rismps != p->prvsmps) {            /* if new params */
     if ((p->prvsmps = rismps))                     /*   redo preamp */
-      p->preamp = intpow_(p->expamp, -rismps);
+      p->preamp = intpow(p->expamp, -rismps);
     else p->preamp = FL(1.0);
   }
   ovp->curamp = octamp * p->preamp;                /* set startamp  */

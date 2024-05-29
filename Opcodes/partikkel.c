@@ -186,19 +186,6 @@ static inline MYFLT lrplookup_f(FUNC *tab, double phase)
     return lrp(a, b, (pos - index));
 }
 
-/* Why not use csound->intpow ? */
-static inline double intpow_(MYFLT x, uint32_t n)
-{
-    double ans = 1.0;
-
-    while (n != 0) {
-        if (n & 1)
-            ans *= x;
-        n >>= 1;
-        x *= x;
-    }
-    return ans;
-}
 
 /* dsf synthesis for trainlets */
 static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
@@ -495,7 +482,7 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             if (grain->harmonics < 2)
                 grain->harmonics = 2;
             grain->falloff = *p->falloff;
-            grain->falloff_pow_N = intpow_(grain->falloff, grain->harmonics);
+            grain->falloff_pow_N = intpow(grain->falloff, grain->harmonics);
             /* normalize trainlets to uniform peak, using geometric sum */
             if (FABS(grain->falloff) > FL(0.9999) &&
                 FABS(grain->falloff) < FL(1.0001))

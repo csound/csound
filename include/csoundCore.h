@@ -625,14 +625,14 @@ extern "C" {
 #define CS_ONEDKSMPS (p->h.insdshead->onedksmps)
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
-#define CS_DBFS_FLOAT (1.0/csound->Get0dBFS(csound))
+#define CS_ONEDDBFS  (FL(1.0/csound->Get0dBFS(csound)))
 #define CS_ESR       (p->h.insdshead->esr)
 #define CS_ONEDSR    (p->h.insdshead->onedsr)
 #define CS_SICVT     (p->h.insdshead->sicvt)
-#define CS_TPIDSR    (2*p->h.insdshead->pidsr)
+#define CS_TPIDSR    (2.*p->h.insdshead->pidsr)
 #define CS_PIDSR     (p->h.insdshead->pidsr)
 #define CS_MPIDSR    (-p->h.insdshead->pidsr)
-#define CS_MTPIDSR   (-2*p->h.insdshead->pidsr)
+#define CS_MTPIDSR   (-2.*p->h.insdshead->pidsr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
@@ -661,6 +661,30 @@ extern "C" {
     /** Owner instrument instance data structure */
     INSDS   *insdshead;
   } OPDS;
+
+/* Binary positive power function */
+static inline double intpow1(double x, int32_t n) 
+{
+    double ans = 1.;
+    while (n!=0) {
+      if (n&1) ans = ans * x;
+      n >>= 1;
+      x = x*x;
+    }
+    return ans;
+}
+
+/* Binary power function */
+static inline double intpow(MYFLT x, int32_t n)   
+{
+    if (n<0) {
+      n = -n;
+      x = 1./x;
+    }
+    return intpow1(x, n);
+}
+
+
 
 
   static inline int32_t byte_order(void){

@@ -461,6 +461,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   CSOUND *csound = ff->csound;
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
+  void *setup;
   int N = ff->flen;
   if (N <= 0) return csound->FtError(ff, Str("Illegal table size %d"), N);
 
@@ -550,7 +551,8 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
     spectrum[complexI].imag(real * std::sin(random_phase));
   };
   spectrum[0].imag(0);
-  csound->RealFFT(csound, csound->RealFFTSetup(csound,N,FFT_INV),ftp->ftable);
+  setup = csound->RealFFTSetup(csound,N,FFT_INV);
+  csound->RealFFT(csound,setup,ftp->ftable);
   // Normalize,
   MYFLT maximum = FL(0.0);
   for (int i = 0; i < N; ++i) {

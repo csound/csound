@@ -1962,6 +1962,7 @@ static void vco2_calculate_table(CSOUND *csound,
   MYFLT   scaleFac;
   MYFLT   *fftbuf;
   int32_t     i, minh;
+    void *setup;
 
   if (UNLIKELY(table->ftable == NULL)) {
     csound->InitError(csound,
@@ -2017,7 +2018,8 @@ static void vco2_calculate_table(CSOUND *csound,
   /* inverse FFT */
   fftbuf[1] = fftbuf[table->size];
   fftbuf[table->size] = fftbuf[(int32_t) table->size + 1] = FL(0.0);
-  csound->RealFFT(csound,csound->RealFFTSetup(csound,table->size,FFT_INV),fftbuf);
+  setup = csound->RealFFTSetup(csound,table->size,FFT_INV);
+  csound->RealFFT(csound,setup,fftbuf);
   /* copy to table */
   for (i = 0; i < table->size; i++)
     table->ftable[i] = fftbuf[i];
@@ -2094,6 +2096,7 @@ static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
   double            npart_f;
   VCO2_TABLE_ARRAY  *tables;
   VCO2_TABLE_PARAMS tp2;
+ 
 
   /* set default table parameters if not specified in tp */
   if (tp == NULL) {
@@ -2111,7 +2114,7 @@ static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
     for (i = pp->vco2_nr_table_arrays; i < ntables; i++)
       pp->vco2_tables[i] = NULL;
     pp->vco2_nr_table_arrays = ntables;
-  }
+   }
   /* clear table array if already initialised */
   if (pp->vco2_tables[waveform] != NULL) {
     vco2_delete_table_array(csound, waveform);
@@ -2200,6 +2203,7 @@ static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
   VCO2_TABLE_PARAMS   tp;
   FUNC    *ftp;
   uint32_t j;
+  void *setup;
   /* check waveform number */
   waveforms = (int32_t) MYFLT2LRND(*(p->iwaveforms));
   if (UNLIKELY(waveforms < -1000000 || waveforms > 31)) {
@@ -2274,7 +2278,8 @@ static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
       tp.w_fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (i + 2));
       for (j = 0; j < ftp->flen; j++)
         tp.w_fftbuf[j] = ftp->ftable[j] / (MYFLT) (ftp->flen >> 1);
-      csound->RealFFT(csound, csound->RealFFTSetup(csound, ftp->flen, FFT_FWD), tp.w_fftbuf);
+      setup = csound->RealFFTSetup(csound, ftp->flen, FFT_FWD);
+      csound->RealFFT(csound, setup, tp.w_fftbuf);
       tp.w_fftbuf[ftp->flen] = tp.w_fftbuf[1];
       tp.w_fftbuf[1] = tp.w_fftbuf[(int32_t) ftp->flen + 1] = FL(0.0);
       /* generate table array */

@@ -473,7 +473,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
                                "%s", Str("PCONVOLVE: less sound than expected!"));
 
     /* take FFT of each channel */
-    scaleFac = CS_DBFS_FLOAT
+    scaleFac = CS_ONEDDBFS
       * csound->GetInverseRealFFTScale(csound, (int32_t) p->Hlenpadded);
     for (i = 0; i < p->nchanls; i++) {
       fp1 = inbuf + i;
