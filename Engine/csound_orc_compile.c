@@ -1457,6 +1457,20 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
   }
 }
 
+static int inargs_check(OPCODINFO *opinfo, char *inargs) {
+  char *c = opinfo->intypes;
+  int i;
+  if(strcmp(c, inargs) != 0) {
+  for(i = 0; c[i] != 0; i++) {
+    if(c[i] != inargs[i]) {
+       if(c[i] == 'k' && inargs[i] == 'K') continue;
+       else return 1;                                              
+     }
+  }
+  }
+  return 0;
+}
+
 OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
                             char *inargs) {
   OPCODINFO *opinfo = csound->opcodeInfo;
@@ -1467,7 +1481,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
 
   while (opinfo != NULL) {
     if (UNLIKELY(strcmp(opinfo->name, opname) == 0 &&
-                 strcmp(opinfo->intypes, inargs) == 0 &&
+                 inargs_check(opinfo, inargs) == 0 &&  // VL: treat the 'K' case
                  strcmp(opinfo->outtypes, outargs) == 0)) {
       return opinfo;
     }
