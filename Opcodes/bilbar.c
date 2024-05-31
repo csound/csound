@@ -282,13 +282,13 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       c = (double *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
-          (ftp=csound->FTnp2Finde(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
+          (ftp=csound->FTFind(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
       else {
         p->rattle_num = (uint32_t)(*ftp->ftable);
         p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
       }
       if (*p->rubber_tab==FL(0.0) ||
-          (ftp=csound->FTnp2Finde(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
+          (ftp=csound->FTFind(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
       else {
         p->rubber_num = (uint32_t)(*ftp->ftable);
         p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);

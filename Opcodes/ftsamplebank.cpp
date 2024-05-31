@@ -252,7 +252,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   }
 
   else if (inArgCount == 2) {
-    CS_TYPE *argType = csound->GetTypeForArg(p->extension);
+    CS_TYPE *argType = GetTypeForArg(p->extension);
     if (strcmp("S", argType->varTypeName) == 0) {
       extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
       fileNames = searchDir(csound, p->directoryName->data, extension);

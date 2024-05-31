@@ -173,7 +173,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
       name[1023] = '\0';
     }
-    else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
+    else csound->StringArg2Name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (p->Sline->size < MAXLINE) {

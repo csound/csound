@@ -40,11 +40,11 @@
 static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int32_t size;
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
+    p->sfunc = csound->FTFind(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -191,11 +191,11 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
 
 static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 {
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
+    p->sfunc = csound->FTFind(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -410,7 +410,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
       return csound->InitError(csound,
                                "%s", Str("diskgrain: invalid number of channels"));
     }
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
@@ -437,7 +437,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     buffer = (MYFLT *) p->buffer.auxp;
     memset(&sfinfo, '\0', sizeof(sfinfo)); /* for Valgrind */
     /* open file and read the first block using *p->ioff */
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     memset(buffer, 0,p->buffer.size);
     if (UNLIKELY(fd == NULL)) {

@@ -331,13 +331,13 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->iFileCode))
+      if (IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
@@ -1006,7 +1006,7 @@ int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p) {
 
 int32_t soundout_deinit(CSOUND *csound, void *pp)
 {
-    char    *opname = csound->GetOpcodeName(pp);
+    char    *opname = GetOpcodeName(pp);
     SNDCOM  *q;
 
     if (strcmp(opname, "soundouts") == 0)
@@ -1046,7 +1046,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     SFLIB_INFO sfinfo;
     //SNDOUTS *p = (SNDOUTS*) pp;
 
-    opname = csound->GetOpcodeName(pp);
+    opname = GetOpcodeName(pp);
     csound->Warning(csound, Str("%s is deprecated; use fout instead\n"),
                     opname);
     if (strcmp(opname, "soundouts") == 0 || strcmp(opname, "soundouts.i") == 0) {
@@ -1065,9 +1065,9 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
       return OK;                        /* return now            */
 
     if (stringname==0){
-      if (csound->ISSTRCOD(*ifilcod))
+      if (IsStringCode(*ifilcod))
         strNcpy(name,get_arg_string(csound, *ifilcod), 1023);
-      else csound->strarg2name(csound, name, ifilcod, "soundout.",0);
+      else csound->StringArg2Name(csound, name, ifilcod, "soundout.",0);
     }
     else strNcpy(name, ((STRINGDAT *)ifilcod)->data, 1023);
 
@@ -1595,13 +1595,13 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->iFileCode))
+      if (IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
@@ -2164,14 +2164,14 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     /* open file */
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->iFileCode))
+      if (IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
     if (csound->oparms->realtime==0)
-      fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+      fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     else
       fd = csound->FileOpenAsync(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,

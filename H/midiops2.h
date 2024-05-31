@@ -27,6 +27,11 @@
 #ifndef MIDIOPS2_H
 #define MIDIOPS2_H
 
+typedef struct MIDIPGM_OP_ {
+    OPDS    h;
+    MYFLT   *ipgm, *ichn;
+} MIDIPGM_OP;
+
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno, *imin, *imax, *ifn;

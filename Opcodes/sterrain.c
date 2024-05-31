@@ -144,14 +144,14 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 
     if (*(p->ktabx) != p->oldfnx || p->xarr == NULL) {
       p->oldfnx = *(p->ktabx);
-      FUNC *ftp = csound->FTFindP(csound, p->ktabx);    /* new table parameters */
+      FUNC *ftp = csound->FTFind(csound, p->ktabx);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->xarr = ftp->ftable) == NULL)))
         return csound->PerfError(csound, &(p->h), Str("no table %g\n"), *p->ktabx);
       p->sizx = (MYFLT)ftp->flen;
     }
     if (*(p->ktaby) != p->oldfny || p->yarr == NULL) {
       p->oldfny = *(p->ktaby);
-      FUNC *ftp = csound->FTFindP(csound, p->ktaby);    /* new table parameters */
+      FUNC *ftp = csound->FTFind(csound, p->ktaby);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->yarr = ftp->ftable) == NULL)))
         return csound->PerfError(csound, &(p->h), Str("no table %g\n"), *p->ktaby);
       p->sizy = (MYFLT)ftp->flen;

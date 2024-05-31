@@ -35,6 +35,8 @@
 #include "brass.h"
 #include <math.h>
 #include "interlocks.h"
+
+
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */
@@ -121,7 +123,7 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 {
   FUNC        *ftp;
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for Clarinet"));
   }
@@ -289,7 +291,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
   FUNC        *ftp;
   int32        length;
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                   /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for Flute"));
   }
@@ -491,7 +493,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
   input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
   input *= b->slope;                         /*  scale it                */
   lastOutput = FABS(input) + FL(0.75); /*  below min delta, frict = 1 */
-  lastOutput = csound->intpow(lastOutput,-4L);
+  lastOutput = intpow(lastOutput,-4L);
   /* if (lastOutput < FL(0.0) ) lastOutput = FL(0.0); */ /* minimum frict is 0.0 */
   if (lastOutput > FL(1.0)) lastOutput = FL(1.0); /*  maximum friction is 1.0 */
   return lastOutput;
@@ -503,7 +505,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
   FUNC        *ftp;
   MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for wgbow vibrato"));
   }
@@ -796,7 +798,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
   FUNC        *ftp;
   MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
-  if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) p->vibr = ftp;
+  if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
     return csound->InitError(csound, "%s", Str("No table for Brass"));
   }

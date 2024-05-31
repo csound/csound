@@ -71,6 +71,7 @@ typedef struct {
     MYFLT   *dsputil_env;
     AUXCH   memenv;
     PVOC_GLOBALS  *pp;
+  void *setup;
 } PVOC;
 
 #endif

@@ -96,7 +96,7 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
       return csound->InitError(csound,
                                "%s", Str("psynth: first input not in TRACKS format\n"));
     }
-    p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
+    p->func = csound->FTFind(p->h.insdshead->csound, p->ftb);
     if (UNLIKELY(p->func == NULL)) {
       return csound->InitError(csound, "%s", Str("psynth: function table not found\n"));
     }
@@ -263,7 +263,7 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
       return csound->InitError(csound,
                                "%s", Str("psynth: first input not in TRACKS format\n"));
     }
-    p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
+    p->func = csound->FTFind(p->h.insdshead->csound, p->ftb);
     if (UNLIKELY(p->func == NULL)) {
       return csound->InitError(csound, "%s", Str("psynth: function table not found\n"));
     }
@@ -983,7 +983,7 @@ static int32_t trfil_init(CSOUND *csound, _PSFIL *p)
       return csound->InitError(csound,
                                "%s", Str("trfil: input not in TRACKS format\n"));
     }
-    p->tab = csound->FTnp2Find(csound, p->ifn);
+    p->tab = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->tab == NULL)) {
       return csound->InitError(csound,
                                "%s", Str("trfil: could not find function table\n"));

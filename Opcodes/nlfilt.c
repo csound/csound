@@ -32,7 +32,6 @@
 
 #include "stdopcod.h"
 #include "nlfilt.h"
-
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
@@ -193,7 +192,6 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
-  
 
 
 #define S(x)    sizeof(x)

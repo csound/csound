@@ -117,7 +117,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 2)) {
-      return csound->ftError(ff, Str("insufficient arguments for fareytable"));
+      return csound->FtError(ff, "%s", Str("insufficient arguments for fareytable"));
     }
     ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
@@ -126,7 +126,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     mode = (int32_t) *pp2;
     farey_length = FareyLength(fareyseq);
     flist = (RATIO*) csound->Calloc(csound, farey_length*sizeof(RATIO));
-    if (ff->flen <= 0) return csound->ftError(ff, Str("Illegal table size"));
+    if (ff->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal table size"));
 
     GenerateFarey (fareyseq, flist, farey_length);
 

@@ -609,7 +609,7 @@ int32_t notinit_opcode_stub(CSOUND *csound, void *p)
 {
     return csound->PerfError(csound, &(((CHNGET *)p)->h),
                              Str("%s: not initialised"),
-                             csound->GetOpcodeName(p));
+                             GetOpcodeName(p));
 }
 
 /* print error message on failed channel query */
@@ -1654,9 +1654,9 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     CHNENTRY *chn;
 
     /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
-    if (UNLIKELY(csound->GetOutputArgCnt(p) != 1))
+    if (UNLIKELY(GetOutputArgCnt((OPDS *) p) != 1))
         goto arg_err;
-    argName = csound->GetOutputArgName(p, 0);
+    argName = GetOutputArgName((OPDS *) p, 0);
     if (UNLIKELY(argName == NULL))
         goto arg_err;
     if (UNLIKELY(argName[0] != 'g'))

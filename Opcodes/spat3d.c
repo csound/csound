@@ -318,10 +318,10 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
-      int32_t fLen;
-      fLen = csound->GetTable(csound, &(p->ftable), (int32_t) *(p->args[xift]));
-      if (fLen < 53)
+      FUNC *ftp = csound->FTFind(csound, p->args[xift]);
+      if (ftp->flen < 53)
         p->ftable = NULL;
+      else p->ftable = ftp->ftable;
     }
     if (ximdel >= 0)                                /* max. delay */
       p->mdel = *(p->args[ximdel]);
@@ -330,13 +330,14 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (xirlen >= 0)                                /* IR length */
       p->irlen = (int32_t) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
     if (xioutft >= 0) {                             /* output table */
-      int32_t fLen;
-      fLen = csound->GetTable(csound, &(p->outft), (int32_t) *(p->args[xioutft]));
-      if (fLen < 1) {
+      FUNC *ftp = csound->FTFind(csound, p->args[xioutft]);
+      if (ftp->flen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }
-      else
-        p->outftlnth = fLen;
+      else {
+        p->outftlnth = ftp->flen;
+        p->outft = ftp->ftable;
+      }
     }
 
     /* get parameters from ftable */

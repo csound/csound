@@ -24,6 +24,11 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *r, *a;
+} AEVAL;
+
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {
     size_t ss;

@@ -111,99 +111,98 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
     csound->Warning(csound,
                     Str("spectrum: %s window, %s out, making tables ...\n"),
                     (hanning) ? "hanning":"hamming", outstring[p->dbout]);
-
-    if (csound->GetTypeForArg(p->signal) == csound->KsigType(csound)) {
-      dwnp->srate = CS_EKR;            /* define the srate */
-      p->nsmps = 1;
-    }
-    else {
-      dwnp->srate = CS_ESR;
-      p->nsmps = CS_KSMPS;
-    }
-    hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
-    oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
-    if (csound->GetTypeForArg(p->signal) != csound->KsigType(csound)) {     /* for sr sampling:           */
-      oct = ((int32_t)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
-      hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
-    }
-    dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
-    locps = hicps / (1L << nocts);
-    csound->Warning(csound, Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
-                    hicps, locps);
-
-    basfrq = hicps/2.0;                     /* oct below retuned top */
-    frqmlt = pow(2.0,(double)1.0/nfreqs);   /* nfreq interval mult */
-    Qfactor = Q * dwnp->srate;
-    curfrq = basfrq;
-    for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
-      *wsizp++ = k = (int32_t)(Qfactor/curfrq) | 01;  /* calc odd wind sizes */
-      *woffp++ = (*(p->winlen) - k) / 2;          /* & symmetric offsets */
-      sumk += k;                                  /*    and find total   */
-      curfrq *= frqmlt;
-    }
-    windsiz = *(p->winlen);
-    csound->Warning(csound,
-                    Str("\tQ %4.1f uses a %d sample window each octdown\n"),
-                    Q, windsiz);
-    auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
-
-    csound->AuxAlloc(csound, (size_t)auxsiz, &p->auxch1); /* & alloc auxspace */
-
-    fltp = (MYFLT *) p->auxch1.auxp;
-    p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
-    p->sinp = sinp = fltp;  fltp += sumk;
-    p->cosp = cosp = fltp;                         /* cos gets rem sumk  */
-    wsizp = p->winlen;
-    curfrq = basfrq * TWOPI / dwnp->srate;
-    for (n = nfreqs; n--; ) {                      /* now fill tables */
-      windsiz = *wsizp++;                          /*  (odd win size) */
-      halfsiz = windsiz >> 1;
-      onedws = 1.0 / (windsiz-1);
-      pidws = PI / (windsiz-1);
-      for (k = -halfsiz; k<=halfsiz; k++) {        /*   with sines    */
-        a = cos(k * pidws);
-        windamp = a * a;                           /*   times hanning */
-        if (!hanning)
-          windamp = 0.08 + 0.92 * windamp;         /*   or hamming    */
-        windamp *= onedws;                         /*   scaled        */
-        theta = k * curfrq;
-        *sinp++ = (MYFLT)(windamp * sin(theta));
-        *cosp++ = (MYFLT)(windamp * cos(theta));
+      if (GetTypeForArg(p->signal) == csound->KsigType(csound)) {
+        dwnp->srate = CS_EKR;            /* define the srate */
+        p->nsmps = 1;
       }
-      curfrq *= frqmlt;                        /*   step by log freq  */
-    }
-    if (*p->idsines != FL(0.0)) {      /* if reqd, dsply windowed sines now! */
-      csound->dispset(csound, &p->sinwindow, p->sinp, (int32_t) sumk,
-                      Str("spectrum windowed sines:"), 0, "spectrum");
-      csound->display(csound, &p->sinwindow);
-    }
+      else {
+        dwnp->srate = CS_ESR;
+        p->nsmps = CS_KSMPS;
+      }
+      hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
+      oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
+      if (GetTypeForArg(p->signal) != csound->KsigType(csound)) {     /* for sr sampling:           */
+        oct = ((int32_t)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
+        hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
+      }
+      dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
+      locps = hicps / (1L << nocts);
+      csound->Warning(csound,  Str("\thigh cps %7.1f\n\t low cps %7.1f\n"),
+                              hicps, locps);
 
-    dwnp->hifrq = (MYFLT)hicps;
-    dwnp->lofrq = (MYFLT)locps;
-    dwnp->nsamps = windsiz = *(p->winlen);
-    dwnp->nocts = nocts;
-    minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
-    majr = windsiz - minr;                /*      & calc totsamps reqd     */
-    totsamps = (majr*nocts) + (minr<<nocts) - minr;
-    DOWNset(csound, dwnp, totsamps);      /* auxalloc in DOWNDAT struct */
-    fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
-    for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
-      bufsiz = majr + minr;
-      octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
-      octp->endp = fltp;  minr *= 2;
-    }
-    csound->Warning(csound, Str("\t%d oct analysis window "
-                                "delay = %"PRIi32" samples (%d msecs)\n"),
-                    nocts, bufsiz, (int32_t)(bufsiz*1000/dwnp->srate));
-    if (p->disprd) {                      /* if display requested, */
-      totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
-      csound->AuxAlloc(csound,
-                       (size_t)totsize, &p->auxch2);/*  linear output window */
-      csound->dispset(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
-                      (int32_t)totsamps, Str("octdown buffers:"), 0, "spectrum");
-    }
-    SPECset(csound, specp, (int32_t)ncoefs);  /* prep the spec dspace */
-    specp->downsrcp = dwnp;                /*  & record its source */
+      basfrq = hicps/2.0;                     /* oct below retuned top */
+      frqmlt = pow(2.0,(double)1.0/nfreqs);   /* nfreq interval mult */
+      Qfactor = Q * dwnp->srate;
+      curfrq = basfrq;
+      for (sumk=0,wsizp=p->winlen,woffp=p->offset,n=nfreqs; n--; ) {
+        *wsizp++ = k = (int32_t)(Qfactor/curfrq) | 01;  /* calc odd wind sizes */
+        *woffp++ = (*(p->winlen) - k) / 2;          /* & symmetric offsets */
+        sumk += k;                                  /*    and find total   */
+        curfrq *= frqmlt;
+      }
+      windsiz = *(p->winlen);
+      csound->Warning(csound,
+                       Str("\tQ %4.1f uses a %d sample window each octdown\n"),
+                      Q, windsiz);
+      auxsiz = (windsiz + 2*sumk) * sizeof(MYFLT);   /* calc lcl space rqd */
+
+      csound->AuxAlloc(csound, (size_t)auxsiz, &p->auxch1); /* & alloc auxspace */
+
+      fltp = (MYFLT *) p->auxch1.auxp;
+      p->linbufp = fltp;      fltp += windsiz; /* linbuf must take nsamps */
+      p->sinp = sinp = fltp;  fltp += sumk;
+      p->cosp = cosp = fltp;                         /* cos gets rem sumk  */
+      wsizp = p->winlen;
+      curfrq = basfrq * TWOPI / dwnp->srate;
+      for (n = nfreqs; n--; ) {                      /* now fill tables */
+        windsiz = *wsizp++;                          /*  (odd win size) */
+        halfsiz = windsiz >> 1;
+        onedws = 1.0 / (windsiz-1);
+        pidws = PI / (windsiz-1);
+        for (k = -halfsiz; k<=halfsiz; k++) {        /*   with sines    */
+          a = cos(k * pidws);
+          windamp = a * a;                           /*   times hanning */
+          if (!hanning)
+            windamp = 0.08 + 0.92 * windamp;         /*   or hamming    */
+          windamp *= onedws;                         /*   scaled        */
+          theta = k * curfrq;
+          *sinp++ = (MYFLT)(windamp * sin(theta));
+          *cosp++ = (MYFLT)(windamp * cos(theta));
+        }
+        curfrq *= frqmlt;                        /*   step by log freq  */
+      }
+      if (*p->idsines != FL(0.0)) {      /* if reqd, dsply windowed sines now! */
+        csound->SetDisplay(csound, &p->sinwindow, p->sinp, (int32_t) sumk,
+                                Str("spectrum windowed sines:"), 0, "spectrum");
+        csound->Display(csound, &p->sinwindow);
+      }
+
+      dwnp->hifrq = (MYFLT)hicps;
+      dwnp->lofrq = (MYFLT)locps;
+      dwnp->nsamps = windsiz = *(p->winlen);
+      dwnp->nocts = nocts;
+      minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
+      majr = windsiz - minr;                /*      & calc totsamps reqd     */
+      totsamps = (majr*nocts) + (minr<<nocts) - minr;
+      DOWNset(csound, dwnp, totsamps);      /* auxalloc in DOWNDAT struct */
+      fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
+      for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
+        bufsiz = majr + minr;
+        octp->begp = fltp;  fltp += bufsiz; /*        (lo oct first) */
+        octp->endp = fltp;  minr *= 2;
+      }
+      csound->Warning(csound, Str("\t%d oct analysis window "
+                                  "delay = %"PRIi32" samples (%d msecs)\n"),
+                              nocts, bufsiz, (int32_t)(bufsiz*1000/dwnp->srate));
+      if (p->disprd) {                      /* if display requested, */
+        totsize = totsamps * sizeof(MYFLT); /*  alloc an equiv local */
+        csound->AuxAlloc(csound,
+                         (size_t)totsize, &p->auxch2);/*  linear output window */
+        csound->SetDisplay(csound, &p->octwindow, (MYFLT *)p->auxch2.auxp,
+                        (int32_t)totsamps, Str("octdown buffers:"), 0, "spectrum");
+      }
+      SPECset(csound, specp, (int32_t)ncoefs);  /* prep the spec dspace */
+      specp->downsrcp = dwnp;                /*  & record its source */
   }
   for (octp=dwnp->octdata; nocts--; octp++) { /* reset all oct params, &    */
     octp->curp = octp->begp;
@@ -261,46 +260,46 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
   SPECDAT *specp;
   double  c;
 
-  if (UNLIKELY(early)) nsmps -= early;
-  do {
-    SIG = *sigp++;                        /* for each source sample:     */
-    if (offset--) SIG = FL(0.0);          /* for sample accuracy         */
-    octp = downp->octdata;                /*   align onto top octave     */
-    nocts = downp->nocts;
-    do {                                  /*   then for each oct:        */
-      const MYFLT *coefp;
-      MYFLT       *ytp, *curp;
-      int32_t         nfilt;
-      curp = octp->curp;
-      *curp++ = SIG;                      /*  write samp to cur buf  */
-      if (curp >= octp->endp)
-        curp = octp->begp;                /*    & modulo the pointer */
-      octp->curp = curp;
-      if (!(--nocts))  break;             /*  if lastoct, break      */
-      coefp = bicoefs;  ytp = octp->feedback;
-      for (nfilt = 3; nfilt--; ) {        /*  apply triple biquad:   */
-        yt2 = *ytp++; yt1 = *ytp--;             /* get prev feedback */
-        SIG -= (*coefp++ * yt1);                /* apply recurs filt */
-        SIG -= (*coefp++ * yt2);
-        *ytp++ = yt1; *ytp++ = SIG;             /* stor nxt feedback */
-        SIG *= *coefp++;
-        SIG += (*coefp++ * yt1);                /* apply forwrd filt */
-        SIG += (*coefp++ * yt2);
+    if (UNLIKELY(early)) nsmps -= early;
+    do {
+      SIG = *sigp++;                        /* for each source sample:     */
+      if (offset--) SIG = FL(0.0);          /* for sample accuracy         */
+      octp = downp->octdata;                /*   align onto top octave     */
+      nocts = downp->nocts;
+      do {                                  /*   then for each oct:        */
+        const MYFLT *coefp;
+        MYFLT       *ytp, *curp;
+        int32_t         nfilt;
+        curp = octp->curp;
+        *curp++ = SIG;                      /*  write samp to cur buf  */
+        if (curp >= octp->endp)
+          curp = octp->begp;                /*    & modulo the pointer */
+        octp->curp = curp;
+        if (!(--nocts))  break;             /*  if lastoct, break      */
+        coefp = bicoefs;  ytp = octp->feedback;
+        for (nfilt = 3; nfilt--; ) {        /*  apply triple biquad:   */
+          yt2 = *ytp++; yt1 = *ytp--;             /* get prev feedback */
+          SIG -= (*coefp++ * yt1);                /* apply recurs filt */
+          SIG -= (*coefp++ * yt2);
+          *ytp++ = yt1; *ytp++ = SIG;             /* stor nxt feedback */
+          SIG *= *coefp++;
+          SIG += (*coefp++ * yt1);                /* apply forwrd filt */
+          SIG += (*coefp++ * yt2);
+        }
+      } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
+    } while (--nsmps);
+
+    if (p->disprd)                               /* if displays requested,   */
+      if (!(--p->dcountdown)) {                  /*   on countdown           */
+        linocts(downp, (MYFLT *)p->auxch2.auxp); /*   linearize the oct bufs */
+        csound->Display(csound, &p->octwindow);  /*      & display           */
+        p->dcountdown = p->disprd;
       }
-    } while (!(++octp->scount & 01) && octp++); /* send alt samps to nxtoct */
-  } while (--nsmps);
 
-  if (p->disprd)                               /* if displays requested,   */
-    if (!(--p->dcountdown)) {                  /*   on countdown           */
-      linocts(downp, (MYFLT *)p->auxch2.auxp); /*   linearize the oct bufs */
-      csound->display(csound, &p->octwindow);  /*      & display           */
-      p->dcountdown = p->disprd;
-    }
-
-  if ((--p->scountdown)) return OK;/* if not yet time for new spec, return */
-  p->scountdown = p->timcount;     /* else reset counter & proceed:        */
-  downp = &p->downsig;
-  specp = p->wsig;
+    if ((--p->scountdown)) return OK;/* if not yet time for new spec, return */
+    p->scountdown = p->timcount;     /* else reset counter & proceed:        */
+    downp = &p->downsig;
+    specp = p->wsig;
   nocts = downp->nocts;
   octp = downp->octdata + nocts;
   dftp = (MYFLT *) specp->auxch.auxp;
@@ -535,40 +534,40 @@ int32_t spdspset(CSOUND *csound, SPECDISP *p)
   if (UNLIKELY((p->timcount = (int32_t)(CS_EKR * *p->iprd)) <= 0)) {
     return csound->InitError(csound, "%s", Str("illegal iperiod"));
   }
-  if (!(p->dwindow.windid)) {
-    SPECDAT *specp = p->wsig;
-    DOWNDAT *downp = specp->downsrcp;
-    if (downp->lofrq > FL(5.0)) {
-      snprintf(strmsg, 256,
-               Str("instr %d %s, dft (%s), %d octaves (%d - %d Hz):"),
-               (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
-               outstring[specp->dbout],
-               downp->nocts, (int32_t)downp->lofrq, (int32_t)downp->hifrq);
+    if (!(p->dwindow.windid)) {
+      SPECDAT *specp = p->wsig;
+      DOWNDAT *downp = specp->downsrcp;
+      if (downp->lofrq > FL(5.0)) {
+        snprintf(strmsg, 256,
+                 Str("instr %d %s, dft (%s), %d octaves (%d - %d Hz):"),
+                (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
+                outstring[specp->dbout],
+                downp->nocts, (int32_t)downp->lofrq, (int32_t)downp->hifrq);
+      }
+      else {                            /* more detail if low frequency  */
+        snprintf(strmsg, 256,
+                 Str("instr %d %s, dft (%s), %d octaves (%3.1f - %3.1f Hz):"),
+                (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
+                outstring[specp->dbout],
+                downp->nocts, downp->lofrq, downp->hifrq);
+      }
+      csound->SetDisplay(csound, &p->dwindow, (MYFLT*) specp->auxch.auxp,
+                      (int32_t)specp->npts, strmsg, (int32_t)*p->iwtflg,
+                      "specdisp");
     }
-    else {                            /* more detail if low frequency  */
-      snprintf(strmsg, 256,
-               Str("instr %d %s, dft (%s), %d octaves (%3.1f - %3.1f Hz):"),
-               (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
-               outstring[specp->dbout],
-               downp->nocts, downp->lofrq, downp->hifrq);
-    }
-    csound->dispset(csound, &p->dwindow, (MYFLT*) specp->auxch.auxp,
-                    (int32_t)specp->npts, strmsg, (int32_t)*p->iwtflg,
-                    "specdisp");
-  }
-  p->countdown = p->timcount;         /* prime the countdown */
-  return OK;
+    p->countdown = p->timcount;         /* prime the countdown */
+    return OK;
 }
 
 int32_t specdisp(CSOUND *csound, SPECDISP *p)
 {
-  /* RWD is this enough? */
-  if (UNLIKELY(p->wsig->auxch.auxp==NULL)) goto err1;
-  if (!(--p->countdown)) {            /* on countdown     */
-    csound->display(csound, &p->dwindow);     /*    display spect */
-    p->countdown = p->timcount;       /*    & reset count */
-  }
-  return OK;
+    /* RWD is this enough? */
+    if (UNLIKELY(p->wsig->auxch.auxp==NULL)) goto err1;
+    if (!(--p->countdown)) {            /* on countdown     */
+      csound->Display(csound, &p->dwindow);     /*    display spect */
+      p->countdown = p->timcount;       /*    & reset count */
+    }
+    return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
                            "%s", Str("specdisp: not initialised"));
@@ -1010,7 +1009,7 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
                              "%s", Str("specscal: local buffer not initialised"));
   }
   p->fthresh = p->fscale + npts;
-  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifscale)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifscale)) == NULL)) {
     /* if fscale given,        */
     return csound->InitError(csound, "%s", Str("missing fscale table"));
   }
@@ -1034,7 +1033,7 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
     }
   }
   if ((p->thresh = (int32_t)*p->ifthresh) &&
-      (ftp=csound->FTnp2Find(csound, p->ifthresh)) != NULL) {
+      (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
     /* if fthresh given,       */
     int32_t floatph = !IS_POW_TWO(ftp->flen);
     int32_t nn; // = npts;
@@ -1175,7 +1174,7 @@ int32_t spfilset(CSOUND *csound, SPECFILT *p)
   outspecp->nfreqs = inspecp->nfreqs;
   outspecp->dbout = inspecp->dbout;
   outspecp->downsrcp = inspecp->downsrcp;
-  if (UNLIKELY((ftp=csound->FTnp2Find(csound, p->ifhtim)) == NULL)) {
+  if (UNLIKELY((ftp=csound->FTFind(csound, p->ifhtim)) == NULL)) {
     /* if fhtim table given,    */
     return csound->InitError(csound, "%s", Str("missing htim ftable"));
   }

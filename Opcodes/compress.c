@@ -210,7 +210,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     double  b;
     FUNC    *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
     p->ftp = ftp;
     p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);

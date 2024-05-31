@@ -214,11 +214,13 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
 {
   int32_t N;
   char fname[MAXNAME];
+          OPARMS parm;
+       csound->GetOParms(csound, &parm);
 
   if (stringname==0) {
-    if (csound->ISSTRCOD(*p->file))
+    if (IsStringCode(*p->file))
       strncpy(fname,csound->GetString(csound, *p->file), MAXNAME);
-    else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
+    else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
   }
   else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
@@ -239,8 +241,7 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
                              Str("pvsfwrite: could not open file %s\n"),
                              fname);
 #ifndef __EMSCRIPTEN__
-  OPARMS parm;
-  csound->GetOParms(csound, &parm);
+
   if (parm.realtime) {
     int32_t bufframes = 16;
     p->csound = csound;
@@ -354,9 +355,9 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
   char fname[MAXNAME];
 
   if (stringname==0){
-    if (csound->ISSTRCOD(*p->file))
+    if (IsStringCode(*p->file))
       strncpy(fname,csound->GetString(csound, *p->file), MAXNAME);
-    else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
+    else csound->StringArg2Name(csound, fname, p->file, "pvoc.",0);
   }
   else strncpy(fname, ((STRINGDAT *)p->file)->data, MAXNAME);
 
@@ -503,7 +504,7 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
   N = (*p->fftsize > 0 ? *p->fftsize : 2048);
   hsize = (*p->hsize > 0 ? *p->hsize : 512);
   p->init = 0;
-  nChannels = csound->GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
     return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
   p->nchans = nChannels;
@@ -552,7 +553,7 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
   p->pos =  *p->offset*CS_ESR;
   //printf("off: %f\n", *p->offset);
   p->accum = 0.0;
-  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  p->fwdsetup = csound->RealFFTSetup(csound,N,FFT_FWD);
   return OK;
 }
 
@@ -586,7 +587,7 @@ int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
   N = (*p->fftsize > 0 ? *p->fftsize : 2048);
   hsize = (*p->hsize > 0 ? *p->hsize : 512);
   p->init = 0;
-  nChannels = csound->GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > 1))
     return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
   p->nchans = nChannels;
@@ -635,7 +636,7 @@ int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
   p->pos =  *p->offset*CS_ESR;
   //printf("off: %f\n", *p->offset);
   p->accum = 0.0;
-  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  p->fwdsetup = csound->RealFFTSetup(csound,N,FFT_FWD);
   return OK;
 }
 
@@ -658,7 +659,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
   if ((int32_t)p->scnt >= hsize) {
     double resamp;
     /* audio samples are stored in a function table */
-    ft = csound->FTnp2Find(csound,p->knum);
+    ft = csound->FTFind(csound,p->knum);
     if (ft == NULL){
       csound->PerfError(csound, &(p->h),
                         Str("could not find table number %d\n"), (int32_t) *p->knum);
@@ -742,10 +743,10 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
       /* take the FFT of both frames
          re-order Nyquist bin from pos 1 to N
       */
-      csound->RealFFT2(csound, p->fwdsetup, bwin);
-      csound->RealFFT2(csound, p->fwdsetup, fwin);
+      csound->RealFFT(csound, p->fwdsetup, bwin);
+      csound->RealFFT(csound, p->fwdsetup, fwin);
       if (*p->konset){
-        csound->RealFFT2(csound,p->fwdsetup, nwin);
+        csound->RealFFT(csound,p->fwdsetup, nwin);
         tmp_real = tmp_im = 1e-20f;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
@@ -813,7 +814,7 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
   if ((int32_t)p->scnt >= hsize) {
     double resamp;
     /* audio samples are stored in a function table */
-    ft = csound->FTnp2Find(csound,p->knum);
+    ft = csound->FTFind(csound,p->knum);
     if (ft == NULL){
       csound->PerfError(csound, &(p->h),
                         Str("could not find table number %d\n"), (int32_t) *p->knum);
@@ -897,10 +898,10 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
       /* take the FFT of both frames
          re-order Nyquist bin from pos 1 to N
       */
-      csound->RealFFT2(csound, p->fwdsetup, bwin);
-      csound->RealFFT2(csound, p->fwdsetup, fwin);
+      csound->RealFFT(csound, p->fwdsetup, bwin);
+      csound->RealFFT(csound, p->fwdsetup, fwin);
       if (*p->konset){
-        csound->RealFFT2(csound,p->fwdsetup, nwin);
+        csound->RealFFT(csound,p->fwdsetup, nwin);
         tmp_real = tmp_im = 1e-20f;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
@@ -1644,8 +1645,8 @@ static int32_t pvsscaleset(CSOUND *csound, PVSSCALE *p)
       p->fenv.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
   memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
-  p->fwdsetup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
-  p->invsetup = csound->RealFFT2Setup(csound, N/2, FFT_INV);
+  p->fwdsetup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
+  p->invsetup = csound->RealFFTSetup(csound, N/2, FFT_INV);
   return OK;
 }
 
@@ -1758,15 +1759,9 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
           for (i=0; i < N/2; i++) {
             ceps[i] = fenv[i];
           }
-          if (!(N & (N - 1)))
-            csound->RealFFT2(csound, p->fwdsetup, ceps);
-          else
-            csound->RealFFTnp2(csound, ceps, tmp);
+          csound->RealFFT(csound, p->fwdsetup, ceps);
           for (i=coefs; i < N/2; i++) ceps[i] = 0.0;
-          if (!(N & (N - 1)))
-            csound->RealFFT2(csound, p->invsetup, ceps);
-          else
-            csound->InverseRealFFTnp2(csound, ceps, tmp);
+          csound->RealFFT(csound, p->invsetup, ceps);
           for (i=j=0; i < N/2; i++, j+=2) {
             if (keepform > 1) {
               if (fenv[i] < ceps[i])
@@ -1985,15 +1980,9 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
           ceps[i] = fenv[j];
           ceps[i+1] = FL(0.0);
         }
-        if (!(N & (N - 1)))
-          csound->InverseComplexFFT(csound, ceps, N/2);
-        else
-          csound->InverseComplexFFTnp2(csound, ceps, tmp);
+        csound->InverseComplexFFT(csound, ceps, N/2);
         for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-        if (!(N & (N - 1)))
-          csound->ComplexFFT(csound, ceps, N/2);
-        else
-          csound->ComplexFFTnp2(csound, ceps, tmp);
+        csound->ComplexFFT(csound, ceps, N/2);
         for (i=j=0; i < N; i+=2, j++) {
           if (keepform > 1) {
             if (fenv[j] < ceps[i])
@@ -2174,15 +2163,9 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
             ceps[i] = fenv[j];
             ceps[i+1] = 0.0;
           }
-          if (!(N & (N - 1)))
-            csound->InverseComplexFFT(csound, ceps, N/2);
-          else
-            csound->InverseComplexFFTnp2(csound, ceps, tmp);
+          csound->InverseComplexFFT(csound, ceps, N/2);
           for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-          if (!(N & (N - 1)))
-            csound->ComplexFFT(csound, ceps, N/2);
-          else
-            csound->ComplexFFTnp2(csound, ceps, tmp);
+          csound->ComplexFFT(csound, ceps, N/2);
           for (j=i=0; i < N; i+=2, j++) {
             if (keepform > 1) {
               if (fenv[j] < ceps[i])
@@ -2427,7 +2410,7 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
         return csound->InitError(csound, "%s", Str("pvstencil: signal format "
                                              "must be amp-phase or amp-freq."));
     }
-  p->func = csound->FTnp2Finde(csound, p->ifn);
+  p->func = csound->FTFind(csound, p->ifn);
   if (p->func == NULL)
     return OK;
 
@@ -2574,7 +2557,7 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
   int32_t coefs = (int32_t) *p->coefs;
-  FUNC  *ft = csound->FTnp2Find(csound, p->ftab);
+  FUNC  *ft = csound->FTFind(csound, p->ftab);
   int32_t size;
   MYFLT *ftab;
 
@@ -2622,15 +2605,9 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
             ceps[i] = fenv[j];
             ceps[i+1] = 0.0;
           }
-          if (!(N & (N - 1)))
-            csound->InverseComplexFFT(csound, ceps, N/2);
-          else
-            csound->InverseComplexFFTnp2(csound, ceps, tmp);
+          csound->InverseComplexFFT(csound, ceps, N/2);
           for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-          if (!(N & (N - 1)))
-            csound->ComplexFFT(csound, ceps, N/2);
-          else
-            csound->ComplexFFTnp2(csound, ceps, tmp);
+          csound->ComplexFFT(csound, ceps, N/2);
           for (i=j=0; i < N; i+=2, j++) {
             if (keepform > 1) {
               if (fenv[j] < ceps[i])

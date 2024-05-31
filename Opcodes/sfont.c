@@ -82,7 +82,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
     //soundFont = globals->soundFont;
-    fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
+    fd = csound->FileOpen(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
       #ifndef __wasi__
@@ -144,9 +144,9 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
     }
     if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
     else {
-      if (csound->ISSTRCOD(*p->fname))
+      if (IsStringCode(*p->fname))
         fname = csound->Strdup(csound, csound->GetString(csound,*p->fname));
-      else fname = csound->strarg2name(csound,
+      else fname = csound->StringArg2Name(csound,
                                 NULL, p->fname, "sfont.",
                                 0);
     }
@@ -2397,7 +2397,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
       }
     }
   p->spltNum = spltNum;
-  if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+  if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
   else p->efunc = NULL;
 
   if (*p->iskip == 0){

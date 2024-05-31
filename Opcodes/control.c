@@ -216,11 +216,11 @@ static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
       {
         char buffer[100];
         if (istring) {
-          csound->strarg2name(csound, buffer,
+          csound->StringArg2Name(csound, buffer,
                               ((STRINGDAT *)p->val)->data, "Control ",istring);
         }
         else
-         csound->strarg2name(csound, buffer, p->val, "Control ",istring);
+         csound->StringArg2Name(csound, buffer, p->val, "Control ",istring);
         csound->Message(csound, Str("Slider %d set to %s\n"), slider, buffer);
         fprintf(pp->wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
         break;
@@ -304,11 +304,11 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (istring) {
-      csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
+      csound->StringArg2Name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
-    else if (csound->ISSTRCOD(*p->val)) {
-      csound->strarg2name(csound, buffer,
+    else if (IsStringCode(*p->val)) {
+      csound->StringArg2Name(csound, buffer,
                           csound->GetString(csound, *p->val), "", 1);
     }
     else {

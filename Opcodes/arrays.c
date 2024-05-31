@@ -41,8 +41,8 @@ extern MYFLT MOD(MYFLT a, MYFLT bb);
 #endif
 
 #include "interlocks.h"
-#include "aops.h"
-#include "find_opcode.h"
+#include "arrays.h"
+
 
 
 
@@ -94,7 +94,7 @@ static int32_t array_del(CSOUND *csound, void *p)
 }
 #endif
 
-#include "arrays.h"
+
 
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -210,8 +210,8 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
   int32_t i = 0, flen = 0, size;
   char *fname = p->fname->data;
   FILE    *infile;
-  void    *fd = csound->FileOpen2(csound, &infile, CSFILE_STD, fname, "r",
-                                  "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
+  void    *fd = csound->FileOpen(csound, &infile, CSFILE_STD, fname, "r",
+                                 "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
   if (UNLIKELY(fd == NULL)) {
     return csound->InitError(csound, Str("error opening ASCII file %s\n"), fname);
   }
@@ -2952,7 +2952,7 @@ static int32_t tab2ftab(CSOUND *csound, TABCOPY *p)
   if (UNLIKELY(p->tab->data==NULL))
     return csound->PerfError(csound,
                              &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->PerfError(csound,
                              &(p->h), "%s", Str("No table for copy2ftab"));
   for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
@@ -2973,7 +2973,7 @@ static int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
 
   if (UNLIKELY(p->tab->data==NULL))
     return csound->InitError(csound,  "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
   for (i=0; i<t->dimensions; i++) tlen += t->sizes[i];
   fsize = ftp->flen;
@@ -2994,7 +2994,7 @@ static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
   int32_t i, tlen = 0, maxitems;
   if (UNLIKELY(t->data==NULL))
     return csound->PerfError(csound, &(p->h), "%s", Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->PerfError(csound, &(p->h), "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(offset >= fsize || offset < 0))
@@ -3020,7 +3020,7 @@ static int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
   int32_t i, tlen = 0, maxitems;
   if (UNLIKELY(t->data==NULL))
     return csound->InitError(csound, "%s",  Str("array-var not initialised"));
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->InitError(csound, "%s",  Str("No table for copy2ftab"));
   fsize = ftp->flen;
   fdata = ftp->ftable;
@@ -3083,7 +3083,7 @@ static int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
   MYFLT       *fdata;
   int32_t tlen;
 
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(p->tab->data==NULL)) {
@@ -3104,7 +3104,7 @@ static int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
   MYFLT       *fdata;
   int32_t      tlen;
 
-  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL))
     return csound->PerfError(csound,
                              &(p->h), "%s", Str("No table for copy2ftab"));
   fsize = ftp->flen;
@@ -3224,7 +3224,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
   MYFLT *data, *tabin = p->tabin->data;
   int32_t n, size;
   OENTRY *opc  = NULL;
-  EVAL  eval;
+  AEVAL  eval;
 
   if (UNLIKELY(p->tabin->data == NULL)||p->tabin->dimensions!=1)
     return csound->InitError(csound, "%s", Str("array-var not initialised"));
@@ -3237,8 +3237,8 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
   else size = size < p->tab->sizes[0] ? size : p->tab->sizes[0];
   data =  p->tab->data;
 
-  opc = csound->find_opcode_new(csound, p->str->data, "i", "i");
 
+  opc = csound->FindOpcode(csound, p->str->data, "i", "i");
   if (UNLIKELY(opc == NULL))
     return csound->InitError(csound,  Str("%s not found"), p->str->data);
   p->opc = opc;
@@ -3248,8 +3248,7 @@ static int32_t tabmap_set(CSOUND *csound, TABMAP *p)
     opc->init(csound, (void *) &eval);
   }
 
-  opc = csound->find_opcode_new(csound, p->str->data, "k", "k");
-
+  opc = csound->FindOpcode(csound, p->str->data, "k", "k");
   p->opc = opc;
   return OK;
 }
@@ -3260,7 +3259,7 @@ static int32_t tabmap_perf(CSOUND *csound, TABMAP *p)
   MYFLT *data =  p->tab->data, *tabin = p->tabin->data;
   int32_t n, size;
   OENTRY *opc  = p->opc;
-  EVAL  eval;
+  AEVAL  eval;
 
   if (UNLIKELY(p->tabin->data == NULL) || p->tabin->dimensions !=1)
     return csound->PerfError(csound,
@@ -3438,25 +3437,15 @@ int32_t init_rfft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
-  if (isPowerOfTwo(N)) {
-    tabinit(csound, p->out,N);
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
-  }
-  else
-    tabinit(csound, p->out, N+2);
+  tabinit(csound, p->out,N);
+  p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   return OK;
 }
 
 int32_t perf_rfft(CSOUND *csound, FFT *p) {
   int32_t N = p->out->sizes[0];
   memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-  if (isPowerOfTwo(N)) {
-    csound->RealFFT2(csound,p->setup,p->out->data);
-  }
-  else{
-    p->out->data[N] = FL(0.0);
-    csound->RealFFTnp2(csound,p->out->data,N);
-  }
+  csound->RealFFT(csound,p->setup,p->out->data);
   return OK;
 }
 
@@ -3471,24 +3460,15 @@ int32_t init_rifft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
-  if (isPowerOfTwo(N)) {
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
-    tabinit(csound, p->out, N);
-  }
-  else
-    tabinit(csound, p->out, N+2);
+  p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
+  tabinit(csound, p->out, N);
   return OK;
 }
 
 int32_t perf_rifft(CSOUND *csound, FFT *p) {
   int32_t N = p->in->sizes[0];
   memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-  if (isPowerOfTwo(N))
-    csound->RealFFT2(csound,p->setup,p->out->data);
-  else{
-    p->out->data[N] = FL(0.0);
-    csound->InverseRealFFTnp2(csound,p->out->data,N);
-  }
+  csound->RealFFT(csound,p->setup,p->out->data);
   return OK;
 }
 
@@ -3529,11 +3509,7 @@ int32_t initialise_fft(CSOUND *csound, FFT *p) {
 int32_t perf_fft(CSOUND *csound, FFT *p) {
   int32_t N2 = p->in->sizes[0];
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
-  if (isPowerOfTwo(N2))
-    csound->ComplexFFT(csound,p->out->data,N2/2);
-  else {
-    csound->ComplexFFTnp2(csound,p->out->data,N2/2);
-  }
+  csound->ComplexFFT(csound,p->out->data,N2/2);
   return OK;
 }
 
@@ -3556,12 +3532,7 @@ int32_t init_ifft(CSOUND *csound, FFT *p) {
 int32_t perf_ifft(CSOUND *csound, FFT *p) {
   int32_t N2 = p->out->sizes[0];
   memcpy(p->out->data,p->in->data,N2*sizeof(MYFLT));
-  if (isPowerOfTwo(N2)) {
-    csound->InverseComplexFFT(csound,p->out->data,N2/2);
-  }
-  else {
-    csound->InverseComplexFFTnp2(csound,p->out->data,N2/2);
-  }
+  csound->InverseComplexFFT(csound,p->out->data,N2/2);
   return OK;
 }
 
@@ -3788,7 +3759,7 @@ typedef struct _pvsceps {
 int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p) {
   int32_t N = p->fin->N;
   if (LIKELY(isPowerOfTwo(N))) {
-    p->setup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
     tabinit(csound, p->out, N/2+1);
   }
   else
@@ -3810,7 +3781,7 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
       ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
     }
     ceps[N/2] = fin[N/2];
-    csound->RealFFT2(csound, p->setup, ceps);
+    csound->RealFFT(csound, p->setup, ceps);
     if (coefs) {
       // lifter coefs
       for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
@@ -3828,7 +3799,7 @@ int32_t init_ceps(CSOUND *csound, FFT *p) {
     return csound->InitError(csound, "%s",
                              Str("FFT size too small (min 64 samples)\n"));
   if (LIKELY(isPowerOfTwo(N))) {
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
     tabinit(csound, p->out, N+1);
   }
   else
@@ -3848,7 +3819,7 @@ int32_t perf_ceps(CSOUND *csound, FFT *p) {
     ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
   }
   ceps[siz] = mags[siz];
-  csound->RealFFT2(csound, p->setup, ceps);
+  csound->RealFFT(csound, p->setup, ceps);
   if (coefs) {
     // lifter coefs
     for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
@@ -3860,7 +3831,7 @@ int32_t perf_ceps(CSOUND *csound, FFT *p) {
 int32_t init_iceps(CSOUND *csound, FFT *p) {
   int32_t N = p->in->sizes[0]-1;
   if (LIKELY(isPowerOfTwo(N))) {
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
     tabinit(csound, p->out, N+1);
   }
   else
@@ -3877,7 +3848,7 @@ int32_t perf_iceps(CSOUND *csound, FFT *p) {
   MYFLT *spec = (MYFLT *)p->mem.auxp;
   MYFLT *out = p->out->data;
   memcpy(spec, p->in->data, siz*sizeof(MYFLT));
-  csound->RealFFT2(csound,p->setup,spec);
+  csound->RealFFT(csound,p->setup,spec);
   for (i=0; i < siz; i++) {
     out[i] = exp(spec[i]);
   }
@@ -4279,7 +4250,6 @@ int32_t unwrap(CSOUND *csound, FFT *p) {
   }
   return OK;
 }
-
 
 
 int32_t init_dct(CSOUND *csound, FFT *p) {

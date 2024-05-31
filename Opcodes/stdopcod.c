@@ -34,7 +34,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
 {
     STDOPCOD_GLOBALS  *p;
     int32_t  err = 0;
-
     p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                         "STDOPC_GLOBALS");
     

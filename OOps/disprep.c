@@ -347,6 +347,8 @@ static void Lin2DB(MYFLT *buffer, int32_t size)
     }
 }
 
+void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+
 static void d_fft(      /* perform an FFT as reqd below */
   CSOUND *csound,
   MYFLT  *sce,   /* input array - pure packed real */
@@ -357,7 +359,7 @@ static void d_fft(      /* perform an FFT as reqd below */
 {
     memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
     ApplyHalfWin(dst, hWin, size);
-    csound->RealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
+    csoundRealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1, scal);
@@ -486,7 +488,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       return csound->InitError(csound, Str("illegal ihtim"));
     if (UNLIKELY(*p->istartempo <= FL(0.0)))
       return csound->InitError(csound, Str("illegal startempo"));
-    ftp = csound->FTnp2Find(csound, p->ifn);
+    ftp = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(ftp != NULL && *ftp->ftable == FL(0.0)))
       return csound->InitError(csound, Str("ifn table begins with zero"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;

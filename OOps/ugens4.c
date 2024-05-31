@@ -32,7 +32,7 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->floatph = !IS_POW_TWO(p->ftp->flen);
       if (*p->iphs >= 0) {
@@ -126,7 +126,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->floatph = !IS_POW_TWO(p->ftp->flen);
       if (*p->iphs >= 0) {
@@ -143,25 +143,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
     return NOTOK;
 }
 
-static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
-{
-    MYFLT ans = FL(1.0);
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
-    }
-    return ans;
-}
 
-MYFLT intpow(MYFLT x, int32_t n)   /* Binary power function */
-{
-    if (n<0) {
-      n = -n;
-      x = FL(1.0)/x;
-    }
-    return intpow1(x, n);
-}
 
 int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 {
@@ -288,7 +270,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     if (*p->ifn == 0.0)
       for (n=npts; n--; )                       /* f0: fill w. rands */
         *ap++ = (MYFLT) rand16(csound) * DV32768;
-    else if ((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL) {
+    else if ((ftp = csound->FTFind(csound, p->ifn)) != NULL) {
       fp = ftp->ftable;                         /* else from ftable  */
       phs = FL(0.0);
       phsinc = (MYFLT)(ftp->flen/npts);

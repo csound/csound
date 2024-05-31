@@ -60,6 +60,9 @@
 #include "ugtabs.h"
 #include "compile_ops.h"
 #include "lpred.h"
+#include "midiops3.h"
+#include "midiops2.h"
+#include "pitch.h"
 
 #define S(x)    sizeof(x)
 
@@ -510,6 +513,94 @@ int32_t coef2parm(CSOUND *csound, void *p);
 int32_t resonbnk_init(CSOUND *csound, void *p);
 int32_t resonbnk(CSOUND *csound, void *p);
 int32_t schedule_array(CSOUND *csound, void *p);
+int32_t imidic7(CSOUND *csound, void *p);
+int32_t midic7set(CSOUND *csound, void *p);
+int32_t midic7(CSOUND *csound, void *p);
+int32_t imidic14(CSOUND *csound, void *p);
+int32_t midic14set(CSOUND *csound, void *p);
+int32_t midic14(CSOUND *csound, void *p);
+int32_t imidic21(CSOUND *csound, void *p);
+int32_t midic21set(CSOUND *csound, void *p);
+int32_t midic21(CSOUND *csound, void *p);
+int32_t ictrl7(CSOUND *csound, void *p);
+int32_t ctrl7set(CSOUND *csound, void *p);
+int32_t ctrl7(CSOUND *csound, void *p);
+int32_t ictrl14(CSOUND *csound, void *p);
+int32_t ctrl14set(CSOUND *csound, void *p);
+int32_t ctrl14(CSOUND *csound, void *p);
+int32_t ictrl21(CSOUND *csound, void *p);
+int32_t ctrl21set(CSOUND *csound, void *p);
+int32_t ctrl21(CSOUND *csound, void *p);
+int32_t initc7(CSOUND *csound, void *p);
+int32_t initc14(CSOUND *csound, void *p);
+int32_t initc21(CSOUND *csound, void *p);
+int32_t midipgm_opcode(CSOUND *csound, void *p);
+int32_t slider_i8(CSOUND *csound, void *p);
+int32_t slider8(CSOUND *csound, void *p);
+int32_t slider_i8f(CSOUND *csound, void *p);
+int32_t slider8f(CSOUND *csound, void *p);
+int32_t islider8(CSOUND *csound, void *p);
+int32_t slider_i16(CSOUND *csound, void *p);
+int32_t slider16(CSOUND *csound, void *p);
+int32_t slider_i16f(CSOUND *csound, void *p);
+int32_t slider16f(CSOUND *csound, void *p);
+int32_t islider16(CSOUND *csound, void *p);
+int32_t slider_i32(CSOUND *csound, void *p);
+int32_t slider32(CSOUND *csound, void *p);
+int32_t slider_i32f(CSOUND *csound, void *p);
+int32_t slider32f(CSOUND *csound, void *p);
+int32_t islider32(CSOUND *csound, void *p);
+int32_t slider_i64(CSOUND *csound, void *p);
+int32_t slider64(CSOUND *csound, void *p);
+int32_t slider_i64f(CSOUND *csound, void *p);
+int32_t slider64f(CSOUND *csound, void *p);
+int32_t islider64(CSOUND *csound, void *p);
+int32_t slider_i16bit14(CSOUND *csound, void *p);
+int32_t islider16bit14(CSOUND *csound, void *p);
+int32_t slider16bit14(CSOUND *csound, void *p);
+int32_t slider_i32bit14(CSOUND *csound, void *p);
+int32_t islider32bit14(CSOUND *csound, void *p);
+int32_t slider32bit14(CSOUND *csound, void *p);
+int32_t slider_i32bit14(CSOUND *csound, void *p);
+int32_t slider32bit14(CSOUND *csound, void *p);
+int32_t cpuperc(CSOUND *, void *p);
+int32_t cpuperc_S(CSOUND *, void *p);
+int32_t instcount(CSOUND *, void *p);
+int32_t instcount_S(CSOUND *, void *p);
+int32_t maxalloc(CSOUND *, void *p);
+int32_t mute_inst(CSOUND *, void *p);
+int32_t maxalloc_S(CSOUND *, void *p);
+int32_t mute_inst_S(CSOUND *, void *p);
+int32_t pfun(CSOUND *, void *p);
+int32_t pfunk_init(CSOUND *, void *p);
+int32_t pfunk(CSOUND *, void *p);
+int32_t pcount(CSOUND *csound, void *p);
+int32_t pvalue(CSOUND *csound, void *p);
+int32_t pvaluestr(CSOUND *csound, void *p);
+int32_t pinit(CSOUND *csound, void *p);
+int32_t painit(CSOUND *csound, void *p);
+int32_t inRange_i(CSOUND *csound, void *p);
+int32_t inRange(CSOUND *csound, void *p);
+int32_t sliderTable_i8(CSOUND *csound,  void *p); 
+int32_t sliderTable8(CSOUND *csound,  void *p); 
+int32_t sliderTable_i16(CSOUND *csound,  void *p);
+int32_t sliderTable16(CSOUND *csound,  void *p);
+int32_t sliderTable_i8f(CSOUND *csound,  void *p);
+int32_t sliderTable8f(CSOUND *csound,  void *p);
+int32_t sliderTable_i16f(CSOUND *csound,  void *p);
+int32_t sliderTable16f(CSOUND *csound,  void *p);
+int32_t sliderTable_i32f(CSOUND *csound,  void *p);
+int32_t sliderTable_i32(CSOUND *csound,  void *p);
+int32_t sliderTable32(CSOUND *csound,  void *p);
+int32_t sliderTable32f(CSOUND *csound,  void *p);
+int32_t sliderTable_i64f(CSOUND *csound,  void *p);
+int32_t sliderTable64f(CSOUND *csound,  void *p);
+int32_t sliderTable_i64(CSOUND *csound,  void *p);
+int32_t sliderTable64(CSOUND *csound,  void *p);
+int32_t sliderKawai_i(CSOUND *csound,  void *p);
+int32_t sliderKawai(CSOUND *csound,  void *p);
+int32_t ctrl7a_set(CSOUND *csound, void *p);
+int32_t ctrl7a(CSOUND *csound, void *p);
 int32_t posc_set(CSOUND *csound, void *p);
 int32_t posckk(CSOUND *csound, void *p);
 int32_t poscaa(CSOUND *csound, void *p);

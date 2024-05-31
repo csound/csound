@@ -1350,7 +1350,7 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
   int32_t       cnt1;
   MYFLT       len = csound->curip->p3.value;
 
-  if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
+  if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
   p->floatph = !IS_POW_TWO(ftp->flen);
   p->ftp = ftp;
@@ -1491,7 +1491,7 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
   int32_t       cnt1;
   MYFLT       len = csound->curip->p3.value;
 
-  if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
+  if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
   p->floatph = !IS_POW_TWO(ftp->flen);
   p->ftp = ftp;
@@ -1650,7 +1650,7 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
   FUNC        *ftp;
   MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
 
-  if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
+  if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
   p->ftp = ftp;
   p->floatph = !IS_POW_TWO(ftp->flen);
@@ -1711,7 +1711,7 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
   FUNC        *ftp;
   MYFLT       ixmod, iatss, prod, diff, asym, denom, irise;
 
-  if ((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)
+  if ((ftp = csound->FTFind(csound, p->ifn)) == NULL)
     return NOTOK;
   p->ftp = ftp;
   p->floatph = !IS_POW_TWO(ftp->flen);

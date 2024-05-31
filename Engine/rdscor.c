@@ -25,12 +25,6 @@
 #include "corfile.h"
 #include "insert.h"
 
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
-
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;

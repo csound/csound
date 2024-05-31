@@ -36,6 +36,9 @@
 #include "pffft.h"
 
 
+static int32_t isPowTwo(int32_t N) {
+  return (N != 0) ? !(N & (N - 1)) : 0;
+}
 
 #define POW2(m) ((uint32) (1 << (m)))       /* integer power of 2 for m<32 */
 
@@ -3210,6 +3213,9 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
 }
 
 
+
+
+
 /**
  * Returns the amplitude scale that should be applied to the result of
  * an inverse complex FFT with a length of 'FFTsize' samples.
@@ -3240,13 +3246,14 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
  */
 void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
+  if(isPowTwo(FFTsize)) {
   MYFLT *Utbl;
   int16 *BRLow;
   int32_t   M;
-
   M = ConvertFFTSize(csound, FFTsize);
   getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
   ffts1(buf, M, Utbl, BRLow);
+  } else csoundComplexFFTnp2(csound, buf, FFTsize);
 }
 
 /**
@@ -3260,6 +3267,7 @@ void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 
 void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
+ if(isPowTwo(FFTsize)) {
   MYFLT *Utbl;
   int16 *BRLow;
   int32_t   M;
@@ -3267,6 +3275,7 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
   M = ConvertFFTSize(csound, FFTsize);
   getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
   iffts1(buf, M, Utbl, BRLow);
+ } else csoundInverseComplexFFTnp2(csound, buf, FFTsize);
 }
 
 /**
@@ -3441,10 +3450,6 @@ int32_t setupDispose(CSOUND *csound, void *pp){
   return OK;
 }
 
-int32_t isPowTwo(int32_t N) {
-  return (N != 0) ? !(N & (N - 1)) : 0;
-}
-
 void *csoundRealFFT2Setup(CSOUND *csound,
                          int32_t FFTsize,
                          int32_t d){
@@ -3497,11 +3502,22 @@ void *csoundRealFFT2Setup(CSOUND *csound,
                                 setupDispose);
   return (void *) setup;
 }
-
+ 
 void csoundRealFFT2(CSOUND *csound,
                      void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
+  
+  if(!setup->p2) {
+     setup->d == FFT_FWD ?
+      csoundRealFFTnp2(csound,
+                     sig,setup->N) :
+      csoundInverseRealFFTnp2(csound,
+                     sig,setup->N);
+     setup->lib = 0;
+     return;
+  }
+
   switch(setup->lib) {
 #if defined(__MACH__)
   case VDSP_LIB:
@@ -3512,11 +3528,11 @@ void csoundRealFFT2(CSOUND *csound,
     pffft_execute(setup,sig);
     break;
   default:
-    (setup->d == FFT_FWD ?
+    setup->d == FFT_FWD ?
       csoundRealFFT(csound,
                      sig,setup->N) :
       csoundInverseRealFFT(csound,
-                     sig,setup->N));
+                     sig,setup->N);
     setup->lib = 0;
   }
 }

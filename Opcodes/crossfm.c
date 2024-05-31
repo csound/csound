@@ -32,8 +32,8 @@
 
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {
-    FUNC *ftp1 = csound->FTnp2Find(csound, p->ifn1);
-    FUNC *ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    FUNC *ftp1 = csound->FTFind(csound, p->ifn1);
+    FUNC *ftp2 = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(ftp1 == NULL  ||  ftp2 == NULL)) {
       return csound->InitError(csound, "%s", Str("crossfm: ftable not found"));
     }

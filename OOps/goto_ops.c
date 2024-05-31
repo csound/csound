@@ -195,7 +195,7 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (isStringArg) {
     p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
-  else if (csound->ISSTRCOD(*p->kInsNo)) {
+  else if (IsStringCode(*p->kInsNo)) {
     p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
@@ -290,7 +290,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (isStringArg) {
     p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
-  else if (csound->ISSTRCOD(*p->kInsNo)) {
+  else if (IsStringCode(*p->kInsNo)) {
     p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);

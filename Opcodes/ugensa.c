@@ -26,10 +26,6 @@
 #include "ugens7.h"
 #include <math.h>
 
-
-
-#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
-
 /* FOG generator */
 
 static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
@@ -39,8 +35,8 @@ static int32_t fogset(CSOUND *csound, FOGS *p)
   /* legato test, not sure if the last bit (auxch) is correct? */
   int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
   // VL 22.03.24 check len to set float phase flag
-  if (LIKELY((p->ftp1 = csound->FTnp2Find(csound, p->ifna)) != NULL &&
-             (p->ftp2 = csound->FTnp2Find(csound, p->ifnb)) != NULL)) {
+  if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
+             (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {
    if(IS_POW_TWO(p->ftp1->flen) && IS_POW_TWO(p->ftp2->flen))
     p->floatph = 0;
    else p->floatph = 1;
@@ -293,10 +289,9 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
     ovp->formphsf = PHMOD1(ovp->formphsf + p->spdphsf);
   else
     ovp->formphs = (ovp->formphs + p->spdphs) & PHMASK;
-
   if (newexp || rismps != p->prvsmps) {            /* if new params */
     if ((p->prvsmps = rismps))                     /*   redo preamp */
-      p->preamp = csound->intpow(p->expamp, -rismps);
+      p->preamp = intpow(p->expamp, -rismps);
     else p->preamp = FL(1.0);
   }
   ovp->curamp = octamp * p->preamp;                /* set startamp  */

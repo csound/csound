@@ -1277,12 +1277,6 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   return csound->perferrcnt;                /* contin from there */
 }
 
-static inline int32_t byte_order(void)
-{
-  const int32_t one = 1;
-  return (!*((char*) &one));
-}
-
 int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
 {
   OPDS    *saved_ids = csound->ids;
@@ -2930,13 +2924,12 @@ int prealloc_(CSOUND *csound, AOP *p, int instname)
   if (instname)
     n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                            (*p->b == FL(0.0) ? 0 : 1));
-  else {
-    if (csound->ISSTRCOD(*p->r))
-      n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
-                             (*p->b == FL(0.0) ? 0 : 1));
-    else n = *p->r;
-  }
-
+    else {
+      if (IsStringCode(*p->r))
+        n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
+                               (*p->b == FL(0.0) ? 0 : 1));
+      else n = *p->r;
+    }
   if (UNLIKELY(n == NOT_AN_INSTRUMENT)) return NOTOK;
   if (csound->oparms->realtime)
     csoundSpinLock(&csound->alloc_spinlock);
@@ -2964,7 +2957,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   INSTRTXT  *txtp;
 
   if (IS_STR_ARG(p->insno))
-    n = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+    n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   else
     n = (int) (*p->insno + FL(0.5));
 

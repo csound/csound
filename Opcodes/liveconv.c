@@ -259,7 +259,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     }
 
     /* Find and assign the function table numbered iFTNum */
-    ftp = csound->FTnp2Finde(csound, p->iFTNum);
+    ftp = csound->FTFind(csound, p->iFTNum);
     if (UNLIKELY(ftp == NULL))
       return NOTOK; /* ftfind should already have printed the error message */
 
@@ -302,8 +302,8 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->cnt = 0;
     p->rbCnt = 0;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, (p->partSize << 1), FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, (p->partSize << 1), FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, (p->partSize << 1), FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, (p->partSize << 1), FFT_INV);
 
     /* clear IR buffer to zero */
     memset(p->IR_Data, 0, n*sizeof(MYFLT));
@@ -339,7 +339,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
     /* Only continue if initialized */
     if (UNLIKELY(p->initDone <= 0)) goto err1;
 
-    ftp = csound->FTnp2Finde(csound, p->iFTNum);
+    ftp = csound->FTFind(csound, p->iFTNum);
     nSamples = p->partSize;   /* Length of partition */
                               /* Pointer to a partition of the ring buffer */
     rBuf = &(p->ringBuf[p->rbCnt * (nSamples << 1)]);
@@ -435,7 +435,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
             p->IR_Data[n + k] = FL(0.0);
 
           /* calculate FFT (replace in the same buffer) */
-          csound->RealFFT2(csound, p->fwdsetup, &(p->IR_Data[n]));
+          csound->RealFFT(csound, p->fwdsetup, &(p->IR_Data[n]));
 
         }
         else if (load_ptr->status == UNLOADING) {
@@ -471,7 +471,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
         rBuf[i] = FL(0.0);
 
       /* calculate FFT of input */
-      csound->RealFFT2(csound, p->fwdsetup, rBuf);
+      csound->RealFFT(csound, p->fwdsetup, rBuf);
 
       /* update ring buffer position */
       p->rbCnt++;
@@ -488,7 +488,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
                            nSamples, p->nPartitions, rBufPos);
 
       /* inverse FFT */
-      csound->RealFFT2(csound, p->invsetup, p->tmpBuf);
+      csound->RealFFT(csound, p->invsetup, p->tmpBuf);
 
       /*
       ** Copy IFFT result to output buffer

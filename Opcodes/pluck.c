@@ -315,6 +315,7 @@ static void waveguideWaveguide(CSOUND *csound,
     wg->w0      = 2*PI*freq/sr;
     wg->sr = sr;
 
+
 #ifdef WG_VERBOSE
     csound->Message(csound, "f0=%f, w0=%f\n", wg->f0, wg->w0);
 #endif
@@ -343,6 +344,7 @@ static void waveguideWaveguide(CSOUND *csound,
 /* Set the allpass tuning filter coefficient */
 static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 {
+
   MYFLT k= (1/wg->sr) * wg->w0;
 
   /*c = (1.0-df)/(1.0+df);*/ /* Solve for coefficient from df */

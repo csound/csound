@@ -67,7 +67,6 @@ FUNC    *csoundFTFind(CSOUND *, MYFLT *);
 FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
 FUNC    *csoundFTnp2Find(CSOUND *, MYFLT *);
 FUNC    *csoundFTnp2Finde(CSOUND *, MYFLT *);
-MYFLT   intpow(MYFLT, int32);
 void    list_opcodes(CSOUND *, int);
 char    *getstrformat(int format);
 int     sfsampsize(int sf_format);
@@ -186,59 +185,7 @@ int csoundSetReleaseLength(void *p, int n);
  */
 MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n);
 
-/**
- * Returns MIDI channel number (0 to 15) for the instrument instance
- * that called opcode 'p'.
- * In the case of score notes, -1 is returned.
- */
-int csoundGetMidiChannelNumber(void *p);
 
-/**
- * Returns a pointer to the MIDI channel structure for the instrument
- * instance that called opcode 'p'.
- * In the case of score notes, NULL is returned.
- */
-MCHNBLK *csoundGetMidiChannel(void *p);
-
-/**
- * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiNoteNumber(void *p);
-
-/**
- * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiVelocity(void *p);
-
-/**
- * Returns non-zero if the current note (owning opcode 'p') is releasing.
- */
-int csoundGetReleaseFlag(void *p);
-
-/**
- * Returns the note-off time in seconds (measured from the beginning of
- * performance) of the current instrument instance, from which opcode 'p'
- * was called. The return value may be negative if the note has indefinite
- * duration.
- */
-double csoundGetOffTime(void *p);
-
-/**
- * Returns the array of p-fields passed to the instrument instance
- * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
- * guaranteed to be available. p2 is measured in seconds from the
- * beginning of the current section.
- */
-MYFLT *csoundGetPFields(void *p);
-
-/**
- * Returns the instrument number (p1) for opcode 'p'.
- */
-int csoundGetInstrumentNumber(void *p);
 
 /**
  * Returns pointer to a string constant storing an error massage

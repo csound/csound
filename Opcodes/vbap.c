@@ -39,9 +39,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "interlocks.h"
+#include "zak.h"
 
 #define MATSIZE (4)
 #define ATORAD  (TWOPI_F / FL(360.0))
+
+static int GetZaBounds(CSOUND *csound, MYFLT **zastart){
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zastart = NULL;
+      return -1;
+    }
+    *zastart = zz->zastart;
+    return zz->zalast;
+}
+
 
 /* static void choose_ls_triplets(CSOUND *csound, ls *lss, */
 /*                                ls_triplet_chain **ls_triplets, */
@@ -2419,8 +2432,6 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
   return OK;
 }
 
-#include "zak.h"
-
 int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
 int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
 
@@ -2589,7 +2600,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
   char name[24];
   /* Check to see this index is within the limits of za space.    */
   MYFLT* zastart;
-  int zalast = csound->GetZaBounds(csound, &zastart);
+  int zalast = GetZaBounds(csound, &zastart);
   indx = (int32) *p->ndx;
   if (UNLIKELY(indx > zalast)) {
     return csound->PerfError(csound, &(p->h),
@@ -2903,7 +2914,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
   p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
   /* Check to see this index is within the limits of za space.    */
   MYFLT* zastart;
-  int zalast = csound->GetZaBounds(csound, &zastart);
+  int zalast = GetZaBounds(csound, &zastart);
   indx = (int32) *p->ndx;
   if (UNLIKELY(indx > zalast)) {
     return csound->PerfError(csound, &(p->h),

@@ -1018,7 +1018,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       FUNC *ftCombs;
       p->numCombs = (int32_t) *p->inumCombs;
       /* Get user-defined set of comb constants from table */
-      if (UNLIKELY((ftCombs = csound->FTnp2Finde(csound, p->ifnCombs)) == NULL))
+      if (UNLIKELY((ftCombs = csound->FTFind(csound, p->ifnCombs)) == NULL))
         return NOTOK;
       if (UNLIKELY(ftCombs->flen < (uint32_t)p->numCombs * 2)) {
         return csound->InitError(csound, Str("reverbx; Combs ftable must have "
@@ -1050,7 +1050,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
     else {    /* Have user-defined set of alpas constants */
       FUNC *ftAlpas;
       p->numAlpas = (int32_t) *p->inumAlpas;
-      if (UNLIKELY((ftAlpas = csound->FTnp2Finde(csound, p->ifnAlpas)) == NULL))
+      if (UNLIKELY((ftAlpas = csound->FTFind(csound, p->ifnAlpas)) == NULL))
         return NOTOK;
       if (UNLIKELY(ftAlpas->flen < (uint32_t)p->numAlpas * 2)) {
         return csound->InitError(csound, Str("reverbx; Alpas ftable must have"

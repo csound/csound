@@ -71,7 +71,7 @@ int32_t vosimset(CSOUND* csound, VOSIM *p)
     return OK;
 
 
-  p->ftable = csound->FTnp2Find(csound, p->iftab);
+  p->ftable = csound->FTFind(csound, p->iftab);
   if (UNLIKELY(p->ftable == NULL)) {
     return csound->InitError(csound,  "%s", Str("vosim: pulse table not found"));
   }

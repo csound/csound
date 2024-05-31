@@ -1683,11 +1683,11 @@ typedef struct {
 static int32_t
 tabslice_init(CSOUND *csound, TABSLICE *p) {
     FUNC *ftpsrc, *ftpdst;
-    ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
+    ftpsrc = csound->FTFind(csound, p->fnsrc);
     if(UNLIKELY(ftpsrc == NULL))
         return INITERRF("Source table not found: %d", (int)(*p->fnsrc));
     p->ftpsrc = ftpsrc;
-    ftpdst = csound->FTnp2Finde(csound, p->fndst);
+    ftpdst = csound->FTFind(csound, p->fndst);
     if(UNLIKELY(ftpdst == NULL))
         return INITERRF("Destination table not found: %d", (int)(*p->fndst));
     p->ftpdst = ftpdst;
@@ -1720,10 +1720,10 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
 
 static int32_t
 tabslice_allk(CSOUND *csound, TABSLICE *p) {
-    p->ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
+    p->ftpsrc = csound->FTFind(csound, p->fnsrc);
     if(UNLIKELY(p->ftpsrc == NULL))
         return PERFERRF("Source table not found: %d", (int)*p->fnsrc);
-    p->ftpdst = csound->FTnp2Finde(csound, p->fndst);
+    p->ftpdst = csound->FTFind(csound, p->fndst);
     if(UNLIKELY(p->ftpdst == NULL))
         return PERFERRF("Destination table not found: %d", (int)*p->fnsrc);
     return tabslice_k(csound, p);
@@ -1804,7 +1804,7 @@ ftset_k(CSOUND *csound, FTSET *p) {
     int tabnum = (int)(*p->tabnum);
     FUNC *tab;
     if(UNLIKELY(tabnum != p->lastTabnum)) {
-        tab = csound->FTnp2Finde(csound, p->tabnum);
+        tab = csound->FTFind(csound, p->tabnum);
         if(UNLIKELY(tab == NULL))
             return PERFERRF(Str("Table %d not found"), tabnum);
         p->tab = tab;
@@ -1817,7 +1817,7 @@ ftset_k(CSOUND *csound, FTSET *p) {
 
 static int32_t
 ftset_i(CSOUND *csound, FTSET *p) {
-    FUNC *tab = csound->FTnp2Finde(csound, p->tabnum);
+    FUNC *tab = csound->FTFind(csound, p->tabnum);
     if(UNLIKELY(tab == NULL))
         return INITERRF(Str("Table %d not found"), (int)(*p->tabnum));
     p->tab = tab;
@@ -1853,7 +1853,7 @@ typedef struct {
 static int
 tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     FUNC *ftp;
-    ftp = csound->FTnp2Finde(csound, p->ifn);
+    ftp = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(ftp == NULL))
         return NOTOK;
     p->ftp = ftp;
@@ -2330,7 +2330,7 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
     p->numcols = (int32_t)*p->inumcols;
     if(p->numcols == 0)
         p->numcols = 10;
-    p->ftp = csound->FTnp2Finde(csound, p->ifn);
+    p->ftp = csound->FTFind(csound, p->ifn);
     int32_t trig = (int32_t)*p->ktrig;
 
     if (trig > 0) {
@@ -2484,7 +2484,7 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
         csound->DebugMsg(csound, "%s", Str("ftexists: table number is 0"));
         *p->iout = 0.;
     }
-    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
+    FUNC *ftp = csound->FTFind(csound, p->ifn);
     *p->iout = (ftp != NULL) ? 1.0 : 0.0;
     return OK;
 }
@@ -2787,11 +2787,11 @@ int32_t println_init(CSOUND *csound, PRINTLN *p) {
 }
 
 
-// #define IS_AUDIO_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
-#define IS_AUDIO_ARG(x) (!strcmp("a", csound->GetTypeForArg(x)->varTypeName))
+// #define IS_AUDIO_ARG(x) (GetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_AUDIO_ARG(x) (!strcmp("a", GetTypeForArg(x)->varTypeName))
 
-// #define IS_STRING_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
-#define IS_STRING_ARG(x) (!strcmp("S", csound->GetTypeForArg(x)->varTypeName))
+// #define IS_STRING_ARG(x) (GetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_STRING_ARG(x) (!strcmp("S", GetTypeForArg(x)->varTypeName))
 
 
 // This is taken from OOps/str_ops.c, with minor modifications to adapt it
@@ -2886,7 +2886,7 @@ sprintf_opcode_(CSOUND *csound,
             case 's':
                 if(!IS_STRING_ARG(parm)) {
                     return PERFERRF(Str("String argument expected, but type is %s"),
-                                    csound->GetTypeForArg(parm)->varTypeName);
+                                    GetTypeForArg(parm)->varTypeName);
                 }
                 if (((STRINGDAT*)parm)->data == str->data) {
                     return PERFERR(Str("output argument may not be "

@@ -33,36 +33,11 @@
 #include "pstream.h"
 #include "pvfileio.h"
 #include <stdlib.h>
+#include "fftlib.h"
 /* #undef ISSTRCOD */
 
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
-
-int isstrcod(MYFLT xx)
-{
-    int sel = (byte_order()+1)&1;
-#ifdef USE_DOUBLE
-    union {
-      double d;
-      int32_t i[2];
-    } z;
-    z.d = xx;
-    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
-#else
-    union {
-      float f;
-      int32_t j;
-    } z;
-    z.f = xx;
-    return ((z.j&0x7f800000) == 0x7f800000);
-#endif
-}
-
 extern double besseli(double);
-FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);static int gen01raw(FGDATA *, FUNC *);
+static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
 static int gen05(FGDATA *, FUNC *), gen06(FGDATA *, FUNC *);
@@ -1399,7 +1374,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     int     j;
     MYFLT   tmp;
 
-    fd = csound->FileOpen2(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
+    fd = csound->FileOpen(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL)) {
       return fterror(ff, Str("error opening ASCII file"));
@@ -1625,7 +1600,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
 
     if (UNLIKELY(ff->flen))
       return fterror(ff, Str("GEN28 requires zero table length"));
-    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
+    fd = csound->FileOpen(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
                           "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
@@ -1755,7 +1730,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < l2; i++)
       x[i] = xsr * f2[i];
     /* filter */
-    csound->RealFFT(csound, x, l2);
+    csound->RealFFT(csound, csound->RealFFTSetup(csound,l2,FFT_FWD), x);
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
     for (i = 0; i < (minh << 1); i++)
@@ -1769,7 +1744,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
       x[i] = FL(0.0);
     x[1] = x[l1];
     x[l1] = x[l1 + 1] = FL(0.0);
-    csound->InverseRealFFT(csound, x, l1);
+    csound->RealFFT(csound, csound->RealFFTSetup(csound,l1,FFT_INV), x);
     /* write dest. table */
     /* memcpy(f1, x, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
@@ -1811,7 +1786,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     a = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
       x[i] = a * f2[i];
-    csound->RealFFT(csound, x, l2);
+    csoundRealFFT(csound, x, l2);
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
 
@@ -1847,7 +1822,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     /* write dest. table */
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
-    csound->InverseRealFFT(csound, y, l1);
+    csoundInverseRealFFT(csound, y, l1);
     /* memcpy(f1, y, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
@@ -1947,7 +1922,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
           /* read and analyze src table */
           for (i = 0; i < l2; i++)
             x[i] = f2[i];
-          csound->RealFFT(csound, x, l2);
+          csoundRealFFT(csound, x, l2);
           x[l2] = x[1];
           x[1] = x[l2 + 1] = FL(0.0);
         }
@@ -1974,7 +1949,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     /* write dest. table */
     if (y != NULL) {
       y[1] = y[l1]; y[l1] = y[l1 + 1] = FL(0.0);
-      csound->InverseRealFFT(csound, y, l1);
+      csoundInverseRealFFT(csound, y, l1);
       for (i = 0; i < l1; i++)
         f1[i] += y[i];
       f1[l1] += y[0];           /* write guard point */
@@ -2052,7 +2027,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
       x[(pnum << 1) + 1] -= amp * COS(phs);
     }
 
-    csound->InverseRealFFT(csound, x, flen);    /* iFFT */
+    csoundInverseRealFFT(csound, x, flen);    /* iFFT */
 
 
     memcpy(ft, x, flen*sizeof(MYFLT));
@@ -2087,7 +2062,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTnp2Findint(csound, &(ff->e.p[5]), 1)) == NULL))
+    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -2401,64 +2376,6 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     return ftp;
 }
 
-/* find the ptr to an existing ftable structure */
-/*   called by oscils, etc at init time         */
-
-FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
-{
-    FUNC    *ftp;
-    int     fno;
-
-    fno = MYFLT2LONG(*argp);
-    if (UNLIKELY(fno == -1)) {
-      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
-      return csound->sinetable;
-    }
-    if (UNLIKELY(fno <= 0                    ||
-                 fno > csound->maxfnum       ||
-                 (ftp = csound->flist[fno]) == NULL)) {
-      csoundInitError(csound, Str("Invalid ftable no. %f"), *argp);
-      return NULL;
-    }
-    else if (UNLIKELY(ftp->lenmask == -1)) {
-      csoundInitError(csound, Str("illegal table length"));
-      return NULL;
-    }
-    else if (UNLIKELY(!ftp->lenmask)) {
-      csoundInitError(csound,
-                      Str("deferred-size ftable %f illegal here"), *argp);
-      return NULL;
-    }
-    return ftp;
-}
-
-/* find the ptr to an existing ftable structure */
-/*   called by oscils, etc at init time         */
-/* does not throw an error when a non-pow of two size table is found */
-
-FUNC *csoundFTFind2(CSOUND *csound, MYFLT *argp)
-{
-    FUNC    *ftp;
-    int     fno;
-
-    fno = MYFLT2LONG(*argp);
-    if (UNLIKELY(fno == -1)) {
-      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
-      return csound->sinetable;
-    }
-    if (UNLIKELY(fno <= 0                    ||
-                 fno > csound->maxfnum       ||
-                 (ftp = csound->flist[fno]) == NULL)) {
-      return NULL;
-    }
-    else if (UNLIKELY(ftp->lenmask == -1)) {
-      return NULL;
-    }
-    else if (UNLIKELY(!ftp->lenmask)) {
-      return NULL;
-    }
-    return ftp;
-}
 
 static FUNC *gen01_defer_load(CSOUND *csound, int fno);
 PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
@@ -2483,7 +2400,6 @@ PUBLIC int csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum)
 }
 
 
-
 PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
 {
     FUNC    *ftp;
@@ -2500,56 +2416,13 @@ PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum)
     return -1;
 }
 
-/**************************************
- * csoundFTFindP()
- *
- * New function to find a function table at performance time.  Based
- * on csoundFTFind() which is intended to run at init time only.
- *
- * This function can be called from other modules - such as ugrw1.c.
- *
- * It returns a pointer to a FUNC data structure which contains all
- * the details of the desired table.  0 is returned if it cannot be
- * found.
- *
- * This does not handle deferred function table loads (gen01).
- *
- * Maybe this could be achieved, but some exploration would be
- * required to see that this is feasible at performance time.
- */
-FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
-{
-    FUNC    *ftp;
-    int     fno;
-
-    /* Check limits, and then index  directly into the flist[] which
-     * contains pointers to FUNC data structures for each table.
-     */
-    fno = MYFLT2LONG(*argp);
-    if (UNLIKELY(fno == -1)) {
-      if (UNLIKELY(csound->sinetable==NULL)) generate_sine_tab(csound);
-      return csound->sinetable;
-    }
-    if (UNLIKELY(fno <= 0                 ||
-                 fno > csound->maxfnum    ||
-                 (ftp = csound->flist[fno]) == NULL)) {
-      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
-      return NULL;
-    }
-    else if (UNLIKELY(!ftp->lenmask)) {
-      /* Now check that the table has a length > 0.  This should only
-       * occur for tables which have not been loaded yet.  */
-      csound->ErrorMsg(csound, Str("Deferred-size ftable %f load "
-                                  "not available at perf time."), *argp);
-      return NULL;
-    }
-    return ftp;
-}
-
+/************************************************/
+/* New FT interface, subsumming all previous    */
+/* functions into a single one, can be called   */
+/* at any stage                                 */
 /* find ptr to a deferred-size ftable structure */
-/*   called by loscil at init time, and ftlen   */
-
-FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose)
+/***********************************************/
+FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int     fno = MYFLT2LONG(*argp);
@@ -2561,29 +2434,20 @@ FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose)
     if (UNLIKELY(fno <= 0 ||
                  fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
-      if (verbose) csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
     if (ftp->flen == 0) {
      if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
        else {
-         if (verbose) csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+        csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
     }
       if (UNLIKELY(ftp == NULL))
       csound->inerrcnt++;
     }
     return ftp;
-}
-
-FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
-{
-    return csoundFTnp2Findint(csound, argp, 0);
-}
-FUNC *csoundFTnp2Finde(CSOUND *csound, MYFLT *argp)
-{
-    return csoundFTnp2Findint(csound, argp, 1);
 }
 
 /* read ftable values from a sound file */
@@ -2859,7 +2723,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     if (isstrcod(ff->e.p[5]))
       strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
     else
-      csound->strarg2name(csound, filename, filno, "pvoc.", 0);
+      csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, filename, &pp) != 0))
       return fterror(ff, Str("Failed to load PVOC-EX file"));
@@ -2924,8 +2788,8 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     if (isstrcod(ff->e.p[5]))
       strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
     else
-      csound->strarg2name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
-    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, buff, "r",
+      csound->StringArg2Name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
+    fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
       return fterror(ff, Str("GEN44: Failed to open file %s\n"), buff);
@@ -2959,7 +2823,6 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     if (ff->e.p[4]>0) ff->e.p[4] = -44;
     return OK;
 }
-
 
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
 {
@@ -3103,7 +2966,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       obuf[i++] = FL(0.0);
     } while (i < npts);
     obuf[1] = ibuf[j] * scaleFac;
-    csound->InverseRealFFT(csound, obuf, npts);
+    csoundInverseRealFFT(csound, obuf, npts);
     obuf[npts] = FL(0.0);               /* clear guard point */
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
@@ -3123,7 +2986,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       buf1[j] = obuf[i];
     for ( ; j < npts2; j++)
       buf1[j] = FL(0.0);
-    csound->RealFFT(csound, buf1, npts2);
+    csoundRealFFT(csound, buf1, npts2);
     for (i = j = 0; i < npts; i++, j += 2) {
       tmp = (double) buf1[j];
       tmp = sqrt(tmp * tmp + 1.0e-20);
@@ -3138,7 +3001,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     }
     for (j = i - 2; i < npts2; i++, j--)    /* need full spectrum,     */
       buf1[i] = buf1[j];                    /* not just the lower half */
-    csound->RealFFT(csound, buf1, npts2);
+    csoundRealFFT(csound, buf1, npts2);
     /* and convolve with 1/tan(x) impulse response */
     buf2[0] = FL(0.0);
     buf2[1] = FL(0.0);
@@ -3146,9 +3009,9 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       buf2[i] = FL(0.0);
       buf2[i + 1] = (MYFLT) (npts2 - i) / (MYFLT) npts2;
     }
-    csound->RealFFTMult(csound, buf1, buf1, buf2, npts2, scaleFac);
+    csoundRealFFTMult(csound, buf1, buf1, buf2, npts2, scaleFac);
     /* store unwrapped phase response in buf1 */
-    csound->InverseRealFFT(csound, buf1, npts2);
+    csoundInverseRealFFT(csound, buf1, npts2);
     /* convert from magnitude/phase format to real/imaginary */
     for (i = 2; i < npts2; i += 2) {
       double  ph;
@@ -3162,7 +3025,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     buf2[0] = scaleFac * obuf[0];
     buf2[1] = scaleFac * obuf[npts];
     /* perform inverse FFT to get impulse response */
-    csound->InverseRealFFT(csound, buf2, npts2);
+    csoundInverseRealFFT(csound, buf2, npts2);
     /* copy output, truncating to table length + guard point */
     for (i = 0; i <= npts; i++)
       obuf[i] = buf2[i];
@@ -3216,7 +3079,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       tmpft = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)
                                               * (size_t) ((dstflen >> 1) + 1));
       memcpy(dstftp, srcftp, sizeof(MYFLT) * (size_t) dstflen);
-      csound->RealFFT(csound, dstftp, dstflen);
+      csoundRealFFT(csound, dstftp, dstflen);
       tmpft[0] = dstftp[0];
       for (i = 2, j = 1; i < dstflen; i += 2, j++)
         tmpft[j] = HYPOT(dstftp[i], dstftp[i + 1]);
@@ -3322,7 +3185,7 @@ int resize_table(CSOUND *csound, RESIZE *p)
       printf("WARNING: EXPERIMENTAL CODE\n");
       warned = 1;
     }
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->fn)) == NULL))
+    if (UNLIKELY((ftp = csoundFTFind(csound, p->fn)) == NULL))
       return NOTOK;
     if (ftp->flen<fsize)
       ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,

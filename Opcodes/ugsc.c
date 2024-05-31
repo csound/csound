@@ -509,7 +509,6 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
         else {
           freq = kbf * kk;
           kk *= ksep;
-          //freq = kbf * csound->intpow(ksep,(int32_t)j);
         }
         /* Note similarities of following equations to
          * equations in resonr/resonz. The 2nd-order

@@ -969,7 +969,7 @@ int32_t ftlen(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->a)) == NULL)) {
     *p->r = -FL(1.0);       /* Return something */
     return NOTOK;
   }
@@ -982,7 +982,7 @@ int32_t ftchnls(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->a)) == NULL)) {
     *p->r = -FL(1.0);       /* Return something */
     return NOTOK;
   }
@@ -995,7 +995,7 @@ int32_t ftcps(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->a)) == NULL)
       || ftp->cpscvt == FL(0.0)) {
     *p->r = -FL(1.0);       /* Return something */
     return NOTOK;
@@ -1011,7 +1011,7 @@ int32_t ftlptim(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL))
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->a)) == NULL))
     return NOTOK;
   if (LIKELY(ftp->loopmode1))
     *p->r = ftp->begin1 * CS_ONEDSR;
@@ -1026,7 +1026,7 @@ int32_t numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->a)) == NULL)) {
     *p->r = FL(0.0);
     return NOTOK;
   }
@@ -1042,7 +1042,7 @@ int32_t ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado **
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->a)) == NULL)) {
     *p->r = FL(0.0);
     return NOTOK;
   }
@@ -1167,7 +1167,7 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
   }
   else {                      /* Values in a table */
     MYFLT t = - *p->et;
-    FUNC* ftp = csound->FTnp2Finde(csound, &t);
+    FUNC* ftp = csound->FTFind(csound, &t);
     int32_t len, frt;
     if (UNLIKELY(ftp == NULL))
       return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
@@ -1195,7 +1195,7 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
   }
   else {
     MYFLT t = - *p->et;
-    FUNC* ftp = csound->FTnp2Finde(csound, &t);
+    FUNC* ftp = csound->FTFind(csound, &t);
     int32_t len, frt;
     if (UNLIKELY(ftp == NULL))
       return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
@@ -1224,7 +1224,7 @@ int32_t cpstun_i(CSOUND *csound, CPSTUNI *p)
   int32_t numgrades;
   int32_t basekeymidi;
   MYFLT basefreq, factor, interval;
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->tablenum)) == NULL)) goto err1;
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->tablenum)) == NULL)) goto err1;
   func = ftp->ftable;
   numgrades = (int32_t)*func++;
   interval = *func++;
@@ -1258,7 +1258,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
     int32_t numgrades;
     int32_t basekeymidi;
     MYFLT basefreq, factor, interval;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->tablenum)) == NULL))
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->tablenum)) == NULL))
       goto err1;
     func = ftp->ftable;
     numgrades = (int32_t)*func++;
@@ -2152,7 +2152,7 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 {
-  if (UNLIKELY(csound->GetOutputArgCnt(p) != (int32_t)csound->GetNchnls(csound)))
+  if (UNLIKELY(GetOutputArgCnt((OPDS *)p) != (int32_t)csound->GetNchnls(csound)))
     return csound->InitError(csound, Str("number of arguments != nchnls"));
   p->h.perf = (SUBR) monitor_opcode_perf;
   return OK;
@@ -2291,7 +2291,7 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 
   if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
 
-  if (LIKELY(csound->ISSTRCOD(csound->init_event->p[n]))) {
+  if (LIKELY(IsStringCode(csound->init_event->p[n]))) {
     p->ians->data = csound->Strdup(csound,
                                    csound->GetString(csound, csound->init_event->p[n]));
     p->ians->size = strlen(p->ians->data) + 1;
@@ -2315,7 +2315,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
   pargs -= (int)*p->end;
   for (n=0; (n<nargs) && (n<=pargs-start); n++) {
     //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
-    if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
+    if (IsStringCode(csound->init_event->p[n+start])) {
       ((STRINGDAT *)p->inits[n])->data =
         csound->Strdup(csound, csound->GetString(csound, csound->init_event->p[n+start]));
       ((STRINGDAT *)p->inits[n])->size =
@@ -2342,3 +2342,4 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   }
   return OK;
 }
+

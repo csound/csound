@@ -234,7 +234,7 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
                     (play ? Str("output") : Str("input")),
                     dev_info->name);
     if(play) {
-      csound->system_sr(csound, (MYFLT) dev_info->defaultSampleRate);
+      csound->GetSystemSr(csound, (MYFLT) dev_info->defaultSampleRate);
       DAC_channels(csound, dev_info->maxOutputChannels);
     } else ADC_channels(csound, dev_info->maxInputChannels);
   }
@@ -256,7 +256,7 @@ static int pa_SetStreamParameters(CSOUND *csound, PaStreamParameters *sp,
   }
   dev = selectPortAudioDevice(csound, parm->devNum, is_playback);
   if(parm->sampleRate < 0) {
-    parm->sampleRate = csound->system_sr(csound, 0);
+    parm->sampleRate = csound->GetSystemSr(csound, 0);
   }
   if (dev < 0)
     return -1;

@@ -112,7 +112,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
   ATSSTRUCT         *atsh;
   int32_t               i;
 
-  strncpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
+  strncpy(opname, GetOpcodeName(p), 63);   /* opcode name */
   opname[63]='\0';
   for (i = 0; opname[i] != '\0'; i++)
     opname[i] = toupper(opname[i]);           /* converted to upper case */
@@ -120,13 +120,13 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
   /* copy in ats file name */
   if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
   else {
-    if (csound->ISSTRCOD(*((MYFLT*)name_arg)))
+    if (IsStringCode(*((MYFLT*)name_arg)))
       strncpy(fname,csound->GetString(csound, *((MYFLT*)name_arg)),MAXNAME-1);
-    else csound->strarg2name(csound, fname, name_arg, "ats.",0);
+    else csound->StringArg2Name(csound, fname, name_arg, "ats.",0);
   }
   /* load memfile */
-  if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
-                                                CSFTYPE_ATS, NULL)) == NULL)) {
+  if (UNLIKELY((*mfp = csound->LoadMemoryFile(csound, fname,
+                                              CSFTYPE_ATS, NULL)) == NULL)) {
     (void)csound->InitError(csound,
                             Str("%s: Ats file %s not read (does it exist?)"),
                             opname, fname);
@@ -511,7 +511,7 @@ static int32_t atsreadnzset(CSOUND *csound, ATSREADNZ *p)
 
   /* check to see if band is valid */
   if (UNLIKELY((int32_t) (*p->inzbin) > 25 || (int32_t) (*p->inzbin) <= 0)) {
-    return csound->InitError(csound,  Str("ATSREADNZ: band %i out of range, "
+    return csound->InitError(csound, Str("ATSREADNZ: band %i out of range, "
                                          "1-25 are the valid band values"),
                              (int32_t) (*p->inzbin));
   }
@@ -645,7 +645,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
   int32_t   memsize, n_partials, type;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSADD: Function table number "
                                          "for synthesis waveform not valid"));
   }
@@ -653,7 +653,7 @@ static int32_t atsaddset(CSOUND *csound, ATSADD *p)
   p->floatph = !IS_POW_TWO(ftp->flen);
   /* set up gate function table */
   if (*p->igatefun > FL(0.0)) {
-    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL)) {
+    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
       return csound->InitError(csound, "%s", Str("ATSADD: Gate Function table "
                                            "number not valid"));
     }
@@ -755,7 +755,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
   int32_t   memsize, n_partials, type;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSADD: Function table number "
                                          "for synthesis waveform not valid"));
   }
@@ -764,7 +764,7 @@ static int32_t atsaddset_S(CSOUND *csound, ATSADD *p)
 
   /* set up gate function table */
   if (*p->igatefun > FL(0.0)) {
-    if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL)) {
+    if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL)) {
       return csound->InitError(csound, "%s", Str("ATSADD: Gate Function table "
                                            "number not valid"));
     }
@@ -1160,7 +1160,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
                p->bands <0 || /* Allow zero bands for no good reason */
                p->bandoffset < 0)) {
     return csound->InitError(csound, "%s", Str("ATSADDNZ: Band(s) out of range, "
-                                         "max band allowed is 25"));
+                                               "max band allowed is 25"));
   }
 
   /* point the data pointer to the correct partials */
@@ -2589,12 +2589,13 @@ static int32_t atscrossset(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSCROSS: Function table number for "
                                          "synthesis waveform not valid"));
   }
   p->ftp = ftp;
   p->floatph = !IS_POW_TWO(ftp->flen);
+
 
   /* load memfile */
   p->swapped = load_atsfile(csound,
@@ -2684,7 +2685,7 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   int32_t type, n_partials;
 
   /* set up function table for synthesis */
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
     return csound->InitError(csound, "%s", Str("ATSCROSS: Function table number for "
                                          "synthesis waveform not valid"));
   }
@@ -2726,7 +2727,7 @@ static int32_t atscrossset_S(CSOUND *csound, ATSCROSS *p)
   /* make sure partials are in range */
   if (UNLIKELY((int32_t)(*p->iptloffset + *p->iptls * *p->iptlincr) >
                n_partials ||
-               (int32_t)(*p->iptloffset) < 0)) {
+               (int32_t)(*p->iptloffset) < 0)) { 
     return csound->InitError(csound,  Str("ATSCROSS: Partial(s) out of range, "
                                          "max partial allowed is %i"),
                              n_partials);
@@ -2888,6 +2889,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
+
   int32_t     numpartials = (int32_t) *p->iptls, floatph = p->floatph;
   ATS_DATA_LOC *buf;
 
@@ -2904,7 +2906,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;
       csound->Warning(csound, "%s", Str("ATSCROSS: only positive time pointer "
-                                  "values are allowed, setting to zero\n"));
+                                        "values are allowed, setting to zero\n"));
     }
   }
   else if (OUT_OF_FRAMES) {

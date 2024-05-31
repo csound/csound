@@ -27,8 +27,6 @@
 #include "ugens7.h"
 #include <math.h>
 
-#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
-
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
 static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
@@ -36,8 +34,8 @@ static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT
 static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
 {
   int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
-  if (LIKELY((p->ftp1 = csound->FTnp2Find(csound, p->ifna)) != NULL &&
-             (p->ftp2 = csound->FTnp2Find(csound, p->ifnb)) != NULL)) {  
+  if (LIKELY((p->ftp1 = csound->FTFind(csound, p->ifna)) != NULL &&
+             (p->ftp2 = csound->FTFind(csound, p->ifnb)) != NULL)) {  
     OVRLAP *ovp, *nxtovp;
     int32  olaps;
     // VL 22.03.24 check len to set float phase flag
@@ -313,12 +311,11 @@ static int32_t newpulse(CSOUND *csound,
     
   if (newexp || rismps != p->prvsmps) {            /* if new params */
     if ((p->prvsmps = rismps))                     /*   redo preamp */
-      p->preamp = csound->intpow(p->expamp, -rismps);
+      p->preamp = intpow(p->expamp, -rismps);
     else p->preamp = FL(1.0);
   }
   ovp->curamp = octamp * p->preamp;                /* set startamp  */
   ovp->expamp = p->expamp;
-
 
   if(p->floatph) {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) 

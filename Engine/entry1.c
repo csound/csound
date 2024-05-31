@@ -1258,7 +1258,6 @@ OENTRY opcodlst_1[] = {
     (SUBR)pinit,     NULL, NULL },
   { "passign.i", S(PAINIT), 0,  "i[]", "po",  (SUBR)painit,    NULL, NULL },
   { "passign.k", S(PAINIT), 0,  "k[]", "po",  (SUBR)painit,    NULL, NULL },
-
   /* ----------------------------------------------------------------------- */
   // VL: 9.3.22 this is causing a problem in parsing arrays
   // I am modifying it to accept only i-time inputs
@@ -1269,6 +1268,205 @@ OENTRY opcodlst_1[] = {
     (SUBR)outRange_i, (SUBR)outRange},
   { "nchnls_hw", S(ASSIGN), 0, "ii", "",
     (SUBR)hw_channels},
+  { "midic7.i",S(MIDICTL2),0,   "i", "iiio", (SUBR)imidic7, NULL, NULL  },
+  { "midic7.k", S(MIDICTL2),0, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
+  { "midic14.i", S(MIDICTL3), 0, "i", "iiiio",(SUBR)imidic14, NULL, NULL },
+  { "midic14.k", S(MIDICTL3), 0,"k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
+  { "midic21.i", S(MIDICTL4),0, "i", "iiiiio",(SUBR)imidic21, NULL, NULL },
+  { "midic21.k", S(MIDICTL4), 0,"k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
+  { "ctrl7.i", S(CTRL7), 0,     "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
+  { "ctrl7.k", S(CTRL7),  0,   "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
+  { "ctrl14.i", S(CTRL14),0,    "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
+  { "ctrl14.k", S(CTRL14), 0,  "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
+  { "ctrl21.i", S(CTRL21),0,    "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
+  { "ctrl21.k", S(CTRL21), 0,  "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
+  { "initc7", S(INITC7), 0,      "",  "iii",  (SUBR)initc7,     NULL,     NULL },
+  { "initc14", S(INITC14), 0,    "",  "iiii", (SUBR)initc14,    NULL,     NULL },
+  { "initc21", S(INITC21), 0,    "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
+  { "midipgm", S(MIDIPGM_OP), 0,  "i", "o",   (SUBR)midipgm_opcode, NULL, NULL },
+  { "slider8.k", S(SLIDER8), 0, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
+  { "slider8f", S(SLIDER8f), 0, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiii",
+    (SUBR)slider_i8f, (SUBR)slider8f, NULL },
+  { "slider8.i", S(SLIDER8), 0,  "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider8, NULL, NULL },
+  { "slider16.k", S(SLIDER16), 0, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiii",
+    (SUBR)slider_i16, (SUBR)slider16, NULL },
+  { "slider16f", S(SLIDER16f), 0, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i16f, (SUBR)slider16f, NULL },
+  { "slider16.i", S(SLIDER16), 0,  "iiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider16, NULL, NULL       },
+  { "slider32.k", S(SLIDER32),  0, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i32, (SUBR)slider32, NULL  },
+  { "slider32f", S(SLIDER32f), 0, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i32f, (SUBR)slider32f, NULL },
+  { "slider32.i", S(SLIDER32), 0,  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider32, NULL, NULL  },
+  { "slider64.k", S(SLIDER64), 0, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+    "kkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i64, (SUBR)slider64, NULL  },
+  { "slider64f", S(SLIDER64f), 0, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+    "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i64f, (SUBR)slider64f, NULL },
+  { "slider64.i", S(SLIDER64), 0,  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiii",
+    (SUBR)islider64, NULL, NULL  },
+  { "s16b14.k", S(SLIDER16BIT14), 0, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
+  { "s32b14.k", S(SLIDER32BIT14), 0, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
+  { "s16b14.i", S(ISLIDER16BIT14), 0,  "iiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiii",
+    (SUBR)islider16bit14, NULL, NULL  },
+  { "s32b14.i", S(ISLIDER32BIT14), 0,  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)islider32bit14, NULL, NULL  },
+  { "slider8table", S(SLIDER8t), 0, "k",  "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
+  { "slider16table", S(SLIDER8t), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
+  { "slider32table", S(SLIDER8t), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
+  { "slider64table", S(SLIDER8t), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i64, (SUBR)sliderTable64, (SUBR)NULL },
+  { "slider8tablef", S(SLIDER8tf), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i8f, (SUBR)sliderTable8f, (SUBR)NULL },
+  { "slider16tablef",S(SLIDER16tf), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i16f, (SUBR)sliderTable16f, (SUBR)NULL },
+  { "slider32tablef",S(SLIDER32tf), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i32f, (SUBR)sliderTable32f, (SUBR)NULL },
+  { "slider64tablef",S(SLIDER64tf), 0, "k", "iii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderTable_i64f, (SUBR)sliderTable64f, (SUBR)NULL },
+  { "sliderKawai", S(SLIDERKAWAI),  0, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
+  { "ctrl7.a", S(CTRL7a),  0, "a",    "iikkoo",
+    (SUBR) ctrl7a_set,    (SUBR) ctrl7a },
+  { "cpuprc", S(CPU_PERC),0,      "",     "Si",   (SUBR)cpuperc_S, NULL, NULL   },
+  { "maxalloc", S(CPU_PERC),0,    "",     "Si",   (SUBR)maxalloc_S, NULL, NULL  },
+  { "cpuprc", S(CPU_PERC),0,      "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
+  { "maxalloc", S(CPU_PERC),0,    "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
+  { "active.iS", S(INSTCNT),0,    "i",    "Soo",   (SUBR)instcount_S, NULL, NULL },
+  { "active.kS", S(INSTCNT),0,    "k",    "Soo",   NULL, (SUBR)instcount_S, NULL },
+  { "active.i", S(INSTCNT),0,     "i",    "ioo",   (SUBR)instcount, NULL, NULL },
+  { "active.k", S(INSTCNT),0,     "k",    "koo",   NULL, (SUBR)instcount, NULL },
+  { "p.i", S(PFUN),        0,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
+  { "p.k", S(PFUNK),       0,     "k",    "k",
+    (SUBR)pfunk_init, (SUBR)pfunk, NULL },
+  { "mute", S(MUTE), 0,           "",      "So",   (SUBR)mute_inst_S             },
+  { "mute.i", S(MUTE), 0,         "",      "io",   (SUBR)mute_inst             },
   { "midiarp",   S(MIDIARP),0,      "kk", "kO",
     midiarp_set, midiarp, NULL },
   {"lpcfilter", S(LPCFIL), 0,  "a", "akkiiio",
