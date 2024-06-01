@@ -59,7 +59,6 @@ static int32_t ftable_delete(CSOUND *csound, FTGEN *p)
   if (UNLIKELY(err != OK))
     csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
                      p->fno);
-  csound->Free(csound, p);
   return err;
 }
 
@@ -217,7 +216,6 @@ static int32_t ftfree_deinit(CSOUND *csound, FTFREE *p)
     if (UNLIKELY(err != OK))
       csound->ErrorMsg(csound, Str("Error deleting ftable %d"),
                        p->fno);
-    csound->Free(csound, p);
     return err;
   } else return OK;
 }

@@ -1776,11 +1776,6 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
   MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
   MYFLT parent_ksmps = udo ? udo->parent_ip->ksmps : csound->ksmps;
 
-  if(udo) {
-    if(udo->iflag) 
-      return csoundInitError(csound, "can't set ksmps after xin\n");
-  }
-  
   if(CS_ESR != parent_sr) 
     return csoundInitError(csound,
                            "can't set ksmps value if local sr != parent sr\n");
