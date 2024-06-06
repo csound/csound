@@ -547,7 +547,7 @@ static int32_t OSC_handler(const char *path, const char *types,
             case 'b':
               {
                 int32_t len =
-                  lo_blobsize((lo_blob)argv[i]);
+                  lo_blobsize(argv[i]);
                 m->args[i].blob =
                   csound->Malloc(csound,len);
                 memcpy(m->args[i].blob, argv[i], len);

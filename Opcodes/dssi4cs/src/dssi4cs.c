@@ -683,7 +683,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     icnt = GetInputArgCnt(p) - 1;
+    int32_t     icnt = GetInputArgCnt((OP DS*)p) - 1;
     int32_t     ocnt = GetOutputArgCnt(p);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
@@ -701,7 +701,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 #ifdef DEBUG
     csound->Message(csound,
                     "DSSI4CS: dssiaudio- %i input args, %i output args.\n",
-                    GetInputArgCnt(p), GetOutputArgCnt(p));
+                    GetInputArgCnt((OPDS*)p), GetOutputArgCnt(p));
     csound->Message(csound, "DSSI4CS: dssiaudio LocatePlugin # %i\n", Number);
 #endif
 
@@ -810,7 +810,7 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     uint32_t i, j;
 
 
-    uint32_t icnt = GetInputArgCnt(p) - 1;
+    uint32_t icnt = GetInputArgCnt((OPDS*)p) - 1;
     uint32_t ocnt = GetOutputArgCnt(p);
     uint64_t Ksmps = (uint64_t) CS_KSMPS;
 
