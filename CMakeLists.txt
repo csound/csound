@@ -125,9 +125,9 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         set(BISON_EXECUTABLE "${BREW_BISON_PREFIX}/bin/bison")
     elseif(EXISTS "/usr/local/bin/bison")
         message(STATUS "Bison in /usr/local/bin")
-        set(BISON_EXECUTABLE "/usr/local/bin/bison") 
+        set(BISON_EXECUTABLE "/usr/local/bin/bison")
     endif()
-    
+
     execute_process(
         COMMAND brew --prefix flex
         RESULT_VARIABLE BREW_FLEX
@@ -139,9 +139,9 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         set(FLEX_EXECUTABLE "${BREW_FLEX_PREFIX}/bin/flex")
    elseif(EXISTS "/usr/local/bin/flex")
         message(STATUS "Flex in /usr/local/bin")
-        set(FLEX_EXECUTABLE "/usr/local/bin/flex") 
+        set(FLEX_EXECUTABLE "/usr/local/bin/flex")
     endif()
-    
+
 endif()
 
 ### COMPILER OPTIMIZATION FLAGS
@@ -183,8 +183,8 @@ if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
     if(CUSTOM_MALLOC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
-    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000 
-    endif() 
+    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
+    endif()
 endif()
 
 # secret rabbit code
@@ -637,7 +637,7 @@ endif()
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
 list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/H)
-list(APPEND libcsound_public_include_dirs 
+list(APPEND libcsound_public_include_dirs
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -691,7 +691,7 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
-    Top/argdecode.c    
+    Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
     Top/cscorfns.c
@@ -704,7 +704,7 @@ set(libcsound_SRCS
     Top/threads.c
     Top/utility.c
     Top/threadsafe.c
-    Top/server.c    
+    Top/server.c
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
@@ -754,11 +754,11 @@ set(libcsound_SRCS
     OOps/midiinterop.c
     OOps/midiops.c
     OOps/midiops2.c
-       OOps/midiops3.c
+    OOps/midiops3.c
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
-     OOps/pitch0.c
+    OOps/pitch0.c
     OOps/pstream.c
     OOps/pvfileio.c
     OOps/pvsanal.c
@@ -963,7 +963,7 @@ set(oldpvoc_SRCS
 )
 
 set(scanops_SRCS
-    Opcodes/scansyn.c   
+    Opcodes/scansyn.c
     Opcodes/scansynx.c
 )
 
@@ -1010,7 +1010,7 @@ if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
  ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
  ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
- ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS} 
+ ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
 endif()
 
@@ -1175,7 +1175,7 @@ if(BUILD_MULTI_CORE)
         Engine/cs_new_dispatch.c
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c)
-   
+
 
     list(APPEND libcsound_CFLAGS -DPARCS)
 
@@ -1214,7 +1214,7 @@ endif()
 if(BUILD_PLUGINS)
     message(STATUS "build external opcodes as plugins")
     target_compile_definitions(${CSOUNDLIB} PUBLIC
-    "-DBUILD_PLUGINS")    
+    "-DBUILD_PLUGINS")
 endif()
 
 # Add the install target

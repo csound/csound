@@ -32,7 +32,9 @@ extern int csoundModuleCreate_signalflowgraph(CSOUND *csound);
 extern int csoundModuleInit_ampmidid(CSOUND *);
 extern int csoundModuleInit_doppler(CSOUND *);
 extern int csoundModuleInit_fractalnoise(CSOUND *);
+#ifndef __wasi__
 extern int csoundModuleInit_ftsamplebank(CSOUND *);
+#endif
 extern int csoundModuleInit_mixer(CSOUND *);
 extern int csoundModuleInit_signalflowgraph(CSOUND *);
 //# extern int csoundModuleInit_ableton_link_opcodes(CSOUND *);
