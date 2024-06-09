@@ -1538,8 +1538,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     buf->parent_ip = p->parent_ip = parent_ip;
   } else
 
-  /* copy parameters from the caller instrument into our subinstrument */
-  lcurip = p->ip;
+    /* copy parameters from the caller instrument into our subinstrument */
+    lcurip = p->ip;
   lcurip->esr = CS_ESR;
   lcurip->pidsr = CS_PIDSR;
   lcurip->sicvt = CS_SICVT;
@@ -2186,8 +2186,8 @@ int subinstr(CSOUND *csound, SUBINST *p)
 // local ksmps and global sr
 int useropcd1(CSOUND *csound, UOPCODE *p)
 {
-  OPDS    *saved_pds = CS_PDS;
   int    g_ksmps, ofs, early, offset, i;
+  OPDS *opstart;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   INSDS    *this_instr = p->ip;
@@ -2263,19 +2263,15 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      if ((CS_PDS = (OPDS *) (this_instr->nxtp)) != NULL) {
+      if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
         int error = 0;
-        CS_PDS->insdshead->pds = NULL;
         do {
           if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-          error = (*CS_PDS->perf)(csound, CS_PDS);
-          if (CS_PDS->insdshead->pds != NULL &&
-              CS_PDS->insdshead->pds->insdshead) {
-            CS_PDS = CS_PDS->insdshead->pds;
-            CS_PDS->insdshead->pds = NULL;
-          }
+          opstart->insdshead->pds = opstart;
+          error = (*opstart->perf)(csound, opstart);
+          opstart = opstart->insdshead->pds;
         } while (error == 0 && p->ip != NULL
-                 && (CS_PDS = CS_PDS->nxtp));
+                 && (opstart = opstart->nxtp));
       }
 
       /* copy a-sig outputs, accounting for offset */
@@ -2372,19 +2368,15 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       }
 
       /*  run each opcode  */
-      if ((CS_PDS = (OPDS *) (this_instr->nxtp)) != NULL) {
+      if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
         int error = 0;
-        CS_PDS->insdshead->pds = NULL;
         do {
           if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-          error = (*CS_PDS->perf)(csound, CS_PDS);
-          if (CS_PDS->insdshead->pds != NULL &&
-              CS_PDS->insdshead->pds->insdshead) {
-            CS_PDS = CS_PDS->insdshead->pds;
-            CS_PDS->insdshead->pds = NULL;
-          }
+          opstart->insdshead->pds = opstart;
+          error = (*opstart->perf)(csound, opstart);
+          opstart = opstart->insdshead->pds;
         } while (error == 0 && p->ip != NULL
-                 && (CS_PDS = CS_PDS->nxtp));
+                 && (opstart = opstart->nxtp));
       }
 
       /* copy a-sig outputs, accounting for offset */
@@ -2413,7 +2405,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
 
         }
-
         current = current->next;
       }
 
@@ -2480,7 +2471,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     current = current->next;
   }
  endop:
-  CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip)                                         /* loop to last opds */
     while (CS_PDS && CS_PDS->nxtp) CS_PDS = CS_PDS->nxtp;
@@ -2490,7 +2480,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 // global ksmps amd global or local sr
 int useropcd2(CSOUND *csound, UOPCODE *p)
 {
-  OPDS    *saved_pds = CS_PDS;
   MYFLT   **tmp;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
@@ -2506,7 +2495,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
   
-  if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
+  if (UNLIKELY(p->ip->nxtp == NULL))
     goto endop; /* no perf code */
   
   p->ip->relesing = p->parent_ip->relesing;
@@ -2521,6 +2510,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   for(ocnt = 0; ocnt < os; ocnt++){
     int error = 0;
     int cvt;
+    OPDS *opstart;
     /* copy inputs */
     current = inm->in_arg_pool->head;
     for (i = cvt = 0; i < inm->inchns; i++) {
@@ -2553,19 +2543,15 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       current = current->next;
     }
 
-    if ((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) { 
-      CS_PDS->insdshead->pds = NULL;
+    if ((opstart = (OPDS *) (p->ip->nxtp)) != NULL) { 
       p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
       do {
         if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-        error = (*CS_PDS->perf)(csound, CS_PDS);
-        if (CS_PDS->insdshead->pds != NULL &&
-            CS_PDS->insdshead->pds->insdshead) {
-          CS_PDS = CS_PDS->insdshead->pds;
-          CS_PDS->insdshead->pds = NULL;
-        }
+        opstart->insdshead->pds = opstart;
+        error = (*opstart->perf)(csound, opstart);
+        opstart = opstart->insdshead->pds;
       } while (error == 0 && p->ip != NULL
-               && (CS_PDS = CS_PDS->nxtp));
+               && (opstart = opstart->nxtp));
     }
 
     /* copy outputs */
@@ -2602,8 +2588,6 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   }
 
  endop:
-  /* restore globals */
-  CS_PDS = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip)  {                   /* loop to last opds */
     while (CS_PDS && CS_PDS->nxtp) {
@@ -2751,26 +2735,26 @@ static void instance(CSOUND *csound, int insno)
     }  
 
     if (ep->init != NULL) {  /* init */ 
-        prvids = prvids->nxti = opds; /* link into ichain */
-        opds->init = ep->init; /*   & set exec adr */
-        if (UNLIKELY(odebug))
-          csound->Message(csound, "%s init = %p\n",
-                          ep->opname,(void*) opds->init);
-      }
-      if (ep->perf != NULL) {  /* perf */
-        prvpds = prvpds->nxtp = opds; /* link into pchain */
-        opds->perf = ep->perf;  /*     perf   */
-        if (UNLIKELY(odebug))
-          csound->Message(csound, "%s perf = %p\n",
-                          ep->opname,(void*) opds->perf);
-      }
+      prvids = prvids->nxti = opds; /* link into ichain */
+      opds->init = ep->init; /*   & set exec adr */
+      if (UNLIKELY(odebug))
+        csound->Message(csound, "%s init = %p\n",
+                        ep->opname,(void*) opds->init);
+    }
+    if (ep->perf != NULL) {  /* perf */
+      prvpds = prvpds->nxtp = opds; /* link into pchain */
+      opds->perf = ep->perf;  /*     perf   */
+      if (UNLIKELY(odebug))
+        csound->Message(csound, "%s perf = %p\n",
+                        ep->opname,(void*) opds->perf);
+    }
     if(ep->deinit != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds; /* link into dchain */
       opds->deinit = ep->deinit;  /*   deinit   */
       if (UNLIKELY(odebug))
         csound->Message(csound, "%s deinit = %p\n",
                         ep->opname,(void*) opds->deinit);
-      }
+    }
     
     if (ep->useropinfo == NULL)
       argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
