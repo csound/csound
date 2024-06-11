@@ -210,7 +210,7 @@ sudo chmod -R 755    CsoundApps64/Package_Contents/usr
 echo "creating bundle ..."
 
 # this step converts the framework into a bundle
-# Author: Giovanno Benneti
+# Author: Giovanni Bedetti
 # cp CsoundLib64.framework.meta CsoundLib64.bundle.meta
 mkdir -p CsoundLib64.bundle/Contents/MacOS
 cp $FRAMEWORK64_DIR/Versions/Current/CsoundLib64* CsoundLib64.bundle/Contents/MacOS
