@@ -211,13 +211,11 @@ echo "creating bundle ..."
 
 # this step converts the framework into a bundle
 # Author: Giovanni Bedetti
-# cp CsoundLib64.framework.meta CsoundLib64.bundle.meta
 mkdir -p CsoundLib64.bundle/Contents/MacOS
 cp $FRAMEWORK64_DIR/Versions/Current/CsoundLib64* CsoundLib64.bundle/Contents/MacOS
 cp $FRAMEWORK64_DIR/libs/* CsoundLib64.bundle/Contents/MacOS
 install_name_tool -change @loader_path/../../libs/libsndfile.1.dylib @loader_path/libsndfile.1.dylib CsoundLib64.bundle/Contents/MacOS/CsoundLib64
 install_name_tool -id CsoundLib64 CsoundLib64.bundle/Contents/MacOS/CsoundLib64
-# rm CsoundLib64.framework.meta
 
 cat > CsoundLib64.bundle/Contents/Info.plist << EOL
 <?xml version="1.0" encoding="UTF-8"?>
