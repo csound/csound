@@ -231,7 +231,7 @@ cat > CsoundLib64.bundle/Contents/Info.plist << EOL
 	<key>CFBundleIdentifier</key>
 	<string>com.csound.CsoundLib64</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
+	<string>7.0</string>
 	<key>CFBundleName</key>
 	<string>CsoundLib64</string>
 	<key>CFBundlePackageType</key>
