@@ -27,7 +27,7 @@
  stackops: copyright (C) 2006 Istvan Varga
 */
 static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("S", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -36,7 +36,7 @@ static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
 }
 
 static int32_t ASIG_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("a", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -127,7 +127,7 @@ static CS_NOINLINE int32_t csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+    csound->ErrorMsg(csound, "%s: %s", GetOpcodeName((OPDS *)p), msg);
 
     return NOTOK;
 }
@@ -204,10 +204,10 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 
     csound = ((OPDS*) p)->insdshead->csound;
     if (!isOutput) {
-      argCnt = csound->GetInputArgCnt(p);
+      argCnt = GetInputArgCnt((OPDS *)p);
     }
     else {
-      argCnt = csound->GetOutputArgCnt(p);
+      argCnt = GetOutputArgCnt((OPDS *)p);
     }
     if (UNLIKELY(argCnt > 31))
       return csoundStack_Error(p, "too many arguments");
@@ -226,9 +226,9 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
       else {
         const char  *argName;
         if (!isOutput)
-          argName = csound->GetInputArgName(p, i);
+          argName = GetInputArgName((OPDS *) p, i);
         else
-          argName = csound->GetOutputArgName(p, i);
+          argName = GetOutputArgName((OPDS *) p, i);
         if (argName != (char*) 0 &&
             (argName[0] == (char) 'k' ||
              (argName[0] == (char) 'g' && argName[1] == (char) 'k') ||
@@ -298,7 +298,7 @@ static int32_t notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
     return csound->PerfError(csound, &(((STACK_OPCODE*)p)->h),
                              Str("%s: not initialised"),
-                             csound->GetOpcodeName(p));
+                             GetOpcodeName((OPDS *)p));
 }
 
 static int32_t push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
@@ -356,7 +356,7 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       p->pp = csoundStack_GetGlobals(csound);
       if (UNLIKELY(csoundStack_CreateArgMap(p, (int32_t*)&(p->argMap[0]), 0) != OK))
         return NOTOK;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) push_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) push_opcode_perf;
       p->initDone = 1;
     }
     if (p->argMap[1] != 0) {
@@ -461,7 +461,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
       if (UNLIKELY(csoundStack_CreateArgMap((PUSH_OPCODE*)p,
                                             &(p->argMap[0]), 1) != OK))
         return NOTOK;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) pop_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) pop_opcode_perf;
       p->initDone = 1;
     }
     if (p->argMap[1] != 0) {
@@ -565,7 +565,7 @@ static int32_t push_f_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
       offs = csoundStack_Align(offs);
       p->argMap[1] = offs;
       p->argMap[2] = offs;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) push_f_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) push_f_opcode_perf;
       p->initDone = 1;
     }
     if (UNLIKELY(p->pp->freeSpaceOffset + p->argMap[1] > p->pp->freeSpaceEndOffset))
@@ -634,7 +634,7 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
       offs = csoundStack_Align(offs);
       p->argMap[1] = offs;
       p->argMap[2] = offs;
-      p->h.opadr = (int32_t (*)(CSOUND *, void *)) pop_f_opcode_perf;
+      p->h.perf = (int32_t (*)(CSOUND *, void *)) pop_f_opcode_perf;
       p->initDone = 1;
     }
     if (UNLIKELY(p->pp->curBundle == NULL))
@@ -662,16 +662,16 @@ static int32_t pop_f_opcode_init(CSOUND *csound, POP_OPCODE *p)
  /* ------------------------------------------------------------------------ */
 
 static OENTRY localops[] = { 
-  { "stack",  sizeof(STACK_OPCODE), SK|_QQ, 1,  "",   "i",
+  { "stack",  sizeof(STACK_OPCODE), SK|_QQ,   "",   "i",
       (SUBR) stack_opcode_init, (SUBR) NULL,                      (SUBR) NULL },
-  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "N",
+  { "push",   sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "N",
       (SUBR) push_opcode_init,  (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 3,
+  { "pop",    sizeof(POP_OPCODE),   SK|_QQ, 
                                    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "",
       (SUBR) pop_opcode_init,   (SUBR) notinit_opcode_stub_perf,  (SUBR) NULL },
-  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ, 3,  "",   "f",
+  { "push_f", sizeof(PUSH_OPCODE),  SK|_QQ,   "",   "f",
       (SUBR) push_f_opcode_init, (SUBR) notinit_opcode_stub_perf, (SUBR) NULL },
-  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ, 3,  "f",   "",
+  { "pop_f",  sizeof(POP_OPCODE),   SK|_QQ,   "f",   "",
       (SUBR) pop_f_opcode_init,  (SUBR) notinit_opcode_stub_perf, (SUBR) NULL }
 };
 

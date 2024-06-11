@@ -252,7 +252,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   }
 
   else if (inArgCount == 2) {
-    CS_TYPE *argType = csound->GetTypeForArg(p->extension);
+    CS_TYPE *argType = GetTypeForArg(p->extension);
     if (strcmp("S", argType->varTypeName) == 0) {
       extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
       fileNames = searchDir(csound, p->directoryName->data, extension);
@@ -331,14 +331,14 @@ extern "C" {
 PUBLIC int32_t csoundModuleInit_ftsamplebank(CSOUND *csound) {
 
   int status = csound->AppendOpcode(
-      csound, (char *)"ftsamplebank.k", sizeof(kftsamplebank), 0, 3,
+      csound, (char *)"ftsamplebank.k", sizeof(kftsamplebank), 0,
       (char *)"k", (char *)"Skkkkk",
       (int (*)(CSOUND *, void *))kftsamplebank::init_,
       (int (*)(CSOUND *, void *))kftsamplebank::kontrol_,
       (int (*)(CSOUND *, void *))0);
 
   status |= csound->AppendOpcode(
-      csound, (char *)"ftsamplebank.i", sizeof(iftsamplebank), 0, 1,
+      csound, (char *)"ftsamplebank.i", sizeof(iftsamplebank), 0, 
       (char *)"i", (char *)"Siiii",
       (int (*)(CSOUND *, void *))iftsamplebank::init_,
       (int (*)(CSOUND *, void *))0, (int (*)(CSOUND *, void *))0);
@@ -355,7 +355,7 @@ PUBLIC int32_t csoundModuleInit_ftsamplebank(CSOUND *csound) {
       0); */
 
   status |= csound->AppendOpcode(
-      csound, (char *)"directory", sizeof(DIR_STRUCT), 0, 1, (char *)"S[]",
+      csound, (char *)"directory", sizeof(DIR_STRUCT), 0, (char *)"S[]",
       (char *)"SN", (int (*)(CSOUND *, void *))directory,
       (int (*)(CSOUND *, void *))0, (int (*)(CSOUND *, void *))0);
   return status;

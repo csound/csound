@@ -615,7 +615,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
       memset(&tmp, 0, sizeof(SFLIB_INFO));
       sfinfo = &tmp;
     }
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, fileName, sfinfo,
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, fileName, sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,

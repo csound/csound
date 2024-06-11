@@ -740,7 +740,7 @@ set_expert_values(CSOUND *csound, BABO *p)
     int32_t      n      = 0;
 
     if (p->expert_values > 0)
-        ftp = csound->FTnp2Finde(csound, &(p->expert_values));
+        ftp = csound->FTFind(csound, &(p->expert_values));
 
     p->decay        = load_value_or_default(ftp, n++, BABO_DEFAULT_DECAY);
     p->hidecay      = load_value_or_default(ftp, n++, BABO_DEFAULT_HIDECAY);
@@ -929,8 +929,8 @@ babo2(CSOUND *csound, void *entry)
 #define S(x)    sizeof(x)
 
 static OENTRY babo_localops[] = {
-  { "babo",   S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
-  { "babo2",  S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2 }  
+  { "babo",   S(BABO), TR, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
+  { "babo2",  S(BABO), TR,  "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2 }  
 };
 
 LINKAGE_BUILTIN(babo_localops)

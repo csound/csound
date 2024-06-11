@@ -102,56 +102,14 @@ static  void    hamming(MYFLT *, int32_t, int32_t);
 static int32_t writebuffer(CSOUND *, SNDFILE *, MYFLT *,
                            int32_t, int32_t *, OPARMS *);
 
-#if 0
-static void fast(CSOUND *csound, MYFLT *b, int32_t N)
-{
-  /* The DC term is returned in location b[0] with b[1] set to 0.
-     Thereafter, the i'th harmonic is returned as a complex
-     number stored as b[2*i] + j b[2*i+1].  The N/2 harmonic
-     is returned in b[N] with b[N+1] set to 0.  Hence, b must
-     be dimensioned to size N+2.  The subroutine is called as
-     fast(b,N) where N=2**M and b is the real array described
-     above.
-  */
-
-    csound->RealFFT(csound, b, N);
-    b[N] = b[1];
-    b[1] = b[N + 1] = FL(0.0);
-}
-
-
-static void fsst(CSOUND *csound, MYFLT *b, int32_t N)
-{
-
-  /* This subroutine synthesizes the real vector b[k] for k=0, 1,
-     ..., N-1 from the fourier coefficients stored in the b
-     array of size N+2.  The DC term is in location b[0] with
-     b[1] equal to 0.  The i'th harmonic is a complex number
-     stored as b[2*i] + j b[2*i+1].  The N/2 harmonic is in
-     b[N] with b[N+1] equal to 0. The subroutine is called as
-     fsst(b,N) where N=2**M and b is the real array described
-     above.
-  */
-    MYFLT   scaleVal;
-    int32_t i;
-
-    scaleVal = csound->GetInverseRealFFTScale(csound, N);
-    b[1] = b[N];
-    b[N] = b[N + 1] = FL(0.0);
-    for (i = 0; i < N; i++)
-      b[i] *= scaleVal;
-    csound->InverseRealFFT(csound, b, N);
-}
-#endif
-
 static inline void fast2(CSOUND *csound, void *setup, MYFLT *b)
 {
-    csound->RealFFT2(csound, setup, b);
+    csound->RealFFT(csound, setup, b);
 }
 
 static inline void fsst2(CSOUND *csound, void *setup, MYFLT *b)
 {
-    csound->RealFFT2(csound, setup, b);
+    csound->RealFFT(csound, setup, b);
 }
 
 
@@ -354,7 +312,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 'H':
               if (isdigit(*s)) {
                 int32_t n;
-                sscanf(s, "%d%n", &O.heartbeat, &n);
+                csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
                 s += n;
               }
               else O.heartbeat = 1;
@@ -362,74 +320,74 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 't':
               FIND(Str("no t argument"));
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&th);
+              csound->Sscanf(s,"%lf",&th);
 #else
-              csound->sscanf(s,"%f",&th);
+              csound->Sscanf(s,"%f",&th);
 #endif
               while (*++s);
               break;
             case 'S':
               FIND("no s arg");
-              sscanf(s,"%d", &sh);
+              csound->Sscanf(s,"%d", &sh);
               while (*++s);
               break;
             case 'm':
               FIND("no m arg");
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&g0);
+              csound->Sscanf(s,"%lf",&g0);
 #else
-              csound->sscanf(s,"%f",&g0);
+              csound->Sscanf(s,"%f",&g0);
 #endif
               while (*++s);
               break;
             case 'n':
               FIND(Str("no n argument"));
-              sscanf(s,"%d", &m);
+              csound->Sscanf(s,"%d", &m);
               while (*++s);
               break;
             case 'b':
               FIND(Str("no b argument"));
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&beg);
+              csound->Sscanf(s,"%lf",&beg);
 #else
-              csound->sscanf(s,"%f",&beg);
+              csound->Sscanf(s,"%f",&beg);
 #endif
               while (*++s);
               break;
             case 'B': FIND(Str("no B argument"));
-              sscanf(s,"%" SCNd64, &Beg);
+              csound->Sscanf(s,"%" SCNd64, &Beg);
               while (*++s);
               break;
             case 'e': FIND("no e arg");
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&end);
+              csound->Sscanf(s,"%lf",&end);
 #else
-              csound->sscanf(s,"%f",&end);
+              csound->Sscanf(s,"%f",&end);
 #endif
               while (*++s);
               break;
             case 'E': FIND(Str("no E argument"));
-              sscanf(s,"%" PRId64, &End);
+              csound->Sscanf(s,"%" PRId64, &End);
               while (*++s);
               break;
             case 'N': FIND(Str("no N argument"));
-              sscanf(s,"%d", &N);
+              csound->Sscanf(s,"%d", &N);
               while (*++s);
               break;
             case 'M': FIND(Str("no M argument"));
-              sscanf(s,"%d", &M);
+              csound->Sscanf(s,"%d", &M);
               while (*++s);
               break;
             case 'L': FIND(Str("no L argument"));
-              sscanf(s,"%d", &L);
+              csound->Sscanf(s,"%d", &L);
               while (*++s);
               break;
             case 'w': FIND(Str("no w argument"));
-              sscanf(s,"%d", &W);
+              csound->Sscanf(s,"%d", &W);
               while (*++s);
               break;
             case 'D': FIND(Str("no D argument"));
-              sscanf(s,"%d", &D);
+              csound->Sscanf(s,"%d", &D);
               while (*++s);
               break;
             case 'V':
@@ -459,13 +417,13 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
                       Str("Must have an example noise file (-i name)\n"));
       return -1;
     }
-    if (UNLIKELY((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
+    if (UNLIKELY((inf = csound->SndInputFileOpen(csound, infile, &p, &beg_time,
                                             &input_dur, &sr, channel)) == NULL)) {
       csound->Message(csound, Str("error while opening %s"), infile);
       return -1;
     }
     if (O.outformat == 0) O.outformat = p->format;
-    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+    O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
       O.sfheader = 0;
       O.rewrt_hdr = 0;
@@ -490,7 +448,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         outfd = sflib_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
-                      csound->type2csfiletype(O.filetyp, O.outformat), 1, 0);
+                      csound->Type2CsfileType(O.filetyp, O.outformat), 1, 0);
         csound->Free(csound, name);
       }
       else
@@ -522,7 +480,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     /* read noise reference file */
 
-    if (UNLIKELY((fp = csound->SAsndgetset(csound, nfile, &pn, &beg_ntime,
+    if (UNLIKELY((fp = csound->SndInputFileOpen(csound, nfile, &pn, &beg_ntime,
                                            &input_ndur, &srn, channel)) == NULL)) {
       csound->Message(csound, "%s",
                       Str("dnoise: cannot open noise reference file\n"));
@@ -553,8 +511,8 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
                           "revised N = %d\n"),i);
     //FFT setup
     //printf("NNN %d \n", N);
-    void *fftsetup_fwd =  csound->RealFFT2Setup(csound,N,FFT_FWD);
-    void *fftsetup_inv =  csound->RealFFT2Setup(csound,N,FFT_INV);
+    void *fftsetup_fwd =  csound->RealFFTSetup(csound,N,FFT_FWD);
+    void *fftsetup_inv =  csound->RealFFTSetup(csound,N,FFT_INV);
 
     N = i;
     N2 = N / 2;
@@ -616,9 +574,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     outbuf = csound->Malloc(csound, (size_t) outbufsiz); /* & alloc bufspace */
 #endif
     csound->Message(csound, Str("writing %u-byte blks of %s to %s"),
-                    outbufsiz, csound->getstrformat(O.outformat),
+                    outbufsiz, csound->GetStrFormat(O.outformat),
                     O.outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
+    csound->Message(csound, " (%s)\n",csound->Type2String(O.filetyp));
 /*  spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;
@@ -802,7 +760,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     while (nMin > (int64_t)ibuflen) {
       if (UNLIKELY(!csound->CheckEvents(csound)))
         csound->LongJmp(csound, 1);
-      nread = csound->getsndin(csound, fp, ibuf1, ibuflen, pn);
+      nread = csound->SndInputRead(csound, fp, ibuf1, ibuflen, pn);
       for(i=0; i < nread; i++)
         ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
       if (UNLIKELY(nread < ibuflen)) {
@@ -813,7 +771,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(!csound->CheckEvents(csound)))
       csound->LongJmp(csound, 1);
     i = (int32_t) nMin;
-    nread = csound->getsndin(csound, fp, ibuf1, i, pn);
+    nread = csound->SndInputRead(csound, fp, ibuf1, i, pn);
     for(i=0; i < nread; i++)
         ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
     if (UNLIKELY(nread < i)) {
@@ -825,7 +783,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       if (UNLIKELY(!csound->CheckEvents(csound)))
         csound->LongJmp(csound, 1);
       lj += (int64_t) N;
-      nread = csound->getsndin(csound, fp, fbuf, N, pn);
+      nread = csound->SndInputRead(csound, fp, fbuf, N, pn);
       for(i=0; i < nread; i++)
         fbuf[i] *= 1.0/csound->Get0dBFS(csound);
       if (nread < N)
@@ -868,7 +826,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(!csound->CheckEvents(csound)))
       csound->LongJmp(csound, 1);
     /* fill ibuf2 to start */
-    nread = csound->getsndin(csound, inf, ibuf2, ibuflen, p);
+    nread = csound->SndInputRead(csound, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
 /*     nread /= sizeof(MYFLT); */
     for(i=0; i < nread; i++)
@@ -921,7 +879,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           ib2 = ib0;
           ibs -= ibuflen;
           /* fill ib2 */
-          nread = csound->getsndin(csound, inf, ib2, ibuflen, p);
+          nread = csound->SndInputRead(csound, inf, ib2, ibuflen, p);
           for(i=0; i < nread; i++)
                ib2[i] *= 1.0/csound->Get0dBFS(csound);
           lnread += nread;
@@ -1170,7 +1128,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (i > 0)
       writebuffer(csound, outfd, ob1, i, &nrecs, &O);
 
-/*  csound->rewriteheader(outfd); */
+/*  csound->RewriteHeader(outfd); */
     csound->Message(csound, "\n\n");
     if (Verbose) {
       csound->Message(csound, "%s", Str("processing complete\n"));
@@ -1244,7 +1202,7 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
       return -1;
     }
     if (UNLIKELY(O->rewrt_hdr))
-      csound->rewriteheader(outfd);
+      csound->RewriteHeader(outfd);
 
     (*nrecs)++;                 /* JPff fix */
     switch (O->heartbeat) {

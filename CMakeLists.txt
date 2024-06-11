@@ -753,9 +753,12 @@ set(libcsound_SRCS
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
+    OOps/midiops2.c
+       OOps/midiops3.c
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
+     OOps/pitch0.c
     OOps/pstream.c
     OOps/pvfileio.c
     OOps/pvsanal.c
@@ -778,9 +781,6 @@ set(libcsound_SRCS
 
 set(vbap_ops
     Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})

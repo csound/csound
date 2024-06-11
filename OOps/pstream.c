@@ -380,9 +380,9 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     char            pvfilnam[MAXNAME];
 
     if (stringname) strNcpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
-    else if (csound->ISSTRCOD(*p->ifilno))
+    else if (IsStringCode(*p->ifilno))
       strNcpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
-    else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
+    else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {
       return csound->InitError(csound, Str("Failed to load PVOC-EX file"));
@@ -540,7 +540,7 @@ int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
         p->fout->framecount = 1;
         p->lastframe = 0;
       }
-    p->maskfunc = csound->FTnp2Finde(csound, p->ifn);
+    p->maskfunc = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->maskfunc==NULL))
       return NOTOK;
 
@@ -660,7 +660,7 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
       return csound->InitError(csound, Str("pvsftw: bad value for ifna.\n"));
     if (UNLIKELY(*p->ifnf < 0.0f))                /* 0 = notused */
       return csound->InitError(csound, Str("pvsftw: bad value for ifnf.\n"));
-    p->outfna = csound->FTnp2Finde(csound, p->ifna);
+    p->outfna = csound->FTFind(csound, p->ifna);
     if (UNLIKELY(p->outfna==NULL))
       return NOTOK;
     if (UNLIKELY(p->fsrc->sliding))
@@ -680,7 +680,7 @@ int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
 
     /* freq table? */
     if ((int32_t) *p->ifnf >= 1) {
-      p->outfnf = csound->FTnp2Finde(csound, p->ifnf);
+      p->outfnf = csound->FTFind(csound, p->ifnf);
       if (UNLIKELY(p->outfnf==NULL))
         return NOTOK;
       ftablef = p->outfnf->ftable;
@@ -771,7 +771,7 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
        otherwise, there is no change!
     */
     if ((int32_t) *p->ifna != 0) {
-      p->infna = csound->FTnp2Finde(csound, p->ifna);
+      p->infna = csound->FTFind(csound, p->ifna);
       if (UNLIKELY(p->infna==NULL))
         return NOTOK;
       p->ftablea = p->infna->ftable;
@@ -790,7 +790,7 @@ int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
 
     /* freq table? */
     if ((int32_t) *p->ifnf >= 1) {
-      p->infnf = csound->FTnp2Finde(csound, p->ifnf);
+      p->infnf = csound->FTFind(csound, p->ifnf);
       if (UNLIKELY(p->infnf==NULL))
         return NOTOK;
       p->ftablef = p->infnf->ftable;

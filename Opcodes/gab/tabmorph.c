@@ -43,7 +43,7 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     numOfTabs = p->numOfTabs =((p->INCOUNT-4)); /* count segs & alloc if nec */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, *argp++)) == NULL))
+      if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))
         return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
@@ -286,13 +286,13 @@ static int32_t atabmorphi(CSOUND *csound, TABMORPH *p)
 
 OENTRY tabmoroph_localops[] = {
 
-{ "tabmorph",  S(TABMORPH), TR, 3,  "k", "kkkkm",
+{ "tabmorph",  S(TABMORPH), TR,   "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
-{ "tabmorphi", S(TABMORPH), TR, 3,  "k", "kkkkm",
+{ "tabmorphi", S(TABMORPH), TR,   "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
-{ "tabmorpha", S(TABMORPH), TR, 3,  "a", "aaaam",
+{ "tabmorpha", S(TABMORPH), TR,   "a", "aaaam",
                (SUBR) tabmorph_set, (SUBR) atabmorphia},
-{ "tabmorphak",S(TABMORPH), TR, 3,  "a", "akkkm",
+{ "tabmorphak",S(TABMORPH), TR,   "a", "akkkm",
                (SUBR) tabmorph_set, (SUBR) atabmorphi }
 
 };

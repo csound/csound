@@ -279,13 +279,13 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
       frames = handle->frames-1;
-      ftab = csound->FTnp2Finde(csound, p->strt);
+      ftab = csound->FTFind(csound, p->strt);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
-      ftab = csound->FTnp2Finde(csound, p->end);
+      ftab = csound->FTFind(csound, p->end);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
@@ -328,11 +328,11 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 
 /* static */
 static OENTRY pvsbuffer_localops[] = {
-  {"pvsbuffer", S(PVSBUFFER), 0, 3, "ik", "fi",
+  {"pvsbuffer", S(PVSBUFFER), 0,  "ik", "fi",
    (SUBR)pvsbufferset, (SUBR)pvsbufferproc, NULL},
-  {"pvsbufread", S(PVSBUFFERREAD), 0, 3, "f", "kkOOo",
+  {"pvsbufread", S(PVSBUFFERREAD), 0,  "f", "kkOOo",
    (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc, NULL},
-  {"pvsbufread2", S(PVSBUFFERREAD), 0, 3, "f", "kkkk",
+  {"pvsbufread2", S(PVSBUFFERREAD), 0,  "f", "kkkk",
    (SUBR)pvsbufreadset, (SUBR)pvsbufreadproc2, NULL}
 };
 

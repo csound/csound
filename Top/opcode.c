@@ -86,7 +86,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
           cnt++;
 #ifdef JPFF
           if (strchr(ep->intypes, 'x'))
-            printf("%s, type %d %s -> %s\n", ep->opname, ep->thread,
+            printf("%s, type %d %s -> %s\n", ep->opname, (ep->init && ep->perf ? 3 : ep->init ? 1 : 2)
                    ep->intypes, ep->outypes);
           /* else if (ep->thread==5 */
           /*   printf("%s, type 6 %s -> %s\n", ep->opname, */

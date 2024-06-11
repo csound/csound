@@ -305,7 +305,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 durs;
     int32 len, i, nchnls;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn) ;  /* function table */
+    p->sfunc = csound->FTFind(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
@@ -442,11 +442,11 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
 static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
 {
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
+    p->sfunc = csound->FTFind(csound, p->ifn);  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
     else p->efunc = NULL;
 
     if (*p->iskip == 0) {
@@ -489,7 +489,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
 
-    func = csound->FTnp2Finde(csound, p->ifn);
+    func = csound->FTFind(csound, p->ifn);
     sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
@@ -843,7 +843,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 static int32_t flooper3_init(CSOUND *csound, flooper3 *p)
 {
     int32_t len,i,p2s,lomod;
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);
+    p->sfunc = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
@@ -1207,7 +1207,6 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
    return OK;
 }
 
-
 static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
 {
     int32 i,N = p->fout->N;
@@ -1242,15 +1241,9 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
           ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
         }
-        if (!(N & (N - 1)))
-          csound->InverseComplexFFT(csound, ceps, N/2);
-        else
-          csound->InverseComplexFFTnp2(csound, ceps, tmp);
+        csound->InverseComplexFFT(csound, ceps, N/2);
         for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-        if (!(N & (N - 1)))
-          csound->ComplexFFT(csound, ceps, N/2);
-        else
-          csound->ComplexFFTnp2(csound, ceps, tmp);
+        csound->ComplexFFT(csound, ceps, N/2);
         for (i=0; i < N; i+=2) {
           fenv[i/2] = exp(ceps[i]);
           maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
@@ -1333,19 +1326,19 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 
 static OENTRY localops[] =
   {
-   {"sndloop", sizeof(sndloop),0, 3,
+   {"sndloop", sizeof(sndloop),0,
     "ak", "akkii", (SUBR)sndloop_init, (SUBR)sndloop_process},
-   {"flooper", sizeof(flooper), TR, 3,
+   {"flooper", sizeof(flooper), TR,
     "mm", "kkiiii", (SUBR)flooper_init, (SUBR)flooper_process},
-   {"pvsarp", sizeof(pvsarp), 0,3,
+   {"pvsarp", sizeof(pvsarp), 0,
     "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
-   {"pvsvoc", sizeof(pvsvoc), 0,3,
+   {"pvsvoc", sizeof(pvsvoc), 0,
     "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
-   {"flooper2", sizeof(flooper2), TR, 3,
+   {"flooper2", sizeof(flooper2), TR,
     "mm", "kkkkkiooooO", (SUBR)flooper2_init, (SUBR)flooper2_process},
-  /* {"flooper3", sizeof(flooper3), TR, 3,
+  /* {"flooper3", sizeof(flooper3), TR,
      "a", "kkkkkioooo", (SUBR)flooper3_init, (SUBR)flooper3_process},*/
-   {"pvsmorph", sizeof(pvsvoc), 0,3,
+   {"pvsmorph", sizeof(pvsvoc), 0,
     "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
 };
 

@@ -157,6 +157,7 @@ typedef struct PARTIKKEL {
     uint32_t wavgainindex;
     double grainphase, graininc;
     FUNC *pantab;
+    int32_t floatph;
 } PARTIKKEL;
 
 typedef struct {

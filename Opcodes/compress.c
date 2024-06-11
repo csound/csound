@@ -210,7 +210,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     double  b;
     FUNC    *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
     p->ftp = ftp;
     p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);
@@ -285,9 +285,9 @@ static int32_t distort(CSOUND *csound, DIST *p)
 #define S(x)    sizeof(x)
 
 static OENTRY compress_localops[] = {
-  { "compress", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
-  { "compress2", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
-  { "distort", S(DIST), TR, 3, "a", "akiqo", (SUBR) distset, (SUBR) distort },
+  { "compress", S(CMPRS), 0,  "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
+  { "compress2", S(CMPRS), 0,  "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
+  { "distort", S(DIST), TR,  "a", "akiqo", (SUBR) distset, (SUBR) distort },
 };
 
 LINKAGE_BUILTIN(compress_localops)

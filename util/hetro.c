@@ -163,42 +163,42 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->sr);
+          csound->Sscanf(s,"%lf",&t->sr);
 #else
-          csound->sscanf(s,"%f",&t->sr);
+          csound->Sscanf(s,"%f",&t->sr);
 #endif
           break;
         case 'c':
           FIND(Str("no channel"))
-          sscanf(s,"%d",&channel);
+          csound->Sscanf(s,"%d",&channel);
           break;
         case 'b':
           FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->beg_time);
+          csound->Sscanf(s,"%lf",&t->beg_time);
 #else
-          csound->sscanf(s,"%f",&t->beg_time);
+          csound->Sscanf(s,"%f",&t->beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->input_dur);
+          csound->Sscanf(s,"%lf",&t->input_dur);
 #else
-          csound->sscanf(s,"%f",&t->input_dur);
+          csound->Sscanf(s,"%f",&t->input_dur);
 #endif
           break;
         case 'f':
           FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->fund_est);
+          csound->Sscanf(s,"%lf",&t->fund_est);
 #else
-          csound->sscanf(s,"%f",&t->fund_est);
+          csound->Sscanf(s,"%f",&t->fund_est);
 #endif
           break;
         case 'h':
           FIND(Str("no harmonic count"))
-          sscanf(s,"%hd",&t->hmax);
+          csound->Sscanf(s,"%hd",&t->hmax);
           if (UNLIKELY(t->hmax > HMAX))
             csound->Message(csound, Str("over %d harmonics but continuing"),
                             HMAX);
@@ -210,22 +210,22 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'M':
           FIND(Str("no amplitude maximum"))
-          csound->sscanf(s,"%lf",&t->m_ampsum);
+          csound->Sscanf(s,"%lf",&t->m_ampsum);
           break;
         case 'm':
           FIND(Str("no amplitude minimum"))
-          sscanf(s,"%d",&t->amp_min);
+          csound->Sscanf(s,"%d",&t->amp_min);
           break;
         case 'n':
           FIND(Str("no number of output points"))
-          sscanf(s,"%d",&t->num_pts);
+          csound->Sscanf(s,"%d",&t->num_pts);
           break;
         case 'l':
           FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->freq_c);
+          csound->Sscanf(s,"%lf",&t->freq_c);
 #else
-          csound->sscanf(s,"%f",&t->freq_c);
+          csound->Sscanf(s,"%f",&t->freq_c);
 #endif
           break;
         case 'X':
@@ -256,7 +256,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY((t->input_dur < 0) || (t->beg_time < 0)))
       return quit(csound,Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, t->infilnam, &p,
+    if (UNLIKELY((infd = csound->SndInputFileOpen(csound, t->infilnam, &p,
                                     &t->beg_time, &t->input_dur,
                                              &t->sr, channel)) == NULL)) {
       char errmsg[256];
@@ -268,7 +268,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     t->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
     if (UNLIKELY((t->smpsin =
-                  csound->getsndin(csound, infd,
+                  csound->SndInputRead(csound, infd,
                                    t->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
       csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) t->smpsin);
@@ -656,11 +656,11 @@ static int32_t filedump(HET *t, CSOUND *csound)
 
     /* fullpath else cur dir */
     if (t->newformat) {
-      if (UNLIKELY(csound->FileOpen2(csound, &ff, CSFILE_STD, t->outfilnam,
+      if (UNLIKELY(csound->FileOpen(csound, &ff, CSFILE_STD, t->outfilnam,
                                      "w", "", CSFTYPE_HETROT, 0) == NULL))
       return quit(csound, Str("cannot create output file\n"));
     } else
-      if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, t->outfilnam,
+      if (UNLIKELY(csound->FileOpen(csound, &ofd, CSFILE_FD_W, t->outfilnam,
                                      NULL, "", CSFTYPE_HETRO, 0) == NULL))
         return quit(csound, Str("cannot create output file\n"));
 

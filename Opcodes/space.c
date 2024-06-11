@@ -39,7 +39,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
     FUNC              *ftp = NULL;
 
     if (*p->ifn > 0) {
-      if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
         return NOTOK;
       p->ftp = ftp;
     }
@@ -207,7 +207,7 @@ static int32_t spdistset(CSOUND *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
        return NOTOK;
      p->ftp = ftp;
    }
@@ -268,9 +268,9 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
 
 static OENTRY localops[] =
   {
-   { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
-   { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
-   { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
+   { "space",  S(SPACE), TR, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
+   { "spsend", S(SPSEND), 0, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
+   { "spdist", S(SPDIST), 0,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
 };
 
 int32_t space_init_(CSOUND *csound)

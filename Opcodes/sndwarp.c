@@ -53,12 +53,12 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTnp2Finde(csound, p->isampfun)) == NULL))
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen    = ftpWind->flen;
@@ -224,12 +224,12 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTnp2Finde(csound, p->isampfun)) == NULL))
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp = ftpSamp;
     p->sampflen=ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
@@ -376,9 +376,9 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
 
 static OENTRY localops[] =
   {
-   { "sndwarp", S(SNDWARP), TR, 3, "mm", "xxxiiiiiii",
+   { "sndwarp", S(SNDWARP), TR,  "mm", "xxxiiiiiii",
     (SUBR)sndwarpgetset, (SUBR)sndwarp},
-   { "sndwarpst", S(SNDWARPST), TR, 3, "mmmm","xxxiiiiiii",
+   { "sndwarpst", S(SNDWARPST), TR,  "mmmm","xxxiiiiiii",
     (SUBR)sndwarpstset,(SUBR)sndwarpst}
 };
 

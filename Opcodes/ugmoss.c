@@ -40,7 +40,7 @@ static int32_t dconvset(CSOUND *csound, DCONV *p)
     FUNC *ftp;
 
     p->len = (int32_t)*p->isize;
-    if (LIKELY((ftp = csound->FTnp2Find(csound,
+    if (LIKELY((ftp = csound->FTFind(csound,
                                         p->ifn)) != NULL)) {   /* find table */
       p->ftp = ftp;
       if ((uint32_t)ftp->flen < p->len)
@@ -824,14 +824,14 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
     int32_t j = 0;
     uint32_t len;
     /* make sure resfn exists and set it up */
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iresfn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->iresfn)) != NULL)) {
       p->resfn = ftp, len = p->resfn->flen;
     }
     else {
       return csound->InitError(csound, "%s", Str("iresfn for ftmorf does not exist"));
     }
     /* make sure ftfn exists and set it up */
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->iftfn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->iftfn)) != NULL)) {
       p->ftfn = ftp;
     }
     else {
@@ -839,7 +839,7 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->ftfn->ftable + j)) != NULL)) {
+      if (LIKELY((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL)) {
         if (UNLIKELY((uint32_t)ftp->flen != len)) {
           return csound->InitError(csound,
                                    "%s", Str("table in iftfn for ftmorf wrong size"));
@@ -868,8 +868,8 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
     f = *p->kftndx - i;
     if (p->ftndx != *p->kftndx) {
       p->ftndx = *p->kftndx;
-      ftp1 = csound->FTnp2Finde(csound, p->ftfn->ftable + i++);
-      ftp2 = csound->FTnp2Finde(csound, p->ftfn->ftable + i--);
+      ftp1 = csound->FTFind(csound, p->ftfn->ftable + i++);
+      ftp2 = csound->FTFind(csound, p->ftfn->ftable + i--);
       do {
         *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
           (*(ftp2->ftable + j) * f);
@@ -883,38 +883,38 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
 
 static OENTRY localops[] =
   {
-   { "dconv",  S(DCONV), TR, 3, "a", "aii",   (SUBR)dconvset, (SUBR)dconv },
-   { "vcomb", S(VCOMB),  0,3, "a", "akxioo", (SUBR)vcombset, (SUBR)vcomb   },
-   { "valpass", S(VCOMB),0,3, "a", "akxioo", (SUBR)vcombset, (SUBR)valpass },
-   { "ftmorf", S(FTMORF),TR, 3, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf,    },
-   { "##and.ii",  S(AOP),  0,1, "i", "ii",   (SUBR)and_kk                  },
-   { "##and.kk",  S(AOP),  0,2, "k", "kk",   NULL,   (SUBR)and_kk          },
-   { "##and.ka",  S(AOP),  0,2, "a", "ka",   NULL,   (SUBR)and_ka  },
-   { "##and.ak",  S(AOP),  0,2, "a", "ak",   NULL,   (SUBR)and_ak  },
-   { "##and.aa",  S(AOP),  0,2, "a", "aa",   NULL,   (SUBR)and_aa  },
-   { "##or.ii",   S(AOP),  0,1, "i", "ii",   (SUBR)or_kk                   },
-   { "##or.kk",   S(AOP),  0,2, "k", "kk",   NULL,   (SUBR)or_kk           },
-   { "##or.ka",   S(AOP),  0,2, "a", "ka",   NULL,   (SUBR)or_ka   },
-   { "##or.ak",   S(AOP),  0,2, "a", "ak",   NULL,   (SUBR)or_ak   },
-   { "##or.aa",   S(AOP),  0,2, "a", "aa",   NULL,   (SUBR)or_aa   },
-   { "##xor.ii",  S(AOP),  0,1, "i", "ii",   (SUBR)xor_kk                  },
-   { "##xor.kk",  S(AOP),  0,2, "k", "kk",   NULL,   (SUBR)xor_kk          },
-   { "##xor.ka",  S(AOP),  0,2, "a", "ka",   NULL,   (SUBR)xor_ka  },
-   { "##xor.ak",  S(AOP),  0,2, "a", "ak",   NULL,   (SUBR)xor_ak  },
-   { "##xor.aa",  S(AOP),  0,2, "a", "aa",   NULL,   (SUBR)xor_aa  },
-   { "##not.i",   S(AOP),  0,1, "i", "i",    (SUBR)not_k                   },
-   { "##not.k",   S(AOP),  0,2, "k", "k",    NULL,   (SUBR)not_k           },
-   { "##not.a",   S(AOP),  0,2, "a", "a",    NULL,   (SUBR)not_a   },
-   { "##shl.ii",  S(AOP),  0,1, "i", "ii",   (SUBR) shift_left_kk          },
-   { "##shl.kk",  S(AOP),  0,2, "k", "kk",   NULL, (SUBR) shift_left_kk    },
-   { "##shl.ka", S(AOP), 0,2, "a", "ka", NULL, (SUBR) shift_left_ka  },
-   { "##shl.ak", S(AOP), 0,2, "a", "ak", NULL, (SUBR) shift_left_ak  },
-   { "##shl.aa", S(AOP), 0,2, "a", "aa", NULL, (SUBR) shift_left_aa  },
-   { "##shr.ii",  S(AOP),  0,1, "i", "ii",   (SUBR) shift_right_kk         },
-   { "##shr.kk",  S(AOP),  0,2, "k", "kk",   NULL, (SUBR) shift_right_kk   },
-   { "##shr.ka", S(AOP), 0,2, "a", "ka", NULL, (SUBR) shift_right_ka },
-   { "##shr.ak", S(AOP), 0,2, "a", "ak", NULL, (SUBR) shift_right_ak },
-   { "##shr.aa", S(AOP), 0,2, "a", "aa", NULL, (SUBR) shift_right_aa }
+   { "dconv",  S(DCONV), TR, "a", "aii",   (SUBR)dconvset, (SUBR)dconv },
+   { "vcomb", S(VCOMB),  0, "a", "akxioo", (SUBR)vcombset, (SUBR)vcomb   },
+   { "valpass", S(VCOMB),0, "a", "akxioo", (SUBR)vcombset, (SUBR)valpass },
+   { "ftmorf", S(FTMORF),TR, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf,    },
+   { "##and.ii",  S(AOP),  0, "i", "ii",   (SUBR)and_kk                  },
+   { "##and.kk",  S(AOP),  0, "k", "kk",   NULL,   (SUBR)and_kk          },
+   { "##and.ka",  S(AOP),  0, "a", "ka",   NULL,   (SUBR)and_ka  },
+   { "##and.ak",  S(AOP),  0, "a", "ak",   NULL,   (SUBR)and_ak  },
+   { "##and.aa",  S(AOP),  0, "a", "aa",   NULL,   (SUBR)and_aa  },
+   { "##or.ii",   S(AOP),  0, "i", "ii",   (SUBR)or_kk                   },
+   { "##or.kk",   S(AOP),  0, "k", "kk",   NULL,   (SUBR)or_kk           },
+   { "##or.ka",   S(AOP),  0, "a", "ka",   NULL,   (SUBR)or_ka   },
+   { "##or.ak",   S(AOP),  0, "a", "ak",   NULL,   (SUBR)or_ak   },
+   { "##or.aa",   S(AOP),  0, "a", "aa",   NULL,   (SUBR)or_aa   },
+   { "##xor.ii",  S(AOP),  0, "i", "ii",   (SUBR)xor_kk                  },
+   { "##xor.kk",  S(AOP),  0, "k", "kk",   NULL,   (SUBR)xor_kk          },
+   { "##xor.ka",  S(AOP),  0, "a", "ka",   NULL,   (SUBR)xor_ka  },
+   { "##xor.ak",  S(AOP),  0, "a", "ak",   NULL,   (SUBR)xor_ak  },
+   { "##xor.aa",  S(AOP),  0, "a", "aa",   NULL,   (SUBR)xor_aa  },
+   { "##not.i",   S(AOP),  0, "i", "i",    (SUBR)not_k                   },
+   { "##not.k",   S(AOP),  0, "k", "k",    NULL,   (SUBR)not_k           },
+   { "##not.a",   S(AOP),  0, "a", "a",    NULL,   (SUBR)not_a   },
+   { "##shl.ii",  S(AOP),  0, "i", "ii",   (SUBR) shift_left_kk          },
+   { "##shl.kk",  S(AOP),  0, "k", "kk",   NULL, (SUBR) shift_left_kk    },
+   { "##shl.ka", S(AOP), 0, "a", "ka", NULL, (SUBR) shift_left_ka  },
+   { "##shl.ak", S(AOP), 0, "a", "ak", NULL, (SUBR) shift_left_ak  },
+   { "##shl.aa", S(AOP), 0, "a", "aa", NULL, (SUBR) shift_left_aa  },
+   { "##shr.ii",  S(AOP),  0, "i", "ii",   (SUBR) shift_right_kk         },
+   { "##shr.kk",  S(AOP),  0, "k", "kk",   NULL, (SUBR) shift_right_kk   },
+   { "##shr.ka", S(AOP), 0, "a", "ka", NULL, (SUBR) shift_right_ka },
+   { "##shr.ak", S(AOP), 0, "a", "ak", NULL, (SUBR) shift_right_ak },
+   { "##shr.aa", S(AOP), 0, "a", "aa", NULL, (SUBR) shift_right_aa }
 };
 
 int32_t ugmoss_init_(CSOUND *csound)

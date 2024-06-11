@@ -43,11 +43,11 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     int32        bufsize;
     MYFLT       *d;
 
-    if (LIKELY((gftp = csound->FTnp2Finde(csound, p->igfn)) != NULL))
+    if (LIKELY((gftp = csound->FTFind(csound, p->igfn)) != NULL))
       p->gftp = gftp;
     else return NOTOK;
 
-    if (LIKELY((eftp = csound->FTnp2Finde(csound, p->iefn)) != NULL))
+    if (LIKELY((eftp = csound->FTFind(csound, p->iefn)) != NULL))
       p->eftp = eftp;
     else return NOTOK;
 
@@ -196,7 +196,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
 
 static OENTRY localops[] =
   {
-   { "grain", S(PGRA),  TR, 3,   "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
+   { "grain", S(PGRA),  TR,    "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
   };
 
 int32_t grain_init_(CSOUND *csound)

@@ -32,7 +32,6 @@
 
 #include "stdopcod.h"
 #include "nlfilt.h"
-
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
@@ -193,14 +192,13 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
-  
 
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
-{ "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
+{ "nlfilt",  S(NLFILT), 0, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
+{ "nlfilt2",  S(NLFILT), 0, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
 };
 
 int32_t nlfilt_init_(CSOUND *csound)

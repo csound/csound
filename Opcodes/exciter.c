@@ -291,7 +291,7 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY exciter_localops[] = {
-  { "exciter", S(EXCITER),   0, 3, "a", "akkkk",
+  { "exciter", S(EXCITER),   0, "a", "akkkk",
                              (SUBR)exciter_init, (SUBR)exciter_perf },
 };
 

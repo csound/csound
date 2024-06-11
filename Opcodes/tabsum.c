@@ -41,7 +41,7 @@ typedef struct {
 
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
+    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->itab)) == NULL)) {
       return csound->InitError(csound, "%s", Str("tabsum: No table"));
     }
     return OK;
@@ -76,7 +76,7 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY tabsum_localops[] = {
-{ "tabsum",     S(TABSUM),     0, 3,     "k",    "iOO",
+{ "tabsum",     S(TABSUM),     0,      "k",    "iOO",
                 (SUBR)tabsuminit, (SUBR)tabsum },
 };
 

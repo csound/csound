@@ -229,11 +229,8 @@ typedef struct {
         MYFLT   *end;
 } PAINIT;
 
-
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
-int32_t inRange_i(CSOUND *csound, INRANGE *p);
-int32_t inRange(CSOUND *csound, INRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);

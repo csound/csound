@@ -503,7 +503,7 @@ int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
     if (p->fdch.fd != NULL)
       csound->FDClose(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, p->fname->data,
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, p->fname->data,
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
@@ -530,9 +530,9 @@ int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
 
 static OENTRY localops[] =
   {
-    { "partials", sizeof(_PARTS), 0, 3, "f", "ffkkki",
+    { "partials", sizeof(_PARTS), 0,  "f", "ffkkki",
                             (SUBR) partials_init, (SUBR) partials_process },
-    { "part2txt", sizeof(_PARTS), 0, 3, "", "Sf",
+    { "part2txt", sizeof(_PARTS), 0,  "", "Sf",
                             (SUBR) part2txt_init, (SUBR) part2txt_perf }
   };
 

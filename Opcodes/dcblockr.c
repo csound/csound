@@ -196,9 +196,9 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "dcblock", S(DCBlocker), 0, 3, "a", "ao",
+  { "dcblock", S(DCBlocker), 0,  "a", "ao",
                                    (SUBR)dcblockrset, (SUBR)dcblockr},
-  { "dcblock2", S(DCBlock2), 0, 3, "a", "aoo",
+  { "dcblock2", S(DCBlock2), 0, "a", "aoo",
                                    (SUBR)dcblock2set, (SUBR)dcblock2}
 };
 

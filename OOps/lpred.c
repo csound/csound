@@ -537,7 +537,7 @@ MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int mode){
 /* lpcfilter - take lpred input from table */
 int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
 
-  FUNC *ft = csound->FTnp2Find(csound, p->ifn);
+  FUNC *ft = csound->FTFind(csound, p->ifn);
 
   if (ft != NULL) {
     MYFLT *c;
@@ -549,7 +549,7 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
 
     p->setup = csound->LPsetup(csound,N,p->M);
     if(*p->iwin != 0) {
-      FUNC *ftw = csound->FTnp2Find(csound, p->iwin);
+      FUNC *ftw = csound->FTFind(csound, p->iwin);
       MYFLT *buf, incr, k;
       int i;
       p->wlen = ftw->flen;
@@ -652,7 +652,7 @@ int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
   p->N = *p->isiz;
 
   if(*p->iwin != 0) {
-    FUNC *ftw = csound->FTnp2Find(csound, p->iwin);
+    FUNC *ftw = csound->FTFind(csound, p->iwin);
     p->wlen = ftw->flen;
     p->win = ftw->ftable;
   } else p->win = NULL;
@@ -740,12 +740,12 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
 
 /* function table input */
 int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {
-  FUNC *ft = csound->FTnp2Find(csound, p->ifn);
+  FUNC *ft = csound->FTFind(csound, p->ifn);
   if (ft != NULL) {
     int N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
     uint32_t Nbytes = N*sizeof(MYFLT);
     if(*p->iwin){
-      FUNC *win = csound->FTnp2Find(csound, p->iwin);
+      FUNC *win = csound->FTFind(csound, p->iwin);
       p->win = win->ftable;
       p->wlen = win->flen;
     } else p->win = NULL;
@@ -801,7 +801,7 @@ int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p) {
   int N = *p->isiz;
   uint32_t Nbytes = N*sizeof(MYFLT);
   if(*p->iwin){
-    FUNC *win = csound->FTnp2Find(csound, p->iwin);
+    FUNC *win = csound->FTFind(csound, p->iwin);
     p->win = win->ftable;
     p->wlen = win->flen;
   } else p->win = NULL;
@@ -912,7 +912,7 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   int N = *p->isiz;
   uint32_t Nbytes = N*sizeof(MYFLT);
   if(*p->iwin){
-    FUNC *win = csound->FTnp2Find(csound, p->iwin);
+    FUNC *win = csound->FTFind(csound, p->iwin);
     p->win = win->ftable;
     p->wlen = win->flen;
   } else p->win = NULL;
@@ -937,6 +937,8 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   p->fout->winsize = N;
   p->fout->wintype = PVS_WIN_HANN;
   p->fout->format = PVS_AMP_FREQ;
+
+  p->fftsetup = csound->RealFFTSetup(csound,p->N,FFT_FWD);
 
   Nbytes = (N+2)*sizeof(float);
   if(p->fout->frame.auxp == NULL || Nbytes > p->fout->frame.size)
@@ -977,7 +979,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
       memset(fftframe,0,sizeof(MYFLT)*N);
       memcpy(&fftframe[1], &c[1], sizeof(MYFLT)*M);
       fftframe[0] = 1;
-      csound->RealFFT(csound,fftframe,N);
+      csound->RealFFT(csound,p->fftsetup,fftframe);
       g =  SQRT(c[0])*csoundLPrms(csound,p->setup);
       MYFLT cps = csoundLPcps(csound,p->setup);
       int cpsbin = cps*N/sr;

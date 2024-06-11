@@ -414,9 +414,6 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 #endif
       return csound->InitError(csound, Str("connect failed (%d)"), err);
     }
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) stsend_deinit);
-
     return OK;
 }
 
@@ -510,9 +507,6 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) oscsend_deinit);
-
     if(p->INCOUNT > 4) {
               if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
       /* allocate space for the types buffer */
@@ -564,7 +558,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'G':
-        ft = csound->FTnp2Finde(csound, p->arg[i]);
+        ft = csound->FTFind(csound, p->arg[i]);
         bsize += (sizeof(MYFLT)*ft->flen);
         iarg++;
         break;
@@ -766,7 +760,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'G':
-          ft = csound->FTnp2Finde(csound, p->arg[i]);
+          ft = csound->FTFind(csound, p->arg[i]);
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
           if(buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
@@ -1032,19 +1026,19 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
 
 static OENTRY socksend_localops[] =
   {
-   { "socksend.a", S(SOCKSEND), 0, 3, "", "aSiio", (SUBR) init_send,
+   { "socksend.a", S(SOCKSEND), 0, "", "aSiio", (SUBR) init_send,
      (SUBR) send_send },
-   { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
+   { "socksend.k", S(SOCKSEND), 0, "", "kSiio", (SUBR) init_send,
      (SUBR) send_send_k, NULL },
-   { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
+   { "socksend.S", S(SOCKSENDT), 0, "", "SSiio", (SUBR) init_send,
      (SUBR) send_send_Str, NULL },
-   { "socksends", S(SOCKSENDS), 0, 3, "", "aaSiio", (SUBR) init_sendS,
+   { "socksends", S(SOCKSENDS), 0, "", "aaSiio", (SUBR) init_sendS,
      (SUBR) send_sendS },
-   { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
-     (SUBR) send_ssend },
-   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSN", (SUBR)osc_send2_init,
-     (SUBR)osc_send2 },
-   { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
+   { "stsend", S(SOCKSEND), 0, "", "aSi", (SUBR) init_ssend,
+     (SUBR) send_ssend, (SUBR) stsend_deinit },
+   { "OSCsend", S(OSCSEND2), 0, "", "kSkSN", (SUBR)osc_send2_init,
+     (SUBR)osc_send2, (SUBR) oscsend_deinit },
+   { "OSCbundle", S(OSCBUNDLE), 0, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },
 };
 

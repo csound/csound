@@ -3269,7 +3269,7 @@ int svn_init(CSOUND *csound, SVN *p) {
     p->tab = tab;
     p->size = TABSIZE;
   } else {
-    FUNC *ftab = csound->FTnp2Find(csound, p->ifn);
+    FUNC *ftab = csound->FTFind(csound, p->ifn);
     p->tab = ftab->ftable;
     p->size = ftab->flen;
     p->max = 1./(*p->mx*2);
@@ -3288,7 +3288,7 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  FUNC *ftab = csound->FTFind(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   D = 1./Q;
@@ -3369,7 +3369,7 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  FUNC *ftab = csound->FTFind(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   Q = p->Q = *p->q >  0.5 ? *p->q : 0.5;
@@ -3445,7 +3445,7 @@ int svn_perfka(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  FUNC *ftab = csound->FTFind(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
   w2 = w*w;
@@ -3527,7 +3527,7 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
   int32_t size = p->size, sz = 0;
-  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  FUNC *ftab = csound->FTFind(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
 
@@ -3653,109 +3653,109 @@ int ms_decod(CSOUND *csound, MIDSID *p) {
 
 static OENTRY localops[] =
   {
-    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "ako",
+    {"mvchpf", sizeof(mvchpf24), 0, "a", "ako",
      (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf},
-    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "aao",
+    {"mvchpf", sizeof(mvchpf24), 0, "a", "aao",
      (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf_a},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akko",
+    {"mvclpf1", sizeof(mvclpf24), 0, "a", "akko",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aako",
+    {"mvclpf1", sizeof(mvclpf24), 0, "a", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_ak},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akao",
+    {"mvclpf1", sizeof(mvclpf24), 0, "a", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_ka},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aaao",
+    {"mvclpf1", sizeof(mvclpf24), 0, "a", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_aa},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akko",
+    {"mvclpf2", sizeof(mvclpf24), 0, "a", "akko",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aako",
+    {"mvclpf2", sizeof(mvclpf24), 0, "a", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_ak},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akao",
+    {"mvclpf2", sizeof(mvclpf24), 0, "a", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_ka},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aaao",
+    {"mvclpf2", sizeof(mvclpf24), 0, "a", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_aa},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akko",
+    {"mvclpf3", sizeof(mvclpf24), 0, "a", "akko",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aako",
+    {"mvclpf3", sizeof(mvclpf24), 0, "a", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_ak},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akao",
+    {"mvclpf3", sizeof(mvclpf24), 0, "a", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_ka},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aaao",
+    {"mvclpf3", sizeof(mvclpf24), 0, "a", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_aa},
-    {"mvclpf4", sizeof(mvclpf24_4), 0, 3, "aaaa", "akko",
+    {"mvclpf4", sizeof(mvclpf24_4), 0, "aaaa", "akko",
      (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4},
-    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aako",
+    {"mvclpf4", sizeof(mvclpf24), 0, "aaaa", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ak},
-    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "akao",
+    {"mvclpf4", sizeof(mvclpf24), 0, "aaaa", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ka},
-    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aaao",
+    {"mvclpf4", sizeof(mvclpf24), 0, "aaaa", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_aa},
-    {"moogladder.kk", sizeof(moogladder), 0, 3, "a", "akko",
+    {"moogladder.kk", sizeof(moogladder), 0, "a", "akko",
      (SUBR) moogladder_init, (SUBR) moogladder_process },
-    {"moogladder.aa", sizeof(moogladder), 0, 3, "a", "aaao",
+    {"moogladder.aa", sizeof(moogladder), 0, "a", "aaao",
      (SUBR) moogladder_init, (SUBR) moogladder_process_aa },
-    {"moogladder.ak", sizeof(moogladder), 0, 3, "a", "aako",
+    {"moogladder.ak", sizeof(moogladder), 0, "a", "aako",
      (SUBR) moogladder_init, (SUBR) moogladder_process_ak },
-    {"moogladder.ka", sizeof(moogladder), 0, 3, "a", "akao",
+    {"moogladder.ka", sizeof(moogladder), 0, "a", "akao",
      (SUBR) moogladder_init, (SUBR) moogladder_process_ka },
-    {"moogladder2.kk", sizeof(moogladder), 0, 3, "a", "akko",
+    {"moogladder2.kk", sizeof(moogladder), 0, "a", "akko",
      (SUBR) moogladder_init, (SUBR) moogladder2_process },
-    {"moogladder2.aa", sizeof(moogladder), 0, 3, "a", "aaao",
+    {"moogladder2.aa", sizeof(moogladder), 0, "a", "aaao",
      (SUBR) moogladder_init, (SUBR) moogladder2_process_aa },
-    {"moogladder2.ak", sizeof(moogladder), 0, 3, "a", "aako",
+    {"moogladder2.ak", sizeof(moogladder), 0, "a", "aako",
      (SUBR) moogladder_init, (SUBR) moogladder2_process_ak },
-    {"moogladder2.ka", sizeof(moogladder), 0, 3, "a", "akao",
+    {"moogladder2.ka", sizeof(moogladder), 0, "a", "akao",
      (SUBR) moogladder_init, (SUBR) moogladder2_process_ka },
-    {"statevar", sizeof(statevar), 0, 3, "aaaa", "axxoo",
+    {"statevar", sizeof(statevar), 0, "aaaa", "axxoo",
      (SUBR) statevar_init, (SUBR) statevar_process     },
-    {"fofilter", sizeof(fofilter), 0, 3, "a", "axxxo",
+    {"fofilter", sizeof(fofilter), 0, "a", "axxxo",
      (SUBR) fofilter_init, (SUBR) fofilter_process     },
-    {"bob", sizeof(BOB), 0, 3, "a", "axxxoo",
+    {"bob", sizeof(BOB), 0, "a", "axxxoo",
      (SUBR) bob_init, (SUBR) bob_process     },
-    {"vps", sizeof(VPS), 0, 2, "a", "akk",
+    {"vps", sizeof(VPS), 0,  "a", "akk",
      (SUBR) NULL, (SUBR) vps_process },
-    {"vclpf", sizeof(VCF), 0, 3, "a", "akko",
+    {"vclpf", sizeof(VCF), 0, "a", "akko",
      (SUBR) vcf_init, (SUBR) vcf_perfk },
-    {"vclpf", sizeof(VCF), 0, 3, "a", "aako",
+    {"vclpf", sizeof(VCF), 0, "a", "aako",
      (SUBR) vcf_init, (SUBR) vcf_perfak },
-    {"vclpf", sizeof(VCF), 0, 3, "a", "akao",
+    {"vclpf", sizeof(VCF), 0, "a", "akao",
      (SUBR) vcf_init, (SUBR) vcf_perfka },
-    {"vclpf", sizeof(VCF), 0, 3, "a", "aaao",
+    {"vclpf", sizeof(VCF), 0, "a", "aaao",
      (SUBR) vcf_init, (SUBR) vcf_perfaa },
-    {"spf", sizeof(SPF), 0, 3, "a", "aaakko",
+    {"spf", sizeof(SPF), 0, "a", "aaakko",
      (SUBR) spf_init, (SUBR) spf_perfkk },
-    {"spf", sizeof(SPF), 0, 3, "a", "aaaako",
+    {"spf", sizeof(SPF), 0, "a", "aaaako",
      (SUBR) spf_init, (SUBR) spf_perfak },
-    {"spf", sizeof(SPF), 0, 3, "a", "aaaaao",
+    {"spf", sizeof(SPF), 0, "a", "aaaaao",
      (SUBR) spf_init, (SUBR) spf_perfaa },
-    {"spf", sizeof(SPF), 0, 3, "a", "aaakao",
+    {"spf", sizeof(SPF), 0, "a", "aaakao",
      (SUBR) spf_init, (SUBR) spf_perfka },
-    {"skf", sizeof(SKF), 0, 3, "a", "akkoo",
+    {"skf", sizeof(SKF), 0, "a", "akkoo",
      (SUBR) skf_init, (SUBR) skf_perfkk },
-    {"skf", sizeof(SKF), 0, 3, "a", "aakoo",
+    {"skf", sizeof(SKF), 0, "a", "aakoo",
      (SUBR) skf_init, (SUBR) skf_perfak },
-    {"skf", sizeof(SKF), 0, 3, "a", "aaaoo",
+    {"skf", sizeof(SKF), 0, "a", "aaaoo",
      (SUBR) skf_init, (SUBR) skf_perfaa },
-    {"skf", sizeof(SKF), 0, 3, "a", "akaoo",
+    {"skf", sizeof(SKF), 0, "a", "akaoo",
      (SUBR) skf_init, (SUBR) skf_perfka },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "akkkoopo",
+    {"svn", sizeof(SVN), 0, "aaaa", "akkkoopo",
      (SUBR) svn_init, (SUBR) svn_perfkk },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "aakkoopo",
+    {"svn", sizeof(SVN), 0, "aaaa", "aakkoopo",
      (SUBR) svn_init, (SUBR) svn_perfak },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "akakoopo",
+    {"svn", sizeof(SVN), 0, "aaaa", "akakoopo",
      (SUBR) svn_init, (SUBR) svn_perfka },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "aaakoopo",
+    {"svn", sizeof(SVN), 0, "aaaa", "aaakoopo",
      (SUBR) svn_init, (SUBR) svn_perfaa },
-    {"st2ms", sizeof(MIDSID), 0, 2, "aa", "aa",
+    {"st2ms", sizeof(MIDSID), 0,  "aa", "aa",
      (SUBR) NULL, (SUBR) ms_encod},
-    {"ms2st", sizeof(MIDSID), 0, 2, "aa", "aak",
+    {"ms2st", sizeof(MIDSID), 0,  "aa", "aak",
      (SUBR) NULL, (SUBR) ms_decod },
-    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "akkko",
+    {"otafilter", sizeof(VCFNL), 0, "aa", "akkko",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfk},
-    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "aakko",
+    {"otafilter", sizeof(VCFNL), 0, "aa", "aakko",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfak},
-    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "akako",
+    {"otafilter", sizeof(VCFNL), 0, "aa", "akako",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfka},
-    {"otafilter", sizeof(VCFNL), 0, 3, "aa", "aaako",
+    {"otafilter", sizeof(VCFNL), 0, "aa", "aaako",
      (SUBR) vcfnl_init, (SUBR) vcfnl_perfaa},
   };
 

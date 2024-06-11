@@ -82,7 +82,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
     //soundFont = globals->soundFont;
-    fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
+    fd = csound->FileOpen(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
       #ifndef __wasi__
@@ -144,9 +144,9 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
     }
     if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
     else {
-      if (csound->ISSTRCOD(*p->fname))
+      if (IsStringCode(*p->fname))
         fname = csound->Strdup(csound, csound->GetString(csound,*p->fname));
-      else fname = csound->strarg2name(csound,
+      else fname = csound->StringArg2Name(csound,
                                 NULL, p->fname, "sfont.",
                                 0);
     }
@@ -2397,7 +2397,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
       }
     }
   p->spltNum = spltNum;
-  if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+  if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
   else p->efunc = NULL;
 
   if (*p->iskip == 0){
@@ -2708,33 +2708,33 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 #define S       sizeof
 
 static OENTRY localops[] = {
-  { "sfload",S(SFLOAD),     0, 1,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
-  { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",   (SUBR)SfLoad, NULL, NULL },
-  { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
-  { "sfplay", S(SFPLAY), 0, 3, "aa", "iixxioooo",
+  { "sfload",S(SFLOAD),     0,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
+  { "sfload.i",S(SFLOAD),     0,    "i",    "i",   (SUBR)SfLoad, NULL, NULL },
+  { "sfpreset",S(SFPRESET), 0,    "i",    "iiii",   (SUBR)SfPreset         },
+  { "sfplay", S(SFPLAY), 0,  "aa", "iixxioooo",
     (SUBR)SfPlay_set, (SUBR)SfPlay     },
-  { "sfplaym", S(SFPLAYMONO), 0, 3, "a", "iixxioooo",
+  { "sfplaym", S(SFPLAYMONO), 0,  "a", "iixxioooo",
     (SUBR)SfPlayMono_set, (SUBR)SfPlayMono },
-  { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
-  { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
-  { "sfilist.prefix",S(SFPLIST),   0, 1,    "",     "iS",      (SUBR)Sfilist_prefix},
+  { "sfplist",S(SFPLIST),   0,    "",     "i",      (SUBR)Sfplist          },
+  { "sfilist",S(SFPLIST),   0,    "",     "i",      (SUBR)Sfilist          },
+  { "sfilist.prefix",S(SFPLIST),   0,    "",     "iS",      (SUBR)Sfilist_prefix},
 
-  { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
-  { "sfinstrm", S(SFIPLAYMONO),0, 3, "a", "iixxiioooo",
+  { "sfpassign",S(SFPASSIGN), 0,  "",     "iip",    (SUBR)SfAssignAllPresets },
+  { "sfinstrm", S(SFIPLAYMONO),0, "a", "iixxiioooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono },
-  { "sfinstr", S(SFIPLAY),  0, 3,    "aa", "iixxiioooo",
+  { "sfinstr", S(SFIPLAY),  0,    "aa", "iixxiioooo",
     (SUBR)SfInstrPlay_set,(SUBR)SfInstrPlay },
-  { "sfplay3", S(SFPLAY),   0, 3,    "aa", "iixxioooo",
+  { "sfplay3", S(SFPLAY),   0,    "aa", "iixxioooo",
     (SUBR)SfPlay_set, (SUBR)SfPlay3  },
-  { "sfplay3m", S(SFPLAYMONO), 0, 3, "a", "iixxioooo",
+  { "sfplay3m", S(SFPLAYMONO), 0, "a", "iixxioooo",
     (SUBR)SfPlayMono_set,(SUBR)SfPlayMono3 },
-  { "sfinstr3", S(SFIPLAY), 0, 3,    "aa", "iixxiioooo",
+  { "sfinstr3", S(SFIPLAY), 0,    "aa", "iixxiioooo",
     (SUBR)SfInstrPlay_set, (SUBR)SfInstrPlay3 },
-  { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiioooo",
+  { "sfinstr3m", S(SFIPLAYMONO), 0, "a", "iixxiioooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono3 },
-  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkooooo",
+  { "sflooper", S(sflooper), 0, "aa", "iikkikkkooooo",
     (SUBR)sflooper_init, (SUBR)sflooper_process },
-  { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
+  { NULL, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };
 
 int32_t sfont_ModuleCreate(CSOUND *csound)
@@ -2770,11 +2770,11 @@ int32_t sfont_ModuleInit(CSOUND *csound)
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
                                   ep->opname, ep->dsblksiz, ep->flags,
-                                  ep->thread, ep->outypes, ep->intypes,
-                                  (int32_t (*)(CSOUND *, void*)) ep->iopadr,
-                                  (int32_t (*)(CSOUND *, void*)) ep->kopadr,
+                                  ep->outypes, ep->intypes,
+                                  (int32_t (*)(CSOUND *, void*)) ep->init,
+                                  (int32_t (*)(CSOUND *, void*)) ep->perf,
                                   (int32_t
-                                   (*)(CSOUND *, void*)) ep->aopadr);
+                                   (*)(CSOUND *, void*)) ep->deinit);
       ep++;
     }
     return err;

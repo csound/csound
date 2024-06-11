@@ -72,7 +72,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
     sflib_write_MYFLT(outfd, out_buf, length);
     (*block)++;
     if (oparms->rewrt_hdr)
-      csound->rewriteheader((struct SNDFILE *)outfd);
+      csound->RewriteHeader((struct SNDFILE *)outfd);
     switch (oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
@@ -292,7 +292,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'H':
             if (isdigit(*s)) {
               int n;
-              sscanf(s, "%d%n", &O.heartbeat, &n);
+              csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
               s += n;
             }
             else O.heartbeat = 1;
@@ -302,24 +302,24 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             break;
           case 'Q':
             FIND(Str("No Q argument"))
-            sscanf(s,"%d", &Q);
+            csound->Sscanf(s,"%d", &Q);
             while (*++s);
             break;
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &P);
+            csound->Sscanf(s,"%lf", &P);
 #else
-            csound->sscanf(s,"%f", &P);
+            csound->Sscanf(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &Rout);
+            csound->Sscanf(s,"%lf", &Rout);
 #else
-            csound->sscanf(s,"%f", &Rout);
+            csound->Sscanf(s,"%f", &Rout);
 #endif
             while (*++s);
             break;
@@ -351,7 +351,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       usage(csound);
       return -1;
     }
-    if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
+    if ((inf = csound->SndInputFileOpen(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) == NULL) {
       csound->ErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
@@ -441,7 +441,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     if (O.outformat == 0)
       O.outformat = AE_SHORT;//p->format;
-    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+    O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
       O.sfheader = 0;
       O.rewrt_hdr = 0;
@@ -480,7 +480,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
         outfd = sflib_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
-                                   csound->type2csfiletype(O.filetyp,
+                                   csound->Type2CsfileType(O.filetyp,
                                                            O.outformat),
                                    1, 0);
         else {
@@ -505,9 +505,9 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     outbufsiz = OBUF * O.sfsampsize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
-                    outbufsiz, csound->getstrformat(O.outformat),
+                    outbufsiz, csound->GetStrFormat(O.outformat),
                     O.outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
+    csound->Message(csound, " (%s)\n",csound->Type2String(O.filetyp));
 
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
@@ -587,7 +587,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
  /* initialization: */
 
-    nread = csound->getsndin(csound, inf, input, IBUF2, p);
+    nread = csound->SndInputRead(csound, inf, input, IBUF2, p);
     for(i=0; i < nread; i++)
        input[i] *= 1.0/csound->Get0dBFS(csound);
     nMax = (long)(input_dur * p->sr);
@@ -644,7 +644,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
+            nread = csound->SndInputRead(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;
@@ -704,7 +704,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
+            nread = csound->SndInputRead(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;

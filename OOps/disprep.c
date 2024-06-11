@@ -347,6 +347,8 @@ static void Lin2DB(MYFLT *buffer, int32_t size)
     }
 }
 
+void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+
 static void d_fft(      /* perform an FFT as reqd below */
   CSOUND *csound,
   MYFLT  *sce,   /* input array - pure packed real */
@@ -357,7 +359,7 @@ static void d_fft(      /* perform an FFT as reqd below */
 {
     memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
     ApplyHalfWin(dst, hWin, size);
-    csound->RealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
+    csoundRealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1, scal);
@@ -522,13 +524,15 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     }
     {
       MYFLT *funp = ftp->ftable;
-      int32_t phs = 0;
-      int32_t inc = (int32_t)PHMASK / npts;
-      int32_t nn, lobits = ftp->lobits;
+      MYFLT phs = 0;
+      MYFLT inc = ((MYFLT)ftp->flen)/npts;
+      //int32_t inc = (int32_t)PHMASK / npts;
+      int32_t nn;//, lobits = ftp->lobits;
       for (fltp=p->hbeg, nn=npts*4; nn--; )   /* clr 2 circ & 1st 2 lin bufs */
         *fltp++ = FL(0.0);
       for (fltp=p->ftable+npts, nn=npts; nn--; ) {  /* now sample the ftable  */
-        *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
+        *--fltp = *(funp + (int32_t) (phs*ftp->flen));
+        // *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
         phs += inc;
       }
     }

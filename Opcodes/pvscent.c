@@ -210,7 +210,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
-    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound,p->fsize,FFT_FWD);
     return OK;
 }
 
@@ -246,7 +246,7 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
         if (k == fsize-1) k=0;
         else k++;
       }
-      csound->RealFFT2(csound, p->setup, windowed);
+      csound->RealFFT(csound, p->setup, windowed);
       cf=FL(0.5)*binsize;
       mag = fabs(windowed[0])/fsize;
       c += mag*cf;
@@ -449,14 +449,14 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-  { "pvscent", sizeof(PVSCENT), 0, 3, "k", "f",
+  { "pvscent", sizeof(PVSCENT), 0,  "k", "f",
                              (SUBR)pvscentset, (SUBR)pvscent },
-  { "pvsbandwidth", sizeof(PVSCENT), 0, 3, "k", "f",
+  { "pvsbandwidth", sizeof(PVSCENT), 0,  "k", "f",
                              (SUBR)pvscentset, (SUBR)pvsbandw },
-  { "pvscent", sizeof(PVSCENT), 0, 3, "a", "f",
+  { "pvscent", sizeof(PVSCENT), 0,  "a", "f",
                              (SUBR)pvscentset, (SUBR)pvsscent },
-  { "centroid", sizeof(CENT), 0, 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
-  { "pvspitch", sizeof(PVSPITCH), 0, 3, "kk", "fk",
+  { "centroid", sizeof(CENT), 0,  "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
+  { "pvspitch", sizeof(PVSPITCH), 0,  "kk", "fk",
                             (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 

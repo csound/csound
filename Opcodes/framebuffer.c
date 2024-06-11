@@ -392,7 +392,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
 ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument)
 {
-    const CS_TYPE *csoundType = csound->GetTypeForArg((void *)argument);
+    const CS_TYPE *csoundType = GetTypeForArg((void *)argument);
     const char *type = csoundType->varTypeName;
     ArgumentType argumentType = UNKNOWN;
 
@@ -438,22 +438,20 @@ static OENTRY framebuffer_localops[] = {
     {
         .opname = "framebuffer",
         .dsblksiz = sizeof(Framebuffer),
-        .thread = 3,
         .outypes = "*",
         .intypes = "*",
-        .iopadr = (SUBR)Framebuffer_initialise,
-        .kopadr = (SUBR)Framebuffer_process,
-        .aopadr = NULL
+        .init = (SUBR)Framebuffer_initialise,
+        .perf = (SUBR)Framebuffer_process,
+        .deinit = NULL
     },
     {
         .opname = "olabuffer",
         .dsblksiz = sizeof(OLABuffer),
-        .thread = 3,
         .outypes = "a",
         .intypes = "k[]i",
-        .iopadr = (SUBR)OLABuffer_initialise,
-        .kopadr = (SUBR)OLABuffer_process,
-        .aopadr = NULL
+        .init = (SUBR)OLABuffer_initialise,
+        .perf = (SUBR)OLABuffer_process,
+        .deinit = NULL
     }
 };
 

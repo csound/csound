@@ -129,7 +129,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 {
   int32_t   indx;
   p->r->timestamp = 0;
-  if (csound->ISSTRCOD(*(p->indx))) {
+  if (IsStringCode(*(p->indx))) {
     char *ss = csound->init_event->strarg;
     if (ss == NULL)
       return OK;
@@ -167,7 +167,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 {
   CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
-  const char  *opname = csound->GetOpcodeName(p);
+  const char  *opname = GetOpcodeName(p);
 
   if (UNLIKELY(csound->ids != NULL && csound->ids->insdshead == csound->curip))
     return csound->InitError(csound, "%s: %s", opname, Str(msg));
@@ -183,7 +183,7 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   if((uint64_t)p->str->timestamp == p->h.insdshead->kcounter) {
-  CS_TYPE *strType = csound->GetTypeForArg(p->str);    
+  CS_TYPE *strType = GetTypeForArg(p->str);    
   strType->copyValue(csound, strType, p->r, p->str);
   //printf("copy \n");
   }
@@ -193,7 +193,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
 
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
-  CS_TYPE *strType = csound->GetTypeForArg(p->str);
+  CS_TYPE *strType = GetTypeForArg(p->str);
   strType->copyValue(csound, strType, p->r, p->str);
   }
   return  OK;
@@ -206,7 +206,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
-  if (csound->ISSTRCOD(*p->indx)) {
+  if (IsStringCode(*p->indx)) {
     char *ss;
     ss = get_arg_string(csound, *p->indx);
     if (ss == NULL){
@@ -228,7 +228,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
   }
   else {
     csound->Free(csound, p->r->data);
-    p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
+    p->r->data = csound->StringArg2Name(csound, NULL, p->indx, "soundin.", 0);
     p->r->size = strlen(p->r->data) + 1;
   }
   return OK;
@@ -621,7 +621,7 @@ int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
   char    *s = NULL, *tmp;
   double  x;
 
-  if (csound->ISSTRCOD(*p->str))
+  if (IsStringCode(*p->str))
     s = get_arg_string(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
@@ -718,7 +718,7 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
   int32_t   sgn = 0, radix = 10;
   int32_t   x = 0L;
 
-  if (csound->ISSTRCOD(*p->str))
+  if (IsStringCode(*p->str))
     s = get_arg_string(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
