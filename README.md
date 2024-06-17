@@ -1,14 +1,6 @@
 # CSOUND
 Version 7.0.0 (beta)
 
-This is the the develop branch of the Csound main code repository. At
-the moment, we are developing the next main version (moving from 6.x
-to 7.0), and this branch reflects current work-in-progress. This is
-still undergoing changes and fixes until the first release, scheduled
-for September 2024. Anyone seeking the latest 6.x version please
-checkout the csound6 branch (or the master branch, containing the
-latest and final release of this version).
-
 ![Build Status](https://github.com/csound/csound/actions/workflows/csound_builds.yml/badge.svg?branch=develop)
 <!--- ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg) --->
 A sound and music computing system.
