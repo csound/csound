@@ -31,13 +31,14 @@ PUBLIC void 	csoundDestroy (CSOUND *)
 
 // Performance
 // One compilation function that does everything
-// We could potentially use "argc" as a code
+// For example, we could potentially use "argc" as a code
 // > 0 - argc/argv as main() command-line parameters
 // 0 - start csound as a daemon with no code, ignore argv
 // -1 - argv[0] is an orchestra string (csoundCompileStr)
 // -2 - argv[0] is a complete csound   (csoundCompileCsdText)
 // First call to csoundCompile() also starts Csound so we remove csoundStart()
 // async defines async operation
+// NB - interface with double pointers may not be ideal for non C/C++
 PUBLIC int  csoundCompile (CSOUND *, int argc, const char **argv, int async);
 PUBLIC int  csoundPerformKsmps (CSOUND *);
 
@@ -49,7 +50,7 @@ PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state);
 PUBLIC MYFLT *csoundGetSpin (CSOUND *);
 PUBLIC MYFLT *csoundGetSpout (CSOUND *csound);
 
-// no audio IO callbacks - that's just in the module API now.
+// no audio IO callbacks - that's only available in the module API now.
 // MIDI callbacks can be set with a single new function
 typedef struct {
   int(*open)(CSOUND *, void **userData, const char *devName, int mode); // MIDI open callback (mode=CS_MIDI_IN, CS_MIDI_OUT)
