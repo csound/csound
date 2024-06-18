@@ -43,8 +43,9 @@ PUBLIC int  csoundPerformKsmps (CSOUND *);
 
 // Realtime Audio
 // this is now effectively -n since there is no access to buffer, only to spin.
+// we need a better name I think
 PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state);
-// access to spin/spout
+// access to spin/spout (no need to give individual sample access)
 PUBLIC MYFLT *csoundGetSpin (CSOUND *);
 PUBLIC MYFLT *csoundGetSpout (CSOUND *csound);
 
