@@ -1,5 +1,5 @@
 /*
-    csound_new.h: NEW API - Experimenetal
+    csound_new.h: NEW API - Experimental
 
     Copyright (C) 2024
 
@@ -50,14 +50,15 @@ PUBLIC MYFLT *csoundGetSpin (CSOUND *);
 PUBLIC MYFLT *csoundGetSpout (CSOUND *csound);
 
 // no audio IO callbacks - that's just in the module API now.
-
-// MIDI callbacks can be set here (as well as in the module API)
-PUBLIC void 	csoundSetExternalMidiInOpenCallback (CSOUND *, int(*func)(CSOUND *, void **userData, const char *devName))
-PUBLIC void 	csoundSetExternalMidiReadCallback (CSOUND *, int(*func)(CSOUND *, void *userData, unsigned char *buf, int nBytes)) 
-PUBLIC void 	csoundSetExternalMidiInCloseCallback (CSOUND *, int(*func)(CSOUND *, void *userData))
-PUBLIC void 	csoundSetExternalMidiOutOpenCallback (CSOUND *, int(*func)(CSOUND *, void **userData, const char *devName)) 
-PUBLIC void 	csoundSetExternalMidiWriteCallback (CSOUND *, int(*func)(CSOUND *, void *userData, const unsigned char *buf, int nBytes)) 
-
+// MIDI callbacks can be set with a single new function
+typedef struct {
+  int(*open)(CSOUND *, void **userData, const char *devName, int mode); // MIDI open callback (mode=CS_MIDI_IN, CS_MIDI_OUT)
+  int(*read)(CSOUND *, void *userData, unsigned char *buf, int nBytes);
+  int(*write)(CSOUND *, void *userData, unsigned char *buf, int nBytes);
+  int(*close)(CSOUND *, void *userData);
+} CS_MIDI_CALLBACKS;
+PUBLIC void csoundSetMIDICallbacks(CSOUND *, CS_MIDI_CALLBACKS *);
+ 
 // Messages
 PUBLIC void 	   csoundCreateMessageBuffer (CSOUND *csound, int toStdOut)
 PUBLIC const char *csoundGetFirstMessage (CSOUND *csound)
