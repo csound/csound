@@ -30,6 +30,7 @@ PUBLIC CSOUND*  csoundCreate (void *hostData)
 PUBLIC void 	csoundDestroy (CSOUND *) 
 
 // Performance
+// One compilation function that does everything
 // We could potentially use "argc" as a code
 // > 0 - argc/argv as main() command-line parameters
 // 0 - start csound as a daemon with no code, ignore argv
@@ -43,10 +44,13 @@ PUBLIC int  csoundPerformKsmps (CSOUND *);
 // Realtime Audio
 // this is now effectively -n since there is no access to buffer, only to spin.
 PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *, int state);
-PUBLIC MYFLT * 	csoundGetSpin (CSOUND *);
-PUBLIC MYFLT * 	csoundGetSpout (CSOUND *csound);
+// access to spin/spout
+PUBLIC MYFLT *csoundGetSpin (CSOUND *);
+PUBLIC MYFLT *csoundGetSpout (CSOUND *csound);
 
-// MIDI callbacks
+// no audio IO callbacks - that's just in the module API now.
+
+// MIDI callbacks can be set here (as well as in the module API)
 PUBLIC void 	csoundSetExternalMidiInOpenCallback (CSOUND *, int(*func)(CSOUND *, void **userData, const char *devName))
 PUBLIC void 	csoundSetExternalMidiReadCallback (CSOUND *, int(*func)(CSOUND *, void *userData, unsigned char *buf, int nBytes)) 
 PUBLIC void 	csoundSetExternalMidiInCloseCallback (CSOUND *, int(*func)(CSOUND *, void *userData))
@@ -60,11 +64,10 @@ PUBLIC void 	   csoundPopFirstMessage (CSOUND *csound)
 PUBLIC int 	   csoundGetMessageCnt (CSOUND *csound)
 void PUBLIC 	   csoundDestroyMessageBuffer (CSOUND *csound)
 
-//Channels 
-PUBLIC int csoundGetChannelPtr(CSOUND *,
-                                 MYFLT **p, const char *name, int type);
+// Channels
 PUBLIC int csoundListChannels(CSOUND *, controlChannelInfo_t **lst);
 PUBLIC void csoundDeleteChannelList(CSOUND *, controlChannelInfo_t *lst);
+// basic types
 PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name,
                                        int *err);
 PUBLIC void csoundSetControlChannel(CSOUND *csound,
@@ -77,11 +80,19 @@ PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                      const char *name, char *string);
 PUBLIC  void csoundSetStringChannel(CSOUND *csound,
                                       const char *name, char *string);
+// generic data access (e.g. for other types, structs, etc)
+PUBLIC int csoundGetChannelPtr(CSOUND *,
+                                 MYFLT **p, const char *name, int type);
 PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
-// events
+// events:
 // async selects asynchronous operation
-PUBLIC void  csoundInputMessage (CSOUND *, const char *message, int async);
+// new function - replaces csoundInputMessage
+PUBLIC void  csoundEventString (CSOUND *, const char *message, int async);
+// new function - replaces csoundScoreEvent
+// type 0 - instrument instance     CS_INSTR_EVENT
+// type 1 - functiob table instance CS_TABLE_EVENT
+PUBLIC void  csoundEvent (CSOUND *, int type, MYFLT *params, int async);
 
 //Tables
 PUBLIC int 	csoundTableLength (CSOUND *, int table);
