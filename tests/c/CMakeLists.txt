@@ -11,6 +11,7 @@ if(BUILD_TESTS)
         csound_data_structures_test.cpp
         csound_debugger_test.cpp
         csound_message_buffer_test.cpp
+        csound_option_parser_test.cpp
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
