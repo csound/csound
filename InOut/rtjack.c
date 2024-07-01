@@ -1081,7 +1081,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
     char            **portNames = (char**) NULL, port[64];
     unsigned long   portFlags;
-    int             i, n, cnt=0;
+    int             i, cnt=0;
     jack_client_t *jackClient;
     RtJackGlobals* p =
       (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1108,9 +1108,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
-      n = (int) strlen(portNames[i]);
-      strNcpy(port, portNames[i], n+1);
-      //port[n] = '\0';
+      strNcpy(port, portNames[i], 63);
       if (list != NULL) {
         strNcpy(list[cnt].device_name, port, 63);
         snprintf(list[cnt].device_id, 63, "%s%d",
@@ -1492,7 +1490,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
                         int isOutput){
     char            **portNames = (char**) NULL, port[64];
     unsigned long   portFlags;
-    int             i, n, cnt=0;
+    int             i, cnt=0;
     jack_client_t *jackClient;
     RtJackGlobals* p =
       (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1520,9 +1518,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
 
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
-      n = (int) strlen(portNames[i]);
-      strNcpy(port, portNames[i], n+1);
-      //port[n] = '\0';
+      strNcpy(port, portNames[i], 63);
       if (list != NULL) {
         strNcpy(list[cnt].device_name, port, 64);
         snprintf(list[cnt].device_id, 63, "%d", cnt);
