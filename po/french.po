@@ -223,10 +223,10 @@ msgid "Unknown boolean expression type found: %d\n"
 msgstr "Type d'expression booléenne inconnue détecté : %d\n"
 
 #: Engine/csound_orc_semantics.c:297
-#, fuzzy, c-format
+#, c-format
 msgid "unable to find array operator for var %s line %d\n"
 msgstr ""
-"impossible de trouver un opérateur de tableau pour les types %s ligne %d\n"
+"impossible de trouver un opérateur de tableau pour la var %s ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:320
 #, c-format
@@ -372,7 +372,7 @@ msgstr ""
 "Aucune entrée pour l'opcode '%s' avec les types d'argument correspondants :\n"
 
 #: Engine/csound_orc_semantics.c:1892
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Found:\n"
 "  %s %s %s\n"
@@ -424,6 +424,8 @@ msgstr "instruction xout non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 #, c-format
 msgid "Line: %d invalid array argument in for-of statement: found '%s'\n"
 msgstr ""
+"Ligne : %d argument tableau non valide dans une instruction for-of : "
+"trouvé '%s'\n"
 
 #: Engine/csound_orc_semantics.c:2535
 #, c-format
@@ -431,29 +433,31 @@ msgid ""
 "Line: %d mismatching argument types in for-of statement!\n"
 "'%s' runs on different rate from '%s'\n"
 msgstr ""
+"Ligne : %d types d'argument non conformes dans une instruction for-of !\n"
+"'%s' s'exécute à un taux différent de celui de '%s'\n"
 
 #: Engine/csound_orc_semantics.c:2681 Engine/csound_sco.y:244
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
 msgstr ""
 "\n"
-"erreur : %s (symbole \"%s\")\n"
+"erreur : %s (symbole \"%s\")"
 
 #: Engine/csound_orc_semantics.c:2684 Engine/csound_sco.y:247
-#, fuzzy, c-format
+#, c-format
 msgid ""
 " line %d:\n"
 ">>>"
 msgstr ""
 " ligne %d :\n"
-" >>> "
+">>>"
 
 #: Engine/csound_orc_semantics.c:2705
-#, fuzzy, c-format
+#, c-format
 msgid " from file %s (%d)\n"
-msgstr " depuis le fichier %s (%d),"
+msgstr " depuis le fichier %s (%d)\n"
 
 #: Engine/csound_orc_semantics.c:3303
 #, c-format
@@ -2043,7 +2047,7 @@ msgstr "Le nom du chemin du répertoire courant est trop long\n"
 
 #: Engine/envvar.c:971
 msgid "Output file already exists: Will be overwritten.\n"
-msgstr ""
+msgstr "Le fichier de sortie existe déjà : il sera écrasé.\n"
 
 #: Engine/envvar.c:1030
 #, c-format
@@ -2475,9 +2479,8 @@ msgid "vorbis encoding"
 msgstr "encodage vorbis"
 
 #: InOut/libsnd_u.c:381
-#, fuzzy
 msgid "mpeg encoding"
-msgstr "encodage vorbis"
+msgstr "encodage mpeg"
 
 #: InOut/midifile.c:83
 msgid " *** unexpected end of MIDI file\n"
@@ -3500,9 +3503,8 @@ msgid " *** rtjack: error allocating globals"
 msgstr " *** rtjack : erreur d'allocation des variables globales"
 
 #: InOut/rtjack.c:1176
-#, fuzzy
 msgid "JACK client name (default: csound7"
-msgstr "Nom du client JACK (par défaut : csound6)"
+msgstr "Nom du client JACK (par défaut : csound7)"
 
 #: InOut/rtjack.c:1185
 msgid "JACK input port name prefix (default: input)"
@@ -3525,9 +3527,8 @@ msgid " *** rtjack MIDI: error allocating globals"
 msgstr " *** rtjack MIDI : erreur d'allocation des variables globales"
 
 #: InOut/rtjack.c:1228
-#, fuzzy
 msgid "JACK MIDI client name prefix (default: csound7-midi)"
-msgstr "Préfixe du nom du client JACK MIDI (par défaut : csound6_midi)"
+msgstr "Préfixe du nom du client JACK MIDI (par défaut : csound7_midi)"
 
 #: InOut/rtjack.c:1239
 msgid "JACK MIDI input port name(default: port)"
@@ -8866,17 +8867,16 @@ msgid "sequ: arrays have differing sizes"
 msgstr "sequ : les tableaux ont des tailles différentes"
 
 #: Opcodes/sequencer.c:90
-#, fuzzy
 msgid "sequ: id out of range"
-msgstr "ixmod hors limites"
+msgstr "sequ : id hors limites"
 
 #: Opcodes/sequencer.c:252
 msgid "No sequs"
-msgstr ""
+msgstr "Pas de sequs"
 
 #: Opcodes/sequencer.c:257
 msgid "sequstate: Wrong sizeof output array"
-msgstr ""
+msgstr "sequstate : mauvaise taille du tableau de sortie"
 
 #: Opcodes/shape.c:51
 msgid "powershape: ifullscale must be strictly positive"
@@ -9172,7 +9172,7 @@ msgstr "stdopcod.c : erreur : les variables globales sont déjà allouées"
 #: Opcodes/sterrain.c:145 Opcodes/sterrain.c:152
 #, c-format
 msgid "no table %g\n"
-msgstr "pas de table %q\n"
+msgstr "pas de table %g\n"
 
 #: Opcodes/syncgrain.c:188 Opcodes/syncgrain.c:361 Opcodes/syncgrain.c:718
 msgid "grain size smaller than 1 sample\n"
@@ -9199,43 +9199,41 @@ msgid "diskgrain: could not read file\n"
 msgstr "diskgrain : impossible de lire le fichier\n"
 
 #: Opcodes/tabaudio.c:110
-#, fuzzy, c-format
+#, c-format
 msgid "tabaudio: failed to write data %d"
-msgstr "ftsave : impossible d'ouvrir le fichier"
+msgstr "tabaudio : l'écriture des données %d a échoué"
 
 #: Opcodes/tabaudio.c:138
-#, fuzzy, c-format
+#, c-format
 msgid "tabaudio: No table %g"
-msgstr "tabsum : pas de table"
+msgstr "tabaudio : pas de table %g"
 
 #: Opcodes/tabaudio.c:146 Opcodes/tabaudio.c:233
 msgid "ftudio: ilegal size"
-msgstr ""
+msgstr "ftaudio : illegal size"
 
 #: Opcodes/tabaudio.c:164 Opcodes/tabaudio.c:251
-#, fuzzy, c-format
+#, c-format
 msgid "tabaudio: failed to open file %s"
-msgstr "L'ouverture du fichier %s a échoué\n"
+msgstr "tabaudio : l'ouverture du fichier %s a échoué"
 
 #: Opcodes/tabaudio.c:171
-#, fuzzy, c-format
+#, c-format
 msgid "tabaudio: failed to write data %d %d"
-msgstr "ftsave : impossible d'ouvrir le fichier"
+msgstr "tabaudio : l'écriture des données %d %d a échoué"
 
 #: Opcodes/tabaudio.c:188
-#, fuzzy
 msgid "Error creating thread"
-msgstr "Erreur en créant %s\n"
+msgstr "Erreur de création du thread"
 
 #: Opcodes/tabaudio.c:225
-#, fuzzy
 msgid "tabaudio: No table"
-msgstr "tabsum : pas de table"
+msgstr "tabaudio : pas de table"
 
 #: Opcodes/tabaudio.c:256
-#, fuzzy, c-format
+#, c-format
 msgid "tabaudio: failed to write data: %s"
-msgstr "ftsave : impossible d'ouvrir le fichier"
+msgstr "tabaudio : l'écriture des données a échoué : %s"
 
 #: Opcodes/tabsum.c:40
 msgid "tabsum: No table"
@@ -9929,7 +9927,7 @@ msgstr "Trop d'arguments pour OSCsend"
 
 #: Opcodes/OSC.c:215 Opcodes/socksend.c:478
 msgid "Message type is not given as a string\n"
-msgstr ""
+msgstr "Le type du message n'est pas donné sous forme de chaîne de caractères\n"
 
 #: Opcodes/OSC.c:245
 msgid "Failed to set multicast"
@@ -10194,9 +10192,9 @@ msgid "vermp: Trajectory table includes values out of range"
 msgstr "vermp : la table de trajectoire contient des valeurs hors limites"
 
 #: Opcodes/scansyn.c:756 Opcodes/scansyn.c:770
-#, fuzzy, c-format
+#, c-format
 msgid "scan map %d out of range [0,%d]\n"
-msgstr "valeur hors limites [0..127]\n"
+msgstr "scan map %d hors limites [0, %d]\n"
 
 #: Opcodes/sockrecv.c:146 Opcodes/sockrecv.c:149 Opcodes/sockrecv.c:570
 #: Opcodes/sockrecv.c:573
@@ -10712,28 +10710,27 @@ msgstr "  Fixer le format du fichier de sortie"
 
 #: Top/argdecode.c:194
 msgid "--aiff                  set AIFF format"
-msgstr "--aiff                  fixer le format AIFF"
+msgstr "--aiff                  choisir le format AIFF"
 
 #: Top/argdecode.c:195
 msgid "--au                    set AU format"
-msgstr "--au                    fixer le format AU"
+msgstr "--au                    choisir le format AU"
 
 #: Top/argdecode.c:196
 msgid "--wave                  set WAV format"
-msgstr "--wave                  fixer le format WAV"
+msgstr "--wave                  choisir le format WAV"
 
 #: Top/argdecode.c:197
 msgid "--ircam                 set IRCAM format"
-msgstr "--ircam                 fixer le format IRCAM"
+msgstr "--ircam                 choisir le format IRCAM"
 
 #: Top/argdecode.c:198
 msgid "--ogg                   set OGG/VORBIS format"
-msgstr "--ogg                   fixer le format OGG/VORBIS"
+msgstr "--ogg                   choisir le format OGG/VORBIS"
 
 #: Top/argdecode.c:199
-#, fuzzy
 msgid "--mpeg                  set MPEG format"
-msgstr "--wave                  fixer le format WAV"
+msgstr "--mpeg                  choisir le format MPEG"
 
 #: Top/argdecode.c:200
 msgid "--noheader              raw format"
@@ -11202,9 +11199,8 @@ msgid "--limiter[=num]         include clipping in audio output"
 msgstr "--limiter[=num]         écrêter la sortie audio"
 
 #: Top/argdecode.c:320
-#, fuzzy
 msgid "--vbr                   set MPEG encoding to variable bitrate"
-msgstr "--au                    fixer le format AU"
+msgstr "--vbr                   fixer l'encodage MPEG à un taux de bit variable"
 
 #: Top/argdecode.c:322
 msgid "--help                  long help"
@@ -11431,10 +11427,9 @@ msgid "unknown flag -%c"
 msgstr "option -%c inconnue"
 
 #: Top/argdecode.c:1583
-#, fuzzy
 msgid "error: orchestra and score name not allowed in .csound7rc"
 msgstr ""
-"erreur : les noms d'orchestre et de partition sont interdits dans .csound6rc"
+"erreur : les noms d'orchestre et de partition sont interdits dans .csound7rc"
 
 #: Top/argdecode.c:1741
 msgid "stdout not supported on this platform"
@@ -11536,24 +11531,22 @@ msgid "Negative line for breakpoint invalid."
 msgstr "Numéro de ligne négatif non valide pour un point d'arrêt."
 
 #: Top/main.c:59
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: cannot open csound7rc file %s\n"
-msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csound6rc %s\n"
+msgstr "AVERTISSEMENT : impossible d'ouvrir le fichier csound7rc %s\n"
 
 #: Top/main.c:62
-#, fuzzy, c-format
+#, c-format
 msgid "Reading options from $CSOUND7RC: %s\n"
-msgstr "Lecture des options depuis $CSOUND6RC : %s\n"
+msgstr "Lecture des options depuis $CSOUND7RC : %s\n"
 
 #: Top/main.c:73
-#, fuzzy
 msgid "Reading options from $HOME/.csound7rc\n"
-msgstr "Lecture des options depuis $HOME/.csound6rc\n"
+msgstr "Lecture des options depuis $HOME/.csound7rc\n"
 
 #: Top/main.c:93
-#, fuzzy
 msgid "Reading options from local directory .csound7rc\n"
-msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
+msgstr "Lecture des options depuis le .csound7rc du répertoire local\n"
 
 #: Top/main.c:133
 #, c-format
@@ -11934,9 +11927,9 @@ msgid "Invalid arguments in <CsOptions>: %s"
 msgstr "Arguments non valides dans <CsOptions> : %s"
 
 #: Top/one_file.c:361
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid arguments in .csound7rc or -@ file: %s"
-msgstr "Arguments non valides dans .csound6rc ou dans le fichier -@ : %s"
+msgstr "Arguments non valides dans .csound7rc ou dans le fichier -@ : %s"
 
 #: Top/one_file.c:367 Top/one_file.c:1158
 msgid "Missing end tag </CsOptions>"
@@ -15333,7 +15326,7 @@ msgstr "scot : %d erreurs.\n"
 #: wasm/src/unsupported_opcodes.c:11
 #, c-format
 msgid "OSC opcodes are currently not supported in WASM %s\n"
-msgstr ""
+msgstr "Les opcodes OSC ne sont pas supportés actuellement dans WASM %s\n"
 
 #: /home/jpff/cs7/cs77/Engine/csound_orc.lex:361 Engine/csound_orc.lex:360
 #: Engine/csound_sco.lex:139
