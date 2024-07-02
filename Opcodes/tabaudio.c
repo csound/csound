@@ -149,7 +149,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     if (end<=0) size -= skip;
     else size = end - skip;
     if (UNLIKELY(size<0 || size>ftp->flenfrms))
-      return csound->PerfError(csound, &(p->h), "%s", Str("ftudio: ilegal size"));
+      return csound->PerfError(csound, &(p->h), "%s", Str("ftaudio: illegal size"));
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     if (format >= 51)
       sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
@@ -226,7 +226,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   if (end<=0) size -= skip;
   else size = end - skip;
   if (UNLIKELY(size<0 || size>ftp->flenfrms))
-    return csound->InitError(csound, "%s", Str("ftudio: ilegal size"));
+    return csound->InitError(csound, "%s", Str("ftaudio: illegal size"));
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   if (format >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
