@@ -32,6 +32,11 @@ PUBLIC void 	csoundDestroy (CSOUND *);
 // Attributes
 PUBLIC int  csoundGetVersion (void);
 PUBLIC int  csoundGetAPIVersion (void);
+PUBLIC MYFLT csoundGetSr (CSOUND *) ;
+PUBLIC MYFLT csoundGetKr (CSOUND *);
+PUBLIC uint32_t csoundGetKsmps (CSOUND *);
+PUBLIC uint32_t csoundGetNchnls (CSOUND *);
+PUBLIC uint32_t csoundGetNchnlsInput (CSOUND *);
 
 // Performance
 // One compilation function that does everything
