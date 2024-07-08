@@ -24,10 +24,14 @@
 #ifndef CSOUND_H
 #define CSOUND_H
 
-//Instantiation
-PUBLIC int 	csoundInitialize (int flags)
-PUBLIC CSOUND*  csoundCreate (void *hostData) 
-PUBLIC void 	csoundDestroy (CSOUND *) 
+// Instantiation
+PUBLIC int 	csoundInitialize (int flags);
+PUBLIC CSOUND*  csoundCreate (void *hostData);
+PUBLIC void 	csoundDestroy (CSOUND *);
+
+// Attributes
+PUBLIC int  csoundGetVersion (void);
+PUBLIC int  csoundGetAPIVersion (void);
 
 // Performance
 // One compilation function that does everything
