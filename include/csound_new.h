@@ -255,7 +255,6 @@ extern "C" {
 
 
 #ifndef CSOUND_CSDL_H
-
   /** @defgroup INSTANTIATION Instantiation
    *
    *  @{ */
@@ -272,11 +271,6 @@ extern "C" {
   PUBLIC CSOUND *csoundCreate(void *hostData, const char *opcodedir);
 
   /**
-   *  Loads all plugins from a given directory
-   */
-  PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
-
-  /**
    * Destroys an instance of Csound.
    */
   PUBLIC void csoundDestroy(CSOUND *);
@@ -286,7 +280,6 @@ extern "C" {
   /** @defgroup ATTRIBUTES Attributes
    *
    *  @{ */
-
   /**
    * Returns the version number times 1000 (5.00.0 = 5000).
    */
@@ -655,7 +648,6 @@ extern "C" {
   /** @defgroup MESSAGES Csound Messages and Text
    *
    *  @{ */
-
   /**
    * Displays an informational message.
    */
@@ -739,8 +731,6 @@ extern "C" {
    * Releases all memory used by the message buffer.
    */
   void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound);
-
-  /** @}*/
 
   /** @}*/
   /** @defgroup CONTROLEVENTS Channels, Control and Events
@@ -1018,6 +1008,14 @@ extern "C" {
   /** @defgroup OPCODES Opcodes
    *
    *  @{ */
+
+  /**
+   *  Loads all plugins from a given directory. Generally called immediately after csoundCreate()
+   *  to make new opcodes/modules available for compilation and performance.
+   */
+  PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
+
+  
   /**
    * Appends an opcode implemented by external software
    * to Csound's internal opcode list.
