@@ -613,6 +613,8 @@ static const CSOUND cenviron_ = {
   (int (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
   defaultCsoundYield,
   cscore_,        /*  cscoreCallback_     */
+  (void*(*)(CSOUND*, const char*, int, void*)) NULL,/* OpenSoundFileCallback_ */
+  (FILE*(*)(CSOUND*, const char*, const char*)) NULL, /* OpenFileCallback_ */
   (void(*)(CSOUND*, const char*, int, int, int)) NULL, /* FileOpenCallback_ */
   (SUBR) NULL,    /*  last_callback_      */
   /* these are not saved on RESET */
@@ -3860,6 +3862,22 @@ PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
     prv = pp;
     pp = pp->nxt;
   }
+}
+
+PUBLIC void csoundSetOpenSoundFileCallback(CSOUND *p,
+                                           void *(*openSoundFileCallback)(CSOUND*,
+                                                                          const char*,
+                                                                          int, void*))
+{
+    p->OpenSoundFileCallback_= openSoundFileCallback;
+}
+
+PUBLIC void csoundSetOpenFileCallback(CSOUND *p,
+                                      FILE *(*openFileCallback)(CSOUND*,
+                                                                const char*,
+                                                                const char*))
+{
+    p->OpenFileCallback_ = openFileCallback;
 }
 
 

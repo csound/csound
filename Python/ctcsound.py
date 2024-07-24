@@ -263,6 +263,13 @@ libcsound.csoundSetMIDIInput.argtypes = [ct.c_void_p, ct.c_char_p]
 libcsound.csoundSetMIDIFileInput.argtypes = [ct.c_void_p, ct.c_char_p]
 libcsound.csoundSetMIDIOutput.argtypes = [ct.c_void_p, ct.c_char_p]
 libcsound.csoundSetMIDIFileOutput.argtypes = [ct.c_void_p, ct.c_char_p]
+
+OPENSOUNDFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_void_p)
+libcsound.csoundSetOpenSoundFileCallback.argtypes = [ct.c_void_p, OPENSOUNDFILEFUNC]
+
+OPENFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_char_p)
+libcsound.csoundSetOpenFileCallback.argtypes = [ct.c_void_p, OPENFILEFUNC]
+
 FILEOPENFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int, ct.c_int)
 libcsound.csoundSetFileOpenCallback.argtypes = [ct.c_void_p, FILEOPENFUNC]
 
@@ -1146,6 +1153,42 @@ class Csound:
     def setMIDIFileOutput(self, name):
         """Sets MIDI file output name."""
         libcsound.csoundSetMIDIFileOutput(self.cs, cstring(name))
+
+    def setOpenSoundFileCallback(self, function):
+        """Sets a callback for opening a sound file.
+
+        The callback is made when a sound file is going to be opened.
+        The following information is passed to the callback:
+
+        bytes
+            pathname of the file; either full or relative to current dir
+        int
+            access flags for the file.
+        ptr
+            sound file info of the file.
+
+        Pass NULL to disable the callback.
+        This callback is retained after a :py:meth:`reset()` call.
+        """
+        self.openSoundFileCbRef = OPENSOUNDFILEFUNC(function)
+        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.openSoundFileCbRef)
+
+    def setOpenFileCallback(self, function):
+        """Sets a callback for opening a file.
+
+        The callback is made when a file is going to be opened.
+        The following information is passed to the callback:
+
+        bytes
+            pathname of the file; either full or relative to current dir
+        bytes
+            access mode of the file.
+
+        Pass NULL to disable the callback.
+        This callback is retained after a :py:meth:`reset()` call.
+        """
+        self.openFileCbRef = OPENFILEFUNC(function)
+        libcsound.csoundSetOpenFileCallback(self.cs, self.openFileCbRef)
 
     def setFileOpenCallback(self, function):
         """Sets a callback for receiving notices whenever Csound opens a file.
