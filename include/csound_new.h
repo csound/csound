@@ -953,6 +953,68 @@ extern "C" {
   PUBLIC void csoundTableCopyOut (CSOUND *csound, int table, MYFLT *dest, int async);
 
   /** @}*/
+  /** @defgroup SCOREHANDLING Score Handling
+   *
+   *  @{ */
+
+  /**
+   *  Read, preprocess, and load a score from an ASCII string
+   *  It can be called repeatedly, with the new score events
+   *  being added to the currently scheduled ones.
+   */
+  PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
+
+  /**
+   *  Asynchronous version of csoundReadScore().
+   */
+  PUBLIC void csoundReadScoreAsync(CSOUND *csound, const char *str);
+
+  /**
+   * Returns the current score time in seconds
+   * since the beginning of performance.
+   */
+  PUBLIC double csoundGetScoreTime(CSOUND *);
+
+  /**
+   * Sets whether Csound score events are performed or not, independently
+   * of real-time MIDI events (see csoundSetScorePending()).
+   */
+  PUBLIC int csoundIsScorePending(CSOUND *);
+
+  /**
+   * Sets whether Csound score events are performed or not (real-time
+   * events will continue to be performed). Can be used by external software,
+   * such as a VST host, to turn off performance of score events (while
+   * continuing to perform real-time events), for example to
+   * mute a Csound score while working on other tracks of a piece, or
+   * to play the Csound instruments live.
+   */
+  PUBLIC void csoundSetScorePending(CSOUND *, int pending);
+
+  /**
+   * Returns the score time beginning at which score events will
+   * actually immediately be performed (see csoundSetScoreOffsetSeconds()).
+   */
+  PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *);
+
+  /**
+   * Csound score events prior to the specified time are not performed, and
+   * performance begins immediately at the specified time (real-time events
+   * will continue to be performed as they are received).
+   * Can be used by external software, such as a VST host,
+   * to begin score performance midway through a Csound score,
+   * for example to repeat a loop in a sequencer, or to synchronize
+   * other events with the Csound score.
+   */
+  PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *, MYFLT time);
+
+  /**
+   * Rewinds a compiled Csound score to the time specified with
+   * csoundSetScoreOffsetSeconds().
+   */
+  PUBLIC void csoundRewindScore(CSOUND *);
+  
+  /** @}*/
   /** @defgroup OPCODES Opcodes
    *
    *  @{ */
