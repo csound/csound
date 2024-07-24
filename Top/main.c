@@ -563,11 +563,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 }
 
 PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
-
-    int result = csoundCompileArgs(csound,argc,argv);
-
-    if (result == CSOUND_SUCCESS) return csoundStart(csound);
-    else return result;
+    return csoundCompileArgs(csound,argc,argv);
 }
 
 PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {

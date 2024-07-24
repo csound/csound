@@ -322,10 +322,13 @@ int main(int argc, char **argv)
     csound = csoundCreate(NULL);
     _csound = csound;
     /*  One complete performance cycle. */
-    result = csoundCompile(csound, argc, (const char **)argv);
-
-     if (!result) result = csoundPerform(csound);
+     result = csoundCompile(csound, argc, (const char **)argv);
+     if(!result) {
+       csoundStart(); 
+      do result = csoundPerformKsmps(csound);
+      while (!result);
      // csoundMessage(csound, "**** result = %d\n", result);
+     }
      errs = csoundErrCnt(csound);
     /* delete Csound instance */
      
