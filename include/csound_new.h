@@ -24,10 +24,6 @@
 #ifndef CSOUND_H
 #define CSOUND_H
 
-/*
- * Platform-dependent definitions and declarations.
- */
-
 #if (defined(WIN32) || defined(_WIN32)) && !defined(SWIG)
 #  if defined(__BUILDING_LIBCSOUND)
 #    define PUBLIC          __declspec(dllexport)
