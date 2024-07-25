@@ -80,7 +80,6 @@ extern "C" {
   /* VL: these were moved here from csound.h 
      as they are not relevant to the new host API
   */
-  typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;
 
   /**

@@ -106,6 +106,7 @@ extern "C" {
    * Forward declarations.
    */
   typedef struct CSOUND_  CSOUND;
+  typedef struct windat_  WINDAT;
 
   /**
    *  csound configuration structure, mirrors part of
@@ -515,7 +516,7 @@ extern "C" {
    * csoundSetOption("-an_option");
    * csoundSetOption("-another_option");
    * csoundStart(csound);
-   * csoundCompileCsd(csound, csd_filename, 0);
+   * csoundCompileCSD(csound, csd_filename, 0);
    * while (1) {
    *    csoundPerformBuffer(csound);
    *    // Something to break out of the loop
@@ -554,7 +555,7 @@ extern "C" {
    * an application or a multi-language piece.
    *
    */
-  PUBLIC int csoundCompileCsd(CSOUND *csound, const char *csd, int mode);
+  PUBLIC int csoundCompileCSD(CSOUND *csound, const char *csd, int mode);
 
   /**
    * Prepares Csound for performance. Normally called after compiling
@@ -626,22 +627,70 @@ extern "C" {
   PUBLIC void csoundSetHostMIDIIO(CSOUND *csound);
 
 
-  typedef struct {
-    int(*OpenInput)(CSOUND *, void **userData, const char *devName);
-    int(*OpenOutput)(CSOUND *, void **userData, const char *devName); 
-    int(*ReadInput)(CSOUND *, void *userData, unsigned char *buf, int nBytes);
-    int(*WriteOutput)(CSOUND *, void *userData, unsigned char *buf, int nBytes);
-    int(*CloseInput)(CSOUND *, void *userData);
-    int(*CloseOutput)(CSOUND *, void *userData);
-    void(*ListDevices)(CSOUND *csound,
-                       int (*mididevlist__)(CSOUND *,CS_MIDIDEVICE *list,
-                                            int isOutput));
-  } CS_MIDI_CALLBACKS;
+ /**
+   * Sets callback for opening real time MIDI input.
+   */
+  PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
+                                                  int (*func)(CSOUND *,
+                                                              void **userData,
+                                                              const char *devName));
 
   /**
-   * Sets all callbacks for handling MIDI IO.
+   * Sets callback for reading from real time MIDI input.
    */
-  PUBLIC void csoundSetMIDICallbacks(CSOUND *, CS_MIDI_CALLBACKS *);
+  PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
+                                                int (*func)(CSOUND *,
+                                                            void *userData,
+                                                            unsigned char *buf,
+                                                            int nBytes));
+
+  /**
+   * Sets callback for closing real time MIDI input.
+   */
+  PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
+                                                   int (*func)(CSOUND *,
+                                                               void *userData));
+
+  /**
+   * Sets callback for opening real time MIDI output.
+   */
+  PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
+                                                   int (*func)(CSOUND *,
+                                                               void **userData,
+                                                               const char *devName));
+
+  /**
+   * Sets callback for writing to real time MIDI output.
+   */
+  PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
+                                              int (*func)(CSOUND *,
+                                                          void *userData,
+                                                          const unsigned char *buf,
+                                                          int nBytes));
+
+  /**
+   * Sets callback for closing real time MIDI output.
+   */
+  PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
+                                                    int (*func)(CSOUND *,
+                                                                void *userData));
+
+  /**
+   * Sets callback for converting MIDI error codes to strings.
+   */
+  PUBLIC void csoundSetExternalMidiErrorStringCallback(CSOUND *,
+                                                       const char *(*func)(int));
+
+
+  /**
+   * Sets a function that is called to obtain a list of MIDI devices.
+   * This should be set by IO plugins, and should not be used by hosts.
+   * (See csoundGetMIDIDevList())
+   */
+  PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
+                                              int (*mididevlist__)(CSOUND *,
+                                                              CS_MIDIDEVICE *list,
+                                                              int isOutput));
 
   /** @}*/
 
@@ -907,13 +956,15 @@ extern "C" {
    * event parameters is nparams MYFLT array with the event parameters (p-fields)
    * optionally run asynchronously (async = 1)
    */
-  PUBLIC void  csoundEvent (CSOUND *, int type, MYFLT *params, int nparams, int async);
+  PUBLIC void  csoundEvent(CSOUND *, int type, MYFLT *params, int nparams, int async);
 
   /**
    * Send a new event as a NULL-terminated string
+   * Multiple events separated by newlines are possible
+   * and score preprocessing (carry, etc) is applied.
    * optionally run asynchronously (async = 1)
    */
-  PUBLIC void  csoundEventString (CSOUND *, const char *message, int async);
+  PUBLIC void  csoundEventString(CSOUND *, const char *message, int async);
 
   /** @}*/
   /** @defgroup TABLE Tables
@@ -946,18 +997,6 @@ extern "C" {
   /** @defgroup SCOREHANDLING Score Handling
    *
    *  @{ */
-
-  /**
-   *  Read, preprocess, and load a score from an ASCII string
-   *  It can be called repeatedly, with the new score events
-   *  being added to the currently scheduled ones.
-   */
-  PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
-
-  /**
-   *  Asynchronous version of csoundReadScore().
-   */
-  PUBLIC void csoundReadScoreAsync(CSOUND *csound, const char *str);
 
   /**
    * Returns the current score time in seconds
@@ -1029,7 +1068,45 @@ extern "C" {
 
   /** @}*/
 
+  /** @}*/
+  /** @defgroup TABLEDISPLAY Function table display
+   *
+   *  @{ */
+  /**
+   * Tells Csound whether external graphic table display is supported.
+   * Returns the previously set value (initially zero).
+   */
+  PUBLIC int csoundSetIsGraphable(CSOUND *, int isGraphable);
 
+  /**
+   * Called by external software to set Csound's MakeGraph function.
+   */
+  PUBLIC void csoundSetMakeGraphCallback(CSOUND *,
+                           void (*makeGraphCallback_)(CSOUND *,
+                                                      WINDAT *windat,
+                                                      const char *name));
+
+  /**
+   * Called by external software to set Csound's DrawGraph function.
+   */
+  PUBLIC void csoundSetDrawGraphCallback(CSOUND *,
+                                         void (*drawGraphCallback_)(CSOUND *,
+                                                                    WINDAT *windat));
+
+  /**
+   * Called by external software to set Csound's KillGraph function.
+   */
+  PUBLIC void csoundSetKillGraphCallback(CSOUND *,
+                                         void (*killGraphCallback_)(CSOUND *,
+                                                                    WINDAT *windat));
+
+  /**
+   * Called by external software to set Csound's ExitGraph function.
+   */
+  PUBLIC void csoundSetExitGraphCallback(CSOUND *,
+                                         int (*exitGraphCallback_)(CSOUND *));
+
+  /** @}*/
 #endif  /* !CSOUND_CSDL_H */
   /* typedefs, macros, and interface functions for configuration variables */
 #include "cfgvar.h"
