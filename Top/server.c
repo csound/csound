@@ -126,14 +126,14 @@ static uintptr_t udp_recv(void *pdata){
         csound->Message(csound, "%s", orchestra);
       if (strncmp("!!close!!",orchestra,9)==0 ||
           strncmp("##close##",orchestra,9)==0) {
-        csoundInputMessageAsync(csound, "e 0 0");
+        csoundEventString(csound, "e 0 0", 1);
         break;
       }
       if(*orchestra == '&') {
-        csoundInputMessageAsync(csound, orchestra+1);
+        csoundEventString(csound, orchestra+1, 1);
       }
       else if(*orchestra == '$') {
-        csoundReadScoreAsync(csound, orchestra+1);
+        csoundEventString(csound, orchestra+1, 1);
       }
       else if(*orchestra == '@') {
         char chn[128];
@@ -205,12 +205,12 @@ static uintptr_t udp_recv(void *pdata){
         if(!cont) {
           orchestra = start;
           //csound->Message(csound, "%s\n", orchestra+1);
-          csoundCompileOrcAsync(csound, orchestra+1);
+          csoundCompileOrc(csound, orchestra+1, 1);
         }
       }
       else {
         //csound->Message(csound, "%s\n", orchestra);
-        csoundCompileOrcAsync(csound, orchestra);
+        csoundCompileOrc(csound, orchestra, 1);
       }
     }
   }

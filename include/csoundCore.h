@@ -1,5 +1,5 @@
 /*
-  csoundCore.h:
+  csoundCore_new.h: somet modifications to match the new API
 
   Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga
 
@@ -76,6 +76,293 @@
 extern "C" {
 #endif /*  __cplusplus */
 
+
+  /* VL: these were moved here from csound.h 
+     as they are not relevant to the new host API
+  */
+  typedef struct xyindat_ XYINDAT;
+
+  /**
+   * The following constants are used with csound->FileOpen2() and
+   * csound->ldmemfile2() to specify the format of a file that is being
+   * opened.  This information is passed by Csound to a host's FileOpen
+   * callback and does not influence the opening operation in any other
+   * way. Conversion from Csound's TYP_XXX macros for audio formats to
+   * CSOUND_FILETYPES values can be done with csound->type2csfiletype().
+   */
+  typedef enum {
+    CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
+    CSFTYPE_ORCHESTRA,         /* the primary orc file (may be temporary) */
+    CSFTYPE_SCORE,             /* the primary sco file (may be temporary)
+                                  or any additional score opened by Cscore */
+    CSFTYPE_ORC_INCLUDE,       /* a file #included by the orchestra */
+    CSFTYPE_SCO_INCLUDE,       /* a file #included by the score */
+    CSFTYPE_SCORE_OUT,         /* used for score.srt, score.xtr, cscore.out */
+    CSFTYPE_SCOT,              /* Scot score input format */
+    CSFTYPE_OPTIONS,           /* for .csoundrc and -@ flag */
+    CSFTYPE_EXTRACT_PARMS,     /* extraction file specified by -x */
+
+    /* audio file types that Csound can write (10-19) or read */
+    CSFTYPE_RAW_AUDIO,
+    CSFTYPE_IRCAM,
+    CSFTYPE_AIFF,
+    CSFTYPE_AIFC,
+    CSFTYPE_WAVE,
+    CSFTYPE_AU,
+    CSFTYPE_SD2,
+    CSFTYPE_W64,
+    CSFTYPE_WAVEX,
+    CSFTYPE_FLAC,
+    CSFTYPE_CAF,
+    CSFTYPE_WVE,
+    CSFTYPE_OGG,
+    CSFTYPE_MPC2K,
+    CSFTYPE_RF64,
+    CSFTYPE_AVR,
+    CSFTYPE_HTK,
+    CSFTYPE_MAT4,
+    CSFTYPE_MAT5,
+    CSFTYPE_NIST,
+    CSFTYPE_PAF,
+    CSFTYPE_PVF,
+    CSFTYPE_SDS,
+    CSFTYPE_SVX,
+    CSFTYPE_VOC,
+    CSFTYPE_XI,
+    CSFTYPE_MPEG,
+    CSFTYPE_UNKNOWN_AUDIO,     /* used when opening audio file for reading
+                                  or temp file written with <CsSampleB> */
+
+    /* miscellaneous music formats */
+    CSFTYPE_SOUNDFONT,
+    CSFTYPE_STD_MIDI,          /* Standard MIDI file */
+    CSFTYPE_MIDI_SYSEX,        /* Raw MIDI codes, eg. SysEx dump */
+
+    /* analysis formats */
+    CSFTYPE_HETRO,
+    CSFTYPE_HETROT,
+    CSFTYPE_PVC,               /* original PVOC format */
+    CSFTYPE_PVCEX,             /* PVOC-EX format */
+    CSFTYPE_CVANAL,
+    CSFTYPE_LPC,
+    CSFTYPE_ATS,
+    CSFTYPE_LORIS,
+    CSFTYPE_SDIF,
+    CSFTYPE_HRTF,
+
+    /* Types for plugins and the files they read/write */
+    CSFTYPE_UNUSED,
+    CSFTYPE_LADSPA_PLUGIN,
+    CSFTYPE_SNAPSHOT,
+
+    /* Special formats for Csound ftables or scanned synthesis
+       matrices with header info */
+    CSFTYPE_FTABLES_TEXT,        /* for ftsave and ftload  */
+    CSFTYPE_FTABLES_BINARY,      /* for ftsave and ftload  */
+    CSFTYPE_XSCANU_MATRIX,       /* for xscanu opcode  */
+
+    /* These are for raw lists of numbers without header info */
+    CSFTYPE_FLOATS_TEXT,         /* used by GEN23, GEN28, dumpk, readk */
+    CSFTYPE_FLOATS_BINARY,       /* used by dumpk, readk, etc. */
+    CSFTYPE_INTEGER_TEXT,        /* used by dumpk, readk, etc. */
+    CSFTYPE_INTEGER_BINARY,      /* used by dumpk, readk, etc. */
+
+    /* image file formats */
+    CSFTYPE_IMAGE_PNG,
+
+    /* For files that don't match any of the above */
+    CSFTYPE_POSTSCRIPT,          /* EPS format used by graphs */
+    CSFTYPE_SCRIPT_TEXT,         /* executable script files (eg. Python) */
+    CSFTYPE_OTHER_TEXT,
+    CSFTYPE_OTHER_BINARY,
+
+    /* This should only be used internally by the original FileOpen()
+       API call or for temp files written with <CsFileB> */
+    CSFTYPE_UNKNOWN = 0
+  } CSOUND_FILETYPES;
+
+  
+  /**
+   * Real-time audio parameters structure
+   */
+  typedef struct {
+    /** device name (NULL/empty: default) */
+    char    *devName;
+    /** device number (0-1023), 1024: default */
+    int     devNum;
+    /** buffer fragment size (-b) in sample frames */
+    unsigned int     bufSamp_SW;
+    /** total buffer size (-B) in sample frames */
+    int     bufSamp_HW;
+    /** number of channels */
+    int     nChannels;
+    /** sample format (AE_SHORT etc.) */
+    int     sampleFormat;
+    /** sample rate in Hz */
+    float   sampleRate;
+    /** ksmps */
+    int ksmps;
+  } csRtAudioParams;
+
+  typedef struct RTCLOCK_S {
+    int_least64_t   starttime_real;
+    int_least64_t   starttime_CPU;
+  } RTCLOCK;
+
+  typedef struct CsoundRandMTState_ {
+    int         mti;
+    uint32_t    mt[624];
+  } CsoundRandMTState;
+
+  /* PVSDATEXT is a variation on PVSDAT used in
+     the pvs bus interface */
+  typedef struct pvsdat_ext {
+    int32           N;
+    int             sliding; /* Flag to indicate sliding case */
+    int32           NB;
+    int32           overlap;
+    int32           winsize;
+    int             wintype;
+    int32           format;
+    uint32          framecount;
+    float*          frame;
+  } PVSDATEXT;
+
+  int csoundRand31(int *seedVal);
+  void csoundSeedRandMT(CsoundRandMTState *p,
+                               const uint32_t *initKey, uint32_t keyLength);
+  uint32_t csoundRandMT(CsoundRandMTState *p);
+  int csoundCreateGlobalVariable(CSOUND *,
+                                        const char *name, size_t nbytes);
+  void *csoundQueryGlobalVariable(CSOUND *, const char *name);
+  void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
+  int csoundDestroyGlobalVariable(CSOUND *, const char *name);
+  uint32_t csoundGetNchnls(CSOUND *);
+  uint32_t csoundGetNchnlsInput(CSOUND *csound);
+  long csoundGetInputBufferSize(CSOUND *);
+  long csoundGetOutputBufferSize(CSOUND *);
+  void *csoundGetNamedGens(CSOUND *);
+  void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
+                                  void *userdata);
+  void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
+                            unsigned int stack,
+                            void *userdata);
+  void *csoundGetCurrentThreadId(void);
+  uintptr_t csoundJoinThread(void *thread);
+  void *csoundCreateThreadLock(void);
+  int csoundWaitThreadLock(void *lock, size_t milliseconds);
+  void csoundWaitThreadLockNoTimeout(void *lock);
+  void csoundNotifyThreadLock(void *lock);
+  void csoundDestroyThreadLock(void *lock);
+  void *csoundCreateMutex(int isRecursive);
+  void csoundLockMutex(void *mutex_);
+  int csoundLockMutexNoWait(void *mutex_);
+  void csoundUnlockMutex(void *mutex_);
+  void csoundDestroyMutex(void *mutex_);
+  void *csoundCreateBarrier(unsigned int max);
+  int csoundDestroyBarrier(void *barrier);
+  int csoundWaitBarrier(void *barrier);
+  void* csoundCreateCondVar();
+  void csoundCondWait(void* condVar, void* mutex);
+  void csoundCondSignal(void* condVar);
+  void csoundDestroyCondVar(void* condVar);
+  void csoundSleep(size_t milliseconds);
+  int csoundSpinLockInit(spin_lock_t *spinlock);
+  void csoundSpinLock(spin_lock_t *spinlock);
+  int csoundSpinTryLock(spin_lock_t *spinlock);
+  void csoundSpinUnLock(spin_lock_t *spinlock);
+  uint32_t csoundGetRandomSeedFromTime(void);
+  void csoundInitTimerStruct(RTCLOCK *);
+  double csoundGetRealTime(RTCLOCK *);
+  double csoundGetCPUTime(RTCLOCK *);
+  void *csoundCreateCircularBuffer(CSOUND *csound,
+                                   int numelem, int elemsize);
+  int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
+                               void *out, int items);
+  int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
+                               void *out, int items);
+  int csoundWriteCircularBuffer(CSOUND *csound, void *p,
+                                const void *inp, int items);
+  void csoundFlushCircularBuffer(CSOUND *csound, void *p);
+  void csoundDestroyCircularBuffer(CSOUND *csound, void *circularbuffer);
+
+  int csoundRegisterSenseEventCallback(CSOUND *,
+                                       void (*func)(CSOUND *, void *),
+                                       void *userData);
+  void **csoundGetRtRecordUserData(CSOUND *);
+  void **csoundGetRtPlayUserData(CSOUND *);
+  void csoundSetHostImplementedAudioIO(CSOUND *,
+                                       int state, int bufSize);
+  void
+  csoundSetPlayopenCallback(CSOUND *,
+                            int (*playopen__)(CSOUND *,
+                                              const csRtAudioParams *parm));
+  void csoundSetRtplayCallback(CSOUND *,
+                               void (*rtplay__)(CSOUND *,
+                                                const MYFLT *outBuf,
+                                                int nbytes));
+  void csoundSetRecopenCallback(CSOUND *,
+                                int (*recopen_)(CSOUND *,
+                                                const csRtAudioParams *parm));
+  void csoundSetRtrecordCallback(CSOUND *,
+                                 int (*rtrecord__)(CSOUND *,
+                                                   MYFLT *inBuf,
+                                                   int nbytes));
+  void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
+  void csoundSetAudioDeviceListCallback(CSOUND *csound,
+                                        int (*audiodevlist__)(CSOUND *,
+                                                              CS_AUDIODEVICE *list,
+                                                              int isOutput));
+  char **csoundListUtilities(CSOUND *);
+  void csoundDeleteUtilityList(CSOUND *, char **lst);
+  const char *csoundGetUtilityDescription(CSOUND *,
+                                                 const char *utilName);
+  int csoundCompileCsd(CSOUND *csound, const char *csd_filename);
+  int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
+  int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
+  int csoundCleanup(CSOUND *);
+
+
+ /**
+   * Starts the UDP server on a supplied port number
+   * returns CSOUND_SUCCESS if server has been started successfully,
+   * otherwise, CSOUND_ERROR.
+   */
+  int csoundUDPServerStart(CSOUND *csound, unsigned int port);
+
+  /** returns the port number on which the server is running, or
+   *  CSOUND_ERROR if the server is not running.
+   */
+  int csoundUDPServerStatus(CSOUND *csound);
+
+  /**
+   * Closes the UDP server, returning CSOUND_SUCCESS if the
+   * running server was successfully closed, CSOUND_ERROR otherwise.
+   */
+  int csoundUDPServerClose(CSOUND *csound);
+
+  /**
+   * Turns on the transmission of console messages to UDP on address addr
+   * port port. If mirror is one, the messages will continue to be
+   * sent to the usual destination (see csoundSetMessaggeCallback())
+   * as well as to UDP.
+   * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
+   * could not be set up.
+   */
+   int csoundUDPConsole(CSOUND *csound, const char *addr,
+                              int port, int mirror);
+
+  /**
+   * Stop transmitting console messages via UDP
+   */
+  void csoundStopUDPConsole(CSOUND *csound);
+
+   int csoundOpenLibrary(void **library, const char *libraryPath);
+   int csoundCloseLibrary(void *library);
+   void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+   void csoundInputMessage(CSOUND *csound, const char * sc);
+   int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
+                        long numFields);
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
@@ -662,9 +949,9 @@ extern "C" {
     INSDS   *insdshead;
   } OPDS;
 
-/* Binary positive power function */
-static inline double intpow1(double x, int32_t n) 
-{
+  /* Binary positive power function */
+  static inline double intpow1(double x, int32_t n) 
+  {
     double ans = 1.;
     while (n!=0) {
       if (n&1) ans = ans * x;
@@ -672,17 +959,17 @@ static inline double intpow1(double x, int32_t n)
       x = x*x;
     }
     return ans;
-}
+  }
 
-/* Binary power function */
-static inline double intpow(MYFLT x, int32_t n)   
-{
+  /* Binary power function */
+  static inline double intpow(MYFLT x, int32_t n)   
+  {
     if (n<0) {
       n = -n;
       x = 1./x;
     }
     return intpow1(x, n);
-}
+  }
 
 
 
@@ -732,7 +1019,7 @@ static inline double intpow(MYFLT x, int32_t n)
    */
   static inline char *GetInputArgName(OPDS *p, uint32_t n){
     if ( n >=
-        (uint32_t) p->optext->t.inArgCount)
+         (uint32_t) p->optext->t.inArgCount)
       return (char*) NULL;
     return (char*) p->optext->t.inlist->arg[n];
   }
@@ -1292,9 +1579,9 @@ static inline double intpow(MYFLT x, int32_t n)
     uint32_t (*GetNchnls)(CSOUND *);
     /** Get number of input channels */
     uint32_t (*GetNchnls_i)(CSOUND *);
-   /** Get max peak amp */
+    /** Get max peak amp */
     MYFLT (*Get0dBFS) (CSOUND *);
-   /** Get reference tuning */
+    /** Get reference tuning */
     MYFLT (*GetA4)(CSOUND *);
     /** Get current tie flag */    
     int (*GetTieFlag)(CSOUND *);
@@ -1307,8 +1594,6 @@ static inline double intpow(MYFLT x, int32_t n)
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
-    MYFLT *(*GetInputBuffer)(CSOUND *);
-    MYFLT *(*GetOutputBuffer)(CSOUND *);
     int (*GetDebug)(CSOUND *);
     int (*GetSizeOfMYFLT)(void);
     void (*GetOParms)(CSOUND *, OPARMS *parms);
@@ -1547,17 +1832,12 @@ static inline double intpow(MYFLT x, int32_t n)
        
     /** @name Generic callbacks */
     /**@{ */
-    void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
     int (*Set_KeyCallback)(CSOUND *, int (*func)(void *, void *, unsigned int),
                            void *userData, unsigned int typeMask);
     void (*Remove_KeyCallback)(CSOUND *,
                                int (*func)(void *, void *, unsigned int));
-    int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
-                                      void *userData);
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                  int (*func)(CSOUND *, void *));
-    void (*SetInternalYieldCallback)(CSOUND *,
-                                     int (*yieldCallback)(CSOUND *));
     /**@}*/
             
     /** @name Hash tables */
@@ -1656,10 +1936,6 @@ static inline double intpow(MYFLT x, int32_t n)
     /**@{ */
     /* Fast power of two function from a precomputed table */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
-    long (*RunCommand)(const char * const *argv, int noWait);
-    int (*OpenLibrary)(void **library, const char *libraryPath);
-    int (*CloseLibrary)(void *library);
-    void *(*GetLibrarySymbol)(void *library, const char *procedureName);
 #if defined (__CUDACC__) || defined (__MACH__)
     char *(*LocalizeString)(const char *);
 #else

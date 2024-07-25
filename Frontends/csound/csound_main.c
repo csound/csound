@@ -224,7 +224,6 @@ static void signal_handler(int sig)
     psignal(sig, "\ncsound command");
     if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
       if (_csound) {
-        csoundStop(_csound);
         csoundDestroy(_csound);
       }
       //_result = -1;
@@ -319,12 +318,12 @@ int main(int argc, char **argv)
       csoundSetDefaultMessageCallback(nomsg_callback);
   
     /*  Create Csound. */
-    csound = csoundCreate(NULL);
+    csound = csoundCreate(NULL, NULL);
     _csound = csound;
     /*  One complete performance cycle. */
      result = csoundCompile(csound, argc, (const char **)argv);
      if(!result) {
-       csoundStart(); 
+      csoundStart(csound); 
       do result = csoundPerformKsmps(csound);
       while (!result);
      // csoundMessage(csound, "**** result = %d\n", result);

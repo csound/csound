@@ -346,7 +346,8 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot create cscore.out"));
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 1, 0);
       /* rdscor for cscorefns */
-      csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
+      // API support for cscore is dropped in 7.0
+      // csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
       /* call cscore, optionally re-enter via lplay() */
       csound->cscoreCallback_(csound);
       fclose(csound->oscfp); csound->oscfp = NULL;
@@ -592,8 +593,8 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
     }
   STA(ep) = &a->e[1];                  /* from 1st evlist member */
   STA(epend) = STA(ep) + a->nevents;    /*   to last              */
-  while (csoundPerform(csound) == 0)  /* play list members      */
-    ;                                 /* NB: empoty loop */
+  while (csoundPerformKsmps(csound) == 0)  /* play list members      */
+    ;                                     /* NB: empoty loop */
   return OK;
 }
 

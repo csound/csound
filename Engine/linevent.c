@@ -105,7 +105,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-    csound->RegisterSenseEventCallback(csound, sensLine, NULL);
+    csoundRegisterSenseEventCallback(csound, sensLine, NULL);
 }
 
 #ifdef PIPES
@@ -190,7 +190,7 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
-    csound->RegisterSenseEventCallback(csound, sensLine, NULL);
+    csoundRegisterSenseEventCallback(csound, sensLine, NULL);
 
     return 0;
 }
@@ -277,7 +277,7 @@ static void sensLine(CSOUND *csound, void *userData)
           if(c == '}' && cm1 != '}' && cpp1 != '}') {
             STA(oflag) = 0;
             STA(orchestra) = STA(orchestrab);
-            csoundCompileOrc(csound, STA(orchestrab));
+            csoundCompileOrc(csound, STA(orchestrab), 0);
             csound->Message(csound, "::compiling orchestra::\n");
             Linestart = (++cp);
             continue;

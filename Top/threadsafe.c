@@ -367,19 +367,6 @@ int csoundReadScore(CSOUND *csound, const char *message){
   return res;
 }
 
-void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable){
-
-  csoundLockMutex(csound->API_lock);
-  csoundTableCopyOutInternal(csound, table, ptable);
-  csoundUnlockMutex(csound->API_lock);
-}
-
-void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable){
-  csoundLockMutex(csound->API_lock);
-  csoundTableCopyInInternal(csound, table, ptable);
-  csoundUnlockMutex(csound->API_lock);
-}
-
 void csoundTableSet(CSOUND *csound, int table, int index, MYFLT value)
 {
   csoundLockMutex(csound->API_lock);
@@ -415,16 +402,6 @@ int csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
                                     allow_release, async);
 }
 
-int csoundCompileTree(CSOUND *csound, TREE *root) {
-  int async = 0;
-  return csoundCompileTreeInternal(csound, root, async);
-}
-
-int csoundCompileOrc(CSOUND *csound, const char *str) {
-  int async = 0;
-  return csoundCompileOrcInternal(csound, str, async);
-}
-
 int init0(CSOUND *csound);
 
 MYFLT csoundEvalCode(CSOUND *csound, const char *str)
@@ -455,12 +432,18 @@ void csoundReadScoreAsync(CSOUND *csound, const char *message){
   csoundReadScore_enqueue(csound, message);
 }
 
-void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *ptable){
-  csoundTableCopyOut_enqueue(csound, table, ptable);
+void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *ptable, int async){
+  if(async) return csoundTableCopyOut_enqueue(csound, table, ptable);
+  csoundLockMutex(csound->API_lock);
+  csoundTableCopyOutInternal(csound, table, ptable);
+  csoundUnlockMutex(csound->API_lock);
 }
 
-void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *ptable){
-  csoundTableCopyIn_enqueue(csound, table, ptable);
+void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *ptable, int async){
+  if(async) return csoundTableCopyIn_enqueue(csound, table, ptable);
+  csoundLockMutex(csound->API_lock);
+  csoundTableCopyInInternal(csound, table, ptable);
+  csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableSetAsync(CSOUND *csound, int table, int index, MYFLT value)

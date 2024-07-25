@@ -28,6 +28,81 @@
 #include "csPerfThread.hpp"
 #include "soundio.h"
 
+#include "csoundCore.h"
+class CsoundThreadLock {
+protected:
+  void  *threadLock;
+public:
+  int Lock(size_t milliseconds)
+  {
+    return csoundWaitThreadLock(threadLock, milliseconds);
+  }
+  void Lock()
+  {
+    csoundWaitThreadLockNoTimeout(threadLock);
+  }
+  int TryLock()
+  {
+    return csoundWaitThreadLock(threadLock, (size_t) 0);
+  }
+  void Unlock()
+  {
+    csoundNotifyThreadLock(threadLock);
+  }
+  // constructors
+  // FIXME: should throw exception on failure ?
+  CsoundThreadLock()
+  {
+    threadLock = csoundCreateThreadLock();
+  }
+  CsoundThreadLock(int locked)
+  {
+    threadLock = csoundCreateThreadLock();
+    if (locked)
+      csoundWaitThreadLock(threadLock, (size_t) 0);
+  }
+  // destructor
+  ~CsoundThreadLock()
+  {
+    csoundDestroyThreadLock(threadLock);
+  }
+};
+
+class CsoundMutex {
+protected:
+  void  *mutex_;
+public:
+  void Lock()
+  {
+    csoundLockMutex(mutex_);
+  }
+  // FIXME: this may be unimplemented on Windows
+  int TryLock()
+  {
+    return csoundLockMutexNoWait(mutex_);
+  }
+  void Unlock()
+  {
+    csoundUnlockMutex(mutex_);
+  }
+  CsoundMutex()
+  {
+    mutex_ = csoundCreateMutex(1);
+  }
+#if (__cplusplus >= 201103L)
+  explicit
+#endif
+  CsoundMutex(int isRecursive)
+  {
+    mutex_ = csoundCreateMutex(isRecursive);
+  }
+  ~CsoundMutex()
+  {
+    csoundDestroyMutex(mutex_);
+  }
+};
+
+
 // ----------------------------------------------------------------------------
 
 /**

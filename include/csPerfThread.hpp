@@ -99,14 +99,6 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-
-#ifdef SWIGPYTHON
-struct PUBLIC pycallbackdata {
-  PyObject *func;
-  PyObject *data;
-};
-#endif
-
 typedef struct {
     void *cbuf;
     void *sfile;

@@ -74,7 +74,6 @@
 #include <time.h>
 
 extern void allocate_message_queue(CSOUND *csound);
-static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
 int  playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int nbytes);
 int  recopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -110,6 +109,15 @@ void csoundDCT(CSOUND *csound,
                void *p, MYFLT *sig);
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
+
+int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async);
+int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
+int csoundReadScoreInternal(CSOUND *csound, const char *message);
+int csoundScoreEventInternal(CSOUND *csound, char type,
+                             const MYFLT *pfields, long numFields);
+void csoundScoreEventAsync(CSOUND *csound, char type,
+                           const MYFLT *pfields, long numFields);
+void csoundReadScoreAsync(CSOUND *csound, const char *message);
 
 extern OENTRY opcodlst_1[];
 
@@ -358,8 +366,6 @@ static const CSOUND cenviron_ = {
   csoundGetCurrentTimeSamples,
   csoundGetInputBufferSize,
   csoundGetOutputBufferSize,
-  csoundGetInputBuffer,
-  csoundGetOutputBuffer,
   csoundGetDebug,
   csoundGetSizeOfMYFLT,
   csoundGetOParms,
@@ -375,7 +381,7 @@ static const CSOUND cenviron_ = {
   csoundSetScoreOffsetSeconds,
   csoundRewindScore,
   csoundInputMessageInternal,
-  csoundReadScore,
+  csoundReadScoreInternal,
   /* message printout */
   csoundMessage,
   csoundMessageS,
@@ -529,12 +535,9 @@ static const CSOUND cenviron_ = {
   getstrformat,
   sfsampsize,
   /* generic callbacks */
-  csoundSetYieldCallback,
   csoundRegisterKeyboardCallback,
   csoundRemoveKeyboardCallback,
-  csoundRegisterSenseEventCallback,
   csoundRegisterResetCallback,
-  SetInternalYieldCallback,
   /* hash table funcs */
   cs_hash_table_create,
   cs_hash_table_get,
@@ -588,10 +591,6 @@ static const CSOUND cenviron_ = {
   csoundSetExitGraphCallback,
   /* miscellaneous */
   csoundPow2,
-  csoundRunCommand,
-  csoundOpenLibrary,
-  csoundCloseLibrary,
-  csoundGetLibrarySymbol,
   csoundLocalizeString,
   cs_strtod,
   cs_sprintf,
@@ -1399,15 +1398,7 @@ PUBLIC int csoundInitialize(int flags)
   return 0;
 }
 
-static char *opcodedir = NULL;
-
-PUBLIC void csoundSetOpcodedir(const char *s) {
-  if(opcodedir != NULL) free(opcodedir);
-  opcodedir = strdup(s);
-}
-
-
-PUBLIC CSOUND *csoundCreate(void *hostdata)
+PUBLIC CSOUND *csoundCreate(void *hostdata, const char *opcodedir)
 {
   CSOUND        *csound;
   csInstance_t  *p;
@@ -1416,12 +1407,14 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
   if (init_done != 1) {
     if (csoundInitialize(0) < 0) return NULL;
   }
+
   csound = (CSOUND*) malloc(sizeof(CSOUND));
   if (UNLIKELY(csound == NULL)) return NULL;
   memcpy(csound, &cenviron_, sizeof(CSOUND));
   init_getstring(csound);
   csound->oparms = &(csound->oparms_);
   csound->hostdata = hostdata;
+  csound->opcodedir = cs_strdup(csound, (char *) opcodedir);
   p = (csInstance_t*) malloc(sizeof(csInstance_t));
   if (UNLIKELY(p == NULL)) {
     free(csound);
@@ -2370,6 +2363,55 @@ PUBLIC void csoundStop(CSOUND *csound)
   csound->performState = -1;
 }
 
+/* 
+ * New API functions 
+*/
+PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root, int async) {
+  return csoundCompileTreeInternal(csound, root, async);
+}
+
+PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str, int async) {
+  return csoundCompileOrcInternal(csound, str, async);
+}
+
+PUBLIC void csoundEventString(CSOUND *csound, const char *message, int async) {
+  if(async) {
+    csoundReadScoreAsync(csound, message);
+  } else csoundReadScoreInternal(csound, message);
+}
+
+PUBLIC void csoundEvent(CSOUND *csound, int type, MYFLT *params,
+                  int nparams, int async) {
+  char c = 'i';
+  if(type) c = 'f';
+  if(async) 
+    csoundScoreEventAsync(csound, c, params, nparams);
+  else csoundScoreEventInternal(csound, c, params, nparams);
+}
+
+PUBLIC int csoundCompileCSD(CSOUND *csound, const char *csd, int mode) {
+  if(mode) 
+    return csoundCompileCsdText(csound, csd);
+  else
+    return csoundCompileCsd(csound, csd);
+}
+
+PUBLIC void csoundSetHostAudioIO(CSOUND *csound)
+{
+  csound->enableHostImplementedAudioIO = 1;
+}
+
+PUBLIC void csoundSetHostMIDIIO(CSOUND *csound)
+{
+  csound->enableHostImplementedMIDIIO = 1;
+}
+
+PUBLIC uint32_t csoundGetChannels(CSOUND *csound, int isInput){
+  if(isInput) return csoundGetNchnlsInput(csound);
+  else return csoundGetNchnls(csound);
+}
+
+
 /*
  * ATTRIBUTES
  */
@@ -3291,17 +3333,12 @@ int defaultCsoundYield(CSOUND *csound)
   return 1;
 }
 
-PUBLIC void csoundSetYieldCallback(CSOUND *csound,
+void csoundSetYieldCallback(CSOUND *csound,
                                    int (*yieldCallback)(CSOUND *))
 {
   csound->csoundYieldCallback_ = yieldCallback;
 }
 
-void SetInternalYieldCallback(CSOUND *csound,
-                              int (*yieldCallback)(CSOUND *))
-{
-  csound->csoundInternalYieldCallback_ = yieldCallback;
-}
 
 int csoundYield(CSOUND *csound)
 {
@@ -3533,12 +3570,6 @@ PUBLIC void csoundReset(CSOUND *csound)
                                (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
     char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
     memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
-
-    /* VL now load modules has opcodedir override */
-    if(opcodedir)
-      csound->opcodedir = cs_strdup(csound, opcodedir);
-    else
-      csound->opcodedir = NULL;
 
     err = csoundLoadModules(csound);
     if (csound->delayederrormessages &&

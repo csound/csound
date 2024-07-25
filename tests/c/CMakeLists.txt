@@ -6,15 +6,13 @@ check_deps(BUILD_TESTS BUILD_STATIC_LIBRARY GTest_FOUND)
 if(BUILD_TESTS)
     add_executable(unittests
         channel_tests.cpp
-        cscore_tests.cpp
-        csound_circular_buffer_test.cpp
         csound_data_structures_test.cpp
         csound_debugger_test.cpp
         csound_message_buffer_test.cpp
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
-        engine_test.cpp
+        engine_test.cpp     
         io_test.cpp
         server_test.cpp
     )
