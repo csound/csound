@@ -3,12 +3,6 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 
-extern "C" {
-void csoundSetRTAudioModule(CSOUND *csound, const char *module);
-void csoundSetMIDIModule(CSOUND *csound, const char *module);
-int csoundGetModule(CSOUND *csound, int number,
-                             char **name, char **type);
-}
 
 class IOTests : public ::testing::Test {
 public:

@@ -275,17 +275,6 @@ extern "C" {
   void csoundInitTimerStruct(RTCLOCK *);
   double csoundGetRealTime(RTCLOCK *);
   double csoundGetCPUTime(RTCLOCK *);
-  void *csoundCreateCircularBuffer(CSOUND *csound,
-                                   int numelem, int elemsize);
-  int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
-                               void *out, int items);
-  int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
-                               void *out, int items);
-  int csoundWriteCircularBuffer(CSOUND *csound, void *p,
-                                const void *inp, int items);
-  void csoundFlushCircularBuffer(CSOUND *csound, void *p);
-  void csoundDestroyCircularBuffer(CSOUND *csound, void *circularbuffer);
-
   int csoundRegisterSenseEventCallback(CSOUND *,
                                        void (*func)(CSOUND *, void *),
                                        void *userData);

@@ -371,6 +371,15 @@ extern "C" {
   PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
 
   /**
+   * Set the global value of environment variable 'name' to 'value',
+   * or delete variable if 'value' is NULL.
+   * It is not safe to call this function while any Csound instances
+   * are active.
+   * Returns zero on success.
+   */
+  PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
+
+  /**
    * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
    * This needs to be called after csoundCreate() and before any code is 
    * compiled.
@@ -410,6 +419,22 @@ extern "C" {
    * Returns the stored value containing the system HW sr.
    */
   PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
+
+  /**
+   * retrieves a module name and type ("audio" or "midi") given a
+   * number Modules are added to list as csound loads them returns
+   * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
+   * was not found
+   *
+   * \code
+   *  char *name, *type;
+   *  int n = 0;
+   *  while(!csoundGetModule(csound, n++, &name, &type))
+   *       printf("Module %d:  %s (%s) \n", n, name, type);
+   * \endcode
+   */
+  PUBLIC int csoundGetModule(CSOUND *csound, int number,
+                             char **name, char **type);
 
   /**
    * This function can be called to obtain a list of available
@@ -636,6 +661,26 @@ extern "C" {
   PUBLIC void csoundSetHostAudioIO(CSOUND *);
 
   /**
+   *  Sets the current RT audio module
+   */
+  PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module);
+
+  /**
+   * retrieves a module name and type ("audio" or "midi") given a
+   * number Modules are added to list as csound loads them returns
+   * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
+   * was not found
+   *
+   * \code
+   *  char *name, *type;
+   *  int n = 0;
+   *  while(!csoundGetModule(csound, n++, &name, &type))
+   *       printf("Module %d:  %s (%s) \n", n, name, type);
+   * \endcode
+   */
+  
+
+  /**
    * Returns the address of the Csound audio input working buffer (spin).
    * Enables external software to write audio into Csound before calling
    * csoundPerformKsmps.
@@ -660,6 +705,11 @@ extern "C" {
    * MIDI via the callbacks below.
    */
   PUBLIC void csoundSetHostMIDIIO(CSOUND *csound);
+
+  /**
+   *  Sets the current MIDI IO module
+   */
+  PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module);
 
 
   /**
@@ -1226,7 +1276,66 @@ extern "C" {
                                          int (*exitGraphCallback_)(CSOUND *));
 
   /** @}*/
+  /** @defgroup CIRCULARBUFFER Circular buffer functions
+   *
+   *  @{ */
+   /**
+   * Create circular buffer with numelem number of elements. The
+   * element's size is set from elemsize. It should be used like:
+   *@code
+   * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
+   *@endcode
+   */
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
+                                          int numelem, int elemsize);
 
+  /**
+   * Read from circular buffer
+   * @param csound This value is currently ignored.
+   * @param circular_buffer pointer to an existing circular buffer
+   * @param out preallocated buffer with at least items number of elements, where
+   *              buffer contents will be read into
+   * @param items number of samples to be read
+   * @returns the actual number of items read (0 <= n <= items)
+   */
+  PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
+                                      void *out, int items);
+
+  /**
+   * Read from circular buffer without removing them from the buffer.
+   * @param circular_buffer pointer to an existing circular buffer
+   * @param out preallocated buffer with at least items number of elements, where
+   *              buffer contents will be read into
+   * @param items number of samples to be read
+   * @returns the actual number of items read (0 <= n <= items)
+   */
+  PUBLIC int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
+                                      void *out, int items);
+
+  /**
+   * Write to circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @param inp buffer with at least items number of elements to be written into
+   *              circular buffer
+   * @param items number of samples to write
+   * @returns the actual number of items written (0 <= n <= items)
+   */
+  PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
+                                       const void *inp, int items);
+  /**
+   * Empty circular buffer of any remaining data. This function should only be
+   * used if there is no reader actively getting data from the buffer.
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   */
+  PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
+
+  /**
+   * Free circular buffer
+   */
+  PUBLIC void csoundDestroyCircularBuffer(CSOUND *csound, void *circularbuffer);
+  /** @}*/
   
 #endif  /* !CSOUND_CSDL_H */
   /* typedefs, macros, and interface functions for configuration variables */
