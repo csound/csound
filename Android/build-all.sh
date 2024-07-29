@@ -14,7 +14,7 @@ then
     find . -name "*.so" -delete  
 fi
 
-#cd pluginlibs
+cd pluginlibs
 
 for plugin in *
 do
@@ -24,7 +24,7 @@ do
     cd ..
 done
 
-cd .xfCsoundAndroid
+cd ../CsoundAndroid
 ./build.sh $1
 
 
