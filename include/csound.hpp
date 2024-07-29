@@ -253,7 +253,7 @@ class PUBLIC Csound
   {
     return csoundGetKsmps(csound);
   }
-  virtual int GetChannels(int isInput)
+  virtual int GetChannels(int isInput = 0)
   {
     return csoundGetChannels(csound,isInput);
   }
