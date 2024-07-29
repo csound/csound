@@ -129,7 +129,9 @@ struct CsoundScoreEvent : public CsoundEvent
         }
     }
     virtual int operator ()(CSOUND *csound_) {
-        return csoundScoreEvent(csound_, opcode, pfields.data(), pfields.size());
+      int op = 0;
+      if (opcode == 'f') op = 1;
+      return csoundEvent(csound_, op, pfields.data(), pfields.size(), 0);
     }
 };
 
@@ -145,7 +147,7 @@ struct CsoundTextEvent : public CsoundEvent
         events = text;
     }
     virtual int operator ()(CSOUND *csound_) {
-        return csoundReadScore(csound_, events.data());
+      return csoundEventString(csound_, events.data(), 0);
     }
 };
 
@@ -310,7 +312,6 @@ public:
     {
         Message("CsoundThreaded::Stop()...\n");
         keep_running = false;
-        Csound::Stop();
         Message("CsoundThreaded::Stop().\n");
     }
     /**
