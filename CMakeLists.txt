@@ -1402,7 +1402,9 @@ if(USE_LIBSNDFILE)
 endif()
 
 if(SampleRate_FOUND)
+    if(NOT IOS)
   target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
+      endif()
 endif()
 
 if(NOT IOS)
