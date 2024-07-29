@@ -15,6 +15,11 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 }
 }
 
+#if !defined(__BUILDING_LIBCSOUND) 
+#define __BUILDING_LIBCSOUND
+#endif
+
+#include <csoundCore.h>
 #include <pthread.h>
 void AndroidCsound::setOpenSlCallbacks() {
 

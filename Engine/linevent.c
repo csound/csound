@@ -577,7 +577,7 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         if (IsStringCode(*p->args[1])) {
           int res = csound->StringArg2Insno(csound,
                                          get_arg_string(csound, *p->args[1]), 1);
-          if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
+          if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
         }
         else {                  /* Should check for valid instr num here */
@@ -649,7 +649,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         res = csound->StringArg2Insno(csound,
                                    ((STRINGDAT*) p->args[0])->data, 1);
         /* The comprison below and later is suspect */
-        if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
+        if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
         evt.p[1] = (MYFLT)res;
         evt.strarg = NULL; evt.scnt = 0;
       }
@@ -657,7 +657,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
         if (IsStringCode(*p->args[0])) {
           res = csound->StringArg2Insno(csound,
                                      get_arg_string(csound, *p->args[0]), 1);
-          if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
+          if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
         } else evt.p[1] = *p->args[0];
         evt.strarg = NULL; evt.scnt = 0;
