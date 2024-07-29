@@ -1,7 +1,7 @@
 /*
-  csoundCore_new.h: somet modifications to match the new API
+  csoundCore.h: somet modifications to match the new API
 
-  Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga
+  Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga , V Lazzarini, S Yi
 
   This file is part of Csound.
 
@@ -43,6 +43,7 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
+#include "udp_server.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
@@ -310,47 +311,11 @@ extern "C" {
   int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
   int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
   int csoundCleanup(CSOUND *);
-
-
- /**
-   * Starts the UDP server on a supplied port number
-   * returns CSOUND_SUCCESS if server has been started successfully,
-   * otherwise, CSOUND_ERROR.
-   */
-  int csoundUDPServerStart(CSOUND *csound, unsigned int port);
-
-  /** returns the port number on which the server is running, or
-   *  CSOUND_ERROR if the server is not running.
-   */
-  int csoundUDPServerStatus(CSOUND *csound);
-
-  /**
-   * Closes the UDP server, returning CSOUND_SUCCESS if the
-   * running server was successfully closed, CSOUND_ERROR otherwise.
-   */
-  int csoundUDPServerClose(CSOUND *csound);
-
-  /**
-   * Turns on the transmission of console messages to UDP on address addr
-   * port port. If mirror is one, the messages will continue to be
-   * sent to the usual destination (see csoundSetMessaggeCallback())
-   * as well as to UDP.
-   * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
-   * could not be set up.
-   */
-   int csoundUDPConsole(CSOUND *csound, const char *addr,
-                              int port, int mirror);
-
-  /**
-   * Stop transmitting console messages via UDP
-   */
-  void csoundStopUDPConsole(CSOUND *csound);
-
-   int csoundOpenLibrary(void **library, const char *libraryPath);
-   int csoundCloseLibrary(void *library);
-   void *csoundGetLibrarySymbol(void *library, const char *symbolName);
-   void csoundInputMessage(CSOUND *csound, const char * sc);
-   int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
+  int csoundOpenLibrary(void **library, const char *libraryPath);
+  int csoundCloseLibrary(void *library);
+  void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+  void csoundInputMessage(CSOUND *csound, const char * sc);
+  int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
