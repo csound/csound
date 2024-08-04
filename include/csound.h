@@ -1136,20 +1136,23 @@ extern "C" {
   PUBLIC int csoundTableLength(CSOUND *, int table);
 
   /**
-   * Copy the contents of an array *src into a given function table
-   * The table number is assumed to be valid, and the table needs to
-   * have sufficient space to receive all the array contents.
-   * optionally run asynchronously (async = 1)
+   * Stores pointer to function table 'tableNum' in *tablePtr,
+   * and returns the table length (not including the guard point).
+   * If the table does not exist, *tablePtr is set to NULL and
+   * -1 is returned.
    */
-  PUBLIC void csoundTableCopyIn (CSOUND *csound, int table, MYFLT *src, int async);
+  PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
 
   /**
-   * Copy the contents of a function table into a supplied array *dest
-   * The table number is assumed to be valid, and the destination needs to
-   * have sufficient space to receive all the function table contents.
-   * optionally run asynchronously (async = 1)
+   * Stores pointer to the arguments used to generate
+   * function table 'tableNum' in *argsPtr,
+   * and returns the number of arguments used.
+   * If the table does not exist, *argsPtr is set to NULL and
+   * -1 is returned.
+   * NB: the argument list starts with the GEN number and is followed by
+   * its parameters. eg. f 1 0 1024 10 1 0.5  yields the list {10.0,1.0,0.5}
    */
-  PUBLIC void csoundTableCopyOut (CSOUND *csound, int table, MYFLT *dest, int async);
+  PUBLIC int csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum);
 
   /** @}*/
   /** @defgroup SCOREHANDLING Score Handling

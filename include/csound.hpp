@@ -426,12 +426,12 @@ class PUBLIC Csound
   {
     return csoundTableLength(csound, table);
   }
-  virtual void TableCopyOut(int table, MYFLT *dest, int async = 0){
-    csoundTableCopyOut(csound,table,dest, async);
+  virtual int GetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum){
+    return csoundGetTable(csound, tablePtr, tableNum);
   }
   
-  virtual void TableCopyIn(int table, MYFLT *src, int async = 0){
-    csoundTableCopyIn(csound,table,src,async);
+  virtual int GetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum){
+    return csoundGetTableArgs(csound, argsPtr, tableNum);
   }
   
   virtual int GetChannelPtr(MYFLT* &p, const char *name, int type)
