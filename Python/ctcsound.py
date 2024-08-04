@@ -414,6 +414,10 @@ class Csound:
             libcsound.csoundDestroy(self.cs)
     
     def csound(self):
+        """Returns the opaque pointer to the underlying CSOUND struct.
+        
+        This pointer is needed to instantiate a CsoundPerformanceThread object.
+        """
         return self.cs
 
     #
