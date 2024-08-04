@@ -318,8 +318,8 @@ libcsound.csoundRegisterKeyboardCallback.argtypes = [ct.c_void_p, KEYBOARDFUNC, 
 libcsound.csoundRemoveKeyboardCallback.argtypes = [ct.c_void_p, KEYBOARDFUNC]
 
 libcsound.csoundTableLength.argtypes = [ct.c_void_p, ct.c_int]
-libcsound.csoundTableCopyIn.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT), ct.c_int]
-libcsound.csoundTableCopyOut.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT), ct.c_int]
+libcsound.csoundGetTable.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_int]
+libcsound.csoundGetTableArgs.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_int]
 
 libcsound.csoundGetScoreTime.restype = ct.c_double
 libcsound.csoundGetScoreTime.argtypes = [ct.c_void_p]
@@ -1301,25 +1301,37 @@ class Csound:
         """
         return libcsound.csoundTableLength(self.cs, ct.c_int(table))
 
-    def table_copy_in(self, table, src, async_mode=False):
-        """Copies the contents of an ndarray src into a given function table.
+    def table(self, tableNum):
+        """Returns a pointer to function table tableNum as an ndarray.
         
-        The table number is assumed to be valid, and the table needs to
-        have sufficient space to receive all the array contents.
-        Optionally runs asynchronously (async_mode=True).
+        The ndarray does not include the guard point. If the table does not
+        exist, None is returned.
         """
-        ptr = src.ctypes.data_as(ct.POINTER(MYFLT))
-        libcsound.csoundTableCopyIn(self.cs, table, ptr, ct.c_int(async_mode))
+        ptr = ct.POINTER(MYFLT)()
+        size = libcsound.csoundGetTable(self.cs, ct.byref(ptr), tableNum)
+        if size < 0:
+            return None
+        arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
+        p = ct.cast(ptr, arrayType)
+        return arrFromPointer(p)
 
-    def table_copy_out(self, table, dest, async_mode=False):
-        """Copies the contents of a function table into a supplied ndarray dest.
+    def tableArgs(self, tableNum):
+        """Returns a pointer to the args used to generate a function table.
         
-        The table number is assumed to be valid, and the destination needs to
-        have sufficient space to receive all the function table contents.
-        Optionally runs asynchronously (async_mode=True).
+        The pointer is returned as an ndarray. If the table does not exist,
+        None is returned.
+        
+        NB: the argument list starts with the GEN number and is followed by
+        its parameters. eg. f 1 0 1024 10 1 0.5  yields the list
+        {10.0, 1.0, 0.5}
         """
-        ptr = dest.ctypes.data_as(ct.POINTER(MYFLT))
-        libcsound.csoundTableCopyOut(self.cs, table, ptr, ct.c_int(async_mode))
+        ptr = ct.POINTER(MYFLT)()
+        size = libcsound.csoundGetTableArgs(self.cs, ct.byref(ptr), tableNum)
+        if size < 0:
+            return None
+        arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
+        p = ct.cast(ptr, arrayType)
+        return arrFromPointer(p)
 
     #
     # Score Handling
