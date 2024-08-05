@@ -25,7 +25,9 @@
 
 
 #include <CoreMIDI/CoreMIDI.h>
+#ifndef IOS
 #include <CoreAudio/HostTime.h>
+#endif
 #include <CoreFoundation/CoreFoundation.h>
 #include "csdl.h"                               /*      CMIDI.C         */
 #include "midiops.h"

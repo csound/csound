@@ -650,7 +650,12 @@ static int32_t createExScore(CSOUND *csound, char *p, CORFIL *cf)
         char sys[1024];
         csoundFileClose(csound, fd);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
-        if (UNLIKELY(system(sys) != 0)) {
+#ifdef IOS
+int system_result = 0;
+#else
+int system_result = system(sys);
+#endif
+        if (UNLIKELY(system_result != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
           if (UNLIKELY(remove(extname) || remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove"));
