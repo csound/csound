@@ -8,6 +8,7 @@ set (CMAKE_CXX_STANDARD 11)
 
 cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0075 NEW)
+cmake_policy(SET CMP0091 NEW)
 
 include(cmake/cmake-utilities.cmake)
 
@@ -36,7 +37,8 @@ if (USE_VCPKG)
         set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
         set(VCPKG_TARGET_ARCHITECTURE x64)
     elseif (WIN32)
-        set(VCPKG_TARGET_TRIPLET "x64-windows-static-md")
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
