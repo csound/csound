@@ -434,12 +434,12 @@ class PUBLIC Csound
     return csoundGetTableArgs(csound, argsPtr, tableNum);
   }
   
-  virtual int GetChannelPtr(MYFLT* &p, const char *name, int type)
+  virtual int GetChannelPtr(void* &p, const char *name, int type)
   {
     MYFLT *tmp;
     int   retval;
     if(strlen(name) == 0) return CSOUND_ERROR;
-    retval = csoundGetChannelPtr(csound, &tmp, name, type);
+    retval = csoundGetChannelPtr(csound, (void **) &tmp, name, type);
     p = tmp;
     return retval;
   }
@@ -474,21 +474,21 @@ class PUBLIC Csound
   {
     csoundSetControlChannel(csound,name,value);
   }
-  virtual void SetChannel(const char *name, char *string)
+  virtual void SetChannel(const char *name, const char *string)
   {
     csoundSetStringChannel(csound,name,string);
   }
-  virtual void SetStringChannel(const char *name, char *string)
+  virtual void SetStringChannel(const char *name, const char *string)
   {
     csoundSetStringChannel(csound,name,string);
   }
-  virtual void SetChannel(const char *name, MYFLT *samples)
+  virtual void SetChannel(const char *name, const MYFLT *samples)
   {
     csoundSetAudioChannel(csound,name,samples);
   }
   virtual MYFLT GetChannel(const char *name, int *err = NULL)
   {
-    return csoundGetControlChannel(csound,name, err);
+    return csoundGetControlChannel(csound,name,err);
   }
   virtual MYFLT GetControlChannel(const char *name, int *err = NULL)
   {
@@ -502,6 +502,22 @@ class PUBLIC Csound
   {
     csoundGetAudioChannel(csound,name,samples);
   }
+  virtual int SetChannel(const char *name, const PVSDATEXT *spec)
+  {
+    return csoundSetPvsChannel(csound,name,spec);
+  }
+  virtual int GetChannel(const char *name, PVSDATEXT *spec)
+  {
+    return csoundGetPvsChannel(csound,name,spec);
+  }
+  virtual int SetChannel(const char *name, const ARRAYDAT *array)
+  {
+    return csoundSetArrayChannel(csound,name,array);
+  }
+  virtual int GetChannel(const char *name, ARRAYDAT *array)
+  {
+    return csoundGetArrayChannel(csound,name,array);
+  } 
 
   // cfgvar.h interface
   virtual int CreateConfigurationVariable(const char *name, void *p,

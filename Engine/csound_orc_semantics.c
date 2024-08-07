@@ -67,7 +67,7 @@ int is_reserved(char*);
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
-char* cs_strdup(CSOUND* csound, char* str) {
+char* cs_strdup(CSOUND* csound, const char* str) {
   size_t len;
   char* retVal;
 
@@ -84,7 +84,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
   return retVal;
 }
 
-char* cs_strndup(CSOUND* csound, char* str, size_t size) {
+char* cs_strndup(CSOUND* csound, const char* str, size_t size) {
   size_t len;
   char* retVal;
 

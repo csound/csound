@@ -85,7 +85,7 @@ int32_t chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
-    err = csoundGetChannelPtr(csound, &val, chan_name,
+    err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (UNLIKELY(err))
@@ -107,7 +107,7 @@ int32_t chano_opcode_perf_k(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound,&(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
-    err = csoundGetChannelPtr(csound, &val, chan_name,
+    err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (UNLIKELY(err))
@@ -132,7 +132,7 @@ int32_t chani_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
-    err = csoundGetChannelPtr(csound, &val, chan_name,
+    err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
         return csound->PerfError(csound, &(p->h),
@@ -160,7 +160,7 @@ int32_t chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
         return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
 
     snprintf(chan_name, 16, "%i", n);
-    err = csoundGetChannelPtr(csound, &val, chan_name,
+    err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
         return csound->PerfError(csound, &(p->h),
@@ -179,21 +179,22 @@ int32_t chano_opcode_perf_a(CSOUND *csound, CHNVAL *p)
 int32_t pvsin_init(CSOUND *csound, FCHAN *p)
 {
     int32_t N;
-    MYFLT *pp;
-    PVSDATEXT *f;
-    int32_t     n = (int32_t)MYFLT2LRND(*(p->a));
-    char name[16];
-    snprintf(name, 16, "%i", n);
-    if (csoundGetChannelPtr(csound, &pp, name,
+    if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) 
+      strncpy(p->name,((STRINGDAT *)p->a)->data, MAX_CHAN_NAME);
+    else {
+      p->n = MYFLT2LRND(*p->a);
+      snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
+    }
+    
+    if (csoundGetChannelPtr(csound, (void **) &(p->f), p->name,
                             CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
         == CSOUND_SUCCESS){
-        spin_lock_t  *lock = (spin_lock_t *)
-                csoundGetChannelLock(csound, name);
-        f = (PVSDATEXT *) pp;
-        csoundSpinLock(lock);
-        memcpy(&(p->init), f, sizeof(PVSDAT)-sizeof(AUXCH));
-        csoundSpinUnLock(lock);
-    }
+        p->lock = (spin_lock_t *)
+                csoundGetChannelLock(csound, p->name);
+        csoundSpinLock(p->lock);
+        memcpy(&(p->init), p->f, sizeof(PVSDAT)-sizeof(AUXCH));
+        csoundSpinUnLock(p->lock);
+    } 
 
     N = p->init.N = (int32_t)(*p->N ? *p->N : p->init.N);
     p->init.overlap = (int32_t) (*p->overlap ? *p->overlap : p->init.overlap);
@@ -211,60 +212,63 @@ int32_t pvsin_init(CSOUND *csound, FCHAN *p)
 int32_t pvsin_perf(CSOUND *csound, FCHAN *p)
 {
     PVSDAT *fout = p->r;
-    int32_t     n = (int32_t)MYFLT2LRND(*(p->a));
-    char chan_name[16];
-    int32_t   err, size;
-    PVSDATEXT *fin;
-    MYFLT      *pp;
-
-    if (UNLIKELY(n < 0))
-        return csound->PerfError(csound, &(p->h),Str("pvsin: invalid index"));
-
-    snprintf(chan_name, 16, "%i", n);
-    err = csoundGetChannelPtr(csound, &pp, chan_name,
+    int32_t   err, size, flag = 0;
+ 
+    if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) {
+      if(strcmp(((STRINGDAT *)p->a)->data, p->name)) {
+        strncpy(p->name, ((STRINGDAT *)p->a)->data, MAX_CHAN_NAME);
+        flag = 1;
+      }
+    }
+    else {
+      if(p->n != MYFLT2LRND(*p->a)) {
+       p->n = MYFLT2LRND(*p->a);
+       snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
+       flag = 1;
+      }
+    }
+    if(flag) {   
+      err = csoundGetChannelPtr(csound, (void **) &(p->f), p->name,
                               CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL);
-    fin = (PVSDATEXT *) pp;
     if (UNLIKELY(err))
         return csound->PerfError(csound, &(p->h),
                                  Str("pvsin error %d:"
                                      "channel not found or not right type"), err);
-
-    size = fin->N < fout->N ? fin->N : fout->N;
-    spin_lock_t  *lock = (spin_lock_t *) csoundGetChannelLock(csound, chan_name);
-    csoundSpinLock(lock);
-    memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
-    //printf("fout=%p fout->frame.auxp=%p fin=%p fin->frame=%p\n",
-    //       fout, fout->frame.auxp, fin, fin->frame);
-    if(fin->frame != NULL)
-        memcpy(fout->frame.auxp, fin->frame, sizeof(float)*(size+2));
+      p->lock = (spin_lock_t *) csoundGetChannelLock(csound,p->name);
+    }
+    size = p->f->N < fout->N ? p->f->N : fout->N;
+    csoundSpinLock(p->lock);
+    memcpy(fout, p->f, sizeof(PVSDAT)-sizeof(AUXCH));
+    if(p->f->frame != NULL)
+        memcpy(fout->frame.auxp, p->f->frame, sizeof(float)*(size+2));
     else memset(fout->frame.auxp, 0, sizeof(float)*(size+2));
-    csoundSpinUnLock(lock);
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 
 int32_t pvsout_init(CSOUND *csound, FCHAN *p)
 {
     PVSDAT *fin = p->r;
-    MYFLT *pp;
-    PVSDATEXT *f;
-    int32_t     n = (int32_t)MYFLT2LRND(*(p->a));
-    char name[16];
-
-    snprintf(name, 16, "%i", n);
-    if (csoundGetChannelPtr(csound, &pp, name,
+    if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) 
+      strncpy(p->name, ((STRINGDAT *)p->a)->data, MAX_CHAN_NAME);
+    else {
+      p->n = MYFLT2LRND(*p->a);
+      snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
+    }
+    
+    if (csoundGetChannelPtr(csound, (void **) &(p->f), p->name,
                             CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
         == CSOUND_SUCCESS){
-        spin_lock_t  *lock = (spin_lock_t *)
-                csoundGetChannelLock(csound, name);
-        f = (PVSDATEXT *) pp;
-        csoundSpinLock(lock);
-        if(f->frame == NULL) {
-            f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
-        } else if(f->N < fin->N) {
-            f->frame = csound->ReAlloc(csound, f->frame, sizeof(float)*(fin->N+2));
+        p->lock = (spin_lock_t *)
+                csoundGetChannelLock(csound, p->name);
+        csoundSpinLock(p->lock);
+        if(p->f->frame == NULL) {
+            p->f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
+        } else if(p->f->N < fin->N) {
+            p->f->frame = csound->ReAlloc(csound, p->f->frame, sizeof(float)*(fin->N+2));
         }
-        memcpy(f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
-        csoundSpinUnLock(lock);
+        memcpy(p->f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
+        csoundSpinUnLock(p->lock);
     }
     return OK;
 }
@@ -274,31 +278,35 @@ int32_t pvsout_perf(CSOUND *csound, FCHAN *p)
 {
 
     PVSDAT *fin = p->r;
-    int32_t     n = (int32_t)MYFLT2LRND(*(p->a));
-    char chan_name[16];
-    int32_t   err, size;
-    PVSDATEXT *fout;
-    MYFLT *pp;
-
-    if (UNLIKELY(n < 0))
-        return csound->PerfError(csound, &(p->h),Str("pvsout: invalid index"));
-
-    snprintf(chan_name, 16, "%i", n);
-    err = csoundGetChannelPtr(csound, &pp, chan_name,
+    int32_t   err, size, flag = 0;
+    if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) {
+      if(strcmp(((STRINGDAT *)p->a)->data, p->name)) {
+        strncpy(p->name, ((STRINGDAT *)p->a)->data,  MAX_CHAN_NAME);
+        flag = 1;
+      }
+    }
+    else {
+      if(p->n != MYFLT2LRND(*p->a)) {
+       p->n = MYFLT2LRND(*p->a);
+       snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
+       flag = 1;
+      }
+    }
+    if(flag) {
+      err = csoundGetChannelPtr(csound, (void **) &(p->f), p->name,
                               CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL);
-    fout = (PVSDATEXT *) pp;
     if (UNLIKELY(err))
         return csound->PerfError(csound, &(p->h),
                                  Str("pvsout error %d:"
                                      "channel not found or not right type"), err);
-
-    spin_lock_t  *lock = (spin_lock_t *) csoundGetChannelLock(csound, chan_name);
-    csoundSpinLock(lock);
-    size = fin->N < fout->N ? fin->N : fout->N;
-    memcpy(fout, fin, sizeof(PVSDAT)-sizeof(AUXCH));
-    if(fout->frame != NULL)
-        memcpy(fout->frame, fin->frame.auxp, sizeof(float)*(size+2));
-    csoundSpinUnLock(lock);
+    p->lock = (spin_lock_t *) csoundGetChannelLock(csound, p->name);
+    }
+    csoundSpinLock(p->lock);
+    size = fin->N < p->f->N ? fin->N : p->f->N;
+    memcpy(p->f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
+    if(p->f->frame != NULL)
+        memcpy(p->f->frame, fin->frame.auxp, sizeof(float)*(size+2));
+    csoundSpinUnLock(p->lock);
     return OK;
 }
 /* ======================================================================== */
@@ -424,8 +432,8 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
 }
 
 
-PUBLIC int csoundGetChannelPtr(CSOUND *csound,
-                                   MYFLT **p, const char *name, int type)
+PUBLIC int csoundGetChannelPtr(CSOUND *csound, void **p,
+                               const char *name, int type)
 {
     CHNENTRY  *pp;
 
@@ -460,6 +468,8 @@ PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
         if ((pp->type & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL)
             return ((STRINGDAT*)pp->data)->size;
         // NEED TO CHECK FOR ARRAYS
+        if((pp->type & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL)
+            return ((ARRAYDAT*)pp->data)->allocated;
         return pp->datasize;
     }
 }
@@ -658,7 +668,7 @@ static int32_t chnget_opcode_perf_k(CSOUND* csound, CHNGET* p)
     if (strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)
         || !strcmp(p->iname->data, ""))
     {
-        int32_t err = csoundGetChannelPtr(csound, &(p->fp),
+        int32_t err = csoundGetChannelPtr(csound, (void **)&(p->fp),
                                           (char*) p->iname->data,
                                           CSOUND_CONTROL_CHANNEL |
                                           CSOUND_INPUT_CHANNEL);
@@ -702,7 +712,7 @@ static int32_t chnget_opcode_perf_a(CSOUND* csound, CHNGET* p)
     if (strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)
         || !strcmp(p->iname->data, ""))
     {
-        int32_t err = csoundGetChannelPtr(csound, &(p->fp),
+        int32_t err = csoundGetChannelPtr(csound, (void **)&(p->fp),
                                           (char*) p->iname->data,
                                           CSOUND_AUDIO_CHANNEL |
                                           CSOUND_INPUT_CHANNEL);
@@ -744,7 +754,7 @@ static int32_t chnget_opcode_perf_a(CSOUND* csound, CHNGET* p)
 int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int32_t   err;
-    err = csoundGetChannelPtr(csound, &(p->fp), p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
@@ -789,7 +799,7 @@ int32_t chnget_array_opcode_init_i(CSOUND* csound, CHNGETARRAY* p)
 
     for (index = 0; index<p->arraySize; index++)
     {
-        err = csoundGetChannelPtr(csound, &(fp),
+      err = csoundGetChannelPtr(csound, (void **)&fp,
                                   p->channels[index].data,
                                   CSOUND_CONTROL_CHANNEL |
                                   CSOUND_INPUT_CHANNEL);
@@ -846,7 +856,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     for (index = 0; index<p->arraySize; index++)
     {
         if(strcmp(p->channels[index].data, "")) {
-            err = csoundGetChannelPtr(csound, &p->channelPtrs[index],
+            err = csoundGetChannelPtr(csound, (void **) &p->channelPtrs[index],
                                       p->channels[index].data,
                                       channelType);
 
@@ -965,7 +975,7 @@ int32_t chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
     int index = 0;
 
     for (index = 0; index<p->arraySize; index++) {
-        err = csoundGetChannelPtr(csound, &p->channelPtrs[index],
+        err = csoundGetChannelPtr(csound, (void **) &p->channelPtrs[index],
                                   p->channels[index].data,
                                   CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
 
@@ -1000,7 +1010,7 @@ int32_t chnset_array_opcode_init_i(CSOUND *csound, CHNGETARRAY *p)
     p->channelPtrs = (MYFLT **) csound->Malloc(csound,
                                                p->arraySize*sizeof(MYFLT*)); 
     for (index = 0; index<p->arraySize; index++) {
-        err = csoundGetChannelPtr(csound, &p->channelPtrs[index],
+        err = csoundGetChannelPtr(csound, (void **) &p->channelPtrs[index],
                                   (char *) p->channels[index].data,
                                   CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
         if (UNLIKELY(err))
@@ -1056,7 +1066,7 @@ int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
         channelType = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
 
     for (index = 0; index<p->arraySize; index++) {
-        err = csoundGetChannelPtr(csound, &(p->channelPtrs[index]),
+        err = csoundGetChannelPtr(csound, (void **) &(p->channelPtrs[index]),
                                   (char *) p->channels[index].data,
                                   channelType);
         if (LIKELY(!err)) {
@@ -1085,7 +1095,7 @@ int32_t chnset_array_opcode_perf_k(CSOUND *csound, CHNGETARRAY *p)
 
     for (index = 0; index<p->arraySize; index++) {
         if (strncmp(p->chname, p->channels[index].data, MAX_CHAN_NAME)) {
-            int32_t err = csoundGetChannelPtr(csound, &(p->channelPtrs[index]),
+            int32_t err = csoundGetChannelPtr(csound, (void **) &(p->channelPtrs[index]),
                                               (char *) p->channels[index].data,
                                               CSOUND_CONTROL_CHANNEL |
                                               CSOUND_INPUT_CHANNEL);
@@ -1173,7 +1183,7 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
     for (index = 0; index<p->arraySize; index++)
     {
         if(strcmp(p->channels[index].data, "")) {
-            err = csoundGetChannelPtr(csound, &p->channelPtrs[index],
+            err = csoundGetChannelPtr(csound, (void **) &p->channelPtrs[index],
                                       (char *) p->channels[index].data,
                                       CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
             if (UNLIKELY(err))
@@ -1196,7 +1206,7 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
 int32_t chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 {
     int32_t   err;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (LIKELY(!err)) {
@@ -1214,7 +1224,7 @@ int32_t chnget_opcode_init_a(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
     p->pos = 0;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL);
 
     if (LIKELY(!err))
@@ -1233,7 +1243,7 @@ int32_t chnget_opcode_init_S(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
     char* s = ((STRINGDAT*) p->arg)->data;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
 
@@ -1260,7 +1270,7 @@ int32_t chnget_opcode_perf_S(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
     char* s = ((STRINGDAT*) p->arg)->data;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
 
@@ -1294,7 +1304,7 @@ int32_t chnget_opcode_perf_S(CSOUND* csound, CHNGET* p)
 static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
 {
     if(strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)){
-        int32_t err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+        int32_t err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
         if(err == 0) {
             p->lock = (spin_lock_t *)
@@ -1394,7 +1404,7 @@ static int32_t chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 int32_t chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 {
     int32_t   err;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
@@ -1430,7 +1440,7 @@ int32_t chnset_opcode_init_k(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
 
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
         p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -1445,7 +1455,7 @@ int32_t chnset_opcode_init_a(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
     p->pos = 0;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (!err) {
         p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -1461,7 +1471,7 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 {
     int32_t   err;
 
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
         p->lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -1478,7 +1488,8 @@ int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
     int32_t   i, n = (int32_t)p->INCOUNT;
     for (i=0; i<n; i++) {
         /* NOTE: p->imode is a pointer to the channel data here */
-        err = csoundGetChannelPtr(csound, &(p->fp[i]), (char*) p->iname[i]->data,
+      err = csoundGetChannelPtr(csound, (void **) &(p->fp[i]),
+                                (char*) p->iname[i]->data,
                                   CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
         if (LIKELY(!err)) {
             p->lock[i] = (spin_lock_t *)
@@ -1498,7 +1509,7 @@ int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
     spin_lock_t* lock;
     char* s = ((STRINGDAT*) p->arg)->data;
 
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     // size = csoundGetChannelDatasize(csound, p->iname->data);
     if (LIKELY(!err))
@@ -1531,7 +1542,7 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
     spin_lock_t* lock;
     char* s = ((STRINGDAT*) p->arg)->data;
 
-    if ((err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    if ((err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                                    CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)))
         return err;
     // size = csoundGetChannelDatasize(csound, p->iname->data);
@@ -1580,7 +1591,7 @@ int32_t chn_k_opcode_init_(CSOUND *csound, CHN_OPCODE_K *p, int mode)
     if (mode & 2)
         type |= CSOUND_OUTPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname->data, type);
+    err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, type);
     if (err)
         return print_chn_err(p, err);
     hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
@@ -1649,7 +1660,7 @@ int32_t chn_a_opcode_init(CSOUND *csound, CHN_OPCODE *p)
         type |= CSOUND_INPUT_CHANNEL;
     if (mode & 2)
         type |= CSOUND_OUTPUT_CHANNEL;
-    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname->data, type);
+    err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
     return OK;
@@ -1669,7 +1680,7 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
         type |= CSOUND_INPUT_CHANNEL;
     if (mode & 2)
         type |= CSOUND_OUTPUT_CHANNEL;
-    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname->data, type);
+    err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
     p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
@@ -1718,7 +1729,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     if (mode & 2)
         type |= CSOUND_OUTPUT_CHANNEL;
     /* check if the channel already exists (it should not) */
-    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname->data, 0);
+    err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, 0);
     if (UNLIKELY(err >= 0))
         return csound->InitError(csound, Str("channel already exists"));
     /* now create new channel, using output variable for data storage */
@@ -1774,7 +1785,7 @@ int32_t chnparams_opcode_init(CSOUND *csound, CHNPARAMS_OPCODE *p)
     *(p->idflt)    = FL(0.0);
     *(p->imin)     = FL(0.0);
     *(p->imax)     = FL(0.0);
-    err = csoundGetChannelPtr(csound, &dummy, (char*) p->iname->data, 0);
+    err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, 0);
     /* ...if channel does not exist */
     if (err <= 0)
         return OK;
@@ -1939,7 +1950,7 @@ int32_t invalset_string_S(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
@@ -1972,7 +1983,7 @@ int32_t invalset_S(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
@@ -2013,7 +2024,7 @@ int32_t invalset_string(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
@@ -2040,7 +2051,7 @@ int32_t invalset(CSOUND *csound, INVAL *p)
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp,
                               type);
     if (UNLIKELY(err))
@@ -2091,7 +2102,7 @@ int32_t outvalset_string_S(CSOUND *csound, OUTVAL *p)
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp, type);
 
     if (UNLIKELY(err))
@@ -2118,7 +2129,7 @@ int32_t outvalset_S(CSOUND *csound, OUTVAL *p)
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
@@ -2146,7 +2157,7 @@ int32_t outvalset_string(CSOUND *csound, OUTVAL *p)
     p->channelType = &CS_VAR_TYPE_S;
     type = CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound, (MYFLT **) &(p->channelptr),
+    err = csoundGetChannelPtr(csound, (void **) &(p->channelptr),
                               (char*) p->channelName.auxp, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
@@ -2172,7 +2183,7 @@ int32_t outvalset(CSOUND *csound, OUTVAL *p)
     p->channelType = &CS_VAR_TYPE_K;
     type = CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL;
 
-    err = csoundGetChannelPtr(csound,(MYFLT **)  &(p->channelptr),
+    err = csoundGetChannelPtr(csound,(void **)  &(p->channelptr),
                               (char*) p->channelName.auxp, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
@@ -2201,7 +2212,7 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 }
 
 /* ARRAY channels  implementation - VL 7.08.24 */
-static void copy_array(ARRAYDAT *out, ARRAYDAT *in, spin_lock_t *lock) {
+static void copy_array(ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
     int32_t bytes = in->allocated > out->allocated ?
       out->allocated : in->allocated;
     csoundSpinLock(lock);
@@ -2212,7 +2223,7 @@ static void copy_array(ARRAYDAT *out, ARRAYDAT *in, spin_lock_t *lock) {
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int type) {
     int32_t   err;
     ARRAYDAT *adat = (ARRAYDAT *) p->arg, *adat_chn;
-    err = csoundGetChannelPtr(csound, &(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_ARRAY_CHANNEL | type);
     if (LIKELY(!err)) {
         p->lock =   (spin_lock_t *)
@@ -2237,7 +2248,7 @@ int32_t array_perf_check(CSOUND* csound, CHNGET* p, int type) {
     if (strncmp(p->chname, p->iname->data, MAX_CHAN_NAME)
         || !strcmp(p->iname->data, ""))
     {
-        int32_t err = csoundGetChannelPtr(csound, &(p->fp),
+        int32_t err = csoundGetChannelPtr(csound, (void **)&(p->fp),
                                           (char*) p->iname->data,
                                           CSOUND_ARRAY_CHANNEL |
                                           type);
@@ -2316,7 +2327,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
         type |= CSOUND_INPUT_CHANNEL;
     if (mode & 2)
         type |= CSOUND_OUTPUT_CHANNEL;
-    err = csoundGetChannelPtr(csound, (MYFLT **)&adat, (char*) p->iname->data, type);
+    err = csoundGetChannelPtr(csound, (void **) &adat, (char*) p->iname->data, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
     adat->dimensions = (int32_t)  *p->idim;
@@ -2348,7 +2359,8 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
     int32_t   err;
     int32_t   i, n = (int32_t)p->INCOUNT;
     for (i=0; i<n; i++) {
-        err = csoundGetChannelPtr(csound, &(p->fp[i]), (char*) p->iname[i]->data,
+      err = csoundGetChannelPtr(csound, (void **) &(p->fp[i]),
+                                (char*) p->iname[i]->data,
                                   CSOUND_ARRAY_CHANNEL | CSOUND_OUTPUT_CHANNEL);
         if (LIKELY(!err)) {
             p->lock[i] = (spin_lock_t *)
@@ -2360,12 +2372,201 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
     return OK;
 }
 
-/* API functions for array data */
-PUBLIC int csoundSetArrayChannel(CSOUND *csound, ARRAYDAT *array,
-                                 const char *name) {
+/* Channel API functions - threadsafe
+   NB: the following do not depend on API_lock
+   therefore do not need to be in the message queue
+*/
+MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
+{
+  MYFLT *pval;
+  int err_;
+  union {
+    MYFLT d;
+    MYFLT_INT_TYPE i;
+  } x;
+  x.d = FL(0.0);
+  if (UNLIKELY(strlen(name) == 0)) return FL(.0);
+  if ((err_ = csoundGetChannelPtr(csound, (void **) &pval, name,
+                                  CSOUND_CONTROL_CHANNEL |
+                                  CSOUND_OUTPUT_CHANNEL))
+      == CSOUND_SUCCESS) {
+#if defined(MSVC)
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)pval, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    x.i = __atomic_load_n((MYFLT_INT_TYPE *)pval, __ATOMIC_SEQ_CST);
+#else
+    x.d = *pval;
+#endif
+  }
+  if (err) {
+    *err = err_;
+  }
+  return x.d;
+}
+
+void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
+  MYFLT *pval;
+#if defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN)
+  union {
+    MYFLT d;
+    MYFLT_INT_TYPE i;
+  } x;
+  x.d = val;
+#endif
+  if (csoundGetChannelPtr(csound, (void **) &pval, name,
+                          CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)
+      == CSOUND_SUCCESS)
+
+#if defined(MSVC)
+    InterlockedExchange64((MYFLT_INT_TYPE *)pval, x.i);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    __atomic_store_n((MYFLT_INT_TYPE *)pval, x.i, __ATOMIC_SEQ_CST);
+#else
+  {
+    spin_lock_t *lock = (spin_lock_t *)
+      csoundGetChannelLock(csound, (char*) name);
+    csoundSpinLock(lock);
+    *pval  = val;
+    csoundSpinUnLock(lock);
+  }
+#endif
+}
+
+void csoundGetAudioChannel(CSOUND *csound, const char *name,
+                           MYFLT *samples)
+{
+
+  MYFLT  *psamples;
+  if (strlen(name) == 0) return;
+  if (csoundGetChannelPtr(csound, (void **) &psamples, name,
+                          CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+      == CSOUND_SUCCESS) {
+    spin_lock_t *lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) name);
+    csoundSpinLock(lock);
+    memcpy(samples, psamples, csoundGetKsmps(csound)*sizeof(MYFLT));
+    csoundSpinUnLock(lock);
+  }
+}
+
+void csoundSetAudioChannel(CSOUND *csound, const char *name,
+                           const MYFLT *samples)
+{
+  MYFLT  *psamples;
+  if (csoundGetChannelPtr(csound, (void **) &psamples, name,
+                          CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL)
+      == CSOUND_SUCCESS){
+    spin_lock_t *lock = (spin_lock_t *)csoundGetChannelLock(csound, (char*) name);
+    csoundSpinLock(lock);
+    memcpy(psamples, samples, csoundGetKsmps(csound)*sizeof(MYFLT));
+    csoundSpinUnLock(lock);
+  }
+}
+
+void csoundSetStringChannel(CSOUND *csound, const char *name,
+                            const char *string)
+{
+  STRINGDAT* stringdat;
+
+  if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
+                          CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
+      == CSOUND_SUCCESS){
+    int    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
+    spin_lock_t *lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) name);
+
+    if (lock != NULL) {
+      csoundSpinLock(lock);
+    }
+
+    if (strlen(string) + 1 > (unsigned int) size) {
+      if (stringdat->data != NULL) csound->Free(csound,stringdat->data);
+      stringdat->data = cs_strdup(csound, string);
+      stringdat->size = strlen(string) + 1;
+      //set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
+    } else {
+      strcpy((char *) stringdat->data, string);
+    }
+
+    if (lock != NULL) {
+      csoundSpinUnLock(lock);
+    }
+  }
+}
+
+void csoundGetStringChannel(CSOUND *csound, const char *name,
+                            char *string)
+{
+  STRINGDAT  *pstring;
+  char *chstring;
+  int n2;
+  if (strlen(name) == 0) return;
+  if (csoundGetChannelPtr(csound, (void **) &pstring, name,
+                          CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+      == CSOUND_SUCCESS){
+    spin_lock_t *lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) name);
+    chstring = pstring->data;
+    if (lock != NULL)
+      csoundSpinLock(lock);
+    if (string != NULL && chstring != NULL) {
+      n2 = strlen(chstring);
+      strNcpy(string,chstring, n2+1);
+    }
+    if (lock != NULL)
+      csoundSpinUnLock(lock);
+  }
+}
+
+PUBLIC int csoundSetPvsChannel(CSOUND *csound, const char *name,
+                               const PVSDATEXT *fin)
+{
+  PVSDATEXT *f;
+  if (LIKELY(csoundGetChannelPtr(csound, (void **) &f, name,
+                                 CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
+             == CSOUND_SUCCESS)){
+    spin_lock_t *lock = (spin_lock_t *)
+      csoundGetChannelLock(csound, name);
+
+    csoundSpinLock(lock);
+    if (f->frame == NULL) {
+      f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
+    } else if (f->N < fin->N) {
+      f->frame = csound->ReAlloc(csound, f->frame, sizeof(float)*(fin->N+2));
+    }
+    memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));
+    if (fin->frame != NULL)
+      memcpy(f->frame, fin->frame, (f->N+2)*sizeof(float));
+    csoundSpinUnLock(lock);
+  } else {
+    return CSOUND_ERROR;
+  }
+  return CSOUND_SUCCESS;
+}
+
+PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
+                               PVSDATEXT *fout)
+{
+  PVSDATEXT *f;
+  if (UNLIKELY(csoundGetChannelPtr(csound, (void **) &f, name,
+                                   CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+               == CSOUND_SUCCESS)){
+    spin_lock_t *lock = (spin_lock_t *)
+      csoundGetChannelLock(csound, name);
+    if (UNLIKELY(f == NULL)) return CSOUND_ERROR;
+    csoundSpinLock(lock);
+    memcpy(fout, f, sizeof(PVSDATEXT)-sizeof(float *));
+    if (fout->frame != NULL && f->frame != NULL)
+      memcpy(fout->frame, f->frame, sizeof(float)*(fout->N));
+    csoundSpinUnLock(lock);
+  } else {
+    return CSOUND_ERROR;
+  }
+  return CSOUND_SUCCESS;
+}
+
+PUBLIC int csoundSetArrayChannel(CSOUND *csound, const char *name,
+                                 const ARRAYDAT *array) {
   ARRAYDAT *adat;
   spin_lock_t *lock;
-  int32_t err = csoundGetChannelPtr(csound, (MYFLT **) &adat,
+  int32_t err = csoundGetChannelPtr(csound, (void **) &adat,
                                     (char *) name,
                                     CSOUND_ARRAY_CHANNEL |
                                     CSOUND_INPUT_CHANNEL);
@@ -2377,11 +2578,11 @@ PUBLIC int csoundSetArrayChannel(CSOUND *csound, ARRAYDAT *array,
   return OK;
 }
 
-PUBLIC int csoundGetArrayChannel(CSOUND *csound, ARRAYDAT *array,
-                                   const char *name) {
+PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
+                                 ARRAYDAT *array) {
   ARRAYDAT *adat;
   spin_lock_t *lock;
-  int32_t err = csoundGetChannelPtr(csound, (MYFLT **) &adat,
+  int32_t err = csoundGetChannelPtr(csound, (void **) &adat,
                                     (char *) name,
                                     CSOUND_ARRAY_CHANNEL |
                                     CSOUND_OUTPUT_CHANNEL);

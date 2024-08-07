@@ -215,23 +215,9 @@ extern "C" {
     uint32_t    mt[624];
   } CsoundRandMTState;
 
-  /* PVSDATEXT is a variation on PVSDAT used in
-     the pvs bus interface */
-  typedef struct pvsdat_ext {
-    int32           N;
-    int             sliding; /* Flag to indicate sliding case */
-    int32           NB;
-    int32           overlap;
-    int32           winsize;
-    int             wintype;
-    int32           format;
-    uint32          framecount;
-    float*          frame;
-  } PVSDATEXT;
-
   int csoundRand31(int *seedVal);
   void csoundSeedRandMT(CsoundRandMTState *p,
-                               const uint32_t *initKey, uint32_t keyLength);
+                        const uint32_t *initKey, uint32_t keyLength);
   uint32_t csoundRandMT(CsoundRandMTState *p);
   int csoundCreateGlobalVariable(CSOUND *,
                                         const char *name, size_t nbytes);
@@ -515,11 +501,13 @@ extern "C" {
     char    *infilename, *outfilename;
     CORFIL  *playscore;
     char    *Linename, *Midiname, *FMidiname;
-    char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
+    char    *Midioutname;
+    /* jjk 09252000 - MIDI output device, -Q option */
     char    *FMidioutname;
     int     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
     int     midiVelocity, midiVelocityAmp;
-    int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
+    int     noDefaultPaths;
+    /* syy - Oct 25, 2006: for disabling relative paths
                                 from files */
     int     numThreads;
     int     syntaxCheckOnly;
@@ -678,7 +666,7 @@ extern "C" {
   typedef struct {
     char *data;
     size_t size;
-    int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
+    int64_t timestamp;    
   } STRINGDAT;
 
   typedef struct monblk {
@@ -1547,7 +1535,7 @@ extern "C" {
     
     /** @name Software bus */
     /**@{ */
-    int (*GetChannelPtr)(CSOUND *, MYFLT **ptr, const char *name, int mode);
+    int (*GetChannelPtr)(CSOUND *, void **ptr, const char *name, int mode);
     int (*ListChannels)(CSOUND *, controlChannelInfo_t **list);
     /**@}*/
 
@@ -1603,7 +1591,7 @@ extern "C" {
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
-    char *(*Strdup)(CSOUND *, char*);
+    char *(*Strdup)(CSOUND *, const char*);
     void (*Free)(CSOUND *, void *ptr);
     /**@}*/
     

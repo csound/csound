@@ -88,14 +88,6 @@ enum PVS_WINTYPE {
     PVS_WIN_RECT
 };
 
-
-enum PVS_ANALFORMAT {
-    PVS_AMP_FREQ = 0,
-    PVS_AMP_PHASE,
-    PVS_COMPLEX,
-    PVS_TRACKS          /* added VL, 24.06.2005 */
-};
-
 typedef struct {
   MYFLT re;
   MYFLT im;

@@ -50,6 +50,10 @@ extern "C" {
     PVSDAT   *r;
     MYFLT    *a,*N, *overlap, *winsize, *wintype, *format;
     PVSDAT   init;
+    PVSDATEXT *f;
+    spin_lock_t *lock;
+    char  name[MAX_CHAN_NAME+1];
+    int32_t n;
   } FCHAN;
 
   typedef struct {

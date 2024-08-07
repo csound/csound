@@ -225,15 +225,52 @@ extern "C" {
   } TREE;
 
   #include "csound_type_system.h"
-
+  
+  /*
+   * Type definition for string data (string channels)
+   */
   typedef struct {
-    int      dimensions;
+    char *data;        /* null-terminated string */
+    size_t allocated;  /* size of allocated data */
+  } STRDAT;
+  
+  /*
+   * Type definition for array data (array channels)
+   */
+  typedef struct {
+    int      dimensions; /* number of array dimensions */
     int32_t*     sizes;  /* size of each dimensions */
     int      arrayMemberSize; /* size of each item */
     struct cstype* arrayType; /* type of array */
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
   } ARRAYDAT;
+
+
+  /*
+   * Type definition for PVS data (pvs channels)
+   */
+  typedef struct pvsdat_ext {
+    int32           N;       /* transform size */
+    int             sliding; /* sliding flag */
+    int32           NB;   
+    int32           overlap; /* analysis overlaps */
+    int32           winsize; /* window size */
+    int             wintype; /* window type: 0 = Hamming, 1 = Hann */
+    int32           format;  /* data format (see below) */
+    uint32          framecount; /* frame counter */
+    float*          frame;      /* data frame (see format) */
+  } PVSDATEXT;
+
+  /* 
+   *  PVS DATA formats 
+  */
+  enum PVS_ANALFORMAT {
+    PVS_AMP_FREQ = 0, /* phase vocoder */
+    PVS_AMP_PHASE,    /* polar DFT */
+    PVS_COMPLEX,      /* rectangular DFT */
+    PVS_TRACKS        /* amp, freq, phase, ID tracks */    
+  };
 
   /**
    * Constants used by the bus interface (csoundGetChannelPtr() etc.).
@@ -902,13 +939,15 @@ extern "C" {
    * creating the channel first if it does not exist yet.
    * 'type' must be the bitwise OR of exactly one of the following values,
    *   CSOUND_CONTROL_CHANNEL
-   *     control data (one MYFLT value)
+   *     control data (one MYFLT value) - (MYFLYT **) pp
    *   CSOUND_AUDIO_CHANNEL
-   *     audio data (csoundGetKsmps(csound) MYFLT values)
+   *     audio data (csoundGetKsmps(csound) MYFLT values) -(MYFLYT **) pp
    *   CSOUND_STRING_CHANNEL
-   *     string data (MYFLT values with enough space to store
-   *     csoundGetChannelDatasize() characters, including the
-   *     NULL character at the end of the string)
+   *     string data as a STRDAT structure - (STRDAT **) pp
+   *   CSOUND_ARRAY_CHANNEL
+   *     array data as an ARRAYDAT structure - (ARRAYDAT **) pp
+   *   CSOUND_ARRAY_CHANNEL
+   *     pvs data as a PVSDATEXT structure - (PVSDATEXT **) pp
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -917,7 +956,6 @@ extern "C" {
    * OR'd with the new value. Note that audio and string channels
    * can only be created after calling csoundCompile(), because the
    * storage size is not known until then.
-
    * Return value is zero on success, or a negative error code,
    *   CSOUND_MEMORY  there is not enough memory for allocating the channel
    *   CSOUND_ERROR   the specified name or type is invalid
@@ -943,7 +981,7 @@ extern "C" {
    * provided below, which are threadsafe by default.
    */
   PUBLIC int csoundGetChannelPtr(CSOUND *,
-                                 MYFLT **p, const char *name, int type);
+                                 void **p, const char *name, int type);
 
   /**
    * Returns a list of allocated channels in *lst. A controlChannelInfo_t
@@ -1022,8 +1060,8 @@ extern "C" {
    * sets the audio channel identified by *name with data from array
    * *samples which should contain at least ksmps MYFLTs
    */
-  PUBLIC void csoundSetAudioChannel(CSOUND *csound,
-                                    const char *name, MYFLT *samples);
+  PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name,
+                                    const MYFLT *samples);
 
   /**
    * copies the string channel identified by *name into *string
@@ -1037,12 +1075,49 @@ extern "C" {
    * sets the string channel identified by *name with *string
    */
   PUBLIC  void csoundSetStringChannel(CSOUND *csound,
-                                      const char *name, char *string);
+                                      const char *name, const char *string);
+  /**
+   * Receives an ARRAYDAT from channel name
+   * array data is copied from the channel
+   * NB: array data needs to be allocated externally 
+   * and only the number of allocated bytes are copied
+   * returns 0 if successful, non-zero otherwise
+   */
+  PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
+                                   ARRAYDAT *array);
+
+   /**
+   * Sends an ARRAYDAT array to the channel name
+   * array data is copied into the channel
+   * NB: the array in the channel receives only the amount of data it
+   * has allocated space for
+   * returns 0 if successful, non-zero otherwise
+   */
+  PUBLIC int csoundSetArrayChannel(CSOUND *csound, const char *name,
+                                   const ARRAYDAT *array);
+
+  /**
+   * Receives a PVSDAT fout from the pvsout opcode (f-rate) at channel 'name'
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * if fsig framesizes are incompatible.
+   * CSOUND_MEMORY if there is not enough memory to extend the bus
+   */
+  PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
+                                 PVSDATEXT *fout);
+
+  /**
+   * Sends a PVSDATEX fin to the pvsin opcode (f-rate) for channel 'name'.
+   * Returns zero on success, CSOUND_ERROR if the index is invalid or
+   * fsig framesizes are incompatible.
+   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   */
+  PUBLIC int csoundSetPvsChannel(CSOUND *, const char *name,
+                                 const PVSDATEXT *fin);
 
   /**
    * returns the size of data stored in a channel; for string channels
    * this might change if the channel space gets reallocated
-   * Since string variables use dynamic memory allocation in Csound6,
+   * Since string variables use dynamic memory allocation 
    * this function can be called to get the space required for
    * csoundGetStringChannel()
    */

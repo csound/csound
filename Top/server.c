@@ -163,11 +163,10 @@ static uintptr_t udp_recv(void *pdata){
           sprintf(msg, "%s::%f", chn, val);
         }
         else if (*(orchestra+1) == '%') {
-          MYFLT  *pstring;
-          if (csoundGetChannelPtr(csound, &pstring, chn,
+          STRINGDAT* stringdat;
+          if (csoundGetChannelPtr(csound, (void **) &stringdat, chn,
                                   CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
               == CSOUND_SUCCESS) {
-            STRINGDAT* stringdat = (STRINGDAT*) pstring;
             int size = stringdat->size;
             spin_lock_t *lock =
               (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
