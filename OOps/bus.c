@@ -2201,30 +2201,12 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 }
 
 /* ARRAY channels  implementation - VL 7.08.24 */
-static void copy_array(ARRAYDAT *out, ARRAYDAT *in) {
+static void copy_array(ARRAYDAT *out, ARRAYDAT *in, spin_lock_t *lock) {
     int32_t bytes = in->allocated > out->allocated ?
       out->allocated : in->allocated;
+    csoundSpinLock(lock);
     memcpy(out->data, in->data, bytes);
-}
-
-static void copy_array_atomic(ARRAYDAT *out, ARRAYDAT *in) {
-#if defined(MSVC)
-    volatile union {
-    ARRAYDAT *d;
-    int64_t i;
-    } x;
-    x.i = InterlockedExchangeAdd64((int64_t *) in, 0);
-    copy_array(out, x.d);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-    volatile union {
-        ARRAYDAT *d;
-        int64_t i;
-    } x;
-    x.i = __atomic_load_n((int64_t*) in, __ATOMIC_SEQ_CST);
-    copy_array(out, (ARRAYDAT *) in);
-#else
-    copy_array(out, in);
-#endif
+    csoundSpinUnLock(lock);
 }
 
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int type) {
@@ -2276,7 +2258,7 @@ int32_t array_perf_check(CSOUND* csound, CHNGET* p, int type) {
 static int32_t chnget_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p) 
 {
   if(array_perf_check(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
-    copy_array_atomic((ARRAYDAT *) p->arg,  (ARRAYDAT *) p->fp);
+    copy_array((ARRAYDAT *) p->arg,  (ARRAYDAT *) p->fp, p->lock);
     return OK;
   }
   else return NOTOK;
@@ -2288,7 +2270,7 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
   if(init_chn_array(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
     if(adat->arrayType == &CS_VAR_TYPE_I) {
-      copy_array(adat, (ARRAYDAT *) p->fp);
+      copy_array(adat, (ARRAYDAT *) p->fp, p->lock);
     } else 
     p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
     return OK;
@@ -2300,7 +2282,7 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p) 
 {
   if(array_perf_check(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
-    copy_array_atomic((ARRAYDAT *) p->fp,  (ARRAYDAT *) p->arg);
+    copy_array((ARRAYDAT *) p->fp,  (ARRAYDAT *) p->arg, p->lock);
     return OK;
   }
   else return NOTOK;
@@ -2312,7 +2294,7 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
   if(init_chn_array(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
     if(adat->arrayType == &CS_VAR_TYPE_I) {
-      copy_array((ARRAYDAT *) p->fp, adat);
+      copy_array((ARRAYDAT *) p->fp, adat, p->lock);
     } else 
     p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
     return OK;
@@ -2366,7 +2348,6 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
     int32_t   err;
     int32_t   i, n = (int32_t)p->INCOUNT;
     for (i=0; i<n; i++) {
-        /* NOTE: p->imode is a pointer to the channel data here */
         err = csoundGetChannelPtr(csound, &(p->fp[i]), (char*) p->iname[i]->data,
                                   CSOUND_ARRAY_CHANNEL | CSOUND_OUTPUT_CHANNEL);
         if (LIKELY(!err)) {
@@ -2377,4 +2358,37 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
     }
     p->h.perf = (SUBR) chnclear_opcode_perf_ARRAY;
     return OK;
+}
+
+/* API functions for array data */
+PUBLIC int csoundSetArrayChannel(CSOUND *csound, ARRAYDAT *array,
+                                 const char *name) {
+  ARRAYDAT *adat;
+  spin_lock_t *lock;
+  int32_t err = csoundGetChannelPtr(csound, (MYFLT **) &adat,
+                                    (char *) name,
+                                    CSOUND_ARRAY_CHANNEL |
+                                    CSOUND_INPUT_CHANNEL);
+  if (err == 0)
+    lock = (spin_lock_t*)
+      csoundGetChannelLock(csound, (char*) name);
+  else return NOTOK;
+  copy_array(adat,array,lock);
+  return OK;
+}
+
+PUBLIC int csoundGetArrayChannel(CSOUND *csound, ARRAYDAT *array,
+                                   const char *name) {
+  ARRAYDAT *adat;
+  spin_lock_t *lock;
+  int32_t err = csoundGetChannelPtr(csound, (MYFLT **) &adat,
+                                    (char *) name,
+                                    CSOUND_ARRAY_CHANNEL |
+                                    CSOUND_OUTPUT_CHANNEL);
+  if (err == 0)
+    lock = (spin_lock_t*)
+      csoundGetChannelLock(csound, (char*) name);
+  else return NOTOK;
+  copy_array(array,adat,lock);
+  return OK;
 }
