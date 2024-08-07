@@ -755,7 +755,7 @@ extern "C" {
    * Enables external software to read audio from Csound after calling
    * csoundPerformKsmps.
    */
-  PUBLIC MYFLT *csoundGetSpout(CSOUND *csound);
+  PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound);
 
   /** @}*/
   /** @defgroup RTMIDI Realtime Midi I/O

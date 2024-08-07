@@ -2487,7 +2487,7 @@ PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame,
   csound->spin[index] += sample;
 }
 
-PUBLIC MYFLT *csoundGetSpout(CSOUND *csound)
+PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound)
 {
   return csound->spout;
 }

@@ -529,16 +529,8 @@ int CsoundPerformanceThread::Perform()
            processcallback(cdata);
       retval = csoundPerformKsmps(csound);
       if (recordData.running) {
-          MYFLT *spout = csoundGetSpout(csound);
+          const MYFLT *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetNchnls(csound);
-          if (csoundGet0dBFS(csound) != 1.0) {
-              MYFLT zdbfs = csoundGet0dBFS(csound);
-              MYFLT *modspout = spout;
-              for (int i = 0; i < len; i++) {
-                  *modspout /= zdbfs;
-                  modspout++;
-              }
-          }
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
                                                   spout, len);
           if (written != len) {

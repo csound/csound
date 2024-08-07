@@ -265,7 +265,7 @@ class PUBLIC Csound
   {
     return csoundGetSpin(csound);
   }
-  virtual MYFLT *GetSpout()
+  virtual const MYFLT *GetSpout()
   {
     return csoundGetSpout(csound);
   }
