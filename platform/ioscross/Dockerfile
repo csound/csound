@@ -83,10 +83,12 @@ RUN cp -r target/bin $BASE_DIR/ioscross/usr/
 RUN <<EOF cat >> $BASE_DIR/ioscross/ioscross_conf.sh
 echo export OSXCROSS_IOS="anything"
 echo export OSXCROSS_TARGET_DIR=$BASE_DIR/ioscross
-echo export PATH=$PATH:$BASE_DIR/ioscross/usr/bin
+echo export PATH=_PATH:$BASE_DIR/ioscross/usr/bin
 echo export OSXCROSS_SDK=$BASE_DIR/ioscross/usr/SDK/iPhoneOS${IOS_SDK_VERSION}.sdk/iPhoneOS.sdk
 echo export OSXCROSS_TARGET=darwin11
 EOF
+
+RUN sed -i 's,_PATH,$PATH,g' $BASE_DIR/ioscross/ioscross_conf.sh
 
 RUN chmod +x $BASE_DIR/ioscross/ioscross_conf.sh
 
