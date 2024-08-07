@@ -668,16 +668,6 @@ extern "C" {
   } AUXASYNC;
 
   typedef struct {
-    int      dimensions;
-    int32_t*     sizes;             /* size of each dimensions */
-    int      arrayMemberSize;
-    CS_TYPE* arrayType;
-    MYFLT*   data;
-    size_t   allocated;
-    //    AUXCH   aux;
-  } ARRAYDAT;
-
-  typedef struct {
     int     size;             /* 0...size-1 */
     MYFLT   *data;
     AUXCH   aux;
