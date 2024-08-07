@@ -619,6 +619,16 @@ extern "C" {
     // to TYPE_TABLE
   } TREE;
 
+  #include "csound_type_system.h"
+
+  typedef struct {
+    int      dimensions;
+    int32_t*     sizes;  /* size of each dimensions */
+    int      arrayMemberSize; /* size of each item */
+    struct cstype* arrayType; /* type of array */
+    MYFLT*   data; /* data */
+    size_t   allocated; /* size of allocated data */
+  } ARRAYDAT;
 
   /**
    * Constants used by the bus interface (csoundGetChannelPtr() etc.).
@@ -629,6 +639,7 @@ extern "C" {
     CSOUND_STRING_CHANNEL =      3,
     CSOUND_PVS_CHANNEL =      4,
     CSOUND_VAR_CHANNEL =      5,
+    CSOUND_ARRAY_CHANNEL =      6,
 
     CSOUND_CHANNEL_TYPE_MASK =    15,
 

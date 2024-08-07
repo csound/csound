@@ -128,7 +128,7 @@ int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
       if (p->Min_Sweep != 0.0) {
         csound->Warning(csound,
                         Str("squinewave iminsweep range 4 to sr/100. "
-                            "Set to default %d"), minsweep_default);
+                            "Set to default %f"), minsweep_default);
       }
       p->Min_Sweep = minsweep_default;
     }
