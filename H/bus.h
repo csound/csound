@@ -123,8 +123,8 @@ extern "C" {
     OPDS    h;
     STRINGDAT   *iname;
     MYFLT   *imode;
-    MYFLT   *idim;
-    MYFLT   *isize;
+    STRINGDAT *type;
+    ARRAYDAT *idim;
     spin_lock_t *lock;
   } CHN_OPCODE_ARRAY;
   

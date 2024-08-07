@@ -2317,7 +2317,8 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 {
     ARRAYDAT *adat;
-    int32_t   type, mode, err;
+    int32_t   type, mode, err, siz = 0, i;
+    const CS_TYPE *vtyp;
 
     mode = (int32_t) MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
@@ -2330,10 +2331,29 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
     err = csoundGetChannelPtr(csound, (void **) &adat, (char*) p->iname->data, type);
     if (UNLIKELY(err))
         return print_chn_err(p, err);
-    adat->dimensions = (int32_t)  *p->idim;
+    adat->dimensions = (int32_t) p->idim->sizes[0];
     adat->sizes = (int32_t *) csound->Calloc(csound,
                                            adat->dimensions*sizeof(int32_t));
-    tabinit(csound, adat, (int) *p->isize);   
+    for(i = 0; i < adat->dimensions; i++)
+      siz += (adat->sizes[i] = MYFLT2LRND(p->idim->data[i]));
+    
+    switch(p->type->data[0]) {
+    case 'i':
+      vtyp = &CS_VAR_TYPE_I;
+      break;
+    case 'a':
+      vtyp = &CS_VAR_TYPE_A;
+      break;
+    case 'S':
+      vtyp = &CS_VAR_TYPE_S;
+      break;
+    case 'k':
+    default:
+      vtyp = &CS_VAR_TYPE_K;
+    }
+    adat->arrayType = (CS_TYPE *)vtyp;
+    
+    tabinit(csound, adat, siz);
     p->lock = (spin_lock_t *) csoundGetChannelLock(csound,
                                                    (char*) p->iname->data);
     return OK;
