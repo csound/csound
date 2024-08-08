@@ -1088,13 +1088,13 @@ extern "C" {
    * The size of each dimension is given by the sizes argument. 
    * Returns a pointer to the array data.
    */
-  PUBLIC ARRAYDAT *createArrayData(CSOUND *csound, char type,
+  PUBLIC ARRAYDAT *csoundCreateArrayData(CSOUND *csound, char type,
                                    int dimensions, const int *sizes);
 
   /**
-   * Deletes an array data structure created with createArrayData()
+   * Deletes an array data structure created with csoundCreateArrayData()
    */
-  PUBLIC void deleteArrayData(CSOUND *csound, ARRAYDAT *adat);
+  PUBLIC void csoundDeleteArrayData(CSOUND *csound, ARRAYDAT *adat);
   
   /**
    * Receives an ARRAYDAT from channel name
@@ -1105,7 +1105,7 @@ extern "C" {
    * channel has been initialised by Csound, 
    * otherwise the array data will be empty.
    * Alternatively, the array data may be initialised and allocated
-   * externally using createArrayData().
+   * externally using csoundCreateArrayData().
    */
   PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
                                    ARRAYDAT *array);

@@ -2579,7 +2579,7 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
   return CSOUND_SUCCESS;
 }
 
-PUBLIC ARRAYDAT *createArrayData(CSOUND *csound, char type,
+PUBLIC ARRAYDAT *csoundCreateArrayData(CSOUND *csound, char type,
                                  int dimensions, const int *sizes) {
   int i, siz = 0;
   const CS_TYPE *vtyp;
@@ -2609,7 +2609,7 @@ PUBLIC ARRAYDAT *createArrayData(CSOUND *csound, char type,
   return adat;
 }
 
-PUBLIC void deleteArrayData(CSOUND *csound, ARRAYDAT *adat){
+PUBLIC void csoundDeleteArrayData(CSOUND *csound, ARRAYDAT *adat){
   csound->Free(csound, adat->sizes);
   csound->Free(csound, adat->data);
   csound->Free(csound, adat);

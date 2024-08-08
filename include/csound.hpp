@@ -383,30 +383,6 @@ class PUBLIC Csound
   {
     csoundSetExternalMidiErrorStringCallback(csound, func);
   }
-  virtual int SetIsGraphable(int isGraphable)
-  {
-    return csoundSetIsGraphable(csound, isGraphable);
-  }
-  virtual void SetMakeGraphCallback(
-                                    void (*makeGraphCallback_)(CSOUND *, WINDAT *windat, const char *name))
-  {
-    csoundSetMakeGraphCallback(csound, makeGraphCallback_);
-  }
-  virtual void SetDrawGraphCallback(
-                                    void (*drawGraphCallback_)(CSOUND *, WINDAT *windat))
-  {
-    csoundSetDrawGraphCallback(csound, drawGraphCallback_);
-  }
-  virtual void SetKillGraphCallback(
-                                    void (*killGraphCallback_)(CSOUND *, WINDAT *windat))
-  {
-    csoundSetKillGraphCallback(csound, killGraphCallback_);
-  }
-  virtual void SetExitGraphCallback(
-                                    int (*exitGraphCallback_)(CSOUND *))
-  {
-    csoundSetExitGraphCallback(csound, exitGraphCallback_);
-  }
   virtual int AppendOpcode(const char *opname, int dsblksiz, int flags,
                            const char *outypes, const char *intypes, int(*init)(CSOUND *, void *),
                            int(*perf)(CSOUND *, void *), int(*deinit)(CSOUND *, void *))
@@ -517,17 +493,13 @@ class PUBLIC Csound
   virtual int GetChannel(const char *name, ARRAYDAT *array)
   {
     return csoundGetArrayChannel(csound,name,array);
-  } 
-
-  // cfgvar.h interface
-  virtual int CreateConfigurationVariable(const char *name, void *p,
-                                          int type, int flags,
-                                          void *min, void *max,
-                                          const char *shortDesc,
-                                          const char *longDesc)
-  {
-    return csoundCreateConfigurationVariable(csound, name, p, type, flags,
-                                             min, max, shortDesc, longDesc);
+  }
+  virtual ARRAYDAT *CreateArrayData(char type,
+                                    int dimensions, const int *sizes){
+    return csoundCreateArrayData(csound, type, dimensions, sizes);
+  }                                                                  
+  virtual void DeleteArrayData(ARRAYDAT *adat){
+    csoundDeleteArrayData(csound, adat);
   }
   Csound()
     {
