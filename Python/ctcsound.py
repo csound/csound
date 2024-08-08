@@ -99,6 +99,39 @@ class Tree(ct.Structure):
                 ("next", ct.c_void_p),
                 ("markup", ct.c_void_p)]
 
+class StrDat(ct.Structure):
+    _fields_ = [("data", ct.c_char_p),       # null-terminated string
+                ("allocated", ct.c_size_t)]  # size of allocated data
+
+class ArrayDat(ct.Structure):
+    _fields_ = [("dimensions", ct.c_int),          # number of array dimensions
+                ("sizes", ct.POINTER(ct.c_int32)), # size of each dimensions
+                ("arrayMemberSize", ct.c_int),     # size of each item
+                ("arrayType", ct.c_void_p),       # type of array
+                ("data", ct.POINTER(MYFLT)),       # data
+                ("allocated", ct.c_size_t)]        # size of allocated data
+
+#
+# Type definition for PVS data (pvs channels)
+#
+class PvsDatExt(ct.Structure):
+    _fields_ = [("N", ct.c_int32),                 # transform size
+                ("sliding", ct.c_int),             # sliding flag
+                ("NB", ct.c_int32),
+                ("overlap", ct.c_int32),           # analysis overlaps
+                ("winsize", ct.c_int32),           # window size
+                ("wintype", ct.c_int),             # window type: 0 = Hamming, 1 = Hann
+                ("format", ct.c_int32),            # data format (see below)
+                ("framecount", ct.c_uint32),       # frame counter
+                ("frame", ct.POINTER(ct.c_float))] # data frame (see format)
+
+#
+# PVS DATA formats
+#
+PVS_AMP_FREQ = 0    # phase vocoder
+PVS_AMP_PHASE = 1   # polar DFT
+PVS_COMPLEX = 2     # rectangular DFT
+PVS_TRACKS = 3      # amp, freq, phase, ID tracks
 
 class CsoundParams(ct.Structure):
     _fields_ = [("debug_mode", ct.c_int),        # debug mode, 0 or 1
@@ -143,6 +176,7 @@ CSOUND_AUDIO_CHANNEL  = 2
 CSOUND_STRING_CHANNEL = 3
 CSOUND_PVS_CHANNEL = 4
 CSOUND_VAR_CHANNEL = 5
+CSOUND_ARRAY_CHANNEL = 6
 
 CSOUND_CHANNEL_TYPE_MASK = 15
 
@@ -290,7 +324,7 @@ libcsound.csoundPopFirstMessage.argtypes = [ct.c_void_p]
 libcsound.csoundGetMessageCnt.argtypes = [ct.c_void_p]
 libcsound.csoundDestroyMessageBuffer.argtypes = [ct.c_void_p]
 
-libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)),
+libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.c_void_p),
                                           ct.c_char_p, ct.c_int]
 libcsound.csoundListChannels.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(ControlChannelInfo))]
 libcsound.csoundDeleteChannelList.argtypes = [ct.c_void_p, ct.POINTER(ControlChannelInfo)]
@@ -306,6 +340,10 @@ libcsound.csoundGetAudioChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER
 libcsound.csoundSetAudioChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(MYFLT)]
 libcsound.csoundGetStringChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
 libcsound.csoundSetStringChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundGetArrayChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ArrayDat)]
+libcsound.csoundSetArrayChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ArrayDat)]
+libcsound.csoundGetPvsChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(PvsDatExt)]
+libcsound.csoundSetPvsChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(PvsDatExt)]
 libcsound.csoundGetChannelDatasize.argtypes = [ct.c_void_p, ct.c_char_p]
 CHANNELFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_char_p, ct.c_void_p, ct.c_void_p)
 libcsound.csoundSetInputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
@@ -990,13 +1028,15 @@ class Csound:
         type_ must be the bitwise OR of exactly one of the following values,
         
         CSOUND_CONTROL_CHANNEL
-            control data (one MYFLT value)
+            control data (one MYFLT value) - (MYFLT **) pp
         CSOUND_AUDIO_CHANNEL
-            audio data (ksmps() MYFLT values)
+            audio data (ksmps() MYFLT values) - (MYFLT **) pp
         CSOUND_STRING_CHANNEL
-            string data (MYFLT values with enough space to store
-            channel_datasize() characters, including the
-            NULL character at the end of the string)
+            string data as a STRDAT structure - (STRDAT **) pp
+        CSOUND_ARRAY_CHANNEL
+            array data as an ARRAYDAT structure - (ARRAYDAT **) pp
+        CSOUND_PVS_CHANNEL
+            pvs data as a PVSDATEXT structure - (PVSDATEXT **) pp
         
         and at least one of these:
         
@@ -1185,6 +1225,58 @@ class Csound:
     def set_string_channel(self, name, string):
         """Sets the string channel identified by name with string."""
         libcsound.csoundSetStringChannel(self.cs, cstring(name), cstring(string))
+
+    def array_channel(self, name):
+        """Receives an ARRAYDAT from channel name.
+        
+        array data is copied from the channel
+        NB: array data needs to be allocated externally 
+        and only the number of allocated bytes are copied
+        returns 0 if successful, non-zero otherwise
+        """
+        array = ArrayDat()
+        ret = libcsound.csoundGetArrayChannel(self.cs, cstring(name),
+            ct.byref(array))
+        if ret != 0:
+            array = None
+        return array, ret
+
+    def set_array_channel(self, name, array):
+        """Sends an ARRAYDAT array to the channel name
+        
+        array data is copied into the channel
+        NB: the array in the channel receives only the amount of data it
+        has allocated space for
+        returns 0 if successful, non-zero otherwise
+        """
+        return libcsound.csoundSetArrayChannel(self.cs, cstring(name),
+            ct.byref(array))
+
+    def pvs_channel(self, name):
+        """Receives a PVSDAT fout from the pvsout opcode.
+        
+        (f-rate) at channel 'name'
+        Returns zero on success, CSOUND_ERROR if the index is invalid or
+        if fsig framesizes are incompatible.
+        CSOUND_MEMORY if there is not enough memory to extend the bus
+        """
+        fout = PvsDatExt()
+        ret = libcsound.csoundGetPvsChannel(self.cs, cstring(name),
+            ct.byref(fout))
+        if ret != 0 :
+            fout = None
+        return fout, ret
+
+    def set_pvs_channel(self, name, fin):
+        """Sends a PVSDATEX fin to the pvsin opcode.
+
+        (f-rate) for channel 'name'.
+        Returns zero on success, CSOUND_ERROR if the index is invalid or
+        fsig framesizes are incompatible.
+        CSOUND_MEMORY if there is not enough memory to extend the bus.
+        """
+        return libcsound.csoundSetPvsChannel(self.cs, cstring(name),
+            ct.byref(fin))
 
     def channel_datasize(self, name):
         """Returns the size of data stored in a channel."""
