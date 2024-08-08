@@ -67,7 +67,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
       p->sizes[i] = tp->sizes[i];
       ss *= tp->sizes[i];
     }
-
+    if(p->arrayType == NULL) p->arrayType = tp->arrayType;
     if (p->data == NULL) {
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;

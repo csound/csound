@@ -385,10 +385,11 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
             dsize = sizeof(ARRAYDAT);
             break;
     }
+    
     pp = (CHNENTRY *) csound->Calloc(csound,
                                      (size_t) sizeof(CHNENTRY) + strlen(name) + 1);
     if (pp == NULL) return (CHNENTRY*) NULL;
-    pp->data = (MYFLT *) csound->Calloc(csound, dsize);
+    pp->data = (MYFLT *) csound->Calloc(csound, dsize); 
 
     if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_STRING_CHANNEL) {
         ((STRINGDAT*) pp->data)->size = 128;
@@ -2223,10 +2224,11 @@ static void copy_array(ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int type) {
     int32_t   err;
     ARRAYDAT *adat = (ARRAYDAT *) p->arg, *adat_chn;
-    err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
+    err = csoundGetChannelPtr(csound, (void **)&(p->fp),
+                              (char*) p->iname->data,
                               CSOUND_ARRAY_CHANNEL | type);
     if (LIKELY(!err)) {
-        p->lock =   (spin_lock_t *)
+     p->lock =   (spin_lock_t *)
           csoundGetChannelLock(csound, (char*) p->iname->data);
         strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     } else return csound->InitError(csound, "could not find channel\n");
@@ -2236,6 +2238,7 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int type) {
       return csound->InitError(csound, "array channel not allocated\n");
       else tabinit_like(csound, adat, adat_chn);
       }
+    
     if(adat_chn->data == NULL) {
       if(adat->data == NULL)
       return csound->InitError(csound, "array variable not allocated\n");
@@ -2259,9 +2262,9 @@ int32_t array_perf_check(CSOUND* csound, CHNGET* p, int type) {
         }
         else {
             print_chn_err_perf(p, err);
-            return OK;
+            return NOTOK;
         }
-    } else return csound->InitError(csound, "channel invalid\n");
+    } 
     return OK;
 }
 
