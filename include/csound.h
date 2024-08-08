@@ -228,12 +228,13 @@ extern "C" {
   
   /*
    * Type definition for string data (string channels)
-   */
+   */ 
   typedef struct {
-    char *data;        /* null-terminated string */
-    size_t allocated;  /* size of allocated data */
-  } STRDAT;
-  
+    char *data;         // null-terminated string
+    size_t size;        // total allocated size
+    int64_t timestamp;  // used internally for updates  
+  } STRINGDAT;
+
   /*
    * Type definition for array data (array channels)
    */
@@ -943,7 +944,7 @@ extern "C" {
    *   CSOUND_AUDIO_CHANNEL
    *     audio data (csoundGetKsmps(csound) MYFLT values) -(MYFLYT **) pp
    *   CSOUND_STRING_CHANNEL
-   *     string data as a STRDAT structure - (STRDAT **) pp
+   *     string data as a STRINGDAT structure - (STRINGDAT **) pp
    *   CSOUND_ARRAY_CHANNEL
    *     array data as an ARRAYDAT structure - (ARRAYDAT **) pp
    *   CSOUND_ARRAY_CHANNEL
@@ -1076,12 +1077,35 @@ extern "C" {
    */
   PUBLIC  void csoundSetStringChannel(CSOUND *csound,
                                       const char *name, const char *string);
+
+  /**
+   * Initialises and allocates an array of given dimensions for external use with
+   * a software bus channel. Supported array Types are 
+   * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 
+   * - 'i' (init vars): each item is a MYFLT
+   * - 'S' (strings): each item is a STRINGDAT
+   * - 'k' (control sigs): each item is a MYFLT
+   * The size of each dimension is given by the sizes argument. 
+   * Returns a pointer to the array data.
+   */
+  PUBLIC ARRAYDAT *createArrayData(CSOUND *csound, char type,
+                                   int dimensions, const int *sizes);
+
+  /**
+   * Deletes an array data structure created with createArrayData()
+   */
+  PUBLIC void deleteArrayData(CSOUND *csound, ARRAYDAT *adat);
+  
   /**
    * Receives an ARRAYDAT from channel name
    * array data is copied from the channel
-   * NB: array data needs to be allocated externally 
-   * and only the number of allocated bytes are copied
-   * returns 0 if successful, non-zero otherwise
+   * NB: if the output array data is empty (array.data == NULL),
+   * it is initialised to match the contents of the channel
+   * at the time. In this case, it is important that the array 
+   * channel has been initialised by Csound, 
+   * otherwise the array data will be empty.
+   * Alternatively, the array data may be initialised and allocated
+   * externally using createArrayData().
    */
   PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
                                    ARRAYDAT *array);
@@ -1090,8 +1114,9 @@ extern "C" {
    * Sends an ARRAYDAT array to the channel name
    * array data is copied into the channel
    * NB: the array in the channel receives only the amount of data it
-   * has allocated space for
-   * returns 0 if successful, non-zero otherwise
+   * has allocated space for. If the array channel is empty, it will
+   * be initialised to match the input array data, which in this case must
+   * have been created using createArrayData().
    */
   PUBLIC int csoundSetArrayChannel(CSOUND *csound, const char *name,
                                    const ARRAYDAT *array);
@@ -1340,49 +1365,8 @@ extern "C" {
                                  int(*perf)(CSOUND *, void *), int(*deinit)(CSOUND *, void *));
 
   /** @}*/
-
-  /** @}*/
-  /** @defgroup TABLEDISPLAY Function table display
-   *
-   *  @{ */
-  /**
-   * Tells Csound whether external graphic table display is supported.
-   * Returns the previously set value (initially zero).
-   */
-  PUBLIC int csoundSetIsGraphable(CSOUND *, int isGraphable);
-
-  /**
-   * Called by external software to set Csound's MakeGraph function.
-   */
-  PUBLIC void csoundSetMakeGraphCallback(CSOUND *,
-                                         void (*makeGraphCallback_)(CSOUND *,
-                                                                    WINDAT *windat,
-                                                                    const char *name));
-
-  /**
-   * Called by external software to set Csound's DrawGraph function.
-   */
-  PUBLIC void csoundSetDrawGraphCallback(CSOUND *,
-                                         void (*drawGraphCallback_)(CSOUND *,
-                                                                    WINDAT *windat));
-
-  /**
-   * Called by external software to set Csound's KillGraph function.
-   */
-  PUBLIC void csoundSetKillGraphCallback(CSOUND *,
-                                         void (*killGraphCallback_)(CSOUND *,
-                                                                    WINDAT *windat));
-
-  /**
-   * Called by external software to set Csound's ExitGraph function.
-   */
-  PUBLIC void csoundSetExitGraphCallback(CSOUND *,
-                                         int (*exitGraphCallback_)(CSOUND *));
   
 #endif  /* !CSOUND_CSDL_H */
-
-  /* Csound circular buffer functions */
-#include "circular_buffer.h"  
   /* typedefs, macros, and interface functions for configuration variables */
 #include "cfgvar.h"
   /* message attribute definitions for csoundMessageS() and csoundMessageV() */
@@ -1393,4 +1377,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+  /* Csound graphs and table display */
+#include "graph_display.h"
+  /* Csound circular buffer functions */
+#include "circular_buffer.h"
+
 #endif  /* CSOUND_H */

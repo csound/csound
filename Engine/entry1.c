@@ -1202,7 +1202,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) chn_a_opcode_init, NULL, NULL                  },
   { "chn_S",       S(CHN_OPCODE),      _CW,       "",             "Si",
     (SUBR) chn_S_opcode_init, NULL, NULL                  },
-  { "chn_array",    S(CHN_OPCODE),        _CW,       "",             "Sii",
+  { "chn_array",    S(CHN_OPCODE),        _CW,       "",             "SiSi[]",
     (SUBR) chn_opcode_init_ARRAY, NULL, NULL },
   { "chnexport.i", S(CHNEXPORT_OPCODE),0,       "i",            "Sioooo",
     (SUBR) chnexport_opcode_init, NULL, NULL              },

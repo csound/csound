@@ -51,7 +51,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
     //p->dimensions = 1;
 }
 
-static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
+static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
 {
     uint32_t ss = 1;
     if(p->data == tp->data) {

@@ -662,12 +662,6 @@ extern "C" {
   } TABDAT;
 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-  
-  typedef struct {
-    char *data;
-    size_t size;
-    int64_t timestamp;    
-  } STRINGDAT;
 
   typedef struct monblk {
     int16   pch;
