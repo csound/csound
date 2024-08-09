@@ -30,6 +30,8 @@ extern "C" {
   /** @defgroup TABLEDISPLAY Function table display
    *
    *  @{ */
+  typedef struct windat_  WINDAT;
+  
   /**
    * Tells Csound whether external graphic table display is supported.
    * Returns the previously set value (initially zero).

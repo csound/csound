@@ -1231,3 +1231,18 @@ int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
 
   return OK;
 }
+
+PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata){
+  return sdata->data;
+}
+
+PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata, const char *str){
+  size_t bytes = strlen(str);
+  if(sdata->size > bytes)
+    strcpy(sdata->data, str);
+  else {
+    sdata->data = (char *) csound->ReAlloc(csound, (char *)
+                                           sdata->data, bytes+1);
+    strcpy(sdata->data, str);
+  }
+}

@@ -2661,3 +2661,4 @@ PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
   copy_array(array,adat,lock);
   return OK;
 }
+

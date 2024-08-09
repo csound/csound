@@ -660,9 +660,18 @@ extern "C" {
     MYFLT   *data;
     AUXCH   aux;
   } TABDAT;
-
+ 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
 
+  /*
+   * Type definition for string data (string channels)
+   */ 
+  struct stringdat {
+    char *data;         // null-terminated string
+    size_t size;        // total allocated size
+    int64_t timestamp;  // used internally for updates  
+  };
+  
   typedef struct monblk {
     int16   pch;
     struct monblk *prv;

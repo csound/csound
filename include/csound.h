@@ -128,7 +128,7 @@ extern "C" {
    * Forward declarations.
    */
   typedef struct CSOUND_  CSOUND;
-  typedef struct windat_  WINDAT;
+  typedef struct stringdat STRINGDAT;
 
   /**
    *  csound configuration structure, mirrors part of
@@ -227,18 +227,9 @@ extern "C" {
   #include "csound_type_system.h"
   
   /*
-   * Type definition for string data (string channels)
-   */ 
-  typedef struct {
-    char *data;         // null-terminated string
-    size_t size;        // total allocated size
-    int64_t timestamp;  // used internally for updates  
-  } STRINGDAT;
-
-  /*
    * Type definition for array data (array channels)
    */
-  typedef struct {
+  typedef struct arraydat {
     int      dimensions; /* number of array dimensions */
     int32_t*     sizes;  /* size of each dimensions */
     int      arrayMemberSize; /* size of each item */
@@ -246,7 +237,6 @@ extern "C" {
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
   } ARRAYDAT;
-
 
   /*
    * Type definition for PVS data (pvs channels)
@@ -945,6 +935,7 @@ extern "C" {
    *     audio data (csoundGetKsmps(csound) MYFLT values) -(MYFLYT **) pp
    *   CSOUND_STRING_CHANNEL
    *     string data as a STRINGDAT structure - (STRINGDAT **) pp
+   *    (see csoundGetStringData() and csoundSetStringData())  
    *   CSOUND_ARRAY_CHANNEL
    *     array data as an ARRAYDAT structure - (ARRAYDAT **) pp
    *   CSOUND_ARRAY_CHANNEL
@@ -1083,7 +1074,8 @@ extern "C" {
    * a software bus channel. Supported array Types are 
    * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 
    * - 'i' (init vars): each item is a MYFLT
-   * - 'S' (strings): each item is a STRINGDAT
+   * - 'S' (strings): each item is a STRINGDAT (see csoundGetStringData() and
+   *   csoundSetStringData())
    * - 'k' (control sigs): each item is a MYFLT
    * The size of each dimension is given by the sizes argument. 
    * Returns a pointer to the array data.
@@ -1095,7 +1087,18 @@ extern "C" {
    * Deletes an array data structure created with csoundCreateArrayData()
    */
   PUBLIC void csoundDeleteArrayData(CSOUND *csound, ARRAYDAT *adat);
-  
+
+  /**
+   * Get a null-terminated string from a STRINGDAT structure 
+  **/
+  PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata);
+
+  /**
+   * Set a STRINGDAT structure with a null-terminated string
+   */
+  PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata,
+                                  const char *str);
+
   /**
    * Receives an ARRAYDAT from channel name
    * array data is copied from the channel
@@ -1106,6 +1109,8 @@ extern "C" {
    * otherwise the array data will be empty.
    * Alternatively, the array data may be initialised and allocated
    * externally using csoundCreateArrayData().
+   * Note that STRINGDAT items are shallow-copied and will share
+   * string memory with the channel.
    */
   PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
                                    ARRAYDAT *array);
@@ -1117,6 +1122,8 @@ extern "C" {
    * has allocated space for. If the array channel is empty, it will
    * be initialised to match the input array data, which in this case must
    * have been created using createArrayData().
+   * Note that STRINGDAT items are shallow-copied and will share
+   * string memory with the channel.
    */
   PUBLIC int csoundSetArrayChannel(CSOUND *csound, const char *name,
                                    const ARRAYDAT *array);
