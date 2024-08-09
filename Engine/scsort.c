@@ -80,6 +80,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     }
     else {
       char *str = cs_strdup(csound,sco->body);
+      //printf("body >>%s<<\n", str);
       corfile_rm(csound, &(sco));
       return str;
     }

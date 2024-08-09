@@ -2221,8 +2221,8 @@ int csoundReadScoreInternal(CSOUND *csound, const char *str)
     //printf("%s\n", O->playscore->body);
   }
   else {
-    char *sc = scsortstr(csound, csound->scorestr);
-    //printf("%s\n", sc);
+
+    char *sc = scsortstr(csound, csound->scorestr);   
     csoundInputMessageInternal(csound, (const char *) sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));

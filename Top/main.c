@@ -559,6 +559,9 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csoundUDPServerStart(csound,csound->oparms->daemon);
 
     allocate_message_queue(csound); /* if de-alloc by reset */
+
+
+    
     return musmon(csound);
 }
 
