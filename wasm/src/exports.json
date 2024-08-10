@@ -221,9 +221,7 @@
   "csoundStart",
   "csoundStop",
   "csoundTableCopyIn",
-  "csoundTableCopyInAsync",
   "csoundTableCopyOut",
-  "csoundTableCopyOutAsync",
   "csoundTableGet",
   "csoundTableLength",
   "csoundTableSet"
