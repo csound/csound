@@ -324,7 +324,7 @@ libcsound.csoundPopFirstMessage.argtypes = [ct.c_void_p]
 libcsound.csoundGetMessageCnt.argtypes = [ct.c_void_p]
 libcsound.csoundDestroyMessageBuffer.argtypes = [ct.c_void_p]
 
-libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.c_void_p),
+libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)),
                                           ct.c_char_p, ct.c_int]
 libcsound.csoundListChannels.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(ControlChannelInfo))]
 libcsound.csoundDeleteChannelList.argtypes = [ct.c_void_p, ct.POINTER(ControlChannelInfo)]
@@ -348,7 +348,7 @@ libcsound.csoundGetChannelDatasize.argtypes = [ct.c_void_p, ct.c_char_p]
 CHANNELFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_char_p, ct.c_void_p, ct.c_void_p)
 libcsound.csoundSetInputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
 libcsound.csoundSetOutputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
-libcsound.csoundEvent.argtypes = [ct.c_void_p, ]
+libcsound.csoundEvent.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT), ct.c_long, ct.c_int]
 libcsound.csoundEventString.argtypes = [ct.c_void_p, ct.c_char_p, ]
 libcsound.csoundKeyPress.argtypes = [ct.c_void_p, ct.c_char]
 KEYBOARDFUNC = ct.CFUNCTYPE(ct.c_int, ct.py_object, ct.c_void_p, ct.c_uint)
@@ -1304,8 +1304,7 @@ class Csound:
         p = np.asarray(params, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         n_fields = ct.c_long(p.size)
-        libcsound.csoundEvent(self.cs, ct.c_int(type_), ptr, n_fields,
-            ct.c_int(async_mode))
+        libcsound.csoundEvent(self.cs, ct.c_int(type_), ptr, n_fields, ct.c_int(async_mode))
 
     def event_string(self, message, async_mode=False):
         """Send a new event as a string.
