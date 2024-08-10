@@ -2214,11 +2214,14 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 
 /* ARRAY channels  implementation - VL 7.08.24 */
 static void copy_array(ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
-    int32_t bytes = in->allocated > out->allocated ?
-      out->allocated : in->allocated;
-    csoundSpinLock(lock);
-    memcpy(out->data, in->data, bytes);
-    csoundSpinUnLock(lock);
+   size_t siz = 0, i;
+   for(i = 0; i < in->dimensions; i++)
+      siz += in->sizes[i];
+   siz *= in->arrayMemberSize;
+   if(siz > out->allocated) siz = out->allocated;
+   csoundSpinLock(lock);
+   memcpy(out->data, in->data, siz);
+   csoundSpinUnLock(lock);
 }
 
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int type) {
@@ -2662,3 +2665,34 @@ PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
   return OK;
 }
 
+PUBLIC int csoundArrayDataDimensions(ARRAYDAT *adat) {
+  return adat->dimensions;
+}
+
+PUBLIC char csoundArrayDataType(ARRAYDAT *adat) {
+  if(adat->arrayType == &CS_VAR_TYPE_I)
+    return 'i';
+  else if(adat->arrayType == &CS_VAR_TYPE_I)
+   return 'a';
+  else if(adat->arrayType == &CS_VAR_TYPE_I)
+    return 'S';
+  else if(adat->arrayType == &CS_VAR_TYPE_I)
+    return 'k';
+  else return 0;
+}
+
+PUBLIC const int *csoundArrayDataSizes(ARRAYDAT *adat){
+  return adat->sizes;
+}
+
+PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
+                               const void* data) {
+  size_t siz = 0, i;
+  for(i = 0; i < adat->dimensions; i++)
+    siz += adat->sizes[i];
+  memcpy(adat->data, data, siz*adat->arrayMemberSize);
+}
+  
+PUBLIC const void *csoundGetArrayData(const ARRAYDAT *adat) {
+  return adat->data;
+}

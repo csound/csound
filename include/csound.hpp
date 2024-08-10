@@ -486,21 +486,6 @@ class PUBLIC Csound
   {
     return csoundGetPvsChannel(csound,name,spec);
   }
-  virtual int SetChannel(const char *name, const ARRAYDAT *array)
-  {
-    return csoundSetArrayChannel(csound,name,array);
-  }
-  virtual int GetChannel(const char *name, ARRAYDAT *array)
-  {
-    return csoundGetArrayChannel(csound,name,array);
-  }
-  virtual ARRAYDAT *CreateArrayData(char type,
-                                    int dimensions, const int *sizes){
-    return csoundCreateArrayData(csound, type, dimensions, sizes);
-  }                                                                  
-  virtual void DeleteArrayData(ARRAYDAT *adat){
-    csoundDeleteArrayData(csound, adat);
-  }
   Csound()
     {
       csound = csoundCreate((CSOUND*) 0, NULL);

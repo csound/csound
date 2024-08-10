@@ -660,6 +660,20 @@ extern "C" {
     MYFLT   *data;
     AUXCH   aux;
   } TABDAT;
+
+  #include "csound_type_system.h"
+  
+  /*
+   * Type definition for array data 
+   */
+  struct arraydat {
+    int      dimensions; /* number of array dimensions */
+    int32_t*     sizes;  /* size of each dimensions */
+    int      arrayMemberSize; /* size of each item */
+    struct cstype* arrayType; /* type of array */
+    MYFLT*   data; /* data */
+    size_t   allocated; /* size of allocated data */
+  };  
  
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
 

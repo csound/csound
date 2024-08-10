@@ -129,6 +129,7 @@ extern "C" {
    */
   typedef struct CSOUND_  CSOUND;
   typedef struct stringdat STRINGDAT;
+  typedef struct arraydat ARRAYDAT;
 
   /**
    *  csound configuration structure, mirrors part of
@@ -223,20 +224,6 @@ extern "C" {
     // names to expression nodes should be moved
     // to TYPE_TABLE
   } TREE;
-
-  #include "csound_type_system.h"
-  
-  /*
-   * Type definition for array data (array channels)
-   */
-  typedef struct arraydat {
-    int      dimensions; /* number of array dimensions */
-    int32_t*     sizes;  /* size of each dimensions */
-    int      arrayMemberSize; /* size of each item */
-    struct cstype* arrayType; /* type of array */
-    MYFLT*   data; /* data */
-    size_t   allocated; /* size of allocated data */
-  } ARRAYDAT;
 
   /*
    * Type definition for PVS data (pvs channels)
@@ -1070,23 +1057,36 @@ extern "C" {
                                       const char *name, const char *string);
 
   /**
-   * Initialises and allocates an array of given dimensions for external use with
-   * a software bus channel. Supported array Types are 
+   * Get the type of data the ARRAYDAT adat, returning
    * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 
    * - 'i' (init vars): each item is a MYFLT
    * - 'S' (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - 'k' (control sigs): each item is a MYFLT
-   * The size of each dimension is given by the sizes argument. 
-   * Returns a pointer to the array data.
+   * - 'k' (control sigs): each item is a MYFLT 
    */
-  PUBLIC ARRAYDAT *csoundCreateArrayData(CSOUND *csound, char type,
-                                   int dimensions, const int *sizes);
+  PUBLIC char csoundArrayDataType(ARRAYDAT *adat);
 
   /**
-   * Deletes an array data structure created with csoundCreateArrayData()
-   */
-  PUBLIC void csoundDeleteArrayData(CSOUND *csound, ARRAYDAT *adat);
+   * Get the dimensions of the ARRAYDAT adat.
+  **/
+  PUBLIC int csoundArrayDataDimensions(ARRAYDAT *adat);
+
+  /**
+   * Get the sizes of each dimension of the ARRAYDAT adat;
+  **/
+  PUBLIC const int* csoundArrayDataSizes(ARRAYDAT *adat);
+
+
+  /**
+   * Set the data in the ARRAYDAT adat
+  **/  
+  PUBLIC void csoundSetArrayData(ARRAYDAT *adat, const void* data);
+
+  /**
+   * Get the data from the ARRAYDAT adat
+  **/  
+  PUBLIC const void *csoundGetArrayData(const ARRAYDAT *adat);
+
 
   /**
    * Get a null-terminated string from a STRINGDAT structure 
@@ -1098,35 +1098,6 @@ extern "C" {
    */
   PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata,
                                   const char *str);
-
-  /**
-   * Receives an ARRAYDAT from channel name
-   * array data is copied from the channel
-   * NB: if the output array data is empty (array.data == NULL),
-   * it is initialised to match the contents of the channel
-   * at the time. In this case, it is important that the array 
-   * channel has been initialised by Csound, 
-   * otherwise the array data will be empty.
-   * Alternatively, the array data may be initialised and allocated
-   * externally using csoundCreateArrayData().
-   * Note that STRINGDAT items are shallow-copied and will share
-   * string memory with the channel.
-   */
-  PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
-                                   ARRAYDAT *array);
-
-   /**
-   * Sends an ARRAYDAT array to the channel name
-   * array data is copied into the channel
-   * NB: the array in the channel receives only the amount of data it
-   * has allocated space for. If the array channel is empty, it will
-   * be initialised to match the input array data, which in this case must
-   * have been created using createArrayData().
-   * Note that STRINGDAT items are shallow-copied and will share
-   * string memory with the channel.
-   */
-  PUBLIC int csoundSetArrayChannel(CSOUND *csound, const char *name,
-                                   const ARRAYDAT *array);
 
   /**
    * Receives a PVSDAT fout from the pvsout opcode (f-rate) at channel 'name'
