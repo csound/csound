@@ -1056,6 +1056,24 @@ extern "C" {
   PUBLIC  void csoundSetStringChannel(CSOUND *csound,
                                       const char *name, const char *string);
 
+   /**
+   * Create and initialise an array channel with a given array type
+   * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 
+   * - 'i' (init vars): each item is a MYFLT
+   * - 'S' (strings): each item is a STRINGDAT (see csoundGetStringData() and
+   *   csoundSetStringData())
+   * - 'k' (control sigs): each item is a MYFLT 
+   *  dimensions - number of array dimensions
+   *  sizes - sizes for each dimension
+   * returns the ARRAYDAT for the requested channel or NULL on error
+   * NB: if the channel exists and has already been initialised,
+   * this function is a non-op.
+   */
+   PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
+                                        char type, int dimensions,
+                                           const int *sizes);
+  
+
   /**
    * Get the type of data the ARRAYDAT adat, returning
    * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 

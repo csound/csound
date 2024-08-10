@@ -2585,11 +2585,21 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
   return CSOUND_SUCCESS;
 }
 
-PUBLIC ARRAYDAT *csoundCreateArrayData(CSOUND *csound, char type,
-                                 int dimensions, const int *sizes) {
-  int i, siz = 0;
+PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
+                                        char type, int dimensions,
+                                        const int *sizes) {
+  int i, siz = 0, err;
   const CS_TYPE *vtyp;
-  ARRAYDAT *adat = (ARRAYDAT *) csound->Calloc(csound, sizeof(ARRAYDAT));
+  ARRAYDAT *adat;
+
+  err = csoundGetChannelPtr(csound, (void **) &adat, name,
+                            CSOUND_ARRAY_CHANNEL |
+                            CSOUND_INPUT_CHANNEL |
+                            CSOUND_OUTPUT_CHANNEL);
+  
+  if(err != CSOUND_SUCCESS) return NULL;
+  
+  if(adat->data == NULL) {
   adat->dimensions = dimensions;
   adat->sizes = (int32_t *) csound->Calloc(csound,
                                            dimensions*sizeof(int32_t));
@@ -2612,57 +2622,8 @@ PUBLIC ARRAYDAT *csoundCreateArrayData(CSOUND *csound, char type,
   }
   adat->arrayType = (CS_TYPE *) vtyp;
   tabinit(csound, adat, siz);
+ }
   return adat;
-}
-
-PUBLIC void csoundDeleteArrayData(CSOUND *csound, ARRAYDAT *adat){
-  csound->Free(csound, adat->sizes);
-  csound->Free(csound, adat->data);
-  csound->Free(csound, adat);
-}
-
-
-PUBLIC int csoundSetArrayChannel(CSOUND *csound, const char *name,
-                                 const ARRAYDAT *array) {
-  ARRAYDAT *adat;
-  spin_lock_t *lock;
-  int32_t err = csoundGetChannelPtr(csound, (void **) &adat,
-                                    (char *) name,
-                                    CSOUND_ARRAY_CHANNEL |
-                                    CSOUND_INPUT_CHANNEL);
-  if (err == 0)
-    lock = (spin_lock_t*)
-      csoundGetChannelLock(csound, (char*) name);
-  else return NOTOK;
-
-  if(adat->data == NULL) {
-    if(array->data == NULL) return NOTOK;
-    else tabinit_like(csound, adat, array);
-  }
-  
-  copy_array(adat,array,lock);
-  return OK;
-}
-
-PUBLIC int csoundGetArrayChannel(CSOUND *csound, const char *name,
-                                 ARRAYDAT *array) {
-  ARRAYDAT *adat;
-  spin_lock_t *lock;
-  int32_t err = csoundGetChannelPtr(csound, (void **) &adat,
-                                    (char *) name,
-                                    CSOUND_ARRAY_CHANNEL |
-                                    CSOUND_OUTPUT_CHANNEL);
-  if (err == 0)
-    lock = (spin_lock_t*)
-      csoundGetChannelLock(csound, (char*) name);
-  else return NOTOK;
- 
-  if(array->data == NULL) {
-    if(adat->data == NULL) return NOTOK;
-      else tabinit_like(csound, array, adat);
-  }
-  copy_array(array,adat,lock);
-  return OK;
 }
 
 PUBLIC int csoundArrayDataDimensions(ARRAYDAT *adat) {
