@@ -340,8 +340,6 @@ libcsound.csoundGetAudioChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER
 libcsound.csoundSetAudioChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(MYFLT)]
 libcsound.csoundGetStringChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
 libcsound.csoundSetStringChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
-libcsound.csoundGetArrayChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ArrayDat)]
-libcsound.csoundSetArrayChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ArrayDat)]
 libcsound.csoundGetPvsChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(PvsDatExt)]
 libcsound.csoundSetPvsChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(PvsDatExt)]
 libcsound.csoundGetChannelDatasize.argtypes = [ct.c_void_p, ct.c_char_p]
@@ -1225,32 +1223,6 @@ class Csound:
     def set_string_channel(self, name, string):
         """Sets the string channel identified by name with string."""
         libcsound.csoundSetStringChannel(self.cs, cstring(name), cstring(string))
-
-    def array_channel(self, name):
-        """Receives an ARRAYDAT from channel name.
-
-        array data is copied from the channel
-        NB: array data needs to be allocated externally
-        and only the number of allocated bytes are copied
-        returns 0 if successful, non-zero otherwise
-        """
-        array = ArrayDat()
-        ret = libcsound.csoundGetArrayChannel(self.cs, cstring(name),
-            ct.byref(array))
-        if ret != 0:
-            array = None
-        return array, ret
-
-    def set_array_channel(self, name, array):
-        """Sends an ARRAYDAT array to the channel name
-
-        array data is copied into the channel
-        NB: the array in the channel receives only the amount of data it
-        has allocated space for
-        returns 0 if successful, non-zero otherwise
-        """
-        return libcsound.csoundSetArrayChannel(self.cs, cstring(name),
-            ct.byref(array))
 
     def pvs_channel(self, name):
         """Receives a PVSDAT fout from the pvsout opcode.
