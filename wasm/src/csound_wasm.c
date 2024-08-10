@@ -86,13 +86,12 @@ int csoundShouldDaemonize(CSOUND *csound) {
 __attribute__((used))
 int csoundStartWasi(CSOUND *csound) {
 
-
-  const char* outputDev = csoundGetOutputName(csound);
+  const char* outputDev = csound->oparms_.outfilename;
 
   // detect realtime mode automatically
   if ((strncmp("dac", outputDev, 3) == 0) ||
       csoundShouldDaemonize(csound)) {
-    csoundSetHostImplementedAudioIO(csound, 1, 0);
+    csoundSetHostAudioIO(csound);
   }
   return csoundStart(csound);
 }
@@ -235,7 +234,7 @@ static int midiInClose(CSOUND *csound, void *userData) {
 
 __attribute__((used))
 void csoundSetMidiCallbacks(CSOUND *csound) {
-  csoundSetHostImplementedMIDIIO(csound, 1);
+  csoundSetHostMIDIIO(csound);
   csoundSetExternalMidiInOpenCallback(csound, midiInOpen);
   csoundSetExternalMidiReadCallback(csound, midiDataRead);
   csoundSetExternalMidiInCloseCallback(csound, midiInClose);
@@ -247,7 +246,7 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 // be callable (aka static_modules)
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
-  CSOUND *csound = csoundCreate(NULL);
+  CSOUND *csound = csoundCreate(NULL, NULL);
   csoundSetMidiCallbacks(csound);
   return csound;
 }
