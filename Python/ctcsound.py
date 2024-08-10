@@ -1,20 +1,20 @@
 #
 #   ctcsound.py: NEW API - Experimental
-#   
+#
 #   Copyright (C) 2024 Francois Pinot
-#   
+#
 #   This file is part of Csound.
-#   
+#
 #   This code is free software; you can redistribute it
 #   and/or modify it under the terms of the GNU Lesser General Public
 #   License as published by the Free Software Foundation; either
 #   version 2.1 of the License, or (at your option) any later version.
-#   
+#
 #   Csound is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU Lesser General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU Lesser General Public
 #   License along with Csound; if not, write to the Free Software
 #   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -141,7 +141,7 @@ class CsoundParams(ct.Structure):
                 ("ascii_graphs", ct.c_int),      # use ASCII graphs, 0 or 1
                 ("postscript_graphs", ct.c_int), # use postscript graphs, 0 or 1
                 ("message_level", ct.c_int),     # message printout control
-                ("tempo", ct.c_int),             # tempo ("sets Beatmode) 
+                ("tempo", ct.c_int),             # tempo ("sets Beatmode)
                 ("ring_bell", ct.c_int),         # bell, 0 or 1
                 ("use_cscore", ct.c_int),        # use cscore for processing
                 ("terminate_on_midi", ct.c_int), # terminate performance at the end
@@ -158,7 +158,7 @@ class CsoundParams(ct.Structure):
                 ("number_of_threads", ct.c_int), # number of threads for multicore performance
                 ("syntax_check_only", ct.c_int), # do not compile, only check syntax
                 ("csd_line_counts", ct.c_int),   # csd line error reporting
-                ("compute_weights", ct.c_int),   # deprecated, kept for backwards comp. 
+                ("compute_weights", ct.c_int),   # deprecated, kept for backwards comp.
                 ("realtime_mode", ct.c_int),     # use realtime priority mode, 0 or 1
                 ("sample_accurate", ct.c_int),   # use sample-level score event accuracy
                 ("sample_rate_override", MYFLT),  # overriding sample rate
@@ -280,7 +280,7 @@ libcsound.csoundDeleteTree.argtypes = [ct.c_void_p, ct.POINTER(Tree)]
 libcsound.csoundCompileOrc.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
 libcsound.csoundEvalCode.restype = MYFLT
 libcsound.csoundEvalCode.argtypes = [ct.c_void_p, ct.c_char_p]
-libcsound.csoundCompileCsd.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
+libcsound.csoundCompileCSD.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
 libcsound.csoundStart.argtypes = [ct.c_void_p]
 libcsound.csoundPerformKsmps.argtypes = [ct.c_void_p]
 libcsound.csoundRunUtility.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.POINTER(ct.c_char_p)]
@@ -324,7 +324,7 @@ libcsound.csoundPopFirstMessage.argtypes = [ct.c_void_p]
 libcsound.csoundGetMessageCnt.argtypes = [ct.c_void_p]
 libcsound.csoundDestroyMessageBuffer.argtypes = [ct.c_void_p]
 
-libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.c_void_p),
+libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)),
                                           ct.c_char_p, ct.c_int]
 libcsound.csoundListChannels.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(ControlChannelInfo))]
 libcsound.csoundDeleteChannelList.argtypes = [ct.c_void_p, ct.POINTER(ControlChannelInfo)]
@@ -348,7 +348,7 @@ libcsound.csoundGetChannelDatasize.argtypes = [ct.c_void_p, ct.c_char_p]
 CHANNELFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_char_p, ct.c_void_p, ct.c_void_p)
 libcsound.csoundSetInputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
 libcsound.csoundSetOutputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
-libcsound.csoundEvent.argtypes = [ct.c_void_p, ]
+libcsound.csoundEvent.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT), ct.c_long, ct.c_int]
 libcsound.csoundEventString.argtypes = [ct.c_void_p, ct.c_char_p, ]
 libcsound.csoundKeyPress.argtypes = [ct.c_void_p, ct.c_char]
 KEYBOARDFUNC = ct.CFUNCTYPE(ct.c_int, ct.py_object, ct.c_void_p, ct.c_uint)
@@ -419,7 +419,7 @@ def csound_arg_list(lst):
 #Instantiation
 def csound_initialize(flags):
     """Initializes Csound library with specific flags.
-    
+
     This function is called internally by csound_create(), so there is generally
     no need to use it explicitly unless you need to avoid default initialization
     that sets signal handlers and atexit() callbacks.
@@ -435,7 +435,7 @@ class Csound:
     #
     def __init__(self, host_data=None, opcode_dir=None):
         """Creates an instance of Csound.
-       
+
         Returns an opaque pointer that must be passed to most Csound API
         functions. The host_data parameter can be None, or it can be
         any sort of data; these data can be accessed from the Csound instance
@@ -450,10 +450,10 @@ class Csound:
         """Destroys an instance of Csound."""
         if libcsound:
             libcsound.csoundDestroy(self.cs)
-    
+
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
-        
+
         This pointer is needed to instantiate a CsoundPerformanceThread object.
         """
         return self.cs
@@ -464,7 +464,7 @@ class Csound:
     def version(self):
         """Returns the version number times 1000 (5.00.0 = 5000)."""
         return libcsound.csoundGetVersion()
-    
+
     def API_version(self):
         """Returns the API version number times 100 (1.00 = 100)."""
         return libcsound.csoundGetAPIVersion()
@@ -472,11 +472,11 @@ class Csound:
     def sr(self):
         """Returns the number of audio sample frames per second."""
         return libcsound.csoundGetSr(self.cs)
-    
+
     def kr(self):
         """Returns the number of control samples per second."""
         return libcsound.csoundGetKr(self.cs)
-    
+
     def ksmps(self):
         """Returns the number of audio sample frames per control sample."""
         return libcsound.csoundGetKsmps(self.cs)
@@ -492,30 +492,30 @@ class Csound:
     def get_0dBFS(self):
         """Returns the 0dBFS level of the spin/spout buffers."""
         return libcsound.csoundGet0dBFS(self.cs)
-    
+
     def A4(self):
         """Returns the A4 frequency reference."""
         return libcsound.csoundGetA4(self.cs)
-    
+
     def current_time_samples(self):
         """Returns the current performance time in samples."""
         return libcsound.csoundGetCurrentTimeSamples(self.cs)
-    
+
     def size_of_MYFLT(self):
         """Returns the size of MYFLT in bytes."""
         return libcsound.csoundGetSizeOfMYFLT()
-    
+
     def host_data(self):
         """Returns host data."""
         return libcsound.csoundGetHostData(self.cs)
-    
+
     def set_host_data(self, data):
         """Sets host data."""
         libcsound.csoundSetHostData(self.cs, ct.py_object(data))
 
     def env(self, name):
         """Gets the value of environment variable name.
-        
+
         The searching order is: local environment of Csound, variables set with
         set_global_env(), and system environment variables.
         Return value is None if the variable is not set.
@@ -527,26 +527,26 @@ class Csound:
 
     def set_global_env(self, name, value):
         """Set the global value of environment variable name to value.
-        
+
         The variable is deleted if value is None.
         It is not safe to call this function while any Csound instances
         are active.
         Returns zero on success..
         """
         return libcsound.csoundSetGlobalEnv(cstring(name), cstring(value))
-        
+
     def set_option(self, option):
         """Sets a single csound option (flag).
-        
+
         Returns CSOUND_SUCCESS on success.
         This needs to be called before any code is compiled.
         NB: blank spaces are not allowed.
         """
         return libcsound.csoundSetOption(self.cs, cstring(option))
-    
+
     def set_params(self, params):
         """Configures Csound with a given set of parameters.
-        
+
         These parameters are defined in the CsoundParams structure.
         They are the part of the OPARMS struct that are configurable through
         command line flags.
@@ -554,12 +554,12 @@ class Csound:
         These options should only be changed before performance has started.
         """
         libcsound.csoundSetParams(self.cs, ct.byref(params))
-    
+
     def params(self, params):
         """Gets the current set of parameters from a CSOUND instance.
-        
+
         These parameters are in a CsoundParams structure. See set_params():
-        
+
             p = ctcsound.CsoundParams()
             cs.params(p)
         """
@@ -567,7 +567,7 @@ class Csound:
 
     def debug(self):
         """Returns whether Csound is set to print debug messages.
-        
+
         Those messages are sent through the DebugMsg() internal API
         function.
         """
@@ -575,7 +575,7 @@ class Csound:
 
     def set_debug(self, debug):
         """Sets whether Csound prints debug messages.
-        
+
         The debug argument must have value `True` or `False`.
         Those messages come from the DebugMsg() internal API function.
         """
@@ -583,18 +583,18 @@ class Csound:
 
     def system_sr(self, val):
         """If val > 0, sets the internal variable holding the system HW sr.
-        
+
         Returns the stored value containing the system HW sr.
         """
         return libcsound.csoundSystemSr(self.cs, val)
 
     def module(self, number):
         """Retrieves a module name and type given a number.
-        
+
         Type is "audio" or "midi". Modules are added to list as csound loads
         them. Return CSOUND_SUCCESS on success and CSOUND_ERROR if module
         number was not found::
-        
+
             n = 0
             while True:
                 name, type_, err = cs.module(n)
@@ -614,12 +614,12 @@ class Csound:
 
     def audio_dev_list(self, is_output):
         """Returns a list of available input or output audio devices.
-        
+
         Each item in the list is a dictionnary representing a device. The
         dictionnary keys are device_name, device_id, rt_module (value
-        type string), max_nchnls (value type int), and isOutput (value 
+        type string), max_nchnls (value type int), and isOutput (value
         type boolean).
-        
+
         Must be called after an orchestra has been compiled
         to get meaningful information.
         """
@@ -639,11 +639,11 @@ class Csound:
 
     def midi_dev_list(self, is_output):
         """Returns a list of available input or output midi devices.
-        
+
         Each item in the list is a dictionnary representing a device. The
         dictionnary keys are device_name, interface_name, device_id,
         midi_module (value type string), isOutput (value type boolean).
-        
+
         Must be called after an orchestra has been compiled
         to get meaningful information.
         """
@@ -664,7 +664,7 @@ class Csound:
     def message_level(self):
         """Returns the Csound message level (from 0 to 231)."""
         return libcsound.csoundGetMessageLevel(self.cs)
-    
+
     def set_message_level(self, message_level):
         """Sets the Csound message level (from 0 to 231)."""
         libcsound.csoundSetMessageLevel(self.cs, ct.c_int(message_level))
@@ -674,14 +674,14 @@ class Csound:
     #
     def parse_orc(self, orc):
         """Parses the given orchestra from an ASCII string into a TREE.
-        
+
         This can be called during performance to parse new code.
         """
         return libcsound.csoundParseOrc(self.cs, cstring(orc))
 
     def compile_tree(self, tree, async_mode=False):
         """Compiles the given TREE node into structs for Csound.
-        
+
         These structs are to be used in synchronous  or asynchronous
         (async_mode = True) mode.
         """
@@ -689,11 +689,11 @@ class Csound:
 
     def compile_(self, *args):
         """Compiles Csound input files (such as an orchestra and score, or CSD).
-        
+
         As directed by the supplied command-line arguments,
         but does not perform them. Returns a non-zero error code on failure.
         In this mode, the sequence of calls should be as follows::
-        
+
             cs.compile_(args)
             while cs.perform_ksmps() == 0:
                 pass
@@ -704,7 +704,7 @@ class Csound:
 
     def delete_tree(self, tree):
         """Frees the resources associated with the TREE tree.
-        
+
         This function should be called whenever the TREE was
         created with parse_orc and memory can be deallocated.
         """
@@ -712,11 +712,11 @@ class Csound:
 
     def compile_orc(self, orc, async_mode=False):
         """Parses, and compiles the given orchestra from an ASCII string.
-        
+
         Also evaluating any global space code (i-time only)
         in synchronous or asynchronous -aync_mode = False) mode.
         This can be called during performance to compile a new orchestra::
-        
+
             orc = 'instr 1 \n a1 rand 0dbfs/4 \n out a1 \n endin \n'
             cs.compile_orc(orc, False)
         """
@@ -724,11 +724,11 @@ class Csound:
 
     def eval_code(self, code):
         """Parses and compiles an orchestra given on an string.
-        
+
         Evaluating any global space code (i-time only).
         On SUCCESS it returns a value passed to the
         'return' opcode in global space:
-        
+
             code = 'i1 = 2 + 2 \n return i1 \n'
             retval = cs.eval_code(code)
         """
@@ -736,7 +736,7 @@ class Csound:
 
     def compile_csd(self, csd, mode):
         """Compiles a Csound input file (.csd file) or a text string.
-        
+
         Returns a non-zero error code on failure.
 
         If start is called before compile_csd, the <CsOptions>
@@ -778,25 +778,25 @@ class Csound:
         This is convenient when it is desirable to package the csd as part of
         an application or a multi-language piece.
         """
-        return libcsound.csoundCompileCsd(self.cs, cstring(csd), ct.c_int(mode))
+        return libcsound.csoundCompileCSD(self.cs, cstring(csd), ct.c_int(mode))
 
     def start(self):
         """Prepares Csound for performance.
-        
+
         Normally called after compiling a csd file or an orc file, in which
         case score preprocessing is performed and performance terminates
         when the score terminates.
-        
-        However, if called before compiling a csd file or an orc file, 
-        score preprocessing is not performed and "i" statements are dispatched 
-        as real-time events, the <CsOptions> tag is ignored, and performance 
+
+        However, if called before compiling a csd file or an orc file,
+        score preprocessing is not performed and "i" statements are dispatched
+        as real-time events, the <CsOptions> tag is ignored, and performance
         continues indefinitely or until ended using the API.
         """
         return libcsound.csoundStart(self.cs)
 
     def perform_ksmps(self):
         """Senses input events, and performs audio output.
-        
+
         This is done for one control sample worth (ksmps).
         start() must be called first.
         Returns False during performance, and True when
@@ -809,7 +809,7 @@ class Csound:
 
     def run_utility(self, name, args):
         """Runs utility with the specified name and command line arguments.
-        
+
         Should be called after loading utility plugins.
         Use reset() to clean up after calling this function.
         Returns zero if the utility was run successfully.
@@ -819,7 +819,7 @@ class Csound:
 
     def reset(self):
         """Resets all internal memory and state.
-        
+
         In preparation for a new performance.
         Enable external software to run successive Csound performances
         without reloading Csound.
@@ -831,14 +831,14 @@ class Csound:
     #
     def set_host_audio_IO(self):
         """Disable all default handling of sound I/O.
-        
+
         Calling this function after the creation of a Csound object
         and before the start of performance will disable all default
         handling of sound I/O by the Csound library via its audio
         backend module.
         Host application should in this case use the spin/spout
         buffers directly.
-        """        
+        """
         libcsound.csoundSetHostAudioIO(self.cs)
 
     def set_RT_audio_module(self, module):
@@ -847,7 +847,7 @@ class Csound:
 
     def spin(self):
         """Returns the Csound audio input working buffer (spin) as an ndarray.
-        
+
         Enables external software to write audio into Csound before
         calling perform_ksmps().
         """
@@ -859,7 +859,7 @@ class Csound:
 
     def spout(self):
         """Returns the address of the Csound audio output working buffer (spout).
-        
+
         Enables external software to read audio from Csound after
         calling perform_ksmps().
         """
@@ -874,8 +874,8 @@ class Csound:
     #
     def set_host_midi_IO(self):
         """Disable all default handling of MIDI I/O.
-        
-        Call this function after csound_create() 
+
+        Call this function after csound_create()
         and before the start of performance to implement
         MIDI via the callbacks below.
         """
@@ -896,13 +896,13 @@ class Csound:
         self.ext_midi_read_cb_ref = MIDIREADFUNC(function)
         libcsound.csoundSetExternalMidiReadCallback(self.cs,
             self.ext_midi_read_cb_ref)
-    
-    def set_external_midi_in_close_callback(self, function):                
+
+    def set_external_midi_in_close_callback(self, function):
         """Sets a callback for closing real time MIDI input."""
         self.ext_midi_in_close_cb_ref = MIDIINCLOSEFUNC(function)
         libcsound.csoundSetExternalMidiInCloseCallback(self.cs,
             self.ext_midi_in_close_cb_ref)
-    
+
     def set_external_midi_out_open_callback(self, function):
         """Sets a callback for opening real-time MIDI input."""
         self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
@@ -914,7 +914,7 @@ class Csound:
         self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
         libcsound.csoundSetExternalMidiWriteCallback(self.cs,
             self.ext_midi_write_cb_ref)
-    
+
     def set_external_midi_out_close_callback(self, function):
         """Sets a callback for closing real time MIDI input."""
         self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
@@ -926,7 +926,7 @@ class Csound:
         self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(function)
         libcsound.csoundSetExternalMidiErrorStringCallback(self.cs,
             self.ext_midi_err_str_cb_ref)
-    
+
     def set_midi_device_list_callback(self, function):
         """Sets a callback for obtaining a list of MIDI devices."""
         self.midi_dev_list_cb_ref = MIDIDEVLISTFUNC(function)
@@ -938,7 +938,7 @@ class Csound:
     #
     def message(self, fmt, *args):
         """Displays an informational message.
-        
+
         This is a workaround because does not support variadic functions.
         The arguments are formatted in a string, using the python way, either
         old style or new style, and then this formatted string is passed to
@@ -949,10 +949,10 @@ class Csound:
         else:
             s = fmt % args
         libcsound.csoundMessage(self.cs, cstring("%s"), cstring(s))
-    
+
     def message_S(self, attr, fmt, *args):
         """Prints message with special attributes.
-        
+
         (See msg_attr.h for the list of available attributes). With attr=0,
         message_S() is identical to message().
         This is a workaround because ctypes does not support variadic functions.
@@ -976,21 +976,21 @@ class Csound:
         """
         self.message_string_cb = MSGSTRFUNC(function)
         libcsound.csoundSetMessageStringCallback(self.cs, ct.c_int(attr),
-            self.message_string_cb)                                                      
+            self.message_string_cb)
 
     def create_message_buffer(self, to_stdout):
         """Creates a buffer for storing messages printed by Csound.
-        
+
         Should be called after creating a Csound instance and the buffer
         can be freed by calling destroyMessageBuffer() before
         deleting the Csound instance. You will generally want to call
         cleanup() to make sure the last messages are flushed to
         the message buffer before destroying Csound.
-        
+
         If to_stdout* is True, the messages are also printed to
         stdout and stderr (depending on the type of the message),
         in addition to being stored in the buffer.
-        
+
         Using the message buffer ties up the internal message callback, so
         set_message_callback() should not be called after creating the
         message buffer.
@@ -1023,10 +1023,10 @@ class Csound:
     #
     def channel_ptr(self, name, type_):
         """Get a pointer to the specified channel and an error message.
-        
+
         The channel is created first if it does not exist yet.
         type_ must be the bitwise OR of exactly one of the following values,
-        
+
         CSOUND_CONTROL_CHANNEL
             control data (one MYFLT value) - (MYFLT **) pp
         CSOUND_AUDIO_CHANNEL
@@ -1037,17 +1037,17 @@ class Csound:
             array data as an ARRAYDAT structure - (ARRAYDAT **) pp
         CSOUND_PVS_CHANNEL
             pvs data as a PVSDATEXT structure - (PVSDATEXT **) pp
-        
+
         and at least one of these:
-        
+
         CSOUND_INPUT_CHANNEL
         CSOUND_OUTPUT_CHANNEL
-        
+
         If the channel is a control or an audio channel, the pointer is
         translated to an ndarray of MYFLT. If the channel is a string channel,
         the pointer is casted to ct.c_char_p. The error message is either
         an empty string or a string describing the error that occured.
-        
+
         If the channel already exists, it must match the data type
         (control, audio, or string), however, the input/output bits are
         OR'd with the new value. Note that audio and string channels
@@ -1055,12 +1055,12 @@ class Csound:
         storage size is not known until then.
 
         Return value is zero on success, or a negative error code,
-        
+
         CSOUND_MEMORY
             there is not enough memory for allocating the channel
         CSOUND_ERROR
             the specified name or type is invalid
-            
+
         or, if a channel with the same name but incompatible type
         already exists, the type of the existing channel. In the case
         of any non-zero return value, the pointer is set to NULL.
@@ -1068,13 +1068,13 @@ class Csound:
         creating or changing it, set type_ to zero, so that the return
         value will be either the type of the channel, or CSOUND_ERROR
         if it does not exist.
-        
+
         Operations on the pointer are not thread-safe by default. The host is
         required to take care of threadsafety by
         1) retrieving the channel lock
         with :py:meth:`channelLock()` and using :py:meth:`spinLock()` and
         :py:meth:`spinUnLock()` to protect access to the pointer.
-        
+
         See Top/threadsafe.c in the Csound library sources for
         examples. Optionally, use the channel get/set functions
         provided below, which are threadsafe by default.
@@ -1111,7 +1111,7 @@ class Csound:
 
     def list_channels(self):
         """Returns a list of allocated channels and an error message.
-        
+
         A ControlChannelInfo object contains the channel characteristics.
         The error message indicates if there is not enough
         memory for allocating the list or it is an empty string if there is no
@@ -1138,12 +1138,12 @@ class Csound:
 
     def set_control_channel_hints(self, name, hints):
         """Sets parameters hints for a control channel.
-        
+
         These hints have no internal function but can be used by front ends to
         construct GUIs or to constrain values. See the ControlChannelHints
         structure for details.
         Returns zero on success, or a non-zero error code on failure:
-        
+
         CSOUND_ERROR
             the channel does not exist, is not a control channel,
             or the specified parameters are invalid
@@ -1154,10 +1154,10 @@ class Csound:
 
     def control_channel_hints(self, name):
         """Returns special parameters (if any) of a control channel.
-        
-        Those parameters have been previously set with 
+
+        Those parameters have been previously set with
         set_control_channel_hints() or the chnparams opcode.
-       
+
         The return values are a ControlChannelHints structure and
         CSOUND_SUCCESS if the channel exists and is a control channel,
         otherwise, None and an error code are returned.
@@ -1170,7 +1170,7 @@ class Csound:
 
     def channel_lock(self, name):
         """Recovers a pointer to a lock for the specified channel called name.
-        
+
         The returned lock can be locked/unlocked  with the spin_lock()
         and spin_unlock() functions.
         Returns the address of the lock or NULL if the channel does not exist.
@@ -1182,7 +1182,7 @@ class Csound:
 
     def control_channel(self, name):
         """Retrieves the value of control channel identified by name.
-        
+
         A second value is returned, which, if not None, is the error
         (or success) code finding or accessing the channel.
         """
@@ -1191,27 +1191,27 @@ class Csound:
         if bool(ret) == False:
             err = None
         return ret, err
-    
+
     def set_control_channel(self, name, val):
         """Sets the value of control channel identified by name."""
         libcsound.csoundSetControlChannel(self.cs, cstring(name), MYFLT(val))
 
     def audio_channel(self, name, samples):
         """Copies the audio channel identified by name into ndarray samples.
-        
+
         samples should contain enough memory for ksmps() MYFLTs.
         """
         ptr = samples.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundGetAudioChannel(self.cs, cstring(name), ptr)
-    
+
     def set_audio_channel(self, name, samples):
         """Sets the audio channel name with data from the ndarray samples.
-        
+
         samples should contain at least ksmps() MYFLTs.
         """
         ptr = samples.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundSetAudioChannel(self.cs, cstring(name), ptr)
-    
+
     def string_channel(self, name):
         """Return a string from the string channel identified by name."""
         n = libcsound.csoundGetChannelDatasize(self.cs, cstring(name))
@@ -1228,9 +1228,9 @@ class Csound:
 
     def array_channel(self, name):
         """Receives an ARRAYDAT from channel name.
-        
+
         array data is copied from the channel
-        NB: array data needs to be allocated externally 
+        NB: array data needs to be allocated externally
         and only the number of allocated bytes are copied
         returns 0 if successful, non-zero otherwise
         """
@@ -1243,7 +1243,7 @@ class Csound:
 
     def set_array_channel(self, name, array):
         """Sends an ARRAYDAT array to the channel name
-        
+
         array data is copied into the channel
         NB: the array in the channel receives only the amount of data it
         has allocated space for
@@ -1254,7 +1254,7 @@ class Csound:
 
     def pvs_channel(self, name):
         """Receives a PVSDAT fout from the pvsout opcode.
-        
+
         (f-rate) at channel 'name'
         Returns zero on success, CSOUND_ERROR if the index is invalid or
         if fsig framesizes are incompatible.
@@ -1286,7 +1286,7 @@ class Csound:
         """Sets the function to call whenever the :code:`invalue` opcode is used."""
         self.input_channel_cb_ref = CHANNELFUNC(function)
         libcsound.csoundSetInputChannelCallback(self.cs, self.input_channel_cb_ref)
-    
+
     def set_output_channel_callback(self, function):
         """Sets the function to call whenever the :code:`outvalue` opcode is used."""
         self.output_channel_cb_ref = CHANNELFUNC(function)
@@ -1294,22 +1294,21 @@ class Csound:
 
     def event(self, type_, params, async_mode=False):
         """Send a new event. 'type_' is the event type.
-        
+
         type_ 0 - instrument instance     CS_INSTR_EVENT
         type_ 1 - function table instance CS_TABLE_EVENT
         event parameters is a tuple, a list, or an ndarray of MYFLTs with all
         the pfields for this event parameters (p-fields)
         optionally run asynchronously (async_mode = True)
         """
-        p = np.asarray(pFields, dtype=MYFLT)
+        p = np.asarray(params, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         n_fields = ct.c_long(p.size)
-        libcsound.csoundEvent(self.cs, ct.c_int(type_), ptr, n_fields,
-            ct.c_int(async_mode))
+        libcsound.csoundEvent(self.cs, ct.c_int(type_), ptr, n_fields, ct.c_int(async_mode))
 
     def event_string(self, message, async_mode=False):
         """Send a new event as a string.
-        
+
         Multiple events separated by newlines are possible
         and score preprocessing (carry, etc) is applied.
         optionally run asynchronously (async_mode = True).
@@ -1318,7 +1317,7 @@ class Csound:
 
     def key_press(self, c):
         """Sets the ASCII code of the most recent key pressed.
-        
+
         This value is used by the sensekey opcode if a callback for
         returning keyboard events is not set (see
         register_keyboard_callback()).
@@ -1327,10 +1326,10 @@ class Csound:
 
     def register_keyboard_callback(self, function, user_data, type_mask):
         """Registers general purpose callback functions for keyboard events.
-        
+
         These callbacks are called on every control period by the sensekey
         opcode.
-        
+
         The callback is preserved on reset(), and multiple
         callbacks may be set and will be called in reverse order of
         registration. If the same function is set again, it is only moved
@@ -1338,13 +1337,13 @@ class Csound:
         user data and type mask parameters are updated. type_mask can be the
         bitwise OR of callback types for which the function should be called,
         or zero for all types.
-        
+
         Returns zero on success, CSOUND_ERROR if the specified function
         pointer or type mask is invalid, and CSOUND_MEMORY if there is not
         enough memory.
-        
+
         The callback function takes the following arguments:
-        
+
         user_data
             the "user data" pointer, as specified when setting the callback
         p
@@ -1352,7 +1351,7 @@ class Csound:
         type_
             callback type, can be one of the following (more may be added in
             future versions of Csound):
-            
+
             CSOUND_CALLBACK_KBD_EVENT
 
             CSOUND_CALLBACK_KBD_TEXT
@@ -1360,13 +1359,13 @@ class Csound:
                 data pointer is a pointer to a single value of type int,
                 for returning the key code, which can be in the range 1 to
                 65535, or 0 if there is no keyboard event.
-                
+
             For CSOUND_CALLBACK_KBD_EVENT, both key press and release
             events should be returned (with 65536 (0x10000) added to the
             key code in the latter case) as unshifted ASCII codes.
             CSOUND_CALLBACK_KBD_TEXT expects key press events only as the
             actual text that is typed.
-        
+
         The return value should be zero on success, negative on error, and
         positive if the callback was ignored (for example because the type is
         not known).
@@ -1387,7 +1386,7 @@ class Csound:
     #
     def table_length(self, table):
         """Returns the length of a function table.
-        
+
         (Not including the guard point).
         If the table does not exist, returns -1.
         """
@@ -1395,7 +1394,7 @@ class Csound:
 
     def table(self, tableNum):
         """Returns a pointer to function table tableNum as an ndarray.
-        
+
         The ndarray does not include the guard point. If the table does not
         exist, None is returned.
         """
@@ -1409,10 +1408,10 @@ class Csound:
 
     def tableArgs(self, tableNum):
         """Returns a pointer to the args used to generate a function table.
-        
+
         The pointer is returned as an ndarray. If the table does not exist,
         None is returned.
-        
+
         NB: the argument list starts with the GEN number and is followed by
         its parameters. eg. f 1 0 1024 10 1 0.5  yields the list
         {10.0, 1.0, 0.5}
@@ -1430,22 +1429,22 @@ class Csound:
     #
     def score_time(self):
         """Returns the current score time.
-        
+
         The return value is the time in seconds since the beginning of
         performance.
         """
         return libcsound.csoundGetScoreTime(self.cs)
-    
+
     def is_score_pending(self):
         """Tells whether Csound score events are performed or not.
-        
+
         Independently of real-time MIDI events (see set_score_pending()).
         """
         return libcsound.csoundIsScorePending(self.cs) != 0
 
     def set_score_pending(self, pending):
         """Sets whether Csound score events are performed or not.
-        
+
         Real-time events will continue to be performed. Can be used by external
         software, such as a VST host, to turn off performance of score events
         (while continuing to perform real-time events), for example to mute
@@ -1456,7 +1455,7 @@ class Csound:
 
     def score_offset_seconds(self):
         """Returns the score time beginning.
-        
+
         At this time score events will actually immediately be performed
         (see set_score_offset_seconds()).
         """
@@ -1464,7 +1463,7 @@ class Csound:
 
     def set_score_offset_seconds(self, time_):
         """Csound score events prior to the specified time are not performed.
-        
+
         Performance begins immediately at the specified time (real-time events
         will continue to be performed as they are received). Can be used by
         external software, such as a VST host, to begin score performance
@@ -1472,17 +1471,17 @@ class Csound:
         sequencer, or to synchronize other events with the Csound score.
         """
         libcsound.csoundSetScoreOffsetSeconds(self.cs, MYFLT(time_))
-    
+
     def rewind_score(self):
         """Rewinds a compiled Csound score.
-        
+
         It is rewinded to the time specified with set_score_offset_seconds().
         """
         libcsound.csoundRewindScore(self.cs)
 
     def sleep(self, milliseconds):
         """Waits for at least the specified number of milliseconds.
-        
+
         It yields the CPU to other threads.
         """
         libcsound.csoundSleep(ct.c_uint(milliseconds))
@@ -1492,7 +1491,7 @@ class Csound:
     #
     def load_plugins(self, directory):
         """Loads all plugins from a given directory.
-        
+
         Generally called immediatly after csound_create() to make new
         opcodes/modules available for compilation and performance.
         """
@@ -1501,11 +1500,11 @@ class Csound:
     def append_opcode(self, opname, dsblksiz, flags, outypes, intypes,
         initfunc, perffunc, deinitfunc):
         """Appends an opcode implemented by external software.
-        
+
         This opcode is added to Csound's internal opcode list.
         The opcode list is extended by one slot, and the parameters are copied
         into the new slot.
-        
+
         Returns zero on success.
         """
         return libcsound.csoundAppendOpcode(self.cs, cstring(opname), dsblksiz,
@@ -1517,27 +1516,27 @@ class Csound:
     #
     def set_is_graphable(self, is_graphable):
         """Tells Csound whether external graphic table display is supported.
-        
+
         Return the previously set value (initially False).
         """
         ret = libcsound.csoundSetIsGraphable(self.cs, ct.c_int(isGraphable))
         return (ret != 0)
-    
+
     def set_make_graph_callback(self, function):
         """Called by external software to set Csound's MakeGraph function."""
         self.make_graph_cb_ref = MAKEGRAPHFUNC(function)
         libcsound.csoundSetMakeGraphCallback(self.cs, self.make_graph_cb_ref)
-        
+
     def set_draw_graph_callback(self, function):
         """Called by external software to set Csound's DrawGraph function."""
         self.draw_graph_cb_ref = DRAWGRAPHFUNC(function)
         libcsound.csoundSetDrawGraphCallback(self.cs, self.draw_graph_cb_ref)
-    
+
     def set_kill_graph_callback(self, function):
         """Called by external software to set Csound's KillGraph function."""
         self.kill_graph_cb_ref = KILLGRAPHFUNC(function)
         libcsound.csoundSetKillGraphCallback(self.cs, self.kill_graph_cb_ref)
-                                                              
+
     def set_exit_graph_callback(self, function):
         """Called by external software to set Csound's ExitGraph function."""
         self.exit_graph_cb_ref = EXITGRAPHFUNC(function)
@@ -1548,16 +1547,16 @@ class Csound:
     #
     def create_circular_buffer(self, numelem, elemsize):
         """Creates a circular buffer with numelem number of elements.
-        
+
         The element's size is set from elemsize. It should be used like::
-        
+
             rb = cs.create_circular_buffer(1024, cs.size_of_MYFLT())
         """
         return libcsound.csoundCreateCircularBuffer(self.cs, numelem, elemsize)
-    
+
     def read_circular_buffer(self, circular_buffer, out, items):
         """Reads from circular buffer.
-        
+
         circular_buffer
             pointer to an existing circular buffer
         out
@@ -1565,17 +1564,17 @@ class Csound:
             where buffer contents will be read into
         items
             number of samples to be read
-        
+
         Returns the actual number of items read (0 <= n <= items).
         """
         if len(out) < items:
             return 0
         ptr = out.ctypes.data_as(ct.c_void_p)
         return libcsound.csoundReadCircularBuffer(self.cs, circular_buffer, ptr, items)
-    
+
     def peek_circular_buffer(self, circular_buffer, out, items):
         """Reads from circular buffer without removing them from the buffer.
-        
+
         circular_buffer
             pointer to an existing circular buffer
         out
@@ -1583,17 +1582,17 @@ class Csound:
             where buffer contents will be read into
         items
             number of samples to be read
-        
+
         Returns the actual number of items read (0 <= n <= items).
         """
         if len(out) < items:
             return 0
         ptr = out.ctypes.data_as(ct.c_void_p)
         return libcsound.csoundPeekCircularBuffer(self.cs, circular_buffer, ptr, items)
-    
+
     def write_circular_buffer(self, circular_buffer, in_, items):
         """Writes to circular buffer.
-        
+
         circular_buffer
             pointer to an existing circular buffer
         in_
@@ -1601,25 +1600,25 @@ class Csound:
             into circular buffer
         items
             number of samples to write
-            
+
         Returns the actual number of items written (0 <= n <= items).
         """
         if len(in_) < items:
             return 0
         ptr = in_.ctypes.data_as(ct.c_void_p)
         return libcsound.csoundWriteCircularBuffer(self.cs, circular_buffer, ptr, items)
-    
+
     def flush_circular_buffer(self, circular_buffer):
         """Empties circular buffer of any remaining data.
-        
+
         This function should only be used if there is no reader actively
         getting data from the buffer.
-        
+
         circular_buffer
             pointer to an existing circular buffer
         """
         libcsound.csoundFlushCircularBuffer(self.cs, circular_buffer)
-    
+
     def destroy_circular_buffer(self, circular_buffer):
         """Frees circular buffer."""
         libcsound.csoundDestroyCircularBuffer(self.cs, circular_buffer)
@@ -1652,7 +1651,7 @@ libcspt.CsoundPTflushMessageQueue.argtypes = [ct.c_void_p]
 
 class CsoundPerformanceThread:
     """Performs a score in a separate thread until the end of score is reached.
-    
+
     The playback (which is paused by default) is stopped by calling
     stop(), or if an error occurs.
     The constructor takes a Csound instance pointer as argument; it assumes
@@ -1662,65 +1661,65 @@ class CsoundPerformanceThread:
     """
     def __init__(self, csp):
         self.cpt = libcspt.NewCsoundPT(csp)
-    
+
     def __del__(self):
         libcspt.DeleteCsoundPT(self.cpt)
-    
+
     def is_running(self):
         """Returns True if the performance thread is running, False otherwise."""
         return libcspt.CsoundPTisRunning(self.cpt) != 0
-    
+
     def process_cb(self):
         """Returns the process callback."""
         return PROCESSFUNC(libcspt.CsoundPTgetProcessCB(self.cpt))
-    
+
     def set_process_cb(self, function, data):
         """Sets the process callback."""
         libcspt.CsoundPTsetProcessCB(self.cpt, PROCESSFUNC(function), ct.byref(data))
-    
+
     def csound(self):
         """Returns the Csound instance pointer."""
         return libcspt.CsoundPTgetCsound(self.cpt)
-    
+
     def status(self):
         """Returns the current status.
-        
+
         Zero if still playing, positive if the end of score was reached or
         performance was stopped, and negative if an error occured.
         """
         return libcspt.CsoundPTgetStatus(self.cpt)
-    
+
     def play(self):
         """Continues performance if it was paused."""
         libcspt.CsoundPTplay(self.cpt)
-    
+
     def pause(self):
         """Pauses performance (can be continued by calling play())."""
         libcspt.CsoundPTpause(self.cpt)
-    
+
     def toggle_pause(self):
         """Pauses or continues performance, depending on current state."""
         libcspt.CsoundPTtogglePause(self.cpt)
-    
+
     def stop(self):
         """Stops performance (cannot be continued)."""
         libcspt.CsoundPTstop(self.cpt)
-    
+
     def record(self, filename, samplebits, numbufs):
         """Starts recording the output from Csound.
-        
+
         The sample rate and number of channels are taken directly from the
         running Csound instance.
         """
         libcspt.CsoundPTrecord(self.cpt, cstring(filename), samplebits, numbufs)
-    
+
     def stop_record(self):
         """Stops recording and closes audio file."""
         libcspt.CsoundPTstopRecord(self.cpt)
-    
+
     def score_event(self, absp2mode, opcod, pFields):
         """Sends a score event.
-        
+
         The event has type opcod (e.g. 'i' for a note event).
         pFields is tuple, a list, or an ndarray of MYFLTs with all the pfields
         for this event, starting with the p1 value specified in pFields[0].
@@ -1732,28 +1731,28 @@ class CsoundPerformanceThread:
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = p.size
         libcspt.CsoundPTscoreEvent(self.cpt, ct.c_int(absp2mode), cchar(opcod), numFields, ptr)
-    
+
     def input_message(self, s):
         """Sends a score event as a string, similarly to line events (-L)."""
         libcspt.CsoundPTinputMessage(self.cpt, cstring(s))
-    
+
     def set_score_offset_seconds(self, timeVal):
         """Sets the playback time pointer to the specified value (in seconds)."""
         libcspt.CsoundPTsetScoreOffsetSeconds(self.cpt, ct.c_double(timeVal))
-    
+
     def join(self):
         """Waits until the performance is finished or fails.
-        
+
         Returns a positive value if the end of score was reached or
         stop() was called, and a negative value if an error occured.
         Also releases any resources associated with the performance thread
         object.
         """
         return libcspt.CsoundPTjoin(self.cpt)
-    
+
     def flush_message_queue(self):
         """Waits until all pending messages are actually received.
-        
+
         (pause, send score event, etc.)
         """
         libcspt.CsoundPTflushMessageQueue(self.cpt)
