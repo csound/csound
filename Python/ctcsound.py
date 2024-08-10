@@ -280,7 +280,7 @@ libcsound.csoundDeleteTree.argtypes = [ct.c_void_p, ct.POINTER(Tree)]
 libcsound.csoundCompileOrc.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
 libcsound.csoundEvalCode.restype = MYFLT
 libcsound.csoundEvalCode.argtypes = [ct.c_void_p, ct.c_char_p]
-libcsound.csoundCompileCsd.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
+libcsound.csoundCompileCSD.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int]
 libcsound.csoundStart.argtypes = [ct.c_void_p]
 libcsound.csoundPerformKsmps.argtypes = [ct.c_void_p]
 libcsound.csoundRunUtility.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.POINTER(ct.c_char_p)]
@@ -778,7 +778,7 @@ class Csound:
         This is convenient when it is desirable to package the csd as part of
         an application or a multi-language piece.
         """
-        return libcsound.csoundCompileCsd(self.cs, cstring(csd), ct.c_int(mode))
+        return libcsound.csoundCompileCSD(self.cs, cstring(csd), ct.c_int(mode))
 
     def start(self):
         """Prepares Csound for performance.
