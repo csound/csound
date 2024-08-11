@@ -74,26 +74,12 @@
                                  if it's possible...
  */
 
-/* description of an fsig analysis frame*/
-enum PVS_WINTYPE {
-    PVS_WIN_HAMMING = 0,
-    PVS_WIN_HANN,
-    PVS_WIN_KAISER,
-    PVS_WIN_CUSTOM,
-    PVS_WIN_BLACKMAN,
-    PVS_WIN_BLACKMAN_EXACT,
-    PVS_WIN_NUTTALLC3,
-    PVS_WIN_BHARRIS_3,
-    PVS_WIN_BHARRIS_MIN,
-    PVS_WIN_RECT
-};
-
 typedef struct {
   MYFLT re;
   MYFLT im;
 } CMPLX;
 
-typedef struct pvsdat {
+struct pvsdat {
         int32           N;
         int             sliding; /* Flag to indicate sliding case */
         int32           NB;
@@ -104,7 +90,7 @@ typedef struct pvsdat {
         uint32          framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
                                         /* But not in sliding case when MYFLT */
-} PVSDAT;
+};
 
 /* may be no point supporting Kaiser in an opcode unless we can support
    the param too but we can have kaiser in a PVOCEX file. */

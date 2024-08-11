@@ -478,13 +478,15 @@ class PUBLIC Csound
   {
     csoundGetAudioChannel(csound,name,samples);
   }
-  virtual int SetChannel(const char *name, const PVSDATEXT *spec)
-  {
-    return csoundSetPvsChannel(csound,name,spec);
+  virtual ARRAYDAT *InitArrayChannel(CSOUND *csound, const char *name,
+                                          char type, int dimensions,
+                                           const int *sizes) {
+    return csoundInitArrayChannel(csound, name, type, dimensions, sizes);
   }
-  virtual int GetChannel(const char *name, PVSDATEXT *spec)
-  {
-    return csoundGetPvsChannel(csound,name,spec);
+  virtual PVSDAT *InitPvsChannel(const char* name, int size, int overlap,
+                                 int winsize, int wintype, int format) {
+    return csoundInitPvsChannel(csound, name, size, overlap, winsize,
+                                wintype, format);
   }
   Csound()
     {

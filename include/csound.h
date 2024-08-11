@@ -130,12 +130,12 @@ extern "C" {
   typedef struct CSOUND_  CSOUND;
   typedef struct stringdat STRINGDAT;
   typedef struct arraydat ARRAYDAT;
+  typedef struct pvsdat PVSDAT;
 
   /**
    *  csound configuration structure, mirrors part of
    *  OPARMS, uses more meaningful names
    */
-
   typedef struct {
     int     debug_mode;     /* debug mode, 0 or 1 */
     int     buffer_frames;  /* number of frames in in/out buffers */
@@ -225,23 +225,26 @@ extern "C" {
     // to TYPE_TABLE
   } TREE;
 
-  /*
-   * Type definition for PVS data (pvs channels)
+  /**
+    PVSDAT window types
    */
-  typedef struct pvsdat_ext {
-    int32           N;       /* transform size */
-    int             sliding; /* sliding flag */
-    int32           NB;   
-    int32           overlap; /* analysis overlaps */
-    int32           winsize; /* window size */
-    int             wintype; /* window type: 0 = Hamming, 1 = Hann */
-    int32           format;  /* data format (see below) */
-    uint32          framecount; /* frame counter */
-    float*          frame;      /* data frame (see format) */
-  } PVSDATEXT;
+enum PVS_WINTYPE {
+    PVS_WIN_HAMMING = 0,
+    PVS_WIN_HANN,
+    PVS_WIN_KAISER,
+    PVS_WIN_CUSTOM,
+    PVS_WIN_BLACKMAN,
+    PVS_WIN_BLACKMAN_EXACT,
+    PVS_WIN_NUTTALLC3,
+    PVS_WIN_BHARRIS_3,
+    PVS_WIN_BHARRIS_MIN,
+    PVS_WIN_RECT
+};
+
+  
 
   /* 
-   *  PVS DATA formats 
+   *  PVSDAT formats 
   */
   enum PVS_ANALFORMAT {
     PVS_AMP_FREQ = 0, /* phase vocoder */
@@ -925,8 +928,12 @@ extern "C" {
    *    (see csoundGetStringData() and csoundSetStringData())  
    *   CSOUND_ARRAY_CHANNEL
    *     array data as an ARRAYDAT structure - (ARRAYDAT **) pp
-   *   CSOUND_ARRAY_CHANNEL
-   *     pvs data as a PVSDATEXT structure - (PVSDATEXT **) pp
+   *    (see csoundArrayData***(), csoundSetArrayData(), 
+   *     csoundGetArrayData(), and csoundInitArrayData())
+   *   CSOUND_PVS_CHANNEL
+   *     pvs data as a PVSDATEXT structure - (PVSDAT **) pp
+   *    (see csoundPvsData***(), csoundSetPvsData(), 
+   *     csoundGetPvsData(), and csoundInitPvsData())
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -1070,7 +1077,7 @@ extern "C" {
    * this function is a non-op.
    */
    PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
-                                        char type, int dimensions,
+                                          char type, int dimensions,
                                            const int *sizes);
   
 
@@ -1082,17 +1089,17 @@ extern "C" {
    *   csoundSetStringData())
    * - 'k' (control sigs): each item is a MYFLT 
    */
-  PUBLIC char csoundArrayDataType(ARRAYDAT *adat);
+  PUBLIC char csoundArrayDataType(const ARRAYDAT *adat);
 
   /**
    * Get the dimensions of the ARRAYDAT adat.
   **/
-  PUBLIC int csoundArrayDataDimensions(ARRAYDAT *adat);
+  PUBLIC int csoundArrayDataDimensions(const ARRAYDAT *adat);
 
   /**
    * Get the sizes of each dimension of the ARRAYDAT adat;
   **/
-  PUBLIC const int* csoundArrayDataSizes(ARRAYDAT *adat);
+  PUBLIC const int* csoundArrayDataSizes(const ARRAYDAT *adat);
 
 
   /**
@@ -1117,23 +1124,55 @@ extern "C" {
   PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata,
                                   const char *str);
 
-  /**
-   * Receives a PVSDAT fout from the pvsout opcode (f-rate) at channel 'name'
-   * Returns zero on success, CSOUND_ERROR if the index is invalid or
-   * if fsig framesizes are incompatible.
-   * CSOUND_MEMORY if there is not enough memory to extend the bus
+   /**
+   * Create/initialise an Fsig channel with
+   * size - FFT analysis size
+   * overlap - analysis overlap size
+   * winsize - analysis window size
+   * wintype - analysis window type (see pvsdat types enumeration)
+   * format - analysis data format (see pvsdat format enumeration)
+   * returns the PVSDAT for the requested channel or NULL on error
+   * NB: if the channel exists and has already been initialised,
+   * this function is a non-op.
    */
-  PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
-                                 PVSDATEXT *fout);
+  PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
+                                    int size, int overlap, int winsize,
+                                    int wintype, int format);
+  
+  /**
+   * Get the analysis FFT size used by the PVSDAT pvsdat
+   */
+  PUBLIC int csoundPvsDataFFTSize(const PVSDAT *pvsdat);
 
   /**
-   * Sends a PVSDATEX fin to the pvsin opcode (f-rate) for channel 'name'.
-   * Returns zero on success, CSOUND_ERROR if the index is invalid or
-   * fsig framesizes are incompatible.
-   * CSOUND_MEMORY if there is not enough memory to extend the bus.
+   * Get the analysis overlap size used by the PVSDAT pvsdat
    */
-  PUBLIC int csoundSetPvsChannel(CSOUND *, const char *name,
-                                 const PVSDATEXT *fin);
+  PUBLIC int csoundPvsDataOverlap(const PVSDAT *pvsdat);
+
+  /**
+   * Get the analysis window size used by the PVSDAT pvsdat
+   */
+  PUBLIC int csoundPvsDataWindowSize(const PVSDAT *pvsdat);
+
+  /**
+   * Get the analysis data format used by the PVSDAT pvsdat
+   */
+  PUBLIC int csoundPvsDataFormat(const PVSDAT *pvsdat);
+
+    /**
+   * Get the current framecount from PVSDAT pvsdat
+   */
+  PUBLIC unsigned int csoundPvsDataFramecount(const PVSDAT *pvsdat);
+
+   /**
+   * Get the analysis data frame from the PVSDAT pvsdat
+   */
+  PUBLIC const float *csoundGetPvsData(const PVSDAT *pvsdat);
+
+  /**
+   * Set the analysis data frame in the PVSDAT pvsdat
+   */
+  PUBLIC void csoundSetPvsData(PVSDAT *pvsdat, const float *frame);
 
   /**
    * returns the size of data stored in a channel; for string channels

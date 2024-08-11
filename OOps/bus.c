@@ -239,8 +239,8 @@ int32_t pvsin_perf(CSOUND *csound, FCHAN *p)
     size = p->f->N < fout->N ? p->f->N : fout->N;
     csoundSpinLock(p->lock);
     memcpy(fout, p->f, sizeof(PVSDAT)-sizeof(AUXCH));
-    if(p->f->frame != NULL)
-        memcpy(fout->frame.auxp, p->f->frame, sizeof(float)*(size+2));
+    if(p->f->frame.auxp != NULL)
+        memcpy(fout->frame.auxp, p->f->frame.auxp, sizeof(float)*(size+2));
     else memset(fout->frame.auxp, 0, sizeof(float)*(size+2));
     csoundSpinUnLock(p->lock);
     return OK;
@@ -262,11 +262,9 @@ int32_t pvsout_init(CSOUND *csound, FCHAN *p)
         p->lock = (spin_lock_t *)
                 csoundGetChannelLock(csound, p->name);
         csoundSpinLock(p->lock);
-        if(p->f->frame == NULL) {
-            p->f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
-        } else if(p->f->N < fin->N) {
-            p->f->frame = csound->ReAlloc(csound, p->f->frame, sizeof(float)*(fin->N+2));
-        }
+        if(p->f->frame.auxp == NULL || p->f->N < fin->N) {
+            csound->AuxAlloc(csound, (p->f->N + 2) * sizeof(float), &p->f->frame);
+        } 
         memcpy(p->f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
         csoundSpinUnLock(p->lock);
     }
@@ -276,7 +274,6 @@ int32_t pvsout_init(CSOUND *csound, FCHAN *p)
 
 int32_t pvsout_perf(CSOUND *csound, FCHAN *p)
 {
-
     PVSDAT *fin = p->r;
     int32_t   err, size, flag = 0;
     if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) {
@@ -304,13 +301,62 @@ int32_t pvsout_perf(CSOUND *csound, FCHAN *p)
     csoundSpinLock(p->lock);
     size = fin->N < p->f->N ? fin->N : p->f->N;
     memcpy(p->f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
-    if(p->f->frame != NULL)
-        memcpy(p->f->frame, fin->frame.auxp, sizeof(float)*(size+2));
+    if(p->f->frame.auxp != NULL)
+        memcpy(p->f->frame.auxp, fin->frame.auxp, sizeof(float)*(size+2));
     csoundSpinUnLock(p->lock);
     return OK;
 }
-/* ======================================================================== */
 
+PUBLIC int csoundPvsDataFFTSize(const PVSDAT *pvsdat) {
+  return pvsdat->N;
+}
+
+PUBLIC int csoundPvsDataOverlap(const PVSDAT *pvsdat) {
+  return pvsdat->overlap;
+}
+
+PUBLIC int csoundPvsDataWindowSize(const PVSDAT *pvsdat) {
+  return pvsdat->winsize;
+}
+
+PUBLIC int csoundPvsDataFormat(const PVSDAT *pvsdat) {
+  return pvsdat->format;
+}
+
+PUBLIC unsigned int csoundPvsDataFramecount(const PVSDAT *pvsdat) {
+  return pvsdat->framecount;
+}
+
+PUBLIC const float *csoundGetPvsData(const PVSDAT *pvsdat) {
+  return (const float *) pvsdat->frame.auxp; 
+}
+
+PUBLIC void csoundSetPvsData(PVSDAT *pvsdat, const float *frame) {
+  memcpy(pvsdat->frame.auxp, frame, pvsdat->frame.size);
+}
+
+PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
+                                    int size, int overlap, int winsize,
+                                 int wintype, int format) {
+    PVSDAT *p;
+    if (csoundGetChannelPtr(csound, (void **) &p, name,
+                            CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL
+                            | CSOUND_OUTPUT_CHANNEL)
+        == CSOUND_SUCCESS){
+      if(p->frame.auxp == NULL) {
+      p->N = (int32_t) size;
+      p->overlap = (int32_t) overlap;
+      p->winsize = (int32_t) winsize;
+      p->wintype = (int32_t) wintype;
+      p->format = (int32_t) format;
+      p->framecount = 0;
+      csound->AuxAlloc(csound, (p->N + 2) * sizeof(float), &p->frame);
+      }
+      return (PVSDAT *) p;
+    } else return NULL;
+}
+
+/* ======================================================================== */
 /* "chn" opcodes and bus interface by Istvan Varga */
 
 static int32_t delete_channel_db(CSOUND *csound, void *p)
@@ -379,7 +425,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
             dsize = sizeof(STRINGDAT);
             break;
         case CSOUND_PVS_CHANNEL:
-            dsize = sizeof(PVSDATEXT);
+            dsize = sizeof(PVSDAT);
             break;
         case CSOUND_ARRAY_CHANNEL:
             dsize = sizeof(ARRAYDAT);
@@ -2539,9 +2585,9 @@ void csoundGetStringChannel(CSOUND *csound, const char *name,
 }
 
 PUBLIC int csoundSetPvsChannel(CSOUND *csound, const char *name,
-                               const PVSDATEXT *fin)
+                               const PVSDAT *fin)
 {
-  PVSDATEXT *f;
+  PVSDAT *f;
   if (LIKELY(csoundGetChannelPtr(csound, (void **) &f, name,
                                  CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
              == CSOUND_SUCCESS)){
@@ -2549,14 +2595,11 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const char *name,
       csoundGetChannelLock(csound, name);
 
     csoundSpinLock(lock);
-    if (f->frame == NULL) {
-      f->frame = csound->Calloc(csound, sizeof(float)*(fin->N+2));
-    } else if (f->N < fin->N) {
-      f->frame = csound->ReAlloc(csound, f->frame, sizeof(float)*(fin->N+2));
-    }
-    memcpy(f, fin, sizeof(PVSDATEXT)-sizeof(float *));
-    if (fin->frame != NULL)
-      memcpy(f->frame, fin->frame, (f->N+2)*sizeof(float));
+    if (f->frame.auxp == NULL || f->N < fin->N) 
+       csound->AuxAlloc(csound, fin->frame.size, &f->frame);
+    memcpy(f, fin, sizeof(PVSDAT)-sizeof(AUXCH));
+    if (fin->frame.auxp != NULL)
+      memcpy(f->frame.auxp, fin->frame.auxp, fin->frame.size);
     csoundSpinUnLock(lock);
   } else {
     return CSOUND_ERROR;
@@ -2565,9 +2608,9 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const char *name,
 }
 
 PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
-                               PVSDATEXT *fout)
+                               PVSDAT *fout)
 {
-  PVSDATEXT *f;
+  PVSDAT *f;
   if (UNLIKELY(csoundGetChannelPtr(csound, (void **) &f, name,
                                    CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
                == CSOUND_SUCCESS)){
@@ -2575,9 +2618,9 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
       csoundGetChannelLock(csound, name);
     if (UNLIKELY(f == NULL)) return CSOUND_ERROR;
     csoundSpinLock(lock);
-    memcpy(fout, f, sizeof(PVSDATEXT)-sizeof(float *));
-    if (fout->frame != NULL && f->frame != NULL)
-      memcpy(fout->frame, f->frame, sizeof(float)*(fout->N));
+    memcpy(fout, f, sizeof(PVSDAT)-sizeof(AUXCH));
+    if (fout->frame.auxp != NULL && f->frame.auxp != NULL)
+      memcpy(fout->frame.auxp, f->frame.auxp, sizeof(float)*(fout->N));
     csoundSpinUnLock(lock);
   } else {
     return CSOUND_ERROR;
@@ -2626,11 +2669,11 @@ PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
   return adat;
 }
 
-PUBLIC int csoundArrayDataDimensions(ARRAYDAT *adat) {
+PUBLIC int csoundArrayDataDimensions(const ARRAYDAT *adat) {
   return adat->dimensions;
 }
 
-PUBLIC char csoundArrayDataType(ARRAYDAT *adat) {
+PUBLIC char csoundArrayDataType(const ARRAYDAT *adat) {
   if(adat->arrayType == &CS_VAR_TYPE_I)
     return 'i';
   else if(adat->arrayType == &CS_VAR_TYPE_I)
@@ -2642,7 +2685,7 @@ PUBLIC char csoundArrayDataType(ARRAYDAT *adat) {
   else return 0;
 }
 
-PUBLIC const int *csoundArrayDataSizes(ARRAYDAT *adat){
+PUBLIC const int *csoundArrayDataSizes(const ARRAYDAT *adat){
   return adat->sizes;
 }
 
