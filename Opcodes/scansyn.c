@@ -24,7 +24,12 @@
 /*               Made interpolation selectable April 2000 */
 /* Minor code optimisations April 2021 by JPff */
 
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+
 #include "scansyn.h"
 #include <stdio.h>
 #include <stdlib.h>

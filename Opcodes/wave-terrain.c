@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
+
 #include "wave-terrain.h"
 #include <math.h>
 
