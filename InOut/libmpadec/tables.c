@@ -20,7 +20,6 @@
 /* $Id: tables.c,v 1.1.1.1 2004/07/27 02:58:48 metal_man Exp $ */
 
 #include <math.h>
-#include "csdl.h"
 #include "mpadec_internal.h"
 
 const uint16_t crc_table[256] = {

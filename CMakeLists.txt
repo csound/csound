@@ -5,6 +5,8 @@ else()
 endif()
 
 set (CMAKE_CXX_STANDARD 11)
+set(CSOUNDLIB_SHARED_LINK_OPTIONS "")
+
 
 cmake_policy(SET CMP0077 NEW)
 
@@ -1210,6 +1212,8 @@ if(APPLE)
         )
     endif()
 endif()
+
+target_link_options(${CSOUNDLIB} PUBLIC ${CSOUNDLIB_SHARED_LINK_OPTIONS})
 
 if(BUILD_PLUGINS)
     message(STATUS "build external opcodes as plugins")

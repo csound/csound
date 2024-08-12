@@ -24,6 +24,11 @@
 
 #include "mpadec_config.h"
 #include "mpadec.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
 
 #define MPADEC_STATE_UNDEFINED 0
 #define MPADEC_STATE_START     1
