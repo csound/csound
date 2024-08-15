@@ -1315,6 +1315,7 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     stdopc_ModuleInit,
     newgabopc_ModuleInit,
     pvsopc_ModuleInit,
+    sfont_ModuleCreate,
     sfont_ModuleInit,
     csoundModuleInit_ampmidid,
     csoundModuleInit_mixer,
