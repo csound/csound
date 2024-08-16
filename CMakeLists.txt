@@ -1014,7 +1014,7 @@ if(NOT BUILD_PLUGINS)
  ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
  ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
- list(libcsound_CFLAGS -DCS_INTERNAL)
+ list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
 endif()
 
 if(UNIX)
