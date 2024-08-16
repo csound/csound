@@ -1014,6 +1014,7 @@ if(NOT BUILD_PLUGINS)
  ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
  ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
+ list(libcsound_CFLAGS -DCS_INTERNAL)
 endif()
 
 if(UNIX)
@@ -1424,6 +1425,9 @@ if(BUILD_STATIC_LIBRARY)
     target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
+    if(BUILD_PLUGINS)
+     list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
+     endif()
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE
     ${libcsound_CFLAGS})
 

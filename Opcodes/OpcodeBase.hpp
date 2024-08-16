@@ -41,8 +41,12 @@
 #endif
 #include <string>
 #include <vector>
-#include <interlocks.h>
-#include <csdl.h>
+#include "interlocks.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
 
 /**
  * Template base class, or pseudo-virtual base class,
