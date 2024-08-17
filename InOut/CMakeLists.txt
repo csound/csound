@@ -38,15 +38,6 @@ if(USE_JACK)
     find_package(Jack MODULE)
 endif()
 
-if(APPLE)
-    find_path(COREMIDI_INCLUDE_PATH CoreMIDI.h)
-    find_library(COREMIDI_LIBRARY CoreMIDI)
-    find_library(AUDIOUNIT_LIBRARY AudioUnit)
-    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
-    find_path(COREAUDIO_INCLUDE_PATH CoreAudio.h)
-    find_library(COREAUDIO_LIBRARY CoreAudio)
-endif()
-
 # BUILD TARGETS
 
 if(APPLE)
