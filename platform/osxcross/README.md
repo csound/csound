@@ -40,7 +40,7 @@ docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-osxc
 1. To build image used for github build using docker:
 
 ```bash
-docker build -t github-osxcross ./platform/osxcross -f ./platform/osxcross/Dockerfile.github_runner
+docker build -t github-osxcross --build-arg="BASE_DIR=/home/runner/work/csound/csound" ./platform/osxcross
 ```
 
 2. Create osxcross.tar.gz:
