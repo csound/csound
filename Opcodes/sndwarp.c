@@ -32,7 +32,7 @@
 #include "stdopcod.h"
 #include "sndwarp.h"
 
-#define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
+#define unirand(x) ((MYFLT) (x->Rand31((x->RandSeed1(x))) - 1) / FL(2147483645.0))
 
 static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
@@ -53,12 +53,12 @@ static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTnp2Finde(csound, p->isampfun)) == NULL))
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp  = ftpSamp;
     p->sampflen = ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen    = ftpWind->flen;
@@ -159,7 +159,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            csound->Warning(csound, Str("SNDWARP at last sample frame"));
+            csound->Warning(csound, "%s", Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (int32)exp[i].ampphs;
@@ -194,7 +194,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("sndwarp: not initialised"));
+                             "%s", Str("sndwarp: not initialised"));
 }
 
 /****************************************************************/
@@ -211,7 +211,7 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     MYFLT       iwsize;
 
     if (UNLIKELY(p->OUTOCOUNT > 2 && p->OUTOCOUNT < 4)) {
-      return csound->InitError(csound, Str("Wrong number of outputs "
+      return csound->InitError(csound, "%s", Str("Wrong number of outputs "
                                            "in sndwarpst; must be 2 or 4"));
     }
     nsections = (int32_t)*p->ioverlap;
@@ -224,12 +224,12 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     }
     p->exp = (WARPSECTION *)auxp;
 
-    if (UNLIKELY((ftpSamp = csound->FTnp2Finde(csound, p->isampfun)) == NULL))
+    if (UNLIKELY((ftpSamp = csound->FTFind(csound, p->isampfun)) == NULL))
       return NOTOK;
     p->ftpSamp = ftpSamp;
     p->sampflen=ftpSamp->flen;
 
-    if (UNLIKELY((ftpWind = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftpWind = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftpWind = ftpWind;
     p->flen=ftpWind->flen;
@@ -322,7 +322,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
           frIndx = (MYFLT)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            csound->Warning(csound, Str("SNDWARP at last sample frame"));
+            csound->Warning(csound, "%s", Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (int32)exp[i].ampphs;
@@ -369,16 +369,16 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("sndwarpst: not initialised"));
+                             "%s", Str("sndwarpst: not initialised"));
 }
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
-   { "sndwarp", S(SNDWARP), TR, 3, "mm", "xxxiiiiiii",
+   { "sndwarp", S(SNDWARP), TR,  "mm", "xxxiiiiiii",
     (SUBR)sndwarpgetset, (SUBR)sndwarp},
-   { "sndwarpst", S(SNDWARPST), TR, 3, "mmmm","xxxiiiiiii",
+   { "sndwarpst", S(SNDWARPST), TR,  "mmmm","xxxiiiiiii",
     (SUBR)sndwarpstset,(SUBR)sndwarpst}
 };
 

@@ -21,7 +21,12 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
@@ -99,10 +104,10 @@ static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 #define S(x)    sizeof(x)
 
 static OENTRY vaops_localops[] = {
-  { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget },
-  { "vaset", S(VA_SET),    WI, 2,      "",  "kka", NULL, (SUBR)vaset },
-  { "##array_get", S(VASIG_GET),    0, 2,      "k", "ak",  NULL, (SUBR)vasigget },
-  { "##array_set", S(VASIG_SET),    0, 2,      "",  "akk", NULL, (SUBR)vasigset }
+  { "vaget", S(VA_GET),    0,       "k", "ka",  NULL, (SUBR)vaget },
+  { "vaset", S(VA_SET),    WI,       "",  "kka", NULL, (SUBR)vaset },
+  { "##array_get", S(VASIG_GET),    0,       "k", "ak",  NULL, (SUBR)vasigget },
+  { "##array_set", S(VASIG_SET),    0,       "",  "akk", NULL, (SUBR)vasigset }
 };
 
 

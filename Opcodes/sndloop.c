@@ -219,7 +219,7 @@ static int32_t sndloop_init(CSOUND *csound, sndloop *p)
     p->cfds = (int32) (*(p->cfd)*CS_ESR); /* fade in samps */
     if (UNLIKELY(p->durs < p->cfds))
       return
-        csound->InitError(csound, Str("crossfade cannot be longer than loop\n"));
+        csound->InitError(csound, "%s", Str("crossfade cannot be longer than loop\n"));
 
     p->inc  = FL(1.0)/p->cfds;    /* inc/dec */
     p->a    = FL(0.0);
@@ -305,9 +305,9 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 durs;
     int32 len, i, nchnls;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn) ;  /* function table */
+    p->sfunc = csound->FTFind(csound, p->ifn) ;  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
+      return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
     cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);
     starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate);
@@ -315,7 +315,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
 
     if (UNLIKELY(cfds > durs))
       return csound->InitError(csound,
-                               Str("crossfade longer than loop duration\n"));
+                               "%s", Str("crossfade longer than loop duration\n"));
 
     tab = p->sfunc->ftable,  /* func table pointer */
     len = p->sfunc->flen;    /* function table length */
@@ -323,14 +323,14 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     if (UNLIKELY(nchnls != p->OUTCOUNT)) {
      return
        csound->InitError(csound,
-                         Str("function table channel count does not match output"));
+                         "%s", Str("function table channel count does not match output"));
     }
     if (UNLIKELY(starts > len)) {
-      return csound->InitError(csound,Str("start time beyond end of table\n"));
+      return csound->InitError(csound,"%s", Str("start time beyond end of table\n"));
     }
 
     if (UNLIKELY(starts+durs+cfds > len)) {
-      return csound->InitError(csound,Str("table not long enough for loop\n"));
+      return csound->InitError(csound,"%s", Str("table not long enough for loop\n"));
     }
 
     if (p->buffer.auxp==NULL ||               /* allocate memory if necessary */
@@ -442,11 +442,11 @@ static int32_t flooper_process(CSOUND *csound, flooper *p)
 static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
 {
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);  /* function table */
+    p->sfunc = csound->FTFind(csound, p->ifn);  /* function table */
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
+      return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
     else p->efunc = NULL;
 
     if (*p->iskip == 0) {
@@ -466,7 +466,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
     p->nchnls = (int32_t)(p->OUTOCOUNT);
     if(p->nchnls != p->sfunc->nchanls) {
       csound->Warning(csound,
-       Str("function table channels do not match opcode outputs"));
+       "%s", Str("function table channels do not match opcode outputs"));
     }
     return OK;
 }
@@ -489,7 +489,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
 
-    func = csound->FTnp2Finde(csound, p->ifn);
+    func = csound->FTFind(csound, p->ifn);
     sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {
@@ -502,7 +502,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 
     if(p->nchnls != p->sfunc->nchanls) {
        csound->Warning(csound,
-          Str("function table channels do not match opcode outputs"));
+          "%s", Str("function table channels do not match opcode outputs"));
       }
     }
     tab = p->sfunc->ftable;
@@ -843,9 +843,9 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
 static int32_t flooper3_init(CSOUND *csound, flooper3 *p)
 {
     int32_t len,i,p2s,lomod;
-    p->sfunc = csound->FTnp2Find(csound, p->ifn);
+    p->sfunc = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
+      return csound->InitError(csound,"%s", Str("function table not found\n"));
     }
     if (*p->ifn2 != 0) p->efunc = csound->FTFind(csound, p->ifn2);
     else p->efunc = NULL;
@@ -1138,7 +1138,7 @@ static int32_t pvsarp_init(CSOUND *csound, pvsarp *p)
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
       return csound->InitError(csound,
-                               Str("pvsarp: signal format must be amp-phase "
+                               "%s", Str("pvsarp: signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
 
@@ -1169,7 +1169,7 @@ static int32_t pvsarp_process(CSOUND *csound, pvsarp *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvsarp: not initialised\n"));
+                             "%s", Str("pvsarp: not initialised\n"));
 }
 
 static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
@@ -1189,7 +1189,7 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
       return csound->InitError(csound,
-                               Str("signal format must be amp-phase "
+                               "%s", Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
    if (p->ceps.auxp == NULL ||
@@ -1206,9 +1206,6 @@ static int32_t pvsvoc_init(CSOUND *csound, pvsvoc *p)
 
    return OK;
 }
-
-void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
-void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
 static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
 {
@@ -1244,15 +1241,9 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
           ceps[i] = fenv[i/2];
           ceps[i+1] = 0.0;
         }
-        if (!(N & (N - 1)))
-          csound->InverseComplexFFT(csound, ceps, N/2);
-        else
-          csoundInverseComplexFFTnp2(csound, ceps, tmp);
+        csound->InverseComplexFFT(csound, ceps, N/2);
         for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
-        if (!(N & (N - 1)))
-          csound->ComplexFFT(csound, ceps, N/2);
-        else
-          csoundComplexFFTnp2(csound, ceps, tmp);
+        csound->ComplexFFT(csound, ceps, N/2);
         for (i=0; i < N; i+=2) {
           fenv[i/2] = exp(ceps[i]);
           maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
@@ -1278,7 +1269,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvsvoc: not initialised\n"));
+                             "%s", Str("pvsvoc: not initialised\n"));
 }
 
 static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
@@ -1298,7 +1289,7 @@ static int32_t pvsmorph_init(CSOUND *csound, pvsmorph *p)
     if (UNLIKELY(!((p->fout->format==PVS_AMP_FREQ) ||
                    (p->fout->format==PVS_AMP_PHASE)))) {
       return csound->InitError(csound,
-                               Str("signal format must be amp-phase "
+                               "%s", Str("signal format must be amp-phase "
                                    "or amp-freq.\n"));
     }
 
@@ -1330,24 +1321,24 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvsmorph: not initialised\n"));
+                             "%s", Str("pvsmorph: not initialised\n"));
 }
 
 static OENTRY localops[] =
   {
-   {"sndloop", sizeof(sndloop),0, 3,
+   {"sndloop", sizeof(sndloop),0,
     "ak", "akkii", (SUBR)sndloop_init, (SUBR)sndloop_process},
-   {"flooper", sizeof(flooper), TR, 3,
+   {"flooper", sizeof(flooper), TR,
     "mm", "kkiiii", (SUBR)flooper_init, (SUBR)flooper_process},
-   {"pvsarp", sizeof(pvsarp), 0,3,
+   {"pvsarp", sizeof(pvsarp), 0,
     "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
-   {"pvsvoc", sizeof(pvsvoc), 0,3,
+   {"pvsvoc", sizeof(pvsvoc), 0,
     "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
-   {"flooper2", sizeof(flooper2), TR, 3,
+   {"flooper2", sizeof(flooper2), TR,
     "mm", "kkkkkiooooO", (SUBR)flooper2_init, (SUBR)flooper2_process},
-  /* {"flooper3", sizeof(flooper3), TR, 3,
+  /* {"flooper3", sizeof(flooper3), TR,
      "a", "kkkkkioooo", (SUBR)flooper3_init, (SUBR)flooper3_process},*/
-   {"pvsmorph", sizeof(pvsvoc), 0,3,
+   {"pvsmorph", sizeof(pvsvoc), 0,
     "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
 };
 

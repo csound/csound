@@ -21,7 +21,12 @@
   02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include "pstream.h"
 #include "soundio.h"
@@ -69,18 +74,6 @@ typedef struct dats1 {
 } DATASPACEM;
 
 
-
-static inline int32 intpowint(int32 x, uint32 n) /* Binary +ve power function */
-{
-    int32 ans = 1;
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
-    }
-    return ans;
-}
-
 static int32_t sinit(CSOUND *csound, DATASPACE *p)
 {
     int32_t N =  *p->iN, ui;
@@ -92,7 +85,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = intpowint(2, i-1);  /* faster than pow fn */
+      N = (int32_t)intpow1(2, i-1);  /* faster than pow fn */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -104,7 +97,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      return csound->InitError(csound, Str("invalid number of output arguments"));
+      return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++) {
@@ -144,8 +137,8 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     p->N = N;
     p->decim = decim;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, N, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
 
     return OK;
 }
@@ -161,7 +154,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
       for (i=0; N; i++) {
         N >>= 1;
       }
-      N = intpowint(2, i-1);  /* faster than pow fn */
+      N = (int32_t)intpow1(2, i-1);  /* faster than pow fn */
     } else N = 2048;
     if (decim == 0) decim = 4;
 
@@ -173,7 +166,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
     nchans = p->nchans;
 
     if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
-      return csound->InitError(csound, Str("invalid number of output arguments"));
+      return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
     p->nchans = nchans;
 
     for (i=0; i < nchans; i++) {
@@ -213,14 +206,14 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
     p->N = N;
     p->decim = decim;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, N, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
 
     return OK;
 }
 
 static int32_t sinit1(CSOUND *csound, DATASPACE *p) {
-    p->nchans = csound->GetOutputArgCnt(p);
+    p->nchans = GetOutputArgCnt((OPDS *)p);
     return sinit(csound, p);
 }
 
@@ -270,16 +263,16 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
         /* audio samples are stored in a function table */
         double tim;
         double resamp;
-        ft = csound->FTnp2Finde(csound,p->knum);
+        ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, &(p->h), Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -336,10 +329,10 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
           /* take the FFT of both frames
              re-order Nyquist bin from pos 1 to N
           */
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = 0.0;
-          csound->RealFFT2(csound,  p->fwdsetup, fwin);
+          csound->RealFFT(csound,  p->fwdsetup, fwin);
           fwin[N] = fwin[1];
           fwin[N+1] = 0.0;
 
@@ -399,7 +392,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
           }
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
           /* frame counter */
           framecnt[curframe] = curframe*N;
           /* write to overlapped output frames */
@@ -475,16 +468,16 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
         /* audio samples are stored in a function table */
         double tim;
         double resamp;
-        ft = csound->FTnp2Finde(csound,p->knum);
+        ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
 
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
-          return csound->PerfError(csound, &(p->h), Str("number of output arguments "
+          return csound->PerfError(csound, &(p->h), "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -541,10 +534,10 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
           /* take the FFT of both frames
              re-order Nyquist bin from pos 1 to N
           */
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = 0.0;
-          csound->RealFFT2(csound,  p->fwdsetup, fwin);
+          csound->RealFFT(csound,  p->fwdsetup, fwin);
           fwin[N] = fwin[1];
           fwin[N+1] = 0.0;
 
@@ -604,7 +597,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
           }
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
           /* frame counter */
           framecnt[curframe] = curframe*N;
           /* write to overlapped output frames */
@@ -643,7 +636,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
 static int32_t sinit2m(CSOUND *csound, DATASPACEM *p)
 {
     uint32_t size,i;
-    p->nchans = csound->GetOutputArgCnt(p);
+    p->nchans = GetOutputArgCnt((OPDS *)p);
     sinitm(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
@@ -658,7 +651,7 @@ static int32_t sinit2m(CSOUND *csound, DATASPACEM *p)
 static int32_t sinit2(CSOUND *csound, DATASPACE *p)
 {
     uint32_t size,i;
-    p->nchans = csound->GetOutputArgCnt(p);
+    p->nchans = GetOutputArgCnt((OPDS *)p);
     sinit(csound, p);
     size = p->N*sizeof(MYFLT);
     for (i=0; i < p->nchans; i++)
@@ -709,9 +702,9 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
 
       if (cnt == hsize) {
         double resamp;
-        ft = csound->FTnp2Finde(csound,p->knum);
+        ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
@@ -733,7 +726,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
           return csound->PerfError(csound, &(p->h),
-                                   Str("number of output arguments "
+                                   "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -789,11 +782,11 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
             pos += pitch;
           }
 
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
-          csound->RealFFT2(csound, p->fwdsetup,  fwin);
-          csound->RealFFT2(csound,  p->fwdsetup, nwin);
+          csound->RealFFT(csound, p->fwdsetup,  fwin);
+          csound->RealFFT(csound,  p->fwdsetup, nwin);
 
           tmp_real = tmp_im = (MYFLT) 1e-20;
           for (i=2; i < N; i++) {
@@ -856,7 +849,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
           }
 
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
 
           framecnt[curframe] = curframe*N;
 
@@ -929,9 +922,9 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
 
       if (cnt == hsize) {
         double resamp;
-        ft = csound->FTnp2Finde(csound,p->knum);
+        ft = csound->FTFind(csound,p->knum);
         if (UNLIKELY(ft==NULL))
-          return csound->PerfError(csound, &(p->h), Str("function table not found"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
@@ -953,7 +946,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
         }
         if (UNLIKELY((int32_t) ft->nchanls != nchans))
           return csound->PerfError(csound, &(p->h),
-                                   Str("number of output arguments "
+                                   "%s", Str("number of output arguments "
                                        "inconsistent with number of "
                                        "sound file channels"));
 
@@ -1009,11 +1002,11 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
             pos += pitch;
           }
 
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
-          csound->RealFFT2(csound, p->fwdsetup,  fwin);
-          csound->RealFFT2(csound,  p->fwdsetup, nwin);
+          csound->RealFFT(csound, p->fwdsetup,  fwin);
+          csound->RealFFT(csound,  p->fwdsetup, nwin);
 
           tmp_real = tmp_im = (MYFLT) 1e-20;
           for (i=2; i < N; i++) {
@@ -1076,7 +1069,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
           }
 
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
 
           framecnt[curframe] = curframe*N;
 
@@ -1121,7 +1114,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
     // open file
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
-    fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    fd  = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (p->sf == NULL)
       return csound->InitError(csound,
@@ -1152,7 +1145,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
 
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
+    csound->FDRecord(csound, &(p->fdch));
 
     // fill buffers
     p->curbuf = 0;
@@ -1176,8 +1169,8 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps) {
     IGN(csound);
     sf_count_t sampsread;
     // fill p->curbuf
-    sampsread = sflib_read_MYFLT(p->sf, p->indata[p->curbuf],
-                              nsmps);
+    sampsread = csound->SndfileRead(csound, p->sf, p->indata[p->curbuf],
+                              nsmps/p->nchans);
     if (sampsread < nsmps)
       memset(p->indata[p->curbuf]+sampsread, 0,
              sizeof(MYFLT)*(nsmps-sampsread));
@@ -1211,7 +1204,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     time *= p->resamp;
 
     {
-      int32_t outnum = csound->GetOutputArgCnt(p);
+      int32_t outnum = GetOutputArgCnt((OPDS *)p);
       double _0dbfs = csound->Get0dBFS(csound);
 
       if (UNLIKELY(early)) {
@@ -1310,11 +1303,11 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
               pos += pitch;
             }
 
-            csound->RealFFT2(csound,  p->fwdsetup,  bwin);
+            csound->RealFFT(csound,  p->fwdsetup,  bwin);
             bwin[N] = bwin[1];
             bwin[N+1] = FL(0.0);
-            csound->RealFFT2(csound, p->fwdsetup,  fwin);
-            csound->RealFFT2(csound,  p->fwdsetup, nwin);
+            csound->RealFFT(csound, p->fwdsetup,  fwin);
+            csound->RealFFT(csound,  p->fwdsetup, nwin);
 
             tmp_real = tmp_im = (MYFLT) 1e-20;
             for (i=2; i < N; i++) {
@@ -1376,7 +1369,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
             }
 
             fwin[1] = fwin[N];
-            csound->RealFFT2(csound,  p->invsetup,  fwin);
+            csound->RealFFT(csound,  p->invsetup,  fwin);
 
             framecnt[curframe] = curframe*N;
 
@@ -1407,7 +1400,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     p->cnt = cnt;
     p->curframe = curframe;
     p->pos = spos;
-    //printf("%f s  \n", tstamp/csound->GetSr(csound));
+    //printf("%f s  \n", tstamp/CS_ESR);
     p->tstamp = tstamp + incrt;
     p->incr = incrt;
     return OK;
@@ -1431,7 +1424,7 @@ static int32_t pvslockset(CSOUND *csound, PVSLOCK *p)
     int32    N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+      csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
     p->fout->N = N;
     p->fout->overlap = p->fin->overlap;
     p->fout->winsize = p->fin->winsize;
@@ -1443,7 +1436,7 @@ static int32_t pvslockset(CSOUND *csound, PVSLOCK *p)
         p->fout->frame.size < sizeof(float) * (N + 2))
       csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout->frame);
     if (UNLIKELY(!(p->fout->format == PVS_AMP_FREQ) ))
-      return csound->InitError(csound, Str("pvsfreeze: signal format "
+      return csound->InitError(csound, "%s", Str("pvsfreeze: signal format "
                                            "must be amp-freq."));
 
     return OK;
@@ -1506,12 +1499,12 @@ static int32_t hilbert_init(CSOUND *csound, HILB *p) {
     for (i=0; N; i++) {
       N >>= 1;
     }
-    N = intpowint(2, i-1);
+    N = (int32_t)intpow1(2, i-1);
 
     for (i=0; h; i++) {
       h >>= 1;
     }
-    h = intpowint(2, i-1);
+    h = (int32_t)intpow1(2, i-1);
     decim = N/h;
 
     size = (N*decim)*sizeof(MYFLT);
@@ -1626,7 +1619,7 @@ typedef struct amfm {
 
 int32_t am_fm_init(CSOUND *csound, AMFM *p) {
     p->ph = FL(0.0);
-    p->scal = csound->GetSr(csound)/(2*PI);
+    p->scal = CS_ESR/(2*PI);
     return OK;
 }
 
@@ -1668,21 +1661,21 @@ int32_t am_fm(CSOUND *csound, AMFM *p) {
 
 static OENTRY pvlock_localops[] =
   {
-   {"mincer", sizeof(DATASPACEM), 0, 3, "a", "akkkkoo",
+   {"mincer", sizeof(DATASPACEM), 0, "a", "akkkkoo",
     (SUBR)sinit1m,(SUBR)sprocess1m },
-   {"mincer", sizeof(DATASPACE), 0, 3, "mm", "akkkkoo",
+   {"mincer", sizeof(DATASPACE), 0, "mm", "akkkkoo",
     (SUBR)sinit1,(SUBR)sprocess1 },
-   {"temposcal", sizeof(DATASPACEM), 0, 3, "a", "kkkkkooPOP",
+   {"temposcal", sizeof(DATASPACEM), 0, "a", "kkkkkooPOP",
     (SUBR)sinit2m,(SUBR)sprocess2m },
-   {"temposcal", sizeof(DATASPACE), 0, 3, "mm", "kkkkkooPOP",
+   {"temposcal", sizeof(DATASPACE), 0, "mm", "kkkkkooPOP",
     (SUBR)sinit2,(SUBR)sprocess2 },
-   {"filescal", sizeof(DATASPACE), 0, 3, "mm", "kkkSkooPOP",
+   {"filescal", sizeof(DATASPACE), 0, "mm", "kkkSkooPOP",
     (SUBR)sinit3,(SUBR)sprocess3 },
-   {"hilbert2", sizeof(HILB), 0, 3, "aa", "aii", (SUBR) hilbert_init,
+   {"hilbert2", sizeof(HILB), 0, "aa", "aii", (SUBR) hilbert_init,
     (SUBR) hilbert_proc},
-   {"fmanal", sizeof(AMFM), 0, 3, "aa", "aa", (SUBR) am_fm_init,
+   {"fmanal", sizeof(AMFM), 0, "aa", "aa", (SUBR) am_fm_init,
     (SUBR) am_fm},
-   {"pvslock", sizeof(PVSLOCK), 0, 3, "f", "fk", (SUBR) pvslockset,
+   {"pvslock", sizeof(PVSLOCK), 0, "f", "fk", (SUBR) pvslockset,
     (SUBR) pvslockproc},
 };
 

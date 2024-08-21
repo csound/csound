@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "pvs_ops.h"
 #include "pstream.h"
 
 typedef struct {
@@ -40,7 +40,7 @@ static int32_t pvsgendyinit(CSOUND *csound, PVSGENDY *p)
     int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, Str("Unsafe to have same fsig as in and out"));
+      csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
 
     if (UNLIKELY(p->fin->sliding)) {
       if (p->fout->frame.auxp==NULL ||
@@ -110,15 +110,19 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pvsgendy: not initialised"));
+                             "%s", Str("pvsgendy: not initialised"));
 }
 
 static OENTRY pvsgendy_localops[] = {
-  { "pvsgendy", sizeof(PVSGENDY), 0, 3, "f", "fkk",
+  { "pvsgendy", sizeof(PVSGENDY), 0,  "f", "fkk",
                 (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
 };
 
-LINKAGE_BUILTIN(pvsgendy_localops)
+int32_t pvsgendy_localops_init_(CSOUND *csound)
+{
+  return csound->AppendOpcodes(csound, &(pvsgendy_localops[0]),
+                               (int32_t) (sizeof(pvsgendy_localops) / sizeof(OENTRY)));
+}
 
 
 

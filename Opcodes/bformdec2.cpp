@@ -22,10 +22,12 @@
  */
 
 #include <stdlib.h>
-//#include <unistd.h>
-#include "csdl.h"
 #include <math.h>
-#include "csoundCore.h"
+#ifdef BUILD_PLUGINS
+ #include "csdl.h"
+#else
+ #include "csoundCore.h"
+#endif
 #include <string.h>
 #include <new>
 
@@ -156,7 +158,7 @@ class hrtf {
   hrtf() {}
   virtual ~hrtf() {}
   virtual void init(void) = 0;
-  virtual int32_t hrtfstat_init(CSOUND *csound, MYFLT elev, MYFLT angle, MYFLT radius, STRINGDAT *filel, STRINGDAT *filer) = 0;
+  virtual int32_t hrtfstat_init(CSOUND *csound, MYFLT elev, MYFLT angle, MYFLT radius, STRINGDAT *filel, STRINGDAT *filer, MYFLT srxl) = 0;
   virtual int32_t hrtfstat_process(CSOUND *csound, MYFLT *in, MYFLT *outsigl, MYFLT *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps) = 0;
 };
 
@@ -199,6 +201,8 @@ private:
   /* buffers for impulse shift */
   AUXCH leftshiftbuffer_p, rightshiftbuffer_p;
 
+  void *setup, *setup_pad, *isetup, *isetup_pad;
+
 public:
 
   virtual void init(void) {
@@ -206,7 +210,9 @@ public:
   }
 
   /* HRTF functions (adapted from csound/Opcodes/hrtfopcodes.c) */
-  virtual int32_t hrtfstat_init(CSOUND *csound, MYFLT elev, MYFLT angle, MYFLT r, STRINGDAT *ifilel, STRINGDAT *ifiler)
+  virtual int32_t hrtfstat_init(CSOUND *csound,
+                                MYFLT elev, MYFLT angle, MYFLT r, STRINGDAT *ifilel, STRINGDAT *ifiler,
+                                MYFLT sr)
   {
       /* left and right data files: spectral mag, phase format. */
 
@@ -263,7 +269,7 @@ public:
 
       /* sr */
 
-      sr_p = csound->GetSr(csound);
+      sr_p = sr;
 
       //char filel[MAXNAME] = "hrtf-44100-left.dat"; //../hrtf/
       //char filer[MAXNAME] = "hrtf-44100-right.dat";
@@ -271,7 +277,7 @@ public:
       if (sr_p != FL(44100.0) && sr_p != FL(48000.0) && sr_p != FL(96000.0))
         sr_p = FL(44100.0);
 
-      if (UNLIKELY(csound->GetSr(csound) != sr_p))
+      if (UNLIKELY(sr != sr_p))
         csound->Message(csound,
                         Str("\n\nWARNING!!:\nOrchestra SR not compatible with "
                             "HRTF processing SR of: %.0f\n\n"), sr_p);
@@ -309,14 +315,14 @@ public:
 
 
       /* reading files, with byte swap */
-      fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+      fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
                                      swap4bytes);
       if (UNLIKELY(fpl == NULL))
         return
           csound->InitError(csound, "%s",
                             Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-      fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+      fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                      swap4bytes);
       if (UNLIKELY(fpr == NULL))
         return
@@ -672,9 +678,14 @@ public:
           hrtfrfloat[i+1] = magr * SIN(phaser);
         }
 
+       setup_pad = csound->RealFFTSetup(csound, irlengthpad_p, FFT_FWD);
+       setup = csound->RealFFTSetup(csound, irlength_p, FFT_FWD);
+       isetup_pad = csound->RealFFTSetup(csound, irlengthpad_p, FFT_INV);
+       isetup = csound->RealFFTSetup(csound, irlength_p, FFT_INV);
+
       /* ifft */
-      csound->InverseRealFFT(csound, hrtflfloat, irlength);
-      csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+      csound->RealFFT(csound, isetup, hrtflfloat);
+      csound->RealFFT(csound, isetup, hrtfrfloat);
 
       for (i = 0; i < irlength; i++)
         {
@@ -682,6 +693,8 @@ public:
           leftshiftbuffer[i] = hrtflfloat[i];
           rightshiftbuffer[i] = hrtfrfloat[i];
         }
+
+
 
       /* shift for causality...impulse as is is centred around zero time lag...
          then phase added. */
@@ -706,8 +719,8 @@ public:
         }
 
       /* back to freq domain */
-      csound->RealFFT(csound, hrtflpad, irlengthpad);
-      csound->RealFFT(csound, hrtfrpad, irlengthpad);
+      csound->RealFFT(csound, setup_pad, hrtflpad);
+      csound->RealFFT(csound, setup_pad, hrtfrpad);
 
       /* initialize counter */
       counter_p = 0;
@@ -786,7 +799,7 @@ public:
               for (i = irlength; i <  irlengthpad; i++)
                 complexinsig[i] = FL(0.0);
 
-              csound->RealFFT(csound, complexinsig, irlengthpad);
+              csound->RealFFT(csound, setup_pad, complexinsig);
 
               /* complex multiplication */
               csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
@@ -795,8 +808,8 @@ public:
                                   irlengthpad, FL(1.0));
 
               /* convolution is the inverse FFT of above result */
-              csound->InverseRealFFT(csound, outspecl, irlengthpad);
-              csound->InverseRealFFT(csound, outspecr, irlengthpad);
+              csound->RealFFT(csound, isetup_pad, outspecl);
+              csound->RealFFT(csound, isetup_pad, outspecr);
 
               /* scaled by a factor related to sr...? */
               for (i = 0; i < irlengthpad; i++)
@@ -884,7 +897,7 @@ typedef struct FCOMPLEX {double r,i;} fcomplex;
 
 static double readFilter(HOAMBDEC*, int32_t, int);
 static void insertFilter(HOAMBDEC*,double, int);
-static void process_nfc(CSOUND*,HOAMBDEC*, int, int, int, int, int);
+static void process_nfc(CSOUND*,HOAMBDEC*, int, int, int, int, int, int);
 
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
@@ -1002,7 +1015,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     }
 
 
-    double k = tan(freq * PI / csound->GetSr(csound));
+    double k = tan(freq * PI / CS_ESR);
     double k2 = (k*k + 2*k + 1);
 
     double b0_lf = k*k/k2; //b0
@@ -1668,7 +1681,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           csound->AuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
         p->binaural[j] = new (p->binaural_mem[j].auxp) hrtf_c;
 
-        p->binaural[j]->hrtfstat_init(csound, elev, angle[j], r, p->ifilel, p->ifiler);
+        p->binaural[j]->hrtfstat_init(csound, elev, angle[j], r, p->ifilel, p->ifiler, CS_ESR);
       }
     }
 
@@ -1687,7 +1700,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         if (p->binaural_mem[j].auxp == NULL)
           csound->AuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
         p->binaural[j] = new (p->binaural_mem[j].auxp) hrtf_c;
-        p->binaural[j]->hrtfstat_init(csound, elev[j], angle[j], r, p->ifilel, p->ifiler);
+        p->binaural[j]->hrtfstat_init(csound, elev[j], angle[j], r, p->ifilel, p->ifiler, CS_ESR);
       }
     }
 
@@ -1722,7 +1735,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     int j;
     //char buffer [50];
     //int n1;
-    int ksmps = csound->GetKsmps(csound);
+    int ksmps = CS_KSMPS;
     int n_outs = p->out->sizes[0];
 
     //int n_ins = p->in->sizes[0];
@@ -1811,7 +1824,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
 
         if (signal_order != 0) {
           if ((int)*(p->r)!=-1)
-            process_nfc(csound,p,signal_order,n,j,in_ix,csound->GetSr(csound));
+            process_nfc(csound,p,signal_order,n,j,in_ix,CS_ESR,CS_KSMPS);
         }
 
         // band splitting
@@ -1931,9 +1944,9 @@ static void insertFilter(HOAMBDEC* p, double val, int j)
  * This code was adapted from The Ambisonic Decoder Toolbox
  *
  */
-static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, int j, int in_ix, int sr)
+static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, int j, int in_ix, int sr,
+                        int ksmps)
 {
-    int ksmps = csound->GetKsmps(csound);
     //char buffer[50];
 
     double d; // meters
@@ -2147,10 +2160,11 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, in
 }
 
 #define S(x)    sizeof(x)
-
-static OENTRY localops[] = {
-  { (char*) "bformdec2.A", S(HOAMBDEC), 0, 3, (char*) "a[]", (char*) "ia[]ooooNN",
+extern "C" {
+static OENTRY bformdec2_localops[] = {
+  { (char*) "bformdec2.A", S(HOAMBDEC), 0, (char*) "a[]", (char*) "ia[]ooooNN",
     (SUBR)ihoambdec, (SUBR)ahoambdec },
 };
 
-LINKAGE_BUILTIN(localops)
+LINKAGE_BUILTIN(bformdec2_localops)
+}

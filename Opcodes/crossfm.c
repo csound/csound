@@ -21,17 +21,21 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include "crossfm.h"
 #include <math.h>
 
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {
-    FUNC *ftp1 = csound->FTnp2Find(csound, p->ifn1);
-    FUNC *ftp2 = csound->FTnp2Find(csound, p->ifn2);
+    FUNC *ftp1 = csound->FTFind(csound, p->ifn1);
+    FUNC *ftp2 = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(ftp1 == NULL  ||  ftp2 == NULL)) {
-      return csound->InitError(csound, Str("crossfm: ftable not found"));
+      return csound->InitError(csound, "%s", Str("crossfm: ftable not found"));
     }
     p->siz1 = (MYFLT)ftp1->flen;
     p->siz2 = (MYFLT)ftp2->flen;
@@ -78,7 +82,7 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -149,7 +153,7 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -223,7 +227,7 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -294,7 +298,7 @@ int32_t xpmi(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -368,7 +372,7 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -439,7 +443,7 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
     tbl1 = p->ftp1->ftable;
     tbl2 = p->ftp2->ftable;
     cps = *p->kcps;
-    k = csound->onedsr;
+    k = CS_ONEDSR;
 
     phase1 = p->phase1;
     phase2 = p->phase2;
@@ -491,12 +495,12 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
 #define S sizeof
 
 static OENTRY crossfm_localops[] = {
-  { "crossfm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xfm },
-  { "crossfmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmi },
-  { "crosspm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xpm },
-  { "crosspmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xpmi },
-  { "crossfmpm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset,(SUBR)xfmpm},
-  { "crossfmpmi", S(CROSSFM),TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmpmi },
+  { "crossfm", S(CROSSFM), TR,  "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xfm },
+  { "crossfmi", S(CROSSFM), TR,  "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmi },
+  { "crosspm", S(CROSSFM), TR,  "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xpm },
+  { "crosspmi", S(CROSSFM), TR,  "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xpmi },
+  { "crossfmpm", S(CROSSFM), TR,  "aa", "xxxxkiioo",(SUBR)xfmset,(SUBR)xfmpm},
+  { "crossfmpmi", S(CROSSFM),TR,  "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmpmi },
 };
 
 LINKAGE_BUILTIN(crossfm_localops)

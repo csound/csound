@@ -22,7 +22,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 /* #undef CS_KSMPS */
@@ -54,8 +58,8 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
 {
     FUNC *inp, *outp;
     double a = *p->asp;
-    double dt = (p->dt = 1.0/csound->GetSr(csound)); /* time step */
-    double sig = (csound->GetSr(csound)+csound->GetSr(csound))*
+    double dt = (p->dt = 1.0/CS_ESR); /* time step */
+    double sig = (CS_ESR+CS_ESR)*
                  (POWER(10.0, FL(3.0)*dt/(*p->decay))-FL(1.0)); /* loss constant */
     double b2 = *p->loss;
     double dxmin = 2.0*sqrt(dt*(b2+hypot(*p->loss, *p->stiff)));
@@ -72,12 +76,12 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     uint32_t qq;
 
     p->nin = (int32_t) (p->INOCOUNT) - 7; p->nout = (int32_t) (p->OUTOCOUNT);
-    if (UNLIKELY((inp = csound->FTnp2Find(csound,p->tabins)) == NULL ||
+    if (UNLIKELY((inp = csound->FTFind(csound,p->tabins)) == NULL ||
                  inp->flen < (uint32_t)3*p->nin)) {
       return csound->InitError(csound, "%s",
                                Str("Missing input table or too short"));
     }
-    if (UNLIKELY((outp = csound->FTnp2Find(csound,p->tabout)) == NULL ||
+    if (UNLIKELY((outp = csound->FTFind(csound,p->tabout)) == NULL ||
                  outp->flen < (uint32_t)3*p->nout)) {
       return csound->InitError(csound, "%s",
                                Str("Missing output table or too short"));
@@ -247,7 +251,7 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
 
 static OENTRY platerev_localops[] =
   {
-   { "platerev", sizeof(PLATE), 0, 3, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+   { "platerev", sizeof(PLATE), 0,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
      "iikiiiiy",
      (SUBR) platerev_init, (SUBR) platerev
   },

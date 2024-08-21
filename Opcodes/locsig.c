@@ -39,7 +39,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     int32_t     outcount = p->OUTOCOUNT;
 
     if (UNLIKELY(outcount != 2 && outcount != 4))
-      return csound->InitError(csound, Str("Wrong number of outputs in locsig; "
+      return csound->InitError(csound, "%s", Str("Wrong number of outputs in locsig; "
                                            "must be 2 or 4"));
 
     if (p->auxch.auxp == NULL ||
@@ -57,7 +57,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     p->prev_degree = -FL(918273645.192837465);
     p->prev_distance = -FL(918273645.192837465);
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     pp->locsigaddr = (void*) p;
 
     return OK;
@@ -157,12 +157,12 @@ static int32_t locsendset(CSOUND *csound, LOCSEND *p)
     STDOPCOD_GLOBALS  *pp;
     LOCSIG  *q;
 
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     q = (LOCSIG*) pp->locsigaddr;
     p->locsig = q;
 
     if (UNLIKELY(p->OUTOCOUNT != q->OUTOCOUNT)) {
-      return csound->InitError(csound, Str("Number of outputs must be the "
+      return csound->InitError(csound, "%s", Str("Number of outputs must be the "
                                            "same as the previous locsig"));
     }
     return OK;
@@ -231,9 +231,9 @@ static int32_t locsend(CSOUND *csound, LOCSEND *p)
 
 static OENTRY localops[] =
   {
-   { "locsig", S(LOCSIG),  0, 3, "mmmm", "akkk",
+   { "locsig", S(LOCSIG),  0,  "mmmm", "akkk",
      (SUBR)locsigset, (SUBR)locsig    },
-   { "locsend", S(LOCSEND),0, 3, "mmmm", "",(SUBR)locsendset, (SUBR)locsend }
+   { "locsend", S(LOCSEND),0,  "mmmm", "",(SUBR)locsendset, (SUBR)locsend }
   };
 
 int32_t locsig_init_(CSOUND *csound)

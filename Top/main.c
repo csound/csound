@@ -53,7 +53,7 @@ static void checkOptions(CSOUND *csound)
     /* IV - Feb 17 2005 */
     csrcname = csoundGetEnv(csound, "CSOUND7RC");
     if (csrcname != NULL && csrcname[0] != '\0') {
-      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
+      fd = csound->FileOpen(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
       if (UNLIKELY(fd == NULL)) {
           csoundMessage(csound, Str("WARNING: cannot open csound7rc file %s\n"),
@@ -67,7 +67,7 @@ static void checkOptions(CSOUND *csound)
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                        home_dir[0] != '\0')) {
       s = csoundConcatenatePaths(csound, home_dir, ".csound7rc");
-      fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
+      fd = csound->FileOpen(csound, &csrc, CSFILE_STD, s, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL)
         csound->Message(csound, Str("Reading options from $HOME/.csound7rc\n"));
@@ -83,7 +83,7 @@ static void checkOptions(CSOUND *csound)
       csound->Free(csound, s);
     }
     /* check for .csound7rc in current directory */
-     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound7rc", "r", NULL,
+     fd = csound->FileOpen(csound, &csrc, CSFILE_STD, ".csound7rc", "r", NULL,
                            CSFTYPE_OPTIONS, 0);
     if (fd != NULL) {
       CORFIL *cf = copy_to_corefile(csound, ".csound7rc", NULL, 0);

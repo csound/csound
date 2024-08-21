@@ -44,14 +44,14 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
     int32_t m, nsec;
     MYFLT pbr = *p->pbr, sbr = *p->sbr;        /* As cannot change */
     p->prvfreq = *p->freq;
-    tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
+    tanfpi = (MYFLT)tan(-CS_MPIDSR*(*p->freq));
     tanfpi2 = tanfpi*tanfpi;
     cotfpi = FL(1.0)/tanfpi;
     cotfpi2 = cotfpi*cotfpi;
     p->ilohi = (int32_t)*p->lohi;
     if (UNLIKELY((p->ilohi < 0) || (p->ilohi > 1))) {
       return csound->InitError(csound,
-                               Str("filter type not lowpass or "
+                               "%s", Str("filter type not lowpass or "
                                    "highpass in clfilt"));
     }
     p->ikind = (int32_t)*p->kind;
@@ -169,10 +169,10 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
       case 3: /* Lowpass Elliptical */
         return
           csound->InitError(csound,
-                            Str("Lowpass Elliptical not implemented yet. Sorry!"));
+                            "%s", Str("Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return csound->InitError(csound, Str("code error, ikind out of range"));
+        return csound->InitError(csound, "%s", Str("code error, ikind out of range"));
       }
       break;
     case 1: /* Highpass filters */
@@ -271,15 +271,15 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         }
         break;
       case 3: /* Highpass Elliptical */
-        return csound->InitError(csound, Str("Highpass Elliptical "
+        return csound->InitError(csound, "%s", Str("Highpass Elliptical "
                                              "not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return csound->InitError(csound, Str("code error, ikind out of range"));
+        return csound->InitError(csound, "%s", Str("code error, ikind out of range"));
       }
       break;
     default: /* Because of earlier conditionals, should never get here. */
-      return csound->InitError(csound, Str("code error, ihilo out of range"));
+      return csound->InitError(csound, "%s", Str("code error, ihilo out of range"));
     }
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       for (m=0;m<=nsec-1;m++) {
@@ -310,7 +310,7 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
     }
     if (*p->freq != p->prvfreq) {      /* Only reset if freq changes */
       p->prvfreq = *p->freq;
-      tanfpi = (MYFLT)tan(-csound->mpidsr*(*p->freq));
+      tanfpi = (MYFLT)tan(-CS_MPIDSR*(*p->freq));
       tanfpi2 = tanfpi*tanfpi;
       cotfpi = FL(1.0)/tanfpi;
       cotfpi2 = cotfpi*cotfpi;
@@ -343,12 +343,12 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
           break;
         case 3: /* Lowpass Elliptical */
           return csound->PerfError(csound, &(p->h),
-                                   Str("Lowpass Elliptical "
+                                   "%s", Str("Lowpass Elliptical "
                                                "not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
           return csound->PerfError(csound, &(p->h),
-                                   Str("code error, ikind out of range"));
+                                   "%s", Str("code error, ikind out of range"));
         }
         break;
       case 1: /* Highpass filters */
@@ -381,17 +381,17 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
           break;
         case 3: /* Highpass Elliptical */
           return csound->PerfError(csound, &(p->h),
-                                   Str("Highpass Elliptical "
+                                   "%s", Str("Highpass Elliptical "
                                        "not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
           return csound->PerfError(csound, &(p->h),
-                                   Str("code error, ikind out of range"));
+                                   "%s", Str("code error, ikind out of range"));
         }
         break;
       default: /* Because of earlier conditionals, should never get here. */
         return csound->PerfError(csound, &(p->h),
-                                 Str("code error, ihilo out of range"));
+                                 "%s", Str("code error, ihilo out of range"));
       }
     }
     in   = p->in;
@@ -424,7 +424,7 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
 #define S sizeof
 
 static OENTRY localops[] = {
-{ "clfilt", S(CLFILT),  0, 3, "a", "akiioppo",(SUBR)clfiltset, (SUBR)clfilt },
+{ "clfilt", S(CLFILT),  0,  "a", "akiioppo",(SUBR)clfiltset, (SUBR)clfilt },
 };
 
 int32_t clfilt_init_(CSOUND *csound)

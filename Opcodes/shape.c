@@ -30,7 +30,12 @@
     02110-1301 USA
  */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 
 #include <math.h>
@@ -48,7 +53,7 @@ static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return
         csound->InitError(csound,
-                          Str("powershape: ifullscale must be strictly positive"));
+                          "%s", Str("powershape: ifullscale must be strictly positive"));
     p->one_over_maxamp = FL(1.0) / p->maxamplitude;
     return OK;
 }
@@ -108,7 +113,7 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t   ncoeff =    /* index of the last coefficient */
-                   csound->GetInputArgCnt(p) - 2;
+                   GetInputArgCnt((OPDS *)p) - 2;
     MYFLT *out = p->aout;
     MYFLT *in = p->ain;
     MYFLT **coeff = p->kcoefficients;
@@ -141,7 +146,7 @@ typedef struct {
 
 static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
-    int32_t     ncoeff = csound->GetInputArgCnt(p) - 1;
+    int32_t     ncoeff = GetInputArgCnt((OPDS *)p) - 1;
 
     /* Need two MYFLT arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
@@ -162,7 +167,7 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     ncoeff =            /* index of the last coefficient */
-                     csound->GetInputArgCnt(p) - 2;
+                     GetInputArgCnt((OPDS *)p) - 2;
     MYFLT   *out = p->aout;
     MYFLT   *in = p->ain;
     MYFLT   **chebcoeff = p->kcoefficients;
@@ -426,7 +431,7 @@ int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 
     if ((phs = *p->initphase) >= FL(0.0)) {
       if (UNLIKELY((longphs = (int32)phs))) {
-        csound->Warning(csound, Str("init phase truncation\n"));
+        csound->Warning(csound, "%s", Str("init phase truncation\n"));
       }
       p->curphase = phs - (MYFLT)longphs;
     }
@@ -462,7 +467,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          incr = (double)(cps[n] * csound->onedsr);
+          incr = (double)(cps[n] * CS_ONEDSR);
           out[n] = (MYFLT)phase;
           phase += incr;
           if (phase >= 1.0) {
@@ -478,7 +483,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
       }
     }
     else {
-      incr = (double)(*p->xcps * csound->onedsr);
+      incr = (double)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;
@@ -565,17 +570,17 @@ static int32_t Phasine(CSOUND* csound, PHASINE* p)
 
 static OENTRY shape_localops[] =
   {
-  /* { "phasine", S(PHASINE), 0, 3, "a", "akp",
+  /* { "phasine", S(PHASINE), 0, "a", "akp",
      (SUBR)PhasineInit, (SUBR)Phasine }, */
-   { "powershape", S(POWER_SHAPE), 0, 3, "a", "akp",
+   { "powershape", S(POWER_SHAPE), 0, "a", "akp",
      (SUBR)PowerShapeInit, (SUBR)PowerShape },
-   { "polynomial", S(POLYNOMIAL), 0, 2, "a", "az", NULL, (SUBR)Polynomial },
-   { "chebyshevpoly", S(CHEBPOLY), 0, 3, "a", "az",
+   { "polynomial", S(POLYNOMIAL), 0,  "a", "az", NULL, (SUBR)Polynomial },
+   { "chebyshevpoly", S(CHEBPOLY), 0, "a", "az",
      (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
-   { "pdclip", S(PD_CLIP), 0, 2, "a", "akkop", NULL, (SUBR)PDClip },
-   { "pdhalf", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfX },
-   { "pdhalfy", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfY },
-   { "syncphasor", S(SYNCPHASOR), 0, 3, "aa", "xao",
+   { "pdclip", S(PD_CLIP), 0,  "a", "akkop", NULL, (SUBR)PDClip },
+   { "pdhalf", S(PD_HALF), 0,  "a", "akop", NULL, (SUBR)PDHalfX },
+   { "pdhalfy", S(PD_HALF), 0,  "a", "akop", NULL, (SUBR)PDHalfY },
+   { "syncphasor", S(SYNCPHASOR), 0, "aa", "xao",
      (SUBR)SyncPhasorInit, (SUBR)SyncPhasor },
 };
 

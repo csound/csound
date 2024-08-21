@@ -174,12 +174,12 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
       p->sampleRate = (double) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
       return csound->InitError(csound,
-                               Str("reverbsc: sample rate is out of range"));
+                               "%s", Str("reverbsc: sample rate is out of range"));
     }
     if (UNLIKELY(*(p->iPitchMod) < FL(0.0) ||
                  *(p->iPitchMod) > (MYFLT) MAX_PITCHMOD)) {
       return csound->InitError(csound,
-                               Str("reverbsc: invalid pitch modulation factor"));
+                               "%s", Str("reverbsc: invalid pitch modulation factor"));
     }
     /* calculate the number of bytes to allocate */
     nBytes = 0;
@@ -304,7 +304,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("reverbsc: not initialised"));
+                             "%s", Str("reverbsc: not initialised"));
 }
 
 /* module interface functions */
@@ -312,7 +312,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
 int32_t reverbsc_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "reverbsc",
-                                (int32_t) sizeof(SC_REVERB), 0, 3, "aa", "aakkjpo",
+                                (int32_t) sizeof(SC_REVERB), 0,  "aa", "aakkjpo",
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_init,
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_perf,
                                 NULL);

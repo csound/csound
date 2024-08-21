@@ -108,6 +108,7 @@ typedef struct csdata_ {
   int devout;
   void *incb;
   void *outcb;
+  MYFLT sr;
 } csdata;
 
 
@@ -368,7 +369,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     }
     CFRelease(devName);
 
-    srate = csound->GetSr(csound);
+    cdata->sr = srate = parm->sampleRate;
     if(!isInput){
       nchnls =cdata->onchnls = parm->nChannels;
       bufframes = csound->GetOutputBufferSize(csound)/nchnls;
@@ -384,7 +385,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     if(!isInput){
       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
-      csound->system_sr(csound, sr);
+      csound->GetSystemSr(csound, sr);
     }
 
     psize = sizeof(double);
@@ -392,7 +393,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
 
     if(srate < 0)
-      srate  =  csound->system_sr(csound, sr);
+      srate  =  csound->GetSystemSr(csound, sr);
     if(UNLIKELY(sr != srate)) {
       if(O.msglevel || O.odebug)
        csound->Warning(csound,
@@ -734,7 +735,6 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuff_, int nbytes)
     csdata  *cdata;
     int n = nbytes/sizeof(MYFLT);
     int m = 0, l;//, w = n;
-    //MYFLT sr = csound->GetSr(csound);
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
@@ -790,7 +790,6 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int nbytes)
     csdata  *cdata;
     int n = nbytes/sizeof(MYFLT);
     int m = 0, l;//, w = n;
-    //MYFLT sr = csound->GetSr(csound);
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
@@ -812,7 +811,7 @@ static void rtclose_(CSOUND *csound)
 
     if (cdata != NULL) {
       usleep(1000*csound->GetOutputBufferSize(csound)/
-             (csound->GetSr(csound)*csound->GetNchnls(csound)));
+             (cdata->sr*csound->GetNchnls(csound)));
 
       if(cdata->inunit != NULL){
         AudioOutputUnitStop(cdata->inunit);

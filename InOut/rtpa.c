@@ -67,6 +67,7 @@ typedef struct PA_BLOCKING_STREAM_ {
 #endif
   int         paLockTimeout;
   int         complete;
+  int         ksmps;
 } PA_BLOCKING_STREAM;
 
 static int pa_PrintErrMsg(CSOUND *csound, const char *fmt, ...)
@@ -233,7 +234,7 @@ static int selectPortAudioDevice(CSOUND *csound, int devNum, int play)
                     (play ? Str("output") : Str("input")),
                     dev_info->name);
     if(play) {
-      csound->system_sr(csound, (MYFLT) dev_info->defaultSampleRate);
+      csound->GetSystemSr(csound, (MYFLT) dev_info->defaultSampleRate);
       DAC_channels(csound, dev_info->maxOutputChannels);
     } else ADC_channels(csound, dev_info->maxInputChannels);
   }
@@ -255,7 +256,7 @@ static int pa_SetStreamParameters(CSOUND *csound, PaStreamParameters *sp,
   }
   dev = selectPortAudioDevice(csound, parm->devNum, is_playback);
   if(parm->sampleRate < 0) {
-    parm->sampleRate = csound->system_sr(csound, 0);
+    parm->sampleRate = csound->GetSystemSr(csound, 0);
   }
   if (dev < 0)
     return -1;
@@ -335,8 +336,8 @@ static int paBlockingReadWriteOpen(CSOUND *csound)
       pa_PrintErrMsg(csound, Str("Inconsistent full-duplex sample rates"));
       goto err_return;
     }
-    if (UNLIKELY(((pabs->inParm.bufSamp_SW / csound->GetKsmps(csound)) *
-                  csound->GetKsmps(csound)) != pabs->inParm.bufSamp_SW))
+    if (UNLIKELY(((pabs->inParm.bufSamp_SW / pabs->ksmps) *
+                  pabs->ksmps) != pabs->inParm.bufSamp_SW))
       csound->Warning(csound,
                        "%s", Str("WARNING: buffer size should be an integer "
                                  "multiple of ksmps in full-duplex mode\n"));
@@ -581,7 +582,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   pabs->mode |= 1;
   memcpy(&(pabs->inParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtRecordUserData(p)) = (void*) pabs;
-
+  pabs->ksmps = parm->ksmps;
   pabs->complete = 0;
 
   return 0;
@@ -605,7 +606,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   pabs->mode |= 2;
   memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) pabs;
-
+  pabs->ksmps = parm->ksmps;
   pabs->complete = 0;
 
   return (paBlockingReadWriteOpen(p));

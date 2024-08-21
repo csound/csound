@@ -22,7 +22,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 // classical 1-D Cellular Automaton by Gleb Rogozinsky.
@@ -43,7 +47,7 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
     int32_t elements=0;
     MYFLT *currLine, *initVec = NULL;
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound,p->ioutFunc)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
       elements = (p->elements = (int32_t) *p->ielements);
 
@@ -52,7 +56,7 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
                                  Str("cell: invalid num of elements"));
     }
     else return csound->InitError(csound, "%s", Str("cell: invalid output table"));
-    if (LIKELY((ftp = csound->FTnp2Finde(csound,p->initStateFunc)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
       if (UNLIKELY(elements > (int32_t)ftp->flen ))
         return csound->InitError(csound, "%s",
@@ -61,7 +65,7 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
     else
       return csound->InitError(csound, "%s",
                                Str("cell: invalid initial state table"));
-    if (LIKELY((ftp = csound->FTnp2Finde(csound,p->iRuleFunc)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
     }
     else
@@ -124,7 +128,7 @@ static int32_t cell(CSOUND *csound,CELL *p)
 #define S sizeof
 
 static OENTRY cell_localops[] = {
-  {"cell",  S(CELL),  TB, 3, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
+  {"cell",  S(CELL),  TB,  "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
 };
 
 LINKAGE_BUILTIN(cell_localops)

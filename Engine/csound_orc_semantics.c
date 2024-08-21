@@ -2205,7 +2205,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
 
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
-    member->value = var;
+   member->value = var;
     type->members = cs_cons_append(type->members, member);
     current = current->next;
   }
@@ -2220,10 +2220,9 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.opname = cs_strdup(csound, temp);
   oentry.dsblksiz = sizeof(INIT_STRUCT_VAR);
   oentry.flags = 0;
-  oentry.thread = 1;
-  oentry.iopadr = initStructVar;
-  oentry.kopadr = NULL;
-  oentry.aopadr = NULL;
+  oentry.init = initStructVar;
+  oentry.perf = NULL;
+  oentry.deinit = NULL;
   oentry.useropinfo = NULL;
 
   /* FIXME - this is not yet implemented */

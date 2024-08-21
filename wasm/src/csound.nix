@@ -272,12 +272,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
     sed -i -e 's/LINUX/1/g' Opcodes/date.c
 
-    echo 'extern "C" {
-     extern int pvsops_init_(CSOUND *csound) {
-       csnd::on_load((csnd::Csound *)csound);
-       return 0;
-     }
-    }' >>  Opcodes/pvsops.cpp
   '';
 
   configurePhase = ''
@@ -407,11 +401,14 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../OOps/lpred.c \
       ../OOps/midiinterop.c \
       ../OOps/midiops.c \
+      ../OOps/midiops2.c \
+      ../OOps/midiops3.c \
       ../OOps/midiout.c \
       ../OOps/mxfft.c \
       ../OOps/oscils.c \
       ../OOps/pffft.c \
       ../OOps/pstream.c \
+      ../OOps/pitch0.c \
       ../OOps/pvfileio.c \
       ../OOps/pvsanal.c \
       ../OOps/random.c \
@@ -469,7 +466,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/gab/gab.c \
       ../Opcodes/gab/hvs.c \
       ../Opcodes/gab/newgabopc.c \
-      ../Opcodes/gab/sliderTable.c \
       ../Opcodes/gab/tabmorph.c \
       ../Opcodes/gab/vectorial.c \
       ../Opcodes/gammatone.c \
@@ -489,8 +485,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/lufs.c \
       ../Opcodes/mandolin.c \
       ../Opcodes/metro.c \
-      ../Opcodes/midiops2.c \
-      ../Opcodes/midiops3.c \
       ../Opcodes/minmax.c \
       ../Opcodes/modal4.c \
       ../Opcodes/modmatrix.c \
@@ -508,7 +502,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/physutil.c \
       ../Opcodes/pinker.c \
       ../Opcodes/pitch.c \
-      ../Opcodes/pitch0.c \
       ../Opcodes/pitchtrack.c \
       ../Opcodes/platerev.c \
       ../Opcodes/pluck.c \
@@ -529,6 +522,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/quadbezier.c \
       ../Opcodes/repluck.c \
       ../Opcodes/reverbsc.c \
+      ../Opcodes/scansyn.c \
+      ../Opcodes/scansynx.c \
       ../Opcodes/scoreline.c \
       ../Opcodes/select.c \
       ../Opcodes/seqtime.c \
@@ -548,7 +543,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \
       ../Opcodes/tabsum.c \
-      ../Opcodes/tl/sc_noise.c \
+      ../Opcodes/sc_noise.c \
       ../Opcodes/ugakbari.c \
       ../Opcodes/ugens7.c \
       ../Opcodes/ugens8.c \
@@ -561,9 +556,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/urandom.c \
       ../Opcodes/vaops.c \
       ../Opcodes/vbap.c \
-      ../Opcodes/vbap1.c \
-      ../Opcodes/vbap_n.c \
-      ../Opcodes/vbap_zak.c \
       ../Opcodes/vpvoc.c \
       ../Opcodes/wave-terrain.c \
       ../Opcodes/wterrain2.c \
@@ -590,6 +582,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/mixer.cpp \
       ../Opcodes/signalflowgraph.cpp \
       ../Opcodes/pvsops.cpp \
+      ../Opcodes/bformdec2.cpp \
+      ../Opcodes/padsynth_gen.cpp \
+      ../Opcodes/arrayops.cpp \
+      ../Opcodes/lfsr.cpp \
+      ../Opcodes/trigEnvSegs.cpp \
+      ../Opcodes/tl/fractalnoise.cpp \
       csound_wasm.c
 
     #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)

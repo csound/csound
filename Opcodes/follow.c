@@ -35,7 +35,7 @@ static int32_t flwset(CSOUND *csound, FOL *p)
     p->wgh = p->max = FL(0.0);
     p->length = (int32)(*p->len * CS_ESR);
     if (UNLIKELY(p->length<=0L)) {           /* RWD's suggestion */
-      csound->Warning(csound, Str("follow - zero length!"));
+      csound->Warning(csound, "%s", Str("follow - zero length!"));
       p->length = (int32)CS_ESR;
     }
     p->count = p->length;
@@ -82,12 +82,12 @@ static int32_t envset(CSOUND *csound, ENV *p)
                                 /* Note - 6.90775527898 -- log(0.001) */
     p->lastatt = *p->attack;
     if (p->lastatt<=FL(0.0))
-      p->ga = EXP(- FL(69.0775527898)*csound->onedsr);
+      p->ga = EXP(- FL(69.0775527898)*CS_ONEDSR);
     else
       p->ga = EXP(- FL(6.90775527898)/(CS_ESR* p->lastatt));
     p->lastrel = *p->release;
     if (p->lastrel<=FL(0.0))
-      p->gr = EXP(- FL(69.0775527898)*csound->onedsr);
+      p->gr = EXP(- FL(69.0775527898)*CS_ONEDSR);
     else
       p->gr = EXP(- FL(6.90775527898)/(CS_ESR* p->lastrel));
     p->envelope = FL(0.0);
@@ -105,8 +105,8 @@ static int32_t envext(CSOUND *csound, ENV *p)
     if (p->lastatt!=*p->attack) {
       p->lastatt = *p->attack;
       if (p->lastatt<=FL(0.0))
-        ga = p->ga = EXP(- FL(69.0775527898)*csound->onedsr);
-      // EXP(-FL(10000.0)*csound->onedsr);
+        ga = p->ga = EXP(- FL(69.0775527898)*CS_ONEDSR);
+      // EXP(-FL(10000.0)*CS_ONEDSR);
       else
         ga = p->ga = EXP(- FL(6.90775527898)/(CS_ESR* p->lastatt));
       //EXP(-FL(1.0)/(CS_ESR* p->lastatt));
@@ -115,8 +115,8 @@ static int32_t envext(CSOUND *csound, ENV *p)
     if (p->lastrel!=*p->release) {
       p->lastrel = *p->release;
       if (p->lastrel<=FL(0.0))
-        gr = p->gr = EXP(- FL(69.0775527898)*csound->onedsr);
-      //EXP(-FL(100.0)*csound->onedsr);
+        gr = p->gr = EXP(- FL(69.0775527898)*CS_ONEDSR);
+      //EXP(-FL(100.0)*CS_ONEDSR);
       else
         gr = p->gr = EXP(- FL(6.90775527898)/(CS_ESR* p->lastrel));
       //EXP(-FL(1.0)/(CS_ESR* p->lastrel));
@@ -144,8 +144,8 @@ static int32_t envext(CSOUND *csound, ENV *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "follow",   S(FOL),   0, 3, "a",    "ai",   (SUBR)flwset,  (SUBR)follow  },
-{ "follow2",  S(ENV),   0, 3, "a",    "akk",  (SUBR)envset,  (SUBR)envext  }
+{ "follow",   S(FOL),   0,  "a",    "ai",   (SUBR)flwset,  (SUBR)follow  },
+{ "follow2",  S(ENV),   0,  "a",    "akk",  (SUBR)envset,  (SUBR)envext  }
 };
 
 int32_t follow_init_(CSOUND *csound)

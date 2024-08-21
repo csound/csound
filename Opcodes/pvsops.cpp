@@ -325,8 +325,8 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     s = s  > 0  ? (s < 1 ? s : 1.) : 0.;
     if(gate > 0) {
       if(t == 0) {
-        a = inargs[1]*csound->kr();
-	d = inargs[2]*csound->kr();
+        a = inargs[1]*this->kr();
+	d = inargs[2]*this->kr();
 	if(a < 1) a = 1;
 	if(d < 1) d = 1;
 	ainc = 1./a;
@@ -343,7 +343,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       if (e < 0.00001)
         e = 0;
       else
-        e *= pow(0.001, 1. / (inargs[4]*csound->kr()));
+        e *= pow(0.001, 1. / (inargs[4]*this->kr()));
       t = 0;   
     }
     outargs[0] = e*inargs[0];
@@ -364,8 +364,8 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     for(auto n = offset; n < nsmps; n++) {
        if(gate > 0) {
       if(t == 0) {
-        a = inargs[1]*csound->sr();
-	d = inargs[2]*csound->sr();
+        a = inargs[1]*this->sr();
+	d = inargs[2]*this->sr();
 	if(a < 1) a = 1;
 	if(d < 1) d = 1;
 	ainc = 1./a;
@@ -382,7 +382,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       if (e < 0.00001)
         e = 0;
       else
-        e *= pow(0.001, 1. / (inargs[4]*csound->sr()));
+        e *= pow(0.001, 1. / (inargs[4]*this->sr()));
       t = 0;   
     }
        out[n] = sig ? sig[n]*e : amp*e;
@@ -395,78 +395,8 @@ struct Gtadsr : public csnd::Plugin<1,6> {
 
 
 
-/*
-class PrintThread : public csnd::Thread {
-  std::atomic_bool splock;
-  std::atomic_bool on;
-  std::string message;
 
-  void lock() {
-    bool tmp = false;
-    while(!splock.compare_exchange_weak(tmp,true))
-      tmp = false;
-  }
-
-  void unlock() {
-    splock = false;
-  }
-
-  uintptr_t run() {
-    std::string old;
-    while(on) {
-      lock();
-      if(old.compare(message)) {
-       csound->message(message.c_str());
-       old = message;
-      }
-      unlock();
-    }
-    return 0;
-  }
-
-public:
-  PrintThread(csnd::Csound *csound)
-    : Thread(csound), splock(false), on(true), message("") {};
-
-  ~PrintThread(){
-    on = false;
-    join();
-  }
-
-  void set_message(const char *m) {
-    lock();
-    message = m;
-    unlock();
-  }
-
-};
-
-
-struct TPrint : csnd::Plugin<0, 1> {
-  static constexpr char const *otypes = "";
-  static constexpr char const *itypes = "S";
-  PrintThread t;
-
-  int init() {
-    csound->plugin_deinit(this);
-    csnd::constr(&t, csound);
-    return OK;
-  }
-
-  int deinit() {
-    csnd::destr(&t);
-    return OK;
-  }
-
-  int kperf() {
-    t.set_message(inargs.str_data(0).data);
-    return OK;
-  }
-};
-*/
-
-#include <modload.h>
-void csnd::on_load(Csound *csound) {
+void onload(csnd::Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
@@ -474,3 +404,15 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "akkkkk", csnd::thread::ia);
   csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "kkkkkk", csnd::thread::ia);
 }
+
+#ifdef BUILD_PLUGINS
+#include <modload.h>
+void csnd::on_load(csnd::Csound *csound) {
+    onload(csound);
+}
+#else
+extern "C" int32_t pvsops_init_modules(CSOUND *csound) {
+    onload((csnd::Csound *)csound);
+    return OK;
+  }
+#endif

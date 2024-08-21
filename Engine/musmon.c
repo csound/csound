@@ -30,6 +30,7 @@
 #include "remote.h"
 #include <math.h>
 #include "corfile.h"
+#include "fgens.h"
 
 #include "csdebug.h"
 
@@ -134,7 +135,7 @@ MYFLT csoundInitialiseIO(CSOUND *csound) {
        sfnopenout(csound);
     }
     csound->io_initialised = 1;
-    return csound->system_sr(csound, 0);
+    return csound->GetSystemSr(csound, 0);
  }
 
 
@@ -265,12 +266,12 @@ int musmon(CSOUND *csound)
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
 
-    reverbinit(csound);
     dbfs_init(csound, csound->e0dbfs);
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
-    csound->spraw = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
+    csound->spout_tmp = (MYFLT *)
+      csound->Calloc(csound,(csound->oparms->numThreads+1)*csound->nspout*sizeof(MYFLT));
     csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
     csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
@@ -608,9 +609,9 @@ int turnon(CSOUND *csound, TURNON *p)
   evt.opcod = 'i';
   evt.pcnt = 3;
 
-  if (csound->ISSTRCOD(*p->insno)) {
+  if (IsStringCode(*p->insno)) {
     char *ss = get_arg_string(csound,*p->insno);
-    insno = csound->strarg2insno(csound,ss,1);
+    insno = csound->StringArg2Insno(csound,ss,1);
     if (insno == NOT_AN_INSTRUMENT)
       return NOTOK;
   } else insno = *p->insno;
@@ -632,7 +633,7 @@ int turnon_S(CSOUND *csound, TURNON *p)
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
   evt.pcnt = 3;
-  insno = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+  insno = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   if (UNLIKELY(insno == NOT_AN_INSTRUMENT))
     return NOTOK;
   evt.p[1] = (MYFLT) insno;
@@ -770,7 +771,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     csound->currevent = saved_currevent;
     return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
   case 'q':
-    if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
+    if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int) n) == 0)) {
         printScoreError(csound, rtEvt,
@@ -800,7 +801,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     break;
   case 'i':
   case 'd':
-    if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
+    if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int)n) == 0)) {
         printScoreError(csound, rtEvt,
@@ -868,7 +869,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
   case 'f':                   /* f event: */
     {
       FUNC  *dummyftp;
-      csound->hfgens(csound, &dummyftp, evt, 0); /* construct locally */
+      hfgens(csound, &dummyftp, evt, 0); /* construct locally */
       if (getRemoteInsRfdCount(csound))
         insGlobevt(csound, evt); /* RM: & optionally send to all remotes      */
     }
@@ -1370,7 +1371,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name */
     if (evt->opcod=='d') {
-      if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
+      if (evt->strarg != NULL && IsStringCode(p[1])) {
         i = (int) named_instr_find(csound, evt->strarg);
         //printf("d opcode %s -> %d\n", evt->strarg, i);
         p[1] = -i;
@@ -1380,7 +1381,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         p[1] = -i;
       }
     }
-    else if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
+    else if (evt->strarg != NULL && IsStringCode(p[1])) {
       MYFLT n = named_instr_find(csound, evt->strarg);
       p[1] = n;
       i =(int) n;

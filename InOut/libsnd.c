@@ -51,82 +51,70 @@ static inline void alloc_globals(CSOUND *csound)
     csound->libsndStatics.nframes = (uint32)1;
 }
 
-/* The interface requires 2 functions:
-   spoutran to transfer nspout items to buffer
-   audtran to actually write the data
-
-   spoutran is called with nchnls*ksamps items and this need to be
-   buffered until outbufsiz items have been accumulated.  It will call
-   audtran to flush when this happens.
+/* VL 28.1.24
+   interleave spraw into output buffer and
+   copy back into spout when done
+   uses spraw as temporary buffer
 */
-
-static void spoutsf(CSOUND *csound)
-{
-    OPARMS  *O = csound->oparms;
-    uint32_t   chn = 0;
-    int     n;
-    int spoutrem = csound->nspout;
-    MYFLT   *sp = csound->spout;
-    MYFLT   absamp = FL(0.0);
-    uint32  nframes = csound->libsndStatics.nframes;
-    MYFLT lim = O->limiter*csound->e0dbfs;
-    MYFLT rlim = lim==0 ? 0 : FL(1.0)/lim;
-    MYFLT k1 = FL(1.0)/TANH(FL(1.0)); /*  1.31304 */
- nchk:
+static inline void spout_interleave(CSOUND *csound, int scal) {
+   OPARMS  *O = csound->oparms;
+   uint32_t nchnls = csound->nchnls, ksmps=csound->ksmps;
+   int   i,j,start=0,end=ksmps;
+   int spoutrem = csound->nspout;
+   MYFLT   *spout = csound->spout, *spinter = csound->spout_tmp;
+   MYFLT   x, absamp = FL(0.0);
+   uint32  nframes = csound->libsndStatics.nframes;
+   MYFLT lim = O->limiter*csound->e0dbfs;
+   MYFLT rlim = lim==0 ? 0 : FL(1.0)/lim;
+   MYFLT k1 = FL(1.0)/TANH(FL(1.0)); /*  1.31304 */
+   nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
-    if ((n = spoutrem) > (int) csound->libsndStatics.outbufrem) {
-      n = (int) csound->libsndStatics.outbufrem;
-    }
-    spoutrem -= n;
-    csound->libsndStatics.outbufrem -= n;
-    do {
+   if (spoutrem > (int) csound->libsndStatics.outbufrem) {
+     end = csound->libsndStatics.outbufrem/nchnls;
+   } 
+  spoutrem -= (end-start)*nchnls;
+  csound->libsndStatics.outbufrem -= (end-start)*nchnls;
+  for(j=start; j<end; j++) {
+   for(i=0; i<nchnls;i++) {
+     absamp = spinter[i*ksmps+j];
       // built inlimiter start ****
       // There is a rather awkward problem in reporting out of range not being
       // confused by the limited value but passing the clipped values to the
       // output.  Current solution is nasty and should be easier
       if (O->limiter) {
-        MYFLT x = *sp;
-        absamp = x;
+        x = absamp;
         if (UNLIKELY(x>=lim))
           x = lim;
         else if (UNLIKELY(x<= -lim))
           x = -lim;
         else
           x = lim*k1*TANH(x*rlim);
-        //printf("*** %g -> %g\n", *(sp-1), x);
-        *sp++ = x;
         if (csound->libsndStatics.osfopen) {
-          *csound->libsndStatics.outbufp++ = (x * csound->dbfs_to_float);
+          *csound->libsndStatics.outbufp++ = scal ? x * csound->dbfs_to_float: x;
         }
       }
       // limiter end ****
-      else {
-        absamp = *sp++;
-        if (csound->libsndStatics.osfopen) {
-          *csound->libsndStatics.outbufp++ = (absamp * csound->dbfs_to_float);
+       else {
+         if (csound->libsndStatics.osfopen) {
+           *csound->libsndStatics.outbufp++ = scal ? absamp * csound->dbfs_to_float :
+                                              absamp;
         }
+       }
+      *spout++ = absamp;
+      if (absamp < FL(0.0)) absamp = -absamp;
+      if (absamp > csound->maxamp[i]) {   //  maxamp this seg  
+        csound->maxamp[i] = absamp;
+        csound->maxpos[i] = nframes;
       }
-      if (absamp < FL(0.0)) {
-        absamp = -absamp;
-      }
-      if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
-        csound->maxamp[chn] = absamp;
-         csound->maxpos[chn] = nframes;
-      }
-      if (absamp > csound->e0dbfs) {        /* out of range?     */
-        csound->rngcnt[chn]++;              /*  report it        */
+      if (absamp > csound->e0dbfs) {    // out of range?    
+        csound->rngcnt[i]++;            //  report it       
         csound->rngflg = 1;
       }
-      if (csound->multichan) {
-        if (++chn >= csound->nchnls) {
-            chn = 0;
-            nframes++;
-        }
-      } else {
-        nframes++;
       }
-    } while (--n);
-    if (!csound->libsndStatics.outbufrem) {
+       nframes++;
+  }
+ 
+  if (!csound->libsndStatics.outbufrem) {
       if (csound->libsndStatics.osfopen) {
         csound->nrecs++;
         csound->audtran(csound, csound->libsndStatics.outbuf,
@@ -135,53 +123,30 @@ static void spoutsf(CSOUND *csound)
       }
       csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
       if (spoutrem) {
+        start = end;
+        end = ksmps;
         goto nchk;
       }
     }
     csound->libsndStatics.nframes = nframes;
 }
 
-/* special version of spoutsf for "raw" floating point files */
+/* The interface requires 2 functions:
+   spoutran to transfer nspout items to buffer
+   audtran to actually write the data
 
+   spoutran is called with nchnls*ksamps items and this need to be
+   buffered until outbufsiz items have been accumulated.  It will call
+   audtran to flush when this happens.
+*/
+static void spoutsf(CSOUND *csound) {
+  spout_interleave(csound,1);
+}
+
+/* special version of spoutsf for "raw" floating point files */
 static void spoutsf_noscale(CSOUND *csound)
 {
-    uint32_t chn = 0;
-    int      n, spoutrem = csound->nspout;
-    MYFLT    *sp = csound->spout;
-    MYFLT    absamp = FL(0.0);
-    uint32   nframes = csound->libsndStatics.nframes;
-
- nchk:
-    /* if nspout remaining > buf rem, prepare to send in parts */
-    if ((n = spoutrem) > (int) csound->libsndStatics.outbufrem)
-      n = (int)csound->libsndStatics.outbufrem;
-    spoutrem -= n;
-    csound->libsndStatics.outbufrem -= n;
-    do {
-      absamp = *sp++;
-      if (csound->libsndStatics.osfopen)
-        *csound->libsndStatics.outbufp++ = absamp;
-      if (absamp < FL(0.0))
-        absamp = -absamp;
-      if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
-        csound->maxamp[chn] = absamp;
-        csound->maxpos[chn] = nframes;
-      }
-      if (++chn >= csound->nchnls)
-        chn = 0, nframes++;
-    } while (--n);
-
-    if (!csound->libsndStatics.outbufrem) {
-      if (csound->libsndStatics.osfopen) {
-        csound->nrecs++;
-        csound->audtran(csound, csound->libsndStatics.outbuf,
-                        csound->libsndStatics.outbufsiz); /* Flush buffer */
-        csound->libsndStatics.outbufp = (MYFLT*) csound->libsndStatics.outbuf;
-      }
-      csound->libsndStatics.outbufrem = csound->oparms_.outbufsamps;
-      if (spoutrem) goto nchk;
-    }
-    csound->libsndStatics.nframes = nframes;
+  spout_interleave(csound,0);
 }
 
 /* diskfile write option for audtran's */
@@ -535,6 +500,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         parm.nChannels    = csound->inchnls;
         parm.sampleFormat = O->informat;
         parm.sampleRate   = (float) csound->esr;
+        parm.ksmps = csound->ksmps;
         /* open devaudio for input */
         if (UNLIKELY(csound->recopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio input"));
@@ -750,6 +716,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->outformat;
         parm.sampleRate   = (float) csound->esr;
+        parm.ksmps = csound->ksmps;
         csound->spoutran  = spoutsf;
         /* open devaudio for output */
         if (UNLIKELY(csound->playopen_callback(csound, &parm) != 0))

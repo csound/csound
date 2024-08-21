@@ -461,8 +461,9 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   CSOUND *csound = ff->csound;
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
+  void *setup;
   int N = ff->flen;
-  if (N <= 0) return csound->ftError(ff, Str("Illegal table size %d"), N);
+  if (N <= 0) return csound->FtError(ff, Str("Illegal table size %d"), N);
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];
@@ -471,7 +472,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   int p9_profile_shape = (int)ff->e.p[9];
   // base_function_t base_function = get_base_function(p9_profile_shape);
   MYFLT p10_profile_parameter = ff->e.p[10];
-  MYFLT samplerate = csound->GetSr(csound);
+  MYFLT samplerate = ftp->sr;
   log(csound, "samplerate:                  %12d\n", (int)samplerate);
   log(csound, "p1_function_table_number:            %9.4f\n",
       p1_function_table_number);
@@ -550,7 +551,8 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
     spectrum[complexI].imag(real * std::sin(random_phase));
   };
   spectrum[0].imag(0);
-  csound->InverseRealFFT(csound, ftp->ftable, N);
+  setup = csound->RealFFTSetup(csound,N,FFT_INV);
+  csound->RealFFT(csound,setup,ftp->ftable);
   // Normalize,
   MYFLT maximum = FL(0.0);
   for (int i = 0; i < N; ++i) {
@@ -565,11 +567,14 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   return OK;
 }
 
+extern "C" {
+  
 static NGFENS padsynth_gens[] = {{(char *)"padsynth", padsynth_gen},
                                  {NULL, NULL}};
 
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound) {
+PUBLIC NGFENS *padsyn_fgen_init(CSOUND *csound) {
   IGN(csound);
   return padsynth_gens;
 }
 };
+}

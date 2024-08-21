@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
@@ -61,7 +65,7 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 5)) {
-      return csound->ftError(ff, Str("insufficient arguments"));
+      return csound->FtError(ff, "%s", Str("insufficient arguments"));
     }
     ff->e.p[4] *= -1;
 

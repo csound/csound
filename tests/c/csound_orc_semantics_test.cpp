@@ -86,14 +86,14 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
     entries = find_opcode2(csound, "pcauchy");
     opc = resolve_opcode(csound, entries, "i", "k");
-    ASSERT_TRUE (opc->iopadr != NULL);
+    ASSERT_TRUE (opc->init != NULL);
 
     opc = resolve_opcode(csound, entries, "k", "k");
-    ASSERT_TRUE (opc->kopadr != NULL);
+    ASSERT_TRUE (opc->perf != NULL);
 
     // TODO this test is failing
     // opc = resolve_opcode(csound, entries, "a", "k");
-    // ASSERT_TRUE (opc->aopadr != NULL);
+    // ASSERT_TRUE (opc->aperf != NULL);
 
     csound->Free(csound, entries);
 }

@@ -22,7 +22,12 @@
 */
 
                                                         /* buchla.c */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #ifdef MSVC
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -54,7 +59,7 @@ int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
     warn++;
 #define C1 (1e-09)
 #define C2 (2.2e-10)
-    p->f = 0.5/csound->GetSr(csound);
+    p->f = 0.5/CS_ESR;
     return OK;
 }
 
@@ -178,7 +183,7 @@ typedef struct {
 int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
-    p->a_base = 1000.0*PI/(csound->GetSr(csound));
+    p->a_base = 1000.0*PI/(CS_ESR);
     p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down;
     p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up;
     return OK;
@@ -320,10 +325,10 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
 
 static OENTRY buchla_localops[] = {
   #ifdef JPFF
-  { "buchla", S(BUCHLA), 0, 3, "a", "aakkaPP",
+  { "buchla", S(BUCHLA), 0,  "a", "aakkaPP",
                             (SUBR)poly_LPG_init, (SUBR)poly_LPG_perf },
   #endif
-  { "vactrol", S(VACTROL), 0, 3, "a", "ajj",
+  { "vactrol", S(VACTROL), 0,  "a", "ajj",
                                  (SUBR)vactrol_init, (SUBR)vactrol_perf }
 };
 

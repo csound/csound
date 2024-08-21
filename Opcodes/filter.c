@@ -184,7 +184,7 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound, Str("Filter order out of bounds: "
+      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -222,7 +222,7 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound, Str("Filter order out of bounds: "
+      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -690,7 +690,7 @@ static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
       if (iter % MT) *x = x1;
       else *x = Csub(*x,RCmul(frac[iter/MT],dx));
     }
-    csound->Warning(csound, Str("too many iterations in laguer"));
+    csound->Warning(csound, "%s", Str("too many iterations in laguer"));
     return;
 }
 #undef EPSS
@@ -870,9 +870,9 @@ static fcomplex RCmul(double x, fcomplex a)
 
 static OENTRY localops[] = {
 { "filter2",0xffff,                                                     },
-{ "filter2.a",  S(FILTER), 0, 3, "a", "aiim", (SUBR)ifilter, (SUBR)afilter},
-{ "filter2.k", S(FILTER), 0, 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
-{ "zfilter2", S(ZFILTER), 0, 3,  "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter}
+{ "filter2.a",  S(FILTER), 0,  "a", "aiim", (SUBR)ifilter, (SUBR)afilter},
+{ "filter2.k", S(FILTER), 0,   "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
+{ "zfilter2", S(ZFILTER), 0,   "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter}
 };
 
 int32_t filter_init_(CSOUND *csound)

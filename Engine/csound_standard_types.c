@@ -65,7 +65,7 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
-    int64_t kcnt = csound->GetKcounter(csound);
+    int64_t kcnt = csound->kcounter;
     if (sSrc->size > sDest->size) {
       cs->Free(cs, sDest->data);
       sDest->data = csound->Calloc(csound, sSrc->size); 

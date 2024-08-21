@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "modmatrix.h"
 
-#define INITERROR(x) csound->InitError(csound, Str("modmatrix: " x))
+#define INITERROR(x) csound->InitError(csound, "%s", Str("modmatrix: " x))
 
 #if defined(__SSE2__)
 #include <emmintrin.h>
@@ -31,10 +31,10 @@ static int32_t modmatrix_init(CSOUND *csound, MODMATRIX *m)
 {
     uint32_t size;
 
-    m->restab = csound->FTnp2Find(csound, m->ires);
-    m->modtab = csound->FTnp2Find(csound, m->imod);
-    m->parmtab = csound->FTnp2Find(csound, m->iparm);
-    m->mattab = csound->FTnp2Find(csound, m->imatrix);
+    m->restab = csound->FTFind(csound, m->ires);
+    m->modtab = csound->FTFind(csound, m->imod);
+    m->parmtab = csound->FTFind(csound, m->iparm);
+    m->mattab = csound->FTFind(csound, m->imatrix);
     if (UNLIKELY(!m->restab))
         return INITERROR("unable to load result table");
     if (UNLIKELY(!m->modtab))
@@ -248,7 +248,7 @@ modmatrix(CSOUND *csound, MODMATRIX *m)
 
 static OENTRY modmatrix_localops[] = {
     {
-      "modmatrix", sizeof(MODMATRIX), TB, 3,
+      "modmatrix", sizeof(MODMATRIX), TB,
       "",
       "iiiiiik",
       (SUBR)modmatrix_init,

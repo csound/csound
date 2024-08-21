@@ -178,7 +178,7 @@ static int32_t trig(CSOUND *csound, TRIG *p)
       break;
     default:
       return
-        csound->PerfError(csound, &(p->h),
+        csound->PerfError(csound, &(p->h), "%s",
                           Str(" bad imode value"));
     }
     p->old_sig = sig;
@@ -200,7 +200,7 @@ static int32_t nterpol_init(CSOUND *csound, INTERPOL *p)
     if (LIKELY(*p->imax != *p->imin))
       p->point_factor = FL(1.0)/(*p->imax - *p->imin);
     else
-      return csound->InitError(csound, Str("Min and max the same"));
+      return csound->InitError(csound, "%s", Str("Min and max the same"));
     return OK;
  }
 
@@ -232,558 +232,7 @@ static int32_t anterpol(CSOUND *csound, INTERPOL *p)
     return OK;
 }
 
-/* Oscilators */
-
-static int32_t posc_set(CSOUND *csound, POSC *p)
-{
-    FUNC *ftp;
-
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
-      return csound->InitError(csound, Str("table not found in poscil"));
-    p->ftp        = ftp;
-    p->tablen     = ftp->flen;
-    p->tablenUPsr = p->tablen * csound->onedsr;
-    if (*p->iphs>=FL(0.0))
-      p->phs      = *p->iphs * p->tablen;
-    while (UNLIKELY(p->phs >= p->tablen))
-      p->phs     -= p->tablen;
-    return OK;
-}
-
-static int32_t posckk(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ft;
-    MYFLT       *curr_samp, fract;
-    double      phs = p->phs;
-    double      si = *p->freq * p->tablenUPsr; /* gab c3 */
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       amp = *p->amp;
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil: not initialised"));
-    ft = p->ftp->ftable;
-    if (UNLIKELY(early)) nsmps -= early;
-    for (n=offset; n<nsmps; n++) {
-      curr_samp = ft + (int32)phs;
-      fract     = (MYFLT)(phs - (int32)phs);
-      out[n]    = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      phs      += si;
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0 ))
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t poscaa(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ft;
-    MYFLT       *curr_samp, fract;
-    double      phs = p->phs;
-    MYFLT       *freq = p->freq;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *amp = p->amp; /*gab c3*/
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil: not initialised"));
-    ft = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      MYFLT ff = freq[n];
-      curr_samp = ft + (int32)phs;
-      fract     = (MYFLT)(phs - (int32)phs);
-      out[n]    = amp[n] *
-        (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);/* gab c3 */
-      phs      += ff * p->tablenUPsr;/* gab c3 */
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0) )
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t poscka(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ft;
-    MYFLT       *curr_samp, fract;
-    double      phs = p->phs;
-    uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    early  = p->h.insdshead->ksmps_no_end;
-    uint32_t    n, nsmps = CS_KSMPS;
-    MYFLT       amp = *p->amp;
-    MYFLT       *freq = p->freq;
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil: not initialised"));
-    ft = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      MYFLT ff  = freq[n];
-      curr_samp = ft + (int32)phs;
-      fract     = (MYFLT)(phs - (int32)phs);
-      out[n]    = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      phs      += ff * p->tablenUPsr;/* gab c3 */
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0 ))
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t poscak(CSOUND *csound, POSC *p)
-{
-
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ft;
-    MYFLT       *curr_samp, fract;
-    double      phs = p->phs;
-    double      si = *p->freq * p->tablenUPsr;
-    uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *amp = p->amp; /*gab c3*/
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil: not initialised"));
-    ft = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      curr_samp = ft + (int32)phs;
-      fract     = (MYFLT)(phs - (int32)phs);
-      out[n]    = amp[n] *
-        (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);/* gab c3 */
-      phs      += si;
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0) )
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t kposc(CSOUND *csound, POSC *p)
-{
-     IGN(csound);
-    double      phs = p->phs;
-    double      si = *p->freq * p->tablen * CS_ONEDKR;
-    MYFLT       *curr_samp = p->ftp->ftable + (int32)phs;
-    MYFLT       fract = (MYFLT)(phs - (double)((int32)phs));
-
-    *p->out = *p->amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-    phs    += si;
-    while (UNLIKELY(phs >= p->tablen))
-      phs -= p->tablen;
-    while (UNLIKELY(phs < 0.0))
-      phs += p->tablen;
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t posc3kk(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ftab;
-    MYFLT       fract;
-    double      phs  = p->phs;
-    double      si   = *p->freq * p->tablen * csound->onedsr;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       amp = *p->amp;
-    int32_t     x0;
-    MYFLT       y0, y1, ym1, y2;
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil3: not initialised"));
-    ftab = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      x0    = (int32)phs;
-      fract = (MYFLT)(phs - (double)x0);
-      x0--;
-      if (UNLIKELY(x0<0)) {
-        ym1 = ftab[p->tablen-1]; x0 = 0;
-      }
-      else ym1 = ftab[x0++];
-      y0    = ftab[x0++];
-      y1    = ftab[x0++];
-      if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
-      else y2 = ftab[x0];
-      {
-        MYFLT frsq = fract*fract;
-        MYFLT frcu = frsq*ym1;
-        MYFLT t1   = y2 + y0+y0+y0;
-        out[n]     = amp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                   - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-      }
-      phs += si;
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0) )
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t posc3ak(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ftab;
-    MYFLT       fract;
-    double      phs  = p->phs;
-    double      si   = *p->freq * p->tablen * csound->onedsr;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *ampp = p->amp;
-    int32_t     x0;
-    MYFLT       y0, y1, ym1, y2;
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil3: not initialised"));
-    ftab = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      x0    = (int32)phs;
-      fract = (MYFLT)(phs - (double)x0);
-      x0--;
-      if (UNLIKELY(x0<0)) {
-        ym1 = ftab[p->tablen-1]; x0 = 0;
-      }
-      else ym1 = ftab[x0++];
-      y0    = ftab[x0++];
-      y1    = ftab[x0++];
-      if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
-      else y2 = ftab[x0];
-      {
-        MYFLT frsq = fract*fract;
-        MYFLT frcu = frsq*ym1;
-        MYFLT t1   = y2 + y0+y0+y0;
-        out[n]     = ampp[n] * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                   - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-      }
-      phs += si;
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0) )
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t posc3ka(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ftab;
-    MYFLT       fract;
-    double      phs  = p->phs;
-    /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
-    MYFLT       *freq = p->freq;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       amp = *p->amp;
-    int32_t     x0;
-    MYFLT       y0, y1, ym1, y2;
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil3: not initialised"));
-    ftab = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      MYFLT ff = freq[n];
-      x0    = (int32)phs;
-      fract = (MYFLT)(phs - (double)x0);
-      x0--;
-      if (UNLIKELY(x0<0)) {
-        ym1 = ftab[p->tablen-1]; x0 = 0;
-      }
-      else ym1 = ftab[x0++];
-      y0    = ftab[x0++];
-      y1    = ftab[x0++];
-      if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
-      else y2 = ftab[x0];
-      {
-        MYFLT frsq = fract*fract;
-        MYFLT frcu = frsq*ym1;
-        MYFLT t1   = y2 + y0+y0+y0;
-        out[n]     = amp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                   - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-      }
-      phs      += ff * p->tablenUPsr;
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0) )
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t posc3aa(CSOUND *csound, POSC *p)
-{
-    FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ftab;
-    MYFLT       fract;
-    double      phs  = p->phs;
-    /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
-    MYFLT       *freq = p->freq;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *ampp = p->amp;
-    int32_t     x0;
-    MYFLT       y0, y1, ym1, y2;
-
-    if (UNLIKELY(ftp==NULL))
-      return csound->PerfError(csound, &(p->h),
-                               Str("poscil3: not initialised"));
-    ftab = p->ftp->ftable;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      MYFLT ff = freq[n];
-      x0    = (int32)phs;
-      fract = (MYFLT)(phs - (double)x0);
-      x0--;
-      if (UNLIKELY(x0<0)) {
-        ym1 = ftab[p->tablen-1]; x0 = 0;
-      }
-      else ym1 = ftab[x0++];
-      y0    = ftab[x0++];
-      y1    = ftab[x0++];
-      if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
-      else y2 = ftab[x0];
-      {
-        MYFLT frsq = fract*fract;
-        MYFLT frcu = frsq*ym1;
-        MYFLT t1   = y2 + y0+y0+y0;
-        out[n]     = ampp[n] * (y0 + FL(0.5)*frcu +
-                                fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                       - ym1/FL(3.0)) +
-                                frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                                frsq*(FL(0.5)* y1 - y0));
-        phs       += ff * p->tablenUPsr;
-      }
-      while (UNLIKELY(phs >= p->tablen))
-        phs -= p->tablen;
-      while (UNLIKELY(phs < 0.0) )
-        phs += p->tablen;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t kposc3(CSOUND *csound, POSC *p)
-{
-    IGN(csound);
-    double      phs   = p->phs;
-    double      si    = *p->freq * p->tablen * CS_ONEDKR;
-    MYFLT       *ftab = p->ftp->ftable;
-    int32_t     x0    = (int32_t)phs;
-    MYFLT       fract = (MYFLT)(phs - (double)x0);
-    MYFLT       y0, y1, ym1, y2;
-    MYFLT       amp = *p->amp;
-
-    x0--;
-    if (UNLIKELY(x0<0)) {
-      ym1 = ftab[p->tablen-1]; x0 = 0;
-    }
-    else ym1 = ftab[x0++];
-    y0 = ftab[x0++];
-    y1 = ftab[x0++];
-    if (UNLIKELY(x0>p->tablen)) y2 = ftab[1];
-    else y2 = ftab[x0];
-    {
-      MYFLT frsq = fract*fract;
-      MYFLT frcu = frsq*ym1;
-      MYFLT t1 = y2 + y0+y0+y0;
-      *p->out  = amp * (y0 + FL(0.5)*frcu +
-                        fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                               - ym1/FL(3.0)) +
-                        frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                        frsq*(FL(0.5)* y1 - y0));
-    }
-    phs += si;
-    while (UNLIKELY(phs >= p->tablen))
-      phs -= p->tablen;
-    while (UNLIKELY(phs < 0.0))
-      phs += p->tablen;
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t lposc_set(CSOUND *csound, LPOSC *p)
-{
-    FUNC   *ftp;
-    MYFLT  loop, end, looplength;
-
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ift)) == NULL))
-      return NOTOK;
-    if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
-      csound->Warning(csound, Str("losc: no sample rate stored in function "
-                                  "assuming=sr\n"));
-      p->fsr=CS_ESR;
-    }
-    p->ftp    = ftp;
-    p->tablen = ftp->flen;
- /* changed from
-        p->phs    = *p->iphs * p->tablen;   */
-
-    if (UNLIKELY((loop = *p->kloop) < 0)) loop=FL(0.0);
-     if ((end = *p->kend) > p->tablen || end <=0 )
-       end = (MYFLT)p->tablen;
-     looplength = end - loop;
-
-     if (*p->iphs >= 0)
-       p->phs = *p->iphs;
-     while (UNLIKELY(p->phs >= end))
-       p->phs -= looplength;
-     return OK;
-}
-
-static int32_t lposc(CSOUND *csound, LPOSC *p)
-{
-    MYFLT       *out = p->out, *ft = p->ftp->ftable;
-    MYFLT       *curr_samp, fract;
-    double      phs= p->phs, si= *p->freq * (p->fsr*csound->onedsr);
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    double      loop, end, looplength;// = p->looplength;
-    MYFLT       amp = *p->amp;
-
-    if ((loop = *p->kloop) < 0) loop=0;
-    if ((end = *p->kend) > p->tablen || end <=0 )
-      end = p->tablen;
-    looplength = end - loop;
-
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      curr_samp = ft + (int32)phs;
-      fract = (MYFLT)(phs - (double)((int32)phs));
-      out[n] = amp * (*curr_samp +(*(curr_samp+1)-*curr_samp)*fract);
-      phs += si;
-      if (phs >= end) phs -= looplength;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-static int32_t lposc3(CSOUND *csound, LPOSC *p)
-{
-    MYFLT       *out = p->out, *ftab = p->ftp->ftable;
-    MYFLT       fract;
-    double      phs = p->phs, si= *p->freq * (p->fsr*csound->onedsr);
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    double      loop, end, looplength;// = p->looplength;
-    MYFLT       amp = *p->amp;
-    int32_t     x0;
-    MYFLT       y0, y1, ym1, y2;
-
-    if (UNLIKELY((loop = *p->kloop) < 0)) loop=0;
-    if ((end = *p->kend) > p->tablen || end <=0 ) end = p->tablen;
-    looplength = end - loop;
-
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      x0    = (int32)phs;
-      fract = (MYFLT)(phs - (double)x0);
-      x0--;
-      if (x0<0) {
-        ym1 = ftab[p->tablen-1]; x0 = 0;
-      }
-      else ym1 = ftab[x0++];
-      y0    = ftab[x0++];
-      y1    = ftab[x0++];
-      if (x0>p->tablen) y2 = ftab[1]; else y2 = ftab[x0];
-      {
-        MYFLT frsq = fract*fract;
-        MYFLT frcu = frsq*ym1;
-        MYFLT t1   = y2 + y0+y0+y0;
-        out[n]     = amp * (y0 + FL(0.5)*frcu +
-                            fract*(y1 - frcu/FL(6.0) - t1/FL(6.0)
-                                   - ym1/FL(3.0)) +
-                            frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) +
-                            frsq*(FL(0.5)* y1 - y0));
-      }
-      phs += si;
-      while (phs >= end) phs -= looplength;
-    }
-    p->phs = phs;
-    return OK;
-}
-
-
+      
 static int32_t sum_init(CSOUND *csound, SUM *p) {
     uint32_t nsmps = CS_KSMPS;
     if (p->aux.auxp == NULL || p->aux.size < nsmps * sizeof(MYFLT))
@@ -891,7 +340,7 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     double  cf;
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
-      return csound->InitError(csound, Str("loop cannot be zero"));
+      return csound->InitError(csound, "%s", Str("loop cannot be zero"));
     {
       MYFLT   sep = (*p->sep / (MYFLT) loop);
       int32_t     flag = (int32_t) *p->iflag;
@@ -915,11 +364,11 @@ static int32_t resony(CSOUND *csound, RESONY *p)
       for (j = 0; j < loop; j++) {
         if (flag)                     /* linear separation in hertz */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
-                             * (double) csound->tpidsr);
+                             * (double) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
-                             * (double) csound->tpidsr);
-        c3 = EXP(*p->kbw * (cf / *p->kcf) * csound->mtpdsr);
+                             * (double) CS_TPIDSR);
+        c3 = EXP(*p->kbw * (cf / *p->kcf) * CS_MTPIDSR);
         c3p1 = c3 + FL(1.0);
         c3t4 = c3 * FL(4.0);
         c2 = c3t4 * cosf / c3p1;
@@ -993,7 +442,7 @@ static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
     p->nsegs   = p->INOCOUNT-3;
     // Should check this is even
     if (UNLIKELY((p->nsegs&1)!=0))
-      csound->Warning(csound, Str("loop opcode: wrong argument count"));
+      csound->Warning(csound, "%s", Str("loop opcode: wrong argument count"));
     p->args[0] = FL(0.0);
     p->phs     = *p->iphase;
     return OK;
@@ -1336,17 +785,17 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (((int64_t)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
       else if (UNLIKELY(*p->iphs>=1.0))
-        return csound->InitError(csound, Str("vibrato@ Phase out of range"));
+        return csound->InitError(csound, "%s", Str("vibrato@ Phase out of range"));
     }
     else return NOTOK;
-    p->xcpsAmpRate = randGab *(*p->cpsMaxRate - *p->cpsMinRate) +
+    p->xcpsAmpRate = randGab(csound) *(*p->cpsMaxRate - *p->cpsMinRate) +
       *p->cpsMinRate;
-    p->xcpsFreqRate = randGab *(*p->ampMaxRate - *p->ampMinRate) +
+    p->xcpsFreqRate = randGab(csound) *(*p->ampMaxRate - *p->ampMinRate) +
       *p->ampMinRate;
     p->tablen = ftp->flen;
     p->tablenUPkr = p->tablen * CS_ONEDKR;
@@ -1382,26 +831,26 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     p->lphs = phs;
     p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
     if (p->phsAmpRate >= MAXLEN) {
-      p->xcpsAmpRate =  randGab  * (*p->ampMaxRate - *p->ampMinRate) +
+      p->xcpsAmpRate =  randGab(csound)  * (*p->ampMaxRate - *p->ampMinRate) +
         *p->ampMinRate;
       p->phsAmpRate &= PHMASK;
       p->num1amp = p->num2amp;
-      p->num2amp = BiRandGab ;
+      p->num2amp = BiRandGab(csound) ;
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
     p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
     if (p->phsFreqRate >= MAXLEN) {
-      p->xcpsFreqRate =  randGab  * (*p->cpsMaxRate - *p->cpsMinRate) +
+      p->xcpsFreqRate =  randGab(csound)  * (*p->cpsMaxRate - *p->cpsMinRate) +
         *p->cpsMinRate;
       p->phsFreqRate &= PHMASK;
       p->num1freq = p->num2freq;
-      p->num2freq = BiRandGab ;
+      p->num2freq = BiRandGab(csound) ;
       p->dfdmaxFreq = (p->num2freq - p->num1freq) / FMAXLEN;
     }
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vibrato(krate): not initialised"));
+                             "%s", Str("vibrato(krate): not initialised"));
 }
 
 static int32_t vibr_set(CSOUND *csound, VIBR *p)
@@ -1417,13 +866,13 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
     }
     else return NOTOK;
-    p->xcpsAmpRate = randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
-    p->xcpsFreqRate = randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
+    p->xcpsAmpRate = randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
+    p->xcpsFreqRate = randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
     p->tablen = ftp->flen;
     p->tablenUPkr = p->tablen * CS_ONEDKR;
     return OK;
@@ -1444,7 +893,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("vibrato(krate): not initialised"));
+                               "%s", Str("vibrato(krate): not initialised"));
     }
     fract = (MYFLT) (phs - (int32)phs); /*PFRAC(phs);*/
     ftab = ftp->ftable + (int32)phs; /*(phs >> ftp->lobits);*/
@@ -1461,19 +910,19 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 
     p->phsAmpRate += (int32)(p->xcpsAmpRate * CS_KICVT);
     if (p->phsAmpRate >= MAXLEN) {
-      p->xcpsAmpRate =  randGab  * (ampMaxRate - ampMinRate) + ampMinRate;
+      p->xcpsAmpRate =  randGab(csound)  * (ampMaxRate - ampMinRate) + ampMinRate;
       p->phsAmpRate &= PHMASK;
       p->num1amp = p->num2amp;
-      p->num2amp = BiRandGab;
+      p->num2amp = BiRandGab(csound);
       p->dfdmaxAmp = (p->num2amp - p->num1amp) / FMAXLEN;
     }
 
     p->phsFreqRate += (int32)(p->xcpsFreqRate * CS_KICVT);
     if (p->phsFreqRate >= MAXLEN) {
-      p->xcpsFreqRate =  randGab  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
+      p->xcpsFreqRate =  randGab(csound)  * (cpsMaxRate - cpsMinRate) + cpsMinRate;
       p->phsFreqRate &= PHMASK;
       p->num1freq = p->num2freq;
-      p->num2freq = BiRandGab;
+      p->num2freq = BiRandGab(csound);
       p->dfdmaxFreq = (p->num2freq - p->num1freq) / FMAXLEN;
     }
 #undef  randAmountAmp
@@ -1499,13 +948,13 @@ static int32_t jitter2_set(CSOUND *csound, JITTER2 *p)
     p->num1a = p->num1b = p->num1c = FL(0.0); /* JPff Jul 2016 */
     if (*p->option != FL(0.0)) {
       p->num1a   = p->num2a;
-      p->num2a   = BiRandGab;
+      p->num2a   = BiRandGab(csound);
       p->dfdmax1 = (p->num2a - p->num1a) / FMAXLEN;
       p->num1b   = p->num2b;
-      p->num2b   = BiRandGab;
+      p->num2b   = BiRandGab(csound);
       p->dfdmax2 = (p->num2b- p->num1b) / FMAXLEN;
       p->num1c   = p->num2c;
-      p->num2c   = BiRandGab;
+      p->num2c   = BiRandGab(csound);
       p->dfdmax3 = (p->num2c- p->num1c) / FMAXLEN;
     }
     return OK;
@@ -1533,19 +982,19 @@ static int32_t jitter2(CSOUND *csound, JITTER2 *p)
     if (p->phs1 >= MAXLEN) {
       p->phs1   &= PHMASK;
       p->num1a   = p->num2a;
-      p->num2a   = BiRandGab;
+      p->num2a   = BiRandGab(csound);
       p->dfdmax1 = (p->num2a - p->num1a) / FMAXLEN;
     }
     if (p->phs2 >= MAXLEN) {
       p->phs2   &= PHMASK;
       p->num1b   = p->num2b;
-      p->num2b   = BiRandGab;
+      p->num2b   = BiRandGab(csound);
       p->dfdmax2 = (p->num2b - p->num1b) / FMAXLEN;
     }
     if (p->phs3 >= MAXLEN) {
       p->phs3   &= PHMASK;
       p->num1c   = p->num2c;
-      p->num2c   = BiRandGab;
+      p->num2c   = BiRandGab(csound);
       p->dfdmax3 = (p->num2c - p->num1c) / FMAXLEN;
     }
     return OK;
@@ -1553,7 +1002,7 @@ static int32_t jitter2(CSOUND *csound, JITTER2 *p)
 
 static int32_t jitter_set(CSOUND *csound, JITTER *p)
 {
-    p->num2     = BiRandGab;
+    p->num2     = BiRandGab(csound);
     p->initflag = 1;
     p->phs=0;
     return OK;
@@ -1571,10 +1020,10 @@ static int32_t jitter(CSOUND *csound, JITTER *p)
 
     if (p->phs >= MAXLEN) {
     next:
-      p->xcps   = randGab  * (*p->cpsMax - *p->cpsMin) + *p->cpsMin;
+      p->xcps   = randGab(csound)  * (*p->cpsMax - *p->cpsMin) + *p->cpsMin;
       p->phs   &= PHMASK;
       p->num1   = p->num2;
-      p->num2   = BiRandGab;
+      p->num2   = BiRandGab(csound);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -1582,8 +1031,8 @@ static int32_t jitter(CSOUND *csound, JITTER *p)
 
 static int32_t jitters_set(CSOUND *csound, JITTERS *p)
 {
-    p->num1     = BiRandGab;
-    p->num2     = BiRandGab;
+    p->num1     = BiRandGab(csound);
+    p->num2     = BiRandGab(csound);
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->cod      = IS_ASIG_ARG(p->amp) ? 1 : 0;
@@ -1604,13 +1053,13 @@ static int32_t jitters(CSOUND *csound, JITTERS *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
+      p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       if (p->si == 0) p->si = 1; /* Is this necessary? */
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0 = p->num0 = p->num1;
       f1 = p->num1 = p->num2;
-      f2 = p->num2 = BiRandGab;
+      f2 = p->num2 = BiRandGab(csound);
       df0 = p->df0 = p->df1;
       p->df1 = ( f2  - f0 ) * FL(0.5);
       slope = f1 - f0;
@@ -1651,13 +1100,13 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         if (si == 0) si = 1; /* Is this necessary? */
         while (phs > 1.0)
           phs -= 1.0;
         f0 = p->num0 = p->num1;
         f1 = p->num1 = p->num2;
-        f2 = p->num2 = BiRandGab;
+        f2 = p->num2 = BiRandGab(csound);
         df0 = p->df0 = p->df1;
         p->df1 = ( f2 - f0 ) * FL(0.5);
         slope = f1 - f0;
@@ -1678,11 +1127,11 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    *p->out = p->ftp->ftable[(int32)(randGab * p->ftp->flen)];
+    *p->out = p->ftp->ftable[(int32)(randGab(csound) * p->ftp->flen)];
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
@@ -1705,7 +1154,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     uint32_t n, nsmps = CS_KSMPS, flen;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1717,7 +1166,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = table[(int32)(randGab) * flen];
+      out[n] = table[(int32)(randGab(csound)) * flen];
     }
     return OK;
  err1:
@@ -1731,11 +1180,11 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
     int32 indx;
     MYFLT findx, fract, v1, v2;
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
-    findx = (MYFLT) (randGab * p->ftp->flen);
+    findx = (MYFLT) (randGab(csound) * p->ftp->flen);
     indx = (int32) findx;
     fract = findx - indx;
     v1 = *(p->ftp->ftable + indx);
@@ -1773,7 +1222,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
     MYFLT findx, fract,v1,v2;
 
     if (p->pfn != (int32)*p->tableNum) {
-      if (UNLIKELY( (p->ftp = csound->FTFindP(csound, p->tableNum) ) == NULL))
+      if (UNLIKELY( (p->ftp = csound->FTFind(csound, p->tableNum) ) == NULL))
         goto err1;
       p->pfn = (int32)*p->tableNum;
     }
@@ -1788,7 +1237,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      findx = (MYFLT) (randGab * flen);
+      findx = (MYFLT) (randGab(csound) * flen);
       indx = (int32) findx;
       fract = findx - indx;
       v1 = table[indx];
@@ -1804,7 +1253,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
 
 static int32_t ikRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
-    *p->out = randGab * (*p->max - *p->min) + *p->min;
+    *p->out = randGab(csound) * (*p->max - *p->min) + *p->min;
     return OK;
 }
 
@@ -1822,7 +1271,7 @@ static int32_t aRangeRand(CSOUND *csound, RANGERAND *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      out[n] = randGab * rge + min;
+      out[n] = randGab(csound) * rge + min;
     }
     return OK;
 }
@@ -1836,18 +1285,18 @@ static int32_t randomi_set(CSOUND *csound, RANDOMI *p)
     switch (mode) {
     case 1: /* immediate interpolation between kmin and 1st random number */
         p->num1 = FL(0.0);
-        p->num2 = randGab;
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     case 2: /* immediate interpolation between ifirstval and 1st random number */
         p->num1 = (*p->max - *p->min) ?
           (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
-        p->num2 = randGab;
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     case 3: /* immediate interpolation between 1st and 2nd random number */
-        p->num1 = randGab;
-        p->num2 = randGab;
+        p->num1 = randGab(csound);
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
         break;
     default: /* old behaviour as developped by Gabriel */
@@ -1865,7 +1314,7 @@ static int32_t krandomi(CSOUND *csound, RANDOMI *p)
     if (p->phs >= MAXLEN) {
       p->phs   &= PHMASK;
       p->num1   = p->num2;
-      p->num2   = randGab;
+      p->num2   = randGab(csound);
       p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
     }
     return OK;
@@ -1884,7 +1333,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
     min = *p->min;
     amp =  (*p->max - min);
     ar = p->ar;
-    inc = (int32)(*cpsp++ * csound->sicvt);
+    inc = (int32)(*cpsp++ * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1894,11 +1343,11 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
       ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
       phs += inc;
       if (p->cpscod)
-        inc = (int32)(*cpsp++ * csound->sicvt);
+        inc = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs &= PHMASK;
         p->num1 = p->num2;
-        p->num2 = randGab;
+        p->num2 = randGab(csound);
         p->dfdmax = (p->num2 - p->num1) / FMAXLEN;
       }
     }
@@ -1918,7 +1367,7 @@ static int32_t randomh_set(CSOUND *csound, RANDOMH *p)
           (*p->fstval - *p->min) / (*p->max - *p->min) : FL(0.0);
         break;
     case 3: /* the first output value is a random number within the defined range */
-        p->num1 = randGab;
+        p->num1 = randGab(csound);
         break;
     default: /* old behaviour as developped by Gabriel */
         p->num1 = FL(0.0);
@@ -1933,7 +1382,7 @@ static int32_t krandomh(CSOUND *csound, RANDOMH *p)
     p->phs += (int32)(*p->xcps * CS_KICVT);
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
-      p->num1 = randGab;
+      p->num1 = randGab(csound);
     }
     return OK;
 }
@@ -1951,7 +1400,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
     min  = *p->min;
     amp  = (*p->max - min);
     ar   = p->ar;
-    inc  = (int32)(*cpsp++ * csound->sicvt);
+    inc  = (int32)(*cpsp++ * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1961,10 +1410,10 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
       ar[n]     = p->num1 * amp + min;
       phs      += inc;
       if (p->cpscod)
-        inc     = (int32)(*cpsp++ * csound->sicvt);
+        inc     = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs    &= PHMASK;
-        p->num1 = randGab;
+        p->num1 = randGab(csound);
       }
     }
     p->phs = phs;
@@ -1973,8 +1422,8 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
 
 static int32_t random3_set(CSOUND *csound, RANDOM3 *p)
 {
-    p->num1     = randGab;
-    p->num2     = randGab;
+    p->num1     = randGab(csound);
+    p->num2     = randGab(csound);
     p->df1      = FL(0.0);
     p->initflag = 1;
     p->rangeMin_cod = IS_ASIG_ARG(p->rangeMin);
@@ -1996,12 +1445,12 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
     if (p->phs >= 1.0) {
       MYFLT     slope, resd1, resd0, f2, f1;
     next:
-      p->si = (randGab * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
+      p->si = (randGab(csound) * (*p->cpsMax-*p->cpsMin) + *p->cpsMin)*CS_ONEDKR;
       while (p->phs > 1.0)
         p->phs -= 1.0;
       f0     = p->num0 = p->num1;
       f1     = p->num1 = p->num2;
-      f2     = p->num2 = randGab;
+      f2     = p->num2 = randGab(csound);
       df0    = p->df0 = p->df1;
       p->df1 = ( f2  - f0 ) * FL(0.5);
       slope  = f1 - f0;
@@ -2044,11 +1493,11 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        si =  (randGab(csound)  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         while (phs > 1.0) phs -= 1.0;
         f0     = p->num0 = p->num1;
         f1     = p->num1 = p->num2;
-        f2     = p->num2 = BiRandGab;
+        f2     = p->num2 = BiRandGab(csound);
         df0    = p->df0 = p->df1;
         p->df1 = ( f2 - f0 ) * FL(0.5);
         slope  = f1 - f0;
@@ -2071,84 +1520,67 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "wrap",   0xffff                                                          },
-{ "wrap.i", S(WRAP),     0,1,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
-{ "wrap.k", S(WRAP),     0,2,  "k", "kkk",  NULL,  (SUBR)kwrap,   NULL        },
-{ "wrap.a", S(WRAP),     0,2,  "a", "akk",  NULL,          (SUBR)wrap  },
+{ "wrap.i", S(WRAP),     0,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
+{ "wrap.k", S(WRAP),     0,  "k", "kkk",  NULL,  (SUBR)kwrap,   NULL        },
+{ "wrap.a", S(WRAP),     0,  "a", "akk",  NULL,          (SUBR)wrap  },
 { "mirror", 0xffff                                                          },
-{ "mirror.i", S(WRAP),   0,1,  "i", "iii",  (SUBR)kmirror, NULL,  NULL        },
-{ "mirror.k", S(WRAP),   0,2,  "k", "kkk",  NULL,  (SUBR)kmirror, NULL        },
-{ "mirror.a", S(WRAP),   0,2,  "a", "akk",  NULL,         (SUBR)mirror },
-{ "ntrpol.i",S(INTERPOL), 0,1, "i", "iiiop",(SUBR)interpol                     },
-{ "ntrpol.k",S(INTERPOL), 0,3, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol },
-{ "ntrpol.a",S(INTERPOL), 0,3, "a", "aakop",(SUBR)nterpol_init,(SUBR)anterpol},
-{ "fold",    S(FOLD),     0,3, "a", "ak",   (SUBR)fold_set, (SUBR)fold      },
-{ "lineto",   S(LINETO),  0,3, "k", "kk",   (SUBR)lineto_set,  (SUBR)lineto, NULL },
-{ "tlineto",  S(LINETO2), 0,3, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL},
-{ "vibrato",  S(VIBRATO), TR, 3, "k", "kkkkkkkkio",
+{ "mirror.i", S(WRAP),   0,  "i", "iii",  (SUBR)kmirror, NULL,  NULL        },
+{ "mirror.k", S(WRAP),   0,  "k", "kkk",  NULL,  (SUBR)kmirror, NULL        },
+{ "mirror.a", S(WRAP),   0,  "a", "akk",  NULL,         (SUBR)mirror },
+{ "ntrpol.i",S(INTERPOL), 0, "i", "iiiop",(SUBR)interpol                     },
+{ "ntrpol.k",S(INTERPOL), 0, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol },
+{ "ntrpol.a",S(INTERPOL), 0, "a", "aakop",(SUBR)nterpol_init,(SUBR)anterpol},
+{ "fold",    S(FOLD),     0, "a", "ak",   (SUBR)fold_set, (SUBR)fold      },
+{ "lineto",   S(LINETO),  0, "k", "kk",   (SUBR)lineto_set,  (SUBR)lineto, NULL },
+{ "tlineto",  S(LINETO2), 0, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL},
+{ "vibrato",  S(VIBRATO), TR, "k", "kkkkkkkkio",
                                         (SUBR)vibrato_set, (SUBR)vibrato, NULL   },
-{ "vibr",     S(VIBRATO), TR, 3, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL   },
-{ "jitter2",  S(JITTER2), 0,3, "k", "kkkkkkko", (SUBR)jitter2_set, (SUBR)jitter2 },
-{ "jitter",   S(JITTER),  0,3, "k", "kkk",  (SUBR)jitter_set, (SUBR)jitter, NULL },
-{ "jspline",  S(JITTERS), 0,3, "k", "xkk",
+{ "vibr",     S(VIBRATO), TR, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL   },
+{ "jitter2",  S(JITTER2), 0, "k", "kkkkkkko", (SUBR)jitter2_set, (SUBR)jitter2 },
+{ "jitter",   S(JITTER),  0, "k", "kkk",  (SUBR)jitter_set, (SUBR)jitter, NULL },
+{ "jspline",  S(JITTERS), 0, "k", "xkk",
                                 (SUBR)jitters_set, (SUBR)jitters, NULL },
-{ "jspline.a",  S(JITTERS), 0,3, "a", "xkk",
+{ "jspline.a",  S(JITTERS), 0, "a", "xkk",
     (SUBR)jitters_set, (SUBR)jittersa },
-{ "loopseg",  S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL},
-{ "loopxseg", S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set,(SUBR)loopxseg, NULL},
-{ "looptseg", S(LOOPSEG), 0,3, "k", "kkiz",(SUBR)looptseg_set,(SUBR)looptseg, NULL},
-{ "lpshold",  S(LOOPSEG), 0,3, "k", "kkiz",(SUBR)loopseg_set, (SUBR)lpshold, NULL },
-{ "loopsegp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
-{ "lpsholdp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
-{ "cuserrnd.i", S(CURAND),0,1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
-{ "cuserrnd.k", S(CURAND),0,2,"k",  "kkk",
+{ "loopseg",  S(LOOPSEG), 0, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL},
+{ "loopxseg", S(LOOPSEG), 0, "k", "kkiz", (SUBR)loopseg_set,(SUBR)loopxseg, NULL},
+{ "looptseg", S(LOOPSEG), 0, "k", "kkiz",(SUBR)looptseg_set,(SUBR)looptseg, NULL},
+{ "lpshold",  S(LOOPSEG), 0, "k", "kkiz",(SUBR)loopseg_set, (SUBR)lpshold, NULL },
+{ "loopsegp", S(LOOPSEGP), 0,"k", "kz",  (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
+{ "lpsholdp", S(LOOPSEGP), 0,"k", "kz",  (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
+{ "cuserrnd.i", S(CURAND),0,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
+{ "cuserrnd.k", S(CURAND),0,"k",  "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
-{ "cuserrnd.a",S(CURAND),0,2, "a", "kkk",
+{ "cuserrnd.a",S(CURAND),0, "a", "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)aContinuousUserRand },
-{ "random.i", S(RANGERAND), 0,1, "i", "ii",    (SUBR)ikRangeRand, NULL, NULL      },
-{ "random.k", S(RANGERAND), 0,2, "k", "kk",    NULL, (SUBR)ikRangeRand, NULL      },
-{ "random.a", S(RANGERAND), 0,2, "a", "kk",    NULL,  (SUBR)aRangeRand      },
-{ "rspline",  S(RANDOM3), 0,3, "k", "xxkk",
+{ "random.i", S(RANGERAND), 0, "i", "ii",    (SUBR)ikRangeRand, NULL, NULL      },
+{ "random.k", S(RANGERAND), 0, "k", "kk",    NULL, (SUBR)ikRangeRand, NULL      },
+{ "random.a", S(RANGERAND), 0, "a", "kk",    NULL,  (SUBR)aRangeRand      },
+{ "rspline",  S(RANDOM3), 0, "k", "xxkk",
                                (SUBR)random3_set, (SUBR)random3, NULL },
-{ "rspline.a",  S(RANDOM3), 0,3, "a", "xxkk",
+{ "rspline.a",  S(RANDOM3), 0, "a", "xxkk",
                                (SUBR)random3_set, (SUBR)random3a },
-{ "randomi",  S(RANDOMI), 0,3, "a", "kkxoo",
+{ "randomi",  S(RANDOMI), 0, "a", "kkxoo",
                                (SUBR)randomi_set, (SUBR)randomi },
-{ "randomi.k",  S(RANDOMI), 0,3, "k", "kkkoo",
+{ "randomi.k",  S(RANDOMI), 0, "k", "kkkoo",
                                (SUBR)randomi_set, (SUBR)krandomi,NULL },
-{ "randomh",  S(RANDOMH), 0,3, "a", "kkxoo",
+{ "randomh",  S(RANDOMH), 0, "a", "kkxoo",
                                  (SUBR)randomh_set,(SUBR)randomh },
-{ "randomh.k",  S(RANDOMH), 0,3, "k", "kkkoo",
+{ "randomh.k",  S(RANDOMH), 0, "k", "kkkoo",
                                  (SUBR)randomh_set,(SUBR)krandomh,NULL},
-{ "urd.i",  S(DURAND),  0,1, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL    },
-{ "urd.k",  S(DURAND),  0,2, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand },
-{ "urd.a",  S(DURAND),  0,2, "a", "k",
+{ "urd.i",  S(DURAND),  0, "i", "i", (SUBR)iDiscreteUserRand, NULL, NULL    },
+{ "urd.k",  S(DURAND),  0, "k", "k", (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand },
+{ "urd.a",  S(DURAND),  0, "a", "k",
                               (SUBR)Cuserrnd_set, (SUBR)aDiscreteUserRand },
-{ "duserrnd.i", S(DURAND),0,1, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL },
-{ "duserrnd.k", S(DURAND),0,2, "k", "k",
+{ "duserrnd.i", S(DURAND),0, "i", "i",  (SUBR)iDiscreteUserRand, NULL, NULL },
+{ "duserrnd.k", S(DURAND),0, "k", "k",
                                 (SUBR)Cuserrnd_set,(SUBR)kDiscreteUserRand,NULL },
-{ "duserrnd.a", S(DURAND),0,2, "a", "k",
+{ "duserrnd.a", S(DURAND),0, "a", "k",
                                 (SUBR)Cuserrnd_set,(SUBR)aDiscreteUserRand },
-//{ "poscil", 0xfffe, TR                                                          },
-{ "poscil.a", S(POSC), TR,3, "a", "kkjo", (SUBR)posc_set,(SUBR)posckk },
-{ "poscil.kk", S(POSC), TR,3, "k", "kkjo", (SUBR)posc_set,(SUBR)kposc,NULL },
-{ "poscil.ka", S(POSC), TR,3, "a", "kajo", (SUBR)posc_set,  (SUBR)poscka },
-{ "poscil.ak", S(POSC), TR,3, "a", "akjo", (SUBR)posc_set,  (SUBR)poscak },
-{ "poscil.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set,  (SUBR)poscaa },
-{ "lposcil",  S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set, (SUBR)lposc},
-//{ "poscil3", 0xfffe, TR                                                     },
-{ "poscil3.a",S(POSC), TR,3, "a", "kkjo",
-                                     (SUBR)posc_set,(SUBR)posc3kk },
-{ "poscil3.kk",S(POSC), TR,3, "k", "kkjo",
-                                     (SUBR)posc_set,(SUBR)kposc3,NULL},
-{ "poscil3.ak", S(POSC), TR,3, "a", "akjo", (SUBR)posc_set, (SUBR)posc3ak },
-{ "poscil3.ka", S(POSC), TR,3, "a", "kajo", (SUBR)posc_set, (SUBR)posc3ka },
-{ "poscil3.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
-{ "lposcil3", S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
-{ "trigger",  S(TRIG),  0,3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
-{ "sum",      S(SUM),   0,3, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
-{ "product",  S(SUM),   0,2, "a", "y",    NULL, (SUBR)product           },
-{ "resony",  S(RESONY), 0,3, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
+{ "trigger",  S(TRIG),  0, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
+{ "sum",      S(SUM),   0, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
+{ "product",  S(SUM),   0, "a", "y",    NULL, (SUBR)product           },
+{ "resony",  S(RESONY), 0, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
 };
 
 int32_t uggab_init_(CSOUND *csound)

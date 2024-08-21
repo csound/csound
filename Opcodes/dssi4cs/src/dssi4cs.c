@@ -24,11 +24,6 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
-#undef CS_KSMPS
-#define CS_KSMPS     (csound->GetKsmps(csound))
-
-//#define DEBUG 1
-
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
 #if !defined(HAVE_STRLCAT) && !defined(strlcat)
@@ -102,7 +97,7 @@ strNcpy(char *dst, const char *src, size_t siz)
 *****************************************************************************/
 void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
 {
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     Ksmps = DSSIPlugin_->ksmps;
     uint64_t PortCount = 0;
     LADSPA_Descriptor *Descriptor;
     uint32 i;
@@ -248,8 +243,8 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
 {
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
-    int32_t     SampleRate = (int32_t) MYFLT2LRND(csound->GetSr(csound));
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     SampleRate = (int32_t) MYFLT2LRND(CS_ESR);
+    int32_t     Ksmps = CS_KSMPS;
     uint64_t     i;
     int32_t     verbose = (int32_t)*p->iverbose;
     LADSPA_Descriptor_Function pfDescriptorFunction;
@@ -265,15 +260,17 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
-    CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
+    CS_TYPE* argType = GetTypeForArg(p->iplugin);
+    DSSIPlugin->ksmps = Ksmps;
+
 
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
     else
-      csound->strarg2name(csound, dssiFilename, csound->ISSTRCOD(*p->iplugin) ?
+      csound->StringArg2Name(csound, dssiFilename, IsStringCode(*p->iplugin) ?
                           csound->GetString(csound, *p->iplugin) :
                           (char *) p->iplugin, "dssiinit.",
-                          (int32_t) csound->ISSTRCOD(*p->iplugin));
+                          (int32_t) IsStringCode(*p->iplugin));
     PluginIndex = (uint64_t) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))
@@ -686,8 +683,8 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     icnt = csound->GetInputArgCnt(p) - 1;
-    int32_t     ocnt = csound->GetOutputArgCnt(p);
+    int32_t     icnt = GetInputArgCnt(p) - 1;
+    int32_t     ocnt = GetOutputArgCnt(p);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
       csound->Die(csound,
@@ -704,7 +701,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 #ifdef DEBUG
     csound->Message(csound,
                     "DSSI4CS: dssiaudio- %i input args, %i output args.\n",
-                    csound->GetInputArgCnt(p), csound->GetOutputArgCnt(p));
+                    GetInputArgCnt(p), GetOutputArgCnt(p));
     csound->Message(csound, "DSSI4CS: dssiaudio LocatePlugin # %i\n", Number);
 #endif
 
@@ -811,9 +808,12 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     uint32_t i, j;
-    uint32_t icnt = csound->GetInputArgCnt(p) - 1;
-    uint32_t ocnt = csound->GetOutputArgCnt(p);
-    uint64_t Ksmps = (uint64_t) csound->GetKsmps(csound);
+
+
+    uint32_t icnt = GetInputArgCnt(p) - 1;
+    uint32_t ocnt = GetOutputArgCnt(p);
+    uint64_t Ksmps = (uint64_t) CS_KSMPS;
+
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
@@ -868,7 +868,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
             Crash if audio port selected */
     const LADSPA_Descriptor *Descriptor;
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     Sr = (int32_t) MYFLT2LRND(csound->GetSr(csound));
+    int32_t     Sr = (int32_t) MYFLT2LRND(CS_ESR);
     uint64_t PortIndex = *p->iport;
     uint32_t  i;
     uint64_t ControlPort = 0;
@@ -922,16 +922,8 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
 #ifdef DEBUG
     csound->Message(csound, "DSSI4CS: Port %lu using internal port %lu.\n",
                     PortIndex, p->PortNumber);
-    /*csound->Message(csound, "DSSI4CS: ArgMask: %lu.\n",*/
-    /*                csound->GetInputArgAMask(p));*/
-#endif
 
-//    if ((int) csound->GetInputArgAMask(p) & 4) {
-//      p->h.opadr = (SUBR) dssictls_ak;  /* "iiak" */
-//    }
-//    else {
-//      p->h.opadr = (SUBR) dssictls_kk;  /* "iikk" */
-//    }
+#endif
 
     return OK;
 }
@@ -1203,23 +1195,23 @@ int32_t dssilist(CSOUND * csound, DSSILIST * p)
 }
 
 static OENTRY dssi_localops[] = {
-  {"dssiinit", sizeof(DSSIINIT), 0, 1, "i", "Tip", (SUBR) dssiinit, NULL, NULL },
-  {"dssiactivate", sizeof(DSSIACTIVATE), 0, 3, "", "ik",
+  {"dssiinit", sizeof(DSSIINIT), 0, "i", "Tip", (SUBR) dssiinit, NULL, NULL },
+  {"dssiactivate", sizeof(DSSIACTIVATE), 0, "", "ik",
    (SUBR) dssiactivate_init, (SUBR) dssiactivate, NULL },
-  {"dssiaudio", sizeof(DSSIAUDIO), 0, 3, "mmmmmmmmm", "iMMMMMMMMM",
+  {"dssiaudio", sizeof(DSSIAUDIO), 0,  "mmmmmmmmm", "iMMMMMMMMM",
    (SUBR) dssiaudio_init, (SUBR) dssiaudio },
-    {"dssictls", sizeof(DSSICTLS), 0, 3, "", "iikk", (SUBR) dssictls_init,
+    {"dssictls", sizeof(DSSICTLS), 0,  "", "iikk", (SUBR) dssictls_init,
      (SUBR) dssictls_kk, NULL },
-    {"dssilist", sizeof(DSSILIST), 0, 1, "", "", (SUBR) dssilist, NULL, NULL }
+    {"dssilist", sizeof(DSSILIST), 0,  "", "", (SUBR) dssilist, NULL, NULL }
 #if 0
     ,
-    {"dssisynth", sizeof(DSSISYNTH), 0, 3, "aa",  "i", (SUBR) dssisynth_init,
+    {"dssisynth", sizeof(DSSISYNTH), 0,  "aa",  "i", (SUBR) dssisynth_init,
      (SUBR) dssisynth}
     ,
-    {"dssinote", sizeof(DSSINOTE), 0, 3, "",  "kikkk", (SUBR) dssinote_init,
+    {"dssinote", sizeof(DSSINOTE), 0,  "",  "kikkk", (SUBR) dssinote_init,
      (SUBR) dssinote}
     ,
-    {"dssievent", sizeof(DSSINOTEON), 0, 3, "",  "kikk", (SUBR) dssievent_init,
+    {"dssievent", sizeof(DSSINOTEON), 0,  "",  "kikk", (SUBR) dssievent_init,
      (SUBR) dssievent}
 #endif
 };

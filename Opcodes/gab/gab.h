@@ -22,8 +22,6 @@
 #define GAB_H
 
 #include "../stdopcod.h"
-#include "H/ugrw1.h"    /* for zread function */
-#include "ugens6.h"     /* for a_k_set function */
 
 typedef struct {
     OPDS    h;
@@ -79,6 +77,7 @@ typedef struct {
     int32_t inerr;
     AUXCH   lphs;
     AUXCH   pamp;
+  int32_t floatph;
 } ADSYNT2;
 
 typedef struct {

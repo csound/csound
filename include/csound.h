@@ -559,6 +559,8 @@ extern "C" {
     int     sampleFormat;
     /** sample rate in Hz */
     float   sampleRate;
+    /** ksmps */
+    int ksmps;
   } csRtAudioParams;
 
   typedef struct RTCLOCK_S {
@@ -2118,11 +2120,11 @@ extern "C" {
    * Returns zero on success.
    */
   PUBLIC int csoundAppendOpcode(CSOUND *, const char *opname,
-                                int dsblksiz, int flags, int thread,
+                                int dsblksiz, int flags,
                                 const char *outypes, const char *intypes,
-                                int (*iopadr)(CSOUND *, void *),
-                                int (*kopadr)(CSOUND *, void *),
-                                int (*aopadr)(CSOUND *, void *));
+                                int (*init)(CSOUND *, void *),
+                                int (*perf)(CSOUND *, void *),
+                                int (*deinit)(CSOUND *, void *));
 
   /** @}*/
   /** @defgroup THREADING Threading and concurrency

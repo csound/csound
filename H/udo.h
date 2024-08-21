@@ -2,11 +2,13 @@
 #define UDO_H
 
 #include "csoundCore.h"
+#include "srconvert.h"
 
 typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
+    int32   iflag;
     MYFLT   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
 } OPCOD_IOBUFS;
 
@@ -14,10 +16,8 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPDS          h;
     INSDS         *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
-    /*unsigned int  l_ksmps;
-    int           ksmps_scale;
-    MYFLT         l_ekr, l_onedkr, l_onedksmps, l_kicvt;
-    int           mode;*/
+    SR_CONVERTER  *cvt_in[OPCODENUMOUTS_MAX];
+    SR_CONVERTER  *cvt_out[OPCODENUMOUTS_MAX];
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     MYFLT         *ar[1];

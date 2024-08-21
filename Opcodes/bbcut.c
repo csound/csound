@@ -20,7 +20,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include "csoundCore.h"
+#include "stdopcod.h"
 #include "interlocks.h"
 #include "bbcut.h"
 #include <math.h>
@@ -39,14 +39,14 @@ static inline int32_t roundoffint(MYFLT x)
 static int32_t random_number(CSOUND *csound, int32_t a, int32_t b)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csound->Rand31(csound->RandSeed1(csound)) - 1) / FL(2147483645.0);
     return roundoffint((MYFLT) a + x * (MYFLT) (b - a));
 }
 
 static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csound->Rand31(csound->RandSeed1(csound)) - 1) / FL(2147483645.0);
     return (a + x * (b - a));
 }
 
@@ -536,9 +536,9 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "bbcutm",S(BBCUTMONO), 0, 3, "a","aiiiiipop",
+  { "bbcutm",S(BBCUTMONO), 0,  "a","aiiiiipop",
                                  (SUBR)BBCutMonoInit, (SUBR)BBCutMono  },
-  { "bbcuts",S(BBCUTSTEREO), 0, 3, "aa","aaiiiiipop",
+  { "bbcuts",S(BBCUTSTEREO), 0, "aa","aaiiiiipop",
                                (SUBR)BBCutStereoInit, (SUBR)BBCutStereo}
 };
 

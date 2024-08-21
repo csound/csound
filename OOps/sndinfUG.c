@@ -42,10 +42,10 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     /* leap thru std hoops to get the name */
     if (strin)
       strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
-    else if (csound->ISSTRCOD(*p->ifilno)){
+    else if (IsStringCode(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-    else csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",0);
+    else csound->StringArg2Name(csound, soundiname, p->ifilno, "soundin.",0);
 
 
     sfname = soundiname;
@@ -116,7 +116,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       }
       if (csFileType == CSFTYPE_UNKNOWN) {
         memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-        sfinfo.samplerate = (int32_t)(csound->esr + FL(0.5));
+        sfinfo.samplerate = (int32_t)(CS_ESR + FL(0.5));
         sfinfo.channels = 1;
         sfinfo.format = (int32_t)FORMAT2SF(csound->oparms->outformat)
                         | (int32_t)TYPE2SF(TYP_RAW);
@@ -133,7 +133,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       sflib_close(sf);
     }
     /* FIXME: PVOC_OpenFile has already notified since it calls
-       FileOpen2(), even if the file was not a PVOC file. */
+       FileOpen(), even if the file was not a PVOC file. */
     if (csFileType != CSFTYPE_PVCEX)
       csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
     csound->Free(csound, sfname);
@@ -267,7 +267,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                     Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));    /* open with full dir paths */
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
@@ -320,10 +320,10 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
- if (csound->ISSTRCOD(*p->ifilno)){
+ if (IsStringCode(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-  else csound->strarg2name(csound, soundiname, p->ifilno,
+  else csound->StringArg2Name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
 
  return filepeak_(csound, p, soundiname);
@@ -342,10 +342,10 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
-    if (csound->ISSTRCOD(*p->ifilno)){
+    if (IsStringCode(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-    else csound->strarg2name(csound, soundiname, p->ifilno,
+    else csound->StringArg2Name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
 
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */

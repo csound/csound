@@ -29,7 +29,11 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                              PINKER.C         */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif       /*                              PINKER.C         */
 
 typedef struct {
   OPDS h;
@@ -93,7 +97,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
     int32 lfsr   =   p->lfsr;
     int cnt    =   p->cnt;
     int bit;
-    int n, nn, nsmps = csound->ksmps;
+    int n, nn, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int mask;
@@ -136,7 +140,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
       //printf("out = %f a,b = %f,%f mask = %.8x dec,inc = %x,%x acc = %x\n",
       //       yy, pfira[lfsr & 0x3F], pfirb[lfsr >>6 & 0x3F],
       //       mask, dec, inc, accu);
-      out[n] = yy*csound->e0dbfs;
+      out[n] = yy*csound->Get0dBFS(csound);
     /* PINK(mask);   PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0200); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0100); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
@@ -173,7 +177,7 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
 
 static OENTRY pinker_localops[] =
 {
- { "pinker", sizeof(PINKER),0,3, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
+ { "pinker", sizeof(PINKER),0, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
 };
 
 LINKAGE_BUILTIN(pinker_localops)

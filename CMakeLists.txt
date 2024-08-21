@@ -1,4 +1,11 @@
-cmake_minimum_required(VERSION 3.5)
+if (APPLE)
+    cmake_minimum_required(VERSION 3.28)
+else()
+    cmake_minimum_required(VERSION 3.13.4)
+endif()
+
+set (CMAKE_CXX_STANDARD 11)
+
 cmake_policy(SET CMP0077 NEW)
 
 include(cmake/cmake-utilities.cmake)
@@ -12,7 +19,16 @@ option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
     # Detect correct triplet based on CMake env
-    if (CMAKE_SYSTEM_NAME STREQUAL "MinGW" AND UNIX)
+    if (OSXCROSS_TARGET)
+        if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+            set(VCPKG_TARGET_TRIPLET "x64-osxcross")
+        elseif(CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+            set(VCPKG_TARGET_TRIPLET "arm64-osxcross")
+        endif()
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/osxcross/osx.cmake)
+        set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
+        set(VCPKG_TARGET_ARCHITECTURE "${CMAKE_OSX_ARCHITECTURES}")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "MinGW" AND UNIX)
         set(VCPKG_TARGET_TRIPLET "x64-mingw-static")
         set(VCPKG_INSTALL_OPTIONS "--allow-unsupported")
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/toolchains/mingw.cmake)
@@ -76,7 +92,12 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 set(SAMPLES_INSTALL_DIR "/samples")
-set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
+
+if(OSXCROSS_TARGET)
+    set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}/Library/Frameworks" CACHE PATH "Csound framework path")
+else()
+    set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
+endif()
 
 include(TestBigEndian)
 include(CheckFunctionExists)
@@ -102,6 +123,9 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     if (BREW_BISON EQUAL 0 AND EXISTS "${BREW_BISON_PREFIX}")
         message(STATUS "Found Bison keg installed by Homebrew at ${BREW_BISON_PREFIX}")
         set(BISON_EXECUTABLE "${BREW_BISON_PREFIX}/bin/bison")
+    elseif(EXISTS "/usr/local/bin/bison")
+        message(STATUS "Bison in /usr/local/bin")
+        set(BISON_EXECUTABLE "/usr/local/bin/bison")
     endif()
 
     execute_process(
@@ -113,7 +137,11 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     if (BREW_FLEX EQUAL 0 AND EXISTS "${BREW_FLEX_PREFIX}")
         message(STATUS "Found Flex keg installed by Homebrew at ${BREW_FLEX_PREFIX}")
         set(FLEX_EXECUTABLE "${BREW_FLEX_PREFIX}/bin/flex")
+   elseif(EXISTS "/usr/local/bin/flex")
+        message(STATUS "Flex in /usr/local/bin")
+        set(FLEX_EXECUTABLE "/usr/local/bin/flex")
     endif()
+
 endif()
 
 ### COMPILER OPTIMIZATION FLAGS
@@ -145,15 +173,33 @@ option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
+option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
+
+
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
     if(CUSTOM_MALLOC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
     # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
     endif()
 endif()
+
+# secret rabbit code
+if (USE_VCPKG)
+  find_package(SampleRate CONFIG REQUIRED)
+  assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
+else()
+   find_package(SampleRate MODULE)
+endif()
+
+if(SampleRate_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_SRC")
+    message(STATUS "Using Secret Rabbit Code")
+endif()
+
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -206,6 +252,12 @@ if(APPLE)
     else()
         message(STATUS  "clock_gettime() not found")
     endif()
+endif()
+
+if(OSXCROSS_TARGET)
+    set(CMAKE_C_FLAGS "-I${OSXCROSS_SDK}/usr/include ${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-I${OSXCROSS_SDK}/usr/include ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L${CMAKE_OSX_SYSROOT}/usr/lib")
 endif()
 
 # library installation directories
@@ -639,6 +691,20 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/argdecode.c
+    Top/csdebug.c
+    Top/cscore_internal.c
+    Top/cscorfns.c
+    Top/csmodule.c
+    Top/getstring.c
+    Top/main.c
+    Top/new_opts.c
+    Top/one_file.c
+    Top/opcode.c
+    Top/threads.c
+    Top/utility.c
+    Top/threadsafe.c
+    Top/server.c
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
@@ -647,6 +713,7 @@ set(libcsound_SRCS
     Engine/extract.c
     Engine/fgens.c
     Engine/insert.c
+    Engine/srconvert.c
     Engine/udo.c
     Engine/linevent.c
     Engine/memalloc.c
@@ -688,9 +755,12 @@ set(libcsound_SRCS
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
+    OOps/midiops2.c
+    OOps/midiops3.c
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
+    OOps/pitch0.c
     OOps/pstream.c
     OOps/pvfileio.c
     OOps/pvsanal.c
@@ -709,6 +779,37 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/vdelay.c
     OOps/compile_ops.c
+)
+
+set(vbap_ops
+    Opcodes/vbap.c
+)
+
+set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+if(WIN32 AND NOT MSVC)
+    set_source_files_properties(Opcodes/sfont.c PROPERTIES
+        COMPILE_FLAGS -mno-ms-bitfields)
+endif()
+
+if(NOT MSVC)
+    set_source_files_properties(Opcodes/sfont.c PROPERTIES
+        COMPILE_FLAGS -Wno-address-of-packed-member)
+endif()
+
+set(physmod_SRCS
+    Opcodes/physutil.c
+    Opcodes/modal4.c
+    Opcodes/physmod.c
+    Opcodes/mandolin.c
+    Opcodes/singwave.c
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
+    Opcodes/bowedbar.c
+)
+
+set(externs_SRCS
     Opcodes/babo.c
     Opcodes/bilbar.c
     Opcodes/compress.c
@@ -716,23 +817,32 @@ set(libcsound_SRCS
     Opcodes/Vosim.c
     Opcodes/squinewave.c
     Opcodes/pinker.c
-    Opcodes/pitch.c
-    Opcodes/pitch0.c
-    Opcodes/spectra.c
-    Opcodes/ambicode1.c
+    Opcodes/cpumeter.c
+    Opcodes/sc_noise.c
+    Opcodes/afilters.c
+    Opcodes/wpfilters.c
+    Opcodes/lufs.c
+    Opcodes/date.c
+    Opcodes/system_call.c
+    Opcodes/serial.c
+    Opcodes/counter.c
+    Opcodes/liveconv.c
+    Opcodes/sterrain.c
+    Opcodes/gammatone.c
     Opcodes/sfont.c
+    Opcodes/gendy.c
+    Opcodes/phisem.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
+    Opcodes/exciter.c
+    Opcodes/buchla.c
+    Opcodes/select.c
+    Opcodes/platerev.c
+    Opcodes/sequencer.c
     Opcodes/grain4.c
-    Opcodes/hrtferX.c
     Opcodes/loscilx.c
     Opcodes/minmax.c
     Opcodes/pan2.c
-    Opcodes/arrays.c
-    Opcodes/phisem.c
-    Opcodes/hrtfopcodes.c
-    Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
     Opcodes/vaops.c
     Opcodes/ugakbari.c
     Opcodes/harmon.c
@@ -746,72 +856,30 @@ set(libcsound_SRCS
     Opcodes/fareyseq.c
     Opcodes/modmatrix.c
     Opcodes/scoreline.c
-    Opcodes/modal4.c
-    Opcodes/physutil.c
-    Opcodes/physmod.c
-    Opcodes/mandolin.c
-    Opcodes/singwave.c
-    Opcodes/fm4op.c
-    Opcodes/moog1.c
-    Opcodes/shaker.c
-    Opcodes/bowedbar.c
-    Opcodes/gab/tabmorph.c
-    Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-    Opcodes/ftest.c
-    Opcodes/hrtfearly.c
-    Opcodes/hrtfreverb.c
-    Opcodes/cpumeter.c
-    Opcodes/gendy.c
-    Opcodes/tl/sc_noise.c
-    Opcodes/afilters.c
-    Opcodes/wpfilters.c
-    Opcodes/zak.c
-    Opcodes/lufs.c
-    Opcodes/date.c
-    Opcodes/system_call.c
-    Opcodes/liveconv.c
-    Opcodes/sterrain.c
-    Opcodes/gammatone.c
-    Opcodes/fareygen.c
-    Opcodes/quadbezier.c
-    Opcodes/framebuffer.c
-    Opcodes/cellular.c
-    Opcodes/exciter.c
-    Opcodes/buchla.c
-    Opcodes/select.c
-    Opcodes/serial.c
-    Opcodes/counter.c
-    Opcodes/platerev.c
-    Opcodes/sequencer.c
-    Opcodes/pvsgendy.c
+    Opcodes/ambicode1.c
+    Opcodes/arrays.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
-    Top/argdecode.c
-    Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
-    Top/csmodule.c
-    Top/getstring.c
-    Top/main.c
-    Top/new_opts.c
-    Top/one_file.c
-    Top/opcode.c
-    Top/threads.c
-    Top/utility.c
-    Top/threadsafe.c
-    Top/server.c)
+    Opcodes/zak.c
+    Opcodes/paulstretch.c
+)
 
-if(WIN32 AND NOT MSVC)
-    set_source_files_properties(Opcodes/sfont.c PROPERTIES
-        COMPILE_FLAGS -mno-ms-bitfields)
-endif()
+set(newgabops_SRCS
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/newgabopc.c
+)
 
-if(NOT MSVC)
-    set_source_files_properties(Opcodes/sfont.c PROPERTIES
-        COMPILE_FLAGS -Wno-address-of-packed-member)
-endif()
+set(gens_SRCS
+    Opcodes/ftest.c
+    Opcodes/fareygen.c
+    Opcodes/quadbezier.c
+)
+
+set(pitch_ops_SRCS
+    Opcodes/pitch.c
+    Opcodes/spectra.c
+)
 
 set(stdopcod_SRCS
     Opcodes/ambicode.c
@@ -835,13 +903,10 @@ set(stdopcod_SRCS
     Opcodes/locsig.c
     Opcodes/lowpassr.c
     Opcodes/metro.c
-    Opcodes/midiops2.c
-    Opcodes/midiops3.c
     Opcodes/newfils.c
     Opcodes/nlfilt.c
     Opcodes/oscbnk.c
     Opcodes/pluck.c
-    Opcodes/paulstretch.c
     Opcodes/repluck.c
     Opcodes/reverbsc.c
     Opcodes/seqtime.c
@@ -860,8 +925,20 @@ set(stdopcod_SRCS
     Opcodes/wave-terrain.c
     Opcodes/wterrain2.c
     Opcodes/stdopcod.c
+    )
+
+set(sock_ops_SRCS
     Opcodes/socksend.c
-    Opcodes/sockrecv.c)
+    Opcodes/sockrecv.c
+)
+
+
+set(hrtf_ops_SRCS
+    Opcodes/hrtfopcodes.c
+    Opcodes/hrtfearly.c
+    Opcodes/hrtfreverb.c
+    Opcodes/hrtferX.c
+)
 
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c
@@ -872,7 +949,9 @@ set(cs_pvs_ops_SRCS
     Opcodes/pvsdemix.c
     Opcodes/pvs_ops.c
     Opcodes/pvsband.c
-    Opcodes/pvsbuffer.c)
+    Opcodes/pvsbuffer.c
+    Opcodes/pvsgendy.c
+    )
 
 set(oldpvoc_SRCS
     Opcodes/dsputil.c
@@ -882,7 +961,18 @@ set(oldpvoc_SRCS
     Opcodes/pvread.c
     Opcodes/ugens8.c
     Opcodes/vpvoc.c
-    Opcodes/pvoc.c)
+    Opcodes/pvoc.c
+)
+
+set(scanops_SRCS
+    Opcodes/scansyn.c
+    Opcodes/scansynx.c
+)
+
+set(unixops_SRCS
+    Opcodes/control.c
+    Opcodes/urandom.c
+)
 
 set(mp3in_SRCS
     Opcodes/mp3in.c
@@ -894,29 +984,52 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+
+set(cppops_SRCS
+   Opcodes/ampmidid.cpp
+   Opcodes/mixer.cpp
+   Opcodes/bformdec2.cpp
+   Opcodes/doppler.cpp
+   Opcodes/ftsamplebank.cpp
+   Opcodes/padsynth_gen.cpp
+   Opcodes/signalflowgraph.cpp
+   Opcodes/arrayops.cpp
+   Opcodes/lfsr.cpp
+   Opcodes/pvsops.cpp
+   Opcodes/trigEnvSegs.cpp
+   Opcodes/tl/fractalnoise.cpp
+)
+
+list(APPEND libcsound_SRCS)
+
+list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
+${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
+${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
+)
+
+if(NOT BUILD_PLUGINS)
+ list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
+ ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
+ ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
+ ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
+)
+endif()
+
+if(UNIX)
+if(NOT BUILD_PLUGINS)
+ list(APPEND libcsound_SRCS ${unixops_SRCS})
+endif()
+ list(APPEND libcsound_static_SRCS ${unixops_SRCS})
+endif()
 
 if(BUILD_PERFTHREAD_CLASS)
     list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
+    list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
 
-if(INIT_STATIC_MODULES)
-    set(static_modules_SRCS
-        Top/init_static_modules.c
-        Opcodes/ampmidid.cpp
-        Opcodes/doppler.cpp
-        Opcodes/tl/fractalnoise.cpp
-        Opcodes/ftsamplebank.cpp
-        Opcodes/mixer.cpp
-        Opcodes/signalflowgraph.cpp)
-
-    set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
-    list(APPEND libcsound_SRCS ${static_modules_SRCS})
-    message(STATUS "Building static modules")
-endif()
 
 # Handling New Parser
-
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
 set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
@@ -968,6 +1081,16 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_compile.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
+
+list(APPEND libcsound_static_SRCS
+    ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+    Engine/csound_orc_semantics.c
+    Engine/csound_orc_expressions.c
+    Engine/csound_orc_optimize.c
+    Engine/csound_orc_compile.c
+    Engine/new_orc_parser.c
+    Engine/symbtab.c)
+
 
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${YACC_OUTH} GENERATED)
@@ -1021,6 +1144,9 @@ add_custom_command(
 list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
     #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
+list(APPEND libcsound_static_SRCS ${PRELEX_SCOOUT})
+    #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
+
 #set_source_files_properties(${YACC_SCOOUT} GENERATED)
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
@@ -1047,6 +1173,12 @@ if(BUILD_MULTI_CORE)
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c)
 
+    list(APPEND libcsound_static_SRCS
+        Engine/cs_new_dispatch.c
+        Engine/cs_par_base.c
+        Engine/cs_par_orc_semantic_analysis.c)
+
+
     list(APPEND libcsound_CFLAGS -DPARCS)
 
 else()
@@ -1064,21 +1196,27 @@ if(APPLE)
     set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
 endif()
 
-add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
-target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
-target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
-set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
-
-if(INIT_STATIC_MODULES)
-    set_target_properties(${CSOUNDLIB} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
+if(NOT IOS)
+    add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
+    target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
+    target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
+    set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 endif()
 
 if(APPLE)
-    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
-    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
-    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
-        "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
-    )
+    if(NOT IOS)
+        set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
+        set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
+        set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
+            "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
+        )
+    endif()
+endif()
+
+if(BUILD_PLUGINS)
+    message(STATUS "build external opcodes as plugins")
+    target_compile_definitions(${CSOUNDLIB} PUBLIC
+    "-DBUILD_PLUGINS")
 endif()
 
 # Add the install target
@@ -1089,11 +1227,13 @@ if(WIN32)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
         FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 else()
-    install(TARGETS ${CSOUNDLIB}
-        EXPORT CsoundExports
-        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
-        FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+    if(NOT IOS)
+        install(TARGETS ${CSOUNDLIB}
+            EXPORT CsoundExports
+            LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+            ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+            FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+    endif()
 endif()
 
 if (LINUX)
@@ -1141,7 +1281,8 @@ endif()
 
 if(LINUX)
     message(STATUS "Building on Linux.")
-    add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
+    add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE
+    -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
 
     find_library(LIBRT_LIBRARY rt)
@@ -1244,38 +1385,52 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
-target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
+if(NOT IOS)
+    target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
+endif()
 
 if(MSVC)
     target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
 else()
-    target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+    if(NOT IOS)
+        target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+    endif()
 endif()
 
 if(USE_LIBSNDFILE)
-    target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
+    if(NOT IOS)
+        target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
+    endif()
 endif()
 
-set_target_properties(${CSOUNDLIB} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
-    LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-    ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+if(SampleRate_FOUND)
+  target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
+endif()
+
+if(NOT IOS)
+    set_target_properties(${CSOUNDLIB} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+endif()
 
 if(BUILD_STATIC_LIBRARY)
-    add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+    add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_static_SRCS})
     target_include_directories(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
-    target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
-
-    if(INIT_STATIC_MODULES)
-        set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
-    endif()
+    target_compile_options(${CSOUNDLIB_STATIC} PRIVATE
+    ${libcsound_CFLAGS})
 
     if (USE_LIBSNDFILE)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
     endif()
+
+   if(SampleRate_FOUND)
+        target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SampleRate::samplerate)
+   endif()
+
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()

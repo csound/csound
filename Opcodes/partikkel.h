@@ -20,7 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma once
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 
 typedef struct {
@@ -152,6 +157,7 @@ typedef struct PARTIKKEL {
     uint32_t wavgainindex;
     double grainphase, graininc;
     FUNC *pantab;
+    int32_t floatph;
 } PARTIKKEL;
 
 typedef struct {

@@ -21,9 +21,13 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
-//extern void csoundInputMessageInternal(CSOUND *, const char *);
+#endif
+
 
 typedef struct _inmess {
   OPDS h;
@@ -62,10 +66,10 @@ rewindscore(CSOUND *csound, SCOREPOS *p){
 
 
 static OENTRY scoreline_localops[] = {
-  {"scoreline_i", sizeof(INMESS), 0, 1, "", "S", (SUBR)messi, NULL, NULL},
-  {"scoreline", sizeof(INMESS), 0, 2, "", "Sk", NULL, (SUBR)messk, NULL},
-  {"setscorepos", sizeof(SCOREPOS), 0, 1, "", "i", (SUBR)setscorepos, NULL, NULL},
-  {"rewindscore", sizeof(SCOREPOS), 0, 1, "", "", (SUBR)rewindscore, NULL, NULL}
+  {"scoreline_i", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL},
+  {"scoreline", sizeof(INMESS), 0,  "", "Sk", NULL, (SUBR)messk, NULL},
+  {"setscorepos", sizeof(SCOREPOS), 0,  "", "i", (SUBR)setscorepos, NULL, NULL},
+  {"rewindscore", sizeof(SCOREPOS), 0,  "", "", (SUBR)rewindscore, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(scoreline_localops)

@@ -21,9 +21,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
 #include "control.h"
-
 #include <sys/time.h>
 #include <sys/types.h>
 #include <signal.h>
@@ -218,11 +216,11 @@ static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
       {
         char buffer[100];
         if (istring) {
-          csound->strarg2name(csound, buffer,
+          csound->StringArg2Name(csound, buffer,
                               ((STRINGDAT *)p->val)->data, "Control ",istring);
         }
         else
-         csound->strarg2name(csound, buffer, p->val, "Control ",istring);
+         csound->StringArg2Name(csound, buffer, p->val, "Control ",istring);
         csound->Message(csound, Str("Slider %d set to %s\n"), slider, buffer);
         fprintf(pp->wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
         break;
@@ -306,11 +304,11 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (istring) {
-      csound->strarg2name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
+      csound->StringArg2Name(csound, buffer, ((STRINGDAT *)p->val)->data, "", istring);
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
-    else if (csound->ISSTRCOD(*p->val)) {
-      csound->strarg2name(csound, buffer,
+    else if (IsStringCode(*p->val)) {
+      csound->StringArg2Name(csound, buffer,
                           csound->GetString(csound, *p->val), "", 1);
     }
     else {
@@ -332,13 +330,13 @@ textflash_S(CSOUND *csound, TXTWIN *p){
 #define S(x)    sizeof(x)
 
 static OENTRY control_localops[] = {
-  { "control",  S(CNTRL), 0, 3, "k", "k", (SUBR) cntrl_set, (SUBR) control, NULL },
-{ "setctrl",  S(SCNTRL), 0, 1, "",  "iii", (SUBR) ocontrol, NULL, NULL           },
-{ "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL       },
-{ "button",   S(CNTRL),  0, 3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL },
-{ "checkbox", S(CNTRL),  0, 3, "k", "k",   (SUBR) check_set, (SUBR) check, NULL  },
-{ "flashtxt", S(TXTWIN), 0, 1, "",  "ii",  (SUBR) textflash, NULL, NULL          },
-{ "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL      },
+  { "control",  S(CNTRL), 0,  "k", "k", (SUBR) cntrl_set, (SUBR) control, NULL },
+{ "setctrl",  S(SCNTRL), 0,  "",  "iii", (SUBR) ocontrol, NULL, NULL           },
+{ "setctrl.S",  S(SCNTRL), 0,  "",  "iSi", (SUBR) ocontrol_S, NULL, NULL       },
+{ "button",   S(CNTRL),  0,  "k", "k",  (SUBR) button_set, (SUBR) button, NULL },
+{ "checkbox", S(CNTRL),  0,  "k", "k",   (SUBR) check_set, (SUBR) check, NULL  },
+{ "flashtxt", S(TXTWIN), 0,  "",  "ii",  (SUBR) textflash, NULL, NULL          },
+{ "flashtxt.S", S(TXTWIN), 0,  "",  "iS",  (SUBR) textflash_S, NULL, NULL      },
 };
 
 LINKAGE_BUILTIN(control_localops)

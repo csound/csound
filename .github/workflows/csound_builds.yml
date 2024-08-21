@@ -54,6 +54,8 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - uses: lukka/get-cmake@v3.29.0
+
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
         with:
@@ -77,6 +79,27 @@ jobs:
 
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
+
+  iOS_build:
+    name: iOS build
+    runs-on: macos-12
+    steps:
+      - name: update bison
+        run: brew install bison && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
+      - name: Checkout Source Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Build libsndfile xcframework
+        run: cd iOS && chmod +x build_libsndfile.sh && ./build_libsndfile.sh
+      - name: Build Csound iOS xcframework
+        run: cd iOS && ./build.sh
+      - name: Create package zip
+        run: cd iOS && ./release.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iOS-builds
+          path: iOS/csound-iOS-7.0.0 # or path/to/artifact
 
   macos_build_brew:
     name: MacOS build (brew)
@@ -111,13 +134,15 @@ jobs:
 
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
           submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -141,6 +166,56 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
+  macos_build_osxcross:
+    name: MacOS build (osxcross/vcpkg)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential liblzma-dev libxml2-dev libz-dev libbz2-dev cpio ninja-build
+
+      - name: Download osxcross
+        run: |
+          curl -L "https://drive.usercontent.google.com/download?id=1TKmFGbKE_F4ZF9f6m5VxuZ7yEHbDzQy5&confirm=xxx" | tar xvz
+
+      - name: Configure Build
+        run: |
+          $(eval /home/runner/work/csound/csound/osxcross/tools/osxcross_conf.sh)
+          for ARCH in x86_64 arm64; do
+              cmake -B build/$ARCH -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE=./platform/osxcross/custom-osx.cmake \
+                  -DCMAKE_SYSTEM_NAME=Darwin \
+                  -DOSXCROSS_TARGET_DIR=${OSXCROSS_TARGET_DIR} \
+                  -DOSXCROSS_SDK=${OSXCROSS_SDK} \
+                  -DOSXCROSS_TARGET=${OSXCROSS_TARGET} \
+                  -DCMAKE_OSX_ARCHITECTURES=${ARCH}
+          done
+
+      - name: Build Csound
+        run: |
+          $(eval /home/runner/work/csound/csound/osxcross/tools/osxcross_conf.sh)
+          for ARCH in x86_64 arm64; do
+            cmake --build build/$ARCH --config Release
+          done
+
   windows_build:
     name: Windows build
     runs-on: windows-latest
@@ -150,6 +225,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6
@@ -222,6 +299,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v6

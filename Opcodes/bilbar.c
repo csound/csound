@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
@@ -53,7 +56,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
                                    (keep small) */
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = (double)csound->onedsr;
+      double  dt = (double)CS_ONEDSR;
       double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
       int32_t N = (int32_t) (1.0/dxmin);
@@ -81,7 +84,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
     /*
     else {
       if (UNLIKELY(p->w_aux.auxp == NULL))
-        return csound->InitError(csound, Str("No data to continue"));
+        return csound->InitError(csound, "%s", Str("No data to continue"));
     }
     */
     p->first = 0;
@@ -113,7 +116,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound, &(p->h),
-                               Str("Ends must be clamped(1), "
+                               "%s", Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -186,7 +189,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
 /*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
-      ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
+      ar[n] = (csound->Get0dBFS(csound))*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
         double *ww = w2;
@@ -268,7 +271,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
                           /* and lowest string in set */
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
-      double dt = (double)csound->onedsr;
+      double dt = (double)CS_ONEDSR;
       double sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
 
       uint32_t N, n;
@@ -279,13 +282,13 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       c = (double *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
-          (ftp=csound->FTnp2Finde(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
+          (ftp=csound->FTFind(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
       else {
         p->rattle_num = (uint32_t)(*ftp->ftable);
         p->rattle = (RATTLE*)(&((MYFLT*)ftp->ftable)[1]);
       }
       if (*p->rubber_tab==FL(0.0) ||
-          (ftp=csound->FTnp2Finde(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
+          (ftp=csound->FTFind(csound, p->rubber_tab)) == NULL) p->rubber_num = 0;
       else {
         p->rubber_num = (uint32_t)(*ftp->ftable);
         p->rubber = (RUBBER*)(&((MYFLT*)ftp->ftable)[1]);
@@ -360,7 +363,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
-    double dt = csound->onedsr;
+    double dt = CS_ONEDSR;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
           *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;
@@ -536,7 +539,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         for (qq=0; qq<NS; qq++) {
           out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
         }
-        ar[t] = FL(200.0)*out*csound->e0dbfs;
+        ar[t] = FL(200.0)*out*csound->Get0dBFS(csound);
         if (p->stereo) {
           /* Need to deal with stereo version here */
           xx = SINNW2*COS1W2 + COSNW2*SIN1W2;
@@ -548,7 +551,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
           for (qq=0; qq<NS; qq++) {
             out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
           }
-          ar1[t] = FL(200.0)*out*csound->e0dbfs;
+          ar1[t] = FL(200.0)*out*csound->Get0dBFS(csound);
           SINNW2 = xx;
           COSNW2 = yy;
         }
@@ -574,9 +577,9 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY bilbar_localops[] = {
-  { "barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
+  { "barmodel", S(BAR), 0,  "a", "kkiikiiii", (SUBR) bar_init,
                                                (SUBR) bar_run},
-  { "prepiano", S(CSPP), 0, 3, "mm", "iiiiiikkiiiiiiioo",
+  { "prepiano", S(CSPP), 0,  "mm", "iiiiiikkiiiiiiioo",
                                 (SUBR)init_pp, (SUBR)play_pp },
 };
 

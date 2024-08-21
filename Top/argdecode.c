@@ -1218,7 +1218,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
           csound->LongJmp(csound, 1);
         sfopenout(csound);
         csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                         "system sr: %f\n", csound->system_sr(csound,0));
+                         "system sr: %f\n", csound->GetSystemSr(csound,0));
         sfcloseout(csound);
         // csound->LongJmp(csound, 0);
       }
@@ -1525,7 +1525,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             {
               FILE *ind;
               void *fd;
-              fd = csound->FileOpen2(csound, &ind, CSFILE_STD,
+              fd = csound->FileOpen(csound, &ind, CSFILE_STD,
                                      s, "r", NULL, CSFTYPE_OPTIONS, 0);
               if (UNLIKELY(fd == NULL)) {
                 dieu(csound, Str("Cannot open indirection file %s\n"), s);
@@ -1557,8 +1557,10 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
               break;
             }
 #endif
-            if (!decode_long(csound, s, argc, argv))
-              csound->LongJmp(csound, 1);
+            if (!decode_long(csound, s, argc, argv)) {
+              csound->Message(csound,"\n...failing to parse options\n");
+              return 0;  // fail
+            }
             while (*(++s));
             break;
           case 'j':

@@ -50,8 +50,11 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <stdio.h>
 #include <math.h>
@@ -84,17 +87,17 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     }
 
     if (!strcmp("HRTFcompact", p->ifilno->data)) {
-      strNcpy(filename, p->ifilno->data, MAXNAME);
+      strncpy(filename, p->ifilno->data, MAXNAME);
       //filename[MAXNAME-1] = '\0';
     }
     else {
-      csound->Message(csound, Str("\nLast argument must be the string "
+      csound->Message(csound, "%s", Str("\nLast argument must be the string "
                                   "'HRTFcompact' ...correcting.\n"));
-      strNcpy(filename, "HRTFcompact", MAXNAME); /* for safety */
+      strncpy(filename, "HRTFcompact", MAXNAME); /* for safety */
     }
 
     if ((mfp = p->mfp) == NULL)
-      mfp = csound->ldmemfile2withCB(csound, filename, CSFTYPE_HRTF, NULL);
+      mfp = csound->LoadMemoryFile(csound, filename, CSFTYPE_HRTF, NULL);
     p->mfp = mfp;
     p->fpbegin = (int16*) mfp->beginp;
     bytrev_test = 0x1234;
@@ -141,6 +144,8 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     /* } */
     memset(p->bl, 0, FILT_LENm1*sizeof(MYFLT));
     memset(p->br, 0, FILT_LENm1*sizeof(MYFLT));
+    p->setup = csound->RealFFTSetup(csound, BUF_LEN, FFT_FWD);
+    p->isetup = csound->RealFFTSetup(csound, BUF_LEN, FFT_INV);
     return OK;
 }
 
@@ -256,8 +261,8 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /**************
         FFT xl and xr here
         ***************/
-    csound->RealFFT(csound, xl, BUF_LEN);
-    csound->RealFFT(csound, xr, BUF_LEN);
+    csound->RealFFT(csound, p->setup, xl);
+    csound->RealFFT(csound, p->setup, xr);
 
         /* If azimuth called for right side of head, use left side
            measurements and flip output channels.
@@ -328,15 +333,15 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
               /* pad x to BUF_LEN with zeros for Moore FFT */
         for (i = FILT_LEN; i <  BUF_LEN; i++)
           x[i] = FL(0.0);
-        csound->RealFFT(csound, x, BUF_LEN);
+        csound->RealFFT(csound, p->setup, x);
 
               /* complex multiplication, y = hrtf_data * x */
         csound->RealFFTMult(csound, yl, hrtf_data.left, x, BUF_LEN, FL(1.0));
         csound->RealFFTMult(csound, yr, hrtf_data.right, x, BUF_LEN, FL(1.0));
 
               /* convolution is the inverse FFT of above result (yl,yr) */
-        csound->InverseRealFFT(csound, yl, BUF_LEN);
-        csound->InverseRealFFT(csound, yr, BUF_LEN);
+        csound->RealFFT(csound, p->isetup, yl);
+        csound->RealFFT(csound, p->isetup, yr);
             /* overlap-add the results */
         for (i = 0; i < FILT_LENm1; i++) {
           yl[i] += bl[i];
@@ -438,13 +443,13 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h),
+    return csound->PerfError(csound, &(p->h), "%s",
                              Str("hrtfer: not initialised"));
 }
 
 static OENTRY hrtferX_localops[] =
   {
-   { "hrtfer",   sizeof(HRTFER), _QQ, 3, "aa", "akkS",
+   { "hrtfer",   sizeof(HRTFER), _QQ,  "aa", "akkS",
      (SUBR)hrtferxkSet, (SUBR)hrtferxk},
 };
 

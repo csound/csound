@@ -139,14 +139,6 @@ static  int32_t     pvoc_writeheader(CSOUND *csound, PVOCFILE *p);
 static  int32_t     pvoc_readheader(CSOUND *csound, PVOCFILE *p,
                                                  WAVEFORMATPVOCEX *pWfpx);
 
-/* thanks to the SNDAN programmers for this! */
-/* return 1 for big-endian machine, 0 for little-endian machine */
-
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
 
 /* low level file I/O */
 
@@ -481,7 +473,7 @@ int32_t  pvoc_createfile(CSOUND *csound, const char *filename,
       memcpy(p->customWindow, fWindow, dwWinlen * sizeof(float));
     }
 
-    p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename, "wb",
+    p->fd = csound->FileOpen(csound, &(p->fp), CSFILE_STD, filename, "wb",
                                "", CSFTYPE_PVCEX, 0);
     if (UNLIKELY(p->fd == NULL)) {
       csound->Free(csound, pname);
@@ -532,7 +524,7 @@ int32_t pvoc_openfile(CSOUND *csound,
     p = pvsys_getFileHandle(csound, fd);
 
     p->customWindow = NULL;
-    p->fd = csound->FileOpen2(csound, &(p->fp), CSFILE_STD, filename,
+    p->fd = csound->FileOpen(csound, &(p->fp), CSFILE_STD, filename,
                                    "rb", "SADIR", CSFTYPE_PVCEX, 0);
     if (UNLIKELY(p->fd == NULL)) {
       csound->pvErrorCode = -9;

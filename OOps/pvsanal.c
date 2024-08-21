@@ -195,8 +195,8 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
 #endif
     halfwinsize = M/2;
     buflen = M*4;
-    p->arate = (float)(csound->esr / (MYFLT) overlap);
-    p->fund = (float)(csound->esr / (MYFLT) N);
+    p->arate = (float)(CS_ESR / (MYFLT) overlap);
+    p->fund = (float)(CS_ESR / (MYFLT) N);
 
     nBins = N/2 + 1;
     /* we can exclude/simplify all sorts of stuff in CARL
@@ -242,10 +242,10 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
       *(analwinhalf + i) *= sum;
 
 
-  /*    p->invR = (float)(FL(1.0) / csound->esr); */
+  /*    p->invR = (float)(FL(1.0) / CS_ESR); */
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
     p->TwoPioverR = (float)(TWOPI_F / p->arate);
-    p->Fexact =  (float)(csound->esr / (MYFLT)N);
+    p->Fexact =  (float)(CS_ESR / (MYFLT)N);
     p->nI = -((int64_t)(halfwinsize/overlap))*overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
@@ -264,7 +264,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     p->fsig->sliding = 0;
 
     if (!(N & (N - 1))) /* if pow of two use this */
-     p->setup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+     p->setup = csound->RealFFTSetup(csound,N,FFT_FWD);
     return OK;
 }
 
@@ -330,14 +330,12 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       /* *(anal + k) += *(analWindow + i) * *(input + j); */
       anal[k] += analWindow[i] * input[j];
     }
+     csound->RealFFT(csound,p->setup,anal);    
     if (!(N & (N - 1))) {
-      /* csound->RealFFT(csound, anal, N);*/
-      csound->RealFFT2(csound,p->setup,anal);
       anal[N] = anal[1];
       anal[1] = anal[N + 1] = FL(0.0);
     }
-    else
-      csound->RealFFTnp2(csound, anal, N);
+
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -658,7 +656,7 @@ int32_t pvssanal(CSOUND *csound, PVSANAL *p)
         angleDif =  mod2Pi(angleDif);
         angleDif =  angleDif * N /TWOPI;
         ff[j].re = thismag;
-        ff[j].im = csound->esr * (j + angleDif)/N;
+        ff[j].im = CS_ESR * (j + angleDif)/N;
       }
 /*       if (i==9) { */
 /*         printf("Frame as Amp/Freq %d\n", i); */
@@ -732,8 +730,8 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     buflen = M*4;
     IO = (double)overlap;         /* always, no time-scaling possible */
 
-    p->arate = csound->esr / (MYFLT) overlap;
-    p->fund = csound->esr / (MYFLT) N;
+    p->arate = CS_ESR / (MYFLT) overlap;
+    p->fund = CS_ESR / (MYFLT) N;
     nBins = N/2 + 1;
     Lf = Mf = 1 - M%2;
     /* deal with iinit later on! */
@@ -826,10 +824,10 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
   for (i = -halfwinsize; i <= halfwinsize; i++)
       *(synwinhalf + i) *= sum;
 
-/*  p->invR = FL(1.0) / csound->esr; */
+/*  p->invR = FL(1.0) / CS_ESR; */
     p->RoverTwoPi = p->arate / TWOPI_F;
     p->TwoPioverR = TWOPI_F / p->arate;
-    p->Fexact =  csound->esr / (MYFLT)N;
+    p->Fexact =  CS_ESR / (MYFLT)N;
     p->nO = -(halfwinsize / overlap) * overlap; /* input time (in samples) */
     p->Ii = 0;                          /* number of new outputs to write */
     p->IOi = 0;
@@ -838,7 +836,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     p->buflen = buflen;
 
     if (!(N & (N - 1))) /* if pow of two use this */
-      p->setup = csound->RealFFT2Setup(csound,N,FFT_INV);
+      p->setup = csound->RealFFTSetup(csound,N,FFT_INV);
     return OK;
 }
 
@@ -943,11 +941,11 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
       /*printf("N %d %d \n", NO, NO & (NO-1));*/
       syn[1] = syn[NO];
       /* csound->InverseRealFFT(csound, syn, NO);*/
-      csound->RealFFT2(csound,p->setup,syn);
+      csound->RealFFT(csound,p->setup,syn);
       syn[NO] = syn[NO + 1] = FL(0.0);
     }
-    else
-      csound->InverseRealFFTnp2(csound, syn, NO);
+    else // np2
+      csound->RealFFT(csound,p->setup,syn);
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;
@@ -1027,9 +1025,9 @@ int32_t pvssynth(CSOUND *csound, PVSYNTH *p)
 
         tmp = ff[k].im; /* Actually frequency */
         /* subtract bin mid frequency */
-        tmp -= (double)k * csound->esr/N;
+        tmp -= (double)k * CS_ESR/N;
         /* get bin deviation from freq deviation */
-        tmp *= TWOPI /csound->esr;
+        tmp *= TWOPI /CS_ESR;
         /* add the overlap phase advance back in */
         tmp += (double)k*TWOPI/N;
         h[k] = phase = mod2Pi(h[k] + tmp);

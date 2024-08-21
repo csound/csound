@@ -25,18 +25,16 @@
 #include "csoundCore.h"       /*                                  PITCH.C       */
 #include "cwindow.h"
 #include <limits.h>
-#include "spectra.h"
 #include "pitch.h"
-#include "uggab.h"
 
 int32_t mute_inst(CSOUND *csound, MUTE *p)
 {
     int32_t n;
     int32_t onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
-    if (csound->ISSTRCOD(*p->ins)) {
+    if (IsStringCode(*p->ins)) {
       char *ss = get_arg_string(csound,*p->ins);
-      n = csound->strarg2insno(csound,ss,1);
+      n = csound->StringArg2Insno(csound,ss,1);
     } else n = *p->ins;
 
     if (UNLIKELY(n < 1)) return NOTOK;
@@ -55,7 +53,7 @@ int32_t mute_inst_S(CSOUND *csound, MUTE *p)
     int32_t n;
     int32_t onoff = (*p->onoff == FL(0.0) ? 0 : 1);
 
-    n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
+    n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->ins)->data, 1);
 
     if (UNLIKELY(n < 1)) return NOTOK;
     if (onoff==0) {
@@ -72,9 +70,9 @@ int32_t instcount(CSOUND *csound, INSTCNT *p)
 {
     int32_t n;
 
-    if (csound->ISSTRCOD(*p->ins)) {
+    if (IsStringCode(*p->ins)) {
       char *ss = get_arg_string(csound,*p->ins);
-      n = csound->strarg2insno(csound,ss,1);
+      n = csound->StringArg2Insno(csound,ss,1);
     }
     else n = *p->ins;
 
@@ -105,7 +103,7 @@ int32_t instcount_S(CSOUND *csound, INSTCNT *p)
 {
 
 
-    int32_t n = csound->strarg2insno(csound, ((STRINGDAT *)p->ins)->data, 1);
+    int32_t n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->ins)->data, 1);
 
     if (n<0 || n > csound->engineState.maxinsno ||
         csound->engineState.instrtxtp[n] == NULL)
@@ -135,9 +133,9 @@ int32_t cpuperc(CSOUND *csound, CPU_PERC *p)
 {
     int32_t n;
 
-    if (csound->ISSTRCOD(*p->instrnum)) {
+    if (IsStringCode(*p->instrnum)) {
       char *ss = get_arg_string(csound,*p->instrnum);
-      n = csound->strarg2insno(csound,ss,1);
+      n = csound->StringArg2Insno(csound,ss,1);
     } else n = *p->instrnum;
 
     if (n > 0 && n <= csound->engineState.maxinsno &&
@@ -149,7 +147,7 @@ int32_t cpuperc(CSOUND *csound, CPU_PERC *p)
 
 int32_t cpuperc_S(CSOUND *csound, CPU_PERC *p)
 {
-    int32_t n = csound->strarg2insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
+    int32_t n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
     if (n > 0 && n <= csound->engineState.maxinsno &&
         csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */
@@ -160,10 +158,9 @@ int32_t cpuperc_S(CSOUND *csound, CPU_PERC *p)
 int32_t maxalloc(CSOUND *csound, CPU_PERC *p)
 {
     int32_t n;
-
-    if (csound->ISSTRCOD(*p->instrnum)) {
+    if (IsStringCode(*p->instrnum)) {
       char *ss = get_arg_string(csound,*p->instrnum);
-      n = csound->strarg2insno(csound,ss,1);
+      n = csound->StringArg2Insno(csound,ss,1);
     }
     else n = *p->instrnum;
     if (n > 0 && n <= csound->engineState.maxinsno &&
@@ -175,7 +172,7 @@ int32_t maxalloc(CSOUND *csound, CPU_PERC *p)
 
 int32_t maxalloc_S(CSOUND *csound, CPU_PERC *p)
 {
-    int32_t n = csound->strarg2insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
+    int32_t n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
     if (n > 0 && n <= csound->engineState.maxinsno &&
         csound->engineState.instrtxtp[n] != NULL)
       /* If instrument exists */

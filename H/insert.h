@@ -60,9 +60,9 @@ typedef struct {
     MYFLT  *inst;
 } KILLOP;
 
+
 /* the number of optional outputs defined in entry.c */
 #define SUBINSTNUMOUTS  8
-
 
 typedef struct {                        /* IV - Oct 16 2002 */
     OPDS    h;
@@ -99,5 +99,11 @@ typedef struct {
 } DELETEIN;
 
 void    instance(CSOUND *, int);
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *os;
+    MYFLT   *type;
+} OVSMPLE;
 
 #endif

@@ -69,7 +69,7 @@ int32_t tonset(CSOUND *csound, TONE *p)
 {
     double b;
     p->prvhp = (double)*p->khp;
-    b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+    b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
 
@@ -110,7 +110,7 @@ int32_t tone(CSOUND *csound, TONE *p)
     if (*p->khp != (MYFLT)p->prvhp) {
       double b;
       p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+      b = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
       p->c2 = c2 = b - sqrt(b * b - 1.0);
       p->c1 = c1 = 1.0 - c2;
     }
@@ -134,7 +134,7 @@ int32_t tonsetx(CSOUND *csound, TONEX *p)
     {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
@@ -161,7 +161,7 @@ int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = (double)*p->khp;
-      b = 2.0 - cos(p->prvhp * (double)csound->tpidsr);
+      b = 2.0 - cos(p->prvhp * (double)CS_TPIDSR);
       p->c2 = b - sqrt(b * b - 1.0);
       p->c1 = 1.0 - p->c2;
     }
@@ -217,7 +217,7 @@ int32_t atone(CSOUND *csound, TONE *p)
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
       p->c2 = c2 = b - sqrt(b * b - 1.0);
 /*      p->c1 = c1 = 1.0 - c2; */
     }
@@ -250,7 +250,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     if (*p->khp != p->prvhp) {
       double b;
       p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      b = 2.0 - cos((double)(*p->khp * CS_TPIDSR));
       p->c2 = b - sqrt(b * b - 1.0);
       /*p->c1 = 1. - p->c2;*/
     }
@@ -354,7 +354,7 @@ int32_t reson(CSOUND *csound, RESON *p)
       MYFLT bw = asigw ? p->kbw[n] : *p->kbw;
       if (cf != (MYFLT)p->prvcf) {
         p->prvcf = (double)cf;
-        p->cosf = cos(cf * (double)(csound->tpidsr));
+        p->cosf = cos(cf * (double)(CS_TPIDSR));
         flag = 1;                 /* Mark as changed */
       }
       if (bw != (MYFLT)p->prvbw) {
@@ -438,7 +438,7 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
         MYFLT bw = asgw ? p->kbw[n] : *p->kbw;
         if (cf != (MYFLT)p->prvcf) {
           p->prvcf = (double)cf;
-          p->cosf = cos(cf * (double)(csound->tpidsr));
+          p->cosf = cos(cf * (double)(CS_TPIDSR));
           flag = 1;
         }
         if (bw != (MYFLT)p->prvbw) {
@@ -531,7 +531,7 @@ int32_t areson(CSOUND *csound, RESON *p)
 
     if (*p->kcf != (MYFLT)p->prvcf) {
       p->prvcf = (double)*p->kcf;
-      p->cosf = cos(p->prvcf * (double)(csound->tpidsr));
+      p->cosf = cos(p->prvcf * (double)(CS_TPIDSR));
       flag = 1;
     }
     if (*p->kbw != (MYFLT)p->prvbw) {
@@ -609,9 +609,9 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
 
     /* Build file name */
     if (stringname) strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (csound->ISSTRCOD(*p->ifilcod))
+    else if (IsStringCode(*p->ifilcod))
       strNcpy(lpfilname, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
-    else csound->strarg2name(csound, lpfilname, p->ifilcod, "lp.", 0);
+    else csound->StringArg2Name(csound, lpfilname, p->ifilcod, "lp.", 0);
 
     /* Do not reload existing file ? */
     if (UNLIKELY((mfp = p->mfp) != NULL && strcmp(mfp->filename, lpfilname) == 0))
@@ -641,7 +641,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
         csound->Warning(csound, Str("lpheader overriding inputs"));
       }
       /* Check orc/analysis sample rate compatibility */
-      if (lph->srate != csound->esr) {
+      if (lph->srate != CS_ESR) {
         csound->Warning(csound, Str("lpfile srate != orch sr"));
       }
       p->npoles = lph->npoles;                /* note npoles, etc. */
@@ -962,7 +962,7 @@ int32_t lpformantset(CSOUND *csound, LPFORM *p)
 int32_t lpformant(CSOUND *csound, LPFORM *p)
 {
     LPREAD  *q = p->lpread;
-    MYFLT   *coefp, sr = csound->esr;
+    MYFLT   *coefp, sr = CS_ESR;
     MYFLT   *cfs = (MYFLT*)p->aux.auxp;
     MYFLT   *bws = cfs+p->lpread->npoles/2;
     int32_t i, j, ndx = *p->kfor;
@@ -1050,7 +1050,7 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
         pm = *coefp++;
         pp = *coefp++;
         /*       csound->Message(csound, "pole %d, fr=%.2f, BW=%.2f\n", i,
-                        pp*(csound->esr)/6.28, -csound->esr*log(pm)/3.14);
+                        pp*(CS_ESR)/6.28, -CS_ESR*log(pm)/3.14);
         */
         if (fabs(pm)>0.999999)
           pm = 1/pm;
@@ -1210,7 +1210,7 @@ int32_t rmsset(CSOUND *csound, RMS *p)
 {
     double   b;
 
-    b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
+    b = 2.0 - cos((double)(*p->ihp * CS_TPIDSR));
     p->c2 = b - sqrt(b*b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor)
@@ -1222,7 +1222,7 @@ int32_t gainset(CSOUND *csound, GAIN *p)
 {
     double   b;
 
-    b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
+    b = 2.0 - cos((double)(*p->ihp * CS_TPIDSR));
     p->c2 = b - sqrt(b*b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor)
@@ -1234,7 +1234,7 @@ int32_t balnset(CSOUND *csound, BALANCE *p)
 {
     double   b;
 
-    b = 2.0 - cos((double)(*p->ihp * csound->tpidsr));
+    b = 2.0 - cos((double)(*p->ihp * CS_TPIDSR));
     p->c2 = b - sqrt(b*b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor)

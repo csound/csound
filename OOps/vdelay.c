@@ -31,8 +31,8 @@
 #include <math.h>
 #include "vdelay.h"
 
-//#define ESR     (csound->esr/FL(1000.0))
-#define ESR     (csound->esr*FL(0.001))
+//#define ESR     (CS_ESR/FL(1000.0))
+#define ESR     (CS_ESR*FL(0.001))
 
 int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
@@ -260,7 +260,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
 
 int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
 {
-    uint32_t n = (int32_t)(*p->imaxd * csound->esr);
+    uint32_t n = (int32_t)(*p->imaxd * CS_ESR);
 
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
@@ -281,7 +281,7 @@ int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) *
 
 int32_t vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 {
-    uint32_t n = (int32_t)(*p->imaxd * csound->esr);
+    uint32_t n = (int32_t)(*p->imaxd * CS_ESR);
 
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
@@ -307,7 +307,7 @@ int32_t vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 
 int32_t vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 {
-    uint32_t n = (int32_t)(*p->imaxd * csound->esr);
+    uint32_t n = (int32_t)(*p->imaxd * CS_ESR);
 
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
@@ -373,7 +373,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)del[nn] * (double)csound->esr);
+      x1 = (double)indx - ((double)del[nn] * (double)CS_ESR);
       while (x1 < 0.0) x1 += (double)maxd;
       xpos = (int32_t)x1;
       x1 -= (double)xpos;
@@ -441,7 +441,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[nn] * (double)csound->esr);
+      x1 = (double)indx + ((double)del[nn] * (double)CS_ESR);
       while (x1 < 0.0) x1 += (double)maxd;
       xpos = (int32_t)x1;
       x1 -= (double)xpos;
@@ -520,7 +520,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)del[n] * (double)csound->esr);
+      x1 = (double)indx - ((double)del[n] * (double)CS_ESR);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
       xpos = (int32_t)x1;
       x1 -= (double)xpos;
@@ -595,7 +595,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[n] * (double)csound->esr);
+      x1 = (double)indx + ((double)del[n] * (double)CS_ESR);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
       xpos = (int32_t)x1;
       x1 -= (double)xpos;
@@ -688,7 +688,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)*del++ * (double)csound->esr);
+      x1 = (double)indx - ((double)*del++ * (double)CS_ESR);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
       xpos = (int32_t)x1;
       x1 -= (double)xpos;
@@ -779,7 +779,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[n] * (double)csound->esr);
+      x1 = (double)indx + ((double)del[n] * (double)CS_ESR);
       while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
       xpos = (int32_t)x1;
       x1 -= (double)xpos;
@@ -838,7 +838,7 @@ int32_t multitap_set(CSOUND *csound, MDEL *p)
       if (max < *p->ndel[i]) max = *p->ndel[i];
     }
 
-    n = (uint32_t)(csound->esr * max * sizeof(MYFLT));
+    n = (uint32_t)(CS_ESR * max * sizeof(MYFLT));
     if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
         n > p->aux.size)
       csound->AuxAlloc(csound, n, &p->aux);
@@ -847,7 +847,7 @@ int32_t multitap_set(CSOUND *csound, MDEL *p)
     }
 
     p->left = 0;
-    p->max = (int32_t)(csound->esr * max);
+    p->max = (int32_t)(CS_ESR * max);
     return OK;
 }
 
@@ -873,7 +873,7 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
 
       if (UNLIKELY(++indx == max)) indx = 0;   /*      Advance input pointer   */
       for (i = 0; i < p->INOCOUNT - 1; i += 2) {
-        delay = indx - (int32_t)(csound->esr * *p->ndel[i]);
+        delay = indx - (int32_t)(CS_ESR * *p->ndel[i]);
         if (UNLIKELY(delay < 0))
           delay += (int32_t)max;
         v += buf[delay] * *p->ndel[i+1]; /*      Write output    */
@@ -1018,7 +1018,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       FUNC *ftCombs;
       p->numCombs = (int32_t) *p->inumCombs;
       /* Get user-defined set of comb constants from table */
-      if (UNLIKELY((ftCombs = csound->FTnp2Finde(csound, p->ifnCombs)) == NULL))
+      if (UNLIKELY((ftCombs = csound->FTFind(csound, p->ifnCombs)) == NULL))
         return NOTOK;
       if (UNLIKELY(ftCombs->flen < (uint32_t)p->numCombs * 2)) {
         return csound->InitError(csound, Str("reverbx; Combs ftable must have "
@@ -1050,7 +1050,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
     else {    /* Have user-defined set of alpas constants */
       FUNC *ftAlpas;
       p->numAlpas = (int32_t) *p->inumAlpas;
-      if (UNLIKELY((ftAlpas = csound->FTnp2Finde(csound, p->ifnAlpas)) == NULL))
+      if (UNLIKELY((ftAlpas = csound->FTFind(csound, p->ifnAlpas)) == NULL))
         return NOTOK;
       if (UNLIKELY(ftAlpas->flen < (uint32_t)p->numAlpas * 2)) {
         return csound->InitError(csound, Str("reverbx; Alpas ftable must have"
@@ -1084,7 +1084,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
           c_time = (int32_t) -ftime;
         else {
           /* convert from to seconds to samples, and make prime */
-          c_time = (int32_t) (ftime * csound->esr);
+          c_time = (int32_t) (ftime * CS_ESR);
           /* Mangle sample number to primes. */
           if (c_time % 2 == 0)
             c_time += 1;
@@ -1094,7 +1094,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
         p->c_time[i] = (MYFLT) c_time;
         n += c_time;
         p->c_gain[i] = (MYFLT) exp((double)(LOG001 * (p->c_time[i]
-                                                       * csound->onedsr)
+                                                       * CS_ONEDSR)
                                              / (p->c_orggains[i] * *p->time)));
         p->g[i] = *p->hdif;
         p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
@@ -1109,7 +1109,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       for (i = 0; i < p->numCombs; i++) {
         p->pcbuf_cur[i + 1] = p->cbuf_cur[i + 1] =
           p->cbuf_cur[i] + (int32_t) p->c_time[i];
-        p->c_time[i] *= csound->onedsr; /* Scale to save division in reverbx */
+        p->c_time[i] *= CS_ONEDSR; /* Scale to save division in reverbx */
       }
       n = 0;
       for (i = 0; i < p->numAlpas; i++) {
@@ -1118,7 +1118,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
           a_time = (int32_t) -ftime;
         else {
           /* convert seconds to samples and make prime */
-          a_time = (int32_t) (ftime * csound->esr);
+          a_time = (int32_t) (ftime * CS_ESR);
           if (a_time % 2 == 0)
             a_time += 1;
           while (!prime(a_time))
@@ -1126,7 +1126,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
         }
         p->a_time[i] = (MYFLT) a_time;
         p->a_gain[i] = (MYFLT) exp((double)(LOG001 * (p->a_time[i]
-                                                       * csound->onedsr)
+                                                       * CS_ONEDSR)
                                              / (p->a_orggains[i] * *p->time)));
         n += a_time;
       }
@@ -1139,7 +1139,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       for (i = 0; i < p->numAlpas; i++) {
         p->pabuf_cur[i + 1] = p->abuf_cur[i + 1] =
           p->abuf_cur[i] + (int32_t) p->a_time[i];
-        p->a_time[i] *= csound->onedsr; /* Scale to save division in reverbx */
+        p->a_time[i] *= CS_ONEDSR; /* Scale to save division in reverbx */
       }
     }
 

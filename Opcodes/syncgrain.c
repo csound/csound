@@ -40,11 +40,11 @@
 static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int32_t size;
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
+    p->sfunc = csound->FTFind(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -185,17 +185,17 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("grain size smaller than 1 sample\n"));
+                             "%s", Str("grain size smaller than 1 sample\n"));
 }
 
 
 static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 {
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
+    p->sfunc = csound->FTFind(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -358,7 +358,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("grain size smaller than 1 sample\n"));
+                             "%s", Str("grain size smaller than 1 sample\n"));
 }
 
 #define DGRAIN_MAXCHAN 4
@@ -408,9 +408,9 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     p->nChannels = (int32_t) (p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN)) {
       return csound->InitError(csound,
-                               Str("diskgrain: invalid number of channels"));
+                               "%s", Str("diskgrain: invalid number of channels"));
     }
-    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
+    p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
@@ -437,16 +437,16 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     buffer = (MYFLT *) p->buffer.auxp;
     memset(&sfinfo, '\0', sizeof(sfinfo)); /* for Valgrind */
     /* open file and read the first block using *p->ioff */
-    fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
+    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     memset(buffer, 0,p->buffer.size);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound, Str("diskgrain: could not open file: %s\n"),
-                               Str(sflib_strerror(NULL)));
+                               Str(csound->FileError(csound,NULL)));
     }
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return
-        csound->InitError(csound, Str("diskgrain: soundfile channel numbers "
+        csound->InitError(csound, "%s", Str("diskgrain: soundfile channel numbers "
                                       "do not match the number of outputs\n"));
     }
 
@@ -454,14 +454,14 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     p->pscale = p->sr/CS_ESR;
 
     if (*p->ioff >= 0)
-      sflib_seek(p->sf,*p->ioff * p->sr, SEEK_SET);
+      csound->SndfileSeek(csound, p->sf,*p->ioff * p->sr, SEEK_SET);
 
-    if (LIKELY(sflib_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0)) {
+    if (LIKELY(csound->SndfileRead(csound, p->sf,buffer,p->dataframes/2) != 0)) {
       p->read1 = 1;
       p->read2 = 0;
     }
     else {
-      return csound->InitError(csound, Str("diskgrain: could not read file\n"));
+      return csound->InitError(csound, "%s", Str("diskgrain: could not read file\n"));
     }
 
    /* -===-  */
@@ -553,12 +553,12 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
 
             if (!read1) {
               pos += hdataframes;
-              sflib_seek(p->sf,pos,SEEK_SET);
+              csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
 
-              items = sflib_read_MYFLT(p->sf,datap,hdatasize);
+              items = csound->SndfileRead(csound, p->sf, datap, hdatasize/chans);
               if (items < hdatasize) {
-                sflib_seek(p->sf, 0, 0);
-                sflib_read_MYFLT(p->sf,datap+items, hdatasize-items);
+                csound->SndfileSeek(csound,p->sf, 0, 0);
+                csound->SndfileRead(csound,p->sf,datap+items, (hdatasize-items)/chans);
               }
               for (n=0; n < chans; n++)
                 datap[hdatasize+n] = datap[hdatasize-chans+n];
@@ -572,12 +572,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
             if (!read2) {
 
               pos += hdataframes;
-              sflib_seek(p->sf,pos,SEEK_SET);
-
-              items = sflib_read_MYFLT(p->sf,datap+hdatasize, hdatasize);
+              csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
+              items = csound->SndfileRead(csound, p->sf, datap, hdatasize/chans);
               if (items < hdatasize) {
-                  sflib_seek(p->sf, 0, SEEK_SET);
-                  sflib_read_MYFLT(p->sf,datap+items+hdatasize, hdatasize-items);
+                csound->SndfileSeek(csound,p->sf, 0, SEEK_SET);
+                csound->SndfileRead(csound,p->sf,datap+items+hdatasize, (hdatasize-items)/chans);
               }
               for (n=0; n < chans; n++)
                 datap[datasize+n] = datap[datasize-chans+n];
@@ -611,11 +610,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
                 if (pos < 0)  pos += flen;
               */
 
-              sflib_seek(p->sf,pos,SEEK_SET);
-              items = sflib_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
+              csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
+              items = csound->SndfileRead(csound,p->sf,datap+hdatasize,hdatasize/chans);
               if (items < hdatasize) {
-                sflib_seek(p->sf,items-hdatasize,SEEK_END);
-                sflib_read_MYFLT(p->sf,datap+hdatasize+items, hdatasize-items);
+                csound->SndfileSeek(csound,p->sf,items-hdatasize,SEEK_END);
+                csound->SndfileRead(csound,p->sf,datap+hdatasize+items, (hdatasize-items)/chans);
               }
 
               for (n=0; n < chans; n++)
@@ -638,11 +637,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
                 pos -= hdataframes;
                 if (pos < 0)  pos += flen;
               */
-              sflib_seek(p->sf,pos,SEEK_SET);
-              items = sflib_read_MYFLT(p->sf,datap,hdatasize);
+              csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
+              items = csound->SndfileRead(csound, p->sf,datap,hdatasize/chans);
               if (items < hdatasize) {
-                sflib_seek(p->sf,items-hdatasize,SEEK_END);
-                (void) sflib_read_MYFLT(p->sf,datap+items,hdatasize-items);
+                csound->SndfileSeek(csound,p->sf,items-hdatasize,SEEK_END);
+                csound->SndfileRead(csound,p->sf,datap+items,(hdatasize-items)/chans);
               }
               for (n=0; n < chans; n++)
                 datap[hdatasize+n] = datap[hdatasize-chans+n];
@@ -715,18 +714,18 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("grain size smaller than 1 sample\n"));
+                             "%s", Str("grain size smaller than 1 sample\n"));
 }
 
 
 
 static OENTRY localops[] =
   {
-   {"syncgrain", sizeof(syncgrain), TR, 3, "a", "kkkkkiii",
+   {"syncgrain", sizeof(syncgrain), TR,  "a", "kkkkkiii",
     (SUBR)syncgrain_init,(SUBR)syncgrain_process },
-   {"syncloop", sizeof(syncgrainloop), TR, 3, "a", "kkkkkkkiiioo",
+   {"syncloop", sizeof(syncgrainloop), TR, "a", "kkkkkkkiiioo",
     (SUBR)syncgrainloop_init,(SUBR)syncgrainloop_process },
-   {"diskgrain", sizeof(filegrain), TR, 3, DGRAIN_OUTTYPES, "Skkkkkiipo",
+   {"diskgrain", sizeof(filegrain), TR,  DGRAIN_OUTTYPES, "Skkkkkiipo",
     (SUBR)filegrain_init,(SUBR)filegrain_process }
 
 };

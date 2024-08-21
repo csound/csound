@@ -226,7 +226,7 @@ def runTest():
             print(command)
             retVal = os.system(command)
         elif(os.sep == '\\' or os.name == 'nt'):
-            executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
+            executable = (csoundExecutable == "") and os.path.join("..", "csound.exe") or csoundExecutable
             command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)

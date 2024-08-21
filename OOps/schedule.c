@@ -293,7 +293,7 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     MYFLT       *ar, amp;
 
     phs = p->phs;
-    inc = (int32_t)((*p->xcps * (MYFLT)MAXPHASE) * csound->onedsr);
+    inc = (int32_t)((*p->xcps * (MYFLT)MAXPHASE) * CS_ONEDSR);
     amp = *p->kamp;
     ar = p->res;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -425,7 +425,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (IsStringCode(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
       insno = (int32_t)strarg2insno_p(csound, ss);
     }
@@ -468,7 +468,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || csound->ISSTRCOD(*p->args[0])) {
+    if (*p->args[0] >= FL(0.0) || IsStringCode(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -490,14 +490,14 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
 
     /* Create the new event */
     if (stringname) {
-      evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
+      evt.p[1] = csound->StringArg2Insno(csound,((STRINGDAT *)p->args[0])->data, 1);
       evt.strarg = NULL; evt.scnt = 0;
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (IsStringCode(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
-      evt.p[1] = csound->strarg2insno(csound,name, 1);
+      evt.p[1] = csound->StringArg2Insno(csound,name, 1);
       evt.strarg = NULL;
       /* evt.strarg = name; */
       evt.scnt = 0;
@@ -542,7 +542,7 @@ int32_t ktriginstr(CSOUND *csound, TRIGINSTR *p){
 int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
       return csound->InitError(csound, Str("trigseq: incorrect table number"));
     }
     p->done  = 0;
@@ -564,7 +564,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
 
       if (p->pfn != (int32_t)*p->kfn) {
         FUNC *ftp;
-        if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) {
+        if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
           return csound->PerfError(csound, &(p->h),
                                    Str("trigseq: incorrect table number"));
         }
@@ -601,3 +601,5 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
+
+

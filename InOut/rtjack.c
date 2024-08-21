@@ -395,9 +395,9 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->client == NULL))
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
-    csound->system_sr(csound, jack_get_sample_rate(p->client));
+    csound->GetSystemSr(csound, jack_get_sample_rate(p->client));
     if(oparms.msglevel || oparms.odebug)
-      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+      csound->Message(csound, "system sr: %f\n", csound->GetSystemSr(csound,0));
     if(p->sampleRate < 0) p->sampleRate = jack_get_sample_rate(p->client);
 
     /* check consistency of parameters */
@@ -706,8 +706,8 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
                      (unsigned int)p->bufSize != parm->bufSamp_SW))
           rtJack_Error(csound, -1,
                        Str("input and output parameters are not consistent"));
-        if (UNLIKELY((unsigned int)((parm->bufSamp_SW / csound->GetKsmps(csound)) *
-                                    csound->GetKsmps(csound)) != parm->bufSamp_SW))
+        if (UNLIKELY((unsigned int)((parm->bufSamp_SW / parm->ksmps) *
+                                    parm->ksmps) != parm->bufSamp_SW))
           rtJack_Error(csound, -1,
                        Str("period size (-b) must be an integer "
                            "multiple of ksmps"));
@@ -721,6 +721,7 @@ static void rtJack_CopyDevParams(RtJackGlobals *p,
 
     p->bufSize = parm->bufSamp_SW;
     p->nBuffers = (parm->bufSamp_HW + parm->bufSamp_SW - 1) / parm->bufSamp_SW;
+    p->sr = parm->sampleRate;
 
 }
 
@@ -900,7 +901,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf_, int bytes_)
         /* VL 28.03.15 -- timeout after wait for 10 buffer
            lengths */
         int ret = rtJack_LockTimeout(csound, &(p->bufs[bufcnt]->csndLock),
-                                     10000*(nframes/csound->GetSr(csound)));
+                                     10000*(nframes/p->sr));
         if (ret) {
           memset(inbuf_, 0, bytes_);
           OPARMS oparms;
@@ -1081,7 +1082,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
     char            **portNames = (char**) NULL, port[64];
     unsigned long   portFlags;
-    int             i, n, cnt=0;
+    int             i, cnt=0;
     jack_client_t *jackClient;
     RtJackGlobals* p =
       (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1108,9 +1109,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
-      n = (int) strlen(portNames[i]);
-      strNcpy(port, portNames[i], n+1);
-      //port[n] = '\0';
+      strNcpy(port, portNames[i], 63);
       if (list != NULL) {
         strNcpy(list[cnt].device_name, port, 63);
         snprintf(list[cnt].device_id, 63, "%s%d",
@@ -1492,7 +1491,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
                         int isOutput){
     char            **portNames = (char**) NULL, port[64];
     unsigned long   portFlags;
-    int             i, n, cnt=0;
+    int             i, cnt=0;
     jack_client_t *jackClient;
     RtJackGlobals* p =
       (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1520,9 +1519,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
 
     memset(port, '\0', 64);
     for(i=0; portNames[i] != NULL; i++, cnt++) {
-      n = (int) strlen(portNames[i]);
-      strNcpy(port, portNames[i], n+1);
-      //port[n] = '\0';
+      strNcpy(port, portNames[i], 63);
       if (list != NULL) {
         strNcpy(list[cnt].device_name, port, 64);
         snprintf(list[cnt].device_id, 63, "%d", cnt);
@@ -1538,33 +1535,7 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
     return 0;
 }
 
-/*
-  static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
-  int i, cnt;
-  PmDeviceInfo  *info;
-  char tmp[64];
-  char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
 
-  if (UNLIKELY(start_portmidi(csound) != 0))
-  return 0;
-
-  cnt = portMidi_getDeviceCount(isOutput);
-  if (list == NULL) return cnt;
-  for (i = 0; i < cnt; i++) {
-  info = portMidi_getDeviceInfo(i, isOutput);
-  if(info->name != NULL)
-  strNcpy(list[i].device_name, info->name, 64);
-  snprintf(tmp, 64, "%d", i);
-  strNcpy(list[i].device_id, tmp, 64);
-  list[i].isOutput = isOutput;
-  if (info->interf != NULL)
-  strNcpy(list[i].interface_name, info->interf, 64);
-  else strcpy(list[i].interface_name, "");
-  strNcpy(list[i].midi_module, drv, 64);
-  }
-  return cnt;
-  }
-*/
 
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound)

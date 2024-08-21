@@ -22,7 +22,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <math.h>
 
 typedef struct filter_ {
@@ -86,7 +90,7 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
                 p->filter2.b1 = -2.0;
                 p->filter2.b2 = 1.0;
 
-        if (csound->GetSr(csound) == 48000) {
+        if (CS_ESR == 48000) {
                 p->filter1.a1 = -1.69065929318241;
                 p->filter1.a2 =  0.73248077421585;
                 p->filter1.b0 = 1.53512485958697;
@@ -96,7 +100,7 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
                 p->filter2.a2 = 0.99007225036621;
         }
 
-        else if (csound->GetSr(csound) == 44100) {
+        else if (CS_ESR == 44100) {
                 p->filter1.a1 = -1.663655113256020;
                 p->filter1.a2 = 0.712595428073225;
                 p->filter1.b0 = 1.530841230049836;
@@ -111,7 +115,7 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
             MYFLT f0 = 1681.9744509555319;
             MYFLT G  = 3.99984385397;
             MYFLT Q  = 0.7071752369554193;
-            MYFLT fs = csound->GetSr(csound);
+            MYFLT fs = CS_ESR;
 
             MYFLT K  = TAN(PI * f0 / fs);
             MYFLT Vh = POWER(10.0, G / 20.0);
@@ -131,7 +135,7 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
             p->filter2.a2 = (1.0 - K2 / Q2 + K2 * K2) / (1.0 + K2 / Q2 + K2 * K2);
         }
 
-        p->q = FLOOR(csound->GetSr(csound) * 0.1); // 100 ms grain
+        p->q = FLOOR(CS_ESR * 0.1); // 100 ms grain
 
         p->m = 0;
         p->mP = 0;
@@ -232,7 +236,7 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
                 p->filter2.b1 = -2.0;
                 p->filter2.b2 = 1.0;
 
-        if (csound->GetSr(csound) == 48000) {
+        if (CS_ESR == 48000) {
                 p->filter1.a1 = -1.69065929318241;
                 p->filter1.a2 =  0.73248077421585;
                 p->filter1.b0 = 1.53512485958697;
@@ -242,7 +246,7 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
                 p->filter2.a2 = 0.99007225036621;
         }
 
-        else if (csound->GetSr(csound) == 44100) {
+        else if (CS_ESR == 44100) {
                 p->filter1.a1 = -1.663655113256020;
                 p->filter1.a2 = 0.712595428073225;
                 p->filter1.b0 = 1.530841230049836;
@@ -257,7 +261,7 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
             MYFLT f0 = 1681.9744509555319;
             MYFLT G  = 3.99984385397;
             MYFLT Q  = 0.7071752369554193;
-            MYFLT fs = csound->GetSr(csound);
+            MYFLT fs = CS_ESR;
 
             MYFLT K  = TAN(PI * f0 / fs);
             MYFLT Vh = POWER(10.0, G / 20.0);
@@ -279,7 +283,7 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
 
                 p->filter3 = p->filter1;
                 p->filter4 = p->filter2;
-                p->q = FLOOR(csound->GetSr(csound) * 0.1); // 100 ms grain
+                p->q = FLOOR(CS_ESR * 0.1); // 100 ms grain
                 p->m = 0;
                 p->mP = 0;
                 p->mPk = 0;
@@ -388,8 +392,8 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
 #define S(x) sizeof(x)
 
 static OENTRY lufs_localops[] = {
-{ "lufs.a", S(LUFS), 0, 3, "kkk", "ka", (SUBR)lufs_init, (SUBR)lufs_perf },
-{ "lufs.aa", S(LUFS2), 0, 3, "kkk", "kaa", (SUBR)lufs_init2, (SUBR)lufs_perf2 }
+{ "lufs.a", S(LUFS), 0,  "kkk", "ka", (SUBR)lufs_init, (SUBR)lufs_perf },
+{ "lufs.aa", S(LUFS2), 0,  "kkk", "kaa", (SUBR)lufs_init2, (SUBR)lufs_perf2 }
 };
 
 LINKAGE_BUILTIN(lufs_localops)

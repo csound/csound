@@ -619,7 +619,7 @@ binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); 
           | expr S_GE error     { $$ = NULL; }
           | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
            /* VL: 18.09.21 added the rule for if x = y for backwards compatibility */
-          | expr '=' expr       { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
+          | expr '=' expr_list  { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
           | expr '=' error
           | expr S_NEQ error    { $$ = NULL; }
           | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }

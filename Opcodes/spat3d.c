@@ -70,7 +70,7 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
 
 /* initialise parameric equalizer (code taken from pareq opcode) */
 
-static int32_t spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftable)
+static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, MYFLT *ftable)
 {
     int32_t eqmode;
     double  omega, k, kk, vk, vkk, vkdq, sq, a0, a1, a2, b0, b1, b2;
@@ -78,7 +78,7 @@ static int32_t spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftabl
     /* EQ code taken from biquad.c */
 
     eqmode = (int32_t) ((double) ftable[3] + 0.5);              /* mode      */
-    omega = (double) ftable[0] * (double) csound->tpidsr;       /* frequency */
+    omega = (double) ftable[0] * (double) CS_TPIDSR;       /* frequency */
     sq = sqrt(2.0 * (double) ftable[1]);                        /* level     */
 
     k = tan((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
@@ -122,7 +122,6 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
     SPAT3D_WALL     *ws;
     MYFLT           *ft, a, d, w, x, y, z;
     double          d0, d1;
-    CSOUND          *csound = p->h.insdshead->csound;
 
     /* update random seed */
 
@@ -155,7 +154,7 @@ spat3d_init_wall(SPAT3D *p,             /* opcode struct                    */
     /* read wall parameters from ftable */
 
     if (ft != NULL) {
-      spat3d_init_eq(csound, ws, ft + 4);     /* EQ                */
+      spat3d_init_eq(p, ws, ft + 4);     /* EQ                */
       a = -ft[3];                             /* scale             */
       ws->b0 *= a; ws->b1 *= a; ws->b2 *= a;  /* apply scale to EQ */
       ws->cnum = (6 - wallno) >> 1;           /* select wall       */
@@ -319,10 +318,10 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (xidist >= 0)                                /* unit circle dist. */
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
-      int32_t fLen;
-      fLen = csoundGetTable(csound, &(p->ftable), (int32_t) *(p->args[xift]));
-      if (fLen < 53)
+      FUNC *ftp = csound->FTFind(csound, p->args[xift]);
+      if (ftp->flen < 53)
         p->ftable = NULL;
+      else p->ftable = ftp->ftable;
     }
     if (ximdel >= 0)                                /* max. delay */
       p->mdel = *(p->args[ximdel]);
@@ -331,13 +330,14 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
     if (xirlen >= 0)                                /* IR length */
       p->irlen = (int32_t) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
     if (xioutft >= 0) {                             /* output table */
-      int32_t fLen;
-      fLen = csoundGetTable(csound, &(p->outft), (int32_t) *(p->args[xioutft]));
-      if (fLen < 1) {
+      FUNC *ftp = csound->FTFind(csound, p->args[xioutft]);
+      if (ftp->flen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }
-      else
-        p->outftlnth = fLen;
+      else {
+        p->outftlnth = ftp->flen;
+        p->outft = ftp->ftable;
+      }
     }
 
     /* get parameters from ftable */
@@ -885,11 +885,11 @@ static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 
 static OENTRY localops[] =
   {
-   { "spat3d", S(SPAT3D), 0, 3, "aaaa", "akkkiiiiio",
+   { "spat3d", S(SPAT3D), 0,  "aaaa", "akkkiiiiio",
      (SUBR) spat3dset,   (SUBR) spat3d   },
-   { "spat3di",S(SPAT3D), 0, 3, "aaaa", "aiiiiiio",
+   { "spat3di",S(SPAT3D), 0,  "aaaa", "aiiiiiio",
      (SUBR) spat3diset,   (SUBR) spat3di  },
-   { "spat3dt",S(SPAT3D), 0, 1, "", "iiiiiiiio",
+   { "spat3dt",S(SPAT3D), 0,  "", "iiiiiiiio",
      (SUBR) spat3dt,     NULL,   NULL            }
 };
 

@@ -21,12 +21,14 @@
     02110-1301 USA
 */
 
-/*
-    The code for the tablefilter opcodes is based on the code for tablecopy
-    by Robin Whittle, see source OOps/ugrw1.c
-*/
 
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include <math.h>
 #include <time.h>
@@ -266,9 +268,9 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     /* Destination  */
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
-       * csoundFTFindP() for perf time. csoundFTFind() for init time.
+       * csound->FTFind() for perf time. csound->FTFind() for init time.
        */
-      if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
+      if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
         return
           csound->PerfError(csound, &(p->h),
                             Str("Farey: Destination dft table %.2f not found."),
@@ -280,7 +282,7 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     }
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
@@ -306,7 +308,7 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Farey: Filter type < 1"));
+                               "%s", Str("Farey: Filter type < 1"));
     }
 
     /* Check each table number in turn.  */
@@ -314,8 +316,8 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     /* Destination */
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
-       * csoundFTFindP() for perf time. csoundFTFind() for init time. */
-      if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
+       * csound->FTFind() for perf time. csound->FTFind() for init time. */
+      if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
         return
           csound->InitError(csound,
                             Str("Farey: Destination dft table %.2f not found."),
@@ -327,7 +329,7 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     }
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Farey: Source sft table %.2f not found."),
                                  *p->sft);
@@ -452,7 +454,7 @@ int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTFindP(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, &(p->h),
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
@@ -474,7 +476,7 @@ int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     /* Source  */
     if (p->psft != (int32_t)*p->sft) {
-      if (UNLIKELY((p->funcs = csound->FTnp2Find(csound, p->sft)) == NULL)) {
+      if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
                                  Str("Source sft table %.2f not found."),
                                  *p->sft);
@@ -740,14 +742,14 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
 #define S sizeof
 
 static OENTRY fareyseq_localops[] = {
-    {"tablefilteri", S(TABFILT),TB, 1, "i", "iiii", (SUBR) tableifilter,NULL,NULL},
-    {"tablefilter", S(TABFILT), TB, 3, "k", "kkkk",
+    {"tablefilteri", S(TABFILT),TB,  "i", "iiii", (SUBR) tableifilter,NULL,NULL},
+    {"tablefilter", S(TABFILT), TB,  "k", "kkkk",
                                 (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
-    {"fareyleni", S(FAREYLEN), TR, 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S(FAREYLEN), TR, 2, "k", "k", NULL, (SUBR) fareylen, NULL},
-    {"tableshufflei", S(TABSHUFFLE), TB, 1, "", "i",
+    {"fareyleni", S(FAREYLEN), TR,  "i", "i", (SUBR) fareylen, NULL, NULL},
+    {"fareylen", S(FAREYLEN), TR,  "k", "k", NULL, (SUBR) fareylen, NULL},
+    {"tableshufflei", S(TABSHUFFLE), TB,  "", "i",
                                       (SUBR) tableishuffle, NULL, NULL},
-    {"tableshuffle", S(TABSHUFFLE), TB, 3, "", "k",
+    {"tableshuffle", S(TABSHUFFLE), TB,  "", "k",
                       (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
 };
 

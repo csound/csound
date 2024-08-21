@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                    EXCITER.C         */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif       /*                    EXCITER.C         */
 #include <math.h>
 
 /**********************************************************************
@@ -64,9 +68,9 @@ static inline double process(double st[7], double in/*, char *s */)
      * @param fc     resonant frequency
      * @param q      resonance (gain at fc)
      */
-static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q)
+static inline void set_hp_rbj(CSOUND *csound, double hp[7], double fc, double q, MYFLT sr)
 {
-    double omega= (TWOPI*fc/(double)csound->GetSr(csound));
+    double omega= (TWOPI*fc/(double) sr);
     double sn=sin(omega);
     double cs=cos(omega);
     double alpha=(double)(sn/(2.0*q));
@@ -110,11 +114,11 @@ static int32_t exciter_init(CSOUND *csound, EXCITER *p)
     p->rdrive = p->rbdr = p->kpa = p->kpb = p->kna = p->knb = p->ap =
       p->an = p->imr = p->kc = p->srct = p->sq = p->pwrq = p->prev_med =
       p->prev_out = 0.0;
-    p->over = csound->GetSr(csound) * 2 > 96000 ? 1 : 2;
+    p->over = CS_ESR * 2 > 96000 ? 1 : 2;
     p->blend_old = p->drive_old = -1.0;
     //resample_set_params(csound, p);
     {
-      double srate = (double)csound->GetSr(csound);
+      double srate = (double)CS_ESR;
       double ff = 25000.0;
       if (srate>50000) ff = srate*0.5;
       // set all filters
@@ -202,7 +206,7 @@ static inline void set_distort(CSOUND *csound, EXCITER *p)
 {
     // set distortion coeffs
     if ((p->drive_old != *p->pdrive) || (p->blend_old != *p->pblend)) {
-      double srate = csound->GetSr(csound);
+      double srate = CS_ESR;
       /* printf("drive %f->%f; blend %f->%f\n", */
       /*        p->drive_old, *p->pdrive, p->blend_old, *p->pblend); */
       p->drive_old = *p->pdrive;
@@ -234,7 +238,7 @@ static inline void params_changed(CSOUND *csound, EXCITER *p)
 {
     // set the params of all filters
     if (UNLIKELY(*p->pfreq != p->freq_old)) {
-      set_hp_rbj(csound, p->hp1, *p->pfreq, 0.707);
+      set_hp_rbj(csound, p->hp1, *p->pfreq, 0.707, CS_ESR);
       memcpy(p->hp2, p->hp1, 5*sizeof(double));
       memcpy(p->hp3, p->hp1, 5*sizeof(double));
       memcpy(p->hp4, p->hp1, 5*sizeof(double));
@@ -242,7 +246,7 @@ static inline void params_changed(CSOUND *csound, EXCITER *p)
     }
     // set the params of all filters
     if (UNLIKELY(*p->pceil != p->ceil_old)) {
-      set_lp_rbj(p->lp1, *p->pceil, 0.707, (double)csound->GetSr(csound));
+      set_lp_rbj(p->lp1, *p->pceil, 0.707, (double)CS_ESR);
       memcpy(p->lp2, p->lp1, 5*sizeof(double));
       p->ceil_old = *p->pceil;
     }
@@ -287,7 +291,7 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY exciter_localops[] = {
-  { "exciter", S(EXCITER),   0, 3, "a", "akkkk",
+  { "exciter", S(EXCITER),   0, "a", "akkkk",
                              (SUBR)exciter_init, (SUBR)exciter_perf },
 };
 

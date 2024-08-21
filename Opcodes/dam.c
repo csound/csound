@@ -51,8 +51,8 @@ static int32_t daminit(CSOUND *csound, DAM *p)
    /* the computed values are stored in the opcode data structure p */
    /* for later use in the main processing                          */
 
-    p->rspeed = (*p->rtime)*csound->onedsr*FL(1000.0);
-    p->fspeed = (*p->ftime)*csound->onedsr*FL(1000.0);
+    p->rspeed = (*p->rtime)*CS_ONEDSR*FL(1000.0);
+    p->fspeed = (*p->ftime)*CS_ONEDSR*FL(1000.0);
     p->kthr = -FL(1.0);
     return OK;
 }
@@ -153,7 +153,7 @@ static int32_t dam(CSOUND *csound, DAM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "dam",     S(DAM),  0, 3,     "a",    "akiiii",(SUBR)daminit, (SUBR)dam },
+{ "dam",     S(DAM),  0,     "a",    "akiiii",(SUBR)daminit, (SUBR)dam },
 };
 
 int32_t dam_init_(CSOUND *csound)

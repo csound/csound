@@ -370,7 +370,7 @@ public:
       memset(&output0[nn], '\0', early * sizeof(MYFLT));
     }
     for (int32_t i = offset; i < nn; i++) {
-      iRec8[0] = (csound->GetRandSeed(csound, 1) + (1103515245 * iRec8[1]));
+      iRec8[0] = (*csound->RandSeed1(csound) + (1103515245 * iRec8[1]));
       fRec7[0] =
           -((fConst8 * fRec7[2]) + (fConst7 * fRec7[1])) + (iRec8[0] * dv2_31);
       fRec6[0] =
@@ -437,10 +437,8 @@ int32_t fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
 int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->faust = new mydsp;
   p->cs_interface = new csUI;
-  p->faust->init((int32_t)csound->GetSr(csound));
+  p->faust->init((int32_t)CS_ESR);
   p->faust->buildUserInterface(p->cs_interface);
-  csound->RegisterDeinitCallback(
-      csound, p, (int32_t (*)(CSOUND *, void *))fractalnoise_cleanup);
   return OK;
 }
 
@@ -450,30 +448,31 @@ int32_t fractalnoise_process(CSOUND *csound, FRACTALNOISE *p) {
   return OK;
 }
 
-  static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 3,
+  static OENTRY localops[] = {{(char *)"fractalnoise", sizeof(FRACTALNOISE), 0, 
                                (char *)"a", (char *)"kk", (SUBR)fractalnoise_init,
-                               (SUBR)fractalnoise_process},
+                               (SUBR)fractalnoise_process, (SUBR) fractalnoise_cleanup },
                             {0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-#ifndef INIT_STATIC_MODULES
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
-  IGN(csound);
-  return OK;
-}
-#endif
+
 PUBLIC int32_t csoundModuleInit_fractalnoise(CSOUND *csound) {
   int32_t status = 0;
   for (OENTRY *oentry = &localops[0]; oentry->opname; oentry++) {
     status |= csound->AppendOpcode(csound, oentry->opname, oentry->dsblksiz,
-                                   oentry->flags, oentry->thread,
+                                   oentry->flags, 
                                    oentry->outypes, oentry->intypes,
-                                   (int32_t (*)(CSOUND *, void *))oentry->iopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->kopadr,
-                                   (int32_t (*)(CSOUND *, void *))oentry->aopadr);
+                                   (int32_t (*)(CSOUND *, void *))oentry->init,
+                                   (int32_t (*)(CSOUND *, void *))oentry->perf,
+                                   (int32_t (*)(CSOUND *, void *))oentry->deinit);
   }
   return status;
 }
-#ifndef INIT_STATIC_MODULES
+
+  
+#ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
+  IGN(csound);
+  return OK;
+} 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_fractalnoise(csound);
 }
