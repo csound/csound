@@ -2313,7 +2313,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
   if (!check_in_args(csound, inArgsFound, inArgs)) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
-              Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
+              Str("invalid xin statement for UDO: defined '%s', found '%s'"),
               inArgs, inArgsFound);
       return 0;
     }
@@ -2339,6 +2339,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   TREE* newRight;
   TREE* transformed;
   TREE* top;
+  char *udo_name = NULL;
 
 
   CONS_CELL* parentLabelList = typeTable->labelList;
@@ -2403,7 +2404,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            top->left->value->lexeme,
                            top->right->value->lexeme,
                            0x0000);
-
+        udo_name = top->value->lexeme;
       } else {
         //            printf(">>> NEW STYLE UDO FOUND <<<\n");
         if(current->left->right != NULL && *current->left->right->value->lexeme != '0') {
@@ -2425,6 +2426,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            outArgString,
                            inArgString,
                            0x0000);
+        udo_name = current->left->value->lexeme;
       }
       csound->inZero = 0;
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
@@ -2447,6 +2449,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
           if(!verify_xin_xout(csound, current, typeTable)) {
+            synterr(csound, Str("%s UDO"), udo_name);
             return 0;
           }
         }
