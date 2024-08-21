@@ -72,8 +72,6 @@
 #  define MYFLT_INT_TYPE int32_t
 #endif
 
-
-
 int32_t chani_opcode_perf_k(CSOUND *csound, CHNVAL *p)
 {
     int32_t     n = (int32_t)MYFLT2LRND(*(p->a));
@@ -522,8 +520,7 @@ PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
 }
 
 
-PUBLIC int *csoundGetChannelLock(CSOUND *csound,
-                                     const char *name)
+int *csoundGetChannelLock(CSOUND *csound, const char *name)
 {
     CHNENTRY  *pp;
 
@@ -2699,4 +2696,12 @@ PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
   
 PUBLIC const void *csoundGetArrayData(const ARRAYDAT *adat) {
   return adat->data;
+}
+
+PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel) {
+  csoundSpinLock((spin_lock_t *) csoundGetChannelLock(csound, (char*) channel));
+}
+
+PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel) {
+  csoundSpinUnLock((spin_lock_t *)csoundGetChannelLock(csound, (char*) channel));
 }

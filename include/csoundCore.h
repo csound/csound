@@ -258,6 +258,7 @@ extern "C" {
   void csoundSpinLock(spin_lock_t *spinlock);
   int csoundSpinTryLock(spin_lock_t *spinlock);
   void csoundSpinUnLock(spin_lock_t *spinlock);
+  int *csoundGetChannelLock(CSOUND *csound, const char *name);
   uint32_t csoundGetRandomSeedFromTime(void);
   void csoundInitTimerStruct(RTCLOCK *);
   double csoundGetRealTime(RTCLOCK *);

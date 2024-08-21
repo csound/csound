@@ -959,9 +959,8 @@ enum PVS_WINTYPE {
    *    __atomic_store() gcc atomic builtins to get or set a channel,
    *    if available.
    * 2) For string and audio channels (and controls if option 1 is not
-   *    available), retrieve the channel lock with csoundGetChannelLock()
-   *    and use csoundSpinLock() and csoundSpinUnLock() to protect access
-   *    to **p.
+   *    available), use csoundLockChannel() and csoundUnlockChannel()
+   *    when accessing/modifying channel data at **p.
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
    * provided below, which are threadsafe by default.
@@ -1013,14 +1012,18 @@ enum PVS_WINTYPE {
   PUBLIC int csoundGetControlChannelHints(CSOUND *, const char *name,
                                           controlChannelHints_t *hints);
 
-  /**
-   * Recovers a pointer to a lock for the specified channel called 'name'.
-   * The returned lock can be locked/unlocked  with the csoundSpinLock()
-   * and csoundSpinUnLock() functions.
-   * @returns the address of the lock or NULL if the channel does not exist
-   */
-  PUBLIC int *csoundGetChannelLock(CSOUND *, const char *name);
+  /** 
+   * locks access to the channel allowing access to data in
+   * a threadsafe manner
+   **/
+  PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel);
 
+  /** 
+   * unlocks access to the channel, allowing access to data from
+   * elsewhere.
+   **/
+  PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
+  
   /**
    * retrieves the value of control channel identified by *name.
    * If the err argument is not NULL, the error (or success) code
