@@ -291,24 +291,6 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   return csound->_system_sr;
 }
 
-// initialise CS_STANDARD_TYPES structure
-static void csound_init_types(CSOUND *csound) { 
-  csound->std_types =
-    (CS_STANDARD_TYPES *) csound->Calloc(csound, sizeof(CS_STANDARD_TYPES));
-    csound->std_types->asigType = &CS_VAR_TYPE_A;
-    csound->std_types->ksigType = &CS_VAR_TYPE_K;
-    csound->std_types->initType = &CS_VAR_TYPE_I;
-    csound->std_types->stringType = &CS_VAR_TYPE_S;
-    csound->std_types->pfieldType = &CS_VAR_TYPE_P;
-    csound->std_types->rType =  &CS_VAR_TYPE_R;
-    csound->std_types->constType = &CS_VAR_TYPE_C;
-    csound->std_types->wsigType = &CS_VAR_TYPE_W;
-    csound->std_types->fsigType = &CS_VAR_TYPE_F;
-    csound->std_types->kbooleanType = &CS_VAR_TYPE_B;
-    csound->std_types->ibooleanType = &CS_VAR_TYPE_b;
-    csound->std_types->arrayType = &CS_VAR_TYPE_ARRAY;
-}
-
 // Get Types  
 static inline const CS_TYPE *StringType(CSOUND *csound) {
   return csound->std_types->stringType;
@@ -3534,8 +3516,6 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->Die(csound, Str("Failed during csoundInitEnv"));
   }
   csound_init_rand(csound);
-  csound_init_types(csound);
-
   csound->engineState.stringPool = cs_hash_table_create(csound);
   csound->engineState.constantsPool = cs_hash_table_create(csound);
   csound->engineStatus |= CS_STATE_PRE;
