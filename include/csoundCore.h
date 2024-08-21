@@ -825,7 +825,7 @@ extern "C" {
     uint64_t kcounter;
     MYFLT    esr, sicvt, pidsr;                  /* local sr */
     MYFLT    onedsr;
-    int     overmode;
+    int     in_cvt, out_cvt;
     unsigned int ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
 

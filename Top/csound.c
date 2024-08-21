@@ -792,7 +792,8 @@ static const CSOUND cenviron_ = {
     FL(0.0),
     FL(0.0),
     FL(0.0),
-    0,       /* overmode */
+    0,       /* in_cvt */
+    0,       /* out_cvt */
     0,
     FL(0.0),
     FL(0.0), FL(0.0), FL(0.0),

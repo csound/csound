@@ -938,7 +938,7 @@ enum PVS_WINTYPE {
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
    * If the channel already exists, it must match the data type
-   * (control, audio, or string), however, the input/output bits are
+   * (control, string, audio, pvs or array), however, the input/output bits are
    * OR'd with the new value. Note that audio and string channels
    * can only be created after calling csoundCompile(), because the
    * storage size is not known until then.

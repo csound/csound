@@ -1691,7 +1691,7 @@ int xinset(CSOUND *csound, XIN *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
                                         CS_ESR/parent_sr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -1700,7 +1700,7 @@ int xinset(CSOUND *csound, XIN *p)
     else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) { 
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
                                         CS_ESR/parent_sr, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -1753,7 +1753,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, CS_KSMPS)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");        
@@ -1762,7 +1762,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, 1)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");        
@@ -1887,8 +1887,11 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   */     
   p->h.insdshead->xtratim *= onedos; 
   CS_KCNT *= onedos;
-  /* oversampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  /* oversampling mode (s) */
+  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  if(*p->out_cvt > 0)
+    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt; 
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
@@ -1961,8 +1964,11 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
      
   p->h.insdshead->xtratim *= FL(1.0)/onedos; 
   CS_KCNT *= FL(1.0)/onedos;
-  /* undersampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  /* undersampling mode (s) */
+  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  if(*p->out_cvt > 0)
+    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt; 
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
