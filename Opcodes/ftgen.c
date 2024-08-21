@@ -111,6 +111,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     case 23:
     case 28:
     case 43:
+    case 44:
     case 49:
       ftevt->strarg = ((STRINGDAT *) p->p5)->data;
       break;
