@@ -1889,7 +1889,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   CS_KCNT *= onedos;
   /* oversampling mode (s) */
   p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
-  if(*p->out_cvt > 0)
+  if(*p->out_cvt >= 0)
     p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
   else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt; 
   /* set local sr variable */
@@ -1966,7 +1966,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   CS_KCNT *= FL(1.0)/onedos;
   /* undersampling mode (s) */
   p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
-  if(*p->out_cvt > 0)
+  if(*p->out_cvt >= 0)
     p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
   else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt; 
   /* set local sr variable */
