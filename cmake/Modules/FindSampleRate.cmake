@@ -3,7 +3,7 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_library(SampleRate_LIBRARY NAMES samplerate libsamplerate-0)
+find_library(SampleRate_LIBRARY NAMES samplerate libsamplerate)
 find_path(SampleRate_INCLUDE_DIR NAMES samplerate.h)
 
 find_package_handle_standard_args(SampleRate
