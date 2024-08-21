@@ -1,3 +1,8 @@
+#include "udo.h"
+#include "Opcodes/biquad.h"
+#include "csound_data_structures.h"
+#include "csound_type_system.h"
+#include "insert.h"
 
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
 /* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
@@ -30,12 +35,6 @@
   arguments. It uses useropcd2().
 
 */
-
-#include "udo.h"
-#include "Opcodes/biquad.h"
-#include "csound_data_structures.h"
-#include "csound_type_system.h"
-#include "insert.h"
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
@@ -104,6 +103,24 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedkr = CS_ONEDKR;
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
+
+  /* VL 13-12-13 */
+  /* this sets ksmps and kr local variables */
+  /* create local ksmps variable and init with ksmps */
+  if (lcurip->lclbas != NULL) {
+    CS_VARIABLE *var =
+      csoundFindVariableWithName(csound, lcurip->instr->varPool, "ksmps");
+    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
+    /* same for kr */
+    var =
+      csoundFindVariableWithName(csound, lcurip->instr->varPool, "kr");
+    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
+    /* VL 15-08-24 same for sr */
+    var =
+      csoundFindVariableWithName(csound, lcurip->instr->varPool, "sr");
+    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->esr;
+  }
+
   lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
   lcurip->m_pitch = parent_ip->m_pitch;
   lcurip->m_veloc = parent_ip->m_veloc;
@@ -213,6 +230,12 @@ int xinset(CSOUND *csound, XIN *p)
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->in_arg_pool->head;
+    
+  if(inm->newStyle) {
+    // printf("New-style UDO using pass-by-ref, skipping...\n");
+    return OK;
+  }
+    
   for (i = 0; i < inm->inchns; i++) {
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
@@ -275,6 +298,11 @@ int xoutset(CSOUND *csound, XOUT *p)
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->out_arg_pool->head;
+    
+  if(inm->newStyle) {
+    // printf("New-style UDO using pass-by-ref, skipping...\n");
+    return OK;
+  }
 
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
@@ -316,6 +344,7 @@ int xoutset(CSOUND *csound, XOUT *p)
   }
   return OK;
 }
+
 
 // local ksmps and global sr
 int useropcd1(CSOUND *csound, UOPCODE *p)
@@ -1016,9 +1045,10 @@ int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
 
   /* do init pass for this instr */
   csound->curip = lcurip;
-  csound->ids = (OPDS *)(lcurip->nxti);
+  csound->ids = (OPDS *) (lcurip->nxti);
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
+  buf->iflag = 0;
   while (csound->ids != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);

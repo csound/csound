@@ -34,14 +34,15 @@ if(USE_PORTMIDI)
     endif()
 endif()
 
-
 if(USE_JACK)
     find_package(Jack MODULE)
 endif()
 
+# BUILD TARGETS
+
 if(APPLE)
     find_package(CoreFoundation MODULE)
-    
+
     find_package(CoreMIDI MODULE)
     check_deps(USE_COREMIDI CoreMIDI_FOUND CoreFoundation_FOUND)
     if(USE_COREMIDI)
@@ -78,6 +79,7 @@ endif()
 
 if(WIN32)
     message(STATUS "Building Windows MME plugin(rtwinmm).")
+
     if(MSVC)
       make_plugin(rtwinmm rtwinmm.c)
       target_link_libraries(rtwinmm PRIVATE winmm.lib)
@@ -92,6 +94,7 @@ endif()
 
 find_package(PulseAudio)
 check_deps(USE_PULSEAUDIO PulseAudio_FOUND)
+
 if(USE_PULSEAUDIO)
     make_plugin(rtpulse rtpulse.c PulseAudio::PulseAudio)
 endif()
@@ -109,11 +112,11 @@ if(USE_PORTMIDI)
     target_link_libraries(pmidi PRIVATE PortMidi::portmidi)
 endif()
 
-#check_deps(USE_IPMIDI PORTMIDI_HEADER PORTMIDI_LIBRARY)
 if(USE_IPMIDI)
     if(WIN32)
       set(ipmidi_LIBS ws2_32)
     endif()
+
     make_plugin(ipmidi ipmidi.c "${ipmidi_LIBS}")
 endif()
 
@@ -127,7 +130,9 @@ endif()
 if(HAIKU)
 	find_library(HAIKU_MEDIA_LIBRARY media)
 	find_library(HAIKU_MIDI_LIBRARY midi2)
+
 	set(haiku_SRCS rthaiku.cpp HaikuAudio.cpp HaikuMidi.cpp)
+
 	make_plugin(rthaiku "${haiku_SRCS}")
     target_link_libraries(rthaiku PRIVATE ${HAIKU_MEDIA_LIBRARY})
     target_link_libraries(rthaiku PRIVATE ${HAIKU_MIDI_LIBRARY})

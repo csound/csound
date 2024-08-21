@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
     "name": "csound",
     "version-string": "6.18.1",
-    "builtin-baseline": "943c5ef1c8f6b5e6ced092b242c8299caae2ff01",
+    "builtin-baseline": "216c741d2d61fdb5e8ef22b7526b73f8bc860bd8",
     "dependencies": [
         "zlib",
         "libsamplerate",
