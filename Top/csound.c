@@ -291,57 +291,106 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   return csound->_system_sr;
 }
 
+// initialise CS_STANDARD_TYPES structure
+static void csound_init_types(CSOUND *csound) { 
+  csound->std_types =
+    (CS_STANDARD_TYPES *) csound->Calloc(csound, sizeof(CS_STANDARD_TYPES));
+    csound->std_types->asigType = &CS_VAR_TYPE_A;
+    csound->std_types->ksigType = &CS_VAR_TYPE_K;
+    csound->std_types->initType = &CS_VAR_TYPE_I;
+    csound->std_types->stringType = &CS_VAR_TYPE_S;
+    csound->std_types->pfieldType = &CS_VAR_TYPE_P;
+    csound->std_types->rType =  &CS_VAR_TYPE_R;
+    csound->std_types->constType = &CS_VAR_TYPE_C;
+    csound->std_types->wsigType = &CS_VAR_TYPE_W;
+    csound->std_types->fsigType = &CS_VAR_TYPE_F;
+    csound->std_types->kbooleanType = &CS_VAR_TYPE_B;
+    csound->std_types->ibooleanType = &CS_VAR_TYPE_b;
+    csound->std_types->arrayType = &CS_VAR_TYPE_ARRAY;
+}
 
 // Get Types  
 static inline const CS_TYPE *StringType(CSOUND *csound) {
-  return csound->stringType;
+  return csound->std_types->stringType;
 }
 
 static inline const CS_TYPE *AsigType(CSOUND *csound) {
-  return csound->asigType;
+  return csound->std_types->asigType;
 }
 
 
 static inline const CS_TYPE *KsigType(CSOUND *csound) {
-  return csound->ksigType;
+  return csound->std_types->ksigType;
 }
 
 
 static inline const CS_TYPE *InitType(CSOUND *csound) {
-  return csound->initType;
+  return csound->std_types->initType;
 }
 
 static inline const CS_TYPE *ConstType(CSOUND *csound) {
-  return csound->constType;
+  return csound->std_types->constType;
 }
 
 
 static inline const CS_TYPE *PfieldType(CSOUND *csound) {
-  return csound->pfieldType;
+  return csound->std_types->pfieldType;
 }
 
 static inline const CS_TYPE *RType(CSOUND *csound) {
-  return csound->rType;
+  return csound->std_types->rType;
 }
 
 static inline const CS_TYPE *WsigType(CSOUND *csound) {
-  return csound->wsigType;
+  return csound->std_types->wsigType;
 }
 
 static inline const CS_TYPE *FsigType(CSOUND *csound) {
-  return csound->fsigType;
+  return csound->std_types->fsigType;
 }
 
 static inline const CS_TYPE *IboolType(CSOUND *csound) {
-  return csound->ibooleanType;
+  return csound->std_types->ibooleanType;
 }
 
 static inline const CS_TYPE *KboolType(CSOUND *csound) {
-  return csound->kbooleanType;
+  return csound->std_types->kbooleanType;
 }
 
 static inline const CS_TYPE *ArrayType(CSOUND *csound) {
-  return csound->arrayType;
+  return csound->std_types->arrayType;
+}
+
+/* get type from char name */ 
+static inline const CS_TYPE *GetType(CSOUND *csound, char type) { 
+  switch(type) {
+    case 'a':
+    return AsigType(csound);
+    case 'k':
+    return KsigType(csound);
+    case 'i':
+    return InitType(csound);
+    case 'S':
+    return StringType(csound);
+    case 'r':
+    return RType(csound);
+    case 'p':
+    return PfieldType(csound);
+    case 'c':
+    return ConstType(csound);
+    case 'w':
+    return WsigType(csound);
+    case 'f':
+    return FsigType(csound);
+    case 'B':
+    return KboolType(csound);    
+    case 'b':
+    return IboolType(csound);
+    case '[':
+    return ArrayType(csound);
+  default:
+    return NULL;
+  }
 }
 
  
@@ -387,18 +436,7 @@ static const CSOUND cenviron_ = {
   get_arg_string,
   strarg2insno,
   strarg2name,
-  StringType,
-  AsigType,
-  KsigType,
-  InitType,
-  RType,
-  ConstType,
-  FsigType,
-  WsigType,
-  PfieldType,
-  KboolType,
-  IboolType,
-  ArrayType,
+  GetType,
   /* memory allocation */
   csoundAuxAlloc,
   csoundAuxAllocAsync,
@@ -673,18 +711,7 @@ static const CSOUND cenviron_ = {
   (INSTRTXT**)NULL,  /* dead_instr_pool */
   0,                /* dead_instr_no */
   (TYPE_POOL*)NULL,
-  &CS_VAR_TYPE_A,   /* standard types */
-  &CS_VAR_TYPE_K,
-  &CS_VAR_TYPE_I,
-  &CS_VAR_TYPE_S,
-  &CS_VAR_TYPE_P,
-  &CS_VAR_TYPE_R,
-  &CS_VAR_TYPE_C,
-  &CS_VAR_TYPE_W,
-  &CS_VAR_TYPE_F,
-  &CS_VAR_TYPE_B,
-  &CS_VAR_TYPE_b,
-  &CS_VAR_TYPE_ARRAY,    
+  NULL,   /* standard types */    
   DFLT_KSMPS,     /*  ksmps               */
   DFLT_NCHNLS,    /*  nchnls              */
   -1,             /*  inchns              */
@@ -1438,7 +1465,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
   /* NB: as suggested by F Pinot, keep the
      address of the pointer to CSOUND inside
      the struct, so it can be cleared later */
-  //csound->self = &csound;
+  //csound->self = &csound; 
   return csound;
 }
 
@@ -3507,6 +3534,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound->Die(csound, Str("Failed during csoundInitEnv"));
   }
   csound_init_rand(csound);
+  csound_init_types(csound);
 
   csound->engineState.stringPool = cs_hash_table_create(csound);
   csound->engineState.constantsPool = cs_hash_table_create(csound);
