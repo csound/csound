@@ -126,7 +126,6 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
   csound->mode = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
-  csound->ids = NULL;
   return error;
 }
 
@@ -148,7 +147,6 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
     error = (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
-  csound->ids = NULL;
 
   ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
@@ -268,7 +266,6 @@ int init0(CSOUND *csound)
     (*csound->ids->init)(csound, csound->ids);  /*   run all i-code     */
   }
   csound->mode = 0;
-  csound->ids =  0;
   return csound->inerrcnt;                        /*   return errcnt      */
 }
 
