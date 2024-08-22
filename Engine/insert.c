@@ -126,6 +126,7 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
   csound->mode = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
+  csound->ids = NULL;
   return error;
 }
 
@@ -147,6 +148,7 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
     error = (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
+  csound->ids = NULL;
 
   ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
@@ -266,6 +268,7 @@ int init0(CSOUND *csound)
     (*csound->ids->init)(csound, csound->ids);  /*   run all i-code     */
   }
   csound->mode = 0;
+  csound->ids =  0;
   return csound->inerrcnt;                        /*   return errcnt      */
 }
 
@@ -1686,7 +1689,7 @@ int xinset(CSOUND *csound, XIN *p)
     // check output kvars in case inputs are constants
     if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
-      current->varType->copyValue(csound, current->varType, out, in);
+      current->varType->copyValue(csound, current->varType, out, in, &(p->h));
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
@@ -1749,7 +1752,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     // check output types in case of constants
     if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A)
-      current->varType->copyValue(csound, current->varType, out, in);
+      current->varType->copyValue(csound, current->varType, out, in, &(p->h));
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
@@ -2254,7 +2257,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+          current->varType->copyValue(csound, current->varType, out, in, NULL);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2358,7 +2361,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+          current->varType->copyValue(csound, current->varType, out, in, NULL);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2483,7 +2486,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        current->varType->copyValue(csound, current->varType, out, in);
+        // this needs to pass the OPDS so the calling instr ksmps can be used.
+        current->varType->copyValue(csound, current->varType, out, in, &(p->h));
       }
     }
     current = current->next;
@@ -2543,7 +2547,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)external_ptrs[i + inm->outchns];
             void* out = (void*)internal_ptrs[i + inm->outchns];
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
           }
         } else { // oversampling
           void* in = (void*)external_ptrs[i + inm->outchns];
@@ -2555,7 +2559,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
            
           }
           else if(ocnt == 0) // only copy other variables once
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
         }   
       }
       current = current->next;
@@ -2586,7 +2590,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)internal_ptrs[i];
             void* out = (void*)external_ptrs[i];
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
           }
         } 
         else { // oversampling
@@ -2597,7 +2601,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
             // sample rate conversion
             src_convert(csound, p->cvt_out[cvt++], in, out);
           } else if(ocnt == 0) {// only copy other variables once
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
           }
         }   
       }

@@ -43,9 +43,6 @@ extern MYFLT MOD(MYFLT a, MYFLT bb);
 #include "interlocks.h"
 #include "arrays.h"
 
-
-
-
 typedef struct {
   OPDS    h;
   ARRAYDAT  *arrayDat;
@@ -166,7 +163,7 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     p->ans->arrayType->copyValue(csound,
                                  p->ans->arrayType,
                                  p->ans->data + (i * memMyfltSize),
-                                 valp[i]);
+                                 valp[i], &(p->h));
   }
   return OK;
 }
@@ -337,7 +334,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
   mem += incr;
   //memcpy(mem, p->value, dat->arrayMemberSize);
-  dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
+  dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value,  &(p->h));
   /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
   /*         mem, incr, *((MYFLT*)p->value)); */
   return OK;
@@ -352,6 +349,7 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   int32_t end;
   int32_t index;
   int32_t indefArgCount = p->INOCOUNT - 1;
+ 
 
   if (UNLIKELY(indefArgCount == 0))
     return csound->PerfError(csound, &(p->h),
@@ -379,7 +377,8 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
   mem += incr;
   //    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
-  dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem);
+  dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem,
+                            &(p->h));
   return OK;
 }
 
@@ -2778,7 +2777,7 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
     int32_t index = (i * memMyfltSize);
     p->dst->arrayType->copyValue(csound, p->dst->arrayType,
                                  (void*)(p->dst->data + index),
-                                 (void*)(p->src->data + index));
+                                 (void*)(p->src->data + index), &(p->h));
   }
 
   return OK;
@@ -2829,7 +2828,7 @@ static int32_t tabcopyk(CSOUND *csound, TABCPY *p)
     int32_t index = (i * memMyfltSize);
     p->dst->arrayType->copyValue(csound, p->dst->arrayType,
                                  (void*)(p->dst->data + index),
-                                 (void*)(p->src->data + index));
+                                 (void*)(p->src->data + index), &(p->h));
   }
 
   return OK;
@@ -2878,7 +2877,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     p->dst->arrayType->copyValue(csound,
                                  p->dst->arrayType,
                                  (void*)(p->dst->data + index),
-                                 (void*)(p->src->data + index));
+                                 (void*)(p->src->data + index),  &(p->h));
   }
 
   return OK;
@@ -3176,7 +3175,7 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
   for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
     p->tab->arrayType->copyValue(csound, p->tab->arrayType,
                                  p->tab->data + (destIndex * memMyfltSize),
-                                 tabin + (memMyfltSize * i));
+                                 tabin + (memMyfltSize * i),  &(p->h));
   }
 
   return OK;
@@ -3894,7 +3893,7 @@ int32_t rows_perf_S(CSOUND *csound, FFT *p)
     //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     //printf("*** mem = %p dst = %p\n", mem, dest);
     for (i = 0; i<p->in->sizes[1]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem);
+      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem, &(p->h));
       //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
       dest +=1;
       mem += 1;
@@ -3919,7 +3918,7 @@ int32_t set_rows_perf_S(CSOUND *csound, FFT *p)
     //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     //printf("*** mem = %p dst = %p\n", mem, dest);
     for (i = 0; i<p->in->sizes[1]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest);
+      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest,  &(p->h));
       //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
       dest+= 1;
       mem += 1;
@@ -4044,7 +4043,8 @@ int32_t cols_perf_S(CSOUND *csound, FFT *p) {
     //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     //printf("*** mem = %p dst = %p\n", mem, dest);
     for (i = 0; i<p->in->sizes[0]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem);
+      dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem,
+                                &(p->h));
       //printf("*** copies i=%d: %s -> %s\n", i,(char*)(dest->data),(char*)(mem->data));
       dest+= 1;
       mem += p->in->sizes[1];
@@ -4132,7 +4132,8 @@ int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
     //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     //printf("*** mem = %p dst = %p\n", mem, dest);
     for (i = 0; i<p->in->sizes[0]; i++) {
-      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest );
+      dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest,
+                                &(p->h));
       //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
       dest += p->in->sizes[1];
       mem  += 1;
