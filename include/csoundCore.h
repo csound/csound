@@ -120,9 +120,10 @@ extern "C" {
   //#define OUTOCOUNT   ORTXT.outoffs->count
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
-#define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, 'a'))
-#define IS_STR_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, 'S'))
-
+#define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "a"))
+#define IS_STR_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "S"))
+#define IS_KSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "k"))
+    
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
@@ -1364,7 +1365,7 @@ static inline double intpow(MYFLT x, int32_t n)
     char *(*GetString)(CSOUND *, MYFLT);
     int32 (*StringArg2Insno)(CSOUND *, void *p, int is_string);
     char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int);
-    const CS_TYPE *(*GetType)(CSOUND *csound, char type);
+    const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
     
     /**@}*/
     

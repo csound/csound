@@ -290,89 +290,10 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
 }
-
-// Get Types  
-static inline const CS_TYPE *StringType(CSOUND *csound) {
-  return csound->std_types->stringType;
-}
-
-static inline const CS_TYPE *AsigType(CSOUND *csound) {
-  return csound->std_types->asigType;
-}
-
-
-static inline const CS_TYPE *KsigType(CSOUND *csound) {
-  return csound->std_types->ksigType;
-}
-
-
-static inline const CS_TYPE *InitType(CSOUND *csound) {
-  return csound->std_types->initType;
-}
-
-static inline const CS_TYPE *ConstType(CSOUND *csound) {
-  return csound->std_types->constType;
-}
-
-
-static inline const CS_TYPE *PfieldType(CSOUND *csound) {
-  return csound->std_types->pfieldType;
-}
-
-static inline const CS_TYPE *RType(CSOUND *csound) {
-  return csound->std_types->rType;
-}
-
-static inline const CS_TYPE *WsigType(CSOUND *csound) {
-  return csound->std_types->wsigType;
-}
-
-static inline const CS_TYPE *FsigType(CSOUND *csound) {
-  return csound->std_types->fsigType;
-}
-
-static inline const CS_TYPE *IboolType(CSOUND *csound) {
-  return csound->std_types->ibooleanType;
-}
-
-static inline const CS_TYPE *KboolType(CSOUND *csound) {
-  return csound->std_types->kbooleanType;
-}
-
-static inline const CS_TYPE *ArrayType(CSOUND *csound) {
-  return csound->std_types->arrayType;
-}
-
-/* get type from char name */ 
-static inline const CS_TYPE *GetType(CSOUND *csound, char type) { 
-  switch(type) {
-    case 'a':
-    return AsigType(csound);
-    case 'k':
-    return KsigType(csound);
-    case 'i':
-    return InitType(csound);
-    case 'S':
-    return StringType(csound);
-    case 'r':
-    return RType(csound);
-    case 'p':
-    return PfieldType(csound);
-    case 'c':
-    return ConstType(csound);
-    case 'w':
-    return WsigType(csound);
-    case 'f':
-    return FsigType(csound);
-    case 'B':
-    return KboolType(csound);    
-    case 'b':
-    return IboolType(csound);
-    case '[':
-    return ArrayType(csound);
-  default:
-    return NULL;
-  }
+  
+/* get type from name */ 
+PUBLIC const CS_TYPE *GetType(CSOUND *csound, const char *type) { 
+  return csoundGetTypeWithVarTypeName(csound->typePool, type);
 }
 
  
