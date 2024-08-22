@@ -175,7 +175,7 @@ jobs:
 
   macos_build_osxcross:
     name: MacOS build (osxcross/vcpkg)
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -203,7 +203,7 @@ jobs:
 
       - name: Download osxcross
         run: |
-          curl -L "https://drive.usercontent.google.com/download?id=1TKmFGbKE_F4ZF9f6m5VxuZ7yEHbDzQy5&confirm=xxx" | tar xvz
+          curl -L "https://drive.usercontent.google.com/download?id=1bDCZNjj5FPIuE0FzJv_4aw78Xgbp4wsH&confirm=xxx" | tar xvz
 
       - name: Configure Build
         run: |

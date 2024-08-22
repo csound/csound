@@ -26,7 +26,9 @@ function(make_executable name srcs libs)
     endif()
     install(TARGETS ${name}
     EXPORT CsoundExports
-	RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}" )
+	RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
+    BUNDLE DESTINATION "${EXECUTABLE_INSTALL_DIR}"
+    )
 endfunction()
 
 # Utility function to make a utility executable
