@@ -1068,11 +1068,11 @@ enum PVS_WINTYPE {
 
    /**
    * Create and initialise an array channel with a given array type
-   * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 
-   * - 'i' (init vars): each item is a MYFLT
-   * - 'S' (strings): each item is a STRINGDAT (see csoundGetStringData() and
+   * - "a" (audio sigs): each item is a ksmps-size MYFLT array 
+   * - "i" (init vars): each item is a MYFLT
+   * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - 'k' (control sigs): each item is a MYFLT 
+   * - "k" (control sigs): each item is a MYFLT 
    *  dimensions - number of array dimensions
    *  sizes - sizes for each dimension
    * returns the ARRAYDAT for the requested channel or NULL on error
@@ -1080,19 +1080,19 @@ enum PVS_WINTYPE {
    * this function is a non-op.
    */
    PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
-                                          char type, int dimensions,
+                                          const char *type, int dimensions,
                                            const int *sizes);
   
 
   /**
    * Get the type of data the ARRAYDAT adat, returning
-   * - 'a' (audio sigs): each item is a ksmps-size MYFLT array 
-   * - 'i' (init vars): each item is a MYFLT
-   * - 'S' (strings): each item is a STRINGDAT (see csoundGetStringData() and
+   * - "a" (audio sigs): each item is a ksmps-size MYFLT array 
+   * - "i" (init vars): each item is a MYFLT
+   * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - 'k' (control sigs): each item is a MYFLT 
+   * - "k" (control sigs): each item is a MYFLT 
    */
-  PUBLIC char csoundArrayDataType(const ARRAYDAT *adat);
+  PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat);
 
   /**
    * Get the dimensions of the ARRAYDAT adat.

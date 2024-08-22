@@ -479,7 +479,7 @@ class PUBLIC Csound
     csoundGetAudioChannel(csound,name,samples);
   }
   virtual ARRAYDAT *InitArrayChannel(CSOUND *csound, const char *name,
-                                          char type, int dimensions,
+                                          const char *type, int dimensions,
                                            const int *sizes) {
     return csoundInitArrayChannel(csound, name, type, dimensions, sizes);
   }

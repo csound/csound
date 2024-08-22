@@ -2367,7 +2367,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 {
     ARRAYDAT *adat;
     int32_t   type, mode, err, siz = 0, i;
-    const CS_TYPE *vtyp;
+
 
     mode = (int32_t) MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
@@ -2385,22 +2385,9 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
                                            adat->dimensions*sizeof(int32_t));
     for(i = 0; i < adat->dimensions; i++)
       siz += (adat->sizes[i] = MYFLT2LRND(p->idim->data[i]));
-    
-    switch(p->type->data[0]) {
-    case 'i':
-      vtyp = &CS_VAR_TYPE_I;
-      break;
-    case 'a':
-      vtyp = &CS_VAR_TYPE_A;
-      break;
-    case 'S':
-      vtyp = &CS_VAR_TYPE_S;
-      break;
-    case 'k':
-    default:
-      vtyp = &CS_VAR_TYPE_K;
-    }
-    adat->arrayType = (CS_TYPE *) vtyp;
+  
+    adat->arrayType = (CS_TYPE *)
+      csoundGetTypeWithVarTypeName(csound->typePool, p->type->data);
     tabinit(csound, adat, siz);
     return OK;
 }
@@ -2626,10 +2613,9 @@ PUBLIC int csoundGetPvsChannel(CSOUND *csound, const char *name,
 }
 
 PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
-                                        char type, int dimensions,
+                                        const char *type, int dimensions,
                                         const int *sizes) {
   int i, siz = 0, err;
-  const CS_TYPE *vtyp;
   ARRAYDAT *adat;
 
   err = csoundGetChannelPtr(csound, (void **) &adat, name,
@@ -2645,22 +2631,9 @@ PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                            dimensions*sizeof(int32_t));
   for(i = 0; i < adat->dimensions; i++)
     siz += (adat->sizes[i] = sizes[i]);
-    
-  switch(type) {
-  case 'i':
-    vtyp = &CS_VAR_TYPE_I;
-    break;
-  case 'a':
-    vtyp = &CS_VAR_TYPE_A;
-    break;
-  case 'S':
-    vtyp = &CS_VAR_TYPE_S;
-    break;
-  case 'k':
-  default:
-    vtyp = &CS_VAR_TYPE_K;
-  }
-  adat->arrayType = (CS_TYPE *) vtyp;
+  
+  adat->arrayType = (CS_TYPE *)
+    csoundGetTypeWithVarTypeName(csound->typePool, type);
   tabinit(csound, adat, siz);
  }
   return adat;
@@ -2670,16 +2643,8 @@ PUBLIC int csoundArrayDataDimensions(const ARRAYDAT *adat) {
   return adat->dimensions;
 }
 
-PUBLIC char csoundArrayDataType(const ARRAYDAT *adat) {
-  if(adat->arrayType == &CS_VAR_TYPE_I)
-    return 'i';
-  else if(adat->arrayType == &CS_VAR_TYPE_I)
-   return 'a';
-  else if(adat->arrayType == &CS_VAR_TYPE_I)
-    return 'S';
-  else if(adat->arrayType == &CS_VAR_TYPE_I)
-    return 'k';
-  else return 0;
+PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat) {
+  return adat->arrayType->varTypeName; 
 }
 
 PUBLIC const int *csoundArrayDataSizes(const ARRAYDAT *adat){

@@ -44,7 +44,7 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     return 0;
 }
 
-CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName) {
+CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, const char* typeName) {
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {

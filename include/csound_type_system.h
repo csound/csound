@@ -93,7 +93,7 @@ extern "C" {
     PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                              CS_TYPE* type, char* name,
                                              void* typeArg);
-    PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
+    PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, const char* typeName);
 
     /* Csound Variable Pool - essentially a map<string,csvar>
        CSOUND contains one for global memory, InstrDef and UDODef
