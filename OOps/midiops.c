@@ -811,7 +811,7 @@ int savectrl_init(CSOUND *csound, SAVECTRL *p)
       if (ctlno < FL(0.0) || ctlno > FL(127.0))
         return csound->InitError(csound, Str("Value out of range [0,127]\n"));
     }
-    tabinit(csound, p->arr, 2+2*nargs);
+    tabinit(csound, p->arr, 2+2*nargs, &(p->h));
     p->arr->data[0] = nargs;    /* length */
     p->arr->data[1] = chnl+1;   /* channel */
     for (i=0, j=2; i<nargs; i++, j+=2) {

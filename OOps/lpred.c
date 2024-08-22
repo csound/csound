@@ -754,7 +754,7 @@ int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {
     p->setup = csound->LPsetup(csound,N,p->M);
     if(p->buf.auxp == NULL || Nbytes > p->buf.size)
       csound->AuxAlloc(csound, Nbytes, &p->buf);
-    tabinit(csound,p->out,p->M);
+    tabinit(csound,p->out,p->M, &(p->h));
     p->ft = ft;
     return OK;
   }
@@ -812,7 +812,7 @@ int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p) {
     csound->AuxAlloc(csound, Nbytes, &p->buf);
   if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
     csound->AuxAlloc(csound, Nbytes, &p->cbuf);
-  tabinit(csound,p->out,p->M);
+  tabinit(csound,p->out,p->M, &(p->h));
   p->cp = 1;
   p->bp = 0;
   return OK;
@@ -1022,7 +1022,7 @@ int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
     csound->AuxAlloc(csound, Nbytes, &p->buf);
   if(p->coef.auxp == NULL || Mbytes > p->coef.size)
     csound->AuxAlloc(csound, Mbytes, &p->coef);
-  tabinit(csound,p->out,p->M);
+  tabinit(csound,p->out,p->M, &(p->h));
   p->framecount = 0;
   p->mod = *p->imod;
   p->framecount = 0;
@@ -1061,7 +1061,7 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
 int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
   p->M = p->in->sizes[0];
   p->setup = csound->LPsetup(csound,0,p->M);
-  tabinit(csound,p->out,p->M);
+  tabinit(csound,p->out,p->M, &(p->h));
   p->sum = 0.0;
   return OK;
 }

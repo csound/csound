@@ -2142,7 +2142,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   }
 }
 
-CS_VARIABLE* createStructVar(void* cs, void* p) {
+CS_VARIABLE* createStructVar(void* cs, void* p, void *ctx) {
   CSOUND* csound = (CSOUND*)cs;
   CS_TYPE* type = (CS_TYPE*)p;
 
@@ -2199,7 +2199,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
     memberName = cs_strdup(csound, memberName);
     CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
-    CS_VARIABLE* var = memberType->createVariable(csound, type);
+    CS_VARIABLE* var = memberType->createVariable(csound, type, NULL);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;
 

@@ -108,7 +108,7 @@ typedef struct {
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
     int numitems = p->xs->sizes[0];
-    tabinit(csound, p->ys, numitems);
+    tabinit(csound, p->ys, numitems, &(p->h));
     CHECKARR1D(p->xs);
     CHECKARR1D(p->ys);
     return OK;
@@ -159,7 +159,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    tabinit(csound, p->out, numitems);
+    tabinit(csound, p->out, numitems, &(p->h));
     p->numitems = numitems;
     return OK;
 }
@@ -385,7 +385,7 @@ static int32_t
 ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
     p->rnd = (int)*p->irnd;
-    tabinit(csound, p->outarr, p->inarr->sizes[0]);
+    tabinit(csound, p->outarr, p->inarr->sizes[0], &(p->h));
     p->skip = 0;
     ftom_arr(csound, p);
     p->skip = 1;
@@ -416,7 +416,7 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
 static int32_t
 mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
-    tabinit(csound, p->outarr, p->inarr->sizes[0]);
+    tabinit(csound, p->outarr, p->inarr->sizes[0], &(p->h));
     p->skip = 0;
     mtof_arr(csound, p);
     p->skip = 1;
@@ -887,7 +887,7 @@ typedef struct {
 
 
 static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
-    tabinit(csound, p->out, p->in->sizes[0]);
+  tabinit(csound, p->out, p->in->sizes[0], &(p->h));
     p->lastidx = -1;
     int32_t datalen = p->INOCOUNT - 1;
     if(datalen % 2)
@@ -897,7 +897,7 @@ static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
     if(datalen >= BPF_MAXPOINTS)
         return INITERR(Str("bpf: too many pargs (max=256)"));
     int32_t N = p->in->sizes[0];
-    tabinit(csound, p->out, N);
+    tabinit(csound, p->out, N, &(p->h));
     return OK;
 }
 
@@ -1366,7 +1366,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
-    tabinit(csound, p->out, N);
+    tabinit(csound, p->out, N, &(p->h));
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
@@ -1384,7 +1384,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 
     // make sure that we can put the result in `out`,
     // grow the array if necessary
-    tabinit(csound, p->out, N);
+    tabinit(csound, p->out, N, &(p->h));
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
@@ -1397,7 +1397,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 static int32_t
 cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t N = p->in->sizes[0];
-    tabinit(csound, p->out, N);
+    tabinit(csound, p->out, N, &(p->h));
 
     char *op1 = (char*)p->op1->data;
     int32_t op1size = p->op1->size - 1;
@@ -1866,7 +1866,7 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     if(numitems < 0) {
         return PERFERR(Str("tab2array: cannot copy a negative number of items"));
     }
-    tabinit(csound, p->out, numitems);
+    tabinit(csound, p->out, numitems, &(p->h));
     p->numitems = numitems;
     return OK;
 }
@@ -2433,7 +2433,7 @@ array_binop_init(CSOUND *csound, BINOP_AAA *p) {
     for(i=0; i<p->in1->dimensions; i++) {
         numitems *= p->in1->sizes[i];
     }
-    tabinit(csound, p->out, numitems);
+    tabinit(csound, p->out, numitems, &(p->h));
     p->numitems = numitems;
     return OK;
 }
