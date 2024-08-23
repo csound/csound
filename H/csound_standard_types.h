@@ -31,20 +31,20 @@
 extern "C" {
 #endif
 
-    PUBLIC void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
+    void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
 
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_A;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_K;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_I;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_S;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_P;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_R;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_C;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_W;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_F;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_B;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_b;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_ARRAY;
+    extern const CS_TYPE CS_VAR_TYPE_A;
+    extern const CS_TYPE CS_VAR_TYPE_K;
+    extern const CS_TYPE CS_VAR_TYPE_I;
+    extern const CS_TYPE CS_VAR_TYPE_S;
+    extern const CS_TYPE CS_VAR_TYPE_P;
+    extern const CS_TYPE CS_VAR_TYPE_R;
+    extern const CS_TYPE CS_VAR_TYPE_C;
+    extern const CS_TYPE CS_VAR_TYPE_W;
+    extern const CS_TYPE CS_VAR_TYPE_F;
+    extern const CS_TYPE CS_VAR_TYPE_B;
+    extern const CS_TYPE CS_VAR_TYPE_b;
+    extern const CS_TYPE CS_VAR_TYPE_ARRAY; 
 
     typedef struct arrayVarInit {
         int dimensions;
