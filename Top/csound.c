@@ -614,7 +614,6 @@ static const CSOUND cenviron_ = {
   (INSTRTXT**)NULL,  /* dead_instr_pool */
   0,                /* dead_instr_no */
   (TYPE_POOL*)NULL,
-  NULL,   /* standard types */    
   DFLT_KSMPS,     /*  ksmps               */
   DFLT_NCHNLS,    /*  nchnls              */
   -1,             /*  inchns              */

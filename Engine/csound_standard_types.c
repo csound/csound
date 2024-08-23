@@ -363,22 +363,6 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_B);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_b);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY);
-
-    csound->std_types =
-    (CS_STANDARD_TYPES *) csound->Calloc(csound, sizeof(CS_STANDARD_TYPES));
-    csound->std_types->asigType = &CS_VAR_TYPE_A;
-    csound->std_types->ksigType = &CS_VAR_TYPE_K;
-    csound->std_types->initType = &CS_VAR_TYPE_I;
-    csound->std_types->stringType = &CS_VAR_TYPE_S;
-    csound->std_types->pfieldType = &CS_VAR_TYPE_P;
-    csound->std_types->rType =  &CS_VAR_TYPE_R;
-    csound->std_types->constType = &CS_VAR_TYPE_C;
-    csound->std_types->wsigType = &CS_VAR_TYPE_W;
-    csound->std_types->fsigType = &CS_VAR_TYPE_F;
-    csound->std_types->kbooleanType = &CS_VAR_TYPE_B;
-    csound->std_types->ibooleanType = &CS_VAR_TYPE_b;
-    csound->std_types->arrayType = &CS_VAR_TYPE_ARRAY;
-
 }
 
 

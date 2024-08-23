@@ -116,14 +116,15 @@ extern "C" {
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
 #define OUTCOUNT    ORTXT.outlist->count   /* Not used */
-  //#define INOCOUNT    ORTXT.inoffs->count
-  //#define OUTOCOUNT   ORTXT.outoffs->count
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
 #define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "a"))
 #define IS_STR_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "S"))
 #define IS_KSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "k"))
-    
+#define IS_INIT_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "i"))
+#define IS_FSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "f"))
+#define IS_ARRAY_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "["))
+  
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
@@ -151,26 +152,18 @@ extern "C" {
 
 #define LOBITS     10
 #define LOFACT     1024
-  /* LOSCAL is 1/LOFACT as MYFLT */
+/* LOSCAL is 1/LOFACT as MYFLT */
 #define LOSCAL     FL(0.0009765625)
-
 #define LOMASK     1023
 
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
-  //#define SSTRCOD    (nan("0"))
 #define SSTRCOD    (double)NAN
 #else
   extern int32 MYNAN;
 #define SSTRCOD    (float)NAN
-  //#define SSTRCOD    (nanf("0"))
 #endif
-  //#define ISSTRCOD(X) isnan(X)
-  //#ifndef __MACH__
-  extern int ISSTRCOD(MYFLT);
-  //#else
-  //#define ISSTRCOD(X) isnan(X)
-  //#endif
+extern int ISSTRCOD(MYFLT);
 
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
@@ -207,9 +200,7 @@ extern "C" {
 #define CS_AMPLMSG 01
 #define CS_RNGEMSG 02
 #define CS_WARNMSG 04
-  //#define CS_UNUSED1 08
 #define CS_NOMSG   0x10
-  //#define CS_UNUSED2 0x20
 #define CS_RAWMSG  0x40
 #define CS_TIMEMSG 0x80
 #define CS_NOQQ    0x400
@@ -309,10 +300,6 @@ extern "C" {
     char* structPath;
     struct arg* next;
   } ARG;
-  //  typedef struct argoffs {
-  //    int     count;
-  //    int     indx[1];
-  //  } ARGOFFS;
 
   typedef struct oentry {
     char    *opname;
@@ -1054,24 +1041,6 @@ extern "C" {
     char str[MAX_MESSAGE_STR];
   } message_string_queue_t;
 
-/* standard type constants */
-  
-  typedef struct standard_types {
-    const CS_TYPE  *asigType;   
-    const CS_TYPE  *ksigType;
-    const CS_TYPE  *initType;
-    const CS_TYPE  *stringType;
-    const CS_TYPE  *pfieldType;
-    const CS_TYPE  *rType;
-    const CS_TYPE  *constType;
-    const CS_TYPE  *wsigType;
-    const CS_TYPE  *fsigType;
-    const CS_TYPE  *kbooleanType;
-    const CS_TYPE  *ibooleanType;
-    const CS_TYPE  *arrayType;  
-  } CS_STANDARD_TYPES;
-  
-
 /* Binary positive power function */
 static inline double intpow1(double x, int32_t n) 
 {
@@ -1749,7 +1718,6 @@ static inline double intpow(MYFLT x, int32_t n)
     INSTRTXT      **dead_instr_pool;
     int           dead_instr_no;
     TYPE_POOL*    typePool;
-    CS_STANDARD_TYPES *std_types;
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
