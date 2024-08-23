@@ -87,7 +87,12 @@ extern "C" {
   } TYPE_POOL;
 
   /** 
-   *  Adds a new type to Csound type table
+   *  Returns Csound internal type pool
+   */
+  PUBLIC TYPE_POOL *csoundGetTypePool(CSOUND* csound);
+  
+  /** 
+   *  Adds a new type to type table pool
    *  Returns if variable type redefined
    */
   PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
@@ -123,6 +128,7 @@ extern "C" {
     int synthArgCount;
   } CS_VAR_POOL;
 
+  /* Shsould we keep these in the API? */
   PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);
   PUBLIC void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool);
   PUBLIC char* getVarSimpleName(CSOUND* csound, const char* name);
