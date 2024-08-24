@@ -1597,32 +1597,32 @@ class Csound:
 
 
 libcspt = libcsound
-libcspt.NewCsoundPT.restype = ct.c_void_p
-libcspt.NewCsoundPT.argtypes = [ct.c_void_p]
-libcspt.DeleteCsoundPT.argtypes = [ct.c_void_p]
-libcspt.CsoundPTisRunning.argtypes = [ct.c_void_p]
+libcspt.csoundCreatePerformanceThread.restype = ct.c_void_p
+libcspt.csoundCreatePerformanceThread.argtypes = [ct.c_void_p]
+libcspt.csoundDestroyPerformanceThread.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadIsRunning.argtypes = [ct.c_void_p]
 PROCESSFUNC = ct.CFUNCTYPE(None, ct.c_void_p)
-libcspt.CsoundPTgetProcessCB.restype = ct.c_void_p
-libcspt.CsoundPTgetProcessCB.argtypes = [ct.c_void_p]
-libcspt.CsoundPTsetProcessCB.argtypes = [ct.c_void_p, PROCESSFUNC, ct.c_void_p]
-libcspt.CsoundPTgetCsound.restype = ct.c_void_p
-libcspt.CsoundPTgetCsound.argtypes = [ct.c_void_p]
-libcspt.CsoundPTgetStatus.argtypes = [ct.c_void_p]
-libcspt.CsoundPTplay.argtypes = [ct.c_void_p]
-libcspt.CsoundPTpause.argtypes = [ct.c_void_p]
-libcspt.CsoundPTtogglePause.argtypes = [ct.c_void_p]
-libcspt.CsoundPTstop.argtypes = [ct.c_void_p]
-libcspt.CsoundPTrecord.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int]
-libcspt.CsoundPTstopRecord.argtypes = [ct.c_void_p]
-libcspt.CsoundPTscoreEvent.argtypes = [ct.c_void_p, ct.c_int, ct.c_char, ct.c_int, ct.POINTER(MYFLT)]
-libcspt.CsoundPTinputMessage.argtypes = [ct.c_void_p, ct.c_char_p]
-libcspt.CsoundPTsetScoreOffsetSeconds.argtypes = [ct.c_void_p, ct.c_double]
-libcspt.CsoundPTjoin.argtypes = [ct.c_void_p]
-libcspt.CsoundPTflushMessageQueue.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadGetProcessCB.restype = ct.c_void_p
+libcspt.csoundPerformanceThreadGetProcessCB.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadSetProcessCB.argtypes = [ct.c_void_p, PROCESSFUNC, ct.c_void_p]
+libcspt.csoundPerformanceThreadGetCsound.restype = ct.c_void_p
+libcspt.csoundPerformanceThreadGetCsound.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadGetStatus.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadPlay.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadPause.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadTogglePause.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadStop.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadRecord.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int]
+libcspt.csoundPerformanceThreadStopRecord.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadScoreEvent.argtypes = [ct.c_void_p, ct.c_int, ct.c_char, ct.c_int, ct.POINTER(MYFLT)]
+libcspt.csoundPerformanceThreadInputMessage.argtypes = [ct.c_void_p, ct.c_char_p]
+libcspt.csoundPerformanceThreadSetScoreOffsetSeconds.argtypes = [ct.c_void_p, ct.c_double]
+libcspt.csoundPerformanceThreadJoin.argtypes = [ct.c_void_p]
+libcspt.csoundPerformanceThreadFlushMessageQueue.argtypes = [ct.c_void_p]
 
 
 class CsoundPerformanceThread:
-    """Performs a score in a separate thread until the end of score is reached.
+    """Runs Csound in a separate thread.
 
     The playback (which is paused by default) is stopped by calling
     stop(), or if an error occurs.
@@ -1632,26 +1632,26 @@ class CsoundPerformanceThread:
     mentioned reasons, the performance thread returns.
     """
     def __init__(self, csp):
-        self.cpt = libcspt.NewCsoundPT(csp)
+        self.cpt = libcspt.csoundCreatePerformanceThread(csp)
 
     def __del__(self):
-        libcspt.DeleteCsoundPT(self.cpt)
+        libcspt.csoundDestroyPerformanceThread(self.cpt)
 
     def is_running(self):
         """Returns True if the performance thread is running, False otherwise."""
-        return libcspt.CsoundPTisRunning(self.cpt) != 0
+        return libcspt.csoundPerformanceThreadIsRunning(self.cpt) != 0
 
     def process_cb(self):
         """Returns the process callback."""
-        return PROCESSFUNC(libcspt.CsoundPTgetProcessCB(self.cpt))
+        return PROCESSFUNC(libcspt.csoundPerformanceThreadGetProcessCB(self.cpt))
 
     def set_process_cb(self, function, data):
         """Sets the process callback."""
-        libcspt.CsoundPTsetProcessCB(self.cpt, PROCESSFUNC(function), ct.byref(data))
+        libcspt.csoundPerformanceThreadSetProcessCB(self.cpt, PROCESSFUNC(function), ct.byref(data))
 
     def csound(self):
         """Returns the Csound instance pointer."""
-        return libcspt.CsoundPTgetCsound(self.cpt)
+        return libcspt.csoundPerformanceThreadGetCsound(self.cpt)
 
     def status(self):
         """Returns the current status.
@@ -1659,23 +1659,23 @@ class CsoundPerformanceThread:
         Zero if still playing, positive if the end of score was reached or
         performance was stopped, and negative if an error occured.
         """
-        return libcspt.CsoundPTgetStatus(self.cpt)
+        return libcspt.csoundPerformanceThreadGetStatus(self.cpt)
 
     def play(self):
         """Continues performance if it was paused."""
-        libcspt.CsoundPTplay(self.cpt)
+        libcspt.csoundPerformanceThreadPlay(self.cpt)
 
     def pause(self):
         """Pauses performance (can be continued by calling play())."""
-        libcspt.CsoundPTpause(self.cpt)
+        libcspt.csoundPerformanceThreadPause(self.cpt)
 
     def toggle_pause(self):
         """Pauses or continues performance, depending on current state."""
-        libcspt.CsoundPTtogglePause(self.cpt)
+        libcspt.csoundPerformanceThreadtogglePause(self.cpt)
 
     def stop(self):
         """Stops performance (cannot be continued)."""
-        libcspt.CsoundPTstop(self.cpt)
+        libcspt.csoundPerformanceThreadStop(self.cpt)
 
     def record(self, filename, samplebits, numbufs):
         """Starts recording the output from Csound.
@@ -1683,11 +1683,11 @@ class CsoundPerformanceThread:
         The sample rate and number of channels are taken directly from the
         running Csound instance.
         """
-        libcspt.CsoundPTrecord(self.cpt, cstring(filename), samplebits, numbufs)
+        libcspt.csoundPerformanceThreadRecord(self.cpt, cstring(filename), samplebits, numbufs)
 
     def stop_record(self):
         """Stops recording and closes audio file."""
-        libcspt.CsoundPTstopRecord(self.cpt)
+        libcspt.csoundPerformanceThreadStopRecord(self.cpt)
 
     def score_event(self, absp2mode, opcod, pFields):
         """Sends a score event.
@@ -1702,15 +1702,15 @@ class CsoundPerformanceThread:
         p = np.array(pFields).astype(MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = p.size
-        libcspt.CsoundPTscoreEvent(self.cpt, ct.c_int(absp2mode), cchar(opcod), numFields, ptr)
+        libcspt.csoundPerformanceThreadScoreEvent(self.cpt, ct.c_int(absp2mode), cchar(opcod), numFields, ptr)
 
     def input_message(self, s):
         """Sends a score event as a string, similarly to line events (-L)."""
-        libcspt.CsoundPTinputMessage(self.cpt, cstring(s))
+        libcspt.csoundPerformanceThreadInputMessage(self.cpt, cstring(s))
 
     def set_score_offset_seconds(self, timeVal):
         """Sets the playback time pointer to the specified value (in seconds)."""
-        libcspt.CsoundPTsetScoreOffsetSeconds(self.cpt, ct.c_double(timeVal))
+        libcspt.csoundPerformanceThreadSetScoreOffsetSeconds(self.cpt, ct.c_double(timeVal))
 
     def join(self):
         """Waits until the performance is finished or fails.
@@ -1720,11 +1720,11 @@ class CsoundPerformanceThread:
         Also releases any resources associated with the performance thread
         object.
         """
-        return libcspt.CsoundPTjoin(self.cpt)
+        return libcspt.csoundPerformanceThreadJoin(self.cpt)
 
     def flush_message_queue(self):
         """Waits until all pending messages are actually received.
 
         (pause, send score event, etc.)
         """
-        libcspt.CsoundPTflushMessageQueue(self.cpt)
+        libcspt.csoundPerformanceThreadFlushMessageQueue(self.cpt)

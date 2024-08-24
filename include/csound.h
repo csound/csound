@@ -49,8 +49,6 @@
 #  include <intrin.h> /* for _InterlockedExchange */
 #endif
 
-
-
 #if defined(__MACH__)
 // on OSX 10.6 i386 does not have all builtins
 #if defined(MAC_OS_X_VERSION_10_6)
