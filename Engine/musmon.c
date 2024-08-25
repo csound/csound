@@ -659,7 +659,7 @@ static void print_amp_values(CSOUND *csound, int score_evt)
                  p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
                  p->curp2 - p->timeOffs,  p->curp2);
     else
-      p->Message(p, "  rtevent:\t   T%7.3f TT%7.3f M:",
+      p->Message(p, "\t   T%7.3f TT%7.3f M:",
                  p->curp2 - p->timeOffs,  p->curp2);
 
     for (n = p->nchnls, maxp = p->maxamp; n--; )

@@ -670,6 +670,11 @@ CsoundPerformanceThread::CsoundPerformanceThread(CSOUND *csound)
     csPerfThread_constructor(csound);
 }
 
+CsoundPerformanceThread::CsoundPerformanceThread(Csound &csound)
+{
+  csPerfThread_constructor(csound.GetCsound());
+}
+
 CsoundPerformanceThread::~CsoundPerformanceThread()
 {
     // stop performance if it is still running
@@ -851,7 +856,7 @@ PUBLIC void csoundDestroyPerformanceThread(Cpt pt)
 PUBLIC int csoundPerformanceThreadIsRunning(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
-  return cpt->isRunning();
+  return cpt->IsRunning();
 }
 
 PUBLIC void *csoundPerformanceThreadGetProcessCB(Cpt pt)

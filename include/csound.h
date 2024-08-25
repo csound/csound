@@ -224,9 +224,9 @@ extern "C" {
   } TREE;
 
   /**
-    PVSDAT window types
-   */
-enum PVS_WINTYPE {
+     PVSDAT window types
+  */
+  enum PVS_WINTYPE {
     PVS_WIN_HAMMING = 0,
     PVS_WIN_HANN,
     PVS_WIN_KAISER,
@@ -237,13 +237,12 @@ enum PVS_WINTYPE {
     PVS_WIN_BHARRIS_3,
     PVS_WIN_BHARRIS_MIN,
     PVS_WIN_RECT
-};
+  };
 
   
-
   /* 
    *  PVSDAT formats 
-  */
+   */
   enum PVS_ANALFORMAT {
     PVS_AMP_FREQ = 0, /* phase vocoder */
     PVS_AMP_PHASE,    /* polar DFT */
@@ -302,7 +301,14 @@ enum PVS_WINTYPE {
                                     const char *channelName,
                                     void *channelValuePtr,
                                     const void *channelType);
-
+  /**
+     Event Types
+  */
+  enum {
+    CS_INSTR_EVENT = 0,
+    CS_TABLE_EVENT,
+    CS_END_EVENT
+  };
 
 #ifndef CSOUND_CSDL_H
   /** @defgroup INSTANTIATION Instantiation
@@ -1064,7 +1070,7 @@ enum PVS_WINTYPE {
   PUBLIC  void csoundSetStringChannel(CSOUND *csound,
                                       const char *name, const char *string);
 
-   /**
+  /**
    * Create and initialise an array channel with a given array type
    * - "a" (audio sigs): each item is a ksmps-size MYFLT array 
    * - "i" (init vars): each item is a MYFLT
@@ -1077,9 +1083,9 @@ enum PVS_WINTYPE {
    * NB: if the channel exists and has already been initialised,
    * this function is a non-op.
    */
-   PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
+  PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                           const char *type, int dimensions,
-                                           const int *sizes);
+                                          const int *sizes);
   
 
   /**
@@ -1094,29 +1100,29 @@ enum PVS_WINTYPE {
 
   /**
    * Get the dimensions of the ARRAYDAT adat.
-  **/
+   **/
   PUBLIC int csoundArrayDataDimensions(const ARRAYDAT *adat);
 
   /**
    * Get the sizes of each dimension of the ARRAYDAT adat;
-  **/
+   **/
   PUBLIC const int* csoundArrayDataSizes(const ARRAYDAT *adat);
 
 
   /**
    * Set the data in the ARRAYDAT adat
-  **/  
+   **/  
   PUBLIC void csoundSetArrayData(ARRAYDAT *adat, const void* data);
 
   /**
    * Get the data from the ARRAYDAT adat
-  **/  
+   **/  
   PUBLIC const void *csoundGetArrayData(const ARRAYDAT *adat);
 
 
   /**
    * Get a null-terminated string from a STRINGDAT structure 
-  **/
+   **/
   PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata);
 
   /**
@@ -1125,7 +1131,7 @@ enum PVS_WINTYPE {
   PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata,
                                   const char *str);
 
-   /**
+  /**
    * Create/initialise an Fsig channel with
    * size - FFT analysis size
    * overlap - analysis overlap size
@@ -1137,8 +1143,8 @@ enum PVS_WINTYPE {
    * this function is a non-op.
    */
   PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
-                                    int size, int overlap, int winsize,
-                                    int wintype, int format);
+                                      int size, int overlap, int winsize,
+                                      int wintype, int format);
   
   /**
    * Get the analysis FFT size used by the PVSDAT pvsdat
@@ -1160,12 +1166,12 @@ enum PVS_WINTYPE {
    */
   PUBLIC int csoundPvsDataFormat(const PVSDAT *pvsdat);
 
-    /**
+  /**
    * Get the current framecount from PVSDAT pvsdat
    */
   PUBLIC unsigned int csoundPvsDataFramecount(const PVSDAT *pvsdat);
 
-   /**
+  /**
    * Get the analysis data frame from the PVSDAT pvsdat
    */
   PUBLIC const float *csoundGetPvsData(const PVSDAT *pvsdat);
@@ -1200,6 +1206,7 @@ enum PVS_WINTYPE {
    * Send a new event. 'type' is the event type
    * type 0 - instrument instance     CS_INSTR_EVENT
    * type 1 - function table instance CS_TABLE_EVENT
+   * type 2 - end event               CS_END_EVENT
    * event parameters is nparams MYFLT array with the event parameters (p-fields)
    * optionally run asynchronously (async = 1)
    */
@@ -1351,7 +1358,7 @@ enum PVS_WINTYPE {
    */
   PUBLIC void csoundRewindScore(CSOUND *);
 
-    /**
+  /**
    * Sorts score file 'inFile' and writes the result to 'outFile'.
    * The Csound instance should be initialised
    * before calling this function, and csoundReset() should be called
@@ -1414,9 +1421,9 @@ enum PVS_WINTYPE {
 }
 #endif
 
-  /* Csound graphs and table display */
+/* Csound graphs and table display */
 #include "graph_display.h"
-  /* Csound circular buffer functions */
+/* Csound circular buffer functions */
 #include "circular_buffer.h"
 
 #endif  /* CSOUND_H */

@@ -135,7 +135,7 @@ class PUBLIC CsoundPerformanceThread {
   /**
    * Returns 1 if the performance thread is running, 0 otherwise
    */
-  int isRunning() { return running;}
+  int IsRunning() { return running;}
 
   /**
   * Returns the process callback as a void pointer
@@ -220,6 +220,7 @@ class PUBLIC CsoundPerformanceThread {
     void FlushMessageQueue();
     // --------
     CsoundPerformanceThread(Csound *);
+    CsoundPerformanceThread(Csound &);
     CsoundPerformanceThread(CSOUND *);
     ~CsoundPerformanceThread();
     // --------

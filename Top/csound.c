@@ -2384,7 +2384,9 @@ PUBLIC void csoundEventString(CSOUND *csound, const char *message, int async) {
 PUBLIC void csoundEvent(CSOUND *csound, int type, MYFLT *params,
                   int nparams, int async) {
   char c = 'i';
-  if(type) c = 'f';
+  if(type == CS_TABLE_EVENT) c = 'f';
+  else if (type == CS_END_EVENT) c = 'e';
+   
   if(async) 
     csoundScoreEventAsync(csound, c, params, nparams);
   else csoundScoreEventInternal(csound, c, params, nparams);
