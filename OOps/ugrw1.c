@@ -48,6 +48,7 @@
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>
+#include "csound_standard_types.h"
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -826,7 +827,7 @@ int32_t outz(CSOUND *csound, IOZ *p)
             spout[n + i*nsmps] += readloc[n];
           }
           readloc += nsmps;
-        } 
+        }
     }
     return OK;
  err1:
