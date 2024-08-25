@@ -485,7 +485,8 @@ public:
 // ----------------------------------------------------------------------------
 
 /**
- * Performs the score until end of score, error, or receiving a stop event.
+ * Performs the score until end of score, error, or 
+   receiving a stop event.
  * Returns a negative value on error.
  */
 
@@ -507,7 +508,8 @@ int CsoundPerformanceThread::Perform()
             lastMessage = (CsoundPerformanceThreadMessage*) 0;
           // process and destroy message
           retval = msg->run();
-          delete msg; // TODO: This should be moved out of the Perform function
+          // TODO: This should be moved out of the Perform function
+          delete msg; 
         } while (!retval);
         if (paused)
           csoundWaitThreadLock(pauseLock, (size_t) 0);
@@ -534,11 +536,13 @@ int CsoundPerformanceThread::Perform()
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
                                                   spout, len);
           if (written != len) {
-              csoundMessage(csound, "perfThread record buffer overrun.\n");
+              csoundMessage(csound,
+                            "perfThread record buffer overrun.\n");
           }
       }
-      csoundCondSignal(recordData.condvar); // Needs to be outside the if
-                              // for the case where stop record was requested
+      csoundCondSignal(recordData.condvar);
+      // Needs to be outside the if
+      // for the case where stop record was requested
     } while (!retval);
  endOfPerf:
     status = retval;
@@ -558,7 +562,7 @@ int CsoundPerformanceThread::Perform()
     }
     csoundNotifyThreadLock(flushLock);
     csoundUnlockMutex(queueLock);
-    //running = 0;
+    running = 0;
     return retval;
 }
 
@@ -882,7 +886,7 @@ PUBLIC void csoundPerformanceThreadPlay(Cpt pt)
   cpt->Play();
 }
 
-PUBLIC void csoundPerformanceThreadCsoundPTPause(Cpt pt)
+PUBLIC void csoundPerformanceThreadPause(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->Pause();
@@ -894,7 +898,7 @@ PUBLIC void csoundPerformanceThreadTogglePause(Cpt pt)
   cpt->TogglePause();
 }
 
-PUBLIC void csoundPerformanceThreadsStop(Cpt pt)
+PUBLIC void csoundPerformanceThreadStop(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->Stop();

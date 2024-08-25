@@ -24,8 +24,10 @@
 #ifndef CSOUND_CSPERFTHREAD_H
 #define CSOUND_CSPERFTHREAD_H
 
+#ifdef __cplusplus
 extern "C" {
-  typedef void CS_PERF_THREAD
+#endif
+  typedef void CS_PERF_THREAD;
 
   /**
      Runs Csound in a separate thread.
@@ -80,7 +82,7 @@ extern "C" {
   /**
      Pauses performance
   */
-  PUBLIC void csoundPerformanceThreadCsoundPTPause(CS_PERF_THREAD* pt);
+  PUBLIC void csoundPerformanceThreadPause(CS_PERF_THREAD* pt);
 
   /**
      Toggles performance depending on its state (playing, paused)
@@ -90,7 +92,7 @@ extern "C" {
   /**
      Stops performance fully.
   */ 
-  PUBLIC void csoundPerformanceThreadsStop(CS_PERF_THREAD* pt);
+  PUBLIC void csoundPerformanceThreadStop(CS_PERF_THREAD* pt);
 
   /**
      Starts recording the output from Csound.
@@ -147,6 +149,8 @@ extern "C" {
   */
   PUBLIC void csoundPerformanceThreadFlushMessageQueue(CS_PERF_THREAD* pt);
 
+#ifdef __cplusplus
 } // extern "C"
-  
+#endif
+
 #endif
