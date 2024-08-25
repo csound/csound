@@ -553,27 +553,26 @@ extern "C" {
   PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root, int async);
 
   /**
+   * Free the resources associated with the TREE *tree
+   * This function should be called whenever the TREE was
+   * created with csoundParseOrc and memory can be deallocated.
+   **/
+  PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);  
+
+  /**
    * Compiles Csound input files (such as an orchestra and score, or CSD)
    * as directed by the supplied command-line arguments,
    * but does not perform them. Returns a non-zero error code on failure.
    * In this mode, the sequence of calls should be as follows:
    * /code
    *       csoundCompile(csound, argc, argv);
-   *       csoundStart();
+   *       csoundStart(csound);
    *       while (!csoundPerformKsmps(csound));
    *       csoundCleanup(csound);
    *       csoundReset(csound);
    * /endcode
    */
   PUBLIC int csoundCompile(CSOUND *, int argc, const char **argv);
-
-
-  /**
-   * Free the resources associated with the TREE *tree
-   * This function should be called whenever the TREE was
-   * created with csoundParseOrc and memory can be deallocated.
-   **/
-  PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);
 
   /**
    * Parse, and compile the given orchestra from an ASCII string,
@@ -587,20 +586,22 @@ extern "C" {
   PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str, int async);
 
   /**
-   *   Parse and compile an orchestra given on a string,
+   *   Parse and compile an orchestra given on a string, synchronously,
    *   evaluating any global space code (i-time only).
    *   On SUCCESS it returns a value passed to the
    *   'return' opcode in global space
    * /code
-   *       char *code = "i1 = 2 + 2 \n return i1 \n";
+   *       char *code = 
+   *           "i1 = 2 + 2 \n" 
+   *           "return i1 \n";
    *       MYFLT retval = csoundEvalCode(csound, code);
    * /endcode
    */
   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
   /**
-   * Compiles a Csound input file (CSD, .csd file) or a tx string containing the 
-   * CSD code
+   * Compiles a Csound input file (CSD, .csd file) or a tx string 
+   * containing the CSD code.
    * Returns a non-zero error code on failure.
    *
    * If csoundStart is called before csoundCompileCsd, the <CsOptions>
@@ -621,7 +622,6 @@ extern "C" {
    *    // Something to break out of the loop
    *    // when finished here...
    * }
-   * csoundCleanup(csound);
    * csoundReset(csound);
    *
    * \endcode
@@ -670,8 +670,7 @@ extern "C" {
 
   /**
    * Senses input events, and performs one control sample worth (ksmps) of
-   * audio output.
-   * csoundStart() must be called first.
+   * audio output. csoundStart() must be called first.
    * Returns false during performance, and true when performance is finished.
    * If called until it returns true, will perform an entire score.
    * Enables external software to control the execution of Csound,
@@ -763,43 +762,38 @@ extern "C" {
   /**
    * Sets callback for opening real time MIDI input.
    */
-  PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-                                                  int (*func)(CSOUND *,
-                                                              void **userData,
-                                                              const char *devName));
+  PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,int (*func)
+                                                  (CSOUND *,void **userData,
+                                                   const char *devName));
 
   /**
    * Sets callback for reading from real time MIDI input.
    */
-  PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-                                                int (*func)(CSOUND *,
-                                                            void *userData,
-                                                            unsigned char *buf,
-                                                            int nBytes));
+  PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,int (*func)
+                                                (CSOUND *, void *userData,
+                                                 unsigned char *buf,
+                                                 int nBytes));
 
   /**
    * Sets callback for closing real time MIDI input.
    */
-  PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-                                                   int (*func)(CSOUND *,
-                                                               void *userData));
+  PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,int (*func)
+                                                   (CSOUND *,void *userData));
 
   /**
    * Sets callback for opening real time MIDI output.
    */
-  PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-                                                   int (*func)(CSOUND *,
-                                                               void **userData,
-                                                               const char *devName));
+  PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,int (*func)
+                                                   (CSOUND *,void **userData,
+                                                    const char *devName));
 
   /**
    * Sets callback for writing to real time MIDI output.
    */
-  PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                                                 int (*func)(CSOUND *,
-                                                             void *userData,
-                                                             const unsigned char *buf,
-                                                             int nBytes));
+  PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *, int (*func)
+                                                 (CSOUND *,void *userData,
+                                                  const unsigned char *buf,
+                                                  int nBytes));
 
   /**
    * Sets callback for closing real time MIDI output.
@@ -821,9 +815,9 @@ extern "C" {
    * (See csoundGetMIDIDevList())
    */
   PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
-                                              int (*mididevlist__)(CSOUND *,
-                                                                   CS_MIDIDEVICE *list,
-                                                                   int isOutput));
+                                              int (*mididevlist__)
+                                              (CSOUND *,CS_MIDIDEVICE *list,
+                                               int isOutput));
 
   /** @}*/
 
@@ -840,27 +834,25 @@ extern "C" {
    * available attributes). With attr=0, csoundMessageS() is identical to
    * csoundMessage().
    */
-  PUBLIC CS_PRINTF3 void csoundMessageS(CSOUND *,
-                                        int attr, const char *format, ...);
+  PUBLIC CS_PRINTF3 void csoundMessageS(CSOUND *,int attr, const char *format,
+                                        ...);
 
-  PUBLIC void csoundMessageV(CSOUND *,
-                             int attr, const char *format, va_list args);
+  PUBLIC void csoundMessageV(CSOUND *, int attr, const char *format,
+                             va_list args);
 
-  PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback_)(
-                                                                             CSOUND *,
-                                                                             int attr,
-                                                                             const char *format,
-                                                                             va_list valist));
+  PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback_)
+                                              (CSOUND *,int attr,
+                                               const char *format,
+                                               va_list valist));
 
   /**
    * Sets a function to be called by Csound to print an informational message.
    * This callback is never called on --realtime mode
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
-                                       void (*csoundMessageCallback_)(CSOUND *,
-                                                                      int attr,
-                                                                      const char *format,
-                                                                      va_list valist));
+                                       void (*csoundMessageCallback_)
+                                       (CSOUND *, int attr,const char *format,
+                                        va_list valist));
 
   /**
    * Sets an alternative function to be called by Csound to print an
@@ -869,9 +861,9 @@ extern "C" {
    *  This callback is cleared after csoundReset
    */
   PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
-                                             void (*csoundMessageStrCallback)(CSOUND *csound,
-                                                                              int attr,
-                                                                              const char *str));
+                                             void (*csoundMessageStrCallback)
+                                             (CSOUND *csound,int attr,
+                                              const char *str));
   /**
    * Creates a buffer for storing messages printed by Csound.
    * Should be called after creating a Csound instance andthe buffer
@@ -1390,7 +1382,8 @@ extern "C" {
    *  @{ */
 
   /**
-   *  Loads all plugins from a given directory. Generally called immediately after csoundCreate()
+   *  Loads all plugins from a given directory. Generally called 
+   *   immediately after csoundCreate()
    *  to make new opcodes/modules available for compilation and performance.
    */
   PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
@@ -1403,9 +1396,12 @@ extern "C" {
    * and the parameters are copied into the new slot.
    * Returns zero on success.
    */
-  PUBLIC int csoundAppendOpcode (CSOUND *, const char *opname, int dsblksiz, int flags,
-                                 const char *outypes, const char *intypes, int(*init)(CSOUND *, void *),
-                                 int(*perf)(CSOUND *, void *), int(*deinit)(CSOUND *, void *));
+  PUBLIC int csoundAppendOpcode (CSOUND *, const char *opname,
+                                 int dsblksiz, int flags,
+                                 const char *outypes, const char *intypes,
+                                 int(*init)(CSOUND *, void *),
+                                 int(*perf)(CSOUND *, void *),
+                                 int(*deinit)(CSOUND *, void *));
 
   /** @}*/
   
