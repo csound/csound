@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-if(USE_VCPKG AND NOT ANDROID)
+if(USE_VCPKG AND NOT ANDROID AND NOT EMSCRIPTEN)
     find_package(GTest CONFIG REQUIRED)
 else()
     find_package(GTest)
