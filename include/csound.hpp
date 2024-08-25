@@ -402,11 +402,11 @@ class PUBLIC Csound
   {
     return csoundTableLength(csound, table);
   }
-  virtual int GetTable(CSOUND *csound, MYFLT **tablePtr, int tableNum){
+  virtual int GetTable(MYFLT **tablePtr, int tableNum){
     return csoundGetTable(csound, tablePtr, tableNum);
   }
   
-  virtual int GetTableArgs(CSOUND *csound, MYFLT **argsPtr, int tableNum){
+  virtual int GetTableArgs(MYFLT **argsPtr, int tableNum){
     return csoundGetTableArgs(csound, argsPtr, tableNum);
   }
   
