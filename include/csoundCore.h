@@ -45,7 +45,6 @@
 #include "csound.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
-#include "csound_standard_types.h"
 #include "pools.h"
 #include "soundfile.h"
 
@@ -124,7 +123,7 @@ extern "C" {
 #define IS_INIT_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "i"))
 #define IS_FSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "f"))
 #define IS_ARRAY_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "["))
-  
+
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
@@ -431,7 +430,7 @@ extern int ISSTRCOD(MYFLT);
   } TABDAT;
 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-  
+
   typedef struct {
     char *data;
     size_t size;
@@ -531,7 +530,7 @@ extern int ISSTRCOD(MYFLT);
     struct opds * nxti;
     /* Chain of performance-time opcodes */
     struct opds * nxtp;
-    /* Chain of deinit opcodes */ 
+    /* Chain of deinit opcodes */
     struct opds * nxtd;
     /* Next allocated instance */
     struct insds * nxtinstance;
@@ -649,7 +648,7 @@ extern int ISSTRCOD(MYFLT);
     /** Owner instrument instance data structure */
     INSDS   *insdshead;
   } OPDS;
-  
+
   typedef struct lblblk {
     OPDS    h;
     OPDS    *prvi;
@@ -918,10 +917,10 @@ extern int ISSTRCOD(MYFLT);
   int kperf_debug(CSOUND *csound);
 
   /*
-    check if code is running at init time. 
+    check if code is running at init time.
     result may not be valid in realtime mode
-  */  
-  int csoundIsInitThread(CSOUND *csound);  
+  */
+  int csoundIsInitThread(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -1042,7 +1041,7 @@ extern int ISSTRCOD(MYFLT);
   } message_string_queue_t;
 
 /* Binary positive power function */
-static inline double intpow1(double x, int32_t n) 
+static inline double intpow1(double x, int32_t n)
 {
     double ans = 1.;
     while (n!=0) {
@@ -1054,7 +1053,7 @@ static inline double intpow1(double x, int32_t n)
 }
 
 /* Binary power function */
-static inline double intpow(MYFLT x, int32_t n)   
+static inline double intpow(MYFLT x, int32_t n)
 {
     if (n<0) {
       n = -n;
@@ -1067,7 +1066,7 @@ static inline double intpow(MYFLT x, int32_t n)
     const int32_t one = 1;
     return (!*((char*) &one));
   }
-  
+
   static inline int isstrcod(MYFLT xx){
     int sel = (byte_order()+1)&1;
 #ifdef USE_DOUBLE
@@ -1095,7 +1094,7 @@ static inline double intpow(MYFLT x, int32_t n)
   static inline int32_t IsStringCode(MYFLT f){
     return isstrcod(f);
   }
-  
+
   /**
    * Returns the number of input arguments for opcode 'p'.
    */
@@ -1129,15 +1128,15 @@ static inline double intpow(MYFLT x, int32_t n)
     return (char*) p->optext->t.outlist->arg[n];
   }
 
-  /** 
-   * Returns the CS_TYPE for an opcode argument argPtr 
+  /**
+   * Returns the CS_TYPE for an opcode argument argPtr
    */
   static inline CS_TYPE* GetTypeForArg(void* argPtr) {
     char* ptr = (char*) argPtr;
     CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     return varType;
   }
- 
+
   /**
    * Returns MIDI channel number (0 to 15) for the instrument instance
    * that called opcode 'p'.
@@ -1227,7 +1226,7 @@ static inline double intpow(MYFLT x, int32_t n)
     // implemented
     return p->insdshead->esr;
   }
-  
+
 
   /**
    * Returns the local kr of instrument/UDO containing opcode p.
@@ -1251,8 +1250,8 @@ static inline double intpow(MYFLT x, int32_t n)
   static inline char *GetOpcodeName(OPDS *p){
     return p->optext->t.oentry->opname;
   }
-  /**@}*/  
-  
+  /**@}*/
+
 
 #include "find_opcode.h"
 
@@ -1279,13 +1278,13 @@ static inline double intpow(MYFLT x, int32_t n)
     MYFLT (*Get0dBFS) (CSOUND *);
    /** Get reference tuning */
     MYFLT (*GetA4)(CSOUND *);
-    /** Get current tie flag */    
+    /** Get current tie flag */
     int (*GetTieFlag)(CSOUND *);
-    /** Get current reinit flag */     
+    /** Get current reinit flag */
     int (*GetReinitFlag)(CSOUND *);
-    /** Get current compiled instrument list */      
+    /** Get current compiled instrument list */
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
-  
+
     void *(*GetHostData)(CSOUND *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
@@ -1298,7 +1297,7 @@ static inline double intpow(MYFLT x, int32_t n)
     const char *(*GetEnv)(CSOUND *, const char *name);
     MYFLT (*GetSystemSr)(CSOUND *, MYFLT );
     /**@}*/
-    
+
     /** @name Software bus */
     /**@{ */
     int (*GetChannelPtr)(CSOUND *, MYFLT **ptr, const char *name, int mode);
@@ -1313,9 +1312,9 @@ static inline double intpow(MYFLT x, int32_t n)
     void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
-    int32_t (*ReadScore)(CSOUND *, const char*);    
+    int32_t (*ReadScore)(CSOUND *, const char*);
     /**@}*/
-    
+
     /** @name Message printout */
     /**@{ */
     CS_PRINTF2 void (*Message)(CSOUND *, const char *fmt, ...);
@@ -1328,16 +1327,16 @@ static inline double intpow(MYFLT x, int32_t n)
                                (CSOUND *,int attr, const char *format,
                                 va_list valist));
     /**@}*/
-    
+
     /** @name Arguments and Types */
     /**@{ */
     char *(*GetString)(CSOUND *, MYFLT);
     int32 (*StringArg2Insno)(CSOUND *, void *p, int is_string);
     char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int);
     const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
-    
+
     /**@}*/
-    
+
     /** @name Memory allocation */
     /**@{ */
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
@@ -1349,7 +1348,7 @@ static inline double intpow(MYFLT x, int32_t n)
     char *(*Strdup)(CSOUND *, char*);
     void (*Free)(CSOUND *, void *ptr);
     /**@}*/
-    
+
     /** @name Function tables */
     /**@{ */
     int (*FTCreate)(CSOUND *, FUNC **, const EVTBLK *, int);
@@ -1358,7 +1357,7 @@ static inline double intpow(MYFLT x, int32_t n)
     FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
     void *(*GetNamedGens)(CSOUND *);
     /**@}*/
-    
+
     /** @name Global and config variable manipulation */
     /**@{ */
     int (*CreateGlobalVariable)(CSOUND *, const char *name, size_t nbytes);
@@ -1378,7 +1377,7 @@ static inline double intpow(MYFLT x, int32_t n)
     int (*DeleteConfigurationVariable)(CSOUND *, const char *name);
     const char *(*CfgErrorCodeToString)(int errcode);
     /**@}*/
-    
+
     /** @name FFT support */
     /**@{ */
     void *(*RealFFTSetup)(CSOUND *csound, int FFTsize, int d);
@@ -1393,7 +1392,7 @@ static inline double intpow(MYFLT x, int32_t n)
     void *(*DCTSetup)(CSOUND *csound,int FFTsize, int d);
     void (*DCT)(CSOUND *csound, void *p, MYFLT *sig);
     /**@}*/
-    
+
     /** @name LPC support */
     /**@{ */
     MYFLT* (*AutoCorrelation)(CSOUND *, MYFLT*, MYFLT*, int, MYFLT*, int);
@@ -1402,9 +1401,9 @@ static inline double intpow(MYFLT x, int32_t n)
     MYFLT* (*LPred)(CSOUND *, void *, MYFLT *);
     MYFLT* (*LPCeps)(CSOUND *, MYFLT *, MYFLT *, int, int);
     MYFLT* (*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int, int);
-    MYFLT (*LPrms)(CSOUND *, void *);  
+    MYFLT (*LPrms)(CSOUND *, void *);
     /**@}*/
-    
+
     /** @name PVOC-EX system */
     /**@{ */
     int (*PVOC_CreateFile)(CSOUND *, const char *,
@@ -1433,7 +1432,7 @@ static inline double intpow(MYFLT x, int32_t n)
     CS_PRINTF2 void (*ErrorMsg)(CSOUND *, const char *fmt, ...);
     void (*ErrMsgV)(CSOUND *, const char *hdr, const char *fmt, va_list);
     /**@}*/
-    
+
     /** @name Random numbers */
     /**@{ */
     uint32_t (*GetRandomSeedFromTime)(void);
@@ -1441,10 +1440,10 @@ static inline double intpow(MYFLT x, int32_t n)
                        const uint32_t *initKey, uint32_t keyLength);
     uint32_t (*RandMT)(CsoundRandMTState *p);
     int (*Rand31)(int *seedVal);
-    int32_t *(*RandSeed1)(CSOUND *);    
+    int32_t *(*RandSeed1)(CSOUND *);
     int (*GetRandSeed)(CSOUND *, int which);
     /**@}*/
-    
+
     /** @name Threads and locks */
     /**@{ */
     void *(*CreateThread)(uintptr_t (*threadRoutine)(void *), void *userdata);
@@ -1468,7 +1467,7 @@ static inline double intpow(MYFLT x, int32_t n)
     double (*GetRealTime)(RTCLOCK *);
     double (*GetCPUTime)(RTCLOCK *);
     /**@}*/
-    
+
     /** @name Circular lock-free buffer */
     /**@{ */
     void *(*CreateCircularBuffer)(CSOUND *, int, int);
@@ -1476,17 +1475,17 @@ static inline double intpow(MYFLT x, int32_t n)
     int (*WriteCircularBuffer)(CSOUND *, void *, const void *, int);
     int (*PeekCircularBuffer)(CSOUND *, void *, void *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
-    void (*DestroyCircularBuffer)(CSOUND *, void *); 
+    void (*DestroyCircularBuffer)(CSOUND *, void *);
     /**@}*/
-    
+
     /** @name File access */
     /**@{ */
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
-    void *(*SndInputFileOpen)(CSOUND *, 
+    void *(*SndInputFileOpen)(CSOUND *,
                               char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
-    void *(*SndInputOpen)(CSOUND *, void *);  
+    void *(*SndInputOpen)(CSOUND *, void *);
     int (*SndInputRead)(CSOUND *, void *, MYFLT *, int, void *);
     void *(*FileOpen)(CSOUND *, void *, int, const char *, void *,
                       const char *, int, int); /* Rename FileOpen */
@@ -1502,7 +1501,7 @@ static inline double intpow(MYFLT x, int32_t n)
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
-    void (*RewriteHeader)(void *ofd);   
+    void (*RewriteHeader)(void *ofd);
     SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
     MEMFIL *(*LoadMemoryFile)(CSOUND *, const char *, int,
                               int (*callback)(CSOUND *, MEMFIL *));
@@ -1516,7 +1515,7 @@ static inline double intpow(MYFLT x, int32_t n)
     char *(*GetStrFormat)(int format);
     int (*SndfileSampleSize)(int format);
     /**@}*/
-       
+
     /** @name Generic callbacks */
     /**@{ */
     void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -1531,7 +1530,7 @@ static inline double intpow(MYFLT x, int32_t n)
     void (*SetInternalYieldCallback)(CSOUND *,
                                      int (*yieldCallback)(CSOUND *));
     /**@}*/
-            
+
     /** @name Hash tables */
     /**@{ */
     CS_HASH_TABLE *(*CreateHashTable)(CSOUND *);
@@ -1541,7 +1540,7 @@ static inline double intpow(MYFLT x, int32_t n)
     void (*DestroyHashTable)(CSOUND *, CS_HASH_TABLE *);
     char *(*GetHashTableKey)(CSOUND *, CS_HASH_TABLE *, char *);
     CONS_CELL *(*GetHashTableKeys)(CSOUND *, CS_HASH_TABLE *);
-    CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *); 
+    CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
     /**@}*/
 
     /** @name Plugin opcodes and discovery support */
@@ -1572,7 +1571,7 @@ static inline double intpow(MYFLT x, int32_t n)
     void **(*GetRtPlayUserData)(CSOUND *);
     int (*GetDitherMode)(CSOUND *);
     /**@}*/
-    
+
     /** @name RT MIDI module support */
     /**@{ */
     void (*SetExternalMidiInOpenCallback)(CSOUND *,
@@ -1591,9 +1590,9 @@ static inline double intpow(MYFLT x, int32_t n)
                                                const char *(*func)(int));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
                                       int (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput));
-    void (*module_list_add)(CSOUND *, char *, char *); 
+    void (*module_list_add)(CSOUND *, char *, char *);
     /**@}*/
-    
+
     /** @name Utility module support */
     /**@{ */
     int (*AddUtility)(CSOUND *, const char *name,
@@ -1604,7 +1603,7 @@ static inline double intpow(MYFLT x, int32_t n)
                                  const char *utilDesc);
     const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
     void (*SetUtilSr)(CSOUND *, MYFLT);
-    void (*SetUtilNchnls)(CSOUND *, int); 
+    void (*SetUtilNchnls)(CSOUND *, int);
     /**@}*/
 
     /** @name Displays & graphs support */
@@ -1642,7 +1641,7 @@ static inline double intpow(MYFLT x, int32_t n)
     int (*Sscanf)(char *str, const char *format, ...);
     /**@}*/
 
-    
+
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
