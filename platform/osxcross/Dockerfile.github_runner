@@ -1,9 +1,0 @@
-FROM ubuntu:22.04
-
-WORKDIR /home/runner/work/csound/csound
-
-ADD dependencies.sh /
-
-RUN /dependencies.sh
-
-RUN tar -czvf osxcross.tar.gz osxcross

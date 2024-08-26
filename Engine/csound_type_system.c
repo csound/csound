@@ -44,7 +44,8 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     return 0;
 }
 
-CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, const char* typeName) {
+CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* typeName) {
+
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
@@ -79,6 +80,10 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
     /* printf("Adding type with type name: %s\n", typeInstance->varTypeName); */
 
     return 1;
+}
+
+TYPE_POOL *csoundGetTypePool(CSOUND* csound) {
+  return csound->typePool;
 }
 
 

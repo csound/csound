@@ -18,7 +18,6 @@ for ARCH in x86_64 arm64; do
         -DCMAKE_INSTALL_PREFIX:PATH=$prefix \
         -DCMAKE_SYSTEM_NAME=Darwin \
         -DUSE_VCPKG=1 \
-        -DOSXCROSS_TARGET_DIR=${OSXCROSS_TARGET_DIR} \
         -DOSXCROSS_SDK=${OSXCROSS_SDK} \
         -DOSXCROSS_TARGET=${OSXCROSS_TARGET} \
         -DCMAKE_OSX_ARCHITECTURES=${ARCH} \
@@ -52,7 +51,7 @@ lipo -create \
     $prefix_arm64/lib/libCsoundLib64.a \
     -output $prefix/lib/libCsoundLib64.a
 
-for program in $(ls $prefix/bin); do
+for program in $(ls $prefix_x64/bin); do
     lipo -create \
         $prefix_x64/bin/$program \
         $prefix_arm64/bin/$program \
