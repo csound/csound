@@ -38,13 +38,14 @@ extern "C" {
 
   struct csvariable;
   struct cstype;
+  struct opds;
     
   typedef struct cstype {
     char* varTypeName;
     char* varDescription;
     int argtype; // used to denote if allowed as in-arg, out-arg, or both
-    struct csvariable* (*createVariable)(void *cs, void *p, void *ctx);
-    void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src, void *ctx);
+    struct csvariable* (*createVariable)(void *cs, void *p, struct opds *ctx);
+    void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src, struct opds *ctx);
     void (*freeVariableMemory)(void* csound, void* varMem);
     CONS_CELL* members;
     int userDefinedType;

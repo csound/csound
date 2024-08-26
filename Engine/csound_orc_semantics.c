@@ -2142,7 +2142,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   }
 }
 
-CS_VARIABLE* createStructVar(void* cs, void* p, void *ctx) {
+CS_VARIABLE* createStructVar(void* cs, void* p, OPDS *ctx) {
   CSOUND* csound = (CSOUND*)cs;
   CS_TYPE* type = (CS_TYPE*)p;
 
@@ -2161,7 +2161,7 @@ CS_VARIABLE* createStructVar(void* cs, void* p, void *ctx) {
   return var;
 }
 
-void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src, void *p) {
+void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src, OPDS *p) {
   CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int i, count;

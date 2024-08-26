@@ -29,7 +29,7 @@ typedef struct {
     MYFLT   *r, *a;
 } AEVAL;
 
-static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size, void *ctx)
+static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size, OPDS *ctx)
 {
     size_t ss;
     if (p->dimensions==0) {
