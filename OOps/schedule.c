@@ -32,6 +32,7 @@
 #else
 #include "schedule.h"
 #endif
+#include "csound_standard_types.h"
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);

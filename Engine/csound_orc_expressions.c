@@ -27,6 +27,7 @@
 #include "csound_orc_expressions.h"
 #include "csound_type_system.h"
 #include "csound_orc_semantics.h"
+#include "csound_standard_types.h"
 #include <inttypes.h>
 
 extern char argtyp2(char *);
