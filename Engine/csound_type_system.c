@@ -344,8 +344,10 @@ int copyVarGenericInit(CSOUND *csound, void *p) {
       if(adat->arrayType == &CS_VAR_TYPE_I) flag = 1;
     } else if(type == &CS_VAR_TYPE_I) flag = 1;
 
-    if(flag) assign->h.perf = copyVarNoOp;
+    if(flag) {
+    assign->h.perf = copyVarNoOp;
     return copyVarGeneric(csound, p);
+    } else return OK;
 }
 
 
