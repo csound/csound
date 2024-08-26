@@ -2,6 +2,7 @@
 #include "Opcodes/biquad.h"
 #include "csound_data_structures.h"
 #include "csound_type_system.h"
+#include "csound_standard_types.h"
 #include "insert.h"
 
 /* IV - Sep 8 2002: new functions for user defined opcodes (based */
@@ -230,12 +231,12 @@ int xinset(CSOUND *csound, XIN *p)
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->in_arg_pool->head;
-    
+
   if(inm->newStyle) {
     // printf("New-style UDO using pass-by-ref, skipping...\n");
     return OK;
   }
-    
+
   for (i = 0; i < inm->inchns; i++) {
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
@@ -298,7 +299,7 @@ int xoutset(CSOUND *csound, XOUT *p)
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->out_arg_pool->head;
-    
+
   if(inm->newStyle) {
     // printf("New-style UDO using pass-by-ref, skipping...\n");
     return OK;

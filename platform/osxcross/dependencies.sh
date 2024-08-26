@@ -23,13 +23,12 @@ apt install -y autoconf libtool \
 
 git clone https://github.com/tpoechtrager/osxcross.git
 
-/osxcross/tools/get_dependencies.sh
+$BASE_DIR/osxcross/tools/get_dependencies.sh
 
 OSX_SDK="MacOSX14.0.sdk"
 OSX_SDK_URL="https://github.com/joseluisq/macosx-sdks/releases/download/14.0/${OSX_SDK}.tar.xz"
 
-curl -sSL "$OSX_SDK_URL" -o "/osxcross/tarballs/$OSX_SDK.tar.xz"
+curl -sSL "$OSX_SDK_URL" -o "$BASE_DIR/osxcross/tarballs/$OSX_SDK.tar.xz"
 
-UNATTENDED=1 /osxcross/build_clang.sh
-
-UNATTENDED=1 /osxcross/build.sh
+UNATTENDED=1 $BASE_DIR/osxcross/build_clang.sh
+UNATTENDED=1 $BASE_DIR/osxcross/build.sh

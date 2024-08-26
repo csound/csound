@@ -465,10 +465,6 @@ extern "C" {
   } CSOUND_FILETYPES;
 
   /*
-   * TYPE DEFINITIONS
-   */
-
-  /*
    * Forward declarations.
    */
 

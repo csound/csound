@@ -45,7 +45,6 @@
 #include "csound.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
-#include "csound_standard_types.h"
 #include "pools.h"
 #include "soundfile.h"
 
@@ -116,12 +115,14 @@ extern "C" {
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
 #define OUTCOUNT    ORTXT.outlist->count   /* Not used */
-  //#define INOCOUNT    ORTXT.inoffs->count
-  //#define OUTOCOUNT   ORTXT.outoffs->count
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
-#define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->AsigType(csound))
-#define IS_STR_ARG(x) (GetTypeForArg(x) == csound->StringType(csound))
+#define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "a"))
+#define IS_STR_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "S"))
+#define IS_KSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "k"))
+#define IS_INIT_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "i"))
+#define IS_FSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "f"))
+#define IS_ARRAY_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "["))
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
@@ -150,26 +151,18 @@ extern "C" {
 
 #define LOBITS     10
 #define LOFACT     1024
-  /* LOSCAL is 1/LOFACT as MYFLT */
+/* LOSCAL is 1/LOFACT as MYFLT */
 #define LOSCAL     FL(0.0009765625)
-
 #define LOMASK     1023
 
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
-  //#define SSTRCOD    (nan("0"))
 #define SSTRCOD    (double)NAN
 #else
   extern int32 MYNAN;
 #define SSTRCOD    (float)NAN
-  //#define SSTRCOD    (nanf("0"))
 #endif
-  //#define ISSTRCOD(X) isnan(X)
-  //#ifndef __MACH__
-  extern int ISSTRCOD(MYFLT);
-  //#else
-  //#define ISSTRCOD(X) isnan(X)
-  //#endif
+extern int ISSTRCOD(MYFLT);
 
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
@@ -206,9 +199,7 @@ extern "C" {
 #define CS_AMPLMSG 01
 #define CS_RNGEMSG 02
 #define CS_WARNMSG 04
-  //#define CS_UNUSED1 08
 #define CS_NOMSG   0x10
-  //#define CS_UNUSED2 0x20
 #define CS_RAWMSG  0x40
 #define CS_TIMEMSG 0x80
 #define CS_NOQQ    0x400
@@ -308,10 +299,6 @@ extern "C" {
     char* structPath;
     struct arg* next;
   } ARG;
-  //  typedef struct argoffs {
-  //    int     count;
-  //    int     indx[1];
-  //  } ARGOFFS;
 
   typedef struct oentry {
     char    *opname;
@@ -661,222 +648,6 @@ extern "C" {
     /** Owner instrument instance data structure */
     INSDS   *insdshead;
   } OPDS;
-
-/* Binary positive power function */
-static inline double intpow1(double x, int32_t n)
-{
-    double ans = 1.;
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
-    }
-    return ans;
-}
-
-/* Binary power function */
-static inline double intpow(MYFLT x, int32_t n)
-{
-    if (n<0) {
-      n = -n;
-      x = 1./x;
-    }
-    return intpow1(x, n);
-}
-
-
-
-
-  static inline int32_t byte_order(void){
-    const int32_t one = 1;
-    return (!*((char*) &one));
-  }
-
-  static inline int isstrcod(MYFLT xx){
-    int sel = (byte_order()+1)&1;
-#ifdef USE_DOUBLE
-    union {
-      double d;
-      int32_t i[2];
-    } z;
-    z.d = xx;
-    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
-#else
-    union {
-      float f;
-      int32_t j;
-    } z;
-    z.f = xx;
-    return ((z.j&0x7f800000) == 0x7f800000);
-#endif
-  }
-  /** @name Opcode attributes */
-  /**@{ */
-
-  /**
-   * Returns true if argument is a string code
-   */
-  static inline int32_t IsStringCode(MYFLT f){
-    return isstrcod(f);
-  }
-
-  /**
-   * Returns the number of input arguments for opcode 'p'.
-   */
-  static inline int32_t GetInputArgCnt(OPDS *p){
-    return (int32_t) p->optext->t.inArgCount;
-  }
-
-  /**
-   * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
-   */
-  static inline char *GetInputArgName(OPDS *p, uint32_t n){
-    if ( n >=
-        (uint32_t) p->optext->t.inArgCount)
-      return (char*) NULL;
-    return (char*) p->optext->t.inlist->arg[n];
-  }
-
-  /**
-   * Returns the number of output arguments for opcode 'p'.
-   */
-  static inline int32_t GetOutputArgCnt(OPDS *p){
-    return (int32_t) p->optext->t.outArgCount;
-  }
-
-  /**
-   * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
-   */
-  static inline char *GetOutputArgName(OPDS *p, uint32_t n){
-    if (n >= (uint32_t) p->optext->t.outArgCount)
-      return (char*) NULL;
-    return (char*) p->optext->t.outlist->arg[n];
-  }
-
-  /**
-   * Returns the CS_TYPE for an opcode argument argPtr
-   */
-  static inline CS_TYPE* GetTypeForArg(void* argPtr) {
-    char* ptr = (char*) argPtr;
-    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
-    return varType;
-  }
-
-  /**
-   * Returns MIDI channel number (0 to 15) for the instrument instance
-   * that called opcode 'p'.
-   * In the case of score notes, -1 is returned.
-   */
-  static inline int32_t GetMidiChannelNumber(OPDS *p){
-    MCHNBLK *chn = p->insdshead->m_chnbp;
-    return chn != NULL ? chn->channel : -1;
-  }
-
-  /**
-   * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
-   * If the opcode was not called from a MIDI activated instrument
-   * instance, the return value is undefined.
-   */
-  static inline int32_t GetMidiNoteNumber(OPDS *p){
-    return (int32_t) p->insdshead->m_pitch;
-  }
-
-  /**
-   * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
-   * If the opcode was not called from a MIDI activated instrument
-   * instance, the return value is undefined.
-   */
-  static inline int32_t GetMidiVelocity(OPDS *p){
-    return (int32_t) p->insdshead->m_veloc;
-  }
-
-  /**
-   * Returns a pointer to the MIDI channel structure for the instrument
-   * instance that called opcode 'p'.
-   * In the case of score notes, NULL is returned.
-   */
-  static inline MCHNBLK *GetMidiChannel(OPDS *p){
-    return p->insdshead->m_chnbp;
-  }
-
-
-  /**
-   * Returns non-zero if the current note (owning opcode 'p') is releasing.
-   */
-  static inline int32_t GetReleaseFlag(void *p){
-    return (int32_t) ((OPDS*) p)->insdshead->relesing;
-  }
-
-  /**
-   * Returns the note-off time in seconds (measured from the beginning of
-   * performance) of the current instrument instance, from which opcode 'p'
-   * was called. The return value may be negative if the note has indefinite
-   * duration.
-   */
-  static inline double GetOffTime(OPDS *p){
-    return (double) p->insdshead->offtim;
-  }
-
-  /**
-   * Returns the array of p-fields passed to the instrument instance
-   * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
-   * guaranteed to be available. p2 is measured in seconds from the
-   * beginning of the current section.
-   */
-  static inline CS_VAR_MEM *GetPFields(void *p){
-    return &(((OPDS*) p)->insdshead->p0);
-  }
-
-  /**
-   * Returns the instrument number (p1) for opcode 'p'.
-   */
-  static inline int32_t GetInstrumentNumber(OPDS *p){
-    return (int32_t) p->insdshead->p1.value;
-  }
-
-  /**
-   * Returns the local ksmps of instrument/UDO containing opcode p.
-   * This is an alternative to the macro CS_KSMPS.
-   */
-  static inline uint32_t GetLocalKsmps(OPDS *p){
-    return (uint32_t) p->insdshead->ksmps;
-  }
-
-  /**
-   * Returns the local sr of instrument/UDO containing opcode p.
-   * This is an alternative to the macro CS_ESR.
-   */
-  static inline MYFLT GetLocalSr(OPDS *p){
-    // FIXME: this needs to be adjusted once local sr is
-    // implemented
-    return p->insdshead->esr;
-  }
-
-
-  /**
-   * Returns the local kr of instrument/UDO containing opcode p.
-   * This is an alternative to the macro CS_EKR.
-   */
-  static inline MYFLT GetLocalKr(OPDS *p){
-    return p->insdshead->ekr;
-  }
-
-  /**
-   * Returns the local kcount of instrument/UDO containing opcode p.
-   * This is an alternative to the macro CS_KCOUNTER.
-   */
-  static inline uint64_t GetLocalKcounter(OPDS *p){
-    return p->insdshead->kcounter;
-  }
-
-  /**
-   * Returns the opcode name for p.
-   */
-  static inline char *GetOpcodeName(OPDS *p){
-    return p->optext->t.oentry->opname;
-  }
-  /**@}*/
-
 
   typedef struct lblblk {
     OPDS    h;
@@ -1270,6 +1041,217 @@ static inline double intpow(MYFLT x, int32_t n)
     char str[MAX_MESSAGE_STR];
   } message_string_queue_t;
 
+/* Binary positive power function */
+static inline double intpow1(double x, int32_t n)
+{
+    double ans = 1.;
+    while (n!=0) {
+      if (n&1) ans = ans * x;
+      n >>= 1;
+      x = x*x;
+    }
+    return ans;
+}
+
+/* Binary power function */
+static inline double intpow(MYFLT x, int32_t n)
+{
+    if (n<0) {
+      n = -n;
+      x = 1./x;
+    }
+    return intpow1(x, n);
+}
+
+  static inline int32_t byte_order(void){
+    const int32_t one = 1;
+    return (!*((char*) &one));
+  }
+
+  static inline int isstrcod(MYFLT xx){
+    int sel = (byte_order()+1)&1;
+#ifdef USE_DOUBLE
+    union {
+      double d;
+      int32_t i[2];
+    } z;
+    z.d = xx;
+    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
+#else
+    union {
+      float f;
+      int32_t j;
+    } z;
+    z.f = xx;
+    return ((z.j&0x7f800000) == 0x7f800000);
+#endif
+  }
+
+  /** @name Opcode attributes */
+  /**@{ */
+  /**
+   * Returns true if argument is a string code
+   */
+  static inline int32_t IsStringCode(MYFLT f){
+    return isstrcod(f);
+  }
+
+  /**
+   * Returns the number of input arguments for opcode 'p'.
+   */
+  static inline int32_t GetInputArgCnt(OPDS *p){
+    return (int32_t) p->optext->t.inArgCount;
+  }
+
+  /**
+   * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
+   */
+  static inline char *GetInputArgName(OPDS *p, uint32_t n){
+    if ( n >=
+        (uint32_t) p->optext->t.inArgCount)
+      return (char*) NULL;
+    return (char*) p->optext->t.inlist->arg[n];
+  }
+
+  /**
+   * Returns the number of output arguments for opcode 'p'.
+   */
+  static inline int32_t GetOutputArgCnt(OPDS *p){
+    return (int32_t) p->optext->t.outArgCount;
+  }
+
+  /**
+   * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
+   */
+  static inline char *GetOutputArgName(OPDS *p, uint32_t n){
+    if (n >= (uint32_t) p->optext->t.outArgCount)
+      return (char*) NULL;
+    return (char*) p->optext->t.outlist->arg[n];
+  }
+
+  /**
+   * Returns the CS_TYPE for an opcode argument argPtr
+   */
+  static inline CS_TYPE* GetTypeForArg(void* argPtr) {
+    char* ptr = (char*) argPtr;
+    CS_TYPE* varType = *(CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    return varType;
+  }
+
+  /**
+   * Returns MIDI channel number (0 to 15) for the instrument instance
+   * that called opcode 'p'.
+   * In the case of score notes, -1 is returned.
+   */
+  static inline int32_t GetMidiChannelNumber(OPDS *p){
+    MCHNBLK *chn = p->insdshead->m_chnbp;
+    return chn != NULL ? chn->channel : -1;
+  }
+
+  /**
+   * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
+   * If the opcode was not called from a MIDI activated instrument
+   * instance, the return value is undefined.
+   */
+  static inline int32_t GetMidiNoteNumber(OPDS *p){
+    return (int32_t) p->insdshead->m_pitch;
+  }
+
+  /**
+   * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
+   * If the opcode was not called from a MIDI activated instrument
+   * instance, the return value is undefined.
+   */
+  static inline int32_t GetMidiVelocity(OPDS *p){
+    return (int32_t) p->insdshead->m_veloc;
+  }
+
+  /**
+   * Returns a pointer to the MIDI channel structure for the instrument
+   * instance that called opcode 'p'.
+   * In the case of score notes, NULL is returned.
+   */
+  static inline MCHNBLK *GetMidiChannel(OPDS *p){
+    return p->insdshead->m_chnbp;
+  }
+
+
+  /**
+   * Returns non-zero if the current note (owning opcode 'p') is releasing.
+   */
+  static inline int32_t GetReleaseFlag(void *p){
+    return (int32_t) ((OPDS*) p)->insdshead->relesing;
+  }
+
+  /**
+   * Returns the note-off time in seconds (measured from the beginning of
+   * performance) of the current instrument instance, from which opcode 'p'
+   * was called. The return value may be negative if the note has indefinite
+   * duration.
+   */
+  static inline double GetOffTime(OPDS *p){
+    return (double) p->insdshead->offtim;
+  }
+
+  /**
+   * Returns the array of p-fields passed to the instrument instance
+   * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
+   * guaranteed to be available. p2 is measured in seconds from the
+   * beginning of the current section.
+   */
+  static inline CS_VAR_MEM *GetPFields(void *p){
+    return &(((OPDS*) p)->insdshead->p0);
+  }
+
+  /**
+   * Returns the instrument number (p1) for opcode 'p'.
+   */
+  static inline int32_t GetInstrumentNumber(OPDS *p){
+    return (int32_t) p->insdshead->p1.value;
+  }
+
+  /**
+   * Returns the local ksmps of instrument/UDO containing opcode p.
+   * This is an alternative to the macro CS_KSMPS.
+   */
+  static inline uint32_t GetLocalKsmps(OPDS *p){
+    return (uint32_t) p->insdshead->ksmps;
+  }
+
+  /**
+   * Returns the local sr of instrument/UDO containing opcode p.
+   * This is an alternative to the macro CS_ESR.
+   */
+  static inline MYFLT GetLocalSr(OPDS *p){
+    // FIXME: this needs to be adjusted once local sr is
+    // implemented
+    return p->insdshead->esr;
+  }
+
+
+  /**
+   * Returns the local kr of instrument/UDO containing opcode p.
+   * This is an alternative to the macro CS_EKR.
+   */
+  static inline MYFLT GetLocalKr(OPDS *p){
+    return p->insdshead->ekr;
+  }
+
+  /**
+   * Returns the local kcount of instrument/UDO containing opcode p.
+   * This is an alternative to the macro CS_KCOUNTER.
+   */
+  static inline uint64_t GetLocalKcounter(OPDS *p){
+    return p->insdshead->kcounter;
+  }
+
+  /**
+   * Returns the opcode name for p.
+   */
+  static inline char *GetOpcodeName(OPDS *p){
+    return p->optext->t.oentry->opname;
+  }
+  /**@}*/
 
 
 #include "find_opcode.h"
@@ -1352,18 +1334,7 @@ static inline double intpow(MYFLT x, int32_t n)
     char *(*GetString)(CSOUND *, MYFLT);
     int32 (*StringArg2Insno)(CSOUND *, void *p, int is_string);
     char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int);
-    const CS_TYPE *(*StringType)(CSOUND *csound);
-    const CS_TYPE *(*AsigType)(CSOUND *csound);
-    const CS_TYPE *(*KsigType)(CSOUND *csound);
-    const CS_TYPE *(*InitType)(CSOUND *csound);
-    const CS_TYPE *(*RType)(CSOUND *csound);
-    const CS_TYPE *(*ConstType)(CSOUND *csound);
-    const CS_TYPE *(*FsigType)(CSOUND *csound);
-    const CS_TYPE *(*WsigType)(CSOUND *csound);
-    const CS_TYPE *(*PfieldType)(CSOUND *csound);
-    const CS_TYPE *(*KboolType)(CSOUND *csound);
-    const CS_TYPE *(*IboolType)(CSOUND *csound);
-    const CS_TYPE *(*ArrayType)(CSOUND *csound);
+    const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
 
     /**@}*/
 
@@ -1747,18 +1718,6 @@ static inline double intpow(MYFLT x, int32_t n)
     INSTRTXT      **dead_instr_pool;
     int           dead_instr_no;
     TYPE_POOL*    typePool;
-    const CS_TYPE  *asigType;   /* standard type constants */
-    const CS_TYPE  *ksigType;
-    const CS_TYPE  *initType;
-    const CS_TYPE  *stringType;
-    const CS_TYPE  *pfieldType;
-    const CS_TYPE  *rType;
-    const CS_TYPE  *constType;
-    const CS_TYPE  *wsigType;
-    const CS_TYPE  *fsigType;
-    const CS_TYPE  *kbooleanType;
-    const CS_TYPE  *ibooleanType;
-    const CS_TYPE  *arrayType;
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
