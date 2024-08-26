@@ -326,6 +326,6 @@ int copyVarGeneric(CSOUND *csound, void *p) {
         return NOTOK;
     }
     
-    typeR->copyValue(csound, typeR, assign->r, assign->a, NULL);
+    typeR->copyValue(csound, typeR, assign->r, assign->a, &(assign->h));
     return OK;
 }
