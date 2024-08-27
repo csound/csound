@@ -623,26 +623,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
   return OK;
 }
 
-static inline char le_test(){
-    union _le {
-      char c[2];
-      short s;
-    } le = {{0x0001}};
-    return le.c[0];
-}
 
-static inline char *byteswap(char *p, int32_t N){
-    if (le_test()) {
-      char tmp;
-      int32_t j ;
-      for(j = 0; j < N/2; j++) {
-        tmp = p[j];
-        p[j] = p[N - j - 1];
-        p[N - j - 1] = tmp;
-      }
-    }
-    return p;
-}
 
 static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
