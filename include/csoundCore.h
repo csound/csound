@@ -865,8 +865,9 @@ extern "C" {
   typedef struct osc_mess {
     char *address;
     char *type;
-    void *contents;
+    char *data;
     int32_t size;
+    int32_t flag;
     struct osc_mess *nxt;
   } OSC_MESS;
 
@@ -2093,6 +2094,7 @@ extern "C" {
     int  mode;
     char *opcodedir;
     char *score_srt;
+    OSC_MESS osc_message_anchor;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

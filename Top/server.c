@@ -49,12 +49,49 @@ typedef struct {
 
 #define MAXSTR 1048576 /* 1MB */
 
+/** Add OSC message to linked list
+ */
 void csoundAddOSCMessage(CSOUND *csound, OSC_MESS *mess) {
-  // TODO implement linked list containing messages
-  csoundMessage(csound, "udp server: generic OSC messages"
-                " not yet implemented\n");
-  csound->Free(csound, mess->type);
-  csound->Free(csound, mess->address);
+  OSC_MESS *p = &csound->osc_message_anchor;
+  // check for empty slots
+  while(p) {
+    if(p->flag == 0) break;
+    p = p->nxt;
+  }
+  if(p == NULL) 
+      p = (OSC_MESS *) mcalloc(csound, mess->size);
+  else {
+     mfree(csound, p->address);
+     mfree(csound, p->type);
+     mfree(csound, p->data);
+  }
+  p->address = mess->address;
+  p->type = mess->type;
+  p->data = mcalloc(csound, mess->size);
+  memcpy(p->data, mess->data, mess->size);
+  p->flag = 1;
+}
+
+/** Free OSC message list 
+ */
+void csoundFreeOSCMessageList(CSOUND *csound) {
+  OSC_MESS *p = &csound->osc_message_anchor, *pp;
+    // free allocated data
+    while(p != NULL) {
+      if(p->address != NULL) {
+       mfree(csound, p->address);
+       mfree(csound, p->type);
+       mfree(csound, p->data);
+      }
+      p = p->nxt;
+    }
+  // free linked list
+  p = (&csound->osc_message_anchor)->nxt;
+  while(p != NULL) {
+    pp = p;
+    p = p->nxt;
+    mfree(csound, pp);
+  }  
 }
 
 static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
@@ -152,7 +189,6 @@ static uintptr_t udp_recv(void *pdata){
         len = ((size_t) ceil((len+1)/4.)*4);
         buf += len;
         siz += len;
-        mess.size = received - siz;
         // parse messages
         if(!strcmp(mess.address, "/csound/compile") &&
            !strcmp(mess.type, "s")) {
@@ -161,26 +197,43 @@ static uintptr_t udp_recv(void *pdata){
                   !strcmp(mess.type, "s")) {
           csoundInputMessageAsync(csound, buf);
         } else if(!strncmp(mess.address, "/csound/channel",15)) {
-          char *channel = mess.address + 16;
-          if(!strcmp(mess.type, "f")) {
+          char *channel = mess.address + 16, *delim, *nxt = NULL;
+          int items = strlen(mess.address) - 1, i;
+          for(i = 0; i < items; i++) {
+          delim = strchr(channel, '/');
+          if (delim) {
+            *delim = '\0';
+            nxt = delim + 1;
+          }
+          if(mess.type[i] == 'f') {
             float f = *((float *) buf);
             byteswap((char*)&f,4);
             csoundSetControlChannel(csound, channel, (MYFLT) f);
+            buf += 4;
           }
-          else if(!strcmp(mess.type, "i")) {
+          else if(mess.type[i] == 'i') {
             int32_t d = *((int32_t *) buf);
             byteswap((char*) &d,4);
             csoundSetControlChannel(csound, channel, (MYFLT) d);
+            buf += 4;
           }
-          else if(!strcmp(mess.type, "s")) {
+          else if(mess.type[i] == 's') {
             csoundSetStringChannel(csound, channel, buf);
+            buf += ((size_t) ceil((strlen(buf)+1)/4.)*4);
           }
-        } else if(!strcmp(mess.address, "/csound/end") ||
-                  !strcmp(mess.address, "/csound/exit") ||
-                  !strcmp(mess.address, "/csound/close")) {
+          if(nxt) channel = nxt;
+        }
+        } else if(!strcmp(mess.address, "/csound/end")) {
             csoundInputMessageAsync(csound, "e 0 0");
          }
-       else csoundAddOSCMessage(csound, &mess);
+        else {
+          mess.data = buf;
+          mess.size = received - siz;
+          csoundAddOSCMessage(csound, &mess);
+          continue;
+        }
+        mfree(csound, mess.address);
+        mfree(csound, mess.type);
       }
       else if(*orchestra == '&') {
         csoundInputMessageAsync(csound, orchestra+1);
@@ -267,6 +320,7 @@ static uintptr_t udp_recv(void *pdata){
       }
     }
   }
+  csoundFreeOSCMessageList(csound);
   csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
   csound->Free(csound, start);
   // csound->Message(csound, "orchestra dealloc\n");

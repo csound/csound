@@ -1022,7 +1022,8 @@ static const CSOUND cenviron_ = {
   NULL,           /* op */
   0,              /* mode */
   NULL,           /* opcodedir */
-  NULL           /* score_srt */
+  NULL,           /* score_srt */
+  {NULL, NULL, NULL, 0, 0, NULL} /* osc_message_anchor */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
