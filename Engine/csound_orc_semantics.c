@@ -2109,7 +2109,8 @@ int initStructVar(CSOUND* csound, void* p) {
 
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
-    mem->varType->copyValue(csound, mem->varType, &mem->value, init->inArgs[i]);
+    mem->varType->copyValue(csound, mem->varType, &mem->value,
+                            init->inArgs[i], NULL);
   }
 
   return CSOUND_SUCCESS;
@@ -2141,7 +2142,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   }
 }
 
-CS_VARIABLE* createStructVar(void* cs, void* p) {
+CS_VARIABLE* createStructVar(void* cs, void* p, OPDS *ctx) {
   CSOUND* csound = (CSOUND*)cs;
   CS_TYPE* type = (CS_TYPE*)p;
 
@@ -2160,7 +2161,7 @@ CS_VARIABLE* createStructVar(void* cs, void* p) {
   return var;
 }
 
-void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
+void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src, OPDS *p) {
   CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int i, count;
@@ -2169,7 +2170,7 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
   for (i = 0; i < count; i++) {
     CS_VAR_MEM* d = varDest->members[i];
     CS_VAR_MEM* s = varSrc->members[i];
-    d->varType->copyValue(csound, d->varType, &d->value, &s->value);
+    d->varType->copyValue(csound, d->varType, &d->value, &s->value, NULL);
   }
 }
 
@@ -2198,7 +2199,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
     memberName = cs_strdup(csound, memberName);
     CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
-    CS_VARIABLE* var = memberType->createVariable(csound, type);
+    CS_VARIABLE* var = memberType->createVariable(csound, type, NULL);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;
 

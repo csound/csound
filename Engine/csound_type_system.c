@@ -139,6 +139,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     return retVal;
 }
 
+/** Create variable outside an instrument context */
 CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                   CS_TYPE* type, char* name, void* typeArg)
 {
@@ -146,7 +147,7 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
     if (LIKELY(type != NULL))
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
+          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg, NULL);
           var->varType = type;
           var->varName = cs_strdup(csound, name);
           return var;
@@ -324,7 +325,7 @@ int copyVarGeneric(CSOUND *csound, void *p) {
         return NOTOK;
     }
     
-    typeR->copyValue(csound, typeR, assign->r, assign->a);
+    typeR->copyValue(csound, typeR, assign->r, assign->a, &(assign->h));
     return OK;
 }
 
