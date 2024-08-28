@@ -125,21 +125,53 @@ void csoundClearOSCMessage(OSC_MESS *mess){
 /** Get float from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetMYFLT(const char *buf, MYFLT *mf) {
+const char *csoundOSCMessageGetFloat(const char *buf, MYFLT *mf) {
   float f;
   f = *((float *) buf);
   byteswap((char*)&f,4);
-  *mf = f;
+  *mf = (MYFLT) f;
   return buf + 4;
 }
+
+const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
+  double f;
+  f = *((double *) buf);
+  byteswap((char*)&f,8);
+  *mf = (MYFLT) f;
+  return buf + 8;
+}
+
 
 /** Get int from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetInt(const char *buf, int32_t *i) {
-  *i = *((int32_t *) buf);
-  byteswap((char*)i,4);
+const char *csoundOSCMessageGetInt32(const char *buf, MYFLT *mf) {
+  int32_t i;
+  i = *((int32_t *) buf);
+  byteswap((char*)&i,4);
+  *mf = (MYFLT) i;
   return buf + 4;
+}
+
+/** Get int64 from Osc Message data 
+    returns pointer to next datum
+*/
+const char *csoundOSCMessageGetInt64(const char *buf, MYFLT *mf) {
+  int64_t i;
+  i = *((int64_t *) buf);
+  byteswap((char*)&i,8);
+  *mf = (MYFLT) i;
+  return buf + 8;
+}
+
+/** Get char from Osc Message data 
+    returns pointer to next datum
+*/
+const char *csoundOSCMessageGetChar(const char *buf, MYFLT *mf) {
+  int8_t i;
+  i = *((int8_t *) buf);
+  *mf = (MYFLT) i;
+  return buf + 1;
 }
 
 /** Get stringdata from Osc Message data 
@@ -152,35 +184,86 @@ const char *csoundOSCMessageGetString(const char *data, STRINGDAT *sdat) {
   return data+((size_t) ceil(len/4.)*4);
 }
 
+/** Get a number according to type 
+    returns pointer to the next datum or NULL on failure
+*/
+const char *csoundOSCMessageGetNumber(const char *buf,
+                                      char type, MYFLT *out) {
+  switch(type){
+  case 'f':
+    buf = csoundOSCMessageGetFloat(buf,out);
+    break;
+  case 'd':
+    buf = csoundOSCMessageGetDouble(buf,out);
+    break;
+  case 'i':
+    buf = csoundOSCMessageGetInt32(buf,out);
+    break;
+  case 'h':
+    buf = csoundOSCMessageGetInt64(buf,out);
+    break;
+  case 'c':
+    buf = csoundOSCMessageGetChar(buf,out);
+    break;
+  default:  
+    return NULL;
+  }
+  return buf;
+}
+
 int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
   int cnt = p->OUTOCOUNT - 1, i;
   if(cnt > 32)
     return csound->PerfError(csound, &(p->h),
                              "OSCRead exceeded max output args (>32)\n");
-  MYFLT **out = p->out;
-  OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data, p->type->data);
+  OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
+                                        p->type->data);
   if(mess != NULL) {
+    MYFLT **out = p->out;
     const char *buf = mess->data;
+    const char *type = p->type->data;
     for(i = 0; i < cnt; i++) {
-      if(p->type->data[i] == 's' &&
-           IS_STR_ARG(out[i])) {
+      if(type[i] == 's' &&
+         IS_STR_ARG(out[i])) {
         buf = csoundOSCMessageGetString(buf, (STRINGDAT *) out[i]);
-       }
-      else if(p->type->data[i] == 'f' &&
-                IS_KSIG_ARG(p->out[i])) {
-         buf = csoundOSCMessageGetMYFLT(buf,p->out[i]);
-       }
-      else if(p->type->data[i] == 'i' &&
-              IS_KSIG_ARG(out[i])) {
-        int32_t d;
-        buf = csoundOSCMessageGetInt(buf, &d);
-        *(out[i]) = (MYFLT) d;
       }
-      else csound->PerfError(csound, &(p->h), "OSC type mismatch\n");
+      else if(IS_KSIG_ARG(p->out[i])){
+        buf = csoundOSCMessageGetNumber(buf, type[i], out[i]);
+        if(buf == NULL)
+          return csound->PerfError(csound, &(p->h),  
+                                   "unsupported OSC type %c", type[i]);
+      }
+      else
+        return csound->PerfError(csound, &(p->h), "wrong output argument" 
+                                 "for OSC type %c", type[i]);
     }
     *p->kstatus = 1;
     csoundClearOSCMessage(mess);
   }
+  return OK;
+}
 
+int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
+  
+
+}
+
+int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
+  int cnt = p->out->sizes[0], i;
+  OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
+                                        p->type->data);
+  if(mess != NULL) {
+    MYFLT *out = p->out->data;
+    const char *buf = mess->data;
+    const char *type = p->type->data;
+    for(i = 0; i < cnt; i++) {
+        buf = csoundOSCMessageGetNumber(buf, type[i], &out[i]);
+        if(buf == NULL)
+          return csound->PerfError(csound, &(p->h),  
+                                   "unsupported OSC type %c", type[i]);
+    }
+    *p->kstatus = 1;
+    csoundClearOSCMessage(mess);
+  }
   return OK;
 }
