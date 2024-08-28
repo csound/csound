@@ -122,7 +122,7 @@ OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
 /** Clear flag for OSC message so its slot can be reused.
  */
 void csoundClearOSCMessage(OSC_MESS *mess){
-  mess->flag = 0;
+  ATOMIC_SET(mess->flag, 0);
 }
 
 /** Get float from Osc Message data 

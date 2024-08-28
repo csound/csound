@@ -50,33 +50,38 @@ typedef struct {
 #define MAXSTR 1048576 /* 1MB */
 
 /** Add OSC message to linked list
+    threadsafe code
  */
 void csoundAddOSCMessage(CSOUND *csound, OSC_MESS *mess) {
   OSC_MESS *p = &csound->osc_message_anchor, *pp;
   spin_lock_t *lock = &csound->osc_spinlock;
+  
   csoundSpinLock(lock);
-
-  // check for empty slots
   while(p) {
+     // check for empty slots
     if(p->flag == 0) {
       break;
     }
+    // add a new slot if needed
     if(p->nxt == NULL) {
       p->nxt = (OSC_MESS *) mcalloc(csound, sizeof(OSC_MESS));
     }
     p = p->nxt;
   }
+  csoundSpinUnLock(lock);
+  
+  // if this slot has already been used, free data 
   if(p->address) {
     mfree(csound, p->address);
     mfree(csound, p->type);
     mfree(csound, p->data);
   }
+  // copy/allocate data, no need for lock since flag is clear
   p->address = mess->address;
   p->type = mess->type;
   p->data = mcalloc(csound, mess->size);
   memcpy(p->data, mess->data, mess->size);
-  p->flag = 1;
-  csoundSpinUnLock(lock);
+  ATOMIC_SET(p->flag, 1)
 }
 
 /** Free OSC message list 
