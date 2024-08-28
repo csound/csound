@@ -781,8 +781,8 @@ static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
     /* Get corresponding update */
     p->p = listget(csound, (int32_t)*p->i_id);
     if (p->p == NULL) return NOTOK;
-    tabinit(csound, p->k_pos,(p->p)->len);
-    tabinit(csound, p->k_vel,(p->p)->len);
+    tabinit(csound, p->k_pos,(p->p)->len, &(p->h));
+    tabinit(csound, p->k_vel,(p->p)->len, &(p->h));
     return OK;
 }
 
