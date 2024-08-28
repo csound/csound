@@ -184,7 +184,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   if((uint64_t)p->str->timestamp == p->h.insdshead->kcounter) {
   CS_TYPE *strType = GetTypeForArg(p->str);    
-  strType->copyValue(csound, strType, p->r, p->str);
+  strType->copyValue(csound, strType, p->r, p->str, &(p->h));
   //printf("copy \n");
   }
   }
@@ -194,7 +194,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   CS_TYPE *strType = GetTypeForArg(p->str);
-  strType->copyValue(csound, strType, p->r, p->str);
+  strType->copyValue(csound, strType, p->r, p->str,  &(p->h));
   }
   return  OK;
 }

@@ -38,13 +38,14 @@ extern "C" {
 
   struct csvariable;
   struct cstype;
+  struct opds;
     
   typedef struct cstype {
     char* varTypeName;
     char* varDescription;
     int argtype; // used to denote if allowed as in-arg, out-arg, or both
-    struct csvariable* (*createVariable)(void*, void*);
-    void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src);
+    struct csvariable* (*createVariable)(void *cs, void *p, struct opds *ctx);
+    void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src, struct opds *ctx);
     void (*freeVariableMemory)(void* csound, void* varMem);
     CONS_CELL* members;
     int userDefinedType;
@@ -116,7 +117,7 @@ extern "C" {
    *  Csound Variable Pool - essentially a map<string,csvar>
    *  CSOUND contains one for global memory, InstrDef and UDODef
    *  contain a pool for local memory
-  */
+   */
   typedef struct csvarpool {
     CS_HASH_TABLE* table;
     CS_VARIABLE* head;

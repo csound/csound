@@ -29,7 +29,7 @@ typedef struct {
     MYFLT   *r, *a;
 } AEVAL;
 
-static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
+static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size, OPDS *ctx)
 {
     size_t ss;
     if (p->dimensions==0) {
@@ -37,7 +37,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
         p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, ctx);
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
@@ -69,7 +69,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
     }
     if(p->arrayType == NULL) p->arrayType = tp->arrayType;
     if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+      CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, NULL);
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*ss;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
