@@ -1960,7 +1960,7 @@ if (engineState != &csound->engineState) {
       /* synterr(csound,
          Str("perf-pass statements illegal in header blk (%s)\n"),
          oentry->opname);*/
-      csound->Warning(csound,
+      csound->DebugMsg(csound,
                       Str("%s: perf-time code in global space, ignored"),
                       oentry->opname);
     }
