@@ -998,7 +998,11 @@ template <std::size_t N> struct InPlug : OPDS {
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
+#ifdef EMSCRIPTEN
+      return this->perf ? true : false;
+#else
       return this->opaddr ? true : false;
+#endif
   }
 
 };
@@ -1128,7 +1132,11 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** check if this opcode runs at init time
   */
   bool is_init() {
+#ifdef EMSCRIPTEN
+    return this->init ? true : false;
+#else
     return (this->init != NULL);
+#endif
   }
 
   /** check if this opcode runs at perf time
