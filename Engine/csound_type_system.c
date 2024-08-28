@@ -316,7 +316,7 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
-    
+
     if(typeR != typeA) {
         csound->Warning(csound,
         Str("error: = opcode given variables"
@@ -324,7 +324,7 @@ int copyVarGeneric(CSOUND *csound, void *p) {
         typeR->varTypeName, typeA->varTypeName);
         return NOTOK;
     }
-    
+
     typeR->copyValue(csound, typeR, assign->r, assign->a, &(assign->h));
     return OK;
 }
@@ -345,10 +345,10 @@ int copyVarGenericInit(CSOUND *csound, void *p) {
       if(adat->arrayType == &CS_VAR_TYPE_I) flag = 1;
     } else if(type == &CS_VAR_TYPE_I) flag = 1;
 
-    if(flag) {
-    assign->h.perf = copyVarNoOp;
+    if (flag) {
+      assign->h.perf = copyVarNoOp;
+    }
     return copyVarGeneric(csound, p);
-    } else return OK;
 }
 
 
