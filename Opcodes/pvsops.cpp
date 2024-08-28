@@ -87,7 +87,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
 
-    bins.init(csound, inargs.fsig_data(0).nbins());
+    bins.init(csound, inargs.fsig_data(0).nbins(), this);
 
     framecount = 0;
     return OK;
