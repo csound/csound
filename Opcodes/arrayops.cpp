@@ -55,7 +55,7 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len());
+    out.init(csound, in.len(), this);
     if (!is_perf()) process(out, in);
     return OK;
   }
@@ -82,7 +82,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
-    out.init(csound, in1.len());
+    out.init(csound, in1.len(), this);
     if (!is_perf()) process(out, in1, in2);
     return OK;
   }
@@ -106,7 +106,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len());
+    out.init(csound, in.len(), this);
     if (!is_perf()) process(out, in, inargs[1]);
     return OK;
   }
@@ -132,7 +132,7 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len());
+    out.init(csound, in.len(), this);
     if(!is_perf()) process(out, in, inargs[1], inargs[2]);
     return OK;
   }
@@ -156,7 +156,7 @@ template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len());
+    out.init(csound, in.len(), this);
     if (!is_perf()) process(out, in);
     return OK;
   }
