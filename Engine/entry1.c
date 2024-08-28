@@ -1271,9 +1271,8 @@ OENTRY opcodlst_1[] = {
   { "passign.i", S(PAINIT), 0,  "i[]", "po",  (SUBR)painit,    NULL, NULL },
   { "passign.k", S(PAINIT), 0,  "k[]", "po",  (SUBR)painit,    NULL, NULL },
   /* ----------------------------------------------------------------------- */
-  // VL: 9.3.22 this is causing a problem in parsing arrays
-  // I am modifying it to accept only i-time inputs
-  { "=.generic", S(ASSIGN), 0, ".", ".", (SUBR)copyVarGeneric, NULL, NULL},
+  { "=.generic", S(ASSIGN), 0, ".", ".", (SUBR)copyVarGenericInit,
+    (SUBR)copyVarGeneric, NULL},
   { "monitor",  sizeof(MONITOR_OPCODE), IB,   "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   { "outrg", S(OUTRANGE), IR, "", "ky",
