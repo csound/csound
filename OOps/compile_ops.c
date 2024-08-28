@@ -107,13 +107,16 @@ int32_t retval_i(CSOUND *csound, RETVAL *p){
 OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
                                const char *type){  
   OSC_MESS *p = &csound->osc_message_anchor;
+  spin_lock_t *lock = &csound->osc_spinlock;
   // no messages, just exit
   if(p->address == NULL) return NULL;
+  csoundSpinLock(lock);
   do {
     if(!strcmp(p->address, address) && !strcmp(p->type, type) &&
-       p->flag) return p;
+       p->flag) break;
   } while((p = p->nxt) != NULL);
-  return NULL;
+  csoundSpinUnLock(lock);
+  return p;
 }
 
 /** Clear flag for OSC message so its slot can be reused.
@@ -243,9 +246,11 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
   return OK;
 }
 
-int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
-  
+#include "arrays.h"
 
+int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
+  tabinit(csound, p->out, strlen(p->type->data), &(p->h));
+  return OK;
 }
 
 int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
@@ -260,7 +265,8 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
         buf = csoundOSCMessageGetNumber(buf, type[i], &out[i]);
         if(buf == NULL)
           return csound->PerfError(csound, &(p->h),  
-                                   "unsupported OSC type %c", type[i]);
+                                   "unsupported OSC type %c",
+                                   type[i]);
     }
     *p->kstatus = 1;
     csoundClearOSCMessage(mess);

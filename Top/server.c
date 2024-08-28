@@ -52,24 +52,31 @@ typedef struct {
 /** Add OSC message to linked list
  */
 void csoundAddOSCMessage(CSOUND *csound, OSC_MESS *mess) {
-  OSC_MESS *p = &csound->osc_message_anchor;
+  OSC_MESS *p = &csound->osc_message_anchor, *pp;
+  spin_lock_t *lock = &csound->osc_spinlock;
+  csoundSpinLock(lock);
+
   // check for empty slots
   while(p) {
-    if(p->flag == 0) break;
+    if(p->flag == 0) {
+      break;
+    }
+    if(p->nxt == NULL) {
+      p->nxt = (OSC_MESS *) mcalloc(csound, sizeof(OSC_MESS));
+    }
     p = p->nxt;
   }
-  if(p == NULL) 
-      p = (OSC_MESS *) mcalloc(csound, mess->size);
-  else {
-     mfree(csound, p->address);
-     mfree(csound, p->type);
-     mfree(csound, p->data);
+  if(p->address) {
+    mfree(csound, p->address);
+    mfree(csound, p->type);
+    mfree(csound, p->data);
   }
   p->address = mess->address;
   p->type = mess->type;
   p->data = mcalloc(csound, mess->size);
   memcpy(p->data, mess->data, mess->size);
   p->flag = 1;
+  csoundSpinUnLock(lock);
 }
 
 /** Free OSC message list 
@@ -156,6 +163,7 @@ static uintptr_t udp_recv(void *pdata){
   int received, cont = 0;
   char *start = orchestra;
   size_t timout = (size_t) lround(1000/csoundGetKr(csound));
+  csoundSpinLockInit(&csound->osc_spinlock);
 
   csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {

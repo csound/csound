@@ -2095,6 +2095,7 @@ extern "C" {
     char *opcodedir;
     char *score_srt;
     OSC_MESS osc_message_anchor;
+    spin_lock_t osc_spinlock;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
