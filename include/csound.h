@@ -1417,9 +1417,4 @@ extern "C" {
 }
 #endif
 
-/* Csound graphs and table display */
-#include "graph_display.h"
-/* Csound circular buffer functions */
-#include "circular_buffer.h"
-
 #endif  /* CSOUND_H */

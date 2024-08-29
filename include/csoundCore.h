@@ -228,35 +228,6 @@ extern "C" {
   long csoundGetInputBufferSize(CSOUND *);
   long csoundGetOutputBufferSize(CSOUND *);
   void *csoundGetNamedGens(CSOUND *);
-  void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
-                                  void *userdata);
-  void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
-                            unsigned int stack,
-                            void *userdata);
-  void *csoundGetCurrentThreadId(void);
-  uintptr_t csoundJoinThread(void *thread);
-  void *csoundCreateThreadLock(void);
-  int csoundWaitThreadLock(void *lock, size_t milliseconds);
-  void csoundWaitThreadLockNoTimeout(void *lock);
-  void csoundNotifyThreadLock(void *lock);
-  void csoundDestroyThreadLock(void *lock);
-  void *csoundCreateMutex(int isRecursive);
-  void csoundLockMutex(void *mutex_);
-  int csoundLockMutexNoWait(void *mutex_);
-  void csoundUnlockMutex(void *mutex_);
-  void csoundDestroyMutex(void *mutex_);
-  void *csoundCreateBarrier(unsigned int max);
-  int csoundDestroyBarrier(void *barrier);
-  int csoundWaitBarrier(void *barrier);
-  void* csoundCreateCondVar();
-  void csoundCondWait(void* condVar, void* mutex);
-  void csoundCondSignal(void* condVar);
-  void csoundDestroyCondVar(void* condVar);
-  void csoundSleep(size_t milliseconds);
-  int csoundSpinLockInit(spin_lock_t *spinlock);
-  void csoundSpinLock(spin_lock_t *spinlock);
-  int csoundSpinTryLock(spin_lock_t *spinlock);
-  void csoundSpinUnLock(spin_lock_t *spinlock);
   int *csoundGetChannelLock(CSOUND *csound, const char *name);
   uint32_t csoundGetRandomSeedFromTime(void);
   void csoundInitTimerStruct(RTCLOCK *);
@@ -267,8 +238,7 @@ extern "C" {
                                        void *userData);
   void **csoundGetRtRecordUserData(CSOUND *);
   void **csoundGetRtPlayUserData(CSOUND *);
-  void csoundSetHostImplementedAudioIO(CSOUND *,
-                                       int state, int bufSize);
+  
   void
   csoundSetPlayopenCallback(CSOUND *,
                             int (*playopen__)(CSOUND *,
@@ -303,6 +273,11 @@ extern "C" {
   void csoundInputMessage(CSOUND *csound, const char * sc);
   int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
+
+#include "graph_display.h"
+#include "circular_buffer.h"
+ #include "cs_threads.h"
+  
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
