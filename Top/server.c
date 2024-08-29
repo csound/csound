@@ -213,7 +213,8 @@ static uintptr_t udp_recv(void *pdata){
         } else if(!strcmp(mess.address, "/csound/event")){
           if(!strcmp(mess.type, "s")) 
             csoundInputMessageAsync(csound, buf);
-          else {
+        }
+        else if(!strcmp(mess.address, "/csound/event/instr")){
             // numeric types
             int n = strlen(mess.type), i;
             MYFLT *arg = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*n);
@@ -225,7 +226,6 @@ static uintptr_t udp_recv(void *pdata){
             }
             csoundScoreEventAsync(csound, 'i', arg, i);
             mfree(csound, arg);
-          }
         }
         else if(!strncmp(mess.address, "/csound/channel",15)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
