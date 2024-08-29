@@ -248,7 +248,7 @@ static uintptr_t udp_recv(void *pdata){
             }
             if(nxt) channel = nxt;
           }
-        } else if(!strcmp(mess.address, "/csound/end") ||
+        } else if(!strcmp(mess.address, "/csound/event/end") ||
                   !strcmp(mess.address, "/csound/exit") ||
                   !strcmp(mess.address, "/csound/close") ||
                   !strcmp(mess.address, "/csound/stop")) {
