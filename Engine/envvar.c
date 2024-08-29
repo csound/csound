@@ -764,7 +764,7 @@ static SNDFILE *csoundOpenFile_Snd(CSOUND *csound, const char *path, int mode, S
     SNDFILE *sf = NULL;
 
     if(csound->OpenSoundFileCallback_ != NULL) {
-        sf = csound->OpenSoundFileCallback_(csound, path, mode, &sfinfo);
+        sf = csound->OpenSoundFileCallback_(csound, path, mode, sfinfo);
     }
 
     return sf;
