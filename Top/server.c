@@ -37,6 +37,8 @@
 #include <arpa/inet.h>
 #endif
 
+
+
 typedef struct {
   int port;
   int     sock;
@@ -47,18 +49,20 @@ typedef struct {
   unsigned char status;
 } UDPCOM;
 
+const char *csoundOSCMessageGetNumber(const char *buf,
+                                      char type, MYFLT *out);
 #define MAXSTR 1048576 /* 1MB */
 
 /** Add OSC message to linked list
     threadsafe code
- */
-void csoundAddOSCMessage(CSOUND *csound, OSC_MESS *mess) {
-  OSC_MESS *p = &csound->osc_message_anchor, *pp;
+*/
+void csoundAddOSCMessage(CSOUND *csound, const OSC_MESS *mess) {
+  OSC_MESS *p = &csound->osc_message_anchor;
   spin_lock_t *lock = &csound->osc_spinlock;
   
   csoundSpinLock(lock);
   while(p) {
-     // check for empty slots
+    // check for empty slots
     if(p->flag == 0) {
       break;
     }
@@ -76,27 +80,27 @@ void csoundAddOSCMessage(CSOUND *csound, OSC_MESS *mess) {
     mfree(csound, p->type);
     mfree(csound, p->data);
   }
-  // copy/allocate data, no need for lock since flag is clear
-  p->address = mess->address;
-  p->type = mess->type;
+  // copy data
+  p->address = cs_strdup(csound, mess->address);
+  p->type = cs_strdup(csound, mess->type);
   p->data = mcalloc(csound, mess->size);
   memcpy(p->data, mess->data, mess->size);
-  ATOMIC_SET(p->flag, 1)
+  ATOMIC_SET(p->flag, 1);
 }
 
 /** Free OSC message list 
  */
 void csoundFreeOSCMessageList(CSOUND *csound) {
   OSC_MESS *p = &csound->osc_message_anchor, *pp;
-    // free allocated data
-    while(p != NULL) {
-      if(p->address != NULL) {
-       mfree(csound, p->address);
-       mfree(csound, p->type);
-       mfree(csound, p->data);
-      }
-      p = p->nxt;
+  // free allocated data
+  while(p != NULL) {
+    if(p->address != NULL) {
+      mfree(csound, p->address);
+      mfree(csound, p->type);
+      mfree(csound, p->data);
     }
+    p = p->nxt;
+  }
   // free linked list
   p = (&csound->osc_message_anchor)->nxt;
   while(p != NULL) {
@@ -174,7 +178,7 @@ static uintptr_t udp_recv(void *pdata){
   while (p->status) {
     if ((received =
          recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen))
-         <= 0) {
+        <= 0) {
       csoundSleep(timout ? timout : 1);
       continue;
     }
@@ -191,14 +195,14 @@ static uintptr_t udp_recv(void *pdata){
       if(*orchestra == '/') {
         OSC_MESS mess;
         int len, siz = 0;
-        char *buf = orchestra;
+        const char *buf = orchestra;
         len = strlen(buf);
-        mess.address = cs_strdup(csound, buf);
+        mess.address = (char *) buf;
         len = ((size_t) ceil((len+1)/4.)*4);
         buf += len;
         siz += len;
         len = strlen(buf);
-        mess.type = cs_strdup(csound, buf+1);
+        mess.type = (char *)buf+1; // jump the starting ','
         len = ((size_t) ceil((len+1)/4.)*4);
         buf += len;
         siz += len;
@@ -206,50 +210,56 @@ static uintptr_t udp_recv(void *pdata){
         if(!strcmp(mess.address, "/csound/compile") &&
            !strcmp(mess.type, "s")) {
           csoundCompileOrcAsync(csound, buf);
-        } else if(!strcmp(mess.address, "/csound/event") &&
-                  !strcmp(mess.type, "s")) {
-          csoundInputMessageAsync(csound, buf);
-        } else if(!strncmp(mess.address, "/csound/channel",15)) {
+        } else if(!strcmp(mess.address, "/csound/event")){
+          if(!strcmp(mess.type, "s")) 
+            csoundInputMessageAsync(csound, buf);
+          else {
+            // numeric types
+            int n = strlen(mess.type), i;
+            MYFLT *arg = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*n);
+            for(i = 0; i < n; i++) {
+              buf = csoundOSCMessageGetNumber(buf,
+                                              mess.type[i],
+                                              &arg[i]);
+              if(buf == NULL) break;
+            }
+            csoundScoreEventAsync(csound, 'i', arg, i);
+            mfree(csound, arg);
+          }
+        }
+        else if(!strncmp(mess.address, "/csound/channel",15)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
           int items = strlen(mess.address) - 1, i;
           for(i = 0; i < items; i++) {
-          delim = strchr(channel, '/');
-          if (delim) {
-            *delim = '\0';
-            nxt = delim + 1;
+            delim = strchr(channel, '/');
+            if (delim) {
+              *delim = '\0';
+              nxt = delim + 1;
+            }
+            if(mess.type[i] == 's') {
+              csoundSetStringChannel(csound, channel, (char *) buf);
+              buf += ((size_t) ceil((strlen(buf)+1)/4.)*4);
+            }
+            else  {
+              MYFLT f;
+              buf = csoundOSCMessageGetNumber(buf, mess.type[i],
+                                              &f);
+              csoundSetControlChannel(csound, channel, f);
+            }
+            if(nxt) channel = nxt;
           }
-          if(mess.type[i] == 'f') {
-            float f = *((float *) buf);
-            byteswap((char*)&f,4);
-            csoundSetControlChannel(csound, channel, (MYFLT) f);
-            buf += 4;
-          }
-          else if(mess.type[i] == 'i') {
-            int32_t d = *((int32_t *) buf);
-            byteswap((char*) &d,4);
-            csoundSetControlChannel(csound, channel, (MYFLT) d);
-            buf += 4;
-          }
-          else if(mess.type[i] == 's') {
-            csoundSetStringChannel(csound, channel, buf);
-            buf += ((size_t) ceil((strlen(buf)+1)/4.)*4);
-          }
-          if(nxt) channel = nxt;
-        }
         } else if(!strcmp(mess.address, "/csound/end") ||
                   !strcmp(mess.address, "/csound/exit") ||
                   !strcmp(mess.address, "/csound/close") ||
                   !strcmp(mess.address, "/csound/stop")) {
-            csoundInputMessageAsync(csound, "e 0 0");
-         }
+          csoundInputMessageAsync(csound, "e 0 0");
+        }
         else {
-          mess.data = buf;
+          mess.data = (char *) buf;
           mess.size = received - siz;
           csoundAddOSCMessage(csound, &mess);
           continue;
         }
-        mfree(csound, mess.address);
-        mfree(csound, mess.type);
       }
       else if(*orchestra == '&') {
         csoundInputMessageAsync(csound, orchestra+1);
@@ -483,7 +493,7 @@ static void udp_msg_callback(CSOUND *csound, int attr, const char *format,
     udp_socksend(csound, &(p->sock), p->addr, p->port, string);
     if(p->cb)
       p->cb(csound, attr, format, nargs);
-     va_end(nargs);
+    va_end(nargs);
   }
 }
 
