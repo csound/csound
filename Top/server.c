@@ -229,7 +229,7 @@ static uintptr_t udp_recv(void *pdata){
         }
         else if(!strncmp(mess.address, "/csound/channel",15)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
-          int items = strlen(mess.address) - 1, i;
+          int items = strlen(mess.type), i;
           for(i = 0; i < items; i++) {
             delim = strchr(channel, '/');
             if (delim) {
@@ -242,6 +242,7 @@ static uintptr_t udp_recv(void *pdata){
             }
             else  {
               MYFLT f;
+              
               buf = csoundOSCMessageGetNumber(buf, mess.type[i],
                                               &f);
               csoundSetControlChannel(csound, channel, f);
