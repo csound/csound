@@ -1361,7 +1361,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata, const char *opcodedir)
   /* NB: as suggested by F Pinot, keep the
      address of the pointer to CSOUND inside
      the struct, so it can be cleared later */
-  //csound->self = &csound; 
+  //csound->self = &csound;
   return csound;
 }
 
@@ -2186,8 +2186,7 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if(!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
       csoundMessage(csound,
-                    Str("Score finished in csoundPerformKsmps() with %d.\n"),
-                    done);
+                    Str("End of Performance "));
       return done;
     }
   } while (csound->kperf(csound));
@@ -2733,6 +2732,7 @@ void csoundLongJmp(CSOUND *csound, int retval)
   csound->inerrcnt = 0;
   csound->engineStatus |= CS_STATE_JMP;
   //printf("**** longjmp with %d\n", n);
+
   longjmp(csound->exitjmp, n);
 }
 

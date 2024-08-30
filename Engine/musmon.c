@@ -536,7 +536,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
     {
-      csound->ErrorMsg(csound, Str("end of score.\t\t   overall amps:"));
+      csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])

@@ -428,10 +428,10 @@ extern "C" {
   PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
 
   /**
-   * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
+   * Set csound options (flag). Returns CSOUND_SUCCESS on success.
    * This needs to be called after csoundCreate() and before any code is 
-   * compiled.
-   * NB: blank spaces are not allowed
+   * compiled. Multiple options are allowed in one string.
+   * Returns zero on success.
    */
   PUBLIC int csoundSetOption(CSOUND *csound, const char *option);
 

@@ -1601,13 +1601,44 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
     return 1;
 }
 
-PUBLIC int csoundSetOption(CSOUND *csound, const char *option){
+PUBLIC int csoundSetOption(CSOUND *csound, const char *opt){
     /* if already compiled and running, return */
     if (csound->engineStatus & CS_STATE_COMP) return 1;
     else {
-    const char *args[2] = {"csound", option};
-    csound->info_message_request = 1;
-    return (argdecode(csound, 1, args) ? 0 : 1);
+      char **args;
+      char *options, *sp;
+      int cnt = 0, ret;
+      if((ret = setjmp(csound->exitjmp) != 0))
+        return ret;
+      
+      /* remove whitespace at start */
+      while(*opt == ' ') opt++;
+      sp = options = cs_strdup(csound, opt);
+      
+      /* count whitespaces */
+      while(*sp++ != '\0') {
+        if(*sp == ' ') {
+          cnt++;
+          *sp = '\0';
+          sp++;
+        }
+      }
+      args = (char **) mcalloc(csound, sizeof(char*)*(cnt+2));
+      args[0] = "csound";
+      args[1] = sp = options;
+      cnt = 1;
+      /* split into separate args */
+      while(*opt) {
+        if(*opt == ' ') {
+          args[cnt++] = sp+1;
+        }
+        sp++; opt++;
+      }
+
+      ret = argdecode(csound, cnt, args);
+      mfree(csound, args);
+      mfree(csound, options);
+      return ret ? 0 : 1;
     }
 }
 

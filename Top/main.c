@@ -161,10 +161,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     char    *fileDir;
     volatile int     compiledOk = 0;
 
-    if ((n = setjmp(csound->exitjmp)) != 0) {
-      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-
+   
+   if ((n = setjmp(csound->exitjmp)) != 0) {
+    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+   }
+    
+    
     argc = ac;
     if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
