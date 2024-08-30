@@ -25,7 +25,13 @@ cd csound
 docker build -t csound-wasm ./platform/wasm
 ```
 
-4. Build csound:
+4. Bootstrap vcpkg
+
+```
+docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-wasm './vcpkg/bootstrap-vcpkg.sh'
+```
+
+5. Build csound:
 
 ```bash
 docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-wasm './platform/wasm/build_release.sh'
