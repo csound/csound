@@ -1505,7 +1505,7 @@ void musmon_rewind_score(CSOUND *csound)
  * pointer, and the userData pointer as passed to this function.
  * Returns zero on success.
  */
-PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
+int csoundRegisterSenseEventCallback(CSOUND *csound,
                                             void (*func)(CSOUND *, void *),
                                             void *userData)
 {
