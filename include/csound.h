@@ -970,7 +970,7 @@ extern "C" {
    *  Currently supported channel var types are 'k' (control), 'a' (audio), 
    *  'S' (string), 'f' (pvs), and '[' (array).
    */
-  PUBLIC const char *csoundGetChannelVarType(CSOUND *csound,
+  PUBLIC const char *csoundGetChannelVarTypeName(CSOUND *csound,
                                              const char *name);
 
   /**

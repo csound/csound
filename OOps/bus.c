@@ -481,10 +481,17 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
     return CSOUND_SUCCESS;
 }
 
-PUBLIC const char *csoundGetChannelVarType(CSOUND *csound, const char *name) {
+PUBLIC const char *csoundGetChannelVarTypeName(CSOUND *csound, const char *name) {
   CHNENTRY *pp = find_channel(csound, name);
   if(pp)
     return pp->varType->varTypeName;
+  else return NULL;
+}
+
+PUBLIC const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name) {
+  CHNENTRY *pp = find_channel(csound, name);
+  if(pp)
+    return pp->varType;
   else return NULL;
 }
 

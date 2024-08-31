@@ -110,9 +110,15 @@ extern "C" {
    *  Gets a type variable from a type name string
    *  Returns the CS_TYPE*, NULL on failure
    */ 
-  PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool,
+  PUBLIC const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool,
                                                const char* typeName);
 
+  /**
+   *  Gets a type variable from a channek name
+  *  Returns a const CS_TYPE*, NULL on failure
+  */
+  PUBLIC const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name);
+  
   /** 
    *  Csound Variable Pool - essentially a map<string,csvar>
    *  CSOUND contains one for global memory, InstrDef and UDODef
