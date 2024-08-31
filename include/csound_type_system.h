@@ -107,8 +107,8 @@ extern "C" {
                                            CS_TYPE* type, char* name,
                                            void* typeArg);
   /** 
-   *  Creates a new variable with a type from type table
-   *  Returns new variable on success, NULL on failure
+   *  Gets a type variable from a type name string
+   *  Returns the CS_TYPE*, NULL on failure
    */ 
   PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool,
                                                const char* typeName);

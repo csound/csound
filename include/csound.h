@@ -965,6 +965,15 @@ extern "C" {
                                  void **p, const char *name, int type);
 
   /**
+   *  Returns the var type for a channel name or NULL if the channel
+   *  was not found.
+   *  Currently supported channel var types are 'k' (control), 'a' (audio), 
+   *  'S' (string), 'f' (pvs), and '[' (array).
+   */
+  PUBLIC const char *csoundGetChannelVarType(CSOUND *csound,
+                                             const char *name);
+
+  /**
    * Returns a list of allocated channels in *lst. A controlChannelInfo_t
    * structure contains the channel characteristics.
    * The return value is the number of channels, which may be zero if there

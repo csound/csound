@@ -415,18 +415,23 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     switch (type & CSOUND_CHANNEL_TYPE_MASK) {
         case CSOUND_CONTROL_CHANNEL:
             dsize = sizeof(MYFLT);
+            pp->varType = &CS_VAR_TYPE_K;
             break;
         case CSOUND_AUDIO_CHANNEL:
             dsize = ((int32_t)sizeof(MYFLT) * csound->ksmps);
+            pp->varType = &CS_VAR_TYPE_A;
             break;
         case CSOUND_STRING_CHANNEL:
             dsize = sizeof(STRINGDAT);
             break;
+            pp->varType = &CS_VAR_TYPE_S;
         case CSOUND_PVS_CHANNEL:
             dsize = sizeof(PVSDAT);
+            pp->varType = &CS_VAR_TYPE_F;
             break;
         case CSOUND_ARRAY_CHANNEL:
             dsize = sizeof(ARRAYDAT);
+            pp->varType = &CS_VAR_TYPE_ARRAY;
             break;
     }
     
@@ -474,6 +479,13 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
     cs_hash_table_put(csound, csound->chn_db, (char*)name, pp);
 
     return CSOUND_SUCCESS;
+}
+
+PUBLIC const char *csoundGetChannelVarType(CSOUND *csound, const char *name) {
+  CHNENTRY *pp = find_channel(csound, name);
+  if(pp)
+    return pp->varType->varTypeName;
+  else return NULL;
 }
 
 
