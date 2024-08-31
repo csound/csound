@@ -214,8 +214,8 @@ extern "C" {
     uint32_t    mt[624];
   } CsoundRandMTState;
   
-  PUBLIC  int csoundRand31(int *seedVal);
-  PUBLIC  void csoundSeedRandMT(CsoundRandMTState *p,
+  int csoundRand31(int *seedVal);
+  void csoundSeedRandMT(CsoundRandMTState *p,
                         const uint32_t *initKey, uint32_t keyLength);
   uint32_t csoundRandMT(CsoundRandMTState *p);
   PUBLIC  int csoundCreateGlobalVariable(CSOUND *,

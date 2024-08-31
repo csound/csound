@@ -1636,7 +1636,7 @@ PUBLIC int csoundSetOption(CSOUND *csound, const char *opt){
         sp++; opt++;
       }
 
-      ret = argdecode(csound, cnt, args);
+      ret = argdecode(csound, cnt, (const char **) args);
       mfree(csound, args);
       mfree(csound, options);
       return ret ? 0 : 1;
