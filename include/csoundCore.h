@@ -218,17 +218,17 @@ extern "C" {
   void csoundSeedRandMT(CsoundRandMTState *p,
                         const uint32_t *initKey, uint32_t keyLength);
   uint32_t csoundRandMT(CsoundRandMTState *p);
-  PUBLIC  int csoundCreateGlobalVariable(CSOUND *,
+  int csoundCreateGlobalVariable(CSOUND *,
                                         const char *name, size_t nbytes);
-  PUBLIC void *csoundQueryGlobalVariable(CSOUND *, const char *name);
-  PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
-  PUBLIC  int csoundDestroyGlobalVariable(CSOUND *, const char *name);
+  void *csoundQueryGlobalVariable(CSOUND *, const char *name);
+  void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
+  int csoundDestroyGlobalVariable(CSOUND *, const char *name);
   uint32_t csoundGetNchnls(CSOUND *);
   uint32_t csoundGetNchnlsInput(CSOUND *csound);
   long csoundGetInputBufferSize(CSOUND *);
   long csoundGetOutputBufferSize(CSOUND *);
   void *csoundGetNamedGens(CSOUND *);
-  PUBLIC  int *csoundGetChannelLock(CSOUND *csound, const char *name);
+  int *csoundGetChannelLock(CSOUND *csound, const char *name);
   uint32_t csoundGetRandomSeedFromTime(void);
   void csoundInitTimerStruct(RTCLOCK *);
   double csoundGetRealTime(RTCLOCK *);
@@ -259,19 +259,16 @@ extern "C" {
                                         int (*audiodevlist__)(CSOUND *,
                                                               CS_AUDIODEVICE *list,
                                                               int isOutput));
-  PUBLIC  char **csoundListUtilities(CSOUND *);
-  PUBLIC void csoundDeleteUtilityList(CSOUND *, char **lst);
-  PUBLIC  const char *csoundGetUtilityDescription(CSOUND *,
+  char **csoundListUtilities(CSOUND *);
+  void csoundDeleteUtilityList(CSOUND *, char **lst);
+  const char *csoundGetUtilityDescription(CSOUND *,
                                                  const char *utilName);
-  PUBLIC int csoundCompileCsd(CSOUND *csound, const char *csd_filename);
-  PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
-  PUBLIC int csoundGetTable(CSOUND *, MYFLT **tablePtr, int tableNum);
-  PUBLIC int csoundCleanup(CSOUND *);
-  PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
-  PUBLIC int csoundCloseLibrary(void *library);
-  PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
-  PUBLIC void csoundInputMessage(CSOUND *csound, const char * sc);
-  PUBLIC int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
+  int csoundCompileCsd(CSOUND *csound, const char *csd_filename);
+  int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
+  int csoundCleanup(CSOUND *);
+
+  void csoundInputMessage(CSOUND *csound, const char * sc);
+  int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
 
 #include "graph_display.h"

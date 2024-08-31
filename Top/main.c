@@ -150,7 +150,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE* ff)
     }
 }
 
-PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
+int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
@@ -571,7 +571,7 @@ PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
     return csoundCompileArgs(csound,argc,argv);
 }
 
-PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
+int csoundCompileCsd(CSOUND *csound, const char *str) {
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
     if (LIKELY(tt != NULL)) {
       int res = csoundCompileCsdText(csound, tt->body);
@@ -581,7 +581,7 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
     return CSOUND_ERROR;
 }
 
-PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
+int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csound, csd_text));

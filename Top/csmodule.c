@@ -230,6 +230,9 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
   }
   return 0;
 }
+static int csoundOpenLibrary(void **library, const char *libraryPath);
+static int csoundCloseLibrary(void *library);
+static void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
 
 /**
@@ -1030,25 +1033,25 @@ int csoundDestroyModules(CSOUND *csound)
 
 #if defined(WIN32)
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
+static int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   *library = (void*) LoadLibrary(libraryPath);
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
+static int csoundCloseLibrary(void *library)
 {
   return (int) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+static void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
 #elif  !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
+static int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   int flg = RTLD_NOW;
   if (libraryPath != NULL) {
@@ -1063,30 +1066,30 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
+static int csoundCloseLibrary(void *library)
 {
   return (int) dlclose(library);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+static void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) dlsym(library, procedureName);
 }
 
 #else /* case for platforms without shared libraries -- added 062404, akozar */
 
-int csoundOpenLibrary(void **library, const char *libraryPath)
+static int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   *library = NULL;
   return -1;
 }
 
-int csoundCloseLibrary(void *library)
+static int csoundCloseLibrary(void *library)
 {
   return 0;
 }
 
-void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+static void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return NULL;
 }

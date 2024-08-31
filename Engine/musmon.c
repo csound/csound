@@ -477,7 +477,7 @@ static inline void cs_beep(CSOUND *csound)
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-PUBLIC int csoundCleanup(CSOUND *csound)
+int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
