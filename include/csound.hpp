@@ -149,18 +149,6 @@ class PUBLIC Csound
   virtual void GetParams(CSOUND_PARAMS *p){
     csoundGetParams(csound, p);
   }
-  virtual TREE *ParseOrc(const char *str)
-  {
-    return csoundParseOrc(csound, str);
-  }
-  virtual int CompileTree(TREE *root, int async = 0)
-  {
-    return csoundCompileTree(csound, root, async);
-  }
-  virtual void DeleteTree(TREE *root)
-  {
-    csoundDeleteTree(csound, root);
-  }
   virtual int CompileOrc(const char *str, int async = 0)
   {
     return csoundCompileOrc(csound, str, async);

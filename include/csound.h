@@ -106,8 +106,7 @@ extern "C" {
   /* Compilation or performance aborted, but not as a result of an error
      (e.g. --help, or running an utility with -U). */
 #define CSOUND_EXITJMP_SUCCESS  (256)
-
-
+  
   /**
    * Flags for csoundInitialize().
    */
@@ -190,38 +189,6 @@ extern "C" {
     char midi_module[128];
     int isOutput;
   } CS_MIDIDEVICE;
-
-  typedef struct {
-    char        *opname;
-    char        *outypes;
-    char        *intypes;
-    int         flags;
-  } opcodeListEntry;
-
-  typedef struct ORCTOKEN {
-    int              type;
-    char             *lexeme;
-    int              value;
-    double           fvalue;
-    char             *optype;
-    struct ORCTOKEN  *next;
-  } ORCTOKEN;
-
-  typedef struct TREE {
-    int           type;
-    ORCTOKEN      *value;
-    int           rate;
-    int           len;
-    int           line;
-    uint64_t      locn;
-    struct TREE   *left;
-    struct TREE   *right;
-    struct TREE   *next;
-    void          *markup;  // TEMPORARY - used by semantic checker to
-    // markup node adds OENTRY or synthetic var
-    // names to expression nodes should be moved
-    // to TYPE_TABLE
-  } TREE;
 
   /**
      PVSDAT window types
@@ -537,27 +504,9 @@ extern "C" {
   PUBLIC void csoundSetMessageLevel(CSOUND *, int messageLevel);
 
   /** @}*/
-  /** @defgroup PERFORMANCE Performance
+  /** @defgroup PERFORMANCE Compilation and performance 
    *
    *  @{ */
-  /**
-   * Parse the given orchestra from an ASCII string into a TREE.
-   * This can be called during performance to parse new code.
-   */
-  PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
-
-  /**
-   * Compile the given TREE node into structs for Csound to use
-   * in synchronous or asynchronous (async = 1) mode.
-   */
-  PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root, int async);
-
-  /**
-   * Free the resources associated with the TREE *tree
-   * This function should be called whenever the TREE was
-   * created with csoundParseOrc and memory can be deallocated.
-   **/
-  PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree);  
 
   /**
    * Compiles Csound input files (such as an orchestra and score, or CSD)
@@ -568,7 +517,6 @@ extern "C" {
    *       csoundCompile(csound, argc, argv);
    *       csoundStart(csound);
    *       while (!csoundPerformKsmps(csound));
-   *       csoundCleanup(csound);
    *       csoundReset(csound);
    * /endcode
    */

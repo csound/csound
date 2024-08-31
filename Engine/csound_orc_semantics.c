@@ -1452,6 +1452,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
 void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable) {
 
+
   CS_TYPE* type;
   CS_VARIABLE* var;
   char *t;
@@ -1467,8 +1468,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   var = csoundFindVariableWithName(csound, pool, varName);
   if (var == NULL) {
     if (annotation != NULL) {
-      type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
-      typeArg = type;
+      type = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+      typeArg = (void *) type;
     } else {
       t = varName;
       argLetter[1] = 0;
@@ -1487,16 +1488,16 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
         }
         argLetter[0] = (*b == 't') ? 'k' : *b; /* Support legacy t-vars */
 
-        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        varType = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
 
         varInit.dimensions = dimensions;
-        varInit.type = varType;
+        varInit.type =  varType;
         typeArg = &varInit;
       }
 
       argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
 
-      type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      type = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
 
     var = csoundCreateVariable(csound, csound->typePool,
@@ -1525,7 +1526,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
     CS_TYPE* varType;
 
     if (annotation != NULL) {
-      varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+      varType = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
       t = varName;
       argLetter[1] = 0;
@@ -1535,7 +1536,8 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
 
       argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
 
-      varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      varType = (CS_TYPE *)
+        csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
 
 
@@ -2198,7 +2200,8 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     }
 
     memberName = cs_strdup(csound, memberName);
-    CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+    CS_TYPE* memberType = (CS_TYPE *)
+      csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
     CS_VARIABLE* var = memberType->createVariable(csound, type, NULL);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;

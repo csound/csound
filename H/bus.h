@@ -70,7 +70,7 @@ extern "C" {
     spin_lock_t lock;               /* Multi-thread protection */
     int32_t     type;
     int32_t     datasize;  /* size of allocated chn data */
-    CS_TYPE     *varType;
+    const CS_TYPE *varType; /* variable type used by channel */
     char        name[1];
   } CHNENTRY;
 

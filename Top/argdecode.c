@@ -1605,7 +1605,7 @@ PUBLIC int csoundSetOption(CSOUND *csound, const char *opt){
     /* if already compiled and running, return */
     if (csound->engineStatus & CS_STATE_COMP) return 1;
     else {
-      char **args;
+      const char **args;
       char *options, *sp;
       int cnt = 0, ret;
       if((ret = setjmp(csound->exitjmp) != 0))
@@ -1623,7 +1623,7 @@ PUBLIC int csoundSetOption(CSOUND *csound, const char *opt){
           sp++;
         }
       }
-      args = (char **) mcalloc(csound, sizeof(char*)*(cnt+2));
+      args = (const char **) mcalloc(csound, sizeof(char*)*(cnt+2));
       args[0] = "csound";
       args[1] = sp = options;
       cnt = 1;

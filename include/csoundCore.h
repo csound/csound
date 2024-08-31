@@ -213,7 +213,7 @@ extern "C" {
     int         mti;
     uint32_t    mt[624];
   } CsoundRandMTState;
-
+  
   int csoundRand31(int *seedVal);
   void csoundSeedRandMT(CsoundRandMTState *p,
                         const uint32_t *initKey, uint32_t keyLength);
@@ -276,7 +276,8 @@ extern "C" {
 
 #include "graph_display.h"
 #include "circular_buffer.h"
- #include "cs_threads.h"
+#include "cs_threads.h"
+#include "csound_compiler.h"
   
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
@@ -516,7 +517,6 @@ extern int ISSTRCOD(MYFLT);
     int32_t  (*deinit)(CSOUND *, void *p);
     void    *useropinfo;    /* user opcode parameters */
   } OENTRY;
-
 
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
@@ -857,6 +857,14 @@ extern int ISSTRCOD(MYFLT);
     /** Owner instrument instance data structure */
     INSDS   *insdshead;
   } OPDS;
+
+  typedef struct {
+    char        *opname;
+    char        *outypes;
+    char        *intypes;
+    int         flags;
+  } opcodeListEntry;
+  
   
   typedef struct lblblk {
     OPDS    h;

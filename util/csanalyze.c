@@ -22,6 +22,7 @@
  */
 
 #include "csound.h"
+#include "csound_compiler.h"
 
 extern void     print_tree(CSOUND *, char *, TREE *);
 
