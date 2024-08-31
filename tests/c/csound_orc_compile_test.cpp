@@ -30,7 +30,8 @@ public:
     {
         csound = csoundCreate (NULL,NULL);
         csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "-odac --logfile=NULL");
+        csoundSetOption (csound, "-odac");
+        csoundSetOption(csound, "--logfile=null");
     }
 
     virtual void TearDown ()
