@@ -1,7 +1,7 @@
 /*
-  csound.h: NEW API - Experimental
+  csound.h: Csound Host API
 
-  Copyright (C) 2024
+  Copyright (C) Csound Developers 2024
 
   This file is part of Csound.
 
