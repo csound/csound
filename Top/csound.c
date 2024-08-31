@@ -2280,14 +2280,14 @@ PUBLIC int csoundPerform(CSOUND *csound)
   return 0;
 }
 
-/* stop a csoundPerform() running in another thread */
 
-PUBLIC void *csoundGetNamedGens(CSOUND *csound)
+
+void *csoundGetNamedGens(CSOUND *csound)
 {
   return csound->namedgen;
 }
 
-PUBLIC void csoundStop(CSOUND *csound)
+void csoundStop(CSOUND *csound)
 {
   csound->performState = -1;
 }
@@ -2366,12 +2366,12 @@ PUBLIC uint32_t csoundGetKsmps(CSOUND *csound)
   return csound->ksmps;
 }
 
-PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
+uint32_t csoundGetNchnls(CSOUND *csound)
 {
   return csound->nchnls;
 }
 
-PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
+uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
   if (csound->inchnls >= 0)
     return (uint32_t) csound->inchnls;
@@ -2383,12 +2383,12 @@ PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
   return csound->e0dbfs;
 }
 
-PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
+long csoundGetInputBufferSize(CSOUND *csound)
 {
   return csound->oparms_.inbufsamps;
 }
 
-PUBLIC long csoundGetOutputBufferSize(CSOUND *csound)
+long csoundGetOutputBufferSize(CSOUND *csound)
 {
   return csound->oparms_.outbufsamps;
 }
@@ -2398,19 +2398,19 @@ PUBLIC MYFLT *csoundGetSpin(CSOUND *csound)
   return csound->spin;
 }
 
-PUBLIC void csoundSetSpinSample(CSOUND *csound, int frame,
+void csoundSetSpinSample(CSOUND *csound, int frame,
                                 int channel, MYFLT sample)
 {
   int index = (frame * csound->inchnls) + channel;
   csound->spin[index] = sample;
 }
 
-PUBLIC void csoundClearSpin(CSOUND *csound) {
+void csoundClearSpin(CSOUND *csound) {
 
   memset(csound->spin, 0, sizeof(MYFLT)*csound->ksmps*csound->nchnls);
 }
 
-PUBLIC void csoundAddSpinSample(CSOUND *csound, int frame,
+void csoundAddSpinSample(CSOUND *csound, int frame,
                                 int channel, MYFLT sample)
 {
 
@@ -2423,7 +2423,7 @@ PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound)
   return csound->spout;
 }
 
-PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
+MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel)
 {
   int index = (frame * csound->nchnls) + channel;
   return csound->spout[index];
@@ -2568,11 +2568,10 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
 #endif
 }
 
-PUBLIC void csoundSetDefaultMessageCallback(
-                                            void (*csoundMessageCallback)(CSOUND *csound,
-                                                                          int attr,
-                                                                          const char *format,
-                                                                          va_list args))
+PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback)
+                                            (CSOUND *csound, int attr,
+                                             const char *format,
+                                             va_list args))
 {
   if (csoundMessageCallback) {
     msgcallback_ = csoundMessageCallback;
@@ -2584,9 +2583,9 @@ PUBLIC void csoundSetDefaultMessageCallback(
 
 
 PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
-                                           void (*csoundMessageStrCallback)(CSOUND *csound,
-                                                                            int attr,
-                                                                            const char *str)) {
+                                           void (*csoundMessageStrCallback)
+                                           (CSOUND *csound, int attr,
+                                            const char *str)) {
 
   if (csoundMessageStrCallback) {
     if(csound->message_string == NULL)
@@ -2598,10 +2597,9 @@ PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
 }
 
 PUBLIC void csoundSetMessageCallback(CSOUND *csound,
-                                     void (*csoundMessageCallback)(CSOUND *csound,
-                                                                   int attr,
-                                                                   const char *format,
-                                                                   va_list args))
+                                     void (*csoundMessageCallback)
+                                     (CSOUND *csound,int attr,const
+                                      char *format, va_list args))
 {
   /* Protect against a null callback. */
   if (csoundMessageCallback) {
@@ -2934,7 +2932,7 @@ int  midi_dev_list_dummy(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   return 0;
 }
 
-PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
+void csoundSetPlayopenCallback(CSOUND *csound,
                                       int (*playopen__)(CSOUND *,
                                                         const csRtAudioParams
                                                         *parm))
@@ -2942,7 +2940,7 @@ PUBLIC void csoundSetPlayopenCallback(CSOUND *csound,
   csound->playopen_callback = playopen__;
 }
 
-PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
+void csoundSetRtplayCallback(CSOUND *csound,
                                     void (*rtplay__)(CSOUND *,
                                                      const MYFLT *outBuf,
                                                      int nbytes))
@@ -2950,14 +2948,14 @@ PUBLIC void csoundSetRtplayCallback(CSOUND *csound,
   csound->rtplay_callback = rtplay__;
 }
 
-PUBLIC void csoundSetRecopenCallback(CSOUND *csound,
+void csoundSetRecopenCallback(CSOUND *csound,
                                      int (*recopen__)(CSOUND *,
                                                       const csRtAudioParams *parm))
 {
   csound->recopen_callback = recopen__;
 }
 
-PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
+void csoundSetRtrecordCallback(CSOUND *csound,
                                       int (*rtrecord__)(CSOUND *,
                                                         MYFLT *inBuf,
                                                         int nbytes))
@@ -2965,20 +2963,23 @@ PUBLIC void csoundSetRtrecordCallback(CSOUND *csound,
   csound->rtrecord_callback = rtrecord__;
 }
 
-PUBLIC void csoundSetRtcloseCallback(CSOUND *csound,
+void csoundSetRtcloseCallback(CSOUND *csound,
                                      void (*rtclose__)(CSOUND *))
 {
   csound->rtclose_callback = rtclose__;
 }
 
-PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-                                             int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput))
+void csoundSetAudioDeviceListCallback(CSOUND *csound,
+                                      int (*audiodevlist__)(CSOUND *,
+                                       CS_AUDIODEVICE *list, int isOutput))
 {
   csound->audio_dev_list_callback = audiodevlist__;
 }
 
 PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
-                                            int (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int isOutput))
+                                            int (*mididevlist__)
+                                            (CSOUND *, CS_MIDIDEVICE *list,
+                                             int isOutput))
 {
   csound->midi_dev_list_callback = mididevlist__;
 }
@@ -2988,7 +2989,7 @@ PUBLIC int csoundGetAudioDevList(CSOUND *csound,
   return csound->audio_dev_list_callback(csound,list,isOutput);
 }
 
-PUBLIC int csoundGetMIDIDevList(CSOUND *csound,  CS_MIDIDEVICE *list, int isOutput)
+PUBLIC int csoundGetMIDIDevList(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
 {
   return csound->midi_dev_list_callback(csound,list,isOutput);
 }
@@ -3825,7 +3826,7 @@ PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
 }
 
 
-PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
+void csoundSetFileOpenCallback(CSOUND *p,
                                       void (*fileOpenCallback)(CSOUND*,
                                                                const char*,
                                                                int, int, int))
@@ -3981,7 +3982,7 @@ static inline int_least64_t get_CPU_time(void)
 
 /* initialise a timer structure */
 
-PUBLIC void csoundInitTimerStruct(RTCLOCK *p)
+void csoundInitTimerStruct(RTCLOCK *p)
 {
   p->starttime_real = get_real_time();
   p->starttime_CPU = get_CPU_time();
@@ -3991,7 +3992,7 @@ PUBLIC void csoundInitTimerStruct(RTCLOCK *p)
  * return the elapsed real time (in seconds) since the specified timer
  * structure was initialised
  */
-PUBLIC double csoundGetRealTime(RTCLOCK *p)
+double csoundGetRealTime(RTCLOCK *p)
 {
   return ((double) (get_real_time() - p->starttime_real)
           * (double) timeResolutionSeconds);
@@ -4001,7 +4002,7 @@ PUBLIC double csoundGetRealTime(RTCLOCK *p)
  * return the elapsed CPU time (in seconds) since the specified timer
  * structure was initialised
  */
-PUBLIC double csoundGetCPUTime(RTCLOCK *p)
+double csoundGetCPUTime(RTCLOCK *p)
 {
   return ((double) ((uint32_t) get_CPU_time() - (uint32_t) p->starttime_CPU)
           * (1.0 / (double) CLOCKS_PER_SEC));
@@ -4009,7 +4010,7 @@ PUBLIC double csoundGetCPUTime(RTCLOCK *p)
 
 /* return a 32-bit unsigned integer to be used as seed from current time */
 
-PUBLIC uint32_t csoundGetRandomSeedFromTime(void)
+uint32_t csoundGetRandomSeedFromTime(void)
 {
   return (uint32_t) get_real_time();
 }
@@ -4017,7 +4018,7 @@ PUBLIC uint32_t csoundGetRandomSeedFromTime(void)
 /**
  * Return the size of MYFLT in bytes.
  */
-PUBLIC int csoundGetSizeOfMYFLT(void)
+int csoundGetSizeOfMYFLT(void)
 {
   return (int) sizeof(MYFLT);
 }
@@ -4025,7 +4026,7 @@ PUBLIC int csoundGetSizeOfMYFLT(void)
 /**
  * Return pointer to user data pointer for real time audio input.
  */
-PUBLIC void **csoundGetRtRecordUserData(CSOUND *csound)
+void **csoundGetRtRecordUserData(CSOUND *csound)
 {
   return &(csound->rtRecord_userdata);
 }
@@ -4033,7 +4034,7 @@ PUBLIC void **csoundGetRtRecordUserData(CSOUND *csound)
 /**
  * Return pointer to user data pointer for real time audio output.
  */
-PUBLIC void **csoundGetRtPlayUserData(CSOUND *csound)
+void **csoundGetRtPlayUserData(CSOUND *csound)
 {
   return &(csound->rtPlay_userdata);
 }
@@ -4415,34 +4416,7 @@ INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name) {
   return csound->engineState.instrtxtp[insno];
 }
 
-#if 0
-PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
-{
-  int done = 0;
-  int returnValue;
 
-  /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-  if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-    csound->Warning(csound,
-                    Str("Csound not ready for performance: csoundStart() "
-                        "has not been called\n"));
-    return CSOUND_ERROR;
-  }
-  /* setup jmp for return after an exit() */
-  if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
-    csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
-#endif
-    return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-  }
-  csoundLockMutex(csound->API_lock);
-  do {
-    done |= sensevents(csound);
-  } while (csound->kperf(csound));
-  csoundUnlockMutex(csound->API_lock);
-  return done;
-}
-#endif
 
 
 //#ifdef __cplusplus

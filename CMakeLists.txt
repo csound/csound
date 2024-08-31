@@ -1180,8 +1180,6 @@ if(APPLE)
     endif()
 endif()
 
-target_link_options(${CSOUNDLIB} PUBLIC ${CSOUNDLIB_SHARED_LINK_OPTIONS})
-
 if(BUILD_PLUGINS)
     message(STATUS "build external opcodes as plugins")
     target_compile_definitions(${CSOUNDLIB} PUBLIC
@@ -1376,6 +1374,7 @@ if(SampleRate_FOUND)
 endif()
 
 if(NOT IOS)
+   target_link_options(${CSOUNDLIB} PUBLIC ${CSOUNDLIB_SHARED_LINK_OPTIONS})
     set_target_properties(${CSOUNDLIB} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
