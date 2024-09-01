@@ -200,10 +200,12 @@ static char *signal_to_string(int sig)
     }
 }
 
+#ifndef ANDROID
 static void psignal(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
+#endif
 #elif defined(__BEOS__)
 static void psignal(int sig, char *str)
 {
