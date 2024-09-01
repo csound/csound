@@ -6,15 +6,25 @@
     "dependencies": [
         "zlib",
         "libsamplerate",
-        "portmidi",
-        "liblo",
-        "gtest",
+        {
+            "name": "portmidi",
+            "platform": "!android"
+        },
+        {
+            "name": "liblo",
+            "platform": "!android"
+        },
+        {
+            "name": "gtest",
+            "platform": "!android"
+        },
         {
             "name": "jack2",
             "platform": "linux"
         },
         {
-            "name": "portaudio"
+            "name": "portaudio",
+            "platform": "!android"
         },
         {
             "name": "dirent",
