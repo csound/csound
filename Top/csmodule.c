@@ -1224,6 +1224,7 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
+extern int     csoundModuleCreate_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_doppler(CSOUND *csound);
 #ifndef BARE_METAL
@@ -1318,6 +1319,7 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     sfont_ModuleCreate,
     sfont_ModuleInit,
     csoundModuleInit_ampmidid,
+    csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
 #if !defined(BARE_METAL) && !defined(__wasi__)
