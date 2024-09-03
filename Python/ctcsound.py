@@ -483,7 +483,7 @@ class Csound:
     #
     # Instantiation
     #
-    def __init__(self, host_data=None, opcode_dir=None):
+    def __init__(self, host_data=None, opcode_dir=None, pointer_=None):
         """Creates an instance of Csound.
 
         Returns an opaque pointer that must be passed to most Csound API
@@ -493,12 +493,17 @@ class Csound:
         If not None the opcode_dir parameter sets an override for
         the plugin module/opcode directory search.
         """
-        self.cs = libcsound.csoundCreate(ct.py_object(host_data),
-                                         cstring(opcode_dir))
+        if pointer_:
+            self.cs = pointer_
+            self.from_pointer = True
+        else:
+            self.cs = libcsound.csoundCreate(ct.py_object(host_data),
+                                             cstring(opcode_dir))
+            self.from_pointer = False
 
     def __del__(self):
         """Destroys an instance of Csound."""
-        if libcsound:
+        if not self.from_pointer and libcsound:
             libcsound.csoundDestroy(self.cs)
 
     def csound(self):
@@ -1402,7 +1407,7 @@ class Csound:
         """
         p = np.asarray(params, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
-        n_fields = ct.c_long(p.size)
+        n_fields = ct.c_int(p.size)
         libcsound.csoundEvent(self.cs, ct.c_int(type_), ptr, n_fields,
             ct.c_int(async_))
 
