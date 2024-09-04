@@ -1,4 +1,3 @@
-
 ;;;;
 ;;;;  Copyright (C) 2024 Victor Lazzarini
 ;;;;
@@ -21,6 +20,61 @@
 ;;;;  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 ;;;;  02111-1307 USA
 ;;;;
+
+(defpackage :csound
+  (:import-from :sb-ext
+                #:posix-getenv #:*posix-argv*)
+  (:import-from :sb-alien
+                #:load-shared-object
+                #:define-alien-routine
+                #:deref
+                #:c-string
+                #:int
+                #:double
+                #:make-alien
+                #:free-alien
+                #:void
+                #:cast
+                )
+  (:export #:csound-create
+           #:csound-compile
+           #:csound-compile-orc
+           #:csound-compile-csd
+           #:csound-set-option
+           #:csound-get-ksmps
+           #:csound-get-kr
+           #:csound-get-sr
+           #:csound-get-channels
+           #:csound-get-0dbfs
+           #:csound-start
+           #:csound-reset
+           #:csound-destroy
+           #:csound-set-control-channel
+           #:csound-get-control-channel
+           #:csound-event-string
+           #:csound-get-spin
+           #:csound-get-spout
+           #:csound-spin
+           #:csound-spout
+           #:csound-get-table
+           #:csound-get-table-value
+           #:csound-set-table-value
+           #:csound-create-performance-thread
+           #:csound-performance-thread-play
+           #:csound-performance-thread-pause
+           #:csound-performance-thread-toggle-pause
+           #:csound-performance-thread-stop
+           #:csound-performance-thread-join
+           #:csound-performance-thread-record
+           #:csound-performance-thread-stop-record
+           #:csound-performance-thread-is-running
+           #:csound-destroy-performance-thread
+           )
+  (:use :common-lisp))
+
+(in-package :csound)
+
+
 
 (defvar *libcsound*
   (concatenate 'string (posix-getenv "HOME")
@@ -114,6 +168,10 @@
   " Get the 0dB full-scale level "
   (csoundGet0dBFS csound))
 
+(defun csound-get-channels (csound &key (is-input 0))
+  " Get the 0dB full-scale level "
+  (csoundGetChannels csound is-input))
+
 (defun csound-start (csound)
     " Start the Csound engine "
   (csoundStart csound))
@@ -148,7 +206,7 @@
 
 (defun csound-spout (csound n)
   " Get a single audio sample from the main output "
-  (dref (csoundGetSpout csound) n))
+  (deref (csoundGetSpout csound) n))
 
 (defun csound-get-spin (csound)
   " Get the pointer to the main input (spin), use dref to access data "
@@ -156,7 +214,7 @@
 
 (defun csound-spin (csound n samp)
   " Set a single audio sample into the main input "
-  (setf (dref (csoundGetSpin csound) n) samp)
+  (setf (deref (csoundGetSpin csound) n) samp)
 )
 
 (defun csound-get-table (csound table tablenum)
@@ -168,20 +226,18 @@
 (defun csound-get-table-value (csound tablenum n)
   " Gets a single value from function table tablenum at pos n "
   (let* ((ftab (make-alien (* double)))
-         (n (csoundGetTable csound ftab 1))
          ret)
     (csoundGetTable csound ftab tablenum)
-    (setf ret (deref (dref ftab) n))
+    (setf ret (deref (deref ftab) n))
     (free-alien ftab)
-    (ret)))
+    (return-from csound-get-table-value ret)))
   
 
 (defun csound-set-table-value (csound tablenum n value)
   " Sets a single value from function table tablenum at pos n "
-  (let* ((ftab (make-alien (* double)))
-         (n (csoundGetTable csound ftab 1)))
+  (let* ((ftab (make-alien (* double))))
     (csoundGetTable csound ftab tablenum)
-    (setf(deref (dref ftab) n) (coerce value 'double-float))
+    (setf(deref (deref ftab) n) (coerce value 'double-float))
     (free-alien ftab)))
 
 (defun csound-create-performance-thread (csound)
@@ -224,3 +280,4 @@
 (defun csound-destroy-performance-thread (performance-thread)
   " Destroy a performance thread instance " 
   (csoundPerformanceThreadJoin performance-thread))
+
