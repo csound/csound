@@ -45,6 +45,7 @@
            #:csound-get-kr
            #:csound-get-sr
            #:csound-get-channels
+           #:csound-perform-ksmps
            #:csound-get-0dbfs
            #:csound-start
            #:csound-reset
@@ -280,4 +281,5 @@
 (defun csound-destroy-performance-thread (performance-thread)
   " Destroy a performance thread instance " 
   (csoundPerformanceThreadJoin performance-thread))
+
 
