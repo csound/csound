@@ -1631,7 +1631,6 @@ PUBLIC int csoundSetOption(CSOUND *csound, const char *opt){
       while(*opt) {
         if(*opt == ' ') {
           args[++cnt] = sp+1;
-          printf("%s \n", sp+1);
         }
         sp++; opt++;
       }

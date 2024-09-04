@@ -3549,7 +3549,11 @@ PUBLIC void csoundReset(CSOUND *csound)
 #ifdef __HAIKU__
   strcpy(s, "haiku");
 #else
-  strcpy(s, "PortAudio");
+#ifdef __MACH__  
+   strcpy(s, "auhal");
+#else
+   strcpy(s, "PortAudio");
+#endif
 #endif
 #else
   strcpy(s, "alsa");
