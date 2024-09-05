@@ -1546,7 +1546,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
     typeArg = &varInit;
 
     var = csoundCreateVariable(csound, csound->typePool,
-                               (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
+                               &CS_VAR_TYPE_ARRAY,
                                varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {

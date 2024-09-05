@@ -104,7 +104,7 @@ extern "C" {
    *  Returns new variable on success, NULL on failure
    */  
   PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                           CS_TYPE* type, char* name,
+                                           const CS_TYPE* type, char* name,
                                            void* typeArg);
   /** 
    *  Gets a type variable from a type name string
