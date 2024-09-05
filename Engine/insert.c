@@ -1089,7 +1089,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
 
   
   while (current != NULL) {
-    CS_TYPE* varType = current->varType;
+    const CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
       varType->freeVariableMemory(csound,
                                   ip->lclbas + current->memBlockIndex);
@@ -2728,7 +2728,7 @@ static void instance(CSOUND *csound, int insno)
   /* initialize vars for CS_TYPE */
   for (current = tp->varPool->head; current != NULL; current = current->next) {
     char* ptr = (char*)(lclbas + current->memBlockIndex);
-    CS_TYPE** typePtr = (CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
 

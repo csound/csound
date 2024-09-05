@@ -48,7 +48,7 @@ extern "C" {
 
     typedef struct arrayVarInit {
         int dimensions;
-        CS_TYPE* type;
+        const CS_TYPE* type;
     } ARRAY_VAR_INIT;
 
 

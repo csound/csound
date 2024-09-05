@@ -628,7 +628,7 @@ extern int ISSTRCOD(MYFLT);
     int      dimensions; /* number of array dimensions */
     int32_t*     sizes;  /* size of each dimensions */
     int      arrayMemberSize; /* size of each item */
-    struct cstype* arrayType; /* type of array */
+    const struct cstype* arrayType; /* type of array */
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
   };  

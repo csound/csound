@@ -273,7 +273,7 @@ void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
-    CS_TYPE* type;
+    const CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
       type = current->subType;

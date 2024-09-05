@@ -45,14 +45,14 @@ extern "C" {
     char* varDescription;
     int argtype; // used to denote if allowed as in-arg, out-arg, or both
     struct csvariable* (*createVariable)(void *cs, void *p, struct opds *ctx);
-    void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src, struct opds *ctx);
+    void (*copyValue)(CSOUND* csound, const struct cstype* cstype, void* dest, void* src, struct opds *ctx);
     void (*freeVariableMemory)(void* csound, void* varMem);
     CONS_CELL* members;
     int userDefinedType;
   } CS_TYPE;
 
   typedef struct csvarmem {
-    CS_TYPE* varType;
+    const CS_TYPE* varType;
     MYFLT value;
   } CS_VAR_MEM;
 
@@ -64,7 +64,7 @@ extern "C" {
 
   typedef struct csvariable {
     char* varName;
-    CS_TYPE* varType;
+    const CS_TYPE* varType;
     int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
                          Csound uses MYFLT* and pointer arithmetic
                          to assign var locations */
@@ -72,7 +72,7 @@ extern "C" {
     int dimensions;  // used by arrays
     int refCount;
     struct csvariable* next;
-    CS_TYPE* subType;
+    const CS_TYPE* subType;
     void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
     void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
     CS_VAR_MEM *memBlock;
