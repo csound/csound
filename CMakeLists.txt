@@ -5,8 +5,6 @@ else()
 endif()
 
 set (CMAKE_CXX_STANDARD 11)
-set(CSOUNDLIB_SHARED_LINK_OPTIONS "")
-
 
 cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0075 NEW)
@@ -190,18 +188,7 @@ option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" 
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
-
-
-
-if(BARE_METAL)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
-    if(CUSTOM_MALLOC)
-     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
-    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
-    endif()
-endif()
+option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
 
 # secret rabbit code
 if (USE_VCPKG)
@@ -227,6 +214,28 @@ if(CUSTOM_CMAKE)
     include(${CUSTOM_CMAKE})
 else()
     message(STATUS "Not using Custom.cmake file.")
+endif()
+
+
+if(BUILD_WITH_LTO)
+set(CSOUNDLIB_SHARED_LINK_OPTIONS -flto -Werror=odr
+-Werror=lto-type-mismatch -Werror=strict-aliasing)
+message(STATUS "Building with link-time optimisations")
+else()
+set(CSOUNDLIB_SHARED_LINK_OPTIONS "")
+message(STATUS "Not building with link-time optimisations")
+endif()
+
+if(BARE_METAL)
+message(STATUS "Building for bare metal")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
+    
+    if(CUSTOM_MALLOC)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
+    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
+    endif()
 endif()
 
 # in Release configuration, set NDEBUG
