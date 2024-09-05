@@ -206,7 +206,7 @@ int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
              && csound->orchname[0] != '\0') {
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       csound->orcname_mode = 0;
-      if(O->msglevel || O->odebug)
+      if(!(O->msglevel == 16) && (O->msglevel || O->odebug))
        csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
       /* Add directory of CSD file to search paths before orchname gets
