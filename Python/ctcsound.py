@@ -395,7 +395,6 @@ libcsound.csoundAppendOpcode.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int,
     ct.c_int, ct.c_char_p, ct.c_char_p,
     OPCODEFUNC, OPCODEFUNC, OPCODEFUNC]
 
-
 CAPSIZE  = 60
 
 class Windat(ct.Structure):
@@ -418,12 +417,6 @@ NEGPOL = 1
 POSPOL = 2
 BIPOL = 3
 
-OPENSOUNDFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_void_p)
-libcsound.csoundSetOpenSoundFileCallback.argtypes = [ct.c_void_p, OPENSOUNDFILEFUNC]
-
-OPENFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_char_p)
-libcsound.csoundSetOpenFileCallback.argtypes = [ct.c_void_p, OPENFILEFUNC]
-
 # Table display (from graph_display.h)
 libcsound.csoundSetIsGraphable.argtypes = [CSOUND_p, ct.c_int]
 
@@ -445,6 +438,11 @@ libcsound.csoundPeekCircularBuffer.argtypes = [CSOUND_p, ct.c_void_p, ct.c_void_
 libcsound.csoundWriteCircularBuffer.argtypes = [CSOUND_p, ct.c_void_p, ct.c_void_p, ct.c_int]
 libcsound.csoundFlushCircularBuffer.argtypes = [CSOUND_p, ct.c_void_p]
 libcsound.csoundDestroyCircularBuffer.argtypes = [CSOUND_p, ct.c_void_p]
+
+OPENSOUNDFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, CSOUND_p, ct.c_char_p, ct.c_int, ct.c_void_p)
+libcsound.csoundSetOpenSoundFileCallback.argtypes = [CSOUND_p, OPENSOUNDFILEFUNC]
+OPENFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, CSOUND_p, ct.c_char_p, ct.c_char_p)
+libcsound.csoundSetOpenFileCallback.argtypes = [CSOUND_p, OPENFILEFUNC]
 
 
 def cchar(s):
@@ -648,42 +646,6 @@ class Csound:
         Returns the stored value containing the system HW sr.
         """
         return libcsound.csoundSystemSr(self.cs, val)
-
-    def set_open_sound_file_callback(self, function):
-        """Sets a callback for opening a sound file.
-
-        The callback is made when a sound file is going to be opened.
-        The following information is passed to the callback:
-
-        bytes
-            pathname of the file; either full or relative to current dir
-        int
-            access flags for the file.
-        ptr
-            sound file info of the file.
-
-        Pass NULL to disable the callback.
-        This callback is retained after a :py:meth:`reset()` call.
-        """
-        self.openSoundFileCbRef = OPENSOUNDFILEFUNC(function)
-        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.openSoundFileCbRef)
-
-    def set_open_file_callback(self, function):
-        """Sets a callback for opening a file.
-
-        The callback is made when a file is going to be opened.
-        The following information is passed to the callback:
-
-        bytes
-            pathname of the file; either full or relative to current dir
-        bytes
-            access mode of the file.
-
-        Pass NULL to disable the callback.
-        This callback is retained after a :py:meth:`reset()` call.
-        """
-        self.openFileCbRef = OPENFILEFUNC(function)
-        libcsound.csoundSetOpenFileCallback(self.cs, self.openFileCbRef)
 
     def module(self, number):
         """Retrieves a module name and type given a number.
@@ -1770,6 +1732,42 @@ class Csound:
     def destroy_circular_buffer(self, circular_buffer):
         """Frees circular buffer."""
         libcsound.csoundDestroyCircularBuffer(self.cs, circular_buffer)
+
+    def set_open_sound_file_callback(self, function):
+        """Sets a callback for opening a sound file.
+
+        The callback is made when a sound file is going to be opened.
+        The following information is passed to the callback:
+
+        string
+            pathname of the file; either full or relative to current dir
+        int
+            access flags for the file.
+        ptr
+            sound file info of the file.
+
+        Pass None to disable the callback.
+        This callback is retained after a reset() call.
+        """
+        self.open_sound_file_cb_ref = OPENSOUNDFILEFUNC(function)
+        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.open_sound_file_cb_ref
+
+    def set_open_file_callback(self, function):
+        """Sets a callback for opening a file.
+
+        The callback is made when a file is going to be opened.
+        The following information is passed to the callback:
+
+        string
+            pathname of the file; either full or relative to current dir
+        string
+            access mode of the file.
+
+        Pass None to disable the callback.
+        This callback is retained after a reset() call.
+        """
+        self.open_file_cb_ref = OPENFILEFUNC(function)
+        libcsound.csoundSetOpenFileCallback(self.cs, self.open_file_cb_ref)
 
 
 CSOUNDPERFTHREAD_p = ct.c_void_p
