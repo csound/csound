@@ -1750,7 +1750,7 @@ class Csound:
         This callback is retained after a reset() call.
         """
         self.open_sound_file_cb_ref = OPENSOUNDFILEFUNC(function)
-        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.open_sound_file_cb_ref
+        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.open_sound_file_cb_ref)
 
     def set_open_file_callback(self, function):
         """Sets a callback for opening a file.
