@@ -149,10 +149,24 @@ class PUBLIC Csound
   virtual void GetParams(CSOUND_PARAMS *p){
     csoundGetParams(csound, p);
   }
-  virtual int CompileOrc(const char *str, int async = 0)
-  {
+  virtual int CompileOrc(const char *str, int async = 0) {
     return csoundCompileOrc(csound, str, async);
   }
+
+  virtual void SetOpenSoundFileCallback(
+     void *(*openSoundFileCallback_)(CSOUND*, const char *name,
+                                     int flags, void *sf_info))
+  {
+     csoundSetOpenSoundFileCallback(csound, openSoundFileCallback_);
+  }
+
+  virtual void SetOpenFileCallback(
+     FILE *(*openFileCallback_)(CSOUND*, const char*,
+                                const char*))
+  {
+     csoundSetOpenFileCallback(csound, openFileCallback_);
+  }
+
   virtual MYFLT EvalCode(const char *str)
   {
     return csoundEvalCode(csound, str);
@@ -375,7 +389,7 @@ class PUBLIC Csound
                            const char *outypes, const char *intypes, int(*init)(CSOUND *, void *),
                            int(*perf)(CSOUND *, void *), int(*deinit)(CSOUND *, void *))
   {
-    return csoundAppendOpcode(csound, opname, dsblksiz, flags, 
+    return csoundAppendOpcode(csound, opname, dsblksiz, flags,
                               outypes, intypes, init, perf, deinit);
   }
   virtual int GetDebug()
@@ -393,11 +407,11 @@ class PUBLIC Csound
   virtual int GetTable(MYFLT **tablePtr, int tableNum){
     return csoundGetTable(csound, tablePtr, tableNum);
   }
-  
+
   virtual int GetTableArgs(MYFLT **argsPtr, int tableNum){
     return csoundGetTableArgs(csound, argsPtr, tableNum);
   }
-  
+
   virtual int GetChannelPtr(void* &p, const char *name, int type)
   {
     MYFLT *tmp;
@@ -407,7 +421,7 @@ class PUBLIC Csound
     p = tmp;
     return retval;
   }
-  
+
   virtual int ListChannels(controlChannelInfo_t* &lst)
   {
     controlChannelInfo_t  *tmp;
@@ -416,7 +430,7 @@ class PUBLIC Csound
     lst = tmp;
     return retval;
   }
-  
+
   virtual void DeleteChannelList(controlChannelInfo_t *lst)
   {
     csoundDeleteChannelList(csound, lst);

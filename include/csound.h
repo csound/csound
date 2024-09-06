@@ -106,7 +106,7 @@ extern "C" {
   /* Compilation or performance aborted, but not as a result of an error
      (e.g. --help, or running an utility with -U). */
 #define CSOUND_EXITJMP_SUCCESS  (256)
-  
+
   /**
    * Flags for csoundInitialize().
    */
@@ -206,15 +206,15 @@ extern "C" {
     PVS_WIN_RECT
   };
 
-  
-  /* 
-   *  PVSDAT formats 
+
+  /*
+   *  PVSDAT formats
    */
   enum PVS_ANALFORMAT {
     PVS_AMP_FREQ = 0, /* phase vocoder */
     PVS_AMP_PHASE,    /* polar DFT */
     PVS_COMPLEX,      /* rectangular DFT */
-    PVS_TRACKS        /* amp, freq, phase, ID tracks */    
+    PVS_TRACKS        /* amp, freq, phase, ID tracks */
   };
 
   /**
@@ -299,7 +299,7 @@ extern "C" {
    * data; this pointer can be accessed from the Csound instance
    * that is passed to callback routines.
    * If not NULL the opcodedir parameter sets an override for the
-   * plugin module/opcode directory search 
+   * plugin module/opcode directory search
    */
   PUBLIC CSOUND *csoundCreate(void *hostData, const char *opcodedir);
 
@@ -396,7 +396,7 @@ extern "C" {
 
   /**
    * Set csound options (flag). Returns CSOUND_SUCCESS on success.
-   * This needs to be called after csoundCreate() and before any code is 
+   * This needs to be called after csoundCreate() and before any code is
    * compiled. Multiple options are allowed in one string.
    * Returns zero on success.
    */
@@ -436,6 +436,56 @@ extern "C" {
   PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
 
   /**
+   * Sets an external callback for opening a sound file.
+   * The callback is made when a sound file is going to be opened.
+   * The following information is passed to the callback:
+   *     char*  pathname of the file; either full or relative to current dir
+   *     int    flags of the file descriptor.
+   *     SFLIB_INFO* sound file info of the sound file.
+   *
+   * Pass NULL to disable the callback.
+   * This callback is retained after a csoundReset() call.
+   */
+
+  PUBLIC void csoundSetOpenSoundFileCallback(CSOUND *p,
+                                             void *(*openSoundFileCallback)(CSOUND*,
+                                                                            const char*,
+                                                                            int, void*));
+
+  /**
+   * Sets an external callback for opening a file.
+   * The callback is made when a file is going to be opened.
+   * The following information is passed to the callback:
+   *     char*  pathname of the file; either full or relative to current dir
+   *     char*  access mode of the file.
+   *
+   * Pass NULL to disable the callback.
+   * This callback is retained after a csoundReset() call.
+   */
+  PUBLIC void csoundSetOpenFileCallback(CSOUND *p,
+                                        FILE *(*openFileCallback)(CSOUND*,
+                                                                  const char*,
+                                                                  const char*));
+
+#if !defined(SWIG)
+  /**
+   * Sets an external callback for receiving notices whenever Csound opens
+   * a file.  The callback is made after the file is successfully opened.
+   * The following information is passed to the callback:
+   *     char*  pathname of the file; either full or relative to current dir
+   *     int    a file type code from the enumeration CSOUND_FILETYPES
+   *     int    1 if Csound is writing the file, 0 if reading
+   *     int    1 if a temporary file that Csound will delete; 0 if not
+   *
+   * Pass NULL to disable the callback.
+   * This callback is retained after a csoundReset() call.
+   */
+  PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
+                                        void (*func)(CSOUND*, const char*,
+                                                     int, int, int));
+#endif
+
+  /**
    * retrieves a module name and type ("audio" or "midi") given a
    * number Modules are added to list as csound loads them returns
    * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
@@ -453,9 +503,9 @@ extern "C" {
 
   /**
    * This function can be called to obtain a list of available
-   * input or output audio devices available (depending on the backend 
+   * input or output audio devices available (depending on the backend
    * module used *).
-   * If list is NULL, the function returns the number of devices 
+   * If list is NULL, the function returns the number of devices
    * (isOutput=1 for out devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
    * one CS_AUDIODEVICE structure per device.
@@ -504,7 +554,7 @@ extern "C" {
   PUBLIC void csoundSetMessageLevel(CSOUND *, int messageLevel);
 
   /** @}*/
-  /** @defgroup PERFORMANCE Compilation and performance 
+  /** @defgroup PERFORMANCE Compilation and performance
    *
    *  @{ */
 
@@ -539,8 +589,8 @@ extern "C" {
    *   On SUCCESS it returns a value passed to the
    *   'return' opcode in global space
    * /code
-   *       char *code = 
-   *           "i1 = 2 + 2 \n" 
+   *       char *code =
+   *           "i1 = 2 + 2 \n"
    *           "return i1 \n";
    *       MYFLT retval = csoundEvalCode(csound, code);
    * /endcode
@@ -548,7 +598,7 @@ extern "C" {
   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
   /**
-   * Compiles a Csound input file (CSD, .csd file) or a tx string 
+   * Compiles a Csound input file (CSD, .csd file) or a tx string
    * containing the CSD code.
    * Returns a non-zero error code on failure.
    *
@@ -634,11 +684,11 @@ extern "C" {
    */
   PUBLIC int csoundRunUtility(CSOUND *, const char *name,
                               int argc, char **argv);
-  
+
   /**
    * Resets all internal memory and state in preparation for a new performance.
    * Enables external software to run successive Csound performances
-   * without reloading Csound. 
+   * without reloading Csound.
    */
   PUBLIC void csoundReset(CSOUND *);
   /** @}*/
@@ -648,7 +698,7 @@ extern "C" {
    *  @{ */
 
   /**
-   * Calling this function after csoundCreate() 
+   * Calling this function after csoundCreate()
    * and before the start of performance will disable all default
    * handling of sound I/O by the Csound library via its audio backend module.
    * Host application should in this case use the spin/spout buffers directly.
@@ -673,7 +723,7 @@ extern "C" {
    *       printf("Module %d:  %s (%s) \n", n, name, type);
    * \endcode
    */
-  
+
 
   /**
    * Returns the address of the Csound audio input working buffer (spin).
@@ -695,7 +745,7 @@ extern "C" {
    *  @{ */
 
   /**
-   * Calling this function after csoundCreate() 
+   * Calling this function after csoundCreate()
    * and before the start of performance to implement
    * MIDI via the callbacks below.
    */
@@ -869,14 +919,14 @@ extern "C" {
    *     audio data (csoundGetKsmps(csound) MYFLT values) -(MYFLYT **) pp
    *   CSOUND_STRING_CHANNEL
    *     string data as a STRINGDAT structure - (STRINGDAT **) pp
-   *    (see csoundGetStringData() and csoundSetStringData())  
+   *    (see csoundGetStringData() and csoundSetStringData())
    *   CSOUND_ARRAY_CHANNEL
    *     array data as an ARRAYDAT structure - (ARRAYDAT **) pp
-   *    (see csoundArrayData***(), csoundSetArrayData(), 
+   *    (see csoundArrayData***(), csoundSetArrayData(),
    *     csoundGetArrayData(), and csoundInitArrayData())
    *   CSOUND_PVS_CHANNEL
    *     pvs data as a PVSDATEXT structure - (PVSDAT **) pp
-   *    (see csoundPvsData***(), csoundSetPvsData(), 
+   *    (see csoundPvsData***(), csoundSetPvsData(),
    *     csoundGetPvsData(), and csoundInitPvsData())
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
@@ -915,7 +965,7 @@ extern "C" {
   /**
    *  Returns the var type for a channel name or NULL if the channel
    *  was not found.
-   *  Currently supported channel var types are 'k' (control), 'a' (audio), 
+   *  Currently supported channel var types are 'k' (control), 'a' (audio),
    *  'S' (string), 'f' (pvs), and '[' (array).
    */
   PUBLIC const char *csoundGetChannelVarTypeName(CSOUND *csound,
@@ -965,18 +1015,18 @@ extern "C" {
   PUBLIC int csoundGetControlChannelHints(CSOUND *, const char *name,
                                           controlChannelHints_t *hints);
 
-  /** 
+  /**
    * locks access to the channel allowing access to data in
    * a threadsafe manner
    **/
   PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel);
 
-  /** 
+  /**
    * unlocks access to the channel, allowing access to data from
    * elsewhere.
    **/
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
-  
+
   /**
    * retrieves the value of control channel identified by *name.
    * If the err argument is not NULL, the error (or success) code
@@ -1021,11 +1071,11 @@ extern "C" {
 
   /**
    * Create and initialise an array channel with a given array type
-   * - "a" (audio sigs): each item is a ksmps-size MYFLT array 
+   * - "a" (audio sigs): each item is a ksmps-size MYFLT array
    * - "i" (init vars): each item is a MYFLT
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - "k" (control sigs): each item is a MYFLT 
+   * - "k" (control sigs): each item is a MYFLT
    *  dimensions - number of array dimensions
    *  sizes - sizes for each dimension
    * returns the ARRAYDAT for the requested channel or NULL on error
@@ -1035,15 +1085,15 @@ extern "C" {
   PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                           const char *type, int dimensions,
                                           const int *sizes);
-  
+
 
   /**
    * Get the type of data the ARRAYDAT adat, returning
-   * - "a" (audio sigs): each item is a ksmps-size MYFLT array 
+   * - "a" (audio sigs): each item is a ksmps-size MYFLT array
    * - "i" (init vars): each item is a MYFLT
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - "k" (control sigs): each item is a MYFLT 
+   * - "k" (control sigs): each item is a MYFLT
    */
   PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat);
 
@@ -1060,17 +1110,17 @@ extern "C" {
 
   /**
    * Set the data in the ARRAYDAT adat
-   **/  
+   **/
   PUBLIC void csoundSetArrayData(ARRAYDAT *adat, const void* data);
 
   /**
    * Get the data from the ARRAYDAT adat
-   **/  
+   **/
   PUBLIC const void *csoundGetArrayData(const ARRAYDAT *adat);
 
 
   /**
-   * Get a null-terminated string from a STRINGDAT structure 
+   * Get a null-terminated string from a STRINGDAT structure
    **/
   PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata);
 
@@ -1094,7 +1144,7 @@ extern "C" {
   PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
                                       int size, int overlap, int winsize,
                                       int wintype, int format);
-  
+
   /**
    * Get the analysis FFT size used by the PVSDAT pvsdat
    */
@@ -1133,7 +1183,7 @@ extern "C" {
   /**
    * returns the size of data stored in a channel; for string channels
    * this might change if the channel space gets reallocated
-   * Since string variables use dynamic memory allocation 
+   * Since string variables use dynamic memory allocation
    * this function can be called to get the space required for
    * csoundGetStringChannel()
    */
@@ -1225,7 +1275,7 @@ extern "C" {
    */
   PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
                                            int (*func)(void *, void *, unsigned int));
-  
+
 
   /** @}*/
   /** @defgroup TABLE Tables
@@ -1331,21 +1381,21 @@ extern "C" {
    * yielding the CPU to other threads.
    */
   PUBLIC void csoundSleep(size_t milliseconds);
-  
-  
+
+
   /** @}*/
   /** @defgroup OPCODES Opcodes
    *
    *  @{ */
 
   /**
-   *  Loads all plugins from a given directory. Generally called 
+   *  Loads all plugins from a given directory. Generally called
    *   immediately after csoundCreate()
    *  to make new opcodes/modules available for compilation and performance.
    */
   PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
 
-  
+
   /**
    * Appends an opcode implemented by external software
    * to Csound's internal opcode list.
@@ -1361,7 +1411,7 @@ extern "C" {
                                  int(*deinit)(CSOUND *, void *));
 
   /** @}*/
-  
+
 #endif  /* !CSOUND_CSDL_H */
   /* typedefs, macros, and interface functions for configuration variables */
 #include "cfgvar.h"
