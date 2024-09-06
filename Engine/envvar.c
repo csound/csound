@@ -760,6 +760,61 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 #endif  
 }
 
+static SNDFILE *csoundOpenFile_Snd(CSOUND *csound, const char *path, int mode, SFLIB_INFO *sfinfo){
+    SNDFILE *sf = NULL;
+
+    if(csound->OpenSoundFileCallback_ != NULL) {
+        sf = csound->OpenSoundFileCallback_(csound, path, mode, sfinfo);
+    }
+
+    return sf;
+}
+
+static FILE *csoundOpenFile_Std(CSOUND *csound, char **fullName,
+                            const char *filename, const char *mode)
+{
+    FILE *f = NULL;
+
+    /* try to open file if callback is specified */
+    if(csound->OpenFileCallback_ != NULL) {
+        f = csound->OpenFileCallback_(csound, filename, (char*) mode);
+        if (f != NULL) {
+            *fullName = (char*) filename;
+        }
+    }
+
+    /* fallback to fopen */
+    if (f == NULL) {
+#if defined(WIN32)
+      /* To handle Widows errors in file name characters. */
+      size_t sz = 2 * MultiByteToWideChar(CP_UTF8, 0, filename, -1, NULL, 0);
+      wchar_t *wfname = malloc(sz);
+      wchar_t *wmode = 0;
+
+      MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfname, sz);
+      sz = 2 * MultiByteToWideChar(CP_UTF8, 0, mode, -1, NULL, 0);
+      wmode = malloc(sz);
+      MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, sz);
+      f = _wfopen(wfname, wmode);
+      if (UNLIKELY(f == NULL)) {
+        /* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */
+        /*                filename, strerror(errno)); */
+        free(wfname);
+        free(wmode);
+      } else {
+        *fullName = (char*) filename;
+        free(wfname);
+        free(wmode);
+      }
+#else
+      *fullName = (char*) filename;
+      f = fopen(filename, (char*) mode);
+#endif
+    }
+
+    return f;
+}
+
 static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
                                 const char *filename, const char *mode,
                                 const char *envList)
@@ -772,7 +827,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
       return (FILE*) NULL;
     if (mode[0] != 'w') {
       /* read: try the specified name first */
-      f = fopen(name, mode);
+      f = csoundOpenFile_Std(csound, fullName, name, mode);
       if (f != NULL) {
         *fullName = name;
         return f;
@@ -785,7 +840,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     }
     else if (csoundIsNameFullpath(name)) {
       /* if write and full path: */
-      f = fopen(name, mode);
+      f = csoundOpenFile_Std(csound, fullName, name, mode);
       if (f != NULL)
         *fullName = name;
       else
@@ -799,7 +854,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
       //len = (int) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
-        f = fopen(name2, mode);
+        f = csoundOpenFile_Std(csound, fullName, name2, mode);
         if (f != NULL) {
           csound->Free(csound, name);
           *fullName = name2;
@@ -811,7 +866,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     }
     /* if write mode, try current directory last */
     if (mode[0] == 'w') {
-      f = fopen(name, mode);
+      f = csoundOpenFile_Std(csound, fullName, name, mode);
       if (f != NULL) {
         *fullName = name;
         return f;
@@ -885,6 +940,71 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
     /* not found */
     csound->Free(csound, name);
     return -1;
+}
+
+static SNDFILE *csoundFindFile_Snd(CSOUND *csound, char **fullName,
+                             const char *filename, int write_mode,
+                             SFLIB_INFO *sfinfo, const char *envList)
+{
+    char  *name, *name2, **searchPath;
+    SNDFILE *sf;
+
+    *fullName = NULL;
+    if ((name = csoundConvertPathname(csound, filename)) == NULL)
+      return NULL;
+    if (!write_mode) {
+      /* read: try the specified name first */
+      sf = csoundOpenFile_Snd(csound, name, SFM_READ, sfinfo);
+      if (sf != NULL) {
+        *fullName = name;
+        return sf;
+      }
+      /* if full path, and not found: */
+      if (csoundIsNameFullpath(name)) {
+        csound->Free(csound, name);
+        return NULL;
+      }
+    }
+    else if (csoundIsNameFullpath(name)) {
+      /* if write and full path: */
+      sf = csoundOpenFile_Snd(csound, name, SFM_WRITE, sfinfo);
+      if (sf != NULL)
+        *fullName = name;
+      else
+        csound->Free(csound, name);
+      return sf;
+    }
+    /* search paths defined by environment variable list */
+    if (envList != NULL && envList[0] != '\0' &&
+        (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
+        != NULL) {
+      //len = (int) strlen(name) + 1;
+      while (*searchPath != NULL) {
+        name2 = csoundConcatenatePaths(csound, *searchPath, name);
+        if (!write_mode)
+          sf = csoundOpenFile_Snd(csound, name2, SFM_READ, sfinfo);
+        else
+          sf = csoundOpenFile_Snd(csound, name2, SFM_WRITE, sfinfo);
+        if (sf != NULL) {
+          csound->Free(csound, name);
+          *fullName = name2;
+          return sf;
+        }
+        csound->Free(csound, name2);
+        searchPath++;
+      }
+    }
+    /* if write mode, try current directory last */
+    if (write_mode) {
+      sf = csoundOpenFile_Snd(csound, name, SFM_WRITE, sfinfo);
+      if (sf != NULL) {
+        *fullName = name;
+        return sf;
+      }
+    }
+    /* not found */
+    csound->Free(csound, name);
+    return NULL;
 }
 
 /**
@@ -1006,6 +1126,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     CSFILE  *p = NULL;
     char    *fullName = NULL;
     FILE    *tmp_f = NULL;
+    SNDFILE *tmp_sf = NULL;
     SFLIB_INFO sfinfo;
     int     tmp_fd = -1, nbytes = (int) sizeof(CSFILE);
 
@@ -1018,51 +1139,33 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     }
     /* get full name and open file */
     if (env == NULL) {
-#if defined(WIN32)
-      /* To handle Widows errors in file name characters. */
-      size_t sz = 2 * MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
-      wchar_t *wfname = malloc(sz);
-      wchar_t *wmode = 0;
-
-      MultiByteToWideChar(CP_UTF8, 0, name, -1, wfname, sz);
-      sz = 2 * MultiByteToWideChar(CP_UTF8, 0, param, -1, NULL, 0);
-      wmode = malloc(sz);
-      MultiByteToWideChar(CP_UTF8, 0, param, -1, wmode, sz);
       if (type == CSFILE_STD) {
-        tmp_f = _wfopen(wfname, wmode);
-        if (UNLIKELY(tmp_f == NULL)) {
-          /* csoundErrorMsg(csound, Str("csound->FileOpen(\"%s\") failed: %s."), */
-          /*                name, strerror(errno)); */
-          free(wfname);
-          free(wmode);
-          goto err_return;
-        }
-        fullName = (char*) name;
-      }
-      free(wfname);
-      free(wmode);
-      // so we can resume with an else still
-      if (type == CSFILE_STD) {
-      }
-#else
-      if (type == CSFILE_STD) {
-        fullName = (char*) name;
-        tmp_f = fopen(fullName, (char*) param);
+        tmp_f = csoundOpenFile_Std(csound, &fullName, name, param);
         if (UNLIKELY(tmp_f == NULL)) {
           /* csoundErrorMsg(csound, Str("csound->FileOpen(\"%s\") failed: %s."), */
           /*                name, strerror(errno)); */
           goto err_return;
         }
       }
-#endif
       else {
-        fullName = (char*) name;
-        if (type == CSFILE_SND_R || type == CSFILE_FD_R)
-          tmp_fd = open(fullName, RD_OPTS);
-        else
-          tmp_fd = open(fullName, WR_OPTS);
-        if (tmp_fd < 0)
-          goto err_return;
+        /* try to open sound file if callback is specified */
+        if (csound->OpenSoundFileCallback_ != NULL) {
+          memcpy(&sfinfo, param, sizeof(SFLIB_INFO));
+          if (type == CSFILE_SND_R)
+            tmp_sf = csoundOpenFile_Snd(csound, name, SFM_READ, &sfinfo);
+          if (type == CSFILE_SND_W)
+            tmp_sf = csoundOpenFile_Snd(csound, name, SFM_WRITE, &sfinfo);
+        }
+        /* fallback to open with fd */
+        if (tmp_sf == (SNDFILE*) NULL) {
+          fullName = (char*) name;
+          if (type == CSFILE_SND_R || type == CSFILE_FD_R)
+            tmp_fd = open(fullName, RD_OPTS);
+          else
+            tmp_fd = open(fullName, WR_OPTS);
+          if (tmp_fd < 0)
+            goto err_return;
+        }
       }
     }
     else {
@@ -1072,12 +1175,23 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
           goto err_return;
       }
       else {
-        if (type == CSFILE_SND_R || type == CSFILE_FD_R)
-          tmp_fd = csoundFindFile_Fd(csound, &fullName, name, 0, env);
-        else
-          tmp_fd = csoundFindFile_Fd(csound, &fullName, name, 1, env);
-        if (UNLIKELY(tmp_fd < 0))
-          goto err_return;
+        /* try to open sound file if callback is specified */
+        if(csound->OpenSoundFileCallback_ != NULL) {
+          memcpy(&sfinfo, param, sizeof(SFLIB_INFO));
+          if (type == CSFILE_SND_R)
+            tmp_sf = csoundFindFile_Snd(csound, &fullName, name, 0, &sfinfo, env);
+          if (type == CSFILE_SND_W)
+            tmp_sf = csoundFindFile_Snd(csound, &fullName, name, 1, &sfinfo, env);
+        }
+        /* fallback to open with fd */
+        if (tmp_sf == (SNDFILE*) NULL) {
+          if (type == CSFILE_SND_R || type == CSFILE_FD_R)
+            tmp_fd = csoundFindFile_Fd(csound, &fullName, name, 0, env);
+          else
+            tmp_fd = csoundFindFile_Fd(csound, &fullName, name, 1, env);
+          if (UNLIKELY(tmp_fd < 0))
+            goto err_return;
+        }
       }
     }
     nbytes += (int) strlen(fullName);
@@ -1090,19 +1204,21 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     p->type = type;
     p->fd = tmp_fd;
     p->f = tmp_f;
-    p->sf = (SNDFILE*) NULL;
+    p->sf = tmp_sf;
     strcpy(&(p->fullName[0]), fullName);
     if (env != NULL) {
       csound->Free(csound, fullName);
       env = NULL;
     }
 
-    /* if sound file, re-open file descriptor with libsndfile */
+    /* if sound file, re-open file descriptor with libsndfile if tmp_sf is null */
     switch (type) {
     case CSFILE_STD:                          /* stdio */
       *((FILE**) fd) = tmp_f;
       break;
     case CSFILE_SND_R:                        /* sound file read */
+      if (p->sf != (SNDFILE*) NULL)
+          goto doneSFOpen;
       memcpy(&sfinfo, param, sizeof(SFLIB_INFO));
       p->sf = sflib_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
       if (p->sf == (SNDFILE*) NULL) {
@@ -1154,11 +1270,13 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       *((SNDFILE**) fd) = p->sf;
       break;
     case CSFILE_SND_W:                        /* sound file write */
-      p->sf = sflib_open_fd(tmp_fd, SFM_WRITE, (SFLIB_INFO*) param, 0);
-      if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
-          csound->Warning(csound, Str("Failed to open %s: %s\n"),
-                          fullName, sflib_strerror(NULL));
-        goto err_return;
+      if (p->sf == (SNDFILE*) NULL) {
+        p->sf = sflib_open_fd(tmp_fd, SFM_WRITE, (SFLIB_INFO*) param, 0);
+        if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
+            csound->Warning(csound, Str("Failed to open %s: %s\n"),
+                            fullName, sflib_strerror(NULL));
+          goto err_return;
+        }
       }
       sflib_command(p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
       sflib_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,

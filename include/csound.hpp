@@ -172,9 +172,24 @@ public:
   virtual void SetMIDIOutput(const char *name){
      csoundSetMIDIOutput(csound,name);
   }
-   virtual void SetMIDIFileOutput(const char *name){
-    csoundSetMIDIFileOutput(csound,name);
+  virtual void SetMIDIFileOutput(const char *name){
+     csoundSetMIDIFileOutput(csound,name);
   }
+
+  virtual void SetOpenSoundFileCallback(
+     void *(*openSoundFileCallback_)(CSOUND*, const char *name,
+                                     int flags, void *sf_info))
+  {
+     csoundSetOpenSoundFileCallback(csound, openSoundFileCallback_);
+  }
+
+  virtual void SetOpenFileCallback(
+     FILE *(*openFileCallback_)(CSOUND*, const char*,
+                                const char*))
+  {
+     csoundSetOpenFileCallback(csound, openFileCallback_);
+  }
+
   virtual TREE *ParseOrc(const char *str)
   {
     return csoundParseOrc(csound, str);

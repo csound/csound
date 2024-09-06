@@ -177,6 +177,8 @@
   "csoundSetExternalMidiOutOpenCallback",
   "csoundSetExternalMidiReadCallback",
   "csoundSetExternalMidiWriteCallback",
+  "csoundSetOpenSoundFileCallback",
+  "csoundSetOpenFileCallback",
   "csoundSetFileOpenCallback",
   "csoundSetGlobalEnv",
   "csoundSetHostData",
