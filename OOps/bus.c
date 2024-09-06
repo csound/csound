@@ -2277,7 +2277,7 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 
 /* ARRAY channels  implementation - VL 7.08.24 */
 static inline void copy_array(CSOUND *csound,
-                       ARRAYDAT *out, ARRAYDAT *in, spin_lock_t *lock) {
+                       ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
    csoundSpinLock(lock);
    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY, out, in, NULL); 
    csoundSpinUnLock(lock);

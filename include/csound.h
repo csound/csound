@@ -435,55 +435,6 @@ extern "C" {
    */
   PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
 
-  /**
-   * Sets an external callback for opening a sound file.
-   * The callback is made when a sound file is going to be opened.
-   * The following information is passed to the callback:
-   *     char*  pathname of the file; either full or relative to current dir
-   *     int    flags of the file descriptor.
-   *     SFLIB_INFO* sound file info of the sound file.
-   *
-   * Pass NULL to disable the callback.
-   * This callback is retained after a csoundReset() call.
-   */
-
-  PUBLIC void csoundSetOpenSoundFileCallback(CSOUND *p,
-                                             void *(*openSoundFileCallback)(CSOUND*,
-                                                                            const char*,
-                                                                            int, void*));
-
-  /**
-   * Sets an external callback for opening a file.
-   * The callback is made when a file is going to be opened.
-   * The following information is passed to the callback:
-   *     char*  pathname of the file; either full or relative to current dir
-   *     char*  access mode of the file.
-   *
-   * Pass NULL to disable the callback.
-   * This callback is retained after a csoundReset() call.
-   */
-  PUBLIC void csoundSetOpenFileCallback(CSOUND *p,
-                                        FILE *(*openFileCallback)(CSOUND*,
-                                                                  const char*,
-                                                                  const char*));
-
-#if !defined(SWIG)
-  /**
-   * Sets an external callback for receiving notices whenever Csound opens
-   * a file.  The callback is made after the file is successfully opened.
-   * The following information is passed to the callback:
-   *     char*  pathname of the file; either full or relative to current dir
-   *     int    a file type code from the enumeration CSOUND_FILETYPES
-   *     int    1 if Csound is writing the file, 0 if reading
-   *     int    1 if a temporary file that Csound will delete; 0 if not
-   *
-   * Pass NULL to disable the callback.
-   * This callback is retained after a csoundReset() call.
-   */
-  PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
-                                        void (*func)(CSOUND*, const char*,
-                                                     int, int, int));
-#endif
 
   /**
    * retrieves a module name and type ("audio" or "midi") given a

@@ -1,5 +1,5 @@
 /*
-  udp_server.h: Csound UDP server API
+  csound_server.h: Csound UDP server API
 
   Copyright (C) 2024 V Lazzarini
 

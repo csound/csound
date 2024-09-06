@@ -152,21 +152,6 @@ class PUBLIC Csound
   virtual int CompileOrc(const char *str, int async = 0) {
     return csoundCompileOrc(csound, str, async);
   }
-
-  virtual void SetOpenSoundFileCallback(
-     void *(*openSoundFileCallback_)(CSOUND*, const char *name,
-                                     int flags, void *sf_info))
-  {
-     csoundSetOpenSoundFileCallback(csound, openSoundFileCallback_);
-  }
-
-  virtual void SetOpenFileCallback(
-     FILE *(*openFileCallback_)(CSOUND*, const char*,
-                                const char*))
-  {
-     csoundSetOpenFileCallback(csound, openFileCallback_);
-  }
-
   virtual MYFLT EvalCode(const char *str)
   {
     return csoundEvalCode(csound, str);

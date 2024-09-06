@@ -1,5 +1,5 @@
 #include "csound.h"
-#include "graph_display.h"
+#include "csound_graph_display.h"
 #include <stdio.h>
 #include "gtest/gtest.h"
 #include "time.h"

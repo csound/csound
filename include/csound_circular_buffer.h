@@ -1,5 +1,5 @@
 /*
-  udp_server.h: Csound UDP server API
+  csound_circular_buffer.h: utility circular buffer functions
 
   Copyright (C) 2024 V Lazzarini
 

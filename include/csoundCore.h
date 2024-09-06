@@ -1,7 +1,8 @@
 /*
-  csoundCore.h: somet modifications to match the new API
+  csoundCore.h: csound engine structures and module API
 
-  Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga , V Lazzarini, S Yi
+  Copyright (C) 1991-2024 Barry Vercoe, John ffitch, Istvan Varga, 
+                           V Lazzarini, S Yi
 
   This file is part of Csound.
 
@@ -43,7 +44,7 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
-#include "udp_server.h"
+#include "csound_server.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
 #include "pools.h"
@@ -83,106 +84,6 @@ extern "C" {
   typedef struct xyindat_ XYINDAT;
 
   /**
-   * The following constants are used with csound->FileOpen2() and
-   * csound->ldmemfile2() to specify the format of a file that is being
-   * opened.  This information is passed by Csound to a host's FileOpen
-   * callback and does not influence the opening operation in any other
-   * way. Conversion from Csound's TYP_XXX macros for audio formats to
-   * CSOUND_FILETYPES values can be done with csound->type2csfiletype().
-   */
-  typedef enum {
-    CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */
-    CSFTYPE_ORCHESTRA,         /* the primary orc file (may be temporary) */
-    CSFTYPE_SCORE,             /* the primary sco file (may be temporary)
-                                  or any additional score opened by Cscore */
-    CSFTYPE_ORC_INCLUDE,       /* a file #included by the orchestra */
-    CSFTYPE_SCO_INCLUDE,       /* a file #included by the score */
-    CSFTYPE_SCORE_OUT,         /* used for score.srt, score.xtr, cscore.out */
-    CSFTYPE_SCOT,              /* Scot score input format */
-    CSFTYPE_OPTIONS,           /* for .csoundrc and -@ flag */
-    CSFTYPE_EXTRACT_PARMS,     /* extraction file specified by -x */
-
-    /* audio file types that Csound can write (10-19) or read */
-    CSFTYPE_RAW_AUDIO,
-    CSFTYPE_IRCAM,
-    CSFTYPE_AIFF,
-    CSFTYPE_AIFC,
-    CSFTYPE_WAVE,
-    CSFTYPE_AU,
-    CSFTYPE_SD2,
-    CSFTYPE_W64,
-    CSFTYPE_WAVEX,
-    CSFTYPE_FLAC,
-    CSFTYPE_CAF,
-    CSFTYPE_WVE,
-    CSFTYPE_OGG,
-    CSFTYPE_MPC2K,
-    CSFTYPE_RF64,
-    CSFTYPE_AVR,
-    CSFTYPE_HTK,
-    CSFTYPE_MAT4,
-    CSFTYPE_MAT5,
-    CSFTYPE_NIST,
-    CSFTYPE_PAF,
-    CSFTYPE_PVF,
-    CSFTYPE_SDS,
-    CSFTYPE_SVX,
-    CSFTYPE_VOC,
-    CSFTYPE_XI,
-    CSFTYPE_MPEG,
-    CSFTYPE_UNKNOWN_AUDIO,     /* used when opening audio file for reading
-                                  or temp file written with <CsSampleB> */
-
-    /* miscellaneous music formats */
-    CSFTYPE_SOUNDFONT,
-    CSFTYPE_STD_MIDI,          /* Standard MIDI file */
-    CSFTYPE_MIDI_SYSEX,        /* Raw MIDI codes, eg. SysEx dump */
-
-    /* analysis formats */
-    CSFTYPE_HETRO,
-    CSFTYPE_HETROT,
-    CSFTYPE_PVC,               /* original PVOC format */
-    CSFTYPE_PVCEX,             /* PVOC-EX format */
-    CSFTYPE_CVANAL,
-    CSFTYPE_LPC,
-    CSFTYPE_ATS,
-    CSFTYPE_LORIS,
-    CSFTYPE_SDIF,
-    CSFTYPE_HRTF,
-
-    /* Types for plugins and the files they read/write */
-    CSFTYPE_UNUSED,
-    CSFTYPE_LADSPA_PLUGIN,
-    CSFTYPE_SNAPSHOT,
-
-    /* Special formats for Csound ftables or scanned synthesis
-       matrices with header info */
-    CSFTYPE_FTABLES_TEXT,        /* for ftsave and ftload  */
-    CSFTYPE_FTABLES_BINARY,      /* for ftsave and ftload  */
-    CSFTYPE_XSCANU_MATRIX,       /* for xscanu opcode  */
-
-    /* These are for raw lists of numbers without header info */
-    CSFTYPE_FLOATS_TEXT,         /* used by GEN23, GEN28, dumpk, readk */
-    CSFTYPE_FLOATS_BINARY,       /* used by dumpk, readk, etc. */
-    CSFTYPE_INTEGER_TEXT,        /* used by dumpk, readk, etc. */
-    CSFTYPE_INTEGER_BINARY,      /* used by dumpk, readk, etc. */
-
-    /* image file formats */
-    CSFTYPE_IMAGE_PNG,
-
-    /* For files that don't match any of the above */
-    CSFTYPE_POSTSCRIPT,          /* EPS format used by graphs */
-    CSFTYPE_SCRIPT_TEXT,         /* executable script files (eg. Python) */
-    CSFTYPE_OTHER_TEXT,
-    CSFTYPE_OTHER_BINARY,
-
-    /* This should only be used internally by the original FileOpen()
-       API call or for temp files written with <CsFileB> */
-    CSFTYPE_UNKNOWN = 0
-  } CSOUND_FILETYPES;
-
-  
-  /**
    * Real-time audio parameters structure
    */
   typedef struct {
@@ -218,8 +119,7 @@ extern "C" {
   void csoundSeedRandMT(CsoundRandMTState *p,
                         const uint32_t *initKey, uint32_t keyLength);
   uint32_t csoundRandMT(CsoundRandMTState *p);
-  int csoundCreateGlobalVariable(CSOUND *,
-                                        const char *name, size_t nbytes);
+  int csoundCreateGlobalVariable(CSOUND *,const char *name, size_t nbytes);
   void *csoundQueryGlobalVariable(CSOUND *, const char *name);
   void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
   int csoundDestroyGlobalVariable(CSOUND *, const char *name);
@@ -271,9 +171,10 @@ extern "C" {
   int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
 
-#include "graph_display.h"
-#include "circular_buffer.h"
-#include "cs_threads.h"
+#include "csound_files.h"
+#include "csound_graph_display.h"
+#include "csound_circular_buffer.h"
+#include "csound_threads.h"
 #include "csound_compiler.h"
   
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
@@ -781,7 +682,7 @@ extern int ISSTRCOD(MYFLT);
     uint64_t kcounter;
     MYFLT    esr, sicvt, pidsr;                  /* local sr */
     MYFLT    onedsr;
-    int     in_cvt, out_cvt;
+    int     in_cvt, out_cvt; /* resampling converter modes for in and out */
     unsigned int ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
 

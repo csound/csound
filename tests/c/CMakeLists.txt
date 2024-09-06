@@ -16,6 +16,7 @@ if(BUILD_TESTS)
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
+        csound_circular_buffer_test.cpp
         engine_test.cpp     
         io_test.cpp
         server_test.cpp
