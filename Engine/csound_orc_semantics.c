@@ -2162,7 +2162,8 @@ CS_VARIABLE* createStructVar(void* cs, void* p, OPDS *ctx) {
   return var;
 }
 
-void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, void* src, OPDS *p) {
+void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
+                   void* src, OPDS *p) {
   CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int i, count;

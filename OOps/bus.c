@@ -2276,14 +2276,10 @@ int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 }
 
 /* ARRAY channels  implementation - VL 7.08.24 */
-static void copy_array(ARRAYDAT *out, const ARRAYDAT *in, spin_lock_t *lock) {
-   size_t siz = 0, i;
-   for(i = 0; i < in->dimensions; i++)
-      siz += in->sizes[i];
-   siz *= in->arrayMemberSize;
-   if(siz > out->allocated) siz = out->allocated;
+static inline void copy_array(CSOUND *csound,
+                       ARRAYDAT *out, ARRAYDAT *in, spin_lock_t *lock) {
    csoundSpinLock(lock);
-   memcpy(out->data, in->data, siz);
+   CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY, out, in, NULL); 
    csoundSpinUnLock(lock);
 }
 
@@ -2338,7 +2334,7 @@ int32_t array_perf_check(CSOUND* csound, CHNGET* p, int type) {
 static int32_t chnget_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p) 
 {
   if(array_perf_check(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
-    copy_array((ARRAYDAT *) p->arg,  (ARRAYDAT *) p->fp, p->lock);
+    copy_array(csound, (ARRAYDAT *) p->arg,  (ARRAYDAT *) p->fp, p->lock);
     return OK;
   }
   else return NOTOK;
@@ -2350,7 +2346,7 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
   if(init_chn_array(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
     if(adat->arrayType == &CS_VAR_TYPE_I) {
-      copy_array(adat, (ARRAYDAT *) p->fp, p->lock);
+      copy_array(csound, adat, (ARRAYDAT *) p->fp, p->lock);
     } else 
     p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
     return OK;
@@ -2362,7 +2358,7 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p) 
 {
   if(array_perf_check(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
-    copy_array((ARRAYDAT *) p->fp,  (ARRAYDAT *) p->arg, p->lock);
+    copy_array(csound, (ARRAYDAT *) p->fp,  (ARRAYDAT *) p->arg, p->lock);
     return OK;
   }
   else return NOTOK;
@@ -2374,7 +2370,7 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
   if(init_chn_array(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
     if(adat->arrayType == &CS_VAR_TYPE_I) {
-      copy_array((ARRAYDAT *) p->fp, adat, p->lock);
+      copy_array(csound, (ARRAYDAT *) p->fp, adat, p->lock);
     } else 
     p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
     return OK;

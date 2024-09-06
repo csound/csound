@@ -29,24 +29,27 @@
 
 /* MEMORY COPYING FUNCTIONS */
 
-void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* src, OPDS *ctx) {
+void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                      const void* src, OPDS *ctx) {
   MYFLT* f1 = (MYFLT*)dest;
   MYFLT* f2 = (MYFLT*)src;
   *f1 = *f2;
 }
 
-void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* src, OPDS *ctx) {
+void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                     const void* src, OPDS *ctx) {
   int32_t ksmps = ctx ? ctx->insdshead->ksmps : csound->ksmps;
   memcpy(dest, src, sizeof(MYFLT) * ksmps);
 }
 
-void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* src, OPDS *ctx) {
+void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                     const void* src, OPDS *ctx) {
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
 
-void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* src,
-                     OPDS *ctx) {
+void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                     const void* src, OPDS *ctx) {
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
     int N = fsigin->N;
@@ -59,8 +62,8 @@ void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* sr
 }
 
 
-void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* src,
-                       OPDS *p) {
+void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                       const void* src, OPDS *p) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
@@ -96,8 +99,8 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
-void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest, void* src,
-                      OPDS *ctx) {
+void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                      const void* src, OPDS *ctx) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
