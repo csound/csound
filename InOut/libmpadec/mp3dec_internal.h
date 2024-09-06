@@ -31,7 +31,7 @@
 struct mp3dec_t {
   uint32_t size;
   mpadec_t mpadec;
-  int32_t fd;
+  FILE *f;
   uint32_t flags;
   off_t stream_offset;
   int64_t stream_size;

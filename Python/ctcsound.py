@@ -418,8 +418,16 @@ NEGPOL = 1
 POSPOL = 2
 BIPOL = 3
 
+OPENSOUNDFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_void_p)
+libcsound.csoundSetOpenSoundFileCallback.argtypes = [ct.c_void_p, OPENSOUNDFILEFUNC]
+
+OPENFILEFUNC = ct.CFUNCTYPE(ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_char_p)
+libcsound.csoundSetOpenFileCallback.argtypes = [ct.c_void_p, OPENFILEFUNC]
+
 # Table display (from graph_display.h)
 libcsound.csoundSetIsGraphable.argtypes = [CSOUND_p, ct.c_int]
+
+
 MAKEGRAPHFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.POINTER(Windat), ct.c_char_p)
 libcsound.csoundSetMakeGraphCallback.argtypes = [CSOUND_p, MAKEGRAPHFUNC]
 DRAWGRAPHFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.POINTER(Windat))
@@ -640,6 +648,42 @@ class Csound:
         Returns the stored value containing the system HW sr.
         """
         return libcsound.csoundSystemSr(self.cs, val)
+
+    def setOpenSoundFileCallback(self, function):
+        """Sets a callback for opening a sound file.
+
+        The callback is made when a sound file is going to be opened.
+        The following information is passed to the callback:
+
+        bytes
+            pathname of the file; either full or relative to current dir
+        int
+            access flags for the file.
+        ptr
+            sound file info of the file.
+
+        Pass NULL to disable the callback.
+        This callback is retained after a :py:meth:`reset()` call.
+        """
+        self.openSoundFileCbRef = OPENSOUNDFILEFUNC(function)
+        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.openSoundFileCbRef)
+
+    def setOpenFileCallback(self, function):
+        """Sets a callback for opening a file.
+
+        The callback is made when a file is going to be opened.
+        The following information is passed to the callback:
+
+        bytes
+            pathname of the file; either full or relative to current dir
+        bytes
+            access mode of the file.
+
+        Pass NULL to disable the callback.
+        This callback is retained after a :py:meth:`reset()` call.
+        """
+        self.openFileCbRef = OPENFILEFUNC(function)
+        libcsound.csoundSetOpenFileCallback(self.cs, self.openFileCbRef)
 
     def module(self, number):
         """Retrieves a module name and type given a number.
@@ -1228,7 +1272,7 @@ class Csound:
         It allows access to data from elsewhere.
         """
         libcsound.csoundUnlockChannel(self.cs, cstring(channel))
-  
+
     def control_channel(self, name):
         """Retrieves the value of control channel identified by name.
 
