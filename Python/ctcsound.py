@@ -649,7 +649,7 @@ class Csound:
         """
         return libcsound.csoundSystemSr(self.cs, val)
 
-    def setOpenSoundFileCallback(self, function):
+    def set_open_sound_file_callback(self, function):
         """Sets a callback for opening a sound file.
 
         The callback is made when a sound file is going to be opened.
@@ -668,7 +668,7 @@ class Csound:
         self.openSoundFileCbRef = OPENSOUNDFILEFUNC(function)
         libcsound.csoundSetOpenSoundFileCallback(self.cs, self.openSoundFileCbRef)
 
-    def setOpenFileCallback(self, function):
+    def set_open_file_callback(self, function):
         """Sets a callback for opening a file.
 
         The callback is made when a file is going to be opened.
