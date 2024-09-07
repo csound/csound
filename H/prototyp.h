@@ -37,8 +37,8 @@ void    *mmallocDebug(CSOUND *, size_t, char*, int);
 void    *mcallocDebug(CSOUND *, size_t, char*, int);
 void    *mreallocDebug(CSOUND *, void *, size_t, char*, int);
 void    mfreeDebug(CSOUND *, void *, char*, int);
-char    *cs_strdup(CSOUND*, char*);
-char    *cs_strndup(CSOUND*, char*, size_t);
+char    *cs_strdup(CSOUND*, const char*);
+char    *cs_strndup(CSOUND*, const char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
 int     csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
                             AUXASYNC *, aux_cb , void *);

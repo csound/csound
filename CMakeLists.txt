@@ -188,18 +188,7 @@ option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" 
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
-
-
-
-if(BARE_METAL)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
-    if(CUSTOM_MALLOC)
-     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
-    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
-    endif()
-endif()
+option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
 
 # secret rabbit code
 if (USE_VCPKG)
@@ -225,6 +214,28 @@ if(CUSTOM_CMAKE)
     include(${CUSTOM_CMAKE})
 else()
     message(STATUS "Not using Custom.cmake file.")
+endif()
+
+
+if(BUILD_WITH_LTO)
+set(CSOUNDLIB_SHARED_LINK_OPTIONS -flto -Werror=odr
+-Werror=lto-type-mismatch -Werror=strict-aliasing)
+message(STATUS "Building with link-time optimisations")
+else()
+set(CSOUNDLIB_SHARED_LINK_OPTIONS "")
+message(STATUS "Not building with link-time optimisations")
+endif()
+
+if(BARE_METAL)
+message(STATUS "Building for bare metal")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
+    
+    if(CUSTOM_MALLOC)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
+    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
+    endif()
 endif()
 
 # in Release configuration, set NDEBUG
@@ -997,6 +1008,7 @@ if(NOT BUILD_PLUGINS)
  ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS}  ${oldpvoc_SRCS}
  ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
+ list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
 endif()
 
 if(UNIX)
@@ -1381,10 +1393,13 @@ if(USE_LIBSNDFILE)
 endif()
 
 if(SampleRate_FOUND)
+    if(NOT IOS)
   target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
+      endif()
 endif()
 
 if(NOT IOS)
+   target_link_options(${CSOUNDLIB} PUBLIC ${CSOUNDLIB_SHARED_LINK_OPTIONS})
     set_target_properties(${CSOUNDLIB} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
@@ -1397,6 +1412,9 @@ if(BUILD_STATIC_LIBRARY)
     target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
+    if(BUILD_PLUGINS)
+     list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
+     endif()
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE
     ${libcsound_CFLAGS})
 

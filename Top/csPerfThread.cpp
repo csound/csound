@@ -28,6 +28,81 @@
 #include "csPerfThread.hpp"
 #include "soundio.h"
 
+#include "csoundCore.h"
+class CsoundThreadLock {
+protected:
+  void  *threadLock;
+public:
+  int Lock(size_t milliseconds)
+  {
+    return csoundWaitThreadLock(threadLock, milliseconds);
+  }
+  void Lock()
+  {
+    csoundWaitThreadLockNoTimeout(threadLock);
+  }
+  int TryLock()
+  {
+    return csoundWaitThreadLock(threadLock, (size_t) 0);
+  }
+  void Unlock()
+  {
+    csoundNotifyThreadLock(threadLock);
+  }
+  // constructors
+  // FIXME: should throw exception on failure ?
+  CsoundThreadLock()
+  {
+    threadLock = csoundCreateThreadLock();
+  }
+  CsoundThreadLock(int locked)
+  {
+    threadLock = csoundCreateThreadLock();
+    if (locked)
+      csoundWaitThreadLock(threadLock, (size_t) 0);
+  }
+  // destructor
+  ~CsoundThreadLock()
+  {
+    csoundDestroyThreadLock(threadLock);
+  }
+};
+
+class CsoundMutex {
+protected:
+  void  *mutex_;
+public:
+  void Lock()
+  {
+    csoundLockMutex(mutex_);
+  }
+  // FIXME: this may be unimplemented on Windows
+  int TryLock()
+  {
+    return csoundLockMutexNoWait(mutex_);
+  }
+  void Unlock()
+  {
+    csoundUnlockMutex(mutex_);
+  }
+  CsoundMutex()
+  {
+    mutex_ = csoundCreateMutex(1);
+  }
+#if (__cplusplus >= 201103L)
+  explicit
+#endif
+  CsoundMutex(int isRecursive)
+  {
+    mutex_ = csoundCreateMutex(isRecursive);
+  }
+  ~CsoundMutex()
+  {
+    csoundDestroyMutex(mutex_);
+  }
+};
+
+
 // ----------------------------------------------------------------------------
 
 /**
@@ -410,7 +485,8 @@ public:
 // ----------------------------------------------------------------------------
 
 /**
- * Performs the score until end of score, error, or receiving a stop event.
+ * Performs the score until end of score, error, or 
+   receiving a stop event.
  * Returns a negative value on error.
  */
 
@@ -432,7 +508,8 @@ int CsoundPerformanceThread::Perform()
             lastMessage = (CsoundPerformanceThreadMessage*) 0;
           // process and destroy message
           retval = msg->run();
-          delete msg; // TODO: This should be moved out of the Perform function
+          // TODO: This should be moved out of the Perform function
+          delete msg; 
         } while (!retval);
         if (paused)
           csoundWaitThreadLock(pauseLock, (size_t) 0);
@@ -454,24 +531,18 @@ int CsoundPerformanceThread::Perform()
            processcallback(cdata);
       retval = csoundPerformKsmps(csound);
       if (recordData.running) {
-          MYFLT *spout = csoundGetSpout(csound);
+          const MYFLT *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetNchnls(csound);
-          if (csoundGet0dBFS(csound) != 1.0) {
-              MYFLT zdbfs = csoundGet0dBFS(csound);
-              MYFLT *modspout = spout;
-              for (int i = 0; i < len; i++) {
-                  *modspout /= zdbfs;
-                  modspout++;
-              }
-          }
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
                                                   spout, len);
           if (written != len) {
-              csoundMessage(csound, "perfThread record buffer overrun.\n");
+              csoundMessage(csound,
+                            "perfThread record buffer overrun.\n");
           }
       }
-      csoundCondSignal(recordData.condvar); // Needs to be outside the if
-                              // for the case where stop record was requested
+      csoundCondSignal(recordData.condvar);
+      // Needs to be outside the if
+      // for the case where stop record was requested
     } while (!retval);
  endOfPerf:
     status = retval;
@@ -491,7 +562,7 @@ int CsoundPerformanceThread::Perform()
     }
     csoundNotifyThreadLock(flushLock);
     csoundUnlockMutex(queueLock);
-    //running = 0;
+    running = 0;
     return retval;
 }
 
@@ -597,6 +668,11 @@ CsoundPerformanceThread::CsoundPerformanceThread(Csound *csound)
 CsoundPerformanceThread::CsoundPerformanceThread(CSOUND *csound)
 {
     csPerfThread_constructor(csound);
+}
+
+CsoundPerformanceThread::CsoundPerformanceThread(Csound &csound)
+{
+  csPerfThread_constructor(csound.GetCsound());
 }
 
 CsoundPerformanceThread::~CsoundPerformanceThread()
@@ -763,122 +839,115 @@ void CsoundPerformanceThread::FlushMessageQueue()
 // CsoundPerformanceThread through FFI libraries.
 extern "C" {
 
-#ifndef PUBLIK
-#if (defined(WIN32) || defined(_WIN32))
-#  define PUBLIK        __declspec(dllexport)
-#elif defined(__GNUC__) //&& !defined(__MACH__)
-#  define PUBLIK        __attribute__ ( (visibility("default")) )
-#else
-#  define PUBLIK
-#endif
-#endif
-
 typedef void* Cpt;
 
-PUBLIK Cpt NewCsoundPT(CSOUND *csound)
+PUBLIC Cpt csoundCreatePerformanceThread(CSOUND *csound)
 {
   CsoundPerformanceThread *pt = new CsoundPerformanceThread(csound);
   return (void *)pt;
 }
 
-PUBLIK void DeleteCsoundPT(Cpt pt)
+PUBLIC void csoundDestroyPerformanceThread(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   delete cpt;
 }
 
-PUBLIK int CsoundPTisRunning(Cpt pt)
+PUBLIC int csoundPerformanceThreadIsRunning(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
-  return cpt->isRunning();
+  return cpt->IsRunning();
 }
 
-PUBLIK void *CsoundPTgetProcessCB(Cpt pt)
+PUBLIC void *csoundPerformanceThreadGetProcessCB(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   return cpt->GetProcessCallback();
 }
 
-PUBLIK void CsoundPTsetProcessCB(Cpt pt, void (*callback)(void *), void *cbData)
+PUBLIC void csoundPerformanceThreadSetProcessCB(Cpt pt,
+                                                void (*callback)(void *),
+                                                void *cbData)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->SetProcessCallback(callback, cbData);
 }
 
-PUBLIK CSOUND *CsoundPTgetCsound(Cpt pt)
+PUBLIC CSOUND *csoundPerformanceThreadGetCsound(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   return cpt->GetCsound();
 }
 
-PUBLIK int CsoundPTgetStatus(Cpt pt)
+PUBLIC int csoundPerformanceThreadGetStatus(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   return cpt->GetStatus();
 }
 
-PUBLIK void CsoundPTplay(Cpt pt)
+PUBLIC void csoundPerformanceThreadPlay(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->Play();
 }
 
-PUBLIK void CsoundPTpause(Cpt pt)
+PUBLIC void csoundPerformanceThreadPause(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->Pause();
 }
 
-PUBLIK void CsoundPTtogglePause(Cpt pt)
+PUBLIC void csoundPerformanceThreadTogglePause(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->TogglePause();
 }
 
-PUBLIK void CsoundPTstop(Cpt pt)
+PUBLIC void csoundPerformanceThreadStop(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->Stop();
 }
 
-PUBLIK void CsoundPTrecord(Cpt pt, const char *filename, int samplebits, int numbufs)
+PUBLIC void csoundPerformanceThreadRecord(Cpt pt, const char *filename, int samplebits, int numbufs)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   std::string fname(filename);
   cpt->Record(fname, samplebits, numbufs);
 }
 
-PUBLIK void CsoundPTstopRecord(Cpt pt)
+PUBLIC void csoundPerformanceThreadStopRecord(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->StopRecord();
 }
 
-PUBLIK void CsoundPTscoreEvent(Cpt pt, int absp2mode, char opcod, int pcnt, MYFLT *p)
+PUBLIC void csoundPerformanceThreadScoreEvent(Cpt pt, int absp2mode, char opcod, int pcnt, MYFLT *p)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->ScoreEvent(absp2mode, opcod, pcnt, p);
 }
 
-PUBLIK void CsoundPTinputMessage(Cpt pt, const char *s)
+PUBLIC void csoundPerformanceThreadInputMessage(Cpt pt, const char *s)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->InputMessage(s);
 }
 
-PUBLIK void CsoundPTsetScoreOffsetSeconds(Cpt pt, double timeVal)
+PUBLIC void csoundPerformanceThreadSetScoreOffsetSeconds(Cpt pt,
+                                                         double timeVal)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->SetScoreOffsetSeconds(timeVal);
 }
 
-PUBLIK int CsoundPTjoin(Cpt pt)
+PUBLIC int csoundPerformanceThreadJoin(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   return cpt->Join();
 }
 
-PUBLIK void CsoundPTflushMessageQueue(Cpt pt)
+PUBLIC void csoundPerformanceThreadFlushMessageQueue(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
   cpt->FlushMessageQueue();

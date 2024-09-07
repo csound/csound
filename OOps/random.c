@@ -44,7 +44,7 @@
 
 /* simple linear congruential generator */
 
-PUBLIC int csoundRand31(int *seedVal)
+int csoundRand31(int *seedVal)
 {
     uint64_t  tmp1;
     uint32_t  tmp2;
@@ -87,7 +87,7 @@ static CS_NOINLINE void MT_update_state(uint32_t *mt)
 
 /* generates a random number on [0,0xffffffff]-interval */
 
-PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p)
+uint32_t csoundRandMT(CsoundRandMTState *p)
 {
     int32_t       i = p->mti;
     uint32_t  y;
@@ -112,7 +112,7 @@ PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p)
 /* key_length is its length */
 /* slight change for C++, 2004/2/26 */
 
-PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
+void csoundSeedRandMT(CsoundRandMTState *p,
                              const uint32_t *initKey, uint32_t keyLength)
 {
     int32_t       i, j, k;
