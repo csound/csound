@@ -730,7 +730,12 @@ extern int ISSTRCOD(MYFLT);
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
-#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+
+/* Phase modulo-1 for oscillators */
+static inline double PHMOD1(double p) {
+    return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p;
+}
+  
   typedef int32_t (*SUBR)(CSOUND *, void *);
 
   /**
