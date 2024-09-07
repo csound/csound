@@ -20,7 +20,6 @@
 /* $Id: mpadec.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
 #include <stdlib.h>
-#include "csdl.h"
 #include "mpadec_internal.h"
 
 extern const uint16_t crc_table[256];

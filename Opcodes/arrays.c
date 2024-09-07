@@ -128,7 +128,8 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   }
 
   {
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType,
+    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, (void *)
+                                                           arrayDat->arrayType,
                                                            &(p->h));
     char *mem;
     arrayDat->arrayMemberSize = var->memBlockSize;

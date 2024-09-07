@@ -1875,7 +1875,7 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
     if (a_cps) 
       cpsf = xcps[nn] * CS_ONEDSR;
     
-    if(floatph) {
+    if(!floatph) {
     if (async[nn] > FL(0.0)) {               /* re-initialise phase */
       phsf = *(p->kphs) - (MYFLT) ((int32) *(p->kphs));
       phs = OSCBNK_PHS2INT(phsf);

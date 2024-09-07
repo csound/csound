@@ -44,7 +44,8 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     return 0;
 }
 
-CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* typeName) {
+const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* typeName) {
+
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
@@ -141,7 +142,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
 
 /** Create variable outside an instrument context */
 CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                  CS_TYPE* type, char* name, void* typeArg)
+                                  const CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
     if (LIKELY(type != NULL))
@@ -272,7 +273,7 @@ void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
-    CS_TYPE* type;
+    const CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
       type = current->subType;

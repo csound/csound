@@ -23,6 +23,7 @@
 #define __MP3DEC_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include "mpadec.h"
 
 #define MP3DEC_RETCODE_OK                 0
@@ -44,7 +45,7 @@ extern "C" {
 #endif
 
 mp3dec_t mp3dec_init(void);
-int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap);
+int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap);
 int mp3dec_uninit(mp3dec_t mp3dec);
 int mp3dec_reset(mp3dec_t mp3dec);
 int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg);

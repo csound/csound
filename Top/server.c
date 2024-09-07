@@ -189,7 +189,7 @@ static uintptr_t udp_recv(void *pdata){
         csound->Message(csound, "%s", orchestra);
       if (strncmp("!!close!!",orchestra,9)==0 ||
           strncmp("##close##",orchestra,9)==0) {
-        csoundInputMessageAsync(csound, "e 0 0");
+        csoundEventString(csound, "e 0 0", 1);
         break;
       }
       if(*orchestra == '/') {
@@ -209,10 +209,10 @@ static uintptr_t udp_recv(void *pdata){
         // parse messages
         if(!strcmp(mess.address, "/csound/compile") &&
            !strcmp(mess.type, "s")) {
-          csoundCompileOrcAsync(csound, buf);
+          csoundCompileOrc(csound, buf, 1);
         } else if(!strcmp(mess.address, "/csound/event")){
           if(!strcmp(mess.type, "s")) 
-            csoundInputMessageAsync(csound, buf);
+            csoundEventString(csound, buf, 1);
         }
         else if(!strcmp(mess.address, "/csound/event/instr")){
             // numeric types
@@ -224,7 +224,7 @@ static uintptr_t udp_recv(void *pdata){
                                               &arg[i]);
               if(buf == NULL) break;
             }
-            csoundScoreEventAsync(csound, 'i', arg, i);
+            csoundEvent(csound, CS_INSTR_EVENT, arg, i, 1);
             mfree(csound, arg);
         }
         else if(!strncmp(mess.address, "/csound/channel",15)) {
@@ -253,7 +253,7 @@ static uintptr_t udp_recv(void *pdata){
                   !strcmp(mess.address, "/csound/exit") ||
                   !strcmp(mess.address, "/csound/close") ||
                   !strcmp(mess.address, "/csound/stop")) {
-          csoundInputMessageAsync(csound, "e 0 0");
+          csoundEventString(csound, "e 0 0", 1);
         }
         else {
           mess.data = (char *) buf;
@@ -263,10 +263,10 @@ static uintptr_t udp_recv(void *pdata){
         }
       }
       else if(*orchestra == '&') {
-        csoundInputMessageAsync(csound, orchestra+1);
+        csoundEventString(csound, orchestra+1, 1);
       }
       else if(*orchestra == '$') {
-        csoundReadScoreAsync(csound, orchestra+1);
+        csoundEventString(csound, orchestra+1, 1);
       }
       else if(*orchestra == '@') {
         char chn[128];
@@ -296,11 +296,10 @@ static uintptr_t udp_recv(void *pdata){
           sprintf(msg, "%s::%f", chn, val);
         }
         else if (*(orchestra+1) == '%') {
-          MYFLT  *pstring;
-          if (csoundGetChannelPtr(csound, &pstring, chn,
+          STRINGDAT* stringdat;
+          if (csoundGetChannelPtr(csound, (void **) &stringdat, chn,
                                   CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
               == CSOUND_SUCCESS) {
-            STRINGDAT* stringdat = (STRINGDAT*) pstring;
             int size = stringdat->size;
             spin_lock_t *lock =
               (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
@@ -338,12 +337,12 @@ static uintptr_t udp_recv(void *pdata){
         if(!cont) {
           orchestra = start;
           //csound->Message(csound, "%s\n", orchestra+1);
-          csoundCompileOrcAsync(csound, orchestra+1);
+          csoundCompileOrc(csound, orchestra+1, 1);
         }
       }
       else {
         //csound->Message(csound, "%s\n", orchestra);
-        csoundCompileOrcAsync(csound, orchestra);
+        csoundCompileOrc(csound, orchestra, 1);
       }
     }
   }

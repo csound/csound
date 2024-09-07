@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     CSOUND  *csound;
     int     n = -1;
 
-    if ((csound = csoundCreate(NULL)) != NULL) {
+    if ((csound = csoundCreate(NULL,NULL)) != NULL) {
       csoundSetMessageCallback(csound, messageCallback_);
       n = csoundRunUtility(csound, "pvlook", argc, argv);
       csoundDestroy(csound);

@@ -26,7 +26,11 @@
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
+#ifdef CS_INTERNAL
+#include "csoundCore.h"
+#else
 #include "csdl.h"
+#endif
 #include "pstream.h"
 #include "arrays.h"
 #include <array>

@@ -160,7 +160,8 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *os;
-    MYFLT   *type;
+    MYFLT   *in_cvt;
+    MYFLT   *out_cvt;
 } OVSMPLE;
 
 

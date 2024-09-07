@@ -38,7 +38,7 @@ PROJECT_NAME           = "Csound API"
 # could be handy for archiving the generated documentation or if some version
 # control system is used.
 
-PROJECT_NUMBER         = 6.09
+PROJECT_NUMBER         = 7.00
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer a
@@ -799,10 +799,15 @@ INPUT_ENCODING         = UTF-8
 
 FILE_PATTERNS          = csound.h \
                          csound.hpp \
-                         csound_threaded.hpp \
+                         csound_threads.h \
                          csoundCore.h \
-                         cscore.h \
-                         csdl.h \
+                         csound_files.h \
+                         csound_circular_buffer.h \
+                         csound_graph_display.h \
+                         csound_server.h \
+                         csPerfThread.h \
+                         csPerfThread.hpp \
+                         csound_type_system.h \
                          csdebug.h
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should

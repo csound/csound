@@ -33,7 +33,7 @@ static int32_t csoundUtilMain(const char *name, int32_t argc, char **argv)
     CSOUND *csound;
     int32_t     n = -1;
 
-    if ((csound = csoundCreate(NULL)) != NULL) {
+    if ((csound = csoundCreate(NULL, NULL)) != NULL) {
       n = csoundRunUtility(csound, name, argc, argv);
       csoundDestroy(csound);
     }

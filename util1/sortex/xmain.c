@@ -34,7 +34,7 @@ int main(int ac, char **av)         /* stdio stub for standalone extract */
     FILE    *xfp;
     int     err = 1;
 
-    csound = csoundCreate(NULL);
+    csound = csoundCreate(NULL,NULL);
 #if defined(LINUX) || defined(SGI) || defined(sol) || \
     defined(__MACH__) || defined(__EMX__)
     signal(SIGPIPE, SIG_DFL);

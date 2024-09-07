@@ -1,7 +1,8 @@
 /*
-  csoundCore.h:
+  csoundCore.h: csound engine structures and module API
 
-  Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga
+  Copyright (C) 1991-2024 Barry Vercoe, John ffitch, Istvan Varga, 
+                           V Lazzarini, S Yi
 
   This file is part of Csound.
 
@@ -43,6 +44,7 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
+#include "csound_server.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
 #include "pools.h"
@@ -75,6 +77,106 @@
 extern "C" {
 #endif /*  __cplusplus */
 
+
+  /* VL: these were moved here from csound.h 
+     as they are not relevant to the new host API
+  */
+  typedef struct xyindat_ XYINDAT;
+
+  /**
+   * Real-time audio parameters structure
+   */
+  typedef struct {
+    /** device name (NULL/empty: default) */
+    char    *devName;
+    /** device number (0-1023), 1024: default */
+    int     devNum;
+    /** buffer fragment size (-b) in sample frames */
+    unsigned int     bufSamp_SW;
+    /** total buffer size (-B) in sample frames */
+    int     bufSamp_HW;
+    /** number of channels */
+    int     nChannels;
+    /** sample format (AE_SHORT etc.) */
+    int     sampleFormat;
+    /** sample rate in Hz */
+    float   sampleRate;
+    /** ksmps */
+    int ksmps;
+  } csRtAudioParams;
+
+  typedef struct RTCLOCK_S {
+    int_least64_t   starttime_real;
+    int_least64_t   starttime_CPU;
+  } RTCLOCK;
+
+  typedef struct CsoundRandMTState_ {
+    int         mti;
+    uint32_t    mt[624];
+  } CsoundRandMTState;
+  
+  int csoundRand31(int *seedVal);
+  void csoundSeedRandMT(CsoundRandMTState *p,
+                        const uint32_t *initKey, uint32_t keyLength);
+  uint32_t csoundRandMT(CsoundRandMTState *p);
+  int csoundCreateGlobalVariable(CSOUND *,const char *name, size_t nbytes);
+  void *csoundQueryGlobalVariable(CSOUND *, const char *name);
+  void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
+  int csoundDestroyGlobalVariable(CSOUND *, const char *name);
+  uint32_t csoundGetNchnls(CSOUND *);
+  uint32_t csoundGetNchnlsInput(CSOUND *csound);
+  long csoundGetInputBufferSize(CSOUND *);
+  long csoundGetOutputBufferSize(CSOUND *);
+  void *csoundGetNamedGens(CSOUND *);
+  int *csoundGetChannelLock(CSOUND *csound, const char *name);
+  uint32_t csoundGetRandomSeedFromTime(void);
+  void csoundInitTimerStruct(RTCLOCK *);
+  double csoundGetRealTime(RTCLOCK *);
+  double csoundGetCPUTime(RTCLOCK *);
+  int csoundRegisterSenseEventCallback(CSOUND *,
+                                       void (*func)(CSOUND *, void *),
+                                       void *userData);
+  void **csoundGetRtRecordUserData(CSOUND *);
+  void **csoundGetRtPlayUserData(CSOUND *);
+  
+  void
+  csoundSetPlayopenCallback(CSOUND *,
+                            int (*playopen__)(CSOUND *,
+                                              const csRtAudioParams *parm));
+  void csoundSetRtplayCallback(CSOUND *,
+                               void (*rtplay__)(CSOUND *,
+                                                const MYFLT *outBuf,
+                                                int nbytes));
+  void csoundSetRecopenCallback(CSOUND *,
+                                int (*recopen_)(CSOUND *,
+                                                const csRtAudioParams *parm));
+  void csoundSetRtrecordCallback(CSOUND *,
+                                 int (*rtrecord__)(CSOUND *,
+                                                   MYFLT *inBuf,
+                                                   int nbytes));
+  void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
+  void csoundSetAudioDeviceListCallback(CSOUND *csound,
+                                        int (*audiodevlist__)(CSOUND *,
+                                                              CS_AUDIODEVICE *list,
+                                                              int isOutput));
+  char **csoundListUtilities(CSOUND *);
+  void csoundDeleteUtilityList(CSOUND *, char **lst);
+  const char *csoundGetUtilityDescription(CSOUND *,
+                                                 const char *utilName);
+  int csoundCompileCsd(CSOUND *csound, const char *csd_filename);
+  int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
+  int csoundCleanup(CSOUND *);
+
+  void csoundInputMessage(CSOUND *csound, const char * sc);
+  int csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
+                        long numFields);
+
+#include "csound_files.h"
+#include "csound_graph_display.h"
+#include "csound_circular_buffer.h"
+#include "csound_threads.h"
+#include "csound_compiler.h"
+  
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
@@ -265,11 +367,13 @@ extern "C" {
     char    *infilename, *outfilename;
     CORFIL  *playscore;
     char    *Linename, *Midiname, *FMidiname;
-    char    *Midioutname;   /* jjk 09252000 - MIDI output device, -Q option */
+    char    *Midioutname;
+    /* jjk 09252000 - MIDI output device, -Q option */
     char    *FMidioutname;
     int     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
     int     midiVelocity, midiVelocityAmp;
-    int     noDefaultPaths;  /* syy - Oct 25, 2006: for disabling relative paths
+    int     noDefaultPaths;
+    /* syy - Oct 25, 2006: for disabling relative paths
                                 from files */
     int     numThreads;
     int     syntaxCheckOnly;
@@ -311,7 +415,6 @@ extern "C" {
     int32_t  (*deinit)(CSOUND *, void *p);
     void    *useropinfo;    /* user opcode parameters */
   } OENTRY;
-
 
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
@@ -414,29 +517,33 @@ extern "C" {
   } AUXASYNC;
 
   typedef struct {
-    int      dimensions;
-    int32_t*     sizes;             /* size of each dimensions */
-    int      arrayMemberSize;
-    CS_TYPE* arrayType;
-    MYFLT*   data;
-    size_t   allocated;
-    //    AUXCH   aux;
-  } ARRAYDAT;
-
-  typedef struct {
     int     size;             /* 0...size-1 */
     MYFLT   *data;
     AUXCH   aux;
   } TABDAT;
 
+  /*
+   * Type definition for array data 
+   */
+  struct arraydat {
+    int      dimensions; /* number of array dimensions */
+    int32_t*     sizes;  /* size of each dimensions */
+    int      arrayMemberSize; /* size of each item */
+    const struct cstype* arrayType; /* type of array */
+    MYFLT*   data; /* data */
+    size_t   allocated; /* size of allocated data */
+  };  
+ 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-
-  typedef struct {
-    char *data;
-    size_t size;
-    int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
-  } STRINGDAT;
-
+  /*
+   * Type definition for string data (string channels)
+   */ 
+  struct stringdat {
+    char *data;         // null-terminated string
+    size_t size;        // total allocated size
+    int64_t timestamp;  // used internally for updates  
+  };
+  
   typedef struct monblk {
     int16   pch;
     struct monblk *prv;
@@ -575,7 +682,7 @@ extern "C" {
     uint64_t kcounter;
     MYFLT    esr, sicvt, pidsr;                  /* local sr */
     MYFLT    onedsr;
-    int     overmode;
+    int     in_cvt, out_cvt; /* resampling converter modes for in and out */
     unsigned int ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
 
@@ -649,6 +756,14 @@ extern "C" {
     INSDS   *insdshead;
   } OPDS;
 
+  typedef struct {
+    char        *opname;
+    char        *outypes;
+    char        *intypes;
+    int         flags;
+  } opcodeListEntry;
+  
+  
   typedef struct lblblk {
     OPDS    h;
     OPDS    *prvi;
@@ -1320,8 +1435,6 @@ extern "C" {
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
-    MYFLT *(*GetInputBuffer)(CSOUND *);
-    MYFLT *(*GetOutputBuffer)(CSOUND *);
     int (*GetDebug)(CSOUND *);
     int (*GetSizeOfMYFLT)(void);
     void (*GetOParms)(CSOUND *, OPARMS *parms);
@@ -1331,7 +1444,7 @@ extern "C" {
 
     /** @name Software bus */
     /**@{ */
-    int (*GetChannelPtr)(CSOUND *, MYFLT **ptr, const char *name, int mode);
+    int (*GetChannelPtr)(CSOUND *, void **ptr, const char *name, int mode);
     int (*ListChannels)(CSOUND *, controlChannelInfo_t **list);
     /**@}*/
 
@@ -1376,7 +1489,7 @@ extern "C" {
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
-    char *(*Strdup)(CSOUND *, char*);
+    char *(*Strdup)(CSOUND *, const char*);
     void (*Free)(CSOUND *, void *ptr);
     /**@}*/
 
@@ -1549,17 +1662,12 @@ extern "C" {
 
     /** @name Generic callbacks */
     /**@{ */
-    void (*SetYieldCallback)(CSOUND *, int (*yieldCallback)(CSOUND *));
     int (*Set_KeyCallback)(CSOUND *, int (*func)(void *, void *, unsigned int),
                            void *userData, unsigned int typeMask);
     void (*Remove_KeyCallback)(CSOUND *,
                                int (*func)(void *, void *, unsigned int));
-    int (*RegisterSenseEventCallback)(CSOUND *, void (*func)(CSOUND *, void *),
-                                      void *userData);
     int (*RegisterResetCallback)(CSOUND *, void *userData,
                                  int (*func)(CSOUND *, void *));
-    void (*SetInternalYieldCallback)(CSOUND *,
-                                     int (*yieldCallback)(CSOUND *));
     /**@}*/
 
     /** @name Hash tables */
@@ -1658,10 +1766,6 @@ extern "C" {
     /**@{ */
     /* Fast power of two function from a precomputed table */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
-    long (*RunCommand)(const char * const *argv, int noWait);
-    int (*OpenLibrary)(void **library, const char *libraryPath);
-    int (*CloseLibrary)(void *library);
-    void *(*GetLibrarySymbol)(void *library, const char *procedureName);
 #if defined (__CUDACC__) || defined (__MACH__)
     char *(*LocalizeString)(const char *);
 #else
@@ -1721,6 +1825,8 @@ extern "C" {
     int           (*csoundExitGraphCallback_)(CSOUND *);
     int           (*csoundYieldCallback_)(CSOUND *);
     void          (*cscoreCallback_)(CSOUND *);
+    void*         (*OpenSoundFileCallback_)(CSOUND*, const char*, int, void*);
+    FILE*         (*OpenFileCallback_)(CSOUND*, const char*, const char*);
     void          (*FileOpenCallback_)(CSOUND*, const char*, int, int, int);
     SUBR          last_callback_;
     /* these are not saved on RESET */
