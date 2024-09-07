@@ -508,19 +508,24 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
     if(p->INCOUNT > 4) {
-              if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
+      size_t i, iarg = p->type->size-1, nargs = p->INCOUNT - 5;
+    STRINGDAT *s;
+    ARRAYDAT *ar;
+    FUNC *ft;
+    int32_t j;   
+    if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
       /* allocate space for the types buffer */
       csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
 
     // todo: parse type to allocate memory
-    size_t i, iarg = 0;
-    STRINGDAT *s;
-    ARRAYDAT *ar;
-    FUNC *ft;
-    int32_t j;
     bsize = 0;
-    for(i=0; i < p->type->size-1; i++) {
+    if(iarg > nargs)
+     return csound->InitError(csound,
+                     "not enough args: had %lu, needed %lu\n",
+                      nargs, iarg);
+    
+    for(i=0,iarg=0; i < p->type->size-1; i++) {
       switch(p->type->data[i]){
       case 't':
         if (UNLIKELY(p->INOCOUNT < (uint32_t) p->type->size + 5))
@@ -602,27 +607,6 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     p->init_done = 1;
     p->fstime = 1;
     return OK;
-}
-
-static inline char le_test(){
-    union _le {
-      char c[2];
-      short s;
-    } le = {{0x0001}};
-    return le.c[0];
-}
-
-static inline char *byteswap(char *p, int32_t N){
-    if(le_test()) {
-      char tmp;
-      int32_t j ;
-      for(j = 0; j < N/2; j++) {
-        tmp = p[j];
-        p[j] = p[N - j - 1];
-        p[N - j - 1] = tmp;
-      }
-    }
-    return p;
 }
 
 static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {

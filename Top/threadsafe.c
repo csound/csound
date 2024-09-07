@@ -153,15 +153,10 @@ void message_dequeue(CSOUND *csound) {
       case SCORE_EVENT:
         {
           char type;
-          const MYFLT *pfields;
-          long numFields;
-          type = msg->args[0];
-          memcpy(&pfields, msg->args + ARG_ALIGN,
-                 sizeof(MYFLT *));
-          memcpy(&numFields, msg->args + ARG_ALIGN*2,
-                 sizeof(long));
-
-          csoundScoreEventInternal(csound, type, pfields, numFields);
+          MYFLT *fargs = (MYFLT *) msg->args;
+          type = (char) fargs[0];
+          csoundScoreEventInternal(csound, type, &fargs[2], (int)
+                                   (int) fargs[1]);
         }
         break;
       case SCORE_EVENT_ABS:
@@ -298,12 +293,13 @@ static inline int64_t *csoundScoreEvent_enqueue(CSOUND *csound, char type,
                                                 const MYFLT *pfields,
                                                 long numFields)
 {
-  const int argsize = ARG_ALIGN*3;
-  char args[ARG_ALIGN*3];
-  args[0] = type;
-  memcpy(args+ARG_ALIGN, &pfields, sizeof(MYFLT *));
-  memcpy(args+2*ARG_ALIGN, &numFields, sizeof(long));
-  return message_enqueue(csound,SCORE_EVENT, args, argsize);
+  const int argsize = sizeof(MYFLT)*(numFields+2);
+  MYFLT *args = mcalloc(csound, argsize);
+  memcpy(&args[2], pfields, argsize - sizeof(MYFLT)*2);
+  args[0] = (MYFLT) type;
+  args[1] = numFields;
+  return message_enqueue(csound, SCORE_EVENT, (char *) args,
+                         argsize);
 }
 
 
