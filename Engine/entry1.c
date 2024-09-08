@@ -1501,6 +1501,10 @@ OENTRY opcodlst_1[] = {
   {"resonbnk", S(RESONB), 0,  "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
   { "inrg", S(INRANGE), WI, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
+  { "OSClisten", S(ROSC), 0, "kNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+    "SS", NULL, (SUBR) readOSC_perf},
+  { "OSClisten", S(ROSCA), 0, "kk[]",
+    "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

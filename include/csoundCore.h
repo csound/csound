@@ -253,7 +253,7 @@ extern "C" {
 
 #define LOBITS     10
 #define LOFACT     1024
-/* LOSCAL is 1/LOFACT as MYFLT */
+  /* LOSCAL is 1/LOFACT as MYFLT */
 #define LOSCAL     FL(0.0009765625)
 #define LOMASK     1023
 
@@ -264,7 +264,7 @@ extern "C" {
   extern int32 MYNAN;
 #define SSTRCOD    (float)NAN
 #endif
-extern int ISSTRCOD(MYFLT);
+  extern int ISSTRCOD(MYFLT);
 
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff
@@ -730,7 +730,12 @@ extern int ISSTRCOD(MYFLT);
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
-#define PHMOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
+
+/* Phase modulo-1 for oscillators */
+static inline double PHMOD1(double p) {
+    return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p;
+}
+  
   typedef int32_t (*SUBR)(CSOUND *, void *);
 
   /**
@@ -977,6 +982,15 @@ extern int ISSTRCOD(MYFLT);
     int16   datreq, datcnt;
   } MGLOBAL;
 
+  typedef struct osc_mess {
+    char *address;
+    char *type;
+    char *data;
+    int32_t size;
+    int32_t flag;
+    struct osc_mess *nxt;
+  } OSC_MESS;
+
   typedef struct eventnode {
     struct eventnode  *nxt;
     uint32     start_kcnt;
@@ -1155,9 +1169,9 @@ extern int ISSTRCOD(MYFLT);
     char str[MAX_MESSAGE_STR];
   } message_string_queue_t;
 
-/* Binary positive power function */
-static inline double intpow1(double x, int32_t n)
-{
+  /* Binary positive power function */
+  static inline double intpow1(double x, int32_t n)
+  {
     double ans = 1.;
     while (n!=0) {
       if (n&1) ans = ans * x;
@@ -1165,17 +1179,17 @@ static inline double intpow1(double x, int32_t n)
       x = x*x;
     }
     return ans;
-}
+  }
 
-/* Binary power function */
-static inline double intpow(MYFLT x, int32_t n)
-{
+  /* Binary power function */
+  static inline double intpow(MYFLT x, int32_t n)
+  {
     if (n<0) {
       n = -n;
       x = 1./x;
     }
     return intpow1(x, n);
-}
+  }
 
   static inline int32_t byte_order(void){
     const int32_t one = 1;
@@ -1222,7 +1236,7 @@ static inline double intpow(MYFLT x, int32_t n)
    */
   static inline char *GetInputArgName(OPDS *p, uint32_t n){
     if ( n >=
-        (uint32_t) p->optext->t.inArgCount)
+         (uint32_t) p->optext->t.inArgCount)
       return (char*) NULL;
     return (char*) p->optext->t.inlist->arg[n];
   }
@@ -1366,6 +1380,28 @@ static inline double intpow(MYFLT x, int32_t n)
     return p->optext->t.oentry->opname;
   }
   /**@}*/
+
+  static inline char le_test(){
+    union _le {
+      char c[2];
+      short s;
+    } le = {{0x0001}};
+    return le.c[0];
+  }
+
+  static inline char *byteswap(char *p, int32_t N){
+    if (le_test()) {
+      char tmp;
+      int32_t j ;
+      for(j = 0; j < N/2; j++) {
+        tmp = p[j];
+        p[j] = p[N - j - 1];
+        p[N - j - 1] = tmp;
+      }
+    }
+    return p;
+  }
+  
 
 
 #include "find_opcode.h"
@@ -2169,6 +2205,8 @@ static inline double intpow(MYFLT x, int32_t n)
     int  mode;
     char *opcodedir;
     char *score_srt;
+    OSC_MESS osc_message_anchor;
+    spin_lock_t osc_spinlock;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
