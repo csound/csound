@@ -225,7 +225,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
      // it can be suppressed by using a fractional flen      
       ff.guardreq = (flen - (int) flen) > 0 ? 0 : 1;
     }
-    else if(isPowTwo(ff.flen & ~1)) { // pow2 or pow2 + 1
+    else if(IS_POW_TWO((ff.flen & ~1))) { // pow2 or pow2 + 1
       ff.guardreq = ff.flen & 01;       /*  set guard request flg   */
       ff.flen &= -2L;                   /*  flen now w/o guardpt    */   
     }
