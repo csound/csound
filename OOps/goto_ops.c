@@ -26,6 +26,7 @@
 #include "csoundCore.h" /*                            GOTO_OPS.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
+#include "csound_standard_types.h"
 extern int32_t strarg2insno(CSOUND *, void *p, int32_t is_string);
 
 int32_t igoto(CSOUND *csound, GOTO *p)

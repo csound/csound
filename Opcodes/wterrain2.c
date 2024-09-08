@@ -24,7 +24,13 @@
     02110-1301 USA
 */
 
-#include <csdl.h>
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#include "interlocks.h"
+#endif
+
 #include <math.h>
 
 /*  Wave-terrain synthesis opcode

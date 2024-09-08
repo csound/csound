@@ -1089,7 +1089,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
 
   
   while (current != NULL) {
-    CS_TYPE* varType = current->varType;
+    const CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
       varType->freeVariableMemory(csound,
                                   ip->lclbas + current->memBlockIndex);
@@ -1550,6 +1550,24 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedkr = CS_ONEDKR;
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
+
+  /* VL 13-12-13 */
+  /* this sets ksmps and kr local variables */
+  /* create local ksmps variable and init with ksmps */
+  if (lcurip->lclbas != NULL) {
+    CS_VARIABLE *var =
+      csoundFindVariableWithName(csound, lcurip->instr->varPool, "ksmps");
+    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;
+    /* same for kr */
+    var =
+      csoundFindVariableWithName(csound, lcurip->instr->varPool, "kr");
+    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ekr;
+    /* VL 15-08-24 same for sr */   
+    var =
+      csoundFindVariableWithName(csound, lcurip->instr->varPool, "sr");
+    *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->esr;
+  }
+  
   lcurip->m_chnbp = parent_ip->m_chnbp;       /* MIDI parameters */
   lcurip->m_pitch = parent_ip->m_pitch;
   lcurip->m_veloc = parent_ip->m_veloc;
@@ -1668,12 +1686,12 @@ int xinset(CSOUND *csound, XIN *p)
     // check output kvars in case inputs are constants
     if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
-      current->varType->copyValue(csound, current->varType, out, in);
+      current->varType->copyValue(csound, current->varType, out, in, &(p->h));
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
                                         CS_ESR/parent_sr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -1682,7 +1700,7 @@ int xinset(CSOUND *csound, XIN *p)
     else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) { 
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
                                         CS_ESR/parent_sr, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -1731,11 +1749,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     // check output types in case of constants
     if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A)
-      current->varType->copyValue(csound, current->varType, out, in);
+      current->varType->copyValue(csound, current->varType, out, in, &(p->h));
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, CS_KSMPS)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");        
@@ -1744,7 +1762,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, 1)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");        
@@ -1869,8 +1887,11 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   */     
   p->h.insdshead->xtratim *= onedos; 
   CS_KCNT *= onedos;
-  /* oversampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  /* oversampling mode (s) */
+  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  if(*p->out_cvt >= 0)
+    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt; 
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
@@ -1943,8 +1964,11 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
      
   p->h.insdshead->xtratim *= FL(1.0)/onedos; 
   CS_KCNT *= FL(1.0)/onedos;
-  /* undersampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  /* undersampling mode (s) */
+  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  if(*p->out_cvt >= 0)
+    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt; 
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
@@ -2236,7 +2260,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+          current->varType->copyValue(csound, current->varType, out, in, NULL);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2340,7 +2364,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+          current->varType->copyValue(csound, current->varType, out, in, NULL);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2465,7 +2489,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        current->varType->copyValue(csound, current->varType, out, in);
+        // this needs to pass the OPDS so the calling instr ksmps can be used.
+        current->varType->copyValue(csound, current->varType, out, in, &(p->h));
       }
     }
     current = current->next;
@@ -2525,7 +2550,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)external_ptrs[i + inm->outchns];
             void* out = (void*)internal_ptrs[i + inm->outchns];
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
           }
         } else { // oversampling
           void* in = (void*)external_ptrs[i + inm->outchns];
@@ -2537,7 +2562,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
            
           }
           else if(ocnt == 0) // only copy other variables once
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
         }   
       }
       current = current->next;
@@ -2568,7 +2593,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)internal_ptrs[i];
             void* out = (void*)external_ptrs[i];
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
           }
         } 
         else { // oversampling
@@ -2579,7 +2604,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
             // sample rate conversion
             src_convert(csound, p->cvt_out[cvt++], in, out);
           } else if(ocnt == 0) {// only copy other variables once
-            current->varType->copyValue(csound, current->varType, out, in);
+            current->varType->copyValue(csound, current->varType, out, in, NULL);
           }
         }   
       }
@@ -2703,7 +2728,7 @@ static void instance(CSOUND *csound, int insno)
   /* initialize vars for CS_TYPE */
   for (current = tp->varPool->head; current != NULL; current = current->next) {
     char* ptr = (char*)(lclbas + current->memBlockIndex);
-    CS_TYPE** typePtr = (CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
 

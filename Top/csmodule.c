@@ -230,6 +230,9 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
   }
   return 0;
 }
+int csoundOpenLibrary(void **library, const char *libraryPath);
+int csoundCloseLibrary(void *library);
+void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
 
 /**
@@ -634,7 +637,7 @@ int csoundLoadModules(CSOUND *csound)
     } else if(userplugindirlen + prefixlen + 1 >= buflen) {
       csound->ErrorMsg(csound, "%s", Str("User plugin dir too long\n"));
     } else {
-      
+
       snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
       if(_dir_exists(buf)) {
         snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
@@ -643,7 +646,7 @@ int csoundLoadModules(CSOUND *csound)
     }
 #endif
   }
- 
+
   if(UNLIKELY(csound->oparms->odebug))
     csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
@@ -1017,9 +1020,9 @@ int csoundDestroyModules(CSOUND *csound)
     csound->Free(csound, (void*) m);
 
   }
-#ifndef BUILD_PLUGINS    
+#ifndef BUILD_PLUGINS
   sfont_ModuleDestroy(csound);
-#endif    
+#endif
   /* return with error code */
   return retval;
 }
@@ -1030,25 +1033,25 @@ int csoundDestroyModules(CSOUND *csound)
 
 #if defined(WIN32)
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
+int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   *library = (void*) LoadLibrary(libraryPath);
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
   return (int) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
 #elif  !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
+int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   int flg = RTLD_NOW;
   if (libraryPath != NULL) {
@@ -1063,12 +1066,12 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
   return (int) dlclose(library);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) dlsym(library, procedureName);
 }
@@ -1224,6 +1227,7 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
+extern int     csoundModuleCreate_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_doppler(CSOUND *csound);
 #ifndef BARE_METAL
@@ -1237,7 +1241,7 @@ extern int32_t trigEnv_init_modules(CSOUND *csound);
 extern int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
 extern int32_t scansyn_init_(CSOUND *csound);
 extern int32_t scansynx_init_(CSOUND *csound);
-  
+
 /**
    Builtin linkage for C fgens - Instructions:
    - use csoundCore.h instead of csdl.h.
@@ -1254,7 +1258,7 @@ typedef NGFENS* (*FGINITFN)(CSOUND *);
 NGFENS *quadbezier_fgens_init(CSOUND *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
-NGFENS *padsyn_fgen_init(CSOUND *); 
+NGFENS *padsyn_fgen_init(CSOUND *);
 NGFENS *mp3in_fgen_init(CSOUND *);
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
@@ -1262,22 +1266,22 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
   int     i;
   int32_t length;
   OENTRY  *opcodlst_n;
-  const INITFN staticmodules[] = {                                               
+  const INITFN staticmodules[] = {
 #if defined(LINUX)
     cpumeter_localops_init,
 #endif
 #if !(defined(__wasi__))
     counter_localops_init,
     system_localops_init,
-#ifndef NO_SERIAL_OPCODES                                 
+#ifndef NO_SERIAL_OPCODES
     serial_localops_init,
-#endif                                 
+#endif
 #ifdef HAVE_SOCKETS
     sockrecv_localops_init,
     socksend_localops_init,
 #endif
-#endif  // !wasi                           
-#if defined(LINUX) || defined(__MACH__)                         
+#endif  // !wasi
+#if defined(LINUX) || defined(__MACH__)
     control_localops_init, urandom_localops_init,
 #endif
     scnoise_localops_init, afilts_localops_init,
@@ -1303,25 +1307,27 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     shape_localops_init, tabsum_localops_init,
     crossfm_localops_init, pvlock_localops_init,
     fareyseq_localops_init,  paulstretch_localops_init,
-    tabaudio_localops_init,  scoreline_localops_init, 
+    tabaudio_localops_init,  scoreline_localops_init,
     modmatrix_localops_init, ambicode1_localops_init,
-    arrayvars_localops_init, zak_localops_init,  
+    arrayvars_localops_init, zak_localops_init,
     scugens_localops_init, emugens_localops_init,
     pvoc_localops_init, spectra_localops_init,
-    vbap_localops_init,        
+    vbap_localops_init,
     NULL };
-  
+
   const INITFN2 staticmodules2[] = {
     stdopc_ModuleInit,
     newgabopc_ModuleInit,
     pvsopc_ModuleInit,
+    sfont_ModuleCreate,
     sfont_ModuleInit,
     csoundModuleInit_ampmidid,
+    csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
-#ifndef BARE_METAL
+#if !defined(BARE_METAL) && !defined(__wasi__)
     csoundModuleInit_ftsamplebank,
- #endif
+#endif
     csoundModuleInit_signalflowgraph,
     arrayops_init_modules,
     lfsr_init_modules,
@@ -1329,15 +1335,15 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     trigEnv_init_modules,
     csoundModuleInit_fractalnoise,
     scansyn_init_,
-    scansynx_init_,  
+    scansynx_init_,
     NULL
   };
 
-  const FGINITFN fgentab[] = {  
+  const FGINITFN fgentab[] = {
     ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init,
     padsyn_fgen_init, mp3in_fgen_init, NULL };
 
- 
+
   for (i=0; staticmodules[i]!=NULL; i++) {
     length = (staticmodules[i])(csound, &opcodlst_n);
 

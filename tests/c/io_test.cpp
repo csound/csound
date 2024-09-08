@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
+#define __BUILDING_LIBCSOUND
+#include "csoundCore.h"
 
-#include "csound.h"
 
 class IOTests : public ::testing::Test {
 public:
@@ -15,16 +16,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL -odac");
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
+      csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
     }
@@ -128,8 +126,8 @@ TEST_F (IOTests, testKeyboardIO)
             "chnset kdown2, \"down2\"\n"
             "endin \n";
 
-    csoundCompileOrc(csound, instrument);
-    csoundReadScore(csound, "i 1 0 1");
+    csoundCompileOrc(csound, instrument, 0);
+    csoundEventString(csound, "i 1 0 1", 0);
 
     ret = csoundStart(csound);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
@@ -163,16 +161,16 @@ TEST_F (IOTests, testAudioModules)
                     "out asig\n"
                     "endin \n";
             csoundSetOption(csound, "-B4096");
-            csoundCompileOrc(csound, instrument);
-            csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
-            csoundSetRTAudioModule(csound, name);
-            csoundSetOutput(csound, "dac", NULL, NULL);
+            csoundSetOption(csound, "-odac");
+            csoundCompileOrc(csound, instrument, 0);
+            csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
+            csoundSetRTAudioModule(csound, name);     
             int ret = csoundStart(csound);
             if (strcmp(name, "jack") != 0) { // Jack module would fail this test if jack is not running
               ASSERT_TRUE (ret == 0);
             }
             if (ret == 0) {
-              ret = csoundPerform(csound);
+              while(ret == 0) ret = csoundPerformKsmps(csound);
               ASSERT_TRUE (ret > 0);
             }
             csoundReset(csound);
@@ -190,13 +188,14 @@ TEST_F (IOTests, testAudioHostBased)
             "out asig\n"
             "endin \n";
     csoundSetOption(csound, "-B4096");
-    csoundCompileOrc(csound, instrument);
-    csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
-    csoundSetHostImplementedAudioIO(csound, 1, 256);
-    csoundSetOutput(csound, "dac", NULL, NULL);
+    csoundSetOption(csound, "-odac");
+    csoundCompileOrc(csound, instrument, 0);
+    csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
+    csoundSetHostAudioIO(csound);
+
     int ret = csoundStart(csound);
     ASSERT_TRUE (ret == 0);
-    ret = csoundPerform(csound);
+    while(ret == 0) ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret > 0);
     csoundReset(csound);
 }
@@ -215,13 +214,13 @@ TEST_F (IOTests, testMidiModules)
                     "out asig\n"
                     "endin \n";
             csoundSetOption(csound, "-B4096");
-            csoundCompileOrc(csound, instrument);
-            csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
+            csoundSetOption(csound, "-odac");
+            csoundCompileOrc(csound, instrument, 0);
+            csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
             csoundSetMIDIModule(csound, name);
-            csoundSetOutput(csound, "dac", NULL, NULL);
             int ret = csoundStart(csound);
             ASSERT_TRUE (ret == 0);
-            ret = csoundPerform(csound);
+            while(ret == 0) ret = csoundPerformKsmps(csound);
             ASSERT_TRUE (ret > 0);
             csoundReset(csound);
         }
@@ -237,13 +236,13 @@ TEST_F (IOTests, testMidiHostBased)
             "out asig\n"
             "endin \n";
     csoundSetOption(csound, "-B4096");
-    csoundCompileOrc(csound, instrument);
-    csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
-    csoundSetHostImplementedMIDIIO(csound, 1);
-    csoundSetOutput(csound, "dac", NULL, NULL);
+    csoundSetOption(csound, "-odac");  
+    csoundCompileOrc(csound, instrument, 0);
+    csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
+    csoundSetHostMIDIIO(csound);
     int ret = csoundStart(csound);
     ASSERT_TRUE (ret == 0);
-    ret = csoundPerform(csound);
+    while(ret == 0) ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret > 0);
     csoundReset(csound);
 }

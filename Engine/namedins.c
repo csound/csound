@@ -246,7 +246,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
  * parameters (zero nbytes, invalid or already used name), or
  * CSOUND_MEMORY if there is not enough memory.
  */
-PUBLIC int csoundCreateGlobalVariable(CSOUND *csound,
+int csoundCreateGlobalVariable(CSOUND *csound,
                                       const char *name, size_t nbytes)
 {
     void* p;
@@ -279,7 +279,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csound,
  * Get pointer to space allocated with the name "name".
  * Returns NULL if the specified name is not defined.
  */
-PUBLIC void *csoundQueryGlobalVariable(CSOUND *csound, const char *name)
+void *csoundQueryGlobalVariable(CSOUND *csound, const char *name)
 {
     /* check if there is an actual database to search */
     if (csound->namedGlobals == NULL) return NULL;
@@ -297,7 +297,7 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csound, const char *name)
  * Faster, but may crash or return an invalid pointer if 'name' is
  * not defined.
  */
-PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csound, const char *name)
+void *csoundQueryGlobalVariableNoCheck(CSOUND *csound, const char *name)
 {
     return cs_hash_table_get(csound, csound->namedGlobals, (char*) name);
 }
@@ -307,7 +307,7 @@ PUBLIC void *csoundQueryGlobalVariableNoCheck(CSOUND *csound, const char *name)
  * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
  * not defined.
  */
-PUBLIC int csoundDestroyGlobalVariable(CSOUND *csound, const char *name)
+int csoundDestroyGlobalVariable(CSOUND *csound, const char *name)
 {
     void *p = cs_hash_table_get(csound, csound->namedGlobals, (char*)name);
     if (UNLIKELY(p == NULL))

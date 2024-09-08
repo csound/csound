@@ -184,7 +184,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   if((uint64_t)p->str->timestamp == p->h.insdshead->kcounter) {
   CS_TYPE *strType = GetTypeForArg(p->str);    
-  strType->copyValue(csound, strType, p->r, p->str);
+  strType->copyValue(csound, strType, p->r, p->str, &(p->h));
   //printf("copy \n");
   }
   }
@@ -194,7 +194,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   CS_TYPE *strType = GetTypeForArg(p->str);
-  strType->copyValue(csound, strType, p->r, p->str);
+  strType->copyValue(csound, strType, p->r, p->str,  &(p->h));
   }
   return  OK;
 }
@@ -1230,4 +1230,19 @@ int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
   csound->Message(csound, "Variable Type: %s\n", varType->varTypeName);
 
   return OK;
+}
+
+PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata){
+  return sdata->data;
+}
+
+PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata, const char *str){
+  size_t bytes = strlen(str);
+  if(sdata->size > bytes)
+    strcpy(sdata->data, str);
+  else {
+    sdata->data = (char *) csound->ReAlloc(csound, (char *)
+                                           sdata->data, bytes+1);
+    strcpy(sdata->data, str);
+  }
 }

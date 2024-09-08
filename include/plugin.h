@@ -26,7 +26,11 @@
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
+#ifdef CS_INTERNAL
+#include "csoundCore.h"
+#else
 #include "csdl.h"
+#endif
 #include "pstream.h"
 #include "arrays.h"
 #include <array>
@@ -367,8 +371,8 @@ template <typename T> class Vector : ARRAYDAT {
 public:
   /** Initialise the container
    */
-  void init(Csound *csound, int size) {
-    tabinit(csound, this, size);
+  void init(Csound *csound, int size, OPDS *ctx) {
+    tabinit(csound, this, size, ctx);
   }
 
   /** iterator type

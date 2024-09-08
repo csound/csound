@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext
+          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext libsamplerate0-dev
 
       - name: Configure build
         run: |
@@ -84,22 +84,36 @@ jobs:
     name: iOS build
     runs-on: macos-12
     steps:
-      - name: update bison
-        run: brew install bison && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
+      - name: Install dependencies
+        run: brew install bison
+
       - name: Checkout Source Code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+
       - name: Build libsndfile xcframework
-        run: cd iOS && chmod +x build_libsndfile.sh && ./build_libsndfile.sh
+        working-directory: iOs
+        run: |
+          chmod +x build_libsndfile.sh
+          ./build_libsndfile.sh
+
       - name: Build Csound iOS xcframework
-        run: cd iOS && ./build.sh
+        working-directory: iOs
+        run: |
+          ./build.sh
+
       - name: Create package zip
-        run: cd iOS && ./release.sh
+        if: github.ref == 'refs/heads/develop'
+        working-directory: iOs
+        run: |
+          ./release.sh
+
       - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/develop'
         with:
           name: iOS-builds
-          path: iOS/csound-iOS-7.0.0 # or path/to/artifact
+          path: iOS/csound-iOS-${{env.CSOUND_VERSION}}
 
   macos_build_brew:
     name: MacOS build (brew)
@@ -110,13 +124,6 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install dependencies
         run: |
@@ -168,6 +175,7 @@ jobs:
 
   macos_build_osxcross:
     name: MacOS build (osxcross/vcpkg)
+    if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -195,7 +203,7 @@ jobs:
 
       - name: Download osxcross
         run: |
-          curl -L "https://drive.usercontent.google.com/download?id=1TKmFGbKE_F4ZF9f6m5VxuZ7yEHbDzQy5&confirm=xxx" | tar xvz
+          curl -L "https://drive.usercontent.google.com/download?id=1bDCZNjj5FPIuE0FzJv_4aw78Xgbp4wsH&confirm=xxx" | tar xvz
 
       - name: Configure Build
         run: |
@@ -217,7 +225,7 @@ jobs:
           done
 
   windows_build:
-    name: Windows build
+    name: Windows build (vcpkg)
     runs-on: windows-latest
     steps:
       - name: Checkout Source Code
@@ -255,12 +263,14 @@ jobs:
         run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
+        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
 
       - name: Build installer
+        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
@@ -270,6 +280,7 @@ jobs:
           iscc /o. installer\\windows\\csound6_x64_github.iss
 
       - name: Upload installer
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v2
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
@@ -277,6 +288,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v2
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
@@ -292,6 +304,7 @@ jobs:
 
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -330,6 +343,66 @@ jobs:
 
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
+
+  android_build_vcpkg:
+    name: Android build (vcpkg)
+    if: vars.ANDROID_WORKFLOW_RUN_ID 
+    runs-on: ubuntu-latest
+    env:
+      VERSION: v1
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: csound-android-${{ env.VERSION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ vars.ANDROID_WORKFLOW_RUN_ID }}
+
+      - name: Load image
+        run: |
+          docker load --input csound-android-${{ env.VERSION }}.tar
+          rm csound-android-${{ env.VERSION }}.tar
+
+      - name: Configure Build
+        uses: addnab/docker-run-action@v3
+        with:
+          image: csound-android:${{ env.VERSION }}
+          options: -v ${{ github.workspace }}:${{ github.workspace }} --workdir ${{ github.workspace }}
+          run: |
+            for ARCH in arm arm64 x86 x64; do
+                cmake -B build/$ARCH -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE=./platform/android/custom-android.cmake \
+                    -DCMAKE_SYSTEM_NAME=Android \
+                    -DANDROID=1 \
+                    -DCMAKE_TARGET_ARCHITECTURE=${ARCH}
+            done
+
+      - name: Build Csound
+        uses: addnab/docker-run-action@v3
+        with:
+          image: csound-android:${{ env.VERSION }}
+          options: -v ${{ github.workspace }}:${{ github.workspace }} --workdir ${{ github.workspace }}
+          run: |
+            for ARCH in arm arm64 x86 x64; do
+              cmake --build build/$ARCH --config Release
+            done
 
   #android_build:
   #  name: Android build

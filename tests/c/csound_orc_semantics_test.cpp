@@ -14,15 +14,17 @@
 #include "csound_orc.h"
 #include "gtest/gtest.h"
 
-extern "C" {
-    extern OENTRIES* find_opcode2 (CSOUND* csound, char* opname);
-    extern OENTRY* resolve_opcode (CSOUND*, OENTRIES* entries, char* outArgTypes, char* inArgTypes);
-    extern OENTRY* find_opcode_new (CSOUND* csound, char* opname, char* outArgsFound, char* inArgsFound);
 
-    extern bool check_in_arg (char* found, char* required);
-    extern bool check_in_args (CSOUND* csound, char* outArgsFound, char* opOutArgs);
-    extern bool check_out_arg (char* found, char* required);
-    extern bool check_out_args (CSOUND* csound, char* outArgsFound, char* opOutArgs);
+
+extern "C" {
+    extern OENTRIES* find_opcode2 (CSOUND* csound, const char* opname);
+    extern OENTRY* resolve_opcode (CSOUND*, OENTRIES* entries,  const char* outArgTypes, const char* inArgTypes);
+  //extern OENTRY* find_opcode_new (CSOUND* csound,  const char* opname, const char* outArgsFound, const char* inArgsFound);
+
+    extern bool check_in_arg (const char* found, const char* required);
+    extern bool check_in_args (CSOUND* csound, const char* outArgsFound, const char* opOutArgs);
+    extern bool check_out_arg (const char* found, const char* required);
+    extern bool check_out_args (CSOUND* csound,const  char* outArgsFound, const char* opOutArgs);
 }
 
 class OrcSemanticsTest : public ::testing::Test {
@@ -37,19 +39,17 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL");
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
+      csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
     }
+
 
     CSOUND* csound {nullptr};
 };
@@ -64,16 +64,16 @@ TEST_F (OrcSemanticsTest, FindOpcode2Test)
 
 TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 {
-    OENTRIES* entries = find_opcode2(csound, "=");
+  OENTRIES* entries = find_opcode2(csound, (char *) "=");
 
-    OENTRY* opc = resolve_opcode(csound, entries, "k", "k");
+    OENTRY* opc = resolve_opcode(csound, entries, (char *)  "k", (char *) "k");
     ASSERT_TRUE (opc != NULL);
     csound->Free(csound, entries);
 
-    entries = find_opcode2(csound, "vco2");
+    entries = find_opcode2(csound,  "vco2");
     ASSERT_EQ (1, entries->count);
 
-    opc = resolve_opcode(csound, entries, "a", "cc");
+    opc = resolve_opcode(csound, entries, "a", (char *) "cc");
     ASSERT_TRUE (opc != NULL);
     csound->Free(csound, entries);
 
@@ -97,16 +97,16 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
     csound->Free(csound, entries);
 }
-
+ 
 TEST_F (OrcSemanticsTest, FindOpcodeNewTest)
 {
-    ASSERT_TRUE (find_opcode_new(csound, "##error", "i", "i") != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##error", NULL, "i") == NULL);
+  ASSERT_TRUE (find_opcode_new(csound, (char *) "##error", (char *)  "i", (char *)  "i") != NULL);
+    ASSERT_TRUE (find_opcode_new(csound,  (char *)  "##error", NULL, (char *)  "i") == NULL);
     // TODO this assertion is failing
     // ASSERT_TRUE (find_opcode_new(csound, "##xin256", "i", NULL) != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##userOpcode", NULL, NULL) != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##array_set", NULL, "k[]k") != NULL);
-    ASSERT_TRUE (find_opcode_new(csound, ">=", "B", "kc") != NULL);
+    ASSERT_TRUE (find_opcode_new(csound, (char *)  "##userOpcode", NULL, NULL) != NULL);
+    ASSERT_TRUE (find_opcode_new(csound,(char *)  "##array_set", NULL,(char *)  "k[]k") != NULL);
+    ASSERT_TRUE (find_opcode_new(csound,(char *)  ">=",(char *)  "B",(char *)  "kc") != NULL);
 }
 
 TEST_F (OrcSemanticsTest, CheckInArgsTest)

@@ -3,7 +3,7 @@
 git clone https://github.com/libsndfile/libsndfile.git
 cd libsndfile
 mkdir build && cd build
-cmake -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64;armv7;armv7s" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11 -DENABLE_MPEG=0 -DENABLE_EXTERNAL_LIBS=OFF -DBUILD_SHARED_LIBS=OFF .. 
+cmake -G Xcode -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.11 -DENABLE_MPEG=0 -DENABLE_EXTERNAL_LIBS=OFF -DBUILD_SHARED_LIBS=OFF .. 
 xcodebuild -sdk iphoneos -xcconfig ../../device.xcconfig -target sndfile -configuration Release -verbose
 cd Release
 cp libsndfile.a libsndfile-device.a

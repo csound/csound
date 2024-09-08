@@ -44,7 +44,8 @@ int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     return 0;
 }
 
-CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName) {
+const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* typeName) {
+
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
@@ -79,6 +80,10 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
     /* printf("Adding type with type name: %s\n", typeInstance->varTypeName); */
 
     return 1;
+}
+
+TYPE_POOL *csoundGetTypePool(CSOUND* csound) {
+  return csound->typePool;
 }
 
 
@@ -135,14 +140,15 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     return retVal;
 }
 
+/** Create variable outside an instrument context */
 CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                  CS_TYPE* type, char* name, void* typeArg)
+                                  const CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
     if (LIKELY(type != NULL))
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
+          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg, NULL);
           var->varType = type;
           var->varName = cs_strdup(csound, name);
           return var;
@@ -267,7 +273,7 @@ void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
-    CS_TYPE* type;
+    const CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
       type = current->subType;
@@ -307,20 +313,43 @@ void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
 }
 
 /* GENERIC VARIABLE COPYING */
-
-
 int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
-    
+
     if(typeR != typeA) {
         csound->Warning(csound,
-                        Str("error: = opcode given variables with two different types: %s : %s\n"),
-                        typeR->varTypeName, typeA->varTypeName);
+        Str("error: = opcode given variables"
+            "with two different types: %s : %s\n"),
+        typeR->varTypeName, typeA->varTypeName);
         return NOTOK;
     }
-    
-    typeR->copyValue(csound, typeR, assign->r, assign->a);
+
+    typeR->copyValue(csound, typeR, assign->r, assign->a, &(assign->h));
     return OK;
 }
+
+int copyVarNoOp(CSOUND *csound, void *p) {
+  return OK;
+}
+
+#include "csound_standard_types.h"
+
+int copyVarGenericInit(CSOUND *csound, void *p) {
+    ASSIGN* assign = (ASSIGN*)p;
+    int flag = 0;
+    CS_TYPE* type = csoundGetTypeForArg(assign->a);
+
+    if(type == &CS_VAR_TYPE_ARRAY) {
+      ARRAYDAT* adat = (ARRAYDAT*) assign->a;
+      if(adat->arrayType == &CS_VAR_TYPE_I) flag = 1;
+    } else if(type == &CS_VAR_TYPE_I) flag = 1;
+
+    if (flag) {
+      assign->h.perf = copyVarNoOp;
+    }
+    return copyVarGeneric(csound, p);
+}
+
+

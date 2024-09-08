@@ -151,7 +151,7 @@ static int cmp_func(const void *a, const void *b)
  * The return value may be NULL in case of an error.
  */
 
-PUBLIC char **csoundListUtilities(CSOUND *csound)
+char **csoundListUtilities(CSOUND *csound)
 {
     csUtility_t *p = (csUtility_t*) csound->utility_db;
     char        **lst;
@@ -181,7 +181,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
  * Releases an utility list previously returned by csoundListUtilities().
  */
 
-PUBLIC void csoundDeleteUtilityList(CSOUND *csound, char **lst)
+void csoundDeleteUtilityList(CSOUND *csound, char **lst)
 {
     if (lst != NULL)
       csound->Free(csound, lst);
@@ -225,8 +225,7 @@ int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
  * Returns NULL if the utility was not found, or it has no description,
  * or an error occured.
  */
-
-PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
+const char *csoundGetUtilityDescription(CSOUND *csound,
                                                const char *utilName)
 {
     csUtility_t *p = (csUtility_t*) csound->utility_db;

@@ -72,7 +72,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 - (void)sendScore:(NSString *)score
 {
   if (mCsData.cs != NULL) {
-    csoundReadScore(mCsData.cs, (char*)[score cStringUsingEncoding:NSASCIIStringEncoding]);
+    csoundEventString(mCsData.cs, (char*)[score cStringUsingEncoding:NSASCIIStringEncoding], 0);
   }
 }
 
@@ -85,7 +85,7 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
 - (void)updateOrchestra:(NSString *)orchestraString
 {
   if (mCsData.cs != NULL) {
-    csoundCompileOrc(mCsData.cs, (char*)[orchestraString cStringUsingEncoding:NSASCIIStringEncoding]);
+    csoundCompileOrc(mCsData.cs, (char*)[orchestraString cStringUsingEncoding:NSASCIIStringEncoding], 0);
   }
 }
 
@@ -305,7 +305,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
   }
   CSOUND *csound = [self getCsound];
   float *spout = csoundGetSpout(csound);
-  int nchnls = csoundGetNchnls(csound);
+  int nchnls = csoundGetChannels(csound, 0);
   int ksmps = csoundGetKsmps(csound);
   NSData* data = [NSData dataWithBytes:spout length:(nchnls * ksmps * sizeof(MYFLT))];
   return data;
@@ -316,7 +316,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format, va_list va
   if (!mCsData.running) {
     return -1;
   }
-  return csoundGetNchnls(mCsData.cs);
+  return csoundGetChannels(mCsData.cs, 0);
 }
 
 - (int)getKsmps
@@ -414,7 +414,7 @@ OSStatus  Csound_Render(void *inRefCon,
         
     CSOUND *cs;
         
-    cs = csoundCreate(NULL);
+    cs = csoundCreate(NULL, NULL);
         
     const char *argv[4] = { "csound",
 		      (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
@@ -426,8 +426,7 @@ OSStatus  Csound_Render(void *inRefCon,
     [self updateAllValuesToCsound];
         
     if(!ret) {
-      csoundPerform(cs);
-      csoundCleanup(cs);
+      while(!ret) ret = csoundPerformKsmps(cs);
       csoundDestroy(cs);
     }
         
@@ -444,7 +443,7 @@ OSStatus  Csound_Render(void *inRefCon,
     BOOL success;
         
     cs = csoundCreate(NULL);
-    csoundSetHostImplementedAudioIO(cs, 1, 0);
+    csoundSetHostAudioIO(cs);
 		
     csoundSetMessageCallback(cs, messageCallback);
     csoundSetHostData(cs, (__bridge void *)(self));
@@ -462,7 +461,7 @@ OSStatus  Csound_Render(void *inRefCon,
             
       mCsData.cs = cs;
       mCsData.ret = ret;
-      mCsData.nchnls = csoundGetNchnls(cs);
+      mCsData.nchnls = csoundGetChannels(cs, 0);
       mCsData.bufframes = (csoundGetOutputBufferSize(cs))/mCsData.nchnls;
       mCsData.running = true;
       mCsData.valuesCache = _bindings;
