@@ -20,7 +20,7 @@
 ;
 
 [setup]
-#define AppName "csound"
+#define AppName "Csound7"
 #define AppVersion "7"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
@@ -161,9 +161,9 @@ Source: "{#ReleaseDir}\src_conv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversio
 Source: "{#ReleaseDir}\deprecated.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
-; Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-; Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-; Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 Source: "include\*.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "include\*.hpp"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
