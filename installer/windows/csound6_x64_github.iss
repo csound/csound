@@ -40,7 +40,6 @@ SourceDir="../../"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
-Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
 
 [Dirs]
 ; ALL programs and shared libraries (except opcodes and other Csound modules) go here.
