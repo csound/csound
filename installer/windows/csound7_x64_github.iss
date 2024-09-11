@@ -32,6 +32,7 @@
 
 ; Set the default folder to be the Csound root (otherwise defaults to where the script is located)
 SourceDir="../../"
+DisableDirPage=no
 
 ; Microsoft C/C++ runtime libraries
 #define VCREDIST_CRT_DIR GetEnv("VCREDIST_CRT_DIR")
