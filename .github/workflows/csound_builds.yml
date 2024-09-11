@@ -277,14 +277,14 @@ jobs:
           $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
           $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
           $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
-          iscc /o. installer\\windows\\csound6_x64_github.iss
+          iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
         if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v2
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
-          path: ./csound-windows_x86_64-*.exe
+          path: ./Csound7-windows_x86_64-*.exe
           if-no-files-found: error
 
       - name: Upload zip

@@ -8,7 +8,7 @@
 ;
 ; INSTALLED DIRECTORY STRUCTURE
 ;
-; C:\Program Files\Csound6
+; C:\Program Files\Csound7
 ;     bin (copy Csound, PortAudio, libsndfile binary trees here including runtime
 ;     libraries and dependency libraries; but not Csound opcodes)
 ;     doc (copy tree)
@@ -20,7 +20,7 @@
 ;
 
 [setup]
-#define AppName "csound"
+#define AppName "Csound7"
 #define AppVersion "7"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
@@ -40,7 +40,6 @@ SourceDir="../../"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
-Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
 
 [Dirs]
 ; ALL programs and shared libraries (except opcodes and other Csound modules) go here.
@@ -78,7 +77,7 @@ Name: "{app}\doc\tutorial"
 #define SSDIR
 #define SADIR
 #define INCDIR
-#define OPCODE6DIR64
+#define OPCODE7DIR64
 #define SNAPDIR
 #define RAWWAVE_PATH
 #define MFDIR
@@ -162,9 +161,9 @@ Source: "{#ReleaseDir}\src_conv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversio
 Source: "{#ReleaseDir}\deprecated.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
-; Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-; Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-; Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 Source: "include\*.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "include\*.hpp"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
@@ -185,8 +184,7 @@ Name: "{group}\Csound Reference Manual"; Filename: "http://csound.github.io/docs
 Name: "{group}\Csound API Reference Manual"; Filename: "http://csound.github.io/docs/api/index.html";  Components: core
 
 [Registry]
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE6DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletevalue;  Components: core
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"PYTHONPATH"; ValueData:"{#APP_BIN};{olddata}"; Flags: preservestringtype uninsdeletevalue;  Components: python
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE7DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletevalue;  Components: core
 
 [Tasks]
