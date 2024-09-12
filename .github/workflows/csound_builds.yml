@@ -281,7 +281,7 @@ jobs:
 
       - name: Upload installer
         if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: ./Csound7-windows_x86_64-*.exe
@@ -289,7 +289,7 @@ jobs:
 
       - name: Upload zip
         if: github.ref == 'refs/heads/develop'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
           path: |
