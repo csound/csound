@@ -526,6 +526,17 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     //FIXME: Need to review why label token is used so much in parser,
     //for now treat as T_IDENT
   case T_ARRAY_IDENT:
+    //check
+    var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                       tree->value->lexeme);
+    if(var->varType != &CS_VAR_TYPE_ARRAY) {
+      synterr(csound, Str("Array variable name '%s' used before as a different type\n"
+                          "Line %d"),
+              tree->value->lexeme, tree->line);
+      do_baktrace(csound, tree->locn);
+      return NULL;
+    }
+    
   case T_IDENT:
 
     s = tree->value->lexeme;
@@ -581,7 +592,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                        tree->value->lexeme);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"
+      synterr(csound, Str("Array variable '%s' used before defined\n"
                           "Line %d\n"),
               tree->value->lexeme, tree->line - 1);
       do_baktrace(csound, tree->locn);
@@ -1212,10 +1223,10 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
   while (current != NULL) {
     char* argType = get_arg_type2(csound, current, typeTable);
-    //FIXME - fix if argType is NULL and remove the below hack
+
     if (argType == NULL) {
-      argsLen += 1;
-      argTypes[index++] = cs_strdup(csound, "@");
+      // if we failed to find argType, exit from parser
+      csound->Die(csound, "Could not parse type for argument %s", current->value->lexeme);
     } else {
       argType = convert_internal_to_external(csound, argType);
       argsLen += strlen(argType);

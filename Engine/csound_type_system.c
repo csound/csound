@@ -312,6 +312,10 @@ void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
     }
 }
 
+int copyVarNoOp(CSOUND *csound, void *p) {
+  return OK;
+}
+
 /* GENERIC VARIABLE COPYING */
 int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
@@ -319,20 +323,22 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
 
     if(typeR != typeA) {
-        csound->Warning(csound,
-        Str("error: = opcode given variables"
-            "with two different types: %s : %s\n"),
+      if(assign->h.perf != copyVarNoOp)
+        return csound->PerfError(csound,&(assign->h),
+        Str("Opcode given variables "
+            "with two different types: %s : %s"), 
         typeR->varTypeName, typeA->varTypeName);
-        return NOTOK;
+       else return csound->InitError(csound,
+        Str("Opcode given variables "
+            "with two different types: %s : %s"),
+        typeR->varTypeName, typeA->varTypeName);
     }
 
     typeR->copyValue(csound, typeR, assign->r, assign->a, &(assign->h));
     return OK;
 }
 
-int copyVarNoOp(CSOUND *csound, void *p) {
-  return OK;
-}
+
 
 #include "csound_standard_types.h"
 
