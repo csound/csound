@@ -41,6 +41,12 @@ This option is disabled by default.
 -`DCUSTOM_CMAKE=`: with this option you can specify a custom.cmake
 file containing build options and CMake variables to control the build.
 
+A full list of CMake build options can be found by running the following
+command from the CMake build directory:
+
+```
+cmake -LAH
+```
 
 Build Instructions
 ----
@@ -149,6 +155,54 @@ sudo make install
 
 See "Useful CMake Options" above for common options to customise the
 build.
+
+Windows (Visual Studio / vcpkg)
+----
+
+You will need a recent version of Visual Studio to build Csound. The current default version is Visual Studio 2022. Additionally, you will need CMake, Flex, and Bison. The Chocolatey package manager for Windows is the simplest way to install these prerequisites. If you wish to build the installer, you will also need InnoSetup. For cloning the Csound source from the GitHub repository, you'll need git, although you can also download the latest source as a zip file.
+
+To install the required packages, open Windows PowerShell as an administrator and run the following commands (note that InnoSetup and git are optional):
+
+*Note: All the following commands should be run in Windows PowerShell*
+
+```powershell
+choco install -y cmake winflexbison3 innosetup git
+```
+
+To download the Csound source with git, use the following command:
+
+```powershell
+git clone https://github.com/csound/csound.git
+```
+
+The vcpkg package manager is used to build and manage any extra dependencies that Csound needs, such as libsndfile, portaudio, and portmidi. The `vcpkg` submodule must be initialized and updated before building. From the top-level source directory, run these commands:
+
+```powershell
+git submodule init
+git submodule update
+.\vcpkg\bootstrap-vcpkg.bat
+```
+
+Next, run the following CMake commands to generate the Visual Studio projects and build Csound. If you have Python 3 installed, you can remove the `-DINSTALL_PYTHON_INTERFACE=OFF` option from the first command:
+
+```powershell
+cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake" -DINSTALL_PYTHON_INTERFACE=OFF
+cmake --build build --config Release
+```
+
+If you wish to build the installer, use the following commands. The first four set the location of the MS C/C++ runtime libraries that need to be packaged with Csound. Note that the `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build` path might need updating depending on your installed version of Visual Studio:
+
+```powershell
+$Env:RedistVersion = Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+$Env:VCREDIST_CRT_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
+$Env:VCREDIST_CXXAMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
+$Env:VCREDIST_OPENMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+iscc /o. installer\windows\csound7_x64_github.iss
+```
+
+If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
+
+
 
 
 
