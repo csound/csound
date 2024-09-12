@@ -42,7 +42,8 @@ jobs:
       - name: Run tests
         run: |
           cd build
-          make test csdtests
+          make test
+          make csdtests
 
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
