@@ -348,8 +348,9 @@ int copyVarGenericInit(CSOUND *csound, void *p) {
 
     if (flag) {
       assign->h.perf = copyVarNoOp;
+      copyVarGeneric(csound, p);
     }
-    return copyVarGeneric(csound, p);
+    return OK;
 }
 
 
