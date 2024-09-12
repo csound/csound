@@ -1,6 +1,6 @@
 ## Python module ##
 
-option(INSTALL_PYTHON_INTERFACE "Build the Python interface" ON)
+option(INSTALL_PYTHON_INTERFACE "Install the Python interface" ON)
 
 find_package(Python3)
 
