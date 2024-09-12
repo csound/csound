@@ -535,7 +535,7 @@ public:
       size_t bytes = (n + 2) * sizeof(float);
       if (frame.auxp == nullptr || frame.size < bytes) {
         csound->AuxAlloc(csound, bytes, &frame);
-        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
+        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0.f);
       }
     } else {
       size_t bytes = (n + 2) * sizeof(MYFLT) * nsmps;
