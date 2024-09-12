@@ -55,6 +55,9 @@ cmake -LAH
 Build Instructions
 ----
 
+*Steps for building Csound across a large range of target platforms can be found in the [csound_builds.yml](https://github.com/csound/csound/blob/develop/.github/workflows/csound_builds.yml) script, which is part of Csound's CI build system.*
+
+
 MacOS
 ----
 
