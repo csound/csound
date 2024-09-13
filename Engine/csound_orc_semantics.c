@@ -527,16 +527,16 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     //for now treat as T_IDENT
   case T_ARRAY_IDENT:
     //check
-    var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                       tree->value->lexeme);
-    if(var->varType != &CS_VAR_TYPE_ARRAY) {
+    if((var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         tree->value->lexeme)) != NULL) {
+      if(var->varType != &CS_VAR_TYPE_ARRAY) {
       synterr(csound, Str("Array variable name '%s' used before as a different type\n"
                           "Line %d"),
               tree->value->lexeme, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
+      } 
     }
-    
   case T_IDENT:
 
     s = tree->value->lexeme;
