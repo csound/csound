@@ -299,9 +299,9 @@ if __name__ == "__main__":
             elif arg.startswith("--csound-executable="):
                 csoundExecutable = arg[20:]
                 print(csoundExecutable)
-            elif arg.startswith("--opcode6dir64="):
-                os.environ['OPCODE6DIR64'] = arg[15:]
-                print(os.environ['OPCODE6DIR64'])
+            elif arg.startswith("--opcode7dir64="):
+                os.environ['OPCODE7DIR64'] = arg[15:]
+                print(os.environ['OPCODE7DIR64'])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
             elif arg.startswith("--use-wine="):
