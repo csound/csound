@@ -177,7 +177,7 @@ option(BUILD_UTILITIES "Build stand-alone executables for utilities that can als
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 option(BUILD_MULTI_CORE "Enable building for multicore system" ON)
 option(FAIL_MISSING "Fail when a required external dependency is not present (useful for packagers)" OFF)
-option(USE_GETTEXT "Use the Gettext internationalization library" OFF)
+option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
