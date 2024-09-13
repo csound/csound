@@ -30,9 +30,28 @@
 #define BuildRoot "build"
 #define ReleaseDir "build\Release"
 
+ChangesEnvironment=yes
+; NOTE: The value of AppId uniquely identifies this application.
+; Do not use the same AppId value in installers for other applications.
+; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+AppId={{180B4E5B-9A2F-4DA8-8692-97A174ACB74E}}
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppPublisher={#AppPublisher}
+AppPublisherURL={#AppURL}
+AppSupportURL={#AppURL}
+AppUpdatesURL={#AppURL}
+DefaultDirName={pf64}\{#AppName}
+DefaultGroupName=Csound7
+AllowNoIcons=yes
+DisableDirPage=no
+LicenseFile="README.md"
+OutputDir="installer\windows"
+OutputBaseFilename="{#AppName}-windows_x86_64-{#AppMinVersion}-{#BuildNumber}"
+Compression=lzma
+SolidCompression=yes
 ; Set the default folder to be the Csound root (otherwise defaults to where the script is located)
 SourceDir="../../"
-DisableDirPage=no
 
 ; Microsoft C/C++ runtime libraries
 #define VCREDIST_CRT_DIR GetEnv("VCREDIST_CRT_DIR")
@@ -82,28 +101,7 @@ Name: "{app}\doc\tutorial"
 #define SNAPDIR
 #define RAWWAVE_PATH
 #define MFDIR
-#define PYTHONPATH
 
-[Setup]
-ChangesEnvironment=yes
-; NOTE: The value of AppId uniquely identifies this application.
-; Do not use the same AppId value in installers for other applications.
-; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{180B4E5B-9A2F-4DA8-8692-97A174ACB74E}
-AppName={#AppName}
-AppVersion={#AppVersion}
-AppPublisher={#AppPublisher}
-AppPublisherURL={#AppURL}
-AppSupportURL={#AppURL}
-AppUpdatesURL={#AppURL}
-DefaultDirName={pf64}\{#AppName}
-DefaultGroupName=Csound
-AllowNoIcons=yes
-LicenseFile="README.md"
-OutputDir="installer\windows"
-OutputBaseFilename="{#AppName}-windows_x86_64-{#AppMinVersion}-{#BuildNumber}"
-Compression=lzma
-SolidCompression=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
