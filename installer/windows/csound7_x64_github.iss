@@ -13,7 +13,7 @@
 ;     libraries and dependency libraries; but not Csound opcodes)
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
-;     include
+;     includein
 ;         csound (copy include dirs *.h and *.hpp)
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
@@ -108,7 +108,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
-Source: "installer\windows\INSTALLER.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
