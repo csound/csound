@@ -183,7 +183,9 @@ def runTest():
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
         ["arrays/array_get_inline.csd", "tests parsing and eval of inline array[getters]"],
-        ["arrays/arrays_for_loop.csd", "tests for loops over array types"]
+        ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
+        ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
+        ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],        
     ]
 
 
@@ -300,8 +302,8 @@ if __name__ == "__main__":
                 csoundExecutable = arg[20:]
                 print(csoundExecutable)
             elif arg.startswith("--opcode6dir64="):
-                os.environ['OPCODE6DIR64'] = arg[15:]
-                print(os.environ['OPCODE6DIR64'])
+                os.environ['OPCODE7DIR64'] = arg[15:]
+                print(os.environ['OPCODE7DIR64'])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
             elif arg.startswith("--use-wine="):
