@@ -114,7 +114,6 @@ else()
 endif()
 
 if(APPLE)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
     set(CMAKE_INSTALL_RPATH ${CS_FRAMEWORK_DEST})
 endif()
 
