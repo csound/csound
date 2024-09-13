@@ -386,7 +386,7 @@ statement_list : statement_list statement
                   }
                 ;
 
-statement : out_arg_list assignment expr NEWLINE
+statement : out_arg_list assignment expr_list NEWLINE
                 {
                   $$ = (TREE *)$2;
                   $$->left = (TREE *)$1;
@@ -510,7 +510,6 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
  }
 
 /* Expressions */
-
 expr_list : expr_list ',' expr
               { $$ = appendToTree(csound, $1, $3); }
          | expr_list ',' NEWLINE expr
