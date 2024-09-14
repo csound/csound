@@ -305,7 +305,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return cs_strdup(csound, "k");
         }
         synterr(csound,
-                Str("invalid array type %s line %d\n"), var->varType->varTypeName, tree->line);
+                Str("invalid array type %s line %d\n"),
+                var->varType->varTypeName, tree->line);
         return NULL;
       }
     }
@@ -592,8 +593,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                        tree->value->lexeme);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Array variable '%s' used before defined\n"
-                          "Line %d\n"),
+      synterr(csound, Str("Variable '%s' used before defined\n"
+                          "Line %d"),
               tree->value->lexeme, tree->line - 1);
       do_baktrace(csound, tree->locn);
       return NULL;
@@ -1394,7 +1395,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         argType = get_arg_type2(csound, current, typeTable);
         if (UNLIKELY(argType==NULL)) {
           synterr(csound,
-                  Str("Variable type for %s could not be determined.\n"), varName);
+                  Str("Variable type for %s could not be determined."), varName);
           do_baktrace(csound, tree->locn);
           return 0;
         }
