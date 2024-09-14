@@ -1225,8 +1225,8 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     char* argType = get_arg_type2(csound, current, typeTable);
 
     if (argType == NULL) {
-      // if we failed to find argType, exit from parser
-      csound->Die(csound, "Could not parse type for argument %s", current->value->lexeme);
+      // if we failed to find argType, exit from parser     
+      csound->Die(csound, "Could not parse type for argument");
     } else {
       argType = convert_internal_to_external(csound, argType);
       argsLen += strlen(argType);
