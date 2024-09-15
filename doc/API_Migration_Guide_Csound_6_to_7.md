@@ -365,7 +365,7 @@ PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
 The function
 
-````
+```
 PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr,
                                 char *instrName, int mode, int allow_release);
 ```
