@@ -56,6 +56,9 @@
 /* } LINEVENT_GLOBALS; */
 
 static void sensLine(CSOUND *csound, void *userData);
+int csoundRegisterSenseEventCallback(CSOUND *,
+                                       void (*func)(CSOUND *, void *),
+                                       void *userData);
 
 #define STA(x)   (csound->lineventStatics.x)
 #define MAXSTR 1048576 /* 1MB */

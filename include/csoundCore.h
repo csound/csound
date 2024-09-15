@@ -105,37 +105,13 @@ extern "C" {
     int ksmps;
   } csRtAudioParams;
 
-  typedef struct RTCLOCK_S {
-    int_least64_t   starttime_real;
-    int_least64_t   starttime_CPU;
-  } RTCLOCK;
-
-  typedef struct CsoundRandMTState_ {
-    int         mti;
-    uint32_t    mt[624];
-  } CsoundRandMTState;
-  
-  int csoundRand31(int *seedVal);
-  void csoundSeedRandMT(CsoundRandMTState *p,
-                        const uint32_t *initKey, uint32_t keyLength);
-  uint32_t csoundRandMT(CsoundRandMTState *p);
-  int csoundCreateGlobalVariable(CSOUND *,const char *name, size_t nbytes);
-  void *csoundQueryGlobalVariable(CSOUND *, const char *name);
-  void *csoundQueryGlobalVariableNoCheck(CSOUND *, const char *name);
-  int csoundDestroyGlobalVariable(CSOUND *, const char *name);
   uint32_t csoundGetNchnls(CSOUND *);
   uint32_t csoundGetNchnlsInput(CSOUND *csound);
   long csoundGetInputBufferSize(CSOUND *);
   long csoundGetOutputBufferSize(CSOUND *);
   void *csoundGetNamedGens(CSOUND *);
   int *csoundGetChannelLock(CSOUND *csound, const char *name);
-  uint32_t csoundGetRandomSeedFromTime(void);
-  void csoundInitTimerStruct(RTCLOCK *);
-  double csoundGetRealTime(RTCLOCK *);
-  double csoundGetCPUTime(RTCLOCK *);
-  int csoundRegisterSenseEventCallback(CSOUND *,
-                                       void (*func)(CSOUND *, void *),
-                                       void *userData);
+
   void **csoundGetRtRecordUserData(CSOUND *);
   void **csoundGetRtPlayUserData(CSOUND *);
   
@@ -159,10 +135,7 @@ extern "C" {
                                         int (*audiodevlist__)(CSOUND *,
                                                               CS_AUDIODEVICE *list,
                                                               int isOutput));
-  char **csoundListUtilities(CSOUND *);
-  void csoundDeleteUtilityList(CSOUND *, char **lst);
-  const char *csoundGetUtilityDescription(CSOUND *,
-                                                 const char *utilName);
+
   int csoundCompileCsd(CSOUND *csound, const char *csd_filename);
   int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
   int csoundCleanup(CSOUND *);
@@ -176,6 +149,7 @@ extern "C" {
 #include "csound_circular_buffer.h"
 #include "csound_threads.h"
 #include "csound_compiler.h"
+#include "csound_misc.h"
   
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
