@@ -2399,8 +2399,9 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
     adat->dimensions = (int32_t) p->idim->sizes[0];
     adat->sizes = (int32_t *) csound->Calloc(csound,
                                            adat->dimensions*sizeof(int32_t));
-    for(i = 0; i < adat->dimensions; i++)
-      siz += (adat->sizes[i] = MYFLT2LRND(p->idim->data[i]));
+    siz = (adat->sizes[0] = MYFLT2LRND(p->idim->data[0]));
+    for(i = 1; i < adat->dimensions; i++)
+      siz *= (adat->sizes[i] = MYFLT2LRND(p->idim->data[i]));
   
     adat->arrayType = (CS_TYPE *)
       csoundGetTypeWithVarTypeName(csound->typePool, p->type->data);

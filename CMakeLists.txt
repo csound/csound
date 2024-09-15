@@ -117,6 +117,10 @@ else()
     set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
 endif()
 
+if(APPLE)
+    set(CMAKE_INSTALL_RPATH ${CS_FRAMEWORK_DEST})
+endif()
+
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -235,7 +239,7 @@ message(STATUS "Building for bare metal")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBARE_METAL")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
-    
+
     if(CUSTOM_MALLOC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
     # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
