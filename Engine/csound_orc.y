@@ -71,7 +71,9 @@
 
 %token STRING_TOKEN
 %token T_IDENT
+%token T_IDENTB
 %token T_TYPED_IDENT
+%token T_TYPED_IDENTB
 %token T_PLUS_IDENT
 
 %token INTEGER_TOKEN
@@ -355,18 +357,18 @@ opcall  : identifier NEWLINE
           { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '#', $1, $3); }
         ;
 
-function_call : typed_identifier '(' expr_list ')'
+function_call : typed_identifierb expr_list ')'
               { $$ = $1;
                 $1->type = T_FUNCTION;
-                $1->right = $3; }
-             | typed_identifier '(' ')'
+                $1->right = $2; }
+             | typed_identifierb ')'
               { $$ = $1;
                 $1->type = T_FUNCTION; }
-             | identifier '(' expr_list ')'
+             | identifierb expr_list ')'
               { $$ = $1;
                 $1->type = T_FUNCTION;
-                $1->right = $3; }
-             | identifier '(' ')'
+                $1->right = $2; }
+             | identifierb ')'
               { $$ = $1;
                 $1->type = T_FUNCTION; }
              ;
@@ -756,7 +758,15 @@ typed_identifier : T_TYPED_IDENT
         { $$ = make_leaf(csound, LINE, LOCN, T_TYPED_IDENT, (ORCTOKEN *)$1); }
         ;
 
+typed_identifierb : T_TYPED_IDENTB
+        { $$ = make_leaf(csound, LINE, LOCN, T_TYPED_IDENT, (ORCTOKEN *)$1); }
+        ;
+
 identifier : T_IDENT
+        { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, (ORCTOKEN *)$1); }
+        ;
+
+identifierb : T_IDENTB
         { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, (ORCTOKEN *)$1); }
         ;
 

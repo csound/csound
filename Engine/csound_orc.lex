@@ -77,7 +77,9 @@ int get_next_char(char *, int32_t, struct yyguts_t*);
 %option nounput
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
+IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
+TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -379,11 +381,22 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
-
+{IDENTB}        { if (UNLIKELY(strchr(yytext, '\n')))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  *strrchr(yytext, '(') = '\0';
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  return (*lvalp)->type+1; }
 {TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
+{TYPED_IDENTIFIERB} { if (UNLIKELY(strchr(yytext, '\n')))
+                           csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                                yyscanner);
+                      *strrchr(yytext, '(') = '\0';
+                      *lvalp = lookup_token(csound, yytext, yyscanner);
+                      return (*lvalp)->type+1; }
 {INTGR}         {
                     *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
                     /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
