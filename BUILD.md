@@ -100,7 +100,7 @@ and then build Csound.
 ```
 brew install --only-dependencies csound
 brew install bison flex asio jack googletest
-cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake
+cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
 cmake --build build --config Release
 ```
 
