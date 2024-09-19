@@ -1,5 +1,5 @@
+if(BUILD_TESTS)
 cmake_minimum_required(VERSION 3.20)
-
 if(USE_VCPKG AND NOT ANDROID)
     find_package(GTest CONFIG REQUIRED)
 else()
@@ -7,7 +7,6 @@ else()
     check_deps(BUILD_TESTS BUILD_STATIC_LIBRARY)
 endif()
 
-if(BUILD_TESTS)
     add_executable(unittests
         channel_tests.cpp
         csound_data_structures_test.cpp
