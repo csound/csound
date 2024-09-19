@@ -14,7 +14,7 @@ Optional component requirements:
 - Git: A distributed version control system to let you clone and acquire
 the Csound sources. Although you can download the source as a zip from GitHub,
 having git installed makes it easier to interact with the Csound source. It
-also makes it easier to sync with the very latest source.  
+also makes it easier to sync with the very latest source.
 
 - C++ compiler toolchain: a few components are written in C++. For
 these to be built, a complete installation of C++ development tools is
