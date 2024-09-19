@@ -39,6 +39,8 @@
 extern int set_rt_priority(int argc, const char **argv);
 #endif
 
+extern int csoundPerform(CSOUND *);
+
 extern int csoundErrCnt(CSOUND*);
 
 static FILE *logFile = NULL;
@@ -325,10 +327,8 @@ int main(int argc, char **argv)
     /*  One complete performance cycle. */
      result = csoundCompile(csound, argc, (const char **)argv);
      if(!result) {
-      csoundStart(csound); 
-      do result = csoundPerformKsmps(csound);
-      while (!result);
-     // csoundMessage(csound, "**** result = %d\n", result);
+      result = csoundStart(csound); 
+      if(!result) result = csoundPerform(csound);
      }
      errs = csoundErrCnt(csound);
     /* delete Csound instance */
