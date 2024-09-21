@@ -175,7 +175,7 @@ jobs:
         run: cmake --build build --target test csdtests
 
   macos_build_vcpkg_arm64:
-    name: MacOS build (vcpkg)
+    name: MacOS build (vcpkg arm64)
     runs-on: macos-latest
     steps:
       - name: Checkout source code
