@@ -1131,6 +1131,37 @@ extern "C" {
    */
   PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name);
 
+  /**
+   * Sets an external callback for opening a sound file.
+   * The callback is made when a sound file is going to be opened.
+   * The following information is passed to the callback:
+   *     char*  pathname of the file; either full or relative to current dir
+   *     int    flags of the file descriptor.
+   *     SFLIB_INFO* sound file info of the sound file.
+   *
+   * Pass NULL to disable the callback.
+   * This callback is retained after a csoundReset() call.
+   */
+
+  PUBLIC void csoundSetOpenSoundFileCallback(CSOUND *p,
+                                             void *(*openSoundFileCallback)(CSOUND*,
+                                                                            const char*,
+                                                                            int, void*));
+
+  /**
+   * Sets an external callback for opening a file.
+   * The callback is made when a file is going to be opened.
+   * The following information is passed to the callback:
+   *     char*  pathname of the file; either full or relative to current dir
+   *     char*  access mode of the file.
+   *
+   * Pass NULL to disable the callback.
+   * This callback is retained after a csoundReset() call.
+   */
+  PUBLIC void csoundSetOpenFileCallback(CSOUND *p,
+                                        FILE *(*func)(CSOUND*, const char*,
+                                                     const char*));
+
 #if !defined(SWIG)
   /**
    * Sets an external callback for receiving notices whenever Csound opens

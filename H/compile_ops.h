@@ -37,6 +37,20 @@ typedef struct _retval {
   MYFLT *ret;
 } RETVAL;
 
+typedef struct rosc {
+  OPDS h;
+  MYFLT *kstatus;
+  MYFLT *out[32];
+  STRINGDAT *address, *type;
+} ROSC;
+
+typedef struct rosca {
+  OPDS h;
+  MYFLT *kstatus;
+  ARRAYDAT *out;
+  STRINGDAT *address, *type;
+} ROSCA;
+
 int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
 int32_t compile_str_i(CSOUND *csound, COMPILE *c);
 int32_t compile_csd_i(CSOUND *csound, COMPILE *c);
@@ -45,3 +59,7 @@ int32_t eval_str_i(CSOUND *csound, COMPILE *p);
 int32_t eval_str_k(CSOUND *csound, COMPILE *p);
 int32_t retval_i(CSOUND *csound, RETVAL *p);
 int32_t eval_str_k(CSOUND *csound, COMPILE *p);
+int32_t readOSC_perf(CSOUND *csound, ROSC *p);
+int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p);
+int32_t readOSCarray_init(CSOUND *csound, ROSCA *p);
+

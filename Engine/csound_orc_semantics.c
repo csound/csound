@@ -67,7 +67,7 @@ int is_reserved(char*);
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
-char* cs_strdup(CSOUND* csound, char* str) {
+char* cs_strdup(CSOUND* csound, const char* str) {
   size_t len;
   char* retVal;
 
@@ -84,7 +84,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
   return retVal;
 }
 
-char* cs_strndup(CSOUND* csound, char* str, size_t size) {
+char* cs_strndup(CSOUND* csound, const char* str, size_t size) {
   size_t len;
   char* retVal;
 
@@ -1452,7 +1452,7 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 
 void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable) {
 
-  CS_TYPE* type;
+  const CS_TYPE* type;
   CS_VARIABLE* var;
   char *t;
   CS_VAR_POOL* pool;
@@ -1468,7 +1468,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   if (var == NULL) {
     if (annotation != NULL) {
       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
-      typeArg = type;
+      typeArg = (void *) type;
     } else {
       t = varName;
       argLetter[1] = 0;
@@ -1478,7 +1478,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
 
       if (*t == '[' || *t == 't') { /* Support legacy t-vars */
         int dimensions = 1;
-        CS_TYPE* varType;
+        const CS_TYPE* varType;
         char* b = t + 1;
 
         while(*b == '[') {
@@ -1490,7 +1490,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
         varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
 
         varInit.dimensions = dimensions;
-        varInit.type = varType;
+        varInit.type =  varType;
         typeArg = &varInit;
       }
 
@@ -1522,7 +1522,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
 
   var = csoundFindVariableWithName(csound, pool, varName);
   if (var == NULL) {
-    CS_TYPE* varType;
+    const CS_TYPE* varType;
 
     if (annotation != NULL) {
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
@@ -1535,7 +1535,8 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
 
       argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
 
-      varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      varType =
+        csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
 
 
@@ -1544,7 +1545,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
     typeArg = &varInit;
 
     var = csoundCreateVariable(csound, csound->typePool,
-                               (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
+                               &CS_VAR_TYPE_ARRAY,
                                varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
@@ -2118,7 +2119,7 @@ int initStructVar(CSOUND* csound, void* p) {
 
 void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
-  CS_TYPE* type = var->varType;
+  const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
   int len = cs_cons_length(members);
   int i;
@@ -2144,7 +2145,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
 
 CS_VARIABLE* createStructVar(void* cs, void* p, OPDS *ctx) {
   CSOUND* csound = (CSOUND*)cs;
-  CS_TYPE* type = (CS_TYPE*)p;
+  const CS_TYPE* type = (const CS_TYPE*)p;
 
   if (type == NULL) {
     csound->Message(csound, "ERROR: no type given for struct creation\n");
@@ -2161,7 +2162,8 @@ CS_VARIABLE* createStructVar(void* cs, void* p, OPDS *ctx) {
   return var;
 }
 
-void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src, OPDS *p) {
+void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
+                   void* src, OPDS *p) {
   CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int i, count;
@@ -2198,7 +2200,8 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     }
 
     memberName = cs_strdup(csound, memberName);
-    CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+    const CS_TYPE* memberType =
+      csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
     CS_VARIABLE* var = memberType->createVariable(csound, type, NULL);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;

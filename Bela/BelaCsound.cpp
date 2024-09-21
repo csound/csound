@@ -182,8 +182,8 @@ bool setup(BelaContext *context, void *Data)
   csound = new Csound();
   gCsData.csound = csound;
   csound->SetHostData((void *) context);
-  csound->SetHostImplementedAudioIO(1,0);
-  csound->SetHostImplementedMIDIIO(1);
+  csound->SetHostAudioIO();
+  csound->SetHostMIDIIO();
   csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
   csound->SetExternalMidiReadCallback(ReadMidiData);
   csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
@@ -209,7 +209,7 @@ bool setup(BelaContext *context, void *Data)
     printf("Error: Csound could not compile CSD file.\n");
     return false;
   }
-  gCsData.blocksize = csound->GetKsmps()*csound->GetNchnls();
+  gCsData.blocksize = csound->GetKsmps()*csound->GetChannels();
   gCsData.count = 0;
 
   
@@ -237,7 +237,7 @@ void render(BelaContext *context, void *Data)
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
     float scopeOut;
-    int nchnls = csound->GetNchnls();
+    int nchnls = csound->GetChannels();
     int chns = nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
     int an_chns = context->analogInChannels > ANCHNS ?

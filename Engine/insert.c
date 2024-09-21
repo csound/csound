@@ -1084,7 +1084,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
 
 
   while (current != NULL) {
-    CS_TYPE* varType = current->varType;
+    const CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
       varType->freeVariableMemory(csound,
                                   ip->lclbas + current->memBlockIndex);
@@ -1554,8 +1554,11 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   */
   p->h.insdshead->xtratim *= onedos;
   CS_KCNT *= onedos;
-  /* oversampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  /* oversampling mode (s) */
+  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  if(*p->out_cvt >= 0)
+    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
@@ -1628,8 +1631,11 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
 
   p->h.insdshead->xtratim *= FL(1.0)/onedos;
   CS_KCNT *= FL(1.0)/onedos;
-  /* undersampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  /* undersampling mode (s) */
+  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  if(*p->out_cvt >= 0)
+    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
+  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
   /* set local sr variable */
   INSTRTXT *ip = p->h.insdshead->instr;
   CS_VARIABLE *var =
@@ -1974,7 +1980,7 @@ void instance(CSOUND *csound, int insno)
   /* initialize vars for CS_TYPE */
   for (current = tp->varPool->head; current != NULL; current = current->next) {
     char* ptr = (char*)(lclbas + current->memBlockIndex);
-    CS_TYPE** typePtr = (CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
+    const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
 

@@ -2,11 +2,14 @@
  * File:   csound_debugger_test.c
  * Author: mantaraya36
  */
-
+#define __BUILDING_LIBCSOUND
 #include <stdio.h>
-#include "gtest/gtest.h"
-#include "csound.h"
+
+#include "csoundCore.h"
 #include "csdebug.h"
+#include "gtest/gtest.h"
+
+//#define csoundInputMessage(a,b) csoundEventString(a,b,0)
 
 class DebuggerTests : public ::testing::Test {
 public:
@@ -20,16 +23,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL");
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
+      //csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
     }
@@ -72,7 +72,7 @@ TEST_F (DebuggerTests, testBreakpointOnce)
     int i;
     int break_count = 0;
 
-    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
+    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n", 0);
     csoundInputMessage(csound, "i 1.1 0   1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -101,7 +101,7 @@ TEST_F (DebuggerTests, testBreakpointRemove)
     int i;
     int break_count = 0;
 
-    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
+    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n", 0);
     csoundInputMessage(csound, "i 1.1 0   1 440");
     csoundInputMessage(csound, "i 1.2 0   1 880");
     csoundInputMessage(csound, "i 1.1 0.1 1 440");
@@ -140,7 +140,7 @@ static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 
 TEST_F (DebuggerTests, testVariables)
 {
-    csoundCompileOrc(csound, "instr 1\n ivar init 2.5\n kvar init 3.5\n asig init 0.5\nSvar init \"hello\"\n endin\n");
+  csoundCompileOrc(csound, "instr 1\n ivar init 2.5\n kvar init 3.5\n asig init 0.5\nSvar init \"hello\"\n endin\n", 0);
     csoundInputMessage(csound, "i 1 0  1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -161,7 +161,7 @@ static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 
 TEST_F (DebuggerTests, testBreakpointInstrument)
 {
-    csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n");
+  csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n", 0);
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -186,7 +186,7 @@ TEST_F (DebuggerTests, testLineBreakpointAddRemove)
                      "ksig line 0, p3, 1\n"
                      "ksig2 line 1, p3, 0\n"
                      "asig3 oscils 0.5, 440, 0.5\n"
-                     "endin\n");
+                     "endin\n", 0);
 
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
@@ -232,7 +232,7 @@ TEST_F (DebuggerTests, testLineBreakpoint)
                      "ksig line 0, p3, 1\n"
                      "ksig2 line 1, p3, 0\n"
                      "asig3 oscils 0.5, 440, 0.5\n"
-                     "endin\n");
+                     "endin\n", 0);
 
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
@@ -318,6 +318,7 @@ TEST_F (DebuggerTests, testLineBreakpointOrcFile)
 
     const char* argv[] = {"csound", "debug.orc", "debug.sco"};
     csoundCompile(csound, 3, argv);
+    csoundStart(csound);
 
     csoundDebuggerInit(csound);
     int line = 5;
@@ -408,7 +409,7 @@ TEST_F (DebuggerTests, testNext)
                              "kvar = kvar + 1\n"
                              "ksig2 line 1, p3, 0\n"
                              "kvar = kvar + 1\n"
-                             "endin\n");
+                             "endin\n", 0);
 
     csoundInputMessage(csound, "i 1 0  0.1");
     csoundInputMessage(csound, "i 1.2 0  0.1");

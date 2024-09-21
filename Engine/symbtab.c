@@ -210,7 +210,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
           typeSpecifier[(end - in_arg)] = 0;
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
-          CS_TYPE* type =
+          CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
@@ -231,7 +231,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           char *c = map_udo_in_arg_type(in_arg);
           //                printf("found arg type %s -> %c\n", in_arg, c);
 
-          CS_TYPE* type =
+          CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {
@@ -275,7 +275,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
           typeSpecifier[(end - out_arg) + 1] = 0;
           //printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
-          CS_TYPE* type =
+          CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
@@ -295,7 +295,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         } else {
           char* c = map_udo_out_arg_type(out_arg);
           //                printf("found arg type %s -> %c\n", out_arg, c);
-          CS_TYPE* type =
+          CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {

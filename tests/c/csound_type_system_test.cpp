@@ -26,10 +26,9 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL");
+      csound = csoundCreate (0, 0);
+      csoundCreateMessageBuffer (csound, 0);
+      csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()

@@ -1531,7 +1531,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
       ARRAY_VAR_INIT varInit;
       varInit.dimensions = gVar->dimensions;
       varInit.type = gVar->subType;
-      var = csoundCreateVariable(csound, csound->typePool, gVar->varType,
+      var = csoundCreateVariable(csound, csound->typePool, (void *) gVar->varType,
                                  gVar->varName, &varInit);
       csoundAddVariable(csound, current_state->varPool, var);
       /* memory has already been allocated, so we just point to it */
@@ -1960,7 +1960,7 @@ if (engineState != &csound->engineState) {
       /* synterr(csound,
          Str("perf-pass statements illegal in header blk (%s)\n"),
          oentry->opname);*/
-      csound->Warning(csound,
+      csound->DebugMsg(csound,
                       Str("%s: perf-time code in global space, ignored"),
                       oentry->opname);
     }

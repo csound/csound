@@ -128,7 +128,8 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   }
 
   {
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType,
+    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, (void *)
+                                                           arrayDat->arrayType,
                                                            &(p->h));
     char *mem;
     arrayDat->arrayMemberSize = var->memBlockSize;
@@ -3618,8 +3619,8 @@ int32_t perf_mags(CSOUND *csound, FFT *p) {
   out = p->out->data;
   for (i=2,j=1;j<end-1;i+=2,j++)
     out[j] = HYPOT(in[i],in[i+1]);
-  out[0] = in[0];
-  out[end-1] = in[1];
+  out[0] = fabs(in[0]);
+  out[end-1] = fabs(in[1]);
   return OK;
 }
 

@@ -150,7 +150,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE* ff)
     }
 }
 
-PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
+int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 {
     OPARMS  *O = csound->oparms;
     char    *s;
@@ -161,10 +161,12 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     char    *fileDir;
     volatile int     compiledOk = 0;
 
-    if ((n = setjmp(csound->exitjmp)) != 0) {
-      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-
+   
+   if ((n = setjmp(csound->exitjmp)) != 0) {
+    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+   }
+    
+    
     argc = ac;
     if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
       csound->Message(csound, Str("Csound is already started, call csoundReset()\n"
@@ -204,7 +206,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
              && csound->orchname[0] != '\0') {
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       csound->orcname_mode = 0;
-      if(O->msglevel || O->odebug)
+      if(!(O->msglevel == 16) && (O->msglevel || O->odebug))
        csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
       /* Add directory of CSD file to search paths before orchname gets
@@ -307,13 +309,16 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->LongJmp(csound, 1);
 
     if (UNLIKELY(csoundCompileOrcInternal(csound, NULL, 0) != 0)){
-      if (csound->oparms->daemon == 0)
+      if (csound->oparms->daemon != 1)
         csoundDie(csound, Str("cannot compile orchestra"));
       else {
         /* VL -- 21-10-13 Csound does not need to die on
            failure to compile. It can carry on, because new
-           instruments can be compiled again */
-        if (csound->oparms->daemon == 0)
+           instruments can be compiled again 
+           27-07-13 Csound dies on failure if setting up
+           a server
+          */
+        if (csound->oparms->daemon == 1)
           csound->Warning(csound, Str("cannot compile orchestra.\n"
                                       "Csound will start with no instruments"));
        }
@@ -559,18 +564,17 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
       csoundUDPServerStart(csound,csound->oparms->daemon);
 
     allocate_message_queue(csound); /* if de-alloc by reset */
+
+
+    
     return musmon(csound);
 }
 
 PUBLIC int csoundCompile(CSOUND *csound, int argc, const char **argv){
-
-    int result = csoundCompileArgs(csound,argc,argv);
-
-    if (result == CSOUND_SUCCESS) return csoundStart(csound);
-    else return result;
+    return csoundCompileArgs(csound,argc,argv);
 }
 
-PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
+int csoundCompileCsd(CSOUND *csound, const char *str) {
     CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
     if (LIKELY(tt != NULL)) {
       int res = csoundCompileCsdText(csound, tt->body);
@@ -580,7 +584,7 @@ PUBLIC int csoundCompileCsd(CSOUND *csound, const char *str) {
     return CSOUND_ERROR;
 }
 
-PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
+int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csound, csd_text));

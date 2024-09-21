@@ -230,6 +230,9 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
   }
   return 0;
 }
+int csoundOpenLibrary(void **library, const char *libraryPath);
+int csoundCloseLibrary(void *library);
+void *csoundGetLibrarySymbol(void *library, const char *symbolName);
 
 
 /**
@@ -1030,25 +1033,25 @@ int csoundDestroyModules(CSOUND *csound)
 
 #if defined(WIN32)
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
+int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   *library = (void*) LoadLibrary(libraryPath);
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
   return (int) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
 #elif  !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
-PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
+int csoundOpenLibrary(void **library, const char *libraryPath)
 {
   int flg = RTLD_NOW;
   if (libraryPath != NULL) {
@@ -1063,12 +1066,12 @@ PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
   return (*library != NULL ? 0 : -1);
 }
 
-PUBLIC int csoundCloseLibrary(void *library)
+int csoundCloseLibrary(void *library)
 {
   return (int) dlclose(library);
 }
 
-PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) dlsym(library, procedureName);
 }
@@ -1224,6 +1227,7 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
+extern int     csoundModuleCreate_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_doppler(CSOUND *csound);
 #ifndef BARE_METAL
@@ -1318,6 +1322,7 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     sfont_ModuleCreate,
     sfont_ModuleInit,
     csoundModuleInit_ampmidid,
+    csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
 #if !defined(BARE_METAL) && !defined(__wasi__)

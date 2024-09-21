@@ -26,7 +26,11 @@
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
+#ifdef CS_INTERNAL
+#include "csoundCore.h"
+#else
 #include "csdl.h"
+#endif
 #include "pstream.h"
 #include "arrays.h"
 #include <array>
@@ -531,7 +535,7 @@ public:
       size_t bytes = (n + 2) * sizeof(float);
       if (frame.auxp == nullptr || frame.size < bytes) {
         csound->AuxAlloc(csound, bytes, &frame);
-        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
+        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0.f);
       }
     } else {
       size_t bytes = (n + 2) * sizeof(MYFLT) * nsmps;

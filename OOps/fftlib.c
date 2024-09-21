@@ -35,11 +35,6 @@
 #include "fftlib.h"
 #include "pffft.h"
 
-
-static int32_t isPowTwo(int32_t N) {
-  return (N != 0) ? !(N & (N - 1)) : 0;
-}
-
 #define POW2(m) ((uint32) (1 << (m)))       /* integer power of 2 for m<32 */
 
 /* fft's with M bigger than this bust primary cache */
@@ -3246,7 +3241,7 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
  */
 void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
-  if(isPowTwo(FFTsize)) {
+  if(IS_POW_TWO(FFTsize)) {
   MYFLT *Utbl;
   int16 *BRLow;
   int32_t   M;
@@ -3267,7 +3262,7 @@ void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 
 void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
- if(isPowTwo(FFTsize)) {
+ if(IS_POW_TWO(FFTsize)) {
   MYFLT *Utbl;
   int16 *BRLow;
   int32_t   M;
@@ -3466,7 +3461,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
   setup = (CSOUND_FFT_SETUP *)
     csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
   setup->N = FFTsize;
-  setup->p2 = isPowTwo(FFTsize);
+  setup->p2 = IS_POW_TWO(FFTsize);
   switch(lib){
 #if defined(__MACH__)
   case VDSP_LIB:

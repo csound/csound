@@ -251,7 +251,7 @@ int xinset(CSOUND *csound, XIN *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
                                         CS_ESR/parent_sr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -260,7 +260,7 @@ int xinset(CSOUND *csound, XIN *p)
     else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
                                         CS_ESR/parent_sr, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -318,7 +318,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, CS_KSMPS)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
@@ -327,7 +327,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, 1)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");

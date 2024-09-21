@@ -70,19 +70,17 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL -odac");
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
+      //csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
     }
+
 
     CSOUND* csound {nullptr};
 };
@@ -111,6 +109,5 @@ TEST_F (ServerTests, testServer) {
     udp_send("##close##");
 
     performanceThread.Join();
-    csound.Cleanup();
     csound.Reset();
 }

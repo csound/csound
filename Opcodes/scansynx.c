@@ -52,7 +52,6 @@
 /* Code fixes by John ffitch, March 2000 */
 /*               Made interpolation selectable April 2000 */
 
-#include "csdl.h"
 #include "scansyn.h"
 #include <math.h>
 #include "cwindow.h"

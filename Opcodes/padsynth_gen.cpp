@@ -21,7 +21,13 @@
  02110-1301 USA
 */
 extern "C" {
+
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+  
 }
 #include <cmath>
 #include <complex>
