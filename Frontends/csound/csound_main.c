@@ -38,12 +38,9 @@
 #ifdef LINUX
 extern int set_rt_priority(int argc, const char **argv);
 #endif
-
-extern int csoundPerform(CSOUND *);
-
 extern int csoundErrCnt(CSOUND*);
-
 static FILE *logFile = NULL;
+static int perf_flag = 1;
 
 static void msg_callback(CSOUND *csound,
                          int attr, const char *format, va_list args)
@@ -228,6 +225,7 @@ static void signal_handler(int sig)
     psignal(sig, "\ncsound command");
     if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
       if (_csound) {
+        perf_flag = 0;
         csoundDestroy(_csound);
       }
       //_result = -1;
@@ -328,7 +326,8 @@ int main(int argc, char **argv)
      result = csoundCompile(csound, argc, (const char **)argv);
      if(!result) {
       result = csoundStart(csound); 
-      if(!result) result = csoundPerform(csound);
+      while (!result && perf_flag)
+        result = csoundPerformKsmps(csound);
      }
      errs = csoundErrCnt(csound);
     /* delete Csound instance */
