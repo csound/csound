@@ -19,7 +19,7 @@ RUN apt install -y \
 
 RUN pip3 install scons
 
-RUN git clone https://github.com/emscripten-core/emsdk.git
+RUN git clone --depth 1 https://github.com/emscripten-core/emsdk.git
 RUN /emsdk/emsdk install 3.1.64
 RUN /emsdk/emsdk activate 3.1.64
 
