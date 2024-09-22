@@ -2646,8 +2646,9 @@ PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
   adat->dimensions = dimensions;
   adat->sizes = (int32_t *) csound->Calloc(csound,
                                            dimensions*sizeof(int32_t));
+  siz = (adat->sizes[0] = sizes[0]);
   for(i = 0; i < adat->dimensions; i++)
-    siz += (adat->sizes[i] = sizes[i]);
+    siz *= (adat->sizes[i] = sizes[i]);
   
   adat->arrayType = (CS_TYPE *)
     csoundGetTypeWithVarTypeName(csound->typePool, type);
