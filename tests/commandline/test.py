@@ -272,7 +272,6 @@ def runTest():
         counter += 1
 
 #    print output
-
     print("%s\n\n"%("=" * 80))
     print("Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail))
 
