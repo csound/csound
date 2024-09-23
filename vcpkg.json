@@ -20,7 +20,7 @@
         },
         {
             "name": "jack2",
-            "platform": "linux"
+            "platform": "linux|osx"
         },
         {
             "name": "portaudio",

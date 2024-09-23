@@ -163,7 +163,7 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: brew install bison flex asio jack
+        run: brew install bison flex asio
 
       - name: Configure build
         run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
@@ -197,7 +197,7 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: brew install bison flex asio jack
+        run: brew install bison flex asio
 
       - name: Configure build
         run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
