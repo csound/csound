@@ -609,68 +609,47 @@ unary_expr : '~' expr %prec S_UMINUS
         | '+' error           { $$ = NULL; }
         ;
 
-binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
-          | expr '+' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $4); }
+binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $4); }
           | expr '+' error
-          | expr '-' expr  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
-          | expr '-' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '-', $1, $4); }
+          | expr '-' optnewline expr  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $4); }
           | expr '-' error
-          | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
-          | expr S_LE NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $4); }
+          | expr S_LE optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $4); }
           | expr S_LE error
-          | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
-          | expr S_GE NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $4); }
+          | expr S_GE optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $4); }
           | expr S_GE error     { $$ = NULL; }
-          | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
-          | expr S_NEQ NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $4); }
+          | expr S_NEQ optnewline expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $4); }
           | expr S_NEQ error    { $$ = NULL; }
            /* VL: 18.09.21 added the rule for if x = y for backwards compatibility */
           | expr '=' expr_list  { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
           | expr '=' error
-          | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr S_EQ NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
+          | expr S_EQ optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr S_EQ error
-          | expr S_GT expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
-          | expr S_GT NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $4); }
+          | expr S_GT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $4); }
           | expr S_GT error
-          | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
-          | expr S_LT NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $4); }
+          | expr S_LT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $4); }
           | expr S_LT error
-          | expr S_AND expr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
-          | expr S_AND NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $4); }
+          | expr S_AND optnewline expr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $4); }
           | expr S_AND error
-          | expr S_OR expr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
-          | expr S_OR NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $4); }
+          | expr S_OR optnewline expr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $4); }
           | expr S_OR error
-          | expr '*' expr    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | expr '*' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '*', $1, $4); }
+          | expr '*' optnewline expr    { $$ = make_node(csound, LINE,LOCN, '*', $1, $4); }
           | expr '*' error
-          | expr '/' expr    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | expr '/' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '/', $1, $4); }
+          | expr '/' optnewline expr    { $$ = make_node(csound, LINE,LOCN, '/', $1, $4); }
           | expr '/' error
-          | expr '^' expr    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | expr '^' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '^', $1, $4); }
+          | expr '^' optnewline expr    { $$ = make_node(csound, LINE,LOCN, '^', $1, $4); }
           | expr '^' error
-          | expr '%' expr    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | expr '%' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '%', $1, $4); }
+          | expr '%' optnewline expr    { $$ = make_node(csound, LINE,LOCN, '%', $1, $4); }
           | expr '%' error
-          | expr '|' expr        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
-          | expr '|' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '|', $1, $4); }
+          | expr '|' optnewline expr        { $$ = make_node(csound, LINE,LOCN, '|', $1, $4); }
           | expr '|' error
-          | expr '&' expr        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
-          | expr '&' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '&', $1, $4); }
+          | expr '&' optnewline expr        { $$ = make_node(csound, LINE,LOCN, '&', $1, $4); }
           | expr '&' error
-          | expr '#' expr        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
-          | expr '#' NEWLINE expr   { $$ = make_node(csound, LINE,LOCN, '#', $1, $4); }
+          | expr '#' optnewline expr        { $$ = make_node(csound, LINE,LOCN, '#', $1, $4); }
           | expr '#' error
-          | expr S_BITSHIFT_LEFT expr
-                 { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
-          | expr S_BITSHIFT_LEFT NEWLINE expr
+          | expr S_BITSHIFT_LEFT optnewline expr
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $4); }
           | expr S_BITSHIFT_LEFT error
-          | expr S_BITSHIFT_RIGHT expr
-                 { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
-          | expr S_BITSHIFT_RIGHT NEWLINE expr
+          | expr S_BITSHIFT_RIGHT optnewline expr
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $4); }
           | expr S_BITSHIFT_RIGHT error
           ;
@@ -744,6 +723,10 @@ goto  : GOTO_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, KGOTO_TOKEN, (ORCTOKEN *)$1); }
           | IGOTO_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, IGOTO_TOKEN, (ORCTOKEN *)$1); }
+          ;
+
+optnewline: NEWLINE
+          | /* empty */
           ;
 
 string : STRING_TOKEN
