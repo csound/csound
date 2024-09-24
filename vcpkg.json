@@ -8,15 +8,15 @@
         "libsamplerate",
         {
             "name": "portmidi",
-            "platform": "!android"
+            "platform": "!android & !emscripten"
         },
         {
             "name": "liblo",
-            "platform": "!android"
+            "platform": "!android & !emscripten"
         },
         {
             "name": "gtest",
-            "platform": "!android"
+            "platform": "!android & !emscripten"
         },
         {
             "name": "jack2",
@@ -24,7 +24,7 @@
         },
         {
             "name": "portaudio",
-            "platform": "!android"
+            "platform": "!android & !emscripten"
         },
         {
             "name": "dirent",

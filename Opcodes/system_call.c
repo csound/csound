@@ -79,7 +79,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || __wasm__
 return OK;
 #else
     if ((int32_t)*p->nowait!=0) {

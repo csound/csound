@@ -339,7 +339,7 @@ jobs:
 
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -438,6 +438,42 @@ jobs:
             for ARCH in arm arm64 x86 x64; do
               cmake --build build/$ARCH --config Release
             done
+
+  wasm_build:
+    name: Wasm build (emscripten/vcpkg)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+          actions-cache-folder: emsdk-cache
+
+      - name: Configure Build
+        run: |
+          cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Run integration and unit tests
+        run: cmake --build build --target test csdtests
 
   #android_build:
   #  name: Android build
