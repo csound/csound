@@ -172,6 +172,7 @@ def runTest():
 
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
+    ["testnewline.csd", "test newline in statements"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
