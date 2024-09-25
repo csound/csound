@@ -947,10 +947,6 @@ set(hrtf_ops_SRCS
     Opcodes/hrtferX.c
 )
 
-if (NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
-    list(APPEND stdopcod_SRCS Opcodes/socksend.c Opcodes/sockrecv.c)
-endif()
-
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c
     Opcodes/partials.c
