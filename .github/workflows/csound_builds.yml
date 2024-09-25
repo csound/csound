@@ -73,7 +73,7 @@ jobs:
           sudo apt-get install cmake libjack-dev libpulse-dev ladspa-sdk dssi-dev autoconf libtool
 
       - name: Configure Build
-        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake" -DBUILD_PLUGINS=1
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -381,7 +381,7 @@ jobs:
 
   android_build_vcpkg:
     name: Android build (vcpkg)
-    if: vars.ANDROID_WORKFLOW_RUN_ID 
+    if: vars.ANDROID_WORKFLOW_RUN_ID
     runs-on: ubuntu-latest
     env:
       VERSION: v1
