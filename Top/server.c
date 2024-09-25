@@ -121,7 +121,11 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
       csound->Warning(csound, Str("UDP: Winsock2 failed to start: %d"), err);
     return;
 #endif
+#ifdef __wasm__
+    *sock = -1;
+#else
     *sock = socket(AF_INET, SOCK_DGRAM, 0);
+#endif
     if (UNLIKELY(*sock < 0)) {
       csound->Warning(csound, Str("UDP: error creating socket"));
       return;
@@ -153,11 +157,13 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
 #endif
   server_addr.sin_port = htons((int) port);    /* the port */
 
+#ifndef __wasm__
   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0,
                       (const struct sockaddr *) &server_addr,
                       sizeof(server_addr)) < 0)) {
     csound->Warning(csound,  Str("UDP: sock end failed"));
   }
+#endif
 }
 
 
@@ -176,9 +182,10 @@ static uintptr_t udp_recv(void *pdata){
 
   csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {
-    if ((received =
-         recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen))
-        <= 0) {
+#ifndef __wasm__
+    received = recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen);
+#endif
+    if (received <= 0) {
       csoundSleep(timout ? timout : 1);
       continue;
     }
@@ -371,7 +378,9 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   }
 #endif
   p->cs = csound;
+#ifndef __wasm__
   p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#endif
 #ifndef WIN32
   if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0)) {
     csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
@@ -399,8 +408,12 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
   p->server_addr.sin_port = htons((int) p->port);    /* the port */
   /* associate the socket with the address and port */
-  if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                    sizeof(p->server_addr)) < 0)) {
+#ifndef __wasm__
+  int rc = bind(p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr)) < 0;
+#else
+  int rc = -1;
+#endif
+  if (UNLIKELY(rc)) {
     csound->Warning(csound, Str("bind failed"));
     p->thrid = NULL;
 #ifndef WIN32

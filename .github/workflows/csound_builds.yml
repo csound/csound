@@ -26,13 +26,13 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext libsamplerate0-dev
+          sudo apt-get install cmake libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext libsamplerate0-dev
 
       - name: Configure build
         run: |
           mkdir build
           cd build
-          cmake .. -DUSE_MP3=0
+          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1
 
       - name: Build Csound
         run: |
@@ -73,7 +73,7 @@ jobs:
           sudo apt-get install cmake libjack-dev libpulse-dev ladspa-sdk dssi-dev autoconf libtool
 
       - name: Configure Build
-        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -129,10 +129,10 @@ jobs:
       - name: Install dependencies
         run: |
           brew install --only-dependencies csound
-          brew install bison flex asio jack googletest
+          brew install bison flex jack googletest
 
       - name: Configure build
-        run: cmake -B build -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+        run: cmake -B build -DBUILD_TESTS=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -163,10 +163,44 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: brew install bison flex asio jack
+        run: brew install bison flex
 
       - name: Configure build
-        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Run integration and unit tests
+        run: cmake --build build --target test csdtests
+
+  macos_build_vcpkg_arm64:
+    name: MacOS build (vcpkg arm64)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Install dependencies
+        run: brew install bison flex
+
+      - name: Configure build
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -252,7 +286,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -305,7 +339,7 @@ jobs:
 
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -337,7 +371,7 @@ jobs:
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
       - name: Configure Build
-        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom.cmake" -DCMAKE_SYSTEM_NAME=MinGW
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom.cmake" -DCMAKE_SYSTEM_NAME=MinGW
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -404,6 +438,42 @@ jobs:
             for ARCH in arm arm64 x86 x64; do
               cmake --build build/$ARCH --config Release
             done
+
+  wasm_build:
+    name: Wasm build (emscripten/vcpkg)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Set up Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.64
+          actions-cache-folder: emsdk-cache
+
+      - name: Configure Build
+        run: |
+          cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Run integration and unit tests
+        run: cmake --build build --target test csdtests
 
   #android_build:
   #  name: Android build

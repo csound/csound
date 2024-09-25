@@ -1994,11 +1994,7 @@ if (engineState != &csound->engineState) {
   return CSOUND_SUCCESS;
 }
 
-#ifdef EMSCRIPTEN
-void sanitize(CSOUND *csound) {}
-#else
 extern void sanitize(CSOUND *csound);
-#endif
 
 /**
    Parse and compile an orchestra given on an string (OPTIONAL)

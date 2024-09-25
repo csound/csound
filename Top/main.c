@@ -309,14 +309,15 @@ int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->LongJmp(csound, 1);
 
     if (UNLIKELY(csoundCompileOrcInternal(csound, NULL, 0) != 0)){
-      if (csound->oparms->daemon != 1)
+      if (csound->oparms->daemon != 1 && csound->orchname != NULL)
         csoundDie(csound, Str("cannot compile orchestra"));
       else {
         /* VL -- 21-10-13 Csound does not need to die on
            failure to compile. It can carry on, because new
            instruments can be compiled again 
-           27-07-13 Csound dies on failure if setting up
-           a server
+           27-07-24 Csound dies on failure if setting up
+           a server, but only if code is presented -- as
+           before it can start without an orchestra
           */
         if (csound->oparms->daemon == 1)
           csound->Warning(csound, Str("cannot compile orchestra.\n"

@@ -13,7 +13,7 @@ fi
 if [ $# -gt 1 ]; then
   export CS_VERSION=$2
 else
-  export CS_VERSION="6"
+  export CS_VERSION="7"
 fi
 echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
@@ -32,7 +32,7 @@ if [ $# -gt 2 ]; then
 	echo "Using directory $3 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
         rm -rf installer 
-	rm -rf csound6/build/dist
+	rm -rf csound/build/dist
         mkdir installer
 else
 	export RELEASE_DIR="`eval date +%Y-%m-%d-%H%M%S`"
@@ -41,14 +41,12 @@ else
         mkdir $INSTALLER_DIR
 	cd $RELEASE_DIR
 
-	#git clone git://csound.git.sourceforge.net/gitroot/csound/csound5
-	git clone -b $BRANCH_NAME file://$PWD/../../.. csound6 --depth=1 
-	#cp -R csound5 csound5-f
+	git clone -b $BRANCH_NAME file://$PWD/../../.. csound --depth=1 
 fi
 
 #BUILD DOUBLES CSOUND
 echo "Building Csound (double)..."
-cd csound6
+cd csound
 cp ../../Custom_10.9.cmake Custom.cmake 
 
 #$DEPS_BASE/bin/scons -j2 &> ../csound5_build_log.txt
@@ -62,7 +60,7 @@ make -j6 install
 cd ../..
 
 # ASSEMBLE FILES FOR INSTALLER
-export CSLIBVERSION=6.0
+export CSLIBVERSION=7.0
 #export APPS32_DIR=$INSTALLER_DIR/CsoundApps/Package_Contents/usr/local/bin
 export APPS64_DIR=$INSTALLER_DIR/CsoundApps64/Package_Contents/usr/local/bin
 #export FRAMEWORK32_DIR=$INSTALLER_DIR/CsoundLib/Package_Contents/Library/Frameworks/CsoundLib.framework
@@ -75,8 +73,8 @@ export TCLTK_DIR=Versions/$CSLIBVERSION/Resources/TclTk
 export JAVA_DIR=Versions/$CSLIBVERSION/Resources/Java
 export SAMPLES_DIR=Versions/$CSLIBVERSION/Resources/samples
 
-export DIST=csound6/build/dist
-export BLD=csound6/build
+export DIST=csound/build/dist
+export BLD=csound/build
 
 #mkdir -p $APPS32_DIR
 mkdir -p $APPS64_DIR
@@ -103,29 +101,17 @@ cp $BLD/../interfaces/ctcsound.py $FRAMEWORK64_DIR/$PYTHON_DIR
 
 echo "preparing framework..."
 
-cp  $DIST/lib/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/$CSLIBVERSION/
-cp  $BLD/csnd6.jar $FRAMEWORK64_DIR/$JAVA_DIR
-cp  $BLD/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
-
 # fix ID to /Library/Frameworks/CsoundLib64.framework/CsoundLib64
 # as CMake introduces an undesirable @rpath
 install_name_tool -id /Library/Frameworks/CsoundLib64.framework/CsoundLib64 $FRAMEWORK64_DIR/CsoundLib64
 
 echo "copying manual..."
 
-#cp -Rf $MANUAL_DIR/html $FRAMEWORK32_DIR/Resources/
-#mv $FRAMEWORK32_DIR/Resources/html $FRAMEWORK32_DIR/Resources/Manual
 
 cp -Rf $MANUAL_DIR/html $FRAMEWORK64_DIR/Resources/
 mv $FRAMEWORK64_DIR/Resources/html $FRAMEWORK64_DIR/Resources/Manual
 
-# installer should take care of this now (VL 07.20)
-#echo "copying samples..."
-
-#cp csound6/samples/*.dat $FRAMEWORK64_DIR/$SAMPLES_DIR
-
 cp  $BLD/libCsoundLib64.a $FRAMEWORK64_DIR/
-cp  $BLD/libcsnd6.a $FRAMEWORK64_DIR/
 
 echo "copying apps..."
 
@@ -202,17 +188,11 @@ install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR/li
 # will make libsndfile location absolute to avoid linking problems for API clients using flat namespace.
 # @loader_path/../../ => /Library/Frameworks/CsoundLib64.framework/
 install_name_tool -change /usr/local/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
-install_name_tool -change /usr/local/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
 install_name_tool -change libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
 
-# absolute path in libcsnd6.6.0.dylib (not @rpath)
-install_name_tool -change @rpath/CsoundLib64.framework/Versions/6.0/CsoundLib64  /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64  $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
-install_name_tool -id libcsnd6.6.0.dylib  $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 install_name_tool -change $DEPS_BASE/lib/liblo.7.dylib @loader_path/../../../../libs/liblo.7.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libosc.dylib
 install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.2.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/librtpa.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
 install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
 echo "...setting permissions..."
@@ -227,6 +207,44 @@ sudo chgrp -R wheel  CsoundApps64/Package_Contents/usr
 sudo chown -R root   CsoundApps64/Package_Contents/usr
 sudo chmod -R 755    CsoundApps64/Package_Contents/usr
 
+echo "creating bundle ..."
+
+# this step converts the framework into a bundle
+# Author: Giovanni Bedetti
+mkdir -p CsoundLib64.bundle/Contents/MacOS
+cp $FRAMEWORK64_DIR/Versions/Current/CsoundLib64* CsoundLib64.bundle/Contents/MacOS
+cp $FRAMEWORK64_DIR/libs/* CsoundLib64.bundle/Contents/MacOS
+install_name_tool -change @loader_path/../../libs/libsndfile.1.dylib @loader_path/libsndfile.1.dylib CsoundLib64.bundle/Contents/MacOS/CsoundLib64
+install_name_tool -id CsoundLib64 CsoundLib64.bundle/Contents/MacOS/CsoundLib64
+
+cat > CsoundLib64.bundle/Contents/Info.plist << EOL
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleExecutable</key>
+	<string>CsoundLib64</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.csound.CsoundLib64</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>7.0</string>
+	<key>CFBundleName</key>
+	<string>CsoundLib64</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+</dict>
+</plist>
+EOL
 
 echo "building packages ..."
 
@@ -237,11 +255,13 @@ echo "building product..."
 
 productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj --version $CS_VERSION  $PACKAGE_NAME
 
+
 echo "assembling DMG..."
 
 mkdir "$DMG_DIR" 
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
+cp -r ../CsoundLib64.bundle .
 #cp  ../../../readme.pdf .
 #cp  ../../../DmgResources/CsoundQt-0.9.7-MacOs.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
