@@ -323,9 +323,9 @@
     if (UNLIKELY((ctlno = (int32) *p->ictlno) < 0 || ctlno > 127)) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
-    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0 || chan > 15)) {
+    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0)) {
       return csound->InitError(csound,
-                     Str("illegal midi channel")); /* gab-A2 (chan number fix)*/
+                     Str("illegal midi channel")); 
     }
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
@@ -363,7 +363,7 @@
     if (UNLIKELY((ctlno1 = (int32)*p->ictlno1) < 0 || ctlno1 > 127 ||
                  (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ))
       return csound->InitError(csound, Str("illegal controller number"));
-    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0 || chan > 15))
+    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0))
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (MYFLT)((csound->m_chnbp[chan]->ctl_val[ctlno1] * 128 +
@@ -399,7 +399,7 @@
                  (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 )) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
-    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0 || chan > 15)) {
+    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0)) {
       return csound->InitError(csound, Str("illegal midi channel"));
     }
     p->ctlno1 = ctlno1;
@@ -453,7 +453,7 @@
         (ctlno2 = (int32)*p->ictlno2) < 0 || ctlno2 > 127 ||
                  (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127))
       return csound->InitError(csound, Str("illegal controller number"));
-    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0 || chan > 15))
+    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0))
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
       value = (MYFLT)((csound->m_chnbp[chan]->ctl_val[ctlno1] * 16384 +
@@ -491,7 +491,7 @@
                  (ctlno3 = (int32)*p->ictlno3) < 0 || ctlno3 > 127)) {
       return csound->InitError(csound, Str("illegal controller number"));
     }
-    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0 || chan > 15)) {
+    else if (UNLIKELY((chan=(int32_t) *p->ichan-1) < 0)) {
       return csound->InitError(csound, Str("illegal midi channel"));
     }
     p->ctlno1 = ctlno1;
@@ -536,7 +536,7 @@
     int32_t chan;
     if (UNLIKELY((fvalue = *p->ivalue) < 0. || fvalue > 1. ))
       return csound->InitError(csound, Str("value out of range"));
-    else if (UNLIKELY((chan = (int32_t) *p->ichan-1) < 0 || chan > 15 ||
+    else if (UNLIKELY((chan = (int32_t) *p->ichan-1) < 0 ||
                       !csound->m_chnbp[chan]))
       return csound->InitError(csound, Str("illegal midi channel"));
     else
@@ -551,7 +551,7 @@
     int32_t value, msb, lsb, chan;
     if (UNLIKELY((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) ))
       return csound->InitError(csound, Str("value out of range"));
-    else if (UNLIKELY((chan = (int32_t) *p->ichan - 1) < 0 || chan > 15 ||
+    else if (UNLIKELY((chan = (int32_t) *p->ichan - 1) < 0  ||
                       !csound->m_chnbp[chan]))
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
@@ -570,7 +570,7 @@
     int32_t value, msb, xsb, lsb, chan;
     if (UNLIKELY((fvalue = *p->ivalue) < FL(0.0) || fvalue > FL(1.0) ))
       return csound->InitError(csound, Str("value out of range"));
-    else if (UNLIKELY((chan = (int32_t) *p->ichan - 1) < 0 || chan > 15 ||
+    else if (UNLIKELY((chan = (int32_t) *p->ichan - 1) < 0  ||
                       !csound->m_chnbp[chan]))
       return csound->InitError(csound, Str("illegal midi channel"));
     else {
@@ -594,9 +594,6 @@
     *(p->ipgm) = FL(0.0);
     channelNum = (int32_t) MYFLT2LONG(*(p->ichn));
     if (channelNum > 0) {
-      if (UNLIKELY(channelNum > 16))
-        return csound->InitError(csound, Str("invalid channel number: %d"),
-                                         channelNum);
       chnp = csound->m_chnbp[channelNum - 1];
     }
     else
