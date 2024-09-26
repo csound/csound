@@ -72,140 +72,7 @@ static void nomsg_callback(CSOUND *csound,
 }
 
 
-#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
-                         !defined(__HAIKU__) && !defined(__BEOS__) && \
-                         !defined(__MACH__) && !defined(__EMSCRIPTEN__))
-static char *signal_to_string(int sig)
-{
-    switch(sig) {
-#ifdef SIGHUP
-    case SIGHUP:
-      return "Hangup";
-#endif
-#ifdef SIGINT
-    case SIGINT:
-      return "Interrupt";
-#endif
-#ifdef SIGQUIT
-    case SIGQUIT:
-      return "Quit";
-#endif
-#ifdef SIGILL
-    case SIGILL:
-      return "Illegal instruction";
-#endif
-#ifdef SIGTRAP
-    case SIGTRAP:
-      return "Trace trap";
-#endif
-#ifdef SIGABRT
-    case SIGABRT:
-      return "Abort";
-#endif
-#ifdef SIGBUS
-    case SIGBUS:
-      return "BUS error";
-#endif
-#ifdef SIGFPE
-    case SIGFPE:
-      return "Floating-point exception";
-#endif
-#ifdef SIGUSR1
-    case SIGUSR1:
-      return "User-defined signal 1";
-#endif
-#ifdef SIGSEGV
-    case SIGSEGV:
-      return "Segmentation violation";
-#endif
-#ifdef SIGUSR2
-    case SIGUSR2:
-      return "User-defined signal 2";
-#endif
-#ifdef SIGPIPE
-    case SIGPIPE:
-      return "Broken pipe";
-#endif
-#ifdef SIGALRM
-    case SIGALRM:
-      return "Alarm clock";
-#endif
-#ifdef SIGTERM
-    case SIGTERM:
-      return "Termination";
-#endif
-#ifdef SIGSTKFLT
-    case SIGSTKFLT:
-      return "???";
-#endif
-#ifdef SIGCHLD
-    case SIGCHLD:
-      return "Child status has changed";
-#endif
-#ifdef SIGCONT
-    case SIGCONT:
-      return "Continue";
-#endif
-#ifdef SIGSTOP
-    case SIGSTOP:
-      return "Stop, unblockable";
-#endif
-#ifdef SIGTSTP
-    case SIGTSTP:
-      return "Keyboard stop";
-#endif
-#ifdef SIGTTIN
-    case SIGTTIN:
-      return "Background read from tty";
-#endif
-#ifdef SIGTTOU
-    case SIGTTOU:
-      return "Background write to tty";
-#endif
-#ifdef SIGURG
-    case SIGURG:
-      return "Urgent condition on socket ";
-#endif
-#ifdef SIGXCPU
-    case SIGXCPU:
-      return "CPU limit exceeded";
-#endif
-#ifdef SIGXFSZ
-    case SIGXFSZ:
-      return "File size limit exceeded ";
-#endif
-#ifdef SIGVTALRM
-    case SIGVTALRM:
-      return "Virtual alarm clock ";
-#endif
-#ifdef SIGPROF
-    case SIGPROF:
-      return "Profiling alarm clock";
-#endif
-#ifdef SIGWINCH
-    case SIGWINCH:
-      return "Window size change ";
-#endif
-#ifdef SIGIO
-    case SIGIO:
-      return "I/O now possible";
-#endif
-#ifdef SIGPWR
-    case SIGPWR:
-      return "Power failure restart";
-#endif
-    default:
-      return "???";
-    }
-}
-
-#ifndef ANDROID
-static void psignal(int sig, char *str)
-{
-    fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
-}
-#endif
-#elif defined(__BEOS__)
+#if defined(__BEOS__)
 static void psignal(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, strsignal(sig));
@@ -232,11 +99,9 @@ static void signal_handler(int sig)
         perf_flag = 0;
         csoundDestroy(_csound);
       }
-      //_result = -1;
       if (logFile != NULL)
         fclose(logFile);
       exit(1);
-      //return;
     }
     exit(1);
 }
@@ -256,10 +121,16 @@ static const int sigs[] = {
 
 static void install_signal_handler(void)
 {
-    unsigned int i;
-    for (i = 0; sigs[i] >= 0; i++) {
+unsigned int i;
+#if defined(__MACH__) || defined(__LINUX__)
+  struct sigaction sa;
+  sa.sa_handler = &signal_handler;
+  for (i = 0; sigs[i] >= 0; i++) 
+    sigaction(sigs[i], &sa, NULL);
+#else  
+    for (i = 0; sigs[i] >= 0; i++) 
       signal(sigs[i], signal_handler);
-    }
+#endif
 }
 
 int main(int argc, char **argv)
@@ -267,9 +138,7 @@ int main(int argc, char **argv)
     CSOUND  *csound;
     char    *fname = NULL;
     int     i, result, errs, nomessages=0;
-#ifdef GNU_GETTEXT
-    const char* lang;
-#endif
+    
     install_signal_handler();
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
 
@@ -279,25 +148,29 @@ int main(int argc, char **argv)
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
 #endif
+    
 #ifdef GNU_GETTEXT
+    {
     /* We need to set the locale for the translations to work */
-    lang = csoundGetEnv(NULL, "CS_LANG");
+    const char* lang = csoundGetEnv(NULL, "CS_LANG");
     /* If set, use that. Otherwise use the system locale */
     if(lang == NULL)
         lang = setlocale(LC_MESSAGES, "");
     else
         lang = setlocale(LC_MESSAGES, lang);
-    /* Should we warn if we couldn't set the locale (lang == NULL)? */
+    if(lang == NULL)
+      csoundMessage(csound, "csould not set the locale\n");
     /* If the strings for this binary are ever translated,
      * the textdomain should be set here */
+    }
 #endif
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
 #ifdef LINUX
     if (set_rt_priority(argc, (const char **)argv) != 0)
       return -1;
-
 #endif
+    
     /* open log file if specified */
     for (i = 1; i < argc; i++) {
       if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
@@ -334,21 +207,13 @@ int main(int argc, char **argv)
         result = csoundPerformKsmps(csound);
      }
      errs = csoundErrCnt(csound);
-    /* delete Csound instance */
-     
+     /* delete Csound instance */
      csoundDestroy(csound);
-     //fprintf(stdout, "**** return %d\n",  (result >= 0 ? errs : -result));
      _csound = NULL;
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
        
     if (result == 0 && _result != 0) result = _result;
-    //printf("csound returned with value: %d \n", result);
-#if 0
-    /* remove global configuration variables, if there are any */
-    csoundDeleteAllGlobalConfigurationVariables();
-#endif
-    //printf("**** return %d\n",  (result >= 0 ? errs : -result));
     return (result >= 0 ? errs : -result);
 }
