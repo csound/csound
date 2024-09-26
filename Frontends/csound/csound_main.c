@@ -40,7 +40,6 @@ extern int set_rt_priority(int argc, const char **argv);
 #endif
 extern int csoundErrCnt(CSOUND*);
 static FILE *logFile = NULL;
-static int perf_flag = 1;
 
 static void msg_callback(CSOUND *csound,
                          int attr, const char *format, va_list args)
@@ -77,10 +76,20 @@ static void psignal(int sig, char *str)
 {
     fprintf(stderr, "%s: %s\n", str, strsignal(sig));
 }
+#elif defined(WIN32)
+static void psignal(int sig, char *str)
+{
+  if(sig == SIGINT)
+    fprintf(stderr, "%s: Interrupt\n", str);
+  else if(sig == SIGTERM)
+    fprintf(stderr, "%s: Terminate\n", str);
+  else
+    fprintf(stderr, "%s: received signal %d\n", str, sig);
+}
 #endif
 
 static CSOUND *_csound = NULL;
-static int _result = 0;
+static int perf_flag = 1;
 static void signal_handler(int sig) {
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
@@ -212,7 +221,6 @@ int main(int argc, char **argv)
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
-       
-    if (result == 0 && _result != 0) result = _result;
+   
     return (result >= 0 ? errs : -result);
 }
