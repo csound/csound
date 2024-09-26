@@ -81,8 +81,7 @@ static void psignal(int sig, char *str)
 
 static CSOUND *_csound = NULL;
 static int _result = 0;
-static void signal_handler(int sig)
-{
+static void signal_handler(int sig) {
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
 #ifndef __wasm__

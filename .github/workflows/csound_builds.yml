@@ -381,7 +381,7 @@ jobs:
 
   android_build_vcpkg:
     name: Android build (vcpkg)
-    if: vars.ANDROID_WORKFLOW_RUN_ID
+#   if: vars.ANDROID_WORKFLOW_RUN_ID
     runs-on: ubuntu-latest
     env:
       VERSION: v1
