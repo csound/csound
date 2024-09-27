@@ -1251,7 +1251,7 @@ static void signal_handler(int sig)
   if (sig == (int) SIGPIPE) {
 #ifdef ANDROID
     psignal_(sig, "Csound ignoring SIGPIPE");
-#else
+#elif !defined(__wasm__)
     psignal(sig, "Csound ignoring SIGPIPE");
 #endif
     return;
@@ -1259,7 +1259,7 @@ static void signal_handler(int sig)
 #endif
 #ifdef ANDROID
   psignal_(sig, "Csound tidy up");
-#else
+#elif !defined(__wasm__)
   psignal(sig, "Csound tidy up");
 #endif
   if ((sig == (int) SIGINT || sig == (int) SIGTERM) && !exitNow_) {

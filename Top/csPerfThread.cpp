@@ -622,12 +622,16 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordLock = csoundCreateMutex(0);
     if (!recordLock)
       return;
+#ifdef EMSCRIPTEN
+    lastMessage = new CsPerfThreadMsg_Pause(this);
+#else
     try {
       lastMessage = new CsPerfThreadMsg_Pause(this);
     }
     catch (std::bad_alloc&) {
       return;
     }
+#endif
     firstMessage = lastMessage;
     recordData.cbuf = NULL;
     recordData.sfile = NULL;
