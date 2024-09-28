@@ -57,15 +57,15 @@ int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
     mp3->in_buffer_offset = mp3->in_buffer_used = 0;
     mp3->out_buffer_offset = mp3->out_buffer_used = 0;
     tmp = fseek(f, (off_t)0, SEEK_CUR);
-    if (tmp >= 0) mp3->stream_offset = tmp;
+    if (tmp >= 0) mp3->stream_offset = ftell(f);
     else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
     if (mp3->flags & MP3DEC_FLAG_SEEKABLE) {
       tmp = fseek(f, (off_t)0, SEEK_END);
       if (tmp >= 0) {
-        mp3->stream_size = tmp;
+        mp3->stream_size = ftell(f);
         tmp = fseek(f, mp3->stream_offset, SEEK_SET);
         if (tmp<0) fprintf(stderr, "seek failure im mp3\n");
-      } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
+      } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;     
     }
     if (mp3->stream_size > mp3->stream_offset) {
       mp3->stream_size -= mp3->stream_offset;
@@ -129,6 +129,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
       r = mpadec_decode(mp3->mpadec, mp3->in_buffer, mp3->in_buffer_used,
                         NULL, 0, &mp3->in_buffer_offset, NULL);
       mp3->in_buffer_used -= mp3->in_buffer_offset;
+      
       if (r != MPADEC_RETCODE_OK) {
         // this is a fix for ID3 tag at the start of a file
         while (r == 7) { /* NO SYNC, read more data */
@@ -162,18 +163,19 @@ int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
     if (mp3->taginfo.flags & 1) {
       mp3->mpainfo.frames = mp3->taginfo.frames;
       if (mp3->mpainfo.frames && mp3->mpainfo.frame_samples) {
-        mp3->mpainfo.bitrate = (int32_t)
-          ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
-                   ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.frames)));
+        mp3->mpainfo.bitrate = (int32_t) 
+         ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
+                ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.frames)));
       }
     } else if (mp3->mpainfo.bitrate && mp3->mpainfo.frame_samples) {
-      mp3->mpainfo.frames = (int32_t)
-        ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
-                 ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.bitrate)));
-    }
+      mp3->mpainfo.frames = (int32_t) 
+      ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
+               ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.bitrate)));
+    } 
     mp3->mpainfo.duration =
       (mp3->mpainfo.frames*mp3->mpainfo.frame_samples +
        (mp3->mpainfo.frequency >> 1))/mp3->mpainfo.frequency;
+    
     mp3->flags |= MP3DEC_FLAG_INITIALIZED;
     return MP3DEC_RETCODE_OK;
 }

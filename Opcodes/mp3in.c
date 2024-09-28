@@ -149,7 +149,8 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     if (mpainfo.layer == 1) strcat(temp, "Layer I");
     else if (mpainfo.layer == 2) strcat(temp, "Layer II");
     else strcat(temp, "Layer III");
-    csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+    if(csound->GetDebug(csound))
+      csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
                     temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
                     mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
                     mpainfo.duration%60);
@@ -306,15 +307,14 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
     return csound->InitError(csound, "%s", mp3dec_error(r));
   }
   fclose(f);
-  if(!strcmp(GetOpcodeName(&p->h), "mp3len.i"))
-    *p->ir = (MYFLT)mpainfo.duration;
-  else if(!strcmp(GetOpcodeName(&p->h), "mp3sr.i"))
+  if(!strcmp(GetOpcodeName(&p->h), "mp3len"))
+    *p->ir = (MYFLT) mpainfo.duration;
+  else if(!strcmp(GetOpcodeName(&p->h), "mp3sr"))
     *p->ir = (MYFLT) mpainfo.frequency;
-  else if(!strcmp(GetOpcodeName(&p->h), "mp3bitrate.i"))
+  else if(!strcmp(GetOpcodeName(&p->h), "mp3bitrate"))
     *p->ir = (MYFLT) mpainfo.bitrate;
-  else if(!strcmp(GetOpcodeName(&p->h), "mp3nchnls.i"))
+  else if(!strcmp(GetOpcodeName(&p->h), "mp3nchnls"))
     *p->ir = (MYFLT) mpainfo.channels;
-
   mp3dec_uninit(mpa);
   return OK;
 }
@@ -851,15 +851,15 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 static OENTRY mp3in_localops[] =
   {
     {"mp3in",  S(MP3IN),  _QQ,  "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in, (SUBR) mp3in_cleanup},
-    {"mp3in.i",  S(MP3IN),  _QQ,  "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in, (SUBR) mp3in_cleanup},
+    {"mp3in",  S(MP3IN),  _QQ,  "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in, (SUBR) mp3in_cleanup},
     {"mp3len", S(MP3LEN), _QQ,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-    {"mp3len.i", S(MP3LEN), _QQ,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+    {"mp3len", S(MP3LEN), _QQ,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
     {"mp3sr", S(MP3LEN), 0,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-    {"mp3sr.i", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+    {"mp3sr", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
     {"mp3bitrate", S(MP3LEN), 0,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-    {"mp3bitrate.i", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+    {"mp3bitrate", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
     {"mp3nchnls", S(MP3LEN), 0,  "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-    {"mp3nchnls.i", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+    {"mp3nchnls", S(MP3LEN), 0,  "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
     {"mp3scal", sizeof(DATASPACE), 0,  "aak", "SkkkoooPP",
      (SUBR)sinit3,(SUBR)sprocess3, (SUBR) mp3scale_cleanup},
   };
