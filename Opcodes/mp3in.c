@@ -222,12 +222,12 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
 
   if (UNLIKELY(offset)) {
     memset(al, '\0', offset*sizeof(MYFLT));
-    memset(ar, '\0', offset*sizeof(MYFLT));
+    if(p->OUTCOUNT > 1)  memset(ar, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&al[nsmps], '\0', early*sizeof(MYFLT));
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+   if(p->OUTCOUNT > 1)  memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
   }
   for (n=offset; n<nsmps; n++) {
     for (i=0; i<p->OUTOCOUNT; i++) {     /* stereo */
@@ -237,7 +237,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
         r = mp3dec_decode(mpa, buffer, p->bufSize, &p->bufused);
         if (UNLIKELY(p->bufused == 0)) {
           memset(&al[n], 0, (nsmps-n)*sizeof(MYFLT));
-          memset(&ar[n], 0, (nsmps-n)*sizeof(MYFLT));
+          if(p->OUTCOUNT > 1) memset(&ar[n], 0, (nsmps-n)*sizeof(MYFLT));
           goto ending;
         }
         pos = 0;
