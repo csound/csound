@@ -56,6 +56,10 @@ int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
     mp3->stream_offset = mp3->stream_size = mp3->stream_position = 0;
     mp3->in_buffer_offset = mp3->in_buffer_used = 0;
     mp3->out_buffer_offset = mp3->out_buffer_used = 0;
+    // VL: the code below used lseek and was changed to fseek,
+    // but the two functions are not equivalent.
+    // Fixed using ftell() whenever the result of lseek()
+    // was used as the current position
     tmp = fseek(f, (off_t)0, SEEK_CUR);
     if (tmp == 0) mp3->stream_offset = ftell(f);
     else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
@@ -64,7 +68,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
       if (tmp == 0) {
         mp3->stream_size = ftell(f);
         tmp = fseek(f, mp3->stream_offset, SEEK_SET);
-        if (tmp<0) fprintf(stderr, "seek failure im mp3\n");
+        if (tmp != 0) fprintf(stderr, "seek failure im mp3\n");
       } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;     
     }
     if (mp3->stream_size > mp3->stream_offset) {
@@ -316,7 +320,9 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
     if (!(mp3->flags & MP3DEC_FLAG_SEEKABLE)) return MP3DEC_RETCODE_SEEK_FAILED;
     if (units == MP3DEC_SEEK_BYTES) {
       newpos = (pos < mp3->stream_size) ? pos : mp3->stream_size;
-      newpos = fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET);
+      if(fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET) == 0)
+        newpos = ftell(mp3->f);
+      else newpos = -1;
       if (newpos < 0) return MP3DEC_RETCODE_SEEK_FAILED;
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
@@ -332,7 +338,9 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
       if (newpos > mp3->stream_size) newpos = mp3->stream_size;
       pos = (pos%mp3->mpainfo.decoded_frame_samples)*
         mp3->mpainfo.decoded_sample_size;
-      newpos = fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET);
+      if(fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET) == 0)
+         newpos = ftell(mp3->f);
+      else newpos = -1;
       if (newpos < 0) return MP3DEC_RETCODE_SEEK_FAILED;
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
@@ -353,7 +361,10 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
              (pos*mp3->stream_size + (mp3->mpainfo.duration >> 1))/
              mp3->mpainfo.duration;
       if (newpos > mp3->stream_size) newpos = mp3->stream_size;
-      newpos = fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET);
+      
+      if(fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET) == 0)
+        newpos = ftell(mp3->f);
+      else newpos = -1;
       if (newpos < 0) return MP3DEC_RETCODE_SEEK_FAILED;
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
