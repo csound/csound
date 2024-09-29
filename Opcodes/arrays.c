@@ -455,6 +455,7 @@ typedef struct {
 
 static int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
+
   if (LIKELY(p->left->data && p->right->data)) {
     int i;
     if (UNLIKELY(p->left->dimensions != p->right->dimensions))
@@ -472,6 +473,7 @@ static int32_t tabarithset(CSOUND *csound, TABARITH *p)
   }
   else return csound->InitError(csound, "%s",
                                 Str("array-variable not initialised"));
+
 }
 
 static int32_t tabiadd(CSOUND *csound, ARRAYDAT *ans,
@@ -1050,6 +1052,7 @@ static int32_t tabaisub(CSOUND *csound, TABARITH1 *p)
   MYFLT r       = *p->right;
   int32_t sizel = l->sizes[0];
   int32_t i;
+  tabinit_like(csound, ans, l);
 
   if (UNLIKELY(ans->data == NULL || l->data== NULL))
     return csound->PerfError(csound, &(p->h),
@@ -1071,6 +1074,7 @@ static int32_t tabiasub(CSOUND *csound, TABARITH2 *p)
   MYFLT r     = *p->left;
   int32_t sizel = l->sizes[0];
   int32_t i;
+  tabinit_like(csound, ans, l);
 
   if (UNLIKELY(ans->data == NULL || l->data== NULL))
     return csound->PerfError(csound, &(p->h),
@@ -1109,6 +1113,7 @@ static int32_t tabaimult(CSOUND *csound, TABARITH1 *p)
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *l   = p->left;
   MYFLT r       = *p->right;
+  tabinit_like(csound, ans, l);
   return tabimult(csound, ans, l, r, p);
 }
 
@@ -1118,6 +1123,7 @@ static int32_t tabiamult(CSOUND *csound, TABARITH2 *p)
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *l   = p->right;
   MYFLT r       = *p->left;
+  tabinit_like(csound, ans, l);
   return tabimult(csound, ans, l, r, p);
 }
 
@@ -1129,6 +1135,7 @@ static int32_t tabaidiv(CSOUND *csound, TABARITH1 *p)
   MYFLT r       = *p->right;
   int32_t sizel = l->sizes[0];
   int32_t i;
+  tabinit_like(csound, ans, l);
 
   if (UNLIKELY(r==FL(0.0)))
     return csound->PerfError(csound, &(p->h),
@@ -1153,6 +1160,7 @@ static int32_t tabiadiv(CSOUND *csound, TABARITH2 *p)
   MYFLT r     = *p->left;
   int32_t sizel    = l->sizes[0];
   int32_t i;
+  tabinit_like(csound, ans, l);
 
   if (UNLIKELY(ans->data == NULL || l->data== NULL))
     return csound->PerfError(csound, &(p->h),

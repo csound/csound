@@ -185,7 +185,9 @@ def runTest():
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
         ["arrays/array_get_inline.csd", "tests parsing and eval of inline array[getters]"],
-        ["arrays/arrays_for_loop.csd", "tests for loops over array types"]
+        ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
+        ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
+        ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],        
     ]
 
 

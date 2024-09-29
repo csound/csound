@@ -365,7 +365,7 @@ PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
 The function
 
-````
+```
 PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr,
                                 char *instrName, int mode, int allow_release);
 ```
@@ -457,7 +457,12 @@ moved to `csound_misc.h`.
 
 All cicular buffer functions have been moved to `csound_circular_buffer.h`.
 
-The header file `cs_threaded.h` has been removed as it duplicates built-in functionality in `csPerfThread.h` and `csPerfThread.hpp`. Functions in `csound.h` are wrapped in the Csound class in `csound.hpp`.
+The header file `csound_threaded.hpp` has been removed as it 
+duplicates (in a limited way) multithreading that is now built into
+the Csound library. This is exposed in `csPerfThread.h` and `csPerfThread.hpp`.
+Functions in `csound.h` are wrapped in the Csound class in
+`csound.hpp` and so the changes listed above have been propagated
+to that interface.
 
 
 
