@@ -1482,7 +1482,7 @@ static OENTRY oentries[] = {
 
 
 
-int32_t destroySignalflowgraph(CSOUND *csound, void *p) {
+int destroySignalflowgraph(CSOUND *csound, void *p) {
     IGN(p);
     
   if (csound->GetDebug(csound)) {
@@ -1520,7 +1520,7 @@ PUBLIC int32_t csoundModuleCreate_signalflowgraph(CSOUND *csound) {
     csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
                     csound);
   }
-  isstrcod = IsStringCode;
+  
   SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
   CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
   return 0;

@@ -3210,9 +3210,9 @@ static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
 PUBLIC int csoundAppendOpcode(CSOUND *csound,
                               const char *opname, int dsblksiz, int flags,
                               const char *outypes, const char *intypes,
-                              int (*init)(CSOUND *, void *),
-                              int (*perf)(CSOUND *, void *),
-                              int (*deinit)(CSOUND *, void *))
+                              int32_t (*init)(CSOUND *, void *),
+                              int32_t (*perf)(CSOUND *, void *),
+                              int32_t (*deinit)(CSOUND *, void *))
 {
   OENTRY  tmpEntry;
   int     err;

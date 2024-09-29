@@ -827,7 +827,7 @@ static inline double PHMOD1(double p) {
 
   typedef struct {
     char    *name;
-    int     (*fn)(FGDATA *, FUNC *);
+    int32_t (*fn)(FGDATA *, FUNC *);
   } NGFENS;
 
   typedef int (*GEN)(FGDATA *, FUNC *);
@@ -1435,7 +1435,7 @@ static inline double PHMOD1(double p) {
     void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
-    int32_t (*ReadScore)(CSOUND *, const char*);
+    int (*ReadScore)(CSOUND *, const char*);
     /**@}*/
 
     /** @name Message printout */
@@ -1503,16 +1503,16 @@ static inline double PHMOD1(double p) {
 
     /** @name FFT support */
     /**@{ */
-    void *(*RealFFTSetup)(CSOUND *csound, int FFTsize, int d);
+    void *(*RealFFTSetup)(CSOUND *csound, int32_t FFTsize, int32_t d);
     void (*RealFFT)(CSOUND *csound,
                     void *p, MYFLT *sig);
-    MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
-    void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
+    MYFLT (*GetInverseRealFFTScale)(CSOUND *, int32_t FFTsize);
+    void (*ComplexFFT)(CSOUND *, MYFLT *buf, int32_t FFTsize);
+    void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int32_t FFTsize);
+    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int32_t FFTsize);
     void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                        int FFTsize, MYFLT scaleFac);
-    void *(*DCTSetup)(CSOUND *csound,int FFTsize, int d);
+                        int32_t FFTsize, MYFLT scaleFac);
+    void *(*DCTSetup)(CSOUND *csound,int32_t FFTsize, int32_t d);
     void (*DCT)(CSOUND *csound, void *p, MYFLT *sig);
     /**@}*/
 
@@ -1529,16 +1529,16 @@ static inline double PHMOD1(double p) {
 
     /** @name PVOC-EX system */
     /**@{ */
-    int (*PVOC_CreateFile)(CSOUND *, const char *,
+    int32_t (*PVOC_CreateFile)(CSOUND *, const char *,
                            uint32, uint32, uint32,
-                           uint32, int32, int, int,
+                           uint32, int32, int32, int32,
                            float, float *, uint32);
-    int (*PVOC_OpenFile)(CSOUND *, const char *, void  *, void *);
-    int (*PVOC_CloseFile)(CSOUND *, int);
-    int (*PVOC_PutFrames)(CSOUND *, int, const float *, int32);
-    int (*PVOC_GetFrames)(CSOUND *, int, float *, uint32);
-    int (*PVOC_FrameCount)(CSOUND *, int);
-    int (*PVOC_fseek)(CSOUND *, int, int);
+    int32_t (*PVOC_OpenFile)(CSOUND *, const char *, void  *, void *);
+    int32_t (*PVOC_CloseFile)(CSOUND *, int32_t);
+    int32_t (*PVOC_PutFrames)(CSOUND *, int32, const float *, int32);
+    int32_t (*PVOC_GetFrames)(CSOUND *, int32, float *, uint32);
+    int32_t (*PVOC_FrameCount)(CSOUND *, int32);
+    int32_t (*PVOC_fseek)(CSOUND *, int32, int32);
     const char *(*PVOC_ErrorString)(CSOUND *);
     int (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
     /**@}*/
@@ -1563,7 +1563,7 @@ static inline double PHMOD1(double p) {
                        const uint32_t *initKey, uint32_t keyLength);
     uint32_t (*RandMT)(CsoundRandMTState *p);
     int (*Rand31)(int *seedVal);
-    int32_t *(*RandSeed1)(CSOUND *);
+    int *(*RandSeed1)(CSOUND *);
     int (*GetRandSeed)(CSOUND *, int which);
     /**@}*/
 
@@ -1616,7 +1616,7 @@ static inline double PHMOD1(double p) {
     int (*FileClose)(CSOUND *, void *);
     int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
     int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int32_t (*SndfileSeek)(CSOUND *, void *, int, int);
     int32_t (*FileCommand)(CSOUND *, void *, int , void *, int );
     const char *(*FileError)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
@@ -1665,9 +1665,9 @@ static inline double PHMOD1(double p) {
     /**@{ */
     int (*AppendOpcode)(CSOUND *, const char *opname, int dsblksiz, int flags,
                         const char *outypes, const char *intypes,
-                        int (*init)(CSOUND *, void *),
-                        int (*perf)(CSOUND *, void *),
-                        int (*deinit)(CSOUND *, void *));
+                        int32_t (*init)(CSOUND *, void *),
+                        int32_t (*perf)(CSOUND *, void *),
+                        int32_t (*deinit)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
     OENTRY* (*FindOpcode)(CSOUND*, char*, char* , char*);
     /**@}*/

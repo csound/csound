@@ -316,7 +316,7 @@ static OENTRY localops[] = {
      (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_},
     {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL}};
 
-PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
+PUBLIC int32_t csoundModuleCreate_mixer(CSOUND *csound) {
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>>
       *busses = 0;
   busses =
@@ -374,7 +374,7 @@ PUBLIC int csoundModuleDestroy_mixer(CSOUND *csound) {
   return OK;
 }
 
-int32_t destroyMixer(CSOUND *csound, void *p) {
+int destroyMixer(CSOUND *csound, void *p) {
   IGN(p);
   return csoundModuleDestroy_mixer(csound);
 }

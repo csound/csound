@@ -43,7 +43,7 @@ static const int32_t elevationarray[14] =
 
 /* for ppc byte switch */
 #ifdef WORDS_BIGENDIAN
-static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
+static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
 {
     char c1, c2, c3, c4;
     char *p = mfp->beginp;
@@ -59,7 +59,7 @@ static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
     return OK;
 }
 #else
-static int32_t (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
+static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #endif
 
 /* low pass filter for overall surface shape */

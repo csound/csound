@@ -160,9 +160,9 @@ extern "C" {
         status |= csound->AppendOpcode(
                       csound, (char *)"ampmidid.i", sizeof(IAMPMIDID), 0,  (char *)"i",
                       (char *)"iio",
-                      (int (*)(CSOUND *, void *))IAMPMIDID::init_,
-                      (int (*)(CSOUND *, void *))0,
-                      (int (*)(CSOUND *, void *))0);
+                      (int32_t (*)(CSOUND *, void *))IAMPMIDID::init_,
+                      (int32_t (*)(CSOUND *, void *))0,
+                      (int32_t (*)(CSOUND *, void *))0);
         status = csound->AppendOpcode(
                      csound, (char *)"ampmidicurve.k", sizeof(AMPMIDICURVE), 0,  (char *)"k",
                      (char *)"kkk",
@@ -172,9 +172,9 @@ extern "C" {
         status |= csound->AppendOpcode(
                       csound, (char *)"ampmidicurve.i", sizeof(AMPMIDICURVE), 0,  (char *)"i",
                       (char *)"iii",
-                      (int (*)(CSOUND *, void *))AMPMIDICURVE::init_,
-                      (int (*)(CSOUND *, void *))0,
-                      (int (*)(CSOUND *, void *))0);
+                      (int32_t (*)(CSOUND *, void *))AMPMIDICURVE::init_,
+                      (int32_t (*)(CSOUND *, void *))0,
+                      (int32_t (*)(CSOUND *, void *))0);
         return status;
     }
 
