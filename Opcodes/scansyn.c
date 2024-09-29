@@ -24,7 +24,12 @@
 /*               Made interpolation selectable April 2000 */
 /* Minor code optimisations April 2021 by JPff */
 
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+
 #include "scansyn.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -781,8 +786,8 @@ static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
     /* Get corresponding update */
     p->p = listget(csound, (int32_t)*p->i_id);
     if (p->p == NULL) return NOTOK;
-    tabinit(csound, p->k_pos,(p->p)->len);
-    tabinit(csound, p->k_vel,(p->p)->len);
+    tabinit(csound, p->k_pos,(p->p)->len, &(p->h));
+    tabinit(csound, p->k_vel,(p->p)->len, &(p->h));
     return OK;
 }
 

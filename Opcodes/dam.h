@@ -22,9 +22,7 @@
 */
 
 #pragma once
-
-#include "csdl.h"
-
+#include "stdopcod.h"
 #define POWER_BUFSIZE 1000
 
 typedef struct {

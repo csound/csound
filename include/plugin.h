@@ -26,7 +26,11 @@
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
+#ifdef CS_INTERNAL
+#include "csoundCore.h"
+#else
 #include "csdl.h"
+#endif
 #include "pstream.h"
 #include "arrays.h"
 #include <array>
@@ -367,8 +371,8 @@ template <typename T> class Vector : ARRAYDAT {
 public:
   /** Initialise the container
    */
-  void init(Csound *csound, int size) {
-    tabinit(csound, this, size);
+  void init(Csound *csound, int size, OPDS *ctx) {
+    tabinit(csound, this, size, ctx);
   }
 
   /** iterator type
@@ -531,7 +535,7 @@ public:
       size_t bytes = (n + 2) * sizeof(float);
       if (frame.auxp == nullptr || frame.size < bytes) {
         csound->AuxAlloc(csound, bytes, &frame);
-        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
+        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0.f);
       }
     } else {
       size_t bytes = (n + 2) * sizeof(MYFLT) * nsmps;
@@ -994,7 +998,11 @@ template <std::size_t N> struct InPlug : OPDS {
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
+#ifdef EMSCRIPTEN
+      return this->perf ? true : false;
+#else
       return this->opaddr ? true : false;
+#endif
   }
 
 };
@@ -1124,7 +1132,11 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** check if this opcode runs at init time
   */
   bool is_init() {
+#ifdef EMSCRIPTEN
+    return this->init ? true : false;
+#else
     return (this->init != NULL);
+#endif
   }
 
   /** check if this opcode runs at perf time

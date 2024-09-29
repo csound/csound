@@ -25,6 +25,7 @@
 #include <math.h>
 #include "cwindow.h"
 #include "disprep.h"
+#include "csound_standard_types.h"
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */

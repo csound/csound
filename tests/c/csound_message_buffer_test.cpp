@@ -3,6 +3,9 @@
 #include "csound.h"
 #include "gtest/gtest.h"
 
+#define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
+#define csoundReadScore(a,b) csoundEventString(a,b,0)
+
 class MessageBufferTests : public ::testing::Test {
 public:
     MessageBufferTests ()
@@ -15,16 +18,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
         //csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
     }
 
@@ -57,7 +57,7 @@ TEST_F (MessageBufferTests, testBufferRun)
     csoundReadScore(csound, "i 1 0 0.1\n");
     csoundStart(csound);
 
-    csoundPerform(csound);
+    while(csoundPerformKsmps(csound) == 0);
 
     while (csoundGetMessageCnt(csound)) {
         const char * msg = csoundGetFirstMessage(csound);

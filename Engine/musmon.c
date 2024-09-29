@@ -346,7 +346,8 @@ int musmon(CSOUND *csound)
         csoundDie(csound, Str("cannot create cscore.out"));
       csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 1, 0);
       /* rdscor for cscorefns */
-      csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
+      // API support for cscore is dropped in 7.0
+      // csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
       /* call cscore, optionally re-enter via lplay() */
       csound->cscoreCallback_(csound);
       fclose(csound->oscfp); csound->oscfp = NULL;
@@ -417,9 +418,8 @@ static void deactivate_all_notes(CSOUND *csound)
 
     while (ip != NULL) {
       INSDS *nxt = ip->nxtact;
-#ifdef BETA
+      if(csound->GetDebug(csound))
       csound->Message(csound, "deativate: ip, nxt = %p , %p\n", ip, nxt);
-#endif
       xturnoff_now(csound, ip);
       // should not be needed -- if (ip == nxt) break;
       ip = nxt;
@@ -477,7 +477,7 @@ static inline void cs_beep(CSOUND *csound)
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-PUBLIC int csoundCleanup(CSOUND *csound)
+int csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
@@ -536,7 +536,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
     {
-      csound->ErrorMsg(csound, Str("end of score.\t\t   overall amps:"));
+      csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
@@ -592,8 +592,8 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
     }
   STA(ep) = &a->e[1];                  /* from 1st evlist member */
   STA(epend) = STA(ep) + a->nevents;    /*   to last              */
-  while (csoundPerform(csound) == 0)  /* play list members      */
-    ;                                 /* NB: empoty loop */
+  while (csoundPerformKsmps(csound) == 0)  /* play list members      */
+    ;                                     /* NB: empoty loop */
   return OK;
 }
 
@@ -659,7 +659,7 @@ static void print_amp_values(CSOUND *csound, int score_evt)
                  p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
                  p->curp2 - p->timeOffs,  p->curp2);
     else
-      p->Message(p, "  rtevent:\t   T%7.3f TT%7.3f M:",
+      p->Message(p, "\t   T%7.3f TT%7.3f M:",
                  p->curp2 - p->timeOffs,  p->curp2);
 
     for (n = p->nchnls, maxp = p->maxamp; n--; )
@@ -1505,7 +1505,7 @@ void musmon_rewind_score(CSOUND *csound)
  * pointer, and the userData pointer as passed to this function.
  * Returns zero on success.
  */
-PUBLIC int csoundRegisterSenseEventCallback(CSOUND *csound,
+int csoundRegisterSenseEventCallback(CSOUND *csound,
                                             void (*func)(CSOUND *, void *),
                                             void *userData)
 {

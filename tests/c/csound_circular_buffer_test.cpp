@@ -6,6 +6,7 @@
  */
 
 #include "csound.h"
+#include "csound_circular_buffer.h"
 #include "gtest/gtest.h"
 
 class CircularBufferTests : public ::testing::Test {
@@ -13,14 +14,13 @@ public:
     CircularBufferTests ()
     {
         csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
+        csound = csoundCreate (NULL,NULL);
         csoundCreateMessageBuffer (csound, 0);
         csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual ~CircularBufferTests ()
     {
-        csoundCleanup (csound);
         csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;

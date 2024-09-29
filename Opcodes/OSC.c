@@ -1043,7 +1043,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    tabinit(csound, p->args, n=strlen((char*) p->type->data));
+    tabinit(csound, p->args, n=strlen((char*) p->type->data), &(p->h));
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       switch (p->c.saved_types[i]) {
