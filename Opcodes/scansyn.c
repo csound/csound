@@ -267,7 +267,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       /* Get the table */
       if (UNLIKELY((f = csound->FTFind(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
-                                 "%s %p", Str("scanu: Could not find ifndisplace table"), p->i_f);
+                                 "%s %p", Str("scanu: Could not find ifnmatrix table"), p->i_f);
       }
       //printf("**** p->i_f i_m = %p %g %g %g\n",p, p->i_f, p->i_m, p->i_c);
 
@@ -387,7 +387,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       FUNC *f = csound->FTFind(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
         return csound->InitError(csound,
-                                 "%s", Str("scanu: Could not find ifnvel table"));
+                                 "%s", Str("scanu: Could not find ifndisplace table"));
       }
       if (UNLIKELY(f->flen != len)) {
         return csound->InitError(csound, "%s",
