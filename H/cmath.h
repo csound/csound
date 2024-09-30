@@ -57,5 +57,5 @@ typedef struct gauss{
   OPDS h;
   MYFLT *a, *mu, *sigma;
   MYFLT z;
-  int flag;
+  int32_t flag;
 } GAUSS;

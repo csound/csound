@@ -258,7 +258,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
       // Through-Zero modulation: Detect neg freq and zero-crossings
       {
-        const int zero_crossing = (raw_freq < 0) != neg_freq;
+        const int32_t zero_crossing = (raw_freq < 0) != neg_freq;
         if (zero_crossing) {
           // Jump to opposite side of waveform
           phase = 1.5 - phase;

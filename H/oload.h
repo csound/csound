@@ -34,11 +34,11 @@
 
 typedef struct {
         char    *lbltxt;
-        int     *ndxp;
+        int32_t     *ndxp;
 } LBLARG;
 
 typedef struct {
-        int     lblno;
+        int32_t     lblno;
         MYFLT   **argpp;
 } LARGNO;
 

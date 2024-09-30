@@ -31,7 +31,7 @@ typedef struct {
   int16   ampcod, cpscod;
   int32    lphs;
   FUNC    *ftp;
-  int     reported;
+  int32_t     reported;
   int32_t  floatph;
   double fphs;
 } BUZZ;
@@ -43,7 +43,7 @@ typedef struct {
   MYFLT   prvr, twor, rsqp1, rtn, rtnp1, rsumr;
   int32    lphs;
   FUNC    *ftp;
-  int     reported;
+  int32_t     reported;
   MYFLT   last;
   int32_t  floatph;
   double fphs;
@@ -61,7 +61,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   MYFLT   *ar, *xamp, *iseed, *sel, *base;
-  int     rand;
+  int32_t     rand;
   int16   ampcod;
   int16   new;
 } RAND;
@@ -70,7 +70,7 @@ typedef struct {
   OPDS    h;
   MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
   int16   ampcod, cpscod, new;
-  int     rand;
+  int32_t     rand;
   long    phs;
   MYFLT   num1;
 } RANDH;
@@ -79,7 +79,7 @@ typedef struct {
   OPDS    h;
   MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
   int16   ampcod, cpscod, new;
-  int     rand;
+  int32_t     rand;
   long    phs;
   MYFLT   num1, num2, dfdmax;
 } RANDI;
@@ -88,7 +88,7 @@ typedef struct {
   OPDS    h;
   MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
   int16   ampcod, cpscod, new;
-  int     rand;
+  int32_t     rand;
   int64_t phs;
   MYFLT   period, num1, num2;
   MYFLT   num3, num4;

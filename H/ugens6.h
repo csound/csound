@@ -29,7 +29,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *kr, *asig, *ilen;
-        unsigned int     len;
+        uint32_t     len;
 } DOWNSAMP;
 
 typedef struct {
@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
   OPDS    h;                                             /* JPff Nov 2015 */
   MYFLT   *rslt, *xsig, *istor, *imode, *istart;   /* IV - Sep 5 2002 */
-        int     init_k;
+        int32_t     init_k;
         MYFLT   prev;
 } INTERP;
 
@@ -54,7 +54,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *xr, *xsig, *xgate, *ival, *istor;
         MYFLT   state;
-        int     audiogate;
+        int32_t     audiogate;
 } SAMPHOLD;
 
 typedef struct {
@@ -83,7 +83,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *adlt, *iwsize, *indx;
-        int     wsize;
+        int32_t     wsize;
         double  d2x;
         DELAYR  *delayr;
 } DELTAPX;

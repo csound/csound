@@ -43,7 +43,7 @@ public:
 };
 
 extern "C" {
-    extern int argsRequired (const char* arrayName);
+    extern int32_t argsRequired (const char* arrayName);
     extern char** splitArgs (CSOUND* csound, const char* argString);
 }
 
@@ -87,7 +87,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
 
 TEST_F (OrcCompileTests, testCompile)
 {
-    int result, compile_again = 0;
+    int32_t result, compile_again = 0;
     const char* instrument =
         "instr 1 \n"
         "k1 expon p4, p3, p4*0.001 \n"
@@ -126,7 +126,7 @@ TEST_F (OrcCompileTests, testCompile)
 
 TEST_F (OrcCompileTests, testReuse)
 {
-    int result;
+    int32_t result;
     const char* instrument =
         "instr 1 \n"
         "k1 expon p4, p3, p4*0.001 \n"

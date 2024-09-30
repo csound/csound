@@ -53,7 +53,7 @@ static char *csound_c_locale = NULL;
 typedef void* DIR;
 DIR opendir(const char *);
 struct dirent *readdir(DIR*);
-int closedir(DIR*);
+int32_t closedir(DIR*);
 #  endif
 #endif
 
@@ -200,7 +200,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
                       "default language.\n");
     else {
       fprintf(stderr, "Setting language of messages to %s ...\n",
-                      name=language_names[(int) lang_code]);
+                      name=language_names[(int32_t) lang_code]);
       setlocale(LC_MESSAGES, name);
     }
     return;
@@ -252,22 +252,22 @@ PUBLIC double cs_strtod(char* nptr, char** endptr) {
 }
 
 #if defined(HAVE_SPRINTF_L)
-PUBLIC int cs_sprintf(char *str, const char *format, ...)
+PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
-    int retVal;
+    int32_t retVal;
     va_start(args, format);
     retVal = vsprintf_l(str,csound_c_locale,format,args);   
     va_end(args);
     return retVal;
 }
 
-PUBLIC int cs_sscanf(char *str, const char *format, ...)
+PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
-    int retVal;
+    int32_t retVal;
     va_start(args, format);      
     retVal = vsscanf_l(str,csound_c_locale,format,args);
     retVal = vsscanf(str,format,args);       
@@ -276,33 +276,33 @@ PUBLIC int cs_sscanf(char *str, const char *format, ...)
 }
 #else
 #if defined(HAVE__SPRINT_L)
-PUBLIC int cs_sprintf(char *str, const char *format, ...)
+PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
-    int retVal;
+    int32_t retVal;
     va_start(args, format);
     retVal = __vsprintf_l(str,csound_c_locale,format,args);
     va_end(args);
     return retVal;
 }
 
-PUBLIC int cs_sscanf(char *str, const char *format, ...)
+PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
-    int retVal;
+    int32_t retVal;
     va_start(args, format);
     retVal = __vsscanf_l(str,csound_c_locale,format,args);
     va_end(args);
     return retVal;
 }
 #else
-PUBLIC int cs_sprintf(char *str, const char *format, ...)
+PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
-    int retVal;
+    int32_t retVal;
     char *curlocale = setlocale(LC_NUMERIC, "C");
     va_start(args, format);
     retVal = vsprintf(str,format,args);
@@ -311,11 +311,11 @@ PUBLIC int cs_sprintf(char *str, const char *format, ...)
     return retVal;
 }
 
-PUBLIC int cs_sscanf(char *str, const char *format, ...)
+PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
-    int retVal;
+    int32_t retVal;
     char *curlocale = setlocale(LC_NUMERIC, "C");
     va_start(args, format);
     retVal = vsscanf(str,format,args);

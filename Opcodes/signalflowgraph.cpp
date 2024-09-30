@@ -155,13 +155,13 @@ struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
 
-static const int MAX_STRING = 256;
+static const int32_t MAX_STRING = 256;
 
-static int (*isstrcod)(MYFLT) = nullptr;
+static int32_t (*isstrcod)(MYFLT) = nullptr;
 
 std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
   stream << a.opcod;
-  for (int i = 0; i < a.pcnt; i++) {
+  for (int32_t i = 0; i < a.pcnt; i++) {
     stream << " " << a.p[i];
   }
   return stream;
@@ -170,7 +170,7 @@ std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
 // Stupid hash from http://www.cse.yorku.ca/~oz/hash.html.
 unsigned long djb2_hash(unsigned char *str) {
   unsigned long hash = 5381;
-  int c;
+  int32_t c;
   while ((c = *str++))
     hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
   return hash;
@@ -192,8 +192,8 @@ bool operator<(const EventBlock &a, const EventBlock &b) {
   if (a.evtblk.pcnt != b.evtblk.pcnt) {
     return a.evtblk.pcnt < b.evtblk.pcnt;
   }
-  int n = a.evtblk.pcnt;
-  for (int i = 0; i < n+1; ++i) {
+  int32_t n = a.evtblk.pcnt;
+  for (int32_t i = 0; i < n+1; ++i) {
     // Return if one's a string and the other isn't.
     if (isstrcod(a.evtblk.p[i]) != isstrcod(b.evtblk.p[i])) {
        return isstrcod(a.evtblk.p[i]) < isstrcod(b.evtblk.p[i]);
@@ -288,7 +288,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
    */
   char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     // warn(csound, "BEGAN Outleta::init()...\n");
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
@@ -311,7 +311,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
     // warn(csound, "ENDED Outleta::init()...\n");
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::vector<Outleta *> &aoutlets =
         sfg_globals->aoutletsForSourceOutletIds[sourceOutletId];
@@ -338,9 +338,9 @@ struct Inleta : public OpcodeBase<Inleta> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outleta *> *> *sourceOutlets;
-  int sampleN;
+  int32_t sampleN;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     warn(csound, "BEGAN Inleta::init()...\n");
@@ -395,11 +395,11 @@ struct Inleta : public OpcodeBase<Inleta> {
   /**
    * Sum arate values from active outlets feeding this inlet.
    */
-  int audio(CSOUND *csound) {
+  int32_t audio(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     // warn(csound, "BEGAN Inleta::audio()...\n");
     // Zero the inlet buffer.
-    for (int sampleI = 0; sampleI < sampleN; sampleI++) {
+    for (int32_t sampleI = 0; sampleI < sampleN; sampleI++) {
       asignal[sampleI] = FL(0.0);
     }
     // Loop over the source connections...
@@ -412,7 +412,7 @@ struct Inleta : public OpcodeBase<Inleta> {
         Outleta *sourceOutlet = instances->at(instanceI);
         // Skip inactive instances.
         if (sourceOutlet->opds.insdshead->actflg) {
-          for (int sampleI = 0, sampleN = ksmps(); sampleI < sampleN;
+          for (int32_t sampleI = 0, sampleN = ksmps(); sampleI < sampleN;
                ++sampleI) {
             asignal[sampleI] += sourceOutlet->asignal[sampleI];
           }
@@ -435,7 +435,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
    */
   char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
@@ -455,7 +455,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
     }
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::vector<Outletk *> &koutlets =
         sfg_globals->koutletsForSourceOutletIds[sourceOutletId];
@@ -482,9 +482,9 @@ struct Inletk : public OpcodeBase<Inletk> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletk *> *> *sourceOutlets;
-  int ksmps;
+  int32_t ksmps;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     ksmps = opds.insdshead->ksmps;
@@ -533,7 +533,7 @@ struct Inletk : public OpcodeBase<Inletk> {
   /**
    * Sum krate values from active outlets feeding this inlet.
    */
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     // Zero the inlet buffer.
     *ksignal = FL(0.0);
@@ -566,7 +566,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
    */
   char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
@@ -586,7 +586,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
     }
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     std::vector<Outletf *> &foutlets =
         sfg_globals->foutletsForSourceOutletIds[sourceOutletId];
     std::vector<Outletf *>::iterator thisoutlet =
@@ -612,11 +612,11 @@ struct Inletf : public OpcodeBase<Inletf> {
    */
   char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletf *> *> *sourceOutlets;
-  int ksmps;
-  int lastframe;
+  int32_t ksmps;
+  int32_t lastframe;
   bool fsignalInitialized;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     ksmps = opds.insdshead->ksmps;
@@ -667,9 +667,9 @@ struct Inletf : public OpcodeBase<Inletf> {
   /**
    * Mix fsig values from active outlets feeding this inlet.
    */
-  int audio(CSOUND *csound) {
+  int32_t audio(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
-    int result = OK;
+    int32_t result = OK;
     float *sink = 0;
     float *source = 0;
     CMPLX *sinkFrame = 0;
@@ -720,7 +720,7 @@ struct Inletf : public OpcodeBase<Inletf> {
             fsignalInitialized = true;
           }
           if (fsignal->sliding) {
-            for (int frameI = 0; frameI < ksmps; frameI++) {
+            for (int32_t frameI = 0; frameI < ksmps; frameI++) {
               sinkFrame = (CMPLX *)fsignal->frame.auxp + (fsignal->NB * frameI);
               sourceFrame = (CMPLX *)sourceOutlet->fsignal->frame.auxp +
                             (fsignal->NB * frameI);
@@ -762,7 +762,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
    */
   char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     warn(csound, "BEGAN Outletv::init()...\n");
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
@@ -789,7 +789,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
     warn(csound, "ENDED Outletv::init()...\n");
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::vector<Outletv *> &voutlets =
         sfg_globals->voutletsForSourceOutletIds[sourceOutletId];
@@ -818,9 +818,9 @@ struct Inletv : public OpcodeBase<Inletv> {
   std::vector<std::vector<Outletv *> *> *sourceOutlets;
   size_t arraySize;
   size_t myFltsPerArrayElement;
-  int sampleN;
+  int32_t sampleN;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     warn(csound, "BEGAN Inletv::init()...\n");
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
@@ -884,7 +884,7 @@ struct Inletv : public OpcodeBase<Inletv> {
   /**
    * Sum values from active outlets feeding this inlet.
    */
-  int audio(CSOUND *csound) {
+  int32_t audio(CSOUND *csound) {
     // warn(csound, "BEGAN Inletv::audio()...\n");
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     for (uint32_t signalI = 0; signalI < arraySize; ++signalI) {
@@ -929,7 +929,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
   char sourceOutletId[MAX_STRING];
   char *instanceId;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
@@ -957,7 +957,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
     }
     return OK;
   }
-  int noteoff(CSOUND *csound) {
+  int32_t noteoff(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::vector<Outletkid *> &koutlets =
         sfg_globals->kidoutletsForSourceOutletIds[sourceOutletId];
@@ -986,9 +986,9 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   char sinkInletId[MAX_STRING];
   char *instanceId;
   std::vector<std::vector<Outletkid *> *> *sourceOutlets;
-  int ksmps;
+  int32_t ksmps;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     ksmps = opds.insdshead->ksmps;
@@ -1039,7 +1039,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   /**
    * Replay instance signal.
    */
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     // Zero the / buffer.
     *ksignal = FL(0.0);
@@ -1073,7 +1073,7 @@ struct Connect : public OpcodeBase<Connect> {
   STRINGDAT *Sinlet;
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->StringArg2Name(
@@ -1109,7 +1109,7 @@ struct Connecti : public OpcodeBase<Connecti> {
   STRINGDAT *Sinlet;
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->StringArg2Name(
@@ -1142,7 +1142,7 @@ struct Connectii : public OpcodeBase<Connectii> {
   STRINGDAT *Sinlet;
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId =
@@ -1175,7 +1175,7 @@ struct ConnectS : public OpcodeBase<ConnectS> {
   STRINGDAT *Sinlet;
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId =
@@ -1205,7 +1205,7 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
    * State.
    */
   EVTBLK evtblk;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     MYFLT offset = csound->GetScoreOffsetSeconds(csound);
     evtblk.opcod = 'i';
     evtblk.strarg = 0;
@@ -1237,7 +1237,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
    * State.
    */
   EVTBLK evtblk;
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     std::string source =
         csound->StringArg2Name(csound, (char *)0, Sinstrument, (char *)"", (int)0);
     MYFLT offset = csound->GetScoreOffsetSeconds(csound);
@@ -1269,7 +1269,7 @@ typedef struct {
 
 typedef struct namedgen {
   char *name;
-  int genum;
+  int32_t genum;
   struct namedgen *next;
 } NAMEDGEN;
 
@@ -1310,12 +1310,12 @@ static void warn(CSOUND *csound, const char *format, ...) {
  * the dictionary, the function table is created, its number is stored in
  * the dictionary, and the number is returned.
  */
-static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
+static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
                       bool hasStringParameter) {
   SignalFlowGraphState *sfg_globals;
   QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
   LockGuard guard(csound, sfg_globals->signal_flow_ftables_lock);
-  int result = OK;
+  int32_t result = OK;
   EventBlock eventBlock;
   EVTBLK *ftevt = &eventBlock.evtblk;
   *p->ifno = FL(0.0);
@@ -1350,7 +1350,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     ftevt->p[4] = *p->p4;
   }
   if (hasStringParameter) {
-    int n = (int)fp[4];
+    int32_t n = (int)fp[4];
     ftevt->p[5] = SSTRCOD;
     if (n < 0) {
       n = -n;
@@ -1373,7 +1373,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   }
   // Copy the remaining parameters.
   ftevt->pcnt = (int16)GetInputArgCnt((OPDS *)p);
-  int n = ftevt->pcnt - 5;
+  int32_t n = ftevt->pcnt - 5;
   if (n > 0) {
     MYFLT **argp = p->argums;
     MYFLT *fp = &ftevt->p[0] + 6;
@@ -1396,7 +1396,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       warn(csound, Str("ftgenonce: re-using existing func: %f\n"), *p->ifno);
     } else {
       FUNC *func = 0;
-      int status = csound->FTCreate(csound, &func, ftevt, 1);
+      int32_t status = csound->FTCreate(csound, &func, ftevt, 1);
       if (UNLIKELY(status != 0)) {
         result = csound->InitError(csound, "%s", Str("ftgenonce error"));
       }
@@ -1420,19 +1420,19 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   return result;
 }
 
-static int ftgenonce(CSOUND *csound, FTGEN *p) {
+static int32_t ftgenonce(CSOUND *csound, FTGEN *p) {
   return ftgenonce_(csound, p, false, false);
 }
 
-static int ftgenonce_S(CSOUND *csound, FTGEN *p) {
+static int32_t ftgenonce_S(CSOUND *csound, FTGEN *p) {
   return ftgenonce_(csound, p, true, false);
 }
 
-static int ftgenonce_iS(CSOUND *csound, FTGEN *p) {
+static int32_t ftgenonce_iS(CSOUND *csound, FTGEN *p) {
   return ftgenonce_(csound, p, false, true);
 }
 
-static int ftgenonce_SS(CSOUND *csound, FTGEN *p) {
+static int32_t ftgenonce_SS(CSOUND *csound, FTGEN *p) {
   return ftgenonce_(csound, p, true, true);
 }
 
@@ -1532,7 +1532,7 @@ PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
     csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
   }
   OENTRY *ep = (OENTRY *)&(oentries[0]);
-  int err = 0;
+  int32_t err = 0;
   while (ep->opname != 0) {
     err |= csound->AppendOpcode(csound, ep->opname, ep->dsblksiz, ep->flags,
                                 ep->outypes, ep->intypes,
@@ -1546,15 +1546,15 @@ PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
   return err;
 }
 #ifdef BUILD_PLUGINS
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   return csoundModuleCreate_signalflowgraph(csound);
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_signalflowgraph(csound);
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   return destroySignalflowgraph(csound, NULL);
 }
 #endif

@@ -32,12 +32,12 @@ extern const MYFLT cs[8];
 extern const MYFLT ca[8];
 
 extern uint32_t mpa_getbits(mpadec_t mpadec, unsigned n);
-extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);
+extern uint16_t update_crc(uint16_t init, uint8_t *buf, int32_t length);
 
-static int decode_layer3_sideinfo(mpadec_t mpadec)
+static int32_t decode_layer3_sideinfo(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int ch, gr, ms_stereo, powdiff, databits = 0;
+    int32_t ch, gr, ms_stereo, powdiff, databits = 0;
     static const uint8_t tabs[2][5] = { { 2, 9, 5, 3, 4 }, { 1, 8, 1, 2, 9 } };
     const uint8_t *tab = tabs[mpa->frame.LSF];
 
@@ -99,7 +99,7 @@ static int decode_layer3_sideinfo(mpadec_t mpadec)
           grinfo->table_select[1] = GETBITS(5);
           grinfo->table_select[2] = GETBITS(5);
           {
-            register int tmp = GETBITS(4);
+            register int32_t tmp = GETBITS(4);
             grinfo->region1start =
               band_info[mpa->frame.frequency_index].long_idx[tmp + 1] >> 1;
             tmp += GETBITS(3);
@@ -116,11 +116,11 @@ static int decode_layer3_sideinfo(mpadec_t mpadec)
     return databits;
 }
 
-static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *scf)
+static int32_t III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *scf)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
-    int numbits = 0;
+    int32_t numbits = 0;
     static uint8_t slen[2][16] =
       { {0, 0, 0, 0, 3, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4},
         {0, 1, 2, 3, 0, 1, 2, 3, 1, 2, 3, 1, 2, 3, 2, 3} };
@@ -133,7 +133,7 @@ static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *sc
           { 6,15,12,0 } , { 6,12, 9,6 } , {  6,18,9,0} } };
 
     if (!mpa->frame.LSF) {
-      int i, num0 = slen[0][grinfo->scalefac_compress],
+      int32_t i, num0 = slen[0][grinfo->scalefac_compress],
               num1 = slen[1][grinfo->scalefac_compress];
       if (grinfo->block_type == 2) {
         i = 18; numbits = 18*(num0 + num1);
@@ -172,7 +172,7 @@ static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *sc
         }
       }
     } else {
-      int i, j, n = 0;
+      int32_t i, j, n = 0;
       unsigned s_len; uint8_t *pnt;
       if ((mpa->frame.mode == MPG_MD_JOINT_STEREO) && (mpa->frame.mode_ext & 1)) {
         s_len = mpa->tables.i_slen2[grinfo->scalefac_compress >> 1];
@@ -181,26 +181,26 @@ static int III_get_scale_factors(mpadec_t mpadec, grinfo_t *gr_info, int32_t *sc
       if (grinfo->block_type == 2) n = grinfo->mixed_block_flag ? 2 : 1;
       pnt = stab[n][(s_len >> 12) & 7];
       for (i = 0; i < 4; i++) {
-        int num = s_len & 7;
+        int32_t num = s_len & 7;
         s_len >>= 3;
         if (num) {
-          for (j = 0; j < (int)pnt[i]; j++) *scf++ = GETBITS(num);
+          for (j = 0; j < (int32_t)pnt[i]; j++) *scf++ = GETBITS(num);
           numbits += pnt[i]*num;
-        } else for (j = 0; j < (int)pnt[i]; j++) *scf++ = 0;
+        } else for (j = 0; j < (int32_t)pnt[i]; j++) *scf++ = 0;
       }
       for (i = (n << 1) + 1; i; i--) *scf++ = 0;
     }
     return numbits;
 }
 
-static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
+static int32_t III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
                               MYFLT xr[SBLIMIT][SSLIMIT], int32_t *scf,
-                              int part2bits)
+                              int32_t part2bits)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
-    int shift = 1 + grinfo->scalefac_scale, l[3], l3;
-    int part2remain = grinfo->part2_3_length - part2bits;
+    int32_t shift = 1 + grinfo->scalefac_scale, l[3], l3;
+    int32_t part2remain = grinfo->part2_3_length - part2bits;
     MYFLT *xrptr = (MYFLT *)xr; int32_t *me;
     static uint8_t pretab1[22] =
       { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 3, 2, 0 };
@@ -237,10 +237,10 @@ static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
       }
       mc = 0;
       for (i = 0; i < 2; i++) {
-        int lp = l[i];
+        int32_t lp = l[i];
         newhuff_t *h = hufft + grinfo->table_select[i];
         for (; lp; lp--, mc--) {
-          register int x, y;
+          register int32_t x, y;
           if (!mc) {
             mc = *m++;
             xrptr = ((MYFLT *)xr) + (*m++);
@@ -351,7 +351,7 @@ static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
       grinfo->maxband[2] = max[2] + 1;
       grinfo->maxbandl = max[3] + 1;
       {
-        int rmax = max[0] > max[1] ? max[0] : max[1];
+        int32_t rmax = max[0] > max[1] ? max[0] : max[1];
         rmax = (rmax > max[2] ? rmax : max[2]) + 1;
         grinfo->maxb =
           rmax ? mpa->tables.short_limit[mpa->frame.frequency_index][rmax] :
@@ -364,10 +364,10 @@ static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
       register MYFLT v = 0.0;
 
       for (i = 0; i < 3; i++) {
-        int lp = l[i];
+        int32_t lp = l[i];
         newhuff_t *h = hufft + grinfo->table_select[i];
         for (; lp; lp--, mc--) {
-          register int x, y;
+          register int32_t x, y;
           if (!mc) {
             mc = *m++;
             cb = *m++;
@@ -463,15 +463,15 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
     register grinfo_t *grinfo = gr_info;
     MYFLT (*xr)[SBLIMIT*SSLIMIT] = (MYFLT (*)[SBLIMIT*SSLIMIT])xrbuf;
     bandinfo_t *bi = &band_info[mpa->frame.frequency_index];
-    int tab = mpa->frame.LSF + (grinfo->scalefac_compress & mpa->frame.LSF);
-    int ms_stereo = ((mpa->frame.mode == MPG_MD_JOINT_STEREO) &&
+    int32_t tab = mpa->frame.LSF + (grinfo->scalefac_compress & mpa->frame.LSF);
+    int32_t ms_stereo = ((mpa->frame.mode == MPG_MD_JOINT_STEREO) &&
                      (mpa->frame.mode_ext & 2)) ? TRUE : FALSE;
     const MYFLT *tab1, *tab2;
 
     tab1 = mpa->tables.istabs[tab][ms_stereo][0];
     tab2 = mpa->tables.istabs[tab][ms_stereo][1];
     if (grinfo->block_type == 2) {
-      int lwin, do_l = grinfo->mixed_block_flag;
+      int32_t lwin, do_l = grinfo->mixed_block_flag;
       for (lwin = 0; lwin < 3; lwin++) {
         int32_t is_p, sb, idx, sfb = grinfo->maxband[lwin];
         if (sfb > 3) do_l = FALSE;
@@ -501,11 +501,11 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
         }
       }
       if (do_l) {
-        int sfb = grinfo->maxbandl;
-        int idx = bi->long_idx[sfb];
+        int32_t sfb = grinfo->maxbandl;
+        int32_t idx = bi->long_idx[sfb];
         for (; sfb < 8; sfb++) {
-          int sb = bi->long_diff[sfb];
-          int is_p = scalefac[sfb];
+          int32_t sb = bi->long_diff[sfb];
+          int32_t is_p = scalefac[sfb];
           if (is_p != 7) {
             MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
             for (; sb; sb--, idx++) {
@@ -517,10 +517,10 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
         }
       }
     } else {
-      int sfb = grinfo->maxbandl;
-      int is_p, idx = bi->long_idx[sfb];
+      int32_t sfb = grinfo->maxbandl;
+      int32_t is_p, idx = bi->long_idx[sfb];
       for (; sfb < 21; sfb++) {
-        int sb = bi->long_diff[sfb];
+        int32_t sb = bi->long_diff[sfb];
         is_p = scalefac[sfb];
         if (is_p != 7) {
           MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
@@ -533,7 +533,7 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
       }
       is_p = scalefac[20];
       if (is_p != 7) {
-        int sb = bi->long_diff[21];
+        int32_t sb = bi->long_diff[21];
         MYFLT t1 = tab1[is_p], t2 = tab2[is_p];
         for (; sb; sb--, idx++) {
           register MYFLT v = xr[0][idx];
@@ -547,17 +547,17 @@ static void III_i_stereo(mpadec_t mpadec, grinfo_t *gr_info,
 static void III_antialias(grinfo_t *gr_info, MYFLT xr[SBLIMIT][SSLIMIT])
 {
     register grinfo_t *grinfo = gr_info;
-    int sblim;
+    int32_t sblim;
 
     if (grinfo->block_type == 2) {
       if (!grinfo->mixed_block_flag) return;
       sblim = 1;
     } else sblim = grinfo->maxb - 1;
     {
-      int sb;
+      int32_t sb;
       MYFLT *xr1 = (MYFLT *)xr[1];
       for (sb = sblim; sb; sb--, xr1 += 10) {
-        int ss;
+        int32_t ss;
         MYFLT *xr2 = xr1;
         for (ss = 0; ss < 8; ss++) {
           register MYFLT bu = *--xr2, bd = *xr1;
@@ -812,7 +812,7 @@ static void dct12(register MYFLT *in, register MYFLT *out1,
 
 static void III_hybrid(mpadec_t mpadec, grinfo_t *gr_info,
                        MYFLT fs_in[SBLIMIT][SSLIMIT],
-                       MYFLT ts_out[SSLIMIT][SBLIMIT], int channel)
+                       MYFLT ts_out[SSLIMIT][SBLIMIT], int32_t channel)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     register grinfo_t *grinfo = gr_info;
@@ -848,7 +848,7 @@ static void III_hybrid(mpadec_t mpadec, grinfo_t *gr_info,
       }
     }
     for (; sb < SBLIMIT; sb++, tsptr++) {
-      register int i;
+      register int32_t i;
       for (i = 0; i < SSLIMIT; i++) {
         tsptr[i*SBLIMIT] = *out1++;
         *out2++ = 0.0;
@@ -862,7 +862,7 @@ void decode_layer3(mpadec_t mpadec, uint8_t *buffer)
     uint8_t *saved_next_byte = mpa->next_byte;
     uint32_t saved_bytes_left = mpa->bytes_left;
     int32_t dbits, scalefacs[2][39];
-    int ch, gr, ss, i_stereo, ms_stereo, single, channels,
+    int32_t ch, gr, ss, i_stereo, ms_stereo, single, channels,
       granules = mpa->frame.LSF ? 1 : 2;
 
     mpa->error = FALSE;

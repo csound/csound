@@ -157,7 +157,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
       ovp = ovp->nxtact;                   /*  formant waveform  */
       if(floatph) {
         double formphsf = ovp->formphsf;
-        double frac = formphsf - (int) formphsf; 
+        double frac = formphsf - (int32_t) formphsf; 
         ftab = ftp1->ftable + (size_t) (formphsf * ftp1->flen);
         v1 = *ftab++;  
         result = v1 + (*ftab - v1) * frac;

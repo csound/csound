@@ -120,7 +120,7 @@ static uintptr_t write_tab(void* pp)
   return 0;
 }
 
-int on_reset_audio(CSOUND *csound, void *pp)
+int32_t on_reset_audio(CSOUND *csound, void *pp)
 {
   SAVE_THREAD *p =  (SAVE_THREAD *) pp;
   csound->JoinThread(p->thread);

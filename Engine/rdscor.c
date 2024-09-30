@@ -69,14 +69,14 @@ static void dumpline(CSOUND *);
 
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
 {
-    int     c;
+    int32_t     c;
     while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n')
         ;
 }
 
-static int scanflt(CSOUND *csound, MYFLT *pfld)
+static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
 {   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
-    int     c;
+    int32_t     c;
 
     while ((c = corfile_getc(csound->scstr)) == ' ' ||
            c == '\t')  /* skip leading white space */
@@ -87,7 +87,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     }
     if (c == '"') {                             /* if find a quoted string  */
       char *sstrp;
-      int n = csound->scnt;
+      int32_t n = csound->scnt;
       if ((sstrp = csound->sstrbuf) == NULL)
         sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
       while (n--!=0) sstrp += strlen(sstrp)+1;
@@ -118,7 +118,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       *sstrp++ = '\0';
 #ifdef USE_DOUBLE
       {
-        int sel = (byte_order()+1)&1;
+        int32_t sel = (byte_order()+1)&1;
         union {
           MYFLT d;
           int32 i[2];
@@ -164,18 +164,18 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
 
 static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
-    int     c;
+    int32_t     c;
     while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n') {
       csound->Message(csound, "%c", c);
     }
     csound->Message(csound, Str("\n\tremainder of line flushed\n"));
 }
 
-int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
+int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                       /*  & maintain section warped status   */
 {                                     /*      presumes good format if warped */
     MYFLT   *pp, *plim;
-    int     c;
+    int32_t     c;
 
     e->pinstance = NULL;
     if (csound->scstr == NULL ||
@@ -256,7 +256,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                     if (pp >= plim) {
                       MYFLT *new;
                       MYFLT *q;
-                      int c=1;
+                      int32_t c=1;
                       csound->DebugMsg(csound, "Extra p-fields (%d %d %d %d)\n",
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
@@ -271,13 +271,13 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                       q = &e->c.extra[1];
                       while ((corfile_getc(csound->scstr) != '\n') &&
                              (scanflt(csound, &q[c++]))) {
-                        if (c+1 >= (int) e->c.extra[0]) {
-                          int size = (int)e->c.extra[0]+PMAX;
+                        if (c+1 >= (int32_t) e->c.extra[0]) {
+                          int32_t size = (int)e->c.extra[0]+PMAX;
                           /* printf("last values(%p): %f %f %f\n", */
                           /*        q, q[c-3], q[c-2], q[c-1]); */
                           csound->DebugMsg(csound,
                                            "and more extra p-fields [%d](%d)%d\n",
-                                           c, (int) e->c.extra[0],
+                                           c, (int32_t) e->c.extra[0],
                                            (int)sizeof(MYFLT)*
                                                    ((int)e->c.extra[0]+PMAX));
                           new =

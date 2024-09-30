@@ -38,10 +38,10 @@ typedef struct _pulse_globals {
   char iname[32];
 } pulse_globals;
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     pulse_globals *p;
-    int siz = 64;
+    int32_t siz = 64;
     OPARMS oparms;
     csound->GetOParms(csound, &oparms);
 
@@ -84,18 +84,18 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 }
 
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT));
 }
 
-static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
+static int32_t pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 {
     pulse_params *pulse;
     pulse_globals *pg;
     const char *server;
     /* pa_buffer_attr attr */
-    int pulserror;
+    int32_t pulserror;
 
     pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtPlayUserData(csound))  = (void *) pulse;
@@ -155,9 +155,9 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
 }
 
-static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
+static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
 
-  int i, bufsiz, pulserror;
+  int32_t i, bufsiz, pulserror;
   float *buf;
   pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
   //MYFLT norm = csound->e0dbfs;
@@ -174,7 +174,7 @@ static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int nbytes){
 
 static void pulse_close(CSOUND *csound)
 {
-    int error;
+    int32_t error;
     pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
 
     if (pulse != NULL){
@@ -192,13 +192,13 @@ static void pulse_close(CSOUND *csound)
     csound->DestroyGlobalVariable(csound, "pulse_globals");
 }
 
-static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
+static int32_t pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 {
     pulse_params *pulse;
     pulse_globals *pg;
     const char *server;
     /*pa_buffer_attr attr;*/
-    int pulserror;
+    int32_t pulserror;
     pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
     pulse->spec.rate = parm->sampleRate;
@@ -246,9 +246,9 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
 }
 
-static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
+static int32_t pulse_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
 {
-    int i, bufsiz,pulserror;
+    int32_t i, bufsiz,pulserror;
     float *buf;
     pulse_params *pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
     //MYFLT norm = csound->e0dbfs;
@@ -269,10 +269,10 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
 }
 
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *s;
-    int     i;
+    int32_t     i;
     char    buf[9];
     csound->module_list_add(csound, "pulse", "audio");
     s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");

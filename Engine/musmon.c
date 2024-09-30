@@ -37,8 +37,8 @@
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
-int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
-  int     insert(CSOUND *, int, EVTBLK*);
+int32_t     MIDIinsert(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
+  int32_t     insert(CSOUND *, int32_t,  EVTBLK*);
   void    MidiOpen(CSOUND *);
   void    m_chn_init_all(CSOUND *);
 //  char *  scsortstr(CSOUND *, CORFIL *);
@@ -54,7 +54,7 @@ void    openMIDIout(CSOUND *);
 void print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
-#define RT_SPIN_TRYLOCK { int trylock = CSOUND_SUCCESS; \
+#define RT_SPIN_TRYLOCK { int32_t trylock = CSOUND_SUCCESS; \
   if(csound->oparms->realtime)             \
     trylock = csoundSpinTryLock(&csound->alloc_spinlock);      \
   if(trylock == CSOUND_SUCCESS) {
@@ -90,8 +90,8 @@ MYFLT csoundInitialiseIO(CSOUND *csound) {
     OPARMS *O = csound->oparms;
     if (csound->enableHostImplementedAudioIO &&
         csound->hostRequestedBufferSize) {
-      int bufsize    = (int) csound->hostRequestedBufferSize;
-      int ksmps      = (int) csound->ksmps;
+      int32_t bufsize    = (int32_t) csound->hostRequestedBufferSize;
+      int32_t ksmps      = (int32_t) csound->ksmps;
       bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
       bufsize        = (bufsize ? bufsize * ksmps : ksmps);
       O->outbufsamps = O->inbufsamps = bufsize;
@@ -121,7 +121,7 @@ MYFLT csoundInitialiseIO(CSOUND *csound) {
       O->inbufsamps = O->outbufsamps;
     }
      csound->ErrorMsg(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                    (int) O->outbufsamps);
+                    (int32_t) O->outbufsamps);
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     iotranset(csound);          /* point recv & tran to audio formatter */
@@ -161,7 +161,7 @@ static void settempo(CSOUND *csound, double tempo)
     csound->curBeat_inc = tempo / (60.0 * (double) csound->ekr);
 }
 
-int gettempo(CSOUND *csound, GTEMPO *p)
+int32_t gettempo(CSOUND *csound, GTEMPO *p)
 {
     if (LIKELY(csound->oparms->Beatmode)) {
       *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
@@ -171,7 +171,7 @@ int gettempo(CSOUND *csound, GTEMPO *p)
     return OK;
 }
 
-int tempset(CSOUND *csound, TEMPO *p)
+int32_t tempset(CSOUND *csound, TEMPO *p)
 {
     double tempo;
 
@@ -185,7 +185,7 @@ int tempset(CSOUND *csound, TEMPO *p)
     return OK;
 }
 
-int tempo(CSOUND *csound, TEMPO *p)
+int32_t tempo(CSOUND *csound, TEMPO *p)
 {
     if (*p->ktempo != p->prvtempo) {
       settempo(csound, (double)*p->ktempo);
@@ -196,7 +196,7 @@ int tempo(CSOUND *csound, TEMPO *p)
 
 static void print_maxamp(CSOUND *csound, MYFLT x)
 {
-    int   attr = 0;
+    int32_t   attr = 0;
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
       if (csound->oparms->msglevel & 0x300) {
         MYFLT y = x / csound->e0dbfs;     /* relative level */
@@ -249,7 +249,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
 void print_engine_parameters(CSOUND *csound);
 void print_sndfile_version(CSOUND* csound);
 
-int musmon(CSOUND *csound)
+int32_t musmon(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
     /* VL - 08-07-21 messages moved here so we can switch them off */
@@ -364,7 +364,7 @@ int musmon(CSOUND *csound)
       }
       else {
         CORFIL *inf = corfile_create_w(csound);
-        int c;
+        int32_t c;
         while ((c=getc(csound->scfp))!=EOF) corfile_putc(csound, c, inf);
         corfile_rewind(inf);
         csound->scorestr = inf;
@@ -477,7 +477,7 @@ static inline void cs_beep(CSOUND *csound)
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-int csoundCleanup(CSOUND *csound)
+int32_t csoundCleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
@@ -581,7 +581,7 @@ int csoundCleanup(CSOUND *csound)
     return dispexit(csound);    /* hold or terminate the display output     */
 }
 
-int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
+int32_t lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 {
   /* if (csound->musmonGlobals == NULL) */
   /*  csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
@@ -600,10 +600,10 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 /* make list to turn on instrs for indef */
 /* perf called from i0 for execution in playevents */
 
-int turnon(CSOUND *csound, TURNON *p)
+int32_t turnon(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
-  int insno;
+  int32_t insno;
   memset(&evt, 0, sizeof(EVTBLK));
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
@@ -625,10 +625,10 @@ int turnon(CSOUND *csound, TURNON *p)
 /* make list to turn on instrs for indef */
 /* perf called from i0 for execution in playevents */
 
-int turnon_S(CSOUND *csound, TURNON *p)
+int32_t turnon_S(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
-  int     insno;
+  int32_t     insno;
   memset(&evt, 0, sizeof(EVTBLK));
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
@@ -645,13 +645,13 @@ int turnon_S(CSOUND *csound, TURNON *p)
 
 /* Print current amplitude values, and update section amps. */
 
-static void print_amp_values(CSOUND *csound, int score_evt)
+static void print_amp_values(CSOUND *csound, int32_t score_evt)
 {
   CSOUND        *p = csound;
   MYFLT         *maxp, *smaxp;
   uint32        *maxps, *smaxps;
   int32         *rngp, *srngp;
-  int           n;
+  int32_t           n;
 
   if (UNLIKELY(STA(segamps) || (p->rngflg && STA(sormsg)))) {
     if (score_evt > 0)
@@ -695,13 +695,13 @@ static void print_amp_values(CSOUND *csound, int score_evt)
 /* Update overall amplitudes from section values, */
 /* and optionally print message (1: section end, 2: lplay end). */
 
-static void section_amps(CSOUND *csound, int enable_msgs)
+static void section_amps(CSOUND *csound, int32_t enable_msgs)
 {
   CSOUND        *p = csound;
   MYFLT         *maxp, *smaxp;
   uint32        *maxps, *smaxps;
   int32         *rngp, *srngp;
-  int           n;
+  int32_t           n;
 
   if (enable_msgs) {
     if (enable_msgs == 1)
@@ -735,7 +735,7 @@ static void section_amps(CSOUND *csound, int enable_msgs)
   }
 }
 
-static CS_NOINLINE void printScoreError(CSOUND *p, int rtEvt,
+static CS_NOINLINE void printScoreError(CSOUND *p, int32_t rtEvt,
                                         const char *fmt, ...)
 {
   va_list args;
@@ -750,10 +750,10 @@ static CS_NOINLINE void printScoreError(CSOUND *p, int rtEvt,
   p->perferrcnt++;
 }
 
-static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
+static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
 {
   EVTBLK  *saved_currevent;
-  int     insno, rfd, n;
+  int32_t     insno, rfd, n;
 
   saved_currevent = csound->currevent;
   csound->currevent = evt;
@@ -773,7 +773,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
   case 'q':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
-      if (UNLIKELY((insno = (int) n) == 0)) {
+      if (UNLIKELY((insno = (int32_t) n) == 0)) {
         printScoreError(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined"),
                         evt->strarg);
@@ -785,9 +785,9 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       csound->engineState.instrtxtp[insno]->muted = (int16) evt->p[3];
     }
     else {                                        /* IV - Oct 31 2002 */
-      insno = abs((int) evt->p[1]);
+      insno = abs((int32_t) evt->p[1]);
       if (UNLIKELY((unsigned int)(insno-1) >=
-                   (unsigned int) csound->engineState.maxinsno ||
+                   (uint32_t) csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         printScoreError(csound, rtEvt,
                         Str(" - note deleted. instr %d(%d) undefined"),
@@ -834,7 +834,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
       }
     }
     else {                                        /* IV - Oct 31 2002 */
-      insno = abs((int) evt->p[1]);
+      insno = abs((int32_t) evt->p[1]);
       if (UNLIKELY((unsigned int)(insno-1) >=
                    (unsigned int)csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
@@ -894,7 +894,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
 /* RM: this now broken out for access from process_rt_event & sensevents -- bv  */
 static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
 {
-  int n, insno = chn->insno;
+  int32_t n, insno = chn->insno;
   if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
     if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) {
       /* alloc,init,activ */
@@ -929,10 +929,10 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
   }
 }
 
-static int process_rt_event(CSOUND *csound, int sensType)
+static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 {
   EVTBLK  *evt;
-  int     retval, insno, rfd;
+  int32_t     retval, insno, rfd;
 
   retval = 0;
   if (csound->curp2 * csound->esr < (double)csound->icurTime) {
@@ -983,19 +983,19 @@ static int process_rt_event(CSOUND *csound, int sensType)
 
 #define RNDINT64(x) ((int64_t) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int     sensMidi(CSOUND *);
+extern  int32_t     sensMidi(CSOUND *);
 
 /* sense events for one k-period            */
 /* return value is one of the following:    */
 /*   0: continue performance                */
 /*   1: terminate (e.g. end of MIDI file)   */
 /*   2: normal end of score                 */
-int sensevents(CSOUND *csound)
+int32_t sensevents(CSOUND *csound)
 {
   EVTBLK  *e;
   OPARMS  *O = csound->oparms;
-  int     retval =  0, sensType;
-  int     conn, *sinp, end_check=1;
+  int32_t     retval =  0, sensType;
+  int32_t     conn, *sinp, end_check=1;
 
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
@@ -1149,7 +1149,7 @@ int sensevents(CSOUND *csound)
   /*   events is not sorted by instrument number */
   /*   (although it never was sorted anyway...)  */
   if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
-    int nrecvd;
+    int32_t nrecvd;
     /* run all registered callback functions */
     if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
       EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
@@ -1174,7 +1174,7 @@ int sensevents(CSOUND *csound)
         while ((nrecvd = SVrecv(csound, conn,
                                 (void*)&(csound->SVrecvbuf),
                                 sizeof(REMOT_BUF) )) > 0) {
-          int lentot = 0;
+          int32_t lentot = 0;
           do {
             REMOT_BUF *bp = (REMOT_BUF*)((char*)(&(csound->SVrecvbuf))+lentot);
 
@@ -1285,14 +1285,14 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 /* made.                                                              */
 /* Return value is zero on success.                                   */
 
-int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
+int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
 {
   double        start_time;
   EVTNODE       *e, *prv;
   CSOUND        *st = csound;
   MYFLT         *p;
   uint32        start_kcnt;
-  int           i, retval;
+  int32_t           i, retval;
 
   retval = -1;
   /* make a copy of the event... */
@@ -1307,7 +1307,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
   }
   if (evt->strarg != NULL) {  /* copy string argument if present */
     /* NEED TO COPY WHOLE STRING STRUCTURE */
-    int n = evt->scnt;
+    int32_t n = evt->scnt;
     char *p = evt->strarg;
     while (n--) { p += strlen(p)+1; };
     e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (p-evt->strarg)+1);
@@ -1372,25 +1372,25 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
     /* check for a valid instrument number or name */
     if (evt->opcod=='d') {
       if (evt->strarg != NULL && IsStringCode(p[1])) {
-        i = (int) named_instr_find(csound, evt->strarg);
+        i = (int32_t) named_instr_find(csound, evt->strarg);
         //printf("d opcode %s -> %d\n", evt->strarg, i);
         p[1] = -i;
       }
       else {
-        i = (int) fabs((double) p[1]);
+        i = (int32_t) fabs((double) p[1]);
         p[1] = -i;
       }
     }
     else if (evt->strarg != NULL && IsStringCode(p[1])) {
       MYFLT n = named_instr_find(csound, evt->strarg);
       p[1] = n;
-      i =(int) n;
+      i =(int32_t) n;
       if (n<0) {i= -i;}
     }
     else
-      i = (int) fabs((double) p[1]);
-    if (UNLIKELY((unsigned int) (i - 1) >=
-                 (unsigned int) csound->engineState.maxinsno ||
+      i = (int32_t) fabs((double) p[1]);
+    if (UNLIKELY((uint32_t) (i - 1) >=
+                 (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)
         csoundErrorMsg(csound, "%s",
@@ -1451,7 +1451,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
   return retval;
 }
 
-int insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
+int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
 {
   return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
 }
@@ -1505,7 +1505,7 @@ void musmon_rewind_score(CSOUND *csound)
  * pointer, and the userData pointer as passed to this function.
  * Returns zero on success.
  */
-int csoundRegisterSenseEventCallback(CSOUND *csound,
+int32_t csoundRegisterSenseEventCallback(CSOUND *csound,
                                             void (*func)(CSOUND *, void *),
                                             void *userData)
 {

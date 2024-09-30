@@ -25,8 +25,7 @@
 */
 
                         /*                                      PITCH.H */
-//#include "spectra.h"
-//#include "uggab.h"
+
 #define MAXPTL 10
 typedef struct {
         OPDS    h;

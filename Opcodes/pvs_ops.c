@@ -50,7 +50,7 @@ int32_t pvsopc_ModuleInit(CSOUND *csound)
 
 #ifdef BUILD_PLUGINS
 
-PUBLIC int csoundModuleCreate(CSOUND *csound) {  
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {  
         return 0;
 }
 

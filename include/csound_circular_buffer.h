@@ -40,7 +40,7 @@ extern "C" {
    *@endcode
    */
   PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
-                                          int numelem, int elemsize);
+                                          int32_t numelem, int32_t elemsize);
 
   /**
    * Read from circular buffer
@@ -51,8 +51,8 @@ extern "C" {
    * @param items number of samples to be read
    * @returns the actual number of items read (0 <= n <= items)
    */
-  PUBLIC int csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      void *out, int items);
+  PUBLIC int32_t csoundReadCircularBuffer(CSOUND *csound, void *circular_buffer,
+                                      void *out, int32_t items);
 
   /**
    * Read from circular buffer without removing them from the buffer.
@@ -62,8 +62,8 @@ extern "C" {
    * @param items number of samples to be read
    * @returns the actual number of items read (0 <= n <= items)
    */
-  PUBLIC int csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
-                                      void *out, int items);
+  PUBLIC int32_t csoundPeekCircularBuffer(CSOUND *csound, void *circular_buffer,
+                                      void *out, int32_t items);
 
   /**
    * Write to circular buffer
@@ -74,8 +74,8 @@ extern "C" {
    * @param items number of samples to write
    * @returns the actual number of items written (0 <= n <= items)
    */
-  PUBLIC int csoundWriteCircularBuffer(CSOUND *csound, void *p,
-                                       const void *inp, int items);
+  PUBLIC int32_t csoundWriteCircularBuffer(CSOUND *csound, void *p,
+                                       const void *inp, int32_t items);
   /**
    * Empty circular buffer of any remaining data. This function should only be
    * used if there is no reader actively getting data from the buffer.

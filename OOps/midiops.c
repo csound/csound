@@ -799,7 +799,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
  * length, chan, ctrl1, val1, ctrl2, val2, .....
  */
 
-int savectrl_init(CSOUND *csound, SAVECTRL *p)
+int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
 {
     int16 chnl = (int16)(*p->chnl - FL(0.5));
     int16 i, j, nargs = p->INOCOUNT-1;
@@ -822,7 +822,7 @@ int savectrl_init(CSOUND *csound, SAVECTRL *p)
     return OK;
 }
 
-int savectrl_perf(CSOUND *csound, SAVECTRL *p)
+int32_t savectrl_perf(CSOUND *csound, SAVECTRL *p)
 {
     int16 nargs = p->nargs, i, j;
     MYFLT **argp = p->ctrls;
@@ -835,14 +835,14 @@ int savectrl_perf(CSOUND *csound, SAVECTRL *p)
     return OK;
 }
 
-int printctrl_init(CSOUND *csound, PRINTCTRL *p)
+int32_t printctrl_init(CSOUND *csound, PRINTCTRL *p)
 {
     p->fout = stdout;
     if (p->fout==NULL) return NOTOK;
     return OK;
 }
 
-int printctrl_init1(CSOUND *csound, PRINTCTRL *p)
+int32_t printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 {
     p->fout = fopen(p->file->data, "a");
     if (p->fout==NULL) return NOTOK;
@@ -850,10 +850,10 @@ int printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 }
 
 
-int printctrl(CSOUND *csound, PRINTCTRL *p)
+int32_t printctrl(CSOUND *csound, PRINTCTRL *p)
 {
     MYFLT *d = p->arr->data;
-    int n = (int)d[0], i;
+    int32_t n = (int)d[0], i;
     fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
       fprintf(p->fout, ", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
@@ -862,7 +862,7 @@ int printctrl(CSOUND *csound, PRINTCTRL *p)
     return OK;
 }
 
-int presetctrl_init(CSOUND *csound, PRESETCTRL *p)
+int32_t presetctrl_init(CSOUND *csound, PRESETCTRL *p)
 {
     PRESET_GLOB *q =
       (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
@@ -881,12 +881,12 @@ int presetctrl_init(CSOUND *csound, PRESETCTRL *p)
 }
 
 // Store a set of crtrlinits as a preset, allocating a number if necessary
-int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
+int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
 {
     PRESET_GLOB *q = p->q;
-    int *slot;
-    int i;
-    int tag = (int)*p->itag - 1;
+    int32_t *slot;
+    int32_t i;
+    int32_t tag = (int)*p->itag - 1;
     if (tag<0) {
       for (i=0; i<q->max_num; i++)
         if (q->presets[i]==NULL) { tag=i; break;}
@@ -894,7 +894,7 @@ int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     }
     if (tag >= q->max_num) {
       int** tt = q->presets;
-      int size = tag-q->max_num;
+      int32_t size = tag-q->max_num;
       if (size<10) size = 10;
       tt = (int**)csound->ReAlloc(csound,
                                     tt, (q->max_num+size)*sizeof(int*));
@@ -919,7 +919,7 @@ int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     return OK;
 }
 
-int presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
+int32_t presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
 {
     PRESET_GLOB *q =
       (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
@@ -938,12 +938,12 @@ int presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
 }
 
 // Store a set of crtrlinits as a preset, allocating a number if necessary
-int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
+int32_t presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
 {
     PRESET_GLOB *q = p->q;
-    int *slot;
-    int i;
-    int tag = (int)*p->itag - 1;
+    int32_t *slot;
+    int32_t i;
+    int32_t tag = (int)*p->itag - 1;
     if (tag<0) {
       for (i=0; i<q->max_num; i++)
         if (q->presets[i]==NULL) { tag=i; break;}
@@ -951,7 +951,7 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     }
     if (tag >= q->max_num) {
       int** tt = q->presets;
-      int size = tag-q->max_num;
+      int32_t size = tag-q->max_num;
       if (size<10) size = 10;
       tt = (int**)csound->ReAlloc(csound,
                                   tt, (q->max_num+size)*sizeof(int*));
@@ -977,7 +977,7 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     return OK;
 }
 
-int selectctrl_init(CSOUND *csound, SELECTCTRL *p)
+int32_t selectctrl_init(CSOUND *csound, SELECTCTRL *p)
 {
     PRESET_GLOB *q =
       (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
@@ -988,21 +988,21 @@ int selectctrl_init(CSOUND *csound, SELECTCTRL *p)
     return OK;
 }
 
-int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
+int32_t selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
 {
     PRESET_GLOB *q = p->q;
-    int tag = (int)*p->inum-1;
-    int i;
-    int* slot;
+    int32_t tag = (int)*p->inum-1;
+    int32_t i;
+    int32_t* slot;
     if (tag>=q->max_num ||NULL==(slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
-      int nargs = slot[0];
+      int32_t nargs = slot[0];
       int16 chnl = (int16)(slot[1]-1); /* Count from zero */
       MYFLT *ctlval = (csound->m_chnbp[chnl])->ctl_val;
       for (i=2; i<nargs; i+=2) {
-        int val = slot[i+1];
+        int32_t val = slot[i+1];
         ctlval[slot[i]] = val;
         printf("control %d value %d\n", slot[i], val);
       }
@@ -1010,9 +1010,9 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     return OK;
 }
 
-int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
+int32_t printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
 {
-    int j;
+    int32_t j;
     FILE *ff = p->fout;
     PRESET_GLOB *q =
       (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
@@ -1021,8 +1021,8 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
     }
     for (j=0; j<q->max_num; j++)
       if (q->presets[j]) {
-        int i;
-        int *slot = q->presets[j];
+        int32_t i;
+        int32_t *slot = q->presets[j];
         fprintf(ff, "\n kpre%d ctrlpreset\t%d ", j+1, j+1);
         for (i=1; i<slot[0]; i++)
           fprintf(ff, ", %d", slot[i]);
@@ -1033,14 +1033,14 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
     return OK;
 }
 
-int printpresets_init(CSOUND *csound, PRINTPRESETS *p)
+int32_t printpresets_init(CSOUND *csound, PRINTPRESETS *p)
 {
     p->fout = stdout;
     if (p->fout==NULL) return NOTOK;
     return OK;
 }
 
-int printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
+int32_t printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
 {
     p->fout = fopen(p->file->data, "a");
     if (p->fout==NULL) return NOTOK;

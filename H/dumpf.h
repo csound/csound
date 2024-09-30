@@ -27,7 +27,7 @@
 typedef struct {
         OPDS   h;
         MYFLT  *ksig, *ifilcod, *iformat, *iprd;
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
         FDCH   fdch;
@@ -36,7 +36,7 @@ typedef struct {
 typedef struct {
         OPDS   h;
         MYFLT  *ksig1, *ksig2, *ifilcod, *iformat, *iprd;
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
         FDCH   fdch;
@@ -45,7 +45,7 @@ typedef struct {
 typedef struct {
         OPDS   h;
         MYFLT  *ksig1, *ksig2, *ksig3, *ifilcod, *iformat, *iprd;
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
         FDCH   fdch;
@@ -54,7 +54,7 @@ typedef struct {
 typedef struct {
         OPDS   h;
         MYFLT  *ksig1, *ksig2, *ksig3, *ksig4, *ifilcod, *iformat, *iprd;
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         FILE   *f;
         FDCH   fdch;
@@ -64,7 +64,7 @@ typedef struct {
         OPDS   h;
         MYFLT  *k1, *ifilcod, *iformat, *iprd;
         /* MYFLT  *interp; */
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         MYFLT  k[4];
         FILE   *f;
@@ -75,7 +75,7 @@ typedef struct {
         OPDS   h;
         MYFLT  *k1, *k2, *ifilcod, *iformat, *iprd;
         /* MYFLT  *interp; */
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         MYFLT  k[4];
         FILE   *f;
@@ -86,7 +86,7 @@ typedef struct {
         OPDS   h;
         MYFLT  *k1, *k2, *k3, *ifilcod, *iformat, *iprd;
         /* MYFLT  *interp; */
-        int    format;
+        int32_t    format;
         int32   countdown, timcount;
         MYFLT  k[4];
         FILE   *f;
@@ -97,7 +97,7 @@ typedef struct {
         OPDS   h;
         MYFLT  *k1, *k2, *k3, *k4, *ifilcod, *iformat, *iprd;
         /* MYFLT  *interp; */
-        int    format;
+        int32_t    format;
         int32  countdown, timcount;
         MYFLT  k[4];
         FILE   *f;

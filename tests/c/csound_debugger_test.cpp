@@ -56,7 +56,7 @@ TEST_F (DebuggerTests, testAddBreakpoint)
 
 static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    int *count = (int *) userdata;
+    int32_t *count = (int32_t *) userdata;
     *count = *count + 1;
 }
 
@@ -69,8 +69,8 @@ TEST_F (DebuggerTests, testAddCallback)
 
 TEST_F (DebuggerTests, testBreakpointOnce)
 {
-    int i;
-    int break_count = 0;
+    int32_t i;
+    int32_t break_count = 0;
 
     csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n", 0);
     csoundInputMessage(csound, "i 1.1 0   1 440");
@@ -90,7 +90,7 @@ TEST_F (DebuggerTests, testBreakpointOnce)
 static void brkpt_cb2(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
 //    INSDS *i = csoundDebugGetInstrument(csound);
-    int *count = (int *) userdata;
+    int32_t *count = (int32_t *) userdata;
     *count = *count + 1;
     csoundRemoveInstrumentBreakpoint(csound, bkpt_info->breakpointInstr->p1);
     csoundDebugContinue(csound);
@@ -98,8 +98,8 @@ static void brkpt_cb2(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 
 TEST_F (DebuggerTests, testBreakpointRemove)
 {
-    int i;
-    int break_count = 0;
+    int32_t i;
+    int32_t break_count = 0;
 
     csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n", 0);
     csoundInputMessage(csound, "i 1.1 0   1 440");
@@ -171,7 +171,7 @@ TEST_F (DebuggerTests, testBreakpointInstrument)
     csoundDebuggerClean(csound);
 }
 
-int count = 0;
+int32_t count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
@@ -280,7 +280,7 @@ TEST_F (DebuggerTests, testLineBreakpoint)
 static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
-    int *line = (int *) line_;
+    int32_t *line = (int32_t *) line_;
     ASSERT_EQ (debug_opcode->line, *line);
 
     if (*line == 5) {
@@ -321,7 +321,7 @@ TEST_F (DebuggerTests, testLineBreakpointOrcFile)
     csoundStart(csound);
 
     csoundDebuggerInit(csound);
-    int line = 5;
+    int32_t line = 5;
     csoundSetBreakpointCallback(csound, brkpt_cb7, &line);
     csoundSetBreakpoint(csound, line, 0, 0);
     csoundPerformKsmps(csound);
@@ -441,7 +441,7 @@ TEST_F (DebuggerTests, testNext)
     csoundRemoveInstrumentBreakpoint(csound, 1.2);
     csoundDebugContinue(csound);
 
-    int i;
+    int32_t i;
     for (i = 0; i < 200; i++) {
         csoundPerformKsmps(csound);
     }

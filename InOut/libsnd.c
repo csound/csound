@@ -38,10 +38,10 @@
 #  define _pclose pclose
 # endif
 extern  FILE *  _popen(const char *, const char *);
-extern  int     _pclose(FILE *);
+extern  int32_t     _pclose(FILE *);
 #endif
 
-static  void    sndwrterr(CSOUND *, int, int);
+static  void    sndwrterr(CSOUND *, int32_t, int32_t);
 static  void    sndfilein_noscale(CSOUND *csound);
 
 #define STA(x)   (csound->libsndStatics.x)
@@ -56,11 +56,11 @@ static inline void alloc_globals(CSOUND *csound)
    copy back into spout when done
    uses spraw as temporary buffer
 */
-static inline void spout_interleave(CSOUND *csound, int scal) {
+static inline void spout_interleave(CSOUND *csound, int32_t scal) {
    OPARMS  *O = csound->oparms;
    uint32_t nchnls = csound->nchnls, ksmps=csound->ksmps;
-   int   i,j,start=0,end=ksmps;
-   int spoutrem = csound->nspout;
+   int32_t   i,j,start=0,end=ksmps;
+   int32_t spoutrem = csound->nspout;
    MYFLT   *spout = csound->spout, *spinter = csound->spout_tmp;
    MYFLT   x, absamp = FL(0.0);
    uint32  nframes = csound->libsndStatics.nframes;
@@ -69,7 +69,7 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
    MYFLT k1 = FL(1.0)/TANH(FL(1.0)); /*  1.31304 */
    nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
-   if (spoutrem > (int) csound->libsndStatics.outbufrem) {
+   if (spoutrem > (int32_t) csound->libsndStatics.outbufrem) {
      end = csound->libsndStatics.outbufrem/nchnls;
    } 
   spoutrem -= (end-start)*nchnls;
@@ -152,15 +152,15 @@ static void spoutsf_noscale(CSOUND *csound)
 /* diskfile write option for audtran's */
 /*      assigned during sfopenout()    */
 
-static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void writesf(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
     OPARMS  *O = csound->oparms;
-    int     n;
+    int32_t     n;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-    n = (int) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
-                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
@@ -191,20 +191,20 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
 }
 
-static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
     OPARMS  *O = csound->oparms;
-    int     n;
-    int m = nbytes / sizeof(MYFLT);
+    int32_t     n;
+    int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
-    int    dith;
+    int32_t    dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
     dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   tmp = ((dith * 15625) + 1) & 0xFFFF;
-      int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
+      int32_t   tmp = ((dith * 15625) + 1) & 0xFFFF;
+      int32_t   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
       dith = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
@@ -213,8 +213,8 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
-                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
@@ -245,20 +245,20 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
 }
 
-static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
     OPARMS  *O = csound->oparms;
-    int     n;
-    int m = nbytes / sizeof(MYFLT);
+    int32_t     n;
+    int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
-    int dith;
+    int32_t dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
     dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   tmp = ((dith * 15625) + 1) & 0xFFFF;
-      int   rnd = ((tmp * 15625) + 1) & 0xFFFF;
+      int32_t   tmp = ((dith * 15625) + 1) & 0xFFFF;
+      int32_t   rnd = ((tmp * 15625) + 1) & 0xFFFF;
       MYFLT result;
       dith = rnd;
       rnd = (rnd+tmp)>>1;           /* triangular distribution */
@@ -267,8 +267,8 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
-                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
@@ -299,19 +299,19 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
 }
 
-static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
     OPARMS  *O = csound->oparms;
-    int     n;
-    int m = nbytes / sizeof(MYFLT);
+    int32_t     n;
+    int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
-    int dith;
+    int32_t dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
     dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   rnd = ((dith * 15625) + 1) & 0xFFFF;
+      int32_t   rnd = ((dith * 15625) + 1) & 0xFFFF;
       MYFLT result;
       dith =  rnd;
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
@@ -319,8 +319,8 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
-                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
@@ -351,19 +351,19 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
 }
 
-static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
     OPARMS  *O = csound->oparms;
-    int     n;
-    int m = nbytes / sizeof(MYFLT);
+    int32_t     n;
+    int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
-    int dith;
+    int32_t dith;
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
     dith = STA(dither);
     for (n=0; n<m; n++) {
-      int   rnd = ((dith * 15625) + 1) & 0xFFFF;
+      int32_t   rnd = ((dith * 15625) + 1) & 0xFFFF;
       MYFLT result;
       STA(dither) = rnd;
       result = (MYFLT) (rnd - 0x8000)  / ((MYFLT) 0x10000);
@@ -371,8 +371,8 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
-                             nbytes / sizeof(MYFLT)) * (int) sizeof(MYFLT);
+    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+                             nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
@@ -403,13 +403,13 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     }
 }
 
-static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
+static int32_t readsf(CSOUND *csound, MYFLT *inbuf, int32_t inbufsize)
 {
-    int i, n;
+    int32_t i, n;
 
     (void) csound;
-    n = inbufsize / (int) sizeof(MYFLT);
-    i = (int) sflib_read_MYFLT(STA(infile), inbuf, n);
+    n = inbufsize / (int32_t) sizeof(MYFLT);
+    i = (int32_t) sflib_read_MYFLT(STA(infile), inbuf, n);
     if (UNLIKELY(i < 0))
       return inbufsize;
     memset(&inbuf[i], 0, (n-i)*sizeof(MYFLT));
@@ -422,7 +422,7 @@ static int readsf(CSOUND *csound, MYFLT *inbuf, int inbufsize)
 /* is stored in *devName. */
 /* Called from musmon, str_ops and here */
 
-int check_rtaudio_name(char *fName, char **devName, int isOutput)
+int32_t check_rtaudio_name(char *fName, char **devName, int32_t isOutput)
 {
     char  *s;
 
@@ -447,9 +447,9 @@ int check_rtaudio_name(char *fName, char **devName, int isOutput)
       return 1024;
     }
     else {
-      int devNum = 0;
+      int32_t devNum = 0;
       while (*s >= (char) '0' && *s <= (char) '9') {
-        devNum = devNum * 10 + ((int) *s - (int) '0');
+        devNum = devNum * 10 + ((int32_t) *s - (int32_t) '0');
         if (devNum >= 1024)
           break;
         if (*(++s) == (char) '\0')
@@ -464,8 +464,8 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     OPARMS  *O = csound->oparms;
     char    *sfname, *fullName;
     SFLIB_INFO sfinfo;
-    int     fileType = (int) TYP_RAW;
-    int     isfd = 0;   /* stdin */
+    int32_t     fileType = (int32_t) TYP_RAW;
+    int32_t     isfd = 0;   /* stdin */
 
     if(csound->inchnls < 1)
        csound->Die(csound,
@@ -495,7 +495,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       if (parm.devNum >= 0) {
         /* set device parameters */
         parm.bufSamp_SW   =
-          (unsigned int) O->inbufsamps / (unsigned int) csound->inchnls;
+          (uint32_t) O->inbufsamps / (uint32_t) csound->inchnls;
         parm.bufSamp_HW   = O->oMaxLag;
         parm.nChannels    = csound->inchnls;
         parm.sampleFormat = O->informat;
@@ -528,7 +528,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       if (STA(infile) == NULL) {
         /* open failed: maybe raw file ? */
         memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-        sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
+        sfinfo.samplerate = (int32_t) MYFLT2LRND(csound->esr);
         sfinfo.channels = csound->nchnls;
         /* FIXME: assumes input sample format is same as output */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
@@ -544,18 +544,18 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       sfname = fullName;
     }
     /* chk the hdr codes  */
-    if (sfinfo.samplerate != (int) MYFLT2LRND(csound->esr)) {
+    if (sfinfo.samplerate != (int32_t) MYFLT2LRND(csound->esr)) {
       csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
-                              sfname, (int) sfinfo.samplerate,
-                              (int) MYFLT2LRND(csound->esr));
+                              sfname, (int32_t) sfinfo.samplerate,
+                              (int32_t) MYFLT2LRND(csound->esr));
     }
     if (sfinfo.channels != csound->inchnls) {
       csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
-                              sfname, (int) sfinfo.channels, csound->inchnls);
+                              sfname, (int32_t) sfinfo.channels, csound->inchnls);
     }
     /* Do we care about the format?  Can assume float?? */
     O->informat = SF2FORMAT(sfinfo.format);
-    fileType = (int) SF2TYPE(sfinfo.format);
+    fileType = (int32_t) SF2TYPE(sfinfo.format);
     csound->audrecv = readsf;           /* will use standard audio gets  */
     if ((O->informat == AE_FLOAT || O->informat == AE_DOUBLE) &&
         !(fileType == TYP_WAV || fileType == TYP_AIFF || fileType == TYP_W64)) {
@@ -577,13 +577,13 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     else {
        csound->Message(csound,
                       Str("reading %d-byte blks of %s from %s (%s)\n"),
-                      O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
+                      O->inbufsamps * (int32_t) sfsampsize(FORMAT2SF(O->informat)),
                       getstrformat(O->informat), sfname, type2string(fileType));
     }
     STA(isfopen) = 1;
 }
 
-static char* copyrightcode(int n)
+static char* copyrightcode(int32_t n)
 {
       char* a[] = {
         "All Rights Reserved\n",
@@ -604,7 +604,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     OPARMS  *O = csound->oparms;
     char    *s, *fName, *fullName;
     SFLIB_INFO sfinfo;
-    int     osfd = 1;   /* stdout */
+    int32_t     osfd = 1;   /* stdout */
 
     alloc_globals(csound);
     if (O->outfilename == NULL) {
@@ -711,7 +711,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       parm.devNum = check_rtaudio_name(fName, &(parm.devName), 1);
       if (parm.devNum >= 0) {
         /* set device parameters */
-        parm.bufSamp_SW   = (unsigned int) O->outbufsamps / csound->nchnls;
+        parm.bufSamp_SW   = (uint32_t) O->outbufsamps / csound->nchnls;
         parm.bufSamp_HW   = O->oMaxLag;
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->outformat;
@@ -754,7 +754,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     /* set format parameters */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames     = 0;
-    sfinfo.samplerate = (int) MYFLT2LRND(csound->esr);
+    sfinfo.samplerate = (int32_t) MYFLT2LRND(csound->esr);
     sfinfo.channels   = csound->nchnls;
     sfinfo.format     = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file */
@@ -810,7 +810,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     if(O->filetyp == TYP_MPEG) {
       csound->Message(csound, "Setting MP3 bitrate to %s\n", O->mp3_mode ? "variable" : "constant" );;
       sf_command(STA(outfile), SFC_SET_BITRATE_MODE,
-                 &(O->mp3_mode), sizeof(int));
+                 &(O->mp3_mode), sizeof(int32_t));
     }
  #endif
     
@@ -877,7 +877,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
 
 
  outset:
-    O->sfsampsize = (int) sfsampsize(FORMAT2SF(O->outformat));
+    O->sfsampsize = (int32_t) sfsampsize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
@@ -928,7 +928,7 @@ void sfclosein(CSOUND *csound)
 void sfcloseout(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    int     nb;
+    int32_t     nb;
 
     alloc_globals(csound);
     if (!STA(osfopen))
@@ -981,7 +981,7 @@ void sfcloseout(CSOUND *csound)
 /* report soundfile write(osfd) error   */
 /* called after chk of write() bytecnt  */
 
-static void sndwrterr(CSOUND *csound, int nret, int nput)
+static void sndwrterr(CSOUND *csound, int32_t nret, int32_t nput)
 {
     csound->ErrorMsg(csound,
                      Str("soundfile write returned bytecount of %d, not %d"),
@@ -1005,18 +1005,18 @@ void sfnopenout(CSOUND *csound)
 static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
 {
     OPARMS  *O = csound->oparms;
-    int     i, n, nsmps, bufpos;
+    int32_t     i, n, nsmps, bufpos;
 
     nsmps = csound->nspin;
-    bufpos = (int) O->inbufsamps - (int) STA(inbufrem);
+    bufpos = (int32_t) O->inbufsamps - (int32_t) STA(inbufrem);
     for (i = 0; i<nsmps; i++) {
-      if ((int) STA(inbufrem) < 1) {
+      if ((int32_t) STA(inbufrem) < 1) {
         STA(inbufrem) = 0U;
         do {
-          n = ((int) O->inbufsamps - (int) STA(inbufrem)) * (int) sizeof(MYFLT);
-          n = csound->audrecv(csound, STA(inbuf) + (int) STA(inbufrem), n);
-          STA(inbufrem) += (unsigned int) (n / (int) sizeof(MYFLT));
-        } while ((int) STA(inbufrem) < (int) O->inbufsamps);
+          n = ((int32_t) O->inbufsamps - (int32_t) STA(inbufrem)) * (int32_t) sizeof(MYFLT);
+          n = csound->audrecv(csound, STA(inbuf) + (int32_t) STA(inbufrem), n);
+          STA(inbufrem) += (uint32_t) (n / (int32_t) sizeof(MYFLT));
+        } while ((int32_t) STA(inbufrem) < (int32_t) O->inbufsamps);
         bufpos = 0;
       }
       csound->spin[i] = STA(inbuf)[bufpos++] * scaleFac;
@@ -1036,13 +1036,13 @@ static void sndfilein_noscale(CSOUND *csound)
     sndfilein_(csound, FL(1.0));
 }
 
-static int audrecv_dummy(CSOUND *csound, MYFLT *buf, int nbytes)
+static int32_t audrecv_dummy(CSOUND *csound, MYFLT *buf, int32_t nbytes)
 {
     (void) csound; (void) buf;
     return nbytes;
 }
 
-static void audtran_dummy(CSOUND *csound, const MYFLT *buf, int nbytes)
+static void audtran_dummy(CSOUND *csound, const MYFLT *buf, int32_t nbytes)
 {
     (void) csound; (void) buf; (void) nbytes;
 }
@@ -1062,17 +1062,17 @@ void iotranset(CSOUND *csound)
     O               = csound->oparms;
     csound->audrecv = audrecv_dummy;
     csound->audtran = audtran_dummy;
-    STA(inbufrem)   = (unsigned int) O->inbufsamps;
-    STA(outbufrem)  = (unsigned int) O->outbufsamps;
+    STA(inbufrem)   = (uint32_t) O->inbufsamps;
+    STA(outbufrem)  = (uint32_t) O->outbufsamps;
     if (!csound->hostRequestedBufferSize) {
       O->sfread    = 0;
       O->sfwrite   = 0;
       STA(osfopen) = 0;
       return;
     }
-    STA(inbufsiz)  = (unsigned int) (O->inbufsamps * (int) sizeof(MYFLT));
+    STA(inbufsiz)  = (uint32_t) (O->inbufsamps * (int32_t) sizeof(MYFLT));
     STA(inbuf)     = (MYFLT*) csound->Calloc(csound, STA(inbufsiz));
-    STA(outbufsiz) = (unsigned int) (O->outbufsamps * (int) sizeof(MYFLT));
+    STA(outbufsiz) = (uint32_t) (O->outbufsamps * (int32_t) sizeof(MYFLT));
     STA(outbuf)    = (MYFLT*) csound->Calloc(csound, STA(outbufsiz));
     STA(outbufp)   = STA(outbuf);
     O->sfread      = 1;

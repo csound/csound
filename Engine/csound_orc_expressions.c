@@ -41,7 +41,7 @@ extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable);
 extern void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable);
-extern void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensions,
+extern void add_array_arg(CSOUND* csound, char* varName, char* annotation, int32_t dimensions,
                           TYPE_TABLE* typeTable);
 
 extern char* get_array_sub_type(CSOUND* csound, char*);
@@ -49,8 +49,8 @@ extern char* get_array_sub_type(CSOUND* csound, char*);
 extern char* convert_external_to_internal(CSOUND* csound, char* arg);
 
 
-static TREE *create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
-static TREE *create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
+static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  int32_t,  TYPE_TABLE*);
+static TREE *create_expression(CSOUND *, TREE *, int32_t,  int32_t,  TYPE_TABLE*);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
@@ -58,7 +58,7 @@ extern void do_baktrace(CSOUND *csound, uint64_t files);
 
 
 
-static int genlabs = 300;
+static int32_t genlabs = 300;
 
 TREE* tree_tail(TREE* node) {
   TREE* t = node;
@@ -71,7 +71,7 @@ TREE* tree_tail(TREE* node) {
   return t;
 }
 
-char *create_out_arg(CSOUND *csound, char* outype, int argCount,
+char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
                      TYPE_TABLE* typeTable)
 {
   char* s = (char *)csound->Malloc(csound, 256);
@@ -118,7 +118,7 @@ char *create_out_arg(CSOUND *csound, char* outype, int argCount,
  * returns outarg type
  */
 
-char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int type)
+char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int32_t type)
 {
   char* s = (char *)csound->Malloc(csound, 8);
   snprintf(s, 8, "#%c%d", type?'B':'b', typeTable->localPool->synthArgCount++);
@@ -191,7 +191,7 @@ static TREE * create_ans_token(CSOUND *csound, char* var)
 }
 
 static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
-                                TREE * gotoNode, int type)
+                                TREE * gotoNode, int32_t type)
 {
   /*     TREE *ans = create_empty_token(csound); */
   char* op = (char *)csound->Malloc(csound, 8); /* Unchecked */
@@ -249,7 +249,7 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
 /* THIS PROBABLY NEEDS TO CHANGE TO RETURN DIFFERENT GOTO
    TYPES LIKE IGOTO, ETC */
-static TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
+static TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int32_t type)
 {
   char* op = (char *)csound->Calloc(csound, 6);
   TREE * opTree;
@@ -264,7 +264,7 @@ static TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
 }
 
 /* Returns true if passed in TREE node is a numerical expression */
-int is_expression_node(TREE *node)
+int32_t is_expression_node(TREE *node)
 {
   if (node == NULL) {
     return 0;
@@ -294,7 +294,7 @@ int is_expression_node(TREE *node)
 }
 
 /* Returns if passed in TREE node is a boolean expression */
-int is_boolean_expression_node(TREE *node)
+int32_t is_boolean_expression_node(TREE *node)
 {
   if (node == NULL) {
     return 0;
@@ -318,7 +318,7 @@ int is_boolean_expression_node(TREE *node)
 //#ifdef JPFF
 
 static TREE *create_cond_expression(CSOUND *csound,
-                                    TREE *root, int line, int locn,
+                                    TREE *root, int32_t line, int32_t locn,
                                     TYPE_TABLE* typeTable)
 {
   TREE *last = NULL;
@@ -329,7 +329,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                                       typeTable);
   TREE *c = root->right->left, *d = root->right->right;
   char *left, *right;
-  int type;
+  int32_t type;
   TREE *xx;
   char *eq;
 
@@ -438,7 +438,7 @@ static TREE *create_cond_expression(CSOUND *csound,
 }
 
 /* static TREE *create_cond_expression(CSOUND *csound, */
-/*                                     TREE *root, int line, int locn, */
+/*                                     TREE *root, int32_t line, int32_t locn, */
 /*                                     TYPE_TABLE* typeTable) */
 /* { */
 /*     char *arg1, *arg2, *ans, *outarg = NULL; */
@@ -536,7 +536,7 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
  */
-static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
+static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line, int32_t locn,
                                TYPE_TABLE* typeTable)
 {
   char op[80], *outarg = NULL;
@@ -633,7 +633,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
   case T_FUNCTION:
     {
       char *outtype, *outtype_internal;
-      int len = strlen(root->value->lexeme);
+      int32_t len = strlen(root->value->lexeme);
       strNcpy(op, root->value->lexeme, len+1);
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found OP: %s\n", op);
@@ -844,7 +844,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
  * create_opcode when an expression node has been found as an argument
  */
 static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
-                                       int line, int locn, TYPE_TABLE* typeTable)
+                                       int32_t line, int32_t locn, TYPE_TABLE* typeTable)
 {
   char *op, *outarg;
   TREE *anchor = NULL, *last;
@@ -1000,14 +1000,14 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   return anchor;
 }
 
-static char* create_synthetic_var_name(CSOUND* csound, int32 count, int prefix)
+static char* create_synthetic_var_name(CSOUND* csound, int32 count, int32_t prefix)
 {
   char *name = (char *)csound->Calloc(csound, 36);
   snprintf(name, 36, "%c__synthetic_%"PRIi32, prefix, count);
   return name;
 }
 
-static char* create_synthetic_array_var_name(CSOUND* csound, int32 count, int prefix)
+static char* create_synthetic_array_var_name(CSOUND* csound, int32 count, int32_t prefix)
 {
   char *name = (char *)csound->Calloc(csound, 36);
   snprintf(name, 36, "%c__synthetic_%"PRIi32"[]", prefix, count);
@@ -1045,7 +1045,7 @@ void handle_negative_number(CSOUND* csound, TREE* root)
 {
   if (root->type == S_UMINUS &&
       (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN)) {
-    int len = strlen(root->right->value->lexeme);
+    int32_t len = strlen(root->right->value->lexeme);
     char* negativeNumber = csound->Malloc(csound, len + 3);
     negativeNumber[0] = '-';
     strcpy(negativeNumber + 1, root->right->value->lexeme);
@@ -1117,7 +1117,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     TREE *nextArg;
     TREE *newArgTree;
     TREE *expressionNodes;
-    int is_bool = 0;
+    int32_t is_bool = 0;
     handle_negative_number(csound, currentArg);
     if (is_expression_node(currentArg) ||
         (is_bool = is_boolean_expression_node(currentArg))) {
@@ -1177,7 +1177,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   // handle LHS expressions (i.e. array-set's)
   previousArg = NULL;
   currentArg = current->left;
-  int init = 0;
+  int32_t init = 0;
   if (strcmp("init", current->value->lexeme)==0) {
     //print_tree(csound, "init",current);
     init = 1;
@@ -1298,7 +1298,7 @@ TREE* expand_if_statement(CSOUND* csound,
   else if (LIKELY(right->type == THEN_TOKEN ||
                   right->type == ITHEN_TOKEN ||
                   right->type == KTHEN_TOKEN)) {
-    int endLabelCounter = -1;
+    int32_t endLabelCounter = -1;
     TREE *tempLeft;
     TREE *tempRight;
     TREE* last;
@@ -1332,7 +1332,7 @@ TREE* expand_if_statement(CSOUND* csound,
       /* reconnect into chain */
       {
         TREE *statements, *label, *labelEnd, *gotoToken;
-        int gotoType;
+        int32_t gotoType;
 
         statements = tempRight->right;
         label = create_synthetic_ident(csound, genlabs);
@@ -1362,7 +1362,7 @@ TREE* expand_if_statement(CSOUND* csound,
         if (endLabelCounter > 0) {
           TREE *endLabel = create_synthetic_ident(csound,
                                                   endLabelCounter);
-          int type = (gotoType == 1) ? 0 : 2;
+          int32_t type = (gotoType == 1) ? 0 : 2;
           /* csound->DebugMsg(csound, "%s(%d): type = %d %d\n", */
           /*        __FILE__, __LINE__, type, gotoType); */
           TREE *gotoEndLabelToken =
@@ -1413,7 +1413,7 @@ TREE* expand_if_statement(CSOUND* csound,
    5. add goto token that goes to top label
    6. end label */
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int dowhile)
+                             TYPE_TABLE* typeTable, int32_t dowhile)
 {
   TREE* anchor = NULL;
   TREE* expressionNodes = NULL;
@@ -1425,7 +1425,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   TREE* tempRight = current->right;
   TREE* last = NULL;
   TREE* labelEnd;
-  int gotoType;
+  int32_t gotoType;
 
   anchor = create_synthetic_label(csound, topLabelCounter);
   typeTable->labelList = cs_cons(csound,
@@ -1488,7 +1488,7 @@ TREE* expand_for_statement(
   CS_TYPE *iType = (CS_TYPE *)&CS_VAR_TYPE_I;
   CS_TYPE *kType = (CS_TYPE *)&CS_VAR_TYPE_K;
 
-  int isPerfRate = arrayArgType[1] == 'k';
+  int32_t isPerfRate = arrayArgType[1] == 'k';
   char* op = (char *)csound->Malloc(csound, 10);
   // create index counter
   TREE *indexAssign = create_empty_token(csound);
@@ -1568,7 +1568,7 @@ TREE* expand_for_statement(
   arrayLength->next = loopLabel;
 
   // handle case where user provided an index identifier
-  int hasOptionalIndex = 0;
+  int32_t hasOptionalIndex = 0;
   if (current->left->next != NULL) {
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
@@ -1630,7 +1630,7 @@ TREE* expand_for_statement(
   return indexAssign;
 }
 
-int is_statement_expansion_required(TREE* root) {
+int32_t is_statement_expansion_required(TREE* root) {
   TREE* current = root->right;
   while (current != NULL) {
     if (is_boolean_expression_node(current) || is_expression_node(current)) {

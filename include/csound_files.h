@@ -133,7 +133,7 @@ extern "C" {
    * The callback is made when a sound file is going to be opened.
    * The following information is passed to the callback:
    *     char*  pathname of the file; either full or relative to current dir
-   *     int    flags of the file descriptor.
+   *     int32_t    flags of the file descriptor.
    *     SFLIB_INFO* sound file info of the sound file.
    *
    * Pass NULL to disable the callback.
@@ -143,7 +143,7 @@ extern "C" {
   PUBLIC void csoundSetOpenSoundFileCallback(CSOUND *p,
                                              void *(*openSoundFileCallback)(CSOUND*,
                                                                             const char*,
-                                                                            int, void*));
+                                                                            int32_t, void*));
 
   /**
    * Sets an external callback for opening a file.
@@ -166,16 +166,16 @@ extern "C" {
    * a file.  The callback is made after the file is successfully opened.
    * The following information is passed to the callback:
    *     char*  pathname of the file; either full or relative to current dir
-   *     int    a file type code from the enumeration CSOUND_FILETYPES
-   *     int    1 if Csound is writing the file, 0 if reading
-   *     int    1 if a temporary file that Csound will delete; 0 if not
+   *     int32_t    a file type code from the enumeration CSOUND_FILETYPES
+   *     int32_t    1 if Csound is writing the file, 0 if reading
+   *     int32_t    1 if a temporary file that Csound will delete; 0 if not
    *
    * Pass NULL to disable the callback.
    * This callback is retained after a csoundReset() call.
    */
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
                                         void (*func)(CSOUND*, const char*,
-                                                     int, int, int));
+                                                     int32_t, int32_t, int32_t));
 #endif
 
 #ifdef __cplusplus

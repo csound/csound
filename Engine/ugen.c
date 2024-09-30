@@ -48,7 +48,7 @@ extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);
 
 // this value is chosen arbitrarily, feel free to modify
-//static const int MAX_VAR_ARGS = 8;
+//static const int32_t MAX_VAR_ARGS = 8;
 
 typedef struct {
   const CS_TYPE* type;
@@ -95,7 +95,7 @@ PUBLIC UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory) {
 
 
 OENTRY* ugen_resolve_opcode(OENTRIES* entries, char* outargTypes, char* inargTypes) {
-    int i;
+    int32_t i;
     
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -270,16 +270,16 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     optxt->t.outArgCount = ugen->outPoolCount;
     optxt->t.inArgCount = ugen->inPoolCount;
     
-    /*for(int i = 0; i < outTypes.size(); i++) {*/
+    /*for(int32_t i = 0; i < outTypes.size(); i++) {*/
         /*sprintf(name, "out%d", i);*/
         /*CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*)outTypes[i], name, NULL);*/
         /*csoundAddVariable(outPool, var);*/
     /*}*/
-    /*for(int i = 0; i < inTypes.size(); i++) {*/
+    /*for(int32_t i = 0; i < inTypes.size(); i++) {*/
         
         /*if(inTypes[i] == &CS_VAR_ARG_TYPE_A) {*/
             /*inPoolCount += MAX_VAR_ARGS - 1;*/
-            /*for (int j = 0; j < MAX_VAR_ARGS; j++) {*/
+            /*for (int32_t j = 0; j < MAX_VAR_ARGS; j++) {*/
                 /*sprintf(name, "in%d", i + j);*/
                 /*CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,*/
                                                         /*(CS_TYPE*)&CS_VAR_TYPE_A, name, NULL);*/
@@ -287,7 +287,7 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
             /*}*/
         /*} else if(inTypes[i] == &CS_VAR_ARG_TYPE_K) {*/
             /*inPoolCount += MAX_VAR_ARGS - 1;*/
-            /*for (int j = 0; j < MAX_VAR_ARGS; j++) {*/
+            /*for (int32_t j = 0; j < MAX_VAR_ARGS; j++) {*/
                 /*sprintf(name, "in%d", i + j);*/
                 /*CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,*/
                                                         /*(CS_TYPE*)&CS_VAR_TYPE_K, name, NULL);*/
@@ -334,15 +334,15 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 }
 
 
-PUBLIC bool ugen_set_output(UGEN* ugen, int index, void* arg) {
+PUBLIC bool ugen_set_output(UGEN* ugen, int32_t index, void* arg) {
   return false;
 }
 
-PUBLIC bool ugen_set_input(UGEN* ugen, int index, void* arg) {
+PUBLIC bool ugen_set_input(UGEN* ugen, int32_t index, void* arg) {
   return false;
 }
 
-PUBLIC int ugen_init(UGEN* ugen) {
+PUBLIC int32_t ugen_init(UGEN* ugen) {
   OPDS* opds = (OPDS*)ugen->opcodeMem;
   OENTRY* oentry = ugen->oentry;
   opds->optext->t.inArgCount = ugen->inocount;
@@ -352,7 +352,7 @@ PUBLIC int ugen_init(UGEN* ugen) {
   return CSOUND_SUCCESS;
 }
 
-PUBLIC int ugen_perform(UGEN* ugen) {
+PUBLIC int32_t ugen_perform(UGEN* ugen) {
     OENTRY* oentry = ugen->oentry;
     CSOUND* csound = ugen->csound;
     void* opcodeMem = ugen->opcodeMem;

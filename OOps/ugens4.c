@@ -247,7 +247,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 static  int16   rand15(CSOUND *);
 static  int16   rand16(CSOUND *);
 
-int plukset(CSOUND *csound, PLUCK *p)
+int32_t plukset(CSOUND *csound, PLUCK *p)
 {
     int32_t         n;
     int32_t       npts, iphs;

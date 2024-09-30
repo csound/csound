@@ -7,7 +7,7 @@
 
 #include "liveCoder.hpp"
 uintptr_t csThread(void *clientData);
-int main(int argc, char *argv[])
+int32_t main(int32_t argc, char *argv[])
 {
   liveCsound* csound;
   void *iD;

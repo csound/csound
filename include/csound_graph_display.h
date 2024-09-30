@@ -36,7 +36,7 @@ extern "C" {
    * Tells Csound whether external graphic table display is supported.
    * Returns the previously set value (initially zero).
    */
-  PUBLIC int csoundSetIsGraphable(CSOUND *, int isGraphable);
+  PUBLIC int32_t csoundSetIsGraphable(CSOUND *, int32_t isGraphable);
 
   /**
    * Called by external software to set Csound's MakeGraph function.
@@ -64,7 +64,7 @@ extern "C" {
    * Called by external software to set Csound's ExitGraph function.
    */
   PUBLIC void csoundSetExitGraphCallback(CSOUND *,
-                                         int (*exitGraphCallback_)(CSOUND *));
+                                         int32_t (*exitGraphCallback_)(CSOUND *));
 /** @}*/
 
 #ifdef __cplusplus

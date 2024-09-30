@@ -180,7 +180,7 @@ static inline MYFLT lrplookup(FUNC *tab, uint32_t phase, MYFLT zscale,
 static inline MYFLT lrplookup_f(FUNC *tab, double phase)
 {
     MYFLT    pos = PHMOD1(phase)*tab->flen;
-    uint32_t index = (int) phase;
+    uint32_t index = (int32_t) phase;
     MYFLT a = tab->ftable[index];
     MYFLT b = tab->ftable[index + 1];
     return lrp(a, b, (pos - index));

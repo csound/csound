@@ -27,7 +27,7 @@
 // linseg type opcode with trigger mechanism
 struct TrigLinseg : csnd::Plugin<1, 64>
 {
-    int init()
+    int32_t init()
     {
         uint32_t argCnt = 1;
         totalLength = 0;
@@ -57,7 +57,7 @@ struct TrigLinseg : csnd::Plugin<1, 64>
         return OK;
     }
 
-    int kperf()
+    int32_t kperf()
     {
        for (uint32_t i = offset; i < nsmps; i++)
             outargs[0] = envGenerator (1);
@@ -65,7 +65,7 @@ struct TrigLinseg : csnd::Plugin<1, 64>
     }
 
 
-    int aperf()
+    int32_t aperf()
     {
         for (uint32_t i = offset; i < nsmps; i++)
             outargs (0)[i] = envGenerator (1);
@@ -73,7 +73,7 @@ struct TrigLinseg : csnd::Plugin<1, 64>
         return OK;
     }
 
-    MYFLT envGenerator (int sampIncr)
+    MYFLT envGenerator (int32_t sampIncr)
     {
         // trigger envelope
         if (inargs[0] == 1)
@@ -119,7 +119,7 @@ struct TrigLinseg : csnd::Plugin<1, 64>
 // expseg type opcode with trigger mechanism
 struct TrigExpseg : csnd::Plugin<1, 64>
 {
-    int init()
+    int32_t init()
     {
         uint32_t argCnt = 1;
         samplingRate = this->sr();
@@ -154,7 +154,7 @@ struct TrigExpseg : csnd::Plugin<1, 64>
         return OK;
     }
 
-    int kperf()
+    int32_t kperf()
     {
         for (uint32_t i = offset; i < nsmps; i++)
             outargs[0] = envGenerator (1);
@@ -162,7 +162,7 @@ struct TrigExpseg : csnd::Plugin<1, 64>
     }
 
 
-    int aperf()
+    int32_t aperf()
     {
         for (uint32_t i = offset; i < nsmps; i++)
             outargs (0)[i] = envGenerator (1);
@@ -170,7 +170,7 @@ struct TrigExpseg : csnd::Plugin<1, 64>
         return OK;
     }
 
-    MYFLT envGenerator (int sampIncr)
+    MYFLT envGenerator (int32_t sampIncr)
     {
         // trigger envelope
         if (inargs[0] == 1)

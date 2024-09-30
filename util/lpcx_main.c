@@ -44,7 +44,7 @@ void lpc_export_usage(void)
     printf(Str("usage: lpc_export lpc_file cstext-file\n"));
 }
 
-int main(int argc, char **argv)
+int32_t main(int32_t argc, char **argv)
 {
     FILE *inf;
     FILE *outf;

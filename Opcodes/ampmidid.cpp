@@ -58,7 +58,7 @@ public:
     KAMPMIDID()
         : kamplitude(0), kvelocity(0), irdb(0), iuse0dbfs(0), ir(0), im(0), ib(0),
           onedrms(0), dbfs(1) {}
-    int init(CSOUND *csound) {
+    int32_t init(CSOUND *csound) {
         // Convert RMS power to amplitude (assuming a sinusoidal signal).
         onedrms = MYFLT(1.0) / MYFLT(0.707);
         // Convert dynamic range in decibels to RMS dynamic range.
@@ -75,7 +75,7 @@ public:
         }
         return OK;
     }
-    int kontrol(CSOUND *csound) {
+    int32_t kontrol(CSOUND *csound) {
         IGN(csound);
         *kamplitude =
             dbfs * std::pow((*kvelocity * im) + ib, MYFLT(2.0)) * onedrms;
@@ -100,7 +100,7 @@ public:
     IAMPMIDID()
         : iamplitude(0), ivelocity(0), irdb(0), iuse0dbfs(0), ir(0), im(0), ib(0),
           onedrms(0), dbfs(1) {}
-    int init(CSOUND *csound) {
+    int32_t init(CSOUND *csound) {
         // Convert RMS power to amplitude (assuming a sinusoidal signal).
         onedrms = MYFLT(1.0) / MYFLT(0.707);
         // Convert dynamic range in decibels to RMS dynamic range.
@@ -119,7 +119,7 @@ public:
             dbfs * std::pow((*ivelocity * im) + ib, MYFLT(2.0)) * onedrms;
         return OK;
     }
-    int noteoff(CSOUND *) {
+    int32_t noteoff(CSOUND *) {
         return OK;
     }
 };
@@ -139,11 +139,11 @@ public:
     MYFLT *k_midi_velocity;
     MYFLT *k_dynamic_range;
     MYFLT *k_exponent;
-    int init(CSOUND *csound) {
+    int32_t init(CSOUND *csound) {
         *k_gain = *k_dynamic_range * std::pow(*k_midi_velocity / FL(127.), *k_exponent) + FL(1.) - *k_dynamic_range;
         return OK;
     }
-    int kontrol(CSOUND *csound) {
+    int32_t kontrol(CSOUND *csound) {
         *k_gain = *k_dynamic_range * std::pow(*k_midi_velocity / FL(127.), *k_exponent) + FL(1.) - *k_dynamic_range;
         return OK;
     }
@@ -151,7 +151,7 @@ public:
 
 extern "C" {
     PUBLIC int32_t csoundModuleInit_ampmidid(CSOUND *csound) {
-        int status = csound->AppendOpcode(
+        int32_t status = csound->AppendOpcode(
                          csound, (char *)"ampmidid.k", sizeof(KAMPMIDID), 0,  (char *)"k",
                          (char *)"kio",
                          (int32_t (*)(CSOUND *, void *))KAMPMIDID::init_,
@@ -160,9 +160,9 @@ extern "C" {
         status |= csound->AppendOpcode(
                       csound, (char *)"ampmidid.i", sizeof(IAMPMIDID), 0,  (char *)"i",
                       (char *)"iio",
-                      (int (*)(CSOUND *, void *))IAMPMIDID::init_,
-                      (int (*)(CSOUND *, void *))0,
-                      (int (*)(CSOUND *, void *))0);
+                      (int32_t (*)(CSOUND *, void *))IAMPMIDID::init_,
+                      (int32_t (*)(CSOUND *, void *))0,
+                      (int32_t (*)(CSOUND *, void *))0);
         status = csound->AppendOpcode(
                      csound, (char *)"ampmidicurve.k", sizeof(AMPMIDICURVE), 0,  (char *)"k",
                      (char *)"kkk",
@@ -172,23 +172,23 @@ extern "C" {
         status |= csound->AppendOpcode(
                       csound, (char *)"ampmidicurve.i", sizeof(AMPMIDICURVE), 0,  (char *)"i",
                       (char *)"iii",
-                      (int (*)(CSOUND *, void *))AMPMIDICURVE::init_,
-                      (int (*)(CSOUND *, void *))0,
-                      (int (*)(CSOUND *, void *))0);
+                      (int32_t (*)(CSOUND *, void *))AMPMIDICURVE::init_,
+                      (int32_t (*)(CSOUND *, void *))0,
+                      (int32_t (*)(CSOUND *, void *))0);
         return status;
     }
 
 #ifdef BUILD_PLUGINS
-    PUBLIC int csoundModuleCreate(CSOUND *csound) {
+    PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
         IGN(csound);
         return 0;
     }
 
-    PUBLIC int csoundModuleInit(CSOUND *csound) {
+    PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
         return csoundModuleInit_ampmidid(csound);
     }
 
-    PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+    PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
         IGN(csound);
         return 0;
     }

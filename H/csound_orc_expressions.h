@@ -30,15 +30,15 @@
 CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
-int is_expression_node(TREE *node);
-int is_boolean_expression_node(TREE *node);
-int is_statement_expansion_required(TREE* root);
+int32_t is_expression_node(TREE *node);
+int32_t is_boolean_expression_node(TREE *node);
+int32_t is_statement_expansion_required(TREE* root);
 
 void handle_optional_args(CSOUND *csound, TREE *l);
 
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int);
+                             TYPE_TABLE* typeTable, int32_t);
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType);
 

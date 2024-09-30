@@ -41,7 +41,7 @@
 #endif
 #endif
 
-int is_perf_thread(OPDS *p){
+int32_t is_perf_thread(OPDS *p){
   return p->insdshead->init_done;
 }
 

@@ -256,8 +256,8 @@ static int32_t sum_(CSOUND *csound, SUM *p)
       memset(&accum[nsmps], '\0', early*sizeof(MYFLT));
     }
     memset(accum, '\0', nsmps*sizeof(MYFLT));
-    int count4 = count - (count % 4);
-    for(int i=0; i<count4; i+= 4) {
+    int32_t count4 = count - (count % 4);
+    for(int32_t i=0; i<count4; i+= 4) {
       in0 = *(args+i);
       in1 = *(args+i+1);
       in2 = *(args+i+2);
@@ -267,7 +267,7 @@ static int32_t sum_(CSOUND *csound, SUM *p)
         accum[k] += in0[k] + in1[k] +in2[k] + in3[k];
       }
     }
-    for(int i=count4; i<count; i++) {
+    for(int32_t i=count4; i<count; i++) {
       in0 = *(args + i);
       for(k=offset; k<nsmps; k++) {
         // ar[k] += in0[k];

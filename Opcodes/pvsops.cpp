@@ -28,7 +28,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   static constexpr char const *otypes = "f";
   static constexpr char const *itypes = "fk";
 
-  int init() {
+  int32_t init() {
     if (inargs.fsig_data(0).isSliding())
       return csound->init_error("sliding not supported");
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
@@ -42,11 +42,11 @@ struct PVTrace : csnd::FPlugin<1, 2> {
     return OK;
   }
 
-  int kperf() {
+  int32_t kperf() {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
     if (framecount < fin.count()) {
-      int n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      int32_t n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
       float thrsh;
       std::transform(fin.begin(), fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
@@ -63,7 +63,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 };
 
 struct binamp {
-  int bin;
+  int32_t bin;
   float amp;
 };
 
@@ -73,7 +73,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
   static constexpr char const *otypes = "fk[]";
   static constexpr char const *itypes = "fkooo";
 
-  int init() {
+  int32_t init() {
     csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
     if (inargs.fsig_data(0).isSliding())
       return csound->init_error("sliding not supported");
@@ -93,19 +93,19 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
     return OK;
   }
 
-  int kperf() {
+  int32_t kperf() {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
     csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
     csnd::AuxMem<binamp> &mbins = binlist;
 
     if (framecount < fin.count()) {
-      int n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      int32_t n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
       float thrsh;
-      int cnt = 0;
-      int bin = 0;
-      int start = (int) inargs[3];
-      int end = (int) inargs[4];
+      int32_t cnt = 0;
+      int32_t bin = 0;
+      int32_t start = (int) inargs[3];
+      int32_t end = (int) inargs[4];
       std::transform(fin.begin() + start,
                      end ? fin.begin() +
                      ((unsigned int)end <= fin.len() ? end : fin.len()) :
@@ -177,7 +177,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     return cmplx(a.real() * b.real(), a.imag() * b.imag());
   }
 
-  int init() {
+  int32_t init() {
     pars = inargs[4];
     fils = inargs[5];
     if (pars > fils)
@@ -206,7 +206,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     return OK;
   }
 
-  int pconv() {
+  int32_t pconv() {
     csnd::AudioSig insig(this, inargs(0));
     csnd::AudioSig irsig(this, inargs(1));
     csnd::AudioSig outsig(this, outargs(0));
@@ -265,7 +265,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     return OK;
   }
 
-  int dconv() {
+  int32_t dconv() {
     csnd::AudioSig insig(this, inargs(0));
     csnd::AudioSig irsig(this, inargs(1));
     csnd::AudioSig outsig(this, outargs(0));
@@ -299,7 +299,7 @@ struct TVConv : csnd::Plugin<1, 6> {
     return OK;
   }
 
-  int aperf() {
+  int32_t aperf() {
     if (pars > 1)
       return pconv();
     else
@@ -313,13 +313,13 @@ struct Gtadsr : public csnd::Plugin<1,6> {
   MYFLT e,ainc,dfac;
   uint64_t t;
 
-  int init() {
+  int32_t init() {
     t = 0;
     e = MYFLT(0);
     return OK;
   }
 
-  int kperf() {
+  int32_t kperf() {
     MYFLT gate = inargs[5];
     MYFLT s = inargs[3];
     s = s  > 0  ? (s < 1 ? s : 1.) : 0.;
@@ -350,7 +350,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
     return OK;
   }
 
-  int aperf() {
+  int32_t aperf() {
     MYFLT gate = inargs[5];
     MYFLT s = inargs[3];
     s = s > 0 ? (s < 1 ? s : 1.) : 0.;

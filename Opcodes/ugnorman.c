@@ -1059,7 +1059,7 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 /* ------------------------------------------------------------------ */
 
 static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
-                            int32_t frmInc, int32_t maxFr, int swapped,
+                            int32_t frmInc, int32_t maxFr, int32_t swapped,
                             double *buf, MYFLT position)
 {
   double  frac;               /* the distance in time we are between frames */

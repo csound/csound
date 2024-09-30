@@ -32,14 +32,14 @@
 
 class Generator {
  public:
-        Generator(float sampleRate, int nchans, size_t bufferSize,
+        Generator(float sampleRate, int32_t nchans, size_t bufferSize,
                   int32 sampleSize);
 ;       ~Generator();
-        int RunAudio();
+        int32_t RunAudio();
 
         size_t mBufSize;      // in bytes (= samples * chans * floatsize)
         float mFrameRate;
-        int mChans;
+        int32_t mChans;
         int32 mSampleSize;
         double *mDataBuf;     // filled by rtplay_, cleared afer copy
         size_t mXferSize;     // actual source size in bytes (may be less than full)

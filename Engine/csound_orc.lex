@@ -42,8 +42,8 @@ YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
 extern ORCTOKEN *lookup_token(CSOUND *, char *, void *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-ORCTOKEN *new_token(CSOUND *csound, int type);
+extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int32_t);
+ORCTOKEN *new_token(CSOUND *csound, int32_t type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
@@ -63,8 +63,8 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 #define YY_USER_INIT
 
 struct yyguts_t;
-ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
-int get_next_char(char *, int, struct yyguts_t*);
+ORCTOKEN *do_at(CSOUND *, int32_t, struct yyguts_t*);
+int get_next_char(char *, int32_t, struct yyguts_t*);
 %}
 %option reentrant
 %option bison-bridge
@@ -451,7 +451,7 @@ static inline int isNameChar(int c, int pos)
 }
   */
 
-ORCTOKEN *new_token(CSOUND *csound, int type)
+ORCTOKEN *new_token(CSOUND *csound, int32_t type)
 {
     ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(ORCTOKEN));
     ans->type = type;
@@ -501,7 +501,7 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     return ans;
 }
 
-ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
+ORCTOKEN *do_at(CSOUND *csound, int32_t k, struct yyguts_t *yyg)
 {
     int n, i = 1;
     ORCTOKEN *ans;

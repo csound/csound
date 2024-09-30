@@ -28,14 +28,14 @@
 #include "corfile.h"
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
-static char   *pfout(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);
-static char   *nextp(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);
-static char   *prevp(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);
-static char   *ramp(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);
-static char   *expramp(CSOUND *,SRTBLK *, char *, int, int,CORFIL *sco);
-static char   *randramp(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);
-static char   *pfStr(CSOUND *,char *, int, int, CORFIL *sco);
-static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
+static char   *pfout(CSOUND *,SRTBLK *, char *, int32_t,  int32_t,  CORFIL *sco);
+static char   *nextp(CSOUND *,SRTBLK *, char *, int32_t,  int32_t,  CORFIL *sco);
+static char   *prevp(CSOUND *,SRTBLK *, char *, int32_t,  int32_t,  CORFIL *sco);
+static char   *ramp(CSOUND *,SRTBLK *, char *, int32_t,  int32_t,  CORFIL *sco);
+static char   *expramp(CSOUND *,SRTBLK *, char *, int32_t,  int32_t,CORFIL *sco);
+static char   *randramp(CSOUND *,SRTBLK *, char *, int32_t,  int32_t,  CORFIL *sco);
+static char   *pfStr(CSOUND *,char *, int32_t,  int32_t,  CORFIL *sco);
+static char   *fpnum(CSOUND *,char *, int32_t,  int32_t,  CORFIL *sco);
 
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
@@ -69,11 +69,11 @@ static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
    VL - new in Csound 6.
 */
 
-void swritestr(CSOUND *csound, CORFIL *sco, int first)
+void swritestr(CSOUND *csound, CORFIL *sco, int32_t first)
 {
     SRTBLK *bp;
     char   *p, c, isntAfunc;
-    int    lincnt, pcnt=0;
+    int32_t    lincnt, pcnt=0;
 
     if (UNLIKELY((bp = csound->frstbp) == NULL))
       return;
@@ -90,7 +90,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
     p = bp->text;
     c = *p++;
     isntAfunc = 1;
-    switch ((int) c) {
+    switch ((int32_t) c) {
     case 'z':
       printf("skip z\n");
       //corfile_putc('\n', sco);
@@ -180,7 +180,7 @@ void swritestr(CSOUND *csound, CORFIL *sco, int first)
 }
 
 static char *pfout(CSOUND *csound, SRTBLK *bp, char *p,
-                   int lincnt, int pcnt, CORFIL *sco)
+                   int32_t lincnt, int32_t pcnt, CORFIL *sco)
 {
     switch (*p) {
     case 'n':
@@ -233,10 +233,10 @@ static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
 }
 
 static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
-                   int lincnt, int pcnt, CORFIL *sco)
+                   int32_t lincnt, int32_t pcnt, CORFIL *sco)
 {
     char *q;
-    int n;
+    int32_t n;
 
     q = p;
     p++;                                    /* 1st char     */
@@ -273,10 +273,10 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
 }
 
 static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
-                   int lincnt, int pcnt, CORFIL *sco)
+                   int32_t lincnt, int32_t pcnt, CORFIL *sco)
 {
     char *q;
-    int n;
+    int32_t n;
 
     q = p;
     p++;                                    /* 1st char     */
@@ -313,7 +313,7 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
 }
 
 static char *ramp(CSOUND *csound, SRTBLK *bp, char *p,
-                  int lincnt, int pcnt, CORFIL *sco)
+                  int32_t lincnt, int32_t pcnt, CORFIL *sco)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -321,7 +321,7 @@ static char *ramp(CSOUND *csound, SRTBLK *bp, char *p,
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval, p2span;
     extern  MYFLT stof(CSOUND *, char *);
-    int     pnum, n;
+    int32_t     pnum, n;
 
     psav = ++p;
     if (UNLIKELY(*psav != SP && *psav != LF))
@@ -378,7 +378,7 @@ static char *ramp(CSOUND *csound, SRTBLK *bp, char *p,
 }
 
 static char *expramp(CSOUND *csound, SRTBLK *bp, char *p,
-                     int lincnt, int pcnt, CORFIL *sco)
+                     int32_t lincnt, int32_t pcnt, CORFIL *sco)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -387,7 +387,7 @@ static char *expramp(CSOUND *csound, SRTBLK *bp, char *p,
     MYFLT   pval, qval, rval;
     double  p2span;
     extern  MYFLT stof(CSOUND *, char *);
-    int     pnum, n;
+    int32_t     pnum, n;
 
     psav = ++p;
     if (UNLIKELY(*psav != SP && *psav != LF))
@@ -447,7 +447,7 @@ static char *expramp(CSOUND *csound, SRTBLK *bp, char *p,
 }
 
 static char *randramp(CSOUND *csound, SRTBLK *bp, char *p,
-                      int lincnt, int pcnt, CORFIL *sco)
+                      int32_t lincnt, int32_t pcnt, CORFIL *sco)
   /* NB np's may reference a ramp but ramps must terminate in valid nums */
 {
     char    *q;
@@ -455,7 +455,7 @@ static char *randramp(CSOUND *csound, SRTBLK *bp, char *p,
     SRTBLK  *prvbp, *nxtbp;
     MYFLT   pval, qval, rval;
     extern  MYFLT stof(CSOUND *, char *);
-    int     pnum, n;
+    int32_t     pnum, n;
 
     psav = ++p;
     if (UNLIKELY(*psav != SP && *psav != LF))
@@ -511,7 +511,7 @@ static char *randramp(CSOUND *csound, SRTBLK *bp, char *p,
     return(psav);
 }
 
-static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
+static char *pfStr(CSOUND *csound, char *p, int32_t lincnt, int32_t pcnt, CORFIL *sco)
 {                             /* moves quoted ascii string to SCOREOUT file */
     char *q = p;              /*   with no internal format chk              */
     corfile_putc(csound, *p++, sco);
@@ -534,12 +534,12 @@ static char *pfStr(CSOUND *csound, char *p, int lincnt, int pcnt, CORFIL *sco)
 }
 
 static char *fpnum(CSOUND *csound, char *p,
-                   int lincnt, int pcnt, CORFIL *sco) /* moves ascii string */
+                   int32_t lincnt, int32_t pcnt, CORFIL *sco) /* moves ascii string */
   /* to SCOREOUT file with fpnum format chk */
 /* CONSIDER USING SIMPLER CODE */
 {
     char *q;
-    int dcnt = 0;
+    int32_t dcnt = 0;
     //printf(">>>>%20s\n", p);
     q = p;
     if (*p == '+')

@@ -69,12 +69,12 @@ char remoteID(CSOUND *csound);
 #define SCOR_EVT 1
 #define MIDI_EVT 2
 #define MIDI_MSG 3
-#define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
+#define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int32_t))
 #define GLOBAL_REMOT -99
 
 typedef struct {                        /* Remote Communication buffer          */
-    int         len;                    /* lentot = len + type + data used      */
-    int         type;
+    int32_t         len;                    /* lentot = len + type + data used      */
+    int32_t         type;
     char        data[MAXSEND];
 } REMOT_BUF;
 
@@ -83,23 +83,23 @@ typedef struct {                        /* Remote Communication buffer          
 
 typedef struct {
     char *adr;
-    int   rfd;
+    int32_t   rfd;
 } SOCK;
 
 typedef struct {
   SOCK *socksout; /* = NULL; */
-  int *socksin; /* = NULL; */
-  int *insrfd_list; /* = NULL; */
-  int *chnrfd_list; /* = NULL; */
-  int insrfd_count; /* = 0; */
-  int chnrfd_count; /* = 0; */
-  int  *insrfd; /* = NULL; */
-  int  *chnrfd; /* = NULL; */
+  int32_t *socksin; /* = NULL; */
+  int32_t *insrfd_list; /* = NULL; */
+  int32_t *chnrfd_list; /* = NULL; */
+  int32_t insrfd_count; /* = 0; */
+  int32_t chnrfd_count; /* = 0; */
+  int32_t  *insrfd; /* = NULL; */
+  int32_t  *chnrfd; /* = NULL; */
   char *ipadrs; /* = NULL; */
   struct sockaddr_in to_addr;
   struct sockaddr_in local_addr;
   REMOT_BUF CLsendbuf;          /* rt evt output Communications buffer */
-  int   remote_port;            /* = 40002 default */
+  int32_t   remote_port;            /* = 40002 default */
 } REMOTE_GLOBALS;
 
 #endif /* HAVE_SOCKETS */

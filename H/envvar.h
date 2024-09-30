@@ -37,7 +37,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundSetEnv(CSOUND *csound, const char *name, const char *value);
+  int32_t csoundSetEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Append 'value' to environment variable 'name', using ';' as
@@ -45,7 +45,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundAppendEnv(CSOUND *csound, const char *name, const char *value);
+  int32_t csoundAppendEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Prepend 'value' to environment variable 'name', using ';' as
@@ -53,7 +53,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
    * if the environment variable could not be set for some reason.
    */
-  int csoundPrependEnv(CSOUND *csound, const char *name, const char *value);
+  int32_t csoundPrependEnv(CSOUND *csound, const char *name, const char *value);
 
   /**
    * Initialise environment variable database, and copy system
@@ -61,7 +61,7 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY in case of an error.
    */
-  int csoundInitEnv(CSOUND *csound);
+  int32_t csoundInitEnv(CSOUND *csound);
 
   /**
    * Parse 's' as an assignment to environment variable, in the format
@@ -70,21 +70,21 @@ extern "C" {
    * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
    * CSOUND_MEMORY in case of an error.
    */
-  int csoundParseEnv(CSOUND *csound, const char *s);
+  int32_t csoundParseEnv(CSOUND *csound, const char *s);
 
   /** Check if file name is valid, and copy with converting pathname delimiters */
   char *csoundConvertPathname(CSOUND *csound, const char *filename);
 
   /**  Check if name is a full pathname for the platform we are running on. */
-  int csoundIsNameFullpath(const char *name);
+  int32_t csoundIsNameFullpath(const char *name);
 
   /** Check if name is a relative pathname for this platform.  Bare
    *  filenames with no path information are not counted.
    */
-  int csoundIsNameRelativePath(const char *name);
+  int32_t csoundIsNameRelativePath(const char *name);
 
   /** Check if name is a "leaf" (bare) filename for this platform. */
-  int csoundIsNameJustFilename(const char *name);
+  int32_t csoundIsNameJustFilename(const char *name);
 
   /** Properly concatenates the full or relative pathname in path1 with
    *  the relative pathname or filename in path2 according to the rules
@@ -160,9 +160,9 @@ extern "C" {
    * CSOUND *csound:
    *   Csound instance pointer
    * void *fd:
-   *   pointer a variable of type int, FILE*, or SNDFILE*, depending on 'type',
+   *   pointer a variable of type int32_t, FILE*, or SNDFILE*, depending on 'type',
    *   for storing handle to be passed to file read/write functions
-   * int type:
+   * int32_t type:
    *   file type, one of the following:
    *     CSFILE_FD_R:     read file using low level interface (open())
    *     CSFILE_FD_W:     write file using low level interface (open())
@@ -184,9 +184,9 @@ extern "C" {
    *   list of environment variables for search path (see csoundFindInputFile()
    *   for details); if NULL, the specified name is used as it is, without any
    *   conversion or search.
-   * int csFileType:
+   * int32_t csFileType:
    *   A value from the enumeration CSOUND_FILETYPES (see CsoundCore.h)
-   * int isTemporary:
+   * int32_t isTemporary:
    *   1 if this file will be deleted when Csound is finished.
    *   Otherwise, 0.
    * return value:
@@ -194,9 +194,9 @@ extern "C" {
    *   csoundFileClose(), or storing in FDCH.fd.
    *   On failure, NULL is returned.
    */
-  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
+  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
                                const char *name, void *param, const char *env,
-                               int csFileType, int isTemporary);
+                               int32_t csFileType, int32_t isTemporary);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),
@@ -209,7 +209,7 @@ extern "C" {
    * csoundGetFileName().
    */
   void *csoundCreateFileHandle(CSOUND *,
-                               void *fd, int type, const char *fullName);
+                               void *fd, int32_t type, const char *fullName);
 
   /**
    * Get the full name of a file previously opened with csoundFileOpen().
@@ -219,7 +219,7 @@ extern "C" {
   /**
    * Close a file previously opened with csoundFileOpen().
    */
-  int csoundFileClose(CSOUND *, void *fd);
+  int32_t csoundFileClose(CSOUND *, void *fd);
 
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists
@@ -227,19 +227,19 @@ extern "C" {
   char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
 
 
-  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
+  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
                                      const char *name, void *param,
                                      const char *env,
-                                     int csFileType, int buffsize,
-                                     int isTemporary);
+                                     int32_t csFileType, int32_t buffsize,
+                                     int32_t isTemporary);
 
-  unsigned int csoundReadAsync(CSOUND *csound, void *handle,
-                               MYFLT *buf, int items);
+  uint32_t csoundReadAsync(CSOUND *csound, void *handle,
+                               MYFLT *buf, int32_t items);
 
-  unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
-                                MYFLT *buf, int items);
+  uint32_t csoundWriteAsync(CSOUND *csound, void *handle,
+                                MYFLT *buf, int32_t items);
 
-  int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence);
+  int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t whence);
 
 
 #ifdef __cplusplus

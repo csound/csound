@@ -125,7 +125,7 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
 
 //#ifdef JPFF
 /*
-static inline int same_type(char *var, char ty)
+static inline int32_t same_type(char *var, char ty)
 {
     if (var[0]=='g') return var[1]==ty;
     else return var[0]==ty;

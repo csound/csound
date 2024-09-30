@@ -38,11 +38,11 @@ mp3dec_t mp3dec_init(void)
     return mp3;
 }
 
-int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
+int32_t mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int32_t nogap)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
     int64_t tmp;
-    int r;
+    int32_t r;
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
@@ -183,7 +183,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_uninit(mp3dec_t mp3dec)
+int32_t mp3dec_uninit(mp3dec_t mp3dec)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
@@ -198,7 +198,7 @@ int mp3dec_uninit(mp3dec_t mp3dec)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_reset(mp3dec_t mp3dec)
+int32_t mp3dec_reset(mp3dec_t mp3dec)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
@@ -216,7 +216,7 @@ int mp3dec_reset(mp3dec_t mp3dec)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg)
+int32_t mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
@@ -228,7 +228,7 @@ int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_get_info(mp3dec_t mp3dec, void *info, int info_type)
+int32_t mp3dec_get_info(mp3dec_t mp3dec, void *info, int32_t info_type)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
@@ -250,10 +250,10 @@ int mp3dec_get_info(mp3dec_t mp3dec, void *info, int info_type)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used)
+int32_t mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
-    uint32_t n, src_used, dst_used; int r;
+    uint32_t n, src_used, dst_used; int32_t r;
 
     if (used) *used = 0;
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
@@ -309,7 +309,7 @@ int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *use
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
+int32_t mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int32_t units)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
     int64_t newpos;
@@ -373,7 +373,7 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
     return MP3DEC_RETCODE_OK;
 }
 
-char *mp3dec_error(int code)
+char *mp3dec_error(int32_t code)
 {
     static char *mp3_errors[] = { "No error",
                                   "Invalid handle",

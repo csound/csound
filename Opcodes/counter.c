@@ -37,7 +37,7 @@ typedef struct {
   MYFLT max;
   MYFLT min;
   MYFLT inc;
-  int   cycles;
+  int32_t   cycles;
 } COUNT;
 
 /* for create counter ocde */
@@ -64,9 +64,9 @@ typedef struct {
 
 /* Global structure for all counters */
 typedef  struct {
-  int           max_num;
-  int           used;
-  int           free;
+  int32_t           max_num;
+  int32_t           used;
+  int32_t           free;
   COUNT         **cnts;
 } CNT_GLOBALS;
 
@@ -77,7 +77,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     COUNT *y;
     CNT_GLOBALS *q = (CNT_GLOBALS*)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
-    int m = 0;
+    int32_t m = 0;
     if (q==NULL) {
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "counterGlobals_",
                                                     sizeof(CNT_GLOBALS)) != 0))
@@ -89,7 +89,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
       q->cnts = (COUNT**)csound->Calloc(csound, 10*sizeof(COUNT*));
     }
     if (q->free) {
-      int n = 0;
+      int32_t n = 0;
       while (q->cnts[n]!=NULL) n++;
       q->free--;
       m = n;
@@ -117,7 +117,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     return OK;
 }
 
-COUNT* find_counter(CSOUND *csound, int n)
+COUNT* find_counter(CSOUND *csound, int32_t n)
 {
     CNT_GLOBALS *q = (CNT_GLOBALS*)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
@@ -200,7 +200,7 @@ static int32_t count_state(CSOUND *csound, CNTSTATE *p)
 
 static int32_t count_del(CSOUND *csound, COUNTER* p)
 {
-    int n = (int)*p->icnt;
+    int32_t n = (int)*p->icnt;
     CNT_GLOBALS *q = (CNT_GLOBALS*)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
     if (q==NULL || n>q->max_num || n<0 || q->cnts[n]==NULL) {

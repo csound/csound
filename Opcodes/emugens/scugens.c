@@ -96,7 +96,7 @@ sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
 typedef struct {
     OPDS  h;
     MYFLT *out, *in, *lagtime, *initial_value;
-    int started;
+    int32_t started;
     MYFLT lag, b1, y1;
     MYFLT sr;
 } LAG0;
@@ -236,11 +236,11 @@ typedef struct {
     MYFLT *out, *in, *lagtimeU, *lagtimeD, *first;
     MYFLT  lagu, lagd, b1u, b1d, y1;
     MYFLT sr;
-    int started;
+    int32_t started;
 } LagUD;
 
 
-static int32_t _lagud_init(CSOUND *csound, LagUD *p, int started) {
+static int32_t _lagud_init(CSOUND *csound, LagUD *p, int32_t started) {
     IGN(csound);
     p->lagu = -1;
     p->lagd = -1;
@@ -578,7 +578,7 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
     MYFLT resetPos = *p->resetPos;
     MYFLT previn   = p->previn;
     MYFLT level    = p->level;
-    int trig = (previn <= FL(0.0)) && (curin > FL(0.0));
+    int32_t trig = (previn <= FL(0.0)) && (curin > FL(0.0));
     MYFLT frac = FL(1.0) - previn/(curin-previn);
 
     for(n=offset; n<nsmps; n++) {
