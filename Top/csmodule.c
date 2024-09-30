@@ -117,6 +117,7 @@ int32_t             closedir(DIR*);
 
 extern  int32_t     allocgen(CSOUND *, char *, int32_t (*)(FGDATA *, FUNC *));
 
+
 /* module interface function names */
 
 static  const   char    *opcode_init_Name =   "csound_opcode_init";
@@ -1227,7 +1228,7 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
-extern int32_t     csoundModuleCreate_mixer(CSOUND *csound);
+extern int32_t csoundModuleCreate_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_doppler(CSOUND *csound);
 #ifndef BARE_METAL

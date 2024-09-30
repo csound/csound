@@ -827,7 +827,7 @@ static inline double PHMOD1(double p) {
 
   typedef struct {
     char    *name;
-    int32_t     (*fn)(FGDATA *, FUNC *);
+    int32_t (*fn)(FGDATA *, FUNC *);
   } NGFENS;
 
   typedef int32_t (*GEN)(FGDATA *, FUNC *);
@@ -1435,7 +1435,7 @@ static inline double PHMOD1(double p) {
     void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
-    int32_t (*ReadScore)(CSOUND *, const char*);
+    int (*ReadScore)(CSOUND *, const char*);
     /**@}*/
 
     /** @name Message printout */

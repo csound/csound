@@ -43,14 +43,16 @@
 typedef struct {
         OPDS    h;
         MYFLT   *out, *kamp, *kdensity, density0, thresh, scale;
-        int32   rand;
+        int32_t   rand;
 } DUST;
 
 typedef struct {
         OPDS    h;
 /* 8.03.15 Added new option ifrst1   --Gleb R */
         MYFLT   *out, *kamp, *kfrq, *kdev, *imode, *ifrst1, frq0, first;
-        int32   count, rand, mmode;
+        int32   count;
+        int32_t rand;
+        int32 mmode;
 } GAUSSTRIG;
 
 #define BIPOLAR   0x7FFFFFFF    /* Constant to make bipolar */
