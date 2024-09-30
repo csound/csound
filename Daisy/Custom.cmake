@@ -20,5 +20,5 @@ set(BUILD_OSC_OPCODES OFF)
 set(BUILD_DEPRECATED_OPCODES OFF)
 set(BUILD_UTILITIES OFF)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error -Wno-deprecated-register -Wno-deprecated-declarations -Wno-missing-field-initializers -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-format -Wno-char-subscripts")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error -Wno-missing-field-initializers -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-format-Wno-char-subscripts") 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w") 
