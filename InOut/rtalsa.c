@@ -209,7 +209,7 @@ static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t
 #endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      outBuf[n] = (int16_t_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
@@ -230,7 +230,7 @@ static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32
 #endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      outBuf[n] = (int16_t_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
@@ -250,7 +250,7 @@ static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
 #endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      outBuf[n] = (int16_t_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
@@ -312,7 +312,7 @@ static void float_to_MYFLT(int32_t nSmps, float *inBuf, MYFLT *outBuf)
 static snd_pcm_format_t set_format(void (**convFunc)(void), int32_t csound_format,
                                    int32_t play, int32_t csound_dither)
 {
-    int16   endian_test = 0x1234;
+    int16_t   endian_test = 0x1234;
 
     (*convFunc) = NULL;
     /* select conversion routine */

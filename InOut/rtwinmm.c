@@ -166,7 +166,7 @@ static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t
       tmp_i = (int32_t) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      outBuf[n] = (int16_t_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
@@ -183,7 +183,7 @@ static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32
       tmp_i = (int32_t) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      outBuf[n] = (int16_t_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
@@ -198,7 +198,7 @@ static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
       tmp_i = (int32_t) MYFLT2LRND(tmp_f);
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
-      outBuf[n] = (int16_t_t) tmp_i;
+      outBuf[n] = (int16_t) tmp_i;
     }
 }
 
