@@ -1357,9 +1357,9 @@ extern "C" {
   PUBLIC int csoundAppendOpcode (CSOUND *, const char *opname,
                                  int dsblksiz, int flags,
                                  const char *outypes, const char *intypes,
-                                 int(*init)(CSOUND *, void *),
-                                 int(*perf)(CSOUND *, void *),
-                                 int(*deinit)(CSOUND *, void *));
+                                 int32_t (*init)(CSOUND *, void *),
+                                 int32_t (*perf)(CSOUND *, void *),
+                                 int32_t (*deinit)(CSOUND *, void *));
 
   /** @}*/
 

@@ -463,7 +463,7 @@ results are very close to zero
  * This function computes a Csound function table
  * using Nasca's "padsynth" algorithm..
  */
-static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
+static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   CSOUND *csound = ff->csound;
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
