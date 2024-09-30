@@ -350,7 +350,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
 {
     printf("closing stream\n");
-    int n = close(p->sock);
+    int32_t n = close(p->sock);
     if (n<0) printf("close = %d errno=%d\n", n, errno);
     //shutdown(p->sock, SHUT_RDWR);
     return OK;
@@ -446,9 +446,9 @@ typedef struct {
   int32_t sock, iargs;
   MYFLT   last;
   struct sockaddr_in server_addr;
-  int err_state;
-  int init_done;
-  int fstime;
+  int32_t err_state;
+  int32_t init_done;
+  int32_t fstime;
 } OSCSEND2;
 
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
@@ -833,7 +833,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           csound->Warning(csound, Str("OSCsend failed to send "
                                       "message with destination %s to %s:%d\n"),
                                       p->dest->data, p->ipaddress->data,
-                          (int) *p->port);
+                          (int32_t) *p->port);
         }
         p->err_state = 1;
         return OK;
@@ -855,16 +855,16 @@ typedef struct {
   ARRAYDAT *type;
   ARRAYDAT *arg;
   MYFLT *imtu;
-  int mtu;
+  int32_t mtu;
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, iargs;
   MYFLT   last;
   struct sockaddr_in server_addr;
-  int no_msgs;
+  int32_t no_msgs;
 } OSCBUNDLE;
 
 
-static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
+static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
   /* check array sizes:
      type and dest should match
      arg should have the same number of rows as
@@ -885,7 +885,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
     if(p->no_msgs < p->arg->sizes[0])
       return csound->InitError(csound, "%s", Str("arg array not big enough\n"));
 
-    if(*p->imtu) p->mtu = (int) *p->imtu;
+    if(*p->imtu) p->mtu = (int32_t) *p->imtu;
     else p->mtu = MAX_PACKET_SIZE;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
@@ -925,7 +925,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
                           Str("Bundle msg exceeded max packet size, not sent\n")); \
           return OK; }
 
-static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
+static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
     if(*p->kwhen != p->last) {
       int32_t i, n, size = 0, tstrs,
         dstrs, msize, buffsize = 0, tmp;

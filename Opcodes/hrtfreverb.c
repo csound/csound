@@ -32,7 +32,7 @@
 
 /* endian issues: swap bytes for ppc */
 #ifdef WORDS_BIGENDIAN
-static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
+static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
 {
   char c1, c2, c3, c4;
   char *p = mfp->beginp;
@@ -48,7 +48,7 @@ static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
   return OK;
 }
 #else
-static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
+static int32_t (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #endif
 
 /* matrices for feedback delay network (fdn) */

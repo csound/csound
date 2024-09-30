@@ -203,7 +203,7 @@ typedef uint_least16_t uint16;
 #endif
 
 /* Aligning to double boundaries, should work with MYFLT as float or double */
-#define CS_FLOAT_ALIGN(x) ((int)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
+#define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
@@ -294,8 +294,8 @@ typedef signed char         int8_t;
 typedef unsigned char       uint8_t;
 typedef short               int16_t;
 typedef unsigned short      uint16_t;
-typedef int                 int32_t;
-typedef unsigned int        uint32_t;
+typedef int32_t                 int32_t;
+typedef uint32_t        uint32_t;
 #  if defined(__GNUC__) || !defined(WIN32)
 typedef long long           int64_t;
 typedef unsigned long long  uint64_t;
@@ -375,20 +375,20 @@ typedef unsigned long       uintptr_t;
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
-static inline int MYFLT2LONG (float const x) {
+static inline int32_t MYFLT2LONG (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
-static inline int MYFLT2LRND (float const x) {
+static inline int32_t MYFLT2LRND (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
 #  else
-static inline int MYFLT2LONG (double const x) {
+static inline int32_t MYFLT2LONG (double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 
-static inline int MYFLT2LRND (double const x) {
+static inline int32_t MYFLT2LRND (double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif

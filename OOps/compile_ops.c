@@ -145,7 +145,7 @@ const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
 }
 
 
-/** Get int from Osc Message data 
+/** Get int32_t from Osc Message data 
     returns pointer to next datum
 */
 const char *csoundOSCMessageGetInt32(const char *buf, MYFLT *mf) {
@@ -215,7 +215,7 @@ const char *csoundOSCMessageGetNumber(const char *buf,
 }
 
 int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
-  int cnt = p->OUTOCOUNT - 1, i;
+  int32_t cnt = p->OUTOCOUNT - 1, i;
   if(cnt > 32)
     return csound->PerfError(csound, &(p->h),
                              "OSCRead exceeded max output args (>32)\n");
@@ -254,7 +254,7 @@ int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
 }
 
 int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
-  int cnt = p->out->sizes[0], i;
+  int32_t cnt = p->out->sizes[0], i;
   OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
                                         p->type->data);
   if(mess != NULL) {

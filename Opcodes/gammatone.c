@@ -72,7 +72,7 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
     MYFLT cc, ss, yrm1, yim1;
     MYFLT *xxr = p->xxr;
     MYFLT *xxi = p->xxr;
-    int nsmps = CS_KSMPS, i, k;
+    int32_t nsmps = CS_KSMPS, i, k;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (UNLIKELY(offset)) memset(p->ans, '\0', offset*sizeof(MYFLT));

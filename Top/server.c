@@ -40,8 +40,8 @@
 
 
 typedef struct {
-  int port;
-  int     sock;
+  int32_t port;
+  int32_t     sock;
   CSOUND  *cs;
   void    *thrid;
   void  *cb;
@@ -110,13 +110,13 @@ void csoundFreeOSCMessageList(CSOUND *csound) {
   }  
 }
 
-static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
-                         int port, const char *msg) {
+static void udp_socksend(CSOUND *csound, int32_t *sock, const char *addr,
+                         int32_t port, const char *msg) {
   struct sockaddr_in server_addr;
   if(*sock <= 0) {
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int err;
+    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       csound->Warning(csound, Str("UDP: Winsock2 failed to start: %d"), err);
     return;
@@ -155,7 +155,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
 #else
   inet_aton(addr, &server_addr.sin_addr);    /* the server IP address */
 #endif
-  server_addr.sin_port = htons((int) port);    /* the port */
+  server_addr.sin_port = htons((int32_t) port);    /* the port */
 
 #ifndef __wasm__
   if (UNLIKELY(sendto(*sock, (void*) msg, strlen(msg)+1, 0,
@@ -172,10 +172,10 @@ static uintptr_t udp_recv(void *pdata){
   socklen_t clilen = sizeof(from);
   UDPCOM *p = (UDPCOM *) pdata;
   CSOUND *csound = p->cs;
-  int port = p->port;
+  int32_t port = p->port;
   char *orchestra = csound->Calloc(csound, MAXSTR);
-  int sock = 0;
-  int received, cont = 0;
+  int32_t sock = 0;
+  int32_t received, cont = 0;
   char *start = orchestra;
   size_t timout = (size_t) lround(1000/csoundGetKr(csound));
   csoundSpinLockInit(&csound->osc_spinlock);
@@ -201,7 +201,7 @@ static uintptr_t udp_recv(void *pdata){
       }
       if(*orchestra == '/') {
         OSC_MESS mess;
-        int len, siz = 0;
+        int32_t len, siz = 0;
         const char *buf = orchestra;
         len = strlen(buf);
         mess.address = (char *) buf;
@@ -223,7 +223,7 @@ static uintptr_t udp_recv(void *pdata){
         }
         else if(!strcmp(mess.address, "/csound/event/instr")){
             // numeric types
-            int n = strlen(mess.type), i;
+            int32_t n = strlen(mess.type), i;
             MYFLT *arg = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*n);
             for(i = 0; i < n; i++) {
               buf = csoundOSCMessageGetNumber(buf,
@@ -236,7 +236,7 @@ static uintptr_t udp_recv(void *pdata){
         }
         else if(!strncmp(mess.address, "/csound/channel",15)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
-          int items = strlen(mess.type), i;
+          int32_t items = strlen(mess.type), i;
           for(i = 0; i < items; i++) {
             delim = strchr(channel, '/');
             if (delim) {
@@ -292,7 +292,7 @@ static uintptr_t udp_recv(void *pdata){
       }
       else if(*orchestra == ':') {
         char addr[128], chn[128], *msg;
-        int sport, err = 0;
+        int32_t sport, err = 0;
         MYFLT val;
         sscanf(orchestra+2, "%s", chn);
         sscanf(orchestra+2+strlen(chn), "%s", addr);
@@ -307,7 +307,7 @@ static uintptr_t udp_recv(void *pdata){
           if (csoundGetChannelPtr(csound, (void **) &stringdat, chn,
                                   CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
               == CSOUND_SUCCESS) {
-            int size = stringdat->size;
+            int32_t size = stringdat->size;
             spin_lock_t *lock =
               (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
             msg = (char *) csound->Calloc(csound, strlen(chn) + size);
@@ -367,11 +367,11 @@ static uintptr_t udp_recv(void *pdata){
 
 }
 
-static int udp_start(CSOUND *csound, UDPCOM *p)
+static int32_t udp_start(CSOUND *csound, UDPCOM *p)
 {
 #if defined(WIN32) && !defined(__CYGWIN__)
   WSADATA wsaData = {0};
-  int err;
+  int32_t err;
   if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)){
     csound->Warning(csound, Str("Winsock2 failed to start: %d"), err);
     return CSOUND_ERROR;
@@ -406,12 +406,12 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   memset(&p->server_addr, 0, sizeof(p->server_addr));
   p->server_addr.sin_family = AF_INET;    /* it is an INET address */
   p->server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  p->server_addr.sin_port = htons((int) p->port);    /* the port */
+  p->server_addr.sin_port = htons((int32_t) p->port);    /* the port */
   /* associate the socket with the address and port */
 #ifndef __wasm__
-  int rc = bind(p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr)) < 0;
+  int32_t rc = bind(p->sock, (struct sockaddr *) &p->server_addr, sizeof(p->server_addr)) < 0;
 #else
-  int rc = -1;
+  int32_t rc = -1;
 #endif
   if (UNLIKELY(rc)) {
     csound->Warning(csound, Str("bind failed"));
@@ -430,7 +430,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
   return CSOUND_SUCCESS;
 }
 
-int csoundUDPServerClose(CSOUND *csound)
+int32_t csoundUDPServerClose(CSOUND *csound)
 {
   UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
   if (p != NULL) {
@@ -450,7 +450,7 @@ int csoundUDPServerClose(CSOUND *csound)
   else return CSOUND_ERROR;
 }
 
-int csoundUDPServerStart(CSOUND *csound, unsigned int port){
+int32_t csoundUDPServerStart(CSOUND *csound, uint32_t port){
   UDPCOM *connection;
   csound->CreateGlobalVariable(csound, "::UDPCOM", sizeof(UDPCOM));
   connection = (UDPCOM *) csound->QueryGlobalVariable(csound, "::UDPCOM");
@@ -461,7 +461,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
       return CSOUND_ERROR;
     }
     else {
-      int res = udp_start(csound, connection);
+      int32_t res = udp_start(csound, connection);
       if (res  != CSOUND_SUCCESS) {
         csound->Warning(csound,  Str("UDP Server: could not start"));
         csound->DestroyGlobalVariable(csound,"::UDPCOM");
@@ -476,7 +476,7 @@ int csoundUDPServerStart(CSOUND *csound, unsigned int port){
   }
 }
 
-int csoundUDPServerStatus(CSOUND *csound) {
+int32_t csoundUDPServerStatus(CSOUND *csound) {
   UDPCOM *p = (UDPCOM *) csound->QueryGlobalVariable(csound,"::UDPCOM");
   if (p != NULL) {
     return p->port;
@@ -487,14 +487,14 @@ int csoundUDPServerStatus(CSOUND *csound) {
 #define UDPMSG 1024
 
 typedef struct {
-  int port;
+  int32_t port;
   const char *addr;
-  int sock;
-  void (*cb)(CSOUND *csound,int attr, const char *format, va_list args);
+  int32_t sock;
+  void (*cb)(CSOUND *csound,int32_t attr, const char *format, va_list args);
 } UDPCONS;
 
 
-static void udp_msg_callback(CSOUND *csound, int attr, const char *format,
+static void udp_msg_callback(CSOUND *csound, int32_t attr, const char *format,
                              va_list args) {
   UDPCONS *p;
   p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
@@ -510,7 +510,7 @@ static void udp_msg_callback(CSOUND *csound, int attr, const char *format,
   }
 }
 
-static int udp_console_stop(CSOUND *csound, void *pp) {
+static int32_t udp_console_stop(CSOUND *csound, void *pp) {
   UDPCONS *p = (UDPCONS *) pp;
   if(p) {
     csoundSetMessageCallback(csound, p->cb);
@@ -525,7 +525,7 @@ static int udp_console_stop(CSOUND *csound, void *pp) {
 }
 
 
-int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
+int32_t csoundUDPConsole(CSOUND *csound, const char *addr, int32_t port, int
                      mirror) {
   UDPCONS *p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
   if(p == NULL) {
@@ -558,10 +558,9 @@ void csoundStopUDPConsole(CSOUND *csound) {
 #else // STUBS
 #include "csoundCore.h"
 void csoundStopUDPConsole(CSOUND *csound) { };
-int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
-                     mirror) { return CSOUND_ERROR; }
+int32_t csoundUDPConsole(CSOUND *csound, const char *addr, int32_t port, int32_t mirror) { return CSOUND_ERROR; }
 
-int csoundUDPServerStatus(CSOUND *csound) { return CSOUND_ERROR; }
-int csoundUDPServerStart(CSOUND *csound, unsigned int port) { return CSOUND_ERROR; };
-int csoundUDPServerClose(CSOUND *csound) { return CSOUND_ERROR; }
+int32_t csoundUDPServerStatus(CSOUND *csound) { return CSOUND_ERROR; }
+int32_t csoundUDPServerStart(CSOUND *csound, uint32_t port) { return CSOUND_ERROR; };
+int32_t csoundUDPServerClose(CSOUND *csound) { return CSOUND_ERROR; }
 #endif

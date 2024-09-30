@@ -30,9 +30,9 @@ extern "C" {
 
  
  typedef struct ORCTOKEN {
-    int              type;
+    int32_t              type;
     char             *lexeme;
-    int              value;
+    int32_t              value;
     double           fvalue;
     char             *optype;
     struct ORCTOKEN  *next;
@@ -40,11 +40,11 @@ extern "C" {
 
   
   typedef struct TREE {
-    int           type;
+    int32_t           type;
     ORCTOKEN      *value;
-    int           rate;
-    int           len;
-    int           line;
+    int32_t           rate;
+    int32_t           len;
+    int32_t           line;
     uint64_t      locn;
     struct TREE   *left;
     struct TREE   *right;
@@ -71,7 +71,7 @@ extern "C" {
    * Compile the given TREE node into structs for Csound to use
    * in synchronous or asynchronous (async = 1) mode.
    */
-  PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root, int async);
+  PUBLIC int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async);
 
   /**
    * Free the resources associated with the TREE *tree

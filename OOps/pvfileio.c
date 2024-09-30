@@ -313,14 +313,14 @@ int32_t init_pvsys(CSOUND *csound)
     return 1;
 }
 
-static inline PVOCFILE *pvsys_getFileHandle(CSOUND *csound, int fd)
+static inline PVOCFILE *pvsys_getFileHandle(CSOUND *csound, int32_t fd)
 {
     if (UNLIKELY(fd < 0 || fd >= csound->pvNumFiles))
       return (PVOCFILE*) NULL;
     return (PVFILETABLE[fd]);
 }
 
-static int pvsys_createFileHandle(CSOUND *csound)
+static int32_t pvsys_createFileHandle(CSOUND *csound)
 {
     int32_t i;
     for (i = 0; i < csound->pvNumFiles; i++) {
@@ -385,7 +385,7 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt, uint32 chans,
 
 /* lots of different ways of doing this!
  * we will need one in the form:
- * int pvoc_fmtcreate(const char *fname, PVOCDATA *p_pvfmt,
+ * int32_t pvoc_fmtcreate(const char *fname, PVOCDATA *p_pvfmt,
  *                    WAVEFORMATEX *p_wvfmt);
  */
 

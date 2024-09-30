@@ -45,7 +45,7 @@
 
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-extern int csound_orcget_lineno(void*);
+extern int32_t csound_orcget_lineno(void*);
 
 /* from csound_orc_compile.c */
 extern char** splitArgs(CSOUND* csound, char* argString);
@@ -53,7 +53,7 @@ extern char** splitArgs(CSOUND* csound, char* argString);
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
     IGN(yyscanner);
-    int type = T_IDENT;
+    int32_t type = T_IDENT;
     ORCTOKEN *ans;
 
     if (UNLIKELY(PARSER_DEBUG))
@@ -142,15 +142,15 @@ static void map_args(char* args) {
 
 */
 
-static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
+static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
     char** in_args;
     char** out_args;
     char typeSpecifier[256];
     char tempName[20];
-    int i = 0, err = 0;
-    int n=0;
+    int32_t i = 0, err = 0;
+    int32_t n=0;
 
     ARRAY_VAR_INIT varInit;
 
@@ -196,7 +196,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         snprintf(tempName, 20, "in%d", i);
 
         if (*in_arg == '[') {
-          int dimensions = 0;
+          int32_t dimensions = 0;
           while (*in_arg == '[') {
             dimensions += 1;
             in_arg += 1;
@@ -261,7 +261,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         snprintf(tempName, 20, "out%d", i);
 
         if (*out_arg == '[') {
-          int dimensions = 0;
+          int32_t dimensions = 0;
           while (*out_arg == '[') {
             dimensions += 1;
             out_arg += 1;
@@ -410,13 +410,13 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
  * used at parse time.  An OENTRY is also added at this time so that at
  * verification time the opcode can be looked up to get its signature.
  */
-int add_udo_definition(CSOUND *csound, char *opname,
+int32_t add_udo_definition(CSOUND *csound, char *opname,
                        char *outtypes, char *intypes,
-                       int flags) {
+                       int32_t flags) {
 
     OENTRY    tmpEntry, *opc, *newopc;
     OPCODINFO *inm;
-    int len;
+    int32_t len;
 
     if (UNLIKELY(!check_instr_name(opname))) {
       synterr(csound, Str("invalid name for opcode"));

@@ -27,15 +27,15 @@ const char *sflib_strerror(void *p){
   return sf_strerror((SNDFILE *)p); 
 }
 
-int  sflib_set_string(void *sndfile, int str_type, const char* str){
+int32_t  sflib_set_string(void *sndfile, int32_t str_type, const char* str){
   return sf_set_string((SNDFILE *)sndfile, str_type, str) ;
 }
   
-int sflib_command (void *handle, int cmd, void *data, int datasize)  {
+int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize)  {
   return sf_command((SNDFILE*) handle, cmd, data, datasize) ;
 }
 
-void *sflib_open_fd(int fd, int mode, SFLIB_INFO *sfinfo, int close_desc) {
+void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc) {
       SNDFILE *handle;
       SF_INFO info;
       if(mode == SFM_WRITE) {
@@ -53,7 +53,7 @@ void *sflib_open_fd(int fd, int mode, SFLIB_INFO *sfinfo, int close_desc) {
      return handle;
 }
 
-void *sflib_open(const char *path, int mode, SFLIB_INFO *sfinfo){
+void *sflib_open(const char *path, int32_t mode, SFLIB_INFO *sfinfo){
       SNDFILE *handle;
       SF_INFO info;
       if(mode == SFM_WRITE) {
@@ -71,11 +71,11 @@ void *sflib_open(const char *path, int mode, SFLIB_INFO *sfinfo){
      return handle;
 }
 
-int sflib_close(void *handle) {
+int32_t sflib_close(void *handle) {
     return sf_close((SNDFILE *) handle);
 }
 
-long sflib_seek(void *handle, long frames, int whence) {
+long sflib_seek(void *handle, long frames, int32_t whence) {
     return sf_seek((SNDFILE *) handle, frames, whence);
 }
 
@@ -112,23 +112,23 @@ long sflib_writef_double(void *handle, double *ptr, long items) {
 }
 
 #else 
-int sflib_command (void *handle, int cmd, void *data, int datasize)  {
+int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize)  {
       return 0;
 }
 
-void *sflib_open_fd(int fd, int mode, SFLIB_INFO *sfinfo, int close_desc) {
+void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc) {
       return NULL;
 }
 
-void *sflib_open(const char *path, int mode,  SFLIB_INFO *sfinfo){
+void *sflib_open(const char *path, int32_t mode,  SFLIB_INFO *sfinfo){
       return NULL;
 }
 
-int sflib_close(void *sndfile) {
+int32_t sflib_close(void *sndfile) {
     return 0;
 }
 
-long sflib_seek(void *handle, long frames, int whence) {
+long sflib_seek(void *handle, long frames, int32_t whence) {
     return 0;
 }
 
@@ -164,7 +164,7 @@ long sflib_writef_float(void *handle, float *ptr, long items) {
 long sflib_writef_double(void *handle, double *ptr, long items) {
     return 0;
 }
-int  sflib_set_string(void *sndfile, int str_type, const char* str){
+int32_t  sflib_set_string(void *sndfile, int32_t str_type, const char* str){
   return 0;
 }
 

@@ -48,7 +48,7 @@ extern "C" {
   /**
      Returns true if the performance thread is running, false otherwise.
   */
-  PUBLIC int csoundPerformanceThreadIsRunning(CS_PERF_THREAD* pt);
+  PUBLIC int32_t csoundPerformanceThreadIsRunning(CS_PERF_THREAD* pt);
 
   /**
      Returns the process callback.
@@ -72,7 +72,7 @@ extern "C" {
      Zero if still playing, positive if the end of score was reached or
      performance was stopped, and negative if an error occured.
   */
-  PUBLIC int csoundPerformanceThreadGetStatus(CS_PERF_THREAD* pt);
+  PUBLIC int32_t csoundPerformanceThreadGetStatus(CS_PERF_THREAD* pt);
 
   /**
      Starts/Continues performance if it was paused
@@ -101,7 +101,7 @@ extern "C" {
   */
   PUBLIC void csoundPerformanceThreadRecord(CS_PERF_THREAD* pt,
     const char *filename,
-    int samplebits, int numbufs);
+    int32_t samplebits, int32_t numbufs);
 
   /**
      Stops recording and closes audio file.
@@ -118,8 +118,8 @@ extern "C" {
       to the current time.
   */
   PUBLIC void csoundPerformanceThreadScoreEvent(CS_PERF_THREAD* pt,
-    int absp2mode, char opcod,
-    int pcnt, MYFLT *p);
+    int32_t absp2mode, char opcod,
+    int32_t pcnt, MYFLT *p);
 
   /**
      Sends an event as a string
@@ -141,7 +141,7 @@ extern "C" {
      object.
 
   */
-  PUBLIC int csoundPerformanceThreadJoin(CS_PERF_THREAD* pt);
+  PUBLIC int32_t csoundPerformanceThreadJoin(CS_PERF_THREAD* pt);
 
   /**
      Waits until all pending messages are actually received.

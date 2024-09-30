@@ -565,8 +565,8 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int      nsmps = CS_KSMPS;
-    int      chn, i, nn;
+    int32_t      nsmps = CS_KSMPS;
+    int32_t      chn, i, nn;
     double   d, frac_d, x, c, v, pidwarp_d;
     MYFLT    frac, a0, a1, a2, a3, onedwarp, winFact;
     int32_t  ndx;
@@ -746,7 +746,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
     return NOTOK;
 }
 
-int checkspace(void *p, int writeCheck);
+int32_t checkspace(void *p, int32_t writeCheck);
 
 int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
@@ -2079,7 +2079,7 @@ static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int32_t bufReadPos)
       /* number of sample frames to read */
       lsmps = p->fileLength - p->bufStartPos;
       if (lsmps > (int_least64_t) 0) {  /* if there is anything to read: */
-        nsmps = (lsmps < (int_least64_t) p->bufSize ? (int) lsmps : p->bufSize);
+        nsmps = (lsmps < (int_least64_t) p->bufSize ? (int32_t) lsmps : p->bufSize);
         /* convert sample count to mono samples and read file */
         nsmps *= (int32_t) p->nChannels;
         if (csound->oparms->realtime==0){

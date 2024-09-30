@@ -148,21 +148,21 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *status, *chan, *data1, *data2;
-    int     local_buf_index;        /* IV - Nov 30 2002 */
+    int32_t     local_buf_index;        /* IV - Nov 30 2002 */
 } MIDIIN;
 
 typedef struct {
     OPDS    h;
     MYFLT   *pgm, *chn, *ochan;
-    int     local_buf_index;        /* IV - Nov 30 2002 */
-    int     watch;
+    int32_t     local_buf_index;        /* IV - Nov 30 2002 */
+    int32_t     watch;
 } PGMIN;
 
 typedef struct {
     OPDS    h;
     MYFLT   *data, *numb, *chn, *ochan, *onum;
-    int     local_buf_index;        /* IV - Nov 30 2002 */
-    int     watch1, watch2;
+    int32_t     local_buf_index;        /* IV - Nov 30 2002 */
+    int32_t     watch1, watch2;
 } CTLIN;
 
 typedef struct {
@@ -170,15 +170,15 @@ typedef struct {
   MYFLT   *noteOut, *counter;
   MYFLT   *arpRate, *arpMode;
 
-  int metroTick;
+  int32_t metroTick;
   double  curphs;
-  int flag;
-  int status, chan, data1, data2,
+  int32_t flag;
+  int32_t status, chan, data1, data2,
     noteCnt, noteIndex, maxNumNotes,
     direction;
-  int notes[10];
-  int sortedNotes[10];
-  int     local_buf_index;
+  int32_t notes[10];
+  int32_t sortedNotes[10];
+  int32_t     local_buf_index;
 } MIDIARP;
 
 typedef struct {
@@ -197,8 +197,8 @@ typedef struct {
 } PRINTCTRL;
 
 typedef struct {
-  int           max_num;
-  int           **presets;
+  int32_t           max_num;
+  int32_t           **presets;
 } PRESET_GLOB;
 
 typedef struct {

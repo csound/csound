@@ -43,7 +43,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *out, *kamp, *kdensity, density0, thresh, scale;
-        int   rand;
+        int32_t   rand;
 } DUST;
 
 typedef struct {
@@ -51,7 +51,7 @@ typedef struct {
 /* 8.03.15 Added new option ifrst1   --Gleb R */
         MYFLT   *out, *kamp, *kfrq, *kdev, *imode, *ifrst1, frq0, first;
         int32   count;
-        int rand;
+        int32_t rand;
         int32 mmode;
 } GAUSSTRIG;
 

@@ -44,7 +44,7 @@ typedef struct {
         MYFLT   offset;
         int32   pfn;
         int32   xbmul;
-        int     wrap;
+        int32_t     wrap;
         FUNC    *ftp;
 } TABLE;
 

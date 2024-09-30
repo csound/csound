@@ -45,7 +45,7 @@ typedef struct {
 /* user data for MIDI callbacks */
 typedef struct _cdata {
   MIDIdata *mdata;
-  int p; int q;
+  int32_t p; int32_t q;
   MIDIClientRef mclient;
 } cdata;
 
@@ -56,7 +56,7 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
     IGN(srcConnRefCon);
     cdata *data = (cdata *)refcon;
     MIDIdata *mdata = data->mdata;
-    int *p = &data->p;
+    int32_t *p = &data->p;
     UInt32 i, j;
     MIDIPacket *packet = &((MIDIPacketList *)pktlist)->packet[0];
     Byte *curpack;
@@ -75,9 +75,9 @@ void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 }
 
 
-static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
+static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput)
 {
-    int k, endpoints;
+    int32_t k, endpoints;
     MIDIEndpointRef endpoint;
     CFStringRef name = NULL;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
@@ -104,9 +104,9 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput)
 
 
 /* csound MIDI input open callback, sets the device for input */
-static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
+static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-    int k, endpoints;
+    int32_t k, endpoints;
     CFStringRef name = NULL, cname = NULL, pname = NULL;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
     MIDIClientRef mclient = (MIDIClientRef) 0;
@@ -176,7 +176,7 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
     return 0;
 }
 
-static int MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
+static int32_t MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
      IGN(userData); IGN(dev);
     /*stub for the moment */
@@ -185,22 +185,22 @@ static int MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 }
 
 /* used to distinguish between 1 and 2-byte messages */
-static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+static  const   int32_t     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 /* csound MIDI read callback, called every k-cycle */
-static int MidiDataRead(CSOUND *csound, void *userData,
-                         unsigned char *mbuf, int nbytes)
+static int32_t MidiDataRead(CSOUND *csound, void *userData,
+                         unsigned char *mbuf, int32_t nbytes)
 {
   IGN(csound);
     cdata *data = (cdata *)userData;
     MIDIdata *mdata = data->mdata;
-    int *q = &data->q, st, d1, d2, n = 0;
+    int32_t *q = &data->q, st, d1, d2, n = 0;
 
     /* check if there is new data in circular queue */
     while (mdata[*q].flag) {
-      st = (int) mdata[*q].status;
-      d1 = (int) mdata[*q].data1;
-      d2 = (int) mdata[*q].data2;
+      st = (int32_t) mdata[*q].status;
+      d1 = (int32_t) mdata[*q].data1;
+      d2 = (int32_t) mdata[*q].data2;
 
       if (st < 0x80) goto next;
 
@@ -240,7 +240,7 @@ static int MidiDataRead(CSOUND *csound, void *userData,
 }
 
 /* csound close device callback */
-static int MidiInDeviceClose(CSOUND *csound, void *userData)
+static int32_t MidiInDeviceClose(CSOUND *csound, void *userData)
 {
     cdata * data = (cdata *)userData;
     if (data != NULL) {
@@ -251,8 +251,8 @@ static int MidiInDeviceClose(CSOUND *csound, void *userData)
     return 0;
 }
 
-static int MidiDataWrite(CSOUND *csound, void *userData,
-                          const unsigned char *mbuf, int nbytes)
+static int32_t MidiDataWrite(CSOUND *csound, void *userData,
+                          const unsigned char *mbuf, int32_t nbytes)
 {
     /* stub at the moment */
     /*
@@ -263,7 +263,7 @@ static int MidiDataWrite(CSOUND *csound, void *userData,
 
 
 
-static int MidiOutDeviceClose(CSOUND *csound, void *userData)
+static int32_t MidiOutDeviceClose(CSOUND *csound, void *userData)
 {
     /* stub at the moment */
   IGN(csound); IGN(userData);
@@ -272,7 +272,7 @@ static int MidiOutDeviceClose(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     //csound->Message(csound, "%s",
@@ -281,7 +281,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
     csound->module_list_add(csound, "coremidi", "midi");
@@ -307,7 +307,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
     /* does not depend on MYFLT type */
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));

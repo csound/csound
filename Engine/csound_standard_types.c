@@ -52,7 +52,7 @@ void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, OPDS *ctx) {
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
-    int N = fsigin->N;
+    int32_t N = fsigin->N;
     memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
     if(fsigout->frame.auxp == NULL ||
        fsigout->frame.size < (N + 2) * sizeof(float))
@@ -85,7 +85,7 @@ void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
-    int i, retVal = 0;
+    int32_t i, retVal = 0;
 
     if (aSrc->dimensions <= 0) {
       return retVal;
@@ -106,7 +106,7 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     CSOUND* cs = (CSOUND*)csound;
     CS_VARIABLE* var;
     size_t j;
-    int memMyfltSize;
+    int32_t memMyfltSize;
     size_t arrayNumMembers;
 
     arrayNumMembers = array_get_num_members(aSrc);
@@ -123,8 +123,8 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         if(aDest->sizes != NULL) {
             cs->Free(cs, aDest->sizes);
         }
-        aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
-        memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
+        aDest->sizes = cs->Malloc(cs, sizeof(int32_t) * aSrc->dimensions);
+        memcpy(aDest->sizes, aSrc->sizes, sizeof(int32_t) * aSrc->dimensions);
         aDest->arrayType = aSrc->arrayType;
 
         if(aDest->data != NULL) {
@@ -135,7 +135,7 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     var = aDest->arrayType->createVariable(cs, (void *)aDest->arrayType, ctx);
     for (j = 0; j < arrayNumMembers; j++) {
-        int index = j * memMyfltSize;
+        int32_t index = j * memMyfltSize;
         if(var->initializeVariableMemory != NULL) {
           var->initializeVariableMemory(csound, var, aDest->data + index);
         }
@@ -148,7 +148,7 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 /* MEM SIZE UPDATING FUNCTIONS */
 void updateAsigMemBlock(CSOUND* csound, CS_VARIABLE* var) {
-    int ksmps = csound->ksmps;
+    int32_t ksmps = csound->ksmps;
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
 }
 
@@ -181,7 +181,7 @@ void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 /* CREATE VAR FUNCTIONS */
 
 CS_VARIABLE* createAsig(void* cs, void* p, OPDS *ctx) {
-    int ksmps;
+    int32_t ksmps;
     CSOUND* csound = (CSOUND*)cs;
     IGN(p);
 
@@ -282,7 +282,7 @@ void array_free_var_mem(void* csnd, void* p) {
         if (arrayType->freeVariableMemory != NULL) {
             MYFLT* mem = dat->data;
             size_t memMyfltSize = dat->arrayMemberSize / sizeof(MYFLT);
-            int i, size = dat->sizes[0];
+            int32_t i, size = dat->sizes[0];
             for (i = 1; i < dat->dimensions; i++) {
                 size *= dat->sizes[i];
             }

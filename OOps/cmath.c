@@ -365,7 +365,7 @@ int32_t exprndiset(CSOUND *csound, PRANDI *p)
     return OK;
 }
 
-int kexprndi(CSOUND *csound, PRANDI *p)
+int32_t kexprndi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
     *p->ar = (p->num1 + (MYFLT)p->phs * p->dfdmax) * *p->xamp;

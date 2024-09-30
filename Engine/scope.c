@@ -3,19 +3,19 @@
 #include "score_param.h"
 
 extern uint8_t file_to_int(CSOUND*, const char*);
-int scope(CSOUND *csound)
+int32_t scope(CSOUND *csound)
 {
 extern void print_csound_prsdata(void *);
-extern int csound_prslex_init(void *);
+extern int32_t csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 
-extern int csound_prslex(CSOUND*, void*);
-extern int csound_prslex_destroy(void *);
+extern int32_t csound_prslex(CSOUND*, void*);
+extern int32_t csound_prslex_destroy(void *);
 extern void csound_sco_scan_buffer (const char *, size_t, void*);
-extern int csound_scoparse(SCORE_PARM *, void *, CSOUND*, ScoreTree*);
+extern int32_t csound_scoparse(SCORE_PARM *, void *, CSOUND*, ScoreTree*);
 extern void csound_scolex_init(void *);
 extern void csound_scoset_extra(void *, void *);
-extern void csound_scoset_lineno(int, void*);
+extern void csound_scoset_lineno(int32_t,  void*);
 extern void csound_scolex_destroy(void *);
 #if 0
     {
@@ -46,8 +46,8 @@ extern void csound_scolex_destroy(void *);
     {
       ScoreTree* scoTree = (ScoreTree *)csound->Calloc(csound, sizeof(ScoreTree));
       SCORE_PARM  pp;
-      extern int csound_scodebug;
-      int err;
+      extern int32_t csound_scodebug;
+      int32_t err;
       /* Parse */
       memset(&pp, '\0', sizeof(SCORE_PARM));
       csound_scolex_init(&pp.yyscanner);

@@ -32,7 +32,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *ar, *iamp, *icps, *iphs, *iflg;                /* opcode args  */
     /* internal variables */
-    int     use_double;
+    int32_t     use_double;
     double  xd, cd, vd;
     MYFLT   x, c, v;
 } OSCILS;
@@ -44,9 +44,9 @@ typedef struct {
     MYFLT   *ar, *xtrns, *ilps, *ilpe;                      /* opcode       */
     MYFLT   *imode, *istrt, *istor;                         /* args         */
     /* internal variables */
-    int     loop_mode;
+    int32_t     loop_mode;
     double  phs, lps, lpe;
-    int     dir;            /* playback direction (0: backward, 1: forward) */
+    int32_t     dir;            /* playback direction (0: backward, 1: forward) */
 } LPHASOR;
 
 /* tablexkt opcode struct */
@@ -56,7 +56,7 @@ typedef struct {
     MYFLT   *ar, *xndx, *kfn, *kwarp, *iwsize;              /* opcode       */
     MYFLT   *ixmode, *ixoff, *iwrap;                        /* args         */
     /* internal variables */
-    int     raw_ndx, ndx_scl, wrap_ndx, wsize;
+    int32_t     raw_ndx, ndx_scl, wrap_ndx, wsize;
     MYFLT   win_fact;
 /*  double  wsized2_d, pidwsize_d; */           /* for oscils_hann.c */
 } TABLEXKT;
@@ -64,12 +64,12 @@ typedef struct {
 /* these functions are exported to entry*.c */
 
 #ifndef CSOUND_OSCILS_C
-extern int oscils_set (CSOUND *, void*);
-extern int oscils (CSOUND *, void*);
-extern int lphasor_set (CSOUND *, void*);
-extern int lphasor (CSOUND *, void*);
-extern int tablexkt_set (CSOUND *, void*);
-extern int tablexkt (CSOUND *, void*);
+extern int32_t oscils_set (CSOUND *, void*);
+extern int32_t oscils (CSOUND *, void*);
+extern int32_t lphasor_set (CSOUND *, void*);
+extern int32_t lphasor (CSOUND *, void*);
+extern int32_t tablexkt_set (CSOUND *, void*);
+extern int32_t tablexkt (CSOUND *, void*);
 #endif
 
 #endif              /* CSOUND_OSCILS_H */

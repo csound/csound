@@ -44,7 +44,7 @@ void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, CSOUND_FFT_SETUP * setup)
 {
     MYFLT re, im;
     int32_t   i;
-    int FFTsize = setup->N;
+    int32_t FFTsize = setup->N;
 
     for (i = 0; i < FFTsize; i += 4) {
       re = buf[i] * COS(buf[i + 1]);

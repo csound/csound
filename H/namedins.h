@@ -35,7 +35,7 @@ extern "C" {
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
-int check_instr_name(char *);
+int32_t check_instr_name(char *);
 
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
@@ -46,7 +46,7 @@ MYFLT named_instr_find(CSOUND *, char *);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-int32 strarg2insno(CSOUND *, void *, int);
+int32 strarg2insno(CSOUND *, void *, int32_t);
 
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
@@ -60,7 +60,7 @@ int32 strarg2insno_p(CSOUND *, char *);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-int32 strarg2opcno(CSOUND *, void *, int, int);
+int32 strarg2opcno(CSOUND *, void *, int32_t, int32_t);
 
 /* create file name from opcode argument (string or MYFLT)      */
 /*   CSOUND *csound:                                            */
@@ -78,7 +78,7 @@ int32 strarg2opcno(CSOUND *, void *, int, int);
 /*      For example, if "soundin." is passed as baseName, file  */
 /*      names in the format "soundin.%d" will be generated.     */
 /*      baseName may be an empty string, but should not be NULL */
-/*   int is_string:                                             */
+/*   int32_t is_string:                                             */
 /*      if non-zero, 'p' is interpreted as a char* pointer and  */
 /*      is used as the file name. Otherwise, it is expected to  */
 /*      point to a MYFLT value, and the following are tried:    */
@@ -96,13 +96,13 @@ int32 strarg2opcno(CSOUND *, void *, int, int);
 /*      mmalloc() and the caller is responsible for freeing the */
 /*      allocated memory with mfree() or csound->Free()         */
 
-char *strarg2name(CSOUND *, char *, void *, const char *, int);
+char *strarg2name(CSOUND *, char *, void *, const char *, int32_t);
 
 /* ----------------------------------------------------------------------- */
 
-static inline int sCmp(const char *x, const char *y)
+static inline int32_t sCmp(const char *x, const char *y)
 {
-    int   i = 0;
+    int32_t   i = 0;
     while (x[i] == y[i] && x[i] != (char) 0)
       i++;
     return (x[i] != y[i]);

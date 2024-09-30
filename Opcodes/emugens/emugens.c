@@ -107,7 +107,7 @@ typedef struct {
 
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
-    int numitems = p->xs->sizes[0];
+    int32_t numitems = p->xs->sizes[0];
     tabinit(csound, p->ys, numitems, &(p->h));
     CHECKARR1D(p->xs);
     CHECKARR1D(p->ys);
@@ -299,7 +299,7 @@ typedef struct {
   OPDS h;
   MYFLT *r, *k, *irnd;
   MYFLT freqA4;
-  int rnd;
+  int32_t rnd;
 } PITCHCONV;
 
 static inline MYFLT
@@ -352,8 +352,8 @@ typedef struct {
     ARRAYDAT *outarr, *inarr;
     MYFLT *irnd;
     MYFLT freqA4;
-    int rnd;
-    int skip;
+    int32_t rnd;
+    int32_t skip;
 } PITCHCONV_ARR;
 
 
@@ -1731,7 +1731,7 @@ tabslice_allk(CSOUND *csound, TABSLICE *p) {
 
 static int32_t
 tabslice_i(CSOUND *csound, TABSLICE *p) {
-    int error = tabslice_init(csound, p);
+    int32_t error = tabslice_init(csound, p);
     if(error)
         return NOTOK;
     return tabslice_k(csound, p);
@@ -1760,7 +1760,7 @@ typedef struct {
     OPDS h;
     MYFLT *tabnum, *value, *kstart, *kend, *kstep;
     FUNC *tab;
-    int lastTabnum;
+    int32_t lastTabnum;
 } FTSET;
 
 
@@ -1776,7 +1776,7 @@ ftset_common(CSOUND *csound, FTSET *p) {
     IGN(csound);
     FUNC *tab = p->tab;
     MYFLT *data = tab->ftable;
-    int tablen = tab->flen;
+    int32_t tablen = tab->flen;
     int32_t start = (int32_t)*p->kstart;
     int32_t end = (int32_t)*p->kend;
     int32_t step = (int32_t)*p->kstep;
@@ -1793,7 +1793,7 @@ ftset_common(CSOUND *csound, FTSET *p) {
         return OK;
     }
 
-    for(int i=start; i<end; i+=step) {
+    for(int32_t i=start; i<end; i+=step) {
         data[i] = value;
     }
     return OK;
@@ -1801,7 +1801,7 @@ ftset_common(CSOUND *csound, FTSET *p) {
 
 static int32_t
 ftset_k(CSOUND *csound, FTSET *p) {
-    int tabnum = (int)(*p->tabnum);
+    int32_t tabnum = (int)(*p->tabnum);
     FUNC *tab;
     if(UNLIKELY(tabnum != p->lastTabnum)) {
         tab = csound->FTFind(csound, p->tabnum);
@@ -1847,7 +1847,7 @@ typedef struct {
     ARRAYDAT *out;
     MYFLT *ifn, *kstart, *kend, *kstep;
     FUNC * ftp;
-    int numitems;
+    int32_t numitems;
 } TAB2ARRAY;
 
 static int
@@ -1857,12 +1857,12 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     if (UNLIKELY(ftp == NULL))
         return NOTOK;
     p->ftp = ftp;
-    int start = (int)*p->kstart;
-    int end   = (int)*p->kend;
-    int step  = (int)*p->kstep;
+    int32_t start = (int)*p->kstart;
+    int32_t end   = (int)*p->kend;
+    int32_t step  = (int)*p->kstep;
     if (end < 1)
         end = ftp->flen;
-    int numitems = (int) (ceil((end - start) / (float)step));
+    int32_t numitems = (int) (ceil((end - start) / (float)step));
     if(numitems < 0) {
         return PERFERR(Str("tab2array: cannot copy a negative number of items"));
     }
@@ -1874,12 +1874,12 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
 static int
 tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     FUNC *ftp = p->ftp;
-    int start = (int)*p->kstart;
-    int end   = (int)*p->kend;
-    int step  = (int)*p->kstep;
+    int32_t start = (int)*p->kstart;
+    int32_t end   = (int)*p->kend;
+    int32_t step  = (int)*p->kstep;
     if (end < 1)
         end = ftp->flen;
-    int numitems = (int) (ceil((end - start) / (double)step));
+    int32_t numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
         return PERFERR(Str("tab2array: cannot copy a negative number of items"));
 
@@ -1889,7 +1889,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     MYFLT *out   = p->out->data;
     MYFLT *table = ftp->ftable;
 
-    int i, j=0;
+    int32_t i, j=0;
     for(i=start; i<end; i+=step) {
         out[j++] = table[i];
     }
@@ -2341,7 +2341,7 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
 
 /** allow negative indices to count from the end
  */
-static int handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
+static int32_t handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
     if(idx >= 0) {
         *out = (uint32_t) idx;
         return OK;
@@ -2370,7 +2370,7 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
     const uint32_t numcols = (uint32_t)p->numcols;
     const uint32_t step = (uint32_t)*p->kstep;
     uint32_t end, start;
-    int error = handle_negative_idx(&start, (int32_t)*p->kstart, ftplen);
+    int32_t error = handle_negative_idx(&start, (int32_t)*p->kstart, ftplen);
     if(error)
         return PERFERRF(Str("Could not handle start index: %d"),
                         (int32_t)*p->kstart);
@@ -2479,7 +2479,7 @@ typedef struct {
 
 static int32_t
 ftexists_init(CSOUND *csound, FTEXISTS *p) {
-    int ifn = (int)*p->ifn;
+    int32_t ifn = (int)*p->ifn;
     if(ifn == 0) {
         csound->DebugMsg(csound, "%s", Str("ftexists: table number is 0"));
         *p->iout = 0.;
@@ -2504,13 +2504,13 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
 typedef struct {
     OPDS h;
     MYFLT *out;
-    int extracycles;
-    int numcycles;
+    int32_t extracycles;
+    int32_t numcycles;
     // 0 - tied note, has extra time;
     // 1 - fixed p3, no extra time
     // 2 - fixed p3, extra time
-    int mode;
-    int fired;
+    int32_t mode;
+    int32_t fired;
 } LASTCYCLE;
 
 static int32_t
@@ -2595,7 +2595,7 @@ lastcycle(CSOUND *csound, LASTCYCLE *p) {
 
 // make sure that the out string has enough allocated space
 // This can be run only at init time
-static int32_t _string_ensure(CSOUND *csound, STRINGDAT *s, int size) {
+static int32_t _string_ensure(CSOUND *csound, STRINGDAT *s, int32_t size) {
     if (s->size >= (size_t)size)
         return OK;
     csound->ReAlloc(csound, s->data, size);
@@ -2636,7 +2636,7 @@ static int32_t
 stripr(CSOUND *csound, STR1_1 *p) {
     // Trim trailing space
     char *str = p->in->data;
-    int size = strlen(str) - 1;
+    int32_t size = strlen(str) - 1;
     const char *end = str + size;
     while(size && isspace(*end)) {
         end--;
@@ -2667,9 +2667,9 @@ stripside(CSOUND *csound, STR1_1 *p) {
 }
 
 // returns length
-int _str_find_edges(const char *str, int *startidx) {
+int32_t _str_find_edges(const char *str, int32_t *startidx) {
     // left
-    int idx0 = 0;
+    int32_t idx0 = 0;
     while(isspace((unsigned char)*str)) {
         str++;
         idx0++;
@@ -2681,7 +2681,7 @@ int _str_find_edges(const char *str, int *startidx) {
     }
 
     // right
-    int size = strlen(str) - 1;
+    int32_t size = strlen(str) - 1;
     const char *end = str + size;
     while(size && isspace(*end)) {
         end--;
@@ -2694,8 +2694,8 @@ int _str_find_edges(const char *str, int *startidx) {
 
 static int32_t
 strstrip(CSOUND *csound, STR1_1 *p) {
-    int startidx;
-    int size = _str_find_edges(p->in->data, &startidx);
+    int32_t startidx;
+    int32_t size = _str_find_edges(p->in->data, &startidx);
     if(size > 0) {
         _string_ensure(csound, p->out, size);
         memcpy(p->out->data, p->in->data + startidx, size);
@@ -2723,12 +2723,12 @@ typedef struct {
     OPDS    h;
     STRINGDAT   *sfmt;
     MYFLT   *args[64];
-    int allocatedBuf;
-    int newline;
-    int fmtlen;
+    int32_t allocatedBuf;
+    int32_t newline;
+    int32_t fmtlen;
     STRINGDAT buf;
     STRINGDAT strseg;
-    int initDone;
+    int32_t initDone;
 } PRINTLN;
 
 
@@ -2779,7 +2779,7 @@ int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
 }
 
 int32_t println_init(CSOUND *csound, PRINTLN *p) {
-    int ret = printsk_init(csound, p);
+    int32_t ret = printsk_init(csound, p);
     if(ret != OK)
         return INITERR(Str("Error while inititalizing println"));
     p->newline = 1;
@@ -2802,7 +2802,7 @@ sprintf_opcode_(CSOUND *csound,
                 PRINTLN *p,       /* opcode data structure pointer       */
                 STRINGDAT *str,   /* pointer to space for output string  */
                 const char *fmt,  /* format string                       */
-                int fmtlen,       /* length of format string             */
+                int32_t fmtlen,       /* length of format string             */
                 MYFLT **kvals,    /* array of argument pointers          */
                 int32_t numVals,      /* number of arguments             */
                 int32_t strCode)      /* bit mask for string arguments   */
@@ -2894,7 +2894,7 @@ sprintf_opcode_(CSOUND *csound,
                 }
                 if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
                     int32_t offs = outstring - str->data;
-                    int newsize = str->size  +
+                    int32_t newsize = str->size  +
                       ((STRINGDAT*)parm)->size + strlen(strseg);
                     csound->Warning(csound, "%s",
                                     Str("println/printsk: Allocating extra "

@@ -29,12 +29,12 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 
 #include "csoundCore.h"                         /*   SORT.C  */
 
-/* inline int ordering(SRTBLK *a, SRTBLK *b) */
+/* inline int32_t ordering(SRTBLK *a, SRTBLK *b) */
 /* { */
 /*     char cb = b->text[0], ca = a->text[0]; */
 /*     MYFLT diff; */
-/*     int prdiff, indiff; */
-/*     int ans; */
+/*     int32_t prdiff, indiff; */
+/*     int32_t ans; */
 /*     ans = !(ca != 'w' */
 /*            && (cb == 'w' || */
 /*                (ca != 't' && */
@@ -57,11 +57,11 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 #define FALSE (0)
 #endif
 
-static inline int ordering(SRTBLK *a, SRTBLK *b)
+static inline int32_t ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
     MYFLT tmp;
-    int itmp;
+    int32_t itmp;
     /* printf("SORT: ca=%c, cb=%c\n", ca, cb); */
     if (ca=='w') return TRUE;
     if (cb=='w') return FALSE;
@@ -101,9 +101,9 @@ static inline int ordering(SRTBLK *a, SRTBLK *b)
 #define b1 (data[6])
 #define c1 (data[7])
 
-inline static void sift(SRTBLK *A[], int data[])
+inline static void sift(SRTBLK *A[], int32_t data[])
 {
-    int r0, r2, temp;
+    int32_t r0, r2, temp;
     SRTBLK * T;
     r0 = r1;
     T = A[r0];
@@ -123,9 +123,9 @@ inline static void sift(SRTBLK *A[], int data[])
     if (UNLIKELY(r1 != r0)) A[r1] = T;
 }
 
-inline static void trinkle(SRTBLK *A[], int data[])
+inline static void trinkle(SRTBLK *A[], int32_t data[])
 {
-    int p1,r2,r3, r0, temp;
+    int32_t p1,r2,r3, r0, temp;
     SRTBLK * T;
     p1 = p; b1 = b; c1 = c;
     r0 = r1; T = A[r0];
@@ -166,7 +166,7 @@ inline static void trinkle(SRTBLK *A[], int data[])
     sift(A, data);
 }
 
-inline static void semitrinkle(SRTBLK *A[], int data[])
+inline static void semitrinkle(SRTBLK *A[], int32_t data[])
 {
     SRTBLK * T;
     r1 = r-c;
@@ -176,10 +176,10 @@ inline static void semitrinkle(SRTBLK *A[], int data[])
     }
 }
 
-static void smoothsort(SRTBLK *A[], const int N)
+static void smoothsort(SRTBLK *A[], const int32_t N)
 {
-    int temp;
-    int data[] = {/*q*/ 1, /*r*/ 0, /*p*/ 1, /*b*/ 1, /*c*/ 1, 0,0,0};
+    int32_t temp;
+    int32_t data[] = {/*q*/ 1, /*r*/ 0, /*p*/ 1, /*b*/ 1, /*c*/ 1, 0,0,0};
 
     /* building tree */
     while (q < N) {
@@ -236,12 +236,12 @@ void sort(CSOUND *csound)
 {
     SRTBLK *bp;
     SRTBLK **A;
-    int i, n = 0;
+    int32_t i, n = 0;
     if (UNLIKELY((bp = csound->frstbp) == NULL))
       return;
     do {
       n++;                      /* Need to count to alloc the array */
-      switch ((int) bp->text[0]) {
+      switch ((int32_t) bp->text[0]) {
       case 'd':
       case 'i':
         if (bp->insno < 0)

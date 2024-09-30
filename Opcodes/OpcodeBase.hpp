@@ -73,10 +73,10 @@
  *     // and create them usind csound->Create_Mutex() in csoundModuleCreate
  *     // and destroy them  using csound->DeleteMutex(mutex)
  *     // csoundModuleDestroy, and lock them using LockGuard guard(mutex).
- *     int init();
- *     int kontrol();
- *     int audio;
- *     int noteoff();
+ *     int32_t init();
+ *     int32_t kontrol();
+ *     int32_t audio;
+ *     int32_t noteoff();
  *     void deinit();
  * };
  */
@@ -112,10 +112,10 @@ namespace csound {
    * used to manage state between opcode instances.
    */
 
-  template<typename T> int CreateGlobalPointer(CSOUND *csound, const char *name, T *pointer)
+  template<typename T> int32_t CreateGlobalPointer(CSOUND *csound, const char *name, T *pointer)
   {
     T **pointer_to_pointer = 0;
-    int result = csound->CreateGlobalVariable(csound, name, sizeof(pointer_to_pointer));
+    int32_t result = csound->CreateGlobalVariable(csound, name, sizeof(pointer_to_pointer));
     pointer_to_pointer = static_cast<T **>(csound->QueryGlobalVariable(csound, name));
     *pointer_to_pointer = pointer;
     return result;
@@ -140,27 +140,27 @@ namespace csound {
   class OpcodeBase
   {
   public:
-    int init(CSOUND *csound)
+    int32_t init(CSOUND *csound)
     {
       return NOTOK;
     }
-    static int init_(CSOUND *csound, void *opcode)
+    static int32_t init_(CSOUND *csound, void *opcode)
     {
       return reinterpret_cast<T *>(opcode)->init(csound);
     }
-    int kontrol(CSOUND *csound)
+    int32_t kontrol(CSOUND *csound)
     {
       return NOTOK;
     }
-    static int kontrol_(CSOUND *csound, void *opcode)
+    static int32_t kontrol_(CSOUND *csound, void *opcode)
     {
       return reinterpret_cast<T *>(opcode)->kontrol(csound);
     }
-    int audio(CSOUND *csound)
+    int32_t audio(CSOUND *csound)
     {
       return NOTOK;
     }
-    static int audio_(CSOUND *csound, void *opcode)
+    static int32_t audio_(CSOUND *csound, void *opcode)
     {
       return reinterpret_cast<T *>(opcode)->audio(csound);
     }
@@ -183,7 +183,7 @@ namespace csound {
        p->r[n] = (MYFLT) (input1 >> input2);
        }
        So in C++ it should look like this (which is much easier to understand):
-       int frameIndex = 0;
+       int32_t frameIndex = 0;
        for( ; frameIndex < kperiodOffset(); ++frameIndex) {
        asignal[frameIndex] = 0;
        }
@@ -253,13 +253,13 @@ namespace csound {
   class OpcodeNoteoffBase
   {
   public:
-    int init(CSOUND *csound)
+    int32_t init(CSOUND *csound)
     {
       IGN(csound);
       return NOTOK;
     }
 
-    static int deinit_(CSOUND *csound, void *opcode)
+    static int32_t deinit_(CSOUND *csound, void *opcode)
     {
       if (!csound->GetReinitFlag(csound) && !csound->GetTieFlag(csound)) {
         return noteoff_(csound, opcode);
@@ -267,26 +267,26 @@ namespace csound {
       return OK;
     }
 
-    static int init_(CSOUND *csound, void *opcode)
+    static int32_t init_(CSOUND *csound, void *opcode)
     {
         return reinterpret_cast<T *>(opcode)->init(csound);
     }
   
-    int kontrol(CSOUND *csound)
+    int32_t kontrol(CSOUND *csound)
     {
       IGN(csound);
       return NOTOK;
     }
-    static int kontrol_(CSOUND *csound, void *opcode)
+    static int32_t kontrol_(CSOUND *csound, void *opcode)
     {
       return reinterpret_cast<T *>(opcode)->kontrol(csound);
     }
-    int audio(CSOUND *csound)
+    int32_t audio(CSOUND *csound)
     {
       IGN(csound);
       return NOTOK;
     }
-    static int audio_(CSOUND *csound, void *opcode)
+    static int32_t audio_(CSOUND *csound, void *opcode)
     {
       return reinterpret_cast<T *>(opcode)->audio(csound);
     }
@@ -309,7 +309,7 @@ namespace csound {
        p->r[n] = (MYFLT) (input1 >> input2);
        }
        So in C++ it should look like this (which is much easier to understand):
-       int frameIndex = 0;
+       int32_t frameIndex = 0;
        for( ; frameIndex < kperiodOffset(); ++frameIndex) {
        asignal[frameIndex] = 0;
        }
@@ -372,7 +372,7 @@ namespace csound {
         va_end(args);
       }
     }
-    int noteoff(CSOUND *csound)
+    int32_t noteoff(CSOUND *csound)
     {
       return OK;
     }
@@ -448,17 +448,17 @@ namespace csound {
      * instance of Csound; otherwise, returns the handle of the stored
      * object pointer.
      */
-    int handle_for_object(CSOUND *csound, O *object) {
+    int32_t handle_for_object(CSOUND *csound, O *object) {
       std::lock_guard<std::recursive_mutex> lock(mutex);
       auto &objects_for_csound_ = objects_for_csound(csound);
       auto iterator = std::find(objects_for_csound_.begin(), objects_for_csound_.end(), object);
       if (iterator == objects_for_csound_.end()) {
-        int handle = objects_for_csound_.size();
+        int32_t handle = objects_for_csound_.size();
         objects_for_csound_.push_back(object);
         if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::handle_for_object %p: new object handle: %d (of %ld)\n", object, handle, objects_for_csound_.size());
         return handle;
       } else {
-        int handle = static_cast<int>(iterator - objects_for_csound_.begin());
+        int32_t handle = static_cast<int>(iterator - objects_for_csound_.begin());
         if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::handle_for_object: existing object handle: %d\n", handle);
         return handle;
       }
@@ -468,7 +468,7 @@ namespace csound {
      * if the object pointer has not been stored by
      * handle, returns a null pointer.
      */
-    O *object_for_handle(CSOUND *csound, int handle) {
+    O *object_for_handle(CSOUND *csound, int32_t handle) {
       std::lock_guard<std::recursive_mutex> lock(mutex);
       auto &objects_for_csound_ = objects_for_csound(csound);
       if (handle >= objects_for_csound_.size()) {
@@ -486,7 +486,7 @@ namespace csound {
     void module_destroy(CSOUND *csound) {
       std::lock_guard<std::recursive_mutex> lock(mutex);
       auto &objects_for_csound_ = objects_for_csound(csound);
-      for (int i = 0, n = objects_for_csound_.size(); i < n; ++i) {
+      for (int32_t i = 0, n = objects_for_csound_.size(); i < n; ++i) {
         delete objects_for_csound_[i];
         objects_for_csound_[i] = nullptr;
       }

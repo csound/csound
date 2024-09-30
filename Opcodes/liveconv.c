@@ -134,7 +134,7 @@ typedef struct {
 **                        last filled partition)
 */
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf, MYFLT *IR_Data,
-                                 int32_t partSize, int nPartitions,
+                                 int32_t partSize, int32_t nPartitions,
                                  int32_t ringBuf_startPos)
 {
     MYFLT   re, im, re1, re2, im1, im2;

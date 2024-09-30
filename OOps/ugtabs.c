@@ -29,7 +29,7 @@
 //(x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 #define MYFLOOR(x) FLOOR(x)
 
-static inline unsigned int isPowerOfTwo (unsigned int x) {
+static inline uint32_t isPowerOfTwo (uint32_t x) {
   return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 

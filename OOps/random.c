@@ -44,7 +44,7 @@
 
 /* simple linear congruential generator */
 
-int csoundRand31(int *seedVal)
+int32_t csoundRand31(int32_t *seedVal)
 {
     uint64_t  tmp1;
     uint32_t  tmp2;
@@ -173,7 +173,7 @@ void csound_init_rand(CSOUND *csound)
     tmp = (uint32_t) csound->GetRandomSeedFromTime();
     while (tmp >= (uint32_t) 0x7FFFFFFE)
       tmp -= (uint32_t) 0x7FFFFFFE;
-    csound->randSeed2 = ((int) tmp + 1);
+    csound->randSeed2 = ((int32_t) tmp + 1);
     csound->SeedRandMT(&(csound->randState_), NULL, (uint32_t) 5489);
 }
 

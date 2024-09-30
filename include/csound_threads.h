@@ -42,7 +42,7 @@ extern "C" {
    * this function to do any kind of updating during the operation.
    * Returns an 'OK to continue' boolean.
    */
-  PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
+  PUBLIC void csoundSetYieldCallback(CSOUND *, int32_t (*yieldCallback_)(CSOUND *));
 
   /**
    * Creates and starts a new thread of execution.
@@ -61,7 +61,7 @@ extern "C" {
    * The userdata pointer is passed to the thread routine.
    */
   PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
-                                   unsigned int stack,
+                                   uint32_t stack,
                                    void *userdata);
 
   /**
@@ -94,7 +94,7 @@ extern "C" {
    * If 'milliseconds' is zero and the object is not notified, the function
    * will return immediately with a non-zero status.
    */
-  PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds);
+  PUBLIC int32_t csoundWaitThreadLock(void *lock, size_t milliseconds);
 
   /**
    * Waits on the indicated monitor object until it is notified.
@@ -126,7 +126,7 @@ extern "C" {
    * Note: the handles returned by csoundCreateThreadLock() and
    * csoundCreateMutex() are not compatible.
    */
-  PUBLIC void *csoundCreateMutex(int isRecursive);
+  PUBLIC void *csoundCreateMutex(int32_t isRecursive);
 
   /**
    * Acquires the indicated mutex object; if it is already in use by
@@ -142,7 +142,7 @@ extern "C" {
    * available.
    * Note: this function may be unimplemented on Windows.
    */
-  PUBLIC int csoundLockMutexNoWait(void *mutex_);
+  PUBLIC int32_t csoundLockMutexNoWait(void *mutex_);
 
   /**
    * Releases the indicated mutex object, which should be owned by
@@ -164,17 +164,17 @@ extern "C" {
    * number of child threads using the barrier plus one for the
    * master thread */
 
-  PUBLIC void *csoundCreateBarrier(unsigned int max);
+  PUBLIC void *csoundCreateBarrier(uint32_t max);
 
   /**
    * Destroy a Thread Barrier.
    */
-  PUBLIC int csoundDestroyBarrier(void *barrier);
+  PUBLIC int32_t csoundDestroyBarrier(void *barrier);
 
   /**
    * Wait on the thread barrier.
    */
-  PUBLIC int csoundWaitBarrier(void *barrier);
+  PUBLIC int32_t csoundWaitBarrier(void *barrier);
 
 
   /** Creates a conditional variable */
@@ -201,7 +201,7 @@ extern "C" {
    * @code
    * static spin_lock_t lock = SPINLOCK_INIT;
    * csoundSpinLockInit(&lock);
-   * void write(size_t frames, int* signal)
+   * void write(size_t frames, int32_t* signal)
    * {
    *   csoundSpinLock(&lock);
    *   for (size_t frame = 0; i < frames; frame++) {
@@ -211,7 +211,7 @@ extern "C" {
    * }
    * @endcode
    */
-  PUBLIC int csoundSpinLockInit(spin_lock_t *spinlock);
+  PUBLIC int32_t csoundSpinLockInit(spin_lock_t *spinlock);
 
   
   /**
@@ -223,7 +223,7 @@ extern "C" {
    * Tries the lock, returns CSOUND_SUCCESS if lock could be acquired,
       CSOUND_ERROR, otherwise.
    */
-  PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
+  PUBLIC int32_t csoundSpinTryLock(spin_lock_t *spinlock);
 
   /**
    * Unlocks the spinlock

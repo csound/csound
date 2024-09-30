@@ -752,7 +752,7 @@ static void SortPoles(int32_t poleCount, MYFLT *poleMagn, MYFLT *polePhas)
 /*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "After sort"); */
 }
 
-static int32_t DoPoleInterpolation(int poleCount,
+static int32_t DoPoleInterpolation(int32_t poleCount,
                                MYFLT *pm1, MYFLT *pp1,
                                MYFLT *pm2, MYFLT *pp2,
                                MYFLT factor, MYFLT *outMagn, MYFLT *outPhas)

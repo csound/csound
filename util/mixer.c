@@ -160,7 +160,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *O)
     return c;
 }
 
-static int mixer_main(CSOUND *csound, int argc, char **argv)
+static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
 {
     OPARMS      O;
     char        *inputfile = NULL;

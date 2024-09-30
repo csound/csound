@@ -45,14 +45,14 @@ extern "C" {
 #endif
 
 mp3dec_t mp3dec_init(void);
-int mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int nogap);
-int mp3dec_uninit(mp3dec_t mp3dec);
-int mp3dec_reset(mp3dec_t mp3dec);
-int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg);
-int mp3dec_get_info(mp3dec_t mp3dec, void *info, int info_type);
-int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used);
-int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units);
-char *mp3dec_error(int code);
+int32_t mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int32_t nogap);
+int32_t mp3dec_uninit(mp3dec_t mp3dec);
+int32_t mp3dec_reset(mp3dec_t mp3dec);
+int32_t mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg);
+int32_t mp3dec_get_info(mp3dec_t mp3dec, void *info, int32_t info_type);
+int32_t mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used);
+int32_t mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int32_t units);
+char *mp3dec_error(int32_t code);
 
 #ifdef __cplusplus
 }

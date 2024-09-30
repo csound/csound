@@ -23,6 +23,7 @@
 
 #ifndef _SOUNDFILE_H_
 #define _SOUNDFILE_H_
+#include "sysdep.h"
 
 #ifdef USE_LIBSNDFILE
 #include <sndfile.h>
@@ -97,12 +98,12 @@
 #define TYP_MPC2K (SF_FORMAT_MPC2K >> 16)
 #define TYP_RF64  (SF_FORMAT_RF64 >> 16)
 
-#define FORMAT2SF(x) ((int) (x))
-#define SF2FORMAT(x) ((int) (x) & 0xFFFF)
-#define TYPE2SF(x)   ((int) (x) << 16)
-#define TYP2SF(x)    ((int) (x) << 16)
-#define SF2TYPE(x)   ((int) (x & SF_FORMAT_TYPEMASK) >> 16)
-#define TYPE2ENC(x)   ((int) (x & SF_FORMAT_SUBMASK))
+#define FORMAT2SF(x) ((int32_t) (x))
+#define SF2FORMAT(x) ((int32_t) (x) & 0xFFFF)
+#define TYPE2SF(x)   ((int32_t) (x) << 16)
+#define TYP2SF(x)    ((int32_t) (x) << 16)
+#define SF2TYPE(x)   ((int32_t) (x & SF_FORMAT_TYPEMASK) >> 16)
+#define TYPE2ENC(x)   ((int32_t) (x & SF_FORMAT_SUBMASK))
 #define ENDIANESSBITS (SF_FORMAT_TYPEMASK | SF_FORMAT_SUBMASK)
   
 #else
@@ -163,12 +164,12 @@
 #define TYP_RF64  (24)
 #define TYP_MPEG  (25)
 
-#define FORMAT2SF(x) ((int) (x))
-#define SF2FORMAT(x) ((int) (x))
-#define TYPE2SF(x)   ((int) (x))
-#define TYP2SF(x)    ((int) (x))
-#define SF2TYPE(x)   ((int) (x))
-#define TYPE2ENC(x)   ((int) (x))
+#define FORMAT2SF(x) ((int32_t) (x))
+#define SF2FORMAT(x) ((int32_t) (x))
+#define TYPE2SF(x)   ((int32_t) (x))
+#define TYP2SF(x)    ((int32_t) (x))
+#define SF2TYPE(x)   ((int32_t) (x))
+#define TYPE2ENC(x)   ((int32_t) (x))
 #define ENDIANESSBITS 0
 
 #define SNDFILE void
@@ -216,18 +217,18 @@ enum
 
 typedef struct
 {
-  int gain ;
+  int32_t gain ;
   char basenote, detune ;
   char velocity_lo, velocity_hi ;
   char key_lo, key_hi ;
-  int loop_count ;
+  int32_t loop_count ;
 
   struct
   {
-    int mode ;
-    unsigned int start ;
-    unsigned int end ;
-    unsigned int count ;
+    int32_t mode ;
+    uint32_t start ;
+    uint32_t end ;
+    uint32_t count ;
   } loops [16] ; 
 } SFLIB_INSTRUMENT ;
 
@@ -249,20 +250,20 @@ typedef long sf_count_t;
   
 typedef struct sflib_info {
   long  frames ;     
-  int   samplerate ;
-  int   channels ;
-  int   format ;
+  int32_t   samplerate ;
+  int32_t   channels ;
+  int32_t   format ;
 } SFLIB_INFO;
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  int sflib_command (void *handle, int cmd, void *data, int datasize);
-  void *sflib_open(const char *path, int mode, SFLIB_INFO *sfinfo);
-  void *sflib_open_fd(int fd, int mode, SFLIB_INFO *sfinfo, int close_desc);
-    int sflib_close(void *sndfile);
-  long sflib_seek(void *handle, long frames, int whence);
+  int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize);
+  void *sflib_open(const char *path, int32_t mode, SFLIB_INFO *sfinfo);
+  void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc);
+    int32_t sflib_close(void *sndfile);
+  long sflib_seek(void *handle, long frames, int32_t whence);
   long sflib_read_float(void *sndfile, float *ptr, long items);
   long sflib_readf_float(void *handle, float *ptr, long frames);
   long sflib_read_double(void *sndfile, double *ptr, long items);
@@ -271,7 +272,7 @@ extern "C" {
   long sflib_writef_float(void *handle, float *ptr, long frames);
   long sflib_write_double(void *handle, double *ptr, long items);
   long sflib_writef_double(void *handle, double *ptr, long frames);
-  int  sflib_set_string(void *sndfile, int str_type, const char* str);
+  int32_t  sflib_set_string(void *sndfile, int32_t str_type, const char* str);
   const char *sflib_strerror(void *);  
 #ifdef __cplusplus
 }

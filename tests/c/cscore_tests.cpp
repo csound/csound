@@ -10,7 +10,7 @@ void cscore(CSOUND *cs)
 {
     EVENT  *e, *f;
     EVLIST *a, *b;
-    int n;
+    int32_t n;
 
     a = cscoreListGetSection(cs);            /* read score into event list "a" */
     b = cscoreListSeparateF(cs, a);          /* separate f statements */

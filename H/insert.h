@@ -30,7 +30,7 @@ typedef struct {                        /*       INSERT.H                */
 
 typedef struct {
     OPDS    h;
-    int     *cond;
+    int32_t     *cond;
     LBLBLK  *lblblk;
 } CGOTO;
 

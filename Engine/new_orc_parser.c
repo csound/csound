@@ -34,7 +34,7 @@
 typedef void*   DIR;
 DIR             opendir(const char *);
 struct dirent   *readdir(DIR*);
-int             closedir(DIR*);
+int32_t             closedir(DIR*);
 #  endif
 #endif
 
@@ -48,18 +48,18 @@ extern void csound_orcrestart(FILE*, void *);
 extern int csound_orcdebug;
 
 extern void print_csound_predata(void *);
-extern int csound_prelex_init(void *);
+extern int32_t csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
 
-extern int csound_prelex(CSOUND*, void*);
-extern int csound_prelex_destroy(void *);
+extern int32_t csound_prelex(CSOUND*, void*);
+extern int32_t csound_prelex_destroy(void *);
 
 extern struct yy_buffer_state * csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
-extern int csound_orclex_init(void *);
+extern int32_t csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
-extern void csound_orcset_lineno(int, void*);
-extern int csound_orclex_destroy(void *);
+extern void csound_orcset_lineno(int32_t,  void*);
+extern int32_t csound_orclex_destroy(void *);
 extern void print_tree(CSOUND *, char *, TREE *);
 extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
 extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
@@ -80,9 +80,9 @@ static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
 
 uint64_t make_location(PRE_PARM *qq)
 {
-    int d = qq->depth;
+    int32_t d = qq->depth;
     uint64_t loc = 0;
-    int n = (d>8?d-7:0);
+    int32_t n = (d>8?d-7:0);
     for (; n<=d; n++) {
       loc = (loc<<8)+(qq->lstack[n]);
     }
@@ -91,9 +91,9 @@ uint64_t make_location(PRE_PARM *qq)
 
 uint64_t make_slocation(PRS_PARM *qq)
 {
-    int d = qq->depth;
+    int32_t d = qq->depth;
     uint64_t loc = 0;
-    int n = (d>8?d-7:0);
+    int32_t n = (d>8?d-7:0);
     for (; n<=d; n++) {
       loc = (loc<<8)+(qq->lstack[n]);
     }
@@ -115,7 +115,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
         strcpy(buff, "#line 0\n");
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
-          int n = (int)strlen(fname);
+          int32_t n = (int)strlen(fname);
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
             strlcat(buff, "#include \"", 1024);
@@ -140,7 +140,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
-    int err;
+    int32_t err;
     OPARMS *O = csound->oparms;
     csound->parserNamedInstrFlag = 2;
     {

@@ -81,11 +81,11 @@ typedef struct {
 
 struct pvsdat {
         int32           N;
-        int             sliding; /* Flag to indicate sliding case */
+        int32_t             sliding; /* Flag to indicate sliding case */
         int32           NB;
         int32           overlap;
         int32           winsize;
-        int             wintype;
+        int32_t             wintype;
         int32           format;         /* fixed for now to AMP:FREQ */
         uint32          framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
@@ -202,7 +202,7 @@ typedef struct {
         /* internal*/
         int32    overlap,winsize,fftsize,wintype,format;
         uint32   lastframe;
-        int             nwarned,pwarned;    /* range errors for kdepth */
+        int32_t             nwarned,pwarned;    /* range errors for kdepth */
         FUNC    *maskfunc;
 } PVSMASKA;
 
@@ -242,7 +242,7 @@ typedef struct {
         MYFLT   *ifilno;
         MYFLT   *ichan;
         /* internal */
-        int     ptr;
+        int32_t     ptr;
         int32   overlap,winsize,fftsize,wintype,format;
         uint32  chans, nframes,lastframe,chanoffset,blockalign;
         MYFLT   arate;

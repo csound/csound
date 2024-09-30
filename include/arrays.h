@@ -29,7 +29,7 @@ typedef struct {
     MYFLT   *r, *a;
 } AEVAL;
 
-static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size, OPDS *ctx)
+static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *ctx)
 {
     size_t ss;
     if (p->dimensions==0) {
@@ -63,7 +63,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
       p->dimensions = tp->dimensions;
     }
 
-    for (int i=0; i<tp->dimensions; i++) {
+    for (int32_t i=0; i<tp->dimensions; i++) {
       p->sizes[i] = tp->sizes[i];
       ss *= tp->sizes[i];
     }
@@ -80,7 +80,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
     }
 }
 
-static inline int tabcheck(CSOUND *csound, ARRAYDAT *p, int size, OPDS *q)
+static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *q)
 {
     if (p->data==NULL || p->dimensions == 0) {
       return csound->PerfError(csound, q, "%s", Str("Array not initialised"));
@@ -98,7 +98,7 @@ static inline int tabcheck(CSOUND *csound, ARRAYDAT *p, int size, OPDS *q)
 }
 
 #if 0
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
+static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
 {
     if (p->data==NULL || p->dimensions == 0 ||
         (p->dimensions==1 && p->sizes[0] < size)) {

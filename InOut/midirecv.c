@@ -26,15 +26,15 @@
     Real time MIDI callback functions:
     ----------------------------------
 
-    int (*MidiInOpenCallback)(CSOUND *csound,
+    int32_t (*MidiInOpenCallback)(CSOUND *csound,
                               void **userData, const char *devName);
 
       Open MIDI input device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int (*MidiReadCallback)(CSOUND *csound,
-                            void *userData, unsigned char *buf, int nbytes);
+    int32_t (*MidiReadCallback)(CSOUND *csound,
+                            void *userData, unsigned char *buf, int32_t nbytes);
 
       Read at most 'nbytes' bytes of MIDI data from input stream
       'userData', and store in 'buf'. Returns the actual number of
@@ -43,34 +43,34 @@
       as a note on status without the data bytes) should not be
       returned.
 
-    int (*MidiInCloseCallback)(CSOUND *csound, void *userData);
+    int32_t (*MidiInCloseCallback)(CSOUND *csound, void *userData);
 
       Close MIDI input device associated with 'userData'.
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    int (*MidiOutOpenCallback)(CSOUND *csound,
+    int32_t (*MidiOutOpenCallback)(CSOUND *csound,
                                void **userData, const char *devName);
 
       Open MIDI output device 'devName', and store stream specific
       data pointer in *userData. Return value is zero on success,
       and a non-zero error code if an error occured.
 
-    int (*MidiWriteCallback)(CSOUND *csound, void *userData,
-                             const unsigned char *buf, int nbytes);
+    int32_t (*MidiWriteCallback)(CSOUND *csound, void *userData,
+                             const unsigned char *buf, int32_t nbytes);
 
       Write 'nbytes' bytes of MIDI data to output stream 'userData'
       from 'buf' (the buffer will not contain incomplete messages).
       Returns the actual number of bytes written, or a negative
       error code.
 
-    int (*MidiOutCloseCallback)(CSOUND *csound, void *userData);
+    int32_t (*MidiOutCloseCallback)(CSOUND *csound, void *userData);
 
       Close MIDI output device associated with '*userData'.
       Return value is zero on success, and a non-zero error
       code on failure.
 
-    const char *(*MidiErrorStringCallback)(int errcode);
+    const char *(*MidiErrorStringCallback)(int32_t errcode);
 
       Returns pointer to a string constant storing an error massage
       for error code 'errcode'.
@@ -79,25 +79,25 @@
     --------------------------
 
     void csoundSetExternalMidiInOpenCallback(CSOUND *csound,
-                    int (*func)(CSOUND *, void **, const char *));
+                    int32_t (*func)(CSOUND *, void **, const char *));
 
     void csoundSetExternalMidiReadCallback(CSOUND *csound,
-                    int (*func)(CSOUND *, void *, unsigned char *, int));
+                    int32_t (*func)(CSOUND *, void *, unsigned char *, int));
 
     void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
-                    int (*func)(CSOUND *, void *));
+                    int32_t (*func)(CSOUND *, void *));
 
     void csoundSetExternalMidiOutOpenCallback(CSOUND *csound,
-                    int (*func)(CSOUND *, void **, const char *));
+                    int32_t (*func)(CSOUND *, void **, const char *));
 
     void csoundSetExternalMidiWriteCallback(CSOUND *csound,
-                    int (*func)(CSOUND *, void *, const unsigned char *, int));
+                    int32_t (*func)(CSOUND *, void *, const unsigned char *, int));
 
     void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
-                    int (*func)(CSOUND *, void *));
+                    int32_t (*func)(CSOUND *, void *));
 
     void csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
-                    const char *(*func)(int));
+                    const char *(*func)(int32_t));
 */
 
 #include "csoundCore.h"
@@ -122,7 +122,7 @@ void MidiOpen(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
     OPARMS  *O = csound->oparms;
-    int     err;
+    int32_t     err;
     /* First set up buffers. */
     p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
     p->sexp = 0;
@@ -151,7 +151,7 @@ void MidiOpen(CSOUND *csound)
 static void sustsoff(CSOUND *csound, MCHNBLK *chn)
 {
     INSDS *ip;
-    int   nn;
+    int32_t   nn;
 
     if (chn->ksuscnt <= 0) {
       chn->ksuscnt = 0;
@@ -175,7 +175,7 @@ static void sustsoff(CSOUND *csound, MCHNBLK *chn)
 void midi_ctl_reset(CSOUND *csound, int16 chan)
 {
     MCHNBLK *chn;
-    int     i;
+    int32_t     i;
 
     chn = csound->m_chnbp[chan];
     for (i = 1; i <= 135; i++)                  /* from ctlr 1 to ctlr 128 */
@@ -216,7 +216,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       chn->pgmno = mep->dat1;
       if (chn->insno <= 0)              /* ignore if channel is muted */
         break;
-      n = (int16) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
+      n = (int16_t) chn->pgm2ins[mep->dat1];      /* program change -> INSTR  */
       if (n > 0 &&
           n <= csound->engineState.maxinsno &&  /* if corresp instr exists  */
           csound->engineState.instrtxtp[n] != NULL) {   /* assign as insno  */
@@ -247,14 +247,14 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
           chn->datenabl = 1;
       }
       else if (n == DATENTRY && chn->datenabl) {
-        int   msb = chn->dpmsb;
-        int   lsb = chn->dplsb;
+        int32_t   msb = chn->dpmsb;
+        int32_t   lsb = chn->dplsb;
         MYFLT fval;
         if (msb == 0 && lsb == 0) {
           chn->pbensens = (MYFLT) mep->dat2;
         }
         else if (msb == 1) {            /* GS system PART PARAMS */
-          int ctl;
+          int32_t ctl;
           switch(lsb) {
           case 8:  ctl = VIB_RATE;        break;
           case 9:  ctl = VIB_DEPTH;       break;
@@ -275,10 +275,10 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
               msb > 31 || lsb < 25  || lsb > 87)
             csound->Message(csound,
                             Str("unknown drum param nos, msb %d lsb %d\n"),
-                            (int) msb, (int) lsb);
+                            (int32_t) msb, (int32_t) lsb);
           else {
-            static const int drtab[8] = {0,0,1,1,2,3,4,5};
-            int parnum = drtab[msb - 24];
+            static const int32_t drtab[8] = {0,0,1,1,2,3,4,5};
+            int32_t parnum = drtab[msb - 24];
             if (parnum == 0)
               fval = (MYFLT) (mep->dat2 - 64);
             else fval = mep->dat2;
@@ -292,7 +292,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             }
             csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
                                         "PARAM %d NOT UPDATED\n"),
-                                    (int) mep->chan + 1, (int) lsb, (int) msb);
+                                    (int32_t) mep->chan + 1, (int32_t) lsb, (int32_t) msb);
           }
         }
       }
@@ -312,7 +312,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
     special:
       if (n < 121) {          /* for ctrlr 111, 112, ... chk inexclus lists */
         if ((csound->oparms->msglevel & 7) == 7)
-          csound->Message(csound, Str("ctrl %d has no exclus list\n"), (int) n);
+          csound->Message(csound, Str("ctrl %d has no exclus list\n"), (int32_t) n);
         break;
       }
       /* 121 == RESET ALL CONTROLLERS */
@@ -320,7 +320,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
         midi_ctl_reset(csound, mep->chan);
       }
       else if (n == 122) {                      /* absorb lcl ctrl data */
-/*      int lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
+/*      int32_t lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
       }
       else if (n == 123) midNotesOff(csound);   /* allchnl AllNotesOff */
       else if (n == 126) {                      /* MONO mode */
@@ -370,36 +370,36 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
 void m_chn_init_all(CSOUND *csound)
 {                               /* alloc a midi control blk for a midi chnl */
     MCHNBLK *chn;               /*  & assign corr instr n+1, else a default */
-    int     defaultinsno, n;
+    int32_t     defaultinsno, n;
     int16   chan;
 
     defaultinsno = 0;
     while (csound->engineState.instrtxtp &&
-           ++defaultinsno <= (int) csound->engineState.maxinsno &&
+           ++defaultinsno <= (int32_t) csound->engineState.maxinsno &&
            csound->engineState.instrtxtp[defaultinsno] == NULL);
-    if (defaultinsno > (int) csound->engineState.maxinsno)
+    if (defaultinsno > (int32_t) csound->engineState.maxinsno)
       defaultinsno = 0;         /* no instruments */
-    for (chan = (int16) 0; chan < (int16) MIDIMAXPORTS; chan++) {
+    for (chan = (int16_t) 0; chan < (int16_t) MIDIMAXPORTS; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] =
         chn = (MCHNBLK*) csound->Calloc(csound, sizeof(MCHNBLK));
       csound->m_chnbp[chan]->channel = chan;
-      n = (int) chan + 1;
+      n = (int32_t) chan + 1;
       /* if corresponding instrument exists, assign as insno, */
       if (csound->engineState.instrtxtp &&
-          n <= (int) csound->engineState.maxinsno &&
+          n <= (int32_t) csound->engineState.maxinsno &&
           csound->engineState.instrtxtp[n] != NULL)
-        chn->insno = (int16) n;
+        chn->insno = (int16_t) n;
       else if (defaultinsno > 0)
-        chn->insno = (int16) defaultinsno;
+        chn->insno = (int16_t) defaultinsno;
       else
-        chn->insno = (int16) -1;        /* else mute channel */
+        chn->insno = (int16_t) -1;        /* else mute channel */
       /* reset all controllers */
       chn->pgmno = -1;
       midi_ctl_reset(csound, chan);
       for (n = 0; n < 128; n++)
-        chn->pgm2ins[n] = (int16) (n + 1);
+        chn->pgm2ins[n] = (int16_t) (n + 1);
       if (csound->oparms->Midiin || csound->oparms->FMidiin) {
         if (chn->insno < 0)
           csound->Message(csound, Str("midi channel %d is muted\n"), chan + 1);
@@ -413,7 +413,7 @@ void m_chn_init_all(CSOUND *csound)
 /* assign an insno to a chnl */
 /* =massign: called from i0  */
 
-int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls)
+int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctls)
 {
     MCHNBLK  *chn;
     MEVENT   mev;
@@ -431,27 +431,27 @@ int m_chinsno(CSOUND *csound, int chan, int insno, int reset_ctls)
         csound->Message(csound, Str("Insno = %d\n"), insno);
         return csound->InitError(csound, Str("unknown instr"));
       }
-      chn->insno = (int16) insno;
+      chn->insno = (int16_t) insno;
       csound->Message(csound, Str("chnl %d using instr %d\n"),
                               chan + 1, chn->insno);
       /* check for program change: will override massign if enabled */
       if (chn->pgmno >= 0) {
         mev.type = PROGRAM_TYPE;
-        mev.chan = (int16) chan;
+        mev.chan = (int16_t) chan;
         mev.dat1 = chn->pgmno;
         mev.dat2 = 0;
         m_chanmsg(csound, &mev);
       }
     }
     if (reset_ctls)
-      midi_ctl_reset(csound, (int16) chan);
+      midi_ctl_reset(csound, (int16_t) chan);
     return OK;
 }
 
 static void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
 {
     INSDS   *ip;
-    int     nn;
+    int32_t     nn;
 
     for (nn = 0; nn < 128; nn++) {
       ip = chn->kinsptr[nn];
@@ -468,7 +468,7 @@ static void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
 
 static void midNotesOff(CSOUND *csound)
 {
-    int chan = 0;
+    int32_t chan = 0;
     do {
       AllNotesOff(csound, csound->m_chnbp[chan]);
     } while (++chan < MAXCHAN);
@@ -477,12 +477,12 @@ static void midNotesOff(CSOUND *csound)
 /* sense a MIDI event, collect the data & dispatch */
 /* called from sensevents(), returns 2 if MIDI on/off */
 
-int sensMidi(CSOUND *csound)
+int32_t sensMidi(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
     MEVENT  *mep = p->Midevtblk;
     OPARMS  *O = csound->oparms;
-    int     n;
+    int32_t     n;
     int16   c, type;
 
  nxtchr:
@@ -495,13 +495,13 @@ int sensMidi(CSOUND *csound)
           csoundErrorMsg(csound, Str(" *** error reading MIDI device: %d (%s)"),
                                  n, csoundExternalMidiErrorString(csound, n));
         else
-          p->endatp += (int) n;
+          p->endatp += (int32_t) n;
       }
       if (O->FMidiin) {                         /* read MIDI file */
         n = csoundMIDIFileRead(csound, p->endatp,
-                               MBUFSIZ - (int) (p->endatp - p->bufp));
+                               MBUFSIZ - (int32_t) (p->endatp - p->bufp));
         if (n > 0)
-          p->endatp += (int) n;
+          p->endatp += (int32_t) n;
       }
       if (p->endatp <= p->bufp)
         return 0;               /* no events were received */
@@ -567,7 +567,7 @@ int sensMidi(CSOUND *csound)
             MIDI backend modules can now insert a port number coded in
             this way to allow for separate mapping of devices
           */
-          int port = *(p->bufp++) & 0x0F;
+          int32_t port = *(p->bufp++) & 0x0F;
           if(port >= MIDIMAXPORTS) {
             csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
                                       ", mapping to port 0"), port, MIDIMAXPORTS);
@@ -610,7 +610,7 @@ extern void csoundCloseMidiOutFile(CSOUND *);
 void MidiClose(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
-    int     retval;
+    int32_t     retval;
 
     if (p==NULL) {
       printf(Str("No MIDI\n"));

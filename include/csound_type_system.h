@@ -43,13 +43,13 @@ extern "C" {
   typedef struct cstype {
     char* varTypeName;
     char* varDescription;
-    int argtype; // used to denote if allowed as in-arg, out-arg, or both
+    int32_t argtype; // used to denote if allowed as in-arg, out-arg, or both
     struct csvariable* (*createVariable)(void *cs, void *p, struct opds *ctx);
     void (*copyValue)(CSOUND* csound, const struct cstype* cstype, void* dest, const
                       void* src, struct opds *ctx);
     void (*freeVariableMemory)(void* csound, void* varMem);
     CONS_CELL* members;
-    int userDefinedType;
+    int32_t userDefinedType;
   } CS_TYPE;
 
   typedef struct csvarmem {
@@ -66,12 +66,12 @@ extern "C" {
   typedef struct csvariable {
     char* varName;
     const CS_TYPE* varType;
-    int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
+    int32_t memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
                          Csound uses MYFLT* and pointer arithmetic
                          to assign var locations */
-    int memBlockIndex;
-    int dimensions;  // used by arrays
-    int refCount;
+    int32_t memBlockIndex;
+    int32_t dimensions;  // used by arrays
+    int32_t refCount;
     struct csvariable* next;
     const CS_TYPE* subType;
     void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
@@ -97,7 +97,7 @@ extern "C" {
    *  Adds a new type to type table pool
    *  Returns if variable type redefined
    */
-  PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
+  PUBLIC int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
                                    CS_TYPE* typeInstance);
   
   /** 
@@ -129,10 +129,10 @@ extern "C" {
     CS_HASH_TABLE* table;
     CS_VARIABLE* head;
     CS_VARIABLE* tail;
-    int poolSize;
+    int32_t poolSize;
     struct csvarpool* parent;
-    int varCount;
-    int synthArgCount;
+    int32_t varCount;
+    int32_t synthArgCount;
   } CS_VAR_POOL;
 
   /* Shsould we keep these in the API? */
@@ -142,7 +142,7 @@ extern "C" {
   PUBLIC CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound,
                                                  CS_VAR_POOL* pool,
                                                  const char* name);
-  PUBLIC int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool,
+  PUBLIC int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool,
                                CS_VARIABLE* var);
   PUBLIC void recalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
   PUBLIC void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);

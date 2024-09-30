@@ -45,8 +45,8 @@ struct windat_ {
     MYFLT   max, min;           /* workspace .. extrema this frame */
     MYFLT   absmax;             /* workspace .. largest of above */
     MYFLT   oabsmax;            /* Y axis scaling factor */
-    int     danflag;            /* set to 1 for extra Yaxis mid span */
-    int     absflag;            /* set to 1 to skip abs check */
+    int32_t     danflag;            /* set to 1 for extra Yaxis mid span */
+    int32_t     absflag;            /* set to 1 to skip abs check */
 };
 
 enum {                  /* symbols for WINDAT.polarity field */
@@ -58,17 +58,17 @@ enum {                  /* symbols for WINDAT.polarity field */
 
 struct xyindat_ {       /* for 'joystick' input window */
     uintptr_t windid;   /* xwindow handle */
-    int     m_x,m_y;    /* current crosshair pixel adr */
+    int32_t     m_x,m_y;    /* current crosshair pixel adr */
     MYFLT   x,y;        /* current proportions of fsd */
-    int     down;
+    int32_t     down;
 };
 
  /* ------------------------------------------------------------------------ */
 
 #ifdef __BUILDING_LIBCSOUND
 
-void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
-int dispexit(CSOUND *);
+void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t, char *);
+int32_t dispexit(CSOUND *);
 void display(CSOUND *, WINDAT*);
 #if 0
 /* create window for a graph */
@@ -84,7 +84,7 @@ void KillGraph(CSOUND *, WINDAT *);
 /* remove a mouse input window */
 void KillXYin(CSOUND *, XYINDAT *);
 /* print click-Exit message in most recently active window */
-int  ExitGraph(CSOUND *);
+int32_t  ExitGraph(CSOUND *);
 #endif
 
 #endif  /*  __BUILDING_LIBCSOUND */
