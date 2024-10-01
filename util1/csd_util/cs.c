@@ -15,6 +15,12 @@
 #include <process.h>
 #endif
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#else
+typedef int int32_t;
+#endif
+
 /* default Csound executable */
 #ifdef WIN32
 char    default_csnd[] = "csound32 -W";
