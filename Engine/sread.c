@@ -36,21 +36,21 @@
 
 //#define MACDEBUG (1)
 
-static void print_input_backtrace(CSOUND *csound, int needLFs,
+static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
                                   void (*msgfunc)(CSOUND*, const char*, ...));
 static  void    copylin(CSOUND *), copypflds(CSOUND *);
 static  void    ifa(CSOUND *), setprv(CSOUND *);
-static  void    carryerror(CSOUND *), pcopy(CSOUND *, int, int, SRTBLK*);
+static  void    carryerror(CSOUND *), pcopy(CSOUND *, int32_t,  int32_t,  SRTBLK*);
 static  void    salcinit(CSOUND *);
 static  void    salcblk(CSOUND *), flushlin(CSOUND *);
-static  int     getop(CSOUND *), getpfld(CSOUND *, int);
+static  int32_t     getop(CSOUND *), getpfld(CSOUND *, int32_t);
         MYFLT   stof(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-extern int csound_prslex_init(void *);
+extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int32_t);
+extern int32_t csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 
-extern int csound_prslex(CSOUND*, void*);
-extern int csound_prslex_destroy(void *);
+extern int32_t csound_prslex(CSOUND*, void*);
+extern int32_t csound_prslex_destroy(void *);
 extern void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
 
 #define STA(x)  (csound->sread.x)
@@ -137,13 +137,13 @@ static void scorerr(CSOUND *csound, const char *s, ...)
     csound->LongJmp(csound, 1);
 }
 
-static void print_input_backtrace(CSOUND *csound, int needLFs,
+static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
                                   void (*msgfunc)(CSOUND*, const char*, ...))
 {
     IN_STACK  *curr = (csound->sread.str);
     char      *m, *lf = (needLFs ? "\n" : "");
-    int       lastinput = 0;
-    int       lastsource = 2; /* 2=current file, 1=macro, 0=#include */
+    int32_t       lastinput = 0;
+    int32_t       lastsource = 2; /* 2=current file, 1=macro, 0=#include */
 
     msgfunc(csound, Str("  section %d:  at position %d%s"), csound->sectcnt,
                     (csound->sread.linepos), lf);
@@ -199,9 +199,9 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-static inline int isNameChar(int c, int pos)
+static inline int32_t isNameChar(int32_t c, int32_t pos)
 {
-    //c = (int) ((unsigned char) c);
+    //c = (int32_t) ((unsigned char) c);
     if (UNLIKELY(c<0)) return 0;
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
@@ -209,16 +209,16 @@ static inline int isNameChar(int c, int pos)
 /* Functions to read/unread chracters from
  * a stack of file and macro inputs */
 
-static inline void ungetscochar(CSOUND *csound, int c)
+static inline void ungetscochar(CSOUND *csound, int32_t c)
 {
     corfile_ungetc(csound->expanded_sco);
     csound->expanded_sco->body[csound->expanded_sco->p] = (char)c;
 }
 
-static int getscochar(CSOUND *csound, int expand)
+static int32_t getscochar(CSOUND *csound, int32_t expand)
 {
 /* Read a score character, expanding macros if flag set */
-    int     c;
+    int32_t     c;
     IGN(expand);
 /* Read a score character, expanding macros expanded */
     c = corfile_getc(csound->expanded_sco);
@@ -268,9 +268,9 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     }
 }
 
-int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
+int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 {                               /*  each score statement gets a sortblock   */
-    int  rtncod;                /* return code to calling program:      */
+    int32_t  rtncod;                /* return code to calling program:      */
                                 /*   1 = section read                   */
                                 /*   0 = end of file                    */
     /* sread_alloc_globals(csound); */
@@ -284,7 +284,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     salcinit(csound);           /* init the mem space for this section  */
 #ifdef never
     if (csound->score_parser) {
-      extern int scope(CSOUND*);
+      extern int32_t scope(CSOUND*);
       printf("**********************************************************\n");
       printf("*******************EXPERIMENTAL CODE**********************\n");
       printf("**********************************************************\n");
@@ -444,8 +444,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         {
           char  *old_nxp = (csound->sread.nxp)-2;
           char  buff[200];
-          int   c;
-          int   i = 0, j;
+          int32_t   c;
+          int32_t   i = 0, j;
           while (isblank(c = getscochar(csound, 1)));
           while (isNameChar(c, i)) {
             buff[i++] = c;
@@ -485,8 +485,8 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         {
           char *old_nxp = (csound->sread.nxp)-2;
           char buff[200];
-          int c;
-          int i = 0;
+          int32_t c;
+          int32_t i = 0;
           while (isblank(c = getscochar(csound, 1)));
           while (isNameChar(c, i)) {
             buff[i++] = c;
@@ -509,7 +509,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             //                i, buff, (csound->sread.names)[i].posit);
             (csound->sread.input_cnt)++;
             if (csound->sread.input_cnt>=csound->sread.input_size) {
-              int old = (csound->sread.str)-(csound->sread.inputs);
+              int32_t old = (csound->sread.str)-(csound->sread.inputs);
               (csound->sread.input_size) += 20;
               (csound->sread.inputs) =
                 csound->ReAlloc(csound, (csound->sread.inputs),
@@ -598,7 +598,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
 
 static void copylin(CSOUND *csound)     /* copy source line to srtblk   */
 {
-    int c;
+    int32_t c;
     (csound->sread.nxp)--;
     if (csound->sread.nxp >= csound->sread.memend)
       /* if this memblk exhausted */
@@ -623,7 +623,7 @@ static void copypflds(CSOUND *csound)
 static void ifa(CSOUND *csound)
 {
     SRTBLK *prvbp;
-    int n, nocarry = 0;
+    int32_t n, nocarry = 0;
 
     (csound->sread.bp)->pcnt = 0;
     while (getpfld(csound,0)) {   /* while there's another pfield,  */
@@ -638,7 +638,7 @@ static void ifa(CSOUND *csound)
       if (*(csound->sread.sp) == '^' &&
           (csound->sread.op) == 'i' &&
           (csound->sread.bp)->pcnt == 2) {
-        int foundplus = 0;
+        int32_t foundplus = 0;
         if (*((csound->sread.sp)+1)=='+') {
           (csound->sread.sp)++; foundplus = 1;
         }
@@ -676,7 +676,7 @@ static void ifa(CSOUND *csound)
                     && prvbp->text[0] == 'i'))) {
           if (*(csound->sread.sp) == '.') {
             (csound->sread.nxp) = (csound->sread.sp);
-            pcopy(csound, (int) (csound->sread.bp)->pcnt, 1, prvbp);
+            pcopy(csound, (int32_t) (csound->sread.bp)->pcnt, 1, prvbp);
             if ((csound->sread.bp)->pcnt >= 2)
               (csound->sread.prvp2) = (csound->sread.bp)->p2val;
           }
@@ -687,7 +687,7 @@ static void ifa(CSOUND *csound)
         else carryerror(csound);
       }
       else if (*(csound->sread.sp) == '!') {
-        int getmore = 0;
+        int32_t getmore = 0;
         if (UNLIKELY((csound->sread.op) != 'i')) {
           *((csound->sread.nxp)-1) = '\0';
           getmore = 1;
@@ -779,7 +779,7 @@ static void ifa(CSOUND *csound)
          (!(csound->sread.bp)->pcnt &&
           (prvbp = (csound->sread.bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i'))){ /* carry p1-p3 */
-      int pcnt = (csound->sread.bp)->pcnt;
+      int32_t pcnt = (csound->sread.bp)->pcnt;
       n = 3-pcnt;
       pcopy(csound, pcnt + 1, n, prvbp);
       (csound->sread.bp)->pcnt = 3;
@@ -792,13 +792,13 @@ static void ifa(CSOUND *csound)
           prvbp->text[0] == 'i')) &&
         (n = prvbp->pcnt - (csound->sread.bp)->pcnt) > 0) {
       //printf("carrying p-fields\n");
-      pcopy(csound, (int) (csound->sread.bp)->pcnt + 1, n, prvbp);
+      pcopy(csound, (int32_t) (csound->sread.bp)->pcnt + 1, n, prvbp);
       (csound->sread.bp)->pcnt += n;
     }
     *((csound->sread.nxp)-1) = LF;   /* terminate this stmnt with newline */
 }
 
-static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
+static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         */
 {                                       /*  prvibp = prv note, same insno   */
     SRTBLK *p = (csound->sread.bp);
     int16 n;
@@ -806,7 +806,7 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
     if (IsStringCode((csound->sread.bp)->p1val) &&
         *(csound->sread.sp) == '"') {
       /* IV - Oct 31 2002 */
-      int sign = 0;
+      int32_t sign = 0;
       char name[MAXNAME], *c, *s = (csound->sread.sp);
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
@@ -847,13 +847,13 @@ static void carryerror(CSOUND *csound)      /* print offending text line  */
     *((csound->sread.nxp) - 2) = '0';
 }
 
-static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
+static void pcopy(CSOUND *csound, int32_t pfno, int32_t ncopy, SRTBLK *prvbp)
                                 /* cpy pfields from prev note of this instr */
                                 /*     begin at pfno, copy 'ncopy' fields   */
                                 /*     uses *nxp++;    sp untouched         */
 {
     char *p, *pp, c;
-    int  n;
+    int32_t  n;
 
     pp = prvbp->text;                       /* in text of prev note,    */
     n = pfno;
@@ -946,7 +946,7 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
 
 static void flushlin(CSOUND *csound)
 {                                   /* flush input to end-of-line; inc lincnt */
-    int c;
+    int32_t c;
     while ((c = getscochar(csound, 0)) != LF && c != EOF)
       ;
     (csound->sread.linpos) = 0;
@@ -954,9 +954,9 @@ static void flushlin(CSOUND *csound)
 }
 
 /* unused at the moment
-static inline int check_preproc_name(CSOUND *csound, const char *name)
+static inline int32_t check_preproc_name(CSOUND *csound, const char *name)
 {
-    int   i;
+    int32_t   i;
     char  c;
     for (i = 1; name[i] != '\0'; i++) {
       c = (char) getscochar(csound, 1);
@@ -967,9 +967,9 @@ static inline int check_preproc_name(CSOUND *csound, const char *name)
 }
 */
 
-static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
+static int32_t sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
-    int c;
+    int32_t c;
 
     //srch:
     while (isblank(c = getscochar(csound, 1)) || c == LF)
@@ -986,9 +986,9 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
     return c;
 }
 
-static int getop(CSOUND *csound)        /* get next legal opcode */
+static int32_t getop(CSOUND *csound)        /* get next legal opcode */
 {
-    int c;
+    int32_t c;
 
  nextc:
     c = sget1(csound);  /* get first active char */
@@ -1033,8 +1033,8 @@ static MYFLT read_expression(CSOUND *csound)
       char  *op = stack - 1;
       MYFLT *pv = vv - 1;
       char  buffer[100];
-      int   i, c;
-      int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
+      int32_t   i, c;
+      int32_t   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
       *++op = '[';
       c = getscochar(csound, 1);
       do {
@@ -1086,8 +1086,8 @@ static MYFLT read_expression(CSOUND *csound)
                                 " [] expression"));
           }
           {
-            int n = 0;
-            int k = 0;          /* 0 or 1 depending on guard bit */
+            int32_t n = 0;
+            int32_t k = 0;          /* 0 or 1 depending on guard bit */
             c = getscochar(csound, 1);
             if (c=='@') { k = 1; c = getscochar(csound, 1);}
             while (isdigit(c)) {
@@ -1200,9 +1200,9 @@ static MYFLT read_expression(CSOUND *csound)
 }
 
 
-static int getpfld(CSOUND *csound, int type) /* get pfield val from SCOREIN file */
+static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOREIN file */
 {                                            /*      set sp, nxp                 */
-    int  c;
+    int32_t  c;
     char *p;
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */

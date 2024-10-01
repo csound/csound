@@ -100,10 +100,10 @@ typedef struct nameChain_s {
 
 static char globalEnvVars[8192] = { (char) 0 };
 
-#define globalEnvVarName(x)   ((char*) &(globalEnvVars[(int) (x) << 9]))
-#define globalEnvVarValue(x)  ((char*) &(globalEnvVars[((int) (x) << 9) + 32]))
+#define globalEnvVarName(x)   ((char*) &(globalEnvVars[(int32_t) (x) << 9]))
+#define globalEnvVarValue(x)  ((char*) &(globalEnvVars[((int32_t) (x) << 9) + 32]))
 
-static int is_valid_envvar_name(const char *name)
+static int32_t is_valid_envvar_name(const char *name)
 {
     char *s;
 
@@ -127,7 +127,7 @@ static int is_valid_envvar_name(const char *name)
 PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
 {
     if (csound == NULL) {
-      int i;
+      int32_t i;
       if (name == NULL || name[0] == '\0')
         return (const char*) NULL;
       for (i = 0; i < 16; i++) {
@@ -150,11 +150,11 @@ PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
  * Returns zero on success.
  */
 
-PUBLIC int csoundSetGlobalEnv(const char *name, const char *value)
+PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value)
 {
-    int   i;
+    int32_t   i;
 
-    if (UNLIKELY(name == NULL || name[0] == '\0' || (int) strlen(name) >= 32))
+    if (UNLIKELY(name == NULL || name[0] == '\0' || (int32_t) strlen(name) >= 32))
       return -1;                        /* invalid name             */
     for (i = 0; i < 16; i++) {
       if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
@@ -180,7 +180,7 @@ PUBLIC int csoundSetGlobalEnv(const char *name, const char *value)
  * if the environment variable could not be set for some reason.
  */
 
-int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
+int32_t csoundSetEnv(CSOUND *csound, const char *name, const char *value)
 {
     searchPathCacheEntry_t  *ep, *nxt;
     char                    *oldValue;
@@ -227,11 +227,11 @@ int csoundSetEnv(CSOUND *csound, const char *name, const char *value)
  * if the environment variable could not be set for some reason.
  */
 
-int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
+int32_t csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
 {
     const char  *oldval;
     char        *newval;
-    int         retval;
+    int32_t         retval;
 
     /* check for valid parameters */
     if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
@@ -268,11 +268,11 @@ int csoundAppendEnv(CSOUND *csound, const char *name, const char *value)
  * if the environment variable could not be set for some reason.
  */
 
-int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
+int32_t csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
 {
     const char  *oldval;
     char        *newval;
-    int         retval;
+    int32_t         retval;
 
     /* check for valid parameters */
     if (UNLIKELY(csound == NULL || !is_valid_envvar_name(name)))
@@ -308,9 +308,9 @@ int csoundPrependEnv(CSOUND *csound, const char *name, const char *value)
  * CSOUND_MEMORY in case of an error.
  */
 
-int csoundInitEnv(CSOUND *csound)
+int32_t csoundInitEnv(CSOUND *csound)
 {
-    int i, retval;
+    int32_t i, retval;
     /* check if already initialised */
     if (csound->envVarDB != NULL)
       return CSOUND_SUCCESS;
@@ -347,10 +347,10 @@ int csoundInitEnv(CSOUND *csound)
  * CSOUND_MEMORY in case of an error.
  */
 
-int csoundParseEnv(CSOUND *csound, const char *s)
+int32_t csoundParseEnv(CSOUND *csound, const char *s)
 {
     char  *name, *value, msg[256];
-    int   append_mode, retval;
+    int32_t   append_mode, retval;
 
     /* copy string constant */
     name = (char*) csound->Malloc(csound, (size_t) strlen(s) + (size_t) 1);
@@ -395,7 +395,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     searchPathCacheEntry_t  *p;
     nameChain_t             *env_lst = NULL, *path_lst = NULL, *tmp, *prv, *nxt;
     char                    *s;
-    int                     i, j, k, len, pathCnt = 0, totLen = 0;
+    int32_t                     i, j, k, len, pathCnt = 0, totLen = 0;
 
     /* check if the specified environment variable list was already parsed */
     p = (searchPathCacheEntry_t*) csound->searchPathCache;
@@ -405,7 +405,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
       p = p->nxt;
     }
     /* not found, need to create new entry */
-    len = (int) strlen(envList);
+    len = (int32_t) strlen(envList);
     /* split environment variable list to tokens */
     for (i = j = 0; i <= len; i++) {
       if (envList[i] == ';' || envList[i] == ':' || envList[i] == '\0') {
@@ -441,7 +441,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
       csound->Free(csound, env_lst);
       env_lst = nxt;
       if (s != NULL && s[0] != '\0')
-        len = (int) strlen(s);
+        len = (int32_t) strlen(s);
       else
         len = -1;
       // **** THIS CODE DOES NOT CHECK FOR WINDOWS STYLE C:\foo ****
@@ -479,7 +479,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
         }
       }
     }
-    totLen += ((int) strlen(envList) + 1);
+    totLen += ((int32_t) strlen(envList) + 1);
     /* create path cache entry */
     p = (searchPathCacheEntry_t*) csound->Malloc(csound,
                                                  sizeof(searchPathCacheEntry_t)
@@ -488,7 +488,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     s = (char*) &(p->lst[pathCnt + 1]);
     p->name = s;
     strcpy(p->name, envList);
-    s += ((int) strlen(envList) + 1);
+    s += ((int32_t) strlen(envList) + 1);
     p->nxt = (searchPathCacheEntry_t*) csound->searchPathCache;
     if (UNLIKELY(csound->oparms->odebug))
       csound->DebugMsg(csound, Str("Creating search path cache for '%s':"),
@@ -496,7 +496,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     for (i = 0; (i < pathCnt) && (path_lst != NULL); i++) {
       p->lst[i] = s;
       strcpy(s, path_lst->s);
-      s += ((int) strlen(path_lst->s) + 1);
+      s += ((int32_t) strlen(path_lst->s) + 1);
       nxt = path_lst->nxt;
       csound->Free(csound, path_lst);
       path_lst = nxt;
@@ -514,7 +514,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
 char *csoundConvertPathname(CSOUND *csound, const char *filename)
 {
     char  *name;
-    int   i = 0;
+    int32_t   i = 0;
 
 /* FIXMEs:  need to convert ':' from Mac pathnames (but be careful of not
    messing up Windows drive names!); need to be careful of
@@ -541,7 +541,7 @@ char *csoundConvertPathname(CSOUND *csound, const char *filename)
 }
 
 /**  Check if name is a full pathname for the platform we are running on. */
-int csoundIsNameFullpath(const char *name)
+int32_t csoundIsNameFullpath(const char *name)
 {
 #ifdef WIN32
     if (isalpha(name[0]) && name[1] == ':') return 1;
@@ -556,7 +556,7 @@ int csoundIsNameFullpath(const char *name)
 /** Check if name is a relative pathname for this platform.  Bare
  *  filenames with no path information are not counted.
  */
-int csoundIsNameRelativePath(const char *name)
+int32_t csoundIsNameRelativePath(const char *name)
 {
     if (name[0] != DIRSEP && strchr(name, DIRSEP) != NULL)
       return 1;
@@ -564,7 +564,7 @@ int csoundIsNameRelativePath(const char *name)
 }
 
 /** Check if name is a "leaf" (bare) filename for this platform. */
-int csoundIsNameJustFilename(const char *name)
+int32_t csoundIsNameJustFilename(const char *name)
 {
     if (strchr(name, DIRSEP) != NULL) return 0;
 #ifdef WIN32
@@ -586,8 +586,8 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
     char *result;
     const char *start2;
     char separator[2];
-    int  len1 = strlen(path1);
-    int  len2 = strlen(path2);
+    int32_t  len1 = strlen(path1);
+    int32_t  len2 = strlen(path2);
 
     /* cannot join two full pathnames -- so just return path2 ? */
     if (csoundIsNameFullpath(path2)) {
@@ -623,7 +623,7 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     char *convPath;
     char *lastIndex;
     char *partialPath;
-    int  len;
+    int32_t  len;
 
     if ((convPath = csoundConvertPathname(csound, path)) == NULL)
         return NULL;
@@ -659,7 +659,7 @@ char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path)
     char *convPath;
     char *lastIndex;
     char *filename;
-    int  len;
+    int32_t  len;
 
     if ((convPath = csoundConvertPathname(csound, path)) == NULL)
       return NULL;
@@ -683,7 +683,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     char *partialPath, *tempPath, *lastIndex;
     char *retval;
     char *cwd;
-    int  len;
+    int32_t  len;
 
     if (path == NULL) return NULL;
 
@@ -760,7 +760,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
 #endif  
 }
 
-static SNDFILE *csoundOpenFile_Snd(CSOUND *csound, const char *path, int mode, SFLIB_INFO *sfinfo){
+static SNDFILE *csoundOpenFile_Snd(CSOUND *csound, const char *path, int32_t mode, SFLIB_INFO *sfinfo){
     SNDFILE *sf = NULL;
 
     if(csound->OpenSoundFileCallback_ != NULL) {
@@ -851,7 +851,7 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
         != NULL) {
-      //len = (int) strlen(name) + 1;
+      //len = (int32_t) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         f = csoundOpenFile_Std(csound, fullName, name2, mode);
@@ -877,12 +877,12 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     return (FILE*) NULL;
 }
 
-static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
-                             const char *filename, int write_mode,
+static int32_t csoundFindFile_Fd(CSOUND *csound, char **fullName,
+                             const char *filename, int32_t write_mode,
                              const char *envList)
 {
     char  *name, *name2, **searchPath;
-    int   fd;
+    int32_t   fd;
 
     *fullName = NULL;
     if ((name = csoundConvertPathname(csound, filename)) == NULL)
@@ -913,7 +913,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
         != NULL) {
-      //len = (int) strlen(name) + 1;
+      //len = (int32_t) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         if (!write_mode)
@@ -943,7 +943,7 @@ static int csoundFindFile_Fd(CSOUND *csound, char **fullName,
 }
 
 static SNDFILE *csoundFindFile_Snd(CSOUND *csound, char **fullName,
-                             const char *filename, int write_mode,
+                             const char *filename, int32_t write_mode,
                              SFLIB_INFO *sfinfo, const char *envList)
 {
     char  *name, *name2, **searchPath;
@@ -978,7 +978,7 @@ static SNDFILE *csoundFindFile_Snd(CSOUND *csound, char **fullName,
     if (envList != NULL && envList[0] != '\0' &&
         (searchPath = csoundGetSearchPathFromEnv((CSOUND*) csound, envList))
         != NULL) {
-      //len = (int) strlen(name) + 1;
+      //len = (int32_t) strlen(name) + 1;
       while (*searchPath != NULL) {
         name2 = csoundConcatenatePaths(csound, *searchPath, name);
         if (!write_mode)
@@ -1031,7 +1031,7 @@ char *csoundFindInputFile(CSOUND *csound,
                           const char *filename, const char *envList)
 {
     char  *name_found;
-    int   fd;
+    int32_t   fd;
 
     if (csound == NULL)
       return NULL;
@@ -1066,7 +1066,7 @@ char *csoundFindOutputFile(CSOUND *csound,
                            const char *filename, const char *envList)
 {
     char  *name_found;
-    int   fd;
+    int32_t   fd;
 
     if (csound == NULL)
       return NULL;
@@ -1084,9 +1084,9 @@ char *csoundFindOutputFile(CSOUND *csound,
  * CSOUND *csound:
  *   Csound instance pointer
  * void *fd:
- *   pointer a variable of type int, FILE*, or SNDFILE*, depending on 'type',
+ *   pointer a variable of type int32_t,  FILE*, or SNDFILE*, depending on 'type',
  *   for storing handle to be passed to file read/write functions
- * int type:
+ * int32_t type:
  *   file type, one of the following:
  *     CSFILE_FD_R:     read file using low level interface (open())
  *     CSFILE_FD_W:     write file using low level interface (open())
@@ -1108,9 +1108,9 @@ char *csoundFindOutputFile(CSOUND *csound,
  *   list of environment variables for search path (see csoundFindInputFile()
  *   for details); if NULL, the specified name is used as it is, without any
  *   conversion or search.
- * int csFileType:
+ * int32_t csFileType:
  *   A value from the enumeration CSOUND_FILETYPES (see soundCore.h)
- * int isTemporary:
+ * int32_t isTemporary:
  *   1 if this file will be deleted when Csound is finished.
  *   Otherwise, 0.
  * return value:
@@ -1119,20 +1119,20 @@ char *csoundFindOutputFile(CSOUND *csound,
  *   On failure, NULL is returned.
  */
 
-void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
+void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
                              const char *name, void *param, const char *env,
-                             int csFileType, int isTemporary)
+                             int32_t csFileType, int32_t isTemporary)
 {
     CSFILE  *p = NULL;
     char    *fullName = NULL;
     FILE    *tmp_f = NULL;
     SNDFILE *tmp_sf = NULL;
     SFLIB_INFO sfinfo;
-    int     tmp_fd = -1, nbytes = (int) sizeof(CSFILE);
+    int32_t     tmp_fd = -1, nbytes = (int32_t) sizeof(CSFILE);
 
 
     /* check file type */
-    if (UNLIKELY((unsigned int) (type - 1) >= (unsigned int) CSFILE_SND_W)) {
+    if (UNLIKELY((uint32_t) (type - 1) >= (uint32_t) CSFILE_SND_W)) {
       csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
                                  "invalid type: %d"), type);
       return NULL;
@@ -1194,7 +1194,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
         }
       }
     }
-    nbytes += (int) strlen(fullName);
+    nbytes += (int32_t) strlen(fullName);
     /* allocate file structure */
     p = (CSFILE*) csound->Malloc(csound, (size_t) nbytes);
     if (UNLIKELY(p == NULL))
@@ -1222,9 +1222,9 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
       memcpy(&sfinfo, param, sizeof(SFLIB_INFO));
       p->sf = sflib_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
       if (p->sf == (SNDFILE*) NULL) {
-        int   extPos;
+        int32_t   extPos;
         /* open failed: */
-        extPos = (nbytes - (int) sizeof(CSFILE)) - 4;
+        extPos = (nbytes - (int32_t) sizeof(CSFILE)) - 4;
         /* check for .sd2 file first */
         if (extPos > 0 &&
             p->fullName[extPos] == (char) '.' &&
@@ -1292,7 +1292,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     csound->open_files = (void*) p;
     /* notify the host if it asked */
     if (csound->FileOpenCallback_ != NULL) {
-      int writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
+      int32_t writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
                      (type == CSFILE_STD && ((char*)param)[0] == 'w'));
       if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
         csFileType = sftype2csfiletype(((SFLIB_INFO*)param)->format);
@@ -1338,15 +1338,15 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
  */
 
 void *csoundCreateFileHandle(CSOUND *csound,
-                             void *fd, int type, const char *fullName)
+                             void *fd, int32_t type, const char *fullName)
 {
     CSFILE  *p = NULL;
-    int     nbytes = (int) sizeof(CSFILE);
+    int32_t     nbytes = (int32_t) sizeof(CSFILE);
 
     /* name should not be empty */
     if (fullName == NULL || fullName[0] == '\0')
       return NULL;
-    nbytes += (int) strlen(fullName);
+    nbytes += (int32_t) strlen(fullName);
     /* allocate file structure */
     p = (CSFILE*) csound->Calloc(csound, (size_t) nbytes);
     if (p == NULL)
@@ -1400,10 +1400,10 @@ char *csoundGetFileName(void *fd)
  * Close a file previously opened with csoundFileOpen().
  */
 
-int csoundFileClose(CSOUND *csound, void *fd)
+int32_t csoundFileClose(CSOUND *csound, void *fd)
 {
     CSFILE  *p = (CSFILE*) fd;
-    int     retval = -1;
+    int32_t     retval = -1;
     if (p->async_flag == ASYNC_GLOBAL) {
       csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
       /* close file */
@@ -1485,10 +1485,10 @@ void close_all_files(CSOUND *csound)
 /* The fromScore parameter should be 1 if opening a score include file,
    0 if opening an orchestra include file */
 void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
-                 char *env, int fromScore)
+                 char *env, int32_t fromScore)
 {
     void *fd;
-    int  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
+    int32_t  csftype = (fromScore ? CSFTYPE_SCO_INCLUDE : CSFTYPE_ORC_INCLUDE);
 
     /* First try to open name given */
     fd = csound->FileOpen(csound, fp, CSFILE_STD, name, "r", NULL,
@@ -1516,9 +1516,9 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
 
 uintptr_t file_iothread(void *p);
 
-void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
+void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
                                    const char *name, void *param, const char *env,
-                                   int csFileType, int buffsize, int isTemporary)
+                                   int32_t csFileType, int32_t buffsize, int32_t isTemporary)
 {
 #ifndef __EMSCRIPTEN__
     CSFILE *p;
@@ -1554,8 +1554,8 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
 #endif
 }
 
-unsigned int csoundReadAsync(CSOUND *csound, void *handle,
-                             MYFLT *buf, int items)
+uint32_t csoundReadAsync(CSOUND *csound, void *handle,
+                             MYFLT *buf, int32_t items)
 {
     CSFILE *p = handle;
     if (p != NULL &&  p->cb != NULL)
@@ -1563,8 +1563,8 @@ unsigned int csoundReadAsync(CSOUND *csound, void *handle,
     else return 0;
 }
 
-unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
-                              MYFLT *buf, int items)
+uint32_t csoundWriteAsync(CSOUND *csound, void *handle,
+                              MYFLT *buf, int32_t items)
 {
     CSFILE *p = handle;
     if (p != NULL &&  p->cb != NULL)
@@ -1572,9 +1572,9 @@ unsigned int csoundWriteAsync(CSOUND *csound, void *handle,
     else return 0;
 }
 
-int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
+int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t whence){
     CSFILE *p = handle;
-    int ret = 0;
+    int32_t ret = 0;
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     switch (p->type) {
     case CSFILE_FD_R:
@@ -1596,13 +1596,13 @@ int csoundFSeekAsync(CSOUND *csound, void *handle, int pos, int whence){
 }
 
 
-static int read_files(CSOUND *csound){
+static int32_t read_files(CSOUND *csound){
     CSFILE *current = (CSFILE *) csound->open_files;
     if (current == NULL) return 0;
     while (current) {
       if (current->async_flag == ASYNC_GLOBAL) {
-        int m = current->pos, l, n = current->items;
-        int items = current->bufsize;
+        int32_t m = current->pos, l, n = current->items;
+        int32_t items = current->bufsize;
         MYFLT *buf = current->buf;
         switch (current->type) {
         case CSFILE_FD_R:
@@ -1638,9 +1638,9 @@ static int read_files(CSOUND *csound){
 
 
 uintptr_t file_iothread(void *p){
-    int res = 1;
+    int32_t res = 1;
     CSOUND *csound = p;
-    int wakeup = (int) (1000*csound->ksmps/csound->esr);
+    int32_t wakeup = (int32_t) (1000*csound->ksmps/csound->esr);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     if (wakeup == 0) wakeup = 1;
     while (res){

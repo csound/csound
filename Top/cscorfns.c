@@ -32,7 +32,7 @@
 #define NSLOTS     100      /* default slots in cscoreListCreate list   */
 #define MAXALLOC   32768L
 
-extern int lplay(CSOUND *, EVLIST *);
+extern int32_t lplay(CSOUND *, EVLIST *);
 
 typedef struct space {
         CSHDR  h;
@@ -44,7 +44,7 @@ typedef struct {
         FILE  *iscfp;
         EVENT *next;
         MYFLT until;
-        int   wasend, warped, atEOF;
+        int32_t   wasend, warped, atEOF;
 } INFILE;
 static INFILE *infiles = NULL;    /* array of infile status blks */
 
@@ -56,10 +56,10 @@ static SPACE  spaceanchor = { { NULL, NULL, TYP_SPACE, 0 }, NULL };
 static CSHDR  *nxtfree = NULL;   /* fast pointer to yet unused free space */
 static EVENT  *nxtevt = NULL;    /* to hold nxt infil event, PMAX pfields */
 static EVTBLK *nxtevtblk;        /* cs.h EVTBLK subset of EVENT nxtevt    */
-static int    warpout = 0;
+static int32_t    warpout = 0;
 static MYFLT  curuntil;          /* initialised to zero by cscoreFileOpen */
-static int    wasend;            /* ditto */
-static int    atEOF;             /* zero when file opened;
+static int32_t    wasend;            /* ditto */
+static int32_t    atEOF;             /* zero when file opened;
                                     stays one once rdscor returns 0 */
 
 
@@ -116,7 +116,7 @@ static SPACE *morespace(CSOUND *csound)
 /* search space chains for min size free blk */
 /* else alloc new space blk & reset fast free */
 
-static CSHDR *getfree(CSOUND *csound, int minfreesiz)
+static CSHDR *getfree(CSOUND *csound, int32_t minfreesiz)
 {
     SPACE *curspace;
     CSHDR *blkp;
@@ -165,12 +165,12 @@ static void csfree(CSHDR *bp)
 
 /* create an array of event pointer slots */
 
-PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
+PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int32_t nslots)
 {
     CSHDR *newblk, *newfree;
     EVLIST *a;
-    int   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
-    int   minfreesiz = needsiz + sizeof(CSHDR);
+    int32_t   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
+    int32_t   minfreesiz = needsiz + sizeof(CSHDR);
 
     if (UNLIKELY(minfreesiz > MAXALLOC)) {
       csound->Message(csound, Str("Not enough memory\n"));
@@ -196,12 +196,12 @@ PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
 
 /* creat a new event space */
 
-PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt)
+PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int32_t pcnt)
 {
     CSHDR *newblk, *newfree;
     EVENT *e;
-    int   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
-    int   minfreesiz = needsiz + sizeof(CSHDR);
+    int32_t   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
+    int32_t   minfreesiz = needsiz + sizeof(CSHDR);
 
     if (UNLIKELY(minfreesiz > MAXALLOC)) {
       csound->Message(csound, Str("Not enough memory\n"));
@@ -229,7 +229,7 @@ PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt)
 PUBLIC EVENT * cscoreCopyEvent(CSOUND *csound, EVENT *e)
 {
     EVENT *f;
-    int  n;
+    int32_t  n;
     MYFLT *p, *q;
 
     n = e->pcnt;
@@ -313,9 +313,9 @@ PUBLIC EVENT * cscoreGetEvent(CSOUND *csound)
 
 PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e)
 {
-    int  pcnt;
+    int32_t  pcnt;
     MYFLT *q;
-    int  c = e->op;
+    int32_t  c = e->op;
 
     if (c == 's')  warpout = 0;         /* new section:  init to non-warped */
     putc(c, csound->oscfp);
@@ -337,7 +337,7 @@ PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e)
         { fprintf(csound->oscfp," %g",*q++); }
     }
  termin:
-    putc((int)'\n', csound->oscfp);
+    putc((int32_t)'\n', csound->oscfp);
     if (c == 'w')  warpout = 1; /* was warp statement: sect now warped */
 }
 
@@ -355,7 +355,7 @@ static EVLIST * lexpand(CSOUND *csound, EVLIST *a)
 {
     EVLIST *b;
     EVENT **p, **q;
-    int n;
+    int32_t n;
 
     b = cscoreListCreate(csound, a->nslots + NSLOTS);
     b->nevents = n = a->nevents;
@@ -371,7 +371,7 @@ static EVLIST * lexpand(CSOUND *csound, EVLIST *a)
 
 PUBLIC EVLIST * cscoreListAppendEvent(CSOUND *csound, EVLIST *a, EVENT *e)
 {
-    int  n;
+    int32_t  n;
 
     if ((n = a->nevents) == a->nslots)
       a = lexpand(csound, a);
@@ -394,7 +394,7 @@ PUBLIC EVLIST * cscoreListGetSection(CSOUND *csound)
 {
     EVLIST *a;
     EVENT *e, **p;
-    int nevents = 0;
+    int32_t nevents = 0;
 
     a = cscoreListCreate(csound, NSLOTS);
     p = &a->e[1];
@@ -421,7 +421,7 @@ PUBLIC EVLIST * cscoreListGetUntil(CSOUND *csound, MYFLT beatno)
 {
     EVLIST *a;
     EVENT *e, **p;
-    int nevents = 0;
+    int32_t nevents = 0;
     char op;
 
     a = cscoreListCreate(csound, NSLOTS);
@@ -464,7 +464,7 @@ PUBLIC EVLIST * cscoreListGetNext(CSOUND *csound, MYFLT nbeats)
 PUBLIC void cscoreListPut(CSOUND *csound, EVLIST *a)
 {
     EVENT **p;
-    int  n;
+    int32_t  n;
 
     n = a->nevents;
     p = &a->e[1];
@@ -472,7 +472,7 @@ PUBLIC void cscoreListPut(CSOUND *csound, EVLIST *a)
       cscorePutEvent(csound, *p++);
 }
 
-PUBLIC int cscoreListPlay(CSOUND *csound, EVLIST *a)
+PUBLIC int32_t cscoreListPlay(CSOUND *csound, EVLIST *a)
 {
     return lplay(csound, a);
 }
@@ -481,7 +481,7 @@ PUBLIC EVLIST * cscoreListCopy(CSOUND *csound, EVLIST *a)
 {
     EVLIST *b;
     EVENT **p, **q;
-    int  n = a->nevents;
+    int32_t  n = a->nevents;
 
     b = cscoreListCreate(csound, n);
     b->nevents = n;
@@ -496,7 +496,7 @@ PUBLIC EVLIST * cscoreListCopyEvents(CSOUND *csound, EVLIST *a)
 {
     EVLIST *b;
     EVENT **p, **q;
-    int  n = a->nevents;
+    int32_t  n = a->nevents;
 
     b = cscoreListCreate(csound, n);
     b->nevents = n;
@@ -510,13 +510,13 @@ PUBLIC EVLIST * cscoreListCopyEvents(CSOUND *csound, EVLIST *a)
 PUBLIC EVLIST * cscoreListAppendList(CSOUND *csound, EVLIST *a, EVLIST *b)
 {
     EVENT **p, **q;
-    int i, j;
+    int32_t i, j;
 
     i = a->nevents;
     j = b->nevents;
     if (i + j >= a->nslots) {
       EVLIST *c;
-      int n = i;
+      int32_t n = i;
       c = cscoreListCreate(csound, i+j);
       p = &a->e[1];
       q = &c->e[1];
@@ -545,7 +545,7 @@ PUBLIC void cscoreListSort(CSOUND *csound, EVLIST *a)
     IGN(csound);
     EVENT **p, **q;
     EVENT *e, *f;
-    int  n, gap, i, j;
+    int32_t  n, gap, i, j;
 
     n = a->nevents;
     e = a->e[n];
@@ -580,8 +580,8 @@ PUBLIC void cscoreListSort(CSOUND *csound, EVLIST *a)
 PUBLIC EVLIST * cscoreListExtractInstruments(CSOUND *csound,
                EVLIST *a, char *s) /* list extract by instr numbers */
 {
-    int     x[5], xcnt;
-    int     xn, *xp, insno, n;
+    int32_t     x[5], xcnt;
+    int32_t     xn, *xp, insno, n;
     EVENT   **p, **q, *e;
     EVLIST  *b, *c;
 
@@ -594,7 +594,7 @@ PUBLIC EVLIST * cscoreListExtractInstruments(CSOUND *csound,
       if (e->op != 'i')
         *q++ = e;
       else {
-        insno = (int)e->p[1];
+        insno = (int32_t)e->p[1];
         xn = xcnt;  xp = x;
         while (xn--)
           if (*xp++ == insno) {
@@ -614,7 +614,7 @@ PUBLIC EVLIST * cscoreListExtractTime(CSOUND *csound,
     EVENT **p, **q, *e;
     EVLIST *b, *c;
     MYFLT maxp3;
-    int  n;
+    int32_t  n;
 
     n = a->nevents;
     b = cscoreListCreate(csound,n);
@@ -666,7 +666,7 @@ PUBLIC EVLIST * cscoreListExtractTime(CSOUND *csound,
 static void fp2chk(CSOUND *csound, EVLIST *a, char *s)
 {
     EVENT *e, **ep = &a->e[1];
-    int n = a->nevents, count = 0;
+    int32_t n = a->nevents, count = 0;
 
     while (n--)
       if ((e = *ep++) && e->op == 'f' && e->p[2] != 0.)
@@ -682,7 +682,7 @@ PUBLIC EVLIST * cscoreListSeparateF(CSOUND *csound, EVLIST *a)
 {
     EVLIST  *b, *c;
     EVENT   **p, **q, **r;
-    int     n;
+    int32_t     n;
 
     n = a->nevents;
     b = cscoreListCreate(csound, n);
@@ -707,7 +707,7 @@ PUBLIC EVLIST * cscoreListSeparateTWF(CSOUND *csound, EVLIST *a)
 {
     EVLIST *b, *c;
     EVENT **p, **q, **r;
-    int   n, op;
+    int32_t   n, op;
 
     n = a->nevents;
     b = cscoreListCreate(csound,n);
@@ -748,7 +748,7 @@ PUBLIC void cscoreListFreeEvents(CSOUND *csound, EVLIST *a)
 {
      IGN(csound);
     EVENT **p = &a->e[1];
-    int  n = a->nevents;
+    int32_t  n = a->nevents;
 
     while (n--)
       csfree((CSHDR *) *p++);
@@ -762,12 +762,12 @@ static void savinfdata(         /* store input file data */
   FILE  *fp,
   EVENT *next,
   MYFLT until,
-  int   wasend,
-  int   warp,
-  int   eof)
+  int32_t   wasend,
+  int32_t   warp,
+  int32_t   eof)
 {
     INFILE *infp;
-    int    n;
+    int32_t    n;
 
     if ((infp = infiles) == NULL) {
       infp = infiles = (INFILE *) csound->Calloc(csound, MAXOPEN * sizeof(INFILE));
@@ -798,7 +798,7 @@ static void savinfdata(         /* store input file data */
 static void makecurrent(CSOUND *csound, FILE *fp)
 {
     INFILE *infp;
-    int    n;
+    int32_t    n;
 
     if ((infp = infiles) != NULL)
       for (n = MAXOPEN; n--; infp++)
@@ -826,13 +826,13 @@ static void makecurrent(CSOUND *csound, FILE *fp)
 
 /* verify initial scfp, init other data */
 /* record & make all this current       */
-PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
+PUBLIC int32_t csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
 {
     EVENT  *next;
 
     if (insco != NULL) {
       CORFIL *inf = corfile_create_w(csound);
-      int c;
+      int32_t c;
       while ((c=getc(insco))!=EOF) corfile_putc(csound, c, inf);
       corfile_rewind(inf);
       csound->scstr = inf;
@@ -885,7 +885,7 @@ PUBLIC FILE *cscoreFileOpen(CSOUND *csound, char *name)
 PUBLIC void cscoreFileClose(CSOUND *csound, FILE *fp)
 {
     INFILE *infp;
-    int n;
+    int32_t n;
 
     if (fp == NULL) {
       csound->Message(csound, Str("cscoreFileClose: NULL file pointer\n"));
@@ -919,7 +919,7 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 {
     if (fp != NULL) {
       CORFIL *inf = corfile_create_w(csound);
-      int c;
+      int32_t c;
       fseek(fp, 0, SEEK_SET);
       while ((c=getc(fp))!=EOF) corfile_putc(csound, c, inf);
       corfile_rewind(inf);
@@ -936,11 +936,11 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 
 /* count entries in event list */
 
-PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)
+PUBLIC int32_t cscoreListCount(CSOUND *csound, EVLIST *a)
 {
      IGN(csound);
     EVENT **p;
-    int  n, nrem;
+    int32_t  n, nrem;
 
     n = 0;
     nrem = a->nslots;

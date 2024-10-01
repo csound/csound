@@ -27,8 +27,8 @@
 
 #include "csoundCore.h"
 
-/* typedef int    (*SUBR)(void *, void *); */
+/* typedef int32_t    (*SUBR)(void *, void *); */
 
-extern ORCTOKEN *new_token(CSOUND *, int);
+extern ORCTOKEN *new_token(CSOUND *, int32_t);
 
 #endif

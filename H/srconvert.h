@@ -26,17 +26,19 @@
 
 #include "csound.h"
 
-typedef struct _SR_CONVERTER {
+typedef struct _SR_CONVERTER
+{
   float *bufferin, *bufferout;
-  float ratio;
-  int size;
-  int cnt;
-  int mode;
-  void *data;
+  float   ratio;
+  int32_t     size;
+  int32_t     cnt;
+  int32_t     mode;
+  void   *data;
 } SR_CONVERTER;
 
-SR_CONVERTER *src_init(CSOUND *, int, float, int);
+
+SR_CONVERTER *src_init(CSOUND *, int32_t, float, int32_t);
 void src_deinit(CSOUND *, SR_CONVERTER *);
-int src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
+int32_t src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
 
 #endif

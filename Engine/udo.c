@@ -37,13 +37,13 @@
 
 */
 
-int useropcdset(CSOUND *csound, UOPCODE *p)
+int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
   INSDS        *parent_ip = csound->curip, *lcurip;
   INSTRTXT     *tp;
-  unsigned int instno;
-  unsigned int i;
+  uint32_t instno;
+  uint32_t i;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
   /* look up the 'fake' instr number, and opcode name */
@@ -184,7 +184,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
      (3) local sr >= parent sr: select useropcd2
   */
   if (lcurip->ksmps != parent_ip->ksmps) {
-    int ksmps_scale = lcurip->ksmps / parent_ip->ksmps;
+    int32_t ksmps_scale = lcurip->ksmps / parent_ip->ksmps;
     parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
     if(lcurip->esr == parent_ip->esr) // (1) local sr == parent sr
       p->h.perf = (SUBR) useropcd1;
@@ -201,7 +201,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   return OK;
 }
 
-int useropcd(CSOUND *csound, UOPCODE *p)
+int32_t useropcd(CSOUND *csound, UOPCODE *p)
 {
 
   if (UNLIKELY(p->h.nxtp))
@@ -211,12 +211,12 @@ int useropcd(CSOUND *csound, UOPCODE *p)
     return OK;
 }
 
-int xinset(CSOUND *csound, XIN *p)
+int32_t xinset(CSOUND *csound, XIN *p)
 {
   OPCOD_IOBUFS  *buf;
   OPCODINFO   *inm;
   MYFLT **bufs, **tmp;
-  int i, k = 0;
+  int32_t i, k = 0;
   CS_VARIABLE* current;
   UOPCODE  *udo;
   MYFLT parent_sr;
@@ -280,14 +280,14 @@ int xinset(CSOUND *csound, XIN *p)
   return OK;
 }
 
-int xoutset(CSOUND *csound, XOUT *p)
+int32_t xoutset(CSOUND *csound, XOUT *p)
 {
   OPCOD_IOBUFS  *buf;
   OPCODINFO   *inm;
   MYFLT       **bufs, **tmp;
   CS_VARIABLE* current;
   UOPCODE  *udo;
-  int i, k = 0;
+  int32_t i, k = 0;
   MYFLT parent_sr;
 
   (void) csound;
@@ -348,16 +348,16 @@ int xoutset(CSOUND *csound, XOUT *p)
 
 
 // local ksmps and global sr
-int useropcd1(CSOUND *csound, UOPCODE *p)
+int32_t useropcd1(CSOUND *csound, UOPCODE *p)
 {
-  int    g_ksmps, ofs, early, offset, i;
+  int32_t    g_ksmps, ofs, early, offset, i;
   OPDS *opstart;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   INSDS    *this_instr = p->ip;
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
-  int done;
+  int32_t done;
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -409,8 +409,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          int count = src->sizes[0];
-          int j;
+          int32_t count = src->sizes[0];
+          int32_t j;
           if (src->dimensions > 1) {
             for (j = 0; j < src->dimensions; j++) {
               count *= src->sizes[j];
@@ -418,7 +418,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
 
           for (j = 0; j < count; j++) {
-            int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+            int32_t memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
             MYFLT* out = target->data + memberOffset;
             *out = *(in + ofs);
@@ -428,7 +428,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
       }
 
       if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
-        int error = 0;
+        int32_t error = 0;
         do {
           if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
           opstart->insdshead->pds = opstart;
@@ -449,8 +449,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          int count = src->sizes[0];
-          int j;
+          int32_t count = src->sizes[0];
+          int32_t j;
           if (src->dimensions > 1) {
             for (j = 0; j < src->dimensions; j++) {
               count *= src->sizes[j];
@@ -458,7 +458,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
 
           for (j = 0; j < count; j++) {
-            int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
+            int32_t memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
             MYFLT* out = target->data + memberOffset;
             *(out + ofs) = *in;
@@ -478,8 +478,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
        whole CS_KSMPS blocks are offset here, the
        remainder is left to each opcode to deal with.
     */
-    int start = 0;
-    int lksmps = this_instr->ksmps;
+    int32_t start = 0;
+    int32_t lksmps = this_instr->ksmps;
     while (ofs >= lksmps) {
       ofs -= lksmps;
       start++;
@@ -513,8 +513,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          int count = src->sizes[0];
-          int j;
+          int32_t count = src->sizes[0];
+          int32_t j;
           if (src->dimensions > 1) {
             for (j = 0; j < src->dimensions; j++) {
               count *= src->sizes[j];
@@ -533,7 +533,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       /*  run each opcode  */
       if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
-        int error = 0;
+        int32_t error = 0;
         do {
           if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
           opstart->insdshead->pds = opstart;
@@ -554,8 +554,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          int count = src->sizes[0];
-          int j;
+          int32_t count = src->sizes[0];
+          int32_t j;
           if (src->dimensions > 1) {
             for (j = 0; j < src->dimensions; j++) {
               count *= src->sizes[j];
@@ -604,8 +604,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
                  current->subType == &CS_VAR_TYPE_A) {
         if (offset || early) {
           ARRAYDAT* outDat = (ARRAYDAT*)out;
-          int count = outDat->sizes[0];
-          int j;
+          int32_t count = outDat->sizes[0];
+          int32_t j;
           if (outDat->dimensions > 1) {
             for (j = 0; j < outDat->dimensions; j++) {
               count *= outDat->sizes[j];
@@ -622,7 +622,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
           if (early) {
             for (j = 0; j < count; j++) {
-              int memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
+              int32_t memberOffset = j * (outDat->arrayMemberSize / sizeof(MYFLT));
               MYFLT* outMem = outDat->data + memberOffset;
               memset(outMem + g_ksmps, '\0', sizeof(MYFLT) * early);
             }
@@ -642,13 +642,13 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 }
 
 // global ksmps amd global or local sr
-int useropcd2(CSOUND *csound, UOPCODE *p)
+int32_t useropcd2(CSOUND *csound, UOPCODE *p)
 {
   MYFLT   **tmp;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
-  int i, done;
-  int os = (int) (p->ip->esr/p->parent_ip->esr);
+  int32_t i, done;
+  int32_t os = (int) (p->ip->esr/p->parent_ip->esr);
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   done = ATOMIC_GET(p->ip->init_done);
@@ -668,7 +668,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
   MYFLT** internal_ptrs = tmp;
   MYFLT** external_ptrs = p->ar;
-  int ocnt = 0;
+  int32_t ocnt = 0;
 
   /*  run each opcode, oversampling if necessary  */
   for(ocnt = 0; ocnt < os; ocnt++){
@@ -775,17 +775,17 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 * 5. Iterate through the perf chain to find references to xin/xout vars and set
 * the pointers to the input/out variable argument pointer addresses.
 */
-int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
+int32_t useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
   OPDS *saved_ids = csound->ids;
   INSDS *parent_ip = csound->curip, *lcurip;
   INSTRTXT *tp;
-  unsigned int instno;
-  unsigned int pcnt;
-  unsigned int i, n;
+  uint32_t instno;
+  uint32_t pcnt;
+  uint32_t i, n;
   OPCODINFO *inm;
   OPCOD_IOBUFS *buf = NULL;
   MYFLT ksmps_scale;
-  unsigned int local_ksmps;
+  uint32_t local_ksmps;
   /* default ksmps */
   local_ksmps = CS_KSMPS;
   ksmps_scale = 1;
@@ -1086,10 +1086,10 @@ int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
 }
 
 /** Runs perf-time chain*/
-int useropcd_newstyle(CSOUND *csound, UOPCODE *p)
+int32_t useropcd_newstyle(CSOUND *csound, UOPCODE *p)
 {
   OPDS    *saved_pds = CS_PDS;
-  int done;
+  int32_t done;
 
   done = ATOMIC_GET(p->ip->init_done);
 

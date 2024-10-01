@@ -27,8 +27,8 @@
 #include "corfile.h"
 #include <ctype.h>
 
-static void list_audio_devices(CSOUND *csound, int output);
-static void list_midi_devices(CSOUND *csound, int output);
+static void list_audio_devices(CSOUND *csound, int32_t output);
+static void list_midi_devices(CSOUND *csound, int32_t output);
 extern void strset_option(CSOUND *csound, char *s);     /* from str_ops.c */
 extern void print_csound_version(CSOUND* csound);
 
@@ -50,7 +50,7 @@ extern void print_csound_version(CSOUND* csound);
 static FILE *logFile = NULL;    /* NOT THREAD SAFE */
 
 void msg_callback(CSOUND *csound,
-                         int attr, const char *format, va_list args)
+                         int32_t attr, const char *format, va_list args)
 {
     (void) csound;
     if ((attr & CSOUNDMSG_TYPE_MASK) != CSOUNDMSG_REALTIME) {
@@ -74,11 +74,11 @@ void msg_callback(CSOUND *csound,
 }
 
 void nomsg_callback(CSOUND *csound,
-  int attr, const char *format, va_list args){ return; }
+  int32_t attr, const char *format, va_list args){ return; }
 
 void do_logging(char *s)
 {
-    int nomessages = 0;
+    int32_t nomessages = 0;
     if (logFile) return;
     if (!strcmp(s, "NULL") || !strcmp(s, "null"))
       nomessages = 1;
@@ -105,7 +105,7 @@ void end_logging(void)
 #define do_logging(x) {}
 #endif
 
-static inline void set_stdin_assign(CSOUND *csound, int type, int state)
+static inline void set_stdin_assign(CSOUND *csound, int32_t type, int32_t state)
 {
     if (state)
       csound->stdin_assign_flg |= type;
@@ -113,7 +113,7 @@ static inline void set_stdin_assign(CSOUND *csound, int type, int state)
       csound->stdin_assign_flg &= (~type);
 }
 
-static inline void set_stdout_assign(CSOUND *csound, int type, int state)
+static inline void set_stdout_assign(CSOUND *csound, int32_t type, int32_t state)
 {
     if (state)
       csound->stdout_assign_flg |= type;
@@ -327,7 +327,7 @@ static const char *longUsageList[] = {
 void print_short_usage(CSOUND *csound)
 {
     char    buf[256];
-    int     i;
+    int32_t     i;
     i = -1;
     print_csound_version(csound);
     csound->Message(csound, Str("\nShort options format:\n"));
@@ -438,7 +438,7 @@ static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
 
 const char* get_output_format(OPARMS *O)
 {
-  int i = 0;
+  int32_t i = 0;
   char c;
     switch (O->outformat) {
     case  AE_ALAW:
@@ -484,7 +484,7 @@ const char* get_output_format(OPARMS *O)
 
 typedef struct {
     char    *format;
-    int     type;
+    int32_t     type;
 } SOUNDFILE_TYPE_ENTRY;
 
 static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
@@ -507,7 +507,7 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
 extern void sfopenout(CSOUND *csound);
 extern void sfcloseout(CSOUND *csound);
 
-static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
+static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv)
 {
     OPARMS  *O = csound->oparms;
     /* Add other long options here */
@@ -748,7 +748,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "m-amps=", 7))) {
-      int n;
+      int32_t n;
       s += 7;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message amps"));
       sscanf(s, "%d", &n);
@@ -757,7 +757,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "m-range=",8))) {
-      int n;
+      int32_t n;
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message range"));
       sscanf(s, "%d", &n);
@@ -766,7 +766,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
      }
     else if (!(strncmp (s, "m-warnings=",11))) {
-      int n;
+      int32_t n;
       s += 11;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message warnings"));
       sscanf(s, "%d", &n);
@@ -775,7 +775,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "m-raw=",6))) {
-      int n;
+      int32_t n;
       s += 6;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message raw"));
       sscanf(s, "%d", &n);
@@ -784,7 +784,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "m-dB=",5))) {
-      int n;
+      int32_t n;
       s += 5;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message dB"));
       sscanf(s, "%d", &n);
@@ -793,7 +793,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "m-colours=",10)) || !(strncmp (s, "m-colors=",9))) {
-      int n;
+      int32_t n;
       s += 10;
       if (*s=='\0') dieu(csound, Str("no message colours"));
       sscanf(s, "%d", &n);
@@ -802,7 +802,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "m-benchmarks=",13))) {
-      int n;
+      int32_t n;
       s += 13;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no benchmark level"));
       sscanf(s, "%d", &n);
@@ -943,7 +943,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "utility=", 8))) {
-      int retval;
+      int32_t retval;
       s += 8;
       if (*s==3) s++;           /* skip ETX */
       if (*s=='\0') dieu(csound, Str("no utility name"));
@@ -974,7 +974,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp (s, "list-opcodes", 12))) {
-      int full = 0;
+      int32_t full = 0;
       s += 12;
 
       if (*s != '\0') {
@@ -1033,10 +1033,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         return 1;
     }
     else if (!(strncmp (s, "opcode-lib=", 11))) {
-      int   nbytes;
+      int32_t   nbytes;
       s += 11;
       if (*s==3) s++;           /* skip ETX */
-      nbytes = (int) strlen(s) + 1;
+      nbytes = (int32_t) strlen(s) + 1;
       if (csound->dl_opcodes_oplibs == NULL) {
         /* start new library list */
         csound->dl_opcodes_oplibs = (char*) csound->Malloc(csound, (size_t) nbytes);
@@ -1044,7 +1044,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       }
       else {
         /* append to existing list */
-        nbytes += ((int) strlen(csound->dl_opcodes_oplibs) + 1);
+        nbytes += ((int32_t) strlen(csound->dl_opcodes_oplibs) + 1);
         csound->dl_opcodes_oplibs = (char*) csound->ReAlloc(csound,
                                                      csound->dl_opcodes_oplibs,
                                                      (size_t) nbytes);
@@ -1106,7 +1106,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strncmp(s, "sinesize=", 9))) {
       {
-        int i = 1, n;
+        int32_t i = 1, n;
         s += 9;
         n = atoi(s);
         while (i<=n && i< MAXLEN) i <<= 1;
@@ -1265,28 +1265,28 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     return 0;
 }
 
-PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
+PUBLIC int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_)
 {
     OPARMS  *O = csound->oparms;
     char    *s, **argv;
-    int     n;
+    int32_t     n;
     char    c;
 
     /* make a copy of the option list */
     char  *p1, *p2;
-    int   nbytes, i;
+    int32_t   nbytes, i;
     /* calculate the number of bytes to allocate */
     /* N.B. the argc value passed to argdecode is decremented by one */
-    nbytes = (argc + 1) * (int) sizeof(char*);
+    nbytes = (argc + 1) * (int32_t) sizeof(char*);
     for (i = 0; i <= argc; i++)
-      nbytes += ((int) strlen(argv_[i]) + 1);
+      nbytes += ((int32_t) strlen(argv_[i]) + 1);
     p1 = (char*) csound->Malloc(csound, nbytes); /* will be freed by memRESET() */
-    p2 = (char*) p1 + ((int) sizeof(char*) * (argc + 1));
+    p2 = (char*) p1 + ((int32_t) sizeof(char*) * (argc + 1));
     argv = (char**) p1;
     for (i = 0; i <= argc; i++) {
       argv[i] = p2;
       strcpy(p2, argv_[i]);
-      p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
+      p2 = (char*) p2 + ((int32_t) strlen(argv_[i]) + 1);
     }
     //<csound->keep_tmp = 0;
 
@@ -1298,7 +1298,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'U':
             FIND(Str("no utility name"));
             {
-              int retval = csoundRunUtility(csound, s, argc, argv);
+              int32_t retval = csoundRunUtility(csound, s, argc, argv);
               if (retval) {
                   csound->info_message_request = 1;
                   csound->orchname = NULL;
@@ -1320,7 +1320,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'i':
             FIND(Str("no infilename"));
             O->infilename = s;            /* soundin name */
-            s += (int) strlen(s);
+            s += (int32_t) strlen(s);
             if (UNLIKELY(strcmp(O->infilename, "stdout")) == 0)
               csoundDie(csound, Str("input cannot be stdout"));
             if (strcmp(O->infilename, "stdin") == 0) {
@@ -1336,7 +1336,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'o':
             FIND(Str("no outfilename"));
             O->outfilename = s;           /* soundout name */
-            s += (int) strlen(s);
+            s += (int32_t) strlen(s);
             if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
               dieu(csound, Str("-o cannot be stdin"));
             if (strcmp(O->outfilename, "stdout") == 0) {
@@ -1434,7 +1434,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'L':
             FIND(Str("no Linein score device_name"));
             O->Linename = s;              /* Linein device name */
-            s += (int) strlen(s);
+            s += (int32_t) strlen(s);
             if (!strcmp(O->Linename, "stdin")) {
               set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
             }
@@ -1445,7 +1445,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'M':
             FIND(Str("no midi device_name"));
             O->Midiname = s;              /* Midi device name */
-            s += (int) strlen(s);
+            s += (int32_t) strlen(s);
             if (strcmp(O->Midiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-M: stdin not supported on this platform"));
@@ -1460,7 +1460,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'F':
             FIND(Str("no midifile name"));
             O->FMidiname = s;             /* Midifile name */
-            s += (int) strlen(s);
+            s += (int32_t) strlen(s);
             if (strcmp(O->FMidiname, "stdin")==0) {
 #if defined(WIN32)
               csoundDie(csound, Str("-F: stdin not supported on this platform"));
@@ -1475,7 +1475,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'Q':
             FIND(Str("no MIDI output device"));
             O->Midioutname = s;
-            s += (int) strlen(s);
+            s += (int32_t) strlen(s);
             break;
           case 'R':
             O->rewrt_hdr = 1;
@@ -1502,7 +1502,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             break;
           case 'z':
             {
-              int full = 0;
+              int32_t full = 0;
               if (*s != '\0') {
                 if (isdigit(*s)) full = *s++ - '0';
               }
@@ -1513,7 +1513,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             break;
           case 'Z':
             {
-              int full = 1;
+              int32_t full = 1;
               if (*s != '\0') {
                 if (isdigit(*s)) full = *s++ - '0';
               }
@@ -1601,13 +1601,13 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
     return 1;
 }
 
-PUBLIC int csoundSetOption(CSOUND *csound, const char *opt){
+PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt){
     /* if already compiled and running, return */
     if (csound->engineStatus & CS_STATE_COMP) return 1;
     else {
       char **args;
       char *options, *sp;
-      int cnt = 0, ret;
+      int32_t cnt = 0, ret;
       if((ret = setjmp(csound->exitjmp) != 0))
         return ret;
       
@@ -1778,7 +1778,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
 
     oparms->sfwrite = 1;
     if (type != NULL) {
-      int i=0;
+      int32_t i=0;
       while ((typename = file_type_map[i].format) != NULL) {
         if (!strcmp(type,typename)) break;
         i++;
@@ -1788,7 +1788,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
       }
     }
     if (format != NULL) {
-      int i=0;
+      int32_t i=0;
       while ((typename = sample_format_map[i].longformat) != NULL) {
         if (!strcmp(format,typename)) break;
         i++;
@@ -1804,7 +1804,7 @@ PUBLIC void csoundGetOutputFormat(CSOUND *csound,
 {
 
     OPARMS *oparms = csound->oparms;
-    int i = 0;
+    int32_t i = 0;
     const char* fmt = get_output_format(oparms);
     while (file_type_map[i].type != oparms->filetyp  &&
            file_type_map[i].format  != NULL) i++;
@@ -1902,9 +1902,9 @@ PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name) {
     strcpy(oparms->Midioutname, name);
 }
 
-static void list_audio_devices(CSOUND *csound, int output){
+static void list_audio_devices(CSOUND *csound, int32_t output){
 
-    int i,n = csoundGetAudioDevList(csound,NULL, output);
+    int32_t i,n = csoundGetAudioDevList(csound,NULL, output);
     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
       csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     if (output)
@@ -1913,7 +1913,7 @@ static void list_audio_devices(CSOUND *csound, int output){
       csound->Message(csound, Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
     for (i=0; i < n; i++) {
-      int nchnls = devs[i].max_nchnls;
+      int32_t nchnls = devs[i].max_nchnls;
       if(nchnls > 0)
         csound->Message(csound, " %d: %s (%s) [ch:%d]\n",
                         i, devs[i].device_id, devs[i].device_name, nchnls);
@@ -1924,9 +1924,9 @@ static void list_audio_devices(CSOUND *csound, int output){
     csound->Free(csound, devs);
 }
 
-static void list_midi_devices(CSOUND *csound, int output){
+static void list_midi_devices(CSOUND *csound, int32_t output){
 
-    int i,n = csoundGetMIDIDevList(csound,NULL, output);
+    int32_t i,n = csoundGetMIDIDevList(csound,NULL, output);
     CS_MIDIDEVICE *devs =
       (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)

@@ -594,7 +594,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
 {
     int32_t   len;
     char  inbuf[256];
-    int in_comment = 0;
+    int32_t in_comment = 0;
 
     switch(format) {               /* place formatted kvals into outbuf */
     case 1: {
@@ -632,7 +632,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 7:
       while (nk--) {
         char *bp = inbuf;
-        int c;
+        int32_t c;
         /* NOTE: could use nextval() in Engine/fgens.c instead */
         do {                    /* Skip whitespace and comments */
           c = getc(ifd);
@@ -664,7 +664,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 8:
       while (nk--) {
         char *bp = inbuf;
-        int c;
+        int32_t c;
         do {                    /* Skip whitespace and comments */
           c = getc(ifd);
           switch (c) {

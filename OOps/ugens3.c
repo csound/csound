@@ -496,7 +496,7 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
                                                MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
   MYFLT   fract, tmpL, tmpR;
-  int     x;
+  int32_t     x;
 
   fract = MODF(phs, &tmpL);
   x = (int32_t) 2*tmpL;

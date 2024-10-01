@@ -868,7 +868,7 @@ babo2(CSOUND *csound, void *entry)
     MYFLT   *outleft    = p->outleft,
             *outright   = p->outright,
             *input      = p->input;
-    int i;
+    int32_t i;
 
     BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
                           right = { {FL(0.0)}, {{FL(0.0)}} };

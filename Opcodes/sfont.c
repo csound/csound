@@ -72,11 +72,11 @@ typedef struct _sfontg {
   MYFLT pitches[128];
 } sfontg;
 
-static int SoundFontLoad(CSOUND *csound, char *fname)
+static int32_t SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     void *fd;
-    int i;
+    int32_t i;
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -135,7 +135,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
                                        /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char *fname;
-    int hand;
+    int32_t hand;
     SFBANK *sf;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -2815,16 +2815,16 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
 
 #ifdef BUILD_PLUGINS
 
-PUBLIC int csoundModuleCreate(CSOUND *csound){
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound){
   return sfont_ModuleCreate(csound);
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound){
+PUBLIC int32_t csoundModuleInit(CSOUND *csound){
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   return sfont_ModuleDestroy(csound);
 }
 

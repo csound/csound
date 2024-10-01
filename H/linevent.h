@@ -31,8 +31,8 @@
 typedef struct {
     OPDS   h;
     MYFLT  *args[VARGMAX];
-    int argno;
-    int flag;
+    int32_t argno;
+    int32_t flag;
 } LINEVENT;
 
 
@@ -40,7 +40,7 @@ typedef struct {
     OPDS   h;
     MYFLT  *inst;
     MYFLT  *args[VARGMAX];
-    int argno;
+    int32_t argno;
 } LINEVENT2;
 
 #endif      /* CSOUND_LINEVENT_H */

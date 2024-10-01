@@ -69,7 +69,7 @@ TEST_F (ChannelTests, ChannelList)
     csoundCompileOrc(csound, orc2);
     ASSERT_TRUE(csoundStart(csound) == CSOUND_SUCCESS);
     controlChannelInfo_t *lst;
-    int numchnls = csoundListChannels(csound, &lst);
+    int32_t numchnls = csoundListChannels(csound, &lst);
     ASSERT_TRUE(numchnls == 2);
     ASSERT_STREQ(lst->name, "testing");
     ASSERT_EQ (lst->type, CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL
@@ -125,7 +125,7 @@ TEST_F (ChannelTests, ChannelCallbacks)
     csoundCompileOrc(csound, orc3);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback);
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback);
-    int err = csoundStart(csound);
+    int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     csoundScoreEvent(csound, 'i', pFields, 3);
@@ -180,7 +180,7 @@ TEST_F (ChannelTests, ChannelOpcodes)
     csoundCompileOrc(csound, orc4);
     csoundSetInputChannelCallback(csound, (channelCallback_t) inputCallback2);
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback2);
-    int err = csoundStart(csound);
+    int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     csoundGetControlChannel(csound, "1", &err);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
@@ -217,7 +217,7 @@ const char orc5[] = "chn_k \"winsize\", 3\n"
  NEEDS TO BE ADAPTED for new API
 TEST_F (ChannelTests, PVSOpcodes)
 {
-    int err = csoundCompileOrc(csound, orc5);
+    int32_t err = csoundCompileOrc(csound, orc5);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     err = csoundStart(csound);
     PVSDATEXT pvs_data, pvs_data2;
@@ -239,7 +239,7 @@ TEST_F (ChannelTests, InvalidChannel)
 {
     csoundCompileOrc(csound, orc5);
 
-    int err;
+    int32_t err;
     ASSERT_EQ(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
     ASSERT_EQ(err, CSOUND_SUCCESS);
 }
@@ -277,11 +277,11 @@ TEST_F (ChannelTests, StringChannel)
     const char orcS[] = "chn_S \"strchan1\",1\n chn_S \"strchan2\",2\n chn_S \"strchan3\",3\n instr 1\n  endin\n";
 
     csoundCompileOrc(csound, orcS);
-    int err = csoundStart(csound);
+    int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
 
     csoundSetStringChannel(csound, "testing", "ttt");
-    int len = csoundGetChannelDatasize(csound, "testing");
+    int32_t len = csoundGetChannelDatasize(csound, "testing");
     char* string = new char[len];
     csoundGetStringChannel(csound, "testing", string);
     ASSERT_STREQ(string, "ttt");

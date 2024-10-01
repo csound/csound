@@ -59,7 +59,7 @@
  */
 static int32_t scsnu_initw(CSOUND *csound, PSCSNU *p)
 {
-    int len = p->len*sizeof(MYFLT);
+    int32_t len = p->len*sizeof(MYFLT);
     FUNC *fi = csound->FTFind(csound,  p->i_init);
     if (UNLIKELY(fi == NULL)) {
       return csound->InitError(csound,
@@ -267,7 +267,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       /* Get the table */
       if (UNLIKELY((f = csound->FTFind(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
-                                 "%s %p", Str("scanu: Could not find ifndisplace table"), p->i_f);
+                                 "%s %p", Str("scanu: Could not find ifnmatrix table"), p->i_f);
       }
       //printf("**** p->i_f i_m = %p %g %g %g\n",p, p->i_f, p->i_m, p->i_c);
 
@@ -321,7 +321,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* ... according to scheme */
     if (MODF(*p->i_init, &temp)) {
       // random fill
-      int i;
+      int32_t i;
       MYFLT *x1 = p->x1;
       for (i=0; i<p->len; i++)
         x1[i] = temp*(MYFLT)(rand()-(RAND_MAX/2))/(RAND_MAX/2);
@@ -387,7 +387,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       FUNC *f = csound->FTFind(csound, p->i_v);
       if (UNLIKELY(f == NULL)) {
         return csound->InitError(csound,
-                                 "%s", Str("scanu: Could not find ifnvel table"));
+                                 "%s", Str("scanu: Could not find ifndisplace table"));
       }
       if (UNLIKELY(f->flen != len)) {
         return csound->InitError(csound, "%s",
@@ -442,12 +442,12 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     return OK;
 }
 
-int scsnu_init1(CSOUND *csound, PSCSNU *p)
+int32_t scsnu_init1(CSOUND *csound, PSCSNU *p)
 {
     p->revised = 0;
     return scsnu_init(csound, p);
 }
-int scsnu_init2(CSOUND *csound, PSCSNU *p)
+int32_t scsnu_init2(CSOUND *csound, PSCSNU *p)
 {
     p->revised = 1;
     return scsnu_init(csound, p);
@@ -797,7 +797,7 @@ static int32_t scsnmapV(CSOUND *csound, PSCSNMAPV *p)
     PSCSNU *pp = p->p;
     int32 len = pp->len;
     MYFLT pa = *p->k_pamp, va = *p->k_vamp;
-    int i;
+    int32_t i;
     for (i=0; i<len; i++) {
       p->k_pos->data[i] = pp->x0[i]*pa;
       p->k_vel->data[i] = pp->v[i]*va;

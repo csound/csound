@@ -41,7 +41,7 @@ typedef struct {
         MYFLT   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2, aux3, aux4;
         uint32 maxd;
-        int     interp_size;
+        int32_t     interp_size;
         int32   left;
 } VDELXQ;
 
@@ -50,7 +50,7 @@ typedef struct {
         MYFLT   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2;
         uint32 maxd;
-        int     interp_size;
+        int32_t     interp_size;
         int32   left;
 } VDELXS;
 
@@ -59,7 +59,7 @@ typedef struct {
         MYFLT   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1;
         uint32 maxd;
-        int     interp_size;
+        int32_t     interp_size;
         int32   left;
 } VDELX;
 
@@ -112,7 +112,7 @@ typedef struct {
         MYFLT   *out, *in, *time, *hdif, *istor;
         MYFLT   *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
         /* Used to be [Combs]- and [Alpas]-sized arrays */
-        int     numCombs, numAlpas;
+        int32_t     numCombs, numAlpas;
         MYFLT   **cbuf_cur, **abuf_cur;
         MYFLT   **pcbuf_cur, **pabuf_cur;
         MYFLT   *c_time, *c_gain, *a_time, *a_gain;
@@ -139,8 +139,8 @@ int32_t vdelayxwq(CSOUND *, VDELXQ *p);
 int32_t multitap_set(CSOUND *, MDEL *p);
 int32_t multitap_play(CSOUND *, MDEL *p);
 #if 0
-int nreverb_set(CSOUND *, NREV *p);
-int nreverb(CSOUND *, NREV *p);
+int32_t nreverb_set(CSOUND *, NREV *p);
+int32_t nreverb(CSOUND *, NREV *p);
 #endif
 int32_t reverbx_set(CSOUND *, NREV2 *p);
 int32_t reverbx(CSOUND *, NREV2 *p);

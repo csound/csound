@@ -173,7 +173,7 @@ struct mpadec_t {
   uint32_t synth_size;
   MYFLT replay_gain;
   void (*synth_func)(void *mpadec, MYFLT block[SBLIMIT],
-                     int channel, uint8_t *buffer);
+                     int32_t channel, uint8_t *buffer);
   uint32_t reservoir_size;
   uint8_t reservoir[2048];
   frameinfo_t frame;

@@ -49,7 +49,7 @@ static void DummyFn2(CSOUND *csound, WINDAT *p)
 /* somewhere to invoke that returns 1 (!) for dummy exit fn */
 /* Used to be 1 but seems silly (MR/JPff) */
 
-static int DummyFn3(CSOUND *csound)
+static int32_t DummyFn3(CSOUND *csound)
 {
     IGN(csound);
     return 0;
@@ -100,7 +100,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
              MYFLT  *fdata,
              int32  npts,
              char   *caption,
-             int    waitflg,
+             int32_t    waitflg,
              char   *label)
 {
     OPARMS  O;
@@ -123,7 +123,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     }
 
     wdptr->waitflg  = waitflg;
-    wdptr->polarity = (int16)NOPOL;
+    wdptr->polarity = (int16_t)NOPOL;
     wdptr->max      = FL(0.0);
     wdptr->min      = FL(0.0);
     wdptr->absmax   = FL(0.0);
@@ -132,14 +132,14 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 
 }
 
-int dispexit(CSOUND *csound)
+int32_t dispexit(CSOUND *csound)
 {
     OPARMS  O;
     csound->GetOParms(csound, &O);
     if (O.postscript)
       PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
     /* prompt for exit from last active window */
-    int ret = -1;
+    int32_t ret = -1;
     if (csound->csoundExitGraphCallback_) {
         ret = csound->csoundExitGraphCallback_(csound);
     }
@@ -151,7 +151,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
 {
     MYFLT   *fp, *fplim;
     MYFLT   max, min, absmax, fval;
-    int     pol;
+    int32_t     pol;
     OPARMS  O;
     csound->GetOParms(csound, &O);
 
@@ -171,13 +171,13 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     if (wdptr->absflag  || absmax > wdptr->oabsmax)
       wdptr->oabsmax = absmax;           /* & absmax over life of win */
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */
-    if (pol == (int16)NOPOL)  {
-      if (max > FL(0.0) && min < FL(0.0))      pol = (int16)BIPOL;
-      else if (max <= FL(0.0) && min <FL(0.0)) pol = (int16)NEGPOL;
-      else                                     pol = (int16)POSPOL;
+    if (pol == (int16_t)NOPOL)  {
+      if (max > FL(0.0) && min < FL(0.0))      pol = (int16_t)BIPOL;
+      else if (max <= FL(0.0) && min <FL(0.0)) pol = (int16_t)NEGPOL;
+      else                                     pol = (int16_t)POSPOL;
     }
-    else if (pol == (int16)POSPOL && min < FL(0.0)) pol = (int16)BIPOL;
-    else if (pol == (int16)NEGPOL && max > FL(0.0)) pol = (int16)BIPOL;
+    else if (pol == (int16_t)POSPOL && min < FL(0.0)) pol = (int16_t)BIPOL;
+    else if (pol == (int16_t)NEGPOL && max > FL(0.0)) pol = (int16_t)BIPOL;
     wdptr->polarity = pol;
 
     if (O.odebug) csound->Message(csound, " calling draw callback \n");

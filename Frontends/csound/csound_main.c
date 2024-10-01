@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 {
     CSOUND  *csound;
     char    *fname = NULL;
-    int     i, result, errs, nomessages=0;
+    int32_t  i, result, errs, nomessages=0;
     
     install_signal_handler();
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);

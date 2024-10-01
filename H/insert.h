@@ -34,7 +34,7 @@ typedef struct {                        /*       INSERT.H                */
 
 typedef struct {
     OPDS    h;
-    int     *cond;
+    int32_t     *cond;
     LBLBLK  *lblblk;
 } CGOTO;
 
@@ -98,7 +98,7 @@ typedef struct {
     MYFLT   *insno;
 } DELETEIN;
 
-void    instance(CSOUND *, int);
+void    instance(CSOUND *, int32_t);
 
 typedef struct {
     OPDS    h;

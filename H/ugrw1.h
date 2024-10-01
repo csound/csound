@@ -76,7 +76,7 @@ typedef struct {
                                  * length by tblwset() depending on ixmode.
                                  */
         int32    xbmul;          /* Internal variable for iwrap and igmode. */
-        int     iwgm;           /* Internal variable for offset. */
+        int32_t     iwgm;           /* Internal variable for offset. */
         MYFLT   offset;         /* Pointer to data structure used to access
                                  * function table. tblwset() writes this, based
                                  * on the value of xfn.
@@ -109,8 +109,8 @@ typedef struct {
 
         /* Storage to remember what the table numbers were from a previous k
            cycle, and to store pointers to their FUNC data structures. */
-        int     pdft;           /* Previous destination */
-        int     ps1ft, ps2ft;   /* source function table numbers. */
+        int32_t     pdft;           /* Previous destination */
+        int32_t     ps1ft, ps2ft;   /* source function table numbers. */
         FUNC    *funcd, *funcs1, *funcs2;
 } TABLEMIX;
 
@@ -123,8 +123,8 @@ typedef struct {
 
         /* Storage to remember what the table numbers were from a previous k
            cycle, and to store pointers to their FUNC data structures. */
-        int     pdft;           /* Previous destination */
-        int     psft;           /* source function table numbers. */
+        int32_t     pdft;           /* Previous destination */
+        int32_t     psft;           /* source function table numbers. */
         FUNC    *funcd, *funcs;
 } TABLECOPY;
 
@@ -183,7 +183,7 @@ typedef struct {
         MYFLT   *named;
         MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
-        int     initialised;    /* Non zero for initialised */
+        int32_t     initialised;    /* Non zero for initialised */
 } PRINTK;
 
 /* PRINTKS data structure for printks() and printksset()  */
@@ -193,7 +193,7 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX-2];/* values to print */
         MYFLT   printat, ctime; /* Time when initialised; Cycle time */
-        int     initialised;
+        int32_t     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
         char* old;
 } PRINTKS;

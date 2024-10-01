@@ -74,7 +74,7 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     return OK;
 }
 
-static inline unsigned int ISPOW2(unsigned int x) {
+static inline uint32_t ISPOW2(uint32_t x) {
   return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 
@@ -93,7 +93,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     MYFLT       gcount = p->gcount;
     uint32_t elen, glen;
     MYFLT gcvt, ecvt, einc;
-    int pow2tab;
+    int32_t pow2tab;
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     if (UNLIKELY(kglen<=FL(0.0)))

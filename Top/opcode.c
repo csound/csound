@@ -33,11 +33,11 @@
 #include <ctype.h>
 #include "interlocks.h"
 
-static int opcode_cmp_func(const void *a, const void *b)
+static int32_t opcode_cmp_func(const void *a, const void *b)
 {
     opcodeListEntry *ep1 = (opcodeListEntry*) a;
     opcodeListEntry *ep2 = (opcodeListEntry*) b;
-    int             retval;
+    int32_t             retval;
 
     if ((retval = strcmp(ep1->opname, ep2->opname)) != 0)
       return retval;
@@ -60,13 +60,13 @@ static int opcode_cmp_func(const void *a, const void *b)
  * Make sure to call csoundDisposeOpcodeList() when done with the list.
  */
 
-PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
+PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
 {
     void    *lst = NULL;
     OENTRY  *ep;
     char    *s;
     size_t  nBytes = (size_t) 0;
-    int     i, cnt = 0;
+    int32_t     i, cnt = 0;
     CONS_CELL *head, *items, *temp;
 
     (*lstp) = NULL;
@@ -111,7 +111,7 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
     (*lstp) = (opcodeListEntry*) lst;
     /* store opcodes in list */
     items = head;
-    s = (char*) lst + ((int) sizeof(opcodeListEntry) * (cnt + 1));
+    s = (char*) lst + ((int32_t) sizeof(opcodeListEntry) * (cnt + 1));
     cnt = 0;
     while (items != NULL) {
         temp = items->value;
@@ -128,13 +128,13 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             s += i;
             strcpy(s, ep->outypes);
             ((opcodeListEntry*) lst)[cnt].outypes = s;
-            s += ((int) strlen(ep->outypes) + 1);
+            s += ((int32_t) strlen(ep->outypes) + 1);
 #ifdef JPFF
             if (strlen(ep->outypes)==0) printf("***potential WI opcode %s\n", ep->opname);
 #endif
             strcpy(s, ep->intypes);
             ((opcodeListEntry*) lst)[cnt].intypes = s;
-            s += ((int) strlen(ep->intypes) + 1);
+            s += ((int32_t) strlen(ep->intypes) + 1);
             ((opcodeListEntry*) lst)[cnt].flags = ep->flags;
             //if (ep->flags&_QQ) printf("DEPRICATED: %s\n", ep->opname);
             //if (ep->flags&_QQ) *deprec++;
@@ -163,13 +163,13 @@ PUBLIC void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst)
     csound->Free(csound, lst);
 }
 
-void list_opcodes(CSOUND *csound, int level)
+void list_opcodes(CSOUND *csound, int32_t level)
 {
     opcodeListEntry *lst;
     const char      *sp = "                    ";   /* length should be 20 */
-    int             j, k;
-    int             cnt, len = 0, xlen = 0;
-    int             count = 0;
+    int32_t             j, k;
+    int32_t             cnt, len = 0, xlen = 0;
+    int32_t             count = 0;
 
     cnt = csoundNewOpcodeList(csound, &lst);
     if (UNLIKELY(cnt <= 0)) {
@@ -198,7 +198,7 @@ void list_opcodes(CSOUND *csound, int level)
           csound->Message(csound, "%s", sp + len);
         }
         csound->Message(csound, "%s", lst[j].opname);
-        len = (int) strlen(lst[j].opname) + xlen;
+        len = (int32_t) strlen(lst[j].opname) + xlen;
       }
       else {
         char *ans = lst[j].outypes, *arg = lst[j].intypes;
@@ -207,7 +207,7 @@ void list_opcodes(CSOUND *csound, int level)
           continue;
         }
         csound->Message(csound, "%s", lst[j].opname);
-        len = (int) strlen(lst[j].opname);
+        len = (int32_t) strlen(lst[j].opname);
         if (len > 11) {
           xlen = len - 11;
           len = 11;
@@ -216,7 +216,7 @@ void list_opcodes(CSOUND *csound, int level)
         if (ans == NULL || *ans == '\0') ans = "(null)";
         if (arg == NULL || *arg == '\0') arg = "(null)";
         csound->Message(csound, "%s", ans);
-        len = (int) strlen(ans) + xlen;
+        len = (int32_t) strlen(ans) + xlen;
         len = (len < 11 ? len : 11);
         xlen = 0;
         csound->Message(csound, "%s", sp + (len + 8));

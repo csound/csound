@@ -33,15 +33,15 @@ public:
 
 TEST_F (MessageBufferTests, testCreateBuffer)
 {
-    int argc = 2;
+    int32_t argc = 2;
     const char *argv[] = {"csound", "-v"};
     csoundCompile(csound, argc, argv);
 
-    int cnt = csoundGetMessageCnt(csound);
+    int32_t cnt = csoundGetMessageCnt(csound);
     ASSERT_TRUE (cnt > 0);
     const char * msg = csoundGetFirstMessage(csound);
     ASSERT_TRUE (msg != NULL);
-    int newcnt = csoundGetMessageCnt(csound);
+    int32_t newcnt = csoundGetMessageCnt(csound);
     ASSERT_EQ (cnt, newcnt);
     csoundPopFirstMessage(csound);
     newcnt = csoundGetMessageCnt(csound);
@@ -50,7 +50,7 @@ TEST_F (MessageBufferTests, testCreateBuffer)
 
 TEST_F (MessageBufferTests, testBufferRun)
 {
-    int result = csoundCompileOrc(csound, "instr 1\n"
+    int32_t result = csoundCompileOrc(csound, "instr 1\n"
                                   "asig oscil 0.1, 440\n"
                                   "out asig\n"
                                   "endin\n");

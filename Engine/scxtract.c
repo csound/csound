@@ -26,9 +26,9 @@
 #include "extract.h"
 
 extern void sfree(CSOUND *csound);
-extern int  sread(CSOUND *csound);
+extern int32_t  sread(CSOUND *csound);
 //extern void sread_init(CSOUND *csound);
-extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
+extern void swritestr(CSOUND *csound, CORFIL *sco, int32_t first);
 
 /* called from xmain.c or some other main */
 /*   extracts events from each score sect */
@@ -36,9 +36,9 @@ extern void swritestr(CSOUND *csound, CORFIL *sco, int first);
 
 extern void sread_initstr(CSOUND *, CORFIL *sco);
 
-int scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
+int32_t scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
 {
-    int     n;
+    int32_t     n;
 
     EXTRACT_STATICS* extractStatics =  csound->Calloc(csound,
                                                       sizeof(EXTRACT_STATICS));

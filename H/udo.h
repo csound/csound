@@ -65,8 +65,8 @@ typedef struct {
     MYFLT   *args[OPCODENUMOUTS_MAX];
 } XOUT_MAX;
 
-int useropcd1(CSOUND *, UOPCODE*);
-int useropcd2(CSOUND *, UOPCODE*);
-int useropcd_newstyle(CSOUND *, UOPCODE*);
+int32_t useropcd1(CSOUND *, UOPCODE*);
+int32_t useropcd2(CSOUND *, UOPCODE*);
+int32_t useropcd_newstyle(CSOUND *, UOPCODE*);
 
 #endif

@@ -43,10 +43,10 @@
 #include "midiops.h"
 #include "oload.h"
 
-static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
+static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-    static int sock;
-    int status;
+    static int32_t sock;
+    int32_t status;
     struct sockaddr_in saddr;
     struct ip_mreq mreq;
 
@@ -114,15 +114,15 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     return 0;
 }
 
-static int ReadMidiData_(CSOUND *csound, void *userData,
-                         unsigned char *mbuf, int nbytes)
+static int32_t ReadMidiData_(CSOUND *csound, void *userData,
+                         unsigned char *mbuf, int32_t nbytes)
 {
      IGN(csound);
-    int             n;
-    int             sock = *((int *) userData);
+    int32_t             n;
+    int32_t             sock = *((int32_t *) userData);
     fd_set          rset;
     struct timeval  timeout;
-    int             rc;
+    int32_t             rc;
 
     n = 0;
     FD_ZERO(&rset);
@@ -144,10 +144,10 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     return n;
 }
 
-static int CloseMidiInDevice_(CSOUND *csound, void *userData)
+static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
      IGN(csound);
-    int             sock = *((int *) userData);
+    int32_t             sock = *((int32_t *) userData);
     //printf("CloseMidiInDevice_\n");
     close(sock);
 #ifdef WIN32
@@ -158,7 +158,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
      OPARMS oparms;
      csound->GetOParms(csound, &oparms);
@@ -169,7 +169,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
     OPARMS oparms;
@@ -188,7 +188,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
     /* does not depend on MYFLT type */
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));

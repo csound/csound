@@ -41,8 +41,8 @@ typedef struct _cs_hash_bucket_item {
 } CS_HASH_TABLE_ITEM;
 
 typedef struct _cs_hash_table {
-    int table_size;
-    int count;
+    int32_t table_size;
+    int32_t count;
     CS_HASH_TABLE_ITEM** buckets;
 } CS_HASH_TABLE;
 
@@ -60,7 +60,7 @@ PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
 /** Returns length of CONS_CELL list */
-PUBLIC int cs_cons_length(CONS_CELL* head);
+PUBLIC int32_t cs_cons_length(CONS_CELL* head);
 
 /** Frees CONS_CELL list but does not free ->value pointers */
 PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head);
@@ -125,7 +125,7 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
     ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
-char * cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n);
+char * cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int32_t n);
 #ifdef __cplusplus
 }
 #endif

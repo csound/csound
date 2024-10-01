@@ -54,11 +54,11 @@ typedef struct {
   MYFLT       *id;            /* so can find it amonst others */
   // Internals
   int32_t     max_length;
-  int         cnt;            /* Count loops for mutator */
-  int         next;           /* next step nuber */
-  int         time;           /* time in samples to next step */
-  int         direction;      /* direction of steps */
-  int         seq[128];
+  int32_t         cnt;            /* Count loops for mutator */
+  int32_t         next;           /* next step nuber */
+  int32_t         time;           /* time in samples to next step */
+  int32_t         direction;      /* direction of steps */
+  int32_t         seq[128];
 } SEQ;
 
 
@@ -73,7 +73,7 @@ typedef struct {
 
 static int32_t sequencer_init(CSOUND *csound, SEQ *p)
 {
-  int i;
+  int32_t i;
   p->max_length = p->riff->sizes[0];
   if (p->max_length != p->instr->sizes[0] ||
       (p->data->dimensions == 2 && p->max_length != p->data->sizes[1]) ||
@@ -106,9 +106,9 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
 
 static int32_t sequencer(CSOUND *csound, SEQ *p)
 {
-  int len = (int)*p->klen;
-  int i = p->next;
-  int mode = (int)*p->mode;
+  int32_t len = (int)*p->klen;
+  int32_t i = p->next;
+  int32_t mode = (int)*p->mode;
 
   if (len<=0) len = 1;
   if (len>=p->max_length) len= p->max_length;
@@ -175,7 +175,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       break;
     case -6:
       if (i>=len) {
-        int j, k = 0;
+        int32_t j, k = 0;
         for (j =0; j<len; j++) {
           k = rand() % (j+1);
           if (k != j) p->seq[j] = p->seq[k];
@@ -204,7 +204,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     if (inst != 0) {
       char buff[100];
       if (p->data->dimensions==2) {
-        int j;
+        int32_t j;
         snprintf(buff, 99, "i %0.2f 0 %g ",
                  inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
         for (j=0; j< p->data->sizes[0]; j++)
@@ -224,13 +224,13 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     /*    i,p->seq[i], p->instr->data[p->seq[i]], p->riff->data[p->seq[i]]); */
     // Mutate every mode events
     if (mode > 0 && len>1 && p->cnt%mode == 0) {
-      int r1, r2;
+      int32_t r1, r2;
       do {
         r1 = rand()%len;
         r2 = rand()%len;
       } while (r1==r2);
       {
-        int tm = p->seq[r1];
+        int32_t tm = p->seq[r1];
         p->seq[r1] = p->seq[r2];
         p->seq[r2] = tm;
         if (*p->verbos)
@@ -248,11 +248,11 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
   return OK;
 }
 
-static int sequState(CSOUND *csound, SEQSTATE* p);
+static int32_t sequState(CSOUND *csound, SEQSTATE* p);
 
-static int sequStateInit(CSOUND *csound, SEQSTATE* p)
+static int32_t sequStateInit(CSOUND *csound, SEQSTATE* p)
 {
-  int id = (int)*p->id;
+  int32_t id = (int)*p->id;
   SEQ **r = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
   if (r==NULL || r[id]==NULL) {
     csound->Warning(csound, "%s", Str("No sequs"));
@@ -265,11 +265,11 @@ static int sequStateInit(CSOUND *csound, SEQSTATE* p)
   return OK;
 }
 
-static int sequState(CSOUND *csound, SEQSTATE* p)
+static int32_t sequState(CSOUND *csound, SEQSTATE* p)
 {
   SEQ* q = p->q;
-  int i;
-  int len = (int)*q->klen;
+  int32_t i;
+  int32_t len = (int)*q->klen;
   for (i=0; i<len; i++)
     p->riff->data[i] = /* q->riff->data[*/ q->seq[i]/*]*/;
   *p->res = (MYFLT)q->cnt;

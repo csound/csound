@@ -180,7 +180,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
   if(p->floatph) {
     if (p->ilfomode & 0xF0) {
       MYFLT frac, pos = o->LFO1phsf*p->flen1;
-      n = (int) pos;
+      n = (int32_t) pos;
       frac = pos - n;
       lfo1val = p->l1t[n] + frac*(p->l1t[n+1] - p->l1t[n+1]); 
       /* update phase */
@@ -189,7 +189,7 @@ static void oscbnk_lfo(OSCBNK *p, OSCBNK_OSC *o)
     }
     if (p->ilfomode & 0x0F) {                       /* LFO 2 */
       MYFLT frac, pos = o->LFO2phsf*p->flen2;
-      n = (int) pos;
+      n = (int32_t) pos;
       frac = pos - n;
       lfo2val = p->l2t[n] + frac*(p->l2t[n+1] - p->l2t[n+1]); 
       /* update phase */
@@ -512,7 +512,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
         if(floatph) {
           MYFLT frac;
           MYFLT pos = phf*flen;
-          n = (int) pos;
+          n = (int32_t) pos;
           frac = pos - n;
           k = ft[n] + frac*(ft[n+1] - ft[n]);
           phf = PHMOD1(phf + f);
@@ -558,7 +558,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
           if(floatph) {
             MYFLT frac;
             MYFLT pos = phf*flen;
-            n = (int) pos;
+            n = (int32_t) pos;
             frac = pos - n;
             k = ft[n] + frac*(ft[n+1] - ft[n]);
             phf = PHMOD1(phf + f);
@@ -596,7 +596,7 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
           if(floatph) {
             MYFLT frac;
             MYFLT pos = phf*flen;
-            n = (int) pos;
+            n = (int32_t) pos;
             frac = pos - n;
             k = ft[n] + frac*(ft[n+1] - ft[n]);
             phf = PHMOD1(phf + f);
@@ -866,13 +866,13 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
         }
       } else {
         MYFLT pos = o->grain_phsf*flen;
-        n = (int) pos;
+        n = (int32_t) pos;
         k = ft[n];
         if (g_interp) k += (pos - n)*(ft[n+1] - k);
         o->grain_phsf = PHMOD1(o->grain_phsf + o->grain_frq);
         /* window waveform */
         pos = o->window_phsf*wflen;
-        n = (int) pos;
+        n = (int32_t) pos;
         a = w_ft[n];
         if (w_interp) a += (pos - n)*(w_ft[n+1] - k);
         o->window_phsf += wf;
@@ -1232,12 +1232,12 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
         else {
           /* window waveform */
           MYFLT pos = w_phf*wflen;
-          n = (int) pos;
+          n = (int32_t) pos;
           a = w_ft[n];
           if (w_interp) a += (pos - n)*(w_ft[n+1] - k);
           /* grain waveform */
           pos = g_phf*flen;
-          n = (int) pos;
+          n = (int32_t) pos;
           k = ft[n];
           if (g_interp) k += (pos - n)*(ft[n+1] - k);
           g_phf = PHMOD1(g_phf+ g_frqf);
@@ -1437,7 +1437,7 @@ static int32_t kosclikt(CSOUND *csound, OSCKT *p)
   p->phs = (phs + OSCBNK_PHS2INT(v)) & OSCBNK_PHSMSK;
   } else {
     MYFLT pos = p->phsf * p->flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     *(p->sr) = *p->xamp*(ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     p->phsf = PHMOD1(p->phsf + (*p->xcps * CS_ONEDKR));
   }
@@ -1491,7 +1491,7 @@ static int32_t osckkikt(CSOUND *csound, OSCKT *p)
     phs = (phs + frq) & OSCBNK_PHSMSK;
     } else {
     MYFLT pos = phsf * flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + xcps);
     }
@@ -1550,7 +1550,7 @@ static int32_t osckaikt(CSOUND *csound, OSCKT *p)
     }
     else {
     MYFLT pos = phsf * flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + fcps);
     }
@@ -1628,7 +1628,7 @@ static int32_t oscakikt(CSOUND *csound, OSCKT *p)
     phs = (phs + frq) & OSCBNK_PHSMSK;
     } else {
     MYFLT pos = phsf * flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + xcps);
     }
@@ -1687,7 +1687,7 @@ static int32_t oscaaikt(CSOUND *csound, OSCKT *p)
     }
     else {
     MYFLT pos = phsf * flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + fcps);
     }
@@ -1785,7 +1785,7 @@ static int32_t oscktp(CSOUND *csound, OSCKTP *p)
     phs = (phs + frq) & OSCBNK_PHSMSK;
     } else {
     MYFLT pos = phsf * flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + frqf);
     }
@@ -1890,7 +1890,7 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
       phsf = *(p->kphs) - (MYFLT) ((int32) *(p->kphs));
     }
     MYFLT pos = phsf * flen;
-    n = (int) pos;
+    n = (int32_t) pos;
     v = (ft[n] + (pos - n)*(ft[n+1] - ft[n]));
     phsf = PHMOD1(phsf + cpsf);
     } 

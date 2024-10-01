@@ -618,7 +618,7 @@ static const char *hetro_usage_txt[] = {
 
 static int32_t quit(CSOUND *csound, char *msg)
 {
-    int i;
+    int32_t i;
     csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
     for (i = 0; hetro_usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(hetro_usage_txt[i]));

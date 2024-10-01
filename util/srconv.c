@@ -66,8 +66,8 @@
 #if 0
 static  void    usage(CSOUND *);
 
-static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
-                       SNDFILE *outfd, int length, OPARMS *oparms)
+static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
+                       SNDFILE *outfd, int32_t length, OPARMS *oparms)
 {
     sflib_write_MYFLT(outfd, out_buf, length);
     (*block)++;
@@ -83,7 +83,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
         break;
       case 3:
         {
-          int n;
+          int32_t n;
           csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", *block, &n);
           while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\010");
         }
@@ -143,7 +143,7 @@ static void dieu(CSOUND *csound, char *s)
     usage(csound);
 }
 
-static int srconv(CSOUND *csound, int argc, char **argv)
+static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 {
     MYFLT
       *input,     /* pointer to start of input buffer */
@@ -210,7 +210,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     FILE        *tvfp = NULL;   /* time-vary function file */
     SOUNDIN     *p;
-    int         channel = ALLCHNLS;
+    int32_t         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     char        *infile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
@@ -220,7 +220,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     unsigned    outbufsiz = 0U;
     SNDFILE     *outfd = NULL;
     OPARMS      O;
-    int         block = 0;
+    int32_t         block = 0;
     char        err_msg[256];
 
     O.outformat = AE_SHORT;
@@ -291,7 +291,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             break;
           case 'H':
             if (isdigit(*s)) {
-              int n;
+              int32_t n;
               csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
               s += n;
             }
@@ -761,7 +761,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 #include <unistd.h>
 #endif
 
-static int srconv(CSOUND *csound, int argc, char **argv)
+static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 {
   (void) argc;
     csound->Message(csound, "%s",
@@ -805,7 +805,7 @@ static const char *usage_txt[] = {
 
 static void usage(CSOUND *csound)
 {
-    int i = -1;
+    int32_t i = -1;
 
     while (usage_txt[++i] != NULL)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
@@ -814,7 +814,7 @@ static void usage(CSOUND *csound)
 static double ino(double x)
 {
     double  y, t, e, de, sde, xi;
-    int     i;
+    int32_t     i;
 
     y = x * 0.5;
     t = 1.0e-08;
@@ -831,7 +831,7 @@ static double ino(double x)
     return e;
 }
 
-static void kaiser(int nf, float *w, int n, int ieo, double beta)
+static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
 {
 
 /*
@@ -843,7 +843,7 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 */
 
     double  bes, xind, xi;
-    int     i;
+    int32_t     i;
 
     bes = ino(beta);
     xind = (double) ((nf - 1) * (nf - 1));
@@ -861,9 +861,9 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 /* module interface */
 
-int srconv_init_(CSOUND *csound)
+int32_t srconv_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "srconv", srconv);
+    int32_t retval = csound->AddUtility(csound, "srconv", srconv);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "srconv",
                                              Str("Sample rate conversion"));

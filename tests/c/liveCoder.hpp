@@ -30,7 +30,7 @@ public:
   ~liveCsound(){}
 
   //live code session
-  int runLiveCodeSession()
+  int32_t runLiveCodeSession()
   {
     string str;
     unsigned findString;
@@ -78,8 +78,8 @@ public:
     return 0;
   }
 
-  int result;
-  int perf_status;
+  int32_t result;
+  int32_t perf_status;
   string orchestraHistory;
   string scoreHistory;
   string channelsHistory;

@@ -1638,7 +1638,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       return OK;
     }
 
-    int mvmfilterset(CSOUND *csound, MVMFILT *p)
+    int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
     {
       IGN(csound);
       if (*p->reinit==FL(0.0)) {
@@ -1648,7 +1648,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       return OK;
     }
 
-    int mvmfilter(CSOUND *csound, MVMFILT *p) {
+    int32_t mvmfilter(CSOUND *csound, MVMFILT *p) {
       uint32_t      offset   = p->h.insdshead->ksmps_offset;
       uint32_t      early    = p->h.insdshead->ksmps_no_end;
       MYFLT fs       = CS_ESR;

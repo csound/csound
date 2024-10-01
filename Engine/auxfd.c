@@ -89,7 +89,7 @@ static uintptr_t alloc_thread(void *p) {
    pass the newly allocated memory via a
    callback, where it can be swapped if necessary.
 */
-int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
+int32_t csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
                         AUXASYNC *as, aux_cb cb, void *userData) {
     as->csound = csound;
     as->nbytes = nbytes;

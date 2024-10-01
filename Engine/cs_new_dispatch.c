@@ -46,7 +46,7 @@
 #endif
 
 /* Used as an error value */
-//typedef int taskID;
+//typedef int32_t taskID;
 #define INVALID (-1)
 #define WAIT    (-2)
 
@@ -74,11 +74,11 @@
 //static watchList * wlmm;
 
 #define INIT_SIZE (100)
-//static int task_max_size;
+//static int32_t task_max_size;
 
 static void dag_print_state(CSOUND *csound)
 {
-    int i;
+    int32_t i;
     watchList *w;
     printf("*** %d tasks\n", csound->dag_num_active);
     for (i=0; i<csound->dag_num_active; i++) {
@@ -105,7 +105,7 @@ static void dag_print_state(CSOUND *csound)
       case WAITING:
         {
           char *tt = csound->dag_task_dep[i];
-          int j;
+          int32_t j;
           printf("status=WAITING for tasks [");
           for (j=0; j<i; j++) if (tt[j]) printf("%d ", j);
           printf("]\n");
@@ -121,7 +121,7 @@ static void dag_print_state(CSOUND *csound)
 static void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
-    int max = csound->dag_task_max_size;
+    int32_t max = csound->dag_task_max_size;
     csound->dag_task_status = csound->Calloc(csound, sizeof(stateWithPadding)*max);
     csound->dag_task_watch  = csound->Calloc(csound, sizeof(watchList*)*max);
     csound->dag_task_map    = csound->Calloc(csound, sizeof(INSDS*)*max);
@@ -132,7 +132,7 @@ static void create_dag(CSOUND *csound)
 static void recreate_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
-    int max = csound->dag_task_max_size;
+    int32_t max = csound->dag_task_max_size;
     csound->dag_task_status =
       csound->ReAlloc(csound, (stateWithPadding *)csound->dag_task_status,
                sizeof(stateWithPadding)*max);
@@ -147,7 +147,7 @@ static void recreate_dag(CSOUND *csound)
       (watchList *)csound->ReAlloc(csound, csound->dag_wlmm, sizeof(watchList)*max);
 }
 
-static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
+static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int32_t insno)
 {
     INSTR_SEMANTICS *current_instr =
       csp_orc_sa_instr_get_by_num(csound, insno);
@@ -164,12 +164,12 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     return current_instr;
 }
 
-static int dag_intersect(CSOUND *csound, struct set_t *current,
-                         struct set_t *later, int cnt)
+static int32_t dag_intersect(CSOUND *csound, struct set_t *current,
+                         struct set_t *later, int32_t cnt)
 {
     IGN(cnt);
     struct set_t *ans;
-    int res = 0;
+    int32_t res = 0;
     struct set_element_t *ele;
     ans = csp_set_intersection(csound, current, later);
     res = ans->count;
@@ -187,7 +187,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
 {
     INSDS *save = chain;
     INSDS **task_map;
-    int i;
+    int32_t i;
 
     //printf("DAG BUILD***************************************\n");
     csound->dag_num_active = 0;
@@ -222,7 +222,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       printf("dag_num_active = %d\n", csound->dag_num_active);
     i = 0; chain = save;
     while (chain != NULL) {     /* for each instance check against later */
-      int j = i+1;              /* count of instance */
+      int32_t j = i+1;              /* count of instance */
       if (UNLIKELY(csound->oparms->odebug))
         printf("\nWho depends on %d (instr %d)?\n", i, chain->insno);
       INSDS *next = chain->nxtact;
@@ -231,7 +231,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       //csp_set_print(csound, current_instr->write);
       while (next) {
         INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
-        int cnt = 0;
+        int32_t cnt = 0;
         if (UNLIKELY(csound->oparms->odebug)) printf("%d ", j);
         //csp_set_print(csound, later_instr->read);
         //csp_set_print(csound, later_instr->write);
@@ -274,8 +274,8 @@ void dag_build(CSOUND *csound, INSDS *chain)
 
 void dag_reinit(CSOUND *csound)
 {
-    int i;
-    int max = csound->dag_task_max_size;
+    int32_t i;
+    int32_t max = csound->dag_task_max_size;
     volatile stateWithPadding *task_status = csound->dag_task_status;
     watchList * volatile *task_watch = csound->dag_task_watch;
     watchList *wlmm = csound->dag_wlmm;
@@ -286,7 +286,7 @@ void dag_reinit(CSOUND *csound)
     task_status[0].s = AVAILABLE;
     task_watch[0] = NULL;
     for (i=1; i<csound->dag_num_active; i++) {
-      int j;
+      int32_t j;
       task_status[i].s = AVAILABLE;
       task_watch[i] = NULL;
       if (csound->dag_task_dep[i]==NULL) continue;
@@ -324,12 +324,12 @@ void dag_reinit(CSOUND *csound)
                               __ATOMIC_SEQ_CST)
 #endif
 
-taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
+taskID dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads, taskID next_task)
 {
-    int i;
-    int count_waiting = 0;
-    int active = csound->dag_num_active;
-    int start = (index * active) / numThreads;
+    int32_t i;
+    int32_t count_waiting = 0;
+    int32_t active = csound->dag_num_active;
+    int32_t start = (index * active) / numThreads;
     volatile stateWithPadding *task_status = csound->dag_task_status;
     enum state current_task_status;
 
@@ -385,7 +385,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
 /* This static is OK as not written */
 static const watchList DoNotRead = { INVALID, NULL};
 
-inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
+inline static int32_t moveWatch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)
 {
      IGN(csound);
@@ -409,11 +409,11 @@ inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
 taskID dag_end_task(CSOUND *csound, taskID i)
 {
     watchList *to_notify, *next;
-    int canQueue;
-    int j, k;
+    int32_t canQueue;
+    int32_t j, k;
     watchList * volatile *task_watch = csound->dag_task_watch;
     enum state current_task_status;
-    int wait_on_current_tasks;
+    int32_t wait_on_current_tasks;
     taskID next_task = INVALID;
     ATOMIC_WRITE(csound->dag_task_status[i].s, DONE); /* as DONE is zero */
     // A write barrier /might/ be useful here to avoid the case
@@ -542,7 +542,7 @@ inline watchList * getWatches(taskID id) {
     return __atomic_test_and_set (&(watch[id]), doNotAdd);
 }
 
-int moveWatch (watchList **w, watchList *t) {
+int32_t moveWatch (watchList **w, watchList *t) {
   watchList *local;
 
   t->tail = NULL;
@@ -581,7 +581,7 @@ inline void deleteWatch (watchList *t) {
 
 typedef struct monitor {
   pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
-  unsigned int threadsWaiting = 0;    /* Shadows the length of
+  uint32_t threadsWaiting = 0;    /* Shadows the length of
                                          workAvailable wait queue */
   queue<taskID> q;                    /* OPT : Dispatch order */
   pthread_cond_t workAvailable = PTHREAD_COND_INITIALIZER;
@@ -862,7 +862,7 @@ void workerThread (State *s) {
  * this race condition and resolve it by having moveWatch() fail.
  */
 
-void newdag_alloc(CSOUND *csound, int numtasks)
+void newdag_alloc(CSOUND *csound, int32_t numtasks)
 {
     doNotAdd = &endwatch;
 ??

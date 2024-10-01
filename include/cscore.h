@@ -79,13 +79,13 @@ typedef struct {
 /* Event list structure */
 typedef struct {
         CSHDR h;
-        int   nslots;
-        int   nevents;
+        int32_t   nslots;
+        int32_t   nevents;
         EVENT *e[1];
 } EVLIST;
 
 /* Functions for working with single events */
-PUBLIC EVENT  *cscoreCreateEvent(CSOUND*, int);
+PUBLIC EVENT  *cscoreCreateEvent(CSOUND*, int32_t);
 PUBLIC EVENT  *cscoreDefineEvent(CSOUND*, char*);
 PUBLIC EVENT  *cscoreCopyEvent(CSOUND*, EVENT*);
 PUBLIC EVENT  *cscoreGetEvent(CSOUND*);
@@ -93,7 +93,7 @@ PUBLIC void    cscorePutEvent(CSOUND*, EVENT*);
 PUBLIC void    cscorePutString(CSOUND*, char*);
 
 /* Functions for working with event lists */
-PUBLIC EVLIST *cscoreListCreate(CSOUND*, int);
+PUBLIC EVLIST *cscoreListCreate(CSOUND*, int32_t);
 PUBLIC EVLIST *cscoreListAppendEvent(CSOUND*, EVLIST*, EVENT*);
 PUBLIC EVLIST *cscoreListAppendStringEvent(CSOUND*, EVLIST*, char*);
 PUBLIC EVLIST *cscoreListGetSection(CSOUND*);
@@ -108,9 +108,9 @@ PUBLIC EVLIST *cscoreListSeparateTWF(CSOUND*, EVLIST*);
 PUBLIC EVLIST *cscoreListAppendList(CSOUND*, EVLIST*, EVLIST*);
 PUBLIC EVLIST *cscoreListConcatenate(CSOUND*, EVLIST*, EVLIST*);
 PUBLIC void    cscoreListPut(CSOUND*, EVLIST*);
-PUBLIC int     cscoreListPlay(CSOUND*, EVLIST*);
+PUBLIC int32_t     cscoreListPlay(CSOUND*, EVLIST*);
 PUBLIC void    cscoreListSort(CSOUND*, EVLIST*);
-PUBLIC int     cscoreListCount(CSOUND*, EVLIST *);
+PUBLIC int32_t     cscoreListCount(CSOUND*, EVLIST *);
 
 /* Functions for reclaiming memory */
 PUBLIC void    cscoreFreeEvent(CSOUND*, EVENT*);

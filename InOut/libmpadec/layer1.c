@@ -24,8 +24,8 @@
 extern const uint32_t bitmask[17];
 extern alloc_table_t *alloc_tables[5];
 
-extern unsigned mpa_getbits(mpadec_t mpadec, int n);
-extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);
+extern unsigned mpa_getbits(mpadec_t mpadec, int32_t n);
+extern uint16_t update_crc(uint16_t init, uint8_t *buf, int32_t length);
 
 static void I_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
                               uint8_t *scalefac)
@@ -78,7 +78,7 @@ static void I_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     uint8_t *ba = bit_alloc, *scf = scalefac;
     unsigned i, n;
-    int cnst = -1;
+    int32_t cnst = -1;
 
     if (mpa->frame.channels > 1) {
       unsigned jsbound = mpa->frame.jsbound;
@@ -114,7 +114,7 @@ static void I_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
 void decode_layer1(mpadec_t mpadec, uint8_t *buffer)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int i, j, single;
+    int32_t i, j, single;
     MYFLT fraction[2][SBLIMIT];
     uint8_t bit_alloc[2*SBLIMIT];
     uint8_t scalefac[2*SBLIMIT];

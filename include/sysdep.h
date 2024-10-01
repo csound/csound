@@ -33,19 +33,9 @@ typedef void *locale_t;
 
 #include <limits.h>
 /* this checks for 64BIT builds */
-#if defined(__MACH__) || defined(LINUX)
-#if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
-#define B64BIT
+#if (defined(__WORDSIZE) && __WORDSIZE == 64) || defined(_WIN64) || defined(__x86_64__) || defined(_M_X64) || defined(__ppc64__) || defined(__aarch64__) || (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 8)
+    #define B64BIT
 #endif
-#endif
-
-#if defined(WIN32)
-#if _WIN64
-#define B64BIT
-#endif
-#endif
-
-
 
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
@@ -203,7 +193,7 @@ typedef uint_least16_t uint16;
 #endif
 
 /* Aligning to double boundaries, should work with MYFLT as float or double */
-#define CS_FLOAT_ALIGN(x) ((int)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
+#define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
@@ -294,8 +284,8 @@ typedef signed char         int8_t;
 typedef unsigned char       uint8_t;
 typedef short               int16_t;
 typedef unsigned short      uint16_t;
-typedef int                 int32_t;
-typedef unsigned int        uint32_t;
+typedef int32_t                 int32_t;
+typedef uint32_t        uint32_t;
 #  if defined(__GNUC__) || !defined(WIN32)
 typedef long long           int64_t;
 typedef unsigned long long  uint64_t;
@@ -375,20 +365,20 @@ typedef unsigned long       uintptr_t;
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
-static inline int MYFLT2LONG (float const x) {
+static inline int32_t MYFLT2LONG (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
-static inline int MYFLT2LRND (float const x) {
+static inline int32_t MYFLT2LRND (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
 #  else
-static inline int MYFLT2LONG (double const x) {
+static inline int32_t MYFLT2LONG (double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 
-static inline int MYFLT2LRND (double const x) {
+static inline int32_t MYFLT2LRND (double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif

@@ -490,7 +490,7 @@ AA(mulaa,*)
 int32_t divaa(CSOUND *csound, AOP *p)
 {
   MYFLT   *r, *a, *b;
-  int     err = 0;
+  int32_t     err = 0;
   IGN(csound);
   uint32_t n, nsmps = CS_KSMPS;
   if (LIKELY(nsmps!=1)) {
@@ -1881,7 +1881,7 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     return csound->PerfError(csound, &(p->h),
                              Str("outch must have an even number of arguments"));
   for(n=0; n < count; n+=2) {
-    ch = (int) *p->args[n] - 1;
+    ch = (int32_t) *p->args[n] - 1;
     if (ch < nchnls)
       ret = outn(csound, ch, ch+1, &p->args[n+1],
                  p->h.insdshead, NULL);
@@ -2049,7 +2049,7 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
  * must explicitly copy rather than assign the data to test.
  */
 #ifndef __MINGW32__
-static inline int _isnan(MYFLT x) {
+static inline int32_t _isnan(MYFLT x) {
 #ifdef USE_DOUBLE
   uint64_t bits;
   memcpy(&bits, &x, sizeof(MYFLT));

@@ -34,7 +34,7 @@ extern "C" {
   } RTCLOCK;
 
   typedef struct CsoundRandMTState_ {
-    int         mti;
+    int32_t         mti;
     uint32_t    mt[624];
   } CsoundRandMTState;
 
@@ -54,7 +54,7 @@ extern "C" {
    * 255), otherwise it is the PID of the newly created process.
    * On error, a negative value is returned.
    */
-  PUBLIC long csoundRunCommand(const char * const *argv, int noWait);
+  PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait);
 
   /**
    * Initialise a timer structure.
@@ -108,7 +108,7 @@ extern "C" {
    * are active.
    * Returns zero on success.
    */
-  PUBLIC int csoundSetGlobalEnv(const char *name, const char *value);
+  PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);
 
   /**
    * Allocate nbytes bytes of memory that can be accessed later by calling
@@ -118,7 +118,7 @@ extern "C" {
    * parameters (zero nbytes, invalid or already used name), or
    * CSOUND_MEMORY if there is not enough memory.
    */
-  PUBLIC int csoundCreateGlobalVariable(CSOUND *,
+  PUBLIC int32_t csoundCreateGlobalVariable(CSOUND *,
                                         const char *name, size_t nbytes);
 
   /**
@@ -140,7 +140,7 @@ extern "C" {
    * Return value is CSOUND_SUCCESS on success, or CSOUND_ERROR if the name is
    * not defined.
    */
-  PUBLIC int csoundDestroyGlobalVariable(CSOUND *, const char *name);
+  PUBLIC int32_t csoundDestroyGlobalVariable(CSOUND *, const char *name);
 
   /**
    * Run utility with the specified name and command line arguments.
@@ -148,8 +148,8 @@ extern "C" {
    * Use csoundReset() to clean up after calling this function.
    * Returns zero if the utility was run successfully.
    */
-  PUBLIC int csoundRunUtility(CSOUND *, const char *name,
-                              int argc, char **argv);
+  PUBLIC int32_t csoundRunUtility(CSOUND *, const char *name,
+                              int32_t argc, char **argv);
 
   /**
    * Returns a NULL terminated list of registered utility names.
@@ -180,7 +180,7 @@ extern "C" {
    * Returns the next number from the pseudo-random sequence,
    * in the range 1 to 2147483646.
    */
-  PUBLIC int csoundRand31(int *seedVal);
+  PUBLIC int32_t csoundRand31(int32_t *seedVal);
 
   /**
    * Initialise Mersenne Twister (MT19937) random number generator,

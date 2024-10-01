@@ -155,7 +155,7 @@ static int32_t Max_arate(CSOUND *csound, MINMAX *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t     nargs = ((int) p->INOCOUNT) - 1;
+    int32_t     nargs = ((int32_t) p->INOCOUNT) - 1;
     MYFLT   *out = p->xout;
     MYFLT   *in1 = p->xin1;
     MYFLT   **in2 = p->xin2toN;

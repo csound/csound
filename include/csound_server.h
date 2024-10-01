@@ -34,18 +34,18 @@ extern "C" {
    * returns CSOUND_SUCCESS if server has been started successfully,
    * otherwise, CSOUND_ERROR.
    */
-  PUBLIC int csoundUDPServerStart(CSOUND *csound, unsigned int port);
+  PUBLIC int32_t csoundUDPServerStart(CSOUND *csound, uint32_t port);
 
   /** returns the port number on which the server is running, or
    *  CSOUND_ERROR if the server is not running.
    */
-  PUBLIC int csoundUDPServerStatus(CSOUND *csound);
+  PUBLIC int32_t csoundUDPServerStatus(CSOUND *csound);
 
   /**
    * Closes the UDP server, returning CSOUND_SUCCESS if the
    * running server was successfully closed, CSOUND_ERROR otherwise.
    */
-  PUBLIC int csoundUDPServerClose(CSOUND *csound);
+  PUBLIC int32_t csoundUDPServerClose(CSOUND *csound);
 
   /**
    * Turns on the transmission of console messages to UDP on address addr
@@ -55,8 +55,8 @@ extern "C" {
    * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
    * could not be set up.
    */
-  PUBLIC int csoundUDPConsole(CSOUND *csound, const char *addr,
-                              int port, int mirror);
+  PUBLIC int32_t csoundUDPConsole(CSOUND *csound, const char *addr,
+                              int32_t port, int32_t mirror);
 
   /**
    * Stop transmitting console messages via UDP
