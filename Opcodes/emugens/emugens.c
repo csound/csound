@@ -700,7 +700,7 @@ static int32_t bpfcos_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     MYFLT *xs = p->xs->data;
     MYFLT *ys = p->ys->data;
     MYFLT x = *p->x;
-    int32_t i = bpfarr_find(x, xs, N, p->lastidx);
+    int32_t i = (int32_t) bpfarr_find(x, xs, N, p->lastidx);
     MYFLT x0, y0, x1, y1, dx;
     if(i == -1) {
         *p->y = ys[0];
@@ -753,7 +753,7 @@ static int32_t bpf_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
 
     for(n=offset; n<nsmps; n++) {
         x = in[n];
-        i = bpfarr_find(x, xs, N, lastidx);
+        i = (int32_t) bpfarr_find(x, xs, N, lastidx);
         if(i == -1) {
             out[n] = firsty;
             lastidx = -1;
@@ -798,7 +798,7 @@ static int32_t bpfcos_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
 
     for(n=offset; n<nsmps; n++) {
         x = in[n];
-        i = bpfarr_find(x, xs, N, lastidx);
+        i = (int32_t) bpfarr_find(x, xs, N, lastidx);
         if(i == -1) {
             out[n] = firsty;
             lastidx = -1;
@@ -846,7 +846,7 @@ static int32_t bpf_kk_kKKK_kr(CSOUND *csound, BPF_kk_kKKK *p) {
     MYFLT *ys = p->ys->data;
     MYFLT *zs = p->zs->data;
     MYFLT x = *p->x;
-    int32_t i = bpfarr_find(x, xs, N, p->lastidx);
+    int32_t i = (int32_t) bpfarr_find(x, xs, N, p->lastidx);
 
     if(i == -1) {
         *p->y = ys[0];
@@ -918,7 +918,7 @@ static int32_t bpf_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
 
     for(idx=0; idx<N; idx++) {
         x = in[idx];
-        i = bpfx_find(data, x, datalen, lastidx);
+        i = (int32_t) bpfx_find(data, x, datalen, lastidx);
 
         if(i == -1) {
             out[idx] = firsty;
@@ -982,7 +982,7 @@ static int32_t bpf_a_am_kr(CSOUND *csound, BPF_a_am *p) {
 
     for(n=offset; n<nsmps; n++) {
         x = in[n];
-        i = bpfx_find(data, x, datalen, lastidx);
+        i = (int32_t) bpfx_find(data, x, datalen, (int32_t) lastidx);
         if(i == -1) {
             out[n] = firsty;
             lastidx = -1;
@@ -1024,7 +1024,7 @@ static int32_t bpfcos_a_am_kr(CSOUND *csound, BPF_a_am *p) {
 
     for(n=offset; n<nsmps; n++) {
         x = in[n];
-        i = bpfx_find(data, x, datalen, lastidx);
+        i = (int32_t) bpfx_find(data, x, datalen, (int32_t) lastidx);
         if(i == -1) {
             out[n] = firsty;
             lastidx = -1;
@@ -1077,7 +1077,7 @@ static int32_t bpfcos_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
 
     for(idx=0; idx<N; idx++) {
         x = in[idx];
-        i = bpfx_find(data, x, datalen, lastidx);
+        i = (int32_t) bpfx_find(data, x, datalen, (int32_t) lastidx);
 
         if(i == -1) {
             out[idx] = firsty;
@@ -1125,7 +1125,7 @@ static int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
 static MYFLT ntomfunc(CSOUND *csound, char *note) {
     char *n = note;
-    uint32_t notelen = strlen(note);
+    uint32_t notelen = (uint32_t) strlen(note);
     int32_t octave = n[0] - '0';
     int32_t pcidx = n[1] - 'A';
     if (pcidx < 0 || pcidx >= 7) {
@@ -1336,7 +1336,7 @@ typedef struct {
     int32_t mode;
 } Cmp2_array1;
 
-static int32_t op2mode(char *op, int32_t opsize) {
+static int32_t op2mode(char *op, int64_t opsize) {
     int32_t mode;
     if (op[0] == '>') {
         mode = (opsize == 1) ? 0 : 1;
@@ -1354,7 +1354,7 @@ static int32_t op2mode(char *op, int32_t opsize) {
 
 static int32_t
 cmp_init(CSOUND *csound, Cmp *p) {
-    int32_t mode = op2mode(p->op->data, p->op->size-1);
+    int32_t mode = (int32_t) op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
                            "Expecting <, <=, >, >=, ==, !="));
@@ -1367,7 +1367,7 @@ static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
     tabinit(csound, p->out, N, &(p->h));
-    int32_t mode = op2mode(p->op->data, p->op->size-1);
+    int32_t mode = (int32_t) op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
                            "Expecting <, <=, >, >=, ==, !="));
@@ -1385,7 +1385,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
     // make sure that we can put the result in `out`,
     // grow the array if necessary
     tabinit(csound, p->out, N, &(p->h));
-    int32_t mode = op2mode(p->op->data, p->op->size-1);
+    int32_t mode = (int32_t) op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
                            "Expecting <, <=, >, >=, ==, !="));
@@ -1400,9 +1400,9 @@ cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     tabinit(csound, p->out, N, &(p->h));
 
     char *op1 = (char*)p->op1->data;
-    int32_t op1size = p->op1->size - 1;
+    int64_t op1size = p->op1->size - 1;
     char *op2 = (char*)p->op2->data;
-    int32_t op2size = p->op2->size - 1;
+    int64_t op2size = p->op2->size - 1;
     int32_t mode;
 
     if (op1[0] == '<') {
@@ -2627,7 +2627,7 @@ stripl(CSOUND *csound, STR1_1 *p) {
     }
     str += idx0;
     size_t insize = strlen(str);
-    _string_ensure(csound, p->out, insize);
+    _string_ensure(csound, p->out, (int32_t) insize);
     memcpy(p->out->data, str, insize);
     return OK;
 }
@@ -2636,7 +2636,7 @@ static int32_t
 stripr(CSOUND *csound, STR1_1 *p) {
     // Trim trailing space
     char *str = p->in->data;
-    int32_t size = strlen(str) - 1;
+    int32_t size = (int32_t) strlen(str) - 1;
     const char *end = str + size;
     while(size && isspace(*end)) {
         end--;
@@ -2681,7 +2681,7 @@ int32_t _str_find_edges(const char *str, int32_t *startidx) {
     }
 
     // right
-    int32_t size = strlen(str) - 1;
+    int32_t size = (int32_t) strlen(str) - 1;
     const char *end = str + size;
     while(size && isspace(*end)) {
         end--;
@@ -2773,7 +2773,7 @@ int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
         p->allocatedBuf = 0;
     }
     p->newline = 0;
-    p->fmtlen = fmtlen;
+    p->fmtlen = (int32_t) fmtlen;
     p->initDone = 1;
     return OK;
 }
@@ -2815,7 +2815,7 @@ sprintf_opcode_(CSOUND *csound,
     int32_t i = 0, j = 0, n;
     const char *segwaiting = NULL;
     int32_t maxChars;
-    int32_t strsegsize = p->strseg.size;
+    size_t strsegsize = p->strseg.size;
     char *strseg = p->strseg.data;
 
     const char *fmtend = fmt+(fmtlen-0);
@@ -2856,7 +2856,7 @@ sprintf_opcode_(CSOUND *csound,
 
         /* if already a segment waiting, then lets print it */
         if (segwaiting != NULL) {
-            maxChars = str->size - len;
+          maxChars = (int32_t) (str->size - len);
             strseg[i] = '\0';
             if (UNLIKELY(numVals <= 0)) {
                 return PERFERR(Str("insufficient arguments for format"));
@@ -2893,8 +2893,8 @@ sprintf_opcode_(CSOUND *csound,
                                        "the same as any of the input args"));
                 }
                 if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
-                    int32_t offs = outstring - str->data;
-                    int32_t newsize = str->size  +
+                    size_t offs = outstring - str->data;
+                    size_t newsize = str->size  +
                       ((STRINGDAT*)parm)->size + strlen(strseg);
                     csound->Warning(csound, "%s",
                                     Str("println/printsk: Allocating extra "
@@ -2914,7 +2914,7 @@ sprintf_opcode_(CSOUND *csound,
             }
             if (n < 0 || n >= maxChars) {
                 /* safely detected excess string length */
-                int32_t offs = outstring - str->data;
+                size_t offs = outstring - str->data;
                 csound->Warning(csound, "%s",
                                 Str("Allocating extra memory for output string"));
                 str->data = csound->ReAlloc(csound, str->data, maxChars*2);

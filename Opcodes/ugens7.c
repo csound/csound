@@ -256,7 +256,8 @@ static int32_t newpulse(CSOUND *csound,
     return(0);
   if ((oct = *p->koct) > FL(0.0)) {                   /* octaviation */
     int64_t csnt = -1;
-    int32 ioct = (int32)oct, bitpat = ~(csnt << ioct);
+    int64_t ioct = (int64_t) oct;
+    int64_t bitpat = ~(csnt << ioct);
     if (bitpat & ++p->fofcount)
       return(0);
     if ((bitpat += 1) & p->fofcount)
@@ -502,7 +503,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
         autop++;
       }
       //printf("**** maxval = %f ****\n", maxval);
-      period = p->mindist + maxp - p->autobuf;
+      period = (int32_t) (p->mindist + maxp - p->autobuf);
       if (period != p->period) {
 #if 0
         csound->Message(csound, "New period %d %d\n", period, p->period);

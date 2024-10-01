@@ -135,7 +135,7 @@ static int32_t ReadMidiData_(CSOUND *csound, void *userData,
 #ifdef WIN32
       n = recv(sock, mbuf, nbytes, 0);
 #else
-      n = read(sock, mbuf, nbytes);
+      n = (int32_t) read(sock, mbuf, nbytes);
 #endif
       printf("ReadMidiData__ n = %d\n", n);
     }

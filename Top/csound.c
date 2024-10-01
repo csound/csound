@@ -238,16 +238,16 @@ static void create_opcode_table(CSOUND *csound)
 
 static int32_t sndfileWrite(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
   IGN(csound);
-  return sflib_writef_MYFLT(h,p,frames); 
+  return (int32_t) sflib_writef_MYFLT(h,p,frames); 
 }
 
 static int32_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
   IGN(csound);
-  return sflib_readf_MYFLT(h,p,frames); 
+  return (int32_t) sflib_readf_MYFLT(h,p,frames); 
 }
 
 static int32_t sndfileSeek(CSOUND *csound, void *h, int32_t frames, int32_t whence){
-  return sflib_seek(h, frames, whence);
+  return (int32_t) sflib_seek(h, frames, whence);
 }
 
 #define MAX_MODULES 64

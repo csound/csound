@@ -135,7 +135,7 @@ static void do_ifht(MYFLT *real, int32 n)
 
 static void pfht(MYFLT *fz, int32 n)
 {
-    int32        i, k, k1, k2, k3, k4, kx;
+    int32_t        i, k, k1, k2, k3, k4, kx;
     MYFLT       *fi, *fn, *gi;
     TRIG_VARS;
 
@@ -218,7 +218,7 @@ static void pfht(MYFLT *fz, int32 n)
       MYFLT s1, c1;
 
       k += 2;
-      k1 = 1L << k;
+      k1 = 1 << k;
       k2 = k1 << 1;
       k4 = k2 << 1;
       k3 = k2 + k1;
@@ -317,7 +317,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
     if (UNLIKELY(flen<1))
       return csound->InitError(csound, "%s", Str("cross2: length must be at least 1"));
     p->m = plog2(flen);
-    flen = 1L << p->m;
+    flen = 1 << p->m;
 
     if (ovlp < FL(2.0)) ovlp = FL(2.0);
     else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);

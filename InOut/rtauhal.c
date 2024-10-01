@@ -372,11 +372,11 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     cdata->sr = srate = parm->sampleRate;
     if(!isInput){
       nchnls =cdata->onchnls = parm->nChannels;
-      bufframes = csound->GetOutputBufferSize(csound)/nchnls;
+      bufframes = (uint32_t) (csound->GetOutputBufferSize(csound)/nchnls);
     }
     else {
       nchnls = cdata->inchnls = parm->nChannels;
-      bufframes = csound->GetInputBufferSize(csound)/nchnls;
+      bufframes =  (uint32_t) (csound->GetInputBufferSize(csound)/nchnls);
     }
 
     /* although the SR is set in the stream properties,

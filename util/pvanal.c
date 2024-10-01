@@ -272,7 +272,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
       frameIncr = frameSize / ovlp;
     }
     else if (ovlp == 0)
-      ovlp = frameSize/frameIncr;
+      ovlp = (int32_t)(frameSize/frameIncr);
     else frameIncr = frameSize/ovlp;
 
     if (UNLIKELY(ovlp < 2 || ovlp > 64)) {
@@ -459,9 +459,9 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                                            (fftsize + 2) * sizeof(float));
     }
 
-    pvfile  = csound->PVOC_CreateFile(csound, fname, fftsize, overlap, chans,
-                                              PVOC_AMP_FREQ, srate, stype,
-                                              wintype, 0.0f, NULL, winsize);
+    pvfile  = csound->PVOC_CreateFile(csound, fname, (int32_t) fftsize, (int32_t) overlap, (int32_t) chans,
+                                      PVOC_AMP_FREQ, (int32_t) srate, stype,
+                                      wintype, 0.0f, NULL, (int32_t) winsize);
     if (UNLIKELY(pvfile < 0)) {
       csound->Message(csound,
                       Str("pvxanal: unable to create analysis file: %s"),
@@ -475,7 +475,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                           / DISPFRAMES));
 
     while ((sampsread = csound->SndInputRead(csound,
-                                         fd, inbuf, buflen_samps, p)) > 0) {
+                                         fd, inbuf, (int32_t) buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */
       if (sampsread < buflen_samps) {
@@ -588,10 +588,10 @@ static int32_t init(CSOUND *csound,
 
     thispvx->isr         = srate;
     thispvx->R           = (MYFLT) srate;
-    thispvx->N           = N  + N%2;    /* Make N even */
-    thispvx->N2          = N2 = N / 2;
+    thispvx->N           =(int32_t)( N  + N%2);    /* Make N even */
+    thispvx->N2          = (int32_t)(N2 = (int32_t)(N / 2));
     thispvx->Fexact      = (MYFLT)srate / (MYFLT)N;         /* RWD */
-    thispvx->M           = M;
+    thispvx->M           = (int32_t) M;
     thispvx->Mf          = Mf = 1 - M%2;
     thispvx->ibuflen     = 4 * M;
     thispvx->setup = csound->RealFFTSetup(csound,  thispvx->N , FFT_FWD);
@@ -600,8 +600,8 @@ static int32_t init(CSOUND *csound,
     if (D == 0) {
       D = 1;
     }
-    thispvx->D       = D;
-    thispvx->I       = D;
+    thispvx->D       = (int32_t) D;
+    thispvx->I       = (int32_t) D;
     thispvx->nMin    = 0;       /* first input (analysis) sample */
     thispvx->nMax    = 100000000;
     thispvx->nMax   -= thispvx->nMin;
@@ -628,14 +628,14 @@ static int32_t init(CSOUND *csound,
 
     switch (wintype) {
     case PVOC_HAMMING:
-      hamming(thispvx->analWindow, thispvx->analWinLen, Mf);
+      hamming(thispvx->analWindow, thispvx->analWinLen, (int32_t) Mf);
       break;
     case PVOC_KAISER:
-      kaiser(thispvx->analWindow_base, M + Mf, beta);   /* ??? or just M? */
+      kaiser(thispvx->analWindow_base, (int32_t)(M + Mf), beta);   /* ??? or just M? */
       break;
     default:
       /* for now, anything else just sets von Hann window! */
-      vonhann(thispvx->analWindow, thispvx->analWinLen, Mf);
+      vonhann(thispvx->analWindow, thispvx->analWinLen, (int32_t)Mf);
       break;
     }
 
@@ -688,7 +688,7 @@ static int32_t init(CSOUND *csound,
     /* input time (in samples) */
     thispvx->nI = -(thispvx->analWinLen / D) * D;
     /* number of new inputs to read */
-    thispvx->Dd = thispvx->analWinLen + thispvx->nI + 1;
+    thispvx->Dd = (int32_t)(thispvx->analWinLen + thispvx->nI + 1);
     thispvx->flag = 1;
 
     /* for (i=0;i < thispvx->ibuflen;i++) */
@@ -721,13 +721,13 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
 
     anal = pvx->anal;
 
-    got = samps;            /* always assume */
+    got = (int32_t) samps;            /* always assume */
     if (got < pvx->Dd)
       pvx->Dd = got;
 
     fp = fbuf;
 
-    tocp = MIN(got, pvx->input+pvx->ibuflen-pvx->nextIn);
+    tocp = MIN(got, (int32_t)(pvx->input+pvx->ibuflen-pvx->nextIn));
     got -= tocp;
     while (tocp-- > 0)
       *pvx->nextIn++ = *fp++;
@@ -764,9 +764,9 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
     /*   *(anal + i) = FL(0.0); */
     memset(anal, 0, sizeof(MYFLT)*(N+2));
 
-    j = (pvx->nI - pvx->analWinLen-1+pvx->ibuflen)%pvx->ibuflen;  /*input pntr*/
+    j = (int32_t)((pvx->nI - pvx->analWinLen-1+pvx->ibuflen)%pvx->ibuflen);  /*input pntr*/
 
-    k = pvx->nI - pvx->analWinLen - 1;                  /*time shift*/
+    k = (int32_t)( pvx->nI - pvx->analWinLen - 1);                  /*time shift*/
     while (k < 0)
       k += N;
     k = k % N;
@@ -818,7 +818,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
 
     pvx->nI += pvx->D;                          /* increment time */
     pvx->Dd = MIN(pvx->D,                       /* CARL */
-                  MAX(0, pvx->D + pvx->nMax - pvx->nI - pvx->analWinLen));
+                  MAX(0, (int32_t)(pvx->D + pvx->nMax - pvx->nI - pvx->analWinLen)));
 
     return pvx->D;
 }

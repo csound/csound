@@ -118,7 +118,7 @@ struct LFSR : csnd::Plugin<1, 3> {
     }
 
     int32_t init() {
-        srand(time(NULL));
+      srand((uint32_t) time(NULL));
 
         length_ = inargs[0];
         probability_ = inargs[1];

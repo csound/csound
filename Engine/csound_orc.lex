@@ -468,11 +468,11 @@ ORCTOKEN *make_token(CSOUND *csound, char *s)
 ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
-    int len;
+    int32_t len;
     char *ps = s;
     while (*ps != ':') ps++;
     *(ps+1) = '\0';
-    len = strlen(s);
+    len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
     strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
@@ -493,7 +493,7 @@ static void check_newline_for_label(char*s, void* yyscanner) {
 ORCTOKEN *make_string(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
-    int len = strlen(s);
+    int32_t len = (int32_t) strlen(s);
 /* Keep the quote marks */
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strcpy(ans->lexeme, s);
@@ -507,13 +507,13 @@ ORCTOKEN *do_at(CSOUND *csound, int32_t k, struct yyguts_t *yyg)
     ORCTOKEN *ans;
     char buf[16];
     char *s = yytext;
-    int len;
+    int32_t len;
     while (*s=='@') s++;
     n = atoi(s);
     while (i<=n-k && i< 0x4000000) i <<= 1;
     ans = new_token(csound, INTEGER_TOKEN);
     sprintf(buf, "%d", i+k);
-    len = strlen(buf);
+    len = (int32_t) strlen(buf);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strNcpy(ans->lexeme, buf, len+1);
     ans->value = i;
@@ -524,7 +524,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
 {
     int n = atoi(s);
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
-    int len = strlen(s);
+    int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strNcpy(ans->lexeme, s, len+1);
     ans->value = n;
@@ -535,7 +535,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
 {
     double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
-    int len = strlen(s);
+    int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strNcpy(ans->lexeme, s, len+1);
     ans->fvalue = n;

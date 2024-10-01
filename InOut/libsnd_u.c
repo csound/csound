@@ -1,4 +1,4 @@
-/*
+ /*
     libsnd_u.c:
 
     Copyright (C) 2005 Barry Vercoe, John ffitch, Istvan Varga
@@ -95,7 +95,7 @@ static int32_t sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
     /* return the number of samples read */
     int32_t   n, ntot = 0;
     do {
-      n = sflib_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
+      n = (int32_t) sflib_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
       if (UNLIKELY(n < 0))
         csound->Die(csound, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);

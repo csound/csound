@@ -252,11 +252,11 @@ void message_dequeue(CSOUND *csound) {
 /* these are the message enqueueing functions for each relevant API function */
 static inline void csoundInputMessage_enqueue(CSOUND *csound,
                                               const char *str){
-  message_enqueue(csound,INPUT_MESSAGE, (char *) str, strlen(str)+1);
+  message_enqueue(csound,INPUT_MESSAGE, (char *) str, (int32_t) strlen(str)+1);
 }
 
 static inline int64_t *csoundReadScore_enqueue(CSOUND *csound, const char *str){
-  return message_enqueue(csound, READ_SCORE, (char *) str, strlen(str)+1);
+  return message_enqueue(csound, READ_SCORE, (char *) str, (int32_t) strlen(str)+1);
 }
 
 static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int32_t table,
@@ -293,7 +293,7 @@ static inline int64_t *csoundScoreEvent_enqueue(CSOUND *csound, char type,
                                                 const MYFLT *pfields,
                                                 long numFields)
 {
-  const int32_t argsize = sizeof(MYFLT)*(numFields+2);
+  const int32_t argsize = (int32_t) (sizeof(MYFLT)*(numFields+2));
   MYFLT *args = mcalloc(csound, argsize);
   memcpy(&args[2], pfields, argsize - sizeof(MYFLT)*2);
   args[0] = (MYFLT) type;

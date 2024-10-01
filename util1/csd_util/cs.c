@@ -42,7 +42,7 @@ char    **file_names = NULL;
 
 int is_orc(char *s)
 {
-    int n = strlen(s);
+    int n = (int32_t) strlen(s);
     if (n < 5) return 0;
     --n; if (s[n] != 'C' && s[n] != 'c') return 0;
     --n; if (s[n] != 'R' && s[n] != 'r') return 0;
@@ -55,7 +55,7 @@ int is_orc(char *s)
 
 int is_sco(char *s)
 {
-    int n = strlen(s);
+    int n = (int32_t) strlen(s);
     if (n < 5) return 0;
     --n; if (s[n] != 'O' && s[n] != 'o') return 0;
     --n; if (s[n] != 'C' && s[n] != 'c') return 0;
@@ -68,7 +68,7 @@ int is_sco(char *s)
 
 int is_mid(char *s)
 {
-    int n = strlen(s);
+    int n = (int32_t) strlen(s);
     if (n < 5) return 0;
     --n; if (s[n] != 'D' && s[n] != 'd') return 0;
     --n; if (s[n] != 'I' && s[n] != 'i') return 0;
@@ -81,7 +81,7 @@ int is_mid(char *s)
 
 int is_csd(char *s)
 {
-    int n = strlen(s);
+    int n = (int32_t) strlen(s);
     if (n < 5) return 0;
     --n; if (s[n] != 'D' && s[n] != 'd') return 0;
     --n; if (s[n] != 'S' && s[n] != 's') return 0;
@@ -101,7 +101,7 @@ void split_filename(char *fullname, char *dir, char *bas)
       *bas = '\0';
       return;
     }
-    m = strlen(fullname);
+    m = (int32_t) strlen(fullname);
     while (--m >= 0 &&
            fullname[m] != '/' && fullname[m] != '\\' && fullname[m] != ':');
     /* directory name */
@@ -489,7 +489,7 @@ int main(int argc, char **argv)
       if (csdname != NULL && strlen(csdname) > strlen(tmp))
         strcpy(tmp, csdname);
       /* set extension depending on file type */
-      i = strlen(tmp) - 4;
+      i = (int32_t) strlen(tmp) - 4;
       tmp[i] = '\0';
       if (strstr(cmdline, "\"-J\"") != NULL)                    /* IRCAM */
         strcat(tmp, ".sf");

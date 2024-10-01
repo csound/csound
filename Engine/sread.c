@@ -509,7 +509,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             //                i, buff, (csound->sread.names)[i].posit);
             (csound->sread.input_cnt)++;
             if (csound->sread.input_cnt>=csound->sread.input_size) {
-              int32_t old = (csound->sread.str)-(csound->sread.inputs);
+              int32_t old = (int32_t)((csound->sread.str)-(csound->sread.inputs));
               (csound->sread.input_size) += 20;
               (csound->sread.inputs) =
                 csound->ReAlloc(csound, (csound->sread.inputs),

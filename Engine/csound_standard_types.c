@@ -135,7 +135,7 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     var = aDest->arrayType->createVariable(cs, (void *)aDest->arrayType, ctx);
     for (j = 0; j < arrayNumMembers; j++) {
-        int32_t index = j * memMyfltSize;
+        size_t index = j * memMyfltSize;
         if(var->initializeVariableMemory != NULL) {
           var->initializeVariableMemory(csound, var, aDest->data + index);
         }

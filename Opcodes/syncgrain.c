@@ -390,7 +390,7 @@ typedef struct _filegrain {
     uint32  pos;
     float   trigger;
     int32_t     nChannels;
-    int32   flen;
+    int64_t  flen;
     MYFLT pscale;
     MYFLT sr;
 } filegrain;
@@ -499,9 +499,9 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     int32_t     datasize, hdatasize, envtablesize = p->envtablesize;
     int32_t     dataframes = p->dataframes, hdataframes = p->dataframes/2;
     int32_t     read1 = p->read1, read2 = p->read2;
-    int32_t     items, chans = p->nChannels, tndx,endx,n;
+    int32_t     items, chans = p->nChannels, tndx,endx,n, negpos;
     uint32  pos = p->pos;
-    int32   negpos, flen = p->flen;
+    int64_t    flen = p->flen;
     float   trigger = p->trigger, incr;
 
     memset(sig, 0, DGRAIN_MAXCHAN*sizeof(MYFLT));

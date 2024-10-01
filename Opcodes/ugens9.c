@@ -167,9 +167,9 @@ static void writeFromCircBuf(
 {
   MYFLT   *srcindex = *sce;
   MYFLT   *dstindex = *dst;
-  int32    breakPoint;     /* how many points to add before having to wrap */
+  int32_t    breakPoint;     /* how many points to add before having to wrap */
 
-  breakPoint = sceEnd - srcindex + 1;
+  breakPoint = (int32_t) (sceEnd - srcindex + 1);
   if (numToDo >= breakPoint) { /*  we will do 2 in 1st loop, rest in 2nd. */
     numToDo -= breakPoint;
     for (; breakPoint > 0; --breakPoint) {
@@ -322,10 +322,10 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
         }
         /* Any remaining output must go into circular buffer */
         /*csound->Message(csound, "Outputting to circ. buffer\n");*/
-        i = Hlen - (fftbufind - p->fftbuf);
+        i = (int32_t) (Hlen - (fftbufind - p->fftbuf));
         outcnt += i;
         i--; /* do first Hlen -1 samples with overlap */
-        j = p->obufend+chn*obufsiz - outail + 1;
+        j = (int32_t) (p->obufend+chn*obufsiz - outail + 1);
         if (i >= j) {
           i -= j;
           for (;j > 0;--j)

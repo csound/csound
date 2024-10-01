@@ -84,7 +84,7 @@ static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
     char tmp[64];
     char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (isOutput) return 0;
-    endpoints = MIDIGetNumberOfSources();
+    endpoints = (int32_t) MIDIGetNumberOfSources();
     if (list == NULL) return endpoints;
     for(k=0; k < endpoints; k++) {
       endpoint = MIDIGetSource(k);
@@ -128,7 +128,7 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
       ret = MIDIInputPortCreate(mclient, pname, ReadProc, refcon, &mport);
       if (!ret){
         /* sources, we connect to all available input sources */
-        endpoints = MIDIGetNumberOfSources();
+        endpoints = (int32_t) MIDIGetNumberOfSources();
        OPARMS O;
        csound->GetOParms(csound, &O);
        if(O.msglevel || O.odebug)

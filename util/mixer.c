@@ -573,7 +573,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       size = NUMBER_OF_SAMPLES;
       for (i = 0; i < n; i++)
         if (mixin[i].start > sample && mixin[i].start - sample < size)
-          size = mixin[i].start - sample;
+          size = (int32_t)(mixin[i].start - sample);
       /* for (j=0; j<size*outputs; j++) buffer[j] = FL(0.0); */
       memset(buffer, 0, sizeof(MYFLT)*size*outputs);
       this_block = 0;
@@ -587,14 +587,14 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
               ibuffer[j] *= xx;
           }
           read_in /= mixin[i].p->nchanls;
-          if (read_in > this_block) this_block = read_in;
+          if (read_in > this_block) this_block = (int32_t) read_in;
           if (mixin[i].non_clear) {
             for (k = 1; k<=mixin[i].p->nchanls; k++)
               if (mixin[i].channels[k]) {
                 for (j=0; j<read_in; j++) {
                   buffer[j*outputs+mixin[i].channels[k]-1] +=
                     ibuffer[j*outputs+k-1] *
-                    gain(pp, i, sample + j + mixin[i].channels[k] - 1);
+                    gain(pp, i, (int32_t)(sample + j + mixin[i].channels[k] - 1));
                 }
               }
             mixin[i].fulltable = mixin[i].table;
@@ -603,7 +603,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
             for (k = 1; k<=mixin[i].p->nchanls; k++) {
               for (j=0; j<read_in; j++) {
                 buffer[j*outputs+k-1] +=
-                  ibuffer[j*outputs + k - 1] * gain(pp, i, sample + j + k - 1);
+                  ibuffer[j*outputs + k - 1] * gain(pp, i, (int32_t)(sample + j + k - 1));
               }
             }
             mixin[i].fulltable = mixin[i].table;

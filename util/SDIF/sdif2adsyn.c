@@ -372,7 +372,7 @@ int main(int argc, char **argv)
         maxfreq = max(maxfreq,pprops[i]->maxfreq);
         minfreq = min(minfreq,pprops[i]->minfreq);
         maxamp = max(maxamp,pprops[i]->maxamp);
-        maxpoints = max(maxpoints,pprops[i]->numpoints);
+        maxpoints = max(maxpoints,(int32_t)pprops[i]->numpoints);
         n_partials++;
       }
     }

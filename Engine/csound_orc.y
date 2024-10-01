@@ -171,7 +171,7 @@
     extern int csound_orcget_lineno(void *);
     extern ORCTOKEN *make_string(CSOUND *, char *);
     extern char* UNARY_PLUS;
-    extern TREE* make_opcall_from_func_start(CSOUND*, int, int, int, TREE*, TREE*);
+    extern TREE* make_opcall_from_func_start(CSOUND*, int32_t, uint64_t, int32_t, TREE*, TREE*);
 %}
 %%
 
@@ -224,7 +224,7 @@ struct_arg : identifier
 instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                     { csound_orcput_ilocn(scanner, LINE, LOCN); }
                   statement_list ENDIN_TOKEN NEWLINE
-                 {  $$ = make_node(csound, csound_orcget_iline(scanner),
+                  {  $$ = make_node(csound, (int32_t) csound_orcget_iline(scanner),
                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
                                   $2, $5);
                     csp_orc_sa_instr_finalize(csound);

@@ -80,7 +80,7 @@
 
 int32_t zakinit(CSOUND *csound, ZAKINIT *p)
 {
-    int32_t    length;
+    size_t    length;
     ZAK_GLOBALS* zak;
     zak = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     /* Check to see this is the first time zakinit() has been called.
@@ -106,7 +106,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
                            Str("zakinit: failed to allocate globals"));
     zak = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     zak->zklast = (int32_t) *p->isizek;
-    length = (zak->zklast + 1L) * sizeof(MYFLT);
+    length = (zak->zklast + 1) * sizeof(MYFLT);
     zak->zalast = (int32_t) *p->isizea;
     zak->zkstart = (MYFLT*) csound->Calloc(csound, length);
 

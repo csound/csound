@@ -52,8 +52,8 @@ typedef struct type_table {
 #define PARSER_DEBUG (0)
 #endif
 
-TREE* make_node(CSOUND *, int32_t, int32_t, int32_t, TREE*, TREE*);
-TREE* make_leaf(CSOUND *, int32_t, int32_t, int32_t, ORCTOKEN*);
+TREE* make_node(CSOUND *, int32_t, uint64_t, int32_t, TREE*, TREE*);
+TREE* make_leaf(CSOUND *, int32_t, uint64_t, int32_t, ORCTOKEN*);
 ORCTOKEN* make_int(CSOUND *,char *);
 ORCTOKEN* make_num(CSOUND *,char *);
 ORCTOKEN *make_token(CSOUND *csound, char *s);
