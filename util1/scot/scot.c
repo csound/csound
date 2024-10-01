@@ -134,7 +134,7 @@ void readinstsec(Inst *inst,
         break;
       case '!':
         efindword(s);
-        if ((c = (int32_t) strlen(s)) < 2)
+        if ((c = (int) strlen(s)) < 2)
           scoterror(Str("Must specify 2 or more letters of keyword"));
         if (!strncmp(s, "accidentals", c)) {
           if (findonoff(accidentals))

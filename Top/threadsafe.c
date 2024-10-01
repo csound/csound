@@ -429,14 +429,20 @@ void csoundReadScoreAsync(CSOUND *csound, const char *message){
 }
 
 void csoundTableCopyOut(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t async){
-  if(async) return csoundTableCopyOut_enqueue(csound, table, ptable);
+  if(async) {
+    csoundTableCopyOut_enqueue(csound, table, ptable);
+    return;
+  }
   csoundLockMutex(csound->API_lock);
   csoundTableCopyOutInternal(csound, table, ptable);
   csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyIn(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t async){
-  if(async) return csoundTableCopyIn_enqueue(csound, table, ptable);
+  if(async) {
+    csoundTableCopyIn_enqueue(csound, table, ptable);
+    return;
+  }
   csoundLockMutex(csound->API_lock);
   csoundTableCopyInInternal(csound, table, ptable);
   csoundUnlockMutex(csound->API_lock);

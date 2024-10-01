@@ -911,6 +911,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
     lobits = ftp->lobits;
     amp = csound->Get0dBFS(csound) * (MYFLT) p->buf[i].amp;
     phase = MYFLT2LONG(*oscphase);
+    phasef = *oscphase;
     ar = p->aoutput;         /* ar is a pointer to the audio output */
     inca = (amp-oldamps[i])/nsmps;
     a = oldamps[i];
@@ -2942,6 +2943,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
     lobits = ftp->lobits;
     amp = csound->Get0dBFS(csound) * (MYFLT) p->buf[i].amp;
     phase = MYFLT2LONG (oscphase[i]);
+    phasef = *oscphase;
     ar = p->aoutput;         /* ar is a pointer to the audio output */
     inca = (amp-oldamps[i])/nsmps;
     /* put in * kfmod */
