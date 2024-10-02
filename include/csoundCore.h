@@ -204,9 +204,9 @@ extern "C" {
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
 #ifndef  SHORT_TABLE_LENGTH  // long max table length is the default
-static const uint32_t MAXLEN = 1 << 31;  
-static const MYFLT FMAXLEN = (MYFLT) MAXLEN;
-static const uint32_t PHMASK = MAXLEN - 1;
+static const uint32_t MAXLEN = 1U << 31;  
+static const double FMAXLEN = (double) (1U << 31);
+static const uint32_t PHMASK = (1U << 31) - 1U;
 #else   // this is the original max table length
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
@@ -225,11 +225,7 @@ static const uint32_t PHMASK = MAXLEN - 1;
 #define OCTRES     8192
 #define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
 
-#define LOBITS     10
 #define LOFACT     1024
-  /* LOSCAL is 1/LOFACT as MYFLT */
-#define LOSCAL     FL(0.0009765625)
-#define LOMASK     1023
 
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
