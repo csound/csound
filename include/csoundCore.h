@@ -1614,9 +1614,9 @@ static inline double PHMOD1(double p) {
                       const char *, int32_t, int32_t); /* Rename FileOpen */
     void (*NotifyFileOpened)(CSOUND*, const char*, int32_t, int32_t, int32_t);
     int32_t (*FileClose)(CSOUND *, void *);
-    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int64_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileSeek)(CSOUND *, void *, int64_t, int32_t);
     int32_t (*FileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
     const char *(*FileError)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,

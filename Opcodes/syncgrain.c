@@ -555,7 +555,8 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
               pos += hdataframes;
               csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
 
-              items = csound->SndfileRead(csound, p->sf, datap, hdatasize/chans);
+              items = (int32_t)
+                csound->SndfileRead(csound, p->sf, datap, hdatasize/chans);
               if (items < hdatasize) {
                 csound->SndfileSeek(csound,p->sf, 0, 0);
                 csound->SndfileRead(csound,p->sf,datap+items, (hdatasize-items)/chans);
@@ -573,7 +574,8 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
 
               pos += hdataframes;
               csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
-              items = csound->SndfileRead(csound, p->sf, datap, hdatasize/chans);
+              items = (int32_t)
+                csound->SndfileRead(csound, p->sf, datap, hdatasize/chans);
               if (items < hdatasize) {
                 csound->SndfileSeek(csound,p->sf, 0, SEEK_SET);
                 csound->SndfileRead(csound,p->sf,datap+items+hdatasize, (hdatasize-items)/chans);
@@ -611,7 +613,8 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
               */
 
               csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
-              items = csound->SndfileRead(csound,p->sf,datap+hdatasize,hdatasize/chans);
+              items = (int32_t)
+                csound->SndfileRead(csound,p->sf,datap+hdatasize,hdatasize/chans);
               if (items < hdatasize) {
                 csound->SndfileSeek(csound,p->sf,items-hdatasize,SEEK_END);
                 csound->SndfileRead(csound,p->sf,datap+hdatasize+items, (hdatasize-items)/chans);
@@ -638,7 +641,8 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
                 if (pos < 0)  pos += flen;
               */
               csound->SndfileSeek(csound,p->sf,pos,SEEK_SET);
-              items = csound->SndfileRead(csound, p->sf,datap,hdatasize/chans);
+              items = (int32_t)
+                csound->SndfileRead(csound, p->sf,datap,hdatasize/chans);
               if (items < hdatasize) {
                 csound->SndfileSeek(csound,p->sf,items-hdatasize,SEEK_END);
                 csound->SndfileRead(csound,p->sf,datap+items,(hdatasize-items)/chans);
