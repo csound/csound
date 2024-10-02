@@ -203,11 +203,11 @@ extern "C" {
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
-#ifdef  B64BIT
-#define MAXLEN     0x10000000
-#define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x0fffffff
-#else
+#ifndef  SHORT_TABLE_LENGTH  // long max table length is the default
+static const uint32_t MAXLEN = 1 << 31;  
+static const MYFLT FMAXLEN = (MYFLT) MAXLEN;
+static const uint32_t PHMASK = MAXLEN - 1;
+#else   // this is the original max table length
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
 #define PHMASK     0x0FFFFFFL
