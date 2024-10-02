@@ -413,7 +413,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
       return -1;
     }
     if (UNLIKELY(O.rewrt_hdr))
-      sflib_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
+      csound->FileCommand(csound,outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
     pp->out_buf = csound->Malloc(csound, pp->outbufsiz * sizeof(MYFLT));
@@ -624,7 +624,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         if (buffer[j] > max) max = buffer[j], lmaxpos = sample+j, maxtimes=1;
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
-      sflib_write_MYFLT(outfd, buffer, this_block * outputs);
+      csound->SndfileWriteSamples(csound, outfd, buffer, this_block * outputs);
       block++;
       //      bytes += O->sfsampsize * this_block * outputs;
       switch (O->heartbeat) {
@@ -647,7 +647,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       }
       sample += size;
     }
-    csound->RewriteHeader((struct SNFDILE*)outfd);
+    csound->RewriteHeader(csound, outfd);
     min *= (DFLT_DBFS);
     max *= (DFLT_DBFS);
     csound->Message(csound, Str("Max val %d at index %ld (time %.4f, chan %d) "

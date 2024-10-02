@@ -184,7 +184,7 @@ void print_csound_version(CSOUND* csound)
 void print_sndfile_version(CSOUND* csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
-  sflib_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+  csound->FileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
   csoundErrorMsg(csound, "%s\n", buffer);
 #else
   csoundErrorMsg(csound, "%s\n", "No soundfile IO");
@@ -246,9 +246,51 @@ static int32_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
   return sflib_readf_MYFLT(h,p,frames); 
 }
 
+static int64_t sndfileWriteSamples(CSOUND *csound, void *h, MYFLT *p, int64_t samples){
+  IGN(csound);
+  return sflib_write_MYFLT(h,p,samples); 
+}
+
+static int64_t sndfileReadSamples(CSOUND *csound, void *h, MYFLT *p, int64_t samples){
+  IGN(csound);
+  return sflib_read_MYFLT(h,p,samples); 
+}
+
+
 static int32_t sndfileSeek(CSOUND *csound, void *h, int32_t frames, int32_t whence){
+  IGN(csound);
   return sflib_seek(h, frames, whence);
 }
+
+static void *sndfileOpen(CSOUND *csound, const char *path, int32_t mode,
+                         SFLIB_INFO *sfinfo){
+  IGN(csound);
+  return sflib_open(path, mode, sfinfo);
+}
+
+
+static void *sndfileOpenFd(CSOUND *csound,
+                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
+                           int32_t close_desc){
+  IGN(csound);
+  return sflib_open_fd(fd, mode, sfinfo, close_desc);
+}
+
+static void sndfileClose(CSOUND *csound, void *sndfile) {
+  IGN(csound);
+   sflib_close(sndfile);
+}
+
+static int32_t sndfileSetString(CSOUND *csound, void *sndfile, int32_t str_type, const char* str){
+  IGN(csound);
+  return sflib_set_string(sndfile, str_type, str);
+}
+
+static const char *sndfileStrError(CSOUND *csound, void *sndfile){
+  IGN(csound);
+  return sflib_strerror(sndfile);
+}
+
 
 #define MAX_MODULES 64
 
@@ -454,9 +496,16 @@ static const CSOUND cenviron_ = {
   csoundFileOpenWithType,
   csoundNotifyFileOpened,
   csoundFileClose,
+  sndfileOpen,
+  sndfileOpenFd,
+  sndfileClose,  
   sndfileWrite,
   sndfileRead,
+  sndfileWriteSamples,
+  sndfileReadSamples,
   sndfileSeek,
+  sndfileSetString,
+  sndfileStrError,
   csoundFileCommand,
   csoundFileError,    
   csoundFileOpenWithType_Async,

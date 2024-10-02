@@ -69,10 +69,10 @@ static  void    usage(CSOUND *);
 static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
                        SNDFILE *outfd, int32_t length, OPARMS *oparms)
 {
-    sflib_write_MYFLT(outfd, out_buf, length);
+    csound->SndfileWriteSamples(csound, outfd, out_buf, length);
     (*block)++;
     if (oparms->rewrt_hdr)
-      csound->RewriteHeader((struct SNDFILE *)outfd);
+      csound->RewriteHeader(csound, SNDFILE *)outfd);
     switch (oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
@@ -498,7 +498,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                       O.outfilename);
-      sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->FileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
     csound->SetUtilSr(csound, (MYFLT)p->sr);
     csound->SetUtilNchnls(csound, Chans = p->nchanls);

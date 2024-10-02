@@ -1614,9 +1614,19 @@ static inline double PHMOD1(double p) {
                       const char *, int32_t, int32_t); /* Rename FileOpen */
     void (*NotifyFileOpened)(CSOUND*, const char*, int32_t, int32_t, int32_t);
     int32_t (*FileClose)(CSOUND *, void *);
+    void *(*SndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
+                        SFLIB_INFO *sfinfo);
+    void *(*SndfileOpenFd)(CSOUND *csound,
+                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
+                          int32_t close_desc);
+    void (*SndfileClose)(CSOUND *csound, void *);
     int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
     int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
+    int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
     int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
+    const char *(*SndfileStrError)(CSOUND *csound, void *);
     int32_t (*FileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
     const char *(*FileError)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,
@@ -1624,7 +1634,7 @@ static inline double PHMOD1(double p) {
     uint32_t (*ReadAsync)(CSOUND *, void *, MYFLT *, int32_t);
     uint32_t (*WriteAsync)(CSOUND *, void *, MYFLT *, int32_t);
     int32_t  (*FSeekAsync)(CSOUND *, void *, int32_t, int32_t);
-    void (*RewriteHeader)(void *ofd);
+    void (*RewriteHeader)(CSOUND *csound, void *ofd);
     SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
     MEMFIL *(*LoadMemoryFile)(CSOUND *, const char *, int32_t,
                               int32_t (*callback)(CSOUND *, MEMFIL *));

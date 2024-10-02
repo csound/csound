@@ -1238,7 +1238,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
             /* the integer file descriptor is no longer needed */
             close(tmp_fd);
             p->fd = tmp_fd = -1;
-            sflib_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+            csound->FileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                        &csound->oparms->quality, sizeof(double));
             goto doneSFOpen;
           }
@@ -1278,8 +1278,8 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
           goto err_return;
         }
       }
-      sflib_command(p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
-      sflib_command(p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+      csound->FileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->FileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                  &csound->oparms->quality, sizeof(double));
       *((SNDFILE**) fd) = p->sf;
       break;
@@ -1585,7 +1585,7 @@ int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t when
       break;
     case CSFILE_SND_R:
     case CSFILE_SND_W:
-      ret = sflib_seek(p->sf,pos,whence);
+      ret = csound->SndfileSeek(csound,p->sf,pos,whence);
       //csoundMessage(csound, "seek set %d\n", pos);
       csound->FlushCircularBuffer(csound, p->cb);
       p->items = 0;
@@ -1613,7 +1613,7 @@ static int32_t read_files(CSOUND *csound){
           break;
         case CSFILE_SND_R:
           if (n == 0) {
-            n = sflib_read_MYFLT(current->sf, buf, items);
+            n = csound->SndfileReadSamples(csound, current->sf, buf, items);
             m = 0;
           }
           l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n);
@@ -1625,7 +1625,7 @@ static int32_t read_files(CSOUND *csound){
         case CSFILE_SND_W:
           items = csound->ReadCircularBuffer(csound, current->cb, buf, items);
           if (items == 0) { csoundSleep(10); break;}
-          sflib_write_MYFLT(current->sf, buf, items);
+          csound->SndfileWriteSamples(csound, current->sf, buf, items);
           break;
         }
       }

@@ -2566,7 +2566,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     {
       SFLIB_INSTRUMENT lpd;
-      int32_t ans = sflib_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
+      int32_t ans = csound->FileCommand(csound,fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
       if (ans) {
         double natcps;
 #ifdef BETA

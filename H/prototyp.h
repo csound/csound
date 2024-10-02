@@ -73,7 +73,7 @@ int32_t     sfsampsize(int32_t sf_format);
 char    *type2string(int32_t type);
 int32_t     type2csfiletype(int32_t type, int32_t encoding);
 int32_t     sftype2csfiletype(int32_t type);
-void    rewriteheader(void *ofd);
+void    rewriteheader(CSOUND *csound, void *ofd);
 #if 0
 int32_t     readOptions_file(CSOUND *, FILE *, int32_t);
 #else

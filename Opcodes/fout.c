@@ -280,7 +280,7 @@ static int32_t outfile(CSOUND *csound, OUTFILE *p)
     if (p->buf_pos >= p->guard_pos) {
       if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-      else //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+      else //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
         csound->SndfileWrite(csound, p->f.sf, buf, p->buf_pos/nargs); // in frames
       p->buf_pos = 0;
     }
@@ -318,7 +318,7 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
       if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
       else
-        //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
         csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
       p->buf_pos = 0;
     }
@@ -368,7 +368,7 @@ static int32_t fout_flush_callback(CSOUND *csound, void *p_)
     if (p->f.async == 1)
       csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
     else
-      // sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+      // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
       csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->nargs); // in frames
   }
   return fout_deinit(csound, &(p->f));
@@ -382,7 +382,7 @@ static int32_t fouta_flush_callback(CSOUND *csound, void *p_)
     if (p->f.async == 1)
       csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
     else
-      // sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+      // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
       csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->tabin->sizes[0]); // in frames
   }
   return fout_deinit(csound, &(p->f));
@@ -501,7 +501,7 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
   if (p->buf_pos >= p->guard_pos) {
     if (p->f.async==1)
       csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-    else //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+    else //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
       csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
     p->buf_pos = 0;
   }

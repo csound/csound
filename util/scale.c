@@ -442,7 +442,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
           min = buffer[i], minpos = i + bufferLenSamples * block, mintimes = 1;
         buffer[i] *= (1.0/csound->Get0dBFS(csound));
       }
-      sflib_write_MYFLT(outfd, buffer, read_in);
+      csound->SndfileWriteSamples(csound, outfd, buffer, read_in);
       block++;
       if (oparms->heartbeat) {
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);

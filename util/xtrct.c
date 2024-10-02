@@ -337,31 +337,31 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
 static void
 ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *oparms)
 {
-    double buffer[NUMBER_OF_SAMPLES];
+    MYFLT buffer[NUMBER_OF_SAMPLES];
     long  read_in;
     //    long  frames = 0;
     int32_t   block = 0;
 
-    sflib_seek(infd, x->sample, SEEK_CUR);
+    csound->SndfileSeek(csound, infd, x->sample, SEEK_CUR);
     while (x->numsamps>0) {
       int32_t num = NUMBER_OF_SAMPLES / x->outputs;
       if (x->numsamps < num)
         num = x->numsamps;
       x->numsamps -= num;
-      read_in = sflib_readf_double(infd, buffer, num);
-      sflib_writef_double(outfd, buffer, read_in);
+      read_in = csound->SndfileRead(csound, infd, buffer, num);
+      csound->SndfileWrite(csound, outfd, buffer, read_in);
       block++;
       //frames += read_in;
       if (oparms->rewrt_hdr) {
-        sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
-        sflib_seek(outfd, 0L, SEEK_END); /* Place at end again */
+        csound->FileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+        csound->SndfileSeek(csound, outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (oparms->heartbeat) {
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
       if (read_in < num) break;
     }
-    sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+    csound->FileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
     return;
 }
 

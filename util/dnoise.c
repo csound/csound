@@ -460,7 +460,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void)csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                      O.outfilename);
-      sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->FileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
 
     csound->SetUtilSr(csound, (MYFLT)p->sr);
@@ -1195,14 +1195,14 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
     int32_t n;
 
     if (UNLIKELY(outfd == NULL)) return 0;
-    n = sflib_write_MYFLT(outfd, outbuf, nsmps);
+    n = csound->SndfileWriteSamples(csound, outfd, outbuf, nsmps);
     if (UNLIKELY(n < nsmps)) {
       sflib_close(outfd);
       sndwrterr(csound, n, nsmps);
       return -1;
     }
     if (UNLIKELY(O->rewrt_hdr))
-      csound->RewriteHeader(outfd);
+      csound->RewriteHeader(csound, outfd);
 
     (*nrecs)++;                 /* JPff fix */
     switch (O->heartbeat) {

@@ -159,12 +159,12 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 
     if (UNLIKELY(STA(outfile) == NULL))
       return;
-    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+    n = (int32_t) csound->SndfileWriteSamples(csound, STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader((void *)STA(outfile));
+      rewriteheader(csound,(void *)STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -213,12 +213,12 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int32_t nbyte
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+    n = (int32_t) csound->SndfileWriteSamples(csound, STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(STA(outfile));
+      rewriteheader(csound,STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -267,12 +267,12 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+    n = (int32_t) csound->SndfileWriteSamples(csound, STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(STA(outfile));
+      rewriteheader(csound,STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -319,12 +319,12 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int32_t nbyt
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+    n = (int32_t) csound->SndfileWriteSamples(csound, STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(STA(outfile));
+      rewriteheader(csound,STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -371,12 +371,13 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int32_t nbyte
       buf[n] += result;
     }
     STA(dither) = dith;
-    n = (int32_t) sflib_write_MYFLT(STA(outfile), (MYFLT*) outbuf,
+    n = (int32_t)
+      csound->SndfileWriteSamples(csound, STA(outfile), (MYFLT*) outbuf,
                              nbytes / sizeof(MYFLT)) * (int32_t) sizeof(MYFLT);
     if (UNLIKELY(n < nbytes))
       sndwrterr(csound, n, nbytes);
     if (UNLIKELY(O->rewrt_hdr))
-      rewriteheader(STA(outfile));
+      rewriteheader(csound,STA(outfile));
     switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME,
@@ -409,7 +410,7 @@ static int32_t readsf(CSOUND *csound, MYFLT *inbuf, int32_t inbufsize)
 
     (void) csound;
     n = inbufsize / (int32_t) sizeof(MYFLT);
-    i = (int32_t) sflib_read_MYFLT(STA(infile), inbuf, n);
+    i = (int32_t)  csound->SndfileReadSamples(csound,STA(infile), inbuf, n);
     if (UNLIKELY(i < 0))
       return inbufsize;
     memset(&inbuf[i], 0, (n-i)*sizeof(MYFLT));
@@ -786,7 +787,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                   Str(sflib_strerror(NULL)));
-      sflib_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+      csound->FileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                  &O->quality, sizeof(double));
     }
     else {
@@ -798,7 +799,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s\n%s"),
                   fullName, sflib_strerror (NULL));
-      sflib_command(STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+      csound->FileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                  &O->quality, sizeof(double));
       /* only notify the host if we opened a real file, not stdout or a pipe */
       csoundNotifyFileOpened(csound, fullName,
@@ -816,8 +817,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
-      sflib_command(STA(outfile), SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
-    sflib_command(STA(outfile), SFC_SET_ADD_PEAK_CHUNK,
+      csound->FileCommand(csound,STA(outfile), SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+    csound->FileCommand(csound,STA(outfile), SFC_SET_ADD_PEAK_CHUNK,
                NULL, (csound->peakchunks ? SFLIB_TRUE : SFLIB_FALSE));
 #ifdef SOME_FINE_DAY
 #ifdef USE_LIBSNDFILE    
@@ -827,7 +828,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       ditherInfo.type  = SFD_TRIANGULAR_PDF | SFD_DEFAULT_LEVEL;
       ditherInfo.level = 1.0;
       ditherInfo.name  = (char*) NULL;
-      sflib_command(STA(outfile), SFC_SET_DITHER_ON_WRITE,
+      csound->FileCommand(csound,STA(outfile), SFC_SET_DITHER_ON_WRITE,
                  &ditherInfo, sizeof(SF_DITHER_INFO));   
     }
 #endif
@@ -946,7 +947,7 @@ void sfcloseout(CSOUND *csound)
       goto report;
     if (STA(outfile) != NULL) {
       if (!STA(pipdevout) && O->outformat != AE_VORBIS)
-        sflib_command(STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
+        csound->FileCommand(csound,STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
       sflib_close(STA(outfile));
       STA(outfile) = NULL;
     }

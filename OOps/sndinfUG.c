@@ -275,11 +275,11 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                                sfname, Str(sflib_strerror(NULL)));
     }
     if (channel <= 0) {
-      if (sflib_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
+      if (csound->FileCommand(csound,sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
           == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-        if (sflib_command(sf, SFC_CALC_NORM_SIGNAL_MAX,
+        if (csound->FileCommand(csound,sf, SFC_CALC_NORM_SIGNAL_MAX,
                        &peakVal, sizeof(double)) != 0)
           peakVal = -1.0;
       }
@@ -293,10 +293,10 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
-      if (sflib_command(sf, SFC_GET_MAX_ALL_CHANNELS, peaks, nBytes) == SFLIB_FALSE) {
+      if (csound->FileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, nBytes) == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-        if (sflib_command(sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, nBytes) == 0)
+        if (csound->FileCommand(csound,sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, nBytes) == 0)
           peakVal = peaks[channel - 1];
       }
       csound->Free(csound, peaks);
