@@ -295,7 +295,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
         frqScale = 1.0 / (double) *(p->ibas);
     }
     else if (ftp->cpscvt > FL(0.0)) {
-      frqScale = (double) ftp->cpscvt * (1.0 / (double) LOFACT);
+      frqScale = (double) ftp->cpscvt; /* 1/LOFACT scaling removed */
     }
     else if (ftp->gen01args.sample_rate > FL(0.0))
       frqScale = (double) ftp->gen01args.sample_rate / (double) CS_ESR;
@@ -440,7 +440,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
         frqScale = 1.0 / (double) *(p->ibas);
     }
     else if (ftp->cpscvt > FL(0.0)) {
-      frqScale = (double) ftp->cpscvt * (1.0 / (double) LOFACT);
+      frqScale = (double) ftp->cpscvt; /* 1/LOFACT scaling removed */
     }
     else if (ftp->gen01args.sample_rate > FL(0.0))
       frqScale = (double) ftp->gen01args.sample_rate / (double) CS_ESR;

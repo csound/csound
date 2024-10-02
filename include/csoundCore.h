@@ -225,8 +225,10 @@ static const uint32_t PHMASK = (1U << 31) - 1U;
 #define OCTRES     8192
 #define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
 
+/* VL this seems to be a leftover without any purpose now 
+  (previously used in ugens3.c, loscilx.c, mp3in.c, fgens.c)
 #define LOFACT     1024
-
+*/
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
 #define SSTRCOD    (double)NAN
