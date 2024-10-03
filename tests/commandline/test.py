@@ -259,18 +259,18 @@ def runTest():
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
-        f = open(tempfile, "r")
+        #f = open(tempfile, "r")
 
         csOutput = ""
 
-        for line in f:
-            csOutput += line
+        #for line in f:
+         #   csOutput += line
 
-        output += csOutput
+        #output += csOutput
 
-        f.close()
+       # f.close()
 
-        retVals.append(t + [retVal, csOutput])
+        #retVals.append(t + [retVal, csOutput])
 
         output += "\n\n"
         counter += 1
