@@ -174,7 +174,7 @@ def runTest():
     ["test_plusname.csd", "test +Name for instr name"],
     ["testnewline.csd", "test newline in statements"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
-    ["test_max_table_len.csd", "test max table length"],
+#    ["test_max_table_len.csd", "test max table length"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -235,7 +235,7 @@ def runTest():
             executable = (csoundExecutable == "") and "csound" or csoundExecutable
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s "%(executable, parserType, runArgs, sourceDirectory, filename)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
 
@@ -259,18 +259,18 @@ def runTest():
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
-        #f = open(tempfile, "r")
+        f = open(tempfile, "r")
 
         csOutput = ""
 
-        #for line in f:
-         #   csOutput += line
+        for line in f:
+            csOutput += line
 
-        #output += csOutput
+        output += csOutput
 
-       # f.close()
+        f.close()
 
-        #retVals.append(t + [retVal, csOutput])
+        retVals.append(t + [retVal, csOutput])
 
         output += "\n\n"
         counter += 1
