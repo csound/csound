@@ -292,7 +292,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     fd = NULL;
     if (strcmp(O.outfilename, "stdout") == 0 ||
         strcmp(O.outfilename, "-") == 0) {
-      outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
+      outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
@@ -307,7 +307,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
                        csound->Type2CsfileType(O.filetyp, O.outformat), 0);
     if (UNLIKELY(fd == NULL))
       csound->Die(csound, Str("Failed to open output file %s: %s"),
-                  O.outfilename, Str(sflib_strerror(NULL)));
+                  O.outfilename, Str(csound->SndfileStrError(csound,NULL)));
     ExtractSound(csound, &xtrc, infd, outfd, &O);
     if (O.ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
@@ -353,7 +353,7 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
       block++;
       //frames += read_in;
       if (oparms->rewrt_hdr) {
-        csound->FileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+        csound->SndfileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
         csound->SndfileSeek(csound, outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (oparms->heartbeat) {
@@ -361,7 +361,7 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
       }
       if (read_in < num) break;
     }
-    csound->FileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+    csound->SndfileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
     return;
 }
 

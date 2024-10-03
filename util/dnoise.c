@@ -445,14 +445,14 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           csound->Message(csound, Str("cannot open %s.\n"), O.outfilename);
           return -1;
         }
-        outfd = sflib_open(name, SFM_WRITE, &sfinfo);
+        outfd = csound->SndfileOpen(csound,name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
                       csound->Type2CsfileType(O.filetyp, O.outformat), 1, 0);
         csound->Free(csound, name);
       }
       else
-        outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 1);
+        outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 1);
       if (UNLIKELY(outfd == NULL)) {
         csound->Message(csound, Str("cannot open %s."), O.outfilename);
         return -1;
@@ -460,7 +460,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void)csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                      O.outfilename);
-      csound->FileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->SndfileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
 
     csound->SetUtilSr(csound, (MYFLT)p->sr);

@@ -393,7 +393,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
     sfinfo.channels /*= csound->nchnls*/ = (int32_t) mixin[0].p->nchanls;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     if (strcmp(O.outfilename, "stdout") == 0) {
-      outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
+      outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
         if (UNLIKELY(csound->CreateFileHandle(csound,
                                               &outfd, CSFILE_SND_W,
@@ -409,11 +409,11 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
       outfd = NULL;
     if (UNLIKELY(outfd == NULL)) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s': %s"),
-                       O.outfilename, Str(sflib_strerror(NULL)));
+                       O.outfilename, Str(csound->SndfileStrError(csound,NULL)));
       return -1;
     }
     if (UNLIKELY(O.rewrt_hdr))
-      csound->FileCommand(csound,outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
+      csound->SndfileCommand(csound,outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
     pp->out_buf = csound->Malloc(csound, pp->outbufsiz * sizeof(MYFLT));

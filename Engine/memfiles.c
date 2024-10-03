@@ -620,7 +620,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,
                        Str("csoundLoadSoundFile(): failed to open '%s' %s"),
-                       fileName, Str(sflib_strerror(NULL)));
+                       fileName, Str(csound->SndfileStrError(csound,NULL)));
       return NULL;
     }
     p = (SNDMEMFILE*)
@@ -646,7 +646,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     p->scaleFac = 1.0;
     {
       SFLIB_INSTRUMENT lpd;
-      if (csound->FileCommand(csound,sf, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT))
+      if (csound->SndfileCommand(csound,sf, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT))
           != 0) {
         if (lpd.loop_count > 0 && lpd.loops[0].mode != SF_LOOP_NONE) {
           /* set loop mode and loop points */

@@ -533,7 +533,7 @@ static int32_t main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
                           NULL, CSFTYPE_ATS, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->Die(csound, Str("\nCould not open %s for writing, %s\nbye...\n"),
-                  ats_outfile, Str(sflib_strerror(NULL)));
+                  ats_outfile, Str(csound->SndfileStrError(csound,NULL)));
     }
     /* call tracker */
     sound = tracker(csound, anargs, soundfile, resfile);
@@ -1821,7 +1821,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
       csound->Die(csound, Str("\nERROR: cannot open file %s for writing\n"),
                   output_file);
     }
-    sflib_set_string(sf, SF_STR_SOFTWARE, "created by ATSA");
+    csound->SndfileSetString(csound,sf, SF_STR_SOFTWARE, "created by ATSA");
     /* allocate memory */
     obuf = (mus_sample_t **) csound->Malloc(csound, 2 * sizeof(mus_sample_t *));
     obuf[0] =
@@ -2016,7 +2016,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s': %s"),
-                       soundfile, Str(sflib_strerror(NULL)));
+                       soundfile, Str(csound->SndfileStrError(csound,NULL)));
       return NULL;
     }
     /* warn about multi-channel sound files */

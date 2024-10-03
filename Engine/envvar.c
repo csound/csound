@@ -1100,10 +1100,10 @@ char *csoundFindOutputFile(CSOUND *csound,
  *     CSFILE_FD_R:     unused (should be NULL)
  *     CSFILE_FD_W:     unused (should be NULL)
  *     CSFILE_STD:      mode parameter (of type char*) to be passed to fopen()
- *     CSFILE_SND_R:    SFLIB_INFO* parameter for sflib_open(), with defaults for
+ *     CSFILE_SND_R:    SFLIB_INFO* parameter for csound->SndfileOpen(csound,), with defaults for
  *                      raw file; the actual format paramaters of the opened
  *                      file will be stored in this structure
- *     CSFILE_SND_W:    SFLIB_INFO* parameter for sflib_open(), output file format
+ *     CSFILE_SND_W:    SFLIB_INFO* parameter for csound->SndfileOpen(csound,), output file format
  * const char *env:
  *   list of environment variables for search path (see csoundFindInputFile()
  *   for details); if NULL, the specified name is used as it is, without any
@@ -1220,7 +1220,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
       if (p->sf != (SNDFILE*) NULL)
           goto doneSFOpen;
       memcpy(&sfinfo, param, sizeof(SFLIB_INFO));
-      p->sf = sflib_open_fd(tmp_fd, SFM_READ, &sfinfo, 0);
+      p->sf = csound->SndfileOpenFd(csound,tmp_fd, SFM_READ, &sfinfo, 0);
       if (p->sf == (SNDFILE*) NULL) {
         int32_t   extPos;
         /* open failed: */
@@ -1232,13 +1232,13 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
             tolower(p->fullName[extPos + 2]) == (char) 'd' &&
             p->fullName[extPos + 3] == (char) '2') {
           //memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-          p->sf = sflib_open(&(p->fullName[0]), SFM_READ, &sfinfo);
+          p->sf = csound->SndfileOpen(csound,&(p->fullName[0]), SFM_READ, &sfinfo);
           if (p->sf != (SNDFILE*) NULL) {
             /* if successfully opened as .sd2, */
             /* the integer file descriptor is no longer needed */
             close(tmp_fd);
             p->fd = tmp_fd = -1;
-            csound->FileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+            csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                        &csound->oparms->quality, sizeof(double));
             goto doneSFOpen;
           }
@@ -1253,13 +1253,13 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
           csound->Warning(csound,
                           Str("After open failure(%s)\n"
                               "will try to open %s as raw\n"),
-                          sflib_strerror(NULL), fullName);
-          p->sf = sflib_open_fd(tmp_fd, SFM_READ, sf, 0);
+                          csound->SndfileStrError(csound,NULL), fullName);
+          p->sf = csound->SndfileOpenFd(csound,tmp_fd, SFM_READ, sf, 0);
         }
 #endif
         if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
           /* csound->Warning(csound, Str("Failed to open %s: %s\n"), */
-          /*                 fullName, sflib_strerror(NULL)); */
+          /*                 fullName, csound->SndfileStrError(csound,NULL)); */
           goto err_return;
         }
       }
@@ -1271,15 +1271,15 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
       break;
     case CSFILE_SND_W:                        /* sound file write */
       if (p->sf == (SNDFILE*) NULL) {
-        p->sf = sflib_open_fd(tmp_fd, SFM_WRITE, (SFLIB_INFO*) param, 0);
+        p->sf = csound->SndfileOpenFd(csound,tmp_fd, SFM_WRITE, (SFLIB_INFO*) param, 0);
         if (UNLIKELY(p->sf == (SNDFILE*) NULL)) {
             csound->Warning(csound, Str("Failed to open %s: %s\n"),
-                            fullName, sflib_strerror(NULL));
+                            fullName, csound->SndfileStrError(csound,NULL));
           goto err_return;
         }
       }
-      csound->FileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
-      csound->FileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+      csound->SndfileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
                  &csound->oparms->quality, sizeof(double));
       *((SNDFILE**) fd) = p->sf;
       break;
@@ -1328,7 +1328,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
 
 /**
  * Allocate a file handle for an existing file already opened with open(),
- * fopen(), or sflib_open(), for later use with csoundFileClose() or
+ * fopen(), or csound->SndfileOpen(csound,), for later use with csoundFileClose() or
  * csoundGetFileName(), or storing in an FDCH structure.
  * Files registered this way (or opened with csoundFileOpen()) are also
  * automatically closed by csoundReset().

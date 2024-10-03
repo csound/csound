@@ -1614,20 +1614,6 @@ static inline double PHMOD1(double p) {
                       const char *, int32_t, int32_t); /* Rename FileOpen */
     void (*NotifyFileOpened)(CSOUND*, const char*, int32_t, int32_t, int32_t);
     int32_t (*FileClose)(CSOUND *, void *);
-    void *(*SndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
-                        SFLIB_INFO *sfinfo);
-    void *(*SndfileOpenFd)(CSOUND *csound,
-                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
-                          int32_t close_desc);
-    void (*SndfileClose)(CSOUND *csound, void *);
-    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
-    int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
-    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
-    int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
-    const char *(*SndfileStrError)(CSOUND *csound, void *);
-    int32_t (*FileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
     const char *(*FileError)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,
                            const char *, int32_t, int32_t, int32_t);
@@ -1648,6 +1634,24 @@ static inline double PHMOD1(double p) {
     char *(*GetStrFormat)(int32_t format);
     int32_t (*SndfileSampleSize)(int32_t format);
     /**@}*/
+
+     /** @name Soundfile interface */
+    /**@{ */   
+    void *(*SndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
+                        SFLIB_INFO *sfinfo);
+    void *(*SndfileOpenFd)(CSOUND *csound,
+                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
+                          int32_t close_desc);
+    void (*SndfileClose)(CSOUND *csound, void *);
+    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
+    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
+    int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
+    const char *(*SndfileStrError)(CSOUND *csound, void *);
+    int32_t (*SndfileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
+    /**@}*/    
 
     /** @name Generic callbacks */
     /**@{ */

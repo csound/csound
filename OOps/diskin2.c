@@ -342,7 +342,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file (%s)"),
-                               name, Str(sflib_strerror(NULL)));
+                               name, Str(csound->SndfileStrError(csound,NULL)));
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -1092,13 +1092,13 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     }
     sfname = csound->GetFileName(q->fd);
     if (format != AE_FLOAT)
-      csound->FileCommand(csound,q->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->SndfileCommand(csound,q->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     else
-      csound->FileCommand(csound,q->sf, SFC_SET_CLIPPING, NULL, SFLIB_FALSE);
+      csound->SndfileCommand(csound,q->sf, SFC_SET_CLIPPING, NULL, SFLIB_FALSE);
 #ifdef USE_DOUBLE
-    csound->FileCommand(csound,q->sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
+    csound->SndfileCommand(csound,q->sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
 #else
-    csound->FileCommand(csound,q->sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
+    csound->SndfileCommand(csound,q->sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
 #endif
     csound->Warning(csound, Str("%s: opening RAW outfile %s\n"),
                     opname, sfname);
@@ -1606,7 +1606,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file: %s"),
-                               name, Str(sflib_strerror(NULL)));
+                               name, Str(csound->SndfileStrError(csound,NULL)));
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -2181,7 +2181,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       if (csound->oparms->realtime==0)
         return csound->InitError(csound,
                                Str("soundin: %s: failed to open file: %s"),
-                                 name, Str(sflib_strerror(NULL)));
+                                 name, Str(csound->SndfileStrError(csound,NULL)));
       else
         return csound->InitError(csound,
                                  Str("soundin: %s: failed to open file"), name);

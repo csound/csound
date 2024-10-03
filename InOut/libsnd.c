@@ -514,10 +514,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     /* open file */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     if (STA(pipdevin)) {
-      STA(infile) = sflib_open_fd(isfd, SFM_READ, &sfinfo, 0);
+      STA(infile) = csound->SndfileOpenFd(csound,isfd, SFM_READ, &sfinfo, 0);
       if (UNLIKELY(STA(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
-        const char *sfError = Str(sflib_strerror(NULL));
+        const char *sfError = Str(csound->SndfileStrError(csound,NULL));
         csoundDie(csound, Str("isfinit: cannot open %s -- %s"), sfname, sfError);
       }
     }
@@ -525,7 +525,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
       fullName = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
       if (UNLIKELY(fullName == NULL))                     /* if not found */
         csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
-      STA(infile) = sflib_open(fullName, SFM_READ, &sfinfo);
+      STA(infile) = csound->SndfileOpen(csound,fullName, SFM_READ, &sfinfo);
       if (STA(infile) == NULL) {
         /* open failed: maybe raw file ? */
         memset(&sfinfo, 0, sizeof(SFLIB_INFO));
@@ -533,10 +533,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         sfinfo.channels = csound->nchnls;
         /* FIXME: assumes input sample format is same as output */
         sfinfo.format = TYPE2SF(TYP_RAW) | FORMAT2SF(O->outformat);
-        STA(infile) = sflib_open(fullName, SFM_READ, &sfinfo);  /* try again */
+        STA(infile) = csound->SndfileOpen(csound,fullName, SFM_READ, &sfinfo);  /* try again */
       }
       if (UNLIKELY(STA(infile) == NULL)) {
-        const char *sfError = Str(sflib_strerror(NULL));
+        const char *sfError = Str(csound->SndfileStrError(csound,NULL));
         csoundDie(csound, Str("isfinit: cannot open %s -- %s"), fullName, sfError);
       }
       /* only notify the host if we opened a real file, not stdin or a pipe */
@@ -760,34 +760,34 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     sfinfo.format     = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file */
     if (STA(pipdevout)) {
-      STA(outfile) = sflib_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+      STA(outfile) = csound->SndfileOpenFd(csound,osfd, SFM_WRITE, &sfinfo, 0);
 #ifdef PIPES
       if (STA(outfile) == NULL) {
         char fmt_name[6];
         if (O->sfsampsize == 8) {
           if (UNLIKELY(O->filetyp == TYP_AU))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                      Str(sflib_strerror(NULL)));
+                      Str(csound->SndfileStrError(csound,NULL)));
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
         else {
           if (UNLIKELY(O->filetyp == TYP_IRCAM))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                      Str(sflib_strerror(NULL)));
+                      Str(csound->SndfileStrError(csound,NULL)));
           strcpy(fmt_name, "IRCAM");
           O->filetyp = TYP_IRCAM;
         }
         csound->Message(csound, Str("Output file type changed to %s "
                                     "for use in pipe\n"), fmt_name);
         sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
-        STA(outfile) = sflib_open_fd(osfd, SFM_WRITE, &sfinfo, 0);
+        STA(outfile) = csound->SndfileOpenFd(csound,osfd, SFM_WRITE, &sfinfo, 0);
       }
 #endif
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
-                  Str(sflib_strerror(NULL)));
-      csound->FileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+                  Str(csound->SndfileStrError(csound,NULL)));
+      csound->SndfileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                  &O->quality, sizeof(double));
     }
     else {
@@ -795,11 +795,11 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       if (UNLIKELY(fullName == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s"), fName);
       STA(sfoutname) = fullName;
-      STA(outfile)   = sflib_open(fullName, SFM_WRITE, &sfinfo);
+      STA(outfile)   = csound->SndfileOpen(csound,fullName, SFM_WRITE, &sfinfo);
       if (UNLIKELY(STA(outfile) == NULL))
         csoundDie(csound, Str("sfinit: cannot open %s\n%s"),
                   fullName, sflib_strerror (NULL));
-      csound->FileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
+      csound->SndfileCommand(csound,STA(outfile), SFC_SET_VBR_ENCODING_QUALITY,
                  &O->quality, sizeof(double));
       /* only notify the host if we opened a real file, not stdout or a pipe */
       csoundNotifyFileOpened(csound, fullName,
@@ -817,8 +817,8 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
-      csound->FileCommand(csound,STA(outfile), SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
-    csound->FileCommand(csound,STA(outfile), SFC_SET_ADD_PEAK_CHUNK,
+      csound->SndfileCommand(csound,STA(outfile), SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+    csound->SndfileCommand(csound,STA(outfile), SFC_SET_ADD_PEAK_CHUNK,
                NULL, (csound->peakchunks ? SFLIB_TRUE : SFLIB_FALSE));
 #ifdef SOME_FINE_DAY
 #ifdef USE_LIBSNDFILE    
@@ -828,7 +828,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       ditherInfo.type  = SFD_TRIANGULAR_PDF | SFD_DEFAULT_LEVEL;
       ditherInfo.level = 1.0;
       ditherInfo.name  = (char*) NULL;
-      csound->FileCommand(csound,STA(outfile), SFC_SET_DITHER_ON_WRITE,
+      csound->SndfileCommand(csound,STA(outfile), SFC_SET_DITHER_ON_WRITE,
                  &ditherInfo, sizeof(SF_DITHER_INFO));   
     }
 #endif
@@ -852,27 +852,27 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csound->audtran = writesf;
     /* Write any tags. */
     if ((s = csound->SF_id_title) != NULL && *s != '\0')
-      sflib_set_string(STA(outfile), SF_STR_TITLE, s);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_TITLE, s);
     if ((s = csound->SF_csd_licence) == NULL || *s == '\0')
       s = csound->SF_id_copyright;
     if (s != NULL && *s != '\0')
-      sflib_set_string(STA(outfile), SF_STR_COPYRIGHT, s);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_COPYRIGHT, s);
     else if (csound->SF_id_scopyright>=0) {
       char buff[256];
       time_t tt = time(NULL);
       strftime(buff, 256, "Copyright %Y: ", gmtime(&tt));
       strncat(buff,copyrightcode(csound->SF_id_scopyright), 255);
       buff[255] = '\0';
-      sflib_set_string(STA(outfile), SF_STR_COPYRIGHT, buff);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_COPYRIGHT, buff);
     }
     if ((s = csound->SF_id_software) != NULL && *s != '\0')
-      sflib_set_string(STA(outfile), SF_STR_SOFTWARE, s);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_SOFTWARE, s);
     if ((s = csound->SF_id_artist) != NULL && *s != '\0')
-      sflib_set_string(STA(outfile), SF_STR_ARTIST, s);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_ARTIST, s);
     if ((s = csound->SF_id_comment) != NULL && *s != '\0')
-      sflib_set_string(STA(outfile), SF_STR_COMMENT, s);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_COMMENT, s);
     if ((s = csound->SF_id_date) != NULL && *s != '\0')
-      sflib_set_string(STA(outfile), SF_STR_DATE, s);
+      csound->SndfileSetString(csound,STA(outfile), SF_STR_DATE, s);
     /* file is now open */
     STA(osfopen) = 1;
 
@@ -947,7 +947,7 @@ void sfcloseout(CSOUND *csound)
       goto report;
     if (STA(outfile) != NULL) {
       if (!STA(pipdevout) && O->outformat != AE_VORBIS)
-        csound->FileCommand(csound,STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
+        csound->SndfileCommand(csound,STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
       sflib_close(STA(outfile));
       STA(outfile) = NULL;
     }

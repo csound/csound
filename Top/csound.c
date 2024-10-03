@@ -138,17 +138,11 @@ static const char *csoundFileError(CSOUND *csound, void *ff) {
   switch(f->type) {
   case CSFILE_SND_W:
   case CSFILE_SND_R: 
-    return sflib_strerror(ff);
+    return csound->SndfileStrError(csound, ff);
     break;
   default:
     return "";
   }
-}
-
-static int32_t csoundFileCommand(CSOUND *csound, void *handle,
-                                 int32_t cmd, void *data, int32_t datasize){
-  return sflib_command(handle, cmd, data, datasize);
-
 }
 
 void print_csound_version(CSOUND* csound)
@@ -184,7 +178,7 @@ void print_csound_version(CSOUND* csound)
 void print_sndfile_version(CSOUND* csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
-  csound->FileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
+  csound->SndfileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
   csoundErrorMsg(csound, "%s\n", buffer);
 #else
   csoundErrorMsg(csound, "%s\n", "No soundfile IO");
@@ -289,6 +283,12 @@ static int32_t sndfileSetString(CSOUND *csound, void *sndfile, int32_t str_type,
 static const char *sndfileStrError(CSOUND *csound, void *sndfile){
   IGN(csound);
   return sflib_strerror(sndfile);
+}
+
+static int32_t sndfileCommand(CSOUND *csound, void *handle,
+                                 int32_t cmd, void *data, int32_t datasize){
+  return sflib_command(handle, cmd, data, datasize);
+
 }
 
 
@@ -496,17 +496,6 @@ static const CSOUND cenviron_ = {
   csoundFileOpenWithType,
   csoundNotifyFileOpened,
   csoundFileClose,
-  sndfileOpen,
-  sndfileOpenFd,
-  sndfileClose,  
-  sndfileWrite,
-  sndfileRead,
-  sndfileWriteSamples,
-  sndfileReadSamples,
-  sndfileSeek,
-  sndfileSetString,
-  sndfileStrError,
-  csoundFileCommand,
   csoundFileError,    
   csoundFileOpenWithType_Async,
   csoundReadAsync,
@@ -524,6 +513,18 @@ static const CSOUND cenviron_ = {
   type2string,
   getstrformat,
   sfsampsize,
+  /* sndfile interface */
+  sndfileOpen,
+  sndfileOpenFd,
+  sndfileClose,  
+  sndfileWrite,
+  sndfileRead,
+  sndfileWriteSamples,
+  sndfileReadSamples,
+  sndfileSeek,
+  sndfileSetString,
+  sndfileStrError,
+  sndfileCommand,
   /* generic callbacks */
   csoundRegisterKeyboardCallback,
   csoundRemoveKeyboardCallback,

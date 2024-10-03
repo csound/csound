@@ -27,7 +27,7 @@
 void rewriteheader(CSOUND *csound, void *ofd)
 {
     if (LIKELY(ofd != NULL))
-      csound->FileCommand(csound,(SNDFILE *)ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+      csound->SndfileCommand(csound,(SNDFILE *)ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
 /* Stand-Alone sndgetset() */
@@ -137,7 +137,7 @@ void *sndgetset(CSOUND *csound, void *p_)
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(p->fd == NULL)) {
       csound->ErrorMsg(csound, Str("soundin cannot open %s: %s"),
-                       sfname, sflib_strerror(NULL));
+                       sfname, csound->SndfileStrError(csound,NULL));
       goto err_return;
     }
     /* & record fullpath filnam */

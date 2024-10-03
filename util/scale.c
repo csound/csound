@@ -280,7 +280,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       fd = NULL;
       if (strcmp(O.outfilename, "stdout") == 0 ||
           strcmp(O.outfilename, "-") == 0) {
-        outfile = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
+        outfile = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 0);
         if (outfile != NULL) {
           if (UNLIKELY((fd =
                         csound->CreateFileHandle(csound, &outfile,
@@ -296,7 +296,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                        csound->Type2CsfileType(O.filetyp, O.outformat), 0);
       if (UNLIKELY(fd == NULL))
         csound->Die(csound, Str("Failed to open output file %s: %s"),
-                    O.outfilename, Str(sflib_strerror(NULL)));
+                    O.outfilename, Str(csound->SndfileStrError(csound,NULL)));
       outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,

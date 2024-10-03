@@ -218,9 +218,9 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     }
     if (!do_scale) {
 #ifdef USE_DOUBLE
-      csound->FileCommand(csound,sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
+      csound->SndfileCommand(csound,sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
 #else
-      csound->FileCommand(csound,sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
+      csound->SndfileCommand(csound,sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
 #endif
     }
     pp->file_opened[idx].file = sf;

@@ -67,7 +67,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
         continue;
       }
       memset(&sflib_info, 0, sizeof(SFLIB_INFO));
-      hndl = sflib_open(fname, SFM_READ, &sflib_info);
+      hndl = csound->SndfileOpen(csound,fname, SFM_READ, &sflib_info);
       if (UNLIKELY(hndl == NULL)) {
         csound->Message(csound, Str("%s: Not a sound file\n"), fname);
         csound->Free(csound, fname);
@@ -112,7 +112,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           SFLIB_INSTRUMENT inst;
           int32_t     k;
 
-          if (csound->FileCommand(csound,hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
+          if (csound->SndfileCommand(csound,hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
             csound->Message(csound, Str("  Gain        : %d\n"),
                             inst.gain);
             csound->Message(csound, Str("  Base note   : %d\n"),
@@ -144,7 +144,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           
           SF_BROADCAST_INFO bext;
 
-          if (csound->FileCommand(csound,hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
+          if (csound->SndfileCommand(csound,hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
               != 0) {
             csound->Message(csound, Str("Description      : %.*s\n"),
                             (int32_t) sizeof (bext.description), bext.description);
