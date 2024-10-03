@@ -2563,7 +2563,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     else ftp->nchanls  = 1;
     ftp->flenfrms = ff->flen / ftp->nchanls;  /* VL fixed 8/10/19: using table nchnls */
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
-    ftp->cvtbas =  p->sr * csound->onedsr; /* VL - LOFACT factor (1024) removed */
+    ftp->cvtbas =  p->sr * csound->onedsr; 
     {
       SFLIB_INSTRUMENT lpd;
       int32_t ans = sflib_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));

@@ -289,7 +289,7 @@ int32_t losset(CSOUND *csound, LOSC *p)
     //printf("****ftp cvtbas = %g ibas = %g\n", ftp->cvtbas, *p->ibas);
     p->ftp = ftp;
     if (*p->ibas != FL(0.0))
-      p->cpscvt = (ftp->cvtbas / *p->ibas); /* 1/LOFACT scaling removed */
+      p->cpscvt = (ftp->cvtbas / *p->ibas); 
     else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
       p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
       csound->Warning(csound, Str("no legal base frequency"));
@@ -384,7 +384,7 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
     //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
     p->ftp = ftp;
     if (*p->ibas != FL(0.0))
-      p->cpscvt = (ftp->cvtbas / *p->ibas); /* VL - 1/LOFACT scaling removed */ 
+      p->cpscvt = (ftp->cvtbas / *p->ibas); 
     else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
       p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
       csound->Warning(csound, Str("no legal base frequency"));

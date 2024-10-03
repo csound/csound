@@ -1039,7 +1039,7 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     def = 1;
   }
   ftp->gen01args.sample_rate = mpainfo.frequency;
-  ftp->cvtbas = mpainfo.frequency * ftp->sr; /* LOFACT scaling removed */
+  ftp->cvtbas = mpainfo.frequency * ftp->sr; 
   flen = ftp->flen;
   //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
   while ((r == MP3DEC_RETCODE_OK) && bufused) {

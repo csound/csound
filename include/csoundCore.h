@@ -208,11 +208,12 @@ static const uint32_t MAXLEN = 1U << 31;
 static const double FMAXLEN = (double) (1U << 31);
 static const uint32_t PHMASK = (1U << 31) - 1U;
 #else   // this is the original max table length
-#define MAXLEN     0x1000000L
-#define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x0FFFFFFL
+static const uint32_t MAXLEN =  1U << 24;  
+static const double FMAXLEN = (double) (1U << 24);
+static const double FMAXLEN = (1U << 24) - 1;
 #endif
 
+  
 #define MAX_STRING_CHANNEL_DATASIZE 16384
 
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
