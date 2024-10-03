@@ -20,7 +20,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include <soundfile.h>
+#include "csoundCore.h"  
 
 #if USE_LIBSNDFILE
 const char *sflib_strerror(void *p){

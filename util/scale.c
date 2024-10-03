@@ -285,7 +285,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
           if (UNLIKELY((fd =
                         csound->CreateFileHandle(csound, &outfile,
                                                  CSFILE_SND_W, "stdout")) == NULL)) {
-            sflib_close(outfile);
+            csound->SndfileClose(csound,outfile);
             csound->Die(csound, "%s", Str("Memory allocation failure"));
           }
         }

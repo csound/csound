@@ -168,7 +168,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           }
         }
 #endif
-        sflib_close(hndl);
+        csound->SndfileClose(csound,hndl);
       }
     }
 

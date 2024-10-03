@@ -398,7 +398,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
         if (UNLIKELY(csound->CreateFileHandle(csound,
                                               &outfd, CSFILE_SND_W,
                                               "stdout") == NULL)) {
-          sflib_close(outfd);
+          csound->SndfileClose(csound,outfd);
           return -1;
         }
       }

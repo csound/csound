@@ -914,7 +914,7 @@ void sfclosein(CSOUND *csound)
     }
     else if (STA(pipdevin) != 2) {
       if (STA(infile) != NULL)
-        sflib_close(STA(infile));
+        csound->SndfileClose(csound,STA(infile));
 #ifdef PIPES
       if (STA(pin) != NULL) {
         _pclose(STA(pin));
@@ -948,7 +948,7 @@ void sfcloseout(CSOUND *csound)
     if (STA(outfile) != NULL) {
       if (!STA(pipdevout) && O->outformat != AE_VORBIS)
         csound->SndfileCommand(csound,STA(outfile), SFC_UPDATE_HEADER_NOW, NULL, 0);
-      sflib_close(STA(outfile));
+      csound->SndfileClose(csound,STA(outfile));
       STA(outfile) = NULL;
     }
 #ifdef PIPES

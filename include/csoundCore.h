@@ -44,6 +44,12 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
+#include "csound_files.h"
+#include "csound_graph_display.h"
+#include "csound_circular_buffer.h"
+#include "csound_threads.h"
+#include "csound_compiler.h"
+#include "csound_misc.h"
 #include "csound_server.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
@@ -144,12 +150,7 @@ extern "C" {
   int32_t csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
 
-#include "csound_files.h"
-#include "csound_graph_display.h"
-#include "csound_circular_buffer.h"
-#include "csound_threads.h"
-#include "csound_compiler.h"
-#include "csound_misc.h"
+
   
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
@@ -1642,7 +1643,7 @@ static inline double PHMOD1(double p) {
     void *(*SndfileOpenFd)(CSOUND *csound,
                           int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
                           int32_t close_desc);
-    void (*SndfileClose)(CSOUND *csound, void *);
+    int32_t (*SndfileClose)(CSOUND *csound, void *);
     int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
     int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
     int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
@@ -1722,7 +1723,7 @@ static inline double PHMOD1(double p) {
                                                const char *(*func)(int32_t));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
                                       int32_t (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int32_t isOutput));
-    void (*module_list_add)(CSOUND *, char *, char *);
+    void (*ModuleListAdd)(CSOUND *, char *, char *);
     /**@}*/
 
     /** @name Utility module support */

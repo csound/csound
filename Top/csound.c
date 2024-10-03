@@ -270,9 +270,9 @@ static void *sndfileOpenFd(CSOUND *csound,
   return sflib_open_fd(fd, mode, sfinfo, close_desc);
 }
 
-static void sndfileClose(CSOUND *csound, void *sndfile) {
+static int32_t sndfileClose(CSOUND *csound, void *sndfile) {
   IGN(csound);
-   sflib_close(sndfile);
+  return sflib_close(sndfile);
 }
 
 static int32_t sndfileSetString(CSOUND *csound, void *sndfile, int32_t str_type, const char* str){
@@ -291,6 +291,40 @@ static int32_t sndfileCommand(CSOUND *csound, void *handle,
 
 }
 
+PUBLIC void csoundSetSndfileCallbacks(CSOUND *csound, SNDFILE_CALLBACKS *p){
+  if(p == NULL) {
+    csound->SndfileOpen = sndfileOpen;
+    csound->SndfileOpenFd = sndfileOpenFd;   
+    csound->SndfileClose = sndfileClose; 
+    csound->SndfileWrite = sndfileWrite;
+    csound->SndfileRead = sndfileRead;
+    csound->SndfileWriteSamples = sndfileWriteSamples;
+    csound->SndfileReadSamples = sndfileReadSamples;
+    csound->SndfileSeek = sndfileSeek;
+    csound->SndfileSetString = sndfileSetString;
+    csound->SndfileStrError = sndfileStrError;
+    csound->SndfileCommand = sndfileCommand;
+  } else {
+    csound->SndfileOpen = p->sndfileOpen ? p->sndfileOpen : sndfileOpen;
+    csound->SndfileOpenFd = p->sndfileOpenFd ?
+      p->sndfileOpenFd :sndfileOpenFd;   
+    csound->SndfileClose = p->sndfileClose ? p->sndfileClose : sndfileClose; 
+    csound->SndfileWrite = p->sndfileWrite ? p->sndfileWrite : sndfileWrite;
+    csound->SndfileRead = p->sndfileRead ? p->sndfileRead : sndfileRead;
+    csound->SndfileWriteSamples = p->sndfileWriteSamples ?
+      p->sndfileWriteSamples : sndfileWriteSamples;
+    csound->SndfileReadSamples = p->sndfileReadSamples ?
+      p->sndfileReadSamples : sndfileReadSamples;
+    csound->SndfileSeek =  csound->SndfileSeek ?
+      csound->SndfileSeek : sndfileSeek;
+    csound->SndfileSetString = csound->SndfileSetString ?
+      csound->SndfileSetString : sndfileSetString;
+    csound->SndfileStrError = csound->SndfileStrError?
+      csound->SndfileStrError : sndfileStrError;
+    csound->SndfileCommand = csound->SndfileCommand?
+      csound->SndfileCommand :sndfileCommand;
+  }
+}
 
 #define MAX_MODULES 64
 

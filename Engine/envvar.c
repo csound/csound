@@ -1418,7 +1418,7 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
       case CSFILE_SND_R:
       case CSFILE_SND_W:
         if (p->sf)
-          retval = sflib_close(p->sf);
+          retval = csound->SndfileClose(csound,p->sf);
         p->sf = NULL;
         if (p->fd >= 0)
           retval |= close(p->fd);
@@ -1447,7 +1447,7 @@ int32_t csoundFileClose(CSOUND *csound, void *fd)
         break;
       case CSFILE_SND_R:
       case CSFILE_SND_W:
-        retval = sflib_close(p->sf);
+        retval = csound->SndfileClose(csound,p->sf);
         if (p->fd >= 0)
           retval |= close(p->fd);
         break;

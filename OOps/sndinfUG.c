@@ -130,7 +130,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     if (sf != NULL) {
       csFileType = sftype2csfiletype(sfinfo.format);
       memcpy(hdr, &sfinfo, sizeof(SFLIB_INFO));
-      sflib_close(sf);
+      csound->SndfileClose(csound,sf);
     }
     /* FIXME: PVOC_OpenFile has already notified since it calls
        FileOpen(), even if the file was not a PVOC file. */

@@ -296,7 +296,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
       if (outfd != NULL) {
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
-          sflib_close(outfd);
+          csound->SndfileClose(csound,outfd);
           csound->Die(csound, "%s", Str("Memory allocation failure"));
         }
       }

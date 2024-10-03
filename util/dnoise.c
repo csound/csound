@@ -1197,7 +1197,7 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
     if (UNLIKELY(outfd == NULL)) return 0;
     n = csound->SndfileWriteSamples(csound, outfd, outbuf, nsmps);
     if (UNLIKELY(n < nsmps)) {
-      sflib_close(outfd);
+      csound->SndfileClose(csound,outfd);
       sndwrterr(csound, n, nsmps);
       return -1;
     }
