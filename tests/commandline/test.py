@@ -235,7 +235,7 @@ def runTest():
             executable = (csoundExecutable == "") and "csound" or csoundExecutable
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
+            command = "%s %s %s %s/%s "%(executable, parserType, runArgs, sourceDirectory, filename)
             print(command)
             retVal = os.system(command)
 
