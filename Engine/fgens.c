@@ -26,6 +26,7 @@
 
 #include "csoundCore.h"         /*                      FGENS.C         */
 #include <ctype.h>
+#include "soundfile.h"
 #include "soundio.h"
 #include "cwindow.h"
 #include "cmath.h"
@@ -34,6 +35,7 @@
 #include "pvfileio.h"
 #include <stdlib.h>
 #include "fftlib.h"
+
 
 extern double besseli(double);
 static int32_t gen01raw(FGDATA *, FUNC *);

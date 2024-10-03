@@ -26,6 +26,7 @@
              ugens to retrieve info about a sound file */
 
 #include "csoundCore.h"
+#include "soundfile.h"
 #include "soundio.h"
 #include "sndinfUG.h"
 #include "pvfileio.h"

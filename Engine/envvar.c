@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore.h"
+#include "soundfile.h"
 #include "soundio.h"
 #include "envvar.h"
 #include <stdio.h>

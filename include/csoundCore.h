@@ -56,6 +56,7 @@
 #include "pools.h"
 #include "soundfile.h"
 
+
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)

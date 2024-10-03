@@ -37,8 +37,7 @@ extern "C" {
     int32_t   channels ;
     int32_t   format ;
   } SFLIB_INFO;
-  
-
+ 
   /** 
    * Soundfile interface callbacks
    */

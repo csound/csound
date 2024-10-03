@@ -21,7 +21,7 @@
 #include "soundio.h"
 #include "csmodule.h"
 #include "corfile.h"
-
+#include "soundfile.h"
 #include "csound_orc.h"
 
 #include "cs_par_base.h"

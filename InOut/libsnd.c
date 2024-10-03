@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore.h"                 /*             SNDLIB.C         */
+#include "soundfile.h"
 #include "soundio.h"
 #include <stdlib.h>
 #include <time.h>

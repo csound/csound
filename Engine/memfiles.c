@@ -23,6 +23,7 @@
 */
 
 #include "csoundCore.h"     /*                              MEMFILES.C      */
+#include "soundfile.h"
 #include "soundio.h"
 #include "pvfileio.h"
 #include "convolve.h"

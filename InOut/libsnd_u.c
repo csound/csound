@@ -22,6 +22,7 @@
 */
 
 #include "csoundCore.h"
+#include "soundfile.h"
 #include "soundio.h"
 
 void rewriteheader(CSOUND *csound, void *ofd)
