@@ -460,7 +460,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   
   /* form each partition and take its FFT */
   for (part = 0; part < p->numPartitions; part++) {
-    int32_t start_chn = channel != ALLCHNLS ? channel : 0;
+    int32_t start_chn = channel != ALLCHNLS ? channel-1 : 0;
     int64_t nframes;
     MYFLT odbfs = csound->Get0dBFS(csound);
     /* get the block of input frames */ 
