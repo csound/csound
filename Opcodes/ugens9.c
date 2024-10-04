@@ -38,10 +38,8 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
   int32     Hlenpadded = 1, obufsiz, Hlen;
   uint32_t  nchanls;
   uint32_t  nsmps = CS_KSMPS;
-  STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
-    csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
 
-  if (UNLIKELY(pp->oparms.odebug))
+  if (UNLIKELY(csound->GetDebug(csound)))
     csound->Message(csound, CONVOLVE_VERSION_STRING);
 
   if (stringname==0){
@@ -389,9 +387,10 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   MYFLT   *IRblock;
   MYFLT   ainput_dur, scaleFac;
   MYFLT   partitionSize;
-  STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
-    csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
+  OPARMS oparms;
   char *sfname = NULL;
+
+  csound->GetOParms(csound, &oparms);
 
   if (stringname==0){ 
     if (IsStringCode(*p->ifilno))
@@ -420,6 +419,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     ainput_dur = (MYFLT) IRinfo.frames / IRinfo.samplerate;
   }
 
+  if(csound->GetDebug(csound))
   csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
                   (long) IRinfo.frames, ainput_dur);
 
@@ -436,7 +436,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
   /* make sure the partition size is nonzero and a power of 2  */
   if (*p->partitionSize <= 0)
-    partitionSize = pp->oparms.outbufsamps / csound->GetNchnls(csound);
+    partitionSize = oparms.outbufsamps / csound->GetNchnls(csound);
   else
     partitionSize = *p->partitionSize;
 
@@ -462,9 +462,10 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   for (part = 0; part < p->numPartitions; part++) {
     int32_t start_chn = channel != ALLCHNLS ? channel : 0;
     int64_t nframes;
+    MYFLT odbfs = csound->Get0dBFS(csound);
     /* get the block of input frames */ 
     if (UNLIKELY((nframes = csound->SndfileRead(csound, infd, inbuf,
-                                                p->Hlen) <= 0)))
+                                                p->Hlen)) <= 0))
       return csound->InitError(csound,
                                "%s", Str("PCONVOLVE: less sound than expected!"));
 
@@ -475,7 +476,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
       fp1 = inbuf + i;
       fp2 = IRblock;
       for (j = 0; j < nframes/p->nchanls; j++) {
-        *fp2++ = *fp1 * scaleFac;
+        *fp2++ = (*fp1*odbfs) * scaleFac;
         fp1 += p->nchanls;
       }
 
