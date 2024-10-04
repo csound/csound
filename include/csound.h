@@ -554,13 +554,10 @@ extern "C" {
    * containing the CSD code.
    * Returns a non-zero error code on failure.
    *
-   * If csoundStart is called before csoundCompileCsd, the <CsOptions>
+   * If csoundStart is called before csoundCompileCSD, the <CsOptions>
    * element is ignored (but csoundSetOption can be called any number of
-   * times), the <CsScore> element is not pre-processed, but dispatched as
-   * real-time events; and performance continues indefinitely, or until
-   * ended by calling csoundStop or some other logic. In this "real-time"
-   * mode, the sequence of calls should be:
-   *
+   * times), the <CsScore> element is dispatched as score events (e.g.
+   * as it is done by csoundEventString())
    * \code
    *
    * csoundSetOption("-an_option");
@@ -568,11 +565,10 @@ extern "C" {
    * csoundStart(csound);
    * csoundCompileCSD(csound, csd_filename, 0);
    * while (1) {
-   *    csoundPerformBuffer(csound);
+   *    csoundPerformKsmps(csound);
    *    // Something to break out of the loop
    *    // when finished here...
    * }
-   * csoundReset(csound);
    *
    * \endcode
    *
@@ -581,21 +577,16 @@ extern "C" {
    *
    * But if csoundCompileCsd is called before csoundStart, the <CsOptions>
    * element is used, the <CsScore> section is pre-processed and dispatched
-   * normally, and performance terminates when the score terminates, or
-   * csoundStop is called. In this "non-real-time" mode (which can still
-   * output real-time audio and handle real-time events), the sequence of
-   * calls should be:
+   * normally, and performance terminates when the score terminates.
    *
    * \code
    *
-   * csoundCompileCsd(csound, csd_filename, 0);
+   * csoundCompileCSD(csound, csd_filename, 0);
    * csoundStart(csound);
    * while (1) {
-   *    int32_t finished = csoundPerformBuffer(csound);
+   *    int32_t finished = csoundPerformKsmps(csound);
    *    if (finished) break;
    * }
-   * csoundCleanup(csound);
-   * csoundReset(csound);
    *
    * \endcode
    *
@@ -818,9 +809,7 @@ extern "C" {
    * Creates a buffer for storing messages printed by Csound.
    * Should be called after creating a Csound instance andthe buffer
    * can be freed by calling csoundDestroyMessageBuffer() before
-   * deleting the Csound instance. You will generally want to call
-   * csoundCleanup() to make sure the last messages are flushed to
-   * the message buffer before destroying Csound.
+   * deleting the Csound instance. 
    * If 'toStdOut' is non-zero, the messages are also printed to
    * stdout and stderr (depending on the type of the message),
    * in addition to being stored in the buffer.
