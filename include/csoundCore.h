@@ -1608,10 +1608,6 @@ static inline double PHMOD1(double p) {
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
-    void *(*SndInputFileOpen)(CSOUND *,
-                              char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
-    void *(*SndInputOpen)(CSOUND *, void *);
-    int32_t (*SndInputRead)(CSOUND *, void *, MYFLT *, int32_t, void *);
     void *(*FileOpen)(CSOUND *, void *, int32_t, const char *, void *,
                       const char *, int32_t, int32_t); /* Rename FileOpen */
     void (*NotifyFileOpened)(CSOUND*, const char*, int32_t, int32_t, int32_t);
@@ -1738,6 +1734,10 @@ static inline double PHMOD1(double p) {
     const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
     void (*SetUtilSr)(CSOUND *, MYFLT);
     void (*SetUtilNchnls)(CSOUND *, int32_t);
+    void *(*SndinGetSetSA)(CSOUND *,
+                              char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
+    void *(*SndinGetSet)(CSOUND *, void *);
+    int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
     /**@}*/
 
     /** @name Displays & graphs support */

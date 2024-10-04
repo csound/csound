@@ -400,7 +400,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     p->skiptime = FL(0.0);
     p->analonly = 1;
     strNcpy(p->sfname, inputfile, MAXSNDNAME-1);//p->sfname[MAXSNDNAME-1]='\0';
-    if ((infile = csound->SndInputOpen(csound, p)) == 0) /*open sndfil, do skptim*/
+    if ((infile = csound->SndinGetSet(csound, p)) == 0) /*open sndfil, do skptim*/
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
@@ -429,7 +429,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
     tpersample = 1.0 / (double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in = csound->SndInputRead(csound, infile, buffer,
+    while ((read_in = csound->Sndin(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
         j = (i / chans) + (bufferLenFrames * block);
@@ -478,7 +478,7 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
     tpersample = 1.0 / (double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in = csound->SndInputRead(csound, infile, buffer,
+    while ((read_in = csound->Sndin(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
         //j = (i / chans) + (bufferLenFrames * block);

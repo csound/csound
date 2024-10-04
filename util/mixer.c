@@ -533,7 +533,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->skiptime = FL(0.0);
     strNcpy(p->sfname, ddd->name, MAXSNDNAME-1);
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SndInputOpen(csound, p)) == NULL))
+    if (UNLIKELY((infd = csound->SndinGetSet(csound, p)) == NULL))
       return NULL;
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
@@ -579,7 +579,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       this_block = 0;
       for (i = 0; i<n; i++) {
         if (sample >= mixin[i].start) {
-          read_in = csound->SndInputRead(csound, mixin[i].fd, ibuffer,
+          read_in = csound->Sndin(csound, mixin[i].fd, ibuffer,
                                      size*mixin[i].p->nchanls, mixin[i].p);
           if (csound->Get0dBFS(csound)!=FL(1.0)) { /* Optimisation? */
             MYFLT xx = 1.0/csound->Get0dBFS(csound);

@@ -417,7 +417,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
                       Str("Must have an example noise file (-i name)\n"));
       return -1;
     }
-    if (UNLIKELY((inf = csound->SndInputFileOpen(csound, infile, &p, &beg_time,
+    if (UNLIKELY((inf = csound->SndinGetSetSA(csound, infile, &p, &beg_time,
                                             &input_dur, &sr, channel)) == NULL)) {
       csound->Message(csound, Str("error while opening %s"), infile);
       return -1;
@@ -480,7 +480,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     /* read noise reference file */
 
-    if (UNLIKELY((fp = csound->SndInputFileOpen(csound, nfile, &pn, &beg_ntime,
+    if (UNLIKELY((fp = csound->SndinGetSetSA(csound, nfile, &pn, &beg_ntime,
                                            &input_ndur, &srn, channel)) == NULL)) {
       csound->Message(csound, "%s",
                       Str("dnoise: cannot open noise reference file\n"));
@@ -760,7 +760,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     while (nMin > (int64_t)ibuflen) {
       if (UNLIKELY(!csound->CheckEvents(csound)))
         csound->LongJmp(csound, 1);
-      nread = csound->SndInputRead(csound, fp, ibuf1, ibuflen, pn);
+      nread = csound->Sndin(csound, fp, ibuf1, ibuflen, pn);
       for(i=0; i < nread; i++)
         ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
       if (UNLIKELY(nread < ibuflen)) {
@@ -771,7 +771,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(!csound->CheckEvents(csound)))
       csound->LongJmp(csound, 1);
     i = (int32_t) nMin;
-    nread = csound->SndInputRead(csound, fp, ibuf1, i, pn);
+    nread = csound->Sndin(csound, fp, ibuf1, i, pn);
     for(i=0; i < nread; i++)
         ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
     if (UNLIKELY(nread < i)) {
@@ -783,7 +783,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       if (UNLIKELY(!csound->CheckEvents(csound)))
         csound->LongJmp(csound, 1);
       lj += (int64_t) N;
-      nread = csound->SndInputRead(csound, fp, fbuf, N, pn);
+      nread = csound->Sndin(csound, fp, fbuf, N, pn);
       for(i=0; i < nread; i++)
         fbuf[i] *= 1.0/csound->Get0dBFS(csound);
       if (nread < N)
@@ -826,7 +826,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(!csound->CheckEvents(csound)))
       csound->LongJmp(csound, 1);
     /* fill ibuf2 to start */
-    nread = csound->SndInputRead(csound, inf, ibuf2, ibuflen, p);
+    nread = csound->Sndin(csound, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
 /*     nread /= sizeof(MYFLT); */
     for(i=0; i < nread; i++)
@@ -879,7 +879,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           ib2 = ib0;
           ibs -= ibuflen;
           /* fill ib2 */
-          nread = csound->SndInputRead(csound, inf, ib2, ibuflen, p);
+          nread = csound->Sndin(csound, inf, ib2, ibuflen, p);
           for(i=0; i < nread; i++)
                ib2[i] *= 1.0/csound->Get0dBFS(csound);
           lnread += nread;

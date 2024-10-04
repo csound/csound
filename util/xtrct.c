@@ -325,7 +325,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     x->p->channel = ALLCHNLS;
     x->p->skiptime = FL(0.0);
     strNcpy(x->p->sfname, name,  MAXSNDNAME-1);
-    if ((infd = csound->SndInputOpen(csound, x->p)) == 0) /*open sndfil, do skiptime*/
+    if ((infd = csound->SndinGetSet(csound, x->p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     x->p->getframes = x->p->framesrem;
     dur = (MYFLT) x->p->getframes / x->p->sr;

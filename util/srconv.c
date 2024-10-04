@@ -351,7 +351,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       usage(csound);
       return -1;
     }
-    if ((inf = csound->SndInputFileOpen(csound, infile, &p, &beg_time,
+    if ((inf = csound->SndinGetSetSA(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) == NULL) {
       csound->ErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
@@ -587,7 +587,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 
  /* initialization: */
 
-    nread = csound->SndInputRead(csound, inf, input, IBUF2, p);
+    nread = csound->Sndin(csound, inf, input, IBUF2, p);
     for(i=0; i < nread; i++)
        input[i] *= 1.0/csound->Get0dBFS(csound);
     nMax = (long)(input_dur * p->sr);
@@ -644,7 +644,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->SndInputRead(csound, inf, nextIn, IBUF2, p);
+            nread = csound->Sndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;
@@ -704,7 +704,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->SndInputRead(csound, inf, nextIn, IBUF2, p);
+            nread = csound->Sndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;

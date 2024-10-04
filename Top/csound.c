@@ -524,9 +524,6 @@ static const CSOUND cenviron_ = {
   /* File access */
   csoundFindInputFile,
   csoundFindOutputFile,
-  SAsndgetset,
-  sndgetset,
-  getsndin,
   csoundFileOpenWithType,
   csoundNotifyFileOpened,
   csoundFileClose,
@@ -604,6 +601,9 @@ static const CSOUND cenviron_ = {
   csoundGetUtilityDescription,
   set_util_sr,
   set_util_nchnls,
+  SAsndgetset,
+  sndgetset,
+  getsndin,
   /* displays & graphs */
   dispset,
   display,

@@ -256,7 +256,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY((t->input_dur < 0) || (t->beg_time < 0)))
       return quit(csound,Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SndInputFileOpen(csound, t->infilnam, &p,
+    if (UNLIKELY((infd = csound->SndinGetSetSA(csound, t->infilnam, &p,
                                     &t->beg_time, &t->input_dur,
                                              &t->sr, channel)) == NULL)) {
       char errmsg[256];
@@ -268,7 +268,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     t->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
     if (UNLIKELY((t->smpsin =
-                  csound->SndInputRead(csound, infd,
+                  csound->Sndin(csound, infd,
                                    t->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
       csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) t->smpsin);

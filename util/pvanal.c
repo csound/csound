@@ -252,7 +252,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(ovlp && frameIncr))
       return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SndInputFileOpen(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = csound->SndinGetSetSA(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
@@ -474,7 +474,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                    (int32_t) (((int64_t) p->getframes * chans / overlap)
                           / DISPFRAMES));
 
-    while ((sampsread = csound->SndInputRead(csound,
+    while ((sampsread = csound->Sndin(csound,
                                          fd, inbuf, buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */
