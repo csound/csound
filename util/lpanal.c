@@ -545,7 +545,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     lpg = (LPANAL_GLOBALS*) csound->Calloc(csound, sizeof(LPANAL_GLOBALS));
     lpg->firstcall = 1;
 
-    if (UNLIKELY((infd = csound->SndinGetSetSA(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = (csound->GetUtility(csound))->SndinGetSetSA(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       char errmsg[256];
       snprintf(errmsg,256,Str("error while opening %s"), infilnam);
@@ -598,7 +598,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     sigbuf2 = sigbuf + slice;
 
     /* Try to read first frame in buffer */
-    if (UNLIKELY((n = csound->Sndin(csound, infd, sigbuf, lpc.WINDIN, p)) <
+    if (UNLIKELY((n = (csound->GetUtility(csound))->Sndin(csound, infd, sigbuf, lpc.WINDIN, p)) <
                  lpc.WINDIN))
       quit(csound,Str("soundfile read error, could not fill first frame"));
 
@@ -764,7 +764,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       /*              *fp1++ = *fp2++;} */
 
       /* Get next sound frame */
-      if ((n = csound->Sndin(csound, infd, sigbuf2, slice, p)) == 0)
+      if ((n = (csound->GetUtility(csound))->Sndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
       if (UNLIKELY(!csound->CheckEvents(csound)))
         return -1;
@@ -1287,10 +1287,10 @@ static void ptable(CSOUND *csound,
 
 int32_t lpanal_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "lpanal", lpanal);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "lpanal", lpanal);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "lpanal",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "lpanal",
                                       Str("Linear predictive analysis for lpread"));
     }
     return retval;

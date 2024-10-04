@@ -231,9 +231,9 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
 
 int32_t pvlook_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pvlook", pvlook);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "pvlook", pvlook);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "pvlook",
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "pvlook",
                     "Prints information about PVOC analysis files");
     }
     return retval;

@@ -113,7 +113,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     infilnam = *argv++;
     outfilnam = *argv;
 
-    if (UNLIKELY((infd = csound->SndinGetSetSA(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = (csound->GetUtility(csound))->SndinGetSetSA(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
@@ -200,7 +200,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int32_t) (Hlen * nchanls);
     inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
-    if (UNLIKELY((read_in = csound->Sndin(csound, infd, inbuf, j, p)) < j)) {
+    if (UNLIKELY((read_in = (csound->GetUtility(csound))->Sndin(csound, infd, inbuf, j, p)) < j)) {
       csound->Message(csound, "%s", Str("less sound than expected!\n"));
       return -1;
     }
@@ -283,10 +283,10 @@ static int32_t CVAlloc(
 
 int32_t cvanal_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "cvanal", cvanal);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "cvanal", cvanal);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "cvanal",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "cvanal",
                                       Str("Soundfile analysis for convolve"));
     }
     return retval;

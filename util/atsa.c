@@ -2840,11 +2840,11 @@ static void free_sound(CSOUND *csound, ATS_SOUND *sound)
 
 int32_t atsa_init_(CSOUND *csound)
 {
-    int32_t     retval = csound->AddUtility(csound, "atsa", atsa_main);
+    int32_t     retval = (csound->GetUtility(csound))->AddUtility(csound, "atsa", atsa_main);
 
     if (!retval) {
       retval =
-          csound->SetUtilityDescription(csound, "atsa",
+          (csound->GetUtility(csound))->SetUtilityDescription(csound, "atsa",
                                         Str("Soundfile analysis for ATS opcodes"));
     }
     return retval;

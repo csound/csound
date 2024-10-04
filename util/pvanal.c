@@ -252,7 +252,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(ovlp && frameIncr))
       return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SndinGetSetSA(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = (csound->GetUtility(csound))->SndinGetSetSA(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
@@ -342,9 +342,9 @@ static int32_t quit(CSOUND *csound, char *msg)
 
 int32_t pvanal_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pvanal", pvanal);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "pvanal", pvanal);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "pvanal",
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "pvanal",
                                              Str("Soundfile analysis for pvoc"));
     }
     return retval;
@@ -474,7 +474,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                    (int32_t) (((int64_t) p->getframes * chans / overlap)
                           / DISPFRAMES));
 
-    while ((sampsread = csound->Sndin(csound,
+    while ((sampsread = (csound->GetUtility(csound))->Sndin(csound,
                                          fd, inbuf, buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */

@@ -386,7 +386,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
       else O.outfilename = "test";
     }
 #endif
-    csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
+    (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = mixin[0].p->sr;
@@ -526,14 +526,14 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     MYFLT   dur;
     SOUNDIN *p;
 
-    csound->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra   */
+    (csound->GetUtility(csound))->SetUtilSr(csound, FL(0.0));         /* set esr 0. with no orchestra   */
     ddd->p = p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     p->analonly = 1;
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
     strNcpy(p->sfname, ddd->name, MAXSNDNAME-1);
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SndinGetSet(csound, p)) == NULL))
+    if (UNLIKELY((infd = (csound->GetUtility(csound))->SndinGetSet(csound, p)) == NULL))
       return NULL;
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
@@ -579,7 +579,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       this_block = 0;
       for (i = 0; i<n; i++) {
         if (sample >= mixin[i].start) {
-          read_in = csound->Sndin(csound, mixin[i].fd, ibuffer,
+          read_in = (csound->GetUtility(csound))->Sndin(csound, mixin[i].fd, ibuffer,
                                      size*mixin[i].p->nchanls, mixin[i].p);
           if (csound->Get0dBFS(csound)!=FL(1.0)) { /* Optimisation? */
             MYFLT xx = 1.0/csound->Get0dBFS(csound);
@@ -671,12 +671,12 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
 int32_t mixer_init_(CSOUND *csound)
 {
     char    buf[128];
-    int32_t     retval = csound->AddUtility(csound, "mixer", mixer_main);
+    int32_t     retval = (csound->GetUtility(csound))->AddUtility(csound, "mixer", mixer_main);
 
     snprintf(buf, 128, Str("Mixes sound files (max. %d)"),
              (int32_t) NUMBER_OF_FILES);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "mixer", buf);
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "mixer", buf);
     }
     return retval;
 }

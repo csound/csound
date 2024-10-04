@@ -179,10 +179,10 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t sndinfo_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "sndinfo", sndinfo);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "sndinfo", sndinfo);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "sndinfo",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "sndinfo",
                                       Str("Prints information about sound files"));
     }
     return retval;

@@ -380,7 +380,10 @@ PUBLIC const CS_TYPE *GetType(CSOUND *csound, const char *type) {
   return csoundGetTypeWithVarTypeName(csound->typePool, type);
 }
 
- 
+const CSOUND_UTIL *csoundGetCsoundUtility(CSOUND *csound) {
+  return &csound->csound_util;
+}
+
 static const CSOUND cenviron_ = {
   /* attributes  */
   csoundGetNchnls,
@@ -593,17 +596,6 @@ static const CSOUND cenviron_ = {
   csoundSetExternalMidiErrorStringCallback,
   csoundSetMIDIDeviceListCallback,
   module_list_add,
-  /* utilities */
-  csoundAddUtility,
-  csoundRunUtility,
-  csoundListUtilities,
-  csoundSetUtilityDescription,
-  csoundGetUtilityDescription,
-  set_util_sr,
-  set_util_nchnls,
-  SAsndgetset,
-  sndgetset,
-  getsndin,
   /* displays & graphs */
   dispset,
   display,
@@ -615,6 +607,7 @@ static const CSOUND cenviron_ = {
   csoundSetKillGraphCallback,
   csoundSetExitGraphCallback,
   /* miscellaneous */
+  csoundGetCsoundUtility,
   csoundPow2,
   csoundLocalizeString,
   cs_strtod,
@@ -1109,7 +1102,20 @@ static const CSOUND cenviron_ = {
   0,              /* mode */
   NULL,           /* opcodedir */
   NULL,           /* score_srt */
-  {NULL, NULL, NULL, 0, 0, NULL} /* osc_message_anchor */
+  {NULL, NULL, NULL, 0, 0, NULL}, /* osc_message_anchor */
+  SPINLOCK_INIT,
+  {                /* csound_util */
+   csoundAddUtility,
+  csoundRunUtility,
+  csoundListUtilities,
+  csoundSetUtilityDescription,
+  csoundGetUtilityDescription,
+  set_util_sr,
+  set_util_nchnls,
+  SAsndgetset,
+  sndgetset,
+  getsndin
+  }
 };
 
 void csound_aops_init_tables(CSOUND *cs);

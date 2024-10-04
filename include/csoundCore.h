@@ -1377,8 +1377,28 @@ static inline double PHMOD1(double p) {
     }
     return p;
   }
-  
 
+   /**
+   * Functions used in Csound utilities
+   * can be accessed via csound->GetUtility(csound);
+   */  
+  typedef struct _CSOUND_UTIL {
+    int32_t (*AddUtility)(CSOUND *, const char *name,
+                      int32_t (*UtilFunc)(CSOUND *, int32_t, char **));
+    int32_t (*RunUtility)(CSOUND *, const char *name, int32_t argc, char **argv);
+    char **(*ListUtilities)(CSOUND *);
+    int32_t (*SetUtilityDescription)(CSOUND *, const char *utilName,
+                                 const char *utilDesc);
+    const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
+    void (*SetUtilSr)(CSOUND *, MYFLT);
+    void (*SetUtilNchnls)(CSOUND *, int32_t);
+    void *(*SndinGetSetSA)(CSOUND *,
+                              char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
+    void *(*SndinGetSet)(CSOUND *, void *);
+    int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
+  } CSOUND_UTIL;
+
+  
 
 #include "find_opcode.h"
 
@@ -1722,24 +1742,7 @@ static inline double PHMOD1(double p) {
                                       int32_t (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int32_t isOutput));
     void (*ModuleListAdd)(CSOUND *, char *, char *);
     /**@}*/
-
-    /** @name Utility module support */
-    /**@{ */
-    int32_t (*AddUtility)(CSOUND *, const char *name,
-                      int32_t (*UtilFunc)(CSOUND *, int32_t, char **));
-    int32_t (*RunUtility)(CSOUND *, const char *name, int32_t argc, char **argv);
-    char **(*ListUtilities)(CSOUND *);
-    int32_t (*SetUtilityDescription)(CSOUND *, const char *utilName,
-                                 const char *utilDesc);
-    const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
-    void (*SetUtilSr)(CSOUND *, MYFLT);
-    void (*SetUtilNchnls)(CSOUND *, int32_t);
-    void *(*SndinGetSetSA)(CSOUND *,
-                              char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
-    void *(*SndinGetSet)(CSOUND *, void *);
-    int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
-    /**@}*/
-
+    
     /** @name Displays & graphs support */
     /**@{ */
     void (*SetDisplay)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t, char *);
@@ -1759,6 +1762,8 @@ static inline double PHMOD1(double p) {
 
     /** @name Miscellaneous */
     /**@{ */
+    /* access functions used in csound utilities */
+    const CSOUND_UTIL *(*GetUtility)(CSOUND *csound);
     /* Fast power of two function from a precomputed table */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
 #if defined (__CUDACC__) || defined (__MACH__)
@@ -2197,6 +2202,7 @@ static inline double PHMOD1(double p) {
     char *score_srt;
     OSC_MESS osc_message_anchor;
     spin_lock_t osc_spinlock;
+    CSOUND_UTIL csound_util;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
