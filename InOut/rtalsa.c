@@ -1661,9 +1661,9 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
                                     NULL);
     /* nothing to do, report success */
     {
-      OPARMS oparms;
-      csound->GetOParms(csound, &oparms);
-      if (oparms.msglevel & 0x400)
+     const OPARMS *O;
+      O = csound->GetOParms(csound) ;
+      if (O->msglevel & 0x400)
         csound->Message(csound, Str("ALSA real-time audio and MIDI module "
                                     "for Csound by Istvan Varga\n"));
     }
@@ -1900,8 +1900,8 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     char    buf[9];
     char    *s = NULL;
     memset(buf, '\0', 9);
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
 
     csound->module_list_add(csound, "alsa", "audio");
     csound->module_list_add(csound, "alsaraw", "midi");
@@ -1925,7 +1925,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      if (oparms.msglevel & 0x400 || oparms.odebug)
+      if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
@@ -1943,7 +1943,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsaraw") == 0 || strcmp(&(buf[0]), "alsa") == 0) {
-      if (oparms.msglevel & 0x400 || oparms.odebug)
+      if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
@@ -1955,7 +1955,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
-      if (oparms.msglevel & 0x400 || oparms.odebug)
+      if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
       csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
@@ -1966,7 +1966,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
       csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
-      if (oparms.msglevel & 0x400)
+      if (O->msglevel & 0x400)
         csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
       csound->SetExternalMidiReadCallback(csound, midi_in_read_file);

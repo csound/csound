@@ -779,7 +779,7 @@ extern  void    midi_ctl_reset(CSOUND *csound, int16 chan);
 void midifile_rewind_score(CSOUND *csound)
 {
     int32_t i;
-    OPARMS *O = csound->oparms;
+   OPARMS *O = csound->oparms;
 
     if (MIDIFILE != NULL) {
       /* reset event index and tempo */

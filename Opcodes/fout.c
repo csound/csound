@@ -57,7 +57,7 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
           pp->refCount = 0U;
 
           if (pp->fd != NULL) {
-            if ((ppp->oparms.msglevel & 7) == 7)
+            if (((csound->GetOParms(csound))->msglevel & 7) == 7)
               csound->Message(csound, Str("Closing file '%s'...\n"),
                               csound->GetFileName(pp->fd));
             csound->FileClose(csound, pp->fd);
@@ -180,7 +180,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     if (fileType == CSFILE_SND_W) {
       do_scale = ((SFLIB_INFO*) fileParams)->format;
       csFileType = csound->SndfileType2CsfileType(do_scale);
-      if (pp->oparms.realtime == 0 || forceSync == 1) {
+      if ((csound->GetOParms(csound))->realtime == 0 || forceSync == 1) {
         fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
                                "SFDIR", csFileType, 0);
         p->async = 0;
@@ -195,7 +195,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
       p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
     }
     else {
-      if (pp->oparms.realtime == 0 || forceSync == 1) {
+      if ((csound->GetOParms(csound))->realtime == 0 || forceSync == 1) {
         fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
                                "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
         p->async = 0;
@@ -401,14 +401,14 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
   if (format_ >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format_ < 0) {
-    sfinfo.format = FORMAT2SF(pp->oparms.outformat);
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    sfinfo.format = FORMAT2SF((csound->GetOParms(csound))->outformat);
+    sfinfo.format |= TYPE2SF((csound->GetOParms(csound))->filetyp);
   }
   else sfinfo.format = fout_format_table[format_];
   if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
+    sfinfo.format |= FORMAT2SF((csound->GetOParms(csound))->outformat);
   if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    sfinfo.format |= TYPE2SF((csound->GetOParms(csound))->filetyp);
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   p->nargs = p->INOCOUNT - 2;
   p->buf_pos = 0;
@@ -451,15 +451,15 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   if (format_ >=  51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format_ < 0) {
-    sfinfo.format = FORMAT2SF(pp->oparms.outformat);
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    sfinfo.format = FORMAT2SF((csound->GetOParms(csound))->outformat);
+    sfinfo.format |= TYPE2SF((csound->GetOParms(csound))->filetyp);
   }
   else
     sfinfo.format = fout_format_table[format_];
   if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(pp->oparms.outformat);
+    sfinfo.format |= FORMAT2SF((csound->GetOParms(csound))->outformat);
   if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(pp->oparms.filetyp);
+    sfinfo.format |= TYPE2SF((csound->GetOParms(csound))->filetyp);
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   p->buf_pos = 0;
 

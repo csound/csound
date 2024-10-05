@@ -1354,7 +1354,7 @@ static inline double PHMOD1(double p) {
     long (*GetOutputBufferSize)(CSOUND *);
     int32_t (*GetDebug)(CSOUND *);
     int32_t (*GetSizeOfMYFLT)(void);
-    const *OPARMS (*GetOParms)(CSOUND *);
+    const OPARMS *(*GetOParms)(CSOUND *);
     const char *(*GetEnv)(CSOUND *, const char *name);
     MYFLT (*GetSystemSr)(CSOUND *, MYFLT );
     /**@}*/

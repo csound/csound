@@ -168,7 +168,7 @@ void openMIDIout(CSOUND *csound)
 {
     MGLOBAL       *p = csound->midiGlobals;
     midiOutFile_t *fp;
-    OPARMS        *O = &(csound->oparms_);
+   const OPARMS        *O = &(csound->oparms_);
     int32_t           retval;
 
     /* open MIDI out device */

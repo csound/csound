@@ -38,10 +38,8 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
   int32     Hlenpadded = 1, obufsiz, Hlen;
   uint32_t  nchanls;
   uint32_t  nsmps = CS_KSMPS;
-  STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
-    csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
-
-  if (UNLIKELY(pp->oparms.odebug))
+  
+  if (UNLIKELY((csound->GetOParms(csound))->odebug))
     csound->Message(csound, CONVOLVE_VERSION_STRING);
 
   if (stringname==0){
@@ -389,8 +387,6 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   MYFLT   *IRblock;
   MYFLT   ainput_dur, scaleFac;
   MYFLT   partitionSize;
-  STDOPCOD_GLOBALS  *pp =  (STDOPCOD_GLOBALS*)
-    csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
 
 
   /* IV - 2005-04-06: fixed bug: was uninitialised */
@@ -442,7 +438,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
   /* make sure the partition size is nonzero and a power of 2  */
   if (*p->partitionSize <= 0)
-    partitionSize = pp->oparms.outbufsamps / csound->GetNchnls(csound);
+    partitionSize = (csound->GetOParms(csound))->outbufsamps / csound->GetNchnls(csound);
   else
     partitionSize = *p->partitionSize;
 

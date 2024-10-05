@@ -50,7 +50,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     } else return CSOUND_SUCCESS;  // already initialised
     
     p->csound = csound;
-    csound->GetOParms(csound, &p->oparms);
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
     p->file_num = -1;

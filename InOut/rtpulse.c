@@ -42,10 +42,10 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     pulse_globals *p;
     int32_t siz = 64;
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
 
-    if (oparms.msglevel & 0x400)
+    if (O->msglevel & 0x400)
       csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
                                   "by Victor Lazzarini\n"));
 
