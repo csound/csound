@@ -77,7 +77,9 @@ int get_next_char(char *, int32_t, struct yyguts_t*);
 %option nounput
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
+IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
+TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -99,6 +101,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 %x sline
 %x src
 %x xstr
+%x declare
 %x udodef
 %x udoarg
 %x forloop
@@ -141,7 +144,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-
+"if"/"("        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = IF_TOKEN;
+                  return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = THEN_TOKEN;
                   return THEN_TOKEN; }
@@ -152,6 +157,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSEIF_TOKEN;
+                  return ELSEIF_TOKEN; }
+"elseif"/"("    { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -166,7 +174,13 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
+"until"/"("     { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = UNTIL_TOKEN;
+                  return UNTIL_TOKEN; }
 "while"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = WHILE_TOKEN;
+                  return WHILE_TOKEN; }
+"while"/"("     { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
@@ -270,7 +284,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
 
-"declare"       {
+"declare"       { BEGIN(declare);
                   return DECLARE_TOKEN;
                 }
 
@@ -301,6 +315,12 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                     return (*lvalp)->type; }
 
 
+}
+
+<declare>{
+  {IDENT} { BEGIN(INITIAL);
+            *lvalp = lookup_token(csound, yytext, yyscanner);
+            return (*lvalp)->type; }
 }
 
 <udoarg>{
@@ -379,11 +399,22 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
-
+{IDENTB}        { if (UNLIKELY(strchr(yytext, '\n')))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  *strrchr(yytext, '(') = '\0';
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  return (*lvalp)->type+1; }
 {TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
+{TYPED_IDENTIFIERB} { if (UNLIKELY(strchr(yytext, '\n')))
+                           csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                                yyscanner);
+                      *strrchr(yytext, '(') = '\0';
+                      *lvalp = lookup_token(csound, yytext, yyscanner);
+                      return (*lvalp)->type+1; }
 {INTGR}         {
                     *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
                     /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
