@@ -143,7 +143,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-
+"if"/"("        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = IF_TOKEN;
+                  return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = THEN_TOKEN;
                   return THEN_TOKEN; }
@@ -154,6 +156,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSEIF_TOKEN;
+                  return ELSEIF_TOKEN; }
+"elseif"/"("    { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -168,7 +173,13 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
+"until"/"("     { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = UNTIL_TOKEN;
+                  return UNTIL_TOKEN; }
 "while"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = WHILE_TOKEN;
+                  return WHILE_TOKEN; }
+"while"/"("     { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
