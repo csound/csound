@@ -100,6 +100,7 @@ message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 set(CS_VERSION "7")
 set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
+set(APIVERSION "${CS_VERSION}.${CS_SUBVER}")
 
 message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 
@@ -1204,7 +1205,7 @@ if(NOT IOS)
     add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
     target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
-    set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION "${CS_VERSION}.${CS_SUBVER}")
+    set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 endif()
 
 if(APPLE)
