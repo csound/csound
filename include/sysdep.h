@@ -33,19 +33,9 @@ typedef void *locale_t;
 
 #include <limits.h>
 /* this checks for 64BIT builds */
-#if defined(__MACH__) || defined(LINUX)
-#if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
-#define B64BIT
+#if (defined(__WORDSIZE) && __WORDSIZE == 64) || defined(_WIN64) || defined(__x86_64__) || defined(_M_X64) || defined(__ppc64__) || defined(__aarch64__) || (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 8)
+    #define B64BIT
 #endif
-#endif
-
-#if defined(WIN32)
-#if _WIN64
-#define B64BIT
-#endif
-#endif
-
-
 
 #ifdef HAVE_GCC3
 #  undef HAVE_GCC3
