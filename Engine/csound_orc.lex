@@ -101,6 +101,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 %x sline
 %x src
 %x xstr
+%x declare
 %x udodef
 %x udoarg
 %x forloop
@@ -283,7 +284,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
 
-"declare"       {
+"declare"       { BEGIN(declare);
                   return DECLARE_TOKEN;
                 }
 
@@ -314,6 +315,12 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                     return (*lvalp)->type; }
 
 
+}
+
+<declare>{
+  {IDENT} { BEGIN(INITIAL);
+            *lvalp = lookup_token(csound, yytext, yyscanner);
+            return (*lvalp)->type; }
 }
 
 <udoarg>{
