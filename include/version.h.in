@@ -43,13 +43,8 @@
 #define CS_PATCHLEVEL       (${CS_PATCHLEVEL})
 
 
-#define CS_APIVERSION       4   /* should be increased anytime a new version
-                                   contains changes that an older host will
-                                   not be able to handle -- most likely this
-                                   will be a change to an API function or
-                                   the CSOUND struct */
-#define CS_APISUBVER        0   /* for minor changes that will still allow
-                                   compatiblity with older hosts */
+#define CS_APIVERSION       (${CS_APIVERSION})   
+#define CS_APISUBVER        (${CS_APISUBVER})     
 
 #ifndef CS_PACKAGE_DATE
 #define CS_PACKAGE_DATE __DATE__

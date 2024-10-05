@@ -274,6 +274,17 @@ typedef struct {
     FUNC   *ftp[64];
 } SLIDER64t; /* GAB */
 
+
+typedef struct {
+    OPDS   h;
+    MYFLT  *ktrig;      /* output */
+    MYFLT  *ichan,  *ioutfn, *ioffset;              /* input */
+    SLD    s[32];
+    MYFLT  min[32], max[32], *outTable;
+    unsigned char   slchan, slnum[32], oldvalue[32];
+    FUNC   *ftp[32];
+} SLIDER32t; /* GAB */
+
 typedef struct {
     OPDS   h;
     MYFLT  *ktrig;      /* output */
