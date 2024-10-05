@@ -174,6 +174,7 @@ def runTest():
     ["test_plusname.csd", "test +Name for instr name"],
     ["testnewline.csd", "test newline in statements"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
+    ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
