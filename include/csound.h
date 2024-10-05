@@ -130,47 +130,52 @@ extern "C" {
   typedef struct arraydat ARRAYDAT;
   typedef struct pvsdat PVSDAT;
 
-  /**
-   *  csound configuration structure, mirrors part of
-   *  OPARMS, uses more meaningful names
-   */
-  typedef struct {
-    int32_t     debug_mode;     /* debug mode, 0 or 1 */
-    int32_t     buffer_frames;  /* number of frames in in/out buffers */
-    int32_t     hardware_buffer_frames; /* ibid. hardware */
-    int32_t     displays;       /* graph displays, 0 or 1 */
-    int32_t     ascii_graphs;   /* use ASCII graphs, 0 or 1 */
-    int32_t     postscript_graphs; /* use postscript graphs, 0 or 1 */
-    int32_t     message_level;     /* message printout control */
-    int32_t     tempo;             /* tempo (sets Beatmode)  */
-    int32_t     ring_bell;         /* bell, 0 or 1 */
-    int32_t     use_cscore;        /* use cscore for processing */
-    int32_t     terminate_on_midi; /* terminate performance at the end
-                                  of midifile, 0 or 1 */
-    int32_t     heartbeat;         /* print heart beat, 0 or 1 */
-    int32_t     defer_gen01_load ;  /* defer GEN01 load, 0 or 1 */
-    int32_t     midi_key;           /* pfield to map midi key no */
-    int32_t     midi_key_cps;       /* pfield to map midi key no as cps */
-    int32_t     midi_key_oct;       /* pfield to map midi key no as oct */
-    int32_t     midi_key_pch;       /* pfield to map midi key no as pch */
-    int32_t     midi_velocity;      /* pfield to map midi velocity */
-    int32_t     midi_velocity_amp;   /* pfield to map midi velocity as amplitude */
-    int32_t     no_default_paths;     /* disable relative paths from files, 0 or 1 */
-    int32_t     number_of_threads;   /* number of threads for multicore performance */
-    int32_t     syntax_check_only;   /* do not compile, only check syntax */
-    int32_t     csd_line_counts;     /* csd line error reporting */
-    int32_t     compute_weights;     /* deprecated, kept for backwards comp.  */
-    int32_t     realtime_mode;       /* use realtime priority mode, 0 or 1 */
-    int32_t     sample_accurate;     /* use sample-level score event accuracy */
-    MYFLT   sample_rate_override; /* overriding sample rate */
-    MYFLT   control_rate_override; /* overriding control rate */
-    int32_t     nchnls_override;  /* overriding number of out channels */
-    int32_t     nchnls_i_override;  /* overriding number of in channels */
-    MYFLT   e0dbfs_override;   /* overriding 0dbfs */
-    int32_t     daemon;  /* daemon mode */
-    int32_t     ksmps_override; /* ksmps override */
-    int32_t     FFT_library;    /* fft_lib */
-  } CSOUND_PARAMS;
+
+  typedef struct CSOUND_PARAMS {
+    /* debug flag */
+    int32_t     odebug;
+    /* sound input read flag */
+    int32_t     sfread;
+    /* sound output write flag (-s) */
+    int32_t     sfwrite;
+    /* soundfile type code */
+    int32_t     filetyp;
+    int32_t     inbufsamps, outbufsamps;
+    int32_t     informat, outformat;
+    int32_t     sfsampsize;
+    int32_t     displays, graphsoff, postscript, msglevel;
+    int32_t     Beatmode, oMaxLag;
+    int32_t     usingcscore, Linein;
+    int32_t     RTevents, Midiin, FMidiin, RMidiin;
+    int32_t     ringbell, termifend;
+    int32_t     rewrt_hdr, heartbeat, gen01defer;
+    double      cmdTempo;
+    float       sr_override, kr_override;
+    int32_t     nchnls_override, nchnls_i_override;
+    char       *infilename, *outfilename;
+    char       *Linename, *Midiname, *FMidiname;
+    char       *Midioutname;
+    char       *FMidioutname;
+    int32_t     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
+    int32_t     midiVelocity, midiVelocityAmp;
+    int32_t     noDefaultPaths;
+    int32_t     numThreads;
+    int32_t     syntaxCheckOnly;
+    int32_t     useCsdLineCounts;
+    int32_t     sampleAccurate;  /* switch for score events sample accuracy */
+    int32_t     realtime; /* realtime priority mode  */
+    MYFLT       e0dbfs_override;
+    int32_t     daemon;
+    double      quality;        /* for ogg encoding */
+    int32_t     ksmps_override;
+    int32_t     fft_lib;
+    int32_t     echo;
+    MYFLT       limiter;
+    float       sr_default, kr_default;
+    int32_t     mp3_mode;
+  } OPARMS;
+  
+
 
   /**
    * Device information
@@ -404,19 +409,10 @@ extern "C" {
   PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);
 
   /**
-   *  Configure Csound with a given set of parameters defined in
-   *  the CSOUND_PARAMS structure. These parameters are the part of the
-   *  OPARMS struct that are configurable through command line flags.
-   *  The CSOUND_PARAMS structure can be obtained using csoundGetParams().
-   *  These options should only be changed before performance has started.
-   */
-  PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
-
-  /**
    *  Get the current set of parameters from a CSOUND instance in
-   *  a CSOUND_PARAMS structure. See csoundSetParams().
+   *  a struct CSOUND_PARAMS structure. 
    */
-  PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
+  PUBLIC const OPARMS *csoundGetParams(CSOUND *csound);
 
   /**
    * Returns whether Csound is set to print debug messages sent through the

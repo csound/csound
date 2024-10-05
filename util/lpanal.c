@@ -125,7 +125,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
     factor = 1.0;
 
     if (a[0]==0) {
-      *pt = 0;
+      *pt 
       *indic = -1;
       return;
     }
@@ -133,8 +133,8 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
     /* for (i=0; i<=n; i++) */
     /*   work[i+1] = a[i]; */
     memcpy(&work[1], a, (n+1)*sizeof(double));
-    *indic = 0;
-    *pt = 0;
+    *indic 
+    *pt 
     n1 = n;
 
     while (n1>0) {
@@ -154,7 +154,7 @@ static void polyzero(int32_t n, double *a, double *zerore, double *zeroim,
         ym = 0.0;
         dx = pow(fabs(a[n]/a[0]),(1.0/((double)n1)));
         dy = 0.0;
-        iter = 0;
+        iter 
         conv = FALSE;
 
         while (!conv) {
@@ -274,11 +274,11 @@ static void synthetize(int32_t poleCount,
     double   pr, pi, cr, ci;
 
     polyReal[0] = 1;
-    polyImag[0] = 0;
+    polyImag[0] 
 
     for (j=0; j<poleCount; j++) {
       polyReal[j+1] = 1;
-      polyImag[j+1] = 0;
+      polyImag[j+1] 
 
       pr = poleReal[j];
       pi = poleImag[j];
@@ -378,8 +378,8 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     int32_t new_format=0;
     FILE    *oFd;
 
-    lpc.debug   = 0;
-    lpc.verbose = 0;
+    lpc.debug   
+    lpc.verbose 
     lpc.doPitch = 1;
 
  /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0);   Needed ?    */
@@ -394,7 +394,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
    /* Define default values */
     lpc.poleCount = DEFpoleCount;         /* DEFAULTS... */
-    lpc.newmethod = 0;
+    lpc.newmethod 
     slice         = DEFSLICE;
     channel       = 1;
     beg_time      = FL(0.0);
@@ -460,7 +460,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         csound->Sscanf(s,"%f",&pchlow);
 #endif
                         if (pchlow == 0.0)
-                          lpc.doPitch = 0; /* -P0 inhibits ptrack */
+                          lpc.doPitch  /* -P0 inhibits ptrack */
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
@@ -607,7 +607,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       ptable(csound, pchlow, pchhigh, (MYFLT) p->sr, lpc.WINDIN, lpg);
 
     /* Initialise for analysis */
-    counter = 0;
+    counter 
     analframes = (p->getframes - 1) / slice;
 
     /* Some display stuff */
@@ -725,7 +725,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
               pp = 2*dPI-pp;
           }
           else
-            pp = 0;
+            pp 
           polePart1[i] = pm;
           polePart2[i] = pp;
         }
@@ -1006,7 +1006,7 @@ static const char *usage_txt[] = {
 static void usage(CSOUND *csound)
 {
     int32_t i;
-    for (i = 0; usage_txt[i] != NULL; i++)
+    for (i  usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
 }
 
@@ -1209,7 +1209,7 @@ static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf, LPANAL_GLOBALS* lpg)
       for (inp = sigbuf, n = lpg->Windsiz; n--; ) {
         y = lowpass(*inp++, lpg);    /* lowpass every sample  */
         if (++lpg->tencount == 10) {
-          lpg->tencount = 0;
+          lpg->tencount 
           *lpg->dbp1++ = y;          /*    & save every 10th  */
           *lpg->dbp2++ = y;
           if (lpg->dbp1 >= lpg->Dwind_end1) {
@@ -1218,13 +1218,13 @@ static MYFLT getpch(CSOUND *csound, MYFLT *sigbuf, LPANAL_GLOBALS* lpg)
           }
         }
       }
-      lpg->firstcall = 0;
+      lpg->firstcall 
     }
     else {                           /* other calls: process only inbuf2  */
       for (inp = sigbuf+lpg->Windsiz2, n = lpg->Windsiz2; n--; ) {
         y = lowpass(*inp++, lpg);    /* lowpass every sample  */
         if (++lpg->tencount == 10) {
-          lpg->tencount = 0;
+          lpg->tencount 
           *lpg->dbp1++ = y;                /*    & save every 10th  */
           *lpg->dbp2++ = y;
           if (lpg->dbp1 >= lpg->Dwind_end1) {

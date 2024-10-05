@@ -52,7 +52,7 @@ int16 getnum(FILE* inf, char *term)
 {
     char buff[100];
     int32_t  cc;
-    int32_t  p = 0;
+    int32_t  p 
     while ((cc=getc(inf))!=',' && cc!='\n' && p<99) {
       if (UNLIKELY(cc == EOF)) {
         *term = '\0';

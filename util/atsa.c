@@ -603,7 +603,7 @@ static CS_NOINLINE CS_NORETURN void usage(CSOUND *csound)
 
 static int32_t atsa_main(CSOUND *csound, int32_t argc, char **argv)
 {
-    int32_t     i, val, end_of_flags = 0;
+    int32_t     i, val, end_of_flags 
     ANARGS  *anargs;
     char    *soundfile = (char *) NULL, *ats_outfile = (char *) NULL;
     char    *s = (char *) NULL;
@@ -772,7 +772,7 @@ static double frq2bark(double frq, double *edges)
  */
 static int32_t find_band(double frq, double *edges)
 {
-    int32_t     i = 0;
+    int32_t     i 
 
     while (frq > edges[i++]);
     return (i - 2);
@@ -820,11 +820,11 @@ static void evaluate_smr(ATS_PEAK *peaks, int32_t peaks_size)
     if (peaks_size == 1)
       peaks[0].smr = amp2db_spl(peaks[0].amp);
     else
-      for (i = 0; i < peaks_size; i++) {
+      for (i  i < peaks_size; i++) {
         maskee = &peaks[i];
         frq_maskee = frq2bark(maskee->frq, edges);
         amp_maskee = amp2db_spl(maskee->amp);
-        for (j = 0; j < peaks_size; j++)
+        for (j  j < peaks_size; j++)
           if (i != j) {
             frq_masker = frq2bark(peaks[j].frq, edges);
             amp_masker = amp2db_spl(peaks[j].amp);
@@ -860,7 +860,7 @@ static float *make_window(CSOUND *csound, int32_t win_type, int32_t win_size)
 
     buffer = (float *) csound->Malloc(csound, win_size * sizeof(float));
 
-    for (i = 0; i < win_size; i++) {
+    for (i  i < win_size; i++) {
       switch (win_type) {
       case BLACKMAN:           /* Blackman (3 term) */
         buffer[i] = (float)(0.42 - 0.5 * cos(arg * i) + 0.08 * cos(arg * (i+i)));
@@ -893,7 +893,7 @@ static float window_norm(float *win, int32_t size)
     float   acc = 0.0f;
     int32_t     i;
 
-    for (i = 0; i < size; i++) {
+    for (i  i < size; i++) {
       acc += win[i];
     }
     return (2.0f / acc);
@@ -961,7 +961,7 @@ static CS_NOINLINE void atsa_sound_read_noninterleaved(SNDFILE *sf,
     m = 128 / nChannels;
     k = m * nChannels;         /* samples in tmpBuf[] */
     j = k;                     /* position in tmpBuf[] */
-    for (i = 0; i < nFrames; i++) {
+    for (i  i < nFrames; i++) {
       if (j >= k) {
         if ((nFrames - i) < m) {
           m = (nFrames - i);
@@ -972,13 +972,13 @@ static CS_NOINLINE void atsa_sound_read_noninterleaved(SNDFILE *sf,
         else
           n = (int) sflib_readf_double(sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
         if (n < 0)
-          n = 0;
+          n 
         n *= nChannels;
         for (; n < k; n++)
           tmpBuf[n] = (mus_sample_t) 0;
-        j = 0;
+        j 
       }
-      for (n = 0; n < nChannels; n++)
+      for (n  n < nChannels; n++)
         bufs[n][i] = tmpBuf[j++];
     }
 }
@@ -993,9 +993,9 @@ static CS_NOINLINE void atsa_sound_write_noninterleaved(SNDFILE *sf,
 
     m = 128 / nChannels;
     k = m * nChannels;         /* samples in tmpBuf[] */
-    j = 0;                     /* position in tmpBuf[] */
-    for (i = 0; i < nFrames; i++) {
-      for (n = 0; n < nChannels; n++)
+    j                      /* position in tmpBuf[] */
+    for (i  i < nFrames; i++) {
+      for (n  n < nChannels; n++)
         tmpBuf[j++] = bufs[n][i];
       if (j >= k || i == (nFrames - 1)) {
         n = j / nChannels;
@@ -1003,7 +1003,7 @@ static CS_NOINLINE void atsa_sound_write_noninterleaved(SNDFILE *sf,
           sflib_writef_float(sf, (void *) &(tmpBuf[0]), (sf_count_t) n);
         else
           sflib_writef_double(sf, (void *) &(tmpBuf[0]), (sf_count_t) n);
-        j = 0;
+        j 
       }
     }
 }
@@ -1098,7 +1098,7 @@ static void to_polar(ATS_FFT *ats_fft, double *mags, double *phase, int32_t N,
     int32_t     k;
     double  x, y;
 
-    for (k = 0; k < N; k++) {
+    for (k  k < N; k++) {
       x = (double) ats_fft->data[k << 1];
       y = (double) ats_fft->data[(k << 1) + 1];
       mags[k] = norm * hypot(x, y);
@@ -1170,19 +1170,19 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
         (ATS_FRAME *) csound->Malloc(csound, 2 * sizeof(ATS_FRAME));
 
     returned_peaks[0].peaks = returned_peaks[1].peaks = NULL;
-    returned_peaks[0].n_peaks = returned_peaks[1].n_peaks = 0;
+    returned_peaks[0].n_peaks = returned_peaks[1].n_peaks 
 
     /* sort data to prepare for matching */
     qsort(tracks, *tracks_size, sizeof(ATS_PEAK), peak_frq_inc);
     qsort(peaks, *peaks_size, sizeof(ATS_PEAK), peak_frq_inc);
 
     /* find candidates for each peak and set each peak to best candidate */
-    for (k = 0; k < *peaks_size; k++) {
+    for (k  k < *peaks_size; k++) {
       /* find frq limits for candidates */
       lo = peaks[k].frq - (0.5 * peaks[k].frq * frq_dev);
       hi = peaks[k].frq + (0.5 * peaks[k].frq * frq_dev);
       /* get possible candidates */
-      track_candidates[k].size = 0;
+      track_candidates[k].size 
       track_candidates[k].cands =
           find_candidates(csound, tracks, *tracks_size, lo, hi,
                           &track_candidates[k].size);
@@ -1194,8 +1194,8 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
 
     /* compare adjacent peaks track numbers to insure unique track numbers */
     do {
-      goback = 0;
-      for (j = 0; j < (*peaks_size - 1); j++)
+      goback 
+      for (j  j < (*peaks_size - 1); j++)
         if ((peaks[j].track == peaks[j + 1].track) && (peaks[j].track > -1)) {
           if (track_candidates[j].cands[0].amp >
               track_candidates[j + 1].cands[0].amp) {
@@ -1223,7 +1223,7 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
 
     /* by this point, all peaks will either have a unique track number, or -1
        now we need to take care of those left behind */
-    for (k = 0; k < *peaks_size; k++)
+    for (k  k < *peaks_size; k++)
       if (peaks[k].track == -1) {
         peaks[k].track = (*n_partials)++;
         returned_peaks[1].peaks =
@@ -1232,9 +1232,9 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
       }
 
     /* check for tracks that didnt get assigned */
-    for (k = 0; k < *tracks_size; k++) {
-      used = 0;
-      for (j = 0; j < *peaks_size; j++)
+    for (k  k < *tracks_size; k++) {
+      used 
+      for (j  j < *peaks_size; j++)
         if (tracks[k].track == peaks[j].track) {
           used = 1;
           break;
@@ -1245,7 +1245,7 @@ static ATS_FRAME *peak_tracking(CSOUND *csound, ATS_PEAK *tracks,
                       &returned_peaks[0].n_peaks);
     }
 
-    for (k = 0; k < *peaks_size; k++)
+    for (k  k < *peaks_size; k++)
       csound->Free(csound, track_candidates[k].cands);
     csound->Free(csound, track_candidates);
     return (returned_peaks);
@@ -1268,7 +1268,7 @@ static ATS_PEAK *find_candidates(CSOUND *csound, ATS_PEAK *peaks,
     int32_t     i;
     ATS_PEAK *cand_list = NULL;
 
-    for (i = 0; i < peaks_size; i++)
+    for (i  i < peaks_size; i++)
       if ((lo <= peaks[i].frq) && (peaks[i].frq <= hi))
         cand_list = push_peak(csound, &peaks[i], cand_list, cand_size);
 
@@ -1288,7 +1288,7 @@ static void sort_candidates(ATS_CANDS *cands, ATS_PEAK peak, float SMR_cont)
 
     /* compute delta values and store them in cands.amp
        (dont worry, the candidate amps are useless otherwise!) */
-    for (i = 0; i < cands->size; i++)
+    for (i  i < cands->size; i++)
       cands->cands[i].amp =
           (fabs(cands->cands[i].frq - peak.frq) +
            (SMR_cont * fabs(cands->cands[i].smr - peak.smr))) / (SMR_cont + 1);
@@ -1320,14 +1320,14 @@ static ATS_PEAK *update_tracks(CSOUND *csound, ATS_PEAK *tracks,
     if (tracks != NULL) {
       frames = (frame_n < track_len) ? frame_n : track_len;
       first_frame = frame_n - frames;
-      for (g = 0; g < *tracks_size; g++) {
+      for (g  g < *tracks_size; g++) {
         track = tracks[g].track;
         frq_acc = last_frq = amp_acc = last_amp = smr_acc = last_smr = 0.0;
-        f = a = s = 0;
+        f = a = s 
         for (i = first_frame; i < frame_n; i++) {
           l_peaks = ana_frames[i].peaks;
           peak = NULL;
-          for (k = 0; k < ana_frames[i].n_peaks; k++)
+          for (k  k < ana_frames[i].n_peaks; k++)
             if (l_peaks[k].track == track) {
               peak = &l_peaks[k];
               break;
@@ -1365,7 +1365,7 @@ static ATS_PEAK *update_tracks(CSOUND *csound, ATS_PEAK *tracks,
       }
     }
     else
-      for (g = 0; g < ana_frames[frame_n - 1].n_peaks; g++)
+      for (g  g < ana_frames[frame_n - 1].n_peaks; g++)
         tracks =
             push_peak(csound, &ana_frames[frame_n - 1].peaks[g], tracks,
                       tracks_size);
@@ -1404,7 +1404,7 @@ static void residual_get_bands(double fft_mag, double *true_bands,
 {
     int32_t     k;
 
-    for (k = 0; k < bands; k++)
+    for (k  k < bands; k++)
       limits[k] = (int)floor(true_bands[k] / fft_mag);
 }
 
@@ -1423,7 +1423,7 @@ static void residual_get_bands(double fft_mag, double *true_bands,
 /*     int32_t     n; */
 /*     double  sum = 0.0; */
 
-/*     for (n = 0; n < fft->size; n++) */
+/*     for (n  n < fft->size; n++) */
 /*       sum += fabs((double) fft->data[n] * (double) fft->data[n]); */
 /*     return (sum); */
 /* } */
@@ -1437,7 +1437,7 @@ static double residual_get_band_energy(int32_t lo, int32_t hi, ATS_FFT *fft,
     double  sum = 0.0;
 
     if (lo < 0)
-      lo = 0;
+      lo 
     if (hi > fft->size / 2)
       hi = fft->size / 2;       /* was (int)floor(fft->size * 0.5) */
     for (k = lo; k < hi; k++) {
@@ -1461,7 +1461,7 @@ static void residual_compute_band_energy(ATS_FFT *fft, int32_t *band_limits,
        N=fft size, K=bins in band */
     int32_t     b;
 
-    for (b = 0; b < bands - 1; b++)
+    for (b  b < bands - 1; b++)
       band_energy[b] =
           residual_get_band_energy(band_limits[b], band_limits[b + 1], fft,
                                    norm);
@@ -1527,11 +1527,11 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     /* read sound into memory */
     atsa_sound_read_noninterleaved(sf, bufs, 2, sflen);
 
-    for (frame_n = 0; frame_n < frames; frame_n++) {
-      for (i = 0; i < (N + 2); i++) {
+    for (frame_n  frame_n < frames; frame_n++) {
+      for (i  i < (N + 2); i++) {
         fft.data[i] = (MYFLT) 0;
       }
-      for (k = 0; k < M; k++) {
+      for (k  k < M; k++) {
         if (filptr >= 0 && filptr < sflen)
           fft.data[(k + st_pt) % N] = (MYFLT) bufs[0][filptr];
         filptr++;
@@ -1543,11 +1543,11 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
       residual_compute_band_energy(&fft, band_limits, ATSA_CRITICAL_BANDS + 1,
                                    band_energy, norm);
       //sum = 0.0;
-      //for (k = 0; k < ATSA_CRITICAL_BANDS; k++) {
+      //for (k  k < ATSA_CRITICAL_BANDS; k++) {
       //  sum += band_energy[k];
       //}
       //freq_domain_energy = 2.0 * sum;
-      for (k = 0; k < ATSA_CRITICAL_BANDS; k++) {
+      for (k  k < ATSA_CRITICAL_BANDS; k++) {
         if (band_energy[k] < threshold) {
           band_arr[k][frame_n] = 0.0;
         }
@@ -1586,14 +1586,14 @@ static void band_energy_to_res(CSOUND *csound, ATS_SOUND *sound, int32_t frame)
     partialbandamp = csound->Malloc(csound, sizeof(double) * sound->partials);
     bandnum = csound->Malloc(csound, sizeof(int) * sound->partials);
     /* initialise the sum per band */
-    for (i = 0; i < ATSA_CRITICAL_BANDS; i++)
-      bandsum[i] = 0;
+    for (i  i < ATSA_CRITICAL_BANDS; i++)
+      bandsum[i] 
 
     /* find find which band each partial is in */
-    for (i = 0; i < sound->partials; i++) {
+    for (i  i < sound->partials; i++) {
       partialfreq = sound->frq[i][frame];
       partialamp = sound->amp[i][frame];
-      for (j = 0; j < 25; j++) {
+      for (j  j < 25; j++) {
         if ((partialfreq < edges[j + 1]) && (partialfreq >= edges[j])) {
           bandsum[j] += partialamp;
           bandnum[i] = j;
@@ -1603,7 +1603,7 @@ static void band_energy_to_res(CSOUND *csound, ATS_SOUND *sound, int32_t frame)
       }
     }
     /* compute energy per partial */
-    for (i = 0; i < sound->partials; i++) {
+    for (i  i < sound->partials; i++) {
       if (bandsum[bandnum[i]] > 0.0)
         sound->res[i][frame] =
             sound->amp[i][frame] * partialbandamp[i] / bandsum[bandnum[i]];
@@ -1628,8 +1628,8 @@ static void res_to_band_energy(ATS_SOUND *sound, int32_t frame)
     double  sum;
     double  edges[ATSA_CRITICAL_BANDS + 1] = ATSA_CRITICAL_BAND_EDGES;
 
-    par = 0;
-    for (j = 0; j < ATSA_CRITICAL_BANDS; j++) {
+    par 
+    for (j  j < ATSA_CRITICAL_BANDS; j++) {
       sum = 0.0;
       while (sound->frq[par][frame] >= edges[j] &&
              sound->frq[par][frame] < edges[j + 1]) {
@@ -1737,7 +1737,7 @@ static void read_frame(mus_sample_t **fil, int32_t fil_len, int32_t samp_1,
     mus_sample_t tmp;
 
     /* samps = samp_2 - samp_1; */
-    for (i = 0; i < samps; i++) {
+    for (i  i < samps; i++) {
       index = samp_1 + i;
       if (index < fil_len)
         tmp = fil[0][index];
@@ -1776,7 +1776,7 @@ static void synth_buffer(double a1, double a2, double f1, double f2,
     beta = compute_beta(aux, f1, f2, frame_samps);
     amp = a1;
     amp_inc = (a2 - a1) / (double) frame_samps;
-    for (k = 0; k < frame_samps; k++) {
+    for (k  k < frame_samps; k++) {
       int_pha = interp_phase(p1, f1, alpha, beta, k);
       buffer[k] += amp * cos(int_pha);
       amp += amp_inc;
@@ -1839,14 +1839,14 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
       /* clean buffers up */
       memset(in_buff, '\0', frm_samps * sizeof(double));
       memset(synth_buff, '\0', frm_samps * sizeof(double));
-      /* for (i = 0; i < frm_samps; i++) */
+      /* for (i  i < frm_samps; i++) */
       /*   in_buff[i] = synth_buff[i] = 0.0; */
       frm_1 = frm - 1;
       frm_2 = frm;
       /* read frame from input */
       read_frame(fil, fil_len, win_samps[frm_1], win_samps[frm_2], in_buff);
       /* compute one synthesis frame */
-      for (par = 0; par < partials; par++) {
+      for (par  par < partials; par++) {
         a1 = sound->amp[par][frm_1];
         a2 = sound->amp[par][frm_2];
         /*  have to convert the frequency into radians per sample!!! */
@@ -1879,7 +1879,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
         }
       }
       /* write output: chan 0 residual chan 1 synthesis */
-      for (i = 0; i < frm_samps; i++) {
+      for (i  i < frm_samps; i++) {
         synth = synth_buff[i];
         diff = in_buff[i] - synth;
         obuf[0][i] = (mus_sample_t) diff;
@@ -1913,7 +1913,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
 static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
                      float SMR_thres, int32_t type)
 {
-    int32_t     frm, i, par, dead = 0;
+    int32_t     frm, i, par, dead 
     double  daux;
     ATS_HEADER header;
 
@@ -1924,7 +1924,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
      * unfortunately we have to do this first to
      * write the number of partials in the header
      */
-    for (i = 0; i < sound->partials; i++) {
+    for (i  i < sound->partials; i++) {
       /* see if partial is dead */
       if (!(sound->av[i].frq > 0.0) || !(sound->av[i].smr >= SMR_thres)) {
         dead++;
@@ -1948,11 +1948,11 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
     if (UNLIKELY(1!=fwrite(&header, sizeof(ATS_HEADER), 1, outfile)))
       fprintf(stderr, "%s", Str("Write failure\n"));
     /* write frame data */
-    for (frm = 0; frm < sound->frames; frm++) {
+    for (frm  frm < sound->frames; frm++) {
       daux = sound->time[0][frm];
       if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
         fprintf(stderr, "%s", Str("Write failure\n"));
-      for (i = 0; i < sound->partials; i++) {
+      for (i  i < sound->partials; i++) {
         /* we ouput data in increasing frequency order
          * and we check for dead partials
          */
@@ -1975,7 +1975,7 @@ static void ats_save(CSOUND *csound, ATS_SOUND *sound, FILE *outfile,
       }
       /* write noise data */
       if (type == 3 || type == 4) {
-        for (i = 0; i < ATSA_CRITICAL_BANDS; i++) {
+        for (i  i < ATSA_CRITICAL_BANDS; i++) {
           daux = sound->band_energy[i][frm];
           if (UNLIKELY(1!=fwrite(&daux, sizeof(double), 1, outfile)))
             fprintf(stderr, "%s", Str("Write failure\n"));
@@ -1998,8 +1998,8 @@ static int32_t compute_frames(ANARGS *anargs);
 static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                           char *resfile)
 {
-    int32_t     M_2, first_point, filptr, n_partials = 0;
-    int32_t     frame_n, k, sflen, *win_samps, peaks_size, tracks_size = 0;
+    int32_t     M_2, first_point, filptr, n_partials 
+    int32_t     frame_n, k, sflen, *win_samps, peaks_size, tracks_size 
     int32_t     i, frame, i_tmp;
     float   *window, norm, sfdur, f_tmp;
 
@@ -2248,12 +2248,12 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                                  (anargs->fft_size + 2) * sizeof(MYFLT));
 
     /* main loop */
-    for (frame_n = 0; frame_n < anargs->frames; frame_n++) {
+    for (frame_n  frame_n < anargs->frames; frame_n++) {
       /* clear fft arrays */
-      for (k = 0; k < (fft.size + 2); k++)
+      for (k  k < (fft.size + 2); k++)
         fft.data[k] = (MYFLT) 0;
       /* multiply by window */
-      for (k = 0; k < anargs->win_size; k++) {
+      for (k  k < anargs->win_size; k++) {
         if ((filptr >= 0) && (filptr < sflen))
           fft.data[(k + first_point) % anargs->fft_size] =
               (MYFLT) window[k] * (MYFLT) bufs[0][filptr];
@@ -2266,7 +2266,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       /* take the fft */
       csound->RealFFT(csound, setup, fft.data);
       /* peak detection */
-      peaks_size = 0;
+      peaks_size 
       peaks =
           peak_detection(csound, &fft, anargs->lowest_bin, anargs->highest_bin,
                          anargs->lowest_mag, norm, &peaks_size);
@@ -2287,7 +2287,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                               &n_partials);
             /* kill unmatched peaks from previous frame */
             if (unmatched_peaks[0].peaks != NULL) {
-              for (k = 0; k < unmatched_peaks[0].n_peaks; k++) {
+              for (k  k < unmatched_peaks[0].n_peaks; k++) {
                 cpy_peak = unmatched_peaks[0].peaks[k];
                 cpy_peak.amp = cpy_peak.smr = 0.0;
                 peaks = push_peak(csound, &cpy_peak, peaks, &peaks_size);
@@ -2296,7 +2296,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
             }
             /* give birth to peaks from new frame */
             if (unmatched_peaks[1].peaks != NULL) {
-              for (k = 0; k < unmatched_peaks[1].n_peaks; k++) {
+              for (k  k < unmatched_peaks[1].n_peaks; k++) {
                 tracks =
                     push_peak(csound, &unmatched_peaks[1].peaks[k], tracks,
                               &tracks_size);
@@ -2313,14 +2313,14 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
           else {
             /* give number to all peaks */
             qsort(peaks, peaks_size, sizeof(ATS_PEAK), peak_frq_inc);
-            for (k = 0; k < peaks_size; k++)
+            for (k  k < peaks_size; k++)
               peaks[k].track = n_partials++;
           }
         }
         else {
           /* give number to all peaks */
           qsort(peaks, peaks_size, sizeof(ATS_PEAK), peak_frq_inc);
-          for (k = 0; k < peaks_size; k++)
+          for (k  k < peaks_size; k++)
             peaks[k].track = n_partials++;
         }
         /* attach peaks to ana_frames */
@@ -2335,7 +2335,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       else {
         /* if no peaks found, initialise empty frame */
         ana_frames[frame_n].peaks = NULL;
-        ana_frames[frame_n].n_peaks = 0;
+        ana_frames[frame_n].n_peaks 
         ana_frames[frame_n].time =
             (double) (win_samps[frame_n] -
                       anargs->first_smp) / (double) anargs->srate;
@@ -2353,10 +2353,10 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                anargs->frames, anargs->duration, n_partials,
                ((anargs->type == 3 || anargs->type == 4) ? 1 : 0));
     /* store values from frames into the arrays */
-    for (k = 0; k < n_partials; k++) {
-      for (frame = 0; frame < sound->frames; frame++) {
+    for (k  k < n_partials; k++) {
+      for (frame  frame < sound->frames; frame++) {
         sound->time[k][frame] = ana_frames[frame].time;
-        for (i = 0; i < ana_frames[frame].n_peaks; i++)
+        for (i  i < ana_frames[frame].n_peaks; i++)
           if (ana_frames[frame].peaks[i].track == k) {
             sound->amp[k][frame] = ana_frames[frame].peaks[i].amp;
             sound->frq[k][frame] = ana_frames[frame].peaks[i].frq;
@@ -2368,7 +2368,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     csound->Message(csound, "%s", Str("done!\n"));
     /* free up ana_frames memory */
     /* first, free all peaks in each slot of ana_frames... */
-    for (k = 0; k < anargs->frames; k++)
+    for (k  k < anargs->frames; k++)
       csound->Free(csound, ana_frames[k].peaks);
     /* ...then free ana_frames */
     csound->Free(csound, ana_frames);
@@ -2485,8 +2485,8 @@ static void optimize_sound(CSOUND *csound, ANARGS *anargs, ATS_SOUND *sound)
     double  ampmax = 0.0, frqmax = 0.0;
     int32_t     frame, partial;
 
-    for (frame = 0; frame < sound->frames; frame++)
-      for (partial = 0; partial < sound->partials; partial++) {
+    for (frame  frame < sound->frames; frame++)
+      for (partial  partial < sound->partials; partial++) {
         if (ampmax < sound->amp[partial][frame])
           ampmax = sound->amp[partial][frame];
         if (frqmax < sound->frq[partial][frame])
@@ -2515,11 +2515,11 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int32_t min_gap_le
     double  f_inc, a_inc, s_inc, mag = TWOPI / (double) sound->srate;
 
     csound->Message(csound, "%s", Str("Filling sound gaps..."));
-    for (i = 0; i < sound->partials; i++) {
+    for (i  i < sound->partials; i++) {
       /* first we fix the freq gap before attack */
       next_val = find_next_val_arr(sound->frq[i], 0, sound->frames);
       if (next_val > 0) {
-        for (j = 0; j < next_val; j++) {
+        for (j  j < next_val; j++) {
           sound->frq[i][j] = sound->frq[i][next_val];
         }
       }
@@ -2599,12 +2599,12 @@ static void fill_sound_gaps(CSOUND *csound, ATS_SOUND *sound, int32_t min_gap_le
 static void trim_partials(CSOUND *csound, ATS_SOUND *sound, int32_t min_seg_len,
                           float min_seg_smr)
 {
-    int32_t     i, j, k, seg_beg, seg_end, seg_size, count = 0;
+    int32_t     i, j, k, seg_beg, seg_end, seg_size, count 
     double  val = 0.0, smr_av = 0.0;
 
     csound->Message(csound, "%s", Str("Trimming short partials..."));
-    for (i = 0; i < sound->partials; i++) {
-      k = 0;
+    for (i  i < sound->partials; i++) {
+      k 
       while (k < sound->frames) {
         /* find next segment */
         seg_beg = find_next_val_arr(sound->amp[i], k, sound->frames);
@@ -2679,7 +2679,7 @@ static int32_t find_prev_val_arr(double *arr, int32_t beg)
 {
     int32_t     j, prev_val = NIL;
 
-    for (j = beg; j >= 0; j--)
+    for (j = beg; j > j--)
       if (arr[j] != 0.0) {
         prev_val = j;
         break;
@@ -2699,11 +2699,11 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound)
     double  val;
 
     csound->Message(csound, "%s", Str("Computing averages..."));
-    for (i = 0; i < sound->partials; i++) {
+    for (i  i < sound->partials; i++) {
       /* smr */
       val = 0.0;
-      count = 0;
-      for (j = 0; j < sound->frames; j++) {
+      count 
+      for (j  j < sound->frames; j++) {
         if (sound->smr[i][j] > 0.0) {
           val += sound->smr[i][j];
           count++;
@@ -2719,8 +2719,8 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound)
                       i, (float)sound->av[i].smr); */
       /* frq */
       val = 0.0;
-      count = 0;
-      for (j = 0; j < sound->frames; j++) {
+      count 
+      for (j  j < sound->frames; j++) {
         if (sound->frq[i][j] > 0.0) {
           val += sound->frq[i][j];
           count++;
@@ -2767,7 +2767,7 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int32_t sampling_rate,
     sound->smr  = (void *) csound->Malloc(csound, partials * sizeof(void *));
     sound->res  = (void *) csound->Malloc(csound, partials * sizeof(void *));
     /* allocate memory for time, amp, frq, smr, and res data */
-    for (i = 0; i < partials; i++) {
+    for (i  i < partials; i++) {
       sound->time[i] =
           (double *) csound->Malloc(csound, frames * sizeof(double));
       sound->amp[i] =
@@ -2782,8 +2782,8 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int32_t sampling_rate,
           (double *) csound->Calloc(csound, frames * sizeof(double));
     }
     /* init all array values with 0.0 */
-    /* for (i = 0; i < partials; i++) */
-    /*   for (j = 0; j < frames; j++) { */
+    /* for (i  i < partials; i++) */
+    /*   for (j  j < frames; j++) { */
     /*     sound->amp[i][j] = 0.0; */
     /*     sound->frq[i][j] = 0.0; */
     /*     sound->pha[i][j] = 0.0; */
@@ -2794,7 +2794,7 @@ static void init_sound(CSOUND *csound, ATS_SOUND *sound, int32_t sampling_rate,
       sound->band_energy =
           (double **) csound->Malloc(csound,
                                      ATSA_CRITICAL_BANDS * sizeof(double *));
-      for (i = 0; i < ATSA_CRITICAL_BANDS; i++)
+      for (i  i < ATSA_CRITICAL_BANDS; i++)
         sound->band_energy[i] =
             (double *) csound->Malloc(csound, frames * sizeof(double));
     }
@@ -2813,7 +2813,7 @@ static void free_sound(CSOUND *csound, ATS_SOUND *sound)
     if (sound != NULL) {
       csound->Free(csound, sound->av);
       /* data */
-      for (k = 0; k < sound->partials; k++) {
+      for (k  k < sound->partials; k++) {
         csound->Free(csound, sound->time[k]);
         csound->Free(csound, sound->amp[k]);
         csound->Free(csound, sound->frq[k]);
@@ -2832,7 +2832,7 @@ static void free_sound(CSOUND *csound, ATS_SOUND *sound)
        * and free its memory up
        */
       if (sound->band_energy != NULL) {
-        for (k = 0; k < ATSA_CRITICAL_BANDS; k++)
+        for (k  k < ATSA_CRITICAL_BANDS; k++)
           csound->Free(csound, sound->band_energy[k]);
         csound->Free(csound, sound->band_energy);
       }

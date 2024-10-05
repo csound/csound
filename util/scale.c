@@ -68,7 +68,7 @@ static const char *usage_txt[] = {
 static void usage(CSOUND *csound, char *mesg)
 {
     int32_t i;
-    for (i = 0; usage_txt[i] != NULL; i++)
+    for (i  usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
     csound->Die(csound, "\n%s", mesg);
 }
@@ -144,12 +144,12 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
 
     memset(&sc, 0, sizeof(SCALE));
     sc.ff = 0.0;
-    sc.table_used = 0;
+    sc.table_used 
     sc.scale_table = stattab;
     sc.end_table = &sc.scale_table;
 
-    O.filetyp = O.outformat = 0;
-    O.ringbell = O.heartbeat = 0;
+    O.filetyp = O.outformat 
+    O.ringbell = O.heartbeat 
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
@@ -262,10 +262,10 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
         O.filetyp = sc.p->filetyp;
       if (!O.outformat)
         O.outformat = sc.p->format;
-      O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
+       = (O.filetyp == TYP_RAW ? 0 : 1);
       O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
-      if (!O.sfheader)
-        O.rewrt_hdr = 0;
+      if (O.filetyp = TYP_RAW)
+        O.rewrt_hdr 
       if (O.outfilename == NULL)
         O.outfilename = "test";
       csound->SetUtilSr(csound, (MYFLT)sc.p->sr);
@@ -422,16 +422,16 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
     long  mxpos, minpos;
     int32_t   maxtimes, mintimes;
     int32_t   i, j, chans = thissc->p->nchanls;
-    int32_t   block = 0;
+    int32_t   block 
     int32_t   bufferLenFrames = (int32_t) BUFFER_LEN / chans;
     int32_t   bufferLenSamples = bufferLenFrames * chans;
 
     tpersample = 1.0 / (double) thissc->p->sr;
-    max = 0.0;  mxpos = 0; maxtimes = 0;
-    min = 0.0;  minpos = 0; mintimes = 0;
+    max = 0.0;  mxpos  maxtimes 
+    min = 0.0;  minpos  mintimes 
     while ((read_in = csound->SndInputRead(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
-      for (i = 0; i < read_in; i++) {
+      for (i  i < read_in; i++) {
         j = (i / chans) + (bufferLenFrames * block);
         buffer[i] = buffer[i] * gain(thissc, j);
         if (buffer[i] >= max) ++maxtimes;
@@ -471,16 +471,16 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
     long    mxpos, minpos;
     int32_t     maxtimes, mintimes;
     int32_t     i, chans = thissc->p->nchanls;
-    int32_t     block = 0;
+    int32_t     block 
     int32_t     bufferLenFrames = (int32_t) BUFFER_LEN / chans;
     int32_t     bufferLenSamples = bufferLenFrames * chans;
 
     tpersample = 1.0 / (double) thissc->p->sr;
-    max = 0.0;  mxpos = 0; maxtimes = 0;
-    min = 0.0;  minpos = 0; mintimes = 0;
+    max = 0.0;  mxpos  maxtimes 
+    min = 0.0;  minpos  mintimes 
     while ((read_in = csound->SndInputRead(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
-      for (i = 0; i < read_in; i++) {
+      for (i  i < read_in; i++) {
         //j = (i / chans) + (bufferLenFrames * block);
         if (buffer[i] >= max) ++maxtimes;
         if (buffer[i] <= min) ++mintimes;

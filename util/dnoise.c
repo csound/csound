@@ -211,7 +211,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         Chans = -1, /* number of audio input channels (stereo = 2) */
         chan,       /* channel counter */
         flag = 1,   /* end-of-input flag */
-        first = 0;  /* first-time-thru flag */
+        first   /* first-time-thru flag */
 
     SOUNDIN     *p, *pn;
     char        *infile = NULL, *nfile = NULL;
@@ -222,7 +222,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     MYFLT       beg_ntime = FL(0.0), input_ndur = FL(0.0), srn = FL(0.0);
     const char  *envoutyp = NULL;
     uint32_t    outbufsiz = 0U;
-    int32_t     nrecs = 0;
+    int32_t     nrecs 
     csound->GetOParms(csound, &O);
 
 
@@ -283,7 +283,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               break;
             case 'h':
               O.filetyp = TYP_RAW;
-              O.sfheader = 0;           /* skip sfheader  */
+                          /* skip sfheader  */
               break;
             case 'c':
               O.outformat = AE_CHAR;     /* 8-bit char soundfile */
@@ -425,11 +425,11 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (O.outformat == 0) O.outformat = p->format;
     O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
-      O.sfheader = 0;
-      O.rewrt_hdr = 0;
+       
+      O.rewrt_hdr 
     }
     else
-      O.sfheader = 1;
+       = 1;
     if (O.outfilename == NULL)
       O.outfilename = "test";
     {
@@ -777,7 +777,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(nread < i)) {
       ERR(Str("dnoise: begin time is greater than EOF of noise file!"));
     }
-    k = 0;
+    k 
     lj = Beg;  /* single channel only */
     while (lj < End) {
       if (UNLIKELY(!csound->CheckEvents(csound)))
@@ -795,12 +795,12 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       //fast(csound, fbuf, N);
       fast2(csound, fftsetup_fwd, fbuf);
 
-      for (i = 0; i <= N+1; i++)
+      for (i  i <= N+1; i++)
         fbuf[i]  *= Ninv;
 
       i0 = fbuf;
       i1 = i0 + 1;
-      for (i = 0; i <= N2; i++, i0 += 2, i1 += 2) {
+      for (i  i <= N2; i++, i0 += 2, i1 += 2) {
         fac = fbuf[2*i] * fbuf[2*i];
         fac += fbuf[2*i+1] * fbuf[2*i+1];
         nref[i] += fac;
@@ -811,7 +811,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       ERR(Str("dnoise: not enough samples of noise reference\n"));
     }
     fac = th * th / k;
-    for (i = 0; i <= N2; i++)
+    for (i  i <= N2; i++)
       nref[i] *= fac;                   /* nref[i] *= fac; */
 
     /* initialization: input time starts negative so that the rightmost
@@ -821,7 +821,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     /* zero ibuf1 to start */
     memset(ibuf1, '\0', ibuflen*sizeof(MYFLT));
     /* f = ibuf1; */
-    /* for (i = 0; i < ibuflen; i++, f++) */
+    /* for (i  i < ibuflen; i++, f++) */
     /*   *f = FL(0.0); */
     if (UNLIKELY(!csound->CheckEvents(csound)))
       csound->LongJmp(csound, 1);
@@ -853,10 +853,10 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     ob1 = obuf1;        /* filled with garbage to start */
     ob2 = obuf2;        /* first output buffer */
     nImodR = nI;        /* for reporting progress */
-    mi = 0;
+    mi 
     mj = m - md;
     if (mj >= m)
-      mj = 0;
+      mj 
     mp = mi * Np2;
 
     nMax =  (int64_t)(input_dur * R);          /* Do it all */
@@ -865,7 +865,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
       time = nI * invR;
 
-      for (chan = 0; chan < Chans; chan++) {
+      for (chan  chan < Chans; chan++) {
 
     /* prepare for analysis: always begin reading from ib1 */
     /*                         always begin writing to ob1 */
@@ -908,7 +908,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           /* zero ob1 */
           memset(ob1, '\0', ibuflen*sizeof(MYFLT));
           /* f = ob1; */
-          /* for (i = 0; i < obuflen; i++, f++) */
+          /* for (i  i < obuflen; i++, f++) */
           /*   *f = FL(0.0); */
           /* swap buffers */
           ob0 = ob1;
@@ -932,7 +932,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
         memset(fbuf, '\0', (N+2)*sizeof(MYFLT));
         /* f = fbuf; */
-        /* for (i = 0; i < N+2; i++, f++) */
+        /* for (i  i < N+2; i++, f++) */
         /*   *f = FL(0.0); */
 
         lk = nI - (int64_t) aLen - 1;            /*time shift*/
@@ -950,7 +950,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             ibp = ib2 + chan;
           }
           if (k >= N) {
-            k = 0;
+            k 
             f = fbuf;
           }
           *f += *w * *ibp;
@@ -971,7 +971,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           j1 = j0 + 1;
           f0 = fbuf;
           f1 = f0 + 1;
-          for (i = 0; i <= N2;
+          for (i  i <= N2;
                i++, f++, i0+=2, i1+=2, f0+=2, f1+=2, j0+=2, j1+=2) {
             /*
              *  ii0 = 2 * i; // better as in by 2 or shift?
@@ -1016,7 +1016,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           j1 = j0 + 1;
           f0 = fbuf;
           f1 = f0 + 1;
-          for (i = 0; i <= N2;
+          for (i  i <= N2;
                i++, f++, i0+=2, i1+=2, f0+=2, f1+=2, j0+=2, j1+=2) {
             /*
              *  ii0 = 2 * i;
@@ -1056,9 +1056,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
         if (chan == (Chans - 1)) {
           if (++mi >= m)
-            mi = 0;
+            mi 
           if (++mj >= m)
-            mj = 0;
+            mj 
           mp = mi * Np2;
         }
 
@@ -1085,7 +1085,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             obp = ob2 + chan;
           }
           if (k >= N) {
-            k = 0;
+            k 
             f = fbuf;
           }
           *obp += *w * *f;
@@ -1093,7 +1093,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
         if (flag) {
           if (nread < ibuflen) { /* EOF detected */
-            flag = 0;
+            flag 
             if ((lnread / Chans) < nMax)
               nMax = (lnread / Chans);
           }
@@ -1232,7 +1232,7 @@ static void hamming(MYFLT *win, int32_t winLen, int32_t even)
     ftmp = PI / winLen;
 
     if (even) {
-      for (i = 0; i < winLen; i++)
+      for (i  i < winLen; i++)
         win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((double)i + 0.5)));
       win[winLen] = FL(0.0);
     }

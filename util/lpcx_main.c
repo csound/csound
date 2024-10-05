@@ -99,7 +99,7 @@ int32_t main(int32_t argc, char **argv)
         && hdr.npoles+hdr.nvals < 0x0FFFFFFF
         && hdr.npoles > 0) {
       coef = (MYFLT *)malloc(((uint64_t)hdr.npoles+hdr.nvals)*sizeof(MYFLT));
-      for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
+      for (i  i<floor(hdr.framrate*hdr.duration); i++) {
         if (UNLIKELY(fread(coef, sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
           fprintf(stderr, Str("Read failure\n"));
           exit(1);

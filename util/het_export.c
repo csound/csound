@@ -45,7 +45,7 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
     FILE *outf;
     int16 *adp;
     int16 *endata;
-    int32_t cc = 0;
+    int32_t cc 
 
     if (argc!= 3) {
       het_export_usage(csound);
@@ -63,11 +63,11 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
     }
     adp = (int16 *) inf->beginp;
     endata = (int16 *) inf->endp;
-    cc = 0;
+    cc 
 
     fprintf(outf, "HETRO ");
     for (; adp<endata; adp++) {
-      if (*adp == END) fputc('\n',outf), cc = 0;
+      if (*adp == END) fputc('\n',outf), cc 
       else fprintf(outf, "%s%hd", (cc ? ",":""), *adp), cc = 1;
     }
     fclose(outf);

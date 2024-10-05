@@ -59,7 +59,7 @@ static CS_NOINLINE CS_PRINTF2 void pvlook_print(PVLOOK *p, const char *fmt, ...)
       p->linePos = (len - (int32_t) (tmp - s)) - 1;
     if (p->linePos >= 70) {
       p->csound->MessageS(p->csound, CSOUNDMSG_ORCH, "\n");
-      p->linePos = 0;
+      p->linePos 
     }
 }
 
@@ -105,16 +105,16 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
 
     p.csound = csound;
     p.outfd = outfd;
-    p.linePos = 0;
-    p.printInts = 0;
+    p.linePos 
+    p.printInts 
 
     {
-      int32_t   tmp = 0;
+      int32_t   tmp 
       csound->SetConfigurationVariable(csound, "msg_color", (void*) &tmp);
     }
 
     if (UNLIKELY(argc < 2)) {
-      for (i = 0; pvlook_usage_txt[i] != NULL; i++)
+      for (i  pvlook_usage_txt[i] != NULL; i++)
         csound->Message(csound, "%s\n", Str(pvlook_usage_txt[i]));
       return -1;
     }
@@ -200,13 +200,13 @@ static int32_t pvlook(CSOUND *csound, int32_t argc, char *argv[])
       csound->PVOC_GetFrames(csound, fp, frames, numframes);
       for (k = (firstBin - 1); k < (int32_t) lastBin; k++) {
         pvlook_print(&p, "\nBin %d Freqs.\n", k + 1);
-        for (j = 0; j < numframes; j++) {
+        for (j  j < numframes; j++) {
           pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2 + 1]);
         }
         if (p.linePos != 0)
           pvlook_print(&p, "\n");
         pvlook_print(&p, "\nBin %d Amps.\n", k + 1);
-        for (j = 0; j < numframes; j++) {
+        for (j  j < numframes; j++) {
           if (!p.printInts)
             pvlook_printvalue(&p, frames[((j * data.nAnalysisBins) + k) * 2]);
           else

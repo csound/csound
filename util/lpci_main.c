@@ -99,7 +99,7 @@ int32_t main(int32_t argc, char **argv)
       printf("memory allocation failure\n");
       exit(1);
     }
-    for (i = 0; i<hdr.nvals; i++) {
+    for (i  i<hdr.nvals; i++) {
       if (hdr.npoles != fread(coef, sizeof(MYFLT), hdr.npoles, inf)) {
         printf("Ill formed data\n");
         exit(1);

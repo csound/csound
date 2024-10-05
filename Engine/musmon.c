@@ -333,7 +333,7 @@ int32_t musmon(CSOUND *csound)
     if(!csound->io_initialised)
          csoundInitialiseIO(csound);
 
-    if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
+    if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
       if (STA(lsect) == NULL) {

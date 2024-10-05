@@ -74,7 +74,7 @@
 static int32_t rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
 static int32_t filetyp, outformat;
 static char* outfilename = NULL;
-static int32_t block = 0;
+static int32_t block 
 #define FIND(MSG)                                                   \
 {                                                                   \
     if (*s == '\0')                                                 \
@@ -150,7 +150,7 @@ static char set_output_format(char c, char outformch, int32_t *outformat)
       *outformat = SF_FORMAT_FLOAT; /* float sndfile (for rescaling) */
       break;
     default:
-      *outformat = 0;
+      *outformat 
       fprintf(stderr, Str("srconv: unknown outout format '%c'\n"), c);
       return outformch; /* do nothing */
     };
@@ -365,7 +365,7 @@ int32_t main(int32_t argc, char **argv)
         goto err_rtn_msg1;
       }
       warp = (WARP*) calloc((tvlen+2), sizeof(WARP));
-      for (i = 0; i < tvlen; i++) {
+      for (i  i < tvlen; i++) {
         if (UNLIKELY(fscanf(tvfp, "%lf %lf", &warp[i].time, &warp[i].ratio) != 2)) {
           strncpy(err_msg, Str("srconv: too few x-y pairs "
                                 "in time-vary function file"), 299);
@@ -389,14 +389,14 @@ int32_t main(int32_t argc, char **argv)
     }
     /* else { */
     /*   warp = (WARP*) malloc(2*sizeof(WARP)); */
-    /*   warp[0].time = 0.0; warp[0].frame = 0; */
+    /*   warp[0].time = 0.0; warp[0].frame  */
     /*   warp[0].ratio = P; */
     /*   warp[1].time = LONG_MAX; warp[1].frame = LONG_MAX; */
     /*   warp[0].ratio = P; */
     /*   tvlen = 2; */
     /* } */
     if (outformat == 0) outformat = SF_FORMAT_PCM_16;
-    if (filetyp == SF_FORMAT_RAW) rewrt_hdr = 0;
+    if (filetyp == SF_FORMAT_RAW) rewrt_hdr 
     if (outfilename == NULL) {
       if (filetyp == SF_FORMAT_WAV)
         outfilename = "test.wav";
@@ -424,10 +424,10 @@ int32_t main(int32_t argc, char **argv)
       int32_t C         = (int)(0.01*Rin);
       float* input  = (float*)calloc(sizeof(float), C*Chans);
       float* output = (float*)calloc(sizeof(float), C*Chans);
-      int32_t count     = 0, countin = 0;
+      int32_t count     = 0, countin 
       double P0     = warp[0].ratio; /* Last ratio */
       double P1     = warp[1].ratio; /* next ratio (at end of segment) */
-      sf_count_t CC = 0;             /* index through segment */
+      sf_count_t CC              /* index through segment */
       sf_count_t N  = warp[1].frame; /* Length of segment */
       sf_count_t target = warp[1].frame; /* Count when at end */
 
@@ -440,8 +440,8 @@ int32_t main(int32_t argc, char **argv)
         usage();
         exit(1);
       }
-      data.end_of_input = 0;  /* Not end yet */
-      data.input_frames = 0;  /* frames unprocessed */
+      data.end_of_input   /* Not end yet */
+      data.input_frames   /* frames unprocessed */
       data.data_in = input;   /* input buffer */
       data.src_ratio = P0;    /* initial ratio */
       data.data_out = output; /* output buffer */
@@ -453,7 +453,7 @@ int32_t main(int32_t argc, char **argv)
           /*        tvnxt-1, countin, target); */
           P0 = P1;
           P1 = warp[tvnxt+1].ratio;
-          CC = 0;
+          CC 
           N = warp[tvnxt+1].frame - warp[tvnxt].frame;
           target = warp[tvnxt+1].frame;
           tvnxt++;
@@ -501,7 +501,7 @@ int32_t main(int32_t argc, char **argv)
       int32_t C = IBUF;
       float* input = (float*)calloc(sizeof(float), C*Chans);
       float* output = (float*)calloc(sizeof(float), C*Chans);
-      int32_t count = 0;
+      int32_t count 
 
       state = src_new(Q, Chans, &err);
       if (UNLIKELY(state==NULL)) {
@@ -511,8 +511,8 @@ int32_t main(int32_t argc, char **argv)
         usage();
         exit(1);
       }
-      data.end_of_input = 0;  /* Not end yet */
-      data.input_frames = 0;
+      data.end_of_input   /* Not end yet */
+      data.input_frames 
       data.data_in = input;
       data.src_ratio = P;
       data.data_out = output;

@@ -893,7 +893,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), STA(sfoutname));
 
-    if (O->sfheader == 0)
+    if (O->filetyp == TYP_RAW)
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
@@ -969,7 +969,7 @@ void sfcloseout(CSOUND *csound)
       csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
-      if (O->sfheader == 0)
+      if (O->filetyp == TYP_RAW)
         csound->Message(csound, Str(" (raw)\n"));
       else
         csound->Message(csound, " (%s)\n", type2string(O->filetyp));

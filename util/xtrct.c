@@ -99,7 +99,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     void        *fd;
     char        c, *s;
     SFLIB_INFO     sfinfo;
-    int32_t         debug   = 0;
+    int32_t         debug   
     int32_t         Omsg;
     XTRC        xtrc;
 
@@ -267,7 +267,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     else if (xtrc.stop >= 0) xtrc.numsamps = xtrc.stop - xtrc.sample;
     else if (xtrc.numsamps < 0) xtrc.numsamps =xtrc. p->getframes - xtrc.sample;
 
-    if (xtrc.sample<0) xtrc.sample = 0;
+    if (xtrc.sample<0) xtrc.sample 
     csound->Message(csound,
                     Str("Extracting from sample %ld for %ld samples (%.5f secs)\n"),
                     xtrc.sample, xtrc.numsamps, (MYFLT)xtrc.numsamps/xtrc.p->sr);
@@ -277,7 +277,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     O.outformat = xtrc.p->format; /* Copy from input file */
     O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     O.filetyp = xtrc.p->filetyp; /* Copy from input file */
-    O.sfheader = 1;
+     = 1;
     if (O.outfilename == NULL)
       O.outfilename = "test";
 
@@ -339,8 +339,8 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
 {
     double buffer[NUMBER_OF_SAMPLES];
     long  read_in;
-    //    long  frames = 0;
-    int32_t   block = 0;
+    //    long  frames 
+    int32_t   block 
 
     sflib_seek(infd, x->sample, SEEK_CUR);
     while (x->numsamps>0) {

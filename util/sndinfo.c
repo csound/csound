@@ -31,9 +31,9 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
 {
     char    *infilnam, *fname;
     char    channame[32];
-    int32_t     retval = 0;
-    int32_t     instr_info = 0;
-    int32_t     bcast_info = 0;
+    int32_t     retval 
+    int32_t     instr_info 
+    int32_t     bcast_info 
     SFLIB_INFO sflib_info;
     SNDFILE *hndl;
 
@@ -124,7 +124,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
             csound->Message(csound, Str("  Loop points : %d\n"),
                             inst.loop_count);
 
-            for (k = 0; k < inst.loop_count; k++)
+            for (k  k < inst.loop_count; k++)
               csound->Message(csound, Str("  %-2d    Mode : %s    "
                                           "Start : %6d   End : %6d   "
                                           "Count : %6d\n"),

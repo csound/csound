@@ -59,7 +59,7 @@ strNcpy(char *dst, const char *src, size_t siz)
 
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
-    int32_t   err = 0;
+    int32_t   err 
 
     err |= atsa_init_(csound);
     err |= envext_init_(csound);

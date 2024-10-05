@@ -124,15 +124,6 @@ extern OENTRY opcodlst_1[];
 #define STRING_HASH(arg) STRSH(arg)
 #define STRSH(arg) #arg
 
-/* return 1 if the current op thread is init-time,
-   zero if not.
-   return value may be incorrect in realtime mode
-*/
-int32_t csoundIsInitThread(CSOUND *csound) {
-  return csound->ids ? 1 : 0;
-}
-
-
 static const char *csoundFileError(CSOUND *csound, void *ff) {
   CSFILE *f = (CSFILE *) ff;
   switch(f->type) {
@@ -915,7 +906,7 @@ static const CSOUND cenviron_ = {
   NULL,           /*  winEPS_globals      */
   {               /*  oparms_             */
     0,            /*    odebug            */
-    0, 1, 1, 0,   /*    sfread, ...       */
+    0, 1, 0,   /*    sfread, ...       */
     0, 0, 0, 0,   /*    inbufsamps, ...   */
     0,            /*    sfsampsize        */
     1,            /*    displays          */
@@ -928,7 +919,7 @@ static const CSOUND cenviron_ = {
     0.0,          /*    cmdTempo          */
     0.0f, 0.0f,   /*    sr_override ...   */
     0, 0,     /*    nchnls_override ...   */
-    (char*) NULL, (char*) NULL, NULL,
+    (char*) NULL, (char*) NULL,   /* filenames */
     (char*) NULL, (char*) NULL, (char*) NULL,
     (char*) NULL, (char*) NULL,
     0,            /*    midiKey           */
@@ -1025,7 +1016,9 @@ static const CSOUND cenviron_ = {
   0,              /* mode */
   NULL,           /* opcodedir */
   NULL,           /* score_srt */
-  {NULL, NULL, NULL, 0, 0, NULL} /* osc_message_anchor */
+  {NULL, NULL, NULL, 0, 0, NULL}, /* osc_message_anchor */
+  NULL,
+  SPINLOCK_INIT
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -2132,7 +2125,6 @@ int32_t kperf_debug(CSOUND *csound)
 
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str)
 {
-  OPARMS  *O = csound->oparms;
   /* protect resource */
   if (csound->scorestr != NULL &&
       csound->scorestr->body != NULL)
@@ -2149,7 +2141,7 @@ int32_t csoundReadScoreInternal(CSOUND *csound, const char *str)
   /* copy sorted score name */
   if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
     scsortstr(csound, csound->scorestr);
-    O->playscore = csound->scstr;
+    csound->playscore = csound->scstr;
     //corfile_rm(csound, &(csound->scorestr));
     //printf("%s\n", O->playscore->body);
   }
@@ -3534,7 +3526,6 @@ PUBLIC void csoundReset(CSOUND *csound)
     */
     /* do not know file type yet */
     O->filetyp = -1;
-    O->sfheader = 0;
     csound->peakchunks = 1;
     csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
     csound->engineState.varPool = csoundCreateVarPool(csound);

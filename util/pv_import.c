@@ -44,7 +44,7 @@ static float getnum(FILE* inf, int32_t *term)
 {
     char buff[100];
     int32_t  cc;
-    int32_t p = 0;
+    int32_t p 
     while ((cc=getc(inf))!=',' && cc!='\n' && cc!=EOF && p<99) buff[p++] = cc;
     buff[p]='\0';
     *term = cc;
