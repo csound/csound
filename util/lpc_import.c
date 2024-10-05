@@ -94,7 +94,7 @@ static int32_t lpc_import(CSOUND *csound, int32_t argc, char **argv)
       putc(str[i],outf);
     putc('\n', outf);
     coef = (MYFLT *)csound->Malloc(csound, (hdr.npoles+hdr.nvals)*sizeof(MYFLT));
-    for (i  i<hdr.nvals; i++) {
+    for (i = 0; i<hdr.nvals; i++) {
       if (UNLIKELY(fread(&coef[0], sizeof(MYFLT),
                          hdr.npoles, inf)!=(size_t)hdr.npoles))
         csound->Message(csound, "%s", Str("Read failure\n"));

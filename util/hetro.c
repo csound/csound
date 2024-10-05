@@ -135,14 +135,14 @@ static void init_het(HET *t)
     t->num_pts   = 256;           /* breakpoints per harmonic */
     t->amp_min   = 64;            /* amplitude cutout threshold */
     t->bufsiz    = 1;             /* circular buffer size */
-    t->skip                   /* JPff: this was missing */
+    t->skip      = 0;             /* JPff: this was missing */
     t->newformat = 1;
 }
 
 static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
 {
     SNDFILE *infd;
-    int32_t i, hno, channel = 1, retval 
+    int32_t i, hno, channel = 1, retval = 0;
     int32   nsamps, smpspc, bufspc, mgfrspc;
     char    *dsp, *dspace;
     double  *begbufs, *endbufs;
@@ -232,7 +232,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
           het.newformat = 1;
           break;
         case 'x':
-          het.newformat 
+          het.newformat = 0;
           break;
         case '-':
           FIND(Str("no log file"));
@@ -329,13 +329,13 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
                                               t->hmax * sizeof(MYFLT*));
     t->FREQS = (MYFLT **) csound->Malloc(csound,
                                                t->hmax * sizeof(MYFLT*));
-    for (i  i < t->hmax; i++) {
+    for (i = 0; i < t->hmax; i++) {
       t->MAGS[i] = (MYFLT *) dsp;    dsp += mgfrspc;
       t->FREQS[i] = (MYFLT *) dsp;   dsp += mgfrspc;
     }
     lpinit(t);                        /* calculate LPF coeffs.  */
     t->adp = t->auxp;           /* point to beg sample data block */
-    for (hno  hno < t->hmax; hno++) { /* for requested harmonics */
+    for (hno = 0; hno < t->hmax; hno++) { /* for requested harmonics */
       double *dblp;
       t->freq_est += t->fund_est; /*   do analysis */
       t->cur_est = t->freq_est;
@@ -393,19 +393,19 @@ static int32_t hetdyn(CSOUND *csound,
     int32_t outpnt, lastout = -1;
     MYFLT   *ptr;
 
-    t->jmp_ph                      /* set initial phase to 0 */
-    temp_a = temp_b 
+    t->jmp_ph = 0;                     /* set initial phase to 0 */
+    temp_a = temp_b = 0;
     cos_p = t->c_p;
     sin_p = t->s_p;
     tpidelest = TWOPI * t->cur_est * t->delta_t;
-    for (smplno  smplno < t->smpsin; smplno++) {
+    for (smplno = 0; smplno < t->smpsin; smplno++) {
       //double phase = smplno * tpidelest;     /* do all quadrature calcs */
       ptr = t->adp;           /* at once and point to it */
       cos_p[smplno] = (double)(ptr[smplno] * cos(smplno * tpidelest));
       sin_p[smplno] = (double)(ptr[smplno] * sin(smplno * tpidelest));
     }
 
-    for (smplno  smplno < t->smpsin - t->windsiz; smplno++) {
+    for (smplno = 0; smplno < t->smpsin - t->windsiz; smplno++) {
       cos_p = t->c_p + smplno;
       sin_p = t->s_p + smplno;
       if (smplno == 0 && t->smpsin >= t->windsiz) {
@@ -427,7 +427,7 @@ static int32_t hetdyn(CSOUND *csound,
         }
         else {
           t->skip = 1;
-          temp_a = temp_b 
+          temp_a = temp_b = 0;
         }
       }
       /* store values into buffers */
@@ -458,7 +458,7 @@ static int32_t hetdyn(CSOUND *csound,
           return -1;
       }
       if (t->skip) {
-        t->skip        /* quit if no more samples in file */
+        t->skip = 0;       /* quit if no more samples in file */
         break;
       }
     }
@@ -620,7 +620,7 @@ static int32_t quit(CSOUND *csound, char *msg)
 {
     int32_t i;
     csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
-    for (i  hetro_usage_txt[i] != NULL; i++)
+    for (i = 0; hetro_usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(hetro_usage_txt[i]));
     return -1;
 }
@@ -635,14 +635,14 @@ static int32_t filedump(HET *t, CSOUND *csound)
     double  scale,x,y;
     int16   **mags, **freqs, *magout, *frqout;
     double  ampsum, maxampsum = 0.0;
-    int32   lenfil 
+    int32   lenfil = 0;
     int16   *TIME;
     MYFLT   timesiz;
     FILE    *ff;
 
     mags  = (int16 **) csound->Malloc(csound, t->hmax * sizeof(int16*));
     freqs = (int16 **) csound->Malloc(csound, t->hmax * sizeof(int16*));
-    for (h  h < t->hmax; h++) {
+    for (h = 0; h < t->hmax; h++) {
       mags[h]  = (int16 *)csound->Malloc(csound,
                                         (t->num_pts+2) * sizeof(int16));
       freqs[h] = (int16 *)csound->Malloc(csound,
@@ -651,7 +651,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
 
     TIME = (int16 *)csound->Malloc(csound, (t->num_pts+2) * sizeof(int16));
     timesiz = FL(1000.0) * t->input_dur /t->num_pts;
-    for (pnt  pnt < t->num_pts; pnt++)
+    for (pnt = 0; pnt < t->num_pts; pnt++)
       TIME[pnt] = (int16)(pnt * timesiz);
 
     /* fullpath else cur dir */
@@ -672,7 +672,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
     }
     for (pnt=1; pnt < t->num_pts+1; pnt++) {
       ampsum = 0.0;
-      for (h  h < t->hmax; h++)
+      for (h = 0; h < t->hmax; h++)
         ampsum += t->MAGS[h][pnt];
       if (ampsum > maxampsum)
         maxampsum = ampsum;
@@ -680,8 +680,8 @@ static int32_t filedump(HET *t, CSOUND *csound)
     scale = t->m_ampsum / maxampsum;
     csound->Message(csound,Str("scale = %f\n"), scale);
 
-    for (h  h < t->hmax; h++) {
-      for (pnt  pnt < t->num_pts+1; pnt++) {
+    for (h = 0; h < t->hmax; h++) {
+      for (pnt = 0; pnt < t->num_pts+1; pnt++) {
         x = t->MAGS[h][pnt] * scale;
         mags[h][pnt] = (int16)(x*u(x)+0.5);
         y = t->FREQS[h][pnt];
@@ -696,15 +696,15 @@ static int32_t filedump(HET *t, CSOUND *csound)
     frqout = (int16 *)csound->Malloc(csound,
                                      (t->num_pts+1) * 2 * sizeof(int16));
 
-    for (h  h < t->hmax; h++) {
+    for (h = 0; h < t->hmax; h++) {
       int16 *mp = magout, *fp = frqout;
-      int16 *lastmag, *lastfrq, pkamp 
+      int16 *lastmag, *lastfrq, pkamp = 0;
       int32_t mpoints, fpoints;
       *mp++ = -1;                      /* set brkpoint type codes  */
       *fp++ = -2;
       lastmag = mp;
       lastfrq = fp;
-      for (pnt  pnt < t->num_pts; pnt++) {
+      for (pnt = 0; pnt < t->num_pts; pnt++) {
         int16 tim, mag, frq;
         tim = TIME[pnt];
         frq = freqs[h][pnt];
@@ -739,7 +739,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
             fp = lastfrq + 2; /*   to peg the ends            */
           }
           *mp++ = tim;
-          *mp++ 
+          *mp++ = 0;
           *fp++ = tim;
           *fp++ = frq;
         }
@@ -748,7 +748,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
         mp = lastmag + 2;        /*   make it the penultimate mag */
         fp = lastfrq + 2;
       }
-      *(mp-1)                  /* force the last mag to zero    */
+      *(mp-1) = 0;                 /* force the last mag to zero    */
       if (fp - frqout > 3)
         *(fp-1) = *(fp-3);       /*   & zero the freq change      */
       *mp++ = END;                 /* add the sequence delimiters   */
@@ -804,7 +804,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
     csound->Free(csound, magout);
     csound->Free(csound, frqout);
     csound->Free(csound, TIME);
-    for (h  h < t->hmax; h++) {
+    for (h = 0; h < t->hmax; h++) {
       csound->Free(csound, mags[h]);
       csound->Free(csound, freqs[h]);
     }
@@ -838,7 +838,7 @@ static int32_t writesdif(CSOUND *csound, HET *t)
     /* esential rescaling, from filedump() above  */
     for (pnt=0; pnt < t->num_pts; pnt++) {
       ampsum = 0.0;
-      for (h  h < t->hmax; h++)
+      for (h = 0; h < t->hmax; h++)
         ampsum += t->MAGS[h][pnt];
       if (ampsum > maxampsum)
         maxampsum = ampsum;
@@ -848,8 +848,8 @@ static int32_t writesdif(CSOUND *csound, HET *t)
      * of thing, but this seems consistent with existing examples! */
     scale *= (double) (1.0/csound->Get0dBFS(csound));
 
-    for (h  h < t->hmax; h++) {
-      for (pnt  pnt < t->num_pts; pnt++) {
+    for (h = 0; h < t->hmax; h++) {
+      for (pnt = 0; pnt < t->num_pts; pnt++) {
         t->MAGS[h][pnt] *= (MYFLT) scale;
         /* skip code to force positive values, for now */
       }

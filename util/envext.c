@@ -137,7 +137,7 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
     double      tpersample;
     double      max, min;
     int64_t     mxpos, minpos;
-    int32_t     block 
+    int32_t     block = 0;
     MYFLT       *buffer;
     int32_t     bufferlen;
     int64_t     read_in;
@@ -150,8 +150,8 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
     tpersample = 1.0/(double)p->sr;
     fprintf(outfile, "%.3f\t%.3f\n", 0.0, 0.0);
     while ((read_in = csound->SndInputRead(csound,infd,buffer,bufferlen,p)) > 0) {
-      max = 0.0;        mxpos 
-      min = 0.0;        minpos 
+      max = 0.0;        mxpos = 0;
+      min = 0.0;        minpos = 0;
       for (i=0; i<read_in; i++) {
         if ((double)buffer[i] > max)
           max = (double)buffer[i], mxpos = i;

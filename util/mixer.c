@@ -168,7 +168,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
     int32_t         i;
     char        outformch='s', c, *s;
     const char  *envoutyp;
-    int32_t         n 
+    int32_t         n = 0;
     SFLIB_INFO     sfinfo;
     MIXER_GLOBALS *pp = (MIXER_GLOBALS*) csound->Calloc(csound,
                                                         sizeof(MIXER_GLOBALS));
@@ -193,9 +193,9 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
       }
     }
     mixin[n].start = -1; mixin[n].time = -FL(1.0);
-    mixin[n].factor = FL(1.0); mixin[n].non_clear 
-    mixin[n].fulltable = NULL; mixin[n].use_table 
-    for (i=1; i<5; i++) mixin[n].channels[i] 
+    mixin[n].factor = FL(1.0); mixin[n].non_clear = 0;
+    mixin[n].fulltable = NULL; mixin[n].use_table = 0;
+    for (i=1; i<5; i++) mixin[n].channels[i] = 0;
     if (UNLIKELY(!(--argc)))
       usage(csound,"%s", Str("Insufficient arguments"));
     do {
@@ -328,7 +328,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
         mixin[n].start = -1;
         mixin[n].time = -1;
         mixin[n].factor = FL(1.0);
-        mixin[n].non_clear 
+        mixin[n].non_clear = 0;
       }
     } while (--argc);
 
@@ -337,7 +337,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
       csound->ErrorMsg(csound, "%s", Str("No mixin"));
       return -1;
     }
-    for (i  i < n; i++) {
+    for (i = 0; i < n; i++) {
       if (UNLIKELY(!MXsndgetset(csound, &mixin[i]))) {
         csound->ErrorMsg(csound, Str("%s: error while opening %s"),
                                  argv[0], inputfile);
@@ -373,9 +373,9 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
     O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (!O.filetyp)
       O.filetyp = mixin[0].p->filetyp;     /* Copy from input file */
-     = (O.filetyp == TYP_RAW ? 0 : 1);
-    if (O.filetyp = TYP_RAW)       /* can't rewrite header if no header requested */
-      O.rewrt_hdr 
+    
+    if (O.filetyp == TYP_RAW)       /* can't rewrite header if no header requested */
+      O.rewrt_hdr = 0;
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
     else if (O.outfilename == NULL) O.outfilename = "test";
@@ -445,7 +445,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int32_t i)
       return;   /* not reached */
     }
     mixin[i].fulltable = mixin[i].table = tt;
-    tt->x0  tt->y0 = FL(0.0); tt->x1  tt->y1 = FL(0.0);
+    tt->x0 = 0; tt->y0 = FL(0.0); tt->x1 = 0; tt->y1 = FL(0.0);
     tt->yr = FL(0.0); tt->next = NULL;
 #ifdef USE_DOUBLE
     while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
@@ -556,28 +556,28 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     MYFLT   max, min;
     long    lmaxpos, lminpos;
     int32_t     maxtimes, mintimes;
-    long    sample 
+    long    sample = 0;
     int32_t     i, j, k;
-    //    long    bytes 
-    int32_t     block 
+    //    long    bytes = 0;
+    int32_t     block = 0;
     int32_t     more_to_read = 1;
     int32_t     size;
     int32_t     this_block;
     int32_t     outputs = pp->outputs;
 
     tpersample = FL(1.0)/(MYFLT)mixin[0].p->sr;
-    max = FL(0.0);  lmaxpos  maxtimes 
-    min = FL(0.0);  lminpos  mintimes 
+    max = FL(0.0);  lmaxpos = 0; maxtimes = 0;
+    min = FL(0.0);  lminpos = 0; mintimes = 0;
     while (more_to_read) {
-      more_to_read 
+      more_to_read = 0;
       size = NUMBER_OF_SAMPLES;
-      for (i  i < n; i++)
+      for (i = 0; i < n; i++)
         if (mixin[i].start > sample && mixin[i].start - sample < size)
           size = mixin[i].start - sample;
       /* for (j=0; j<size*outputs; j++) buffer[j] = FL(0.0); */
       memset(buffer, 0, sizeof(MYFLT)*size*outputs);
-      this_block 
-      for (i  i<n; i++) {
+      this_block = 0;
+      for (i = 0; i<n; i++) {
         if (sample >= mixin[i].start) {
           read_in = csound->SndInputRead(csound, mixin[i].fd, ibuffer,
                                      size*mixin[i].p->nchanls, mixin[i].p);
@@ -616,7 +616,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         else if (mixin[i].start > sample && mixin[i].start != 0x7ffffff)
           more_to_read++;
       }
-      for (j  j < this_block * outputs; j++) {
+      for (j = 0; j < this_block * outputs; j++) {
         if (UNLIKELY(buffer[j] > 1.0 || buffer[j] < -(1.0)))
           pp->outrange++;
         if (buffer[j] == max) maxtimes++;

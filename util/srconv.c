@@ -130,7 +130,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch,
       oparms->outformat = AE_FLOAT; /* float sndfile (for rescaling) */
       break;
     default:
-      oparms->outformat 
+      oparms->outformat = 0;
       csound->ErrorMsg(csound, Str("srconv: unknown outout format '%c'\n"), c);
       return outformch; /* do nothing */
     };
@@ -220,7 +220,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     unsigned    outbufsiz = 0U;
     SNDFILE     *outfd = NULL;
     OPARMS      O;
-    int32_t         block 
+    int32_t         block = 0;
     char        err_msg[256];
 
     O.outformat = AE_SHORT;
@@ -391,7 +391,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       fyval = (MYFLT*) csound->Malloc(csound, tvlen * sizeof(MYFLT));
       i0 = fxval;
       i1 = fyval;
-      for (i  i < tvlen; i++, i0++, i1++) {
+      for (i = 0; i < tvlen; i++, i0++, i1++) {
 #ifdef USE_DOUBLE
         if ((fscanf(tvfp, "%lf %lf", i0, i1)) != 2)
 #else
@@ -443,11 +443,11 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       O.outformat = AE_SHORT;//p->format;
     O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
-       
-      O.rewrt_hdr 
+      
+      O.rewrt_hdr = 0;
     }
     else
-       = 1;
+      
 #ifdef NeXT
     if (O.outfilename == NULL && !O.filetyp)
       O.outfilename = "test.snd";
@@ -596,7 +596,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       *(nextIn++) = FL(0.0);
     jMin = -(wLen + 1) * L;
     mMax = IBUF2;
-    o = n = m 
+    o = n = m = 0;
     fo = FL(0.0);
 
  /* main loop:   If nMax is not specified it is assumed to be very large
@@ -611,7 +611,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       if ((tvflg == 0) && (idel == fdel)) {
         /* apply window (window is sampled at L * Rin) */
 
-        for (chan  chan < Chans; chan++) {
+        for (chan = 0; chan < Chans; chan++) {
           *nextOut = FL(0.0);
           k = Chans * (m - wLen) + chan - Chans;
           if (k < 0)
@@ -654,7 +654,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
               *(nextIn++) = FL(0.0);
           }
           if ((Chans * m) >= IBUF) {
-            m 
+            m = 0;
             mMax = IBUF2;
           }
         }
@@ -666,7 +666,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 
         /* apply window (window values are linearly interpolated) */
 
-        for (chan  chan < Chans; chan++) {
+        for (chan = 0; chan < Chans; chan++) {
           *nextOut = FL(0.0);
           o = (int)fo;
           of = fo - o;
@@ -714,7 +714,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
               *(nextIn++) = FL(0.0);
           }
           if ((Chans * m) >= IBUF) {
-            m 
+            m = 0;
             mMax = IBUF2;
           }
         }
@@ -722,7 +722,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
         if (tvflg && (time > FL(0.0))) {
           while (tvflg && (time >= tvx1)) {
             if (++tvnxt >= tvlen)
-              tvflg 
+              tvflg = 0;
             else {
               tvx0 = tvx1;
               tvx1 = fxval[tvnxt];
@@ -848,7 +848,7 @@ static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
     bes = ino(beta);
     xind = (double) ((nf - 1) * (nf - 1));
 
-    for (i  i < n; i++) {
+    for (i = 0; i < n; i++) {
       xi = (double) i;
       if (ieo == 0)
         xi += 0.5;

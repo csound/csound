@@ -101,7 +101,7 @@ static int32_t pv_export(CSOUND *csound, int32_t argc, char **argv)
 /*       for (; i!=0; i--) { */
 /*         int32_t j; */
 /*         csound->PVOC_GetFrames(csound, inf, frame, 1); */
-/*         for (j  j<data.nAnalysisBins*2; j ++) */
+/*         for (j = 0; j<data.nAnalysisBins*2; j ++) */
 /*           fprintf(outf, "%s%g", (j==0 ? "" : ","), frame[j]); */
 /*         fprintf(outf, "\n"); */
 /*       } */

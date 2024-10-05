@@ -60,7 +60,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     int64_t Hlenpadded = 1;
     char    err_msg[512];
     int32_t res;
-    int32_t new_format 
+    int32_t new_format = 0;
 
     /* csound->dbfs_to_float = csound->e0dbfs = FL(1.0); */
     if (UNLIKELY(!(--argc))) {
@@ -212,12 +212,12 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     fp1 = inbuf;
     outbuf = fp2 = (MYFLT*) csound->Malloc(csound,
                                            sizeof(MYFLT) * (Hlenpadded + 2));
-    /* for (i  i < (Hlenpadded + 2); i++) */
+    /* for (i = 0; i < (Hlenpadded + 2); i++) */
     /*   outbuf[i] = FL(0.0); */
     memset(outbuf, 0, sizeof(MYFLT)*(Hlenpadded + 2));
     setup = csound->RealFFTSetup(csound, Hlenpadded, FFT_FWD);
 
-    for (i  i < nchanls; i++) {
+    for (i = 0; i < nchanls; i++) {
       for (j = Hlen; j > 0; j--) {
         *fp2++ = *fp1;
         fp1 += nchanls;

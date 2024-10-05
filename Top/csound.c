@@ -269,10 +269,6 @@ static int32_t *RandSeed1(CSOUND *csound){
 }
 
 
-static void csoundGetOParms(CSOUND *csound, OPARMS *p){
-  memcpy(p, csound->oparms, sizeof(OPARMS));
-}
-
 static int32_t csoundGetDitherMode(CSOUND *csound){
   return  csound->dither_output;
 }
@@ -311,7 +307,7 @@ static const CSOUND cenviron_ = {
   csoundGetOutputBufferSize,
   csoundGetDebug,
   csoundGetSizeOfMYFLT,
-  csoundGetOParms,
+  csoundGetParams,
   csoundGetEnv,
   csoundSystemSr,
   /* channels */

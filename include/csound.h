@@ -140,43 +140,120 @@ extern "C" {
     int32_t     sfwrite;
     /* soundfile type code */
     int32_t     filetyp;
-    int32_t     inbufsamps, outbufsamps;
-    int32_t     informat, outformat;
+    /* input buffer size in samples */
+    int32_t     inbufsamps;
+    /* output buffer size in samples */
+    int32_t     outbufsamps;
+    /* input soundfile format */
+    int32_t     informat;
+    /* output soundfile format */
+    int32_t outformat;
+    /* sample size */
     int32_t     sfsampsize;
-    int32_t     displays, graphsoff, postscript, msglevel;
-    int32_t     Beatmode, oMaxLag;
-    int32_t     usingcscore, Linein;
-    int32_t     RTevents, Midiin, FMidiin, RMidiin;
-    int32_t     ringbell, termifend;
-    int32_t     rewrt_hdr, heartbeat, gen01defer;
+    /* displays flag */
+    int32_t     displays;
+    /* graphs flag */
+    int32_t     graphsoff;
+    /* postscript graphs flag */    
+    int32_t     postscript;
+    /* message level (-m) */
+    int32_t     msglevel;
+    /* beat mode */    
+    int32_t     Beatmode;
+    /* hardware buffer size (samples) */
+    int32_t     oMaxLag;
+    /* cscore flag */
+    int32_t     usingcscore;
+    /* linevents flag (-L)*/
+    int32_t Linein;
+    /* realtime events flag (scoreless, -L, -F, -M) */
+    int32_t     RTevents;
+    /* midi input flag (-M) */
+    int32_t     Midiin;
+    /* midi file input flag (-F) */    
+    int32_t     FMidiin;
+    /* remote events flag */       
+    int32_t     RMidiin;
+    /* ringbell flag */
+    int32_t     ringbell;
+    /* terminate on MIDI file input flag (-T) */
+    int32_t     termifend;
+    /* rewrite header flag */
+    int32_t     rewrt_hdr;
+    /* heartbeat flag */
+    int32_t     heartbeat;
+    /* GEN01 defer allocation flag */
+    int32_t     gen01defer;
+    /* tempo value (-t)  */
     double      cmdTempo;
-    float       sr_override, kr_override;
-    int32_t     nchnls_override, nchnls_i_override;
-    char       *infilename, *outfilename;
-    char       *Linename, *Midiname, *FMidiname;
+    /* sampling rate override (-r) */
+    MYFLT       sr_override;
+    /* control rate override (-k) */    
+    MYFLT       kr_override;
+    /* nchnls override */
+    int32_t     nchnls_override;
+    /* nchnls_i override */    
+    int32_t     nchnls_i_override;
+    /* input file name (-i) */
+    char       *infilename;
+    /* output file name (-o) */
+    char       *outfilename;
+    /* line events source (-L) */    
+    char       *Linename;
+    /* MIDI input device name (-M) */
+    char       *Midiname;
+    /* MIDI input file name (-F) */    
+    char *FMidiname;
+    /* MIDI output device name (-Q) */  
     char       *Midioutname;
+    /* MIDI output file name */    
     char       *FMidioutname;
-    int32_t     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
-    int32_t     midiVelocity, midiVelocityAmp;
+    /* MIDI key pfield mapping */
+    int32_t     midiKey;
+    /* MIDI key-cps pfield mapping */
+    int32_t     midiKeyCps;
+    /* MIDI key-oct pfield mapping */
+    int32_t     midiKeyOct;
+    /* MIDI key-oct pfield mapping */
+    int32_t     midiKeyPch;
+    /* MIDI vel pfield mapping */    
+    int32_t     midiVelocity;
+    /* MIDI vel-amp pfield mapping */    
+    int32_t     midiVelocityAmp;
+    /* default paths flag */
     int32_t     noDefaultPaths;
+    /* multicore number of threads (-j) */
     int32_t     numThreads;
+    /* syntax check only flag */
     int32_t     syntaxCheckOnly;
+    /* csd line nums option */
     int32_t     useCsdLineCounts;
-    int32_t     sampleAccurate;  /* switch for score events sample accuracy */
-    int32_t     realtime; /* realtime priority mode  */
+    /* sample accurate flag */
+    int32_t     sampleAccurate;
+    /* realtime priority flag */
+    int32_t     realtime;
+    /* 0dbfs override */
     MYFLT       e0dbfs_override;
+    /* daemon mode flag */
     int32_t     daemon;
-    double      quality;        /* for ogg encoding */
+    /* OGG encoding quality */
+    double      quality;
+    /* ksmps override */
     int32_t     ksmps_override;
+    /* FFT library option */
     int32_t     fft_lib;
+    /* UDP echo commands flag */
     int32_t     echo;
+    /* audio output limiter option */
     MYFLT       limiter;
-    float       sr_default, kr_default;
+    /* default sampling rate */
+    MYFLT     sr_default;
+    /* default control rate */
+    MYFLT kr_default;
+    /* MP3 encoding mode  */
     int32_t     mp3_mode;
   } OPARMS;
-  
-
-
+ 
   /**
    * Device information
    */

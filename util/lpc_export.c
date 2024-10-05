@@ -97,7 +97,7 @@ static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
     coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));
     if (UNLIKELY(coef==NULL)) {
       fclose(inf); fclose(outf); csound->Free(csound,str); return 3;}
-    for (i  i<(uint32_t)floor(hdr.framrate*hdr.duration); i++) {
+    for (i = 0; i<(uint32_t)floor(hdr.framrate*hdr.duration); i++) {
       if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
         csound->Message(csound, "%s", Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)

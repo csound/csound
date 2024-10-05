@@ -152,19 +152,19 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     char    *infilnam, *outfilnam;
     SNDFILE *infd;
     int32_t     channel = ALLCHNLS;
-    int32_t     ovlp            /* number of overlapping windows to have */
+    int32_t     ovlp = 0;           /* number of overlapping windows to have */
     SOUNDIN *p;                 /* space allocated by SAsndgetset() */
 
     MYFLT   beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
-    int64_t    oframeEst       /* output frms estimated */
-    int64_t    frameSize       /* size of FFT frames */
-    int64_t    frameIncr       /* step between successive frames */
+    int64_t    oframeEst = 0;      /* output frms estimated */
+    int64_t    frameSize  = 0;     /* size of FFT frames */
+    int64_t    frameIncr  = 0;     /* step between successive frames */
     int32_t     latch = 200;
     FILE    *trfil = stdout;
     pv_wtype  WindowType = PVOC_HANN;
     char    err_msg[512];
     double  beta = 6.8;
-    int32_t displays 
+    int32_t displays = 0;
 
 
     if (UNLIKELY(!(--argc)))
@@ -333,7 +333,7 @@ static int32_t quit(CSOUND *csound, char *msg)
     int32_t i;
 
     csound->Message(csound, Str("pvanal error: %s\n"), msg);
-    for (i  pvanal_usage_txt[i] != NULL; i++)
+    for (i = 0; pvanal_usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(pvanal_usage_txt[i]));
     return -1;
 }
@@ -366,7 +366,7 @@ static void PVDisplay_Init(CSOUND *csound, PVDISPLAY *p,
     p->csound = csound;
     p->npts = (fftSize / 2) + 1;
     p->dispCntMax = dispCntMax;
-    for (i  i < DISPFRAMES; i++)
+    for (i = 0; i < DISPFRAMES; i++)
       p->dispBufs[i] = (MYFLT*) csound->Calloc(csound, p->npts * sizeof(MYFLT));
 }
 
@@ -376,7 +376,7 @@ static void PVDisplay_Update(PVDISPLAY *p, const float *buf)
 
     if (p->dispFrame >= DISPFRAMES)
       return;
-    for (i  i < p->npts; i++)
+    for (i = 0; i < p->npts; i++)
       p->dispBufs[p->dispFrame][i] += ((MYFLT) buf[i * 2] * (MYFLT) buf[i * 2]);
     p->dispCnt++;
 }
@@ -388,7 +388,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
     if (p->dispFrame >= DISPFRAMES ||
         p->dispCnt < p->dispCntMax)
       return;
-    for (i  i < p->npts; i++)
+    for (i = 0; i < p->npts; i++)
       p->dispBufs[p->dispFrame][i] =
           (MYFLT) sqrt((double) (p->dispBufs[p->dispFrame][i]
                                  / (MYFLT) p->dispCnt));
@@ -396,7 +396,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
                        p->npts, "pvanalwin", 0, "PVANAL");
     snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%"PRId64, (int64_t) frame);
     p->csound->Display(p->csound, &(p->dwindow));
-    p->dispCnt 
+    p->dispCnt = 0;
     p->dispFrame++;
 }
 
@@ -408,18 +408,18 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                    int64_t srate, int64_t chans, int64_t fftsize, int64_t overlap,
                    int64_t winsize, pv_wtype wintype, double beta, int32_t displays)
 {
-    int32_t         i, k, pvfile = -1, rc 
+    int32_t         i, k, pvfile = -1, rc = 0;
     pv_stype    stype = STYPE_16;
     int64_t        buflen, buflen_samps;
     int64_t        sampsread;
-    int64_t        blocks_written      /* m/c framecount for user */
+    int64_t        blocks_written = 0;     /* m/c framecount for user */
     PVX         *pvx[MAXPVXCHANS];
     MYFLT       *inbuf_c[MAXPVXCHANS];
     float       *frame_c[MAXPVXCHANS];  /* RWD : MUST be 32bit  */
     MYFLT       *inbuf = NULL;
     float       *frame;                 /* RWD : MUST be 32bit  */
     MYFLT       *chanbuf;
-    int64_t        total_sampsread 
+    int64_t        total_sampsread = 0;
     PVDISPLAY   disp;
 
     switch (p->format) {
@@ -432,7 +432,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
     //nbins = (fftsize/2) + 1;
     //nyquist = (MYFLT) srate * FL(0.5);
     //    chwidth = nyquist/(MYFLT)(nbins - 1);
-    for (i  i < MAXPVXCHANS; i++) {
+    for (i = 0; i < MAXPVXCHANS; i++) {
       pvx[i] = NULL;
       inbuf_c[i] = NULL;
       frame_c[i] = NULL;
@@ -440,7 +440,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
 
     /* TODO: save some memory and create analysis window once! */
 
-    for (i  i < chans; i++)
+    for (i = 0; i < chans; i++)
       rc += init(csound,
                  &pvx[i], srate, fftsize, winsize, overlap, wintype, beta);
 
@@ -486,8 +486,8 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
       }
       chan_split(csound, inbuf, inbuf_c, sampsread, chans);
 
-      for (i  i < sampsread/chans; i+= overlap) {
-        for (k  k < chans; k++) {
+      for (i = 0; i < sampsread/chans; i+= overlap) {
+        for (k = 0; k < chans; k++) {
           frame = frame_c[k];
           chanbuf = inbuf_c[k];
           if (UNLIKELY(!csound->CheckEvents(csound)))
@@ -515,12 +515,12 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
 
     /* write out remaining frames */
     sampsread = fftsize * chans;
-    /* for (i i< sampsread;i++) */
+    /* for (i = 0;i< sampsread;i++) */
     /*   inbuf[i] = FL(0.0); */
     memset(inbuf, 0, sizeof(MYFLT)*sampsread);
     chan_split(csound,inbuf,inbuf_c,sampsread,chans);
-    for (i  i < sampsread/chans; i+= overlap) {
-      for (k  k < chans; k++) {
+    for (i = 0; i < sampsread/chans; i+= overlap) {
+      for (k = 0; k < chans; k++) {
         frame = frame_c[k];
         chanbuf = inbuf_c[k];
         if (!csound->CheckEvents(csound))
@@ -571,10 +571,10 @@ static int32_t init(CSOUND *csound,
     thispvx->i1         =  NULL;    /* pointer to frequency channels */
     thispvx->oi         =  NULL;    /* pointer to old phase channels */
     thispvx->oldInPhase =  NULL;    /* pointer to start of input phase buffer */
-    thispvx->ibuflen            /* length of input buffer */
+    thispvx->ibuflen    = 0;        /* length of input buffer */
 
-    thispvx->nI                 /* current input (analysis) sample */
-    thispvx->Mf                 /* flag for even M */
+    thispvx->nI   = 0;              /* current input (analysis) sample */
+    thispvx->Mf   = 0;              /* flag for even M */
     N = fftsize;
     M = winsize;
     D = overlap;
@@ -602,7 +602,7 @@ static int32_t init(CSOUND *csound,
     }
     thispvx->D       = D;
     thispvx->I       = D;
-    thispvx->nMin           /* first input (analysis) sample */
+    thispvx->nMin    = 0;       /* first input (analysis) sample */
     thispvx->nMax    = 100000000;
     thispvx->nMax   -= thispvx->nMin;
 
@@ -760,7 +760,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
        one efficient FFT call for a real input sequence.  */
 
 /* initialize */
-    /* for (i  i < N+2; i++) */
+    /* for (i = 0; i < N+2; i++) */
     /*   *(anal + i) = FL(0.0); */
     memset(anal, 0, sizeof(MYFLT)*(N+2));
 
