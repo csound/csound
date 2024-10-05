@@ -1106,8 +1106,8 @@ PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 
 PUBLIC int32_t csoundModuleInfo(void)                                      
 {
-  return ((CS_APIVERSION << 16)
-          + (CS_APISUBVER << 8)
+  return ((CS_VERSION << 16)
+          + (CS_SUBVER << 8)
           + (int32_t) sizeof(MYFLT));
 }
 #endif

@@ -41,11 +41,7 @@
 #define CS_VERSION          (7)
 #define CS_SUBVER           (0)
 #define CS_PATCHLEVEL       (0)
-
-
-#define CS_APIVERSION       (7)   
-#define CS_APISUBVER        (0)     
-
+  
 #ifndef CS_PACKAGE_DATE
 #define CS_PACKAGE_DATE __DATE__
 #endif
