@@ -87,7 +87,7 @@ typedef struct mixer_globals_ {
 static  void    InitScaleTable(MIXER_GLOBALS *, int32_t);
 static  MYFLT   gain(MIXER_GLOBALS *, int32_t, int32_t);
 static  SNDFILE *MXsndgetset(CSOUND*,inputs *);
-static  void    MixSound(MIXER_GLOBALS *, int32_t, SNDFILE *,const const OPARMS **);
+static  void    MixSound(MIXER_GLOBALS *, int32_t, SNDFILE *, OPARMS *);
 
 static const char *usage_txt[] = {
   Str_noop("Usage:\tmixer [-flags] soundfile [-flags] soundfile ..."),
@@ -133,7 +133,7 @@ static void usage(CSOUND *csound, const char *mesg, ...)
     csound->LongJmp(csound, 1);
 }
 
-static char set_output_format(CSOUND *csound, char c, char outformch,const const OPARMS **O)
+static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *O)
 {
   (void) csound;
     switch (c) {
@@ -162,7 +162,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch,const const
 
 static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
 {
-   const const OPARMS *     O;
+    OPARMS *     O = (OPARMS *) csound->Calloc(csound, sizeof(OPARMS));
     char        *inputfile = NULL;
     SNDFILE     *outfd;
     int32_t         i;
@@ -174,7 +174,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
                                                         sizeof(MIXER_GLOBALS));
     inputs      *mixin = &(pp->mixin[0]);
 
-    O = csound->GetOParms(csound) ;
+    memcpy(O,csound->GetOParms(csound), sizeof(OPARMS));
 
     pp->csound = csound;
     /*csound->dbfs_to_float = csound->e0dbfs = FL(1.0);*/
@@ -295,7 +295,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
           case 's':
           case 'l':
           case 'f':
-            outformch = set_output_format(csound, c, outformch, ;
+            outformch = set_output_format(csound, c, outformch, O);
             break;
           case 'R':
             O->rewrt_hdr = 1;
@@ -422,7 +422,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
                             pp->outbufsiz,
                             csound->GetStrFormat(O->outformat), O->outfilename,
                            csound->Type2String(O->filetyp));
-    MixSound(pp, n, outfd, ;
+    MixSound(pp, n, outfd, O);
     if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "\007");
     return 0;
@@ -543,7 +543,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     return infd;
 }
 
- static void MixSound(MIXER_GLOBALS *pp, int32_t n, SNDFILE *outfd,const const OPARMS **O)
+ static void MixSound(MIXER_GLOBALS *pp, int32_t n, SNDFILE *outfd,OPARMS *O)
 {
     CSOUND *csound = pp->csound;
     inputs  *mixin = &(pp->mixin[0]);

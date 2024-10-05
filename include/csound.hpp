@@ -144,7 +144,7 @@ class PUBLIC Csound
     return csoundSetOption(csound, option);
   }
   virtual const OPARMS *GetParams(){
-    csoundGetParams(csound);
+    return csoundGetParams(csound);
   }
   virtual int32_t CompileOrc(const char *str, int32_t async = 0) {
     return csoundCompileOrc(csound, str, async);

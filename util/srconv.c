@@ -67,7 +67,7 @@
 static  void    usage(CSOUND *);
 
 static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
-                       SNDFILE *outfd, int32_t length,const const OPARMS **oparms)
+                       SNDFILE *outfd, int32_t length,const OPARMS **oparms)
 {
     sflib_write_MYFLT(outfd, out_buf, length);
     (*block)++;
@@ -95,7 +95,7 @@ static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
 }
 
 static char set_output_format(CSOUND *csound, char c, char outformch,
-                             const const OPARMS **oparms)
+                             const OPARMS **oparms)
 {
     if (oparms->outformat) {
       csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
@@ -219,7 +219,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     char        outformch = 's';
     unsigned    outbufsiz = 0U;
     SNDFILE     *outfd = NULL;
-   const const OPARMS *     O;
+   const OPARMS *     O;
     int32_t         block = 0;
     char        err_msg[256];
 

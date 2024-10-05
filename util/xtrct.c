@@ -57,7 +57,7 @@ typedef struct {
 /* Static function prototypes */
 
 static SNDFILE*  EXsndgetset(CSOUND *, XTRC*,char *);
-static void ExtractSound(CSOUND *, XTRC *, SNDFILE*, SNDFILE*,const const OPARMS **);
+static void ExtractSound(CSOUND *, XTRC *, SNDFILE*, SNDFILE*, OPARMS *);
 
 static void usage(CSOUND *csound, char *mesg, ...)
 {
@@ -92,7 +92,7 @@ static void usage(CSOUND *csound, char *mesg, ...)
 
 static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
 {
-   const const OPARMS *     O;
+    OPARMS *     O = (OPARMS *) csound->Calloc(csound, sizeof(OPARMS));
     char        *inputfile = NULL;
     SNDFILE*    infd;
     SNDFILE*    outfd;
@@ -102,8 +102,8 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     int32_t         debug   = 0;
     int32_t         Omsg;
     XTRC        xtrc;
+    memcpy(O,csound->GetOParms(csound), sizeof(OPARMS));
 
-    O = csound->GetOParms(csound) ;
     Omsg = O->msglevel;
 
     /* Check arguments */
@@ -308,7 +308,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(fd == NULL))
       csound->Die(csound, Str("Failed to open output file %s: %s"),
                   O->outfilename, Str(sflib_strerror(NULL)));
-    ExtractSound(csound, &xtrc, infd, outfd, ;
+    ExtractSound(csound, &xtrc, infd, outfd, O);
     if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
     return 0;
@@ -335,7 +335,7 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
 }
 
 static void
-ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd,const const OPARMS **oparms)
+ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *oparms)
 {
     double buffer[NUMBER_OF_SAMPLES];
     long  read_in;

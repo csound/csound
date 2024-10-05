@@ -73,7 +73,7 @@ static void usage(CSOUND *csound, char *mesg)
     csound->Die(csound, "\n%s", mesg);
 }
 
-static char set_output_format(const OPARMS *p, char c, char outformch)
+static char set_output_format(OPARMS *p, char c, char outformch)
 {
     switch (c) {
       case 'a': p->outformat = AE_ALAW;   /* a-law soundfile */
@@ -124,8 +124,8 @@ typedef struct {
 
 static void  InitScaleTable(CSOUND *,SCALE *, double, char *);
 static SNDFILE *SCsndgetset(CSOUND *, SCALE *, char *);
-static void  ScaleSound(CSOUND *, SCALE *, SNDFILE *, SNDFILE *,const const OPARMS **);
-static float FindAndReportMax(CSOUND *, SCALE *, SNDFILE *,const const OPARMS **);
+static void  ScaleSound(CSOUND *, SCALE *, SNDFILE *, SNDFILE *, OPARMS *);
+static float FindAndReportMax(CSOUND *, SCALE *, SNDFILE *, OPARMS *);
 
 static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
 {
@@ -138,10 +138,11 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
     char        outformch = 's', c, *s;
     const char  *envoutyp;
     SFLIB_INFO     sfinfo;
-   const const OPARMS *     O;
+    OPARMS *O =(OPARMS *) csound->Calloc(csound, sizeof(OPARMS));
     SCALE       sc;
     unsigned    outbufsiz;
 
+    memcpy(O,csound->GetOParms(csound), sizeof(OPARMS));
     memset(&sc, 0, sizeof(SCALE));
     sc.ff = 0.0;
     sc.table_used = 0;
@@ -220,7 +221,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
           case '3':
           case 'l':
           case 'f':
-            outformch = set_output_format(&O, c, outformch);
+            outformch = set_output_format(O, c, outformch);
             break;
           case 'R':
             O->rewrt_hdr = 1;
@@ -228,7 +229,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
           case 'H':
             if (isdigit(*s)) {
               int32_t n;
-              csound->Sscanf(s, "%d%n", &O->heartbeat, &n);
+              csound->Sscanf(s, "%d%n", O->heartbeat, &n);
               s += n;
             }
             else O->heartbeat = 1;
@@ -304,15 +305,15 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                               O->outfilename,
                              csound->Type2String(O->filetyp));
       InitScaleTable(csound, &sc, factor, factorfile);
-      ScaleSound(csound, &sc, infile, outfile, ;
+      ScaleSound(csound, &sc, infile, outfile, O);
     }
     else if (maximum != 0.0) {
-      float mm = FindAndReportMax(csound, &sc, infile, ;
+      float mm = FindAndReportMax(csound, &sc, infile, O) ;
       factor = maximum / mm;
       goto retry;
     }
     else
-      FindAndReportMax(csound, &sc, infile, ;
+      FindAndReportMax(csound, &sc, infile, O);
     if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
     return 0;
@@ -413,7 +414,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
 
 static void
 ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
-           SNDFILE *outfd,const const OPARMS **oparms)
+           SNDFILE *outfd, OPARMS *oparms)
 {
     MYFLT buffer[BUFFER_LEN];
     long  read_in;
@@ -462,7 +463,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
 }
 
 static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
-                              SNDFILE *infile,const const OPARMS **oparms)
+                              SNDFILE *infile, OPARMS *oparms)
 {
     MYFLT   buffer[BUFFER_LEN];
     long    read_in;
