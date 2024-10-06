@@ -158,6 +158,7 @@ jobs:
            cmake --build build
            cmake --build build --target install
            cd ..
+           brew install bison flex
            cmake -B build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
            
       - name: Build Csound
