@@ -142,13 +142,14 @@ jobs:
 
   macos_build_vanilla:
     name: MacOS build (vanilla)
-    runs-on: macos-13
+    runs-on: macos-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
           submodules: true
+          
       - name: Checkout and build libsndfile
         run: |
            git clone https://github.com/libsndfile/libsndfile
@@ -158,7 +159,7 @@ jobs:
            cmake --build build --target install
            cd ..
            
-       - name: Build Csound
+      - name: Build Csound
            cmake -D build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
            cmake --build build --config Release
            
