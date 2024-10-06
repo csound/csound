@@ -94,7 +94,7 @@ build.
 MacOS Vanilla
 --------
 
-On MacOS, with no dependencies installed, the following commands
+On MacOS, with no dependencies installed and no homebrew, the following commands
 apply. From the top-level sources directory,
 
 ```
