@@ -168,7 +168,7 @@ jobs:
       - name: Install
         run: 
            cmake --build build --target install
-           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/bin/* 
+           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/bin/csound 
            install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/CsoundLib64.framework/CsoundLib64           
 
       - name: Upload zip
