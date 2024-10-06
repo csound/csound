@@ -166,11 +166,13 @@ jobs:
           cmake --build build --config Release
            
       - name: Install
+        if: github.ref == 'refs/heads/develop'
         run: 
            cmake --build build --target install
 
       - name: Upload zip
         uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/develop'
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
           path: ./csound_install           
