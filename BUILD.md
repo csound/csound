@@ -59,7 +59,7 @@ Build Instructions
 *Steps for building Csound across a large range of target platforms can be found in the [csound_builds.yml](https://github.com/csound/csound/blob/develop/.github/workflows/csound_builds.yml) script, which is part of Csound's CI build system.*
 
 
-MacOS
+MacOS with dependencies installed
 ----
 
 On MacOS, the following specific build instructions apply. The
@@ -68,8 +68,8 @@ MacOS contains bison and flex, Csound requires a newer version
 of bison to be installed (see https://www.gnu.org/software/bison/).
 
 From the top-level sources directory, the following sequence of commands
-can be used to build the system.  It assumes that libsndfile has been
-installed in the system
+can be used to build the system.  It assumes that libsndfile and other
+dependencies have been installed in the system
 
 ```
 mkdir build
