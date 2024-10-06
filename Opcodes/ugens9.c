@@ -462,7 +462,6 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   for (part = 0; part < p->numPartitions; part++) {
     int32_t start_chn = channel != ALLCHNLS ? channel-1 : 0;
     int64_t nframes;
-    MYFLT odbfs = csound->Get0dBFS(csound);
     /* get the block of input frames */ 
     if (UNLIKELY((nframes = csound->SndfileRead(csound, infd, inbuf,
                                                 p->Hlen)) <= 0))
@@ -476,7 +475,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
       fp1 = inbuf + i;
       fp2 = IRblock;
       for (j = 0; j < nframes/p->nchanls; j++) {
-        *fp2++ = (*fp1*odbfs) * scaleFac;
+        *fp2++ = *fp1 * scaleFac;
         fp1 += p->nchanls;
       }
 
