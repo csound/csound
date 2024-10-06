@@ -154,11 +154,11 @@ jobs:
         run: |
            git clone https://github.com/libsndfile/libsndfile
            cd libsndfile
-           cmake -B build -S . -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=../sndfile_install
+           cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=../sndfile_install
            cmake --build build
            cmake --build build --target install
            cd ..
-           cmake -B build -S . -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
+           cmake -B build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
            
       - name: Build Csound
         run:
