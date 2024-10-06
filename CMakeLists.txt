@@ -202,6 +202,7 @@ option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
+option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 
 # secret rabbit code
 if (USE_VCPKG)
@@ -214,6 +215,12 @@ endif()
 if(SampleRate_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_SRC")
     message(STATUS "Using Secret Rabbit Code")
+endif()
+
+
+if(USE_SHORT_TABLE_LENGTH)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSHORT_TABLE_LENGTH")
+    message(STATUS "Using short max table length")
 endif()
 
 

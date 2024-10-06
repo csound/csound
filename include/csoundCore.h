@@ -203,16 +203,17 @@ extern "C" {
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
-#ifdef  B64BIT
-#define MAXLEN     0x10000000
-#define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x0fffffff
-#else
-#define MAXLEN     0x1000000L
-#define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x0FFFFFFL
+#ifndef  SHORT_TABLE_LENGTH  // long max table length is the default
+static const uint32_t MAXLEN = 1U << 30;  
+static const double FMAXLEN = (double) (1U << 30);
+static const uint32_t PHMASK = (1U << 30) - 1U;
+#else   // this is the original max table length
+static const uint32_t MAXLEN =  1U << 24;  
+static const double FMAXLEN = (double) (1U << 24);
+static const double FMAXLEN = (1U << 24) - 1;
 #endif
 
+  
 #define MAX_STRING_CHANNEL_DATASIZE 16384
 
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
@@ -224,12 +225,6 @@ extern "C" {
 
 #define OCTRES     8192
 #define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
-
-#define LOBITS     10
-#define LOFACT     1024
-  /* LOSCAL is 1/LOFACT as MYFLT */
-#define LOSCAL     FL(0.0009765625)
-#define LOMASK     1023
 
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
