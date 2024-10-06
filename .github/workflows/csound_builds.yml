@@ -160,10 +160,12 @@ jobs:
            cd ..
            
       - name: Build Csound
+        run: |
            cmake -D build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
            cmake --build build --config Release
            
       - name: Install
+        run: 
            cmake --build build --target install
 
       - name: Upload zip
