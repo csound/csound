@@ -157,7 +157,6 @@ jobs:
            cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=../sndfile_install
            cmake --build build
            cmake --build build --target install
-           cd ..
            
       - name: Build Csound
         run: |
