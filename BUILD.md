@@ -91,6 +91,29 @@ user Library/Frameworks ($HOME/Library/Frameworks).
 See "Useful CMake Options" above for common options to customise the
 build.
 
+MacOS Vanilla
+--------
+
+On MacOS, with no dependencies installed, the following commands
+apply. From the top-level sources directory,
+
+```
+git clone https://github.com/libsndfile/libsndfile
+cd libsndfile
+cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=../sndfile_install
+cmake --build build
+cmake --build build --target install
+cd ..
+cmake -D build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
+cmake --build build --config Release
+cmake --build build --target install
+```
+
+This will install in the `csound_install` subdirectory of the sources
+tree. Csound will be fully function, with CoreAudio and CoreMIDI
+support, and libsndfile (statically linked).
+
+
 MacOS using Brew
 ----
 

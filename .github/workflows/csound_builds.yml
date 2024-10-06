@@ -140,6 +140,42 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
+  macos_build_vanilla:
+    name: MacOS build (vanilla)
+    runs-on: macos-13
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+      - name: Checkout and build libsndfile
+        run: |
+           git clone https://github.com/libsndfile/libsndfile
+           cd libsndfile
+           cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=../sndfile_install
+           cmake --build build
+           cmake --build build --target install
+           cd ..
+           
+       - name: Build Csound
+           cmake -D build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
+           cmake --build build --config Release
+           
+      - name: Install
+           cmake --build build --target install
+
+      - name: Upload zip
+        if: github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-binaries
+          path: |
+            ./build/bin/
+            ./build/CsoundLib64.framework/
+            ./include/
+          if-no-files-found: error            
+            
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
     runs-on: macos-13
