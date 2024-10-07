@@ -168,14 +168,16 @@ jobs:
       - name: Install
         run: |
            cmake --build build --target install
+           install_name_tool -id CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/bin/csound 
-           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/CsoundLib64.framework/CsoundLib64           
+           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/CsoundLib64.framework/CsoundLib64
+           tar cf csound_install.tar csound_install
 
       - name: Upload zip
         uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
-          path: ./csound_install           
+          path: ./csound_install.tar           
             
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
