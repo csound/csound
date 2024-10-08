@@ -169,8 +169,8 @@ jobs:
       - name: Adjust link paths
         run: |
            install_name_tool -id CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install ../.. csound_install/bin/csound 
-           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/CsoundLib64.framework/CsoundLib64
+           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install /Library/Frameworks csound_install/bin/csound 
+           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install /Library/Frameworks csound_install/CsoundLib64.framework/CsoundLib64
            
       - name: Build installer
         run: |
