@@ -100,10 +100,10 @@ OENTRY opcodlst_1[] = {
   { "##userOpcode", S(UOPCODE),0,  "", "", useropcdset, useropcd, NULL, NULL },
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
   { "xin",  S(XIN_MAX),0,     "****************", "",  xinset,  NULL, NULL, NULL },
-  /* { "xin.64",   S(XIN_HIGH),0,  
+  /* { "xin.64",   S(XIN_HIGH),0,
      "****************************************************************", "",
      xinset,  NULL, NULL },
-     { "##xin256",  S(XIN_MAX),0,   
+     { "##xin256",  S(XIN_MAX),0,
      "****************************************************************"
      "****************************************************************"
      "****************************************************************"
@@ -157,11 +157,11 @@ OENTRY opcodlst_1[] = {
   { "init.i", S(ASSIGNM),0,       "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0,       "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   { "init.a", S(ASSIGNM),0,       "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
-  /* VL 4.4.24 removing thread field: 
-     These boolean were all marked thread 0, with both init and perf functions. 
+  /* VL 4.4.24 removing thread field:
+     These boolean were all marked thread 0, with both init and perf functions.
      At instance(), there was a check for NOT thread 3 (meaning init XOR perf),
      and a check for type 'b' output was made, placing the opcode in the init chain,
-     or else perf chain.  
+     or else perf chain.
      I'm Reinterpreting them as either init or perf by removing the relevant function.
      This should take care of assigning these to the correct chain.
   */
@@ -490,7 +490,7 @@ OENTRY opcodlst_1[] = {
   { "poscil3.aa", S(OSC), TR, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
   { "lposcil3", S(LPOSC), TR,  "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
   { "lposcila", S(LPOSC),      TR,  "a", "akkkio",
-    (SUBR)lposc_set, (SUBR)lposca},    
+    (SUBR)lposc_set, (SUBR)lposca},
   /* end change */
   { "foscil", S(FOSC),TR,        "a",  "xkxxkjo",foscset,   foscil  },
   { "foscili",S(FOSC),TR,        "a",  "xkxxkjo",foscset,   foscili },
