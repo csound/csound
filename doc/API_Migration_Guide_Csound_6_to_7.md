@@ -32,6 +32,14 @@ public headers.
 The following is an outline of the changes in the main
 header file, `csound.h`.
 
+
+```
+PUBLIC void csoundGetAPIVersion(csound);
+```
+
+This function has been removed. Semantic versioning only available now
+through `csoundGetVersion()`.
+
 ```
 PUBLIC void csoundSetOpcodedir(const char *s);
 ```

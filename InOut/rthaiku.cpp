@@ -291,5 +291,5 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleInfo(void)
 {
-        return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+        return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int) sizeof(MYFLT));
 }

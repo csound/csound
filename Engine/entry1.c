@@ -1416,17 +1416,17 @@ OENTRY opcodlst_1[] = {
   { "slider8table", S(SLIDER8t), 0, "k",  "iii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
     (SUBR)sliderTable_i8, (SUBR)sliderTable8, (SUBR)NULL },
-  { "slider16table", S(SLIDER8t), 0, "k", "iii"
+  { "slider16table", S(SLIDER16t), 0, "k", "iii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
     (SUBR)sliderTable_i16, (SUBR)sliderTable16, (SUBR)NULL },
-  { "slider32table", S(SLIDER8t), 0, "k", "iii"
+  { "slider32table", S(SLIDER32t), 0, "k", "iii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
     (SUBR)sliderTable_i32, (SUBR)sliderTable32, (SUBR)NULL },
-  { "slider64table", S(SLIDER8t), 0, "k", "iii"
+  { "slider64table", S(SLIDER64t), 0, "k", "iii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"

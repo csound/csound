@@ -97,10 +97,10 @@ message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
 
 # Project definitions
-set(APIVERSION "7.0")
 set(CS_VERSION "7")
 set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
+set(APIVERSION "${CS_VERSION}.${CS_SUBVER}")
 
 message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 
