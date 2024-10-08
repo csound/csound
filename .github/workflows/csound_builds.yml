@@ -170,7 +170,7 @@ jobs:
         run: |
            install_name_tool -id CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 @loader_path/ ../Versions/7.0/CsoundLib64 csound_install/bin/csound
+           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 @loader_path/../Versions/7.0/CsoundLib64 csound_install/bin/csound
            
       - name: Build installer
         run: |
