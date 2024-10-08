@@ -162,12 +162,9 @@ jobs:
            cmake -B build -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
            
       - name: Build Csound
-        run:
+        run: |
           cmake --build build --config Release
-           
-      - name: Install
-        run: 
-           cmake --build build --target install
+          cmake --build build --target install
     
       - name: Adjust link paths
         run: |
@@ -179,8 +176,8 @@ jobs:
         run: |
            mkdir csound_install/CsoundLib64.framework/bin
            mv csound_install/bin/csound csound_install/CsoundLib64.framework/bin/.
-           rm -r bin
-           rm -r share
+           rm -r csound_install/bin
+           rm -r csound_install/share
            mkdir csound_install/Library
            mv csound_install/CsoundLib64.framework csound_install/Library
            pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install CsoundLib64-vanilla.pkg
