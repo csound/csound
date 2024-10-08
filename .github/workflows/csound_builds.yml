@@ -178,7 +178,7 @@ jobs:
            mv csound_install/bin/csound csound_install/CsoundLib64.framework/bin/.
            rm -r csound_install/bin
            rm -r csound_install/share
-           mkdir csound_install/Library
+           mkdir csound_install/Library/Frameworks
            mv csound_install/CsoundLib64.framework csound_install/Library
            pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install CsoundLib64-vanilla.pkg
 
