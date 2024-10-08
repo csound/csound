@@ -159,7 +159,7 @@ jobs:
            cmake --build build --target install
            cd ..
            brew install bison flex
-           cmake -B build -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
+           cmake -B build -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DBUILD_INSTALLER=1
            
       - name: Build Csound
         run: |
@@ -170,7 +170,7 @@ jobs:
         run: |
            install_name_tool -id CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 @loader_path/../Versions/7.0/CsoundLib64 csound_install/bin/csound
+           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 @loader_path/ ../Versions/7.0/CsoundLib64 csound_install/bin/csound
            
       - name: Build installer
         run: |
