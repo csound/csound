@@ -1212,6 +1212,7 @@ endif()
 
 if(APPLE)
     if(NOT IOS)
+        target_link_options(${CSOUNDLIB} PRIVATE LINKER:-adhoc_codesign)
         set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
         set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
         set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
