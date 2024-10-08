@@ -169,15 +169,22 @@ jobs:
         run: |
            cmake --build build --target install
            install_name_tool -id CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/bin/csound 
+           install_name_tool -rpath /Users/runner/work/csound/csound/csound_install ../.. csound_install/bin/csound 
            install_name_tool -rpath /Users/runner/work/csound/csound/csound_install .. csound_install/CsoundLib64.framework/CsoundLib64
+           mkdir csound_install/CsoundLib64.framework/CsoundLib64/bin
+           mv csound_install/bin/csound csound_install/CsoundLib64.framework/CsoundLib64/bin
+           rm -r bin
+           rm -r share
+           mkdir csound_install/Library
+           mv csound_install/CsoundLib64.framework csound_install/Library
+           pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install CsoundLib64-vanilla.pkg
            tar cf csound_install.tar csound_install
 
       - name: Upload zip
         uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
-          path: ./csound_install.tar           
+          path: ./CsoundLib64-vanilla.pkg        
             
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
