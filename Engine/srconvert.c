@@ -98,12 +98,10 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *o
 
 #ifndef USE_SRC
 // fallback to linear conversion
-static
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
                        float ratio, int32_t size) {
   return src_linear_init(csound, mode, ratio, size);
 }
-static
 int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
   return src_linear_convert(csound, pp, in, out);
 }

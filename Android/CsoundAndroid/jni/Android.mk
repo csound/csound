@@ -34,6 +34,7 @@ $(CSOUND_SRC_ROOT)/Engine/envvar.c \
 $(CSOUND_SRC_ROOT)/Engine/extract.c \
 $(CSOUND_SRC_ROOT)/Engine/fgens.c \
 $(CSOUND_SRC_ROOT)/Engine/insert.c \
+$(CSOUND_SRC_ROOT)/Engine/srconvert.c \
 $(CSOUND_SRC_ROOT)/Engine/udo.c \
 $(CSOUND_SRC_ROOT)/Engine/linevent.c \
 $(CSOUND_SRC_ROOT)/Engine/memalloc.c \
