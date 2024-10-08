@@ -98,7 +98,6 @@ OENTRY opcodlst_1[] = {
   /* IV - Sep 8 2002 - added entries for user defined opcodes, xin, xout */
   /* and setksmps */
   { "##userOpcode", S(UOPCODE),0,  "", "", useropcdset, useropcd, NULL, NULL },
-  { "##userOpcode2", S(UOPCODE),0, "", "", useropcdset_newstyle, useropcd, NULL, NULL },
   /* IV - Sep 10 2002: removed perf time routines of xin and xout */
   { "xin",  S(XIN_MAX),0,     "****************", "",  xinset,  NULL, NULL, NULL },
   /* { "xin.64",   S(XIN_HIGH),0,

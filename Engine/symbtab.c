@@ -476,7 +476,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     } else {
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
-      opc = find_opcode(csound, newStyle ? "##userOpcode2" : "##userOpcode");
+      opc = find_opcode(csound, "##userOpcode");
       memcpy(&tmpEntry, opc, sizeof(OENTRY));
       tmpEntry.opname = cs_strdup(csound, opname);
 

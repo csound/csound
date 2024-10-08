@@ -209,16 +209,16 @@ extern "C" {
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
 #ifndef  SHORT_TABLE_LENGTH  // long max table length is the default
-static const uint32_t MAXLEN = 1U << 30;  
+static const uint32_t MAXLEN = 1U << 30;
 static const double FMAXLEN = (double) (1U << 30);
 static const uint32_t PHMASK = (1U << 30) - 1U;
 #else   // this is the original max table length
-static const uint32_t MAXLEN =  1U << 24;  
+static const uint32_t MAXLEN =  1U << 24;
 static const double FMAXLEN = (double) (1U << 24);
 static const double FMAXLEN = (1U << 24) - 1;
 #endif
 
-  
+
 #define MAX_STRING_CHANNEL_DATASIZE 16384
 
 #define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
@@ -1083,6 +1083,7 @@ static inline double PHMOD1(double p) {
     char    *name, *intypes, *outtypes;
     int16   inchns, outchns;
     bool newStyle;
+    bool passByRef;
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     INSTRTXT *ip;
