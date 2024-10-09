@@ -104,14 +104,18 @@ cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=.
 cmake --build build
 cmake --build build --target install
 cd ..
-cmake -D build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
+cmake -B build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
 cmake --build build --config Release
 cmake --build build --target install
 ```
 
 This will install in the `csound_install` subdirectory of the sources
-tree. Csound will be fully function, with CoreAudio and CoreMIDI
-support, and libsndfile (statically linked).
+tree. This installation location can be changed if desired by
+replacing it in the relevant command.
+
+Csound will be fully functional, with CoreAudio and CoreMIDI
+support, and libsndfile (statically linked) and all its command-line
+programs. Note that 
 
 
 MacOS using Brew

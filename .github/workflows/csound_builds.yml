@@ -133,7 +133,6 @@ jobs:
 
       - name: Configure build
         run: cmake -B build -DBUILD_TESTS=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
-
       - name: Build Csound
         run: cmake --build build --config Release
 
@@ -168,9 +167,9 @@ jobs:
     
       - name: Adjust link paths
         run: |
-           install_name_tool -id CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
+           install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 @loader_path/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
+           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
            
       - name: Build installer
         run: |
@@ -180,7 +179,7 @@ jobs:
            pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-7.0-vanilla-universal.pkg
 
       - name: Upload zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4      
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
           path: ./CsoundLib64-7.0-vanilla-universal.pkg        
