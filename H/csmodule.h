@@ -67,7 +67,7 @@
  * for a compatible version of libcsound. The return value may be the sum of  *
  * any of the following two values:                                           *
  *                                                                            *
- *   ((CS_APIVERSION << 16) + (CS_APISUBVER << 8))      API version           *
+ *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version           *
  *   (int32_t) sizeof(MYFLT)                                MYFLT type            *
  *                                                                            *
  ******************************************************************************/

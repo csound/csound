@@ -1,7 +1,7 @@
 /*
   csoundCore.h: csound engine structures and module API
 
-  Copyright (C) 1991-2024 Barry Vercoe, John ffitch, Istvan Varga, 
+  Copyright (C) 1991-2024 Barry Vercoe, John ffitch, Istvan Varga,
                            V Lazzarini, S Yi
 
   This file is part of Csound.
@@ -56,6 +56,9 @@
 #include "pools.h"
 #include "soundfile.h"
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
@@ -85,7 +88,7 @@ extern "C" {
 #endif /*  __cplusplus */
 
 
-  /* VL: these were moved here from csound.h 
+  /* VL: these were moved here from csound.h
      as they are not relevant to the new host API
   */
   typedef struct xyindat_ XYINDAT;
@@ -121,7 +124,7 @@ extern "C" {
 
   void **csoundGetRtRecordUserData(CSOUND *);
   void **csoundGetRtPlayUserData(CSOUND *);
-  
+
   void
   csoundSetPlayopenCallback(CSOUND *,
                             int32_t (*playopen__)(CSOUND *,
@@ -151,8 +154,6 @@ extern "C" {
   int32_t csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
 
-
-  
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
@@ -205,15 +206,16 @@ extern "C" {
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
-#ifdef  B64BIT
-#define MAXLEN     0x10000000
-#define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x0fffffff
-#else
-#define MAXLEN     0x1000000L
-#define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x0FFFFFFL
+#ifndef  SHORT_TABLE_LENGTH  // long max table length is the default
+static const uint32_t MAXLEN = 1U << 30;
+static const double FMAXLEN = (double) (1U << 30);
+static const uint32_t PHMASK = (1U << 30) - 1U;
+#else   // this is the original max table length
+static const uint32_t MAXLEN =  1U << 24;
+static const double FMAXLEN = (double) (1U << 24);
+static const double FMAXLEN = (1U << 24) - 1;
 #endif
+
 
 #define MAX_STRING_CHANNEL_DATASIZE 16384
 
@@ -226,12 +228,6 @@ extern "C" {
 
 #define OCTRES     8192
 #define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
-
-#define LOBITS     10
-#define LOFACT     1024
-  /* LOSCAL is 1/LOFACT as MYFLT */
-#define LOSCAL     FL(0.0009765625)
-#define LOMASK     1023
 
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
@@ -499,7 +495,7 @@ extern "C" {
   } TABDAT;
 
   /*
-   * Type definition for array data 
+   * Type definition for array data
    */
   struct arraydat {
     int32_t      dimensions; /* number of array dimensions */
@@ -508,18 +504,18 @@ extern "C" {
     const struct cstype* arrayType; /* type of array */
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
-  };  
- 
+  };
+
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
   /*
    * Type definition for string data (string channels)
-   */ 
+   */
   struct stringdat {
     char *data;         // null-terminated string
     size_t size;        // total allocated size
-    int64_t timestamp;  // used internally for updates  
+    int64_t timestamp;  // used internally for updates
   };
-  
+
   typedef struct monblk {
     int16   pch;
     struct monblk *prv;
@@ -711,7 +707,7 @@ extern "C" {
 static inline double PHMOD1(double p) {
     return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p;
 }
-  
+
   typedef int32_t (*SUBR)(CSOUND *, void *);
 
   /**
@@ -743,8 +739,8 @@ static inline double PHMOD1(double p) {
     char        *intypes;
     int32_t         flags;
   } opcodeListEntry;
-  
-  
+
+
   typedef struct lblblk {
     OPDS    h;
     OPDS    *prvi;
@@ -1084,6 +1080,8 @@ static inline double PHMOD1(double p) {
     int32    instno;
     char    *name, *intypes, *outtypes;
     int16   inchns, outchns;
+    bool newStyle;
+    bool passByRef;
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     INSTRTXT *ip;

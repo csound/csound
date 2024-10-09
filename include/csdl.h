@@ -150,7 +150,7 @@ PUBLIC  int32_t     csoundModuleInfo(void);
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 { (void) csound; *ep = localops; return (int64_t) sizeof(localops);  } \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
 
 /** The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin opcodes
  * which must have unique function names */
@@ -160,7 +160,7 @@ PUBLIC int32_t csoundModuleInfo(void)                                       \
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 {   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
 
 /** LINKAGE for f-table plugins */
 
@@ -168,14 +168,14 @@ PUBLIC int32_t csoundModuleInfo(void)                                       \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return localfgens;                               }   \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
 
 #undef FLINKAGE_BUILTIN
 #define FLINKAGE_BUILTIN(name)                                          \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {   (void) csound; return name;                                     }   \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
-{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT)); }
+{ return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
 
 #ifdef __cplusplus
 }
