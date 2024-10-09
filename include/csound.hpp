@@ -323,7 +323,7 @@ class PUBLIC Csound
   {
     csoundKeyPress(csound, c);
   }
-  virtual void Event(int32_t type, MYFLT *pFields, long numFields, int32_t async = 0)
+  virtual void Event(int32_t type, MYFLT *pFields, int32_t numFields, int32_t async = 0)
   {
     csoundEvent(csound, type, pFields, numFields, async);
   }
