@@ -122,6 +122,9 @@ else()
     set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
 endif()
 
+set(CS_OPCODE_DIR "" CACHE PATH "opcodedir path")
+
+
 if(APPLE)
     set(CMAKE_INSTALL_RPATH ${CS_FRAMEWORK_DEST})
 endif()
@@ -414,6 +417,7 @@ else()
 endif()
 
 # set default user plugin directory
+if(CS_OPCODE_DIR STREQUAL "")
 if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
@@ -422,7 +426,7 @@ if(APPLE)
     endif()
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-    set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
+    set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_FULL_PATH}")
 
     # dir relative to $HOME
     if(USE_DOUBLE)
@@ -433,6 +437,11 @@ if(APPLE)
 
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
+else()
+   add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_OPCODE_DIR}\"")
+   set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
+endif()
+
 
 # LINUX definition
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
