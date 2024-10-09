@@ -171,7 +171,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     substituteInPlace include/version.h \
       --replace "\''${CS_VERSION}" "7" \
       --replace "\''${CS_SUBVER}" "0" \
-      --replace "\''${CS_PATCHLEVEL}" "0"
+      --replace "\''${CS_PATCHLEVEL}" "0" 
 
     touch include/float-version.h
     substituteInPlace Top/csmodule.c \
@@ -354,6 +354,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/extract.c \
       ../Engine/fgens.c \
       ../Engine/insert.c \
+      ../Engine/srconvert.c \
+      ../Engine/udo.c \
       ../Engine/linevent.c \
       ../Engine/memalloc.c \
       ../Engine/memfiles.c \

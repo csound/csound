@@ -1039,7 +1039,7 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     def = 1;
   }
   ftp->gen01args.sample_rate = mpainfo.frequency;
-  ftp->cvtbas = LOFACT * mpainfo.frequency * ftp->sr;
+  ftp->cvtbas = mpainfo.frequency * ftp->sr; 
   flen = ftp->flen;
   //printf("gen49: flen=%d size=%d bufsize=%d\n", flen, size, bufsize);
   while ((r == MP3DEC_RETCODE_OK) && bufused) {
@@ -1106,8 +1106,8 @@ PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 
 PUBLIC int32_t csoundModuleInfo(void)                                      
 {
-  return ((CS_APIVERSION << 16)
-          + (CS_APISUBVER << 8)
+  return ((CS_VERSION << 16)
+          + (CS_SUBVER << 8)
           + (int32_t) sizeof(MYFLT));
 }
 #endif

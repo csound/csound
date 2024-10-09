@@ -398,6 +398,7 @@ int32_t mididefault(CSOUND *, void *);
 int32_t subinstrset_S(CSOUND *, void *);
 int32_t subinstrset(CSOUND *, void *), subinstr(CSOUND *, void *);
 int32_t useropcdset(CSOUND *, void *), useropcd(CSOUND *, void *);
+int32_t useropcdset_newstyle(CSOUND *, void *);
 int32_t setksmpsset(CSOUND *, void *);
 int32_t xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
 int32_t ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
