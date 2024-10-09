@@ -1380,17 +1380,6 @@ int32_t DummyMidiWrite(CSOUND *csound, void *userData,
 /* random.c */
 extern void csound_init_rand(CSOUND *);
 
-/*
-  PUBLIC int32_t csoundQueryInterface(const char *name, void **iface, int32_t *version)
-  {
-  if (strcmp(name, "CSOUND") != 0)
-  return 1;
-  *iface = csoundCreate(NULL);
-  *version = csoundGetAPIVersion();
-  return 0;
-  }
-*/
-
 typedef struct CsoundCallbackEntry_s CsoundCallbackEntry_t;
 
 struct CsoundCallbackEntry_s {
@@ -1444,11 +1433,6 @@ PUBLIC void csoundDestroy(CSOUND *csound)
 PUBLIC int32_t csoundGetVersion(void)
 {
   return (int32_t) (CS_VERSION * 1000 + CS_SUBVER * 10 + CS_PATCHLEVEL);
-}
-
-PUBLIC int32_t csoundGetAPIVersion(void)
-{
-  return CS_APIVERSION * 100 + CS_APISUBVER;
 }
 
 PUBLIC void *csoundGetHostData(CSOUND *csound)

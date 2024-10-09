@@ -154,7 +154,7 @@
       MYFLT     b;                                                \
       MYFLT *yt1 = p->yt1, *c1=p->c1, *c2=p->c2;                  \
       MYFLT *chanblock = (MYFLT *) csound->m_chnbp[chan]->ctl_val;\
-      while (j++ < 8) {                                           \
+      while (j++ < n) {                                           \
       *slnum = (unsigned char) *sld->ictlno;                      \
       if (UNLIKELY(*slnum > 127)) {                               \
         snprintf(sbuf, 120,                                       \
@@ -480,7 +480,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
                                                                         \
         if ((outftp = csound->FTFind(csound, p->ioutfn)) != NULL)    \
           p->outTable = outftp->ftable;                                 \
-        while (j < 8) {                                                 \
+        while (j < n) {                                                 \
             int32_t t = (int32_t) *sld->ifn;                                    \
             *slnum = (unsigned char) *sld->ictlno;                      \
             value=*sld->initvalue;                                      \
@@ -609,15 +609,6 @@ int32_t sliderTable8(CSOUND *csound, SLIDER8t *p) /* GAB */
 }
 /*--------------------------------------------------------*/
 
-typedef struct {
-    OPDS   h;
-    MYFLT  *ktrig;      /* output */
-    MYFLT  *ichan,  *ioutfn, *ioffset;              /* input */
-    SLD    s[32];
-    MYFLT  min[32], max[32], *outTable;
-    unsigned char   slchan, slnum[32], oldvalue[32];
-    FUNC   *ftp[32];
-} SLIDER32t; /* GAB */
 
 
  int32_t sliderTable_i32(CSOUND *csound, SLIDER32t *p) /* GAB */

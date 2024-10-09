@@ -191,5 +191,5 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 PUBLIC int32_t csoundModuleInfo(void)
 {
     /* does not depend on MYFLT type */
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8));
 }

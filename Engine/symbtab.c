@@ -137,7 +137,7 @@ static void map_args(char* args) {
  Original code - IV Oct 12 2002
  modified by VL for Csound 6
 
-    VL: 9.2.22 we are disabling the unused and confusing feature of 
+    VL: 9.2.22 we are disabling the unused and confusing feature of
     a hidden local sampling rate parameter on 7.x
 
 */
@@ -159,14 +159,14 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
     // The following handles adding of extra 'o' type for optional
     // ksmps arg for all UDO's
     // this feature is removed from 7.0
-    /* 
+    /*
        char intypes[256];
       if (*inm->intypes == '0') {
         intypes[0] = 'o';
         intypes[1] = '\0';
     } else {
         snprintf(intypes, 256, "%so", inm->intypes);
-	} 
+	}
 	in_args = splitArgs(csound, intypes);*/
     in_args = splitArgs(csound, inm->intypes);
     out_args = splitArgs(csound, inm->outtypes);
@@ -248,7 +248,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i++;
       }
     }
-    
+
 //    inm->inchns = i + 1; /* Add one for optional local ksmps */
 //    inm->inchns = i - 1;
     inm->inchns = i;     // this feature is removed from 7.0
@@ -410,7 +410,7 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
  * used at parse time.  An OENTRY is also added at this time so that at
  * verification time the opcode can be looked up to get its signature.
  */
-int32_t add_udo_definition(CSOUND *csound, char *opname,
+int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                        char *outtypes, char *intypes,
                        int32_t flags) {
 
@@ -427,12 +427,7 @@ int32_t add_udo_definition(CSOUND *csound, char *opname,
     if (len == 1 && *intypes == '0') {
       opc = find_opcode_exact(csound, opname, outtypes, "o");
     } else {
-      // this feature is removed from 7.0
-      /*char* adjusted_intypes = csound->Malloc(csound, sizeof(char) * (len + 2));
-      sprintf(adjusted_intypes, "%so", intypes);
-      opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes); */
       opc = find_opcode_exact(csound, opname, outtypes, intypes);
-      //csound->Free(csound, adjusted_intypes);
     }
 
     /* check if opcode is already defined */
@@ -464,6 +459,7 @@ int32_t add_udo_definition(CSOUND *csound, char *opname,
     /* store the name in a linked list (note: must use csound->Calloc) */
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = cs_strdup(csound, opname);
+    inm->newStyle = newStyle;
     inm->intypes = intypes;
     inm->outtypes = outtypes;
     inm->in_arg_pool = csoundCreateVarPool(csound);
@@ -490,9 +486,8 @@ int32_t add_udo_definition(CSOUND *csound, char *opname,
       newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
 
       /* check in/out types and copy to the opcode's */
-      /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
       newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                       + strlen(intypes) + 2);
+                                       + strlen(intypes) + 1);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
       newopc->flags = flags | newopc->flags;
     }

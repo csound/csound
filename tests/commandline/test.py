@@ -174,6 +174,7 @@ def runTest():
     ["test_plusname.csd", "test +Name for instr name"],
     ["testnewline.csd", "test newline in statements"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
+    ["test_max_table_len.csd", "test max table length"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -202,6 +203,7 @@ def runTest():
         ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
         ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
+        ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
     ]
 
     tests += arrayTests

@@ -1,7 +1,7 @@
 /*
-    version.h:
+    srconvert.h
 
-    Copyright (C) 1995 John ffitch
+    Copyright (C) 2024 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -21,30 +21,24 @@
     02110-1301 USA
 */
 
-#ifndef CSOUND_VERSION_H
-#define CSOUND_VERSION_H
+#ifndef SRCONVERT_H
+#define SRCONVERT_H
 
-/* Version string generated from CMake variables */
-#define VERSION "7.0"
+#include "csound.h"
 
-/* Define to the full name of this package. */
-#define CS_PACKAGE_NAME     "Csound"
+typedef struct _SR_CONVERTER
+{
+  float *bufferin, *bufferout;
+  float   ratio;
+  int32_t     size;
+  int32_t     cnt;
+  int32_t     mode;
+  void   *data;
+} SR_CONVERTER;
 
-/* Define to the full name and version of this package. */
-#define CS_PACKAGE_STRING   "Csound " VERSION
 
-/* Define to the one symbol short name of this package. */
-#define CS_PACKAGE_TARNAME  "csound"
+SR_CONVERTER *src_init(CSOUND *, int32_t, float, int32_t);
+void src_deinit(CSOUND *, SR_CONVERTER *);
+int32_t src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
 
-/* Define to the version of this package. Generated from CMake variables */
-#define CS_PACKAGE_VERSION  VERSION
-#define CS_VERSION          (7)
-#define CS_SUBVER           (0)
-#define CS_PATCHLEVEL       (0)
-  
-#ifndef CS_PACKAGE_DATE
-#define CS_PACKAGE_DATE __DATE__
 #endif
-
-#endif /* CSOUND_VERSION_H */
-

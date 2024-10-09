@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
-#pragma once
+#ifndef INSERT_H
+#define INSERT_H
+
+#include "csoundCore.h"
+#include "udo.h"
 
 typedef struct {                        /*       INSERT.H                */
     OPDS    h;
@@ -56,19 +60,9 @@ typedef struct {
     MYFLT  *inst;
 } KILLOP;
 
-/* sampling rate conversion */
-typedef struct _SR_CONVERTER SR_CONVERTER;
 
 /* the number of optional outputs defined in entry.c */
 #define SUBINSTNUMOUTS  8
-
-typedef struct {
-    OPCODINFO *opcode_info;
-    void    *uopcode_struct;
-    INSDS   *parent_ip;
-    int32   iflag;
-    MYFLT   *iobufp_ptrs[12];  
-} OPCOD_IOBUFS;
 
 typedef struct {                        /* IV - Oct 16 2002 */
     OPDS    h;
@@ -77,59 +71,6 @@ typedef struct {                        /* IV - Oct 16 2002 */
     AUXCH   saved_spout;
     OPCOD_IOBUFS    buf;
 } SUBINST;
-
-typedef struct {                
-    OPDS          h;
-    INSDS         *ip, *parent_ip;
-    OPCOD_IOBUFS  *buf;
-    SR_CONVERTER  *cvt_in[OPCODENUMOUTS_MAX];
-    SR_CONVERTER  *cvt_out[OPCODENUMOUTS_MAX];
-    /* special case: the argument list is stored at the end of the */
-    /* opcode data structure */
-    MYFLT         *ar[1];
-} UOPCODE;
-
-/* IV - Sep 8 2002: added opcodes: xin, xout, and setksmps */
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[1];
-} XIN;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_LOW];
-} XIN_LOW;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_HIGH];
-} XIN_HIGH;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_MAX];
-} XIN_MAX;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[1];
-} XOUT;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_LOW];
-} XOUT_LOW;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_HIGH];
-} XOUT_HIGH;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_MAX];
-} XOUT_MAX;
 
 typedef struct {
     OPDS    h;
@@ -157,6 +98,8 @@ typedef struct {
     MYFLT   *insno;
 } DELETEIN;
 
+void    instance(CSOUND *, int32_t);
+
 typedef struct {
     OPDS    h;
     MYFLT   *os;
@@ -164,5 +107,4 @@ typedef struct {
     MYFLT   *out_cvt;
 } OVSMPLE;
 
-
-                
+#endif

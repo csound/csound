@@ -97,10 +97,10 @@ message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
 
 # Project definitions
-set(APIVERSION "7.0")
 set(CS_VERSION "7")
 set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
+set(APIVERSION "${CS_VERSION}.${CS_SUBVER}")
 
 message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 
@@ -205,6 +205,7 @@ option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
+option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 
 # secret rabbit code
 if (USE_VCPKG)
@@ -217,6 +218,12 @@ endif()
 if(SampleRate_FOUND)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_SRC")
     message(STATUS "Using Secret Rabbit Code")
+endif()
+
+
+if(USE_SHORT_TABLE_LENGTH)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSHORT_TABLE_LENGTH")
+    message(STATUS "Using short max table length")
 endif()
 
 
@@ -733,6 +740,8 @@ set(libcsound_SRCS
     Engine/extract.c
     Engine/fgens.c
     Engine/insert.c
+    Engine/srconvert.c
+    Engine/udo.c
     Engine/linevent.c
     Engine/memalloc.c
     Engine/memfiles.c
