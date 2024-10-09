@@ -402,11 +402,6 @@ extern "C" {
   PUBLIC int32_t csoundGetVersion(void);
 
   /**
-   * Returns the API version number times 100 (1.00 = 100).
-   */
-  PUBLIC int32_t csoundGetAPIVersion(void);
-
-  /**
    * Returns the number of audio sample frames per second.
    */
   PUBLIC MYFLT csoundGetSr(CSOUND *) ;

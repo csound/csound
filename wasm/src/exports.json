@@ -59,7 +59,6 @@
   "csoundFlushCircularBuffer",
   "csoundGet0dBFS",
   "csoundGetA4",
-  "csoundGetAPIVersion",
   "csoundGetAudioChannel",
   "csoundGetAudioDevList",
   "csoundGetCPUTime",

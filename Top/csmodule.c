@@ -64,7 +64,7 @@
  * for a compatible version of libcsound. The return value may be the sum of  *
  * any of the following two values:                                           *
  *                                                                            *
- *   ((CS_APIVERSION << 16) + (CS_APISUBVER << 8))      API version           *
+ *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version           *
  *   (int32_t) sizeof(MYFLT)                                MYFLT type            *
  *                                                                            *
  ******************************************************************************/
@@ -220,12 +220,12 @@ static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int
   if (UNLIKELY(n & (~0xFF))) {
     minorVersion = (n & 0xFF00) >> 8;
     majorVersion = (n & (~0xFFFF)) >> 16;
-    if (majorVersion != (int32_t) CS_APIVERSION ||
-        (minorVersion > (int32_t) CS_APISUBVER)) { /* NOTE **** REFACTOR *** */
+    if (majorVersion != (int32_t) CS_VERSION ||
+        (minorVersion > (int32_t) CS_SUBVER)) { /* NOTE **** REFACTOR *** */
       csoundWarning(csound, Str("not loading '%s' (incompatible "
                                 "with this version of Csound (%d.%d/%d.%d)"),
                     fname, majorVersion,minorVersion,
-                    CS_APIVERSION,CS_APISUBVER);
+                    CS_VERSION,CS_SUBVER);
       return -1;
     }
   }

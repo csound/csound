@@ -123,10 +123,6 @@ class PUBLIC Csound
   {
     return csoundGetVersion();
   }
-  virtual int32_t GetAPIVersion()
-  {
-    return csoundGetAPIVersion();
-  }
   virtual void *GetHostData()
   {
     return csoundGetHostData(csound);
