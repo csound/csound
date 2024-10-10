@@ -29,6 +29,7 @@
 #define MP3DEC_FLAG_SEEKABLE    2
 
 struct mp3dec_t {
+  CSOUND *csound;
   uint32_t size;
   mpadec_t mpadec;
   FILE *f;
@@ -44,6 +45,7 @@ struct mp3dec_t {
   uint32_t out_buffer_used;
   uint8_t in_buffer[0x10000];
   uint8_t out_buffer[8*1152];
+  void *fd;
 };
 
 #endif
