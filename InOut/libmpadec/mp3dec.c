@@ -45,7 +45,7 @@ mp3dec_t mp3dec_init(CSOUND *csound)
     return mp3;
 }
 
-void *mp3dec_open_file(mp3dec_t mp3dec, char *name, FILE *f)
+void *mp3dec_open_file(mp3dec_t mp3dec, char *name, FILE **f)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
     mp3->fd = mp3->csound->FileOpen(mp3->csound, f, CSFILE_STD,
