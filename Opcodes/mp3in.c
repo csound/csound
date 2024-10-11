@@ -94,7 +94,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   }
   /* set default format parameters */
   /* open file */
-  p->mpa = mpa = mp3dec_init();
+  p->mpa = mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
     return csound->InitError(csound, "%s", Str("Not enough memory\n"));
   }
@@ -114,9 +114,8 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-  if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD,
-                                name, "rb", "SFDIR;SSDIR",
-                                CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+
+  if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);
     return
       csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
@@ -274,7 +273,7 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   int32_t  r;
 
   /* open file */
-  mpa = mp3dec_init();
+  mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
     return csound->InitError(csound, "%s", Str("Not enough memory\n"));
   }
@@ -289,9 +288,8 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
-  if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD,
-                                        name, "rb", "SFDIR;SSDIR",
-                                        CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+
+  if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);
     return
       csound->InitError(csound,  Str("mp3in: %s: failed to open file"), name);
@@ -454,7 +452,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
     clock_gettime(CLOCK_MONOTONIC, &ts);
     dtime = ts.tv_sec + 1e-9*ts.tv_nsec;*/
   name = ((STRINGDAT *)p->knum)->data;
-  p->mpa = mpa = mp3dec_init();
+  p->mpa = mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
     return csound->InitError(csound, "%s", Str("Not enough memory\n"));
   }
@@ -463,9 +461,8 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
     p->mpa = NULL;
     return csound->InitError(csound, "%s", mp3dec_error(r));
   }
-  if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD,
-                                name, "rb", "SFDIR;SSDIR",
-                                CSFTYPE_OTHER_BINARY, 0) == NULL)) {
+
+  if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);
     return
       csound->InitError(csound,  Str("mp3scale: %s: failed to open file"), name);
@@ -969,7 +966,7 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
   case 4:
     config.mode = MPADEC_CONFIG_CHANNEL2; break;
   }
-  mpa = mp3dec_init();
+  mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
     return csound->FtError(ff, "%s", Str("Not enough memory\n"));
   }
@@ -977,9 +974,7 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     mp3dec_uninit(mpa);
     return csound->FtError(ff,"%s", mp3dec_error(r));
   }
-  (void)csound->FileOpen(csound, &f, CSFILE_STD,
-                         sfname, NULL, "SFDIR;SSDIR",
-                         CSFTYPE_UNKNOWN_AUDIO, 0);
+  (void)mp3dec_open_file(mpa, sfname, &f);
   //    fd = open(sfname, O_RDONLY); /* search paths */
   if (UNLIKELY(f < 0)) {
     mp3dec_uninit(mpa);
