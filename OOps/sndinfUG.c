@@ -26,6 +26,7 @@
              ugens to retrieve info about a sound file */
 
 #include "csoundCore.h"
+#include "soundfile.h"
 #include "soundio.h"
 #include "sndinfUG.h"
 #include "pvfileio.h"
@@ -67,7 +68,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     sfname = s;                         /* & record fullpath filnam */
     csFileType = CSFTYPE_UNKNOWN;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    sf = sflib_open(sfname, SFM_READ, &sfinfo);
+    sf = csound->SndfileOpen(csound,sfname, SFM_READ, &sfinfo);
     if (sf == NULL) {
       /* open failed: maybe analysis or raw file ? */
       if (*(p->irawfiles) == FL(0.0)) {
@@ -121,7 +122,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
         sfinfo.format = (int32_t)FORMAT2SF(csound->oparms->outformat)
                         | (int32_t)TYPE2SF(TYP_RAW);
         /* try again */
-        sf = sflib_open(sfname, SFM_READ, &sfinfo);
+        sf = csound->SndfileOpen(csound,sfname, SFM_READ, &sfinfo);
       }
     }
     if (UNLIKELY(sf == NULL && csFileType == CSFTYPE_UNKNOWN)) {
@@ -130,7 +131,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     if (sf != NULL) {
       csFileType = sftype2csfiletype(sfinfo.format);
       memcpy(hdr, &sfinfo, sizeof(SFLIB_INFO));
-      sflib_close(sf);
+      csound->SndfileClose(csound,sf);
     }
     /* FIXME: PVOC_OpenFile has already notified since it calls
        FileOpen(), even if the file was not a PVOC file. */
@@ -272,14 +273,14 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
       return csound->InitError(csound, Str("diskinfo cannot open %s: %s"),
-                               sfname, Str(sflib_strerror(NULL)));
+                               sfname, Str(csound->SndfileStrError(csound,NULL)));
     }
     if (channel <= 0) {
-      if (sflib_command(sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
+      if (csound->SndfileCommand(csound,sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
           == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-        if (sflib_command(sf, SFC_CALC_NORM_SIGNAL_MAX,
+        if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_SIGNAL_MAX,
                        &peakVal, sizeof(double)) != 0)
           peakVal = -1.0;
       }
@@ -293,10 +294,10 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
-      if (sflib_command(sf, SFC_GET_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == SFLIB_FALSE) {
+      if (csound->SndfileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-        if (sflib_command(sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == 0)
+        if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == 0)
           peakVal = peaks[channel - 1];
       }
       csound->Free(csound, peaks);

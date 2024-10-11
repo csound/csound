@@ -892,8 +892,8 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
   char    drv[12];
   int32_t     i;
   memset(drv, '\0', 12);
-  csound->module_list_add(csound, "pa_bl", "audio");
-  csound->module_list_add(csound, "pa_cb", "audio");
+  csound->ModuleListAdd(csound, "pa_bl", "audio");
+  csound->ModuleListAdd(csound, "pa_cb", "audio");
   if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
     return 0;
   for (i = 0; s[i] != '\0' && i < 11; i++)
@@ -929,7 +929,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
       csound->SetAudioDeviceListCallback(csound, listDevices);
     }
 
-  csound->module_list_add(csound, s, "audio");
+  csound->ModuleListAdd(csound, s, "audio");
   return 0;
 }
 

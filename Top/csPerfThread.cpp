@@ -25,7 +25,9 @@
 #include <exception>
 
 #include "csound.hpp"
+#include "csound_files.h"
 #include "csPerfThread.hpp"
+#include "soundfile.h"
 #include "soundio.h"
 
 #include "csoundCore.h"
@@ -201,6 +203,7 @@ extern "C" {
   static uintptr_t recordThread_(void *recordData_)
   {
     recordData_t *recordData = (recordData_t *)recordData_;
+    CSOUND *csound = recordData->csound;
     int retval = 0;
     const int bufsize = 4096;
     MYFLT buf[bufsize];
@@ -212,13 +215,8 @@ extern "C" {
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
                                                  buf, bufsize);
-#ifdef USE_DOUBLE
-            sflib_write_double((SNDFILE *) recordData->sfile,
+            csound->SndfileWriteSamples(csound, (SNDFILE *) recordData->sfile,
                             buf, sampsread);
-#else
-            sflib_write_float((SNDFILE *) recordData->sfile,
-                           buf, sampsread);
-#endif
         } while(sampsread != 0);
                 csoundUnlockMutex (recordData->mutex);
     }
@@ -245,7 +243,8 @@ public:
         if (!csound) {
             return;
         }
-        int bufsize = (int32_t) (csoundGetOutputBufferSize(csound)
+        recordData->csound = csound;
+        int32_t bufsize = (int32_t) (csoundGetOutputBufferSize(csound)
                                  * csoundGetNchnls(csound) * numbufs);
         recordData->cbuf = csoundCreateCircularBuffer(csound,
                                                  bufsize,
@@ -274,7 +273,7 @@ public:
 
         sflib_info.format |= TYPE2SF(TYP_WAV);
 
-        recordData->sfile = (void *) sflib_open(filename.c_str(),
+        recordData->sfile = (void *) csound->SndfileOpen(csound,filename.c_str(),
                                                  SFM_WRITE,
                                                  &sflib_info);
         if (!recordData->sfile) {
@@ -303,7 +302,7 @@ public:
         CsoundPerformanceThreadMessage::lockRecord();
         recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
         if (recordData->sfile) {
-            sflib_close((SNDFILE *) recordData->sfile);
+            csound->SndfileClose(csound,(SNDFILE *) recordData->sfile);
             recordData->sfile = NULL;
         }
         CsoundPerformanceThreadMessage::unlockRecord();
@@ -323,16 +322,17 @@ public:
 
       CsoundPerformanceThreadMessage::lockRecord();
       recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
+      CSOUND *csound = recordData->csound;
       if (recordData->running) {
           recordData->running = false;
           csoundJoinThread(recordData->thread);
          /* VL: This appears to break the recording process
           needs to be investigated. I'm reverting the old code for now.
            */
-          sflib_close((SNDFILE *) recordData->sfile);
+          csound->SndfileClose(csound,(SNDFILE *) recordData->sfile);
           /*
           if (recordData->sfile) {
-            sflib_close((SNDFILE *) recordData->sfile);
+            csound->SndfileClose(csound,(SNDFILE *) recordData->sfile);
             recordData->sfile = NULL;
           }
           */

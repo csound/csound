@@ -20,7 +20,8 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include <soundfile.h>
+#include "csoundCore.h"
+#include "soundfile.h"
 
 #if USE_LIBSNDFILE
 const char *sflib_strerror(void *p){
@@ -31,7 +32,7 @@ int32_t  sflib_set_string(void *sndfile, int32_t str_type, const char* str){
   return sf_set_string((SNDFILE *)sndfile, str_type, str) ;
 }
   
-int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize)  {
+int32_t sflib_command(void *handle, int32_t cmd, void *data, int32_t datasize)  {
   return sf_command((SNDFILE*) handle, cmd, data, datasize) ;
 }
 
@@ -112,7 +113,7 @@ long sflib_writef_double(void *handle, double *ptr, long items) {
 }
 
 #else 
-int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize)  {
+int32_t sflib_command(void *handle, int32_t cmd, void *data, int32_t datasize)  {
       return 0;
 }
 

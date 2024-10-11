@@ -133,13 +133,58 @@ jobs:
 
       - name: Configure build
         run: cmake -B build -DBUILD_TESTS=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
-
       - name: Build Csound
         run: cmake --build build --config Release
 
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
+  macos_build_vanilla:
+    name: MacOS build (vanilla)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+          
+      - name: Checkout and build libsndfile, configure Csound
+        run: |
+           git clone https://github.com/libsndfile/libsndfile
+           cd libsndfile
+           cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../sndfile_install
+           cmake --build build
+           cmake --build build --target install
+           cd ..
+           brew install bison flex
+           cmake -B build -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+           
+      - name: Build Csound
+        run: |
+          cmake --build build --config Release
+          cmake --build build --target install
+    
+      - name: Adjust link paths
+        run: |
+           install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
+           install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
+           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
+           
+      - name: Build installer
+        run: |
+           mkdir -p csound_install/PkgContents/Applications/Csound
+           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
+           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
+           pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-7.0-vanilla-universal.pkg
+
+      - name: Upload zip
+        if: github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4      
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
+          path: ./CsoundLib64-7.0-vanilla-universal.pkg        
+            
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
     runs-on: macos-13

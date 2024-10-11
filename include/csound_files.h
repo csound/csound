@@ -28,6 +28,37 @@
 extern "C" {
 #endif
 
+  /**
+   * Soundfile interface data
+   */
+  typedef struct sflib_info {
+    long  frames ;     
+    int32_t   samplerate ;
+    int32_t   channels ;
+    int32_t   format ;
+  } SFLIB_INFO;
+ 
+  /** 
+   * Soundfile interface callbacks
+   */
+  typedef struct sndfileCallbacks {
+    void *(*sndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
+                        SFLIB_INFO *sfinfo);
+    void *(*sndfileOpenFd)(CSOUND *csound,
+                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
+                          int32_t close_desc);
+    int32_t (*sndfileClose)(CSOUND *csound, void *);
+    int64_t (*sndfileWrite)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*sndfileRead)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*sndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*sndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*sndfileSeek)(CSOUND *, void *, int64_t, int32_t);
+    int32_t (*sndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
+    const char *(*sndfileStrError)(CSOUND *csound, void *);
+    int32_t (*sndfileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
+  } SNDFILE_CALLBACKS;
+  
+
 /**
    * The following constants are used with csound->FileOpen() and
    * csound->ldmemfile() to specify the format of a file that is being
@@ -176,6 +207,19 @@ extern "C" {
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
                                         void (*func)(CSOUND*, const char*,
                                                      int32_t, int32_t, int32_t));
+
+  /** 
+   * Sets external callbacks for the soundfile interface
+   * replacing any default callbacks. These functions are used by
+   * Csound to perform soundfile IO throughout the system.
+   * These are set to sndfile.h functions if USE_LIBSNDFILE is defined
+   * otherwise they are set to non-op stubs.
+   * Callbacks are passed via the SNDFILE_CALLBACKS struct.
+   * Any NULL callback pointer will disable setting of the specific callback
+   * If p is NULL then all callbacks are reverted to default values.
+   **/
+  PUBLIC void csoundSetSndfileCallbacks(CSOUND *csound, SNDFILE_CALLBACKS *p);
+  
 #endif
 
 #ifdef __cplusplus
