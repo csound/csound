@@ -22,12 +22,13 @@
 */
 
 #include "csoundCore.h"
+#include "soundfile.h"
 #include "soundio.h"
 
-void rewriteheader(void *ofd)
+void rewriteheader(CSOUND *csound, void *ofd)
 {
     if (LIKELY(ofd != NULL))
-      sflib_command((SNDFILE *)ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+      csound->SndfileCommand(csound,(SNDFILE *)ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
 }
 
 /* Stand-Alone sndgetset() */
@@ -95,7 +96,7 @@ static int32_t sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
     /* return the number of samples read */
     int32_t   n, ntot = 0;
     do {
-      n = sflib_read_MYFLT(infd, inbuf + ntot, nsamples - ntot);
+      n = csound->SndfileReadSamples(csound, infd, inbuf + ntot, nsamples - ntot);
       if (UNLIKELY(n < 0))
         csound->Die(csound, Str("soundfile read error"));
     } while (n > 0 && (ntot += n) < nsamples);
@@ -137,7 +138,7 @@ void *sndgetset(CSOUND *csound, void *p_)
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(p->fd == NULL)) {
       csound->ErrorMsg(csound, Str("soundin cannot open %s: %s"),
-                       sfname, sflib_strerror(NULL));
+                       sfname, csound->SndfileStrError(csound,NULL));
       goto err_return;
     }
     /* & record fullpath filnam */
@@ -229,7 +230,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     }
     else {                                      /* for greater skiptime: */
       /* else seek to bndry */
-      if (UNLIKELY(sflib_seek(p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0)) {
+      if (UNLIKELY(csound->SndfileSeek(csound, p->sinfd, (sf_count_t) skipframes, SEEK_SET) < 0)) {
         csound->ErrorMsg(csound, Str("soundin seek error"));
         goto err_return;
       }

@@ -537,7 +537,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-    csound->module_list_add(csound, "portmidi", "midi");
+    csound->ModuleListAdd(csound, "portmidi", "midi");
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
       return 0;

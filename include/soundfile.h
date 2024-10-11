@@ -30,7 +30,6 @@
 
 #define SFLIB_FALSE SF_FALSE
 #define SFLIB_TRUE SF_TRUE
-
 #define SFLIB_INSTRUMENT SF_INSTRUMENT
 
 #ifndef SNDFILE_MP3
@@ -233,48 +232,5 @@ typedef struct
 } SFLIB_INSTRUMENT ;
 
 typedef long sf_count_t;
-
-#endif // USE_LIBSNDFILE
-
-#ifdef  USE_DOUBLE
-#define sflib_write_MYFLT  sflib_write_double
-#define sflib_writef_MYFLT  sflib_writef_double
-#define sflib_read_MYFLT   sflib_read_double
-#define sflib_readf_MYFLT   sflib_readf_double
-#else
-#define sflib_write_MYFLT  sflib_write_float
-#define sflib_writef_MYFLT  sflib_writef_float
-#define sflib_read_MYFLT   sflib_read_float
-#define sflib_readf_MYFLT   sflib_readf_float
-#endif
-  
-typedef struct sflib_info {
-  long  frames ;     
-  int32_t   samplerate ;
-  int32_t   channels ;
-  int32_t   format ;
-} SFLIB_INFO;
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-  int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize);
-  void *sflib_open(const char *path, int32_t mode, SFLIB_INFO *sfinfo);
-  void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc);
-    int32_t sflib_close(void *sndfile);
-  long sflib_seek(void *handle, long frames, int32_t whence);
-  long sflib_read_float(void *sndfile, float *ptr, long items);
-  long sflib_readf_float(void *handle, float *ptr, long frames);
-  long sflib_read_double(void *sndfile, double *ptr, long items);
-  long sflib_readf_double(void *handle, double *ptr, long frames);
-  long sflib_write_float(void *sndfile, float *ptr, long items);
-  long sflib_writef_float(void *handle, float *ptr, long frames);
-  long sflib_write_double(void *handle, double *ptr, long items);
-  long sflib_writef_double(void *handle, double *ptr, long frames);
-  int32_t  sflib_set_string(void *sndfile, int32_t str_type, const char* str);
-  const char *sflib_strerror(void *);  
-#ifdef __cplusplus
-}
-#endif  
+#endif // USE_LIBSNDFILE  
 #endif /* _SOUNDFILE_H_ */

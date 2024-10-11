@@ -1557,7 +1557,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     char    *drv;
    OPARMS O;
     csound->GetOParms(csound, &O);
-    csound->module_list_add(csound,"jack", "audio");
+    csound->ModuleListAdd(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;

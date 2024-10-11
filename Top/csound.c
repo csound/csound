@@ -138,17 +138,11 @@ static const char *csoundFileError(CSOUND *csound, void *ff) {
   switch(f->type) {
   case CSFILE_SND_W:
   case CSFILE_SND_R: 
-    return sflib_strerror(ff);
+    return csound->SndfileStrError(csound, ff);
     break;
   default:
     return "";
   }
-}
-
-static int32_t csoundFileCommand(CSOUND *csound, void *handle,
-                                 int32_t cmd, void *data, int32_t datasize){
-  return sflib_command(handle, cmd, data, datasize);
-
 }
 
 void print_csound_version(CSOUND* csound)
@@ -184,7 +178,7 @@ void print_csound_version(CSOUND* csound)
 void print_sndfile_version(CSOUND* csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
-  sflib_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+  csound->SndfileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
   csoundErrorMsg(csound, "%s\n", buffer);
 #else
   csoundErrorMsg(csound, "%s\n", "No soundfile IO");
@@ -246,8 +240,90 @@ static int32_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
   return sflib_readf_MYFLT(h,p,frames); 
 }
 
+static int64_t sndfileWriteSamples(CSOUND *csound, void *h, MYFLT *p, int64_t samples){
+  IGN(csound);
+  return sflib_write_MYFLT(h,p,samples); 
+}
+
+static int64_t sndfileReadSamples(CSOUND *csound, void *h, MYFLT *p, int64_t samples){
+  IGN(csound);
+  return sflib_read_MYFLT(h,p,samples); 
+}
+
+
 static int32_t sndfileSeek(CSOUND *csound, void *h, int32_t frames, int32_t whence){
+  IGN(csound);
   return sflib_seek(h, frames, whence);
+}
+
+static void *sndfileOpen(CSOUND *csound, const char *path, int32_t mode,
+                         SFLIB_INFO *sfinfo){
+  IGN(csound);
+  return sflib_open(path, mode, sfinfo);
+}
+
+
+static void *sndfileOpenFd(CSOUND *csound,
+                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
+                           int32_t close_desc){
+  IGN(csound);
+  return sflib_open_fd(fd, mode, sfinfo, close_desc);
+}
+
+static int32_t sndfileClose(CSOUND *csound, void *sndfile) {
+  IGN(csound);
+  return sflib_close(sndfile);
+}
+
+static int32_t sndfileSetString(CSOUND *csound, void *sndfile, int32_t str_type, const char* str){
+  IGN(csound);
+  return sflib_set_string(sndfile, str_type, str);
+}
+
+static const char *sndfileStrError(CSOUND *csound, void *sndfile){
+  IGN(csound);
+  return sflib_strerror(sndfile);
+}
+
+static int32_t sndfileCommand(CSOUND *csound, void *handle,
+                                 int32_t cmd, void *data, int32_t datasize){
+  return sflib_command(handle, cmd, data, datasize);
+
+}
+
+PUBLIC void csoundSetSndfileCallbacks(CSOUND *csound, SNDFILE_CALLBACKS *p){
+  if(p == NULL) {
+    csound->SndfileOpen = sndfileOpen;
+    csound->SndfileOpenFd = sndfileOpenFd;   
+    csound->SndfileClose = sndfileClose; 
+    csound->SndfileWrite = sndfileWrite;
+    csound->SndfileRead = sndfileRead;
+    csound->SndfileWriteSamples = sndfileWriteSamples;
+    csound->SndfileReadSamples = sndfileReadSamples;
+    csound->SndfileSeek = sndfileSeek;
+    csound->SndfileSetString = sndfileSetString;
+    csound->SndfileStrError = sndfileStrError;
+    csound->SndfileCommand = sndfileCommand;
+  } else {
+    csound->SndfileOpen = p->sndfileOpen ? p->sndfileOpen : sndfileOpen;
+    csound->SndfileOpenFd = p->sndfileOpenFd ?
+      p->sndfileOpenFd :sndfileOpenFd;   
+    csound->SndfileClose = p->sndfileClose ? p->sndfileClose : sndfileClose; 
+    csound->SndfileWrite = p->sndfileWrite ? p->sndfileWrite : sndfileWrite;
+    csound->SndfileRead = p->sndfileRead ? p->sndfileRead : sndfileRead;
+    csound->SndfileWriteSamples = p->sndfileWriteSamples ?
+      p->sndfileWriteSamples : sndfileWriteSamples;
+    csound->SndfileReadSamples = p->sndfileReadSamples ?
+      p->sndfileReadSamples : sndfileReadSamples;
+    csound->SndfileSeek =  csound->SndfileSeek ?
+      csound->SndfileSeek : sndfileSeek;
+    csound->SndfileSetString = csound->SndfileSetString ?
+      csound->SndfileSetString : sndfileSetString;
+    csound->SndfileStrError = csound->SndfileStrError?
+      csound->SndfileStrError : sndfileStrError;
+    csound->SndfileCommand = csound->SndfileCommand?
+      csound->SndfileCommand :sndfileCommand;
+  }
 }
 
 #define MAX_MODULES 64
@@ -304,7 +380,10 @@ PUBLIC const CS_TYPE *GetType(CSOUND *csound, const char *type) {
   return csoundGetTypeWithVarTypeName(csound->typePool, type);
 }
 
- 
+const CSOUND_UTIL *csoundGetCsoundUtility(CSOUND *csound) {
+  return &csound->csound_util;
+}
+
 static const CSOUND cenviron_ = {
   /* attributes  */
   csoundGetNchnls,
@@ -448,16 +527,9 @@ static const CSOUND cenviron_ = {
   /* File access */
   csoundFindInputFile,
   csoundFindOutputFile,
-  SAsndgetset,
-  sndgetset,
-  getsndin,
   csoundFileOpenWithType,
   csoundNotifyFileOpened,
   csoundFileClose,
-  sndfileWrite,
-  sndfileRead,
-  sndfileSeek,
-  csoundFileCommand,
   csoundFileError,    
   csoundFileOpenWithType_Async,
   csoundReadAsync,
@@ -475,6 +547,18 @@ static const CSOUND cenviron_ = {
   type2string,
   getstrformat,
   sfsampsize,
+  /* sndfile interface */
+  sndfileOpen,
+  sndfileOpenFd,
+  sndfileClose,  
+  sndfileWrite,
+  sndfileRead,
+  sndfileWriteSamples,
+  sndfileReadSamples,
+  sndfileSeek,
+  sndfileSetString,
+  sndfileStrError,
+  sndfileCommand,
   /* generic callbacks */
   csoundRegisterKeyboardCallback,
   csoundRemoveKeyboardCallback,
@@ -512,14 +596,6 @@ static const CSOUND cenviron_ = {
   csoundSetExternalMidiErrorStringCallback,
   csoundSetMIDIDeviceListCallback,
   module_list_add,
-  /* utilities */
-  csoundAddUtility,
-  csoundRunUtility,
-  csoundListUtilities,
-  csoundSetUtilityDescription,
-  csoundGetUtilityDescription,
-  set_util_sr,
-  set_util_nchnls,
   /* displays & graphs */
   dispset,
   display,
@@ -531,6 +607,7 @@ static const CSOUND cenviron_ = {
   csoundSetKillGraphCallback,
   csoundSetExitGraphCallback,
   /* miscellaneous */
+  csoundGetCsoundUtility,
   csoundPow2,
   csoundLocalizeString,
   cs_strtod,
@@ -1025,7 +1102,20 @@ static const CSOUND cenviron_ = {
   0,              /* mode */
   NULL,           /* opcodedir */
   NULL,           /* score_srt */
-  {NULL, NULL, NULL, 0, 0, NULL} /* osc_message_anchor */
+  {NULL, NULL, NULL, 0, 0, NULL}, /* osc_message_anchor */
+  SPINLOCK_INIT,
+  {                /* csound_util */
+   csoundAddUtility,
+  csoundRunUtility,
+  csoundListUtilities,
+  csoundSetUtilityDescription,
+  csoundGetUtilityDescription,
+  set_util_sr,
+  set_util_nchnls,
+  SAsndgetset,
+  sndgetset,
+  getsndin
+  }
 };
 
 void csound_aops_init_tables(CSOUND *cs);

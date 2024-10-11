@@ -158,10 +158,10 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t pv_import_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pv_import", pv_import);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "pv_import", pv_import);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "pv_import",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "pv_import",
                                       Str("translate text form to "
                                           "PVOC analysis file"));
     }

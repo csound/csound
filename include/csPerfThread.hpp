@@ -106,6 +106,7 @@ typedef struct {
     bool running;
     void* condvar;
     void* mutex;
+    CSOUND *csound;
 } recordData_t;
 
 class PUBLIC CsoundPerformanceThread {

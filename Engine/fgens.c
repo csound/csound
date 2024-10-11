@@ -26,6 +26,7 @@
 
 #include "csoundCore.h"         /*                      FGENS.C         */
 #include <ctype.h>
+#include "soundfile.h"
 #include "soundio.h"
 #include "cwindow.h"
 #include "cmath.h"
@@ -34,6 +35,7 @@
 #include "pvfileio.h"
 #include <stdlib.h>
 #include "fftlib.h"
+
 
 extern double besseli(double);
 static int32_t gen01raw(FGDATA *, FUNC *);
@@ -2566,7 +2568,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->cvtbas =  p->sr * csound->onedsr; 
     {
       SFLIB_INSTRUMENT lpd;
-      int32_t ans = sflib_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
+      int32_t ans = csound->SndfileCommand(csound,fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
       if (ans) {
         double natcps;
 #ifdef BETA
