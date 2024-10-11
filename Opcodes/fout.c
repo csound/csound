@@ -39,6 +39,7 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
     struct fileinTag  *pp;
     STDOPCOD_GLOBALS *ppp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                             "STDOPC_GLOBALS");
+
     p->sf = (SNDFILE*) NULL;
     p->f = (FILE*) NULL;
     if (p->idx) {
@@ -218,9 +219,9 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     }
     if (!do_scale) {
 #ifdef USE_DOUBLE
-      csound->FileCommand(csound,sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
+      csound->SndfileCommand(csound,sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
 #else
-      csound->FileCommand(csound,sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
+      csound->SndfileCommand(csound,sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
 #endif
     }
     pp->file_opened[idx].file = sf;
@@ -280,7 +281,7 @@ static int32_t outfile(CSOUND *csound, OUTFILE *p)
     if (p->buf_pos >= p->guard_pos) {
       if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-      else //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+      else //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
         csound->SndfileWrite(csound, p->f.sf, buf, p->buf_pos/nargs); // in frames
       p->buf_pos = 0;
     }
@@ -318,7 +319,7 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
       if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
       else
-        //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
         csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
       p->buf_pos = 0;
     }
@@ -368,7 +369,7 @@ static int32_t fout_flush_callback(CSOUND *csound, void *p_)
     if (p->f.async == 1)
       csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
     else
-      // sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+      // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
       csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->nargs); // in frames
   }
   return fout_deinit(csound, &(p->f));
@@ -382,7 +383,7 @@ static int32_t fouta_flush_callback(CSOUND *csound, void *p_)
     if (p->f.async == 1)
       csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
     else
-      // sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+      // csound->SndfileWriteSamples(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
       csound->SndfileWrite(csound, p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos/p->tabin->sizes[0]); // in frames
   }
   return fout_deinit(csound, &(p->f));
@@ -395,7 +396,7 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
   int32_t istring = 1;
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");
-
+  
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) MYFLT2LRND(*p->iflag);
   if (format_ >= 51)
@@ -445,7 +446,8 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   int32_t len = p->tabin->sizes[0];
 
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
-                                                                         "STDOPC_GLOBALS");    
+                                                                         "STDOPC_GLOBALS");
+  
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) MYFLT2LRND(*p->iflag);
   if (format_ >=  51)
@@ -501,7 +503,7 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
   if (p->buf_pos >= p->guard_pos) {
     if (p->f.async==1)
       csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-    else //sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
+    else //csound->SndfileWriteSamples(csound, p->f.sf, buf, p->buf_pos);
       csound->SndfileWrite(csound, p->f.sf, (MYFLT *) buf, p->buf_pos/nargs); // in frames
     p->buf_pos = 0;
   }

@@ -59,7 +59,7 @@ Build Instructions
 *Steps for building Csound across a large range of target platforms can be found in the [csound_builds.yml](https://github.com/csound/csound/blob/develop/.github/workflows/csound_builds.yml) script, which is part of Csound's CI build system.*
 
 
-MacOS
+MacOS with dependencies installed
 ----
 
 On MacOS, the following specific build instructions apply. The
@@ -68,8 +68,8 @@ MacOS contains bison and flex, Csound requires a newer version
 of bison to be installed (see https://www.gnu.org/software/bison/).
 
 From the top-level sources directory, the following sequence of commands
-can be used to build the system.  It assumes that libsndfile has been
-installed in the system
+can be used to build the system.  It assumes that libsndfile and other
+dependencies have been installed in the system
 
 ```
 mkdir build
@@ -90,6 +90,33 @@ user Library/Frameworks ($HOME/Library/Frameworks).
 
 See "Useful CMake Options" above for common options to customise the
 build.
+
+MacOS Vanilla
+--------
+
+On MacOS, with no dependencies installed and no homebrew, the following commands
+apply. From the top-level sources directory,
+
+```
+git clone https://github.com/libsndfile/libsndfile
+cd libsndfile
+cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_INSTALL_PREFIX=../sndfile_install
+cmake --build build
+cmake --build build --target install
+cd ..
+cmake -B build -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install"
+cmake --build build --config Release
+cmake --build build --target install
+```
+
+This will install in the `csound_install` subdirectory of the sources
+tree. This installation location can be changed if desired by
+replacing it in the relevant command.
+
+Csound will be fully functional, with CoreAudio and CoreMIDI
+support, and libsndfile (statically linked) and all its command-line
+programs. Note that 
+
 
 MacOS using Brew
 ----

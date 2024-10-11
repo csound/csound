@@ -877,9 +877,9 @@ static void rtclose_(CSOUND *csound)
 int32_t csoundModuleInit(CSOUND *csound)
 {
     char   *drv;
-   const OPARMS *O;
+    const OPARMS *O;
     O = csound->GetOParms(csound) ;
-    csound->module_list_add(csound, "auhal", "audio");
+    csound->ModuleListAdd(csound, "auhal", "audio");
     drv = (char *) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;

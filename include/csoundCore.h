@@ -44,6 +44,12 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
+#include "csound_files.h"
+#include "csound_graph_display.h"
+#include "csound_circular_buffer.h"
+#include "csound_threads.h"
+#include "csound_compiler.h"
+#include "csound_misc.h"
 #include "csound_server.h"
 #include "cscore.h"
 #include "csound_data_structures.h"
@@ -53,7 +59,6 @@
 #ifndef __cplusplus
 #include <stdbool.h>
 #endif
-
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
@@ -148,13 +153,6 @@ extern "C" {
   void csoundInputMessage(CSOUND *csound, const char * sc);
   int32_t csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                         long numFields);
-
-#include "csound_files.h"
-#include "csound_graph_display.h"
-#include "csound_circular_buffer.h"
-#include "csound_threads.h"
-#include "csound_compiler.h"
-#include "csound_misc.h"
 
 #if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
@@ -1316,7 +1314,27 @@ static inline double PHMOD1(double p) {
     return p;
   }
 
+   /**
+   * Functions used in Csound utilities
+   * can be accessed via csound->GetUtility(csound);
+   */  
+  typedef struct _CSOUND_UTIL {
+    int32_t (*AddUtility)(CSOUND *, const char *name,
+                      int32_t (*UtilFunc)(CSOUND *, int32_t, char **));
+    int32_t (*RunUtility)(CSOUND *, const char *name, int32_t argc, char **argv);
+    char **(*ListUtilities)(CSOUND *);
+    int32_t (*SetUtilityDescription)(CSOUND *, const char *utilName,
+                                 const char *utilDesc);
+    const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
+    void (*SetUtilSr)(CSOUND *, MYFLT);
+    void (*SetUtilNchnls)(CSOUND *, int32_t);
+    void *(*SndinGetSetSA)(CSOUND *,
+                              char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
+    void *(*SndinGetSet)(CSOUND *, void *);
+    int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
+  } CSOUND_UTIL;
 
+  
 
 #include "find_opcode.h"
 
@@ -1546,25 +1564,17 @@ static inline double PHMOD1(double p) {
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
-    void *(*SndInputFileOpen)(CSOUND *,
-                              char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
-    void *(*SndInputOpen)(CSOUND *, void *);
-    int32_t (*SndInputRead)(CSOUND *, void *, MYFLT *, int32_t, void *);
     void *(*FileOpen)(CSOUND *, void *, int32_t, const char *, void *,
                       const char *, int32_t, int32_t); /* Rename FileOpen */
     void (*NotifyFileOpened)(CSOUND*, const char*, int32_t, int32_t, int32_t);
     int32_t (*FileClose)(CSOUND *, void *);
-    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
-    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
-    int32_t (*FileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
     const char *(*FileError)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,
                            const char *, int32_t, int32_t, int32_t);
     uint32_t (*ReadAsync)(CSOUND *, void *, MYFLT *, int32_t);
     uint32_t (*WriteAsync)(CSOUND *, void *, MYFLT *, int32_t);
     int32_t  (*FSeekAsync)(CSOUND *, void *, int32_t, int32_t);
-    void (*RewriteHeader)(void *ofd);
+    void (*RewriteHeader)(CSOUND *csound, void *ofd);
     SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
     MEMFIL *(*LoadMemoryFile)(CSOUND *, const char *, int32_t,
                               int32_t (*callback)(CSOUND *, MEMFIL *));
@@ -1578,6 +1588,24 @@ static inline double PHMOD1(double p) {
     char *(*GetStrFormat)(int32_t format);
     int32_t (*SndfileSampleSize)(int32_t format);
     /**@}*/
+
+     /** @name Soundfile interface */
+    /**@{ */   
+    void *(*SndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
+                        SFLIB_INFO *sfinfo);
+    void *(*SndfileOpenFd)(CSOUND *csound,
+                          int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
+                          int32_t close_desc);
+    int32_t (*SndfileClose)(CSOUND *csound, void *);
+    int32_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int32_t);
+    int32_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int32_t);
+    int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int32_t (*SndfileSeek)(CSOUND *, void *, int32_t, int32_t);
+    int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
+    const char *(*SndfileStrError)(CSOUND *csound, void *);
+    int32_t (*SndfileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
+    /**@}*/    
 
     /** @name Generic callbacks */
     /**@{ */
@@ -1648,22 +1676,9 @@ static inline double PHMOD1(double p) {
                                                const char *(*func)(int32_t));
     void (*SetMIDIDeviceListCallback)(CSOUND *csound,
                                       int32_t (*audiodevlist__)(CSOUND *, CS_MIDIDEVICE *list, int32_t isOutput));
-    void (*module_list_add)(CSOUND *, char *, char *);
+    void (*ModuleListAdd)(CSOUND *, char *, char *);
     /**@}*/
-
-    /** @name Utility module support */
-    /**@{ */
-    int32_t (*AddUtility)(CSOUND *, const char *name,
-                      int32_t (*UtilFunc)(CSOUND *, int32_t, char **));
-    int32_t (*RunUtility)(CSOUND *, const char *name, int32_t argc, char **argv);
-    char **(*ListUtilities)(CSOUND *);
-    int32_t (*SetUtilityDescription)(CSOUND *, const char *utilName,
-                                 const char *utilDesc);
-    const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
-    void (*SetUtilSr)(CSOUND *, MYFLT);
-    void (*SetUtilNchnls)(CSOUND *, int32_t);
-    /**@}*/
-
+    
     /** @name Displays & graphs support */
     /**@{ */
     void (*SetDisplay)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t, char *);
@@ -1683,6 +1698,8 @@ static inline double PHMOD1(double p) {
 
     /** @name Miscellaneous */
     /**@{ */
+    /* access functions used in csound utilities */
+    const CSOUND_UTIL *(*GetUtility)(CSOUND *csound);
     /* Fast power of two function from a precomputed table */
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
 #if defined (__CUDACC__) || defined (__MACH__)
@@ -2122,6 +2139,7 @@ static inline double PHMOD1(double p) {
     OSC_MESS osc_message_anchor;
     CORFIL *playscore;
     spin_lock_t osc_spinlock;
+    CSOUND_UTIL csound_util;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

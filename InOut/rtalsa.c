@@ -1903,10 +1903,10 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
    const OPARMS *O;
     O = csound->GetOParms(csound) ;
 
-    csound->module_list_add(csound, "alsa", "audio");
-    csound->module_list_add(csound, "alsaraw", "midi");
-    csound->module_list_add(csound, "alsaseq", "midi");
-    csound->module_list_add(csound, "devfile", "midi");
+    csound->ModuleListAdd(csound, "alsa", "audio");
+    csound->ModuleListAdd(csound, "alsaraw", "midi");
+    csound->ModuleListAdd(csound, "alsaseq", "midi");
+    csound->ModuleListAdd(csound, "devfile", "midi");
 
     csCfgVariable_t *cfg;
     int32_t priority;

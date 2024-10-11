@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"         /*                         MUSMON.C     */
 #include "midiops.h"
+#include "soundfile.h"
 #include "soundio.h"
 #include "namedins.h"
 #include "oload.h"

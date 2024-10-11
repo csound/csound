@@ -572,6 +572,4 @@ typedef int32_t spin_lock_t;
 #else
 # define ignore_value(x) ((void) (x))
 #endif
-
-
 #endif  /* CSOUND_SYSDEP_H */

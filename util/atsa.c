@@ -40,7 +40,7 @@
 #  endif
 #endif
 
-typedef float mus_sample_t;
+typedef MYFLT mus_sample_t;
 
 /*  window types */
 #define  BLACKMAN   0
@@ -533,7 +533,7 @@ static int32_t main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
                           NULL, CSFTYPE_ATS, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->Die(csound, Str("\nCould not open %s for writing, %s\nbye...\n"),
-                  ats_outfile, Str(sflib_strerror(NULL)));
+                  ats_outfile, Str(csound->SndfileStrError(csound,NULL)));
     }
     /* call tracker */
     sound = tracker(csound, anargs, soundfile, resfile);
@@ -950,7 +950,7 @@ static int32_t peak_smr_dec(void const *a, void const *b)
 }
 #endif
 
-static CS_NOINLINE void atsa_sound_read_noninterleaved(SNDFILE *sf,
+static CS_NOINLINE void atsa_sound_read_noninterleaved(CSOUND *csound, SNDFILE *sf,
                                                        mus_sample_t **bufs,
                                                        int32_t nChannels,
                                                        int32_t nFrames)
@@ -968,9 +968,7 @@ static CS_NOINLINE void atsa_sound_read_noninterleaved(SNDFILE *sf,
           k = m * nChannels;
         }
         if (sizeof(mus_sample_t) == sizeof(float))
-          n = (int) sflib_readf_float(sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
-        else
-          n = (int) sflib_readf_double(sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
+          n = (int) csound->SndfileRead(csound, sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
         if (n < 0)
           n = 0;
         n *= nChannels;
@@ -983,7 +981,7 @@ static CS_NOINLINE void atsa_sound_read_noninterleaved(SNDFILE *sf,
     }
 }
 
-static CS_NOINLINE void atsa_sound_write_noninterleaved(SNDFILE *sf,
+static CS_NOINLINE void atsa_sound_write_noninterleaved(CSOUND *csound, SNDFILE *sf,
                                                         mus_sample_t **bufs,
                                                         int32_t nChannels,
                                                         int32_t nFrames)
@@ -1000,9 +998,7 @@ static CS_NOINLINE void atsa_sound_write_noninterleaved(SNDFILE *sf,
       if (j >= k || i == (nFrames - 1)) {
         n = j / nChannels;
         if (sizeof(mus_sample_t) == sizeof(float))
-          sflib_writef_float(sf, (void *) &(tmpBuf[0]), (sf_count_t) n);
-        else
-          sflib_writef_double(sf, (void *) &(tmpBuf[0]), (sf_count_t) n);
+          n = (int) csound->SndfileWrite(csound, sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
         j = 0;
       }
     }
@@ -1525,7 +1521,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     st_pt = N - M_2;
     filptr = M_2 * -1;
     /* read sound into memory */
-    atsa_sound_read_noninterleaved(sf, bufs, 2, sflen);
+    atsa_sound_read_noninterleaved(csound, sf, bufs, 2, sflen);
 
     for (frame_n = 0; frame_n < frames; frame_n++) {
       for (i = 0; i < (N + 2); i++) {
@@ -1825,7 +1821,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
       csound->Die(csound, Str("\nERROR: cannot open file %s for writing\n"),
                   output_file);
     }
-    sflib_set_string(sf, SF_STR_SOFTWARE, "created by ATSA");
+    csound->SndfileSetString(csound,sf, SF_STR_SOFTWARE, "created by ATSA");
     /* allocate memory */
     obuf = (mus_sample_t **) csound->Malloc(csound, 2 * sizeof(mus_sample_t *));
     obuf[0] =
@@ -1885,7 +1881,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
         obuf[0][i] = (mus_sample_t) diff;
         obuf[1][i] = (mus_sample_t) synth;
       }
-      atsa_sound_write_noninterleaved(sf, obuf, 2, frm_samps);
+      atsa_sound_write_noninterleaved(csound, sf, obuf, 2, frm_samps);
     }
     csound->Free(csound, in_buff);
     csound->Free(csound, synth_buff);
@@ -2020,7 +2016,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s': %s"),
-                       soundfile, Str(sflib_strerror(NULL)));
+                       soundfile, Str(csound->SndfileStrError(csound,NULL)));
       return NULL;
     }
     /* warn about multi-channel sound files */
@@ -2237,7 +2233,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* half a window from first sample */
     filptr = anargs->first_smp - M_2;
     /* read sound into memory */
-    atsa_sound_read_noninterleaved(sf, bufs, 1, sflen);
+    atsa_sound_read_noninterleaved(csound, sf, bufs, 1, sflen);
 
     /* make our fft-struct */
     fft.size = anargs->fft_size;
@@ -2844,11 +2840,11 @@ static void free_sound(CSOUND *csound, ATS_SOUND *sound)
 
 int32_t atsa_init_(CSOUND *csound)
 {
-    int32_t     retval = csound->AddUtility(csound, "atsa", atsa_main);
+    int32_t     retval = (csound->GetUtility(csound))->AddUtility(csound, "atsa", atsa_main);
 
     if (!retval) {
       retval =
-          csound->SetUtilityDescription(csound, "atsa",
+          (csound->GetUtility(csound))->SetUtilityDescription(csound, "atsa",
                                         Str("Soundfile analysis for ATS opcodes"));
     }
     return retval;

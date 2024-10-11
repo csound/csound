@@ -118,12 +118,12 @@ PUBLIC int32_t csoundRunUtility(CSOUND *csound, const char *name,
     }
     else
       csound->ErrorMsg(csound, Str("Error: utility not found\n"));
-    lst = csound->ListUtilities(csound);
+    lst = csound->csound_util.ListUtilities(csound);
     if (lst != NULL && lst[0] != NULL) {
       int32_t i;
       csound->Message(csound, Str("The available utilities are:\n"));
       for (i = 0; lst[i] != NULL; i++) {
-        const char *desc = csound->GetUtilityDescription(csound, lst[i]);
+        const char *desc = csound->csound_util.GetUtilityDescription(csound, lst[i]);
         if (desc != NULL)
           csound->Message(csound, "    %s\t%s\n", lst[i], Str(desc));
         else

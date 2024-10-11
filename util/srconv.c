@@ -69,10 +69,10 @@ static  void    usage(CSOUND *);
 static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
                        SNDFILE *outfd, int32_t length,const OPARMS **oparms)
 {
-    sflib_write_MYFLT(outfd, out_buf, length);
+    csound->SndfileWriteSamples(csound, outfd, out_buf, length);
     (*block)++;
     if (oparms->rewrt_hdr)
-      csound->RewriteHeader((struct SNDFILE *)outfd);
+      csound->RewriteHeader(csound, SNDFILE *)outfd);
     switch (oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
@@ -351,7 +351,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       usage(csound);
       return -1;
     }
-    if ((inf = csound->SndInputFileOpen(csound, infile, &p, &beg_time,
+    if ((inf = (csound->GetUtility(csound))->SndinGetSetSA(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) == NULL) {
       csound->ErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
@@ -433,10 +433,10 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     }
     /* This is not right *********  */
     if (P != FL(0.0)) {
-      csound->SetUtilSr(csound,Rin);
+      (csound->GetUtility(csound))->SetUtilSr(csound,Rin);
     }
     if (P == FL(0.0)) {
-      csound->SetUtilSr(csound,Rout);
+      (csound->GetUtility(csound))->SetUtilSr(csound,Rout);
     }
 
     if (O->outformat == 0)
@@ -477,20 +477,20 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           snprintf(err_msg, 256, Str("cannot open %s."), O->outfilename);
           goto err_rtn_msg;
         }
-        outfd = sflib_open(name, SFM_WRITE, &sfinfo);
+        outfd = csound->SndfileOpen(csound,name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
                                    csound->Type2CsfileType(O->filetyp,
                                                            O->outformat),
                                    1, 0);
         else {
-          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), sflib_strerror(NULL));
+          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), csound->SndfileStrError(csound,NULL));
           goto err_rtn_msg;
         }
         csound->Free(csound, name);
       }
       else
-        outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 1);
+        outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
         snprintf(err_msg, 256, Str("cannot open %s."), O->outfilename);
         goto err_rtn_msg;
@@ -498,10 +498,10 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                       O->outfilename);
-      sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+      csound->SndfileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
-    csound->SetUtilSr(csound, (MYFLT)p->sr);
-    csound->SetUtilNchnls(csound, Chans = p->nchanls);
+    (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)p->sr);
+    (csound->GetUtility(csound))->SetUtilNchnls(csound, Chans = p->nchanls);
 
     outbufsiz = OBUF * O->sfsampsize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
@@ -587,7 +587,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 
  /* initialization: */
 
-    nread = csound->SndInputRead(csound, inf, input, IBUF2, p);
+    nread = (csound->GetUtility(csound))->Sndin(csound, inf, input, IBUF2, p);
     for(i=0; i < nread; i++)
        input[i] *= 1.0/csound->Get0dBFS(csound);
     nMax = (long)(input_dur * p->sr);
@@ -644,7 +644,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->SndInputRead(csound, inf, nextIn, IBUF2, p);
+            nread = (csound->GetUtility(csound))->Sndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;
@@ -704,7 +704,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->SndInputRead(csound, inf, nextIn, IBUF2, p);
+            nread = (csound->GetUtility(csound))->Sndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;
@@ -863,9 +863,9 @@ static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
 
 int32_t srconv_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "srconv", srconv);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "srconv", srconv);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "srconv",
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "srconv",
                                              Str("Sample rate conversion"));
     }
     return retval;

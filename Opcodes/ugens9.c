@@ -39,7 +39,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
   uint32_t  nchanls;
   uint32_t  nsmps = CS_KSMPS;
   
-  if (UNLIKELY((csound->GetOParms(csound))->odebug))
+  if (UNLIKELY(csound->GetDebug(csound)))
     csound->Message(csound, CONVOLVE_VERSION_STRING);
 
   if (stringname==0){
@@ -381,57 +381,52 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 {
   int32_t     channel = (*(p->channel) <= 0 ? ALLCHNLS : (int32_t) *(p->channel));
   SNDFILE *infd;
-  SOUNDIN IRfile;
+  SFLIB_INFO  IRinfo;
   MYFLT   *inbuf, *fp1,*fp2;
-  int32    i, j, read_in, part;
+  int32   i, j, part;
   MYFLT   *IRblock;
   MYFLT   ainput_dur, scaleFac;
   MYFLT   partitionSize;
+  char *sfname = NULL;
 
-
-  /* IV - 2005-04-06: fixed bug: was uninitialised */
-  memset(&IRfile, 0, sizeof(SOUNDIN));
-  /* open impulse response soundfile [code derived from SAsndgetset()] */
-  IRfile.skiptime = FL(0.0);
-
-  if (stringname==0){
+  if (stringname==0){ 
     if (IsStringCode(*p->ifilno))
-      strncpy(IRfile.sfname,csound->GetString(csound, *p->ifilno), 511);
-    else csound->StringArg2Name(csound, IRfile.sfname, p->ifilno, "soundin.",0);
+      sfname = csound->Strdup(csound, csound->GetString(csound, *p->ifilno));
+    else 
+      csound->StringArg2Name(csound, sfname, p->ifilno, "soundin.",0);
   }
-  else strncpy(IRfile.sfname, ((STRINGDAT *)p->ifilno)->data, 511);
+  else sfname = ((STRINGDAT *)p->ifilno)->data;
 
-  IRfile.sr = 0;
+
   if (UNLIKELY(channel < 1 || ((channel > 4) && (channel != ALLCHNLS)))) {
     return csound->InitError(csound, Str("channel request %d illegal"), channel);
   }
-  IRfile.channel = channel;
-  IRfile.analonly = 1;
-  if (UNLIKELY((infd = csound->SndInputOpen(csound, &IRfile)) == NULL)) {
+
+  if (UNLIKELY((infd = csound->SndfileOpen(csound, sfname, SFM_READ, &IRinfo)) == NULL)) {
     return csound->InitError(csound, "%s", Str("pconvolve: error while impulse file"));
   }
 
-  if (UNLIKELY(IRfile.framesrem < 0)) {
+  if (UNLIKELY(IRinfo.frames < 0)) {
     csound->Warning(csound, "%s", Str("undetermined file length, "
                                       "will attempt requested duration"));
     ainput_dur = FL(0.0);     /* This is probably wrong -- JPff */
   }
   else {
-    IRfile.getframes = IRfile.framesrem;
-    if (UNLIKELY(IRfile.sr==0)) return csound->InitError(csound, "%s", Str("SR zero"));
-    ainput_dur = (MYFLT) IRfile.getframes / IRfile.sr;
+    if (UNLIKELY(IRinfo.samplerate==0)) return csound->InitError(csound, "%s", Str("SR zero"));
+    ainput_dur = (MYFLT) IRinfo.frames / IRinfo.samplerate;
   }
 
+  if(csound->GetDebug(csound))
   csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
-                  (long) IRfile.getframes, ainput_dur);
+                  (long) IRinfo.frames, ainput_dur);
 
-  p->nchanls = (channel != ALLCHNLS ? 1 : IRfile.nchanls);
+  p->nchanls = (channel != ALLCHNLS ? 1 : IRinfo.channels);
   if (UNLIKELY(p->nchanls != (int32_t)p->OUTOCOUNT)) {
     return csound->InitError(csound, "%s", Str("PCONVOLVE: number of output channels "
                                                "not equal to input channels"));
   }
 
-  if (UNLIKELY(IRfile.sr != CS_ESR)) {
+  if (UNLIKELY(IRinfo.samplerate != (int32_t) CS_ESR)) {
     /* ## RWD suggests performing sr conversion here! */
     csound->Warning(csound, "%s", Str("IR srate != orch's srate"));
   }
@@ -449,32 +444,34 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   p->Hlenpadded = 2*p->Hlen;
 
   /* determine the number of partitions */
-  p->numPartitions = CEIL((MYFLT)(IRfile.getframes) / (MYFLT)p->Hlen);
+  p->numPartitions = CEIL((MYFLT)(IRinfo.frames) / (MYFLT)p->Hlen);
 
   /* set up FFT tables */
   inbuf = (MYFLT *) csound->Malloc(csound,
-                                   p->Hlen * p->nchanls * sizeof(MYFLT));
+                                   p->Hlen * IRinfo.channels  * sizeof(MYFLT));
   csound->AuxAlloc(csound, p->numPartitions * (p->Hlenpadded + 2) *
                    sizeof(MYFLT) * p->nchanls, &p->H);
   IRblock = (MYFLT *)p->H.auxp;
   p->fwdsetup = csound->RealFFTSetup(csound,p->Hlenpadded, FFT_FWD);
   p->invsetup = csound->RealFFTSetup(csound,p->Hlenpadded, FFT_INV);
+  
   /* form each partition and take its FFT */
   for (part = 0; part < p->numPartitions; part++) {
-    /* get the block of input samples and normalize -- soundin code
-       handles finding the right channel */
-    if (UNLIKELY((read_in = csound->SndInputRead(csound, infd, inbuf,
-                                                 p->Hlen*p->nchanls, &IRfile)) <= 0))
+    int32_t start_chn = channel != ALLCHNLS ? channel-1 : 0;
+    int64_t nframes;
+    /* get the block of input frames */ 
+    if (UNLIKELY((nframes = csound->SndfileRead(csound, infd, inbuf,
+                                                p->Hlen)) <= 0))
       return csound->InitError(csound,
                                "%s", Str("PCONVOLVE: less sound than expected!"));
 
     /* take FFT of each channel */
     scaleFac = CS_ONEDDBFS
       * csound->GetInverseRealFFTScale(csound, (int32_t) p->Hlenpadded);
-    for (i = 0; i < p->nchanls; i++) {
+    for (i = start_chn; i < p->nchanls; i++) {
       fp1 = inbuf + i;
       fp2 = IRblock;
-      for (j = 0; j < read_in/p->nchanls; j++) {
+      for (j = 0; j < nframes/p->nchanls; j++) {
         *fp2++ = *fp1 * scaleFac;
         fp1 += p->nchanls;
       }
@@ -487,7 +484,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   }
 
   csound->Free(csound, inbuf);
-  csound->FileClose(csound, IRfile.fd);
+  csound->SndfileClose(csound, infd);
 
   /* allocate the buffer saving recent input samples */
   csound->AuxAlloc(csound, p->Hlen * sizeof(MYFLT), &p->savedInput);

@@ -1555,9 +1555,9 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-  const OPARMS *O;
+   const OPARMS *O;
     O = csound->GetOParms(csound) ;
-    csound->module_list_add(csound,"jack", "audio");
+    csound->ModuleListAdd(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
       return 0;
