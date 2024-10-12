@@ -155,7 +155,7 @@ int32_t cpuperc_S(CSOUND *csound, CPU_PERC *p)
     return OK;
 }
 
-int32_t maxalloc(CSOUND *csound, CPU_PERC *p)
+int32_t maxalloc(CSOUND *csound, CPU_MAXALLOC *p)
 {
     int32_t n;
     if (IsStringCode(*p->instrnum)) {
@@ -164,19 +164,35 @@ int32_t maxalloc(CSOUND *csound, CPU_PERC *p)
     }
     else n = *p->instrnum;
     if (n > 0 && n <= csound->engineState.maxinsno &&
-        csound->engineState.instrtxtp[n] != NULL)
+        csound->engineState.instrtxtp[n] != NULL) {
       /* If instrument exists */
-      csound->engineState.instrtxtp[n]->maxalloc = (int32_t)*p->ipercent;
+      csound->engineState.instrtxtp[n]->maxalloc = (int32_t)*p->icount;
+
+	  int32_t mode = (int32_t)*p->iturnoff_mode;
+	  if (UNLIKELY(mode < 0 || mode > 2)) {
+		  csoundInitError(csound, Str("maxalloc: invalid mode parameter"));
+	  }
+
+      csound->engineState.instrtxtp[n]->turnoff_mode = mode;
+    }
     return OK;
 }
 
-int32_t maxalloc_S(CSOUND *csound, CPU_PERC *p)
+int32_t maxalloc_S(CSOUND *csound, CPU_MAXALLOC *p)
 {
     int32_t n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->instrnum)->data, 1);
     if (n > 0 && n <= csound->engineState.maxinsno &&
-        csound->engineState.instrtxtp[n] != NULL)
+        csound->engineState.instrtxtp[n] != NULL) {
       /* If instrument exists */
-      csound->engineState.instrtxtp[n]->maxalloc = (int32_t)*p->ipercent;
+      csound->engineState.instrtxtp[n]->maxalloc = (int32_t)*p->icount;
+
+	  int32_t mode = (int32_t)*p->iturnoff_mode;
+	  if (UNLIKELY(mode < 0 || mode > 2)) {
+		  csoundInitError(csound, Str("maxalloc: invalid mode parameter"));
+	  }
+
+      csound->engineState.instrtxtp[n]->turnoff_mode = mode;
+    }
     return OK;
 }
 
