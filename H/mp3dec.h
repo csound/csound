@@ -22,6 +22,12 @@
 #ifndef __MP3DEC_H
 #define __MP3DEC_H
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include "mpadec.h"
@@ -44,7 +50,8 @@ typedef void *mp3dec_t;
 extern "C" {
 #endif
 
-mp3dec_t mp3dec_init(void);
+mp3dec_t mp3dec_init(CSOUND *csound);
+void *mp3dec_open_file(mp3dec_t mp3dec, char *name, FILE **f);
 int32_t mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int32_t nogap);
 int32_t mp3dec_uninit(mp3dec_t mp3dec);
 int32_t mp3dec_reset(mp3dec_t mp3dec);
