@@ -2362,3 +2362,14 @@ int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
   return OK;
 }
 
+int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
+  char *name = p->in->instr->insname;
+  STRINGDAT *out = (STRINGDAT *) p->out;
+  if(strlen(name) >= out->size) {
+    csound->Free(csound, out->data);
+    out->data = cs_strdup(csound, name);
+    out->size = strlen(name) + 1;
+  } else strNcpy(out->data, name, out->size);
+  return OK;
+}
+

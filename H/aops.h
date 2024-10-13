@@ -243,6 +243,8 @@ typedef struct iref_num {
 
 int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p);
 int32_t get_instr_num(CSOUND *csound, IREF_NUM *p);
+int32_t get_instr_name(CSOUND *csound, IREF_NUM *p);
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
