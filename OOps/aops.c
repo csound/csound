@@ -2361,3 +2361,4 @@ int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
   *p->out = instr_num(csound, p->in->instr);
   return OK;
 }
+
