@@ -13,6 +13,11 @@ jobs:
     env:
       VERSION: v1
     steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          docker-images: false
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -34,5 +39,44 @@ jobs:
         if: ${{ success() }}
         run: |
           gh variable set ANDROID_WORKFLOW_RUN_ID --body ${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_PAT }}
+
+  build-and-push-ioscross-image:
+    name: ioscross
+    runs-on: ubuntu-latest
+    env:
+      VERSION: v1
+    steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          docker-images: false
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        run: |
+          echo $IOSCROSS_PASSWORD > secret
+          docker build --build-arg="DOWNLOAD_URL=$IOSCROSS_DOWNLOAD_URL" --secret id=secret,src=secret -t csound-ioscross:${{ env.VERSION }} platform/ioscross
+          docker save csound-ioscross:${{ env.VERSION }} > csound-ioscross-${{ env.VERSION }}.tar
+        env:
+          IOSCROSS_PASSWORD: ${{ secrets.IOSCROSS_PASSWORD }}
+          IOSCROSS_DOWNLOAD_URL: ${{ vars.IOSCROSS_DOWNLOAD_URL }}
+
+      - name: Upload image
+        uses: actions/upload-artifact@v4
+        with:
+          name: csound-ioscross-${{ env.VERSION }}
+          path: csound-ioscross-${{ env.VERSION }}.tar
+
+      - name: Update workflow_run_id
+        if: ${{ success() }}
+        run: |
+          gh variable set IOSCROSS_WORKFLOW_RUN_ID --body ${{ github.run_id }}
         env:
           GH_TOKEN: ${{ secrets.SERVICE_ACCOUNT_PAT }}

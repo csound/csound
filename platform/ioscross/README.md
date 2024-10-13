@@ -23,30 +23,31 @@ sudo usermod -a -G docker $USER
 
 3. Download XCode with the iOS SDK (you must be logged into an Apple ID to download Xcode).
 
-4. Build docker image from csound dir:
+4. The dockerfile reads an encrypted version of Xcode from a server to avoid re-distribution of Xcode.
+To encrypt Xcode the following command is used:
+
+```
+read -s PASSWORD
+cat Xcode_15.1.xip | openssl aes-256-cbc -pbkdf2 -a -salt -pass pass:$PASSWORD > Xcode_15.1.xip.enc
+```
+
+5. In the folder containing the encrypted Xcode file start an HTTP server to host the file:
+
+```
+python -m http.server 8000
+```
+
+6. Build docker image from csound dir:
 
 ```bash
 cd csound
-docker build -t csound-ioscross ./platform/ioscross
+echo $PASSWORD > secret
+docker build --secret id=secret,src=secret -t csound-ioscross ./platform/ioscross
 ```
 
-5. Build csound:
+7. Build csound:
 
 ```bash
 docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-ioscross './platform/ioscross/build_release.sh'
 docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-ioscross './platform/ioscross/build_debug.sh'
-```
-
-## Build Github tar.gz
-
-1. To build image used for github build using docker:
-
-```bash
-docker build -t github-ioscross --build-arg="BASE_DIR=/home/runner/work/csound/csound" ./platform/ioscross
-```
-
-2. Create ioscross.tar.gz:
-
-```bash
-docker run github-ioscross cat /home/runner/work/csound/csound/ioscross.tar.gz > ioscross.tar.gz
 ```

@@ -118,8 +118,10 @@ jobs:
 
   ios_build_ioscross:
     name: iOS build (ioscross/vcpkg)
-    if: vars.IOSCROSS_DOWNLOAD_URL
+    if: vars.IOSCROSS_WORKFLOW_RUN_ID
     runs-on: ubuntu-latest
+    env:
+      VERSION: v1
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
@@ -139,40 +141,41 @@ jobs:
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install build-essential liblzma-dev libxml2-dev libz-dev libbz2-dev cpio ninja-build
+      - name: Download image
+        uses: actions/download-artifact@v4
+        with:
+          name: csound-ioscross-${{ env.VERSION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ vars.IOSCROSS_WORKFLOW_RUN_ID }}
 
-      - name: Build xar
+      - name: Load image
         run: |
-          ./platform/ioscross/build_xar.sh
-
-      - name: Install xar
-        working-directory: xar/xar
-        run: |
-          sudo make install
-          sudo ldconfig
-
-      - name: Download ioscross
-        run: |
-          curl -L "${{ vars.IOSCROSS_DOWNLOAD_URL }}" | tar xvz
+          docker load --input csound-ioscross-${{ env.VERSION }}.tar
+          rm csound-ioscross-${{ env.VERSION }}.tar
 
       - name: Configure Build
-        run: |
-          $(eval /home/runner/work/csound/csound/ioscross/arm64/ioscross_conf.sh)
-          cmake -B build/arm64 -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE=./platform/ioscross/custom-ios.cmake \
-              -DIOS=1 \
-              -DCMAKE_SYSTEM_NAME=iOS \
-              -DOSXCROSS_SDK=${OSXCROSS_SDK} \
-              -DOSXCROSS_TARGET=${OSXCROSS_TARGET} \
-              -Darch=arm64 \
-              -DCMAKE_OSX_ARCHITECTURES=arm64
+        uses: addnab/docker-run-action@v3
+        with:
+          image: csound-ioscross:${{ env.VERSION }}
+          options: -v ${{ github.workspace }}:${{ github.workspace }} --workdir ${{ github.workspace }}
+          run: |
+            $(eval /ioscross/arm64/ioscross_conf.sh)
+            cmake -B build/arm64 -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE=./platform/ioscross/custom-ios.cmake \
+                -DIOS=1 \
+                -DCMAKE_SYSTEM_NAME=iOS \
+                -DOSXCROSS_SDK=${OSXCROSS_SDK} \
+                -DOSXCROSS_TARGET=${OSXCROSS_TARGET} \
+                -Darch=arm64 \
+                -DCMAKE_OSX_ARCHITECTURES=arm64
 
       - name: Build Csound
-        run: |
-          $(eval /home/runner/work/csound/csound/ioscross/arm64/ioscross_conf.sh)
-          cmake --build build/arm64 --config Release
+        uses: addnab/docker-run-action@v3
+        with:
+          image: csound-ioscross:${{ env.VERSION }}
+          options: -v ${{ github.workspace }}:${{ github.workspace }} --workdir ${{ github.workspace }}
+          run: |
+            $(eval /ioscross/arm64/ioscross_conf.sh)
+            cmake --build build/arm64 --config Release
 
   macos_build_brew:
     name: MacOS build (brew)
