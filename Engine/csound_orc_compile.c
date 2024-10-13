@@ -1825,6 +1825,13 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
             /* } */
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
+          CS_VARIABLE *ivar = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                                         instrtxt->insname);
+          if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
+            INSTREF ref = { instrtxt };
+            ivar->varType->copyValue(csound, ivar->varType, &(ivar->memBlock->value),
+                                     &ref, NULL);
+           }                            
         }
       } else {
         if (p->type == INTEGER_TOKEN) {
@@ -1856,6 +1863,13 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
           /* } */
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
+          CS_VARIABLE *ivar = csoundFindVariableWithName(csound, engineState->varPool,
+                                                         c);
+          if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
+            INSTREF ref = { instrtxt };
+            ivar->varType->copyValue(csound, ivar->varType, &(ivar->memBlock->value),
+                                     &ref, NULL);
+           }           
         }
       }
       p = p->next;

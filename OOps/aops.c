@@ -2363,7 +2363,7 @@ int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
 }
 
 int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
-  char *name = p->in->instr->insname;
+  char *name = cs_strdup(csound, p->in->instr->insname);
   STRINGDAT *out = (STRINGDAT *) p->out;
   if(strlen(name) >= out->size) {
     csound->Free(csound, out->data);

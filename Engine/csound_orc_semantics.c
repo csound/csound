@@ -550,6 +550,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return NULL;
     }
 
+    /* check for instrument name variables on the engine varPool */
+    if((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         tree->value->lexeme)) != NULL) {
+       if(var->varType == &CS_VAR_TYPE_INSTR)
+         return cs_strdup(csound, var->varType->varTypeName);
+     }    
+      
     if (is_reserved(s)) {
       return cs_strdup(csound, "r");                              /* rsvd */
     }
@@ -1406,6 +1413,16 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           break;
         }
         csound->Free(csound, argType);
+
+       if((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         tree->value->lexeme)) != NULL) {
+         if(var->varType == &CS_VAR_TYPE_INSTR) {
+             // adding to global pool so the compiler can find it
+             csoundAddVariable(csound, typeTable->globalPool, var);
+             break;
+         }
+        }    
+        
         pool = (*varName == 'g') ?
           typeTable->globalPool : typeTable->localPool;
         var = csoundFindVariableWithName(csound, pool, varName);
@@ -3346,4 +3363,20 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
   }
 
   return argtyp2( tree->value->lexeme);
+}
+
+void add_instr_variable(CSOUND *csound,  TREE *x) {
+  /* add instr variable to engine varpool 
+     called by bison when instr ids are found
+  */
+  if (x->type == T_IDENT) {
+    int32_t ret;
+    char *varname = x->value->lexeme;
+    CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                           &CS_VAR_TYPE_INSTR, varname,
+                                           NULL);
+    ret = csoundAddVariable(csound, csound->engineState.varPool, var);
+    if(ret != 0)
+      csound->Warning(csound, "Could not add instrument ref %s", varname);
+  }
 }
