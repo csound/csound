@@ -1825,11 +1825,15 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
             /* } */
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
-          CS_VARIABLE *ivar = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                                         instrtxt->insname);
+          // the parser has created a variable with the instrument name
+          // we now search for it and update its value to hold instrxt
+          CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
+                                                         csound->engineState.varPool,
+                                                         c);
           if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
             INSTREF ref = { instrtxt };
-            ivar->varType->copyValue(csound, ivar->varType, &(ivar->memBlock->value),
+            ivar->varType->copyValue(csound, ivar->varType,
+                                     &(ivar->memBlock->value),
                                      &ref, NULL);
            }                            
         }
@@ -1861,13 +1865,17 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
           /*                                 engineState,0))) { */
           /*   synterr(csound, Str("instr %s redefined"), c); */
           /* } */
+          // the parser has created a variable with the instrument name
+          // we now search for it and update its value to hold instrxt
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
-          CS_VARIABLE *ivar = csoundFindVariableWithName(csound, engineState->varPool,
+          CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
+                                                         engineState->varPool,
                                                          c);
           if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
             INSTREF ref = { instrtxt };
-            ivar->varType->copyValue(csound, ivar->varType, &(ivar->memBlock->value),
+            ivar->varType->copyValue(csound, ivar->varType,
+                                     &(ivar->memBlock->value),
                                      &ref, NULL);
            }           
         }

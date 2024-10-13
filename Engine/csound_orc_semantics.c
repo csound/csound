@@ -554,6 +554,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     if((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                          tree->value->lexeme)) != NULL) {
        if(var->varType == &CS_VAR_TYPE_INSTR)
+         // found it, return type.
          return cs_strdup(csound, var->varType->varTypeName);
      }    
       
@@ -1417,7 +1418,9 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
        if((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                          tree->value->lexeme)) != NULL) {
          if(var->varType == &CS_VAR_TYPE_INSTR) {
-             // adding to global pool so the compiler can find it
+             // the instr name variable exists in the engine varpool
+             // we now add it to the globalPool so that the compiler
+             // can find it and assign a value to it (compileTreeInternal)
              csoundAddVariable(csound, typeTable->globalPool, var);
              break;
          }
@@ -3375,6 +3378,7 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
     CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                            &CS_VAR_TYPE_INSTR, varname,
                                            NULL);
+    // Create the variable in the engine varPool
     ret = csoundAddVariable(csound, csound->engineState.varPool, var);
     if(ret != 0)
       csound->Warning(csound, "Could not add instrument ref %s", varname);
