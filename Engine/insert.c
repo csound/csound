@@ -47,6 +47,8 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                        MEVENT *mep);
 static int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 
+static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
+
 static void print_messages(CSOUND *csound, int32_t attr, const char *str){
 #if defined(WIN32)
   switch (attr & CSOUNDMSG_TYPE_MASK) {
@@ -311,6 +313,35 @@ int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp) {
   else return insert_event(csound, insno, newevtp);
 }
 
+void maxalloc_turnoff(CSOUND *csound, int32_t insno) {
+  INSTRTXT  *tp = csound->engineState.instrtxtp[insno];
+
+  //turnoff mode: 0 do not turn off, 1 turnoff oldest, 2 turnoff newest
+  if (tp->turnoff_mode > 0) {
+    INSDS *ip, *ip2, *nip;
+    ip = &(csound->actanchor);
+    ip2 = NULL;
+    while ((ip = ip->nxtact) != NULL && (int32_t) ip->insno != insno);
+
+    if (ip != NULL) {
+      do {
+        nip = ip->nxtact;
+        ip2 = ip;
+        if (tp->turnoff_mode == 1) //turnoff oldest
+          break;
+        ip = nip;
+      } while (ip != NULL && (int32_t) ip->insno == insno);
+    }
+    if (ip2 != NULL) {
+      xturnoff_now(csound, ip2);
+      if (!ip->actflg) {  /* if current note was deactivated: */
+        while (ip->pds != NULL && ip->pds->nxtp != NULL)
+          ip->pds = ip->pds->nxtp;            /* loop to last opds */
+      }
+    }
+  }
+}
+
 int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp)
 {
   INSTRTXT  *tp;
@@ -356,9 +387,12 @@ int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp)
     }
   }
   if (UNLIKELY(tp->maxalloc > 0 && tp->active >= tp->maxalloc)) {
-    csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                              "instr maxalloc"));
-    return(0);
+    maxalloc_turnoff(csound, insno);
+    if (tp->active >= tp->maxalloc) {
+        csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                  "instr maxalloc"));
+        return(0);
+    }
   }
   /* If named ensure we have the fraction */
   if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
@@ -624,9 +658,13 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     }
   }
   if (UNLIKELY(tp->maxalloc > 0 && tp->active >= tp->maxalloc)) {
-    csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                              "instr maxalloc"));
-    return(0);
+    maxalloc_turnoff(csound, insno);
+    if (tp->active >= tp->maxalloc) {
+        csoundWarning(csound, Str("cannot allocate last note because it exceeds "
+                                  "instr maxalloc"));
+        return(0);
+
+    }
   }
   tp->active++;
   tp->instcnt++;

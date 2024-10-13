@@ -206,9 +206,19 @@ def runTest():
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
     ]
 
+    maxallocTests = [
+        ["test_maxalloc_turnoff_lt_0.csd", "Test maxalloc opcode less than 0", 1],
+        ["test_maxalloc_turnoff_gt_2.csd", "Test maxalloc opcode greater than 2", 1],
+        ["test_maxalloc_turnoff_default.csd", "Test maxalloc opcode defaults 0"],
+        ["test_maxalloc_turnoff_eq_0.csd", "Test maxalloc opcode value of 0"],
+        ["test_maxalloc_turnoff_eq_1.csd", "Test maxalloc opcode value of 1"],
+        ["test_maxalloc_turnoff_eq_2.csd", "Test maxalloc opcode value of 2"]
+    ]
+
     tests += arrayTests
     tests += structTests
     tests += udoTests
+    tests += maxallocTests
 
     output = ""
     tempfile = 'csound_test_output.txt'
