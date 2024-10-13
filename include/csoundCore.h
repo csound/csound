@@ -507,6 +507,13 @@ static const double FMAXLEN = (1U << 24) - 1;
     size_t   allocated; /* size of allocated data */
   };
 
+  /*
+   *  INSTR REF Type
+   */
+  typedef struct instrRef {
+    INSTRTXT *instr;
+  } INSTREF;
+
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
   /*
    * Type definition for string data (string channels)

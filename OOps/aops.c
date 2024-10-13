@@ -2343,3 +2343,21 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   return OK;
 }
 
+int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
+  INSTRTXT **instrs = csound->GetInstrumentList(csound);
+  p->out->instr = instrs[(int32_t) *p->in];
+  return OK;
+}
+
+int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
+   int32_t inum = 1;
+   INSTRTXT **instrs = csound->GetInstrumentList(csound);
+   while(instrs[inum] != instr) inum++;
+   return inum;
+}
+
+
+int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
+  *p->out = instr_num(csound, p->in->instr);
+  return OK;
+}

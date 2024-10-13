@@ -157,6 +157,9 @@ OENTRY opcodlst_1[] = {
   { "init.i", S(ASSIGNM),0,       "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0,       "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   { "init.a", S(ASSIGNM),0,       "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
+  { "init.instr", S(IREF_INIT),0,       "instr", "i", (SUBR) init_instr_ref},
+  { "=.instri", S(IREF_INIT),0,  "instr", "i", (SUBR) init_instr_ref},
+  { "=.instr",   S(IREF_NUM),0,    "i",    "instr",   (SUBR) get_instr_num },
   /* VL 4.4.24 removing thread field:
      These boolean were all marked thread 0, with both init and perf functions.
      At instance(), there was a check for NOT thread 3 (meaning init XOR perf),
@@ -851,6 +854,8 @@ OENTRY opcodlst_1[] = {
   { "mxadsr.a", S(EXPSEG),0,        "a",    "iiiioj", mxdsrset, expsegr},
   { "schedule", S(SCHED),0,       "",     "iiim",
     schedule, NULL, NULL },
+  { "schedule", S(SCHED),0,       "",     "instriim",
+    schedule_instr, NULL, NULL },
   { "schedule.N", S(SCHED),0,       "",     "iiiN",
     schedule_N, NULL, NULL },
   { "schedule.S", S(SCHED),0,       "",     "Siim",

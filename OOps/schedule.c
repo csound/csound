@@ -75,6 +75,30 @@ int32_t schedule(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     return eventOpcodeI_(csound, &pp, 0, 'i');
 }
+/* from aops.h */
+int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+
+int32_t schedule_instr(CSOUND *csound, SCHED *p)
+{
+    LINEVENT pp;
+    int32_t i, ret;
+    MYFLT num = instr_num(csound, ((INSTREF *) p->which)->instr);
+    pp.h = p->h;
+    char c[2] = "i";
+    pp.args[0] = (MYFLT *) c;
+    pp.args[1] = &num;
+    pp.args[2] = p->when;
+    pp.args[3] = p->dur;
+    pp.argno = p->INOCOUNT+1;
+    for (i=4; i < pp.argno ; i++) {
+      pp.args[i] = p->argums[i-4];
+    }
+    pp.flag = 1;
+    ret = eventOpcodeI_(csound, &pp, 0, 'i');
+    return ret;
+}
+
+
 
 static void add_string_arg(char *s, const char *arg) {
   int32_t offs = strlen(s) ;
