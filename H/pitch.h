@@ -59,6 +59,11 @@ typedef struct {
     MYFLT       *instrnum, *ipercent, *iopc;    /* IV - Oct 31 2002 */
 } CPU_PERC;
 
+typedef struct {
+    OPDS        h;
+    MYFLT       *instrnum, *icount, *iturnoff_mode;
+} CPU_MAXALLOC;
+
 /*
 
 */

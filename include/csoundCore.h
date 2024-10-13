@@ -393,6 +393,7 @@ static const double FMAXLEN = (1U << 24) - 1;
     int32_t     active;                 /* To count activations for control */
     int32_t     pending_release;        /* To count instruments in release phase */
     int32_t     maxalloc;
+    int32_t     turnoff_mode;       /* Optionally turnoff instruments instances above maxalloc*/
     MYFLT   cpuload;                /* % load this instrumemnt makes */
     struct opcodinfo *opcode_info;  /* UDO info (when instrs are UDOs) */
     char    *insname;               /* instrument name */
