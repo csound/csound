@@ -1425,7 +1425,7 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         csound->Free(csound, argType);
 
        if((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         tree->value->lexeme)) != NULL) {
+                                         varName)) != NULL) {
          if(var->varType == &CS_VAR_TYPE_INSTR) {
              // the instr name variable exists in the engine varpool
              // we now add it to the globalPool so that the compiler
@@ -1446,7 +1446,7 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                              varName);
           if (UNLIKELY(var == NULL)) {
             synterr(csound,
-                    Str("Variable '%s' used before defined\nline %d"),
+                    Str("ArgCheck: variable '%s' used before defined\nline %d"),
                     varName, tree->line);
             do_baktrace(csound, tree->locn);
             return 0;
@@ -1469,7 +1469,7 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
                                              varName);
           if (UNLIKELY(var == NULL)) {
             synterr(csound,
-                    Str("Variable '%s' used before defined\nLine %d\n"),
+                    Str("ArgCheck: variable '%s' used before defined\nLine %d\n"),
                     varName, current->left->line);
             do_baktrace(csound, current->left->locn);
             return 0;

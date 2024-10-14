@@ -900,7 +900,7 @@ OENTRY opcodlst_1[] = {
   { "trigseq", S(TRIGSEQ),0,      "",     "kkkkkz", trigseq_set, trigseq, NULL },
   { "event", S(LINEVENT),0,        "",     "S:Instr;z",  NULL, eventOpcode_Instr, NULL   },
   { "event", S(LINEVENT),0,        "",     "Skz",  NULL, eventOpcode, NULL   },
-  { "event_i", S(LINEVENT),0,     "",     "S:Instr;m",  eventOpcodeI_Instr, NULL, NULL  },
+  { "event_i.instr", S(LINEVENT),0,     "",     "S:Instr;m",  eventOpcodeI_Instr, NULL, NULL  },
   { "event_i", S(LINEVENT),0,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
   { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, eventOpcode_S, NULL   },
   { "event_i.S", S(LINEVENT),0,     "",    "SSm",  eventOpcodeI_S, NULL, NULL  },
