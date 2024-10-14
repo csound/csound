@@ -231,6 +231,21 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
     return a;
 }
 
+/* Remove the 0x03 and 0x18 characters that the option parser inserted
+ * to handle quoted arguments and escaped characters. */
+static void remove_special_placeholders(char *s, int n)
+{
+    int i, offset = 0;
+
+    for (i = 0; i <= n; i++) {
+        if (s[i] == 0x03 || s[i] == 0x18) {
+            offset++;
+        } else if (offset > 0) {
+            s[i-offset] = s[i];
+        }
+    }
+}
+
 /* readingCsOptions should be non-zero when readOptions() is called
    while reading the <CsOptions> tag, but zero in other cases. */
 int32_t readOptions(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
@@ -336,6 +351,7 @@ int32_t readOptions(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
           if (*p == '"') {
             if (isspace(*(p+1))) {
               *p = '\0';
+              remove_special_placeholders((char *)argv[argc], strlen(argv[argc]));
               break;
             }
             else {
