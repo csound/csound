@@ -294,10 +294,10 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                                 "of channels in file"));
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
-      if (csound->SndfileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, nBytes) == SFLIB_FALSE) {
+      if (csound->SndfileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
                                     "file for maximum amplitude"), sfname);
-        if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, nBytes) == 0)
+        if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == 0)
           peakVal = peaks[channel - 1];
       }
       csound->Free(csound, peaks);

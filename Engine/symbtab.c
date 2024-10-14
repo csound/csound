@@ -423,7 +423,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
       return -1;
     }
 
-    len = strlen(intypes);
+    len = (int32_t) strlen(intypes);
     if (len == 1 && *intypes == '0') {
       opc = find_opcode_exact(csound, opname, outtypes, "o");
     } else {

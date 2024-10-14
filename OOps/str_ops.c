@@ -156,7 +156,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
       csound->strsets == NULL || csound->strsets[indx] == NULL)
     return OK;
   if (UNLIKELY(strlen(csound->strsets[indx]) >= p->r->size)){
-    int32_t size = strlen(csound->strsets[indx]);
+    int32_t size = (int32_t) strlen(csound->strsets[indx]);
     p->r->data = csound->ReAlloc(csound, p->r->data, size + 1);
     p->r->size = size + 1;
   }
@@ -219,17 +219,17 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
    if (strlen(ss) >= p->r->size) {
       csound->Free(csound, p->r->data);
       p->r->data = cs_strdup(csound, ss);
-      p->r->size = strlen(ss) + 1;
+      p->r->size = (int32_t) strlen(ss) + 1;
     }
     else {
       strcpy(p->r->data,ss);
-      p->r->size = strlen(ss) + 1;
+      p->r->size = (int32_t) strlen(ss) + 1;
     }
   }
   else {
     csound->Free(csound, p->r->data);
     p->r->data = csound->StringArg2Name(csound, NULL, p->indx, "soundin.", 0);
-    p->r->size = strlen(p->r->data) + 1;
+    p->r->size = (int32_t) strlen(p->r->data) + 1;
   }
   return OK;
 }
@@ -259,7 +259,7 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
   int64_t kcnt = p->h.insdshead->kcounter;
-  size_t size = strlen(p->str1->data) + strlen(p->str2->data);
+  size_t size = (int32_t) strlen(p->str1->data) + strlen(p->str2->data);
   if(size >= MAX_STRINGDAT_SIZE) {
      if(is_perf_thread(&p->h))
      return csound->PerfError(csound, &p->h,
@@ -358,7 +358,7 @@ sprintf_opcode_(CSOUND *csound,
   MYFLT   *parm = NULL;
   int32_t     i = 0, j = 0, n;
   const char  *segwaiting = NULL;
-  int32_t     maxChars, siz = strlen(fmt) + numVals*7 + 1;
+  int32_t     maxChars, siz = (int32_t) strlen(fmt) + numVals*7 + 1;
 
   for (i = 0; i < numVals; i++) {
     if (UNLIKELY(IS_ASIG_ARG(kvals[i]))) {
@@ -400,7 +400,7 @@ sprintf_opcode_(CSOUND *csound,
     /* if already a segment waiting, then lets print it */
     if (segwaiting != NULL) {
 
-      maxChars = str->size - len;
+      maxChars = (int32_t)(str->size - len);
       strseg[i] = '\0';
       if (UNLIKELY(numVals <= 0)) {
 	csound->Free(csound, strseg);
@@ -424,7 +424,7 @@ sprintf_opcode_(CSOUND *csound,
       case 'c':
 #ifdef HAVE_SNPRINTF
 	if (strlen(strseg) + 24 > (size_t)maxChars) {
-	  int32_t offs = outstring - str->data;
+	  size_t offs = outstring - str->data;
 	  str->data = csound->ReAlloc(csound, str->data,
 				      str->size  + 24);
 	  if(str->data == NULL) {
@@ -451,7 +451,7 @@ sprintf_opcode_(CSOUND *csound,
 #ifdef HAVE_SNPRINTF
 	//printf("%d %d \n", str->size, strlen(str->data));
 	if (strlen(strseg) + 24 > (uint32_t)maxChars) {
-	  int32_t offs = outstring - str->data;
+	  size_t offs = outstring - str->data;
 	  str->data = csound->ReAlloc(csound, str->data, str->size  + 13);
 	  if(str->data == NULL) {
 	    return StrOp_ErrMsg(p, Str("memory allocation failure"));
@@ -475,7 +475,7 @@ sprintf_opcode_(CSOUND *csound,
 				       "the same as any of the input args"));
 	  }
 	  if (UNLIKELY(((STRINGDAT*)parm)->size+strlen(strseg) >= (uint32_t)maxChars)) {
-	    int32_t offs = outstring - str->data;
+	    size_t offs = outstring - str->data;
 	    str->data = csound->ReAlloc(csound, str->data,
 					str->size  + ((STRINGDAT*)parm)->size +
 					strlen(strseg));
@@ -496,7 +496,7 @@ sprintf_opcode_(CSOUND *csound,
       }
       if (n < 0 || n >= maxChars) {
 	/* safely detected excess string length */
-	int32_t offs = outstring - str->data;
+	size_t offs = outstring - str->data;
 	str->data = csound->ReAlloc(csound, str->data, maxChars*2);
 	if (str->data == NULL) {
 	  return StrOp_ErrMsg(p, Str("memory allocation failure"));
@@ -787,12 +787,12 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
   int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
-    int32_t      strt, end, rev = 0;
+    size_t     strt, end, rev = 0;
     size_t       len, i;
 
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
-      int32_t size = p->Ssrc->size;
+      size_t size = p->Ssrc->size;
       if (p->Sdst->data != NULL) csound->Free(csound, p->Sdst->data);
       p->Sdst->data = csound->Calloc(csound, size);
       p->Sdst->size = size;
@@ -800,7 +800,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 
     src = (char*) p->Ssrc->data;
     dst = (char*) p->Sdst->data;
-    len = strlen(src);
+    len = (int32_t) strlen(src);
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
     strt = (int32_t) MYFLT2LRND(*(p->istart));
     end = (int32_t) MYFLT2LRND(*(p->iend));
@@ -818,7 +818,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       return OK;
     }
     if (strt > end) {
-      int32_t   tmp = strt;
+      size_t   tmp = strt;
       /* reverse output */
       strt = end;
       end = tmp;
@@ -855,7 +855,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     }
     else {
       /* reverse string out of place (Ssrc and Sdst are not the same) */
-      int32_t   j = len;
+      size_t   j = len;
       do {
         dst[i] = src[--j];
       } while (++i < len);
@@ -875,7 +875,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 
 int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 {
-  size_t     len = strlen((char*) p->Ssrc->data);
+  size_t     len = (int32_t) strlen((char*) p->Ssrc->data);
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
   int32_t     pos = (int32_t) MYFLT2LRND(*(p->ipos));
 #else
@@ -924,7 +924,7 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     int32_t         i;
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
-      int32_t size = p->Ssrc->size;
+      size_t size = p->Ssrc->size;
       if (p->Sdst->data != NULL) csound->Free(csound, p->Sdst->data);
       p->Sdst->data = csound->Calloc(csound, size);
       p->Sdst->size = size;
@@ -952,7 +952,7 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     int32_t         i;
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
-      int32_t size = p->Ssrc->size;
+      size_t size = p->Ssrc->size;
       if (p->Sdst->data != NULL) csound->Free(csound,p->Sdst->data);
       p->Sdst->data = csound->Calloc(csound, size);
       p->Sdst->size = size;

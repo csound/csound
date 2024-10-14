@@ -150,14 +150,14 @@ static int32_t Load_CV_File_(CSOUND *csound, const char *filnam,
       fclose(f);
       return csoundInitError(csound, Str("Ill-formed CV file\n"));
     }
-    cvh.headBsize = strtol(p, &p, 10);
-    cvh.dataBsize = strtol(p, &p, 10);
-    cvh.dataFormat = strtol(p, &p, 10);
+    cvh.headBsize = (int32_t) strtol(p, &p, 10);
+    cvh.dataBsize = (int32_t) strtol(p, &p, 10);
+    cvh.dataFormat = (int32_t) strtol(p, &p, 10);
     cvh.samplingRate = (MYFLT)cs_strtod(p, &p);
-    cvh.src_chnls = strtol(p, &p, 10);
-    cvh.channel = strtol(p, &p, 10);
-    cvh.Hlen = strtol(p, &p, 10);
-    cvh.Format = strtol(p, &p, 10);
+    cvh.src_chnls = (int32_t) strtol(p, &p, 10);
+    cvh.channel = (int32_t) strtol(p, &p, 10);
+    cvh.Hlen = (int32_t) strtol(p, &p, 10);
+    cvh.Format = (int32_t) strtol(p, &p, 10);
     /* fscanf(f, "%d %d %d %g %d %d %d %d\n",  */
     /*        &cvh.headBsize, &cvh.dataBsize, &cvh.dataFormat, */
     /*        &cvh.samplingRate, &cvh.src_chnls, &cvh.channel, */

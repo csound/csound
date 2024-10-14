@@ -57,7 +57,7 @@ MYFLT  named_instr_find_in_engine(CSOUND *csound, char *s,
     }
     else {                     /* tagged instrument */
       char buff[256];
-      int32_t len = tt-s-ss;
+      int32_t len = (int32_t) (tt-s-ss);
       MYFLT frac;
       strncpy(buff,s+ss, len);
       buff[len] = '\0';
@@ -219,7 +219,7 @@ char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
         int32_t n;
         if (s == NULL) {
           /* allocate +20 characters, assuming sizeof(int32_t) <= 8 */
-          s = csound->Malloc(csound, n = strlen(baseName) + 21);
+          s = csound->Malloc(csound, n = (int32_t) strlen(baseName) + 21);
           snprintf(s, n, "%s%d", baseName, i);
         }
         else sprintf(s, "%s%d", baseName, i); /* dubious */

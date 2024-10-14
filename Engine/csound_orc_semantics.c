@@ -194,7 +194,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
   if (arrayVar->subType == NULL) return NULL;
 
   char* varTypeName = arrayVar->subType->varTypeName;
-  int32_t len = arrayVar->dimensions + strlen(varTypeName) + 2;
+  int32_t len = arrayVar->dimensions + (int32_t) strlen(varTypeName) + 2;
   char* retVal = csound->Malloc(csound, len);
   memset(retVal, '[', arrayVar->dimensions);
   strNcpy(retVal + arrayVar->dimensions, varTypeName, strlen(varTypeName) + 1);
@@ -431,8 +431,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       argTypeLeft = convert_internal_to_external(csound, argTypeLeft);
       argTypeRight = convert_internal_to_external(csound, argTypeRight);
 
-      len1 = strlen(argTypeLeft);
-      len2 = strlen(argTypeRight);
+      len1 = (int32_t) strlen(argTypeLeft);
+      len2 = (int32_t) strlen(argTypeRight);
       inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
       memcpy(inArgTypes, argTypeLeft, len1);
@@ -488,8 +488,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       entries = find_opcode2(csound, opname);
 
-      len1 = strlen(argTypeLeft);
-      len2 = strlen(argTypeRight);
+      len1 = (int32_t) strlen(argTypeLeft);
+      len2 = (int32_t) strlen(argTypeRight);
       inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
       memcpy(inArgTypes, argTypeLeft, len1);
@@ -695,7 +695,7 @@ char* get_opcode_short_name(CSOUND* csound, char* opname) {
 
   char* dot = strchr(opname, '.');
   if (dot != NULL) {
-    int32_t opLen = dot - opname;
+    uint64_t opLen = dot - opname;
     return cs_strndup(csound, opname, opLen);
   }
   return opname;
@@ -1139,7 +1139,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int32_t i, dimensions;
   char *start = arg;
   char *retVal, *current;;
-  int32_t nameLen, len = strlen(arg);
+  uint64_t nameLen, len = strlen(arg);
 
   if (arg == NULL || len == 1) {
     return arg;
@@ -1199,7 +1199,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
     return arg;
   }
 
-  dimensions = (strlen(arg) - 1) / 2;
+  dimensions = ((int32_t)strlen(arg) - 1) / 2;
 
   retVal = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
   retVal[dimensions + 2] = '\0';
@@ -1249,7 +1249,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
   char* temp = argString;
 
   for (i = 0; i < len; i++) {
-    int32_t size = strlen(argTypes[i]);
+    int32_t size = (int32_t) strlen(argTypes[i]);
     memcpy(temp, argTypes[i], size);
     temp += size;
     csound->Free(csound, argTypes[i]);
@@ -1290,7 +1290,7 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
   while (current != NULL) {
     char* argType = current->value->lexeme;
-    int32_t len = strlen(argType);
+    int32_t len = (int32_t) strlen(argType);
     int32_t offset = i * 256;
     argsLen += len;
 
@@ -2269,7 +2269,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   CONS_CELL* member = type->members;
   while (member != NULL) {
     char* memberTypeName = ((CS_VARIABLE*)member->value)->varType->varTypeName;
-    int32_t len = strlen(memberTypeName);
+    int32_t len = (int32_t) strlen(memberTypeName);
 
     if (len == 1) {
       temp[index++] = *memberTypeName;
@@ -2817,7 +2817,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
   return ans;
 }
 
-TREE* make_node(CSOUND *csound, int32_t line, int32_t locn, int32_t type,
+TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
                 TREE* left, TREE* right)
 {
   TREE *ans;
@@ -2841,7 +2841,7 @@ TREE* make_node(CSOUND *csound, int32_t line, int32_t locn, int32_t type,
   return ans;
 }
 
-TREE* make_leaf(CSOUND *csound, int32_t line, int32_t locn, int32_t type, ORCTOKEN *v)
+TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type, ORCTOKEN *v)
 {
   TREE *ans;
   ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
@@ -2866,7 +2866,7 @@ TREE* make_leaf(CSOUND *csound, int32_t line, int32_t locn, int32_t type, ORCTOK
   return ans;
 }
 
-TREE* make_opcall_from_func_start(CSOUND *csound, int32_t line, int32_t locn, int32_t type,
+TREE* make_opcall_from_func_start(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
                                   TREE* left, TREE* right) {
   TREE* firstArg = left->right;
   TREE* first = right;

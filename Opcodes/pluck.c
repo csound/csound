@@ -62,7 +62,7 @@ static int32_t pluckExcite(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT *shape;
     int32_t i;
-    int32_t size = p->wg.upperRail.size;
+    int64_t size = p->wg.upperRail.size;
 
     /* set the delay element to pick at */
     p->pickSamp=(len_t)(size * *p->pickPos);

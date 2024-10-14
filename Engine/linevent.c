@@ -162,7 +162,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     if (reallocsize > 0) {
       /* VL 20-11-17 need to record the STA(Linep) offset
          in relation to STA(Linebuf) */
-      tmp = (STA(Linep) - STA(Linebuf));
+      tmp = (uint32_t) (STA(Linep) - STA(Linebuf));
       STA(Linebuf) = (char *) csound->ReAlloc(csound,
                                               (void *) STA(Linebuf), reallocsize);
 
@@ -212,7 +212,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
-      int32_t extralloc = STA(Linep) + size - STA(Linebufend);
+      int32_t extralloc = (int32_t) (STA(Linep) + size - STA(Linebufend));
       csound->Message(csound, "realloc %d\n", extralloc);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
@@ -249,7 +249,7 @@ static void sensLine(CSOUND *csound, void *userData)
       if(STA(oflag) > oflag) break;
       Linend = STA(Linep);
       if (csound->Linefd >= 0) {
-        n = read(csound->Linefd, Linend, STA(Linebufend) - Linend);
+        n = (int32_t) read(csound->Linefd, Linend, STA(Linebufend) - Linend);
         Linend += (n > 0 ? n : 0);
       }
       if (Linend <= STA(Linebuf))
@@ -425,7 +425,7 @@ static void sensLine(CSOUND *csound, void *userData)
         insert_score_event_at_sample(csound, &e, csound->icurTime);
         continue;
       Lerr:
-        n = cp - Linestart;                     /* error position */
+        n = (int32_t) (cp - Linestart);                     /* error position */
         while (*cp != LF)
           cp++;                                 /* go on to LF    */
         *cp = '\0';                             /*  & insert NULL */

@@ -466,7 +466,7 @@ int32_t main(int32_t argc, char **argv)
         /*        CC, C, data.src_ratio, P1, (double)CC/N); */
         if (data.input_frames==0) {
           int32_t cn = C;
-          if (target-CC<C) { cn=target-CC; printf("only %d left to eos\n", cn); }
+          if (target-CC<C) { cn=(int32_t)(target-CC); printf("only %d left to eos\n", cn); }
           if (cn!= (data.input_frames = sf_readf_float(inf, input, cn)))
             data.end_of_input = SF_TRUE;
           data.data_in = input;

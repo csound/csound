@@ -649,7 +649,7 @@ int32_t midiarp_set(CSOUND *csound, MIDIARP *p)
 /* MIDI Arp - Jan 2017 - RW */
 {
     int32_t cnt;
-    srand(time(NULL));
+    srand((int32_t)time(NULL));
     p->flag=1, p->direction=2, p->noteIndex=9;
     p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
     p->data1=0, p->data2=0;

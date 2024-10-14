@@ -263,7 +263,7 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
       snprintf(errmsg, 256, Str("Cannot open %s"), t->infilnam);
       return quit(csound, errmsg);
     }
-    nsamps = p->getframes;
+    nsamps = (int32_t) p->getframes;
     /* alloc for MYFLTs */
     t->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
@@ -753,8 +753,8 @@ static int32_t filedump(HET *t, CSOUND *csound)
         *(fp-1) = *(fp-3);       /*   & zero the freq change      */
       *mp++ = END;                 /* add the sequence delimiters   */
       *fp++ = END;
-      mpoints = ((mp - magout) / 2) - 1;
-      nbytes = (mp - magout) * sizeof(int16);
+      mpoints = (int32_t) ((mp - magout) / 2) - 1;
+      nbytes = (int32_t)((mp - magout) * sizeof(int16));
       if (t->newformat) {
         int32_t i;
         for (i=0; i<(mp - magout); i++)
@@ -773,8 +773,8 @@ static int32_t filedump(HET *t, CSOUND *csound)
       }
 #endif
       lenfil += nbytes;
-      fpoints = ((fp - frqout) / 2) - 1;
-      nbytes = (fp - frqout) * sizeof(int16);
+      fpoints = (int32_t) ((fp - frqout) / 2) - 1;
+      nbytes = (int32_t)((fp - frqout) * sizeof(int16));
       if (t->newformat) {
         int32_t i;
         for (i=0; i<fp - frqout; i++)

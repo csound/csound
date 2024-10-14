@@ -1268,7 +1268,7 @@ int32_t MidiInProcessCallback(jack_nframes_t nframes, void *userData){
                               jack_port_get_buffer(dev->port,nframes),
                               n++) == 0) {
       if (UNLIKELY(csound->WriteCircularBuffer(csound,dev->cb,
-                                              event.buffer,event.size)
+                                               event.buffer,(int32_t) event.size)
                   != (int32_t) event.size)){
         csound->Warning(csound, "%s", Str("Jack MIDI module: buffer overflow"));
         return 1;

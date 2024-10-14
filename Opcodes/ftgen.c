@@ -321,19 +321,19 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
       s1 = strchr(s, ' ')+1;
-      header.flen = strtol(s1, &endptr, 10);
+      header.flen = (uint32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4; }
       s1 = strchr(s, ' ')+1;
-      header.lenmask = strtol(s1, &endptr, 10);
+      header.lenmask = (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4; }
       s1 = strchr(s, ' ')+1;
-      header.lobits = strtol(s1, &endptr, 10);
+      header.lobits =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.lomask = strtol(s1, &endptr, 10);
+      header.lomask =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
@@ -357,35 +357,35 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.begin1 = strtol(s1, &endptr, 10);
+      header.begin1 =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.end1 = strtol(s1, &endptr, 10);
+      header.end1 =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4; }
       s1 = strchr(s, ' ')+1;
-      header.begin2 = strtol(s1, &endptr, 10);
+      header.begin2 =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.end2 = strtol(s1, &endptr, 10);
+      header.end2 =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.soundend = strtol(s1, &endptr, 10);
+      header.soundend =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) { goto err4; }
       if (UNLIKELY(NULL==fgets(s, 64, file))){goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.flenfrms = strtol(s1, &endptr, 10);
+      header.flenfrms =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) { goto err4; }
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4;}
       s1 = strchr(s, ' ')+1;
-      header.nchanls = strtol(s1, &endptr, 10);
+      header.nchanls = (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))){ goto err4; }
       s1 = strchr(s, ' ')+1;
-      header.fno = strtol(s1, &endptr, 10);
+      header.fno =  (int32_t) strtol(s1, &endptr, 10);
       if (UNLIKELY(endptr==NULL)) goto err4;
       if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
       s1 = strchr(s, ' ')+1;
@@ -523,9 +523,9 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
         MYFLT *table = ftp->ftable;
         int32 flen = ftp->flen;
         int32_t n;
-        n = fwrite(ftp, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
+        n =  (int32_t) fwrite(ftp, sizeof(FUNC) - sizeof(MYFLT) - SSTRSIZ, 1, file);
         if (UNLIKELY(n!=1)) goto err4;
-        n = fwrite(table, sizeof(MYFLT), flen + 1, file);
+        n =  (int32_t) fwrite(table, sizeof(MYFLT), flen + 1, file);
         if (UNLIKELY(n!=flen + 1)) goto err4;
       }
       else goto err;

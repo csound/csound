@@ -156,7 +156,7 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
-    int32   counter;
+    int64_t   counter;
     int32_t     done;
 } IOUTFILE_R;
 

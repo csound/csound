@@ -249,7 +249,7 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
 #include "arrays.h"
 
 int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
-  tabinit(csound, p->out, strlen(p->type->data), &(p->h));
+  tabinit(csound, p->out, (int32_t) strlen(p->type->data), &(p->h));
   return OK;
 }
 

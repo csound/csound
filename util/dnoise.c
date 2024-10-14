@@ -842,10 +842,10 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     invR = FL(1.0) / R;
     nI = -((int64_t)aLen / D) * D;    /* input time (in samples) */
     nO = nI;                 /* output time (in samples) */
-    ibs = ibuflen + Chans * (nI - aLen - 1);    /* starting position in ib1 */
+    ibs = (int32_t) (ibuflen + Chans * (nI - aLen - 1));    /* starting position in ib1 */
     ib1 = ibuf1;        /* filled with zeros to start */
     ib2 = ibuf2;        /* first buffer of speech */
-    obs = Chans * (nO - sLen - 1);    /* starting position in ob1 */
+    obs = (int32_t)(Chans * (nO - sLen - 1));    /* starting position in ob1 */
     while (obs < 0) {
       obs += obuflen;
       first++;
@@ -1195,7 +1195,8 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
     int32_t n;
 
     if (UNLIKELY(outfd == NULL)) return 0;
-    n = csound->SndfileWriteSamples(csound, outfd, outbuf, nsmps);
+    n = (int32_t) csound->SndfileWriteSamples(csound, outfd, outbuf, nsmps);
+
     if (UNLIKELY(n < nsmps)) {
       csound->SndfileClose(csound,outfd);
       sndwrterr(csound, n, nsmps);

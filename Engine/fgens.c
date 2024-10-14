@@ -700,7 +700,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
       }                                /* df1 is slope of parabola at x1 */
       else df1 = FL(0.0);
       if ((npts = (int32_t) (dx01 - curx)) > fplim - fp)
-        npts = fplim - fp;
+        npts = (int32_t) (fplim - fp);
       if (npts > 0) {                       /* for non-trivial segment: */
         slope = (f1 - f0) / dx01;           /*   get slope x0 to x1     */
         resd0 = df0 - slope;                /*   then residual slope    */
@@ -2544,7 +2544,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
       return fterror(ff, Str("Failed to open file %s"), p->sfname);
     }
     if (ff->flen == 0) {                      /* deferred ftalloc requestd: */
-      if (UNLIKELY((ff->flen = p->framesrem + 1) <= 0)) {
+      if (UNLIKELY((ff->flen = (int32_t) p->framesrem + 1) <= 0)) {
         /*   get minsize from soundin */
         return fterror(ff, Str("deferred size, but filesize unknown"));
       }
@@ -2636,7 +2636,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound, Str("GEN1: file truncated by ftable size"));
       csound->Warning(csound, Str("\taudio samps %d exceeds ftsize %d"),
                               (int32) p->framesrem, (int32) ff->flen);
-      needsiz(csound, ff, p->framesrem);    
+      needsiz(csound, ff, (int32_t) p->framesrem);    
     }
     ftp->soundend = inlocs / ftp->nchanls;   /* record end of sound samps */
     csound->FileClose(csound, p->fd);
@@ -3100,7 +3100,7 @@ int32_t csoundIsNamedGEN(CSOUND *csound, int32_t num) {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;
     while (n != NULL) {
       if (n->genum == abs(num))
-        return strlen(n->name);
+        return (int32_t) strlen(n->name);
       n = n->next;
     }
     return 0;

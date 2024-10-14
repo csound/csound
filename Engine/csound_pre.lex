@@ -1040,7 +1040,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       if (UNLIKELY(c == EOF || c == '\0'))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
-        int n = strlen(name0)+4;
+        int32_t n = (int32_t) strlen(name0)+4;
         if (UNLIKELY(i+n >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
           if (UNLIKELY(mm->body == NULL)) {

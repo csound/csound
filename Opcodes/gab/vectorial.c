@@ -517,8 +517,8 @@ static int32_t vadd_i(CSOUND *csound, VECTOROPI *p)
 
 static int32_t vaddk(CSOUND *csound, VECTOROP *p)
 {
-    int32_t i, len;
-    int32 dstoffset, elements = (int32)*p->kelements;
+    int64_t i, len;
+    int64_t dstoffset, elements = (int64_t) *p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
@@ -546,7 +546,7 @@ static int32_t vmult_i(CSOUND *csound, VECTOROPI *p)
 {
     FUNC    *ftp;
     MYFLT   *vector;
-    int32    i, elements, dstoffset, len;
+    int32_t    i, elements, dstoffset, len;
     MYFLT   value = *p->kval;
 
     ftp = csound->FTFind(csound, p->ifn);
@@ -576,8 +576,8 @@ static int32_t vmult_i(CSOUND *csound, VECTOROPI *p)
 
 static int32_t vmultk(CSOUND *csound, VECTOROP *p)
 {
-    int32_t i, len;
-    int32 dstoffset, elements = (int32)*p->kelements;
+    int64_t i, len;
+    int64_t dstoffset, elements = (int64_t)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
@@ -636,8 +636,8 @@ static int32_t vpow_i(CSOUND *csound, VECTOROPI *p)
 
 static int32_t vpowk(CSOUND *csound, VECTOROP *p)
 {
-    int32_t i, len;
-    int32 dstoffset, elements = (int32)*p->kelements;
+    int64_t i, len;
+    int64_t dstoffset, elements = (int64_t)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
@@ -695,8 +695,8 @@ static int32_t vexp_i(CSOUND *csound, VECTOROPI *p)
 
 static int32_t vexpk(CSOUND *csound, VECTOROP *p)
 {
-    int32_t i, len;
-    int32 dstoffset, elements = (int32)*p->kelements;
+    int64_t i, len;
+    int64_t dstoffset, elements = (int64_t)*p->kelements;
     MYFLT *vector;
     MYFLT value;
     vector = p->vector;
@@ -1902,7 +1902,7 @@ static int32_t vrandh_set(CSOUND *csound,VRANDH *p)
     int32_t elements = 0;
     MYFLT *num1;
     uint32 seed;
-    int32 r;
+    int64_t r;
 
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
@@ -1953,7 +1953,7 @@ static int32_t vrandh_set(CSOUND *csound,VRANDH *p)
       else {
         // 31-bit PRNG
         *num1++ = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
-        r = randint31( r);
+        r = randint31((int32_t) r);
       }
     } while (--elements);
     p->phs = 0;
@@ -1967,7 +1967,7 @@ static int32_t vrandh(CSOUND *csound,VRANDH *p)
     MYFLT *vector = p->vector, *num1 = p->num1;
     MYFLT value = *p->krange;
     int32_t elements = p->elements;
-    int32 r;
+    int64_t r;
 
     do {
       *vector++ = (*num1++ * value) + *p->ioffset;
@@ -1989,7 +1989,7 @@ static int32_t vrandh(CSOUND *csound,VRANDH *p)
         else {
           // 31-bit PRNG
           *num1++ = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
-          r = randint31(r);
+          r = randint31((int32_t) r);
         }
       } while (--elements);
       p->rand = r;
@@ -2003,7 +2003,7 @@ static int32_t vrandi_set(CSOUND *csound,VRANDI *p)
     int32_t elements = 0;
     MYFLT *dfdmax, *num1, *num2;
     uint32 seed;
-    int32 r;
+    int64_t r;
 
     if (*p->iseed >= FL(0.0)) {                       /* new seed:*/
       if (*p->iseed > FL(1.0)) {    /* Seed from current time */
@@ -2058,7 +2058,7 @@ static int32_t vrandi_set(CSOUND *csound,VRANDI *p)
       else {
         // 31-bit PRNG
         *num2 = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
-        r = randint31(r);
+        r = randint31((int32_t) r);
       }
       *dfdmax++ = (*num2++ - *num1++) / FMAXLEN;
     } while (--elements);
@@ -2073,7 +2073,7 @@ static int32_t vrandi(CSOUND *csound,VRANDI *p)
     MYFLT *vector = p->vector, *num1 = p->num1, *num2, *dfdmax = p->dfdmax;
     MYFLT value = *p->krange;
     int32_t elements = p->elements;
-    int32 r;
+    int64_t r;
 
     do {
       *vector++ = (((MYFLT)*num1++ + ((MYFLT)p->phs * *dfdmax++)) * value) +
@@ -2099,7 +2099,7 @@ static int32_t vrandi(CSOUND *csound,VRANDI *p)
         else {
           // 31-bit PRNG
           *num2 = (MYFLT)((int32)((uint32_t)r<<1)-BIPOLAR) * dv2_31 ;
-          r = randint31(r);
+          r = randint31((int32_t) r);
         }
         *dfdmax++ = ((MYFLT)*num2++ - (MYFLT)*num1++) / FMAXLEN;
       } while (--elements);
@@ -2275,7 +2275,7 @@ static int32_t vlinseg(CSOUND *csound,VSEG *p)
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
-    upcnt = (int32)segp->d-segp->cnt;
+    upcnt = (int32)(segp->d-segp->cnt);
     if (upcnt > 0)
       durovercnt = segp->d/upcnt;
     while (--segp->cnt < 0)
@@ -2305,7 +2305,7 @@ static int32_t vexpseg(CSOUND *csound,VSEG *p)
     segp = p->cursegp;
     curtab = segp->function->ftable;
     nxttab = segp->nxtfunction->ftable;
-    upcnt = (int32)segp->d-segp->cnt;
+    upcnt = (int32)(segp->d-segp->cnt);
     if (upcnt > 0) cntoverdur = upcnt/ segp->d;
     while (--segp->cnt < 0)
       p->cursegp = ++segp;
@@ -2449,7 +2449,7 @@ static int32_t kdel_set(CSOUND *csound,KDEL *p)
 
 static int32_t kdelay(CSOUND *csound,KDEL *p)
 {
-    int32 maxd = p->maxd, indx, v1, v2;
+    int64_t maxd =  p->maxd, indx, v1, v2;
     MYFLT *buf = (MYFLT *)p->aux.auxp, fv1, fv2;
 
     if (UNLIKELY(buf==NULL)) {

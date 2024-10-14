@@ -294,7 +294,7 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
       }
       snprintf(buf1, 256, "%" PRId64 "\n", (int64_t)*kp);
       strlcat(outbuf, buf1, 256);
-      len = strlen(outbuf);
+      len = (int32_t) strlen(outbuf);
       break;
     case 8: *outbuf = '\0';
       while (--nk) {
@@ -303,7 +303,7 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
       }
       CS_SPRINTF(buf1, "%6.4f\n", *kp);
       strlcat(outbuf, buf1, 256);
-      len = strlen(outbuf);
+      len = (int32_t) strlen(outbuf);
       break;
     default:
       csound->PerfError(csound,&(((KDUMP *)p)->h),
