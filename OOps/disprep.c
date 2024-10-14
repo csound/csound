@@ -623,7 +623,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
         MYFLT *hcur = p->hcur;
         MYFLT *hend = p->hend;
         MYFLT *tblp = p->ftable;
-        int32_t  wrap;
+        long  wrap;
         *hcur++ = kin + expect * p->xfdbak;   /* join insample & expect val */
         if (hcur < hend)  p->hcur = hcur;     /* stor pntr for next insamp  */
         else p->hcur = p->hbeg;
@@ -731,7 +731,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       MYFLT *linp = p->linexp;
       MYFLT *xcur = p->xcur;
       MYFLT *xend = p->xend;
-      int32_t wrap = xcur - p->xbeg;
+      long wrap = xcur - p->xbeg;
       while (xcur < xend)                   /* lineariz the circ xbuf */
         *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )

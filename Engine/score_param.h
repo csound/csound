@@ -67,8 +67,8 @@ typedef struct prs_parm_s {
     unsigned char   isinclude;
     char            *path;
     uint16_t        line;
-    uint32_t        locn;
-    uint32_t        llocn;
+    uint64_t        locn;
+    uint64_t        llocn;
     uint16_t        depth;
     uint16_t        lstack[1024];
          /* Variable for nested repeat loops */

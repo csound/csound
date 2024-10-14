@@ -45,7 +45,7 @@ CORFIL *corfile_create_r(CSOUND *csound, const char *text)
     //char *strdup(const char *);
     CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
     ans->body = cs_strdup(csound, (char*)text);
-    ans->len = strlen(text)+1;
+    ans->len = (int32_t) strlen(text)+1;
     ans->p = 0;
     return ans;
 }
@@ -102,7 +102,7 @@ void corfile_puts(CSOUND *csound, const char *s, CORFIL *f)
 void corfile_flush(CSOUND *csound, CORFIL *f)
 {
     char *new;
-    f->len = strlen(f->body)+1;
+    f->len = (int32_t)  strlen(f->body)+1;
     new = (char*)csound->ReAlloc(csound, f->body, f->len);
     if (UNLIKELY(new==NULL)) {
       fprintf(stderr, Str("Out of Memory\n"));
@@ -116,7 +116,7 @@ void corfile_flush(CSOUND *csound, CORFIL *f)
 #undef corfile_length
 int32_t corfile_length(CORFIL *f)
 {
-    return strlen(f->body);
+    return (int32_t)  strlen(f->body);
 }
 
 void corfile_rm(CSOUND *csound, CORFIL **ff)
@@ -143,7 +143,7 @@ char *corfile_fgets(char *buff, int32_t len, CORFIL *f)
     char *p = &(f->body[f->p]), *q;
     if (UNLIKELY(*p == '\0')) return NULL;
     q = strchr(p, '\n');
-    i = (q-p);
+    i = (int32_t)  (q-p);
     if (UNLIKELY(i>=len)) i = len-1;
     memcpy(buff, p, i);
     f->p += i;
@@ -194,7 +194,7 @@ void corfile_seek(CORFIL *f, int32_t n, int32_t dir)
 {
     if (dir == SEEK_SET) f->p = n;
     else if (dir == SEEK_CUR) f->p += n;
-    else if (dir == SEEK_END) f->p = strlen(f->body)-n;
+    else if (dir == SEEK_END) f->p = (int32_t)  strlen(f->body)-n;
     if (UNLIKELY(f->p > strlen(f->body))) {
       printf("INTERNAL ERROR: Corfile seek out of range\n");
       exit(1);
@@ -240,7 +240,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     mm = corfile_create_w(csound);
     if (fromScore) corfile_putc(csound, '\n', mm);
     memset(buffer, '\0', 1024);
-    while ((n = fread(buffer, 1, 1023, ff))) {
+    while ((n = (int32_t)  fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
       /* while ((s = strchr(buffer, '\r'))) { */
       /*   int32_t k = n - (s-buffer); */
@@ -266,7 +266,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
 void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f)
 {
     char *body = f->body;
-    f->body = (char*)csound->Malloc(csound, f->len=(strlen(body)+strlen(s)+1));
+    f->body = (char*)csound->Malloc(csound, f->len=(int32_t) (strlen(body)+strlen(s)+1));
     f->p = f->len-1;
     strcpy(f->body, s); strcat(f->body, body);
     csound->Free(csound, body);

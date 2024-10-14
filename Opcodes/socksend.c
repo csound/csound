@@ -226,7 +226,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     int32_t     buffersize = p->bsize;
     char    *out = (char *) p->aux.auxp;
     char    *q = p->str->data;
-    int32_t     len = p->str->size;
+    size_t     len = p->str->size;
 
     if (UNLIKELY(len>=buffersize)) {
       csound->Warning(csound, "%s", Str("string truncated in socksend"));
@@ -466,7 +466,7 @@ static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
-    uint32_t     bsize;
+    size_t     bsize;
 
     if (p->init_done) {
       csound->Warning(csound, "already initialised");
@@ -589,7 +589,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     else {
       memset(p->aux.auxp, 0, bsize);
     }
-    p->iargs = iarg;
+    p->iargs = (int32_t) iarg;
     } else {
       bsize = strlen(p->dest->data)+1;
       bsize = ceil(bsize/4.)*4;
@@ -609,7 +609,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     return OK;
 }
 
-static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
+static inline size_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
     char *p = aux->auxp;
     aux->auxp = csound->ReAlloc(csound, p, size);
     aux->size = size;
@@ -622,13 +622,14 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
     if(*p->kwhen != p->last || p->fstime) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-      int32_t buffersize = 0, size, i, bsize = p->aux.size;
+      int32_t buffersize = 0, i, size;
+      size_t bsize = p->aux.size; 
       char *out = (char *) p->aux.auxp;
       p->fstime = 0;
 
       memset(out,0,bsize);
       /* package destination in 4-byte zero-padded block */
-      size = strlen(p->dest->data)+1;
+      size = (int32_t) strlen(p->dest->data)+1;
       memcpy(out,p->dest->data,size);
       size = ceil(size/4.)*4;
       buffersize += size;
@@ -637,7 +638,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
          add a comma to the beginning of the type string.
       */
       out[buffersize] = ',';
-      size = strlen(p->type->data)+1;
+      size = (int32_t) strlen(p->type->data)+1;
       /* check for b type before copying */
       for(i = 0; i < p->iargs; i++) {
         if(p->type->data[i] == 'b') {
@@ -732,7 +733,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 's':
           s = (STRINGDAT *)p->arg[i];
-          size = strlen(s->data)+1;
+          size = (int32_t) strlen(s->data)+1;
           size = ceil(size/4.)*4;
           /* realloc if necessary */
           if(buffersize + size > bsize) {
@@ -948,12 +949,12 @@ static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       for(i = 0; i < p->no_msgs; i++, size = 0) {
         int32_t siz;
         dstr = dest[i].data;
-        dstrs = strlen(dstr)+1;
+        dstrs = (int32_t) strlen(dstr)+1;
         size += ceil((dstrs)/4.)*4;
         tstr[0] = ',';
         strncpy(tstr+1, type[i].data, 62);
         tstr[63]='\0';
-        tstrs = strlen(tstr)+1;
+        tstrs = (int32_t) strlen(tstr)+1;
         size += ceil((tstrs)/4.)*4;
         msize = tstrs - 2; /* tstrs-2 is the number of ints or floats in msg */
         size += msize*4;

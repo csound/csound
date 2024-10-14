@@ -91,7 +91,7 @@ static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
       if ((sstrp = csound->sstrbuf) == NULL)
         sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
       while (n--!=0) sstrp += strlen(sstrp)+1;
-      n = sstrp-csound->sstrbuf;
+      n = (int32_t) (sstrp-csound->sstrbuf);
       while ((c = corfile_getc(csound->scstr)) != '"') {
         if (c=='\\') { c = corfile_getc(csound->scstr);
           switch (c) {
@@ -141,7 +141,7 @@ static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
         *pfld = ch.d;           /* set as string with count */
       }
 #endif
-      csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
+      csound->sstrlen = (int32_t) (sstrp - csound->sstrbuf);  /*    & overall length  */
       //printf("csound->sstrlen = %d\n", csound->sstrlen);
       return(1);
     }

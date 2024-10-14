@@ -81,7 +81,7 @@ int32_t alphanum_cmp(const char *l, const char *r) {
             // if the difference is not equal to zero, we have a comparison result
             const long diff = l_int - r_int;
             if(diff != 0)
-                return diff;
+              return (int32_t) diff;
 
             // otherwise we process the next substring in STRING mode
             mode=STRING;

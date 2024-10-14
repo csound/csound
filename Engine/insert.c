@@ -540,7 +540,7 @@ int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp)
     start_time_samps = (int64_t) (ip->p2.value * csound->esr);
     duration_samps =  ip->p3.value * csound->esr;
     start_time_kcycles = start_time_samps/csound->ksmps;
-    ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
+    ip->ksmps_offset = (uint32_t) (start_time_samps - start_time_kcycles*csound->ksmps);
     /* with no p3 or xtratim values, can't set the sample accur duration */
     if (ip->p3.value > 0 && ip->xtratim == 0 ){
       int32_t tmp = ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;

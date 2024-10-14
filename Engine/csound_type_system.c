@@ -110,7 +110,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     } else {
       int32_t start = 0;
       int32_t typeEnd = 0;
-      int32_t len = strlen(varName);
+      int32_t len = (int32_t) strlen(varName);
       int32_t newFirstLen, newSecondLen, newTotalLen;
       char* t = (char*) varName;
       char* t2;

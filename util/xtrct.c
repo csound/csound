@@ -346,7 +346,7 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
     while (x->numsamps>0) {
       int32_t num = NUMBER_OF_SAMPLES / x->outputs;
       if (x->numsamps < num)
-        num = x->numsamps;
+        num = (int32_t) x->numsamps;
       x->numsamps -= num;
       read_in = csound->SndfileRead(csound, infd, buffer, num);
       csound->SndfileWrite(csound, outfd, buffer, read_in);

@@ -993,7 +993,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       if (UNLIKELY(c == EOF || c=='\0'))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
-        int n = strlen(name0)+4;
+        int n = (int32_t) strlen(name0)+4;
         if (UNLIKELY(i+n >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
           if (UNLIKELY(mm->body == NULL)) {
@@ -1828,7 +1828,7 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
       csound->LongJmp(csound, 1);
     }
     PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
-    csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n",
+    csound->DebugMsg(csound,"csound-prs(%d): loc=%llu ; lastloc=%llu\n",
                      __LINE__, PARM->llocn, PARM->locn);
     if ( !YY_CURRENT_BUFFER ) return 0;
     csound->DebugMsg(csound,"End of input; popping to %p\n",

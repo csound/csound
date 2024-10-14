@@ -169,7 +169,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *rslt;
-        int32    instartk;
+        uint64_t    instartk;
 } RDTIME;
 
 /*****************************************************************************/

@@ -1225,7 +1225,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
 
         if (cnt == hsize) {
           tab = p->tab;
-          size = p->fdata.size/sizeof(MYFLT);
+          size = (int32_t) (p->fdata.size/sizeof(MYFLT));
 
           if (time < 0 || time >= 1 || !*p->konset) {
             spos += hsize*time;

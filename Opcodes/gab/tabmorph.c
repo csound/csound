@@ -55,7 +55,7 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
       p->table[j] = ftp->ftable;
     }
     p->table[j] = first_table; /* for interpolation */
-    p->length = flength;
+    p->length = (int32_t) flength;
     return OK;
 }
 

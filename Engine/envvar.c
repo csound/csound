@@ -587,8 +587,8 @@ char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
     char *result;
     const char *start2;
     char separator[2];
-    int32_t  len1 = strlen(path1);
-    int32_t  len2 = strlen(path2);
+    int32_t  len1 = (int32_t) strlen(path1);
+    int32_t  len2 = (int32_t) strlen(path2);
 
     /* cannot join two full pathnames -- so just return path2 ? */
     if (csoundIsNameFullpath(path2)) {
@@ -645,7 +645,7 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
         partialPath[0] = '\0';
     }
     else {
-        len = lastIndex - convPath;
+      len = (int32_t) (lastIndex - convPath);
         partialPath = (char*) csound->Malloc(csound, len+1);
         strNcpy(partialPath, convPath, len+1);
         //partialPath[len] = '\0';
@@ -665,7 +665,7 @@ char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path)
     if ((convPath = csoundConvertPathname(csound, path)) == NULL)
       return NULL;
     lastIndex = strrchr(convPath, DIRSEP);
-    len = strlen(lastIndex);
+    len = (int32_t) strlen(lastIndex);
     filename = (char*) csound->Malloc(csound, len+1);
     strcpy(filename, lastIndex+1);
     csound->Free(csound, convPath);
@@ -718,7 +718,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
         return partialPath;
       }
 #  endif
-      len = (lastIndex - tempPath);
+      len = (int32_t)(lastIndex - tempPath);
 
       partialPath = (char *)csound->Calloc(csound, len + 1);
       strNcpy(partialPath, tempPath, len+1);
@@ -746,7 +746,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
       return cwd;
     }
 
-    len = (lastIndex - tempPath);  /* could be 0 on OS 9 */
+    len = (int32_t)(lastIndex - tempPath);  /* could be 0 on OS 9 */
 
     partialPath = (char *)csound->Calloc(csound, len + 1);
     strNcpy(partialPath, tempPath, len+1);
@@ -1586,7 +1586,7 @@ int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t when
       break;
     case CSFILE_SND_R:
     case CSFILE_SND_W:
-      ret = csound->SndfileSeek(csound,p->sf,pos,whence);
+      ret = (int32_t) csound->SndfileSeek(csound,p->sf,pos,whence);
       //csoundMessage(csound, "seek set %d\n", pos);
       csound->FlushCircularBuffer(csound, p->cb);
       p->items = 0;
@@ -1614,7 +1614,8 @@ static int32_t read_files(CSOUND *csound){
           break;
         case CSFILE_SND_R:
           if (n == 0) {
-            n = csound->SndfileReadSamples(csound, current->sf, buf, items);
+            n = (int32_t) csound->SndfileReadSamples(csound, current->sf,
+                                                     buf, items);
             m = 0;
           }
           l = csound->WriteCircularBuffer(csound,current->cb,&buf[m],n);

@@ -183,7 +183,7 @@ static uintptr_t udp_recv(void *pdata){
   csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {
 #ifndef __wasm__
-    received = recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen);
+    received = (int32_t) recvfrom(p->sock, (void *)orchestra, MAXSTR, 0, &from, &clilen);
 #endif
     if (received <= 0) {
       csoundSleep(timout ? timout : 1);
@@ -203,14 +203,14 @@ static uintptr_t udp_recv(void *pdata){
         OSC_MESS mess;
         int32_t len, siz = 0;
         const char *buf = orchestra;
-        len = strlen(buf);
+        len = (int32_t) strlen(buf);
         mess.address = (char *) buf;
-        len = ((size_t) ceil((len+1)/4.)*4);
+        len = ((int32_t) ceil((len+1)/4.)*4);
         buf += len;
         siz += len;
-        len = strlen(buf);
+        len = (int32_t) strlen(buf);
         mess.type = (char *)buf+1; // jump the starting ','
-        len = ((size_t) ceil((len+1)/4.)*4);
+        len = ((int32_t) ceil((len+1)/4.)*4);
         buf += len;
         siz += len;
         // parse messages
@@ -223,7 +223,7 @@ static uintptr_t udp_recv(void *pdata){
         }
         else if(!strcmp(mess.address, "/csound/event/instr")){
             // numeric types
-            int32_t n = strlen(mess.type), i;
+            int32_t n = (int32_t) strlen(mess.type), i;
             MYFLT *arg = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*n);
             for(i = 0; i < n; i++) {
               buf = csoundOSCMessageGetNumber(buf,
@@ -236,7 +236,7 @@ static uintptr_t udp_recv(void *pdata){
         }
         else if(!strncmp(mess.address, "/csound/channel",15)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
-          int32_t items = strlen(mess.type), i;
+          int32_t items = (int32_t) strlen(mess.type), i;
           for(i = 0; i < items; i++) {
             delim = strchr(channel, '/');
             if (delim) {
@@ -307,7 +307,7 @@ static uintptr_t udp_recv(void *pdata){
           if (csoundGetChannelPtr(csound, (void **) &stringdat, chn,
                                   CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
               == CSOUND_SUCCESS) {
-            int32_t size = stringdat->size;
+            size_t size = stringdat->size;
             spin_lock_t *lock =
               (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
             msg = (char *) csound->Calloc(csound, strlen(chn) + size);

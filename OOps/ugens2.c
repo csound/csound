@@ -1712,9 +1712,9 @@ int32_t lposca(CSOUND *csound, LPOSC *p)
   uint32_t n, nsmps = CS_KSMPS;
   int32   loop, end, looplength /* = p->looplength */ ;
 
-  if ((loop = (int64_t) *p->kloop) < 0) loop=0;/* gab */
+  if ((loop = (int32_t) *p->kloop) < 0) loop=0;
   else if (loop > p->tablen-3) loop = p->tablen-3;
-  if ((end = (int64_t) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
+  if ((end = (int32_t) *p->kend) > p->tablen-1 ) end = p->tablen - 1;
   else if (end <= 2) end = 2;
   if (end < loop+2) end = loop + 2;
   looplength = end - loop;

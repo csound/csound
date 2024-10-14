@@ -28,9 +28,9 @@
 #include <math.h>
 
 #define TABSIZE 20000
-static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, int32_t siz){
+static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, size_t siz){
   double p =  (x*mx + 0.5)*siz;
-  int32_t n = (int32_t) p;
+  size_t n = (size_t) p;
   return n > 0 ? (n < siz ? t[n] + (p - n)*(t[n+1] - t[n]) : t[siz-1]) : t[0];
 }
 
