@@ -73,32 +73,13 @@ int32_t schedule(CSOUND *csound, SCHED *p)
       pp.args[i] = p->argums[i-4];
     }
     pp.flag = 1;
-    return eventOpcodeI_(csound, &pp, 0, 'i');
+    if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR)
+      return eventOpcodeI_(csound, &pp, 2, 'i');
+    else
+      return eventOpcodeI_(csound, &pp, 0, 'i');
 }
 /* from aops.h */
 int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
-
-int32_t schedule_instr(CSOUND *csound, SCHED *p)
-{
-    LINEVENT pp;
-    int32_t i, ret;
-    MYFLT num = instr_num(csound, ((INSTREF *) p->which)->instr);
-    pp.h = p->h;
-    char c[2] = "i";
-    pp.args[0] = (MYFLT *) c;
-    pp.args[1] = &num;
-    pp.args[2] = p->when;
-    pp.args[3] = p->dur;
-    pp.argno = p->INOCOUNT+1;
-    for (i=4; i < pp.argno ; i++) {
-      pp.args[i] = p->argums[i-4];
-    }
-    pp.flag = 1;
-    ret = eventOpcodeI_(csound, &pp, 0, 'i');
-    return ret;
-}
-
-
 
 static void add_string_arg(char *s, const char *arg) {
   int32_t offs = (int32_t) strlen(s) ;
@@ -122,9 +103,16 @@ static void add_string_arg(char *s, const char *arg) {
 int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
     int32_t i;
+    MYFLT insno = *p->which;
     int32_t argno = p->INOCOUNT+1;
     char s[16384], sf[64];
-    sprintf(s, "i %f %f %f", *p->which, *p->when, *p->dur);
+
+    if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR) {
+      INSTREF *ref = (INSTREF *) p->which;
+      insno = (MYFLT) instr_num(csound, ref->instr); 
+    }
+    
+    sprintf(s, "i %f %f %f", insno, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
        if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S) {
@@ -213,6 +201,9 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
       pp.flag = 1;
       if (IS_STR_ARG(p->which)){
         return eventOpcode_(csound, &pp, 1, 'i');
+      }
+      if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR){
+         return eventOpcode_(csound, &pp, 2, 'i');
       }
       else {
         pp.flag = 0;
@@ -527,6 +518,10 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       /* evt.strarg = name; */
       evt.scnt = 0;
       /* evt.p[1] = SSTRCOD; */
+    }
+    else if (GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR) {
+      INSTREF *ref = (INSTREF *) p->args[0];
+      evt.p[1] = (MYFLT) instr_num(csound, ref->instr); 
     }
     else {
       evt.strarg = NULL; evt.scnt = 0;
