@@ -405,6 +405,7 @@ int32_t setksmpsset(CSOUND *, void *);
 int32_t xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
 int32_t ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int32_t nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *);
+int32_t turnoff2Instr(CSOUND *, void *), turnoff3Instr(CSOUND *, void *);
 int32_t nstrnumset_S(CSOUND *, void *), nstrstr(CSOUND *, void *);
 int32_t turnoff2S(CSOUND *, void *) ;
 int32_t turnoff3S(CSOUND *, void *), turnoff3k(CSOUND *, void *);
