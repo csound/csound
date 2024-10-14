@@ -604,7 +604,7 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
     p->currtic++;
   }
   if (p->recording) {
-    int32_t j, curr_frame = p->ndx * p->numins;
+    int64_t j, curr_frame = p->ndx * p->numins;
 
     MYFLT *table = p->table;
     MYFLT **inargs = p->inargs;
@@ -661,7 +661,7 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
 
   }
   if (p->playing) {
-    int32_t j, curr_frame = p->ndx * p->numouts;
+    int64_t j, curr_frame = p->ndx * p->numouts;
     MYFLT *table = p->table;
     MYFLT **outargs = p->outargs;
     if (UNLIKELY(curr_frame + p->numouts < p->tablen)) {

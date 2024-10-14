@@ -251,7 +251,7 @@ char** splitArgs(CSOUND* csound, char* argString)
       current++;
 
       if (*current == '[') { // FIXME
-        int32_t len = current - start;
+        uint64_t len = current - start;
         if (*start == ':') {
           len -= 2;
           start += 1;
@@ -283,7 +283,7 @@ char** splitArgs(CSOUND* csound, char* argString)
 
         start = t;
       } else {
-        int32_t len = current - start;
+        uint64_t len = current - start;
         if (*start == ':') {
           len -= 2;
           start += 1;
@@ -322,14 +322,14 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   memset(temp, 0, 512);
 
   name = structTree->left->value->lexeme;
-  len = strlen(name);
+  len = (int32_t) strlen(name);
   memcpy(temp, name, len);
   index += len;
 
   while(current != NULL) {
     temp[index++] = '.';
     name = current->value->lexeme;
-    len = strlen(name);
+    len = (int32_t) strlen(name);
     memcpy(temp + index, name, len);
     index += len;
     current = current->next;

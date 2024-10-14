@@ -1345,7 +1345,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   cont:
     /* calculate actual start time in seconds and k-periods */
     start_time = (double) p[2] + (double)time_ofs/csound->esr;
-    start_kcnt = time2kcnt(csound, start_time);
+    start_kcnt = (uint32_t) time2kcnt(csound, start_time);
     /* correct p2 value for section offset */
     p[2] = (MYFLT) (start_time - st->timeOffs);
     if (p[2] < FL(0.0))
@@ -1415,7 +1415,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
     if (evt->pcnt >= 2)
       start_time += (double) p[2];
     evt->pcnt = 0;
-    start_kcnt = time2kcnt(csound, start_time);
+    start_kcnt = (uint32_t)time2kcnt(csound, start_time);
     break;
   default:
     csoundErrorMsg(csound, Str("insert_score_event(): unknown opcode: %c\n"),

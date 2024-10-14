@@ -215,7 +215,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
   uint8_t *buffer = p->buf;
   MYFLT *al       = p->ar[0];
   MYFLT *ar       = p->ar[1];
-  int32_t pos     = p->pos;
+  int64_t pos     = p->pos;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t i, n, nsmps = CS_KSMPS;
@@ -623,7 +623,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
   MYFLT *tab, **table,frac;
   int32_t N = p->N, hsize = p->hsize, cnt = p->cnt;
   int32_t  nsmps = CS_KSMPS, n;
-  int32_t size = p->fdata[0].size/sizeof(MYFLT), post, i, j;
+  int32_t size = (int32_t) p->fdata[0].size/sizeof(MYFLT), post, i, j;
   double pos, spos = p->pos;
   MYFLT *fwin, *bwin;
   MYFLT in, *prev;

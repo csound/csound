@@ -246,7 +246,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     p->RoverTwoPi = (float)(p->arate / TWOPI_F);
     p->TwoPioverR = (float)(TWOPI_F / p->arate);
     p->Fexact =  (float)(CS_ESR / (MYFLT)N);
-    p->nI = -((int64_t)(halfwinsize/overlap))*overlap; /* input time (in samples) */
+    p->nI = -((int32_t)(halfwinsize/overlap))*overlap; /* input time (in samples) */
     /*Dd = halfwinsize + p->nI + 1;                     */
     /* in streaming mode, Dd = ovelap all the time */
     p->Ii = 0;
@@ -270,7 +270,8 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
 
 static void generate_frame(CSOUND *csound, PVSANAL *p)
 {
-  int32_t got, tocp,i,j,k,ii;
+  int32_t got, i,j,k,ii;
+  int64_t tocp;
     int32_t N = p->fsig->N;
     int32_t N2 = N/2;
     int32_t buflen = p->buflen;
@@ -968,7 +969,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     obufptr = outbuf;
 
     for (i = 0; i < p->IOi;) {  /* shift out next IOi values */
-      int32_t todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
+      int64_t todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
                   p->IOi-i : output+p->buflen - p->nextOut);
       /*outfloats(nextOut, todo, ofd);*/
       /*copy data to external buffer */

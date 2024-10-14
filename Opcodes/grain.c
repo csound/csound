@@ -40,7 +40,7 @@ static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
     FUNC        *gftp, *eftp;
-    int32        bufsize;
+    size_t        bufsize;
     MYFLT       *d;
 
     if (LIKELY((gftp = csound->FTFind(csound, p->igfn)) != NULL))

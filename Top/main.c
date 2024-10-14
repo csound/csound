@@ -343,7 +343,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv)
     /* IV - Oct 31 2002: now we can read and sort the score */
 
     if (csound->scorename != NULL &&
-        (n = strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
+        (n = (int32_t) strlen(csound->scorename)) > 4 &&  /* if score ?.srt or ?.xtr */
         (!strcmp(csound->scorename + (n - 4), ".srt") ||
          !strcmp(csound->scorename + (n - 4), ".xtr"))) {
       csound->Message(csound, Str("using previous %s\n"), csound->scorename);

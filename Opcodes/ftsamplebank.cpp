@@ -262,7 +262,7 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
                                    " must be a string"));
   }
 
-  int32_t numberOfFiles = fileNames.size();
+  int32_t numberOfFiles = (int32_t) fileNames.size();
   tabinit(csound, p->outArr, numberOfFiles, &(p->h));
   STRINGDAT *strings = (STRINGDAT *)p->outArr->data;
 

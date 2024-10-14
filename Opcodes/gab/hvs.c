@@ -445,7 +445,7 @@ static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
 
     segp->function =  nxtfunc;
     segp->nxtfunction = nxtfunc;
-    nsegs = p->nsegs;
+    nsegs = (int32_t) p->nsegs;
 
     segp = p->cursegp;
 

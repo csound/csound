@@ -53,7 +53,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     struct fileinTag  *file_opened;
     int32_t         file_max;
     int32_t         file_num;
-    int32        fout_kreset;
+    int64_t        fout_kreset;
    /* MYFLT       *buf;
       int32_t         buf_size; */ /* VL - now using per instance buffer */
     /* oscbnk.c */

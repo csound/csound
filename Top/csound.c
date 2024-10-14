@@ -221,12 +221,12 @@ static void create_opcode_table(CSOUND *csound)
 }
 
 
-static int32_t sndfileWrite(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
+static int64_t sndfileWrite(CSOUND *csound, void *h, MYFLT *p, int64_t frames){
   IGN(csound);
   return sflib_writef_MYFLT(h,p,frames); 
 }
 
-static int32_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int32_t frames){
+static int64_t sndfileRead(CSOUND *csound, void *h, MYFLT *p, int64_t frames){
   IGN(csound);
   return sflib_readf_MYFLT(h,p,frames); 
 }
@@ -242,7 +242,7 @@ static int64_t sndfileReadSamples(CSOUND *csound, void *h, MYFLT *p, int64_t sam
 }
 
 
-static int32_t sndfileSeek(CSOUND *csound, void *h, int32_t frames, int32_t whence){
+static int64_t sndfileSeek(CSOUND *csound, void *h, int64_t frames, int32_t whence){
   IGN(csound);
   return sflib_seek(h, frames, whence);
 }

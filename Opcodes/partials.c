@@ -202,7 +202,8 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     float   ftmp, ftmp2;
     int32_t numbins = p->numbins, maxtracks = p->mtracks;
     int32_t prev = p->prev, cur = p->cur, foundcont;
-    int32_t accum = p->accum, minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
+    uint64_t accum = p->accum;
+    int32_t minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
     int32_t tracks; // = p->tracks;
     double  *mags = (double *) p->mags.auxp;
     double *lmags = (double *) p->lmags.auxp;
@@ -381,7 +382,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
              used to identify and match tracks
            */
           tstart[cur + count] = timecount;
-          trkid[cur + count] = ((accum++));// % (maxtracks * 1000));
+          trkid[cur + count] = (int32_t) (accum++);// % (maxtracks * 1000));
           lastpk[cur + count] = timecount;
           count++;
 

@@ -190,7 +190,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
         p->fd = fd = csound->FileOpenAsync(csound, &sf, fileType,
                                            name, fileParams,
                                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO,
-                                           p->bufsize,  0);
+                                           (int32_t) p->bufsize,  0);
         p->async = 1;
       }
       p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
@@ -205,7 +205,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
         p->fd = fd = csound->FileOpenAsync(csound, &sf, fileType,
                                            name, fileParams,
                                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO,
-                                           p->bufsize,  0);
+                                           (int32_t) p->bufsize,  0);
         p->async = 1;
       }
       p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
@@ -425,7 +425,7 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
-  p->f.bufsize =  p->buf.size;
+  p->f.bufsize =  (int32_t) p->buf.size;
   sfinfo.channels = p->nargs;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
                     p->fname, istring, &sfinfo, 0) != NULL) 
@@ -475,7 +475,7 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
-  p->f.bufsize =  p->buf.size;
+  p->f.bufsize = (int32_t)  p->buf.size;
   sfinfo.channels = len;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
                     p->fname, 1, &sfinfo, 0) != NULL){
@@ -543,7 +543,7 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
-  p->f.bufsize = p->buf.size;
+  p->f.bufsize =(int32_t)  p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_W,
                     p->fname, istring, &sfinfo, 0) != NULL)
     n = p->f.idx - 1;
@@ -836,7 +836,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
-  p->f.bufsize =  p->buf.size;
+  p->f.bufsize =  (int32_t) p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, istring, &sfinfo, 0) != NULL) {
     n = p->f.idx - 1;
@@ -899,7 +899,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
-  p->f.bufsize =  p->buf.size;
+  p->f.bufsize =  (int32_t) p->buf.size;
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, 1, &sfinfo, 0) != NULL) {
     n = p->f.idx - 1;
@@ -1067,7 +1067,7 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
   if (p->buf.auxp == NULL || p->buf.size < buf_reqd*sizeof(MYFLT)) {
     csound->AuxAlloc(csound, sizeof(MYFLT)*buf_reqd, &p->buf);
   }
-  p->f.bufsize =  p->buf.size;
+  p->f.bufsize = (int32_t) p->buf.size;
 
   if(fout_open_file(csound, &(p->f), NULL, CSFILE_SND_R,
                     p->fname, istring, &sfinfo, 0) != NULL) {

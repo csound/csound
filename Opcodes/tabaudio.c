@@ -171,7 +171,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
                                Str("tabaudio: failed to open file %s"),
                                p->file->data);
     if (*p->sync==FL(0.0)) {  /* write in perf thread */
-      if ((n=csound->SndfileWrite(csound, ff, t, size)) != size) {
+      if ((n= (int32_t) csound->SndfileWrite(csound, ff, t, size)) != size) {
         printf("%s\n", csound->FileError(csound, ff));
         csound->FileClose(csound, ff);
         return csound->PerfError(csound, &(p->h),
@@ -248,7 +248,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   if (ff==NULL)
     return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
                              p->file->data);
-  if ((n=csound->SndfileWrite(csound, ff, t, size)) != size) {
+  if ((n=(int32_t)csound->SndfileWrite(csound, ff, t, size)) != size) {
     csound->FileClose(csound, ff);
     return csound->InitError(csound, Str("tabaudio: failed to write data: %s"),
                              csound->FileError(csound,ff));

@@ -190,6 +190,7 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
     p->last = 0;
     p->thread = NULL;
     return OK;
+
 }
 
 static int32_t osc_send(CSOUND *csound, OSCSEND *p)
@@ -236,7 +237,10 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
         // MKG: This seems to have been dropped from liblo.
         // if (p->multicast) lo_address_set_ttl(p->addr, 2);
         if (UNLIKELY(p->multicast)) {
-          u_char ttl = 2;
+          // the code below assumes lo_address is a socket, but it's not so
+          // it won't work and needs fixing.
+#if 0
+                    u_char ttl = 2;
 #if defined(LINUX)
           if (UNLIKELY(setsockopt((uintptr_t)p->addr, IPPROTO_IP,
                                   IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1)) {
@@ -249,6 +253,10 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
           setsockopt((uintptr_t)p->addr, IPPROTO_IP, IP_MULTICAST_TTL,
                      &ttl, sizeof(ttl));
 #endif
+#else
+          return csound->PerfError(csound, &(p->h), "multicast not supported\n");
+#endif          
+          
         }
         csound->Free(csound, p->lhost);
         if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
@@ -1043,7 +1051,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    tabinit(csound, p->args, n=strlen((char*) p->type->data), &(p->h));
+    tabinit(csound, p->args, n= (int32_t)strlen((char*) p->type->data), &(p->h));
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       switch (p->c.saved_types[i]) {

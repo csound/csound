@@ -180,7 +180,7 @@ int32_t pvsin_init(CSOUND *csound, FCHAN *p)
     if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) 
       strncpy(p->name,((STRINGDAT *)p->a)->data, MAX_CHAN_NAME);
     else {
-      p->n = MYFLT2LRND(*p->a);
+      p->n = (int32_t) MYFLT2LRND(*p->a);
       snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
     }
     
@@ -219,8 +219,8 @@ int32_t pvsin_perf(CSOUND *csound, FCHAN *p)
       }
     }
     else {
-      if(p->n != MYFLT2LRND(*p->a)) {
-       p->n = MYFLT2LRND(*p->a);
+      if(p->n != (int32_t) MYFLT2LRND(*p->a)) {
+       p->n = (int32_t) MYFLT2LRND(*p->a);
        snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
        flag = 1;
       }
@@ -250,7 +250,7 @@ int32_t pvsout_init(CSOUND *csound, FCHAN *p)
     if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S) 
       strncpy(p->name, ((STRINGDAT *)p->a)->data, MAX_CHAN_NAME);
     else {
-      p->n = MYFLT2LRND(*p->a);
+      p->n = (int32_t) MYFLT2LRND(*p->a);
       snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
     }
     
@@ -281,8 +281,8 @@ int32_t pvsout_perf(CSOUND *csound, FCHAN *p)
       }
     }
     else {
-      if(p->n != MYFLT2LRND(*p->a)) {
-       p->n = MYFLT2LRND(*p->a);
+      if(p->n != (int32_t) MYFLT2LRND(*p->a)) {
+       p->n = (int32_t) MYFLT2LRND(*p->a);
        snprintf(p->name, MAX_CHAN_NAME+1, "%i", p->n);
        flag = 1;
       }
@@ -532,10 +532,10 @@ PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
            used with strings, the datasize might become
            invalid */
         if ((pp->type & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL)
-            return ((STRINGDAT*)pp->data)->size;
+          return (int32_t) ((STRINGDAT*)pp->data)->size;
         // NEED TO CHECK FOR ARRAYS
         if((pp->type & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL)
-            return ((ARRAYDAT*)pp->data)->allocated;
+            return (int32_t) ((ARRAYDAT*)pp->data)->allocated;
         return pp->datasize;
     }
 }
@@ -1916,7 +1916,7 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
             if (retval>0) {
                 char    ch = '\0';
                 int32_t n=0;
-                if (UNLIKELY((n=read(0, &ch, 1))<0)) {
+                if (UNLIKELY((n=(int32_t)read(0, &ch, 1))<0)) {
                     csound->PerfError(csound, &(p->h),
                                       Str("read failure in sensekey\n"));
                     return NOTOK;
@@ -2399,9 +2399,9 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
     adat->dimensions = (int32_t) p->idim->sizes[0];
     adat->sizes = (int32_t *) csound->Calloc(csound,
                                            adat->dimensions*sizeof(int32_t));
-    siz = (adat->sizes[0] = MYFLT2LRND(p->idim->data[0]));
+    siz = (adat->sizes[0] = (int32_t) MYFLT2LRND(p->idim->data[0]));
     for(i = 1; i < adat->dimensions; i++)
-      siz *= (adat->sizes[i] = MYFLT2LRND(p->idim->data[i]));
+      siz *= (adat->sizes[i] = (int32_t) MYFLT2LRND(p->idim->data[i]));
   
     adat->arrayType = (CS_TYPE *)
       csoundGetTypeWithVarTypeName(csound->typePool, p->type->data);
@@ -2540,7 +2540,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
   if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
                           CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS){
-    int32_t    size = stringdat->size; //csoundGetChannelDatasize(csound, name);
+    size_t   size = stringdat->size; //csoundGetChannelDatasize(csound, name);
     spin_lock_t *lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) name);
 
     if (lock != NULL) {
@@ -2577,7 +2577,7 @@ void csoundGetStringChannel(CSOUND *csound, const char *name,
     if (lock != NULL)
       csoundSpinLock(lock);
     if (string != NULL && chstring != NULL) {
-      n2 = strlen(chstring);
+      n2 = (int32_t) strlen(chstring);
       strNcpy(string,chstring, n2+1);
     }
     if (lock != NULL)

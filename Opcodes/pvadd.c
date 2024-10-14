@@ -175,6 +175,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     for (i = (int32_t) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
       phase = (int32) *oscphase;
+      phasef = *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
       if (p->buf[i * 2 + 1] == FL(0.0) || frq >= CS_ESR * FL(0.5)) {
         incr = incrf = 0;               /* Hope then does not matter */

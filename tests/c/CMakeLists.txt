@@ -34,7 +34,6 @@ if(BUILD_TESTS)
     "-Wno-writable-strings" "-Wno-unused-variable")
     endif()
 
-
     target_link_libraries(unittests
         PRIVATE
             GTest::gtest_main

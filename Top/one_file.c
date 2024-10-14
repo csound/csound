@@ -245,7 +245,7 @@ int32_t readOptions(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
-        int32_t len = strlen(p)-2;
+        int32_t len = (int32_t) strlen(p)-2;
         while (len>0 && (isblank(p[len]))) len--;
         p[len+1] = '\n'; p[len+2] = '\0';
       }

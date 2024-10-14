@@ -77,7 +77,7 @@ int32_t schedule(CSOUND *csound, SCHED *p)
 }
 
 static void add_string_arg(char *s, const char *arg) {
-  int32_t offs = strlen(s) ;
+  int32_t offs = (int32_t) strlen(s) ;
   //char *c = s;
   s += offs;
   *s++ = ' ';

@@ -319,7 +319,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       begp = octp->begp;
       curp = octp->curp;
       endp = octp->endp;
-      if (UNLIKELY((len = endp - curp) >= winlen)) /*   if no wrap          */
+      if (UNLIKELY((len = (int32_t)(endp - curp)) >= winlen)) /*   if no wrap          */
         linbufp = curp;                       /*     use samples in circbuf */
       else {
         len2 = winlen - len;
@@ -346,7 +346,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
         *dftp++ = c;                          /* store in out spectrum   */
       }
     }
-    specp->ktimstamp = CS_KCNT;      /* time-stamp the output   */
+      specp->ktimstamp = (uint32_t) CS_KCNT;      /* time-stamp the output   */
 
  nxt:
                                 /* specptrk */
@@ -1208,7 +1208,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
     double  phs;
     double  *curphs = (double*)p->curphs.auxp;
-    int32_t     size = p->curphs.size / sizeof(double);
+    uint64_t     size = p->curphs.size / sizeof(double);
     int32_t     index = (int32_t)(*p->kindx);
 
     if (UNLIKELY(curphs == NULL)) {
@@ -1238,7 +1238,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     MYFLT   *rs;
     double  phase, incr;
     double  *curphs = (double*)p->curphs.auxp;
-    int32_t     size = p->curphs.size / sizeof(double);
+    uint64_t     size = p->curphs.size / sizeof(double);
     int32_t     index = (int32_t)(*p->kindx);
 
     if (UNLIKELY(curphs == NULL)) {

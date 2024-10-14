@@ -506,7 +506,7 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
   XSEG        *segp;
   int32_t         nsegs;
   MYFLT       d, **argp, val, dur, nxtval;
-  int32_t         n=0;
+  int64_t         n=0;
 
   if (!(p->INCOUNT & 1)) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
@@ -548,10 +548,10 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), n);
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n+1);
-  return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
+  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
 }
 
 int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
@@ -559,7 +559,7 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
   XSEG        *segp;
   int32_t         nsegs;
   MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
-  int32_t         n=0;
+  int64_t         n=0;
 
 
   if (!(p->INCOUNT & 1)){
@@ -607,10 +607,10 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), n);
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n+1);
-  return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
+  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
 }
 
 
@@ -619,7 +619,7 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
   XSEG        *segp;
   int32_t         nsegs;
   MYFLT       d, **argp, val, dur, dursum = FL(0.0), bkpt, nxtval;
-  int32_t         n;
+  int64_t         n=0;
 
 
   if (!(p->INCOUNT & 1)){
@@ -669,10 +669,10 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), n);
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n+1);
-  return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
+  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
 }
 
 int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
@@ -680,7 +680,7 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
   XSEG        *segp;
   int32_t         nsegs;
   MYFLT       d, **argp, val, dur, nxtval;
-  int32_t         n;
+  int64_t         n=0;
 
 
   if (!(p->INCOUNT & 1)){
@@ -725,10 +725,10 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
  experr:
   n = segp - p->cursegp + 1;
   if (val == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), n);
   else if (nxtval == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n+1);
-  return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
+  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
 }
 
 /***************************************/
@@ -897,7 +897,8 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 {
   int32_t     relestim;
   SEG     *segp;
-  int32_t     nsegs, n = 0;
+  int32_t     nsegs;
+  int64_t         n=0;n = 0;
   MYFLT   **argp, prvpt;
 
 
@@ -941,10 +942,10 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
  experr:
   n = segp - p->cursegp;// + 2;
   if (prvpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n);
+    return csound->InitError(csound, Str("ival%lld is zero"), n);
   else if (segp->nxtpt == FL(0.0))
-    return csound->InitError(csound, Str("ival%d is zero"), n+1);
-  return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
+    return csound->InitError(csound, Str("ival%lld is zero"), n+1);
+  return csound->InitError(csound, Str("ival%lld sign conflict"), n+1);
 }
 
 /* **** MXDSR is just a construction and use of expseg */
@@ -1836,7 +1837,8 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t  rlscnt;
-  int64_t lobits, lomask, pos, phs = p->phs;
+  int64_t lobits, lomask, pos;
+  int32_t phs = p->phs;
   MYFLT fact, *xamp, *rslt, val, asym, mlt, v1, fract, *ftab, lodiv;
   int32_t    asgsg = IS_ASIG_ARG(p->xamp), check, floatph = p->floatph,
     flen = p->ftp->flen;

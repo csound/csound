@@ -693,8 +693,8 @@ PUBLIC EVLIST * cscoreListSeparateF(CSOUND *csound, EVLIST *a)
         *r++ = *p++;
       else *q++ = *p++;
     }
-    a->nevents = q - &a->e[1];
-    b->nevents = r - &b->e[1];
+    a->nevents = (int32_t) (q - &a->e[1]);
+    b->nevents = (int32_t) (r - &b->e[1]);
     c = cscoreListCopy(csound,b);
     csfree((CSHDR *) b);
     fp2chk(csound, c, "cscoreListSeparateF");
@@ -718,8 +718,8 @@ PUBLIC EVLIST * cscoreListSeparateTWF(CSOUND *csound, EVLIST *a)
         *r++ = *p++;
       else *q++ = *p++;
     }
-    a->nevents = q - &a->e[1];
-    b->nevents = r - &b->e[1];
+    a->nevents = (int32_t) (q - &a->e[1]);
+    b->nevents = (int32_t) (r - &b->e[1]);
     c = cscoreListCopy(csound,b);
     csfree((CSHDR *) b);
     fp2chk(csound, c, "cscoreListSeparateTWF");

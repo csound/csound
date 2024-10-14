@@ -188,7 +188,7 @@ static inline int32_t pvfile_write_16(PVOCFILE *p, void *data, int32_t cnt)
       }
     }
     else
-      n = fwrite(data, sizeof(uint16_t), (size_t) cnt, p->fp);
+      n = (int32_t) fwrite(data, sizeof(uint16_t), (size_t) cnt, p->fp);
     return (n != cnt);
 }
 
@@ -227,7 +227,7 @@ static inline int32_t pvfile_write_32(PVOCFILE *p, void *data, int32_t cnt)
       }
     }
     else
-      n = fwrite(data, sizeof(uint32_t), (size_t) cnt, p->fp);
+      n = (int32_t) fwrite(data, sizeof(uint32_t), (size_t) cnt, p->fp);
     return (n != cnt);
 }
 
