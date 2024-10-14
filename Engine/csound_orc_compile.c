@@ -567,8 +567,13 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   addGlobalVariable(csound, engineState, rType, "$sr", NULL);
   addGlobalVariable(csound, engineState, rType, "$kr", NULL);
   addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
-
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
+
+  CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                          &CS_VAR_TYPE_INSTR,
+                                          "this", NULL);
+  csoundAddVariable(csound, varPool, var);
+
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
   ip->varPool = varPool;
@@ -854,6 +859,10 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   INSTRTXT *ip;
   OPTXT *op;
   TREE *current;
+  CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                          &CS_VAR_TYPE_INSTR,
+                                          "this", NULL);
+  csoundAddVariable(csound, varPool, var);
 
   //csound->inZero = 1;
   find_or_add_constant(csound, engineState->constantsPool, "0", 0);
@@ -964,6 +973,10 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   csoundAddVariable(csound, ip->varPool, var);
   /* same for sr */
   var = csoundCreateVariable(csound, csound->typePool, rType, "sr", NULL);
+  csoundAddVariable(csound, ip->varPool, var);
+  /* same for this */
+  var = csoundCreateVariable(csound, csound->typePool, &CS_VAR_TYPE_INSTR,
+                             "this", NULL);
   csoundAddVariable(csound, ip->varPool, var);
 
   /* Maybe should do this assignment at end when instr is setup?

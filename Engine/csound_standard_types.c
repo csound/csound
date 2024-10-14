@@ -149,7 +149,6 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 void instrRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, OPDS *ctx) {
   INSTREF *p = (INSTREF *) dest;
-  printf("%s \n", ((INSTREF *)src)->instr->insname);
   if(!p->readonly) {
    memcpy(dest, src, sizeof(INSTREF));
    p->readonly = 0; // clear readonly flag (which is not copied)

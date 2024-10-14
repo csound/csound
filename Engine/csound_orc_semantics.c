@@ -557,7 +557,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
          // found it, return type.
          return cs_strdup(csound, var->varType->varTypeName);
      }    
-      
+
+    if(!strcmp(tree->value->lexeme, "this")) {
+      const CS_TYPE *varType = &CS_VAR_TYPE_INSTR;
+       // found this, return type.
+       return cs_strdup(csound, varType->varTypeName);
+     } 
+
+    
     if (is_reserved(s)) {
       return cs_strdup(csound, "r");                              /* rsvd */
     }
@@ -1395,7 +1402,9 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
       case LABEL_TOKEN:
       case T_IDENT:
         varName = current->value->lexeme;
-
+        
+        if(!strcmp(varName, "this")) break;
+        
         if (is_label(varName, typeTable->labelList)) {
           break;
         }

@@ -2353,7 +2353,7 @@ int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
 }
 
 int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
-   int32_t inum = 1;
+   int32_t inum = 0;
    INSTRTXT **instrs = csound->GetInstrumentList(csound);
    while(instrs[inum] != instr) inum++;
    return inum;

@@ -501,7 +501,7 @@ int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
+            csound->Message(csound, Str("Cannot Find Instrument %d. No action.\n"),
                            (int32_t) insno);
             return OK;
           }
@@ -589,7 +589,7 @@ int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
+            csound->Message(csound, Str("Cannot Find Instrument %d. No action.\n"),
                            (int32_t) insno);
             return OK;
           }
