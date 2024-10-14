@@ -2345,7 +2345,10 @@ int32_t painit(CSOUND *csound, PAINIT *p)
 
 int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
   INSTRTXT **instrs = csound->GetInstrumentList(csound);
-  p->out->instr = instrs[(int32_t) *p->in];
+  if(!p->out->readonly) // can write to it
+    p->out->instr = instrs[(int32_t) *p->in];
+  else csound->Warning(csound, "instr ref var %s is read-only: cannot copy",
+                              GetOutputArgName(&(p->h),0));
   return OK;
 }
 

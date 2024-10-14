@@ -1831,10 +1831,11 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
                                                          csound->engineState.varPool,
                                                          c);
           if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-            INSTREF ref = { instrtxt };
+            INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *) &(ivar->memBlock->value);
             ivar->varType->copyValue(csound, ivar->varType,
-                                     &(ivar->memBlock->value),
-                                     &ref, NULL);
+                                     dest, &src, NULL);
+            // mark it as read-only
+            dest->readonly = 1;
            }                            
         }
       } else {
@@ -1873,10 +1874,11 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
                                                          engineState->varPool,
                                                          c);
           if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-            INSTREF ref = { instrtxt };
+            INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *) &(ivar->memBlock->value);
             ivar->varType->copyValue(csound, ivar->varType,
-                                     &(ivar->memBlock->value),
-                                     &ref, NULL);
+                                     dest, &src, NULL);
+            // mark it as read-only
+            dest->readonly = 1;
            }           
         }
       }

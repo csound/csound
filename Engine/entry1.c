@@ -135,7 +135,7 @@ OENTRY opcodlst_1[] = {
   { "ihold",  S(LINK),0,          "",     "",     ihold, NULL, NULL, NULL  },
   { "turnoff",S(LINK),0,           "",     "",     NULL,   turnoff, NULL, NULL },
   /* VL: 10.2.22 this was thread  but with parser3 we need to make string assignment on threads 1 & 2 */
-  { "=.instrS", S(IREF_NUM) ,0,  "S", ":instr;", (SUBR) get_instr_name},
+  { "=.instrS", S(IREF_NUM) ,0,  "S", ":Instr;", (SUBR) get_instr_name},
   {  "=.S",   S(STRCPY_OP),0,     "S",    "S",
      (SUBR) strcpy_opcode_S, (SUBR) strassign_k, (SUBR) NULL, NULL    },
   /* VL: 11.2.22 this was thread   but with an update count, we need to be initialised */
@@ -144,7 +144,7 @@ OENTRY opcodlst_1[] = {
   {  "=.T",   S(STRCPY_OP),0,     "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
   { "=.r",    S(ASSIGN),0,        "r",    "i",    rassign, NULL, NULL, NULL },
-  { "=.instri", S(IREF_INIT) ,0,  ":instr;", "i", (SUBR) init_instr_ref},
+  { "=.instri", S(IREF_INIT) ,0,  ":Instr;", "i", (SUBR) init_instr_ref},
    
   { "=.i",    S(ASSIGNM),0,       "IIIIIIIIIIIIIIIIIIIIIIII", "m",
     minit, NULL, NULL, NULL  },
@@ -157,11 +157,12 @@ OENTRY opcodlst_1[] = {
   //  { "=.t",    S(ASSIGNT),0,        "t",    "kk",   NULL,   tassign, NULL   },
   { "init.S", S(STRCPY_OP),0,       "S", "S", (SUBR) strcpy_opcode_S  },
   { "init.Si", S(STRCPY_OP),0,       "S", "i", (SUBR) strcpy_opcode_p  },
-  { "init", S(IREF_INIT),0,     ":instr;", "i", (SUBR) init_instr_ref},
+  { "init", S(IREF_INIT),0,     ":Instr;", "i", (SUBR) init_instr_ref},
   { "init.i", S(ASSIGNM),0,       "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0,       "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   { "init.a", S(ASSIGNM),0,       "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
-  { "nstrnum",   S(IREF_NUM),0,    "i",    ":instr;",   (SUBR) get_instr_num },
+  { "nstrnum",   S(IREF_NUM),0,    "i",    ":Instr;",   (SUBR) get_instr_num },
+  { "init.instr", S(ASSIGN) ,0,  ":Instr;", ":Instr;", (SUBR) copyVarGenericInit},
   /* VL 4.4.24 removing thread field:
      These boolean were all marked thread 0, with both init and perf functions.
      At instance(), there was a check for NOT thread 3 (meaning init XOR perf),
@@ -854,7 +855,7 @@ OENTRY opcodlst_1[] = {
   { "xadsr.a", S(EXXPSEG),0,        "a",    "iiiio", xdsrset, expseg    },
   { "mxadsr", S(EXPSEG),0,        "k",    "iiiioj", mxdsrset, kxpsegr, NULL},
   { "mxadsr.a", S(EXPSEG),0,        "a",    "iiiioj", mxdsrset, expsegr},
-  { "schedule.instr", S(SCHED),0,       "",     ":instr;iim",
+  { "schedule.instr", S(SCHED),0,       "",     ":Instr;iim",
     schedule_instr, NULL, NULL },
   { "schedule", S(SCHED),0,       "",     "iiim",
     schedule, NULL, NULL },

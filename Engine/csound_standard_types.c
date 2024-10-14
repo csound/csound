@@ -148,7 +148,14 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 void instrRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, OPDS *ctx) {
-  memcpy(dest, src, sizeof(INSTREF));
+  INSTREF *p = (INSTREF *) dest;
+  printf("%s \n", ((INSTREF *)src)->instr->insname);
+  if(!p->readonly) {
+   memcpy(dest, src, sizeof(INSTREF));
+   p->readonly = 0; // clear readonly flag (which is not copied)
+  }
+  else csound->Warning(csound, "instr ref var %s is read-only: copy value bypassed",
+                       p->instr->insname);
 }
 
 
@@ -366,7 +373,7 @@ const CS_TYPE CS_VAR_TYPE_ARRAY = {
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR = {
-  "instr", "instrument definition reference", CS_ARG_TYPE_BOTH,
+  "Instr", "instrument definition reference", CS_ARG_TYPE_BOTH,
   createInstrRef, instrRef_copy_value, NULL, NULL, 0
 };
 
