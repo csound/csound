@@ -266,3 +266,4 @@ int32_t complex_abs(CSOUND *csound, CXOP2R *p);
 int32_t complex_arg(CSOUND *csound, CXOP2R *p);
 int32_t complex_real(CSOUND *csound, CXOP2R *p);
 int32_t complex_imag(CSOUND *csound, CXOP2R *p);
+int32_t complex_init(CSOUND *csound, CXOP *p);

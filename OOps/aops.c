@@ -2332,6 +2332,12 @@ int32_t complex_assign(CSOUND *csound, R2CXOP *p){
   return OK;
 }
 
+int32_t complex_init(CSOUND *csound, CXOP *p){
+  p->ans->real =  p->a->real; 
+  p->ans->imag =  p->a->imag;
+  return OK;
+}
+
 // complex arithmetic
 int32_t complex_add(CSOUND *csound, CXOP *p) {
   p->ans->real =  p->a->real + p->b->real;
