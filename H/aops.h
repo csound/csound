@@ -234,3 +234,35 @@ int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
+
+typedef struct {
+  OPDS    h;
+  COMPLEXDAT *ans;
+  COMPLEXDAT *a, *b;
+} CXOP;
+
+typedef struct {
+  OPDS    h;
+  MYFLT *ans;
+  COMPLEXDAT *a, *b;
+} CXOP2R;
+
+
+typedef struct {
+  OPDS    h;
+  COMPLEXDAT *ans;
+  MYFLT *a, *b;
+} R2CXOP;
+
+
+int32_t complex_assign(CSOUND *csound, R2CXOP *p);
+int32_t complex_add(CSOUND *csound, CXOP *p);
+int32_t complex_sub(CSOUND *csound, CXOP *p);
+int32_t complex_prod(CSOUND *csound, CXOP *p);
+int32_t complex_div(CSOUND *csound, CXOP *p);
+int32_t complex_neg(CSOUND *csound, CXOP *p);
+int32_t complex_conj(CSOUND *csound, CXOP *p);
+int32_t complex_abs(CSOUND *csound, CXOP2R *p);
+int32_t complex_arg(CSOUND *csound, CXOP2R *p);
+int32_t complex_real(CSOUND *csound, CXOP2R *p);
+int32_t complex_imag(CSOUND *csound, CXOP2R *p);

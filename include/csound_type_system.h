@@ -135,7 +135,7 @@ extern "C" {
     int32_t synthArgCount;
   } CS_VAR_POOL;
 
-  /* Shsould we keep these in the API? */
+  /* Should we keep these in the API? */
   PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);
   PUBLIC void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool);
   PUBLIC char* getVarSimpleName(CSOUND* csound, const char* name);
