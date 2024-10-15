@@ -1128,21 +1128,38 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
    compatible with the ones found in OENTRY's.  splitArgs converts back
    to internal representation. */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
-  int32_t i, dimensions;
+  int32_t i = 0, n = 0, dimensions;
   char *start = arg;
   char *retVal, *current;;
   uint64_t nameLen, len = strlen(arg);
+  char type[64] = {0}, c;
 
   if (arg == NULL || len == 1) {
     return arg;
   }
 
-  if (strchr(arg, '[') == NULL) {
+  // VL 15.10.24
+  // synthetic args reach here with
+  // : prepended and ; appended to name
+  // so we need to remove them to avoid
+  // accummulation
+
+  // now remove any : or ; leftover in typename
+  do  {
+         c = arg[n++];
+         if(c == ':' || c == ';') continue;  
+         type[i++] = c;
+   } while (c);
+  // update arg & len
+  arg = type;
+  len = strlen(arg);
+  
+  if (strchr(type, '[') == NULL) {
     /* User-Defined Struct */
     retVal = csound->Malloc(csound, sizeof(char) * (len + 3));
     current = retVal;
     *current++ = ':';
-    strncpy(current, arg, len);
+    strncpy(current, type, len);
     current += len;
     *current++ = ';';
     *current = '\0';
@@ -1229,7 +1246,9 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
       // if we failed to find argType, exit from parser
       csound->Die(csound, "Could not parse type for argument");
     } else {
+
       argType = convert_internal_to_external(csound, argType);
+
       argsLen += strlen(argType);
       argTypes[index++] = argType;
     }
@@ -1473,6 +1492,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   void* typeArg = NULL;
 
   t = varName;
+
   if (*t == '#') t++;
   pool = (*t == 'g') ? typeTable->globalPool : typeTable->localPool;
 
@@ -1487,6 +1507,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
 
       if (*t == '#') t++;
       if (*t == 'g') t++;
+      
+      
 
       if (*t == '[' || *t == 't') { /* Support legacy t-vars */
         int32_t dimensions = 1;
@@ -1507,6 +1529,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
       }
 
       argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
+      
+      
 
       type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
