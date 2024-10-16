@@ -206,6 +206,45 @@ OENTRY opcodlst_1[] = {
                                       (SUBR) complex_prod, (SUBR) complex_prod },
   { "##div.CC",  S(CXOP),0,          ":Complex;",    ":Complex;:Complex;",
                                       (SUBR) complex_div, (SUBR) complex_div },
+
+  { "##add.Ci",  S(AOP),0,          ":Complex;",    ":Complex;i",
+                                      (SUBR) complex_add_real},
+  { "##add.Ck",  S(AOP),0,          ":Complex;",    ":Complex;k", NULL,
+                                      (SUBR) complex_add_real},
+ { "##add.iC",  S(AOP),0,          ":Complex;",    "i:Complex;",
+                                      (SUBR) real_add_complex},
+  { "##add.kC",  S(AOP),0,          ":Complex;",    "k:Complex;", NULL,
+                                      (SUBR) real_add_complex},
+
+  { "##sub.Ci",  S(AOP),0,          ":Complex;",    ":Complex;i",
+                                      (SUBR) complex_sub_real},
+  { "##sub.Ck",  S(AOP),0,          ":Complex;",    ":Complex;k", NULL,
+                                      (SUBR) complex_sub_real},
+  { "##sub.iC",  S(AOP),0,          ":Complex;",    "i:Complex;",
+                                      (SUBR) real_sub_complex},
+  { "##sub.kC",  S(AOP),0,          ":Complex;",    "k:Complex;", NULL,
+                                      (SUBR) real_sub_complex},
+
+  
+  { "##mul.Ci",  S(AOP),0,          ":Complex;",    ":Complex;i",
+                                      (SUBR) complex_mul_real},
+  { "##mul.Ck",  S(AOP),0,          ":Complex;",    ":Complex;k", NULL,
+                                      (SUBR) complex_mul_real},
+ { "##mul.iC",  S(AOP),0,          ":Complex;",    "i:Complex;",
+                                      (SUBR) real_mul_complex},
+  { "##mul.kC",  S(AOP),0,          ":Complex;",    "k:Complex;", NULL,
+                                      (SUBR) real_mul_complex},
+
+  { "##div.Ci",  S(AOP),0,          ":Complex;",    ":Complex;i",
+                                      (SUBR) complex_div_real},
+  { "##div.Ck",  S(AOP),0,          ":Complex;",    ":Complex;k", NULL,
+                                      (SUBR) complex_div_real},
+  { "##div.iC",  S(AOP),0,          ":Complex;",    "i:Complex;",
+                                      (SUBR) real_div_complex},
+  { "##div.kC",  S(AOP),0,          ":Complex;",    "k:Complex;", NULL,
+                                      (SUBR) real_div_complex},
+  
+  
   // VL not sure about this, needs to be implemented in semantic analysis
   { "##neg.C",       S(CXOP), 0,            ":Complex;", ":Complex;",  (SUBR) complex_neg,
     (SUBR)  complex_neg },

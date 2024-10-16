@@ -369,7 +369,7 @@ const CS_TYPE CS_VAR_TYPE_ARRAY = {
 const CS_TYPE CS_VAR_TYPE_COMPLEX = {
   "Complex", "complex", CS_ARG_TYPE_BOTH, createComplex, complex_copy_value,
     NULL, NULL, 0
-    };
+};
 
 
 

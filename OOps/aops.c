@@ -2410,6 +2410,75 @@ int32_t complex_imag(CSOUND *csound, CXOP2R *p) {
   return OK;
 }
 
+int32_t complex_add_real(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->a;
+  ans->real =  cmpx->real + *p->b;
+  ans->imag = cmpx->imag;
+  return OK;
+}
+
+int32_t real_add_complex(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->b;
+  ans->real =  cmpx->real + *p->a;
+  ans->imag = cmpx->imag;
+  return OK;
+}
+
+int32_t complex_sub_real(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->a;
+  ans->real =  cmpx->real - *p->b;
+  ans->imag = cmpx->imag;
+  return OK;
+}
+
+int32_t real_sub_complex(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->b;
+  ans->real =  cmpx->real - *p->a;
+  ans->imag = cmpx->imag;
+  return OK;
+}
+
+
+int32_t complex_mul_real(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->a;
+  ans->real =  cmpx->real * *p->b;
+  ans->imag = cmpx->imag * *p->b;
+  return OK;
+}
+
+int32_t real_mul_complex(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->b;
+  ans->real =  cmpx->real * *p->a;
+  ans->imag = cmpx->imag  * *p->a;
+  return OK;
+}
+
+int32_t complex_div_real(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->a;
+  ans->real =  cmpx->real / *p->b;
+  ans->imag = cmpx->imag / *p->b;
+  return OK;
+}
+
+int32_t real_div_complex(CSOUND *csound, AOP *p) {
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->b;
+  MYFLT den = cmpx->real*cmpx->real + cmpx->imag*cmpx->imag;
+  ans->real =  (*p->a * cmpx->real)/den; 
+  ans->imag = - (*p->a  * cmpx->imag)/den;
+  return OK;
+}
+
+
+
+
 
 #include "arrays.h"
 int32_t painit(CSOUND *csound, PAINIT *p)
