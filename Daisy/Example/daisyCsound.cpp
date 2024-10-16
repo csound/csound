@@ -7,18 +7,16 @@
 #include "csound.h"
 #include "plugin.h"
 
-
 using namespace daisy;
 using namespace daisy::seed;
 
 
-static int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
-static int CloseMidiInDevice(CSOUND *csound, void *userData);
-static int
-ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf, int nbytes);
-static int  OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
-static int  CloseMidiOutDevice(CSOUND *csound, void *userData);
-static int  WriteMidiData(CSOUND              *csound,
+static int32_t OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
+static int32_t CloseMidiInDevice(CSOUND *csound, void *userData);
+static int32_t ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf, int32_t nbytes);
+static int32_t  OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
+static int32_t  CloseMidiOutDevice(CSOUND *csound, void *userData);
+static int32_t  WriteMidiData(CSOUND              *csound,
                           void                *userData,
                           const unsigned char *mbuf,
                           int                  nbytes);
@@ -181,9 +179,10 @@ void AudioCallback(AudioHandle::InputBuffer  in,
 
 int main(void)
 {
-    hw.StartLog();
     hw.Configure();
     hw.Init();
+    // hw.StartLog();
+
 
 
     System::Delay(5000);
@@ -269,23 +268,23 @@ int main(void)
 }
 
 
-int CloseMidiInDevice(CSOUND *csound, void *userData)
+int32_t CloseMidiInDevice(CSOUND *csound, void *userData)
 {
     return 0;
 }
 
 
-int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev)
+int32_t OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev)
 {
     *userData = (void *)&midiBuffer;
     return 0;
 }
 
 
-int ReadMidiData(CSOUND        *csound,
+int32_t ReadMidiData(CSOUND        *csound,
                  void          *userData,
                  unsigned char *mbuf,
-                 int            nbytes)
+                 int32_t            nbytes)
 {
     auto buffer = static_cast<MidiBuffer *>(userData);
     if(buffer->isAvailable)
