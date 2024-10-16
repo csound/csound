@@ -372,7 +372,6 @@ const CS_TYPE CS_VAR_TYPE_COMPLEX = {
 };
 
 
-
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
 
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);

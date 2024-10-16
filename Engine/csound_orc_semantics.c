@@ -1129,8 +1129,8 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
    to internal representation. */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int32_t i = 0, n = 0, dimensions;
-  char *start = arg;
-  char *retVal, *current;;
+  char *start;
+  char *retVal, *current;
   uint64_t nameLen, len = strlen(arg);
   char type[64] = {0}, c;
 
@@ -1153,6 +1153,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   // update arg & len
   arg = type;
   len = strlen(arg);
+  start = arg;
   
   if (strchr(type, '[') == NULL) {
     /* User-Defined Struct */
@@ -1171,7 +1172,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     arg++;
     dimensions++;
   }
-
+   
   nameLen = len - (arg - start) - 1;
 
   if (nameLen > 1) {
@@ -1203,7 +1204,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
 char* convert_external_to_internal(CSOUND* csound, char* arg) {
   int32_t i, dimensions;
   char* retVal;
-
+  
   if (arg == NULL || *(arg + 1) != '[') {
     return arg;
   }
