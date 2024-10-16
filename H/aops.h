@@ -260,7 +260,6 @@ int32_t complex_add(CSOUND *csound, CXOP *p);
 int32_t complex_sub(CSOUND *csound, CXOP *p);
 int32_t complex_prod(CSOUND *csound, CXOP *p);
 int32_t complex_div(CSOUND *csound, CXOP *p);
-int32_t complex_neg(CSOUND *csound, CXOP *p);
 int32_t complex_conj(CSOUND *csound, CXOP *p);
 int32_t complex_abs(CSOUND *csound, CXOP2R *p);
 int32_t complex_arg(CSOUND *csound, CXOP2R *p);

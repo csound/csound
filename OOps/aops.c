@@ -2351,11 +2351,6 @@ int32_t complex_sub(CSOUND *csound, CXOP *p) {
   return OK;
 }
 
-int32_t complex_neg(CSOUND *csound, CXOP *p) {
-  p->ans->real =  - p->a->real;
-  p->ans->imag =  - p->a->imag;
-  return OK;
-}
 
 int32_t complex_prod(CSOUND *csound, CXOP *p) {
   MYFLT ra = p->a->real;

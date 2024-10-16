@@ -143,10 +143,10 @@ OENTRY opcodlst_1[] = {
   {  "=.T",   S(STRCPY_OP),0,     "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
   { "=.r",    S(ASSIGN),0,        "r",    "i",    rassign, NULL, NULL, NULL },
-  { "=.Ci",    S(ASSIGN),0,        ":Complex;",    "ii", (SUBR) complex_assign},
+  { "=.Ci",    S(R2CXOP),0,        ":Complex;",    "ii", (SUBR) complex_assign},
   { "=.C",    S(CXOP),0,        ":Complex;",    ":Complex;", (SUBR) complex_init,
                                                                 (SUBR) complex_init},
-  { "=.Ck",    S(ASSIGN),0,        ":Complex;",    "kk", NULL, (SUBR) complex_assign},
+  { "=.Ck",    S(R2CXOP),0,        ":Complex;",    "kk", NULL, (SUBR) complex_assign},
   { "=.i",    S(ASSIGNM),0,       "IIIIIIIIIIIIIIIIIIIIIIII", "m",
     minit, NULL, NULL, NULL  },
   { "=.k",    S(ASSIGNM),0,        "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
@@ -243,11 +243,6 @@ OENTRY opcodlst_1[] = {
                                       (SUBR) real_div_complex},
   { "##div.kC",  S(AOP),0,          ":Complex;",    "k:Complex;", NULL,
                                       (SUBR) real_div_complex},
-  
-  
-  // VL not sure about this, needs to be implemented in semantic analysis
-  { "##neg.C",       S(CXOP), 0,            ":Complex;", ":Complex;",  (SUBR) complex_neg,
-    (SUBR)  complex_neg },
   { "##mod.ii",  S(AOP),0,          "i",    "ii",   modkk                   },
   { "##add.kk",  S(AOP),0,           "k",    "kk",   NULL,   addkk           },
   { "##sub.kk",  S(AOP),0,           "k",    "kk",   NULL,   subkk           },
