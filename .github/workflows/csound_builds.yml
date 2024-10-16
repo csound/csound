@@ -102,7 +102,7 @@ jobs:
       - name: Build Csound iOS xcframework
         working-directory: iOs
         run: |
-           brew install bison flex
+          brew install bison flex
           ./build.sh
 
       - name: Create package zip
