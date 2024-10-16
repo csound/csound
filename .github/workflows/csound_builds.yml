@@ -84,7 +84,6 @@ jobs:
   iOS_build:
     name: iOS build
     runs-on: macos-latest
-    if: vars.IOS_WORKFLOW_RUN_ID
     steps:
       - name: Install dependencies
         run: brew install bison
@@ -103,6 +102,7 @@ jobs:
       - name: Build Csound iOS xcframework
         working-directory: iOs
         run: |
+           brew install bison flex
           ./build.sh
 
       - name: Create package zip
