@@ -3,7 +3,7 @@ set -x
 rm -rf cs7iOS
 mkdir cs7iOS
 cd cs7iOS
-cmake ../.. -G Xcode -DUSE_GETTEXT=0 -DUSE_DOUBLE=0 -DBUILD_STATIC_LIBRARY=1 -DBUILD_RELEASE=0 -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=0 -DUSE_SSE=0 -DIOS=1 -DBUILD_TESTS=0 -DCUSTOM_CMAKE="../custom.cmake.ios"
+cmake ../.. -G Xcode -DCMAKE_PREFIX_PATH="$PWD/.." -DUSE_GETTEXT=0 -DUSE_DOUBLE=0 -DBUILD_STATIC_LIBRARY=1 -DBUILD_RELEASE=0 -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=0 -DUSE_SSE=0 -DIOS=1 -DBUILD_TESTS=0 -DCUSTOM_CMAKE="../custom.cmake.ios"
 # CMake was adding -mfpmath=sse which makes the build fail. The project needs to be edited in XCode to remove it before
 # the build for devices can continue.
 # clearing the CMAKE_C_FLAGS on custom.cmake seems to have solved this
