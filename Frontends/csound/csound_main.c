@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
 
     /* set stdout to non buffering if not outputing to console window */
-#if !defined(WIN32)
+#if !defined(WIN32) && !defined(IOS)
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
