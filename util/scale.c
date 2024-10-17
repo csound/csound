@@ -138,26 +138,27 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
     char        outformch = 's', c, *s;
     const char  *envoutyp;
     SFLIB_INFO     sfinfo;
-    OPARMS      O;
+    OPARMS *O =(OPARMS *) csound->Calloc(csound, sizeof(OPARMS));
     SCALE       sc;
     unsigned    outbufsiz;
 
+    memcpy(O,csound->GetOParms(csound), sizeof(OPARMS));
     memset(&sc, 0, sizeof(SCALE));
     sc.ff = 0.0;
     sc.table_used = 0;
     sc.scale_table = stattab;
     sc.end_table = &sc.scale_table;
 
-    O.filetyp = O.outformat = 0;
-    O.ringbell = O.heartbeat = 0;
+    O->filetyp = O->outformat = 0;
+    O->ringbell = O->heartbeat = 0;
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
-        O.filetyp = TYP_AIFF;
+        O->filetyp = TYP_AIFF;
       else if (strcmp(envoutyp, "WAV") == 0)
-        O.filetyp = TYP_WAV;
+        O->filetyp = TYP_WAV;
       else if (strcmp(envoutyp, "IRCAM") == 0)
-        O.filetyp = TYP_IRCAM;
+        O->filetyp = TYP_IRCAM;
       else {
         csound->Die(csound, Str("%s not a recognized SFOUTYP env setting"),
                             envoutyp);
@@ -172,24 +173,24 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
           switch(c) {
           case 'o':
             FIND(Str("no outfilename"))
-            O.outfilename = s;         /* soundout name */
+            O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
+            if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
               csound->Die(csound, "%s", Str("-o cannot be stdin"));
 #if defined(WIN32)
-            if (UNLIKELY(strcmp(O.outfilename, "stdout") == 0)) {
+            if (UNLIKELY(strcmp(O->outfilename, "stdout") == 0)) {
               csound->Die(csound, "%s", Str("stdout audio not supported"));
             }
 #endif
             break;
           case 'A':
-            O.filetyp = TYP_AIFF;      /* AIFF output request  */
+            O->filetyp = TYP_AIFF;      /* AIFF output request  */
             break;
           case 'J':
-            O.filetyp = TYP_IRCAM;     /* IRCAM output request */
+            O->filetyp = TYP_IRCAM;     /* IRCAM output request */
             break;
           case 'W':
-            O.filetyp = TYP_WAV;       /* WAV output request  */
+            O->filetyp = TYP_WAV;       /* WAV output request  */
             break;
           case 'F':
             FIND(Str("no scale factor"));
@@ -210,7 +211,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             break;
           case 'h':
-            O.filetyp = TYP_RAW;       /* skip sfheader  */
+            O->filetyp = TYP_RAW;       /* skip sfheader  */
             break;
           case 'c':
           case 'a':
@@ -220,21 +221,21 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
           case '3':
           case 'l':
           case 'f':
-            outformch = set_output_format(&O, c, outformch);
+            outformch = set_output_format(O, c, outformch);
             break;
           case 'R':
-            O.rewrt_hdr = 1;
+            O->rewrt_hdr = 1;
             break;
           case 'H':
             if (isdigit(*s)) {
               int32_t n;
-              csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
+              csound->Sscanf(s, "%d%n", O->heartbeat, &n);
               s += n;
             }
-            else O.heartbeat = 1;
+            else O->heartbeat = 1;
             break;
           case 'N':
-            O.ringbell = 1;             /* notify on completion */
+            O->ringbell = 1;             /* notify on completion */
             break;
           default:
             {
@@ -258,28 +259,28 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       return -1;
     }
     if (factor != 0.0 || factorfile != NULL) {          /* perform scaling */
-      if (!O.filetyp)
-        O.filetyp = sc.p->filetyp;
-      if (!O.outformat)
-        O.outformat = sc.p->format;
-      O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
-      O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
-      if (!O.sfheader)
-        O.rewrt_hdr = 0;
-      if (O.outfilename == NULL)
-        O.outfilename = "test";
+      if (!O->filetyp)
+        O->filetyp = sc.p->filetyp;
+      if (!O->outformat)
+        O->outformat = sc.p->format;
+      O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+      if (O->filetyp == TYP_RAW)
+        O->rewrt_hdr = 0;
+      if (O->outfilename == NULL)
+        O->outfilename = "test";
       (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)sc.p->sr);
       (csound->GetUtility(csound))->SetUtilNchnls(csound, sc.p->nchanls);
+
 
       memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       //sfinfo.frames = 0/*was -1*/;
       sfinfo.samplerate = (int32_t) ( sc.p->sr); // p->sr is int32_t already
       sfinfo.channels = sc.p->nchanls;
-      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
+      sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
       /* open file for write */
       fd = NULL;
-      if (strcmp(O.outfilename, "stdout") == 0 ||
-          strcmp(O.outfilename, "-") == 0) {
+      if (strcmp(O->outfilename, "stdout") == 0 ||
+          strcmp(O->outfilename, "-") == 0) {
         outfile = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 0);
         if (outfile != NULL) {
           if (UNLIKELY((fd =
@@ -292,28 +293,28 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       }
       else
         fd = csound->FileOpen(csound, &outfile, CSFILE_SND_W,
-                       O.outfilename, &sfinfo, "SFDIR",
-                       csound->Type2CsfileType(O.filetyp, O.outformat), 0);
+                       O->outfilename, &sfinfo, "SFDIR",
+                       csound->Type2CsfileType(O->filetyp, O->outformat), 0);
       if (UNLIKELY(fd == NULL))
         csound->Die(csound, Str("Failed to open output file %s: %s"),
-                    O.outfilename, Str(csound->SndfileStrError(csound,NULL)));
-      outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
+                    O->outfilename, Str(csound->SndfileStrError(csound,NULL)));
+      outbufsiz = 1024 * O->sfsampsize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,
-                              csound->GetStrFormat(O.outformat),
-                              O.outfilename,
-                             csound->Type2String(O.filetyp));
+                              csound->GetStrFormat(O->outformat),
+                              O->outfilename,
+                             csound->Type2String(O->filetyp));
       InitScaleTable(csound, &sc, factor, factorfile);
-      ScaleSound(csound, &sc, infile, outfile, &O);
+      ScaleSound(csound, &sc, infile, outfile, O);
     }
     else if (maximum != 0.0) {
-      float mm = FindAndReportMax(csound, &sc, infile, &O);
+      float mm = FindAndReportMax(csound, &sc, infile, O) ;
       factor = maximum / mm;
       goto retry;
     }
     else
-      FindAndReportMax(csound, &sc, infile, &O);
-    if (O.ringbell)
+      FindAndReportMax(csound, &sc, infile, O);
+    if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
     return 0;
 }

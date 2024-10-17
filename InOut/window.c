@@ -63,16 +63,16 @@ static int32_t DummyFn3(CSOUND *csound)
 
 void dispinit(CSOUND *csound)
 {
-      OPARMS  O;
-      csound->GetOParms(csound, &O);
+     const OPARMS * O;
+      O = csound->GetOParms(csound) ;
 
-    if (O.displays && !(O.graphsoff || O.postscript)) {
+    if (O->displays && !(O->graphsoff || O->postscript)) {
       if (!csound->isGraphable_)
       find_opcode_new(csound, "FLrun", NULL, NULL); /* load FLTK for displays */
       if (csound->isGraphable_)
         return;         /* provided by window driver: is this session able? */
     }
-    if (!O.displays) {
+    if (!O->displays) {
       if(csound->oparms->msglevel || csound->oparms->odebug)
        csound->Message(csound, Str("displays suppressed\n"));
       csound->csoundMakeGraphCallback_ = DummyFn1;
@@ -84,7 +84,7 @@ void dispinit(CSOUND *csound)
         // if callbacks are not set by host
         if(csound->oparms->msglevel ||csound->oparms->odebug)
          csound->Message(csound, Str("graphics %s, ascii substituted\n"),
-                        ((O.graphsoff || O.postscript) ?
+                        ((O->graphsoff || O->postscript) ?
                          Str("suppressed")
                          : Str("not supported on this terminal")));
         csound->csoundMakeGraphCallback_ = MakeAscii;
@@ -103,13 +103,13 @@ void dispset(CSOUND *csound,            /* setup a new window       */
              int32_t    waitflg,
              char   *label)
 {
-    OPARMS  O;
+   const OPARMS * O;
     char *s = caption;
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
 
-    csound->GetOParms(csound, &O);
-    if (!O.displays) return;    // return if displays disabled
+    O = csound->GetOParms(csound) ;
+    if (!O->displays) return;    // return if displays disabled
     wdptr->fdata    = fdata;            // init remainder of data structure
     wdptr->npts     = npts;
     while (*s != '\0' && t < tlim)
@@ -118,7 +118,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     // if no window defined for this str, create one
     if (!wdptr->windid && csound->csoundMakeGraphCallback_ != NULL) {
       csound->csoundMakeGraphCallback_(csound, wdptr, label);
-      if (O.postscript)
+      if (O->postscript)
         PS_MakeGraph(csound, wdptr, label);
     }
 
@@ -134,9 +134,9 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 
 int32_t dispexit(CSOUND *csound)
 {
-    OPARMS  O;
-    csound->GetOParms(csound, &O);
-    if (O.postscript)
+   const OPARMS * O;
+    O = csound->GetOParms(csound) ;
+    if (O->postscript)
       PS_ExitGraph(csound);     /* Write trailer to PostScript file  */
     /* prompt for exit from last active window */
     int32_t ret = -1;
@@ -152,10 +152,10 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     MYFLT   *fp, *fplim;
     MYFLT   max, min, absmax, fval;
     int32_t     pol;
-    OPARMS  O;
-    csound->GetOParms(csound, &O);
+   const OPARMS * O;
+    O = csound->GetOParms(csound) ;
 
-    if (!O.displays)  return;   /* displays disabled? return */
+    if (!O->displays)  return;   /* displays disabled? return */
     fp = wdptr->fdata;
     if(fp == NULL) return;
     fplim = fp + wdptr->npts;
@@ -180,12 +180,12 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     else if (pol == (int16_t)NEGPOL && max > FL(0.0)) pol = (int16_t)BIPOL;
     wdptr->polarity = pol;
 
-    if (O.odebug) csound->Message(csound, " calling draw callback \n");
+    if (O->odebug) csound->Message(csound, " calling draw callback \n");
     /* now graph the function */
     csound->csoundDrawGraphCallback_(csound, wdptr);
 
 
     /* Write postscript code */
-    if (O.postscript)
+    if (O->postscript)
       PS_DrawGraph(csound, wdptr);
 }

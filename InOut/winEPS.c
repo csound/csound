@@ -98,8 +98,8 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     char      pathnam[1024];
     char      *t;
     time_t    lt;
-    OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+     O = csound->GetOParms(csound) ;
      IGN(wdptr);
      IGN(name);
 
@@ -108,9 +108,9 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     csound->winEPS_globals = csound->Calloc(csound, sizeof(winEPS_globals_t));
     pp = (winEPS_globals_t *) csound->winEPS_globals;
 
-    filenam = oparms.outfilename;
+    filenam = O->outfilename;
     if (filenam == NULL)
-      filenam = "test";     /* O.outfilename not set yet */
+      filenam = "test";     /* O->outfilename not set yet */
 
     /*  If sound output is being piped directly to the DAC, then */
     /*  there is no PS output, (psFileOK remains 0),             */

@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                               /*  SNDINFO.C  */
+#include "std_util.h"                               /*  SNDINFO->C  */
 #include "soundio.h"
 
 /* Some of the information is borrowed from libsndfile's sndfile-info code */

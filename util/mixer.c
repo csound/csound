@@ -162,7 +162,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *O)
 
 static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
 {
-    OPARMS      O;
+    OPARMS *     O = (OPARMS *) csound->Calloc(csound, sizeof(OPARMS));
     char        *inputfile = NULL;
     SNDFILE     *outfd;
     int32_t         i;
@@ -174,18 +174,18 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
                                                         sizeof(MIXER_GLOBALS));
     inputs      *mixin = &(pp->mixin[0]);
 
-    csound->GetOParms(csound, &O);
+    memcpy(O,csound->GetOParms(csound), sizeof(OPARMS));
 
     pp->csound = csound;
     /*csound->dbfs_to_float = csound->e0dbfs = FL(1.0);*/
     /* Check arguments */
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
-        O.filetyp = TYP_AIFF;
+        O->filetyp = TYP_AIFF;
       else if (strcmp(envoutyp, "WAV") == 0)
-        O.filetyp = TYP_WAV;
+        O->filetyp = TYP_WAV;
       else if (strcmp(envoutyp, "IRCAM") == 0)
-        O.filetyp = TYP_IRCAM;
+        O->filetyp = TYP_IRCAM;
       else {
         csound->ErrorMsg(csound, Str("%s not a recognized SFOUTYP env setting"),
                                  envoutyp);
@@ -205,24 +205,24 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
           switch(c) {
           case 'o':
             FIND(Str("no outfilename"))
-            O.outfilename = s;         /* soundout name */
+            O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
+            if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
               csound->Die(csound, "%s", Str("mixer: -o cannot be stdin"));
 #if defined(WIN32)
-            if (UNLIKELY(strcmp(O.outfilename,"stdout") == 0)) {
+            if (UNLIKELY(strcmp(O->outfilename,"stdout") == 0)) {
               csound->Die(csound, "%s", Str("mixer: stdout audio not supported"));
             }
 #endif
             break;
           case 'A':
-            O.filetyp = TYP_AIFF;      /* AIFF output request  */
+            O->filetyp = TYP_AIFF;      /* AIFF output request  */
             break;
           case 'J':
-            O.filetyp = TYP_IRCAM;     /* IRCAM output request */
+            O->filetyp = TYP_IRCAM;     /* IRCAM output request */
             break;
           case 'W':
-            O.filetyp = TYP_WAV;       /* WAV output request  */
+            O->filetyp = TYP_WAV;       /* WAV output request  */
             break;
           case 'F':
             FIND(Str("no scale factor"));
@@ -286,7 +286,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
               break;
             }
           case 'h':
-            O.filetyp = TYP_RAW;       /* skip sfheader  */
+            O->filetyp = TYP_RAW;       /* skip sfheader  */
             break;
           case 'c':
           case 'a':
@@ -295,21 +295,21 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
           case 's':
           case 'l':
           case 'f':
-            outformch = set_output_format(csound, c, outformch, &O);
+            outformch = set_output_format(csound, c, outformch, O);
             break;
           case 'R':
-            O.rewrt_hdr = 1;
+            O->rewrt_hdr = 1;
             break;
           case 'H':
             if (isdigit(*s)) {
               int32_t n;
-              csound->Sscanf(s, "%d%n", &O.heartbeat, &n);
+              csound->Sscanf(s, "%d%n", &O->heartbeat, &n);
               s += n;
             }
-            else O.heartbeat = 1;
+            else O->heartbeat = 1;
             break;
           case 'N':
-            O.ringbell = 1;             /* notify on completion */
+            O->ringbell = 1;             /* notify on completion */
             break;
           case 'v':                       /* Verbose mode */
             pp->debug = 1;
@@ -368,22 +368,22 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
       if (mixin[i].use_table) InitScaleTable(pp, i);
     }
 
-    if (!O.outformat)                      /* if no audioformat yet  */
-      O.outformat = mixin[0].p->format;    /* Copy from first input file */
-    O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
-    if (!O.filetyp)
-      O.filetyp = mixin[0].p->filetyp;     /* Copy from input file */
-    O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
-    if (!O.sfheader)       /* can't rewrite header if no header requested */
-      O.rewrt_hdr = 0;
+    if (!O->outformat)                      /* if no audioformat yet  */
+      O->outformat = mixin[0].p->format;    /* Copy from first input file */
+    O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+    if (!O->filetyp)
+      O->filetyp = mixin[0].p->filetyp;     /* Copy from input file */
+    
+    if (O->filetyp == TYP_RAW)       /* can't rewrite header if no header requested */
+      O->rewrt_hdr = 0;
 #ifdef NeXT
-    if (O.outfilename == NULL && !O.filetyp) O.outfilename = "test.snd";
-    else if (O.outfilename == NULL) O.outfilename = "test";
+    if (O->outfilename == NULL && !O->filetyp) O->outfilename = "test.snd";
+    else if (O->outfilename == NULL) O->outfilename = "test";
 #else
-    if (O.outfilename == NULL) {
-      if (O.filetyp == TYP_WAV) O.outfilename = "test.wav";
-      else if (O.filetyp == TYP_AIFF) O.outfilename = "test.aif";
-      else O.outfilename = "test";
+    if (O->outfilename == NULL) {
+      if (O->filetyp == TYP_WAV) O->outfilename = "test.wav";
+      else if (O->filetyp == TYP_AIFF) O->outfilename = "test.aif";
+      else O->outfilename = "test";
     }
 #endif
     (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
@@ -391,8 +391,8 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
     //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = mixin[0].p->sr;
     sfinfo.channels /*= csound->nchnls*/ = (int32_t) mixin[0].p->nchanls;
-    sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
-    if (strcmp(O.outfilename, "stdout") == 0) {
+    sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
+    if (strcmp(O->outfilename, "stdout") == 0) {
       outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
         if (UNLIKELY(csound->CreateFileHandle(csound,
@@ -403,27 +403,27 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
         }
       }
     }
-    else if (csound->FileOpen(csound, &outfd, CSFILE_SND_W, O.outfilename,
-                       &sfinfo, "SFDIR", csound->Type2CsfileType(O.filetyp,
-                       O.outformat), 0) == NULL)
+    else if (csound->FileOpen(csound, &outfd, CSFILE_SND_W, O->outfilename,
+                       &sfinfo, "SFDIR", csound->Type2CsfileType(O->filetyp,
+                       O->outformat), 0) == NULL)
       outfd = NULL;
     if (UNLIKELY(outfd == NULL)) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s': %s"),
-                       O.outfilename, Str(csound->SndfileStrError(csound,NULL)));
+                       O->outfilename, Str(csound->SndfileStrError(csound,NULL)));
       return -1;
     }
-    if (UNLIKELY(O.rewrt_hdr))
+    if (UNLIKELY(O->rewrt_hdr))
       csound->SndfileCommand(csound,outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
     pp->out_buf = csound->Malloc(csound, pp->outbufsiz * sizeof(MYFLT));
-    pp->outbufsiz *= O.sfsampsize;
+    pp->outbufsiz *= O->sfsampsize;
     csound->Message(csound, Str("writing %d-byte blks of %s to %s (%s)\n"),
                             pp->outbufsiz,
-                            csound->GetStrFormat(O.outformat), O.outfilename,
-                           csound->Type2String(O.filetyp));
-    MixSound(pp, n, outfd, &O);
-    if (O.ringbell)
+                            csound->GetStrFormat(O->outformat), O->outfilename,
+                           csound->Type2String(O->filetyp));
+    MixSound(pp, n, outfd, O);
+    if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "\007");
     return 0;
 }
@@ -543,7 +543,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     return infd;
 }
 
- static void MixSound(MIXER_GLOBALS *pp, int32_t n, SNDFILE *outfd, OPARMS *O)
+ static void MixSound(MIXER_GLOBALS *pp, int32_t n, SNDFILE *outfd,OPARMS *O)
 {
     CSOUND *csound = pp->csound;
     inputs  *mixin = &(pp->mixin[0]);

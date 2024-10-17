@@ -386,7 +386,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv)
      if(O->msglevel || O->odebug)
        csound->Message(csound, Str("\t... done\n"));
     /* copy sorted score name */
-    O->playscore = csound->scstr;
+    csound->playscore = csound->scstr;
     /* IV - Jan 28 2005 */
     print_benchmark_info(csound, Str("end of score sort"));
     if (O->syntaxCheckOnly) {
@@ -514,11 +514,9 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
         O->filetyp = TYP_AIFF;  /* ... or AIFF on the Mac */
 #endif
     }
-    /* everything other than a raw sound file has a header */
-    O->sfheader = (O->filetyp == TYP_RAW ? 0 : 1);
     if (O->Linein || O->Midiin || O->FMidiin)
       O->RTevents = 1;
-    if (!O->sfheader)
+    if (O->filetyp != TYP_RAW )
       O->rewrt_hdr = 0;         /* cannot rewrite header of headerless file */
     /* VL 9 04 15: these not need occur jointly anymore */
     /*

@@ -178,6 +178,22 @@ These functions have been replaced by
 PUBLIC uint32_t csoundGetChannels(CSOUND *, int isInput);
 ```
 
+The functions
+
+```
+PUBLIC void csoundSetParameters(CSOUND *, CSOUND_PARAMETERS *p);
+PUBLIC void csoundGetParameters(CSOUND *, CSOUND_PARAMETERS *p);
+```
+
+have been removed and replaced by`
+
+```
+PUBLIC const OPARMS *csoundGetParams(CSOUND *csound);
+```
+
+Note that configuration parameters can be modified via
+command-line options, CsOptions, or `csoundSetOption()`.
+
 ```
 PUBLIC int csoundSetOption(CSOUND *csound, const char *option);
 ```

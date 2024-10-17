@@ -58,7 +58,7 @@ static inline void alloc_globals(CSOUND *csound)
    uses spraw as temporary buffer
 */
 static inline void spout_interleave(CSOUND *csound, int32_t scal) {
-   OPARMS  *O = csound->oparms;
+  OPARMS  *O = csound->oparms;
    uint32_t nchnls = csound->nchnls, ksmps=csound->ksmps;
    int32_t   i,j,start=0,end=ksmps;
    int32_t spoutrem = csound->nspout;
@@ -155,7 +155,7 @@ static void spoutsf_noscale(CSOUND *csound)
 
 static void writesf(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     n;
 
     if (UNLIKELY(STA(outfile) == NULL))
@@ -194,7 +194,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 
 static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     n;
     int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
@@ -248,7 +248,7 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int32_t nbyte
 
 static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     n;
     int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
@@ -302,7 +302,7 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes
 
 static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     n;
     int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
@@ -354,7 +354,7 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int32_t nbyt
 
 static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     n;
     int32_t m = nbytes / sizeof(MYFLT);
     MYFLT *buf = (MYFLT*) outbuf;
@@ -463,7 +463,7 @@ int32_t check_rtaudio_name(char *fName, char **devName, int32_t isOutput)
 
 void sfopenin(CSOUND *csound)           /* init for continuous soundin */
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     char    *sfname, *fullName;
     SFLIB_INFO sfinfo;
     int32_t     fileType = (int32_t) TYP_RAW;
@@ -603,7 +603,7 @@ static char* copyrightcode(int32_t n)
 
 void sfopenout(CSOUND *csound)                  /* init for sound out       */
 {                                               /* (not called if nosound)  */
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     char    *s, *fName, *fullName;
     SFLIB_INFO sfinfo;
     int32_t     osfd = 1;   /* stdout */
@@ -895,7 +895,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), STA(sfoutname));
 
-    if (O->sfheader == 0)
+    if (O->filetyp == TYP_RAW)
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
@@ -929,7 +929,7 @@ void sfclosein(CSOUND *csound)
 
 void sfcloseout(CSOUND *csound)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     nb;
 
     alloc_globals(csound);
@@ -971,7 +971,7 @@ void sfcloseout(CSOUND *csound)
       csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
-      if (O->sfheader == 0)
+      if (O->filetyp == TYP_RAW)
         csound->Message(csound, Str(" (raw)\n"));
       else
         csound->Message(csound, " (%s)\n", type2string(O->filetyp));
@@ -1006,7 +1006,7 @@ void sfnopenout(CSOUND *csound)
 
 static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
 {
-    OPARMS  *O = csound->oparms;
+   OPARMS  *O = csound->oparms;
     int32_t     i, n, nsmps, bufpos;
 
     nsmps = csound->nspin;
@@ -1054,7 +1054,7 @@ static void audtran_dummy(CSOUND *csound, const MYFLT *buf, int32_t nbytes)
 
 void iotranset(CSOUND *csound)
 {
-    OPARMS  *O;
+   OPARMS  *O;
 
     csound->spinrecv = sndfilein;
     csound->spoutran = spoutsf;
