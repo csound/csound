@@ -93,7 +93,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Build libsndfile static lib
+      - name: Build libsndfile xcframework
         working-directory: iOs
         run: |
           chmod +x build_libsndfile.sh
