@@ -489,7 +489,7 @@ int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
         evt.p[1] = (MYFLT) res;
         evt.strarg = NULL; evt.scnt = 0;
       }
-      if (insname == 2) {
+      else if (insname == 2) {
         int32_t res;
         INSTREF *ref = (INSTREF *) p->args[1];
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
@@ -589,7 +589,7 @@ int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
         for (i = 2; i <= evt.pcnt; i++)
            evt.p[i] = *p->args[i];
       }
-      if (insname == 2) {
+      else if (insname == 2) {
         int32_t res;
         INSTREF *ref = (INSTREF *) p->args[1];
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
