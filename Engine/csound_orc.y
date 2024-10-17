@@ -171,6 +171,7 @@
     extern ORCTOKEN *make_string(CSOUND *, char *);
     extern char* UNARY_PLUS;
     extern TREE* make_opcall_from_func_start(CSOUND*, int32_t, uint64_t, int32_t, TREE*, TREE*);
+    extern void add_instr_variable(CSOUND *csound,  TREE *x);
 %}
 %%
 
@@ -237,7 +238,9 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
 
 instr_id_list : instr_id_list ',' instr_id
                   { $$ = appendToTree(csound, $1, $3); }
-              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1); }
+              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1);
+                    add_instr_variable(csound, $1);
+                }
               ;
 
 instr_id : integer

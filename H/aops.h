@@ -229,8 +229,25 @@ typedef struct {
         MYFLT   *end;
 } PAINIT;
 
+typedef struct iref_init {
+  OPDS  h;
+  INSTREF *out;
+  MYFLT  *in;
+} IREF_INIT;
+
+typedef struct iref_num {
+  OPDS  h;
+  MYFLT  *out;
+  INSTREF *in;
+} IREF_NUM;
+
+int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p);
+int32_t get_instr_num(CSOUND *csound, IREF_NUM *p);
+int32_t get_instr_name(CSOUND *csound, IREF_NUM *p);
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
+
