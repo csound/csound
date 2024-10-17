@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   MYFLT *ans;
-  COMPLEXDAT *a, *b;
+  COMPLEXDAT *a;
 } CXOP2R;
 
 
@@ -37,6 +37,7 @@ typedef struct {
   OPDS    h;
   COMPLEXDAT *ans;
   MYFLT *a, *b;
+  MYFLT *isPolar;
 } R2CXOP;
 
 
@@ -59,3 +60,5 @@ int32_t complex_add_real(CSOUND *csound, AOP *p);
 int32_t complex_sub_real(CSOUND *csound, AOP *p);  
 int32_t complex_mul_real(CSOUND *csound, AOP *p);
 int32_t complex_div_real(CSOUND *csound, AOP *p);
+int32_t complex_to_polar(CSOUND *csound, CXOP *p);
+int32_t polar_to_complex(CSOUND *csound, CXOP *p);

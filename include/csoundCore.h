@@ -523,6 +523,7 @@ static const double FMAXLEN = (1U << 24) - 1;
   typedef struct complexdat {
     MYFLT real;
     MYFLT imag;
+    int32_t isPolar;
   } COMPLEXDAT;
   
   typedef struct monblk {
