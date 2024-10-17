@@ -91,14 +91,28 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
     }
     add_arg(csound, s, NULL, typeTable);
   } else {
+     // VL 15.10.24
+     // at this point new types defined with string type names
+     // still have : prepended and ; appended to name
+     // we need to remove these for the type system to recognise the type
+     char type[64] = {0}, c;
+     int32_t n = 0, i = 0;
+     // remove any : or ; leftover in typename
+     do  {
+         c = outype[n++];
+         if(c == ':' || c == ';') continue;  
+         type[i++] = c;
+      } while (c);
+     
     // FIXME - struct arrays
-    if (*outype == '[') {
-      snprintf(s, 16, "#%c%d[]", outype[1], argCount);
+    if (*type == '[') {
+      snprintf(s, 16, "#%c%d[]", type[1], argCount);
       add_array_arg(csound, s, NULL, 1, typeTable);
-    } else {
+    }
+    else {
       //            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
-      snprintf(s, 256, "#%s%d", outype, argCount);
-      add_arg(csound, s, outype, typeTable);
+      snprintf(s, 256, "#%s%d", type, argCount);
+      add_arg(csound, s, type, typeTable);
     }
     //        } else if(*outype == ':') {
     //            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
@@ -109,7 +123,6 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
     //            return NULL;
     //        }
   }
-
   return s;
 }
 

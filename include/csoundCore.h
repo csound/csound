@@ -509,7 +509,7 @@ static const double FMAXLEN = (1U << 24) - 1;
 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
   /*
-   * Type definition for string data (string channels)
+   * Type definition for string data 
    */
   struct stringdat {
     char *data;         // null-terminated string
@@ -517,6 +517,15 @@ static const double FMAXLEN = (1U << 24) - 1;
     int64_t timestamp;  // used internally for updates
   };
 
+  /*
+   * Type definition for complex data
+   */
+  typedef struct complexdat {
+    MYFLT real;
+    MYFLT imag;
+    int32_t isPolar;
+  } COMPLEXDAT;
+  
   typedef struct monblk {
     int16   pch;
     struct monblk *prv;
