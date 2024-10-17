@@ -28,22 +28,22 @@
 
 /* magnitude from complex number */ 
 static inline MYFLT complex_to_mag(COMPLEXDAT *p) {
-  return SQRT(p->real * p->real + p->imag * p->imag);
+  return !p->isPolar ? SQRT(p->real * p->real + p->imag * p->imag) : p->real;
 }
 
 /* argument from complex number */
 static inline MYFLT complex_to_arg(COMPLEXDAT *p) {
-  return ATAN2(p->imag, p->real);
+  return !p->isPolar ? ATAN2(p->imag, p->real) : p->imag;
 }
 
 /* real part of a polar complex number */
 static inline MYFLT polar_to_real(COMPLEXDAT *p) {
-  return p->real*COS(p->imag);
+  return p->isPolar ? p->real*COS(p->imag) : p->real;
 }
 
 /* imag part of a polar complex number */
 static inline MYFLT polar_to_imag(COMPLEXDAT *p) {
-  return p->real*SIN(p->imag);
+  return p->isPolar ? p->real*SIN(p->imag) : p->imag;
 }
 
 /* complex to polar */
