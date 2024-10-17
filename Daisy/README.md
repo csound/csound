@@ -1,13 +1,13 @@
 DAISY PLATFORM BUILD INSTRUCTIONS
 ----------
 
-To build the Csound library for the Daisy platform, with the toolchain installed and CMake,
-from the top level source directory do
+To build the Csound library for the Daisy platform, with the toolchain
+and CMake installed in the system, from the top level source directory do
 
 ```
 mkdir build
 cd build
-cmake .. -DCUSTOM_CMAKE=../daisy/Custom.cmake -DCMAKE_TOOLCHAIN_FILE=../daisy/crosscompile.cmake
+cmake .. -DCUSTOM_CMAKE=../Daisy/Custom.cmake -DCMAKE_TOOLCHAIN_FILE=../Daisy/crosscompile.cmake
 make 
 ```
 
