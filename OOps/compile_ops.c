@@ -127,7 +127,8 @@ int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p) {
        pp.args[0] = (MYFLT *) c;
        pp.args[1] = (MYFLT *) &num;
        pp.args[2] = &zero;
-       pp.argno = p->INOCOUNT+2;
+       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
        for (i=0; i < p->INOCOUNT-1;i++) {
          pp.args[i+3] = p->argums[i];
        }
@@ -148,8 +149,9 @@ int32_t run_instr(CSOUND *csound, RINSTR *p) {
        pp.args[0] = (MYFLT *) c;
        pp.args[1] = (MYFLT *) p->instr;
        pp.args[2] = &zero;
-       pp.argno = p->INOCOUNT+2;
-       for (i=0; i < p->INOCOUNT-1;i++) {
+       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       for (i=1; i < p->INOCOUNT-1;i++) {
          pp.args[i+3] = p->argums[i];
        }
       pp.flag = 1;
