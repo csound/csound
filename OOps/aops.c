@@ -1,6 +1,7 @@
 /* aops.c:
 
    Copyright (C) 1991 Barry Vercoe, John ffitch, Gabriel Maldonado
+   (c) 2024 V Lazzarini
 
    This file is part of Csound.
 
