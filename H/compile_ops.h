@@ -51,6 +51,25 @@ typedef struct rosca {
   STRINGDAT *address, *type;
 } ROSCA;
 
+typedef struct _cinstr {
+  OPDS h;
+  INSTREF *instr;
+  STRINGDAT *code;
+} CINSTR;
+
+typedef struct _carinstr {
+  OPDS h;
+  STRINGDAT *code;
+  MYFLT *argums[VARGMAX-1];
+} CARINSTR;
+
+typedef struct _rinstr {
+  OPDS h;
+  INSTREF *instr;
+  MYFLT *argums[VARGMAX-1];
+} RINSTR;
+
+
 int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
 int32_t compile_str_i(CSOUND *csound, COMPILE *c);
 int32_t compile_csd_i(CSOUND *csound, COMPILE *c);
@@ -62,4 +81,6 @@ int32_t eval_str_k(CSOUND *csound, COMPILE *p);
 int32_t readOSC_perf(CSOUND *csound, ROSC *p);
 int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p);
 int32_t readOSCarray_init(CSOUND *csound, ROSCA *p);
-
+int32_t compile_instr(CSOUND *csound, CINSTR *p);
+int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p); 
+int32_t run_instr(CSOUND *csound, RINSTR *p); 
