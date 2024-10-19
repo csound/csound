@@ -1284,6 +1284,7 @@ OENTRY opcodlst_1[] = {
   { "compilecsd",  S(COMPILE), 0,  "i", "S",  (SUBR) compile_csd_i, NULL, NULL },
   { "compilestr",  S(COMPILE), 0,  "i", "S",  (SUBR) compile_str_i, NULL, NULL },
   { "createinstr",  S(CINSTR), 0,  ":Instr;", "S",  (SUBR) compile_instr, NULL, NULL },
+  { "deleteinstr",  S(DELETEIN), 0, "", ":Instr;",  NULL, (SUBR) delete_instr, NULL },
   { "lambda",  S(CARINSTR), 0,  "", "Sm",  (SUBR) compile_and_run_instr, NULL, NULL },
   { "lambda",  S(RINSTR), 0,  "", ":Instr;m",  (SUBR) run_instr, NULL, NULL },
   { "evalstr",  S(COMPILE), 0,  "i", "S",  (SUBR) eval_str_i, NULL, NULL },
