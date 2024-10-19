@@ -571,7 +571,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                           &CS_VAR_TYPE_INSTR,
-                                          "this", NULL);
+                                          "this_instr", NULL);
   csoundAddVariable(csound, varPool, var);
 
 
@@ -861,7 +861,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   TREE *current;
   CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                           &CS_VAR_TYPE_INSTR,
-                                          "this", NULL);
+                                          "this_instr", NULL);
   csoundAddVariable(csound, varPool, var);
 
   //csound->inZero = 1;
@@ -976,7 +976,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   csoundAddVariable(csound, ip->varPool, var);
   /* same for this */
   var = csoundCreateVariable(csound, csound->typePool, &CS_VAR_TYPE_INSTR,
-                             "this", NULL);
+                             "this_instr", NULL);
   csoundAddVariable(csound, ip->varPool, var);
 
   /* Maybe should do this assignment at end when instr is setup?

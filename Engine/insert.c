@@ -2206,7 +2206,7 @@ void instance(CSOUND *csound, int32_t insno)
     var->memBlock->value = csound->esr;
   }
 
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "this");
+  var = csoundFindVariableWithName(csound, ip->instr->varPool, "this_instr");
   if(var) {
     INSTREF src = { ip->instr, 0 }, *dest; 
     char* temp = (char*)(lclbas + var->memBlockIndex);

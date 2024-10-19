@@ -9,7 +9,7 @@ instr test
  i1 nstrnum test2
  S1 = test2
  prints "instr %d %s\n", i1, S1
- schedule this, 1, 1
+ schedule this_instr, 1, 1
 endin
 
 event_i "i", test, 0, 1
