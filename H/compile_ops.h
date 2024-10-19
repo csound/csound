@@ -69,6 +69,13 @@ typedef struct _rinstr {
   MYFLT *argums[VARGMAX-1];
 } RINSTR;
 
+typedef struct _rinstrk {
+  OPDS h;
+  MYFLT *ktrig;
+  INSTREF *instr;
+  MYFLT *argums[VARGMAX-1];
+} RINSTRK;
+
 
 int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
 int32_t compile_str_i(CSOUND *csound, COMPILE *c);
@@ -84,3 +91,4 @@ int32_t readOSCarray_init(CSOUND *csound, ROSCA *p);
 int32_t compile_instr(CSOUND *csound, CINSTR *p);
 int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p); 
 int32_t run_instr(CSOUND *csound, RINSTR *p); 
+int32_t run_instr_k(CSOUND *csound, RINSTRK *p); 

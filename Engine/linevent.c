@@ -480,7 +480,7 @@ int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
 
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
-      if (insname) {
+      if (insname == 1) {
         int32_t res;
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
           return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_2));

@@ -1288,6 +1288,7 @@ OENTRY opcodlst_1[] = {
   { "remove",  S(DELETEIN), 0, "", ":Instr;",  (SUBR) delete_instr, NULL },
   { "lambda",  S(CARINSTR), 0,  "", "Sm",  (SUBR) compile_and_run_instr, NULL, NULL },
   { "lambda",  S(RINSTR), 0,  "", ":Instr;m",  (SUBR) run_instr, NULL, NULL },
+  { "lambda",  S(RINSTRK), 0,  "", "k:Instr;m",  NULL, (SUBR) run_instr_k, NULL},
   { "evalstr",  S(COMPILE), 0,  "i", "S",  (SUBR) eval_str_i, NULL, NULL },
   { "evalstr",  S(COMPILE), 0,   "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
   { "readscore",  S(COMPILE), 0,  "i", "S",  (SUBR) read_score_i, NULL, NULL },

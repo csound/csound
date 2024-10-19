@@ -104,6 +104,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
 }
 #include "linevent.h"
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 /* compiles and runs an anonymous instrument
    run_instr Scode, idur[, ...]  
 */
@@ -158,6 +159,25 @@ int32_t run_instr(CSOUND *csound, RINSTR *p) {
       return eventOpcodeI_(csound, &pp, 2, 'i');
 }
 
+int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
+      if(*p->ktrig) {
+       LINEVENT pp;
+       MYFLT zero = FL(0.0);
+       int32_t i;
+       pp.h = p->h;
+       char c[2] = "i";
+       pp.args[0] = (MYFLT *) c;
+       pp.args[1] = (MYFLT *) p->instr;
+       pp.args[2] = &zero;
+       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       for (i=1; i < p->INOCOUNT-1;i++) {
+         pp.args[i+3] = p->argums[i];
+       }
+       pp.flag = 1;
+       return eventOpcode_(csound, &pp, 2, 'i');
+      } else return OK;
+}
 
 
 
