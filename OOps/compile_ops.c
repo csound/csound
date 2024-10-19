@@ -77,6 +77,110 @@ int32_t compile_str_i(CSOUND *csound, COMPILE *p){
   return OK;
 }
 
+/* compiles a single instrument:
+   Instr new_instr Scode  -> adds new instr in free slot
+*/
+int32_t compile_instr(CSOUND *csound, CINSTR *p) {
+  INSTRTXT **instrs = csound->GetInstrumentList(csound);
+  int32_t num = 1;
+  char *code;
+  const char *endin = "\n endin \n";
+  // look for a free slot
+  while(instrs[num] != NULL) num++;
+    code = csound->Calloc(csound, strlen(p->code->data)
+                               + strlen(endin) + 16);
+   sprintf(code, "instr %d\n%s%s", num, p->code->data, endin);
+
+  if(csound->GetDebug(csound)) csound->Message(csound, "%s \n", code);
+  // compile code
+  if(csoundCompileOrcInternal(csound, code, 0) == CSOUND_SUCCESS) {
+    // pass the instrument out
+    p->instr->instr = instrs[num];
+    csound->Free(csound, code);
+    return OK;
+  }
+  csound->Free(csound, code);
+  return csound->InitError(csound, "failed to compile instr\n");
+}
+#include "linevent.h"
+int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+/* compiles and runs an anonymous instrument
+   run_instr Scode, idur[, ...]  
+*/
+int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p) {
+  char *code;
+  const char *endin = "\n endin \n";
+  const char *name = "instr __ANONYMOUS__ \n";
+  code = csound->Calloc(csound, strlen(p->code->data)
+                        + strlen(name) + strlen(endin) + 1);
+  sprintf(code, "%s%s%s", name, p->code->data, endin);
+  if(csound->GetDebug(csound))
+    csound->Message(csound, "%s \n", code);
+  // compile code
+  if(csoundCompileOrcInternal(csound, code, 0) == CSOUND_SUCCESS) {
+       LINEVENT pp;
+       MYFLT zero = FL(0.0);
+       MYFLT num = (MYFLT) csound->StringArg2Insno(csound, "__ANONYMOUS__", 1);
+       int32_t i;
+       pp.h = p->h;
+       char c[2] = "i";
+       pp.args[0] = (MYFLT *) c;
+       pp.args[1] = (MYFLT *) &num;
+       pp.args[2] = &zero;
+       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       for (i=0; i < p->INOCOUNT-1;i++) {
+         pp.args[i+3] = p->argums[i];
+       }
+      pp.flag = 1;
+      csound->Free(csound, code); 
+      return eventOpcodeI_(csound, &pp, 0, 'i');
+  }
+  csound->Free(csound, code);
+  return csound->InitError(csound, "failed to compile instr\n");
+}
+
+int32_t run_instr(CSOUND *csound, RINSTR *p) {
+       LINEVENT pp;
+       MYFLT zero = FL(0.0);
+       int32_t i;
+       pp.h = p->h;
+       char c[2] = "i";
+       pp.args[0] = (MYFLT *) c;
+       pp.args[1] = (MYFLT *) p->instr;
+       pp.args[2] = &zero;
+       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       for (i=1; i < p->INOCOUNT-1;i++) {
+         pp.args[i+3] = p->argums[i];
+       }
+      pp.flag = 1;
+      return eventOpcodeI_(csound, &pp, 2, 'i');
+}
+
+int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
+      if(*p->ktrig) {
+       LINEVENT pp;
+       MYFLT zero = FL(0.0);
+       int32_t i;
+       pp.h = p->h;
+       char c[2] = "i";
+       pp.args[0] = (MYFLT *) c;
+       pp.args[1] = (MYFLT *) p->instr;
+       pp.args[2] = &zero;
+       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       for (i=1; i < p->INOCOUNT-1;i++) {
+         pp.args[i+3] = p->argums[i];
+       }
+       pp.flag = 1;
+       return eventOpcode_(csound, &pp, 2, 'i');
+      } else return OK;
+}
+
+
+
 int32_t read_score_i(CSOUND *csound, COMPILE *p){
   *p->res = (MYFLT)(csoundReadScoreInternal(csound,
                                             ((STRINGDAT *)p->str)->data));

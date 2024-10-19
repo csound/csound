@@ -104,7 +104,6 @@ static void no_op(CSOUND *csound, int32_t attr,
   IGN(args);
 };
 
-
 /* do init pass for this instr */
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   int32_t error = 0;
@@ -239,8 +238,8 @@ int32_t init0(CSOUND *csound)
 {
   INSTRTXT  *tp = csound->engineState.instrtxtp[0];
   INSDS     *ip;
-
-  instance(csound, 0);                            /* allocate instr 0     */
+  
+  instance(csound, 0);                            /* allocate instr 0     */  
   csound->curip = ip = tp->act_instance;
   tp->act_instance = ip->nxtact;
   csound->ids = (OPDS*) ip;
@@ -258,6 +257,7 @@ int32_t init0(CSOUND *csound)
   ip->kicvt = csound->kicvt;
   csound->inerrcnt = 0;
   csound->mode = 1;
+
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);  /*   run all i-code     */
@@ -2182,7 +2182,7 @@ void instance(CSOUND *csound, int32_t insno)
       }
     }
   }
-
+  
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,
      and initialise them */
   CS_VARIABLE* var = csoundFindVariableWithName(csound,
@@ -2206,6 +2206,16 @@ void instance(CSOUND *csound, int32_t insno)
     var->memBlock->value = csound->esr;
   }
 
+  var = csoundFindVariableWithName(csound, ip->instr->varPool, "this_instr");
+  if(var) {
+    INSTREF src = { ip->instr, 0 }, *dest; 
+    char* temp = (char*)(lclbas + var->memBlockIndex);
+    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
+    dest = (INSTREF *) &(var->memBlock->value);
+    var->varType->copyValue(csound, var->varType, dest, &src, NULL);
+    // mark it as read-only
+    dest->readonly = 1;
+  }
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
 
@@ -2243,6 +2253,8 @@ int32_t prealloc_S(CSOUND *csound, AOP *p){
   return prealloc_(csound,p,1);
 }
 
+int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+
 int32_t delete_instr(CSOUND *csound, DELETEIN *p)
 {
   int32_t       n;
@@ -2252,6 +2264,9 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
 
   if (IS_STR_ARG(p->insno))
     n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+  else if (GetTypeForArg(p->insno) == &CS_VAR_TYPE_INSTR) {
+    n = instr_num(csound, ((INSTREF *)p->insno)->instr);
+  }
   else
     n = (int32_t) (*p->insno + FL(0.5));
 
