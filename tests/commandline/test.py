@@ -175,7 +175,8 @@ def runTest():
     ["testnewline.csd", "test newline in statements"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
     ["test_max_table_len.csd", "test max table length"],
-    ["test_instr_type.csd", "test instr type and variables"]
+    ["test_instr_type.csd", "test instr type and variables"],
+    ["test_delete_instr.csd", "test creating and deleting instr"]
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
