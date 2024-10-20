@@ -1435,18 +1435,20 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
   return 1;
 }
 
+// For explicit types only (T_TYPED_IDENT)
 // returns the correct pool and
 // as side effect removes the global annotation
-CS_VAR_POOL *find_global_annotation(char *annotation, TYPE_TABLE* typeTable) {
+// expected syntax for variable name: var@global
+CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable) {
   CS_VAR_POOL* pool = typeTable->localPool;
   // find global annotation
-  if(strchr(annotation, '@') != NULL) {
+  if(strchr(varName, '@') != NULL) {
     char* th;
-    char* baseType = strtok_r(annotation, "@", &th);
-    char*  global = strtok_r(NULL, "@", &th);
+    char* baseType = strtok_r(varName, "@", &th);
+    char* global = strtok_r(NULL, "@", &th);
     if(!strcmp(global, "global")) {
       pool = typeTable->globalPool;
-      annotation = baseType;
+      varName = baseType;
     }
   }
   return pool;
@@ -1470,7 +1472,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   if (var == NULL) {
     if (annotation != NULL) {
       // find global annotation
-      pool = find_global_annotation(annotation, typeTable);
+      pool = find_global_annotation(varName, typeTable);
       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
       typeArg = (void *) type;
     } else {
@@ -1530,7 +1532,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
 
     if (annotation != NULL) {
       // find global annotation
-      pool = find_global_annotation(annotation, typeTable);
+      pool = find_global_annotation(varName, typeTable);
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
       t = varName;

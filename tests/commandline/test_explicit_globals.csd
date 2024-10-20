@@ -4,8 +4,8 @@
 </CsOptions>
 <CsInstruments>
 
-myvar:i@global init 0
-myarr:i@global[] fillarray 1,2,3
+myvar@global:i init 0
+myarr@global:i[] fillarray 1,2,3
 
 instr 1
 print myvar
