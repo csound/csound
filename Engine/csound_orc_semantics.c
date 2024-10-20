@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-//#include <stdbool.h>
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "interlocks.h"
@@ -231,12 +230,10 @@ static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
     return 1;
   }
   else if (t->type == T_ARRAY) {
-    //printf("array case\n");
-    if (isirate(/*csound, */t->right)==0) return 0;
+    if (isirate(t->right)==0) return 0;
     t = t->next;
     while (t) {
-      //printf("t=%p t->type=%d\n", t, t->type);
-      if (isirate(/*csound,*/ t)==0) return 0;
+      if (isirate(t)==0) return 0;
       t = t->next;
     }
     return 1;
@@ -309,7 +306,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return cs_strdup(csound, &fnReturn[1]);
         } else {
           synterr(csound,
-                  Str("unable to find array operator for var %s line %d\n"), varBaseName, tree->line);
+                  Str("unable to find array operator for var %s line %d\n"),
+                  varBaseName, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
         }
@@ -367,10 +365,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     // Deal with odd case of i(expressions)
     if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
-      //print_tree(csound, "i()", tree);
+      if(csound->GetDebug(csound))
+        print_tree(csound, "i()", tree);
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
-          isirate(/*csound,*/ tree->right->right)) {
+          isirate(tree->right->right)) {
         synterr(csound, Str("Use of i() with array element ill formed\n"));
       }
       else
@@ -899,16 +898,13 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       }
 
     }
-    //printf("delete %p\n", argsFound);
+    
     int32_t n;
     for (n=0; argsFound[n] != NULL; n++) {
-      // printf("delete %p\n", argsFound[n]);
       csound->Free(csound, argsFound[n]);
     }
     csound->Free(csound, argsFound);
-    //printf("delete %p\n", argsRequired);
     for (n=0; argsRequired[n] != NULL; n++) {
-      //printf("delete %p\n", argsRequired[n]);
       csound->Free(csound, argsRequired[n]);
     }
     csound->Free(csound, argsRequired);
@@ -1026,16 +1022,12 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
         returnVal = 1;
       }
     }
-    //printf("delete %p\n", argsFound);
     int32_t n;
     for (n=0; argsFound[n] != NULL; n++) {
-      // printf("delete %p\n", argsFound[n]);
       csound->Free(csound, argsFound[n]);
     }
     csound->Free(csound, argsFound);
-    //printf("delete %p\n", argsRequired);
     for (n=0; argsRequired[n] != NULL; n++) {
-      //printf("delete %p\n", argsRequired[n]);
       csound->Free(csound, argsRequired[n]);
     }
     csound->Free(csound, argsRequired);
@@ -1059,18 +1051,8 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
-    //        if (temp->intypes == NULL && temp->outypes == NULL) {
-    //            if (outArgTypes == NULL && inArgTypes == NULL) {
-    //
-    //            }
-    //            continue;
-    //        }
     if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
         check_out_args(csound, outArgTypes, temp->outypes)) {
-      //            if (retVal != NULL) {
-      //                return NULL;
-      //            }
-      //            retVal = temp;
       if (check == -1)
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
@@ -1081,7 +1063,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
     }
   }
   return NULL;
-  //    return retVal;
 }
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
@@ -1199,7 +1180,6 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
   for (i = 0; i < dimensions; i++) {
     retVal[i] = '[';
   }
-  //csound->Free(csound, arg);
   return retVal;
 }
 
@@ -1323,35 +1303,23 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
 OENTRY* find_opcode_new(CSOUND* csound, char* opname,
                         char* outArgsFound, char* inArgsFound) {
-
-  //    csound->Message(csound, "Searching for opcode: %s | %s | %s\n",
-  //                    outArgsFound, opname, inArgsFound);
-
   OENTRIES* opcodes = find_opcode2(csound, opname);
-
   if (opcodes->count == 0) {
     return NULL;
   }
   OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
-
   csound->Free(csound, opcodes);
   return retVal;
-
 }
 
 OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                           char* outArgsFound, char* inArgsFound) {
-
   OENTRIES* opcodes = find_opcode2(csound, opname);
-
   if (opcodes->count == 0) {
     return NULL;
   }
-
-
   OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
                                         outArgsFound, inArgsFound);
-
   csound->Free(csound, opcodes);
 
   return retVal;
@@ -1423,9 +1391,8 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
      
         break;
       default:
-        //synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
-        //printf("\t->FOUND OTHER: %s %d\n", current->value->lexeme,
-        //                                   current->type);
+        if(csound->GetDebug(csound))
+          synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
         break;
       }
 
@@ -1514,8 +1481,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
 
 }
 
-void add_array_arg(CSOUND* csound, char* varName, char* annotation, int32_t dimensions,
-                   TYPE_TABLE* typeTable) {
+void add_array_arg(CSOUND* csound, char* varName, char* annotation,
+                   int32_t dimensions, TYPE_TABLE* typeTable) {
 
   CS_VARIABLE* var;
   char *t;
@@ -1589,7 +1556,8 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case T_TYPED_IDENT:
       varName = current->value->lexeme;
 
-      /* TODO - This needs to check if someone put in sr:k or ksmps:i or something like that */
+      /* TODO - This needs to check if someone put in 
+          sr:k or ksmps:i or something like that */
       if (is_reserved(varName)) {
         // skip reserved vars, these are handled elsewhere
         break;
@@ -1610,9 +1578,8 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       break;
 
     default:
-      //synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
-      //printf("\t->FOUND OTHER: %s %d\n",
-      //         current->value->lexeme, current->type);
+      if(csound->GetDebug(csound))
+        synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
       break;
     }
 
@@ -1661,25 +1628,26 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
 }
 
 /* Analyze and restructures the statement node into an opcode call structure. T
- * This function will reform the tree such that the top node will contain the name of an opcode,
- * the ->left will hold out-args, and ->right will hold in-args.  This function does not try to
- * expand any statements or do any semantic verification, but reshapes trees so that they can all
- * go through the verify_opcode function.  This is due to the ambiguous nature of Csound opcode
- * call syntax.
+ * This function will reform the tree such that the top node will contain the name 
+ * of an opcode, the ->left will hold out-args, and ->right will hold in-args.  
+ * This function does not try to expand any statements or do any semantic 
+ * verification, but reshapes trees so that they can all go through the verify_opcode  * function.  This is due to the ambiguous nature of Csound opcode call syntax.
  *
- * To note, this function requires that the typeTable be passed in. This is because variables
- * can (now) have names that shadow opcode names.  Lookup needs to give priority to an identifier
- * being a variable over being an opcode. This maintains future proofing so that if an opcode
- * is later introduced with the same name as a variable in an older project, the older project
- * will continue to work.
+ * To note, this function requires that the typeTable be passed in. This is because 
+ * variables can (now) have names that shadow opcode names.  Lookup needs to give 
+ * priority to an identifier being a variable over being an opcode. This maintains 
+ * future proofing so that if an opcode is later introduced with the same name as a 
+ * variable in an older project, the older project will continue to work.
  *
- * For further reference, please see the rule for statement and opcall in Engine/csound_orc.y.
+ * For further reference, please see the rule for statement and opcall in 
+ * Engine/csound_orc.y.
  */
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
 
   if (root->type == T_ASSIGNMENT) {
-    /* Rewrite tree if line is "a1, a2 = func(arg, arg1)" to "a1, a2 func arg, arg1" */
+    /* Rewrite tree if line is "a1, a2 = func(arg, arg1)" 
+       to "a1, a2 func arg, arg1" */
     TREE *right = root->right;
     if (right->type == T_FUNCTION &&
         right->left == NULL &&
@@ -1708,10 +1676,10 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     return root;
   }
 
-  //    print_tree(csound, "TEST\n", root);
   if (root->type != T_OPCALL) {
     synterr(csound,
-            Str("Internal Error: convert_statement_to_opcall received a non T_OPCALL TREE\n"));
+            Str("Internal Error: convert_statement_to_opcall "
+                "received a non T_OPCALL TREE\n"));
     return NULL;
   }
 
@@ -1731,13 +1699,13 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     }
 
     /* Already processed T_OPCALL, return as-is */
-
     return root;
   }
 
   if (root->left == NULL) {
     synterr(csound,
-            Str("Internal Error: convert_statement_to_opcall received an empty OPCALL\n"));
+            Str("Internal Error: convert_statement_to_opcall "
+                "received an empty OPCALL\n"));
     return NULL;
   }
 
@@ -1756,10 +1724,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
         root->next = NULL;
         return top;
       }
-
-
       /* i.e. outs a1 + a2 + a3, a4, + a5 + a6 */
-
       newTop = top->left;
       newTop->next = root->next;
       newTop->type = T_OPCALL;
@@ -1787,7 +1752,8 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
     if (tree_arg_list_count(root->left) != 1) {
       synterr(csound,
-              Str("Internal Error: convert_statement_to_opcall received invalid OPCALL\n"));
+              Str("Internal Error: convert_statement_to_opcall "
+                  "received invalid OPCALL\n"));
     }
     root->left->next = root->next;
     root->left->type = T_OPCALL;
@@ -1796,26 +1762,26 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
   if (root->right == NULL) {
     synterr(csound,
-            Str("Internal Error: convert_statement_to_opcall received invalid OPCALL\n"));
+            Str("Internal Error: convert_statement_to_opcall "
+                "received invalid OPCALL\n"));
     return NULL;
   }
 
   /* Now need to disambiguate the rule : out_arg_list expr_list NEWLINE */
-
   leftCount = tree_arg_list_count(root->left);
   rightCount = tree_arg_list_count(root->right);
 
   if (leftCount > 1 && rightCount > 1) {
     synterr(csound,
-            Str("Internal Error: convert_statement_to_opcall received invalid OPCALL\n"));
+            Str("Internal Error: convert_statement_to_opcall "
+                "received invalid OPCALL\n"));
     return NULL;
   }
-
-  //    printf("ARG COUNTS: %d %d\n", leftCount, rightCount);
-
+  
   if (leftCount == 1 && rightCount == 1) {
     TREE* newTop;
-    if(root->right->type == T_IDENT && find_opcode(csound, root->right->value->lexeme) != NULL) {
+    if(root->right->type == T_IDENT &&
+       find_opcode(csound, root->right->value->lexeme) != NULL) {
       newTop = root->right;
       newTop->type = T_OPCALL;
       newTop->left = root->left;
@@ -1865,13 +1831,9 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   if (!check_args_exist(csound, root->right, typeTable)) {
     return 0;
   }
-
-  //    print_tree(csound, "Verifying Opcode: Left\n", root->left);
-  //    print_tree(csound, "Verifying Opcode: Right\n", root->right);
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
-  //printf("%p %p (%s)\n", root, root->value, opcodeName);
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
@@ -1906,7 +1868,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     for (i = 0; i < entries->count; i++) {
       OENTRY *entry = entries->entries[i];
-      csoundMessage(csound, "  %s %s %s\n", entry->outypes, entry->opname, entry->intypes);
+      csoundMessage(csound, "  %s %s %s\n", entry->outypes, entry->opname,
+                    entry->intypes);
     }
 
     csoundMessage(csound, Str("\nLine: %d\n"),
@@ -1920,17 +1883,12 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     return 0;
   }
   else {
-    //fprintf(stderr, "left=%p\n", left);
-    //fprintf(stderr, "left->value=%p\n", left->value);
-    //fprintf(stderr, "left->value->lexeme=%p\n", left->value->lexeme);
-    //fprintf(stderr, "opname = %s\n", oentry->opname);
     if (csound->oparms->sampleAccurate &&
         (strcmp(oentry->opname, "=.a")==0) &&
         (left!=NULL) && (left->value!=NULL) &&
         (left->value->lexeme[0]=='a')) { /* Deal with sample accurate assigns */
       int32_t i = 0;
       while (strcmp(entries->entries[i]->opname, "=.l")) {
-        //printf("not %d %s\n",i, entries->entries[i]->opname);
         i++;
       }
       oentry = entries->entries[i];
@@ -1942,7 +1900,6 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
         {
           int32_t i = 0;
           while (strcmp(entries->entries[i]->opname, "=.L")) {
-            //printf("not %d %s\n",i, entries->entries[i]->opname);
             i++;
           }
           oentry = entries->entries[i];
@@ -2047,15 +2004,9 @@ int32_t verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   else if (right->type == THEN_TOKEN ||
            right->type == ITHEN_TOKEN ||
            right->type == KTHEN_TOKEN) {
-
-    //TREE *tempLeft;
-    //TREE *tempRight;
     TREE* current = root;
 
     while (current != NULL) {
-      //tempLeft = current->left;
-      //tempRight = current->right;
-
       if (current->type == ELSE_TOKEN) {
         break;
       }
@@ -2088,8 +2039,6 @@ int32_t verify_until_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable
   };
 
   outArg = get_arg_type2(csound, root->left, typeTable);
-
-
   if (UNLIKELY(outArg == NULL || (*outArg != 'b' && *outArg != 'B'))) {
     synterr(csound,
             Str("expression for until/while statement not a boolean "
@@ -2113,10 +2062,10 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   CS_TYPE* type = csoundGetTypeForArg(init->out);
   int32_t len = cs_cons_length(type->members);
   int32_t i;
-
-  //    csound->Message(csound, "Initializing Struct...\n");
-  //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
-
+  if(csound->GetDebug(csound)) {
+     csound->Message(csound, "Initializing Struct...\n");
+     csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
     mem->varType->copyValue(csound, mem->varType, &mem->value,
@@ -2134,10 +2083,10 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   int32_t i;
 
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
-
-  //    csound->Message(csound, "Initializing Struct...\n");
-  //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
-
+  if(csound->GetDebug(csound)) {
+      csound->Message(csound, "Initializing Struct...\n");
+      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
   for (i = 0; i < len; i++) {
     CS_VARIABLE* var = members->value;
     size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
@@ -2214,9 +2163,6 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     CS_VARIABLE* var = memberType->createVariable(csound, type, NULL);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;
-
-    //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
-
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
    member->value = var;
     type->members = cs_cons_append(type->members, member);
@@ -2357,23 +2303,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
-
-  //if (root->value)
-  //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
-
   if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Verifying AST\n");
 
   while (current != NULL) {
     switch(current->type) {
     case STRUCT_TOKEN:
       if (PARSER_DEBUG) csound->Message(csound, "Struct definition found\n");
-      //        csound->Message(csound, "%s: ", current->left->value->lexeme);
-      //        TREE* args = current->right;
-      //        while (args != NULL) {
-      //          csound->Message(csound, "%s ", args->value->lexeme);
-      //          args = args->next;
-      //        }
-      //        csound->Message(csound, "\n");
       if(!add_struct_definition(csound, current)) {
         csound->ErrorMsg(csound,
                          "Error: Unable to define new struct type: %s\n",
@@ -2477,8 +2412,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case T_DECLARE: {
       char* outArgStringDecl = get_out_types_from_tree(csound, current->left->left);
-      char* inArgStringDecl = get_in_types_from_tree(csound, current->left->right, typeTable);
-      add_udo_definition(csound, false, current->value->lexeme, inArgStringDecl, outArgStringDecl, UNDEFINED);
+      char* inArgStringDecl = get_in_types_from_tree(csound, current->left->right,
+                                                     typeTable);
+      add_udo_definition(csound, false, current->value->lexeme, inArgStringDecl,
+                         outArgStringDecl, UNDEFINED);
       csound->inZero = 0;
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
 
@@ -2576,7 +2513,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case '-':
     case '*':
     case '/':
-      //printf("Folding case?\n");
       current->left = verify_tree(csound, current->left, typeTable);
       current->right = verify_tree(csound, current->right, typeTable);
       if ((current->left->type == INTEGER_TOKEN ||
@@ -2634,7 +2570,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if(!verify_opcode(csound, current, typeTable)) {
         return 0;
       }
-      //print_tree(csound, "verify_tree", current);
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
 
@@ -2670,9 +2605,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 int32_t csound_orcwrap(void* dummy)
 {
   IGN(dummy);
-  //#ifdef DEBUG
-  //printf("\n === END OF INPUT ===\n");
-  //#endif
   return (1);
 }
 
@@ -2692,8 +2624,6 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
-  //printf("LINE: %d\n", line);
-
   csound->ErrorMsg(csound, Str("\nerror: %s  (token \"%s\")"),
                   str, csound_orcget_text(yyscanner));
   do_baktrace(csound, files);
@@ -2764,14 +2694,13 @@ TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
 
 
 /* USED BY PARSER TO ASSEMBLE TREE NODES */
-
 TREE* copy_node(CSOUND* csound, TREE* tree) {
   TREE *ans = NULL;
 
   if(tree != NULL) {
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
-      /* fprintf(stderr, "Out of memory\n"); */
+      csound->DebugMsg(csound, "Out of memory\n"); 
       exit(1);
     }
     ans->type = tree->type;
@@ -2800,7 +2729,7 @@ TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   TREE *ans;
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
-    /* fprintf(stderr, "Out of memory\n"); */
+    csound->DebugMsg(csound, "Out of memory\n"); 
     exit(1);
   }
   ans->type = type;
@@ -2813,8 +2742,6 @@ TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   ans->line = line;
   ans->locn  = locn;
   ans->markup = NULL;
-  //printf("make node %p %p %p\n", ans, ans->left, ans->right);
-  //csound->DebugMsg(csound, "%s(%d) line = %d\n", __FILE__, __LINE__, line);
   return ans;
 }
 
@@ -2823,7 +2750,7 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type, ORCTO
   TREE *ans;
   ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
-    /* fprintf(stderr, "Out of memory\n"); */
+    csound->DebugMsg(csound, "Out of memory\n"); 
     exit(1);
   }
   ans->type = type;
@@ -2836,8 +2763,6 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type, ORCTO
   ans->line = line;
   ans->locn  = locn;
   ans->markup = NULL;
-  //if (ans->value)
-  //printf("make leaf %p %p (%s)\n", ans, ans->value, ans->value->lexeme);
   csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
                    __LINE__, line);
   return ans;
@@ -2850,7 +2775,6 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int32_t line, uint64_t locn, i
   TREE* rest = right->next;
 
   right->next = NULL;
-
   TREE* operatorNode = make_node(csound, line, locn, type, firstArg, first);
   operatorNode->next = rest;
   left->right = operatorNode;
@@ -2865,32 +2789,22 @@ void delete_tree(CSOUND *csound, TREE *l)
 
     if (UNLIKELY(l==NULL)) {
       return;
-    } //else printf("l = %p\n", l);
-
+    } 
     if (l->value) {
       if (l->value->lexeme) {
-        //printf("Free %p %p (%s)\n", l, l->value, l->value->lexeme);
         csound->Free(csound, l->value->lexeme);
-        //l->value->lexeme = NULL;
       }
-      //printf("Free val %p\n", l->value);
       csound->Free(csound, l->value);
-      //l->value = NULL;
     }
-    // printf("left %p right %p\n", l->left, l->right);
     delete_tree(csound, l->left);
-    //l->left = NULL;
     delete_tree(csound, l->right);
-    //l->right = NULL;
     l = l->next;
-    //printf("Free old %p next: %p\n", old, l);
     csound->Free(csound, old);
   }
 }
 
 PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree)
 {
-  //printf("Tree %p\n", tree);
   delete_tree(csound, tree);
 }
 
@@ -3183,22 +3097,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int32_t n, int32_t which)
     csound->Message(csound,"name=\"S_ELIPSIS\""); break;
   case S_ADDIN:
     csound->Message(csound,"name=\"##addin\""); break;
-    //    case T_MAPI:
-    //      csound->Message(csound,"name=\"T_MAPI\""); break;
-    //    case T_MAPK:
-    //      csound->Message(csound,"name=\"T_MAPK\""); break;
-    //    case T_TADD:
-    //      csound->Message(csound,"name=\"T_TADD\""); break;
-    //    case T_SUB:
-    //      csound->Message(csound,"name=\"T_SUB\""); break;
-    //    case S_TUMINUS:
-    //      csound->Message(csound,"name=\"S_TUMINUS\""); break;
-    //    case T_TMUL:
-    //      csound->Message(csound,"name=\"T_TMUL\""); break;
-    //    case T_TDIV:
-    //      csound->Message(csound,"name=\"T_TDIV\""); break;
-    //    case T_TREM:
-    //      csound->Message(csound,"name=\"T_TREM\""); break;
+    break;
   case '[':
     csound->Message(csound,"name=\"[\""); break;
   default:
@@ -3245,8 +3144,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     char** inArgParts = NULL;
 
     if (UNLIKELY(ep==NULL)) { /* **** FIXME **** */
-      csoundErrorMsg(csound, "THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n",
-             __LINE__);
+      csoundErrorMsg(csound,
+                     "THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n",
+                     __LINE__);
     }
     if (ep->intypes != NULL) {
       nreqd = argsRequired(ep->intypes);
@@ -3324,11 +3224,9 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         incnt++;
       } while (incnt < nreqd);
     }
-    //      printf("delete %p\n", inArgParts);
     if (inArgParts != NULL) {
       int32_t n;
       for (n=0; inArgParts[n] != NULL; n++) {
-        //printf("delete %p\n", inArgParts[n]);
         csound->Free(csound, inArgParts[n]);
       }
       csound->Free(csound, inArgParts);
@@ -3341,6 +3239,5 @@ char tree_argtyp(CSOUND *csound, TREE *tree) {
   if (tree->type == INTEGER_TOKEN || tree->type == NUMBER_TOKEN) {
     return 'i';
   }
-
   return argtyp2( tree->value->lexeme);
 }
