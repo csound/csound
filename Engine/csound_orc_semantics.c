@@ -250,7 +250,7 @@ static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
 // The search starts with implicit global vars
 // then local vars, then any variables not found are
 // looked for in the global pools - so local names will always
-// hide global names in this case.
+// hide global names
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
                                  char* varBaseName, TYPE_TABLE* typeTable) {
   CS_VARIABLE* var = NULL;
@@ -1401,8 +1401,17 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           break;
         }
         csound->Free(csound, argType);
-        
+        var = find_var_from_pools(csound, varName, varName, typeTable);
+        if (UNLIKELY(var == NULL)) {
+            synterr(csound,
+                    Str("Variable '%s' used before defined\nline %d"),
+                    varName, tree->line);
+            do_baktrace(csound, tree->locn);
+            return 0;
+        }
+        break;
         case T_ARRAY:
+        varName = current->left->value->lexeme;
         var = find_var_from_pools(csound, varName, varName, typeTable);
         if (UNLIKELY(var == NULL)) {
             synterr(csound,
