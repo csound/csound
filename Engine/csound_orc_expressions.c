@@ -55,7 +55,7 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 extern void do_baktrace(CSOUND *csound, uint64_t files);
-CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
+extern CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
                                  char* varBaseName, TYPE_TABLE* typeTable);
 
 
@@ -646,20 +646,20 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       strNcpy(op, "##array_get", 80);
 
       char *varBaseName = root->left->value->lexeme;
-
+      // search for the array variable in all pools
       var = find_var_from_pools(csound, varBaseName,
                                 varBaseName, typeTable);
-
       if (var == NULL) {
         synterr(csound,
-                Str("unable to find array sub-type for var %s line %d -\n"),
+                Str("create_expression: unable to find array sub-type "
+                    "for var %s line %d\n"),
                 varBaseName, current->line);
         return NULL;
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
-             to provide the correct outype. Works with explicity types
+             to provide the correct outype. Works with explicit types
 	  */
          if (outype[0]== 'i') {
           TREE* inds = root->right;
@@ -1068,11 +1068,13 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       CS_VARIABLE* var;
 
       char *varBaseName = currentArg->left->value->lexeme;
+      // search for the array variable in all pools
       var = find_var_from_pools(csound, varBaseName,
                                 varBaseName, typeTable);
       if (var == NULL) {
         synterr(csound,
-                Str("unable to find array sub-type for var %s line %d\n"),
+                Str("expand_statement: unable to find array sub-type "
+                    "for var %s line %d\n"),
                 varBaseName, current->line);
         return NULL;
       } else {

@@ -614,9 +614,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     if (*s == '#')
       s++;
-
+    
+    // find the variable in one of the variable pools 
     var = find_var_from_pools(csound, s, tree->value->lexeme, typeTable);
-
     if (UNLIKELY(var == NULL)) {   
       synterr(csound, Str("get_arg_type2: Variable '%s' used before defined\n"
                           "Line %d"),
@@ -1398,6 +1398,7 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           break;
         }
         csound->Free(csound, argType);
+        // search for the variable in all variable pools
         var = find_var_from_pools(csound, varName, varName, typeTable);
         if (UNLIKELY(var == NULL)) {
             synterr(csound,
@@ -1409,6 +1410,7 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         break;
         case T_ARRAY:
         varName = current->left->value->lexeme;
+        // search for the variable in all variable pools
         var = find_var_from_pools(csound, varName, varName, typeTable);
         if (UNLIKELY(var == NULL)) {
             synterr(csound,
