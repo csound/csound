@@ -1511,7 +1511,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
        // and different type.
        type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
        if(type != var->varType) 
-         synterr(csound, "%s:%s type mismatch for variable %s:%s\n",
+         synterr(csound, "%s:%s type mismatch for variable %s:%s",
                  varName, type->varTypeName, varName,
                  var->varType->varTypeName);
     }
