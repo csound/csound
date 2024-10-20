@@ -1422,8 +1422,6 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
      
         break;
       default:
-        if(csound->GetDebug(csound))
-          synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
         break;
       }
 
@@ -1459,16 +1457,13 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   const CS_TYPE* type;
   CS_VARIABLE* var;
   char *t;
-  CS_VAR_POOL* pool;
+  CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
-  
-  t = varName;
-  if (*t == '#') t++;
-  pool = (*t == 'g') ? typeTable->globalPool : typeTable->localPool;
 
-  var = csoundFindVariableWithName(csound, pool, varName);
+  // search on  all pools
+  var = find_var_from_pools(csound, varName, varName, typeTable);
   if (var == NULL) {
     if (annotation != NULL) {
       // find global annotation
@@ -1480,6 +1475,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
       argLetter[1] = 0;
 
       if (*t == '#') t++;
+      if (*t == 'g') pool = typeTable->globalPool;
       if (*t == 'g') t++;
 
       if (*t == '[' || *t == 't') { /* Support legacy t-vars */
@@ -1510,6 +1506,15 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
+    if (annotation != NULL) {
+       // check if a local variable is declared with same name
+       // and different type.
+       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+       if(type != var->varType) 
+         synterr(csound, "%s:%s type mismatch for variable %s:%s\n",
+                 varName, type->varTypeName, varName,
+                 var->varType->varTypeName);
+    }
   }
 
 }
@@ -1519,17 +1524,15 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
 
   CS_VARIABLE* var;
   char *t;
-  CS_VAR_POOL* pool;
+  CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
+  const CS_TYPE* varType;
 
-  pool = (*varName == 'g') ? typeTable->globalPool : typeTable->localPool;
-
-  var = csoundFindVariableWithName(csound, pool, varName);
+  // search on  all pools
+  var = find_var_from_pools(csound, varName, varName, typeTable);
   if (var == NULL) {
-    const CS_TYPE* varType;
-
     if (annotation != NULL) {
       // find global annotation
       pool = find_global_annotation(varName, typeTable);
@@ -1539,6 +1542,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
       argLetter[1] = 0;
 
       if (*t == '#') t++;
+      if (*t == 'g') pool = typeTable->globalPool;
       if (*t == 'g') t++;
 
       argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
@@ -1559,6 +1563,18 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
+     if (annotation != NULL) {
+       // check if a local variable is declared with same name
+       // and different type array subtype
+       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+       if(varType != var->subType)
+         synterr(csound, "%s:%s[] - type mismatch for existing "
+                          "array variable %s:%s%s",
+                 varName, varType->varTypeName, varName,
+                 var->subType ? var->subType->varTypeName :
+                 var->varType->varTypeName,
+                 var->subType ? "[]" : "");
+    }
   }
 }
 
@@ -1611,8 +1627,6 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       break;
 
     default:
-      if(csound->GetDebug(csound))
-        synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
       break;
     }
 
