@@ -244,7 +244,15 @@ static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
   else return 0;
 }
 
-CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName, char* varBaseName, TYPE_TABLE* typeTable) {
+// VL 19-10-24
+// this is now to be used everywhere to find a variable
+// from any pool - global or local
+// The search starts with implicit global vars
+// then local vars, then any variables not found are
+// looked for in the global pools - so local names will always
+// hide global names in this case.
+CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
+                                 char* varBaseName, TYPE_TABLE* typeTable) {
   CS_VARIABLE* var = NULL;
 
   /* VL: 16/01/2014
@@ -255,16 +263,24 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName, char* varBaseNam
      Ideally we should remove typeTable->globalPool and only use
      the varPool in the engineState
   */
-
-  if (*varName == 'g') {
+  // first check for implicit global variables
+  if (*varName == 'g' || is_reserved(varName)) {
+    var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                    varBaseName);
+   if(var == NULL)
+      var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                       varBaseName);
+  } else {
+    // now we check for local variables
+    var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                     varBaseName);
+    // then check for global variables that may have been explicitly defined
+    if(var == NULL)
     var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                      varBaseName);
     if(var == NULL)
       var = csoundFindVariableWithName(csound, typeTable->globalPool,
                                        varBaseName);
-  } else {
-    var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                     varBaseName);
   }
   return var;
 }
@@ -283,7 +299,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     if (tree->type == T_ARRAY) {
       varBaseName = tree->left->value->lexeme;
-
       var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
       if (var == NULL) {
@@ -572,28 +587,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     if (*s == '#')
       s++;
 
-    /* VL: 16/01/2014
-       in a second compilation, the
-       typeTable->globalPool is incorrect and will not
-       contain the correct addresses of global variables,
-       which are stored correctly in the engineState.varPool.
-       Ideally we should remove typeTable->globalPool and only use
-       the varPool in the engineState
-    */
+    var = find_var_from_pools(csound, s, tree->value->lexeme, typeTable);
 
-    if (*s == 'g' || is_reserved(s)) {
-      var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                       tree->value->lexeme);
-      if (var == NULL)
-        var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                         tree->value->lexeme);
-      //printf("var: %p %s\n", var, var->varName);
-    } else
-      var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                       tree->value->lexeme);
-
-    if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"
+    if (UNLIKELY(var == NULL)) {   
+      synterr(csound, Str("get_arg_type2: Variable '%s' used before defined\n"
                           "Line %d"),
               tree->value->lexeme, tree->line - 1);
       do_baktrace(csound, tree->locn);
@@ -712,7 +709,8 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
   if (shortName != opname) csound->Free(csound, shortName);
 
   return retVal;
-}
+
+   }
 
 static OENTRIES* get_entries(CSOUND* csound, int32_t count)
 {
@@ -1367,7 +1365,6 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
   TREE* current;
   char* argType;
   char* varName;
-  CS_VAR_POOL* pool;
 
   if (tree == NULL) {
     return 1;
@@ -1387,11 +1384,9 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
       case LABEL_TOKEN:
       case T_IDENT:
         varName = current->value->lexeme;
-
         if (is_label(varName, typeTable->labelList)) {
           break;
         }
-
         argType = get_arg_type2(csound, current, typeTable);
         if (UNLIKELY(argType==NULL)) {
           synterr(csound,
@@ -1406,46 +1401,17 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           break;
         }
         csound->Free(csound, argType);
-        pool = (*varName == 'g') ?
-          typeTable->globalPool : typeTable->localPool;
-        var = csoundFindVariableWithName(csound, pool, varName);
+        
+        case T_ARRAY:
+        var = find_var_from_pools(csound, varName, varName, typeTable);
         if (UNLIKELY(var == NULL)) {
-          /* VL: 13-06-13
-             if it is not found, we still check the global (merged) pool */
-          if (*varName == 'g')
-            var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                             varName);
-          if (UNLIKELY(var == NULL)) {
             synterr(csound,
                     Str("Variable '%s' used before defined\nline %d"),
                     varName, tree->line);
             do_baktrace(csound, tree->locn);
             return 0;
-          }
         }
-
-        break;
-      case T_ARRAY:
-        varName = current->left->value->lexeme;
-
-        pool = (*varName == 'g') ?
-          typeTable->globalPool : typeTable->localPool;
-
-        if (UNLIKELY(csoundFindVariableWithName(csound, pool, varName) == NULL)) {
-          CS_VARIABLE *var = 0;
-          /* VL: 13-06-13
-             if it is not found, we still check the global (merged) pool */
-          if (var == NULL && *varName == 'g')
-            var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                             varName);
-          if (UNLIKELY(var == NULL)) {
-            synterr(csound,
-                    Str("Variable '%s' used before defined\nLine %d\n"),
-                    varName, current->left->line);
-            do_baktrace(csound, current->left->locn);
-            return 0;
-          }
-        }
+     
         break;
       default:
         //synterr(csound, "Unknown arg type: %s\n", current->value->lexeme);
@@ -1462,6 +1428,23 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
   return 1;
 }
 
+// returns the correct pool and
+// as side effect removes the global annotation
+CS_VAR_POOL *find_global_annotation(char *annotation, TYPE_TABLE* typeTable) {
+  CS_VAR_POOL* pool = typeTable->localPool;
+  // find global annotation
+  if(strchr(annotation, '@') != NULL) {
+    char* th;
+    char* baseType = strtok_r(annotation, "@", &th);
+    char*  global = strtok_r(NULL, "@", &th);
+    if(!strcmp(global, "global")) {
+      pool = typeTable->globalPool;
+      annotation = baseType;
+    }
+  }
+  return pool;
+}
+
 void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable) {
 
   const CS_TYPE* type;
@@ -1471,7 +1454,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
-
+  
   t = varName;
   if (*t == '#') t++;
   pool = (*t == 'g') ? typeTable->globalPool : typeTable->localPool;
@@ -1479,6 +1462,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   var = csoundFindVariableWithName(csound, pool, varName);
   if (var == NULL) {
     if (annotation != NULL) {
+      // find global annotation
+      pool = find_global_annotation(annotation, typeTable);
       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
       typeArg = (void *) type;
     } else {
@@ -1537,6 +1522,8 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int32_t dime
     const CS_TYPE* varType;
 
     if (annotation != NULL) {
+      // find global annotation
+      pool = find_global_annotation(annotation, typeTable);
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
       t = varName;
@@ -1559,6 +1546,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int32_t dime
     var = csoundCreateVariable(csound, csound->typePool,
                                &CS_VAR_TYPE_ARRAY,
                                varName, typeArg);
+    
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment

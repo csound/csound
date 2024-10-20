@@ -55,7 +55,8 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 extern void do_baktrace(CSOUND *csound, uint64_t files);
-
+CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
+                                 char* varBaseName, TYPE_TABLE* typeTable);
 
 
 static int32_t genlabs = 300;
@@ -754,19 +755,13 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line, uint64_
 
       char *varBaseName = root->left->value->lexeme;
 
-      if (*varBaseName == 'g') {
-        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         varBaseName);
-        if(var == NULL)
-          var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                           varBaseName);
-      } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                         varBaseName);
+      var = find_var_from_pools(csound, varBaseName,
+                                varBaseName, typeTable);
 
       if (var == NULL) {
         synterr(csound,
-                Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
+                Str("unable to find array sub-type for var %s line %d -\n"),
+                varBaseName, current->line);
         return NULL;
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
@@ -1190,20 +1185,12 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       CS_VARIABLE* var;
 
       char *varBaseName = currentArg->left->value->lexeme;
-
-      if (*varBaseName == 'g') {
-        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         varBaseName);
-        if(var == NULL)
-          var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                           varBaseName);
-      } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                         varBaseName);
-
+      var = find_var_from_pools(csound, varBaseName,
+                                varBaseName, typeTable);
       if (var == NULL) {
         synterr(csound,
-                Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
+                Str("unable to find array sub-type for var %s line %d\n"),
+                varBaseName, current->line);
         return NULL;
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
@@ -1212,7 +1199,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
           outType = "k";
         } else {
           synterr(csound,
-                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, current->line);
+                  Str("invalid array type %s line %d\n"),
+                  var->varType->varTypeName, current->line);
           return NULL;
         }
       }

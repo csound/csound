@@ -78,58 +78,33 @@ char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState, char *key) {
     cs_hash_table_get_key(csound, csound->engineState.stringPool, key);
 
   if (retVal == NULL) {
-    // printf("strsav_string: %s\n", key);
     retVal = cs_hash_table_put_key(csound, engineState->stringPool, key);
   }
   return retVal;
 }
 
-int32_t pnum(char *s) /* check a char string for pnum format  */
-/*   and return the pnum ( >= 0 )       */
-{ /* else return -1                       */
+/*
+check a char string for pnum format
+and return the pnum ( >= 0 ) 
+else return -1  
+*/
+int32_t pnum(char *s) 
+{
   int32_t n;
-
   if (*s == 'p' || *s == 'P')
     if (sscanf(++s, "%d", &n))
       return (n);
   return (-1);
 }
 
-#if 0
-static int32_t argCount(ARG* arg)
-{
-  int32_t retVal = -1;
-  if (arg != NULL) {
-    retVal = 0;
-    while (arg != NULL) {
-      arg = arg->next;
-      retVal++;
-    }
-  }
-  return retVal;
-}
-#endif
-
-/* get size of string in MYFLT units */
-/*static inline int32_t strlen_to_samples(const char *s)
-  {
-  int32_t n = (int32_t) strlen(s);
-  n = (n + (int32_t) sizeof(MYFLT)) / (int32_t) sizeof(MYFLT);
-  return n;
-  }
-*/
-
 /* convert string constant */
 void unquote_string(char *dst, const char *src) {
   int32_t i, j, n = (int)strlen(src) - 1;
   for (i = 1, j = 0; i < n; i++) {
-    // printf("char - %c\n", src[i]);
     if (src[i] != '\\')
       dst[j++] = src[i];
     else {
-      // printf("char-- - %c\n", src[i]);
       switch (src[++i]) {
-
       case 'a':
         dst[j++] = '\a';
         break;
@@ -155,7 +130,7 @@ void unquote_string(char *dst, const char *src) {
         dst[j++] = '"';
         break;
       case '\\':
-        dst[j++] = '\\'; /*printf("char-- + %c\n", src[i]);*/
+        dst[j++] = '\\'; 
         break;
 
       default:
