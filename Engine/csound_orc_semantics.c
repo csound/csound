@@ -66,6 +66,35 @@ int32_t is_reserved(char*);
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
+/* VL - 20.10.24 moved here from symbtab.c 
+   as this is a more appropriate place for it
+*/
+ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
+{
+    IGN(yyscanner);
+    int32_t type = T_IDENT;
+    ORCTOKEN *ans;
+
+    if (UNLIKELY(PARSER_DEBUG))
+      csound->Message(csound, "Looking up token for: %s\n", s);
+    ans = new_token(csound, T_IDENT);
+    if (strchr(s, ':') != NULL) {
+        char* th;
+        char* baseName = strtok_r(s, ":", &th);
+        char* annotation = strtok_r(NULL, ":", &th);
+        ans->lexeme = cs_strdup(csound, baseName);
+        ans->optype = cs_strdup(csound, annotation);
+        type = T_TYPED_IDENT;
+    } else {
+        ans->lexeme = cs_strdup(csound, s);
+    }
+    if (csound->parserNamedInstrFlag == 1) {
+        return ans;
+    }
+    ans->type = type;
+    return ans;
+}
+
 char* cs_strdup(CSOUND* csound, const char* str) {
   size_t len;
   char* retVal;

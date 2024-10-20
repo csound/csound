@@ -43,44 +43,8 @@
 # define strtok_r strtok_s
 #endif
 
-#define namedInstrFlag csound->parserNamedInstrFlag
-
 extern int32_t csound_orcget_lineno(void*);
-
-/* from csound_orc_compile.c */
 extern char** splitArgs(CSOUND* csound, char* argString);
-
-ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
-{
-    IGN(yyscanner);
-    int32_t type = T_IDENT;
-    ORCTOKEN *ans;
-
-    if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "Looking up token for: %s\n", s);
-
-    ans = new_token(csound, T_IDENT);
-
-    if (strchr(s, ':') != NULL) {
-        char* th;
-        char* baseName = strtok_r(s, ":", &th);
-        char* annotation = strtok_r(NULL, ":", &th);
-        ans->lexeme = cs_strdup(csound, baseName);
-        ans->optype = cs_strdup(csound, annotation);
-        type = T_TYPED_IDENT;
-    } else {
-        ans->lexeme = cs_strdup(csound, s);
-    }
-
-//    if (udoflag == -2 || namedInstrFlag == 1) {
-    if (namedInstrFlag == 1) {
-        return ans;
-    }
-
-    ans->type = type;
-
-    return ans;
-}
 
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
@@ -141,7 +105,6 @@ static void map_args(char* args) {
     a hidden local sampling rate parameter on 7.x
 
 */
-
 static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
     OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
@@ -156,25 +119,10 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     typeSpecifier[1] = '\0';
 
-    // The following handles adding of extra 'o' type for optional
-    // ksmps arg for all UDO's
-    // this feature is removed from 7.0
-    /*
-       char intypes[256];
-      if (*inm->intypes == '0') {
-        intypes[0] = 'o';
-        intypes[1] = '\0';
-    } else {
-        snprintf(intypes, 256, "%so", inm->intypes);
-	}
-	in_args = splitArgs(csound, intypes);*/
     in_args = splitArgs(csound, inm->intypes);
     out_args = splitArgs(csound, inm->outtypes);
 
     if (UNLIKELY(in_args == NULL)) {
-      /* synterr(csound,
-              Str("invalid input argument types found for opcode %s: %s\n"),
-              inm->name, intypes); */
       synterr(csound,
               Str("invalid input argument types found for opcode %s: %s\n"),
               inm->name, inm->intypes);
@@ -209,7 +157,6 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           memcpy(typeSpecifier, in_arg, end - in_arg);
 
           typeSpecifier[(end - in_arg)] = 0;
-// printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
@@ -229,7 +176,6 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
           char *c = map_udo_in_arg_type(in_arg);
-          //                printf("found arg type %s -> %c\n", in_arg, c);
 
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, c);
@@ -248,11 +194,8 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i++;
       }
     }
-
-//    inm->inchns = i + 1; /* Add one for optional local ksmps */
-//    inm->inchns = i - 1;
-    inm->inchns = i;     // this feature is removed from 7.0
-
+   
+    inm->inchns = i;  
     i = 0;
     if (*out_args[0] != '0') {
       while(out_args[i] != NULL) {
@@ -274,7 +217,6 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           memcpy(typeSpecifier, out_arg, end - out_arg);
 
           typeSpecifier[(end - out_arg) + 1] = 0;
-          //printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
@@ -294,7 +236,6 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
           char* c = map_udo_out_arg_type(out_arg);
-          //                printf("found arg type %s -> %c\n", out_arg, c);
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, c);
 
@@ -314,45 +255,20 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
 
     inm->outchns = i;
-
     opc->dsblksiz = (uint16) (sizeof(UOPCODE) +
                               sizeof(MYFLT*) * (inm->inchns + inm->outchns));
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
-
-    // this feature is removed from 7.0
-    // opc->intypes = cs_strdup(csound, intypes);
     opc->intypes = cs_strdup(csound, (inm->intypes[0] == '0') ? "" :
                                                                  inm->intypes);
     opc->outypes = cs_strdup(csound, (inm->outtypes[0] == '0') ? "" :
                                                                  inm->outtypes);
-
     map_args(opc->intypes);
     map_args(opc->outypes);
-
-//    /* count the number of arguments, and check types */
-//      default:
-//        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
-//        err++; i--;
-//      }
-//      i++; types++;
-//      if (UNLIKELY(i > OPCODENUMOUTS_MAX)) {
-//        synterr(csound, Str("too many input args for opcode %s"), inm->name);
-//        csound->LongJmp(csound, 1);
-//      }
-//    }
-//      default:
-//        synterr(csound, Str("invalid output type for opcode %s"), inm->name);
-//        err++; i--;
-//      }
-//      i++; types++;
-//    }
-//
 
 early_exit:
     if(in_args != NULL) {
       while(in_args[n] != NULL)  {
-        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, in_args[n]);
         n++;
       }
@@ -361,13 +277,11 @@ early_exit:
     if (out_args != NULL) {
       n = 0;
       while(out_args[n] != NULL)  {
-        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, out_args[n]);
         n++;
       }
       csound->Free(csound, out_args);
     }
-
     return err;
 }
 
@@ -469,8 +383,6 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     csound->opcodeInfo = inm;
 
     if (opc != NULL) {
-      /* printf("**** Redefining case: %s %s %s\n", */
-      /*        inm->name, inm->outtypes, inm->intypes); */
       opc->useropinfo = inm;
       newopc = opc;
     } else {
@@ -492,7 +404,6 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
       newopc->flags = flags | newopc->flags;
     }
 
-    //printf("****Calling parse_opcode_args\n");
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 
@@ -505,8 +416,6 @@ void synterr(CSOUND *csound, const char *s, ...)
     va_start(args, s);
     csoundErrMsgV(csound, Str("error:  "), s, args);
     va_end(args);
-
-
     /* FIXME - Removed temporarily for debugging
      * This function may not be necessary at all in the end if some of this is
      * done in the parser
