@@ -2115,10 +2115,12 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->type = ARG_PFIELD;
     arg->index = n;
   }
-  /* trap local ksmps and kr */
+  /* trap local ksmps and kr and sr */
   else if ((strcmp(s, "ksmps") == 0 &&
             csoundFindVariableWithName(csound, ip->varPool, s)) ||
            (strcmp(s, "kr") == 0 &&
+            csoundFindVariableWithName(csound, ip->varPool, s)) ||
+           (strcmp(s, "sr") == 0 &&
             csoundFindVariableWithName(csound, ip->varPool, s))) {
     arg->type = ARG_LOCAL;
     arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);

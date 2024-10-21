@@ -218,9 +218,14 @@ int32_t printk(CSOUND *csound, PRINTK *p)
        * Print instrument number and time. Instrument number stuff from
        * printv() in disprep.c.
        */
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
+      if(p->h.insdshead->instr->opcode_info == NULL)
+         csound->MessageS(csound, CSOUNDMSG_ORCH, "instr %d:",
                                (int32_t)p->h.insdshead->p1.value);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
+       else
+        csound->MessageS(csound, CSOUNDMSG_ORCH,
+                         "UDO %s:", p->h.insdshead->instr->opcode_info->name); //
+ 
+       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("\ttime %11.5f: "),
                                csound->icurTime/CS_ESR-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
@@ -709,19 +714,23 @@ int32_t printk2(CSOUND *csound, PRINTK2 *p)
     MYFLT   value = *p->val;
 
     if (p->oldvalue != value) {
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
+     if(p->h.insdshead->instr->opcode_info == NULL)      
+       csound->MessageS(csound, CSOUNDMSG_ORCH, "instr %d:",
                                                (int32_t)p->h.insdshead->p1.value);
+     else
+     csound->MessageS(csound, CSOUNDMSG_ORCH,
+                      "UDO %s:", p->h.insdshead->instr->opcode_info->name);
       if (p->pspace > 0) {
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "\t%s", s);
       }
       if (*p->named)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "\t%s = %11.5f\n",
                          *p->h.optext->t.inlist->arg, *p->val);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "\t%11.5f\n", *p->val);
       p->oldvalue = value;
     }
     return OK;
