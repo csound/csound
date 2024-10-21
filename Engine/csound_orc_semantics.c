@@ -1434,9 +1434,10 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 }
 
 // For explicit types only (T_TYPED_IDENT)
-// returns the correct pool and
-// as side effect removes the global annotation
-// expected syntax for variable name: var@global
+// returns the correct pool and as side effect
+// removes the global annotation
+// from variable name.
+// Expected syntax: var@global
 CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable) {
   CS_VAR_POOL* pool = typeTable->localPool;
   // find global annotation
@@ -1471,7 +1472,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   var = find_var_from_pools(csound, varName, varName, typeTable);
   if (var == NULL) {
     if (annotation != NULL) {
-      // find global annotation
+      // check for global annotation
       pool = find_global_annotation(varName, typeTable);
       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
       typeArg = (void *) type;
@@ -1512,7 +1513,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   } else {
     //TODO - implement reference count increment
     if (annotation != NULL) {
-       // check if a local variable is declared with same name
+       // check if a variable is declared with same name
        // and different type.
        type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
        if(type != var->varType) 
@@ -1544,7 +1545,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   var = find_var_from_pools(csound, varName, varName, typeTable);
   if (var == NULL) {
     if (annotation != NULL) {
-      // find global annotation
+      // check for global annotation
       pool = find_global_annotation(varName, typeTable);
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
@@ -1574,7 +1575,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   } else {
     //TODO - implement reference count increment
      if (annotation != NULL) {
-       // check if a local variable is declared with same name
+       // check if a variable is declared with same name
        // and different type array subtype
        varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
        if(varType != var->subType)
