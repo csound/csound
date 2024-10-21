@@ -1452,6 +1452,11 @@ CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable) {
   return pool;
 }
 
+/* This function creates a new variable for a rhs argument
+   if the variable is not found in any of the pools
+   If the variable is found, a consistency check is made
+   to make sure the argument type matches the existing variable
+*/
 void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable) {
 
   const CS_TYPE* type;
@@ -1519,6 +1524,11 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
 
 }
 
+/* This function creates a new array variable for a rhs argument
+   if the variable is not found in any of the pools
+   If the variable is found, a consistency check is made
+   to make sure the argument type matches the existing array subtype
+*/
 void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                    int32_t dimensions, TYPE_TABLE* typeTable) {
 
