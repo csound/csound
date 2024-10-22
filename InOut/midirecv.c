@@ -121,7 +121,7 @@ static const int16 datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 void MidiOpen(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
-    OPARMS  *O = csound->oparms;
+   const OPARMS  *O = csound->oparms;
     int32_t     err;
     /* First set up buffers. */
     p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
@@ -481,7 +481,7 @@ int32_t sensMidi(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
     MEVENT  *mep = p->Midevtblk;
-    OPARMS  *O = csound->oparms;
+   const OPARMS  *O = csound->oparms;
     int32_t     n;
     int16   c, type;
 

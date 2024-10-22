@@ -46,8 +46,8 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   SNDMEMFILE  *sf;
   SFLIB_INFO     sfinfo;
   int32_t         sampleFormat, loopMode;
-  OPARMS parms;
-  csound->GetOParms(csound, &parms);
+ const OPARMS *parms;
+  parms =   csound->GetOParms(csound) ;
 
 
   if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
@@ -63,7 +63,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
     
   switch (sampleFormat) {
   case -1: sfinfo.format = 0; break;
-  case 0:  sfinfo.format |= (int32_t) FORMAT2SF(parms.outformat); break;
+  case 0:  sfinfo.format |= (int32_t) FORMAT2SF(parms->outformat); break;
   case 1:  sfinfo.format |= (int32_t) FORMAT2SF(AE_CHAR);   break;
   case 2:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ALAW);   break;
   case 3:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ULAW);   break;

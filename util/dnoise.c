@@ -223,7 +223,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     const char  *envoutyp = NULL;
     uint32_t    outbufsiz = 0U;
     int32_t     nrecs = 0;
-    csound->GetOParms(csound, &O);
+    memcpy(&O, csound->GetOParms(csound), sizeof(OPARMS));
 
 
     /* audio is now normalised after call to getsndin  */
@@ -283,7 +283,6 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               break;
             case 'h':
               O.filetyp = TYP_RAW;
-              O.sfheader = 0;           /* skip sfheader  */
               break;
             case 'c':
               O.outformat = AE_CHAR;     /* 8-bit char soundfile */
@@ -425,11 +424,8 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (O.outformat == 0) O.outformat = p->format;
     O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
-      O.sfheader = 0;
       O.rewrt_hdr = 0;
     }
-    else
-      O.sfheader = 1;
     if (O.outfilename == NULL)
       O.outfilename = "test";
     {

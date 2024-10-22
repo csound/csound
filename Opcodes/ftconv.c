@@ -188,7 +188,7 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
       return OK;    /* skip initialisation if requested */
     /* if skipping samples: check for possible truncation of IR */
     /*
-      if (skipSamples > 0 && (parm.msglevel & WARNMSG)) {
+      if (skipSamples > 0 && (parm->msglevel & WARNMSG)) {
       n = skipSamples * p->nChannels;
       if (n > (int32_t) ftp->flen)
         n = (int32_t) ftp->flen;
