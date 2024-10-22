@@ -65,12 +65,9 @@ static int32_t envext(CSOUND *csound, int32_t argc, char **argv)
     char        *inputfile = NULL;
     SNDFILE     *infd;
     char        c, *s;
-   const OPARMS *     OO;
     double      window = 0.25;
     SOUNDIN     *p;  /* space allocated by SAsndgetset() */
     char        *outname = NULL;
-
-    memset(&OO, 0, sizeof(OO));
 
     /* Check arguments */
     if (UNLIKELY(!(--argc)))

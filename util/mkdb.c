@@ -190,7 +190,7 @@ static int32_t csLoadExternal(const char *libraryPath)
           (long (*)(void *, OENTRY **))
               csGetLibrarySymbol(h, "csound_opcode_init");
     if (opcode_init != NULL) {
-      opcode_init(NULL, ;
+      opcode_init(NULL, &O);
       while (O && O->opname!=NULL) {
         printf("Opcode %s in %s\n", O->opname, fname);
         O += 1;

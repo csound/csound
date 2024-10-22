@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                                   /*  HETRO->C   */
+#include "std_util.h"                                   /*  HETRO.C   */
 #include "soundio.h"
 #include <math.h>
 #include <inttypes.h>

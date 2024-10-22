@@ -2219,7 +2219,7 @@ int32_t hw_channels(CSOUND *csound, ASSIGN *p){
 int32_t inRange_i(CSOUND *csound, INRANGE *p)
 {
   p->narg = p->INOCOUNT-1;
-  if (UNLIKELY(!csound->oparms->sfread))
+  if (UNLIKELY(!csound->GetOParms(csound)->sfread))
     return csound->InitError(csound, "%s", Str("inrg: audio input is not enabled"));
   p->numChans = csound->GetNchnls(csound);
   return OK;

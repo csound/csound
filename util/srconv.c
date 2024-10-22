@@ -219,12 +219,13 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     char        outformch = 's';
     unsigned    outbufsiz = 0U;
     SNDFILE     *outfd = NULL;
-   const OPARMS *     O;
-    int32_t         block = 0;
+    OPARMS      *O = csound->Calloc(csound, sizeof(OPARMS));
+    int32_t     block = 0;
     char        err_msg[256];
 
     O->outformat = AE_SHORT;
     /* csound->e0dbfs = csound->dbfs_to_float = FL(1.0);*/
+    memcpy(O, csound->GetOParms(csound), sizeof(OPARMS));
 
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
