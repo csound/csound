@@ -1,6 +1,7 @@
 /* aops.c:
 
    Copyright (C) 1991 Barry Vercoe, John ffitch, Gabriel Maldonado
+   (c) 2024 V Lazzarini
 
    This file is part of Csound.
 
@@ -2338,6 +2339,39 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   for (n=0; n<=pargs-start; n++) {
     ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
   }
+  return OK;
+}
+
+int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
+  INSTRTXT **instrs = csound->GetInstrumentList(csound);
+  if(!p->out->readonly) // can write to it
+    p->out->instr = instrs[(int32_t) *p->in];
+  else csound->Warning(csound, "instr ref var %s is read-only: cannot copy",
+                              GetOutputArgName(&(p->h),0));
+  return OK;
+}
+
+int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
+   int32_t inum = 0;
+   INSTRTXT **instrs = csound->GetInstrumentList(csound);
+   while(instrs[inum] != instr) inum++;
+   return inum;
+}
+
+
+int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
+  *p->out = instr_num(csound, p->in->instr);
+  return OK;
+}
+
+int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
+  char *name = cs_strdup(csound, p->in->instr->insname);
+  STRINGDAT *out = (STRINGDAT *) p->out;
+  if(strlen(name) >= out->size) {
+    csound->Free(csound, out->data);
+    out->data = cs_strdup(csound, name);
+    out->size = strlen(name) + 1;
+  } else strNcpy(out->data, name, out->size);
   return OK;
 }
 

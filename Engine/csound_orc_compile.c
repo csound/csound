@@ -567,8 +567,13 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   addGlobalVariable(csound, engineState, rType, "$sr", NULL);
   addGlobalVariable(csound, engineState, rType, "$kr", NULL);
   addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
-
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
+
+  CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                          &CS_VAR_TYPE_INSTR,
+                                          "this_instr", NULL);
+  csoundAddVariable(csound, varPool, var);
+
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
   ip->varPool = varPool;
@@ -854,6 +859,10 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   INSTRTXT *ip;
   OPTXT *op;
   TREE *current;
+  CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                          &CS_VAR_TYPE_INSTR,
+                                          "this_instr", NULL);
+  csoundAddVariable(csound, varPool, var);
 
   //csound->inZero = 1;
   find_or_add_constant(csound, engineState->constantsPool, "0", 0);
@@ -964,6 +973,10 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   csoundAddVariable(csound, ip->varPool, var);
   /* same for sr */
   var = csoundCreateVariable(csound, csound->typePool, rType, "sr", NULL);
+  csoundAddVariable(csound, ip->varPool, var);
+  /* same for this */
+  var = csoundCreateVariable(csound, csound->typePool, &CS_VAR_TYPE_INSTR,
+                             "this_instr", NULL);
   csoundAddVariable(csound, ip->varPool, var);
 
   /* Maybe should do this assignment at end when instr is setup?
@@ -1825,6 +1838,18 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
             /* } */
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
+          // the parser has created a variable with the instrument name
+          // we now search for it and update its value to hold instrxt
+          CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
+                                                         csound->engineState.varPool,
+                                                         c);
+          if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
+            INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *) &(ivar->memBlock->value);
+            ivar->varType->copyValue(csound, ivar->varType,
+                                     dest, &src, NULL);
+            // mark it as read-only
+            dest->readonly = 1;
+           }                            
         }
       } else {
         if (p->type == INTEGER_TOKEN) {
@@ -1854,8 +1879,20 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t asy
           /*                                 engineState,0))) { */
           /*   synterr(csound, Str("instr %s redefined"), c); */
           /* } */
+          // the parser has created a variable with the instrument name
+          // we now search for it and update its value to hold instrxt
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
+          CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
+                                                         engineState->varPool,
+                                                         c);
+          if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
+            INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *) &(ivar->memBlock->value);
+            ivar->varType->copyValue(csound, ivar->varType,
+                                     dest, &src, NULL);
+            // mark it as read-only
+            dest->readonly = 1;
+           }           
         }
       }
       p = p->next;
