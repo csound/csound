@@ -955,6 +955,11 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   case S_OR:
     strNcpy(op, "||", 80);
     break;
+  default:
+    csoundDie(csound, "syntax error, line %d: " 
+                         "no boolean expression found; found %s",
+              root->line, root->value->lexeme);
+    
   }
 
   if (UNLIKELY(PARSER_DEBUG)) {
