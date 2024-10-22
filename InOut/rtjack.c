@@ -386,8 +386,8 @@ static void openJackStreams(RtJackGlobals *p)
     char    buf[256];
     int32_t     i, j, k;
     CSOUND *csound = p->csound;
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
 
 
     /* connect to JACK server */
@@ -396,7 +396,7 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
     csound->GetSystemSr(csound, jack_get_sample_rate(p->client));
-    if(oparms.msglevel || oparms.odebug)
+    if(O->msglevel || O->odebug)
       csound->Message(csound, "system sr: %f\n", csound->GetSystemSr(csound,0));
     if(p->sampleRate < 0) p->sampleRate = jack_get_sample_rate(p->client);
 
@@ -410,7 +410,7 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
       rtJack_Error(csound, -1, Str("invalid sample rate"));
     if (UNLIKELY(p->sampleRate != (int32_t) jack_get_sample_rate(p->client))) {
-      if(oparms.sr_override != 0.) {
+      if(O->sr_override != 0.) {
         p->sampleRate = (int32_t) jack_get_sample_rate(p->client);
       } else {
         snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
@@ -904,9 +904,9 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf_, int32_t bytes_)
                                      10000*(nframes/p->sr));
         if (ret) {
           memset(inbuf_, 0, bytes_);
-          OPARMS oparms;
-          csound->GetOParms(csound, &oparms);
-          if (UNLIKELY(oparms.msglevel & 4))
+         const OPARMS *O;
+          O = csound->GetOParms(csound) ;
+          if (UNLIKELY(O->msglevel & 4))
             csound->Warning(csound, "%s", Str("rtjack: input audio timeout"));
           return bytes_;
         }
@@ -930,9 +930,9 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf_, int32_t bytes_)
     }
     if (p->xrunFlag) {
       p->xrunFlag = 0;
-      OPARMS oparms;
-      csound->GetOParms(csound, &oparms);
-      if (UNLIKELY(oparms.msglevel & 4))
+     const OPARMS *O;
+      O = csound->GetOParms(csound) ;
+      if (UNLIKELY(O->msglevel & 4))
         csound->Warning(csound, "%s", Str("rtjack: xrun in real time audio"));
     }
 
@@ -1136,11 +1136,11 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     RtJackGlobals   *p;
     int32_t             i, j;
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
 
     /* allocate and initialise globals */
-    if (UNLIKELY(oparms.msglevel & 0x400))
+    if (UNLIKELY(O->msglevel & 0x400))
       csound->Message(csound, "%s",
                       Str("JACK real-time audio module for Csound\n"));
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtjackGlobals",
@@ -1203,7 +1203,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 
 
     RtJackMIDIGlobals *pm;
-    if (oparms.msglevel & 0x400)
+    if (O->msglevel & 0x400)
       csound->Message(csound, "%s", Str("JACK MIDI module for Csound\n"));
     if (csound->CreateGlobalVariable(csound, "_rtjackMIDIGlobals",
                                      sizeof(RtJackMIDIGlobals)) != 0) {
@@ -1555,8 +1555,8 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-   OPARMS O;
-    csound->GetOParms(csound, &O);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
     csound->ModuleListAdd(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
@@ -1564,7 +1564,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    if(O.msglevel || O.odebug)
+    if(O->msglevel || O->odebug)
      csound->Message(csound, "%s", Str("rtaudio: JACK module enabled\n"));
     {
       /* register Csound interface functions */
@@ -1582,7 +1582,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    if(O.msglevel || O.odebug)
+    if(O->msglevel || O->odebug)
      csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);

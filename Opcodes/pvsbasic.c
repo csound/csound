@@ -214,8 +214,8 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
 {
   int32_t N;
   char fname[MAXNAME];
-          OPARMS parm;
-       csound->GetOParms(csound, &parm);
+         const OPARMS *parm = csound->GetOParms(csound);
+       
 
   if (stringname==0) {
     if (IsStringCode(*p->file))
@@ -242,7 +242,7 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
                              fname);
 #ifndef __EMSCRIPTEN__
 
-  if (parm.realtime) {
+  if (parm->realtime) {
     int32_t bufframes = 16;
     p->csound = csound;
     if (p->frame.auxp == NULL || p->frame.size < sizeof(MYFLT) * (N + 2))

@@ -1,7 +1,7 @@
 /*
   csoundCore.h: csound engine structures and module API
 
-  Copyright (C) 1991-2024 Barry Vercoe, John ffitch, Istvan Varga,
+  Copyright (C) 1991-2024 Barry Vercoe, John ffitch, Istvan Varga,              
                            V Lazzarini, S Yi
 
   This file is part of Csound.
@@ -158,7 +158,8 @@ extern "C" {
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__) || defined(__HAIKU__))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) \
+  || defined(__CYGWIN__) || defined(__HAIKU__))
 #include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
   typedef struct {
@@ -321,50 +322,8 @@ static const double FMAXLEN = (1U << 24) - 1;
     uint32_t     p;
   } CORFIL;
 
-  typedef struct {
-    int32_t     odebug;
-    int32_t     sfread, sfwrite, sfheader, filetyp;
-    int32_t     inbufsamps, outbufsamps;
-    int32_t     informat, outformat;
-    int32_t     sfsampsize;
-    int32_t     displays, graphsoff, postscript, msglevel;
-    int32_t     Beatmode, oMaxLag;
-    int32_t     usingcscore, Linein;
-    int32_t     RTevents, Midiin, FMidiin, RMidiin;
-    int32_t     ringbell, termifend;
-    int32_t     rewrt_hdr, heartbeat, gen01defer;
-    double  cmdTempo;
-    float   sr_override, kr_override;
-    int32_t     nchnls_override, nchnls_i_override;
-    char    *infilename, *outfilename;
-    CORFIL  *playscore;
-    char    *Linename, *Midiname, *FMidiname;
-    char    *Midioutname;
-    /* jjk 09252000 - MIDI output device, -Q option */
-    char    *FMidioutname;
-    int32_t     midiKey, midiKeyCps, midiKeyOct, midiKeyPch;
-    int32_t     midiVelocity, midiVelocityAmp;
-    int32_t     noDefaultPaths;
-    /* syy - Oct 25, 2006: for disabling relative paths
-                                from files */
-    int32_t     numThreads;
-    int32_t     syntaxCheckOnly;
-    int32_t     useCsdLineCounts;
-    int32_t     sampleAccurate;  /* switch for score events sample accuracy */
-    int32_t     realtime; /* realtime priority mode  */
-    MYFLT   e0dbfs_override;
-    int32_t     daemon;
-    double  quality;        /* for ogg encoding */
-    int32_t     ksmps_override;
-    int32_t     fft_lib;
-    int32_t     echo;
-    MYFLT   limiter;
-    float   sr_default, kr_default;
-    int32_t     mp3_mode;
-  } OPARMS;
-
   typedef struct arglst {
-    int32_t     count;
+    int32_t count;
     char    *arg[1];
   } ARGLST;
 
@@ -385,7 +344,7 @@ static const double FMAXLEN = (1U << 24) - 1;
     int32_t  (*init)(CSOUND *, void *p);
     int32_t  (*perf)(CSOUND *, void *p);
     int32_t  (*deinit)(CSOUND *, void *p);
-    void    *useropinfo;    /* user opcode parameters */
+    void    *useropinfo; /* user opcode parameters */
   } OENTRY;
 
   /**
@@ -908,21 +867,12 @@ static inline double PHMOD1(double p) {
     MYFLT       srate;
   } PVOCEX_MEMFILE;
 
+/* The definitions and declarations in this section 
+   are not available externally to plugins.
+*/
 #ifdef __BUILDING_LIBCSOUND
 
-#define INSTR   1
-#define ENDIN   2
-#define OPCODE  3
-#define ENDOP   4
-#define LABEL   5
-#define SETBEG  6
-#define PSET    6
-#define USEROPCODE    7
-#define SETEND  8
-
-#define TOKMAX  50L     /* Should be 50 but bust */
-
-  /* max number of input/output args for user defined opcodes */
+/* max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS_LOW   16
 #define OPCODENUMOUTS_HIGH  64
 #define OPCODENUMOUTS_MAX   256
@@ -930,7 +880,6 @@ static inline double PHMOD1(double p) {
 #define MBUFSIZ         (4096)
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
-
 #define MIDIMAXPORTS    (64)
 
   typedef union {
@@ -985,11 +934,6 @@ static inline double PHMOD1(double p) {
     MYFLT   prvtempo;
   } TEMPO;
 
-  /* typedef struct token { */
-  /*   char    *str; */
-  /*   int16   prec; */
-  /* } TOKEN; */
-
   typedef struct names {
     char    *mac;
     struct names *next;
@@ -1026,12 +970,6 @@ static inline double PHMOD1(double p) {
    * and nodebug kperf functions */
   int32_t kperf_nodebug(CSOUND *csound);
   int32_t kperf_debug(CSOUND *csound);
-
-  /*
-    check if code is running at init time.
-    result may not be valid in realtime mode
-  */
-  int32_t csoundIsInitThread(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -1446,7 +1384,7 @@ static inline double PHMOD1(double p) {
     long (*GetOutputBufferSize)(CSOUND *);
     int32_t (*GetDebug)(CSOUND *);
     int32_t (*GetSizeOfMYFLT)(void);
-    void (*GetOParms)(CSOUND *, OPARMS *parms);
+    const OPARMS *(*GetOParms)(CSOUND *);
     const char *(*GetEnv)(CSOUND *, const char *name);
     MYFLT (*GetSystemSr)(CSOUND *, MYFLT );
     /**@}*/
@@ -2209,6 +2147,7 @@ static inline double PHMOD1(double p) {
     char *opcodedir;
     char *score_srt;
     OSC_MESS osc_message_anchor;
+    CORFIL *playscore;
     spin_lock_t osc_spinlock;
     CSOUND_UTIL csound_util;
     /*struct CSOUND_ **self;*/

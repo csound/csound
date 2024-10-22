@@ -138,8 +138,8 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     int32_t  format = MYFLT2LRND(*p->format);
     int32_t  skip = MYFLT2LRND(*p->beg);
     int32_t  end = MYFLT2LRND(*p->end);
-    OPARMS parms;
-    csound->GetOParms(csound, &parms);
+   const OPARMS *parms;
+    parms =   csound->GetOParms(csound) ;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
       return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
     }
@@ -154,18 +154,18 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     if (format >= 51)
       sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else if (format < 0) {
-      sfinfo.format = FORMAT2SF(parms.outformat);
-      sfinfo.format |= TYPE2SF(parms.filetyp);
+      sfinfo.format = FORMAT2SF(parms->outformat);
+      sfinfo.format |= TYPE2SF(parms->filetyp);
     }
     else sfinfo.format = format_table[format];
     if (!SF2FORMAT(sfinfo.format))
-      sfinfo.format |= FORMAT2SF(parms.outformat);
+      sfinfo.format |= FORMAT2SF(parms->outformat);
     if (!SF2TYPE(sfinfo.format))
-      sfinfo.format |= TYPE2SF(parms.filetyp);
+      sfinfo.format |= TYPE2SF(parms->filetyp);
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     sfinfo.channels = ftp->nchanls;
     ff = csound->FileOpen(csound, &ff, CSFILE_SND_W, p->file->data, &sfinfo, NULL,
-                           csound->Type2CsfileType(parms.filetyp, parms.outformat), 0);
+                           csound->Type2CsfileType(parms->filetyp, parms->outformat), 0);
     if (ff==NULL)
       return csound->PerfError(csound, &(p->h),
                                Str("tabaudio: failed to open file %s"),
@@ -214,8 +214,8 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   int32_t  skip = MYFLT2LRND(*p->beg);
   int32_t  end = MYFLT2LRND(*p->end);
 
-  OPARMS parms;
-  csound->GetOParms(csound, &parms);
+ const OPARMS *parms;
+  parms =   csound->GetOParms(csound) ;
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
     return csound->InitError(csound, "%s", Str("tabaudio: No table"));
@@ -231,20 +231,20 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   if (format >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format < 0) {
-    sfinfo.format = FORMAT2SF(parms.outformat);
-    sfinfo.format |= TYPE2SF(parms.filetyp);
+    sfinfo.format = FORMAT2SF(parms->outformat);
+    sfinfo.format |= TYPE2SF(parms->filetyp);
   }
   else sfinfo.format = format_table[format];
   if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(parms.outformat);
+    sfinfo.format |= FORMAT2SF(parms->outformat);
   if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(parms.filetyp);
+    sfinfo.format |= TYPE2SF(parms->filetyp);
 
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   sfinfo.channels = ftp->nchanls;
 
   ff = csound->FileOpen(csound, &ff, CSFILE_SND_W, p->file->data, &sfinfo, NULL,
-                         csound->Type2CsfileType(parms.filetyp, parms.outformat), 0);
+                         csound->Type2CsfileType(parms->filetyp, parms->outformat), 0);
   if (ff==NULL)
     return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
                              p->file->data);

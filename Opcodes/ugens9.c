@@ -38,7 +38,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
   int32     Hlenpadded = 1, obufsiz, Hlen;
   uint32_t  nchanls;
   uint32_t  nsmps = CS_KSMPS;
-
+  
   if (UNLIKELY(csound->GetDebug(csound)))
     csound->Message(csound, CONVOLVE_VERSION_STRING);
 
@@ -387,10 +387,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   MYFLT   *IRblock;
   MYFLT   ainput_dur, scaleFac;
   MYFLT   partitionSize;
-  OPARMS oparms;
   char *sfname = NULL;
-
-  csound->GetOParms(csound, &oparms);
 
   if (stringname==0){ 
     if (IsStringCode(*p->ifilno))
@@ -436,7 +433,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
   /* make sure the partition size is nonzero and a power of 2  */
   if (*p->partitionSize <= 0)
-    partitionSize = oparms.outbufsamps / csound->GetNchnls(csound);
+    partitionSize = (csound->GetOParms(csound))->outbufsamps / csound->GetNchnls(csound);
   else
     partitionSize = *p->partitionSize;
 
