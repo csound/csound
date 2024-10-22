@@ -424,8 +424,8 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
             break;
         case CSOUND_STRING_CHANNEL:
             dsize = sizeof(STRINGDAT);
-            break;
             varType = &CS_VAR_TYPE_S;
+            break;
         case CSOUND_PVS_CHANNEL:
             dsize = sizeof(PVSDAT);
             varType = &CS_VAR_TYPE_F;
