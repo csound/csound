@@ -39,8 +39,7 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
     struct fileinTag  *pp;
     STDOPCOD_GLOBALS *ppp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                             "STDOPC_GLOBALS");
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+
     p->sf = (SNDFILE*) NULL;
     p->f = (FILE*) NULL;
     if (p->idx) {
@@ -59,7 +58,7 @@ static CS_NOINLINE int32_t fout_deinit(CSOUND *csound, FOUT_FILE *p)
           pp->refCount = 0U;
 
           if (pp->fd != NULL) {
-            if ((oparms.msglevel & 7) == 7)
+            if (((csound->GetOParms(csound))->msglevel & 7) == 7)
               csound->Message(csound, Str("Closing file '%s'...\n"),
                               csound->GetFileName(pp->fd));
             csound->FileClose(csound, pp->fd);
@@ -81,8 +80,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
   char              *name;
   int32_t               idx, csFileType;
-  OPARMS oparms;
-  csound->GetOParms(csound, &oparms);
+  const OPARMS *oparms = csound->GetOParms(csound);
 
 
   if (p != (FOUT_FILE*) NULL) p->async = 0;
@@ -184,7 +182,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
     if (fileType == CSFILE_SND_W) {
       do_scale = ((SFLIB_INFO*) fileParams)->format;
       csFileType = csound->SndfileType2CsfileType(do_scale);
-      if (oparms.realtime == 0 || forceSync == 1) {
+      if (oparms->realtime == 0 || forceSync == 1) {
         fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
                                "SFDIR", csFileType, 0);
         p->async = 0;
@@ -199,7 +197,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
       p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
     }
     else {
-      if (oparms.realtime == 0 || forceSync == 1) {
+      if (oparms->realtime == 0 || forceSync == 1) {
         fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
                                "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
         p->async = 0;
@@ -399,22 +397,21 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p)
   int32_t istring = 1;
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");
-  OPARMS oparms;
-  csound->GetOParms(csound, &oparms);
+  const OPARMS *oparms = csound->GetOParms(csound);
   
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) MYFLT2LRND(*p->iflag);
   if (format_ >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format_ < 0) {
-    sfinfo.format = FORMAT2SF(oparms.outformat);
-    sfinfo.format |= TYPE2SF(oparms.filetyp);
+    sfinfo.format = FORMAT2SF(oparms->outformat);
+    sfinfo.format |= TYPE2SF(oparms->filetyp);
   }
   else sfinfo.format = fout_format_table[format_];
   if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(oparms.outformat);
+    sfinfo.format |= FORMAT2SF(oparms->outformat);
   if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(oparms.filetyp);
+    sfinfo.format |= TYPE2SF(oparms->filetyp);
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   p->nargs = p->INOCOUNT - 2;
   p->buf_pos = 0;
@@ -449,25 +446,24 @@ static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
   SFLIB_INFO sfinfo;
   int32_t     format_, n, buf_reqd;
   int32_t len = p->tabin->sizes[0];
-
+  const OPARMS *oparms = csound->GetOParms(csound);
   STDOPCOD_GLOBALS *pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                                          "STDOPC_GLOBALS");
-  OPARMS oparms;
-  csound->GetOParms(csound, &oparms);
+  
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   format_ = (int32_t) MYFLT2LRND(*p->iflag);
   if (format_ >=  51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
   else if (format_ < 0) {
-    sfinfo.format = FORMAT2SF(oparms.outformat);
-    sfinfo.format |= TYPE2SF(oparms.filetyp);
+    sfinfo.format = FORMAT2SF(oparms->outformat);
+    sfinfo.format |= TYPE2SF(oparms->filetyp);
   }
   else
     sfinfo.format = fout_format_table[format_];
   if (!SF2FORMAT(sfinfo.format))
-    sfinfo.format |= FORMAT2SF(oparms.outformat);
+    sfinfo.format |= FORMAT2SF(oparms->outformat);
   if (!SF2TYPE(sfinfo.format))
-    sfinfo.format |= TYPE2SF(oparms.filetyp);
+    sfinfo.format |= TYPE2SF(oparms->filetyp);
   sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
   p->buf_pos = 0;
 

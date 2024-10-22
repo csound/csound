@@ -717,10 +717,10 @@ static int32_t midi_out_close(CSOUND *csound, void *userData)
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
-    OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+     O = csound->GetOParms(csound) ;
 
-    if (UNLIKELY(oparms.msglevel & 0x400))
+    if (UNLIKELY(O->msglevel & 0x400))
       csound->Message(csound, Str("Windows MME real time audio and MIDI module "
                                   "for Csound by Istvan Varga\n"));
 
