@@ -26,6 +26,7 @@
 #include "csoundCore.h"         /*                      ENTRY1.H        */
 #include "insert.h"
 #include "aops.h"
+#include "complex_ops.h"
 #include "midiops.h"
 #include "ugens1.h"
 #include "ugens2.h"

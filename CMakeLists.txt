@@ -777,6 +777,7 @@ set(libcsound_SRCS
     OOps/aops.c
     OOps/bus.c
     OOps/cmath.c
+    OOps/complex_ops.c
     OOps/diskin2.c
     OOps/disprep.c
     OOps/dumpf.c

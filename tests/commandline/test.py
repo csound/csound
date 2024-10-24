@@ -175,6 +175,7 @@ def runTest():
     ["testnewline.csd", "test newline in statements"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
     ["test_max_table_len.csd", "test max table length"],
+    ["test_complex_numbers.csd", "testing complex number operations"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],

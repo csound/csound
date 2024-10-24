@@ -99,7 +99,7 @@ typedef struct memAllocBlock_s {
 
 static void memdie(CSOUND *csound, size_t nbytes)
 {
-    csound->ErrorMsg(csound, Str("memory allocate failure for %zd"),
+    csound->ErrorMsg(csound, Str("memory allocate failure for %zd \n"),
                              nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
 }
@@ -117,6 +117,7 @@ void *mmalloc(CSOUND *csound, size_t size)
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
+        csound->ErrorMsg(csound, "Malloc failed: ");
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
@@ -138,7 +139,7 @@ void *mmalloc(CSOUND *csound, size_t size)
 void *mmallocDebug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
     void *ans = mmalloc(csound,size);
-    printf("Alloc %p (%zu) %s:%d\n", ans, size, file, line);
+    csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
@@ -155,6 +156,7 @@ void *mcalloc(CSOUND *csound, size_t size)
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
+      csound->ErrorMsg(csound, "Calloc failed: ");
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
@@ -176,7 +178,7 @@ void *mcalloc(CSOUND *csound, size_t size)
 void *mcallocDebug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
     void *ans = mcalloc(csound,size);
-    printf("Alloc %p (%zu) %s:%d\n", ans, size, file, line);
+    csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
@@ -259,6 +261,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
       pp->ptr = oldp;
       CSOUND_MEM_SPINUNLOCK
 #endif
+      csound->ErrorMsg(csound, "Realloc failed: ");  
       memdie(csound, size);
       return NULL;
     }
@@ -286,7 +289,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
 void *mreallocDebug(CSOUND *csound, void *oldp, size_t size, char *file, int32_t line)
 {
     void *p = mrealloc(csound, oldp, size);
-    printf("Realloc %p->%p (%zu) %s:%d\n", oldp, p, size, file, line);
+    csound->DebugMsg(csound, "Realloc %p->%p (%zu) %s:%d\n", oldp, p, size, file, line);
     return p;
 }
 

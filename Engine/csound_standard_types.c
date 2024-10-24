@@ -42,6 +42,11 @@ void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   memcpy(dest, src, sizeof(MYFLT) * ksmps);
 }
 
+void complex_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                        const void* src, OPDS *ctx) {
+  memcpy(dest, src, sizeof(COMPLEXDAT));
+}
+
 void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, OPDS *ctx) {
     memcpy(dest, src, sizeof(SPECDAT));
@@ -207,6 +212,15 @@ CS_VARIABLE* createMyflt(void* cs, void* p, OPDS *ctx) {
     return var;
 }
 
+CS_VARIABLE* createComplex(void* cs, void* p, OPDS *ctx) {
+    CSOUND* csound = (CSOUND*)cs;
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    IGN(p);
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(COMPLEXDAT));
+    var->initializeVariableMemory = &varInitMemory;
+    return var;
+}
+
 CS_VARIABLE* createBool(void* cs, void* p, OPDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
@@ -352,12 +366,18 @@ const CS_TYPE CS_VAR_TYPE_ARRAY = {
   array_free_var_mem, NULL, 0
 };
 
+const CS_TYPE CS_VAR_TYPE_COMPLEX = {
+  "Complex", "complex", CS_ARG_TYPE_BOTH, createComplex, complex_copy_value,
+    NULL, NULL, 0
+};
+
 
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
 
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_K);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_I);
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_COMPLEX);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_S);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_P);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_R);
