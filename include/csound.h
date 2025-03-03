@@ -64,7 +64,6 @@
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
-#include <stdint.h>
 #include "float-version.h"
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
@@ -75,6 +74,7 @@
 #endif
 #endif
 #else
+#  include <stdint.h>
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>

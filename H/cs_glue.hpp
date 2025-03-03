@@ -24,48 +24,6 @@
 #ifndef CSOUND_CS_GLUE_HPP
 #define CSOUND_CS_GLUE_HPP
 
-/**
- * CsoundOpcodeList(CSOUND *)
- * CsoundOpcodeList(Csound *)
- *
- * Creates an alphabetically sorted opcode list for a Csound instance.
- * Should be called after csoundCompile() or Csound::Compile().
- */
-
-class PUBLIC CsoundOpcodeList {
- private:
-    opcodeListEntry *lst;
-    int             cnt;
- public:
-    /**
-     * Returns the number of opcodes, or -1 if there is no list.
-     */
-    int Count();
-    /**
-     * Returns the name of the opcode at index 'ndx' (counting from zero),
-     * or NULL if the index is out of range.
-     */
-    const char *Name(int ndx);
-    /**
-     * Returns the output types of the opcode at index 'ndx' (counting from
-     * zero), or NULL if the index is out of range.
-     */
-    const char *OutTypes(int ndx);
-    /**
-     * Returns the input types of the opcode at index 'ndx' (counting from
-     * zero), or NULL if the index is out of range.
-     */
-    const char *InTypes(int ndx);
-    /**
-     * Releases the memory used by the opcode list. Should be called
-     * before the Csound instance is destroyed or reset.
-     */
-    void Clear();
-    // --------
-    CsoundOpcodeList(CSOUND *csound);
-    CsoundOpcodeList(Csound *csound);
-    ~CsoundOpcodeList();
-};
 
 /**
  * CsoundChannelList(CSOUND *)
@@ -157,39 +115,7 @@ class PUBLIC CsoundChannelList {
     ~CsoundChannelList();
 };
 
-/**
- * CsoundUtilityList(CSOUND *)
- * CsoundUtilityList(Csound *)
- *
- * Creates an alphabetically sorted list of utilities registered
- * for a Csound instance. Should be called after csoundPreCompile()
- * or Csound::PreCompile().
- */
 
-class PUBLIC CsoundUtilityList {
- private:
-    char  **lst;
-    int   cnt;
- public:
-    /**
-     * Returns the number of utilities, or -1 if there is no list.
-     */
-    int Count();
-    /**
-     * Returns the name of the utility at index 'ndx' (counting from zero),
-     * or NULL if the index is out of range.
-     */
-    const char *Name(int ndx);
-    /**
-     * Releases the memory used by the utility list. Should be called
-     * before the Csound instance is destroyed or reset.
-     */
-    void Clear();
-    // --------
-    CsoundUtilityList(CSOUND *csound);
-    CsoundUtilityList(Csound *csound);
-    ~CsoundUtilityList();
-};
 
 /**
  * CsoundMYFLTArray()
@@ -207,6 +133,7 @@ class PUBLIC CsoundUtilityList {
 class PUBLIC CsoundMYFLTArray {
  private:
     MYFLT *p;
+    const MYFLT *cp;
     void  *pp;
  public:
     /**
@@ -235,6 +162,13 @@ class PUBLIC CsoundMYFLTArray {
     {
       p = ptr;
     }
+
+    void SetPtr(const MYFLT *ptr)
+    {
+      cp = ptr;
+    } 
+
+    
     /**
      * Stores a floating point value at index 'ndx' (counting from zero).
      * No error checking is done, the array is assumed to exist and the
@@ -365,6 +299,12 @@ class PUBLIC CsoundMYFLTArray {
     {
       return (double) p[ndx];
     }
+
+    double GetConstValue(int ndx)
+    {
+      return (double) cp[ndx];
+    }
+    
     /**
      * Copies 'n' values to the array from a source pointer, starting at
      * index 'ndx' (counting from zero). No error checking is done.

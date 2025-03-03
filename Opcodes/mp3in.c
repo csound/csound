@@ -560,7 +560,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
   return OK;
 }
 
-#ifdef ANDROID
+#ifdef MP3SCALE_ASYNC_INIT
 void *init_thread(void *p){
   DATASPACE *pp = (DATASPACE *) p;
   sinit3_(pp->csound,pp);
