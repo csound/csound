@@ -4,6 +4,7 @@ export RELEASE_DIR=csound-android-7.0.0
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
+
 rm -rf CsoundForAndroid/CsoundAndroid/src/main/java/csnd7
 cp -r CsoundAndroid/src/csnd7  CsoundForAndroid/CsoundAndroid/src/main/java/
 
