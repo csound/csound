@@ -4,7 +4,13 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CsoundForAndroid.iml" filepath="$PROJECT_DIR$/CsoundForAndroid.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.main.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroid/CsoundForAndroid.CsoundAndroid.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.main.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/CsoundAndroidExamples/CsoundForAndroid.CsoundAndroidExamples.unitTest.iml" />
     </modules>
   </component>
 </project>
