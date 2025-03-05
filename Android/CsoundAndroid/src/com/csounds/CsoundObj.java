@@ -300,6 +300,8 @@ public class CsoundObj {
 		}
 		if(!isAsync) this.pause();
 		retVal = csound.Compile(f.getAbsolutePath());
+                if(retVal == 0)
+                    retVal = csound.Start();
 		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (int i = 0; i < bindings.size(); i++) {
