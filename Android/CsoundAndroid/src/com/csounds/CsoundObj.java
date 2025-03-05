@@ -362,7 +362,7 @@ public class CsoundObj {
              }
 			}
 			if (!isAsync) {
-				csound.InputMessage("e 0");
+				csound.EventString("e 0");
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
@@ -395,7 +395,7 @@ public class CsoundObj {
 	
 
 	private void runCsoundAudioTrack(File f) {
-		csound.SetHostImplementedAudioIO(1, 0);
+		csound.SetHostAudioIO(1, 0);
 
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -419,7 +419,7 @@ public class CsoundObj {
 					cacheable.setup(this);
 				}
 			}
-			int channelConfig = (csound.GetNchnls() == 2) ? AudioFormat.CHANNEL_OUT_STEREO
+			int channelConfig = (csound.GetChannels() == 2) ? AudioFormat.CHANNEL_OUT_STEREO
 					: AudioFormat.CHANNEL_OUT_MONO;
 
 			int channelInConfig = AudioFormat.CHANNEL_IN_MONO;
@@ -557,7 +557,6 @@ public class CsoundObj {
 				audioRecord.release();
 				audioIn.Clear();
 			}
-			csound.Stop();
 			csound.Reset();
 			synchronized (mLock) {
 				for (int i = 0; i < bindings.size(); i++) {
