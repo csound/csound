@@ -143,6 +143,11 @@ class PUBLIC CsoundMYFLTArray {
     {
       return (&p);
     }
+
+    void **GetVoidPtr()
+    {
+      return (void **) (&p);
+    }
     /**
      * Returns the address of the element at index 'ndx' (counting from
      * zero) as a MYFLT* pointer, or NULL if there is no array. Does not
@@ -163,7 +168,7 @@ class PUBLIC CsoundMYFLTArray {
       p = ptr;
     }
 
-    void SetPtr(const MYFLT *ptr)
+    void SetConstPtr(const MYFLT *ptr)
     {
       cp = ptr;
     } 

@@ -1,26 +1,26 @@
-/* 
- 
+/*
+
  CsoundBinding.java:
- 
+
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
- 
+
  This file is part of Csound Android Examples.
- 
+
  The Csound Android Examples is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
- 
+ version 2.1 of the License, or (at your option) any later version.
+
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  02111-1307 USA
- 
+
  */
 
 package com.csounds;
@@ -78,7 +78,7 @@ public class CsoundObj {
 	public CsoundObj() {
 		this(false);
 	}
-	
+
 	public CsoundObj(boolean useAudioTrack){
 		  this(useAudioTrack,true);
 	}
@@ -89,7 +89,7 @@ public class CsoundObj {
 		scoreMessages = new ArrayList<String>();
 		this.useAudioTrack = useAudioTrack;
         this.isAsync = isAsync;
-        
+
 		if (useAudioTrack) {
 			// Log.d("CsoundObj", "audio track");
 			csound = new Csound();
@@ -167,7 +167,7 @@ public class CsoundObj {
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
 
 		getCsound().GetChannelPtr(
-				ptr.GetPtr(),
+				ptr.GetVoidPtr(),
 				channelName,
 				channelType.swigValue()
                           | controlChannelType.CSOUND_INPUT_CHANNEL.swigValue());
@@ -181,7 +181,7 @@ public class CsoundObj {
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
 
 		getCsound().GetChannelPtr(
-				ptr.GetPtr(),
+				ptr.GetVoidPtr(),
 				channelName,
 				channelType.swigValue()
 						| controlChannelType.CSOUND_OUTPUT_CHANNEL.swigValue());
@@ -219,7 +219,7 @@ public class CsoundObj {
 			listeners.remove(listener);
 		}
 	}
-	
+
 	public void startCsound(final File csdFile) {
 		stopped = false;
 		thread = new Thread() {
@@ -264,8 +264,8 @@ public class CsoundObj {
 				e.printStackTrace();
 			}
 		}
-	 } 
- 
+	 }
+
 	public boolean getAsyncStatus() { return isAsync; }
 
 	public int getNumChannels() {
@@ -316,7 +316,7 @@ public class CsoundObj {
 				CsoundObjListener listener = listeners.get(i);
 				listener.csoundObjStarted(this);
 			}
-			
+
 			startTime = System.nanoTime()*1.0e-6;
 			//double tmptime = startTime;
 			if(!isAsync) this.play();
@@ -326,8 +326,8 @@ public class CsoundObj {
             	 ret = csound.PerformKsmps();
             	 if(ret != 0) break;
     			 stime += csound.GetKsmps();
-    		     
-    			 systime = System.nanoTime()*1.0e-6;    	       
+
+    			 systime = System.nanoTime()*1.0e-6;
     				synchronized (mLock) {
     					CsoundBinding cacheable;
     					String mess;
@@ -358,7 +358,7 @@ public class CsoundObj {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-            	 
+
              }
 			}
 			if (!isAsync) {
@@ -370,7 +370,7 @@ public class CsoundObj {
 				}
 			}
 			csound.Reset();
-			
+
 			synchronized (mLock) {
 				for (int i = 0; i < bindings.size(); i++) {
 					CsoundBinding cacheable = bindings.get(i);
@@ -392,10 +392,10 @@ public class CsoundObj {
 		}
 		Log.d("CsoundObj", "THREAD END");
 	}
-	
+
 
 	private void runCsoundAudioTrack(File f) {
-		csound.SetHostAudioIO(1, 0);
+		csound.SetHostAudioIO();
 
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -478,8 +478,8 @@ public class CsoundObj {
 			int recBufferSize = csound.GetKsmps();
 			int bufferSize = recBufferSize * nchnls;
 			short[] samples = new short[bufferSize];
-                        CsoundMYFLTArray spout = new CsoundMYFLTArray();
-                        spout.SetPtr(csound.GetSpout());
+            CsoundMYFLTArray spout = new CsoundMYFLTArray();
+            spout.SetConstPtr(csound.GetSpout());
 			float multiplier = (float) (Short.MAX_VALUE / csound.Get0dBFS());
 			float recMultiplier = 1 / multiplier;
 			Log.d("CsoundObj", "Multiplier: " + multiplier + " : "
