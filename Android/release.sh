@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 export RELEASE_DIR=csound-android-7.0.0
 
 #remove backup files ending with ~
@@ -23,6 +22,6 @@ rm -r .gradle
 cd ..
 
 rm -f ${RELEASE_DIR}.zip
-zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR} 
+zip -r "${RELEASE_DIR}.zip" ${RELEASE_DIR} 
 
 
