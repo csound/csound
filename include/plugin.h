@@ -998,11 +998,7 @@ template <std::size_t N> struct InPlug : OPDS {
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
-#ifdef EMSCRIPTEN
       return this->perf ? true : false;
-#else
-      return this->opaddr ? true : false;
-#endif
   }
 
 };
