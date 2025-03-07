@@ -593,6 +593,7 @@ jobs:
         working-directory: Android
         run: |
           export PATH="/opt/homebrew/opt/bison/bin:$PATH"
+          export NDK_MODULE_PATH=$PWD/modules
           export ANDROID_NDK_ROOT="$PWD/AndroidNDK.app/Contents/NDK"
           cd CsoundAndroid
           sh build.sh
