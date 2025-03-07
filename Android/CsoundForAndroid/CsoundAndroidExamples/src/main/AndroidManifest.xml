@@ -16,6 +16,7 @@
         android:label="@string/app_name"
         android:allowBackup="false">
         <activity
+            android:exported="true"
             android:label="@string/app_name"
             android:name=".CsoundAndroidActivity" 
             android:configChanges="orientation"
