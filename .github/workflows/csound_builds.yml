@@ -567,15 +567,26 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
-  #android_build:
-  #  name: Android build
-  # runs-on: ubuntu-latest
-  # steps:
-  #    - name: run the Docker image
-  #     run: docker run --name csound_test_run -i sjamble/csound_android
-  #   - name: copying build out of container
-  #    run: docker cp csound_test_run:/csound/Android/csound-android-6.18.0.zip .
-  #  - uses: actions/upload-artifact@v2
-  #    with:
-  #       name: csound-android-6.18.0.zip
-  #      path: .
+  android-release:
+    name: android-release build
+    runs-on: macos-latest
+    steps:
+      - name: Install dependencies
+        run: brew install bison
+
+      - name: Checkout Source Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: build release
+        working-directory: Android
+        run: |
+          sh build-release.sh
+
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/develop'
+        with:
+          name: android-builds
+          path: Android/csound-android-${{env.CSOUND_VERSION}}
+

@@ -6,6 +6,7 @@ if [ -z "$NDK_MODULE_PATH" ]; then
 fi
 
 echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH\n"
+mkdir $NDK_MODULE_PATH
 cd $NDK_MODULE_PATH
 
 # LIBSNDFILE

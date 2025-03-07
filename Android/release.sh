@@ -19,7 +19,7 @@ cp -R ../CsoundForAndroid .
 cd CsoundForAndroid
 ./gradlew clean
 rm -r .gradle
-cd ..
+cd ../..
 
 rm -f ${RELEASE_DIR}.zip
 zip -r "${RELEASE_DIR}.zip" ${RELEASE_DIR} 
