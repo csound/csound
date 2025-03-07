@@ -605,7 +605,6 @@ jobs:
           sh release.sh
 
       - uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/develop'
         with:
           name: android-builds
           path: Android/csound-android-${{env.CSOUND_VERSION}}
