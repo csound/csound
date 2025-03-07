@@ -568,7 +568,7 @@ jobs:
         run: cmake --build build --target test csdtests
 
   android-release:
-    name: Android build
+    name: Csound for Android 
     runs-on: macos-latest
     steps:
       - name: Install dependencies
@@ -587,7 +587,7 @@ jobs:
         working-directory: Android
         run: |
           export NDK_MODULE_PATH=$PWD/modules
-          sh downloadDepencies.sh
+          sh downloadDependencies.sh
 
       - name: build CsoundAndroid
         working-directory: Android
