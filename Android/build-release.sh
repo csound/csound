@@ -11,6 +11,7 @@ export ANDROID_NDK_ROOT="$PWD/AndroidNDK.app/Contents/NDK"
 export NDK_MODULE_PATH=$PWD/modules
 sh downloadDependencies.sh
 cd CsoundAndroid
+bison --version
 sh build.sh
 cd ..
 sh update.sh

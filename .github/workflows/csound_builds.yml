@@ -572,7 +572,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Install dependencies
-        run: brew install bison
+        run: brew install swig bison flex
 
       - name: Checkout Source Code
         uses: actions/checkout@v1
