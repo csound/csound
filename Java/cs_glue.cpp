@@ -30,100 +30,6 @@
 extern "C" {
 
 
-// ----------------------------------------------------------------------------
-
-/**
- * CsoundOpcodeList(CSOUND *)
- * CsoundOpcodeList(Csound *)
- *
- * Creates an alphabetically sorted opcode list for a Csound instance.
- * Should be called after csoundCompile() or Csound::Compile().
- */
-
-/**
- * Returns the number of opcodes, or -1 if there is no list.
- */
-
-int CsoundOpcodeList::Count()
-{
-    return cnt;
-}
-
-/**
- * Returns the name of the opcode at index 'ndx' (counting from zero),
- * or NULL if the index is out of range.
- */
-
-const char * CsoundOpcodeList::Name(int ndx)
-{
-    if (lst && (unsigned int) ndx < (unsigned int) cnt)
-      return lst[ndx].opname;
-    return (char*) 0;
-}
-
-/**
- * Returns the output types of the opcode at index 'ndx' (counting from
- * zero), or NULL if the index is out of range.
- */
-
-const char * CsoundOpcodeList::OutTypes(int ndx)
-{
-    if (lst && (unsigned int) ndx < (unsigned int) cnt)
-      return lst[ndx].outypes;
-    return (char*) 0;
-}
-
-/**
- * Returns the input types of the opcode at index 'ndx' (counting from
- * zero), or NULL if the index is out of range.
- */
-
-const char * CsoundOpcodeList::InTypes(int ndx)
-{
-    if (lst && (unsigned int) ndx < (unsigned int) cnt)
-      return lst[ndx].intypes;
-    return (char*) 0;
-}
-
-/**
- * Releases the memory used by the opcode list. Should be called
- * before the Csound instance is destroyed or reset.
- */
-
-void CsoundOpcodeList::Clear()
-{
-    // FIXME: this depends on csoundDisposeOpcodeList() ignoring the
-    // instance pointer
-    if (lst)
-      csoundDisposeOpcodeList((CSOUND*) 0, lst);
-    lst = (opcodeListEntry*) 0;
-    cnt = -1;
-}
-
-CsoundOpcodeList::CsoundOpcodeList(CSOUND *csound)
-{
-    lst = (opcodeListEntry*) 0;
-    cnt = csoundNewOpcodeList(csound, &lst);
-    if (cnt < 0 || !lst) {
-      lst = (opcodeListEntry*) 0;
-      cnt = -1;
-    }
-}
-
-CsoundOpcodeList::CsoundOpcodeList(Csound *csound)
-{
-    lst = (opcodeListEntry*) 0;
-    cnt = csound->NewOpcodeList(lst);
-    if (cnt < 0 || !lst) {
-      lst = (opcodeListEntry*) 0;
-      cnt = -1;
-    }
-}
-
-CsoundOpcodeList::~CsoundOpcodeList()
-{
-    this->Clear();
-}
 
 // ----------------------------------------------------------------------------
 
@@ -345,79 +251,7 @@ CsoundChannelList::~CsoundChannelList()
     this->Clear();
 }
 
-// ----------------------------------------------------------------------------
 
-/**
- * CsoundUtilityList(CSOUND *)
- * CsoundUtilityList(Csound *)
- *
- * Creates an alphabetically sorted list of utilities registered
- * for a Csound instance. Should be called after csoundPreCompile()
- * or Csound::PreCompile().
- */
-
-/**
- * Returns the number of utilities, or -1 if there is no list.
- */
-
-int CsoundUtilityList::Count()
-{
-    return cnt;
-}
-
-/**
- * Returns the name of the utility at index 'ndx' (counting from zero),
- * or NULL if the index is out of range.
- */
-
-const char * CsoundUtilityList::Name(int ndx)
-{
-    if (lst && (unsigned int) ndx < (unsigned int) cnt)
-      return lst[ndx];
-    return (char*) 0;
-}
-
-/**
- * Releases the memory used by the utility list. Should be called
- * before the Csound instance is destroyed or reset.
- */
-
-void CsoundUtilityList::Clear()
-{
-    // FIXME: this depends on csoundDeleteUtilityList() ignoring the
-    // instance pointer
-    if (lst)
-      csoundDeleteUtilityList((CSOUND*) 0, lst);
-    lst = (char**) 0;
-    cnt = -1;
-}
-
-CsoundUtilityList::CsoundUtilityList(CSOUND *csound)
-{
-    int n = -1;
-    lst = csoundListUtilities(csound);
-    if (lst) {
-      while (lst[++n])
-        ;
-    }
-    cnt = n;
-}
-
-CsoundUtilityList::CsoundUtilityList(Csound *csound)
-{
-    int n = -1;
-    lst = csound->ListUtilities();
-    if (lst) {
-      while (lst[++n])
-        ;
-    }
-    cnt = n;
-}
-
-CsoundUtilityList::~CsoundUtilityList()
-{
-    this->Clear();
-}
 
 // ----------------------------------------------------------------------------
 
@@ -482,6 +316,7 @@ CsoundMYFLTArray::CsoundMYFLTArray()
 {
     p = (MYFLT*) 0;
     pp = (void*) 0;
+    cp = nullptr;
 }
 
 CsoundMYFLTArray::CsoundMYFLTArray(int n)

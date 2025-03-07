@@ -16,14 +16,14 @@ endif
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 
-ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a arm64-v8a))
-LOCAL_ARM_NEON  := true
-LOCAL_CFLAGS += -DHAVE_NEON -mfloat-abi=softfp
-endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
+#ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), arm64-v8a))
+#LOCAL_ARM_NEON  := true
+#LOCAL_CFLAGS += -DHAVE_NEON -mfloat-abi=softfp
+#endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
 
-ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi x86))
-LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
-endif # TARGET_ARCH_ABI == armeabi
+#ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi x86))
+#LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
+#endif # TARGET_ARCH_ABI == armeabi
 ###
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
@@ -104,7 +104,8 @@ $(CSOUND_SRC_ROOT)/Opcodes/eqfil.c \
 $(CSOUND_SRC_ROOT)/Opcodes/Vosim.c \
 $(CSOUND_SRC_ROOT)/Opcodes/pinker.c \
 $(CSOUND_SRC_ROOT)/Opcodes/pitch.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/pitch0.c   \
+$(CSOUND_SRC_ROOT)/OOps/midiops3.c   \
+$(CSOUND_SRC_ROOT)/OOps/pitch0.c   \
 $(CSOUND_SRC_ROOT)/Opcodes/spectra.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/ambicode1.c \
 $(CSOUND_SRC_ROOT)/Opcodes/sfont.c  \
@@ -117,9 +118,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
 $(CSOUND_SRC_ROOT)/Opcodes/arrays.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/vbap1.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/vbap_n.c  \
-$(CSOUND_SRC_ROOT)/Opcodes/vbap_zak.c   \
 $(CSOUND_SRC_ROOT)/Opcodes/vaops.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/ugakbari.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/harmon.c  \
@@ -144,14 +142,13 @@ $(CSOUND_SRC_ROOT)/Opcodes/shaker.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/bowedbar.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gab/tabmorph.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gab/hvs.c \
-$(CSOUND_SRC_ROOT)/Opcodes/gab/sliderTable.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gab/newgabopc.c \
 $(CSOUND_SRC_ROOT)/Opcodes/ftest.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfearly.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfreverb.c \
 $(CSOUND_SRC_ROOT)/Opcodes/cpumeter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/gendy.c \
-$(CSOUND_SRC_ROOT)/Opcodes/tl/sc_noise.c \
+$(CSOUND_SRC_ROOT)/Opcodes/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Opcodes/squinewave.c \
 $(CSOUND_SRC_ROOT)/Opcodes/sequencer.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
@@ -191,7 +188,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/grain.c \
 $(CSOUND_SRC_ROOT)/Opcodes/locsig.c         \
 $(CSOUND_SRC_ROOT)/Opcodes/lowpassr.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/metro.c \
-$(CSOUND_SRC_ROOT)/Opcodes/midiops2.c       \
+$(CSOUND_SRC_ROOT)/Oops/midiops2.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/midiops3.c       \
 $(CSOUND_SRC_ROOT)/Opcodes/newfils.c \
 $(CSOUND_SRC_ROOT)/Opcodes/nlfilt.c         \
@@ -251,8 +248,24 @@ $(CSOUND_SRC_ROOT)/Opcodes/exciter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/buchla.c \
 $(CSOUND_SRC_ROOT)/Opcodes/select.c \
 $(CSOUND_SRC_ROOT)/Opcodes/serial.c \
+$(CSOUND_SRC_ROOT)/Opcodes/control.c \
 $(CSOUND_SRC_ROOT)/Opcodes/counter.c \
+$(CSOUND_SRC_ROOT)/Opcodes/scansyn.c \
+$(CSOUND_SRC_ROOT)/Opcodes/scansynx.c \
 $(CSOUND_SRC_ROOT)/Opcodes/platerev.c \
+$(CSOUND_SRC_ROOT)/Opcodes/urandom.c \
+$(CSOUND_SRC_ROOT)/Opcodes/ampmidid.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/arrayops.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/doppler.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/ftsamplebank.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/lfsr.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/mixer.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/padsynth_gen.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/signalflowgraph.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/trigEnvSegs.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/pvsops.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/bformdec2.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/tl/fractalnoise.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/emugens.c \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/scugens.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
@@ -276,13 +289,13 @@ csound_orcparse.c \
 rtopensl.c \
 AndroidCsound.cpp \
 $(CSOUND_SRC_ROOT)/Top/csPerfThread.cpp \
-$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp \
 java_interfaceJAVA_wrap.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
-
+$(CSOUND_SRC_ROOT)/Top/init_static_modules.c \
+$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp 
 #CsoundObj.cpp
 
 LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
