@@ -567,15 +567,46 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
-  #android_build:
-  #  name: Android build
-  # runs-on: ubuntu-latest
-  # steps:
-  #    - name: run the Docker image
-  #     run: docker run --name csound_test_run -i sjamble/csound_android
-  #   - name: copying build out of container
-  #    run: docker cp csound_test_run:/csound/Android/csound-android-6.18.0.zip .
-  #  - uses: actions/upload-artifact@v2
-  #    with:
-  #       name: csound-android-6.18.0.zip
-  #      path: .
+  android-release:
+    name: Csound for Android 
+    runs-on: macos-latest
+    steps:
+      - name: Install dependencies
+        run: brew install swig bison flex
+
+      - name: Checkout Source Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Download NDK
+        working-directory: Android
+        run: sh downloadNDK.sh
+
+      - name: Download Dependencies
+        working-directory: Android
+        run: |
+          export NDK_MODULE_PATH=$PWD/modules
+          sh downloadDependencies.sh
+
+      - name: build CsoundAndroid
+        working-directory: Android
+        run: |
+          export PATH="/opt/homebrew/opt/bison/bin:$PATH"
+          export NDK_MODULE_PATH=$PWD/modules
+          export ANDROID_NDK_ROOT="$PWD/AndroidNDK.app/Contents/NDK"
+          cd CsoundAndroid
+          sh build.sh
+
+      - name: create release package
+        working-directory: Android
+        run: |
+          sh update.sh
+          sh release.sh
+
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/develop'      
+        with:
+          name: CsoundForAndroid-${{env.CSOUND_VERSION}}
+          path: Android/csound-android-${{env.CSOUND_VERSION}}
+
