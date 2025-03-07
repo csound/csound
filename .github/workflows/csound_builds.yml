@@ -568,7 +568,7 @@ jobs:
         run: cmake --build build --target test csdtests
 
   android-release:
-    name: android-release build
+    name: Android build
     runs-on: macos-latest
     steps:
       - name: Install dependencies
