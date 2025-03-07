@@ -579,11 +579,29 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: build release
+      - name: Download NDK
+        working-directory: Android
+        run: sh downloadNDK.sh
+
+      - name: Download Dependencies
+        working-directory: Android
+        run: |
+          export NDK_MODULE_PATH=$PWD/modules
+          sh downloadDepencies.sh
+
+      - name: build CsoundAndroid
         working-directory: Android
         run: |
           export PATH="/opt/homebrew/opt/bison/bin:$PATH"
-          sh build-release.sh
+          export ANDROID_NDK_ROOT="$PWD/AndroidNDK.app/Contents/NDK"
+          cd CsoundAndroid
+          sh build.sh
+
+      - name: create release package
+        working-directory: Android
+        run: |
+          sh update.sh
+          sh release.sh
 
       - uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/develop'
