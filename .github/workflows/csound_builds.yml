@@ -582,6 +582,7 @@ jobs:
       - name: build release
         working-directory: Android
         run: |
+          export PATH="/opt/homebrew/opt/bison/bin:$PATH
           sh build-release.sh
 
       - uses: actions/upload-artifact@v4
