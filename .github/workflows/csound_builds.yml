@@ -86,7 +86,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Install dependencies
-        run: brew install bison
+        run: brew install bison flex
 
       - name: Checkout Source Code
         uses: actions/checkout@v1
@@ -114,7 +114,7 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         with:
           name: iOS-builds
-          path: iOS/csound-iOS-${{env.CSOUND_VERSION}}
+          path: iOS/Csound-For-iOS-${{env.CSOUND_VERSION}}
 
   ios_build_ioscross:
     name: iOS build (ioscross/vcpkg)

@@ -1,0 +1,898 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2415E3511EDF8E1E00253956 /* ControlXYGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2415E3501EDF8E1E00253956 /* ControlXYGrid.swift */; };
+		2415E3531EE227B500253956 /* ControlKnob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2415E3521EE227B500253956 /* ControlKnob.swift */; };
+		243E99291EDF19D100EBD4EB /* AudioFilesTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99281EDF19D100EBD4EB /* AudioFilesTestViewController.swift */; };
+		243E992B1EDF19D800EBD4EB /* AudioInTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E992A1EDF19D800EBD4EB /* AudioInTestViewController.swift */; };
+		243E992D1EDF19E000EBD4EB /* ButtonTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E992C1EDF19E000EBD4EB /* ButtonTestViewController.swift */; };
+		243E992F1EDF19EC00EBD4EB /* ConsoleOutputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E992E1EDF19EC00EBD4EB /* ConsoleOutputViewController.swift */; };
+		243E99311EDF19F300EBD4EB /* CsoundHaiku4ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99301EDF19F300EBD4EB /* CsoundHaiku4ViewController.swift */; };
+		243E99331EDF19FB00EBD4EB /* HardwareTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99321EDF19FB00EBD4EB /* HardwareTestViewController.swift */; };
+		243E99351EDF1A0300EBD4EB /* HarmonizerTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99341EDF1A0300EBD4EB /* HarmonizerTestViewController.swift */; };
+		243E99371EDF1A0C00EBD4EB /* InstrumentEditorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99361EDF1A0C00EBD4EB /* InstrumentEditorViewController.swift */; };
+		243E99391EDF1A1800EBD4EB /* MidiTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99381EDF1A1800EBD4EB /* MidiTestViewController.swift */; };
+		243E993B1EDF1A2000EBD4EB /* MultiTouchXYViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E993A1EDF1A2000EBD4EB /* MultiTouchXYViewController.swift */; };
+		243E993D1EDF1A2900EBD4EB /* PitchShifterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E993C1EDF1A2900EBD4EB /* PitchShifterViewController.swift */; };
+		243E993F1EDF1A3000EBD4EB /* RecordTestViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E993E1EDF1A3000EBD4EB /* RecordTestViewController.swift */; };
+		243E99421EDF1A3900EBD4EB /* SimpleTest1ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99401EDF1A3900EBD4EB /* SimpleTest1ViewController.swift */; };
+		243E99431EDF1A3900EBD4EB /* SimpleTest2ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99411EDF1A3900EBD4EB /* SimpleTest2ViewController.swift */; };
+		243E99451EDF1A4200EBD4EB /* TrappedGeneratorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99441EDF1A4200EBD4EB /* TrappedGeneratorViewController.swift */; };
+		243E99471EDF1A4900EBD4EB /* WaveviewViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243E99461EDF1A4900EBD4EB /* WaveviewViewController.swift */; };
+		244DC4FC1EDF72E200216C1B /* audiofiletest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC4FA1EDF72E200216C1B /* audiofiletest.csd */; };
+		244DC4FD1EDF72E200216C1B /* testAudioFile.aif in Resources */ = {isa = PBXBuildFile; fileRef = 244DC4FB1EDF72E200216C1B /* testAudioFile.aif */; };
+		244DC4FF1EDF72EA00216C1B /* audioInTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC4FE1EDF72EA00216C1B /* audioInTest.csd */; };
+		244DC5011EDF72EF00216C1B /* buttonTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5001EDF72EF00216C1B /* buttonTest.csd */; };
+		244DC5031EDF730300216C1B /* csdStorage in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5021EDF730300216C1B /* csdStorage */; };
+		244DC5071EDF731F00216C1B /* IV.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5061EDF731F00216C1B /* IV.csd */; };
+		244DC5091EDF732800216C1B /* hardwareTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5081EDF732800216C1B /* hardwareTest.csd */; };
+		244DC50B1EDF733000216C1B /* instrumentEditor.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC50A1EDF733000216C1B /* instrumentEditor.csd */; };
+		244DC50D1EDF733C00216C1B /* harmonizer.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC50C1EDF733C00216C1B /* harmonizer.csd */; };
+		244DC50F1EDF734400216C1B /* midiTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC50E1EDF734400216C1B /* midiTest.csd */; };
+		244DC5111EDF735C00216C1B /* multiTouchXY.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5101EDF735C00216C1B /* multiTouchXY.csd */; };
+		244DC5131EDF736500216C1B /* pitchshifter.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5121EDF736500216C1B /* pitchshifter.csd */; };
+		244DC5151EDF736C00216C1B /* recordTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5141EDF736C00216C1B /* recordTest.csd */; };
+		244DC5171EDF737600216C1B /* test.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5161EDF737600216C1B /* test.csd */; };
+		244DC5191EDF738000216C1B /* test2.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC5181EDF738000216C1B /* test2.csd */; };
+		244DC51B1EDF738900216C1B /* Waveviewtest.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC51A1EDF738900216C1B /* Waveviewtest.csd */; };
+		244DC51D1EDF738F00216C1B /* trapped.csd in Resources */ = {isa = PBXBuildFile; fileRef = 244DC51C1EDF738F00216C1B /* trapped.csd */; };
+		244DC51F1EDF741600216C1B /* CsoundVirtualKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC51E1EDF741600216C1B /* CsoundVirtualKeyboard.swift */; };
+		244DC5211EDF743800216C1B /* Waveview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC5201EDF743800216C1B /* Waveview.swift */; };
+		244DC5231EDF746100216C1B /* LevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC5221EDF746100216C1B /* LevelMeterView.swift */; };
+		2499964D20A60800002B6ED8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2499964C20A607FC002B6ED8 /* Accelerate.framework */; };
+		24BF2D561EDD13870091F04E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D551EDD13870091F04E /* AppDelegate.swift */; };
+		24BF2D581EDD13870091F04E /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D571EDD13870091F04E /* MasterViewController.swift */; };
+		24BF2D5D1EDD13870091F04E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5B1EDD13870091F04E /* Main.storyboard */; };
+		24BF2D5F1EDD13870091F04E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5E1EDD13870091F04E /* Assets.xcassets */; };
+		24BF2D7B1EDD14150091F04E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D691EDD14150091F04E /* LaunchScreen.storyboard */; };
+		24BF2D7C1EDD14150091F04E /* AudioFilesTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D6A1EDD14150091F04E /* AudioFilesTestViewController.xib */; };
+		24BF2D7D1EDD14150091F04E /* AudioInTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D6B1EDD14150091F04E /* AudioInTestViewController.xib */; };
+		24BF2D7E1EDD14150091F04E /* ButtonTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D6C1EDD14150091F04E /* ButtonTestViewController.xib */; };
+		24BF2D7F1EDD14150091F04E /* ConsoleOutputViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D6D1EDD14150091F04E /* ConsoleOutputViewController.xib */; };
+		24BF2D801EDD14150091F04E /* CsoundHaiku4ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D6E1EDD14150091F04E /* CsoundHaiku4ViewController.xib */; };
+		24BF2D811EDD14150091F04E /* HardwareTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D6F1EDD14150091F04E /* HardwareTestViewController.xib */; };
+		24BF2D821EDD14150091F04E /* HarmonizerTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D701EDD14150091F04E /* HarmonizerTestViewController.xib */; };
+		24BF2D831EDD14150091F04E /* InstrumentEditorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D711EDD14150091F04E /* InstrumentEditorViewController.xib */; };
+		24BF2D841EDD14150091F04E /* MidiTestViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D721EDD14150091F04E /* MidiTestViewController_iPad.xib */; };
+		24BF2D851EDD14150091F04E /* MidiTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D731EDD14150091F04E /* MidiTestViewController.xib */; };
+		24BF2D861EDD14150091F04E /* MultiTouchXYViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D741EDD14150091F04E /* MultiTouchXYViewController.xib */; };
+		24BF2D871EDD14150091F04E /* PitchShifterViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D751EDD14150091F04E /* PitchShifterViewController.xib */; };
+		24BF2D881EDD14150091F04E /* RecordTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D761EDD14150091F04E /* RecordTestViewController.xib */; };
+		24BF2D8A1EDD14150091F04E /* SimpleTest2ViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D781EDD14150091F04E /* SimpleTest2ViewController.xib */; };
+		24BF2D8B1EDD14150091F04E /* TrappedGeneratorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D791EDD14150091F04E /* TrappedGeneratorViewController.xib */; };
+		24BF2D8C1EDD14150091F04E /* WaveviewViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D7A1EDD14150091F04E /* WaveviewViewController.xib */; };
+		24BF2D8F1EDD150D0091F04E /* BaseCsoundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */; };
+		5704CB4F2D7CF7AC0085F4B1 /* test.sh in Resources */ = {isa = PBXBuildFile; fileRef = 5704CB422D7CF7AC0085F4B1 /* test.sh */; };
+		5704CB502D7CF7AC0085F4B1 /* LICENSE.TXT in Resources */ = {isa = PBXBuildFile; fileRef = 5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */; };
+		5704CB512D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */; };
+		5704CB522D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */; };
+		5704CB532D7CF7AC0085F4B1 /* CsoundMotion.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB262D7CF7AC0085F4B1 /* CsoundMotion.m */; };
+		5704CB542D7CF7AC0085F4B1 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB332D7CF7AC0085F4B1 /* CsoundUI.m */; };
+		5704CB552D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB2D2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m */; };
+		5704CB562D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB202D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m */; };
+		5704CB572D7CF7AC0085F4B1 /* CsoundSliderBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB2F2D7CF7AC0085F4B1 /* CsoundSliderBinding.m */; };
+		5704CB582D7CF7AC0085F4B1 /* MidiWidgetsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB392D7CF7AC0085F4B1 /* MidiWidgetsManager.m */; };
+		5704CB592D7CF7AC0085F4B1 /* CsoundObj.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */; };
+		5704CB5A2D7CF7AC0085F4B1 /* CsoundSwitchBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB312D7CF7AC0085F4B1 /* CsoundSwitchBinding.m */; };
+		5704CB5B2D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB242D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m */; };
+		5704CB5C2D7CF7AC0085F4B1 /* CsoundLabelBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB2B2D7CF7AC0085F4B1 /* CsoundLabelBinding.m */; };
+		5704CB5D2D7CF7AC0085F4B1 /* CsoundButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB292D7CF7AC0085F4B1 /* CsoundButtonBinding.m */; };
+		5704CB5E2D7CF7AC0085F4B1 /* CsoundMIDI.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB372D7CF7AC0085F4B1 /* CsoundMIDI.m */; };
+		5704CB602D7CF7F50085F4B1 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB5F2D7CF7F50085F4B1 /* CoreAudio.framework */; };
+		5704CB622D7CF8070085F4B1 /* libSndfileiOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */; };
+		5704CB632D7CF8070085F4B1 /* libSndfileiOS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		5704CB662D7CF8190085F4B1 /* CsoundiOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */; };
+		5704CB672D7CF8190085F4B1 /* CsoundiOS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5704CB642D7CF8070085F4B1 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				5704CB632D7CF8070085F4B1 /* libSndfileiOS.xcframework in Embed Frameworks */,
+				5704CB672D7CF8190085F4B1 /* CsoundiOS.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		2415E3501EDF8E1E00253956 /* ControlXYGrid.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControlXYGrid.swift; sourceTree = "<group>"; };
+		2415E3521EE227B500253956 /* ControlKnob.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControlKnob.swift; sourceTree = "<group>"; };
+		243E99281EDF19D100EBD4EB /* AudioFilesTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioFilesTestViewController.swift; sourceTree = "<group>"; };
+		243E992A1EDF19D800EBD4EB /* AudioInTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AudioInTestViewController.swift; sourceTree = "<group>"; };
+		243E992C1EDF19E000EBD4EB /* ButtonTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ButtonTestViewController.swift; sourceTree = "<group>"; };
+		243E992E1EDF19EC00EBD4EB /* ConsoleOutputViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleOutputViewController.swift; sourceTree = "<group>"; };
+		243E99301EDF19F300EBD4EB /* CsoundHaiku4ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CsoundHaiku4ViewController.swift; sourceTree = "<group>"; };
+		243E99321EDF19FB00EBD4EB /* HardwareTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HardwareTestViewController.swift; sourceTree = "<group>"; };
+		243E99341EDF1A0300EBD4EB /* HarmonizerTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HarmonizerTestViewController.swift; sourceTree = "<group>"; };
+		243E99361EDF1A0C00EBD4EB /* InstrumentEditorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InstrumentEditorViewController.swift; sourceTree = "<group>"; };
+		243E99381EDF1A1800EBD4EB /* MidiTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MidiTestViewController.swift; sourceTree = "<group>"; };
+		243E993A1EDF1A2000EBD4EB /* MultiTouchXYViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultiTouchXYViewController.swift; sourceTree = "<group>"; };
+		243E993C1EDF1A2900EBD4EB /* PitchShifterViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PitchShifterViewController.swift; sourceTree = "<group>"; };
+		243E993E1EDF1A3000EBD4EB /* RecordTestViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordTestViewController.swift; sourceTree = "<group>"; };
+		243E99401EDF1A3900EBD4EB /* SimpleTest1ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleTest1ViewController.swift; sourceTree = "<group>"; };
+		243E99411EDF1A3900EBD4EB /* SimpleTest2ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimpleTest2ViewController.swift; sourceTree = "<group>"; };
+		243E99441EDF1A4200EBD4EB /* TrappedGeneratorViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrappedGeneratorViewController.swift; sourceTree = "<group>"; };
+		243E99461EDF1A4900EBD4EB /* WaveviewViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WaveviewViewController.swift; sourceTree = "<group>"; };
+		244DC4FA1EDF72E200216C1B /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audiofiletest.csd; sourceTree = "<group>"; };
+		244DC4FB1EDF72E200216C1B /* testAudioFile.aif */ = {isa = PBXFileReference; lastKnownFileType = file; path = testAudioFile.aif; sourceTree = "<group>"; };
+		244DC4FE1EDF72EA00216C1B /* audioInTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audioInTest.csd; sourceTree = "<group>"; };
+		244DC5001EDF72EF00216C1B /* buttonTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = buttonTest.csd; sourceTree = "<group>"; };
+		244DC5021EDF730300216C1B /* csdStorage */ = {isa = PBXFileReference; lastKnownFileType = folder; path = csdStorage; sourceTree = "<group>"; };
+		244DC5061EDF731F00216C1B /* IV.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = IV.csd; sourceTree = "<group>"; };
+		244DC5081EDF732800216C1B /* hardwareTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = hardwareTest.csd; sourceTree = "<group>"; };
+		244DC50A1EDF733000216C1B /* instrumentEditor.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = instrumentEditor.csd; sourceTree = "<group>"; };
+		244DC50C1EDF733C00216C1B /* harmonizer.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = harmonizer.csd; sourceTree = "<group>"; };
+		244DC50E1EDF734400216C1B /* midiTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = midiTest.csd; sourceTree = "<group>"; };
+		244DC5101EDF735C00216C1B /* multiTouchXY.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = multiTouchXY.csd; sourceTree = "<group>"; };
+		244DC5121EDF736500216C1B /* pitchshifter.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pitchshifter.csd; sourceTree = "<group>"; };
+		244DC5141EDF736C00216C1B /* recordTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = recordTest.csd; sourceTree = "<group>"; };
+		244DC5161EDF737600216C1B /* test.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.csd; sourceTree = "<group>"; };
+		244DC5181EDF738000216C1B /* test2.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test2.csd; sourceTree = "<group>"; };
+		244DC51A1EDF738900216C1B /* Waveviewtest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Waveviewtest.csd; sourceTree = "<group>"; };
+		244DC51C1EDF738F00216C1B /* trapped.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = trapped.csd; sourceTree = "<group>"; };
+		244DC51E1EDF741600216C1B /* CsoundVirtualKeyboard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CsoundVirtualKeyboard.swift; sourceTree = "<group>"; };
+		244DC5201EDF743800216C1B /* Waveview.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Waveview.swift; sourceTree = "<group>"; };
+		244DC5221EDF746100216C1B /* LevelMeterView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevelMeterView.swift; sourceTree = "<group>"; };
+		2499964C20A607FC002B6ED8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		24BF2D521EDD13870091F04E /* Csound iOS SwiftExamples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Csound iOS SwiftExamples.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		24BF2D551EDD13870091F04E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		24BF2D571EDD13870091F04E /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
+		24BF2D5C1EDD13870091F04E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		24BF2D5E1EDD13870091F04E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		24BF2D631EDD13870091F04E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		24BF2D691EDD14150091F04E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		24BF2D6A1EDD14150091F04E /* AudioFilesTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioFilesTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D6B1EDD14150091F04E /* AudioInTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioInTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D6C1EDD14150091F04E /* ButtonTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ButtonTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D6D1EDD14150091F04E /* ConsoleOutputViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ConsoleOutputViewController.xib; sourceTree = "<group>"; };
+		24BF2D6E1EDD14150091F04E /* CsoundHaiku4ViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CsoundHaiku4ViewController.xib; sourceTree = "<group>"; };
+		24BF2D6F1EDD14150091F04E /* HardwareTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HardwareTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D701EDD14150091F04E /* HarmonizerTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = HarmonizerTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D711EDD14150091F04E /* InstrumentEditorViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = InstrumentEditorViewController.xib; sourceTree = "<group>"; };
+		24BF2D721EDD14150091F04E /* MidiTestViewController_iPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MidiTestViewController_iPad.xib; sourceTree = "<group>"; };
+		24BF2D731EDD14150091F04E /* MidiTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MidiTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D741EDD14150091F04E /* MultiTouchXYViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MultiTouchXYViewController.xib; sourceTree = "<group>"; };
+		24BF2D751EDD14150091F04E /* PitchShifterViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = PitchShifterViewController.xib; sourceTree = "<group>"; };
+		24BF2D761EDD14150091F04E /* RecordTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = RecordTestViewController.xib; sourceTree = "<group>"; };
+		24BF2D781EDD14150091F04E /* SimpleTest2ViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = SimpleTest2ViewController.xib; sourceTree = "<group>"; };
+		24BF2D791EDD14150091F04E /* TrappedGeneratorViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TrappedGeneratorViewController.xib; sourceTree = "<group>"; };
+		24BF2D7A1EDD14150091F04E /* WaveviewViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = WaveviewViewController.xib; sourceTree = "<group>"; };
+		24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseCsoundViewController.swift; sourceTree = "<group>"; };
+		24BF2DE41EDD15360091F04E /* Csound-iOS-SwiftExamples-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Csound-iOS-SwiftExamples-Bridging-Header.h"; sourceTree = "<group>"; };
+		5704CB1F2D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAccelerometerBinding.h; sourceTree = "<group>"; };
+		5704CB202D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAccelerometerBinding.m; sourceTree = "<group>"; };
+		5704CB212D7CF7AC0085F4B1 /* CsoundAttitudeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAttitudeBinding.h; sourceTree = "<group>"; };
+		5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAttitudeBinding.m; sourceTree = "<group>"; };
+		5704CB232D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundGyroscopeBinding.h; sourceTree = "<group>"; };
+		5704CB242D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundGyroscopeBinding.m; sourceTree = "<group>"; };
+		5704CB252D7CF7AC0085F4B1 /* CsoundMotion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMotion.h; sourceTree = "<group>"; };
+		5704CB262D7CF7AC0085F4B1 /* CsoundMotion.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMotion.m; sourceTree = "<group>"; };
+		5704CB282D7CF7AC0085F4B1 /* CsoundButtonBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundButtonBinding.h; sourceTree = "<group>"; };
+		5704CB292D7CF7AC0085F4B1 /* CsoundButtonBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundButtonBinding.m; sourceTree = "<group>"; };
+		5704CB2A2D7CF7AC0085F4B1 /* CsoundLabelBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundLabelBinding.h; sourceTree = "<group>"; };
+		5704CB2B2D7CF7AC0085F4B1 /* CsoundLabelBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundLabelBinding.m; sourceTree = "<group>"; };
+		5704CB2C2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMomentaryButtonBinding.h; sourceTree = "<group>"; };
+		5704CB2D2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMomentaryButtonBinding.m; sourceTree = "<group>"; };
+		5704CB2E2D7CF7AC0085F4B1 /* CsoundSliderBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundSliderBinding.h; sourceTree = "<group>"; };
+		5704CB2F2D7CF7AC0085F4B1 /* CsoundSliderBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundSliderBinding.m; sourceTree = "<group>"; };
+		5704CB302D7CF7AC0085F4B1 /* CsoundSwitchBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundSwitchBinding.h; sourceTree = "<group>"; };
+		5704CB312D7CF7AC0085F4B1 /* CsoundSwitchBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundSwitchBinding.m; sourceTree = "<group>"; };
+		5704CB322D7CF7AC0085F4B1 /* CsoundUI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundUI.h; sourceTree = "<group>"; };
+		5704CB332D7CF7AC0085F4B1 /* CsoundUI.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundUI.m; sourceTree = "<group>"; };
+		5704CB362D7CF7AC0085F4B1 /* CsoundMIDI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMIDI.h; sourceTree = "<group>"; };
+		5704CB372D7CF7AC0085F4B1 /* CsoundMIDI.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMIDI.m; sourceTree = "<group>"; };
+		5704CB382D7CF7AC0085F4B1 /* MidiWidgetsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MidiWidgetsManager.h; sourceTree = "<group>"; };
+		5704CB392D7CF7AC0085F4B1 /* MidiWidgetsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MidiWidgetsManager.m; sourceTree = "<group>"; };
+		5704CB3A2D7CF7AC0085F4B1 /* MidiWidgetWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MidiWidgetWrapper.h; sourceTree = "<group>"; };
+		5704CB3B2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SliderMidiWidgetWrapper.h; sourceTree = "<group>"; };
+		5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SliderMidiWidgetWrapper.m; sourceTree = "<group>"; };
+		5704CB3D2D7CF7AC0085F4B1 /* test.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = test.o; sourceTree = "<group>"; };
+		5704CB3F2D7CF7AC0085F4B1 /* CsoundObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundObj.h; sourceTree = "<group>"; };
+		5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundObj.m; sourceTree = "<group>"; };
+		5704CB412D7CF7AC0085F4B1 /* test.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = test.o; sourceTree = "<group>"; };
+		5704CB422D7CF7AC0085F4B1 /* test.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = test.sh; sourceTree = "<group>"; };
+		5704CB442D7CF7AC0085F4B1 /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
+		5704CB452D7CF7AC0085F4B1 /* libCsoundLib-device.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libCsoundLib-device.a"; sourceTree = "<group>"; };
+		5704CB462D7CF7AC0085F4B1 /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsndfile.a; sourceTree = "<group>"; };
+		5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
+		5704CB5F2D7CF7F50085F4B1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libSndfileiOS.xcframework; path = ../libSndfileiOS.xcframework; sourceTree = "<group>"; };
+		5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CsoundiOS.xcframework; path = ../CsoundiOS.xcframework; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		24BF2D4F1EDD13870091F04E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5704CB622D7CF8070085F4B1 /* libSndfileiOS.xcframework in Frameworks */,
+				5704CB602D7CF7F50085F4B1 /* CoreAudio.framework in Frameworks */,
+				2499964D20A60800002B6ED8 /* Accelerate.framework in Frameworks */,
+				5704CB662D7CF8190085F4B1 /* CsoundiOS.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2499964B20A607FC002B6ED8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */,
+				5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */,
+				5704CB5F2D7CF7F50085F4B1 /* CoreAudio.framework */,
+				2499964C20A607FC002B6ED8 /* Accelerate.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		24BF2D491EDD13870091F04E = {
+			isa = PBXGroup;
+			children = (
+				24BF2D541EDD13870091F04E /* Csound iOS SwiftExamples */,
+				24BF2D531EDD13870091F04E /* Products */,
+				2499964B20A607FC002B6ED8 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		24BF2D531EDD13870091F04E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				24BF2D521EDD13870091F04E /* Csound iOS SwiftExamples.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		24BF2D541EDD13870091F04E /* Csound iOS SwiftExamples */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB492D7CF7AC0085F4B1 /* csound-iOS */,
+				24BF2DE41EDD15360091F04E /* Csound-iOS-SwiftExamples-Bridging-Header.h */,
+				24BF2D551EDD13870091F04E /* AppDelegate.swift */,
+				24BF2D571EDD13870091F04E /* MasterViewController.swift */,
+				24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */,
+				24BF2D5B1EDD13870091F04E /* Main.storyboard */,
+				24BF2D5E1EDD13870091F04E /* Assets.xcassets */,
+				24BF2D631EDD13870091F04E /* Info.plist */,
+				24BF2D691EDD14150091F04E /* LaunchScreen.storyboard */,
+				24BF2D8D1EDD141C0091F04E /* ViewControllers */,
+			);
+			path = "Csound iOS SwiftExamples";
+			sourceTree = "<group>";
+		};
+		24BF2D8D1EDD141C0091F04E /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				24BF2DE51EDD15A90091F04E /* AudioFilesTest */,
+				24BF2DE61EDD15C00091F04E /* AudioInTest */,
+				24BF2DE71EDD15CB0091F04E /* ButtonTest */,
+				24BF2DE81EDD15D10091F04E /* ConsoleOutput */,
+				24BF2DE91EDD15F20091F04E /* Haiku IV */,
+				24BF2DEA1EDD15FF0091F04E /* HardwareTest */,
+				24BF2DEB1EDD16250091F04E /* Harmonizer */,
+				24BF2DEC1EDD162B0091F04E /* InstrumentEditor */,
+				24BF2DED1EDD16330091F04E /* MIDITest */,
+				24BF2DEE1EDD16390091F04E /* MultitouchXY */,
+				24BF2DEF1EDD16410091F04E /* PitchShifter */,
+				24BF2DF01EDD16470091F04E /* RecordTest */,
+				24BF2DF11EDD16500091F04E /* SimpleTests */,
+				24BF2DF21EDD16560091F04E /* TrappedGenerator */,
+				24BF2DF31EDD165D0091F04E /* WaveView */,
+			);
+			name = ViewControllers;
+			sourceTree = "<group>";
+		};
+		24BF2DE51EDD15A90091F04E /* AudioFilesTest */ = {
+			isa = PBXGroup;
+			children = (
+				244DC4FA1EDF72E200216C1B /* audiofiletest.csd */,
+				244DC4FB1EDF72E200216C1B /* testAudioFile.aif */,
+				2415E3521EE227B500253956 /* ControlKnob.swift */,
+				243E99281EDF19D100EBD4EB /* AudioFilesTestViewController.swift */,
+				24BF2D6A1EDD14150091F04E /* AudioFilesTestViewController.xib */,
+			);
+			name = AudioFilesTest;
+			sourceTree = "<group>";
+		};
+		24BF2DE61EDD15C00091F04E /* AudioInTest */ = {
+			isa = PBXGroup;
+			children = (
+				244DC4FE1EDF72EA00216C1B /* audioInTest.csd */,
+				243E992A1EDF19D800EBD4EB /* AudioInTestViewController.swift */,
+				24BF2D6B1EDD14150091F04E /* AudioInTestViewController.xib */,
+			);
+			name = AudioInTest;
+			sourceTree = "<group>";
+		};
+		24BF2DE71EDD15CB0091F04E /* ButtonTest */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5001EDF72EF00216C1B /* buttonTest.csd */,
+				243E992C1EDF19E000EBD4EB /* ButtonTestViewController.swift */,
+				24BF2D6C1EDD14150091F04E /* ButtonTestViewController.xib */,
+			);
+			name = ButtonTest;
+			sourceTree = "<group>";
+		};
+		24BF2DE81EDD15D10091F04E /* ConsoleOutput */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5021EDF730300216C1B /* csdStorage */,
+				243E992E1EDF19EC00EBD4EB /* ConsoleOutputViewController.swift */,
+				24BF2D6D1EDD14150091F04E /* ConsoleOutputViewController.xib */,
+			);
+			name = ConsoleOutput;
+			sourceTree = "<group>";
+		};
+		24BF2DE91EDD15F20091F04E /* Haiku IV */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5061EDF731F00216C1B /* IV.csd */,
+				243E99301EDF19F300EBD4EB /* CsoundHaiku4ViewController.swift */,
+				24BF2D6E1EDD14150091F04E /* CsoundHaiku4ViewController.xib */,
+			);
+			name = "Haiku IV";
+			sourceTree = "<group>";
+		};
+		24BF2DEA1EDD15FF0091F04E /* HardwareTest */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5081EDF732800216C1B /* hardwareTest.csd */,
+				243E99321EDF19FB00EBD4EB /* HardwareTestViewController.swift */,
+				24BF2D6F1EDD14150091F04E /* HardwareTestViewController.xib */,
+			);
+			name = HardwareTest;
+			sourceTree = "<group>";
+		};
+		24BF2DEB1EDD16250091F04E /* Harmonizer */ = {
+			isa = PBXGroup;
+			children = (
+				244DC50C1EDF733C00216C1B /* harmonizer.csd */,
+				243E99341EDF1A0300EBD4EB /* HarmonizerTestViewController.swift */,
+				24BF2D701EDD14150091F04E /* HarmonizerTestViewController.xib */,
+			);
+			name = Harmonizer;
+			sourceTree = "<group>";
+		};
+		24BF2DEC1EDD162B0091F04E /* InstrumentEditor */ = {
+			isa = PBXGroup;
+			children = (
+				244DC50A1EDF733000216C1B /* instrumentEditor.csd */,
+				243E99361EDF1A0C00EBD4EB /* InstrumentEditorViewController.swift */,
+				24BF2D711EDD14150091F04E /* InstrumentEditorViewController.xib */,
+			);
+			name = InstrumentEditor;
+			sourceTree = "<group>";
+		};
+		24BF2DED1EDD16330091F04E /* MIDITest */ = {
+			isa = PBXGroup;
+			children = (
+				244DC50E1EDF734400216C1B /* midiTest.csd */,
+				244DC51E1EDF741600216C1B /* CsoundVirtualKeyboard.swift */,
+				243E99381EDF1A1800EBD4EB /* MidiTestViewController.swift */,
+				24BF2D721EDD14150091F04E /* MidiTestViewController_iPad.xib */,
+				24BF2D731EDD14150091F04E /* MidiTestViewController.xib */,
+			);
+			name = MIDITest;
+			sourceTree = "<group>";
+		};
+		24BF2DEE1EDD16390091F04E /* MultitouchXY */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5101EDF735C00216C1B /* multiTouchXY.csd */,
+				243E993A1EDF1A2000EBD4EB /* MultiTouchXYViewController.swift */,
+				24BF2D741EDD14150091F04E /* MultiTouchXYViewController.xib */,
+			);
+			name = MultitouchXY;
+			sourceTree = "<group>";
+		};
+		24BF2DEF1EDD16410091F04E /* PitchShifter */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5121EDF736500216C1B /* pitchshifter.csd */,
+				2415E3501EDF8E1E00253956 /* ControlXYGrid.swift */,
+				243E993C1EDF1A2900EBD4EB /* PitchShifterViewController.swift */,
+				24BF2D751EDD14150091F04E /* PitchShifterViewController.xib */,
+			);
+			name = PitchShifter;
+			sourceTree = "<group>";
+		};
+		24BF2DF01EDD16470091F04E /* RecordTest */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5141EDF736C00216C1B /* recordTest.csd */,
+				244DC5221EDF746100216C1B /* LevelMeterView.swift */,
+				243E993E1EDF1A3000EBD4EB /* RecordTestViewController.swift */,
+				24BF2D761EDD14150091F04E /* RecordTestViewController.xib */,
+			);
+			name = RecordTest;
+			sourceTree = "<group>";
+		};
+		24BF2DF11EDD16500091F04E /* SimpleTests */ = {
+			isa = PBXGroup;
+			children = (
+				244DC5161EDF737600216C1B /* test.csd */,
+				244DC5181EDF738000216C1B /* test2.csd */,
+				243E99401EDF1A3900EBD4EB /* SimpleTest1ViewController.swift */,
+				243E99411EDF1A3900EBD4EB /* SimpleTest2ViewController.swift */,
+				24BF2D781EDD14150091F04E /* SimpleTest2ViewController.xib */,
+			);
+			name = SimpleTests;
+			sourceTree = "<group>";
+		};
+		24BF2DF21EDD16560091F04E /* TrappedGenerator */ = {
+			isa = PBXGroup;
+			children = (
+				244DC51C1EDF738F00216C1B /* trapped.csd */,
+				243E99441EDF1A4200EBD4EB /* TrappedGeneratorViewController.swift */,
+				24BF2D791EDD14150091F04E /* TrappedGeneratorViewController.xib */,
+			);
+			name = TrappedGenerator;
+			sourceTree = "<group>";
+		};
+		24BF2DF31EDD165D0091F04E /* WaveView */ = {
+			isa = PBXGroup;
+			children = (
+				244DC51A1EDF738900216C1B /* Waveviewtest.csd */,
+				244DC5201EDF743800216C1B /* Waveview.swift */,
+				243E99461EDF1A4900EBD4EB /* WaveviewViewController.swift */,
+				24BF2D7A1EDD14150091F04E /* WaveviewViewController.xib */,
+			);
+			name = WaveView;
+			sourceTree = "<group>";
+		};
+		5704CB272D7CF7AC0085F4B1 /* motion */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB1F2D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.h */,
+				5704CB202D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m */,
+				5704CB212D7CF7AC0085F4B1 /* CsoundAttitudeBinding.h */,
+				5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */,
+				5704CB232D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.h */,
+				5704CB242D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m */,
+				5704CB252D7CF7AC0085F4B1 /* CsoundMotion.h */,
+				5704CB262D7CF7AC0085F4B1 /* CsoundMotion.m */,
+			);
+			path = motion;
+			sourceTree = "<group>";
+		};
+		5704CB342D7CF7AC0085F4B1 /* ui */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB282D7CF7AC0085F4B1 /* CsoundButtonBinding.h */,
+				5704CB292D7CF7AC0085F4B1 /* CsoundButtonBinding.m */,
+				5704CB2A2D7CF7AC0085F4B1 /* CsoundLabelBinding.h */,
+				5704CB2B2D7CF7AC0085F4B1 /* CsoundLabelBinding.m */,
+				5704CB2C2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.h */,
+				5704CB2D2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m */,
+				5704CB2E2D7CF7AC0085F4B1 /* CsoundSliderBinding.h */,
+				5704CB2F2D7CF7AC0085F4B1 /* CsoundSliderBinding.m */,
+				5704CB302D7CF7AC0085F4B1 /* CsoundSwitchBinding.h */,
+				5704CB312D7CF7AC0085F4B1 /* CsoundSwitchBinding.m */,
+				5704CB322D7CF7AC0085F4B1 /* CsoundUI.h */,
+				5704CB332D7CF7AC0085F4B1 /* CsoundUI.m */,
+			);
+			path = ui;
+			sourceTree = "<group>";
+		};
+		5704CB352D7CF7AC0085F4B1 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB272D7CF7AC0085F4B1 /* motion */,
+				5704CB342D7CF7AC0085F4B1 /* ui */,
+			);
+			path = bindings;
+			sourceTree = "<group>";
+		};
+		5704CB3E2D7CF7AC0085F4B1 /* midi */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB362D7CF7AC0085F4B1 /* CsoundMIDI.h */,
+				5704CB372D7CF7AC0085F4B1 /* CsoundMIDI.m */,
+				5704CB382D7CF7AC0085F4B1 /* MidiWidgetsManager.h */,
+				5704CB392D7CF7AC0085F4B1 /* MidiWidgetsManager.m */,
+				5704CB3A2D7CF7AC0085F4B1 /* MidiWidgetWrapper.h */,
+				5704CB3B2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.h */,
+				5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */,
+				5704CB3D2D7CF7AC0085F4B1 /* test.o */,
+			);
+			path = midi;
+			sourceTree = "<group>";
+		};
+		5704CB432D7CF7AC0085F4B1 /* classes */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB352D7CF7AC0085F4B1 /* bindings */,
+				5704CB3E2D7CF7AC0085F4B1 /* midi */,
+				5704CB3F2D7CF7AC0085F4B1 /* CsoundObj.h */,
+				5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */,
+				5704CB412D7CF7AC0085F4B1 /* test.o */,
+				5704CB422D7CF7AC0085F4B1 /* test.sh */,
+			);
+			path = classes;
+			sourceTree = "<group>";
+		};
+		5704CB472D7CF7AC0085F4B1 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB442D7CF7AC0085F4B1 /* libcsound.a */,
+				5704CB452D7CF7AC0085F4B1 /* libCsoundLib-device.a */,
+				5704CB462D7CF7AC0085F4B1 /* libsndfile.a */,
+			);
+			path = libs;
+			sourceTree = "<group>";
+		};
+		5704CB492D7CF7AC0085F4B1 /* csound-iOS */ = {
+			isa = PBXGroup;
+			children = (
+				5704CB432D7CF7AC0085F4B1 /* classes */,
+				5704CB472D7CF7AC0085F4B1 /* libs */,
+				5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */,
+			);
+			name = "csound-iOS";
+			path = "../Csound-iOS-ObjC-Examples/csound-iOS";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		24BF2D511EDD13870091F04E /* Csound iOS SwiftExamples */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 24BF2D661EDD13870091F04E /* Build configuration list for PBXNativeTarget "Csound iOS SwiftExamples" */;
+			buildPhases = (
+				24BF2D4E1EDD13870091F04E /* Sources */,
+				24BF2D4F1EDD13870091F04E /* Frameworks */,
+				24BF2D501EDD13870091F04E /* Resources */,
+				5704CB642D7CF8070085F4B1 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Csound iOS SwiftExamples";
+			productName = "Csound iOS SwiftExamples";
+			productReference = 24BF2D521EDD13870091F04E /* Csound iOS SwiftExamples.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		24BF2D4A1EDD13870091F04E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0830;
+				LastUpgradeCheck = 0910;
+				ORGANIZATIONNAME = "Nikhil Singh";
+				TargetAttributes = {
+					24BF2D511EDD13870091F04E = {
+						CreatedOnToolsVersion = 8.3.2;
+						DevelopmentTeam = AH2WVU4222;
+						LastSwiftMigration = 0910;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 24BF2D4D1EDD13870091F04E /* Build configuration list for PBXProject "Csound iOS SwiftExamples" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				en,
+				Base,
+			);
+			mainGroup = 24BF2D491EDD13870091F04E;
+			productRefGroup = 24BF2D531EDD13870091F04E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				24BF2D511EDD13870091F04E /* Csound iOS SwiftExamples */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		24BF2D501EDD13870091F04E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24BF2D811EDD14150091F04E /* HardwareTestViewController.xib in Resources */,
+				24BF2D7D1EDD14150091F04E /* AudioInTestViewController.xib in Resources */,
+				244DC50D1EDF733C00216C1B /* harmonizer.csd in Resources */,
+				244DC50B1EDF733000216C1B /* instrumentEditor.csd in Resources */,
+				5704CB4F2D7CF7AC0085F4B1 /* test.sh in Resources */,
+				5704CB502D7CF7AC0085F4B1 /* LICENSE.TXT in Resources */,
+				24BF2D821EDD14150091F04E /* HarmonizerTestViewController.xib in Resources */,
+				24BF2D881EDD14150091F04E /* RecordTestViewController.xib in Resources */,
+				244DC5031EDF730300216C1B /* csdStorage in Resources */,
+				244DC5151EDF736C00216C1B /* recordTest.csd in Resources */,
+				244DC5171EDF737600216C1B /* test.csd in Resources */,
+				244DC51B1EDF738900216C1B /* Waveviewtest.csd in Resources */,
+				24BF2D861EDD14150091F04E /* MultiTouchXYViewController.xib in Resources */,
+				24BF2D8A1EDD14150091F04E /* SimpleTest2ViewController.xib in Resources */,
+				244DC51D1EDF738F00216C1B /* trapped.csd in Resources */,
+				24BF2D801EDD14150091F04E /* CsoundHaiku4ViewController.xib in Resources */,
+				24BF2D7C1EDD14150091F04E /* AudioFilesTestViewController.xib in Resources */,
+				244DC5131EDF736500216C1B /* pitchshifter.csd in Resources */,
+				24BF2D831EDD14150091F04E /* InstrumentEditorViewController.xib in Resources */,
+				244DC5071EDF731F00216C1B /* IV.csd in Resources */,
+				24BF2D8C1EDD14150091F04E /* WaveviewViewController.xib in Resources */,
+				24BF2D7F1EDD14150091F04E /* ConsoleOutputViewController.xib in Resources */,
+				244DC5091EDF732800216C1B /* hardwareTest.csd in Resources */,
+				244DC5111EDF735C00216C1B /* multiTouchXY.csd in Resources */,
+				244DC5011EDF72EF00216C1B /* buttonTest.csd in Resources */,
+				24BF2D7B1EDD14150091F04E /* LaunchScreen.storyboard in Resources */,
+				24BF2D8B1EDD14150091F04E /* TrappedGeneratorViewController.xib in Resources */,
+				244DC5191EDF738000216C1B /* test2.csd in Resources */,
+				244DC4FF1EDF72EA00216C1B /* audioInTest.csd in Resources */,
+				244DC50F1EDF734400216C1B /* midiTest.csd in Resources */,
+				244DC4FC1EDF72E200216C1B /* audiofiletest.csd in Resources */,
+				244DC4FD1EDF72E200216C1B /* testAudioFile.aif in Resources */,
+				24BF2D5F1EDD13870091F04E /* Assets.xcassets in Resources */,
+				24BF2D871EDD14150091F04E /* PitchShifterViewController.xib in Resources */,
+				24BF2D841EDD14150091F04E /* MidiTestViewController_iPad.xib in Resources */,
+				24BF2D851EDD14150091F04E /* MidiTestViewController.xib in Resources */,
+				24BF2D7E1EDD14150091F04E /* ButtonTestViewController.xib in Resources */,
+				24BF2D5D1EDD13870091F04E /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		24BF2D4E1EDD13870091F04E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2415E3511EDF8E1E00253956 /* ControlXYGrid.swift in Sources */,
+				243E99331EDF19FB00EBD4EB /* HardwareTestViewController.swift in Sources */,
+				243E99291EDF19D100EBD4EB /* AudioFilesTestViewController.swift in Sources */,
+				244DC51F1EDF741600216C1B /* CsoundVirtualKeyboard.swift in Sources */,
+				243E99371EDF1A0C00EBD4EB /* InstrumentEditorViewController.swift in Sources */,
+				5704CB512D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m in Sources */,
+				5704CB522D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m in Sources */,
+				5704CB532D7CF7AC0085F4B1 /* CsoundMotion.m in Sources */,
+				5704CB542D7CF7AC0085F4B1 /* CsoundUI.m in Sources */,
+				5704CB552D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m in Sources */,
+				5704CB562D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m in Sources */,
+				5704CB572D7CF7AC0085F4B1 /* CsoundSliderBinding.m in Sources */,
+				5704CB582D7CF7AC0085F4B1 /* MidiWidgetsManager.m in Sources */,
+				5704CB592D7CF7AC0085F4B1 /* CsoundObj.m in Sources */,
+				5704CB5A2D7CF7AC0085F4B1 /* CsoundSwitchBinding.m in Sources */,
+				5704CB5B2D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m in Sources */,
+				5704CB5C2D7CF7AC0085F4B1 /* CsoundLabelBinding.m in Sources */,
+				5704CB5D2D7CF7AC0085F4B1 /* CsoundButtonBinding.m in Sources */,
+				5704CB5E2D7CF7AC0085F4B1 /* CsoundMIDI.m in Sources */,
+				243E99351EDF1A0300EBD4EB /* HarmonizerTestViewController.swift in Sources */,
+				243E99391EDF1A1800EBD4EB /* MidiTestViewController.swift in Sources */,
+				243E993D1EDF1A2900EBD4EB /* PitchShifterViewController.swift in Sources */,
+				243E992F1EDF19EC00EBD4EB /* ConsoleOutputViewController.swift in Sources */,
+				243E993B1EDF1A2000EBD4EB /* MultiTouchXYViewController.swift in Sources */,
+				243E992B1EDF19D800EBD4EB /* AudioInTestViewController.swift in Sources */,
+				244DC5231EDF746100216C1B /* LevelMeterView.swift in Sources */,
+				243E993F1EDF1A3000EBD4EB /* RecordTestViewController.swift in Sources */,
+				243E99421EDF1A3900EBD4EB /* SimpleTest1ViewController.swift in Sources */,
+				243E99431EDF1A3900EBD4EB /* SimpleTest2ViewController.swift in Sources */,
+				243E99471EDF1A4900EBD4EB /* WaveviewViewController.swift in Sources */,
+				243E992D1EDF19E000EBD4EB /* ButtonTestViewController.swift in Sources */,
+				244DC5211EDF743800216C1B /* Waveview.swift in Sources */,
+				2415E3531EE227B500253956 /* ControlKnob.swift in Sources */,
+				243E99311EDF19F300EBD4EB /* CsoundHaiku4ViewController.swift in Sources */,
+				24BF2D581EDD13870091F04E /* MasterViewController.swift in Sources */,
+				243E99451EDF1A4200EBD4EB /* TrappedGeneratorViewController.swift in Sources */,
+				24BF2D561EDD13870091F04E /* AppDelegate.swift in Sources */,
+				24BF2D8F1EDD150D0091F04E /* BaseCsoundViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		24BF2D5B1EDD13870091F04E /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				24BF2D5C1EDD13870091F04E /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		24BF2D641EDD13870091F04E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "Csound iOS SwiftExamples/Csound-iOS-SwiftExamples-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		24BF2D651EDD13870091F04E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "Csound iOS SwiftExamples/Csound-iOS-SwiftExamples-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		24BF2D671EDD13870091F04E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = AH2WVU4222;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Csound iOS SwiftExamples/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
+					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.csound.Csound-iOS-SwiftExamples";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		24BF2D681EDD13870091F04E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = AH2WVU4222;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Csound iOS SwiftExamples/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
+					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.csound.Csound-iOS-SwiftExamples";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		24BF2D4D1EDD13870091F04E /* Build configuration list for PBXProject "Csound iOS SwiftExamples" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24BF2D641EDD13870091F04E /* Debug */,
+				24BF2D651EDD13870091F04E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		24BF2D661EDD13870091F04E /* Build configuration list for PBXNativeTarget "Csound iOS SwiftExamples" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				24BF2D671EDD13870091F04E /* Debug */,
+				24BF2D681EDD13870091F04E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 24BF2D4A1EDD13870091F04E /* Project object */;
+}
