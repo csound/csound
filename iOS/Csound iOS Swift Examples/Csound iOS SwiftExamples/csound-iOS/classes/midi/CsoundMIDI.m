@@ -194,7 +194,7 @@ static int MidiInDeviceClose(CSOUND *csound, void *userData)
 
 /* callback setting code */
 +(void)setMidiInCallbacks:(CSOUND *)csound {
-    csoundSetHostImplementedMIDIIO(csound, 1);
+    csoundSetHostMIDIIO(csound);
     csoundSetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
     csoundSetExternalMidiReadCallback(csound, MidiDataRead);
     csoundSetExternalMidiInCloseCallback(csound, MidiInDeviceClose);
