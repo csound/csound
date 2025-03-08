@@ -300,7 +300,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
                   channelType:(controlChannelType)channelType
 {
   MYFLT *value;
-  csoundGetChannelPtr(mCsData.cs, &value,
+  csoundGetChannelPtr(mCsData.cs, (void **) &value,
                       [channelName cStringUsingEncoding:NSASCIIStringEncoding],
 		      channelType | CSOUND_INPUT_CHANNEL);
   return value;
@@ -310,7 +310,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
                    channelType:(controlChannelType)channelType
 {
   MYFLT *value;
-  csoundGetChannelPtr(mCsData.cs, &value,
+  csoundGetChannelPtr(mCsData.cs, (void **) &value,
                       [channelName cStringUsingEncoding:NSASCIIStringEncoding],
 		      channelType | CSOUND_OUTPUT_CHANNEL);
   return value;
@@ -322,7 +322,7 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
     return nil;
   }
   CSOUND *csound = [self getCsound];
-  float *spout = csoundGetSpout(csound);
+  const float *spout = csoundGetSpout(csound);
   int nchnls = csoundGetChannels(csound, 0);
   int ksmps = csoundGetKsmps(csound);
   NSData* data = [NSData dataWithBytes:spout
@@ -366,7 +366,7 @@ OSStatus  Csound_Render(void *inRefCon,
   int insmps = nsmps;
   int ksmps = csoundGetKsmps(cs);
   MYFLT *spin = csoundGetSpin(cs);
-  MYFLT *spout = csoundGetSpout(cs);
+  const MYFLT *spout = csoundGetSpout(cs);
   SInt32 *buffer;
     
   AudioUnitRender(*cdata->aunit, ioActionFlags, inTimeStamp, 1,
@@ -459,6 +459,7 @@ OSStatus  Csound_Render(void *inRefCon,
     [self notifyListenersOfCompletion];
   }
 }
+int csoundGetOutputBufferSize(CSOUND *);
 
 - (void)runCsound:(NSString *)csdFilePath
 {
@@ -467,7 +468,7 @@ OSStatus  Csound_Render(void *inRefCon,
     NSError* error;
     BOOL success;
         
-    cs = csoundCreate(NULL);
+    cs = csoundCreate(NULL, NULL);
     csoundSetHostAudioIO(cs);
 		
     csoundSetMessageCallback(cs, messageCallback);
