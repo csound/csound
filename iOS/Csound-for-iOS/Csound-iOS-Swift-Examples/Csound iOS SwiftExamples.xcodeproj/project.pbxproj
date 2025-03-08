@@ -68,7 +68,6 @@
 		24BF2D8B1EDD14150091F04E /* TrappedGeneratorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D791EDD14150091F04E /* TrappedGeneratorViewController.xib */; };
 		24BF2D8C1EDD14150091F04E /* WaveviewViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D7A1EDD14150091F04E /* WaveviewViewController.xib */; };
 		24BF2D8F1EDD150D0091F04E /* BaseCsoundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */; };
-		5704CB4F2D7CF7AC0085F4B1 /* test.sh in Resources */ = {isa = PBXBuildFile; fileRef = 5704CB422D7CF7AC0085F4B1 /* test.sh */; };
 		5704CB502D7CF7AC0085F4B1 /* LICENSE.TXT in Resources */ = {isa = PBXBuildFile; fileRef = 5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */; };
 		5704CB512D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */; };
 		5704CB522D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */; };
@@ -201,11 +200,6 @@
 		5704CB3D2D7CF7AC0085F4B1 /* test.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = test.o; sourceTree = "<group>"; };
 		5704CB3F2D7CF7AC0085F4B1 /* CsoundObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundObj.h; sourceTree = "<group>"; };
 		5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundObj.m; sourceTree = "<group>"; };
-		5704CB412D7CF7AC0085F4B1 /* test.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = test.o; sourceTree = "<group>"; };
-		5704CB422D7CF7AC0085F4B1 /* test.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = test.sh; sourceTree = "<group>"; };
-		5704CB442D7CF7AC0085F4B1 /* libcsound.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libcsound.a; sourceTree = "<group>"; };
-		5704CB452D7CF7AC0085F4B1 /* libCsoundLib-device.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = "libCsoundLib-device.a"; sourceTree = "<group>"; };
-		5704CB462D7CF7AC0085F4B1 /* libsndfile.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libsndfile.a; sourceTree = "<group>"; };
 		5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
 		5704CB5F2D7CF7F50085F4B1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libSndfileiOS.xcframework; path = ../libSndfileiOS.xcframework; sourceTree = "<group>"; };
@@ -518,27 +512,14 @@
 				5704CB3E2D7CF7AC0085F4B1 /* midi */,
 				5704CB3F2D7CF7AC0085F4B1 /* CsoundObj.h */,
 				5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */,
-				5704CB412D7CF7AC0085F4B1 /* test.o */,
-				5704CB422D7CF7AC0085F4B1 /* test.sh */,
 			);
 			path = classes;
-			sourceTree = "<group>";
-		};
-		5704CB472D7CF7AC0085F4B1 /* libs */ = {
-			isa = PBXGroup;
-			children = (
-				5704CB442D7CF7AC0085F4B1 /* libcsound.a */,
-				5704CB452D7CF7AC0085F4B1 /* libCsoundLib-device.a */,
-				5704CB462D7CF7AC0085F4B1 /* libsndfile.a */,
-			);
-			path = libs;
 			sourceTree = "<group>";
 		};
 		5704CB492D7CF7AC0085F4B1 /* csound-iOS */ = {
 			isa = PBXGroup;
 			children = (
 				5704CB432D7CF7AC0085F4B1 /* classes */,
-				5704CB472D7CF7AC0085F4B1 /* libs */,
 				5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */,
 			);
 			name = "csound-iOS";
@@ -612,7 +593,6 @@
 				24BF2D7D1EDD14150091F04E /* AudioInTestViewController.xib in Resources */,
 				244DC50D1EDF733C00216C1B /* harmonizer.csd in Resources */,
 				244DC50B1EDF733000216C1B /* instrumentEditor.csd in Resources */,
-				5704CB4F2D7CF7AC0085F4B1 /* test.sh in Resources */,
 				5704CB502D7CF7AC0085F4B1 /* LICENSE.TXT in Resources */,
 				24BF2D821EDD14150091F04E /* HarmonizerTestViewController.xib in Resources */,
 				24BF2D881EDD14150091F04E /* RecordTestViewController.xib in Resources */,
