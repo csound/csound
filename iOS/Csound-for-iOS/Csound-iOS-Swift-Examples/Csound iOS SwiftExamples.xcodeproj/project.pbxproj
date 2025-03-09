@@ -68,26 +68,26 @@
 		24BF2D8B1EDD14150091F04E /* TrappedGeneratorViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D791EDD14150091F04E /* TrappedGeneratorViewController.xib */; };
 		24BF2D8C1EDD14150091F04E /* WaveviewViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D7A1EDD14150091F04E /* WaveviewViewController.xib */; };
 		24BF2D8F1EDD150D0091F04E /* BaseCsoundViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */; };
-		5704CB502D7CF7AC0085F4B1 /* LICENSE.TXT in Resources */ = {isa = PBXBuildFile; fileRef = 5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */; };
-		5704CB512D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */; };
-		5704CB522D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */; };
-		5704CB532D7CF7AC0085F4B1 /* CsoundMotion.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB262D7CF7AC0085F4B1 /* CsoundMotion.m */; };
-		5704CB542D7CF7AC0085F4B1 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB332D7CF7AC0085F4B1 /* CsoundUI.m */; };
-		5704CB552D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB2D2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m */; };
-		5704CB562D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB202D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m */; };
-		5704CB572D7CF7AC0085F4B1 /* CsoundSliderBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB2F2D7CF7AC0085F4B1 /* CsoundSliderBinding.m */; };
-		5704CB582D7CF7AC0085F4B1 /* MidiWidgetsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB392D7CF7AC0085F4B1 /* MidiWidgetsManager.m */; };
-		5704CB592D7CF7AC0085F4B1 /* CsoundObj.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */; };
-		5704CB5A2D7CF7AC0085F4B1 /* CsoundSwitchBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB312D7CF7AC0085F4B1 /* CsoundSwitchBinding.m */; };
-		5704CB5B2D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB242D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m */; };
-		5704CB5C2D7CF7AC0085F4B1 /* CsoundLabelBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB2B2D7CF7AC0085F4B1 /* CsoundLabelBinding.m */; };
-		5704CB5D2D7CF7AC0085F4B1 /* CsoundButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB292D7CF7AC0085F4B1 /* CsoundButtonBinding.m */; };
-		5704CB5E2D7CF7AC0085F4B1 /* CsoundMIDI.m in Sources */ = {isa = PBXBuildFile; fileRef = 5704CB372D7CF7AC0085F4B1 /* CsoundMIDI.m */; };
 		5704CB602D7CF7F50085F4B1 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB5F2D7CF7F50085F4B1 /* CoreAudio.framework */; };
 		5704CB622D7CF8070085F4B1 /* libSndfileiOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */; };
 		5704CB632D7CF8070085F4B1 /* libSndfileiOS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5704CB662D7CF8190085F4B1 /* CsoundiOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */; };
 		5704CB672D7CF8190085F4B1 /* CsoundiOS.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		576FFAF52D7D9F7200190F26 /* LICENSE.TXT in Resources */ = {isa = PBXBuildFile; fileRef = 576FFAF32D7D9F7200190F26 /* LICENSE.TXT */; };
+		576FFAF62D7D9F7200190F26 /* CsoundMomentaryButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFADF2D7D9F7200190F26 /* CsoundMomentaryButtonBinding.m */; };
+		576FFAF72D7D9F7200190F26 /* CsoundLabelBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFADD2D7D9F7200190F26 /* CsoundLabelBinding.m */; };
+		576FFAF82D7D9F7200190F26 /* CsoundMIDI.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAE92D7D9F7200190F26 /* CsoundMIDI.m */; };
+		576FFAF92D7D9F7200190F26 /* CsoundMotion.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAD82D7D9F7200190F26 /* CsoundMotion.m */; };
+		576FFAFA2D7D9F7200190F26 /* SliderMidiWidgetWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAEE2D7D9F7200190F26 /* SliderMidiWidgetWrapper.m */; };
+		576FFAFB2D7D9F7200190F26 /* CsoundUI.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAE52D7D9F7200190F26 /* CsoundUI.m */; };
+		576FFAFC2D7D9F7200190F26 /* CsoundAccelerometerBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAD22D7D9F7200190F26 /* CsoundAccelerometerBinding.m */; };
+		576FFAFD2D7D9F7200190F26 /* CsoundObj.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAF12D7D9F7200190F26 /* CsoundObj.m */; };
+		576FFAFE2D7D9F7200190F26 /* MidiWidgetsManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAEB2D7D9F7200190F26 /* MidiWidgetsManager.m */; };
+		576FFAFF2D7D9F7200190F26 /* CsoundAttitudeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAD42D7D9F7200190F26 /* CsoundAttitudeBinding.m */; };
+		576FFB002D7D9F7200190F26 /* CsoundButtonBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFADB2D7D9F7200190F26 /* CsoundButtonBinding.m */; };
+		576FFB012D7D9F7200190F26 /* CsoundGyroscopeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAD62D7D9F7200190F26 /* CsoundGyroscopeBinding.m */; };
+		576FFB022D7D9F7200190F26 /* CsoundSliderBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAE12D7D9F7200190F26 /* CsoundSliderBinding.m */; };
+		576FFB032D7D9F7200190F26 /* CsoundSwitchBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAE32D7D9F7200190F26 /* CsoundSwitchBinding.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -170,40 +170,39 @@
 		24BF2D7A1EDD14150091F04E /* WaveviewViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = WaveviewViewController.xib; sourceTree = "<group>"; };
 		24BF2D8E1EDD150D0091F04E /* BaseCsoundViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseCsoundViewController.swift; sourceTree = "<group>"; };
 		24BF2DE41EDD15360091F04E /* Csound-iOS-SwiftExamples-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Csound-iOS-SwiftExamples-Bridging-Header.h"; sourceTree = "<group>"; };
-		5704CB1F2D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAccelerometerBinding.h; sourceTree = "<group>"; };
-		5704CB202D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAccelerometerBinding.m; sourceTree = "<group>"; };
-		5704CB212D7CF7AC0085F4B1 /* CsoundAttitudeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAttitudeBinding.h; sourceTree = "<group>"; };
-		5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAttitudeBinding.m; sourceTree = "<group>"; };
-		5704CB232D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundGyroscopeBinding.h; sourceTree = "<group>"; };
-		5704CB242D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundGyroscopeBinding.m; sourceTree = "<group>"; };
-		5704CB252D7CF7AC0085F4B1 /* CsoundMotion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMotion.h; sourceTree = "<group>"; };
-		5704CB262D7CF7AC0085F4B1 /* CsoundMotion.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMotion.m; sourceTree = "<group>"; };
-		5704CB282D7CF7AC0085F4B1 /* CsoundButtonBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundButtonBinding.h; sourceTree = "<group>"; };
-		5704CB292D7CF7AC0085F4B1 /* CsoundButtonBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundButtonBinding.m; sourceTree = "<group>"; };
-		5704CB2A2D7CF7AC0085F4B1 /* CsoundLabelBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundLabelBinding.h; sourceTree = "<group>"; };
-		5704CB2B2D7CF7AC0085F4B1 /* CsoundLabelBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundLabelBinding.m; sourceTree = "<group>"; };
-		5704CB2C2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMomentaryButtonBinding.h; sourceTree = "<group>"; };
-		5704CB2D2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMomentaryButtonBinding.m; sourceTree = "<group>"; };
-		5704CB2E2D7CF7AC0085F4B1 /* CsoundSliderBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundSliderBinding.h; sourceTree = "<group>"; };
-		5704CB2F2D7CF7AC0085F4B1 /* CsoundSliderBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundSliderBinding.m; sourceTree = "<group>"; };
-		5704CB302D7CF7AC0085F4B1 /* CsoundSwitchBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundSwitchBinding.h; sourceTree = "<group>"; };
-		5704CB312D7CF7AC0085F4B1 /* CsoundSwitchBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundSwitchBinding.m; sourceTree = "<group>"; };
-		5704CB322D7CF7AC0085F4B1 /* CsoundUI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundUI.h; sourceTree = "<group>"; };
-		5704CB332D7CF7AC0085F4B1 /* CsoundUI.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundUI.m; sourceTree = "<group>"; };
-		5704CB362D7CF7AC0085F4B1 /* CsoundMIDI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMIDI.h; sourceTree = "<group>"; };
-		5704CB372D7CF7AC0085F4B1 /* CsoundMIDI.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMIDI.m; sourceTree = "<group>"; };
-		5704CB382D7CF7AC0085F4B1 /* MidiWidgetsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MidiWidgetsManager.h; sourceTree = "<group>"; };
-		5704CB392D7CF7AC0085F4B1 /* MidiWidgetsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MidiWidgetsManager.m; sourceTree = "<group>"; };
-		5704CB3A2D7CF7AC0085F4B1 /* MidiWidgetWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MidiWidgetWrapper.h; sourceTree = "<group>"; };
-		5704CB3B2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SliderMidiWidgetWrapper.h; sourceTree = "<group>"; };
-		5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SliderMidiWidgetWrapper.m; sourceTree = "<group>"; };
-		5704CB3D2D7CF7AC0085F4B1 /* test.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = test.o; sourceTree = "<group>"; };
-		5704CB3F2D7CF7AC0085F4B1 /* CsoundObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundObj.h; sourceTree = "<group>"; };
-		5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundObj.m; sourceTree = "<group>"; };
-		5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
 		5704CB5F2D7CF7F50085F4B1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		5704CB612D7CF8070085F4B1 /* libSndfileiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libSndfileiOS.xcframework; path = ../libSndfileiOS.xcframework; sourceTree = "<group>"; };
 		5704CB652D7CF8190085F4B1 /* CsoundiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CsoundiOS.xcframework; path = ../CsoundiOS.xcframework; sourceTree = "<group>"; };
+		576FFAD12D7D9F7200190F26 /* CsoundAccelerometerBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAccelerometerBinding.h; sourceTree = "<group>"; };
+		576FFAD22D7D9F7200190F26 /* CsoundAccelerometerBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAccelerometerBinding.m; sourceTree = "<group>"; };
+		576FFAD32D7D9F7200190F26 /* CsoundAttitudeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundAttitudeBinding.h; sourceTree = "<group>"; };
+		576FFAD42D7D9F7200190F26 /* CsoundAttitudeBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundAttitudeBinding.m; sourceTree = "<group>"; };
+		576FFAD52D7D9F7200190F26 /* CsoundGyroscopeBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundGyroscopeBinding.h; sourceTree = "<group>"; };
+		576FFAD62D7D9F7200190F26 /* CsoundGyroscopeBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundGyroscopeBinding.m; sourceTree = "<group>"; };
+		576FFAD72D7D9F7200190F26 /* CsoundMotion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMotion.h; sourceTree = "<group>"; };
+		576FFAD82D7D9F7200190F26 /* CsoundMotion.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMotion.m; sourceTree = "<group>"; };
+		576FFADA2D7D9F7200190F26 /* CsoundButtonBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundButtonBinding.h; sourceTree = "<group>"; };
+		576FFADB2D7D9F7200190F26 /* CsoundButtonBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundButtonBinding.m; sourceTree = "<group>"; };
+		576FFADC2D7D9F7200190F26 /* CsoundLabelBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundLabelBinding.h; sourceTree = "<group>"; };
+		576FFADD2D7D9F7200190F26 /* CsoundLabelBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundLabelBinding.m; sourceTree = "<group>"; };
+		576FFADE2D7D9F7200190F26 /* CsoundMomentaryButtonBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMomentaryButtonBinding.h; sourceTree = "<group>"; };
+		576FFADF2D7D9F7200190F26 /* CsoundMomentaryButtonBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMomentaryButtonBinding.m; sourceTree = "<group>"; };
+		576FFAE02D7D9F7200190F26 /* CsoundSliderBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundSliderBinding.h; sourceTree = "<group>"; };
+		576FFAE12D7D9F7200190F26 /* CsoundSliderBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundSliderBinding.m; sourceTree = "<group>"; };
+		576FFAE22D7D9F7200190F26 /* CsoundSwitchBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundSwitchBinding.h; sourceTree = "<group>"; };
+		576FFAE32D7D9F7200190F26 /* CsoundSwitchBinding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundSwitchBinding.m; sourceTree = "<group>"; };
+		576FFAE42D7D9F7200190F26 /* CsoundUI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundUI.h; sourceTree = "<group>"; };
+		576FFAE52D7D9F7200190F26 /* CsoundUI.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundUI.m; sourceTree = "<group>"; };
+		576FFAE82D7D9F7200190F26 /* CsoundMIDI.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundMIDI.h; sourceTree = "<group>"; };
+		576FFAE92D7D9F7200190F26 /* CsoundMIDI.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundMIDI.m; sourceTree = "<group>"; };
+		576FFAEA2D7D9F7200190F26 /* MidiWidgetsManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MidiWidgetsManager.h; sourceTree = "<group>"; };
+		576FFAEB2D7D9F7200190F26 /* MidiWidgetsManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MidiWidgetsManager.m; sourceTree = "<group>"; };
+		576FFAEC2D7D9F7200190F26 /* MidiWidgetWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MidiWidgetWrapper.h; sourceTree = "<group>"; };
+		576FFAED2D7D9F7200190F26 /* SliderMidiWidgetWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SliderMidiWidgetWrapper.h; sourceTree = "<group>"; };
+		576FFAEE2D7D9F7200190F26 /* SliderMidiWidgetWrapper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SliderMidiWidgetWrapper.m; sourceTree = "<group>"; };
+		576FFAF02D7D9F7200190F26 /* CsoundObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundObj.h; sourceTree = "<group>"; };
+		576FFAF12D7D9F7200190F26 /* CsoundObj.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundObj.m; sourceTree = "<group>"; };
+		576FFAF32D7D9F7200190F26 /* LICENSE.TXT */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -252,7 +251,7 @@
 		24BF2D541EDD13870091F04E /* Csound iOS SwiftExamples */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB492D7CF7AC0085F4B1 /* csound-iOS */,
+				576FFAF42D7D9F7200190F26 /* CsoundObj */,
 				24BF2DE41EDD15360091F04E /* Csound-iOS-SwiftExamples-Bridging-Header.h */,
 				24BF2D551EDD13870091F04E /* AppDelegate.swift */,
 				24BF2D571EDD13870091F04E /* MasterViewController.swift */,
@@ -447,83 +446,82 @@
 			name = WaveView;
 			sourceTree = "<group>";
 		};
-		5704CB272D7CF7AC0085F4B1 /* motion */ = {
+		576FFAD92D7D9F7200190F26 /* motion */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB1F2D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.h */,
-				5704CB202D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m */,
-				5704CB212D7CF7AC0085F4B1 /* CsoundAttitudeBinding.h */,
-				5704CB222D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m */,
-				5704CB232D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.h */,
-				5704CB242D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m */,
-				5704CB252D7CF7AC0085F4B1 /* CsoundMotion.h */,
-				5704CB262D7CF7AC0085F4B1 /* CsoundMotion.m */,
+				576FFAD12D7D9F7200190F26 /* CsoundAccelerometerBinding.h */,
+				576FFAD22D7D9F7200190F26 /* CsoundAccelerometerBinding.m */,
+				576FFAD32D7D9F7200190F26 /* CsoundAttitudeBinding.h */,
+				576FFAD42D7D9F7200190F26 /* CsoundAttitudeBinding.m */,
+				576FFAD52D7D9F7200190F26 /* CsoundGyroscopeBinding.h */,
+				576FFAD62D7D9F7200190F26 /* CsoundGyroscopeBinding.m */,
+				576FFAD72D7D9F7200190F26 /* CsoundMotion.h */,
+				576FFAD82D7D9F7200190F26 /* CsoundMotion.m */,
 			);
 			path = motion;
 			sourceTree = "<group>";
 		};
-		5704CB342D7CF7AC0085F4B1 /* ui */ = {
+		576FFAE62D7D9F7200190F26 /* ui */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB282D7CF7AC0085F4B1 /* CsoundButtonBinding.h */,
-				5704CB292D7CF7AC0085F4B1 /* CsoundButtonBinding.m */,
-				5704CB2A2D7CF7AC0085F4B1 /* CsoundLabelBinding.h */,
-				5704CB2B2D7CF7AC0085F4B1 /* CsoundLabelBinding.m */,
-				5704CB2C2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.h */,
-				5704CB2D2D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m */,
-				5704CB2E2D7CF7AC0085F4B1 /* CsoundSliderBinding.h */,
-				5704CB2F2D7CF7AC0085F4B1 /* CsoundSliderBinding.m */,
-				5704CB302D7CF7AC0085F4B1 /* CsoundSwitchBinding.h */,
-				5704CB312D7CF7AC0085F4B1 /* CsoundSwitchBinding.m */,
-				5704CB322D7CF7AC0085F4B1 /* CsoundUI.h */,
-				5704CB332D7CF7AC0085F4B1 /* CsoundUI.m */,
+				576FFADA2D7D9F7200190F26 /* CsoundButtonBinding.h */,
+				576FFADB2D7D9F7200190F26 /* CsoundButtonBinding.m */,
+				576FFADC2D7D9F7200190F26 /* CsoundLabelBinding.h */,
+				576FFADD2D7D9F7200190F26 /* CsoundLabelBinding.m */,
+				576FFADE2D7D9F7200190F26 /* CsoundMomentaryButtonBinding.h */,
+				576FFADF2D7D9F7200190F26 /* CsoundMomentaryButtonBinding.m */,
+				576FFAE02D7D9F7200190F26 /* CsoundSliderBinding.h */,
+				576FFAE12D7D9F7200190F26 /* CsoundSliderBinding.m */,
+				576FFAE22D7D9F7200190F26 /* CsoundSwitchBinding.h */,
+				576FFAE32D7D9F7200190F26 /* CsoundSwitchBinding.m */,
+				576FFAE42D7D9F7200190F26 /* CsoundUI.h */,
+				576FFAE52D7D9F7200190F26 /* CsoundUI.m */,
 			);
 			path = ui;
 			sourceTree = "<group>";
 		};
-		5704CB352D7CF7AC0085F4B1 /* bindings */ = {
+		576FFAE72D7D9F7200190F26 /* bindings */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB272D7CF7AC0085F4B1 /* motion */,
-				5704CB342D7CF7AC0085F4B1 /* ui */,
+				576FFAD92D7D9F7200190F26 /* motion */,
+				576FFAE62D7D9F7200190F26 /* ui */,
 			);
 			path = bindings;
 			sourceTree = "<group>";
 		};
-		5704CB3E2D7CF7AC0085F4B1 /* midi */ = {
+		576FFAEF2D7D9F7200190F26 /* midi */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB362D7CF7AC0085F4B1 /* CsoundMIDI.h */,
-				5704CB372D7CF7AC0085F4B1 /* CsoundMIDI.m */,
-				5704CB382D7CF7AC0085F4B1 /* MidiWidgetsManager.h */,
-				5704CB392D7CF7AC0085F4B1 /* MidiWidgetsManager.m */,
-				5704CB3A2D7CF7AC0085F4B1 /* MidiWidgetWrapper.h */,
-				5704CB3B2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.h */,
-				5704CB3C2D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m */,
-				5704CB3D2D7CF7AC0085F4B1 /* test.o */,
+				576FFAE82D7D9F7200190F26 /* CsoundMIDI.h */,
+				576FFAE92D7D9F7200190F26 /* CsoundMIDI.m */,
+				576FFAEA2D7D9F7200190F26 /* MidiWidgetsManager.h */,
+				576FFAEB2D7D9F7200190F26 /* MidiWidgetsManager.m */,
+				576FFAEC2D7D9F7200190F26 /* MidiWidgetWrapper.h */,
+				576FFAED2D7D9F7200190F26 /* SliderMidiWidgetWrapper.h */,
+				576FFAEE2D7D9F7200190F26 /* SliderMidiWidgetWrapper.m */,
 			);
 			path = midi;
 			sourceTree = "<group>";
 		};
-		5704CB432D7CF7AC0085F4B1 /* classes */ = {
+		576FFAF22D7D9F7200190F26 /* classes */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB352D7CF7AC0085F4B1 /* bindings */,
-				5704CB3E2D7CF7AC0085F4B1 /* midi */,
-				5704CB3F2D7CF7AC0085F4B1 /* CsoundObj.h */,
-				5704CB402D7CF7AC0085F4B1 /* CsoundObj.m */,
+				576FFAE72D7D9F7200190F26 /* bindings */,
+				576FFAEF2D7D9F7200190F26 /* midi */,
+				576FFAF02D7D9F7200190F26 /* CsoundObj.h */,
+				576FFAF12D7D9F7200190F26 /* CsoundObj.m */,
 			);
 			path = classes;
 			sourceTree = "<group>";
 		};
-		5704CB492D7CF7AC0085F4B1 /* csound-iOS */ = {
+		576FFAF42D7D9F7200190F26 /* CsoundObj */ = {
 			isa = PBXGroup;
 			children = (
-				5704CB432D7CF7AC0085F4B1 /* classes */,
-				5704CB482D7CF7AC0085F4B1 /* LICENSE.TXT */,
+				576FFAF22D7D9F7200190F26 /* classes */,
+				576FFAF32D7D9F7200190F26 /* LICENSE.TXT */,
 			);
-			name = "csound-iOS";
-			path = "../Csound-iOS-ObjC-Examples/csound-iOS";
+			name = CsoundObj;
+			path = "../Csound-iOS-ObjC-Examples/CsoundObj";
 			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
@@ -593,7 +591,6 @@
 				24BF2D7D1EDD14150091F04E /* AudioInTestViewController.xib in Resources */,
 				244DC50D1EDF733C00216C1B /* harmonizer.csd in Resources */,
 				244DC50B1EDF733000216C1B /* instrumentEditor.csd in Resources */,
-				5704CB502D7CF7AC0085F4B1 /* LICENSE.TXT in Resources */,
 				24BF2D821EDD14150091F04E /* HarmonizerTestViewController.xib in Resources */,
 				24BF2D881EDD14150091F04E /* RecordTestViewController.xib in Resources */,
 				244DC5031EDF730300216C1B /* csdStorage in Resources */,
@@ -611,6 +608,7 @@
 				24BF2D8C1EDD14150091F04E /* WaveviewViewController.xib in Resources */,
 				24BF2D7F1EDD14150091F04E /* ConsoleOutputViewController.xib in Resources */,
 				244DC5091EDF732800216C1B /* hardwareTest.csd in Resources */,
+				576FFAF52D7D9F7200190F26 /* LICENSE.TXT in Resources */,
 				244DC5111EDF735C00216C1B /* multiTouchXY.csd in Resources */,
 				244DC5011EDF72EF00216C1B /* buttonTest.csd in Resources */,
 				24BF2D7B1EDD14150091F04E /* LaunchScreen.storyboard in Resources */,
@@ -636,25 +634,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				576FFAF62D7D9F7200190F26 /* CsoundMomentaryButtonBinding.m in Sources */,
+				576FFAF72D7D9F7200190F26 /* CsoundLabelBinding.m in Sources */,
+				576FFAF82D7D9F7200190F26 /* CsoundMIDI.m in Sources */,
+				576FFAF92D7D9F7200190F26 /* CsoundMotion.m in Sources */,
+				576FFAFA2D7D9F7200190F26 /* SliderMidiWidgetWrapper.m in Sources */,
+				576FFAFB2D7D9F7200190F26 /* CsoundUI.m in Sources */,
+				576FFAFC2D7D9F7200190F26 /* CsoundAccelerometerBinding.m in Sources */,
+				576FFAFD2D7D9F7200190F26 /* CsoundObj.m in Sources */,
+				576FFAFE2D7D9F7200190F26 /* MidiWidgetsManager.m in Sources */,
+				576FFAFF2D7D9F7200190F26 /* CsoundAttitudeBinding.m in Sources */,
+				576FFB002D7D9F7200190F26 /* CsoundButtonBinding.m in Sources */,
+				576FFB012D7D9F7200190F26 /* CsoundGyroscopeBinding.m in Sources */,
+				576FFB022D7D9F7200190F26 /* CsoundSliderBinding.m in Sources */,
+				576FFB032D7D9F7200190F26 /* CsoundSwitchBinding.m in Sources */,
 				2415E3511EDF8E1E00253956 /* ControlXYGrid.swift in Sources */,
 				243E99331EDF19FB00EBD4EB /* HardwareTestViewController.swift in Sources */,
 				243E99291EDF19D100EBD4EB /* AudioFilesTestViewController.swift in Sources */,
 				244DC51F1EDF741600216C1B /* CsoundVirtualKeyboard.swift in Sources */,
 				243E99371EDF1A0C00EBD4EB /* InstrumentEditorViewController.swift in Sources */,
-				5704CB512D7CF7AC0085F4B1 /* SliderMidiWidgetWrapper.m in Sources */,
-				5704CB522D7CF7AC0085F4B1 /* CsoundAttitudeBinding.m in Sources */,
-				5704CB532D7CF7AC0085F4B1 /* CsoundMotion.m in Sources */,
-				5704CB542D7CF7AC0085F4B1 /* CsoundUI.m in Sources */,
-				5704CB552D7CF7AC0085F4B1 /* CsoundMomentaryButtonBinding.m in Sources */,
-				5704CB562D7CF7AC0085F4B1 /* CsoundAccelerometerBinding.m in Sources */,
-				5704CB572D7CF7AC0085F4B1 /* CsoundSliderBinding.m in Sources */,
-				5704CB582D7CF7AC0085F4B1 /* MidiWidgetsManager.m in Sources */,
-				5704CB592D7CF7AC0085F4B1 /* CsoundObj.m in Sources */,
-				5704CB5A2D7CF7AC0085F4B1 /* CsoundSwitchBinding.m in Sources */,
-				5704CB5B2D7CF7AC0085F4B1 /* CsoundGyroscopeBinding.m in Sources */,
-				5704CB5C2D7CF7AC0085F4B1 /* CsoundLabelBinding.m in Sources */,
-				5704CB5D2D7CF7AC0085F4B1 /* CsoundButtonBinding.m in Sources */,
-				5704CB5E2D7CF7AC0085F4B1 /* CsoundMIDI.m in Sources */,
 				243E99351EDF1A0300EBD4EB /* HarmonizerTestViewController.swift in Sources */,
 				243E99391EDF1A1800EBD4EB /* MidiTestViewController.swift in Sources */,
 				243E993D1EDF1A2900EBD4EB /* PitchShifterViewController.swift in Sources */,
