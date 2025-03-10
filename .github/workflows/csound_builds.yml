@@ -82,11 +82,11 @@ jobs:
         run: cmake --build build --target test csdtests
 
   iOS_build:
-    name: iOS build
+    name: Csound for iOS
     runs-on: macos-latest
     steps:
       - name: Install dependencies
-        run: brew install bison
+        run: brew install bison flex
 
       - name: Checkout Source Code
         uses: actions/checkout@v1
@@ -104,17 +104,11 @@ jobs:
         run: |
           ./build.sh
 
-      - name: Create package zip
-        if: github.ref == 'refs/heads/develop'
-        working-directory: iOs
-        run: |
-          ./release.sh
-
       - uses: actions/upload-artifact@v4
         if: github.ref == 'refs/heads/develop'
         with:
-          name: iOS-builds
-          path: iOS/csound-iOS-${{env.CSOUND_VERSION}}
+          name: Csound-For-iOS-${{env.CSOUND_VERSION}}
+          path: iOS/Csound-For-iOS
 
   ios_build_ioscross:
     name: iOS build (ioscross/vcpkg)
