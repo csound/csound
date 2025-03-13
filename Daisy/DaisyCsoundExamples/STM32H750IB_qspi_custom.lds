@@ -6,25 +6,21 @@
 
 ENTRY(Reset_Handler)
 
-/* Define stack and heap sizes */
-_stack_size = 30 * 1024 * 1024; 
-_heap_size = 30 * 1024 * 1024;  
-
-
 MEMORY
 {
-	FLASH (RX)    : ORIGIN = 0x08000000, LENGTH = 128K
-	DTCMRAM (RWX) : ORIGIN = 0x20000000, LENGTH = 128K
-	SRAM (RWX)    : ORIGIN = 0x24000000, LENGTH = 512K
-	RAM_D2_DMA (RWX) : ORIGIN = 0x30000000, LENGTH = 32K
-	RAM_D2 (RWX)  : ORIGIN = 0x30008000, LENGTH = 256K
-	RAM_D3 (RWX)  : ORIGIN = 0x38000000, LENGTH = 64K
-	ITCMRAM (RWX) : ORIGIN = 0x00000000, LENGTH = 64K
-	SDRAM (RWX)   : ORIGIN = 0xc0000000, LENGTH = 64M
-  QSPIFLASH (RX): ORIGIN = 0x90040000, LENGTH = 7936K
+	FLASH       (RX)  : ORIGIN = 0x08000000, LENGTH = 128K
+	DTCMRAM     (RWX) : ORIGIN = 0x20000000, LENGTH = 128K
+	SRAM        (RWX) : ORIGIN = 0x24000000, LENGTH = 512K
+	RAM_D2_DMA  (RWX) : ORIGIN = 0x30000000, LENGTH = 32K
+	RAM_D2      (RWX) : ORIGIN = 0x30008000, LENGTH = 256K
+	RAM_D3      (RWX) : ORIGIN = 0x38000000, LENGTH = 64K
+	BACKUP_SRAM (RWX) : ORIGIN = 0x38800000, LENGTH = 4K
+	ITCMRAM     (RWX) : ORIGIN = 0x00000000, LENGTH = 64K
+	SDRAM       (RWX) : ORIGIN = 0xc0000000, LENGTH = 64M
+	QSPIFLASH   (RX)  : ORIGIN = 0x90040000, LENGTH = 7936K
 }
 
-/* _estack = 0x20020000; */
+_estack = 0x20020000;
 
 SECTIONS
 {
@@ -70,32 +66,29 @@ SECTIONS
 		PROVIDE(__exidx_end = .);
 	} > QSPIFLASH
 
-	.ARM.attributes :
-	{
-		*(.ARM.attributes)
-	} > QSPIFLASH
+	.ARM.attributes 0 : { *(.ARM.attributes) }
 
 	.preinit_array :
 	{
-		PROVIDE(__preinit_array_start = .);
+		PROVIDE_HIDDEN(__preinit_array_start = .);
 		KEEP(*(.preinit_array*))
-		PROVIDE(__preinit_array_end = .);
+		PROVIDE_HIDDEN(__preinit_array_end = .);
 	} > QSPIFLASH
 
 	.init_array :
 	{
-		PROVIDE(__init_array_start = .);
+		PROVIDE_HIDDEN(__init_array_start = .);
 		KEEP(*(SORT(.init_array.*)))
 		KEEP(*(.init_array*))
-		PROVIDE(__init_array_end = .);
+		PROVIDE_HIDDEN(__init_array_end = .);
 	} > QSPIFLASH
 
 	.fini_array :
 	{
-		PROVIDE(__fini_array_start = .);
+		PROVIDE_HIDDEN(__fini_array_start = .);
 		KEEP(*(.fini_array*))
 		KEEP(*(SORT(.fini_array.*)))
-		PROVIDE(__fini_array_end = .);
+		PROVIDE_HIDDEN(__fini_array_end = .);
 	} > QSPIFLASH
 
 	.sram1_bss (NOLOAD) :
@@ -141,7 +134,7 @@ SECTIONS
 		_ebss = .;
 
 		PROVIDE(__bss_end__ = _ebss);
-	} > SRAM 
+	} > SRAM
 
 	.dtcmram_bss (NOLOAD) :
 	{
@@ -188,6 +181,20 @@ SECTIONS
 		PROVIDE(__sdram_bss_end = _esdram_bss);
 	} > SDRAM
 
+	.backup_sram (NOLOAD) :
+	{
+		. = ALIGN(4);
+		_sbackup_sram = .;
+
+		PROVIDE(__backup_sram_start = _sbackup_sram);
+		*(.backup_sram)
+		*(.backup_sram*)
+		. = ALIGN(4);
+		_ebackup_sram = .;
+
+		PROVIDE(__backup_sram_end = _ebackup_sram);
+	} > BACKUP_SRAM
+
 
     /* .qspiflash_text :
 	{
@@ -231,28 +238,27 @@ SECTIONS
 		PROVIDE(__qspiflash_bss_end = _eqspiflash_bss);
 	} > QSPIFLASH */
 
-	
-
+	.heap (NOLOAD) :
+	{
+		. = ALIGN(4);
+		PROVIDE(__heap_start__ = .);
+		PROVIDE(__heap_start = .);
+		KEEP(*(.heap))
+		. = ALIGN(4);
+		PROVIDE(__heap_end = .);
+		PROVIDE(__heap_end__ = .);
+	} > SDRAM
 
 	PROVIDE(end = .);
 
 	.reserved_for_stack (NOLOAD) :
 	{
 		. = ALIGN(4);
-		_sstack = .; /* Start of the stack */
-		. = . + _stack_size; /* Allocate stack space */
+		PROVIDE(__reserved_for_stack_start__ = .);
+		KEEP(*(.reserved_for_stack))
 		. = ALIGN(4);
-		_estack = .; /* End of the stack (Stack Pointer initial value) */
-	} > SDRAM
-
-	.heap (NOLOAD) :
-	{
-		. = ALIGN(4);
-		PROVIDE(__heap_start__ = .);
-		. = . + _heap_size; /* Allocate heap space */
-		. = ALIGN(4);
-		PROVIDE(__heap_end__ = .);
-	} > SDRAM
+		PROVIDE(__reserved_for_stack_end__ = .);
+	} > DTCMRAM
 
     DISCARD :
     {

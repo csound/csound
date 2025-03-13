@@ -24,7 +24,7 @@ string csdText = R"csd(
       a1 vco2 0.2, icps*0.995, i(kdigi)*10
       a2 vco2 0.2, icps*1.005, i(kdigi)*10
       afilt butterlp (a1+a2), 70 + (12000*kcf)
-      outs afilt*aenv*kamp, afilt*aenv*kamp
+      outs afilt*aenv, afilt*aenv
       endin
 
 
