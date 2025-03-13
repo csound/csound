@@ -458,7 +458,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   
   /* form each partition and take its FFT */
   for (part = 0; part < p->numPartitions; part++) {
-    int32_t start_chn = channel != ALLCHNLS ? channel-1 : 0;
+    int32_t start_chn = channel != ALLCHNLS ? channel-1 : 0, k;
     int64_t nframes;
     /* get the block of input frames */ 
     if (UNLIKELY((nframes = csound->SndfileRead(csound, infd, inbuf,
@@ -469,7 +469,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     /* take FFT of each channel */
     scaleFac = CS_ONEDDBFS
       * csound->GetInverseRealFFTScale(csound, (int32_t) p->Hlenpadded);
-    for (i = start_chn; i < p->nchanls; i++) {
+    for (i = start_chn, k = 0; k < p->nchanls; i++, k++) {
       fp1 = inbuf + i;
       fp2 = IRblock;
       for (j = 0; j < nframes/p->nchanls; j++) {
