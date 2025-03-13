@@ -988,8 +988,7 @@ void deleteVarPoolMemory(void *csound, CS_VAR_POOL *pool);
 void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
   INSTRTXT *ip = instrtxt;
   INSDS *active = ip->instance;
-  /* remove instance memory */
-   while (active != NULL) { 
+  while (active != NULL) { /* remove instance memory */
     INSDS *nxt = active->nxtinstance;
     if (active->fdchp != NULL)
       fdchclose(csound, active);
@@ -1000,7 +999,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
       csound->Free(csound, active->opcod_iobufs);
     csound->Free(csound, active);
     active = nxt;
-    } 
+  }
   OPTXT *t = ip->nxtop;
   while (t) {
     OPTXT *s = t->nxtop;
@@ -1160,7 +1159,11 @@ int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
         csound->Message(csound, Str("no active instances\n"));
       free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
       engineState->instrtxtp[inm->instno] = NULL;
-     }
+    }
+    else {
+      inm->ip->instance = inm->ip->act_instance =
+        inm->ip->lst_instance = NULL;
+    }
     }
   }
 cont:
