@@ -1,35 +1,26 @@
+
+
 #include "daisy_seed.h"
 #include "daisysp.h"
 #include <array>
 #include <stdio.h>
-#include "daisyCsound.h"
-#include "midiBuffer.h"
+#include "daisyCsoundGenerative.h"
 #include "csound.h"
 #include "plugin.h"
+
 
 using namespace daisy;
 using namespace daisy::seed;
 
 
-static int32_t OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
-static int32_t CloseMidiInDevice(CSOUND *csound, void *userData);
-static int32_t ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf, int32_t nbytes);
-static int32_t  OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
-static int32_t  CloseMidiOutDevice(CSOUND *csound, void *userData);
-static int32_t  WriteMidiData(CSOUND              *csound,
-                          void                *userData,
-                          const unsigned char *mbuf,
-                          int                  nbytes);
 static void DaisyCsoundMessageCallback(CSOUND     *csound,
                                        int         attr,
                                        const char *format,
                                        va_list     args);
 
 
-DaisySeed      hw;
-MidiUsbHandler midi;
-MidiBuffer     midiBuffer;
-int            cnt = 0;
+DaisySeed hw;
+int       cnt = 0;
 #define SR 48000
 const int numAdcChannels = 12;
 CSOUND   *csound;
@@ -49,7 +40,6 @@ const char *controlChannelNames[numAdcChannels] = {"AnalogIn0",
                                                    "AnalogIn10",
                                                    "AnalogIn11"};
 
-
 struct DigiInHandler
 {
     static const int numDigiChannels = 15;
@@ -63,7 +53,7 @@ struct DigiInHandler
 
     DigiInHandler()
     {
-        for(int i = 0; i < numDigiChannels; i++)
+        for(int i = 0; i < numDigiChannels; ++i)
         {
             digiPullModes[i] = GPIO::Pull::NOPULL;
         }
@@ -71,7 +61,7 @@ struct DigiInHandler
 
     void initDigiPins()
     {
-        for(int i = 0; i < numDigiChannels; i++)
+        for(int i = 0; i < numDigiChannels; ++i)
         {
             gpios[i].Init(digiPins[i], GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
         }
@@ -79,7 +69,7 @@ struct DigiInHandler
 
     void readDigiPins()
     {
-        for(int i = 0; i < numDigiChannels; i++)
+        for(int i = 0; i < numDigiChannels; ++i)
         {
             if(digiPinActive[i])
             {
@@ -89,9 +79,7 @@ struct DigiInHandler
     }
 };
 
-
 static DigiInHandler digiHandler;
-
 
 std::vector<uint8_t> ConvertMidiEventToBytes(const MidiEvent &event)
 {
@@ -156,13 +144,12 @@ struct DigiIn : csnd::Plugin<1, 2>
     }
 };
 
-
 void AudioCallback(AudioHandle::InputBuffer  in,
                    AudioHandle::OutputBuffer out,
                    size_t                    size)
 {
     const MYFLT *spout = csoundGetSpout(csound);
-    int    end   = csoundGetKsmps(csound);
+    int          end   = csoundGetKsmps(csound);
     for(size_t i = 0; i < size; i++)
     {
         if(cnt == 0)
@@ -171,7 +158,7 @@ void AudioCallback(AudioHandle::InputBuffer  in,
         }
         out[0][i] = spout[cnt] * 0.5f;
         out[1][i] = spout[cnt + 1] * 0.5f;
-        //cnt = cnt != end - 1 ? cnt + 1 : 0; // for mono out
+        // cnt       = cnt != end - 1 ? cnt + 1 : 0; // for mono out
         cnt = (cnt + 2) % (end * 2); // for stereo out
     }
 }
@@ -181,19 +168,17 @@ int main(void)
 {
     hw.Configure();
     hw.Init();
-    // hw.StartLog();
-
+    hw.StartLog();
+    hw.PrintLine("Hello from Daisy Csound\n");
 
 
     System::Delay(5000);
+
     CSOUND *cs = csoundCreate(NULL, NULL);
-    //csoundSetMessageCallback(cs, DaisyCsoundMessageCallback);
+    // csoundSetMessageCallback(cs, DaisyCsoundMessageCallback);
     csoundSetHostData(cs, (void *)&hw);
     csoundSetHostAudioIO(cs);
-    csoundSetHostMIDIIO(cs);
-    csoundSetExternalMidiInOpenCallback(cs, OpenMidiInDevice);
-    csoundSetExternalMidiReadCallback(cs, ReadMidiData);
-    csoundSetExternalMidiInCloseCallback(cs, CloseMidiInDevice);
+
     if(csnd::plugin<DigiIn>(
            (csnd::Csound *)cs, "digiInDaisy", "k", "ii", csnd::thread::ik)
        != 0)
@@ -209,8 +194,8 @@ int main(void)
     {
         csound = cs;
         csoundSetOption(cs, "-n");
-        csoundSetOption(cs, "--ksmps=128");
-        csoundSetOption(cs, "-M0");
+        csoundSetOption(cs, "--ksmps=512");
+        //   csoundSetOption(cs, "-M0");
         csoundSetOption(cs, "-dm0");
 
         int ret = csoundCompileCSD(cs, csdText.c_str(), 1);
@@ -221,24 +206,13 @@ int main(void)
             hw.adc.Init(adcConfig, numAdcChannels);
             hw.adc.Start();
 
-            MidiUsbHandler::Config midi_cfg;
-            midi_cfg.transport_config.periph
-                = MidiUsbTransport::Config::INTERNAL;
-            midi.Init(midi_cfg);
-
-            hw.SetAudioBlockSize(32);
+            hw.SetAudioBlockSize(256);
             hw.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
             hw.StartAudio(AudioCallback);
             digiHandler.initDigiPins();
             while(1)
             {
-                midi.Listen();
-                while(midi.HasEvents())
-                {
-                    auto msg      = midi.PopEvent();
-                    auto rawBytes = ConvertMidiEventToBytes(msg);
-                    midiBuffer.write(rawBytes);
-                }
+                // hw.PrintLine("Hello from Daisy Csound\n");
 
                 for(int i = 0; i < numAdcChannels; i++)
                 {
@@ -266,34 +240,6 @@ int main(void)
     }
     return 0;
 }
-
-
-int32_t CloseMidiInDevice(CSOUND *csound, void *userData)
-{
-    return 0;
-}
-
-
-int32_t OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev)
-{
-    *userData = (void *)&midiBuffer;
-    return 0;
-}
-
-
-int32_t ReadMidiData(CSOUND        *csound,
-                 void          *userData,
-                 unsigned char *mbuf,
-                 int32_t            nbytes)
-{
-    auto buffer = static_cast<MidiBuffer *>(userData);
-    if(buffer->isAvailable)
-    {
-        return buffer->read(mbuf, nbytes);
-    }
-    return 0;
-}
-
 
 constexpr size_t kMessageBufferSize = 64;
 

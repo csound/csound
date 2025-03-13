@@ -2,10 +2,10 @@ APP_TYPE = BOOT_QSPI
 LDFLAGS += -u _printf_float
 
 # Project Name
-TARGET = daisyCsound
+TARGET = daisyCsoundGenerative
 
 # Sources
-CPP_SOURCES = daisyCsound.cpp
+CPP_SOURCES = daisyCsoundGenerative.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy/
@@ -23,6 +23,11 @@ C_INCLUDES += -I$(CSOUND_INCLUDE_DIR)
 LIBS += $(CSOUND_STATIC_LIB)
 LIBDIR  += -L$(CSOUND_LIB_DIR)
 
+# Use Bootloader v5.4
+BOOT_BIN = $(shell pwd)/../dsy_bootloader_v5_4.bin
+
+# Use Custom Linker Script
+LDSCRIPT = $(shell pwd)/../STM32H750IB_qspi_custom.lds
 
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
