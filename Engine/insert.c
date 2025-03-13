@@ -1234,7 +1234,7 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
         if (!ip->actflg) {
           cnt++;
           if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
-            csound->Free(csound, ip->opcod_iobufs);   /* IV - Nov 10 2002 */
+            csound->Free(csound, ip->opcod_iobufs);   
           if (ip->fdchp != NULL)
             fdchclose(csound, ip);
           if (ip->auxchp != NULL)
