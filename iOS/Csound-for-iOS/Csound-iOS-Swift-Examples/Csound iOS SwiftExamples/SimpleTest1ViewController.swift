@@ -53,7 +53,7 @@ class SimpleTest1ViewController: BaseCsoundViewController {
             csoundUI?.labelPrecision = 2    // Set label value display precision before adding UILabel binding
             csoundUI?.add(uiLabel, forChannelName: "slider")
             csoundUI?.add(uiSlider, forChannelName: "slider")
-            
+            self.navigationController?.setNavigationBarHidden(false, animated: true)
             csound.play(csdFile)
         } else {
             csound.stop()

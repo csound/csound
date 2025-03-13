@@ -646,6 +646,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
   if(time < 0) time = 0.0;
   table = p->tab;
 
+#ifdef MP3SCALE_ASYNC_INIT    
   if(!p->init){
     for (j=0; j < MP3_CHNS; j++) {
       out = j == 0 ? p->out1 : p->out2;
@@ -655,8 +656,8 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     *p->kstamp = 0;
     return OK;
   }
-
   if(*p->kstamp == 0) csound->Message(csound, "waited %d cycles\n", p->ti);
+#endif
 
   if (UNLIKELY(early)) {
     nsmps -= early;
