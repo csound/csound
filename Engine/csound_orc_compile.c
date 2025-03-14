@@ -1160,7 +1160,10 @@ int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
       free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
       engineState->instrtxtp[inm->instno] = NULL;
     }
-    inm->ip->instance = inm->ip->act_instance = inm->ip->lst_instance = NULL;
+    else {
+      inm->ip->instance = inm->ip->act_instance =
+        inm->ip->lst_instance = NULL;
+    }
     }
   }
 cont:
