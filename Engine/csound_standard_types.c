@@ -168,7 +168,7 @@ void opcodeObj_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   OPCODEOBJ *p = (OPCODEOBJ *) dest;
   OPCODEOBJ *psrc = (OPCODEOBJ *) src;
-  if(context_check(csound, psrc, ctx) != 0) 
+  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) 
     csound->Warning(csound, "mismatching context: copy value bypassed");
   if(!p->readonly) {
    memcpy(dest, src, sizeof(OPCODEOBJ));
