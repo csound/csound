@@ -1308,7 +1308,7 @@ extern "C" {
    * Returns zero on success.
    */
   PUBLIC int32_t csoundAppendOpcode (CSOUND *, const char *opname,
-                                 int32_t dsblksiz, int32_t flags,
+                                 size_t dsblksiz, int32_t flags,
                                  const char *outypes, const char *intypes,
                                  int32_t (*init)(CSOUND *, void *),
                                  int32_t (*perf)(CSOUND *, void *),

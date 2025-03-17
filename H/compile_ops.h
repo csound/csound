@@ -23,7 +23,8 @@
 
 #pragma once
 
-#include <csoundCore.h>
+#include "csoundCore.h"
+#include "aops.h"
 
 typedef struct _compile {
   OPDS h;
@@ -76,7 +77,6 @@ typedef struct _rinstrk {
   MYFLT *argums[VARGMAX-1];
 } RINSTRK;
 
-
 int32_t compile_orc_i(CSOUND *csound, COMPILE *c);
 int32_t compile_str_i(CSOUND *csound, COMPILE *c);
 int32_t compile_csd_i(CSOUND *csound, COMPILE *c);
@@ -92,3 +92,4 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p);
 int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p); 
 int32_t run_instr(CSOUND *csound, RINSTR *p); 
 int32_t run_instr_k(CSOUND *csound, RINSTRK *p); 
+

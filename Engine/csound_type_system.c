@@ -316,6 +316,7 @@ int32_t copyVarNoOp(CSOUND *csound, void *p) {
   return OK;
 }
 
+#include "csound_standard_types.h"
 /* GENERIC VARIABLE COPYING */
 int32_t copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
@@ -338,25 +339,21 @@ int32_t copyVarGeneric(CSOUND *csound, void *p) {
     return OK;
 }
 
-
-
-#include "csound_standard_types.h"
-
 int32_t copyVarGenericInit(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     int32_t flag = 0;
     CS_TYPE* type = csoundGetTypeForArg(assign->a);
-
+  
     if(type == &CS_VAR_TYPE_ARRAY) {
       ARRAYDAT* adat = (ARRAYDAT*) assign->a;
       if(adat->arrayType == &CS_VAR_TYPE_I ||
          adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;
     } else if(type == &CS_VAR_TYPE_I ||
               type == &CS_VAR_TYPE_b ||
-              type == &CS_VAR_TYPE_INSTR    
+              type == &CS_VAR_TYPE_INSTR 
               ) flag = 1;
     if (flag) {
-      assign->h.perf = copyVarNoOp;
+        assign->h.perf = copyVarNoOp;
       copyVarGeneric(csound, p);
     }
     return OK;

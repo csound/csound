@@ -319,6 +319,7 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     return retVal;
 }
 
+void add_opcode_def(CSOUND *csound, OENTRY *ep);
 
 /** Adds a UDO definition as an T_OPCODE or T_OPCODE0 type to the symbol table
  * used at parse time.  An OENTRY is also added at this time so that at
@@ -407,6 +408,8 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 
+    // add opcodeDef for this UDO
+    add_opcode_def(csound, newopc);
     return 0;
 }
 

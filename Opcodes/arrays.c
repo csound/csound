@@ -352,7 +352,6 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   int32_t index;
   int32_t indefArgCount = p->INOCOUNT - 1;
  
-
   if (UNLIKELY(indefArgCount == 0))
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("Error: no indexes set for array get"));
@@ -4592,7 +4591,6 @@ static OENTRY arrayvars_localops[] =
     { "##array_init", sizeof(ARRAY_SET), 0, "", ".[].m", (SUBR)array_set },
     { "##array_set.k", sizeof(ARRAY_SET), 0, "", "k[]km", NULL,(SUBR)array_set},
     { "##array_set.a", sizeof(ARRAY_SET), 0, "", "a[]am", NULL, (SUBR)array_set},
-    // VL: 11.2.22 I think array set S needs to be added running at thread 3 for parser3
     { "##array_set.S", sizeof(ARRAY_SET), 0, "", "S[].m", (SUBR)array_set , (SUBR)array_set },
     { "##array_set.i", sizeof(ARRAY_SET), 0, "", ".[].m", (SUBR)array_set },
     { "##array_set.e", sizeof(ARRAY_SET), 0, "", "i[].z", (SUBR)array_err },

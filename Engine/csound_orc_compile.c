@@ -875,6 +875,7 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
   ip->varPool = (CS_VAR_POOL *)root->markup;
+
   op = (OPTXT *)ip;
   statements = root->right;
   // ip->mdepends = 0;
@@ -1715,6 +1716,8 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root,
   // memory will be freed on merge.
   var = typeTable->globalPool->head;
   while(var != NULL) {
+    // check if variable memory has not yet been allocated
+    if(var->memBlock == NULL) {
     size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
     CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
     varMem->varType = var->varType;
@@ -1722,6 +1725,7 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root,
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(csound, var, &varMem->value);
     } else  memset(&varMem->value , 0, var->memBlockSize);
+    }
     var = var->next;
   }
 
@@ -1857,6 +1861,7 @@ if (UNLIKELY(csound->synterrcnt)) {
  }
 
 
+
 if (engineState != &csound->engineState) {
   OPDS *ids = csound->ids;
   /* any compilation other than the first one */
@@ -1934,8 +1939,8 @@ if (engineState != &csound->engineState) {
   return CSOUND_SUCCESS;
 }
 
-extern void sanitize(CSOUND *csound);
-
+void sanitize(CSOUND *csound);
+void add_opcode_defs(CSOUND *csound); 
 /**
    Parse and compile an orchestra given on an string (OPTIONAL)
    if str is NULL the string is taken from the internal corfile
@@ -1954,6 +1959,8 @@ int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async)
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return retVal;
   }
+
+  add_opcode_defs(csound); 
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
     retVal = csoundCompileTreeInternal(csound, root, async);
@@ -2275,8 +2282,8 @@ void debugPrintCsound(CSOUND *csound) {
   CS_VARIABLE *gVar = csound->engineState.varPool->head;
   count = 0;
   while (gVar != NULL) {
-    csound->Message(csound, "  %d) %s:%s\n", count++, gVar->varName,
-                    gVar->varType->varTypeName);
+    csound->Message(csound, "  %d) %s:%s (%p)\n", count++, gVar->varName,
+                    gVar->varType->varTypeName, &(gVar->memBlock->value));
     gVar = gVar->next;
   }
   current = &(csound->engineState.instxtanchor);

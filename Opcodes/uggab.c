@@ -1523,7 +1523,6 @@ static OENTRY localops[] = {
 { "wrap.i", S(WRAP),     0,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
 { "wrap.k", S(WRAP),     0,  "k", "kkk",  NULL,  (SUBR)kwrap,   NULL        },
 { "wrap.a", S(WRAP),     0,  "a", "akk",  NULL,          (SUBR)wrap  },
-{ "mirror", 0xffff                                                          },
 { "mirror.i", S(WRAP),   0,  "i", "iii",  (SUBR)kmirror, NULL,  NULL        },
 { "mirror.k", S(WRAP),   0,  "k", "kkk",  NULL,  (SUBR)kmirror, NULL        },
 { "mirror.a", S(WRAP),   0,  "a", "akk",  NULL,         (SUBR)mirror },

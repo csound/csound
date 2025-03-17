@@ -330,32 +330,39 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     TREE* nodeToCheck = tree;
 
     if (tree->type == T_ARRAY) {
-      varBaseName = tree->left->value->lexeme;
-      var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
-
-      if (var == NULL) {
+      if (tree->left->type == T_FUNCTION) {
         char *fnReturn;
-        if (tree->left->type == T_FUNCTION &&
-            (fnReturn = get_arg_type2(csound, tree->left, typeTable)) &&
+        if ((fnReturn = get_arg_type2(csound, tree->left, typeTable)) &&
             *fnReturn == '[') {
           return cs_strdup(csound, &fnReturn[1]);
         } else {
+          synterr(csound,
+                  Str("non-array type for function %s line %d\n"),
+                  tree->left->value->lexeme, tree->line);
+          do_baktrace(csound, tree->locn);
+          return NULL;
+        }
+      } else {
+        varBaseName = tree->left->value->lexeme;
+        var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
+
+        if (var == NULL) {
           synterr(csound,
                   Str("unable to find array operator for var %s line %d\n"),
                   varBaseName, tree->line);
           do_baktrace(csound, tree->locn);
           return NULL;
+        } else {
+          if (var->varType == &CS_VAR_TYPE_ARRAY) {
+            return cs_strdup(csound, var->subType->varTypeName);
+          } else if (var->varType == &CS_VAR_TYPE_A) {
+            return cs_strdup(csound, "k");
+          }
+          synterr(csound,
+                  Str("invalid array type %s line %d\n"),
+                  var->varType->varTypeName, tree->line);
+          return NULL;
         }
-      } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
-          return cs_strdup(csound, var->subType->varTypeName);
-        } else if (var->varType == &CS_VAR_TYPE_A) {
-          return cs_strdup(csound, "k");
-        }
-        synterr(csound,
-                Str("invalid array type %s line %d\n"),
-                var->varType->varTypeName, tree->line);
-        return NULL;
       }
     }
 
@@ -1758,7 +1765,7 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
  */
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
-
+  
   if (root->type == T_ASSIGNMENT) {
     /* Rewrite tree if line is "a1, a2 = func(arg, arg1)" 
        to "a1, a2 func arg, arg1" */
@@ -1779,6 +1786,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
   //  print(1,2,3)
   // then it should just be updated to T_OPCALL and returned
   if(root->type == T_FUNCTION) {
+           
     root->type = T_OPCALL;
     return root;
   }
@@ -1796,26 +1804,12 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
                 "received a non T_OPCALL TREE\n"));
     return NULL;
   }
-
+ 
   if (root->value != NULL) {
-    /* xout exp(0) */
-    if (root->left != NULL &&
-        root->left->type == T_IDENT &&
-        find_opcode(csound, root->left->value->lexeme) != NULL) {
-      TREE* top = root->left;
-      root->left = NULL;
-      top->right = root;
-      top->next = root->next;
-      root->next = NULL;
-      top->type = T_OPCALL;
-      top->right->type = T_FUNCTION;
-      return top;
-    }
-
     /* Already processed T_OPCALL, return as-is */
     return root;
   }
-
+  
   if (root->left == NULL) {
     synterr(csound,
             Str("Internal Error: convert_statement_to_opcall "
@@ -1833,11 +1827,23 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
       /* i.e. ksubst init -1 */
       /* TODO - this should check if it's a var first */
-      if (find_opcode(csound, top->value->lexeme) != NULL) {
+      CS_VARIABLE *var = find_var_from_pools(csound, top->value->lexeme,
+                                          top->value->lexeme, typeTable);
+
+      /* but if it's an opcoderef, then it can't be in an expression */
+      if(var && var->varType == &CS_VAR_TYPE_OPCODEREF)
+        var = NULL;
+     
+      if (find_opcode(csound, top->value->lexeme) != NULL && var == NULL
+          ) {
         top->next = root->next;
         root->next = NULL;
         return top;
       }
+   
+
+        
+         
       /* i.e. outs a1 + a2 + a3, a4, + a5 + a6 */
       newTop = top->left;
       newTop->next = root->next;
@@ -1895,6 +1901,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
   if (leftCount == 1 && rightCount == 1) {
     TREE* newTop;
     if(root->right->type == T_IDENT &&
+       find_var_from_pools(csound, root->right->value->lexeme, root->right->value->lexeme, typeTable) == NULL &&
        find_opcode(csound, root->right->value->lexeme) != NULL) {
       newTop = root->right;
       newTop->type = T_OPCALL;

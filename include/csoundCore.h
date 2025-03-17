@@ -64,46 +64,57 @@ extern "C" {
 /** @name Arguments, opcodes, and instrument defs */
 /**@{ */
 
-typedef struct arglst {
-  int32_t count;
-  char *arg[1];
-} ARGLST;
+  typedef struct arglst {
+    int32_t count;
+    char *arg[1];
+  } ARGLST;
 
-typedef struct arg {
-  int32_t type;
-  void *argPtr;
-  int32_t index;
-  char *structPath;
-  struct arg *next;
-} ARG;
+  typedef struct arg {
+    int32_t type;
+    void *argPtr;
+    int32_t index;
+    char *structPath;
+    struct arg *next;
+  } ARG;
 
-typedef struct oentry {
-  char *opname;
-  uint16 dsblksiz;
-  uint16 flags;
-  char *outypes;
-  char *intypes;
-  int32_t (*init)(CSOUND *, void *p);
-  int32_t (*perf)(CSOUND *, void *p);
-  int32_t (*deinit)(CSOUND *, void *p);
-  void *useropinfo; /* user opcode parameters */
-} OENTRY;
+  typedef struct oentry {
+    char    *opname;
+    size_t  dsblksiz;
+    int32_t flags;
+    char    *outypes;
+    char    *intypes;
+    SUBR    init;
+    SUBR    perf;
+    SUBR    deinit;
+    void    *useropinfo; /* user opcode parameters */
+  } OENTRY;
 
-/**
- * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
- */
-typedef struct text {
-  uint16_t linenum; /* Line num in orch file (currently buggy!)  */
-  uint64_t locn;    /* and location */
-  OENTRY *oentry;
-  char *opcod;    /* Pointer to opcode name in global pool */
-  ARGLST *inlist; /* Input args (pointer to item in name list) */
-  ARGLST *outlist;
-  ARG *inArgs; /* Input args (index into list of values) */
-  uint32_t inArgCount;
-  ARG *outArgs;
-  uint32_t outArgCount;
-} TEXT;
+
+  /** 
+   *   holds OENTRYs for opcode overloads
+   **/
+   typedef struct oentries {
+      int32_t count;                /* Number of etries in table */
+      OENTRY* entries[0];       /* Entended by count entries */
+    } OENTRIES;
+
+
+  /**
+   * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
+   */
+  typedef struct text {
+    uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
+    uint64_t        locn;           /* and location */
+    OENTRY          *oentry;
+    char            *opcod;         /* Pointer to opcode name in global pool */
+    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
+    ARGLST          *outlist;
+    ARG             *inArgs;        /* Input args (index into list of values) */
+    uint32_t        inArgCount;
+    ARG             *outArgs;
+    uint32_t        outArgCount;
+  } TEXT;
+
 
 /**
  *  Instrument definition structure
@@ -207,6 +218,7 @@ typedef struct {
     int32    scount;
   } OCTDAT;
 
+
   /** 
       DOWNSAMP data 
   */
@@ -239,6 +251,26 @@ typedef struct {
     MYFLT*   data; /* data */
     size_t   allocated; /* size of allocated data */
   };
+
+  /**
+   * OPCODE REF type
+   */
+  typedef struct opcodeRef {
+    struct oentries *entries;
+    int32_t readonly;
+  }  OPCODEREF;
+
+  /**
+   * OPCODE type
+   */
+  typedef struct opcodeObj {
+    struct opds *dataspace; // opcode dataspace
+    size_t size;            // dataspace size
+    MYFLT **outargp;        // ptr to the first output arg
+    MYFLT **inargp;         // ptr to first input arg
+    int32_t udo_flag;       // set if opcode is UDO
+    int32_t readonly;       // readonly flag
+  } OPCODEOBJ;
 
   /** 
    *  Type definition for instr definition ref
@@ -695,8 +727,6 @@ typedef struct _FFT_SETUP {
 #define CS_SPIN (p->h.insdshead->spin)
 #define CS_SPOUT (p->h.insdshead->spout)
 #define ORTXT h.optext->t
-#define INCOUNT ORTXT.inlist->count
-#define OUTCOUNT ORTXT.outlist->count /* Not used */
 #define INOCOUNT ORTXT.inArgCount
 #define OUTOCOUNT ORTXT.outArgCount
 #define CURTIME (((double)csound->icurTime) / ((double)csound->esr))
@@ -1281,17 +1311,16 @@ struct CSOUND_ {
   CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
   /**@}*/
 
-  /** @name Plugin opcodes and discovery support */
-  /**@{ */
-  int32_t (*AppendOpcode)(CSOUND *, const char *opname, int32_t dsblksiz,
-                          int32_t flags, const char *outypes,
-                          const char *intypes,
-                          int32_t (*init)(CSOUND *, void *),
-                          int32_t (*perf)(CSOUND *, void *),
-                          int32_t (*deinit)(CSOUND *, void *));
-  int32_t (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int32_t n);
-  const OENTRY *(*FindOpcode)(CSOUND *, int32_t exact, char *, char *, char *);
-  /**@}*/
+    /** @name Plugin opcodes and discovery support */
+    /**@{ */
+    int32_t (*AppendOpcode)(CSOUND *, const char *opname, size_t dsblksiz, int32_t flags,
+                            const char *outypes, const char *intypes,
+                            int32_t (*init)(CSOUND *, void *),
+                            int32_t (*perf)(CSOUND *, void *),
+                            int32_t (*deinit)(CSOUND *, void *));
+    int32_t (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int32_t n);
+    const OENTRY* (*FindOpcode)(CSOUND*, int32_t exact, char*, char* , char*);
+    /**@}*/
 
   /** @name RT audio IO module support */
   /**@{ */

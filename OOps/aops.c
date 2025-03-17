@@ -138,7 +138,7 @@ int32_t ainit(CSOUND *csound, ASSIGN *p)
 
 int32_t minit(CSOUND *csound, ASSIGNM *p)
 {
-  uint32_t nargs = p->INCOUNT;
+  uint32_t nargs = p->INOCOUNT;
   uint32_t nout = p->OUTOCOUNT;
   uint32_t i;
   MYFLT *tmp;
@@ -163,7 +163,7 @@ int32_t minit(CSOUND *csound, ASSIGNM *p)
 
 int32_t mainit(CSOUND *csound, ASSIGNM *p)
 {
-  uint32_t nargs = p->INCOUNT;
+  uint32_t nargs = p->INOCOUNT;
   uint32_t nouts = p->OUTOCOUNT;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1741,7 +1741,7 @@ int32_t inch_set(CSOUND *csound, INCH *p)
 
 int32_t inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
-  uint32_t nc, nChannels = p->INCOUNT;
+  uint32_t nc, nChannels = p->INOCOUNT;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS, ch;

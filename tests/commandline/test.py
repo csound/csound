@@ -188,6 +188,8 @@ def runTest():
     ["test_schedule_named_instance.csd", "testing schedule with named instr instance"],
     ["test_instr_type_var_new_compilation.csd", "testing schedule of named instr in new compilations"],
     ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
+    ["test_opcode_type.csd", "tests opcode type"],
+    ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
     ["test_sa.csd", "test sample accurate mode"],
     ]
 

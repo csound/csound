@@ -37,7 +37,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
   FUNC    *nxtfunc, *curfunc;
   int32    flength;
 
-  if (UNLIKELY(!(p->INCOUNT & 1))) {
+  if (UNLIKELY(!(p->INOCOUNT & 1))) {
     return csound->InitError(csound, "%s",
                              Str("incomplete number of input arguments"));
   }
@@ -47,7 +47,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
     p_->tbladr = p;
   }
 
-  nsegs = (p->INCOUNT >> 1);  /* count segs & alloc if nec */
+  nsegs = (p->INOCOUNT >> 1);  /* count segs & alloc if nec */
 
   if ((segp = (TSEG *) p->auxch.auxp) == NULL ||
       p->auxch.size<(nsegs+1)*sizeof(TSEG)) {

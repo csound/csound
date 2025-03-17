@@ -140,7 +140,7 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
   MYFLT       **argp;
   double val;
 
-  if (UNLIKELY(!(p->INCOUNT & 1))) {
+  if (UNLIKELY(!(p->INOCOUNT & 1))) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -508,7 +508,7 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
   MYFLT       d, **argp, val, dur, nxtval;
   int64_t         n=0;
 
-  if (!(p->INCOUNT & 1)) {
+  if (!(p->INOCOUNT & 1)) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -562,7 +562,7 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
   int64_t         n=0;
 
 
-  if (!(p->INCOUNT & 1)){
+  if (!(p->INOCOUNT & 1)){
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -622,7 +622,7 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
   int64_t         n=0;
 
 
-  if (!(p->INCOUNT & 1)){
+  if (!(p->INOCOUNT & 1)){
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -683,7 +683,7 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
   int64_t         n=0;
 
 
-  if (!(p->INCOUNT & 1)){
+  if (!(p->INOCOUNT & 1)){
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -902,7 +902,7 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
   MYFLT   **argp, prvpt;
 
 
-  if (!(p->INCOUNT & 1)){
+  if (!(p->INOCOUNT & 1)){
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 
@@ -1937,7 +1937,7 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
   double val, y1, y2;
 
 
-  if (!(p->INCOUNT & 1)) {
+  if (!(p->INOCOUNT & 1)) {
     return csound->InitError(csound, Str("incomplete number of input arguments"));
   }
 

@@ -40,7 +40,7 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     FUNC *ftp;
     int64_t flength = 0;
 
-    numOfTabs = p->numOfTabs =((p->INCOUNT-4)); /* count segs & alloc if nec */
+    numOfTabs = p->numOfTabs =((p->INOCOUNT-4)); /* count segs & alloc if nec */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
       if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))

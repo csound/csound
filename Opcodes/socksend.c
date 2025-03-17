@@ -510,8 +510,8 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    if(p->INCOUNT > 4) {
-      size_t i, iarg = p->type->size-1, nargs = p->INCOUNT - 5;
+    if(p->INOCOUNT > 4) {
+      size_t i, iarg = p->type->size-1, nargs = p->INOCOUNT - 5;
     STRINGDAT *s;
     ARRAYDAT *ar;
     FUNC *ft;
@@ -636,7 +636,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       memcpy(out,p->dest->data,size);
       size = ceil(size/4.)*4;
       buffersize += size;
-      if(p->INCOUNT > 4) {
+      if(p->INOCOUNT > 4) {
       /* package type in a 4-byte zero-padded block;
          add a comma to the beginning of the type string.
       */

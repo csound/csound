@@ -394,7 +394,7 @@ static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
     double dur, durtot = 0.0, prevphs;
     FUNC *nxtfunc, *curfunc, *ftp;
 
-    nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
+    nsegs = p->nsegs =((p->INOCOUNT-3) >> 1);    /* count segs & alloc if nec */
 
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
       csound->AuxAlloc(csound, (int64_t)(nsegs+1)*sizeof(TSEG2), &p->auxch);

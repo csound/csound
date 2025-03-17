@@ -64,6 +64,7 @@
 #include "midiops3.h"
 #include "midiops2.h"
 #include "pitch.h"
+#include "opcode.h"
 
 #define S(x)    sizeof(x)
 

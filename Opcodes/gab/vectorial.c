@@ -2207,11 +2207,11 @@ static int32_t vseg_set(CSOUND *csound,VSEG *p)
     FUNC *nxtfunc, *curfunc, *ftp;
     int32        flength;
 
-    if (!(p->INCOUNT & 1)) {
+    if (!(p->INOCOUNT & 1)) {
       return csound->InitError(csound, "%s", Str("incomplete number of input arguments"));
     }
 
-    nsegs = ((p->INCOUNT-2) >> 1);      /* count segs & alloc if nec */
+    nsegs = ((p->INOCOUNT-2) >> 1);      /* count segs & alloc if nec */
 
     if ((segp = (TSEG *) p->auxch.auxp) == NULL) {
       csound->AuxAlloc(csound, (int32)(nsegs+1)*sizeof(TSEG), &p->auxch);
@@ -2332,7 +2332,7 @@ static int32_t vphaseseg_set(CSOUND *csound,VPSEG *p)
     FUNC *nxtfunc, *curfunc, *ftp;
     int32_t32        flength;
 
-    nsegs = p->nsegs =((p->INCOUNT-3) >> 1);    /* count segs & alloc if nec */
+    nsegs = p->nsegs =((p->INOCOUNT-3) >> 1);    /* count segs & alloc if nec */
 
     if ((segp = (TSEG2 *) p->auxch.auxp) == NULL) {
       csound->AuxAlloc(csound, (int32)(nsegs+1)*sizeof(TSEG), &p->auxch);

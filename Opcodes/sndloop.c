@@ -320,7 +320,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     tab = p->sfunc->ftable,  /* func table pointer */
     len = p->sfunc->flen;    /* function table length */
     nchnls = p->sfunc->nchanls;
-    if (UNLIKELY(nchnls != p->OUTCOUNT)) {
+    if (UNLIKELY(nchnls != p->OUTOCOUNT)) {
      return
        csound->InitError(csound,
                          "%s", Str("function table channel count does not match output"));

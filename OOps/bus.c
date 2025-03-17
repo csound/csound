@@ -1455,7 +1455,7 @@ static int32_t chnmix_opcode_perf(CSOUND *csound, CHNGET *p)
 
 static int32_t chnclear_opcode_perf(CSOUND *csound, CHNCLEAR *p)
 {
-    int32_t i, n=p->INCOUNT;
+    int32_t i, n=p->INOCOUNT;
     /* Need lock for the channel */
     IGN(csound);
     for (i=0; i<n; i++) {
@@ -1551,7 +1551,7 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 {
     int32_t   err;
-    int32_t   i, n = (int32_t)p->INCOUNT;
+    int32_t   i, n = (int32_t)p->INOCOUNT;
     for (i=0; i<n; i++) {
         /* NOTE: p->imode is a pointer to the channel data here */
       err = csoundGetChannelPtr(csound, (void **) &(p->fp[i]),
@@ -2414,7 +2414,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 /* clear an array channel to zero at performance time */
 static int32_t chnclear_opcode_perf_ARRAY(CSOUND *csound, CHNCLEAR *p)
 {
-    int32_t i, n=p->INCOUNT;
+    int32_t i, n=p->INOCOUNT;
     IGN(csound);
     for (i=0; i<n; i++) {
         ARRAYDAT *adat = (ARRAYDAT*) p->fp[i];
@@ -2429,7 +2429,7 @@ static int32_t chnclear_opcode_perf_ARRAY(CSOUND *csound, CHNCLEAR *p)
 int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
 {
     int32_t   err;
-    int32_t   i, n = (int32_t)p->INCOUNT;
+    int32_t   i, n = (int32_t)p->INOCOUNT;
     for (i=0; i<n; i++) {
       err = csoundGetChannelPtr(csound, (void **) &(p->fp[i]),
                                 (char*) p->iname[i]->data,

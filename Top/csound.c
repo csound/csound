@@ -3219,13 +3219,12 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
 /*
  * OPCODES
  */
-// void add_to_symbtab(CSOUND *csound, OENTRY *ep);
-
 static CS_NOINLINE int32_t opcode_list_new_oentry(CSOUND *csound,
                                                   const OENTRY *ep) {
   CONS_CELL *head;
   OENTRY *entryCopy;
   char *shortName;
+  int32_t ret = 0;
 
   if (UNLIKELY(ep->opname == NULL || csound->opcodes == NULL))
     return CSOUND_ERROR;
@@ -3247,25 +3246,26 @@ static CS_NOINLINE int32_t opcode_list_new_oentry(CSOUND *csound,
     csound->Free(csound, shortName);
   }
 
-  return 0;
+  return ret;
 }
 
-PUBLIC int32_t csoundAppendOpcode(CSOUND *csound, const char *opname,
-                                  int32_t dsblksiz, int32_t flags,
-                                  const char *outypes, const char *intypes,
-                                  int32_t (*init)(CSOUND *, void *),
-                                  int32_t (*perf)(CSOUND *, void *),
-                                  int32_t (*deinit)(CSOUND *, void *)) {
-  OENTRY tmpEntry;
-  int32_t err;
-  tmpEntry.opname = (char *)opname;
-  tmpEntry.dsblksiz = (uint16)dsblksiz;
-  tmpEntry.flags = (uint16)flags;
-  tmpEntry.outypes = (char *)outypes;
-  tmpEntry.intypes = (char *)intypes;
-  tmpEntry.init = init;
-  tmpEntry.perf = perf;
-  tmpEntry.deinit = deinit;
+PUBLIC int32_t csoundAppendOpcode(CSOUND *csound,
+                              const char *opname, size_t dsblksiz, int32_t flags,
+                              const char *outypes, const char *intypes,
+                              int32_t (*init)(CSOUND *, void *),
+                              int32_t (*perf)(CSOUND *, void *),
+                              int32_t (*deinit)(CSOUND *, void *))
+{
+  OENTRY  tmpEntry;
+  int32_t     err;
+  tmpEntry.opname     = (char*) opname;
+  tmpEntry.dsblksiz   =  dsblksiz;
+  tmpEntry.flags      =  flags;
+  tmpEntry.outypes    = (char*) outypes;
+  tmpEntry.intypes    = (char*) intypes;
+  tmpEntry.init     = init;
+  tmpEntry.perf     = perf;
+  tmpEntry.deinit     = deinit;
   err = opcode_list_new_oentry(csound, &tmpEntry);
   // add_to_symbtab(csound, &tmpEntry);
   if (UNLIKELY(err))

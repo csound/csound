@@ -869,7 +869,6 @@ static fcomplex RCmul(double x, fcomplex a)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "filter2",0xffff,                                                     },
 { "filter2.a",  S(FILTER), 0,  "a", "aiim", (SUBR)ifilter, (SUBR)afilter},
 { "filter2.k", S(FILTER), 0,   "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
 { "zfilter2", S(ZFILTER), 0,   "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter}

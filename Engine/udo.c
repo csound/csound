@@ -208,8 +208,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
-
-
   if (!p->ip) {
     /* search for already allocated, but not active instance */
     /* if none was found, allocate a new instance */
@@ -263,10 +261,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   lcurip->onedksmps = CS_ONEDKSMPS;
   lcurip->kicvt = CS_KICVT;
 
+ 
+
   /* VL 13-12-13 */
   /* this sets ksmps and kr local variables */
   /* create local ksmps variable and init with ksmps */
-  if (lcurip->lclbas != NULL) {
+  if (lcurip->lclbas != NULL) {   
     CS_VARIABLE *var =
       csoundFindVariableWithName(csound, lcurip->instr->varPool, "ksmps");
     *((MYFLT *)(var->memBlockIndex + lcurip->lclbas)) = lcurip->ksmps;

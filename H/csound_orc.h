@@ -71,15 +71,5 @@ extern int32_t ksmps, nchnls; */
 void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
 int32_t  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);
 
-    // holds matching oentries from opcodeList
-    // has space for 16 matches and next pointer in case more are found
-    // (unlikely though)
-
-typedef struct oentries {
-      int32_t count;                /* Number of etries in table */
-  //char *opname;
-  //int prvnum;
-      OENTRY* entries[0];       /* Entended by count entries */
-    } OENTRIES;
 
 #endif

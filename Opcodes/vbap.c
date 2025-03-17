@@ -1468,7 +1468,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
   MYFLT   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
 
-  p->q.number = p->OUTCOUNT;
+  p->q.number = p->OUTOCOUNT;
   ls_table =
     (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
   /* reading in loudspeaker info */
