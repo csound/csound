@@ -2819,8 +2819,12 @@ int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
                                              p->strseg.data, maxSegmentSize);
         p->strseg.size = maxSegmentSize;
         p->allocatedBuf = 1;
-        csound->RegisterResetCallback(csound, p,
-                                      (int32_t(*)(CSOUND*, void*))(println_reset));
+        /* VL 22.03.25 this callback is causing access-after-free as 
+           it tries to access p->buf.data that is already freed by
+           Csound on reset. Caught by address sanitizer.
+         */
+         /* csound->RegisterResetCallback(csound, p,
+          (int32_t(*)(CSOUND*, void*))(println_reset));*/
     } else {
         p->allocatedBuf = 0;
     }
