@@ -1917,7 +1917,7 @@ tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
 
   reshapearray array[], isize1 [, ..., isizen]
 
-  works with i and k arrays, at i-time 
+  works with i and k arrays, at i-time
 
   1:  if the sizes of the array and the size of the reshaped array do not match
 it needs an error message. Currently it is rather silent.
@@ -1945,7 +1945,7 @@ static int32_t
 arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     ARRAYDAT *a = p->in;
     int32_t numdims = p->INOCOUNT - 1;
-    
+
     int32_t orig_numitems = 1;
     for(int i=0; i < a->dimensions; i++) {
         orig_numitems *= a->sizes[i];
@@ -1959,7 +1959,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
         }
         numitems *= idim;
     }
-    
+
     if(numitems != orig_numitems)
       return INITERRF(Str("reshapearray: The number of items do not match."
                           "The array has %d elements, but the new shape"
@@ -1970,11 +1970,11 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
         a->dimensions = numdims;
         a->sizes = csound->ReAlloc(csound, a->sizes, sizeof(int32_t)*numdims);
     }
-    
+
     for(int i=0; i < numdims; i++) {
         a->sizes[i] = (int32_t)(*(p->dims[i]));
     }
-    
+
     return OK;
 }
 
@@ -2151,16 +2151,16 @@ static int32_t arrprint_str(CSOUND *csound, ARRAYDAT *arr,
 }
 
 // Print a 2D matrix from a multidimensional array
-static int32_t _printmtx(CSOUND *csound, MYFLT *data, int32_t offset, const char *fmt, 
-                         int32_t numrows, int32_t numcols, 
+static int32_t _printmtx(CSOUND *csound, MYFLT *data, int32_t offset, const char *fmt,
+                         int32_t numrows, int32_t numcols,
                          int32_t startbrackets, int32_t endbrackets, int32_t margin) {
-                         
+
     int32_t cursor = 0;
     char colstr[ARRPRINT_MAXLINE];
     int32_t linelength = ARRPRINT_MAXLINE - margin - numcols;
     for(int r=0; r < numrows; r++) {
         if(r == 0) {
-            int spaces = MAX(0, margin - startbrackets);        
+            int spaces = MAX(0, margin - startbrackets);
             for(int i=0; i < spaces; i++) {
                 colstr[i] = ' ';
             }
@@ -2176,14 +2176,14 @@ static int32_t _printmtx(CSOUND *csound, MYFLT *data, int32_t offset, const char
             cursor = spaces;
         }
         for(int col=0; col < numcols; col++) {
-            if(cursor >= linelength) 
+            if(cursor >= linelength)
                 break;
             size_t index = offset + r * numcols + col;
-            MYFLT item = data[index]; 
+            MYFLT item = data[index];
             if(col > 0) {
                 colstr[cursor++] = ' ';
             }
-            cursor += snprintf(colstr + cursor, ARRPRINT_MAXLINE - cursor, fmt, item); 
+            cursor += snprintf(colstr + cursor, ARRPRINT_MAXLINE - cursor, fmt, item);
         }
         if(r == numrows - 1) {
             for(int i=0; i < endbrackets + 1; i++) {
@@ -2201,7 +2201,7 @@ static int32_t _printsubarr(CSOUND *csound, MYFLT *data, int offset, const char 
     if(numdims == 2) {
         int numrows = dims[0];
         int numcols = dims[1];
-        return _printmtx(csound, data, offset, fmt, numrows, numcols, startbrackets, endbrackets, margin);   
+        return _printmtx(csound, data, offset, fmt, numrows, numcols, startbrackets, endbrackets, margin);
     } else {
         int subsize = 1;
         for(int i=1; i < numdims; i++) {
@@ -2784,21 +2784,6 @@ typedef struct {
 } PRINTLN;
 
 
-int32_t println_reset(CSOUND *csound, PRINTLN *p) {
-    if(p->buf.data != NULL && p->allocatedBuf) {
-        csound->Free(csound, p->buf.data);
-        p->buf.data = NULL;
-        p->buf.size = 0;
-        p->allocatedBuf = 0;
-    }
-    if(p->strseg.data != NULL) {
-        csound->Free(csound, p->strseg.data);
-        p->strseg.data = NULL;
-        p->strseg.size = 0;
-    }
-    return OK;
-}
-
 int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
     size_t bufsize = 2048;
     size_t fmtlen = strlen(p->sfmt->data);
@@ -2819,12 +2804,6 @@ int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
                                              p->strseg.data, maxSegmentSize);
         p->strseg.size = maxSegmentSize;
         p->allocatedBuf = 1;
-        /* VL 22.03.25 this callback is causing access-after-free as 
-           it tries to access p->buf.data that is already freed by
-           Csound on reset. Caught by address sanitizer.
-         */
-         /* csound->RegisterResetCallback(csound, p,
-          (int32_t(*)(CSOUND*, void*))(println_reset));*/
     } else {
         p->allocatedBuf = 0;
     }
