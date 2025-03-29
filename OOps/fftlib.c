@@ -3491,12 +3491,13 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     setup->d = d;
     return (void *) setup;
   }
-  setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*FFTsize);
+  setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*(FFTsize+2));
   csound->RegisterResetCallback(csound, (void*) setup,
                                 (int32_t (*)(CSOUND *, void *))
                                 setupDispose);
   return (void *) setup;
 }
+
  
 void csoundRealFFT2(CSOUND *csound,
                      void *p, MYFLT *sig){
