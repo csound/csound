@@ -2429,7 +2429,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
-  if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Verifying AST\n");
+  if (UNLIKELY(PARSER_DEBUG))
+          csound->Message(csound, "Verifying AST\n");
 
   while (current != NULL) {
     switch(current->type) {
@@ -2569,7 +2570,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case IF_TOKEN:
       if (!verify_if_statement(csound, current, typeTable)) {
-        return 0;
+        synterr(csound, "conditional expression not valid, line %d",
+                current->line - 2);
+        return NULL;
       }
 
       current = expand_if_statement(csound, current, typeTable);
@@ -2583,7 +2586,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case UNTIL_TOKEN:
     case WHILE_TOKEN:
       if (!verify_until_statement(csound, current, typeTable)) {
-        return 0;
+        synterr(csound, "loop conditional expression not valid, line %d",
+                current->line - 2);
+        return NULL;
       }
 
       current = expand_until_statement(csound, current,
@@ -2718,7 +2723,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   }
 
-  if (PARSER_DEBUG) csound->Message(csound, "[End Verifying AST]\n");
+ if (PARSER_DEBUG)
+    csound->Message(csound, "[End Verifying AST]\n");
 
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;
