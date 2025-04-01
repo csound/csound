@@ -3056,13 +3056,7 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
         (MYFLT *) csound->ReAlloc(csound, ftp->ftable,
                                  sizeof(MYFLT)*(ftp->flen+2));
       dstflen = ff->flen = ftp->flen;
-    } else if(!IS_POW_TWO(dstflen))
-      { // need to allocate extra point for np2 fft
-      ftp->ftable = dstftp =
-        (MYFLT *)
-        csound->ReAlloc(csound, ftp->ftable,
-                             sizeof(MYFLT)*(ftp->flen+2));
-    }
+    } 
     if (winftno) {
       winflen = csoundGetTable(csound, &winftp, winftno);
       if (UNLIKELY(winflen <= 0)) {
