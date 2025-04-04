@@ -1628,6 +1628,11 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
   return OK;
 }
 
+/* from udo.c */
+int32_t set_inbufs(CSOUND *csound,
+                   OPDS *h,
+                   OPCOD_IOBUFS *buf);
+
 /* oversample opcode
    oversample ifactor
    ifactor - oversampling factor (positive integer)
@@ -1645,9 +1650,6 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
 
   if(udo == NULL)
     return csound->InitError(csound, "oversampling only allowed in UDOs\n");
-  else if(udo->iflag)
-    return csoundInitError(csound, "can't set sr after xin\n");
-
 
   parent_sr = udo->parent_ip->esr;
   parent_ksmps = udo->parent_ip->ksmps;
@@ -1694,7 +1696,10 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   var = csoundFindVariableWithName(csound, ip->varPool, "kr");
   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
   *varmem = CS_EKR;
-  return OK;
+
+  if(udo->iflag) // if xin has already been called, reset bufs
+    return set_inbufs(csound, &(p->h), udo);
+  else return OK;
 }
 
 /* undersample opcode
@@ -1715,8 +1720,6 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
 
   if(udo == NULL)
     return csound->InitError(csound, "oversampling only allowed in UDOs\n");
-  else if(udo->iflag)
-    return csoundInitError(csound, "can't set sr after xin\n");
 
   parent_sr = udo->parent_ip->esr;
   parent_ksmps = udo->parent_ip->ksmps;
@@ -1774,7 +1777,10 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   var = csoundFindVariableWithName(csound, ip->varPool, "ksmps");
   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
   *varmem = CS_KSMPS;
-  return OK;
+
+  if(udo->iflag) // if xin has already been called, reset bufs
+    return set_inbufs(csound, &(p->h), udo);
+  else return OK;
 }
 
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */

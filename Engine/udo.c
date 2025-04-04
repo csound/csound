@@ -385,20 +385,27 @@ int32_t useropcd(CSOUND *csound, UOPCODE *p)
     return OK;
 }
 
-int32_t xinset(CSOUND *csound, XIN *p)
-{
-  OPCOD_IOBUFS  *buf;
+/** This function sets up the input 
+    buffers for a UDO in pass-by-copy.
+    If oversampling is set *after* xin, then
+    this is called again to set up the oversampling
+    buffers.
+*/
+
+int32_t set_inbufs(CSOUND *csound,
+                   OPDS *h,
+                   OPCOD_IOBUFS *buf) {
   OPCODINFO   *inm;
   MYFLT **bufs, **tmp;
   int32_t i, k = 0;
   CS_VARIABLE* current;
   UOPCODE  *udo;
-  MYFLT parent_sr;
+  MYFLT parent_sr = buf->parent_ip->esr;
+  MYFLT o1ksmps = h->insdshead->ekr/parent_sr;
+  MYFLT esr = h->insdshead->esr;
+  MYFLT **args = buf->inargs;
 
-  (void) csound;
-  buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   buf->iflag = 1;
-  parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
   bufs = udo->ar + inm->outchns;
@@ -413,29 +420,29 @@ int32_t xinset(CSOUND *csound, XIN *p)
 
   for (i = 0; i < inm->inchns; i++) {
     void* in = (void*)bufs[i];
-    void* out = (void*)p->args[i];
+    void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
     // check output kvars in case inputs are constants
     if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
-      current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+      current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
-      if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
-                                        CS_ESR/parent_sr, CS_KSMPS)) == NULL)
+      if(esr != parent_sr) {
+        if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,
+                                        o1ksmps, h->insdshead->ksmps)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
     }
     else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
-      if(CS_ESR != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->in_cvt,
-                                        CS_ESR/parent_sr, 1)) == NULL)
+      if(esr != parent_sr) {
+        if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,
+                                        o1ksmps, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
@@ -444,7 +451,7 @@ int32_t xinset(CSOUND *csound, XIN *p)
     if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
       if((current->subType == &CS_VAR_TYPE_A ||
           current->subType == &CS_VAR_TYPE_K)
-         && CS_ESR != parent_sr)
+         && esr != parent_sr)
         return csound->InitError(csound, "audio/control arrays not allowed\n"
                                  "as UDO arguments when using under/oversampling\n");
     }
@@ -452,6 +459,16 @@ int32_t xinset(CSOUND *csound, XIN *p)
   }
 
   return OK;
+}
+
+
+
+int32_t xinset(CSOUND *csound, XIN *p)
+{
+  OPCOD_IOBUFS *buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+  buf->inargs =  p->args;
+  return set_inbufs(csound, &(p->h),
+                    buf);
 }
 
 int32_t xoutset(CSOUND *csound, XOUT *p)

@@ -9,6 +9,7 @@ typedef struct {
     void    *uopcode_struct;
     INSDS   *parent_ip;
     int32   iflag;
+    MYFLT  **inargs;
     MYFLT   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
 } OPCOD_IOBUFS;
 
