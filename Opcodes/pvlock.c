@@ -1169,8 +1169,8 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps) {
     IGN(csound);
     sf_count_t sampsread;
     // fill p->curbuf
-    sampsread = csound->SndfileRead(csound, p->sf, p->indata[p->curbuf],
-                              nsmps/p->nchans);
+    sampsread = csound->SndfileReadSamples(csound, p->sf, p->indata[p->curbuf],
+                              nsmps);
     if (sampsread < nsmps)
       memset(p->indata[p->curbuf]+sampsread, 0,
              sizeof(MYFLT)*(nsmps-sampsread));
@@ -1198,7 +1198,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
     double tstamp = p->tstamp, incrt = p->incr;
-
+ 
     if (time < 0) /* negative tempo is not possible */
       time = 0.0;
     time *= p->resamp;
