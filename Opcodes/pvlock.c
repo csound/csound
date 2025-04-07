@@ -1310,8 +1310,9 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
             csound->RealFFT(csound,  p->fwdsetup, nwin);
 
             tmp_real = tmp_im = (MYFLT) 1e-20;
-            for (i=2; i < N-1; i++) {
-              tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
+            for (i=2; i < N; i++) {
+              tmp_real += nwin[i]*nwin[i];
+              if (i+1 < N) tmp_real += nwin[i+1]*nwin[i+1];
               tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
             }
             powrat = FL(20.0)*LOG10(tmp_real/tmp_im);
