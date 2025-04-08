@@ -78,6 +78,7 @@ extern "C" {
     void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
     struct insds *ctx;
     CS_VAR_MEM *memBlock;
+    
   } CS_VARIABLE;
 
   typedef struct cstypeitem {
@@ -139,15 +140,16 @@ extern "C" {
   /* Should we keep these in the API? */
   PUBLIC CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound);
   PUBLIC void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool);
-  PUBLIC char* getVarSimpleName(CSOUND* csound, const char* name);
+  PUBLIC char* csoundGetVarSimpleName(CSOUND* csound, const char* name);
   PUBLIC CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound,
                                                  CS_VAR_POOL* pool,
                                                  const char* name);
   PUBLIC int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool,
                                CS_VARIABLE* var);
-  PUBLIC void recalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
-  PUBLIC void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
-  PUBLIC void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool);
+  PUBLIC void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
+  PUBLIC void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
+  PUBLIC void csoundInitializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool);
+  PUBLIC void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus
 }

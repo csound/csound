@@ -31,8 +31,8 @@
 
 int32_t csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
                                int32_t mode, int32_t allow_release, int32_t async);
-int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t async);
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
+int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
+int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
 void killInstance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
@@ -334,9 +334,9 @@ void killInstance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
 }
 
 /* this is to be called from
-   csoundCompileTreeInternal() in csound_orc_compile.c
+   csound_compile_tree() in csound_orc_compile.c
 */
-void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
+void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
   const int32_t argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
   memcpy(args, &e, sizeof(ENGINE_STATE *));
@@ -403,7 +403,7 @@ int32_t init0(CSOUND *csound);
 MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 {
   int32_t async = 0;
-  if (str && csoundCompileOrcInternal(csound,str,async)
+  if (str && csound_compile_orc(csound,str,async)
       == CSOUND_SUCCESS){
     if(!(csound->engineStatus & CS_STATE_COMP)) {
       init0(csound);
@@ -469,12 +469,12 @@ void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
 
 int32_t csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
   int32_t async = 1;
-  return csoundCompileTreeInternal(csound, root, async);
+  return csound_compile_tree(csound, root, async);
 }
 
 int32_t csoundCompileOrcAsync(CSOUND *csound, const char *str) {
   int32_t async = 1;
-  return csoundCompileOrcInternal(csound, str, async);
+  return csound_compile_orc(csound, str, async);
 }
 
 int32_t csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,

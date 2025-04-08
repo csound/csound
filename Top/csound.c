@@ -120,8 +120,8 @@ void csoundDCT(CSOUND *csound, void *p, MYFLT *sig);
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 
-int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t async);
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str,
+int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
+int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *message);
 int32_t csoundScoreEventInternal(CSOUND *csound, char type,
@@ -2430,12 +2430,12 @@ void csoundStop(CSOUND *csound) {
  * New API functions
  */
 PUBLIC int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
-  return csoundCompileTreeInternal(csound, root, async);
+  return csound_compile_tree(csound, root, async);
 }
 
 PUBLIC int32_t csoundCompileOrc(CSOUND *csound, const char *str,
                                 int32_t async) {
-  return csoundCompileOrcInternal(csound, str, async);
+  return csound_compile_orc(csound, str, async);
 }
 
 PUBLIC void csoundEventString(CSOUND *csound, const char *message,

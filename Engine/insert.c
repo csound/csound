@@ -42,7 +42,7 @@ static  void    deact(CSOUND *, INSDS *);
 static  void    schedofftim(CSOUND *, INSDS *);
 void    beatexpire(CSOUND *, double);
 void    timexpire(CSOUND *, double);
-extern int32_t argsRequired(char* argString);
+extern int32_t args_required(char* argString);
 static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                            MEVENT *mep);
 static int32_t insert_event(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
@@ -2088,7 +2088,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   /* gbloffbas = csound->globalVarPool; */
   lcloffbas = (CS_VAR_MEM*)&ip->p0;
   lclbas = (MYFLT*) ((char*) ip + pextent);   /* split local space */
-  initializeVarPool((void *)csound, lclbas, tp->varPool);
+  csoundInitializeVarPool((void *)csound, lclbas, tp->varPool);
 
   opMemStart = nxtopds = (char*) lclbas + tp->varPool->poolSize +
     (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
@@ -2209,7 +2209,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
       arg = arg->next;
     }
 
-    for (argStringCount = argsRequired(ep->outypes);
+    for (argStringCount = args_required(ep->outypes);
          n < argStringCount;
          n++)  /* if more outypes, pad */
       argpp[n] = NULL;

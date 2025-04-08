@@ -48,8 +48,8 @@ void print_tree(CSOUND *, char *, TREE *);
 char *remove_type_quoting(CSOUND *csound, const char *outype);
 
 /* from csound_orc_compile.c */
-extern int32_t argsRequired(char* arrayName);
-extern char** splitArgs(CSOUND* csound, char* argString);
+extern int32_t args_required(char* arrayName);
+extern char** split_args(CSOUND* csound, char* argString);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                 OENTRIES* entries, char* inArgTypes);
@@ -443,8 +443,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return NULL;
       }
 
-      if (argsRequired(out) == 1) {
-        char** args = splitArgs(csound, out);
+      if (args_required(out) == 1) {
+        char** args = split_args(csound, out);
         char *ret = cs_strdup(csound, args[0]);
         csound->Free(csound, argTypeRight);
         csound->Free(csound, entries);
@@ -905,33 +905,33 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
   }
 
   {
-    int32_t argsFoundCount = argsRequired(inArgsFound);
-    int32_t argsRequiredCount = argsRequired(opInArgs);
-    char** argsRequired = splitArgs(csound, opInArgs);
+    int32_t argsFoundCount = args_required(inArgsFound);
+    int32_t args_requiredCount = args_required(opInArgs);
+    char** args_required = split_args(csound, opInArgs);
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
     char* varArg = NULL;
     int32_t returnVal = 1;
 
-    if (argsRequired == NULL) {
+    if (args_required == NULL) {
       return 0;
     }
     if (argsFoundCount>=VARGMAX) {
       return -1;
     }
 
-    if ((argsFoundCount > argsRequiredCount) &&
-        !(is_in_var_arg(argsRequired[argsRequiredCount - 1]))) {
-      csound->Free(csound, argsRequired);
+    if ((argsFoundCount > args_requiredCount) &&
+        !(is_in_var_arg(args_required[args_requiredCount - 1]))) {
+      csound->Free(csound, args_required);
       return 0;
     }
 
-    argsFound = splitArgs(csound, inArgsFound);
+    argsFound = split_args(csound, inArgsFound);
 
     if (argsFoundCount == 0) {
-      if (is_in_var_arg(argsRequired[0])) {
-        varArg = argsRequired[0];
+      if (is_in_var_arg(args_required[0])) {
+        varArg = args_required[0];
       }
     } else {
       for (i = 0; i < argsFoundCount; i++) {
@@ -943,7 +943,7 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
             break;
           }
         } else {
-          char* argRequired = argsRequired[argTypeIndex++];
+          char* argRequired = args_required[argTypeIndex++];
           if (!check_in_arg(argFound, argRequired)) {
             returnVal = 0;
             break;
@@ -956,8 +956,8 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
     }
 
     if (returnVal && varArg == NULL) {
-      while (argTypeIndex < argsRequiredCount) {
-        char* c = argsRequired[argTypeIndex++];
+      while (argTypeIndex < args_requiredCount) {
+        char* c = args_required[argTypeIndex++];
 
         if (!is_in_optional_arg(c) && !is_in_var_arg(c)) {
           returnVal = 0;
@@ -972,10 +972,10 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       csound->Free(csound, argsFound[n]);
     }
     csound->Free(csound, argsFound);
-    for (n=0; argsRequired[n] != NULL; n++) {
-      csound->Free(csound, argsRequired[n]);
+    for (n=0; args_required[n] != NULL; n++) {
+      csound->Free(csound, args_required[n]);
     }
-    csound->Free(csound, argsRequired);
+    csound->Free(csound, args_required);
 
     return returnVal;
   }
@@ -1044,22 +1044,22 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
   }
 
   {
-    int32_t argsFoundCount = argsRequired(outArgsFound);
-    int32_t argsRequiredCount = argsRequired(opOutArgs);
-    char** argsRequired = splitArgs(csound, opOutArgs);
+    int32_t argsFoundCount = args_required(outArgsFound);
+    int32_t args_requiredCount = args_required(opOutArgs);
+    char** args_required = split_args(csound, opOutArgs);
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
     char* varArg = NULL;
     int32_t returnVal = 1;
 
-    if ((argsFoundCount > argsRequiredCount) &&
-        !(is_out_var_arg(argsRequired[argsRequiredCount - 1]))) {
-      csound->Free(csound, argsRequired);
+    if ((argsFoundCount > args_requiredCount) &&
+        !(is_out_var_arg(args_required[args_requiredCount - 1]))) {
+      csound->Free(csound, args_required);
       return 0;
     }
 
-    argsFound = splitArgs(csound, outArgsFound);
+    argsFound = split_args(csound, outArgsFound);
 
     for (i = 0; i < argsFoundCount; i++) {
       char* argFound = argsFound[i];
@@ -1070,7 +1070,7 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
           break;
         }
       } else {
-        char* argRequired = argsRequired[argTypeIndex++];
+        char* argRequired = args_required[argTypeIndex++];
         if (!check_out_arg(argFound, argRequired)) {
           returnVal = 0;
           break;
@@ -1083,8 +1083,8 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
     if (returnVal && varArg == NULL) {
 
-      if (argTypeIndex < argsRequiredCount) {
-        char* argRequired = argsRequired[argTypeIndex];
+      if (argTypeIndex < args_requiredCount) {
+        char* argRequired = args_required[argTypeIndex];
         returnVal = is_out_var_arg(argRequired);
       } else {
         returnVal = 1;
@@ -1095,10 +1095,10 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
       csound->Free(csound, argsFound[n]);
     }
     csound->Free(csound, argsFound);
-    for (n=0; argsRequired[n] != NULL; n++) {
-      csound->Free(csound, argsRequired[n]);
+    for (n=0; args_required[n] != NULL; n++) {
+      csound->Free(csound, args_required[n]);
     }
-    csound->Free(csound, argsRequired);
+    csound->Free(csound, args_required);
 
     return returnVal;
   }
@@ -1125,7 +1125,7 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
-                argsRequired(inArgTypes), temp->opname, VARGMAX);
+                args_required(inArgTypes), temp->opname, VARGMAX);
 
       return temp;
     }
@@ -1172,7 +1172,7 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
 
 /* Converts internal array specifier from [[a] to a[][].
    Used by get_arg_string_from_tree to create an arg string that is
-   compatible with the ones found in OENTRY's.  splitArgs converts back
+   compatible with the ones found in OENTRY's.  split_args converts back
    to internal representation. */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int32_t i = 0, dimensions;
@@ -3281,8 +3281,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                      __LINE__);
     }
     if (ep->intypes != NULL) {
-      nreqd = argsRequired(ep->intypes);
-      inArgParts = splitArgs(csound, ep->intypes);
+      nreqd = args_required(ep->intypes);
+      inArgParts = split_args(csound, ep->intypes);
     }
 
     if (UNLIKELY(PARSER_DEBUG)) {
@@ -3367,7 +3367,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 }
 
 
-CS_VARIABLE *addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState,
+CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
                                CS_TYPE *type, char *name, void *typeArg);
 void add_instr_variable(CSOUND *csound,  TREE *x) {
   /* add instr variable to engine varpool 
@@ -3376,7 +3376,7 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
   if (x->type == T_IDENT) {
     
     char *varname = x->value->lexeme;
-    CS_VARIABLE *var = addGlobalVariable(csound, &csound->engineState,
+    CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
                                          (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)

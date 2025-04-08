@@ -147,7 +147,7 @@ OENTRY opcodlst_1[] = {
   { "instrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
   { "nstrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
   { "opcodeinfo", S(OPINFO) ,0,  "", ":OpcodeDef;", (SUBR) opcode_info},
-  { "=.opcd", S(ASSIGN), 0, ":OpcodeDef;", ":OpcodeDef;", (SUBR) copyVarGeneric},
+  { "=.opcd", S(ASSIGN), 0, ":OpcodeDef;", ":OpcodeDef;", (SUBR) copy_var_generic},
   { "init.opcd", S(ASSIGN), 0, ":OpcodeDef;", "S", (SUBR) opcode_ref},
   { "opcoderef", S(ASSIGN), 0, ":OpcodeDef;", "S", (SUBR) opcode_ref},
   { "create", S(AOP),0,  ":Opcode;", ":OpcodeDef;o", (SUBR) create_opcode_simple},
@@ -163,7 +163,7 @@ OENTRY opcodlst_1[] = {
   { "perf", S(OPRUN), 0, "*", ":Opcode;*", NULL, (SUBR) opcode_object_perf},
   { "setp", S(AOP), 0, "", ":Opcode;k.", NULL, (SUBR) set_opcode_param },
   { "getp", S(AOP), 0, ".", ":Opcode;k", NULL, (SUBR) get_opcode_output },
-  { "init.instr", S(ASSIGN) ,0,  ":InstrDef;", ":InstrDef;", (SUBR) copyVarGenericInit},
+  { "init.instr", S(ASSIGN) ,0,  ":InstrDef;", ":InstrDef;", (SUBR) copy_var_generic_init},
   { "floatsize", S(ASSIGN) ,0, "i", "", myflt_size },
   /* VL 4.4.24 removing thread field:
      These boolean were all marked thread 0, with both init and perf functions.
@@ -1388,8 +1388,8 @@ OENTRY opcodlst_1[] = {
   { "passign.i", S(PAINIT), 0,  "i[]", "po",  (SUBR)painit,    NULL, NULL },
   { "passign.k", S(PAINIT), 0,  "k[]", "po",  (SUBR)painit,    NULL, NULL },
   /* ----------------------------------------------------------------------- */
-  { "=.generic", S(ASSIGN), 0, ".", ".", (SUBR)copyVarGenericInit,
-    (SUBR)copyVarGeneric, NULL},
+  { "=.generic", S(ASSIGN), 0, ".", ".", (SUBR)copy_var_generic_init,
+    (SUBR)copy_var_generic, NULL},
   { "monitor",  sizeof(MONITOR_OPCODE), IB,   "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   { "outrg", S(OUTRANGE), IR, "", "ky",

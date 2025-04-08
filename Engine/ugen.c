@@ -45,7 +45,6 @@
 #include "csound_orc.h"
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
-extern char** splitArgs(CSOUND* csound, char* argString);
 
 // this value is chosen arbitrarily, feel free to modify
 //static const int32_t MAX_VAR_ARGS = 8;
@@ -300,8 +299,8 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
         /*}*/
     /*}*/
     
-    recalculateVarPoolMemory(csound, ugen->inPool);
-    recalculateVarPoolMemory(csound, ugen->outPool);
+    csoundRecalculateVarPoolMemory(csound, ugen->inPool);
+    csoundRecalculateVarPoolMemory(csound, ugen->outPool);
   
     // FIXME - this needs to be adjusted for CS_VAR and
     // CS_VAR_TYPE's

@@ -28,31 +28,31 @@
 
 
 /* MEMORY COPYING FUNCTIONS */
-void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   MYFLT* f1 = (MYFLT*)dest;
   MYFLT* f2 = (MYFLT*)src;
   *f1 = *f2;
 }
 
-void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
   int32_t ksmps = ctx ? ctx->ksmps : csound->ksmps;
   memcpy(dest, src, sizeof(MYFLT) * ksmps);
 }
 
-void complex_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void complex_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                         const void* src, INSDS *ctx) {
   memcpy(dest, src, sizeof(COMPLEXDAT));
 }
 
-void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
 
-void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
@@ -66,7 +66,7 @@ void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 }
 
 
-void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                        const void* src, INSDS *p) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
@@ -103,7 +103,7 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
-void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
@@ -150,7 +150,7 @@ void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 }
 
-void opcodeRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   OPCODEREF *p = (OPCODEREF *) dest;
   if(!p->readonly) {
@@ -164,7 +164,7 @@ void opcodeRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 // from opcode.c
 int32_t context_check(CSOUND* csound, OPCODEOBJ *p, INSDS *ctx);
-void opcodeObj_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   OPCODEOBJ *p = (OPCODEOBJ *) dest;
   OPCODEOBJ *psrc = (OPCODEOBJ *) src;
@@ -179,7 +179,7 @@ void opcodeObj_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 }
 
 
-void instrRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   INSTREF *p = (INSTREF *) dest;
   if(!p->readonly) {
@@ -190,7 +190,7 @@ void instrRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                        p->instr->insname);
 }
 
-void instanceRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   INSTANCEREF *p = (INSTANCEREF *) dest;
   if(!p->readonly) {
@@ -202,24 +202,24 @@ void instanceRef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 
 /* MEM SIZE UPDATING FUNCTIONS */
-void updateAsigMemBlock(CSOUND* csound, CS_VARIABLE* var) {
+static void update_asig_memblock(CSOUND* csound, CS_VARIABLE* var) {
     int32_t ksmps = csound->ksmps;
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
 }
 
-void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     memset(memblock, 0, var->memBlockSize);
 }
 
 
-void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static void array_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
     dat->arrayType = var->subType;
 }
 
-void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static void var_init_memory_string(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
     str->size = DEFAULT_STRING_SIZE;
@@ -227,7 +227,7 @@ void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
 
-void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static void var_init_memory_fsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     PVSDAT *fsig = (PVSDAT *)memblock;
     IGN(csound);
     memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */
@@ -235,7 +235,7 @@ void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 /* CREATE VAR FUNCTIONS */
 
-CS_VARIABLE* createAsig(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_asig(void* cs, void* p, INSDS *ctx) {
     int32_t ksmps;
     CSOUND* csound = (CSOUND*)cs;
     IGN(p);
@@ -248,80 +248,79 @@ CS_VARIABLE* createAsig(void* cs, void* p, INSDS *ctx) {
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
-    var->updateMemBlockSize = &updateAsigMemBlock;
-    var->initializeVariableMemory = &varInitMemory;
+    var->updateMemBlockSize = &update_asig_memblock;
+    var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
 }
 
-CS_VARIABLE* createMyflt(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_myflt(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
-    var->initializeVariableMemory = &varInitMemory;
+    var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
 }
 
-CS_VARIABLE* createComplex(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_complex(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(COMPLEXDAT));
-    var->initializeVariableMemory = &varInitMemory;
+    var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
 }
 
-CS_VARIABLE* createBool(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_bool(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
-    var->initializeVariableMemory = &varInitMemory;
+    var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
 }
 
-CS_VARIABLE* createWsig(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_wsig(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(SPECDAT));
-    var->initializeVariableMemory = &varInitMemory;
+    var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
 }
 
-CS_VARIABLE* createFsig(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_fsig(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
-    var->initializeVariableMemory = &varInitMemoryFsig;
+    var->initializeVariableMemory = &var_init_memory_fsig;
     var->ctx = ctx;
     return var;
 }
 
-
-CS_VARIABLE* createString(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_string(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
-    var->initializeVariableMemory = &varInitMemoryString;
+    var->initializeVariableMemory = &var_init_memory_string;
     var->ctx = ctx;
     return var;
 }
 
-CS_VARIABLE* createArray(void* csnd, void* p, INSDS *ctx) {
+CS_VARIABLE* create_array(void* csnd, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
-    var->initializeVariableMemory = &arrayInitMemory;
+    var->initializeVariableMemory = &array_init_memory;
     var->ctx = ctx;
 
     if (state) { // NB: this function is being called with p=NULL
@@ -333,45 +332,45 @@ CS_VARIABLE* createArray(void* csnd, void* p, INSDS *ctx) {
 }
 
 
-CS_VARIABLE* createOpcodeDef(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_opcodedef(void* csnd, void* p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(OPCODEREF));
-   var->initializeVariableMemory = &varInitMemory;
+   var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
    return var;
 }
 
-CS_VARIABLE* createOpcode(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_opcode(void* csnd, void* p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(OPCODEOBJ));
-   var->initializeVariableMemory = &varInitMemory;
+   var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
    return var;
 }
 
-CS_VARIABLE* createInstrRef(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_instrdef(void* csnd, void* p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(INSTREF));
-   var->initializeVariableMemory = &varInitMemory;
+   var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
    return var;
 }
 
-CS_VARIABLE* createInstanceRef(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_instr(void* csnd, void* p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(INSTANCEREF));
-   var->initializeVariableMemory = &varInitMemory;
+   var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
    return var;
 }
 
 
 /* FREE VAR MEM FUNCTIONS */
-void string_free_var_mem(void* csnd, void* p ) {
+static void string_free_var_mem(void* csnd, void* p ) {
     CSOUND* csound = (CSOUND*)csnd;
     STRINGDAT* dat = (STRINGDAT*)p;
 
@@ -380,7 +379,7 @@ void string_free_var_mem(void* csnd, void* p ) {
     }
 }
 
-void array_free_var_mem(void* csnd, void* p) {
+static void array_free_var_mem(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAYDAT* dat = (ARRAYDAT*)p;
 
@@ -411,78 +410,78 @@ void array_free_var_mem(void* csnd, void* p) {
 
 /* STANDARD TYPE DEFINITIONS */
 const CS_TYPE CS_VAR_TYPE_A = {
-    "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, asig_copy_value,
+    "a", "audio rate vector", CS_ARG_TYPE_BOTH, create_asig, asig_copy_value,
     NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "k", "control rate var", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "i", "init time var", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-  "S", "String var", CS_ARG_TYPE_BOTH, createString, string_copy_value, string_free_var_mem, NULL, 0
+  "S", "String var", CS_ARG_TYPE_BOTH, create_string, string_copy_value, string_free_var_mem, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "p", "p-field", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "r", "reserved symbol", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", "constant", CS_ARG_TYPE_IN, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "c", "constant", CS_ARG_TYPE_IN, create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, wsig_copy_value, NULL, NULL, 0
+  "w", "spectral", CS_ARG_TYPE_BOTH, create_wsig, wsig_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, fsig_copy_value, NULL, NULL, 0
+  "f", "f-sig", CS_ARG_TYPE_BOTH, create_fsig, fsig_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL, 0
+  "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL, 0
+  "b", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-  "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value,
+  "[", "array", CS_ARG_TYPE_BOTH, create_array, array_copy_value,
   array_free_var_mem, NULL, 0
 };
 
 
 const CS_TYPE CS_VAR_TYPE_OPCODEREF = {
   "OpcodeDef", "opcode definition reference", CS_ARG_TYPE_BOTH,
-  createOpcodeDef, opcodeRef_copy_value, NULL, NULL, 0
+  create_opcodedef, opcodedef_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_OPCODEOBJ = {
   "Opcode", "opcode instance reference", CS_ARG_TYPE_BOTH,
-  createOpcode, opcodeObj_copy_value, NULL, NULL, 0
+  create_opcode, opcode_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR = {
   "InstrDef", "instrument definition reference", CS_ARG_TYPE_BOTH,
-  createInstrRef, instrRef_copy_value, NULL, NULL, 0
+  create_instrdef, instrdef_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR_INSTANCE = {
   "Instr", "instrument instance reference", CS_ARG_TYPE_BOTH,
-  createInstanceRef, instanceRef_copy_value, NULL, NULL, 0
+  create_instr, instr_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_COMPLEX = {
-  "Complex", "complex", CS_ARG_TYPE_BOTH, createComplex, complex_copy_value,
+  "Complex", "complex", CS_ARG_TYPE_BOTH, create_complex, complex_copy_value,
     NULL, NULL, 0
 };
 

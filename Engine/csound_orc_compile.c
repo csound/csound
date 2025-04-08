@@ -38,22 +38,22 @@
 
 extern const char *SYNTHESIZED_ARG;
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
-MYFLT csoundInitialiseIO(CSOUND *csound);
-void  iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
-static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
+static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState);
-static void insprep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
-static void lgbuild(CSOUND *, INSTRTXT *, char *, int32_t inarg,
+static void instr_prep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
+static void build_const_pool(CSOUND *, INSTRTXT *, char *, int32_t inarg,
                     ENGINE_STATE *engineState);
+static void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
+static void debug_print(CSOUND *csound);
+
+MYFLT csoundInitialiseIO(CSOUND *csound);
 void print_tree(CSOUND *, char *, TREE *);
-void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
-void debugPrintCsound(CSOUND *csound);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState, int32_t merge);
 int32_t check_instr_name(char *s);
 void free_instr_var_memory(CSOUND *, INSDS *);
-void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
+void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 
@@ -180,7 +180,7 @@ static OPTXT *last_optxt(OPTXT *optxt) {
 }
 
 /** Counts number of args in argString, taking into account array identifiers */
-int32_t argsRequired(char* argString)
+int32_t args_required(char* argString)
 {
   int32_t retVal = 0;
   char* t = argString;
@@ -208,9 +208,9 @@ int32_t argsRequired(char* argString)
 }
 
 /** Splits args in argString into char**, taking into account array identifiers */
-char** splitArgs(CSOUND* csound, char* argString)
+char** split_args(CSOUND* csound, char* argString)
 {
-  int32_t argCount = argsRequired(argString);
+  int32_t argCount = args_required(argString);
   char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
   char* start = argString;
   int32_t i = 0;
@@ -395,10 +395,10 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
            if (n > ip->pmax)
               ip->pmax = n;
         }
-        /* VL 14/12/11 : calling lgbuild here seems to be problematic for
+        /* VL 14/12/11 : calling build_const_pool here seems to be problematic for
            undef arg checks */
         else {
-          lgbuild(csound, ip, arg, 1, engineState);
+          build_const_pool(csound, ip, arg, 1, engineState);
         }
         if (inargs->markup != &SYNTHESIZED_ARG) {
           tp->inArgCount++;
@@ -432,7 +432,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
             ip->pmax = n;
         } else {
           csound->DebugMsg(csound, "Arg: %s\n", arg);
-          lgbuild(csound, ip, arg, 0, engineState);
+          build_const_pool(csound, ip, arg, 0, engineState);
         }
         tp->outArgCount++;
 
@@ -455,7 +455,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
  * Globals, unlike locals, keep their memory space
  * in separate blocks, pointed by var->memBlock
  */
-CS_VARIABLE *addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
+CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
                        char *name, void *typeArg) {
   CS_VARIABLE *var =
     csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
@@ -502,16 +502,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   OPARMS *O = csound->oparms;
 
-  addGlobalVariable(csound, engineState, rType, "sr", NULL);
-  addGlobalVariable(csound, engineState, rType, "kr", NULL);
-  addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
-  addGlobalVariable(csound, engineState, rType, "nchnls", NULL);
-  addGlobalVariable(csound, engineState, rType, "nchnls_i", NULL);
-  addGlobalVariable(csound, engineState, rType, "0dbfs", NULL);
-  addGlobalVariable(csound, engineState, rType, "A4", NULL);
-  addGlobalVariable(csound, engineState, rType, "$sr", NULL);
-  addGlobalVariable(csound, engineState, rType, "$kr", NULL);
-  addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
+  add_global_variable(csound, engineState, rType, "sr", NULL);
+  add_global_variable(csound, engineState, rType, "kr", NULL);
+  add_global_variable(csound, engineState, rType, "ksmps", NULL);
+  add_global_variable(csound, engineState, rType, "nchnls", NULL);
+  add_global_variable(csound, engineState, rType, "nchnls_i", NULL);
+  add_global_variable(csound, engineState, rType, "0dbfs", NULL);
+  add_global_variable(csound, engineState, rType, "A4", NULL);
+  add_global_variable(csound, engineState, rType, "$sr", NULL);
+  add_global_variable(csound, engineState, rType, "$kr", NULL);
+  add_global_variable(csound, engineState, rType, "$ksmps", NULL);
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
 
   CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
@@ -772,7 +772,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   csound->global_kcounter = csound->kcounter;
 
   if (csound->ksmps != DFLT_KSMPS) {
-    reallocateVarPoolMemory(csound, engineState->varPool);
+    csoundReallocateVarPoolMemory(csound, engineState->varPool);
     if(csound->GetDebug(csound))
      csound->Message(csound, "recalculate varpool\n");
   }
@@ -1476,7 +1476,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
   return NULL;
 }
 
-static void varPool_merge(CSOUND *csound, ENGINE_STATE *current_state,
+static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                           CS_VAR_POOL *varPool) {
   int32_t count = 0;
   CS_VARIABLE *gVar = varPool->head;
@@ -1519,16 +1519,16 @@ static void varPool_merge(CSOUND *csound, ENGINE_STATE *current_state,
    1) Add to stringPool, constantsPool and varPool (globals)
    2) Add to opinfo and UDOs
    3) Call insert_instrtxt() on csound->engineState for each new instrument
-   4) Call insprep() and recalculateVarPoolMemory() for each new instrument
+   4) Call instr_prep() and csoundRecalculateVarPoolMemory() for each new instrument
    5) patch up nxtinstxt order
 */
-int32_t engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
+int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   int32_t i, end = engineState->maxinsno;
   ENGINE_STATE *current_state = &csound->engineState;
   INSTRTXT *current;
   cs_hash_table_merge(csound, current_state->constantsPool,
                       engineState->constantsPool);
-  varPool_merge(csound, current_state, engineState->varPool);
+  varpool_merge(csound, current_state, engineState->varPool);
   /* merge opcodinfo */
   insert_instrtxt(csound, engineState->instrtxtp[0], 0, current_state, 1);
   for (i = 1; i < end; i++) {
@@ -1562,14 +1562,14 @@ int32_t engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
      that we get the correct number */
   insert_opcodes(csound, csound->opcodeInfo, current_state);
   /* this needs to be called in a separate loop
-     in case of multiple instr numbers, so insprep() is called only once */
+     in case of multiple instr numbers, so instr_prep() is called only once */
   current = (&(engineState->instxtanchor));
   while ((current = current->nxtinstxt) != NULL) {
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "insprep %p\n", current);
-    /* run insprep() to connect ARGS */
-    insprep(csound, current, current_state); 
-    recalculateVarPoolMemory(csound, current->varPool); 
+      csound->Message(csound, "instr_prep %p\n", current);
+    /* run instr_prep() to connect ARGS */
+    instr_prep(csound, current, current_state); 
+    csoundRecalculateVarPoolMemory(csound, current->varPool); 
   }
   /* now we need to patch up instr order */
   end = current_state->maxinsno;
@@ -1599,7 +1599,7 @@ int32_t engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   return 0;
 }
 
-int32_t engineState_free(CSOUND *csound, ENGINE_STATE *engineState) {
+int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
   cs_hash_table_free(csound, engineState->constantsPool);
   csoundFreeVarPool(csound, engineState->varPool);
   csound->Free(csound, engineState->instrtxtp);
@@ -1627,8 +1627,8 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE *typetable, OPDS *ids) {
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
-  engineState_merge(csound, engineState);
-  engineState_free(csound, engineState);
+  enginestate_merge(csound, engineState);
+  enginestate_free(csound, engineState);
   free_typetable(csound, typetable);
   /* run global i-time code */
   init0(csound);
@@ -1644,14 +1644,14 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
  1) Uses the empty csound->engineState
  2) Creates instrument 0
  3) Creates other instruments and UDOs
- 4) Runs insprep() and recalculateVarpool() for each instrument
+ 4) Runs instr_prep() and recalculateVarpool() for each instrument
 
  In any subsequent compilation run, it:
  1) Creates a new engineState
  2) instrument 0 is treated as a global i-time instrument, header constants
  are ignored.
  3) Creates other instruments
- 4) Calls engineState_merge() and engineState_free()
+ 4) Calls enginestate_merge() and enginestate_free()
 
  async determines asynchronous operation of the
  merge stage.
@@ -1661,8 +1661,7 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
  * ASSUMES: TREE has been validated prior to compilation
  */
 
-PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root,
-                                         int32_t async)
+int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 {
   INSTRTXT    *instrtxt = NULL;
   INSTRTXT    *ip = NULL;
@@ -1680,7 +1679,7 @@ PUBLIC int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root,
     engineState = &csound->engineState;
     engineState->varPool = typeTable->globalPool;
     // now we merge existing global variables (i.e. created by the parser)
-    varPool_merge(csound, engineState, globalPool);
+    varpool_merge(csound, engineState, globalPool);
     globalPool = engineState->varPool;
     csound->instr0 = create_instrument0(csound, current, engineState,
                                         typeTable->instr0LocalPool);
@@ -1878,7 +1877,7 @@ if (engineState != &csound->engineState) {
   } else {
     if (csound->oparms->realtime)
       csoundSpinLock(&csound->alloc_spinlock);
-    mergeState_enqueue(csound, engineState, typeTable, ids);
+    merge_state_enqueue(csound, engineState, typeTable, ids);
     if (csound->oparms->realtime)
       csoundSpinUnLock(&csound->alloc_spinlock);
   }
@@ -1913,8 +1912,8 @@ if (engineState != &csound->engineState) {
 
   ip = &(engineState->instxtanchor);
   while ((ip = ip->nxtinstxt) != NULL) { /* add all other entries */
-    insprep(csound, ip, engineState);    /*   as combined offsets */
-    recalculateVarPoolMemory(csound, ip->varPool);
+    instr_prep(csound, ip, engineState);    /*   as combined offsets */
+    csoundRecalculateVarPoolMemory(csound, ip->varPool);
   }
 
   CS_VARIABLE *var;
@@ -1949,7 +1948,7 @@ void add_opcode_defs(CSOUND *csound);
    async determines asynchronous operation of the
    merge stage.
 */
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async) {
+int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
   TREE *root;
   int32_t retVal = 1;
   volatile jmp_buf tmpExitJmp;
@@ -1963,7 +1962,7 @@ int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async)
   add_opcode_defs(csound); 
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
-    retVal = csoundCompileTreeInternal(csound, root, async);
+    retVal = csound_compile_tree(csound, root, async);
 #ifdef PARCS
     // Sanitise semantic sets here
     sanitize(csound);
@@ -1975,14 +1974,14 @@ int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async)
   }
 
   if (UNLIKELY(csound->oparms->odebug))
-    debugPrintCsound(csound);
+    debug_print(csound);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
   return retVal;
 }
 
 /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
-static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
+static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 {
   OPARMS *O = csound->oparms;
   OPTXT *optxt;
@@ -2015,7 +2014,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       n = outlist->count;
       argp = outlist->arg; /* get outarg indices */
       while (n--) {
-        ARG *arg = createArg(csound, tp, *argp++, engineState);
+        ARG *arg = create_arg(csound, tp, *argp++, engineState);
         if (ttp->outArgs == NULL) {
           ttp->outArgs = arg;
         } else {
@@ -2031,8 +2030,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     if ((inlist = ttp->inlist) == NULL || !inlist->count)
       ttp->inArgs = NULL;
     else {
-      inreqd = argsRequired(ep->intypes);
-      argStringParts = splitArgs(csound, ep->intypes);
+      inreqd = args_required(ep->intypes);
+      argStringParts = split_args(csound, ep->intypes);
       argp = inlist->arg; /* get inarg indices */
       for (n = 0; n < inlist->count; n++, argp++) {
         ARG *arg = NULL;
@@ -2045,7 +2044,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             csound->Message(csound, "\t%s:", *argp); /* if arg is label,  */
         } else {
           char *s = *argp;
-          arg = createArg(csound, tp, s, engineState);
+          arg = create_arg(csound, tp, s, engineState);
         }
 
         if (ttp->inArgs == NULL) {
@@ -2116,8 +2115,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 /* build pool of floating const values  */
 /* build lcl/gbl list of ds names, offsets */
 /* (no need to save the returned values) */
-static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int32_t inarg,
-                    ENGINE_STATE *engineState) {
+static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
+                             int32_t inarg, ENGINE_STATE *engineState) {
   IGN(ip);
   IGN(inarg);
   char c;
@@ -2142,8 +2141,8 @@ static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int32_t inarg,
   }
 }
 
-static void setupArgForVarName(CSOUND* csound, ARG* arg, CS_VAR_POOL* varPool,
-                               char* varName) {
+static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
+                                   CS_VAR_POOL* varPool, char* varName) {
   char* delimit = strchr(varName, '.');
   if(delimit != NULL) {
     char *baseName = cs_strndup(csound, varName, delimit - varName);
@@ -2160,7 +2159,7 @@ static void setupArgForVarName(CSOUND* csound, ARG* arg, CS_VAR_POOL* varPool,
 /* argument const/gbl indexes are positiv+1, */
 /* pnum/lcl negativ-1 called only after      */
 /* poolcount & lclpmax are finalised */
-static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
+static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState) {
   char c;
   char *temp;
@@ -2219,18 +2218,18 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
   else if(csoundFindVariableWithName(csound, engineState->varPool,
                                         s) != NULL) {
     arg->type = ARG_GLOBAL;
-    setupArgForVarName(csound, arg, engineState->varPool, s);
+    setup_arg_for_var_name(csound, arg, engineState->varPool, s);
     }
     else if(csoundFindVariableWithName(csound, csound->engineState.varPool,
                                        s) != NULL) {
     arg->type = ARG_GLOBAL;
-    setupArgForVarName(csound, arg, csound->engineState.varPool, s);  
+    setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s);  
     
   }
   /* otherwise we have a local argument */
   else {
     arg->type = ARG_LOCAL;
-    setupArgForVarName(csound, arg, ip->varPool, s);
+    setup_arg_for_var_name(csound, arg, ip->varPool, s);
     if (arg->argPtr == NULL) {
       csound->Message(csound, Str("Missing local arg: %s\n"), s);
     }
@@ -2258,7 +2257,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name) {
   return n;
 }
 
-void debugPrintCsound(CSOUND *csound) {
+void debug_print(CSOUND *csound) {
   INSTRTXT *current;
   CONS_CELL *val = cs_hash_table_keys(csound, csound->engineState.stringPool);
   CONS_CELL *const_val =

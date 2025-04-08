@@ -44,7 +44,7 @@
 #endif
 
 extern int32_t csound_orcget_lineno(void*);
-extern char** splitArgs(CSOUND* csound, char* argString);
+extern char** split_args(CSOUND* csound, char* argString);
 
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
@@ -119,8 +119,8 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     typeSpecifier[1] = '\0';
 
-    in_args = splitArgs(csound, inm->intypes);
-    out_args = splitArgs(csound, inm->outtypes);
+    in_args = split_args(csound, inm->intypes);
+    out_args = split_args(csound, inm->outtypes);
 
     if (UNLIKELY(in_args == NULL)) {
       synterr(csound,

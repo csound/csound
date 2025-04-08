@@ -46,7 +46,7 @@ uintptr_t kperfThread(void *cs);
 // void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 // void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
 void csoundInputMessageInternal(CSOUND *csound, const char *message);
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str,
+int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 
 void checkOptions(CSOUND *csound) {
@@ -313,7 +313,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
   if (csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 
-  if (UNLIKELY(csoundCompileOrcInternal(csound, NULL, 0) != 0)) {
+  if (UNLIKELY(csound_compile_orc(csound, NULL, 0) != 0)) {
     if (csound->oparms->daemon != 1 && csound->orchname != NULL)
       csoundDie(csound, Str("cannot compile orchestra"));
     else {
@@ -485,7 +485,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
   }
   if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                    start with no orchestra */
-    csoundCompileOrcInternal(csound, "idummy = 0\n", 0);
+    csound_compile_orc(csound, "idummy = 0\n", 0);
   }
 
   if ((n = setjmp(csound->exitjmp)) != 0) {
@@ -589,7 +589,7 @@ int32_t csoundCompileCsdText(CSOUND *csound, const char *csd_text) {
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
     csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
-    res = csoundCompileOrcInternal(csound, NULL, 0);
+    res = csound_compile_orc(csound, NULL, 0);
     // printf("internalread res = %d\n", res);
     if (res == CSOUND_SUCCESS) {
       if ((csound->engineStatus & CS_STATE_COMP) != 0) {
