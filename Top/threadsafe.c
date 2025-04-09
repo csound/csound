@@ -21,6 +21,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "namedins.h"
 #include <stdlib.h>
 
 #ifdef USE_DOUBLE
@@ -29,13 +30,11 @@
 #  define MYFLT_INT_TYPE int32_t
 #endif
 
-int32_t csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
-                               int32_t mode, int32_t allow_release, int32_t async);
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
-void killInstance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
+void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
                   int32_t mode, int32_t allow_release);
 void csoundInputMessageInternal(CSOUND *csound, const char *message);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *message);
@@ -237,7 +236,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(int32_t));
           memcpy(&rls, msg->args  + ARG_ALIGN*4,
                  sizeof(int32_t));
-          killInstance(csound, instr, insno, ip, mode, rls);
+          xturnoff_instance(csound, instr, insno, ip, mode, rls);
         }
         break;
       }
@@ -317,10 +316,7 @@ static inline int64_t *csoundScoreEventAbsolute_enqueue(CSOUND *csound, char typ
   return message_enqueue(csound,SCORE_EVENT_ABS, args, argsize);
 }
 
-/* this is to be called from
-   csoundKillInstanceInternal() in insert.c
-*/
-void killInstance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
+void kill_instance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
                           INSDS *ip, int32_t mode,
                           int32_t allow_release) {
   const int32_t argsize = ARG_ALIGN*5;
@@ -391,12 +387,6 @@ int32_t csoundScoreEventAbsolute(CSOUND *csound, char type,
   return OK;
 }
 
-int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
-                       int32_t mode, int32_t allow_release){
-  int32_t async = 0;
-  return csoundKillInstanceInternal(csound, instr, instrName, mode,
-                                    allow_release, async);
-}
 
 int32_t init0(CSOUND *csound);
 
@@ -463,7 +453,6 @@ void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
                                    const MYFLT *pfields, long numFields,
                                    double time_ofs)
 {
-
   csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
 }
 
@@ -477,9 +466,41 @@ int32_t csoundCompileOrcAsync(CSOUND *csound, const char *str) {
   return csound_compile_orc(csound, str, async);
 }
 
-int32_t csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
-                            int32_t mode, int32_t allow_release){
-  int32_t async = 1;
-  return csoundKillInstanceInternal(csound, instr, instrName, mode,
-                                    allow_release, async);
+int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
+                       int32_t mode, int32_t allow_release, int32_t async)
+{
+  INSDS *ip;
+  int32_t   insno;
+
+  if (instrName) {
+    instr = named_instr_find(csound, instrName);
+    insno = (int32_t) instr;
+  } else insno = instr;
+
+  if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
+               csound->engineState.instrtxtp[insno] == NULL)) {
+    return CSOUND_ERROR;
+  }
+
+  if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+    csoundUnlockMutex(csound->API_lock);
+    return CSOUND_ERROR;
+  }
+  ip = &(csound->actanchor);
+
+  while ((ip = ip->nxtact) != NULL && (int32_t) ip->insno != insno);
+  if (UNLIKELY(ip == NULL)) {
+    return CSOUND_ERROR;
+  }
+
+  if (!async) {
+    csoundLockMutex(csound->API_lock);
+    xturnoff_instance(csound, instr, insno, ip, mode, allow_release);
+    csoundUnlockMutex(csound->API_lock);
+  }
+  else
+    kill_instance_enqueue(csound, instr, insno, ip, mode, allow_release);
+  return CSOUND_SUCCESS;
 }
+
+

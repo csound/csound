@@ -38,19 +38,18 @@
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
-int32_t     MIDIinsert(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
-  int32_t     insert(CSOUND *, int32_t,  EVTBLK*);
-  void    MidiOpen(CSOUND *);
-  void    m_chn_init_all(CSOUND *);
-//  char *  scsortstr(CSOUND *, CORFIL *);
-  void    infoff(CSOUND*, MYFLT), orcompact(CSOUND*);
-  void    beatexpire(CSOUND *, double), timexpire(CSOUND *, double);
-  void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
-  void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
-  void    MidiClose(CSOUND *);
-  void    RTclose(CSOUND *);
-  void    remote_Cleanup(CSOUND *);
-  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
+int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
+int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
+void    MidiOpen(CSOUND *);
+void    m_chn_init_all(CSOUND *);
+void    free_inactive_instances(CSOUND*);
+void    beat_expire(CSOUND *, double), time_expire(CSOUND *, double);
+void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
+void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
+void    MidiClose(CSOUND *);
+void    RTclose(CSOUND *);
+void    remote_Cleanup(CSOUND *);
+char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 void    openMIDIout(CSOUND *);
 void print_csound_version(CSOUND*);
 
@@ -529,7 +528,7 @@ int32_t csoundCleanup(CSOUND *csound)
       csound->Free(csound,p);
     }
 
-    orcompact(csound);
+    free_inactive_instances(csound);
     corfile_rm(csound, &csound->scstr);
 
     /* print stats only if musmon was actually run */
@@ -747,6 +746,35 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
   }
 }
 
+static void indef_off(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
+{             
+  INSDS *ip;
+  int32_t   insno;
+
+  insno = (int32_t) p1;
+  if (LIKELY((ip = (csound->engineState.instrtxtp[insno])->instance) != NULL)) {
+    do {
+      if (ip->insno == insno          /* if find the insno */
+          && ip->actflg               /*      active       */
+          && ip->offtim < 0.0         /*  but indef, VL: currently this condition
+                                          cannot be removed, as it breaks turning
+                                          off extratime instances */
+          && ip->p1.value == p1) {
+        if (UNLIKELY(csound->oparms->odebug))
+          csound->Message(csound, "turning off inf copy of instr %d\n",
+                          insno);
+        xturnoff(csound, ip);
+        return;                       /*      turn it off  */
+      }
+    } while ((ip = ip->nxtinstance) != NULL);
+  }
+  csound->Message(csound,
+                  Str("could not find playing instr %f\n"),
+                  p1);
+}
+
+
+
 static CS_NOINLINE void printScoreError(CSOUND *p, int32_t rtEvt,
                                         const char *fmt, ...)
 {
@@ -839,7 +867,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
         evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
-      if (UNLIKELY((n = insert(csound, insno, evt)))) {
+      if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
         printScoreError(csound, rtEvt,
                         Str(" - note deleted.  i%d (%s) had %d init errors"),
                         insno, evt->strarg, n);
@@ -865,11 +893,11 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         }
       }
       if (evt->p[1] < FL(0.0))         /* if p1 neg,             */
-        infoff(csound, -evt->p[1]);    /*  turnoff any infin cpy */
+        indef_off(csound, -evt->p[1]);    /*  turnoff any infin cpy */
       else {
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
-        if (UNLIKELY((n = insert(csound, insno, evt)))) {
+        if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
           /* else alloc, init, activate */
           printScoreError(csound, rtEvt,
                           Str(" - note deleted.  i%d had %d init errors"),
@@ -908,7 +936,7 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
 {
   int32_t n, insno = chn->insno;
   if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
-    if (UNLIKELY((n = MIDIinsert(csound, insno, chn, mep)))) {
+    if (UNLIKELY((n = insert_midi_event(csound, insno, chn, mep)))) {
       /* alloc,init,activ */
       csound->ErrorMsg(csound,
                       Str("\t\t   T%7.3f - note deleted. "), csound->curp2);
@@ -1025,12 +1053,12 @@ int32_t sensevents(CSOUND *csound)
     /* the following comparisons must match those in schedofftim() */
     if (O->Beatmode) {
       tval = csound->curBeat + (0.505 * csound->curBeat_inc);
-      if (csound->frstoff->offbet <= tval) beatexpire(csound, tval);
+      if (csound->frstoff->offbet <= tval) beat_expire(csound, tval);
     }
     else {
       tval = ((double)csound->icurTime + csound->ksmps * 0.505)/csound->esr;
       if (csound->frstoff->offtim <= tval)
-        timexpire(csound, tval);
+        time_expire(csound, tval);
     }
   }
   RT_SPIN_UNLOCK
@@ -1257,7 +1285,7 @@ int32_t sensevents(CSOUND *csound)
   }
   if (retval == 1) {                        /* if s code,        */
     RT_SPIN_TRYLOCK
-    orcompact(csound);                      /*   rtn inactiv spc */
+    free_inactive_instances(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       rlsmemfiles(csound);                  /*    purge memfiles */
     csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));

@@ -145,7 +145,7 @@ void csound_fd_close(CSOUND *csound, FDCH *fdchp)
 }
 
 /* release all xds in instr auxp chain */
-/*   called by insert at orcompact     */
+/*   called by insert at free_inactive_instances     */
 
 void auxchfree(CSOUND *csound, INSDS *ip)
 {
