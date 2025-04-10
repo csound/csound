@@ -40,18 +40,18 @@
 
 int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
 int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
-void    MidiOpen(CSOUND *);
+void    midi_open(CSOUND *);
 void    m_chn_init_all(CSOUND *);
 void    free_inactive_instances(CSOUND*);
 void    beat_expire(CSOUND *, double), time_expire(CSOUND *, double);
-void    sfopenin(CSOUND *), sfopenout(CSOUND*), sfnopenout(CSOUND*);
-void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
-void    MidiClose(CSOUND *);
-void    RTclose(CSOUND *);
-void    remote_Cleanup(CSOUND *);
+void    sf_open_in(CSOUND *), sf_open_out(CSOUND*), sf_open_nosound(CSOUND*);
+void    set_io_backend(CSOUND *), sf_close_in(CSOUND*), sf_close_out(CSOUND*);
+void    midi_close(CSOUND *);
+void    rt_close(CSOUND *);
+void    remote_cleanup(CSOUND *);
 char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
-void    openMIDIout(CSOUND *);
-void print_csound_version(CSOUND*);
+void    midi_open_out(CSOUND *);
+void    print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 #define RT_SPIN_TRYLOCK { int32_t trylock = CSOUND_SUCCESS; \
@@ -86,7 +86,7 @@ typedef struct evt_cb_func {
   returns the HW sampling rate if it has been
   set, -1.0 otherwise.
 */
-MYFLT csoundInitialiseIO(CSOUND *csound) {
+MYFLT initialise_io(CSOUND *csound) {
     OPARMS *O = csound->oparms;
     if (csound->enableHostImplementedAudioIO &&
         csound->hostRequestedBufferSize) {
@@ -124,15 +124,15 @@ MYFLT csoundInitialiseIO(CSOUND *csound) {
                     (int32_t) O->outbufsamps);
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
-    iotranset(csound);          /* point recv & tran to audio formatter */
+    set_io_backend(csound);          /* point recv & tran to audio formatter */
     /* open audio file or device for input first, and then for output */
     if (!csound->enableHostImplementedAudioIO) {
       if (O->sfread)
-        sfopenin(csound);
+        sf_open_in(csound);
       if (O->sfwrite && !csound->initonly)
-        sfopenout(csound);
+        sf_open_out(csound);
       else
-       sfnopenout(csound);
+       sf_open_nosound(csound);
     }
     csound->io_initialised = 1;
     return csound->GetSystemSr(csound, 0);
@@ -153,7 +153,7 @@ void print_benchmark_info(CSOUND *csound, const char *s)
                   (char*) s, rt, ct);
 }
 
-static void settempo(CSOUND *csound, double tempo)
+static void set_tempo(CSOUND *csound, double tempo)
 {
     if (tempo <= 0.0) return;
     if (csound->oparms->Beatmode==1)
@@ -161,7 +161,7 @@ static void settempo(CSOUND *csound, double tempo)
     csound->curBeat_inc = tempo / (60.0 * (double) csound->ekr);
 }
 
-int32_t gettempo(CSOUND *csound, GTEMPO *p)
+int32_t get_tempo(CSOUND *csound, GTEMPO *p)
 {
     if (LIKELY(csound->oparms->Beatmode)) {
       *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
@@ -171,7 +171,7 @@ int32_t gettempo(CSOUND *csound, GTEMPO *p)
     return OK;
 }
 
-int32_t tempset(CSOUND *csound, TEMPO *p)
+int32_t tempo_set(CSOUND *csound, TEMPO *p)
 {
     double tempo;
 
@@ -180,7 +180,7 @@ int32_t tempset(CSOUND *csound, TEMPO *p)
     }
     if (UNLIKELY(csound->oparms->Beatmode==0))
       return csound->InitError(csound, Str("Beat mode not in force"));
-    settempo(csound, tempo);
+    set_tempo(csound, tempo);
     p->prvtempo = (MYFLT)tempo;
     return OK;
 }
@@ -188,7 +188,7 @@ int32_t tempset(CSOUND *csound, TEMPO *p)
 int32_t tempo(CSOUND *csound, TEMPO *p)
 {
     if (*p->ktempo != p->prvtempo) {
-      settempo(csound, (double)*p->ktempo);
+      set_tempo(csound, (double)*p->ktempo);
       p->prvtempo = *p->ktempo;
     }
     return OK;
@@ -249,7 +249,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
 void print_engine_parameters(CSOUND *csound);
 void print_sndfile_version(CSOUND* csound);
 
-int32_t musmon(CSOUND *csound)
+int32_t start_engine(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
     /* VL - 08-07-21 messages moved here so we can switch them off */
@@ -278,10 +278,10 @@ int32_t musmon(CSOUND *csound)
     /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
     /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
 
-    /* initialise sensevents state */
+    /* initialise sense_events state */
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
     csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
-    csound->icurTime = 0L;
+    csound->icurTimeSamples = 0L;
     if (O->Beatmode && O->cmdTempo > 0.0) {
       /* if performing from beats, set the initial tempo */
       csound->curBeat_inc = O->cmdTempo / (60.0 * (double) csound->ekr);
@@ -307,7 +307,7 @@ int32_t musmon(CSOUND *csound)
     /* Enable musmon to handle external MIDI input, if it has been enabled. */
     if (O->Midiin || O->FMidiin || O->RMidiin) {
       O->RTevents = 1;
-      MidiOpen(csound);                 /*   alloc bufs & open files    */
+      midi_open(csound);                 /*   alloc bufs & open files    */
     }
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
@@ -315,7 +315,7 @@ int32_t musmon(CSOUND *csound)
     if (O->FMidioutname != NULL && O->FMidioutname[0] == (char) '\0')
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
-      openMIDIout(csound);
+      midi_open_out(csound);
     if(O->msglevel) {
       csound->ErrorMsg(csound, Str("orch now loaded\n"));
     }
@@ -331,7 +331,7 @@ int32_t musmon(CSOUND *csound)
     // if --use-system-sr, this gets called earlier to override
     // the sampling rate. Otherwise it gets called here.
     if(!csound->io_initialised)
-         csoundInitialiseIO(csound);
+         initialise_io(csound);
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
     //csound->scfp
@@ -557,22 +557,22 @@ int32_t csoundCleanup(CSOUND *csound)
       if (csound->print_version) print_csound_version(csound);
     }
     /* close line input (-L) */
-    RTclose(csound);
+    rt_close(csound);
     /* close MIDI input */
-    MidiClose(csound);
+    midi_close(csound);
 
     /* IV - Feb 03 2005: do not need to call rtclose from here, */
-    /* as sfclosein/sfcloseout will do that. */
+    /* as sf_close_in/sf_close_out will do that. */
     if (!csound->enableHostImplementedAudioIO) {
-      sfclosein(csound);
-      sfcloseout(csound);
+      sf_close_in(csound);
+      sf_close_out(csound);
       if (UNLIKELY(!csound->oparms->sfwrite)) {
         if(csound->oparms->msglevel ||csound->oparms->odebug)
          csound->ErrorMsg(csound, Str("no sound written to disk\n"));
       }
     }
-    /* close any remote.c sockets */
-    if (csound->remoteGlobals) remote_Cleanup(csound);
+    /* close any remote_cleanup.c sockets */
+    if (csound->remoteGlobals) remote_cleanup(csound);
     if (UNLIKELY(csound->oparms->ringbell))
       cs_beep(csound);
 
@@ -624,7 +624,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.p[2] = *p->itime;
   evt.p[3] = FL(-1.0);
   evt.c.extra = NULL;
-  return insert_score_event_at_sample(csound, &evt, csound->icurTime);
+  return insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
 }
 
 /* make list to turn on instrs for indef */
@@ -651,7 +651,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   evt.p[2] = *p->itime;
   evt.p[3] = FL(-1.0);
   evt.c.extra = NULL;
-  return insert_score_event_at_sample(csound, &evt, csound->icurTime);
+  return insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -775,7 +775,7 @@ static void indef_off(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of i
 
 
 
-static CS_NOINLINE void printScoreError(CSOUND *p, int32_t rtEvt,
+static CS_NOINLINE void print_score_error(CSOUND *p, int32_t rtEvt,
                                         const char *fmt, ...)
 {
   va_list args;
@@ -814,7 +814,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int32_t) n) == 0)) {
-        printScoreError(csound, rtEvt,
+        print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined"),
                         evt->strarg);
         break;
@@ -829,7 +829,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       if (UNLIKELY((unsigned int)(insno-1) >=
                    (uint32_t) csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
-        printScoreError(csound, rtEvt,
+        print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %d(%d) undefined"),
                         insno, csound->engineState.maxinsno);
         break;
@@ -844,7 +844,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int)n) == 0)) {
-        printScoreError(csound, rtEvt,
+        print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined"),
                         evt->strarg);
         break;
@@ -855,11 +855,11 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       }
       else if (evt->opcod=='d') evt->p[1]=-insno;
       if ((rfd = getRemoteInsRfd(csound, insno))) {
-        /* RM: if this note labeled as remote */
+        /* RM: if this note labeled as remote_cleanup */
         if (rfd == GLOBAL_REMOT)
           insGlobevt(csound, evt);  /* RM: do a global send and allow local */
         else {
-          insSendevt(csound, evt, rfd);/* RM: or send to single remote Csound */
+          insSendevt(csound, evt, rfd);/* RM: or send to single remote_cleanup Csound */
           break;                       /* RM: and quit */
         }
       }
@@ -868,7 +868,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
-        printScoreError(csound, rtEvt,
+        print_score_error(csound, rtEvt,
                         Str(" - note deleted.  i%d (%s) had %d init errors"),
                         insno, evt->strarg, n);
       }
@@ -878,17 +878,17 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       if (UNLIKELY((unsigned int)(insno-1) >=
                    (unsigned int)csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
-        printScoreError(csound, rtEvt,
+        print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %d(%d) undefined"),
                         insno, csound->engineState.maxinsno);
         break;
       }
       if ((rfd = getRemoteInsRfd(csound, insno))) {
-        /* RM: if this note labeled as remote  */
+        /* RM: if this note labeled as remote_cleanup  */
         if (rfd == GLOBAL_REMOT)
           insGlobevt(csound, evt);    /* RM: do a global send and allow local */
         else {
-          insSendevt(csound, evt, rfd);/* RM: or send to single remote Csound */
+          insSendevt(csound, evt, rfd);/* RM: or send to single remote_cleanup Csound */
           break;                      /* RM: and quit              */
         }
       }
@@ -899,7 +899,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
         if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
           /* else alloc, init, activate */
-          printScoreError(csound, rtEvt,
+          print_score_error(csound, rtEvt,
                           Str(" - note deleted.  i%d had %d init errors"),
                           insno, n);
         }
@@ -911,7 +911,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       FUNC  *dummyftp;
       hfgens(csound, &dummyftp, evt, 0); /* construct locally */
       if (getRemoteInsRfdCount(csound))
-        insGlobevt(csound, evt); /* RM: & optionally send to all remotes      */
+        insGlobevt(csound, evt); /* RM: & optionally send to all remote_cleanups      */
     }
     break;
   case 'a':
@@ -931,7 +931,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   return 0;
 }
 
-/* RM: this now broken out for access from process_rt_event & sensevents -- bv  */
+/* RM: this now broken out for access from process_rt_event & sense_events -- bv  */
 static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
 {
   int32_t n, insno = chn->insno;
@@ -975,8 +975,8 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
   int32_t     retval, insno, rfd;
 
   retval = 0;
-  if (csound->curp2 * csound->esr < (double)csound->icurTime) {
-    csound->curp2 = (double)csound->icurTime/csound->esr;
+  if (csound->curp2 * csound->esr < (double)csound->icurTimeSamples) {
+    csound->curp2 = (double)csound->icurTimeSamples/csound->esr;
     //if(sensType != 2)
       print_amp_values(csound, 0);
   }
@@ -989,7 +989,7 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
       if (rfd == GLOBAL_REMOT)
         insGlobevt(csound, evt);       /* RM: do a global send and allow local */
       else
-        insSendevt(csound, evt, rfd);  /* RM: or send to single remote Csound */
+        insSendevt(csound, evt, rfd);  /* RM: or send to single remote_cleanup Csound */
       return 0;
     }
     /* pop from the list */
@@ -1030,7 +1030,7 @@ extern  int32_t     sensMidi(CSOUND *);
 /*   0: continue performance                */
 /*   1: terminate (e.g. end of MIDI file)   */
 /*   2: normal end of score                 */
-int32_t sensevents(CSOUND *csound)
+int32_t sense_events(CSOUND *csound)
 {
   EVTBLK  *e;
   OPARMS  *O = csound->oparms;
@@ -1056,7 +1056,7 @@ int32_t sensevents(CSOUND *csound)
       if (csound->frstoff->offbet <= tval) beat_expire(csound, tval);
     }
     else {
-      tval = ((double)csound->icurTime + csound->ksmps * 0.505)/csound->esr;
+      tval = ((double)csound->icurTimeSamples + csound->ksmps * 0.505)/csound->esr;
       if (csound->frstoff->offtim <= tval)
         time_expire(csound, tval);
     }
@@ -1129,7 +1129,7 @@ int32_t sensevents(CSOUND *csound)
       switch (e->opcod) {
       case 'w':
         if (!O->Beatmode)                   /* Not beatmode: read 'w' */
-          settempo(csound, (double)e->p2orig); /* to init the tempo   */
+          set_tempo(csound, (double)e->p2orig); /* to init the tempo   */
         continue;                           /*   for this section     */
       case 'q':
       case 'i':
@@ -1162,9 +1162,9 @@ int32_t sensevents(CSOUND *csound)
           RNDINT64((csound->nxtbt - csound->curBeat) / csound->curBeat_inc);
       else {
         csound->cyclesRemaining =
-          RNDINT64((csound->nxtim*csound->esr - csound->icurTime)/csound->ksmps);
+          RNDINT64((csound->nxtim*csound->esr - csound->icurTimeSamples)/csound->ksmps);
         csound->nxtim =
-          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+          (csound->cyclesRemaining*csound->ksmps+csound->icurTimeSamples)/csound->esr;
       }
     }
     else {
@@ -1177,9 +1177,9 @@ int32_t sensevents(CSOUND *csound)
       else {
         csound->cyclesRemaining = (int64_t)
           FLOOR((csound->nxtim*csound->esr -
-                 csound->icurTime+csound->onedsr*0.5) / csound->ksmps);
+                 csound->icurTimeSamples+csound->onedsr*0.5) / csound->ksmps);
         csound->nxtim =
-          (csound->cyclesRemaining*csound->ksmps+csound->icurTime)/csound->esr;
+          (csound->cyclesRemaining*csound->ksmps+csound->icurTimeSamples)/csound->esr;
       }
     }
   }
@@ -1220,7 +1220,7 @@ int32_t sensevents(CSOUND *csound)
 
             if (bp->type == SCOR_EVT) {
               EVTBLK *evt = (EVTBLK*)bp->data;
-              evt->p[2] = (double)csound->icurTime/csound->esr;
+              evt->p[2] = (double)csound->icurTimeSamples/csound->esr;
               if ((retval = process_score_event(csound, evt, 1)) != 0) {
                 e->opcod = evt->opcod;        /* pass any s, e, or l */
 
@@ -1264,7 +1264,7 @@ int32_t sensevents(CSOUND *csound)
   /* end of section (retval == 1), score (retval == 2), */
   /* or lplay list (retval == 3) */
   if (getRemoteInsRfdCount(csound))
-    insGlobevt(csound, e);/* RM: send s,e, or l to any remotes */
+    insGlobevt(csound, e);/* RM: send s,e, or l to any remote_cleanups */
   e->opcod = '\0';
   if (retval == 3) {
     section_amps(csound, 2);
@@ -1276,7 +1276,7 @@ int32_t sensevents(CSOUND *csound)
     if (O->Beatmode)
       csound->curbt = csound->curBeat;
     csound->curp2 = csound->nxtim =
-      csound->timeOffs = csound->icurTime/csound->esr;
+      csound->timeOffs = csound->icurTimeSamples/csound->esr;
     csound->prvbt = csound->nxtbt = csound->beatOffs = csound->curbt;
     section_amps(csound, 1);
   }
@@ -1306,7 +1306,7 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 }
 
 /* Schedule new score event to be played. 'time_ofs' is the amount of */
-/* time in seconds to add to evt->p[2] to get the actual start time   */
+/* time in samples to add to evt->p[2] to get the actual start time   */
 /* of the event (measured from the beginning of performance, and not  */
 /* section) in seconds.                                               */
 /* Required parameters in 'evt':                                      */
@@ -1319,7 +1319,6 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 /* preserved after calling this function, as a copy of the event is   */
 /* made.                                                              */
 /* Return value is zero on success.                                   */
-
 int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
 {
   double        start_time;
@@ -1385,7 +1384,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
     if (p[2] < FL(0.0))
       p[2] = FL(0.0);
     /* start beat: this is possibly wrong */
-    evt->p2orig = (MYFLT) (((start_time - st->icurTime/st->esr) /
+    evt->p2orig = (MYFLT) (((start_time - st->icurTimeSamples/st->esr) /
                             st->ibeatTime)
                            + (st->curBeat - st->beatOffs));
     if (evt->p2orig < FL(0.0))
@@ -1470,7 +1469,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
     e->nxt = prv->nxt;
     prv->nxt = e;
   }
-  /* Make sure sensevents() looks for RT events */
+  /* Make sure sense_events() looks for RT events */
   csound->oparms->RTevents = 1;
   return 0;
 
@@ -1486,14 +1485,9 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   return retval;
 }
 
-int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs)
-{
-  return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
-}
 
 /* called by csoundRewindScore() to reset performance to time zero */
-
-void musmon_rewind_score(CSOUND *csound)
+void rewind_score(CSOUND *csound)
 {
   /* deactivate all currently playing notes */
   deactivate_all_notes(csound);
@@ -1507,16 +1501,16 @@ void musmon_rewind_score(CSOUND *csound)
     csound->nxtim = csound->curp2 = 0.0;
     csound->beatOffs = csound->timeOffs = 0.0;
     csound->curBeat  = 0.0;
-    csound->icurTime = 0L;
+    csound->icurTimeSamples = 0L;
     csound->cyclesRemaining = 0;
     csound->evt.strarg = NULL;
     csound->evt.scnt = 0;
     csound->evt.opcod  = '\0';
     /* reset tempo */
     if (csound->oparms->Beatmode)
-      settempo(csound, csound->oparms->cmdTempo);
+      set_tempo(csound, csound->oparms->cmdTempo);
     else
-      settempo(csound, 60.0);
+      set_tempo(csound, 60.0);
     /* update section/overall amplitudes, reset to section 1 */
     section_amps(csound, 1);
     STA(sectno) = 1;
@@ -1534,7 +1528,7 @@ void musmon_rewind_score(CSOUND *csound)
 
 /**
  * Register a function to be called once in every control period
- * by sensevents(). Any number of functions may be registered,
+ * by sense_events(). Any number of functions may be registered,
  * and will be called in the order of registration.
  * The callback function takes two arguments: the Csound instance
  * pointer, and the userData pointer as passed to this function.

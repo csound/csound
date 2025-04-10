@@ -61,7 +61,7 @@ void    scsort(CSOUND *, FILE *, FILE *);
 char    *scsortstr(CSOUND *, CORFIL *);
 int32_t     scxtract(CSOUND *, CORFIL *, FILE *);
 int32_t     rdscor(CSOUND *, EVTBLK *);
-int32_t     musmon(CSOUND *);
+int32_t     start_engine(CSOUND *);
 void    RTLineset(CSOUND *);
 FUNC    *csoundFTFind(CSOUND *, MYFLT *);
 FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
@@ -84,7 +84,7 @@ void    remove_tmpfiles(CSOUND *);
 void    add_tmpfile(CSOUND *, char *);
 void    xturnoff(CSOUND *, INSDS *);
 void    xturnoff_now(CSOUND *, INSDS *);
-int32_t     insert_score_event(CSOUND *, EVTBLK *, double);
+  int32_t insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
 //MEMFIL  *ldmemfile(CSOUND *, const char *);
 //MEMFIL  *ldmemfile2(CSOUND *, const char *, int32_t);
 MEMFIL  *ldmemfile2withCB(CSOUND *csound, const char *filnam, int32_t csFileType,

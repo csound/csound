@@ -46,7 +46,7 @@ static void build_const_pool(CSOUND *, INSTRTXT *, char *, int32_t inarg,
 static void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
 static void debug_print(CSOUND *csound);
 
-MYFLT csoundInitialiseIO(CSOUND *csound);
+MYFLT initialise_io(CSOUND *csound);
 void print_tree(CSOUND *, char *, TREE *);
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
@@ -684,7 +684,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
      !strncmp(O->outfilename, "dac",3)) {
     MYFLT tmp_sr = csound->esr;
     csound->esr = -1.0;
-    O->sr_override = csoundInitialiseIO(csound);
+    O->sr_override = initialise_io(csound);
     if(O->sr_override > 0) {
       if(O->msglevel || O->odebug)
         csound->Message(csound,

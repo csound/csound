@@ -115,7 +115,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 int32_t _pclose(FILE*);
 #endif
 
-void RTclose(CSOUND *csound)
+void rt_close(CSOUND *csound)
 {
     if (csound->oparms->Linein == 0)
       return;
@@ -433,7 +433,7 @@ static void sensLine(CSOUND *csound, void *userData)
           e.p[2] = e.p[1];
           e.pcnt = 2;
         }
-        insert_score_event_at_sample(csound, &e, csound->icurTime);
+        insert_score_event_at_sample(csound, &e, csound->icurTimeSamples);
         continue;
       Lerr:
         n = (int32_t) (cp - Linestart);                     /* error position */
@@ -542,7 +542,7 @@ int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
       evt.pcnt = 2;
     }
 
-    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0))
+    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples) != 0))
       return csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
                                opcod);
@@ -645,10 +645,10 @@ int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
     else if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && evt.p[1] > 0) {
       evt.p[2] = evt.p[1];
       evt.pcnt = 2;
-      err = insert_score_event_at_sample(csound, &evt, csound->icurTime);
+      err = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
     }
     else
-      err = insert_score_event_at_sample(csound, &evt, csound->icurTime);
+      err = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
     if (UNLIKELY(err))
       csound->InitError(csound, Str("event_i: error creating '%c' event"),
                                 opcod);
@@ -712,7 +712,7 @@ int32_t instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int32_t insname)
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i-1];
     }
-      if (insert_score_event_at_sample(csound, &evt, csound->icurTime) != 0) {
+      if (insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples) != 0) {
         csound->Message(csound, Str("instance: error creating event\n"));
         return NOTOK;
       }

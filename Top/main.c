@@ -564,7 +564,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
 
   allocate_message_queue(csound); /* if de-alloc by reset */
 
-  return musmon(csound);
+  return start_engine(csound);
 }
 
 PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {

@@ -514,8 +514,8 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     {"caf", TYP_CAF},     {"wve", TYP_WVE},   {"ogg", TYP_OGG},
     {"mpc2k", TYP_MPC2K}, {"rf64", TYP_RF64}, {NULL, -1}};
 
-extern void sfopenout(CSOUND *csound);
-extern void sfcloseout(CSOUND *csound);
+extern void sf_open_out(CSOUND *csound);
+extern void sf_close_out(CSOUND *csound);
 
 static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   OPARMS *O = csound->oparms;
@@ -1193,10 +1193,10 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
         csound->LongJmp(csound, 1);
-      sfopenout(csound);
+      sf_open_out(csound);
       csound->MessageS(csound, CSOUNDMSG_STDOUT, "system sr: %f\n",
                        csound->GetSystemSr(csound, 0));
-      sfcloseout(csound);
+      sf_close_out(csound);
       // csound->LongJmp(csound, 0);
     }
     csound->info_message_request = 1;

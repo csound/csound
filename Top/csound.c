@@ -225,6 +225,12 @@ static void free_opcode_table(CSOUND *csound) {
 
   cs_hash_table_free(csound, csound->opcodes);
 }
+
+static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, MYFLT time_ofs) { 
+  return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
+}
+
+  
 static void create_opcode_table(CSOUND *csound) {
 
   int32_t err;
@@ -1612,7 +1618,7 @@ PUBLIC void csoundSetHostData(CSOUND *csound, void *hostData) {
  * PERFORMANCE
  */
 
-extern int32_t sensevents(CSOUND *);
+extern int32_t sense_events(CSOUND *);
 
 #ifdef PARCS
 /**
@@ -1711,7 +1717,7 @@ inline static int32_t nodePerf(CSOUND *csound, int32_t index,
     if (which_task == INVALID)
       return played_count;
     /* VL: the validity of icurTime needs to be checked */
-    time_end = (csound->ksmps + csound->icurTime) / csound->esr;
+    time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
     insds = task_map[which_task];
     if (insds->offtim > 0 && time_end > insds->offtim) {
       /* this is the last cycle of performance */
@@ -1842,7 +1848,7 @@ int32_t kperf_nodebug(CSOUND *csound) {
   int32_t lksmps = csound->ksmps;
   /* update orchestra time */
   csound->kcounter = ++(csound->global_kcounter);
-  csound->icurTime += csound->ksmps;
+  csound->icurTimeSamples += csound->ksmps;
   csound->curBeat += csound->curBeat_inc;
 
   /* call message_dequeue to run API calls */
@@ -1902,7 +1908,7 @@ int32_t kperf_nodebug(CSOUND *csound) {
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
-      double time_end = (csound->ksmps + csound->icurTime) / csound->esr;
+      double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
       while (ip != NULL) { /* for each instr active:  */
         INSDS *nxt = ip->nxtact;
@@ -1910,7 +1916,7 @@ int32_t kperf_nodebug(CSOUND *csound) {
                      time_end > ip->offtim)) {
           /* this is the last cycle of performance */
           //   csound->Message(csound, "last cycle %d: %f %f %d\n",
-          //       ip->insno, csound->icurTime/csound->esr,
+          //       ip->insno, csound->icurTimeSamples/csound->esr,
           //          ip->offtim, ip->no_end);
           ip->ksmps_no_end = ip->no_end;
         }
@@ -2083,7 +2089,7 @@ int32_t kperf_debug(CSOUND *csound) {
   if (!data || data->status != CSDEBUG_STATUS_STOPPED) {
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
-    csound->icurTime += csound->ksmps;
+    csound->icurTimeSamples += csound->ksmps;
     csound->curBeat += csound->curBeat_inc;
   }
 
@@ -2169,14 +2175,14 @@ int32_t kperf_debug(CSOUND *csound) {
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
-      double time_end = (csound->ksmps + csound->icurTime) / csound->esr;
+      double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
       while (ip != NULL) { /* for each instr active:  */
         if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
                      time_end > ip->offtim)) {
           /* this is the last cycle of performance */
           //   csound->Message(csound, "last cycle %d: %f %f %d\n",
-          //       ip->insno, csound->icurTime/csound->esr,
+          //       ip->insno, csound->icurTimeSamples/csound->esr,
           //          ip->offtim, ip->no_end);
           ip->ksmps_no_end = ip->no_end;
         }
@@ -2322,7 +2328,7 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundLockMutex(csound->API_lock);
   do {
-    done = sensevents(csound);
+    done = sense_events(csound);
     if (UNLIKELY(done)) {
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
@@ -2359,7 +2365,7 @@ PUBLIC int32_t csoundPerformBuffer(CSOUND *csound) {
       csoundLockMutex(csound->API_lock);
     }
     do {
-      if (UNLIKELY((done = sensevents(csound)))) {
+      if (UNLIKELY((done = sense_events(csound)))) {
         if (!csound->oparms->realtime) // no API lock in realtime mode
           csoundUnlockMutex(csound->API_lock);
         return done;
@@ -2399,7 +2405,7 @@ PUBLIC int32_t csoundPerform(CSOUND *csound) {
     if (!csound->oparms->realtime)
       csoundLockMutex(csound->API_lock);
     do {
-      if (UNLIKELY((done = sensevents(csound)))) {
+      if (UNLIKELY((done = sense_events(csound)))) {
         csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
         if (!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
@@ -2487,7 +2493,7 @@ PUBLIC uint32_t csoundGetChannels(CSOUND *csound, int32_t isInput) {
  */
 
 PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound) {
-  return csound->icurTime;
+  return csound->icurTimeSamples;
 }
 
 PUBLIC MYFLT csoundGetSr(CSOUND *csound) {
@@ -2584,7 +2590,7 @@ PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound, int32_t state) {
 }
 
 PUBLIC double csoundGetScoreTime(CSOUND *csound) {
-  double curtime = csound->icurTime;
+  double curtime = csound->icurTimeSamples;
   double esr = csound->esr;
   return curtime / esr;
 }
@@ -2612,7 +2618,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
   if (!(csound->engineStatus & CS_STATE_COMP))
     return;
   /* otherwise seek to the requested time now */
-  aTime = (double)offset - (csound->icurTime / csound->esr);
+  aTime = (double)offset - (csound->icurTimeSamples / csound->esr);
   if (aTime < 0.0 || offset < prv) {
     csoundRewindScore(csound); /* will call csoundSetScoreOffsetSeconds */
     return;
@@ -2626,7 +2632,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
     evt.pcnt = 3;
     evt.p[2] = evt.p[1] = FL(0.0);
     evt.p[3] = (MYFLT)aTime;
-    insert_score_event_at_sample(csound, &evt, csound->icurTime);
+    insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
   }
 }
 
@@ -2634,11 +2640,11 @@ PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *csound) {
   return csound->csoundScoreOffsetSeconds_;
 }
 
-extern void musmon_rewind_score(CSOUND *csound);   /* musmon.c */
+extern void rewind_score(CSOUND *csound);   /* musmon.c */
 extern void midifile_rewind_score(CSOUND *csound); /* midifile.c */
 
 PUBLIC void csoundRewindScore(CSOUND *csound) {
-  musmon_rewind_score(csound);
+  rewind_score(csound);
   if (csound->oparms->FMidiname != NULL)
     midifile_rewind_score(csound);
 }
@@ -2872,7 +2878,7 @@ int32_t csoundScoreEventInternal(CSOUND *csound, char type,
   evt.pcnt = (int16)numFields;
   for (i = 0; i < (int32_t)numFields; i++)
     evt.p[i + 1] = pfields[i];
-  ret = insert_score_event_at_sample(csound, &evt, csound->icurTime);
+  ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
   return ret;
 }
 
@@ -2890,7 +2896,7 @@ int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
   evt.pcnt = (int16)numFields;
   for (i = 0; i < (int32_t)numFields; i++)
     evt.p[i + 1] = pfields[i];
-  ret = insert_score_event(csound, &evt, time_ofs);
+  ret = insert_score_event_at_sample(csound, &evt, time_ofs*csound->esr);
   return ret;
 }
 
@@ -3563,11 +3569,6 @@ PUBLIC void csoundReset(CSOUND *csound) {
     csoundInitTimerStruct(csound->csRtClock);
     csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-    /*
-      this was moved to musmon();
-      print_csound_version(csound);
-      print_sndfile_version(csound);
-    */
     /* do not know file type yet */
     O->filetyp = -1;
     csound->peakchunks = 1;

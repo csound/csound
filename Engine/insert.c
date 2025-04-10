@@ -292,7 +292,7 @@ static void set_xtratim(CSOUND *csound, INSDS *ip)
 {
   if (UNLIKELY(ip->relesing))
     return;
-  ip->offtim = (csound->icurTime +
+  ip->offtim = (csound->icurTimeSamples +
                 ip->ksmps * (double) ip->xtratim)/csound->esr;
   ip->offbet = csound->curBeat + (csound->curBeat_inc * (double) ip->xtratim);
   ip->relesing = 1;
@@ -367,10 +367,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
       csound->Message(csound, Str("activating instr %s at %"PRIi64"\n"),
-                      name, csound->icurTime);
+                      name, csound->icurTimeSamples);
     else
       csound->Message(csound, Str("activating instr %d at %"PRIi64"\n"),
-                      insno, csound->icurTime);
+                      insno, csound->icurTimeSamples);
   }
   csound->inerrcnt = 0;
 
@@ -551,7 +551,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     csound->Message(csound, "   ending at %p\n", (void*) flp);
 
   if (O->Beatmode)
-    ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+    ip->p2.value     = (MYFLT) (csound->icurTimeSamples/csound->esr - csound->timeOffs);
   ip->offtim       = (double) ip->p3.value;         /* & duplicate p3 for now */
   ip->m_chnbp      = (MCHNBLK*) NULL;
   ip->xtratim      = 0;
@@ -610,7 +610,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     else /* normal : round */
       ip->offtim = FLOOR(ip->offtim * csound->ekr +0.5)/csound->ekr;
     if (O->Beatmode) {
-      p2 = ((p2*csound->esr - csound->icurTime) / csound->ibeatTime)
+      p2 = ((p2*csound->esr - csound->icurTimeSamples) / csound->ibeatTime)
         + csound->curBeat;
       ip->offbet = p2 + ((double) ip->p3.value*csound->esr / csound->ibeatTime);
     }
@@ -623,7 +623,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     if(csound->oparms->realtime) // compensate for possible late starts
       {
         double p2 = (double) ip->p2.value + csound->timeOffs;
-        ip->offtim += (csound->icurTime/csound->esr - p2);
+        ip->offtim += (csound->icurTimeSamples/csound->esr - p2);
       }
     //printf("%lf\n",   );
     sched_off_time(csound, ip);                  /*   put in turnoff list */
@@ -794,7 +794,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   ip->offtim       = -1.0;              /* set indef duration */
   ip->opcod_iobufs = NULL;              /* IV - Sep 8 2002:            */
   ip->p1.value     = (MYFLT) insno;     /* set these required p-fields */
-  ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
+  ip->p2.value     = (MYFLT) (csound->icurTimeSamples/csound->esr - csound->timeOffs);
   ip->p3.value     = FL(-1.0);
   ip->esr          = csound->esr;
   ip->pidsr        = csound->pidsr;
@@ -975,11 +975,11 @@ static void sched_off_time(CSOUND *csound, INSDS *ip)
     csound->frstoff = ip;                     /*   firstoff chain */
     ip->nxtoff = nxtp;
     /* IV - Feb 24 2006: check if this note already needs to be turned off */
-    /* the following comparisons must match those in sensevents() */
+    /* the following comparisons must match those in sense_events() */
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound,"sched_off_time: %lf %lf %f\n",
-                      ip->offtim, csound->icurTime/csound->esr,
+                      ip->offtim, csound->icurTimeSamples/csound->esr,
                       csound->curTime_inc);
 
 #endif
@@ -988,14 +988,14 @@ static void sched_off_time(CSOUND *csound, INSDS *ip)
       if (ip->offbet <= tval) beat_expire(csound, tval);
     }
     else {
-      double  tval = (csound->icurTime + (0.505 * csound->ksmps))/csound->esr;
+      double  tval = (csound->icurTimeSamples + (0.505 * csound->ksmps))/csound->esr;
       if (ip->offtim <= tval) time_expire(csound, tval);
     }
 #ifdef BETA
     if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound,"sched_off_time: %lf %lf %lf\n", ip->offtim,
-                      (csound->icurTime + (0.505 * csound->ksmps))/csound->esr,
-                      csound->ekr*((csound->icurTime +
+                      (csound->icurTimeSamples + (0.505 * csound->ksmps))/csound->esr,
+                      csound->ekr*((csound->icurTimeSamples +
                                     (0.505 * csound->ksmps))/csound->esr));
 #endif
   }
@@ -2949,7 +2949,7 @@ int32_t splice_instance(CSOUND *csound, SPLICE_INSTR *p) {
 
 
 
-MYFLT csoundInitialiseIO(CSOUND *csound);
+MYFLT initialise_io(CSOUND *csound);
 /** experimental perf loop opcode to run on instr 0
     -- not for production --
     OENTRY entry = 
@@ -2962,7 +2962,7 @@ int32_t perf_loop_opcode(CSOUND *csound, PERF_INSTR *p) {
   size_t count = (size_t) (*p->out*csoundGetKr(csound));
   if(p->h.insdshead->insno == 0) {
     if(csound->spoutran == NULL)
-      csoundInitialiseIO(csound);
+      initialise_io(csound);
     while(ip != NULL && --count && !err) {
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
       memset(csound->spout_tmp,0,

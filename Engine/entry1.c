@@ -663,7 +663,7 @@ OENTRY opcodlst_1[] = {
   { "readks.i", S(KREADS),0,        "S",    "ii",    krdsset_p, kreads     },
   { "xyin",   S(XYIN), _QQ,       "kk",   "iiiiioo",xyinset,NULL          },
   { "tempest",  S(TEMPEST),0,     "k","kiiiiiiiiiop",tempeset,tempest},
-  { "tempo",    S(TEMPO),0,       "",     "ki",   tempset,tempo           },
+  { "tempo",    S(TEMPO),0,       "",     "ki",   tempo_set,tempo           },
   { "pow.i",    S(POW),0,         "i",    "iip",  ipow,    NULL,  NULL    },
   { "pow.k",    S(POW),0,          "k",    "kkp",  NULL,    ipow,  NULL    },
   { "pow.a",    S(POW),0,          "a",    "akp",  NULL,  apow    },
@@ -1110,7 +1110,7 @@ OENTRY opcodlst_1[] = {
   { "cngoto", S(CGOTO),0,         "",     "Bl",   ingoto, kngoto, NULL     },
   { "cnkgoto", S(CGOTO),0,          "",     "Bl",   NULL,  kngoto, NULL     },
   { "cingoto", S(CGOTO),0,         "",     "Bl",   ingoto, NULL, NULL     },
-  { "tempoval", S(GTEMPO),0,    "k", "",      NULL, (SUBR)gettempo, NULL    },
+  { "tempoval", S(GTEMPO),0,    "k", "",      NULL, (SUBR)get_tempo, NULL    },
   { "downsamp",S(DOWNSAMP),0, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
   { "upsamp", S(UPSAMP),0,     "a", "k",    NULL,   (SUBR)upsamp        },
   /* IV - Sep 5 2002 */

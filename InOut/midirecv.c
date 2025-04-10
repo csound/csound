@@ -118,7 +118,7 @@ static const int16 datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 /* open a Midi event stream for reading, alloc bufs */
 /*     callable once from main.c                    */
 
-void MidiOpen(CSOUND *csound)
+void midi_open(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
    const OPARMS  *O = csound->oparms;
@@ -475,7 +475,7 @@ static void midNotesOff(CSOUND *csound)
 }
 
 /* sense a MIDI event, collect the data & dispatch */
-/* called from sensevents(), returns 2 if MIDI on/off */
+/* called from sense_events(), returns 2 if MIDI on/off */
 
 int32_t sensMidi(CSOUND *csound)
 {
@@ -607,7 +607,7 @@ int32_t sensMidi(CSOUND *csound)
 
 extern void csoundCloseMidiOutFile(CSOUND *);
 
-void MidiClose(CSOUND *csound)
+void midi_close(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
     int32_t     retval;

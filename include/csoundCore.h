@@ -729,7 +729,7 @@ typedef struct _FFT_SETUP {
 #define ORTXT h.optext->t
 #define INOCOUNT ORTXT.inArgCount
 #define OUTOCOUNT ORTXT.outArgCount
-#define CURTIME (((double)csound->icurTime) / ((double)csound->esr))
+#define CURTIME (((double)csound->icurTimeSamples) / ((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps) / ((double)csound->esr))
 
 /**@}*/
@@ -1491,7 +1491,7 @@ struct CSOUND_ {
   MYFLT esr;
   MYFLT ekr;
   /** current time in seconds, inc. per kprd */
-  int64_t icurTime; /* Current time in samples */
+  int64_t icurTimeSamples; /* Current time in samples */
   double curTime_inc;
   /** start time of current section    */
   double timeOffs, beatOffs;
