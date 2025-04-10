@@ -519,9 +519,9 @@ static const CSOUND cenviron_ = {
     cs_strdup,
     mfree,
     /* function tables */
-    hfgens,
-    csoundFTAlloc,
-    csoundFTDelete,
+    create_function_table,
+    alloc_function_table,
+    free_function_table,
     csoundFTFind,
     csoundGetNamedGens,
     /* global and config variable manipulation */

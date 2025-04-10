@@ -909,7 +909,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'f':                   /* f event: */
     {
       FUNC  *dummyftp;
-      hfgens(csound, &dummyftp, evt, 0); /* construct locally */
+      create_function_table(csound, &dummyftp, evt, 0); /* construct locally */
       if (getRemoteInsRfdCount(csound))
         insGlobevt(csound, evt); /* RM: & optionally send to all remote_cleanups      */
     }

@@ -102,8 +102,8 @@ static int32_t GENUL(FGDATA *ff, FUNC *ftp)
  * number is automatically assigned.
  * Returns zero on success.
  */
-
-int32_t hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int32_t mode)
+int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
+                              int32_t mode)
 {
     int32    genum, ltest;
     int32_t     lobits, msg_enabled, i;
@@ -287,15 +287,15 @@ int32_t hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int32_t mode)
  * point32_t) of 'len' samples. The table data is not cleared to zero.
  * Return value is zero on success.
  */
-
-int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum, int32_t len)
+int32_t alloc_function_table(CSOUND *csound, int32_t tableNum,
+                                    int32_t len)
 {
     int32_t   i, size;
     FUNC  **nn, *ftp;
 
     if (UNLIKELY(tableNum <= 0 || len <= 0 || len > (int32_t) MAXLEN))
       return -1;
-    if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary     */
+    if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary */
       for (size = csound->maxfnum; size < tableNum; size += MAXFNUM)
         ;
       nn = (FUNC**) csound->ReAlloc(csound,
@@ -351,7 +351,7 @@ int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum, int32_t len)
  * Return value is zero on success.
  */
 
-int32_t csoundFTDelete(CSOUND *csound, int32_t tableNum)
+int32_t free_function_table(CSOUND *csound, int32_t tableNum)
 {
     FUNC  *ftp;
 
@@ -1044,7 +1044,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     n = gen14(ff, ftp);       /* now draw ftable   */
     ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
     ff->fno--;                /* F. Pinot, the first function table */
-                              /* is scaled and displayed by hfgens */
+                              /* is scaled and displayed by create_function_table */
     return n;
 }
 
@@ -2373,7 +2373,7 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
 
 
 static FUNC *gen01_defer_load(CSOUND *csound, int32_t fno);
-PUBLIC int32_t csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int32_t tableNum)
+int32_t csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int32_t tableNum)
 {
     FUNC    *ftp;
 
@@ -2395,7 +2395,7 @@ PUBLIC int32_t csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int32_t tableNum
 }
 
 
-PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
+int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
 {
     FUNC    *ftp;
     if (UNLIKELY((uint32_t) (tableNum - 1) >= (uint32_t) csound->maxfnum))

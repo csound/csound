@@ -125,7 +125,7 @@ static int32_t is_valid_envvar_name(const char *name)
  * Return value is NULL if the variable is not set.
  */
 
-PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
+const char *csoundGetEnv(CSOUND *csound, const char *name)
 {
     if (csound == NULL) {
       int32_t i;
@@ -151,7 +151,7 @@ PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name)
  * Returns zero on success.
  */
 
-PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value)
+int32_t csoundSetGlobalEnv(const char *name, const char *value)
 {
     int32_t   i;
 

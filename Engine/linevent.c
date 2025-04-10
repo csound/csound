@@ -640,7 +640,7 @@ int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
 
     if (opcod == 'f' && (int32_t) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
-      err = hfgens(csound, &dummyftp, &evt, 0);
+      err = create_function_table(csound, &dummyftp, &evt, 0);
     }
     else if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && evt.p[1] > 0) {
       evt.p[2] = evt.p[1];

@@ -44,16 +44,12 @@ int32_t             closedir(DIR*);
 #endif
 
 extern void csound_orcrestart(FILE*, void *);
-
 extern int csound_orcdebug;
-
 extern void print_csound_predata(void *);
 extern int32_t csound_prelex_init(void *);
 extern void csound_preset_extra(void *, void *);
-
 extern int32_t csound_prelex(CSOUND*, void*);
 extern int32_t csound_prelex_destroy(void *);
-
 extern struct yy_buffer_state * csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 extern int32_t csound_orclex_init(void *);
