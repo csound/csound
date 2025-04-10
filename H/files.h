@@ -25,7 +25,7 @@
 #define CSOUND_ENVVAR_H
 
 #if !defined(__BUILDING_LIBCSOUND)
-#  error "Csound plugins and host applications should not include envvar.h"
+#  error "Csound plugins and host applications should not include files.h"
 #endif
 
 #ifdef __cplusplus

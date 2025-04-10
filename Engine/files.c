@@ -1,7 +1,7 @@
 /*
-    envvar.c:
+    files.c: filesystem and environment functions
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005-25 Istvan Varga, Victor Lazzarini
 
     This file is part of Csound.
 
@@ -24,7 +24,7 @@
 #include "csoundCore.h"
 #include "soundfile.h"
 #include "soundio.h"
-#include "envvar.h"
+#include "files.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -1515,7 +1515,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
     return fd;
 }
 
-uintptr_t file_iothread(void *p);
+static uintptr_t file_iothread(void *p);
 
 void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
                                    const char *name, void *param, const char *env,
@@ -1637,9 +1637,7 @@ static int32_t read_files(CSOUND *csound){
 }
 
 
-
-
-uintptr_t file_iothread(void *p){
+static uintptr_t file_iothread(void *p){
     int32_t res = 1;
     CSOUND *csound = p;
     int32_t wakeup = (int32_t) (1000*csound->ksmps/csound->esr);

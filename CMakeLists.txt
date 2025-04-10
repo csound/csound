@@ -760,7 +760,7 @@ set(libcsound_SRCS
     Engine/cfgvar.c
     Engine/corfiles.c
     Engine/entry1.c
-    Engine/envvar.c
+    Engine/files.c
     Engine/extract.c
     Engine/fgens.c
     Engine/insert.c
