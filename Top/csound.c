@@ -105,7 +105,7 @@ static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int32_t nchnls);
 
 extern void cscoreRESET(CSOUND *);
-extern void memRESET(CSOUND *);
+extern void memreset(CSOUND *);
 extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int32_t csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
@@ -563,7 +563,7 @@ static const CSOUND cenviron_ = {
     pvoc_framecount,
     pvoc_fseek,
     pvoc_errorstr,
-    PVOCEX_LoadFile,
+    load_PVOCEX_file,
     /* error messages */
     csoundDie,
     csoundInitError,
@@ -622,7 +622,7 @@ static const CSOUND cenviron_ = {
     csoundFSeekAsync,
     rewriteheader,
     csoundLoadSoundFile,
-    ldmemfile2withCB,
+    load_memfile_with_cb,
     fdrecord,
     csound_fd_close,
     csoundCreateFileHandle,
@@ -3375,12 +3375,12 @@ static void reset(CSOUND *csound) {
   close_all_files(csound);
   /* delete temporary files created by this Csound instance */
   remove_tmpfiles(csound);
-  rlsmemfiles(csound);
+  free_memfiles(csound);
 
   while (csound->filedir[n]) /* Clear source directory */
     csound->Free(csound, csound->filedir[n++]);
 
-  memRESET(csound);
+  memreset(csound);
 
   /**
    * Copy everything EXCEPT the function pointers.
@@ -3896,7 +3896,7 @@ void csoundSetFileOpenCallback(CSOUND *p,
 /* csoundNotifyFileOpened() should be called by plugins via
    csound->NotifyFileOpened() to let Csound know that they opened a file
    without using one of the standard mechanisms (csound->FileOpen() or
-   ldmemfile2withCB()).  The notification is passed on to the host if it
+   load_memfile_with_cb()).  The notification is passed on to the host if it
    has set the FileOpen callback. */
 void csoundNotifyFileOpened(CSOUND *csound, const char *pathname,
                             int32_t csFileType, int32_t writing,

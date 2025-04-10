@@ -1288,7 +1288,7 @@ int32_t sense_events(CSOUND *csound)
     RT_SPIN_TRYLOCK
     free_inactive_instances(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
-      rlsmemfiles(csound);                  /*    purge memfiles */
+      free_memfiles(csound);                  /*    purge memfiles */
     csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */

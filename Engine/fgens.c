@@ -2696,7 +2696,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
     else
       csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
 
-    if (UNLIKELY(PVOCEX_LoadFile(csound, filename, &pp) != 0))
+    if (UNLIKELY(load_PVOCEX_file(csound, filename, &pp) != 0))
       return fterror(ff, Str("Failed to load PVOC-EX file"));
     //csoundDie(csound, Str("Failed to load PVOC-EX file"));
     p.fftsize  = pp.fftsize;
