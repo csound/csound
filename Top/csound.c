@@ -505,8 +505,8 @@ static const CSOUND cenviron_ = {
     csoundSetMessageCallback,
     /* arguments to opcodes and types*/
     get_arg_string,
-    strarg2insno,
-    strarg2name,
+    string_arg_to_insno,
+    string_arg_to_name,
     GetType,
     csoundGetTypePool,
     csoundAddVariableType,

@@ -1569,7 +1569,7 @@ int32_t subinstrset_S(CSOUND *csound, SUBINST *p){
   /* check if we are using subinstrinit or subinstr */
   init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
-  instno = strarg2insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
+  instno = string_arg_to_insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
   if (UNLIKELY(instno==NOT_AN_INSTRUMENT)) instno = -1;
   return subinstrset_(csound,p,instno);
 }
@@ -1792,7 +1792,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
 int32_t nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  int32_t res = strarg2insno(csound, p->iname, 0);
+  int32_t res = string_arg_to_insno(csound, p->iname, 0);
   if (UNLIKELY(res == NOT_AN_INSTRUMENT)) {
     *p->i_insno = -FL(1.0); return NOTOK;
   }
@@ -1804,7 +1804,7 @@ int32_t nstrnumset(CSOUND *csound, NSTRNUM *p)
 int32_t nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  int32_t res = strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+  int32_t res = string_arg_to_insno(csound, ((STRINGDAT *)p->iname)->data, 1);
   if (UNLIKELY(res == NOT_AN_INSTRUMENT)) {
     *p->i_insno = -FL(1.0); return NOTOK;
   }
@@ -2339,11 +2339,11 @@ int32_t prealloc_(CSOUND *csound, AOP *p, int32_t instname)
   int32_t     n, a;
 
   if (instname)
-    n = (int32_t) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
+    n = (int32_t) string_arg_to_opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                                (*p->b == FL(0.0) ? 0 : 1));
   else {
     if (IsStringCode(*p->r))
-      n = (int32_t) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
+      n = (int32_t) string_arg_to_opcno(csound, get_arg_string(csound,*p->r), 1,
                                  (*p->b == FL(0.0) ? 0 : 1));
     else n = *p->r;
   }

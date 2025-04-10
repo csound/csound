@@ -434,10 +434,10 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
-      insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
+      insno = (int32_t)string_arg_to_insno_p(csound, ((STRINGDAT*)p->args[0])->data);
     else if (IsStringCode(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
-      insno = (int32_t)strarg2insno_p(csound, ss);
+      insno = (int32_t)string_arg_to_insno_p(csound, ss);
     }
     else
       insno = (int32_t)FABS(*p->args[0]);
