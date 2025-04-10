@@ -226,7 +226,7 @@ static void free_opcode_table(CSOUND *csound) {
   cs_hash_table_free(csound, csound->opcodes);
 }
 
-static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, MYFLT time_ofs) { 
+static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs) { 
   return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
 }
 

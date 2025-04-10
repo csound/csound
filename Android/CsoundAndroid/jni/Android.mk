@@ -29,8 +29,8 @@ LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
 $(CSOUND_SRC_ROOT)/Engine/cfgvar.c \
 $(CSOUND_SRC_ROOT)/Engine/corfiles.c \
-$(CSOUND_SRC_ROOT)/Engine/entry1.c \
-$(CSOUND_SRC_ROOT)/Engine/envvar.c \
+$(CSOUND_SRC_ROOT)/Engine/entry.c \
+$(CSOUND_SRC_ROOT)/Engine/files.c \
 $(CSOUND_SRC_ROOT)/Engine/extract.c \
 $(CSOUND_SRC_ROOT)/Engine/fgens.c \
 $(CSOUND_SRC_ROOT)/Engine/insert.c \

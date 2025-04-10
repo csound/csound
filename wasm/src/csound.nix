@@ -349,8 +349,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_prslex.c \
       ../Engine/csound_standard_types.c \
       ../Engine/csound_type_system.c \
-      ../Engine/entry1.c \
-      ../Engine/envvar.c \
+      ../Engine/entry.c \
+      ../Engine/files.c \
       ../Engine/extract.c \
       ../Engine/fgens.c \
       ../Engine/insert.c \
