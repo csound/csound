@@ -1538,7 +1538,7 @@ int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno)
 
   // allocate memory for a temporary store of spout buffers
   if (!init_op && !(pip->reinitflag | pip->tieflag))
-    csoundAuxAlloc(csound, (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
+    csound->AuxAlloc(csound, (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
   /* do init pass for this instr */
   csound->curip = p->ip;        /* **** NEW *** */

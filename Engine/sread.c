@@ -199,7 +199,7 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-static inline int32_t isNameChar(int32_t c, int32_t pos)
+static inline int32_t is_name_char(int32_t c, int32_t pos)
 {
     //c = (int32_t) ((unsigned char) c);
     if (UNLIKELY(c<0)) return 0;
@@ -447,7 +447,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t   c;
           int32_t   i = 0, j;
           while (isblank(c = getscochar(csound, 1)));
-          while (isNameChar(c, i)) {
+          while (is_name_char(c, i)) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
@@ -488,7 +488,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t c;
           int32_t i = 0;
           while (isblank(c = getscochar(csound, 1)));
-          while (isNameChar(c, i)) {
+          while (is_name_char(c, i)) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }

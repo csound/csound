@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-    void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool);
+    void add_standard_types(CSOUND* csound, TYPE_POOL* pool);
 
     extern const CS_TYPE CS_VAR_TYPE_A;
     extern const CS_TYPE CS_VAR_TYPE_K;

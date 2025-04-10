@@ -356,17 +356,17 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   */
 
   if(inm->passByRef) {
-    p->h.perf = (SUBR) useropcd_passByRef;
+    p->h.perf = (SUBR) useropcd_pass_by_ref;
   } else if (lcurip->ksmps != parent_ip->ksmps) {
     int32_t ksmps_scale = lcurip->ksmps / parent_ip->ksmps;
     parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
     if(lcurip->esr == parent_ip->esr) // (1) local sr == parent sr
-      p->h.perf = (SUBR) useropcd1;
+      p->h.perf = (SUBR) useropcd_local_ksmps;
     else // (2) local sr < parent sr
-      p->h.perf = (SUBR) useropcd2;
+      p->h.perf = (SUBR) useropcd_pass_by_copy;
   } else { // (3) local sr >= parent sr
     parent_ip->xtratim = lcurip->xtratim;
-    p->h.perf = (SUBR) useropcd2;
+    p->h.perf = (SUBR) useropcd_pass_by_copy;
   }
   // debug msg
   if (UNLIKELY(csound->oparms->odebug))
@@ -521,8 +521,8 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 }
 
 
-// local ksmps and global sr
-int32_t useropcd1(CSOUND *csound, UOPCODE *p)
+// local ksmps and global sr, pass-by-copy
+int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 {
   int32_t    g_ksmps, ofs, early, offset, i;
   OPDS *opstart;
@@ -818,8 +818,8 @@ int32_t useropcd1(CSOUND *csound, UOPCODE *p)
   return OK;
 }
 
-// global ksmps and global or local sr
-int32_t useropcd2(CSOUND *csound, UOPCODE *p)
+// global ksmps and global or local sr, pass-by-copy
+int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 {
   MYFLT   **tmp;
   OPCODINFO   *inm;
@@ -944,7 +944,7 @@ int32_t useropcd2(CSOUND *csound, UOPCODE *p)
 }
 
 /** Runs perf-time chain*/
-int32_t useropcd_passByRef(CSOUND *csound, UOPCODE *p)
+int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
 {
   OPDS    *saved_pds = CS_PDS;
   int32_t done;

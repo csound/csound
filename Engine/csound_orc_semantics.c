@@ -245,9 +245,9 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
   return NULL;
 }
 
-static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
+static int32_t is_irate(/*CSOUND *csound,*/ TREE *t)
 {                  /* check that argument is an i-rate constant or variable */
-  //print_tree(csound, "isirate",  t);
+  //print_tree(csound, "is_irate",  t);
   if (t->type == INTEGER_TOKEN) {
     //printf("integer case\n");
     return 1;
@@ -261,10 +261,10 @@ static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
     return 1;
   }
   else if (t->type == T_ARRAY) {
-    if (isirate(t->right)==0) return 0;
+    if (is_irate(t->right)==0) return 0;
     t = t->next;
     while (t) {
-      if (isirate(t)==0) return 0;
+      if (is_irate(t)==0) return 0;
       t = t->next;
     }
     return 1;
@@ -411,7 +411,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         print_tree(csound, "i()", tree);
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
-          isirate(tree->right->right)) {
+          is_irate(tree->right->right)) {
         synterr(csound, Str("Use of i() with array element ill formed\n"));
       }
       else
@@ -2791,7 +2791,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
  * down  list to append at end; checks for NULL's and returns
  * appropriate nodes
  */
-TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
+TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast)
 {
   IGN(csound);
   TREE *current;
@@ -3299,7 +3299,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_int(csound, "0"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'P':
         case 'p':
@@ -3307,14 +3307,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_int(csound, "1"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "10"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
 
         case 'V':
@@ -3323,14 +3323,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_num(csound, ".5"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "127"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'J':
         case 'j':
@@ -3338,7 +3338,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_int(csound, "-1"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'M':
         case 'N':

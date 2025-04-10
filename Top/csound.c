@@ -511,8 +511,8 @@ static const CSOUND cenviron_ = {
     csoundGetTypePool,
     csoundAddVariableType,
     /* memory allocation */
-    csoundAuxAlloc,
-    csoundAuxAllocAsync,
+    auxalloc,
+    auxalloc_async,
     mmalloc,
     mcalloc,
     mrealloc,
@@ -3574,7 +3574,7 @@ PUBLIC void csoundReset(CSOUND *csound) {
     csound->peakchunks = 1;
     csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
     csound->engineState.varPool = csoundCreateVarPool(csound);
-    csoundAddStandardTypes(csound, csound->typePool);
+    add_standard_types(csound, csound->typePool);
     /* csoundLoadExternals(csound); */
   }
   int32_t max_len = 21;
