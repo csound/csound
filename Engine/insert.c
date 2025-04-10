@@ -26,6 +26,7 @@
 
 #include "csoundCore.h" /*  INSERT.C */
 #include "oload.h"
+#include "udo.h"
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
 #include "midiops.h"
@@ -1010,9 +1011,6 @@ static void sched_off_time(CSOUND *csound, INSDS *ip)
 
 /* from csound.c */
 int32_t csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
-int32_t useropcd(CSOUND *, UOPCODE*);
-
-
 void deinit_pass(CSOUND *csound, INSDS *ip) {
   int32_t error = 0;
   OPDS *dds = (OPDS *) ip;
@@ -1584,208 +1582,7 @@ int32_t subinstrset(CSOUND *csound, SUBINST *p){
   return subinstrset_(csound,p,instno);
 }
 
-/*
-  This opcode sets the local ksmps for an instrument
-  it can be used on any instrument with the implementation
-  of a mechanism to perform at local ksmps (in kperf etc)
-*/
-int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
-{
 
-  uint32_t  l_ksmps, n;
-  OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
-  MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
-  MYFLT parent_ksmps = udo ? udo->parent_ip->ksmps : csound->ksmps;
-
-  if(CS_ESR != parent_sr)
-    return csoundInitError(csound,
-                           "can't set ksmps value if local sr != parent sr\n");
-  if(CS_KSMPS != parent_ksmps) return OK; // no op if this has already changed
-
-  l_ksmps = (uint32_t) *(p->i_ksmps);
-  if (!l_ksmps) return OK;       /* zero: do not change */
-  if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS ||
-               ((CS_KSMPS / l_ksmps) * l_ksmps != CS_KSMPS))) {
-    return csoundInitError(csound,
-                           Str("setksmps: invalid ksmps value: %d, original: %d"),
-                           l_ksmps, CS_KSMPS);
-  }
-
-  n = CS_KSMPS / l_ksmps;
-  p->h.insdshead->xtratim *= n;
-  CS_KSMPS = l_ksmps;
-  CS_ONEDKSMPS = FL(1.0) / (MYFLT) CS_KSMPS;
-  CS_EKR = CS_ESR / (MYFLT) CS_KSMPS;
-  CS_ONEDKR = FL(1.0) / CS_EKR;
-  CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
-  CS_KCNT *= n;
-
-  /* VL 13-12-13 */
-  /* this sets ksmps and kr local variables */
-  /* lookup local ksmps variable and init with ksmps */
-  INSTRTXT *ip = p->h.insdshead->instr;
-  CS_VARIABLE *var =
-    csoundFindVariableWithName(csound, ip->varPool, "ksmps");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_KSMPS;
-
-  /* same for kr */
-  var =
-    csoundFindVariableWithName(csound, ip->varPool, "kr");
-  varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_EKR;
-
-  return OK;
-}
-
-/* oversample opcode
-   oversample ifactor
-   ifactor - oversampling factor (positive integer)
-
-   if oversampling is used, xin/xout need
-   to initialise the converters.
-   oversampling is not allowed with local ksmps or
-   with audio/control array arguments.
-*/
-int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
-  int32_t os;
-  MYFLT l_sr, onedos;
-  OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
-  MYFLT parent_sr, parent_ksmps;
-
-  if(udo == NULL)
-    return csound->InitError(csound, "oversampling only allowed in UDOs\n");
-  else if(udo->iflag)
-    return csoundInitError(csound, "can't set sr after xin\n");
-
-
-  parent_sr = udo->parent_ip->esr;
-  parent_ksmps = udo->parent_ip->ksmps;
-
-  if(CS_KSMPS != parent_ksmps)
-    return csoundInitError(csound,
-                           "can't oversample if local ksmps != parent ksmps\n");
-
-  os = MYFLT2LRND(*p->os);
-  onedos = FL(1.0)/os;
-  if(os < 1)
-    return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
-  if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if changed already */
-
-  l_sr = CS_ESR*os;
-  CS_ESR = l_sr;
-  CS_PIDSR = PI/l_sr;
-  CS_ONEDSR = 1./l_sr;
-  CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
-  CS_EKR = CS_ESR/CS_KSMPS;
-  CS_ONEDKR = 1./CS_EKR;
-  CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
-  /* ksmsp does not change,
-     however, because we are oversampling, we will need
-     to run the code os times in a loop to consume
-     os*ksmps input samples and produce os*ksmps output
-     samples. This means that the kcounter will run fast by a
-     factor of 1/os, and xtratim also needs to be scaled by
-     that factor
-  */
-  p->h.insdshead->xtratim *= onedos;
-  CS_KCNT *= onedos;
-  /* oversampling mode (s) */
-  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
-  if(*p->out_cvt >= 0)
-    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
-  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
-  /* set local sr variable */
-  INSTRTXT *ip = p->h.insdshead->instr;
-  CS_VARIABLE *var =
-    csoundFindVariableWithName(csound, ip->varPool, "sr");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_ESR;
-  var = csoundFindVariableWithName(csound, ip->varPool, "kr");
-  varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_EKR;
-  return OK;
-}
-
-/* undersample opcode
-   undersample ifactor
-   ifactor - undersampling factor (positive integer)
-
-   if ubdersampling is used, xin/xout need
-   to initialise the converters.
-   undersampling is not allowed with
-   with audio/control array arguments.
-   It modifies ksmps according to the resampling factor.
-*/
-int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
-  int32_t os, lksmps;
-  MYFLT l_sr, onedos;
-  OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
-  MYFLT parent_sr, parent_ksmps;
-
-  if(udo == NULL)
-    return csound->InitError(csound, "oversampling only allowed in UDOs\n");
-  else if(udo->iflag)
-    return csoundInitError(csound, "can't set sr after xin\n");
-
-  parent_sr = udo->parent_ip->esr;
-  parent_ksmps = udo->parent_ip->ksmps;
-
-  if(CS_KSMPS != parent_ksmps)
-    return csoundInitError(csound,
-                           "can't undersample if local ksmps != parent ksmps\n");
-
-  os = MYFLT2LRND(*p->os);
-  onedos = FL(1.0)/os;
-  if(os < 1)
-    return csound->InitError(csound,
-                             "illegal undersampling ratio: %d\n", os);
-
-  if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if already changed */
-
-  /* round to an integer number of ksmps */
-  lksmps = MYFLT2LRND(CS_KSMPS*onedos);
-  /* and check */
-  if(lksmps < 1)
-    return csound->InitError(csound,
-                             "illegal oversampling ratio: %d\n", os);
-
-  /* set corrected ratio  */
-  onedos = lksmps/CS_KSMPS;
-
-  /* and now local ksmps */
-  CS_KSMPS = lksmps;
-  CS_ONEDKSMPS = FL(1.0)/lksmps;
-  l_sr = CS_ESR*onedos;
-  CS_ESR = l_sr;
-  CS_PIDSR = PI/l_sr;
-  CS_ONEDSR = 1./l_sr;
-  CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
-  CS_EKR = CS_ESR/CS_KSMPS;
-  CS_ONEDKR = 1./CS_EKR;
-  CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
-
-  p->h.insdshead->xtratim *= FL(1.0)/onedos;
-  CS_KCNT *= FL(1.0)/onedos;
-  /* undersampling mode (s) */
-  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
-  if(*p->out_cvt >= 0)
-    p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
-  else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
-  /* set local sr variable */
-  INSTRTXT *ip = p->h.insdshead->instr;
-  CS_VARIABLE *var =
-    csoundFindVariableWithName(csound, ip->varPool, "sr");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_ESR;
-  var = csoundFindVariableWithName(csound, ip->varPool, "kr");
-  varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_EKR;
-  var = csoundFindVariableWithName(csound, ip->varPool, "ksmps");
-  varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_KSMPS;
-  return OK;
-}
 
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */

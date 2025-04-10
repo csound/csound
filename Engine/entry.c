@@ -87,7 +87,7 @@ OENTRY opcodlst_1[] = {
   { "declare", 0,    0,            "",     "",   NULL, NULL, NULL, NULL },
   { "$label", S(LBLBLK),  0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,      "",     "m",  NULL, NULL, NULL, NULL },
-  { "##userOpcode", S(UOPCODE),0,  "", "", useropcdset, useropcd, NULL, NULL },
+  { "##userOpcode", S(UOPCODE),0,  "", "", (SUBR) useropcdset, (SUBR) useropcd, NULL, NULL },
   { "xin",  S(XIN_MAX),0,     "****************", "",  xinset,  NULL, NULL, NULL },
   { "xout", S(XOUT_MAX),0,    "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,    "",   "i", setksmpsset, NULL, NULL },
