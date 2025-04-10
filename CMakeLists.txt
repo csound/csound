@@ -759,7 +759,7 @@ set(libcsound_SRCS
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
-    Engine/entry1.c
+    Engine/entry.c
     Engine/files.c
     Engine/extract.c
     Engine/fgens.c

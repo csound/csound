@@ -1,7 +1,7 @@
 /*
-  entry1.c:
+  entry.c:
 
-  Copyright (C) 1991 Barry Vercoe, John ffitch
+  Copyright (C) 1991-2025 Barry Vercoe, John ffitch, Victor Lazzarini, Steven Yi
 
   This file is part of Csound
 
@@ -21,7 +21,7 @@
   02110-1301 USA
 */
 
-#include "entry1.h"             /*                      ENTRY1.C        */
+#include "entry.h"          
 #include "interlocks.h"
 
 /* inarg types include the following:
@@ -958,12 +958,12 @@ OENTRY opcodlst_1[] = {
   { "schedkwhennamed.S", S(TRIGINSTR),0, "",
     "kkkSkz",triginset_S, ktriginstr_S, NULL },
   { "trigseq", S(TRIGSEQ),0,      "",     "kkkkkz", trigseq_set, trigseq, NULL },
-  { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, eventOpcode_Instr, NULL   },
-  { "event", S(LINEVENT),0,        "",     "Skz",  NULL, eventOpcode, NULL   },
-  { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  eventOpcodeI_Instr, NULL, NULL  },
-  { "event_i", S(LINEVENT),0,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
-  { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, eventOpcode_S, NULL   },
-  { "event_i.S", S(LINEVENT),0,     "",    "SSm",  eventOpcodeI_S, NULL, NULL  },
+  { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, event_opcode_Instr, NULL   },
+  { "event", S(LINEVENT),0,        "",     "Skz",  NULL, event_opcode, NULL   },
+  { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL  },
+  { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL  },
+  { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
+  { "event_i.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL  },
   { "play", S(LINEVENT2), 0,  ":Instr;", ":InstrDef;m", (SUBR) play_instr, NULL, NULL },
   { "pause", S(PAUSE_INSTR), 0,  "", ":Instr;k", NULL, (SUBR) pause_instance_opcode,  NULL },
   { "create", S(CREATE_INSTANCE), 0,  ":Instr;", ":InstrDef;", (SUBR) create_instance_opcode, NULL, NULL },
@@ -973,25 +973,25 @@ OENTRY opcodlst_1[] = {
   { "delete", S(DEL_INSTR), 0,  "", ":Instr;", NULL, NULL, (SUBR) delete_instance_opcode },
   { "getinstance", S(DEL_INSTR), 0,  ":Instr;", "", (SUBR) get_instance, NULL, NULL },
   { "splice", S(SPLICE_INSTR), 0,  "i", ":Instr;:Instr;i", (SUBR) splice_instance, NULL, NULL },  
-  { "schedule.instri", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instanceOpcode_Instr, NULL, NULL  },
-  { "schedule.instrk", S(LINEVENT2),0,    ":Instr;",  ":InstrDef;kz",  NULL, instanceOpcode_Instr, NULL   },
-  { "schedule.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "schedule.k", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "schedule.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "schedule.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instanceOpcode_S, NULL },
+  { "schedule.instri", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instance_opcode_Instr, NULL, NULL  },
+  { "schedule.instrk", S(LINEVENT2),0,    ":Instr;",  ":InstrDef;kz",  NULL, instance_opcode_Instr, NULL   },
+  { "schedule.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instance_opcode_, NULL, NULL  },
+  { "schedule.k", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instance_opcode_, NULL   },
+  { "schedule.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instance_opcode_S, NULL, NULL},
+  { "schedule.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instance_opcode_S, NULL },
   /* START DEPRECATED */
-  { "nstance", S(LINEVENT2),0,      "k",  ":InstrDef;kz",  NULL, instanceOpcode_Instr, NULL   },
-  { "nstance", S(LINEVENT2),0,      "k",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "nstance.instr", S(LINEVENT2),0,   "i",  ":InstrDef;iim",  instanceOpcode_Instr, NULL, NULL  },
-  { "nstance.instr", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instanceOpcode_Instr, NULL, NULL  },
-  { "nstance", S(LINEVENT2),0,      ":Instr;",  ":InstrDef;kz",  NULL, instanceOpcode_Instr, NULL   },
-  { "nstance.i", S(LINEVENT2),0,   "i",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "nstance.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "nstance", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "nstance.kS", S(LINEVENT2),0,   "k",  "SSz",  NULL, instanceOpcode_S, NULL },
-  { "nstance.S", S(LINEVENT2),0,   "i",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "nstance.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "nstance.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instanceOpcode_S, NULL },
+  { "nstance", S(LINEVENT2),0,      "k",  ":InstrDef;kz",  NULL, instance_opcode_Instr, NULL   },
+  { "nstance", S(LINEVENT2),0,      "k",  "kkz",  NULL, instance_opcode_, NULL   },
+  { "nstance.instr", S(LINEVENT2),0,   "i",  ":InstrDef;iim",  instance_opcode_Instr, NULL, NULL  },
+  { "nstance.instr", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instance_opcode_Instr, NULL, NULL  },
+  { "nstance", S(LINEVENT2),0,      ":Instr;",  ":InstrDef;kz",  NULL, instance_opcode_Instr, NULL   },
+  { "nstance.i", S(LINEVENT2),0,   "i",  "iiim",  instance_opcode_, NULL, NULL  },
+  { "nstance.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instance_opcode_, NULL, NULL  },
+  { "nstance", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instance_opcode_, NULL   },
+  { "nstance.kS", S(LINEVENT2),0,   "k",  "SSz",  NULL, instance_opcode_S, NULL },
+  { "nstance.S", S(LINEVENT2),0,   "i",  "Siim",  instance_opcode_S, NULL, NULL},
+  { "nstance.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instance_opcode_S, NULL, NULL},
+  { "nstance.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instance_opcode_S, NULL },
   { "turnoff.i", S(KILLOP),0,     "",     "i", kill_instance, NULL, NULL  },
   { "turnoff.k", S(KILLOP),0,      "",     "k", NULL, kill_instance, NULL},
   { "turnoff.k", S(KILLOP),0,      "",     "kk", NULL, (SUBR) kill_instancek, NULL},

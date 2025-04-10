@@ -51,7 +51,7 @@ int32_t free_function_table(CSOUND *csound, int32_t tableNum);
  * Finds a function table.
  * Returns a FUNC pointer or NULL if unsuccessful
  */
-FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp);
+FUNC *find_function_table(CSOUND *csound, MYFLT *argp);
 
 #endif  /* CSOUND_FGENS_H */
 

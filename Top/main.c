@@ -45,7 +45,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *csd);
 uintptr_t kperfThread(void *cs);
 // void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 // void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
-void csoundInputMessageInternal(CSOUND *csound, const char *message);
+void csound_input_message(CSOUND *csound, const char *message);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 

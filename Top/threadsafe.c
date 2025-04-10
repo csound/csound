@@ -36,7 +36,7 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
 void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
                   int32_t mode, int32_t allow_release);
-void csoundInputMessageInternal(CSOUND *csound, const char *message);
+void csound_input_message(CSOUND *csound, const char *message);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *message);
 void csoundTableCopyOutInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
 void csoundTableCopyInInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
@@ -139,7 +139,7 @@ void message_dequeue(CSOUND *csound) {
       case INPUT_MESSAGE:
         {
           const char *str = msg->args;
-          csoundInputMessageInternal(csound, str);
+          csound_input_message(csound, str);
         }
 
         break;
@@ -347,7 +347,7 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *i
 */
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
-  csoundInputMessageInternal(csound, message);
+  csound_input_message(csound, message);
   csoundUnlockMutex(csound->API_lock);
 }
 

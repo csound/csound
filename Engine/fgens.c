@@ -1160,7 +1160,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
         return fterror(ff, Str("a range given exceeds table length"));
       }
 
-      if (LIKELY((fnp=csoundFTFind(csound,&fn))!=NULL)) { /* make sure fn exists */
+      if (LIKELY((fnp=find_function_table(csound,&fn))!=NULL)) { /* make sure fn exists */
         fp = fnp->ftable, fnlen = fnp->flen-1;        /* and set it up */
       }
       else {
@@ -1389,7 +1389,7 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
       ftp           = ftalloc(ff);
-      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in csoundFTFind */
+      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in find_function_table */
     }
     fp = ftp->ftable;
     j = 0;
@@ -2058,7 +2058,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
+    if (UNLIKELY((src = find_function_table(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -2417,7 +2417,7 @@ int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
 /* at any stage                                 */
 /* find ptr to a deferred-size ftable structure */
 /***********************************************/
-FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
+FUNC *find_function_table(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int32_t     fno = MYFLT2LONG(*argp);
@@ -2865,7 +2865,7 @@ static int32_t gen52(FGDATA *ff, FUNC *ftp)
       MYFLT *pp;
       if (LIKELY((n * 3) + 6<PMAX-1)) pp = &(ff->e.p[(n * 3) + 6]);
       else pp = &(ff->e.c.extra[(n * 3) + 6-PMAX]);
-      f = csoundFTFind(csound, pp);
+      f = find_function_table(csound, pp);
       if (UNLIKELY(f == NULL))
         return NOTOK;
       len2 = (int32_t) f->flen;
@@ -3156,7 +3156,7 @@ int32_t resize_table(CSOUND *csound, RESIZE *p)
       printf("WARNING: EXPERIMENTAL CODE\n");
       warned = 1;
     }
-    if (UNLIKELY((ftp = csoundFTFind(csound, p->fn)) == NULL))
+    if (UNLIKELY((ftp = find_function_table(csound, p->fn)) == NULL))
       return NOTOK;
     if (ftp->flen<fsize)
       ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,

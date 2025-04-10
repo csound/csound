@@ -34,9 +34,9 @@
 #endif
 #include "csound_standard_types.h"
 
-extern void csoundInputMessageInternal(CSOUND *, const char *);
-int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+extern void csound_input_message(CSOUND *, const char *);
+int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 
 
 int32_t schedule_array(CSOUND *csound, SCHED *p)
@@ -53,7 +53,7 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
       pp.args[i] = args+i-1;
     }
     pp.flag = 1;
-    return eventOpcodeI_(csound, &pp, 0, 'i');
+    return event_opcode_init(csound, &pp, 0, 'i');
 }
 
 
@@ -74,9 +74,9 @@ int32_t schedule(CSOUND *csound, SCHED *p)
     }
     pp.flag = 1;
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR)
-      return eventOpcodeI_(csound, &pp, 2, 'i');
+      return event_opcode_init(csound, &pp, 2, 'i');
     else 
-      return eventOpcodeI_(csound, &pp, 0, 'i');
+      return event_opcode_init(csound, &pp, 0, 'i');
       
 }
 /* from aops.h */
@@ -124,7 +124,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
        }
     }
 
-    csoundInputMessageInternal(csound, s);
+    csound_input_message(csound, s);
     return OK;
 }
 
@@ -144,7 +144,7 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
           strncat(s, sf, 16384-strlen(s));
        }
     }
-    csoundInputMessageInternal(csound, s);
+    csound_input_message(csound, s);
     return OK;
 }
 
@@ -164,7 +164,7 @@ int32_t schedule_S(CSOUND *csound, SCHED *p)
       pp.args[i] = p->argums[i-4];
     }
     pp.flag = 1;
-    return eventOpcodeI_(csound, &pp, 1, 'i');
+    return event_opcode_init(csound, &pp, 1, 'i');
 }
 
 
@@ -194,14 +194,14 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
       p->todo =0;
       pp.flag = 1;
       if (IS_STR_ARG(p->which)){
-        return eventOpcode_(csound, &pp, 1, 'i');
+        return event_opcode_perf(csound, &pp, 1, 'i');
       }
       if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR){
-         return eventOpcode_(csound, &pp, 2, 'i');
+         return event_opcode_perf(csound, &pp, 2, 'i');
       }
       else {
         pp.flag = 0;
-        return eventOpcode_(csound, &pp, 0, 'i');
+        return event_opcode_perf(csound, &pp, 0, 'i');
       }
     }
     else return OK;

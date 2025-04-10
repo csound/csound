@@ -105,8 +105,8 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   return csound->InitError(csound, "failed to compile instr\n");
 }
 #include "linevent.h"
-int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 /* compiles and runs an anonymous instrument
    run_instr Scode, idur[, ...]  
 */
@@ -138,7 +138,7 @@ int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p) {
        }
       pp.flag = 1;
       csound->Free(csound, code); 
-      return eventOpcodeI_(csound, &pp, 0, 'i');
+      return event_opcode_init(csound, &pp, 0, 'i');
   }
   csound->Free(csound, code);
   return csound->InitError(csound, "failed to compile instr\n");
@@ -159,7 +159,7 @@ int32_t run_instr(CSOUND *csound, RINSTR *p) {
          pp.args[i+3] = p->argums[i];
        }
       pp.flag = 1;
-      return eventOpcodeI_(csound, &pp, 2, 'i');
+      return event_opcode_init(csound, &pp, 2, 'i');
 }
 
 int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
@@ -178,7 +178,7 @@ int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
          pp.args[i+3] = p->argums[i];
        }
        pp.flag = 1;
-       return eventOpcode_(csound, &pp, 2, 'i');
+       return event_opcode_perf(csound, &pp, 2, 'i');
       } else return OK;
 }
 

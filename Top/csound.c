@@ -109,7 +109,7 @@ extern void memRESET(CSOUND *);
 extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int32_t csoundInitStaticModules(CSOUND *);
 extern void close_all_files(CSOUND *);
-extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
+extern void csound_input_message(CSOUND *csound, const char *message);
 extern int32_t isstrcod(MYFLT);
 extern int32_t fterror(const FGDATA *ff, const char *s, ...);
 PUBLIC int32_t csoundErrCnt(CSOUND *);
@@ -494,7 +494,7 @@ static const CSOUND cenviron_ = {
     csoundGetScoreOffsetSeconds,
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
-    csoundInputMessageInternal,
+    csound_input_message,
     csoundReadScoreInternal,
     /* message printout */
     csoundMessage,
@@ -522,7 +522,7 @@ static const CSOUND cenviron_ = {
     create_function_table,
     alloc_function_table,
     free_function_table,
-    csoundFTFind,
+    find_function_table,
     csoundGetNamedGens,
     /* global and config variable manipulation */
     csoundCreateGlobalVariable,
@@ -2302,7 +2302,7 @@ int32_t csoundReadScoreInternal(CSOUND *csound, const char *str) {
   } else {
 
     char *sc = scsortstr(csound, csound->scorestr);
-    csoundInputMessageInternal(csound, (const char *)sc);
+    csound_input_message(csound, (const char *)sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));
   }

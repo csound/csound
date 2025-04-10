@@ -1,7 +1,8 @@
 /*
-  entry1.h:
+  entry.h:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch
+    Copyright (C) 1991-2005 Barry Vercoe, John ffitch, 
+                       Victor Lazzarini, Steven Yi
 
     This file is part of Csound.
 
@@ -352,11 +353,11 @@ int32_t ifschedule(CSOUND *, void *), kschedule(CSOUND *, void *);
 int32_t triginset(CSOUND *, void *), ktriginstr(CSOUND *, void *);
 int32_t triginset_S(CSOUND *, void *), ktriginstr_S(CSOUND *, void *);
 int32_t trigseq_set(CSOUND *, void *), trigseq(CSOUND *, void *);
-int32_t eventOpcode(CSOUND *, void *), eventOpcodeI(CSOUND *, void *);
-int32_t eventOpcode_Instr(CSOUND *, void *), eventOpcodeI_Instr(CSOUND *, void *);
-int32_t eventOpcode_S(CSOUND *, void *), eventOpcodeI_S(CSOUND *, void *);
-int32_t instanceOpcode(CSOUND *, void *), instanceOpcode_S(CSOUND *, void *);
-int32_t instanceOpcode_Instr(CSOUND *, void *p);
+int32_t event_opcode(CSOUND *, void *), event_opcode_i(CSOUND *, void *);
+int32_t event_opcode_Instr(CSOUND *, void *), event_opcode_i_Instr(CSOUND *, void *);
+int32_t event_opcode_S(CSOUND *, void *), event_opcode_i_S(CSOUND *, void *);
+int32_t instance_opcode_(CSOUND *, void *), instance_opcode_S(CSOUND *, void *);
+int32_t instance_opcode_Instr(CSOUND *, void *p);
 int32_t kill_instance(CSOUND *csound, void *p);
 int32_t lfoset(CSOUND *, void *);
 int32_t lfok(CSOUND *, void *), lfoa(CSOUND *, void *);

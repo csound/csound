@@ -41,16 +41,17 @@
 int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
 int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
 void    midi_open(CSOUND *);
+void    midi_open_out(CSOUND *);
+void    midi_close(CSOUND *);
 void    m_chn_init_all(CSOUND *);
 void    free_inactive_instances(CSOUND*);
 void    beat_expire(CSOUND *, double), time_expire(CSOUND *, double);
 void    sf_open_in(CSOUND *), sf_open_out(CSOUND*), sf_open_nosound(CSOUND*);
 void    set_io_backend(CSOUND *), sf_close_in(CSOUND*), sf_close_out(CSOUND*);
-void    midi_close(CSOUND *);
-void    rt_close(CSOUND *);
+void    linevent_open(CSOUND *);
+void    linevent_close(CSOUND *);
 void    remote_cleanup(CSOUND *);
 char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
-void    midi_open_out(CSOUND *);
 void    print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
@@ -325,7 +326,7 @@ int32_t start_engine(CSOUND *csound)
     STA(sormsg)  = O->msglevel & SORMSG;
 
     if (O->Linein)
-      RTLineset(csound);                /* if realtime input expected   */
+      linevent_open(csound);  /* if realtime input expected   */
 
     // VL 01-05-2019
     // if --use-system-sr, this gets called earlier to override
@@ -557,7 +558,7 @@ int32_t csoundCleanup(CSOUND *csound)
       if (csound->print_version) print_csound_version(csound);
     }
     /* close line input (-L) */
-    rt_close(csound);
+    linevent_close(csound);
     /* close MIDI input */
     midi_close(csound);
 

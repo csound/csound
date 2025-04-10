@@ -55,7 +55,7 @@
 /*     char    Linebuf[LBUFSIZ]; */
 /* } LINEVENT_GLOBALS; */
 
-static void sensLine(CSOUND *csound, void *userData);
+static void sense_line(CSOUND *csound, void *userData);
 int32_t csoundRegisterSenseEventCallback(CSOUND *,
                                        void (*func)(CSOUND *, void *),
                                        void *userData);
@@ -67,8 +67,9 @@ int32_t csoundRegisterSenseEventCallback(CSOUND *,
 #define O_NDELAY 0
 #endif
 
-void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
-{                                   /*     callable once from musmon.c        */
+void linevent_open(CSOUND *csound)
+/* set up Linebuf & ready the input files */
+{ /*     callable once from musmon.c        */
     OPARMS  *O = csound->oparms;
     /* csound->lineventGlobals = (LINEVENT_GLOBALS*) */
     /*                            csound->Calloc(csound, */
@@ -108,14 +109,14 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-    csoundRegisterSenseEventCallback(csound, sensLine, NULL);
+    csoundRegisterSenseEventCallback(csound, sense_line, NULL);
 }
 
 #ifdef PIPES
 int32_t _pclose(FILE*);
 #endif
 
-void rt_close(CSOUND *csound)
+void linevent_close(CSOUND *csound)
 {
     if (csound->oparms->Linein == 0)
       return;
@@ -193,7 +194,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
-    csoundRegisterSenseEventCallback(csound, sensLine, NULL);
+    csoundRegisterSenseEventCallback(csound, sense_line, NULL);
 
     return 0;
 }
@@ -201,7 +202,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-void csoundInputMessageInternal(CSOUND *csound, const char *message)
+void csound_input_message(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
 #if 1
@@ -239,7 +240,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-static void sensLine(CSOUND *csound, void *userData)
+static void sense_line(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
@@ -460,15 +461,18 @@ static void sensLine(CSOUND *csound, void *userData)
 
 }
 
-/* send a lineevent from the orchestra -matt 2001/12/07 */
+
 MYFLT named_instr_find(CSOUND *csound, char *s);
 static const char *errmsg_1 =
-  Str_noop("event: param 1 must be \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\"");
+  Str_noop("event: param 1 must be"
+           " \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\"");
 static const char *errmsg_2 =
-  Str_noop("event: string name is allowed only for \"i\", \"d\", and \"q\" events");
+  Str_noop("event: string name is allowed only for"
+           " \"i\", \"d\", and \"q\" events");
 
 int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
-int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
+int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p,
+                                 int32_t insname, char p1)
 {
     EVTBLK  evt;
     int32_t     i;
@@ -549,25 +553,26 @@ int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
     return OK;
 }
 
-int32_t eventOpcode(CSOUND *csound, LINEVENT *p)
+int32_t event_opcode(CSOUND *csound, LINEVENT *p)
 {
-    return eventOpcode_(csound, p, 0, 0);
+    return event_opcode_perf(csound, p, 0, 0);
 }
 
-int32_t eventOpcode_S(CSOUND *csound, LINEVENT *p)
+int32_t event_opcode_S(CSOUND *csound, LINEVENT *p)
 {
-    return eventOpcode_(csound, p, 1, 0);
+    return event_opcode_perf(csound, p, 1, 0);
 }
 
-int32_t eventOpcode_Instr(CSOUND *csound, LINEVENT *p)
+int32_t event_opcode_Instr(CSOUND *csound, LINEVENT *p)
 {
-    return eventOpcode_(csound, p, 2, 0);
+    return event_opcode_perf(csound, p, 2, 0);
 }
 
 
 
 /* i-time version of event opcode */
-int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
+int32_t event_opcode_init(CSOUND *csound, LINEVENT *p,
+                                 int32_t insname, char p1)
 {
     EVTBLK  evt;
     int32_t     i, err = 0;
@@ -655,23 +660,24 @@ int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t insname, char p1)
     return (err == 0 ? OK : NOTOK);
 }
 
-int32_t eventOpcodeI(CSOUND *csound, LINEVENT *p)
+int32_t event_opcode_i(CSOUND *csound, LINEVENT *p)
 {
-    return eventOpcodeI_(csound, p, 0, 0);
+    return event_opcode_init(csound, p, 0, 0);
 }
 
-int32_t eventOpcodeI_S(CSOUND *csound, LINEVENT *p)
+int32_t event_opcode_i_S(CSOUND *csound, LINEVENT *p)
 {
-    return eventOpcodeI_(csound, p, 1, 0);
+    return event_opcode_init(csound, p, 1, 0);
 }
 
-int32_t eventOpcodeI_Instr(CSOUND *csound, LINEVENT *p)
+int32_t event_opcode_i_Instr(CSOUND *csound, LINEVENT *p)
 {
-    return eventOpcodeI_(csound, p, 2, 0);
+    return event_opcode_init(csound, p, 2, 0);
 }
 #include "csound_standard_types.h"
 
-int32_t instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int32_t insname)
+int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
+                        int32_t insname)
 {
     EVTBLK  evt;
     int32_t     i;
@@ -720,19 +726,19 @@ int32_t instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int32_t insname)
     return OK;
 }
 
-int32_t instanceOpcode(CSOUND *csound, LINEVENT2 *p)
+int32_t instance_opcode_(CSOUND *csound, LINEVENT2 *p)
 {
-    return instanceOpcode_(csound, p, 0);
+    return instance_opcode(csound, p, 0);
 }
 
-int32_t instanceOpcode_S(CSOUND *csound, LINEVENT2 *p)
+int32_t instance_opcode_S(CSOUND *csound, LINEVENT2 *p)
 {
-    return instanceOpcode_(csound, p, 1);
+    return instance_opcode(csound, p, 1);
 }
 
-int32_t instanceOpcode_Instr(CSOUND *csound, LINEVENT2 *p)
+int32_t instance_opcode_Instr(CSOUND *csound, LINEVENT2 *p)
 {
-    return instanceOpcode_(csound, p, 2);
+    return instance_opcode(csound, p, 2);
 }
 
 
