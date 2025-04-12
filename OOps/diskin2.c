@@ -1245,7 +1245,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
 #else
-rj      p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
+      p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
     }
     /* clear outputs to zero first */
