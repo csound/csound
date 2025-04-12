@@ -297,214 +297,214 @@ int32_t soundin(CSOUND *csound, DISKIN2 *p){
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 {
-    double  pos;
-    char    name[1024];
-    void    *fd;
-    SFLIB_INFO sfinfo;
-    int32_t     n;
+  double  pos;
+  char    name[1024];
+  void    *fd;
+  SFLIB_INFO sfinfo;
+  int32_t     n;
             
-
-    /* check number of channels */
-    p->nChannels = (int32_t)(p->OUTOCOUNT);
-    if (UNLIKELY(p->nChannels < 1 || p->nChannels > DISKIN2_MAXCHN)) {
-      return csound->InitError(csound,
-                               Str("diskin2: invalid number of channels"));
-    }
-    /* if already open, close old file first */
-    if (p->fdch.fd != NULL) {
-      /* skip initialisation if requested */
-      if (p->SkipInit != FL(0.0))
-        return OK;
-      csound_fd_close(csound, &(p->fdch));
-    }
-    /* set default format parameters */
-    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    sfinfo.samplerate = MYFLT2LONG(CS_ESR);
-    sfinfo.channels = p->nChannels;
-    /* check for user specified sample format */
-    n = MYFLT2LONG(*p->iSampleFormat);
-    if (n<0) {
-      n = -n;
-      if (UNLIKELY(n < 0 || n > 10))
-        return csound->InitError(csound, Str("diskin2: unknown sample format"));
-      sfinfo.format = diskin2_format_table[n];
-    }
-    /* open file */
-    /* FIXME: name can overflow with very long string */
-    if (stringname==0){
-      if (IsStringCode(*p->iFileCode))
-        strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
-    }
-    else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
-
-    fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
-                           "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
-    if (UNLIKELY(fd == NULL)) {
-      return csound->InitError(csound,
-                               Str("diskin2: %s: failed to open file (%s)"),
-                               name, Str(csound->SndfileStrError(csound,NULL)));
-    }
-    /* record file handle so that it will be closed at note-off */
-    memset(&(p->fdch), 0, sizeof(FDCH));
-    p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
-
-    /* check number of channels in file (must equal the number of outargs) */
-    if (UNLIKELY(sfinfo.channels != p->nChannels)) {
-      return csound->InitError(csound,
-                               Str("diskin2: number of output args "
-                                   "inconsistent with number of file channels"));
-    }
+  /* check number of channels */
+  p->oChannels = (int32_t)(p->OUTOCOUNT);
+  if (UNLIKELY(p->oChannels < 1 || p->oChannels > DISKIN2_MAXCHN)) {
+    return csound->InitError(csound,
+                             Str("diskin2: invalid number of channels"));
+  }
+  /* if already open, close old file first */
+  if (p->fdch.fd != NULL) {
     /* skip initialisation if requested */
-    if (p->initDone && p->SkipInit != FL(0.0))
+    if (p->SkipInit != FL(0.0))
       return OK;
+    csound_fd_close(csound, &(p->fdch));
+  }
+  /* set default format parameters */
+  memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+  sfinfo.samplerate = MYFLT2LONG(CS_ESR);
+  sfinfo.channels = p->oChannels;
+  /* check for user specified sample format */
+  n = MYFLT2LONG(*p->iSampleFormat);
+  if (n<0) {
+    n = -n;
+    if (UNLIKELY(n < 0 || n > 10))
+      return csound->InitError(csound, Str("diskin2: unknown sample format"));
+    sfinfo.format = diskin2_format_table[n];
+  }
+  /* open file */
+  /* FIXME: name can overflow with very long string */
+  if (stringname==0){
+    if (IsStringCode(*p->iFileCode))
+      strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+    else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
+  }
+  else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
+  fd = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+                        "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
+  if (UNLIKELY(fd == NULL)) {
+    return csound->InitError(csound,
+                             Str("diskin2: %s: failed to open file (%s)"),
+                             name, Str(csound->SndfileStrError(csound,NULL)));
+  }
+  /* record file handle so that it will be closed at note-off */
+  memset(&(p->fdch), 0, sizeof(FDCH));
+  p->fdch.fd = fd;
+  fdrecord(csound, &(p->fdch));
 
-    /* interpolation window size: valid settings are 1 (no interpolation), */
-    /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
-    /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
-    p->winSize = MYFLT2LONG(p->WinSize);
-    if (p->winSize < 1)
-      p->winSize = 4;               /* use cubic interpolation by default */
-    else if (p->winSize > 2) {
-      /* cubic/sinc: round to nearest integer multiple of 4 */
-      p->winSize = (p->winSize + 2) & (~3L);
-      if ((uint32) p->winSize > 1024UL)
-        p->winSize = 1024;
-      /* constant for window calculation */
-      p->winFact = (FL(1.0) - POWER(p->winSize * FL(0.85172), -FL(0.89624)))
-        / ((MYFLT)((p->winSize * p->winSize) >> 2));
-    }
-    /* set file parameters from header info */
-    p->fileLength = (int32_t) sfinfo.frames;
-    p->warpScale = 1.0;
-    if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate) {
-      if (LIKELY(p->winSize != 1)) {
-        /* will automatically convert sample rate if interpolation is enabled */
-        p->warpScale = (double)sfinfo.samplerate / (double)CS_ESR;
-      }
-      else {
-        csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
-                                    "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, MYFLT2LONG(CS_ESR));
-      }
-    }
-    /* wrap mode */
-    p->wrapMode = (*(p->iWrapMode) == FL(0.0) ? 0 : 1);
-    if (UNLIKELY(p->fileLength < 1L))
-      p->wrapMode = 0;
-    /* initialise read position */
-    pos = (double)*(p->iSkipTime) * (double)CS_ESR * p->warpScale;
-    pos *= (double)POS_FRAC_SCALE;
-    p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
-    if (p->wrapMode) {
-      p->pos_frac %= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
-      if (UNLIKELY(p->pos_frac < (int64_t)0))
-        p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
-    }
-    p->pos_frac_inc = (int64_t)0;
-    p->prv_kTranspose = FL(0.0);
-    p->transpose = FL(1.0);
-    /* allocate and initialise buffers */
-    p->bufSize = diskin2_calc_buffer_size(p, MYFLT2LONG(p->BufSize));
-    n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
-    if (n != (int32_t)p->auxData.size)
-      csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
-    p->bufStartPos = p->prvBufStartPos = -((int32_t)p->bufSize);
-    n = p->bufSize * p->nChannels;
-    p->buf = (MYFLT*) (p->auxData.auxp);
-    p->prvBuf = (MYFLT*) p->buf + (int32_t)n;
+  /* set the number of channels from file */
+  p->nChannels = sfinfo.channels;
 
-    memset(p->buf, 0, n*sizeof(MYFLT));
+  /* skip initialisation if requested */
+  if (p->initDone && p->SkipInit != FL(0.0))
+    return OK;
 
-    // create circular buffer, on fail set mode to synchronous
-    if (csound->oparms->realtime==1 && p->fforceSync==0 &&
-        (p->cb = csound->CreateCircularBuffer(csound,
-                                              p->bufSize*p->nChannels*2,
-                                              sizeof(MYFLT))) != NULL){
-      DISKIN_INST **top, *current;
-#ifndef __EMSCRIPTEN__
-      int32_t *start;
-#endif
-      // allocate buffer
-      p->aOut_bufsize =  ((unsigned int)p->bufSize) < CS_KSMPS ?
-        ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
-      n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
-      if (n != (int32_t)p->auxData2.size)
-        csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
-      p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
-      memset(p->aOut_buf, 0, n);
-      top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
-#ifndef __EMSCRIPTEN__
-      if (top == NULL){
-        csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
-        top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
-        *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
-        csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(void**));
-        csound->CreateGlobalVariable(csound,
-                                     "DISKIN_THREAD_START", sizeof(int32_t));
-        current = *top;
-      }
-      else
-#endif
-        {
-          current = *top;
-          while(current->nxt != NULL) { /* find next empty slot in chain */
-            current = current->nxt;
-          }
-          current->nxt = (DISKIN_INST *) csound->Calloc(csound,
-                                                        sizeof(DISKIN_INST));
-          current = current->nxt;
-        }
-      current->csound = csound;
-      current->diskin = p;
-      current->nxt = NULL;
-
-#ifndef __EMSCRIPTEN__
-      if ( *(start = csound->QueryGlobalVariable(csound,
-                                                 "DISKIN_THREAD_START")) == 0) {
-        uintptr_t diskin_io_thread(void *p);
-        void **thread = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
-        *thread = csound->CreateThread(diskin_io_thread, *top);
-        *start = 1;
-      }
-#endif
-
-      p->async = 1;
-
-      /* print file information */
-      if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-        csound->Message(csound, "%s '%s'\n"
-                        "         %d Hz, %d %s, %"  PRId64 " %s",
-                        Str("diskin2: opened (asynchronously)"),
-                        csound->GetFileName(fd),
-                        sfinfo.samplerate, sfinfo.channels,
-                        Str("channel(s)"),
-                        (int64_t)sfinfo.frames,
-                        Str("sample frames\n"));
-      }
+  /* interpolation window size: valid settings are 1 (no interpolation), */
+  /* 2 (linear interpolation), 4 (cubic interpolation), and integer */
+  /* multiples of 4 in the range 8 to 1024 (sinc interpolation) */
+  p->winSize = MYFLT2LONG(p->WinSize);
+  if (p->winSize < 1)
+    p->winSize = 4;               /* use cubic interpolation by default */
+  else if (p->winSize > 2) {
+    /* cubic/sinc: round to nearest integer multiple of 4 */
+    p->winSize = (p->winSize + 2) & (~3L);
+    if ((uint32) p->winSize > 1024UL)
+      p->winSize = 1024;
+    /* constant for window calculation */
+    p->winFact = (FL(1.0) - POWER(p->winSize * FL(0.85172), -FL(0.89624)))
+      / ((MYFLT)((p->winSize * p->winSize) >> 2));
+  }
+  /* set file parameters from header info */
+  p->fileLength = (int32_t) sfinfo.frames;
+  p->warpScale = 1.0;
+  if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate) {
+    if (LIKELY(p->winSize != 1)) {
+      /* will automatically convert sample rate if interpolation is enabled */
+      p->warpScale = (double)sfinfo.samplerate / (double)CS_ESR;
     }
     else {
-      p->aOut_buf = NULL;
-      p->aOut_bufsize = 0;
-      p->async = 0;
-      /* print file information */
-      if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
-        csound->Message(csound, "%s '%s':\n"
-                        "         %d Hz, %d %s, %" PRId64 " %s\n",
-                        Str("diskin2: opened"),
-                        csound->GetFileName(fd),
-                        sfinfo.samplerate, sfinfo.channels,
-                        Str("channel(s)"),
-                        (int64_t)sfinfo.frames,
-                        Str("sample frames\n"));
-      }
+      csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
+                                  "!= orchestra sr (%d)\n"),
+                      sfinfo.samplerate, MYFLT2LONG(CS_ESR));
     }
+  }
+  /* wrap mode */
+  p->wrapMode = (*(p->iWrapMode) == FL(0.0) ? 0 : 1);
+  if (UNLIKELY(p->fileLength < 1L))
+    p->wrapMode = 0;
+  /* initialise read position */
+  pos = (double)*(p->iSkipTime) * (double)CS_ESR * p->warpScale;
+  pos *= (double)POS_FRAC_SCALE;
+  p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
+  if (p->wrapMode) {
+    p->pos_frac %= ((int64_t)p->fileLength << POS_FRAC_SHIFT);
+    if (UNLIKELY(p->pos_frac < (int64_t)0))
+      p->pos_frac += ((int64_t)p->fileLength << POS_FRAC_SHIFT);
+  }
+  p->pos_frac_inc = (int64_t)0;
+  p->prv_kTranspose = FL(0.0);
+  p->transpose = FL(1.0);
+  /* allocate and initialise buffers */
+  p->bufSize = diskin2_calc_buffer_size(p, MYFLT2LONG(p->BufSize));
+  n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
+  if (n != (int32_t)p->auxData.size)
+    csound->AuxAlloc(csound, (int32_t) n, &(p->auxData));
+  p->bufStartPos = p->prvBufStartPos = -((int32_t)p->bufSize);
+  n = p->bufSize * p->nChannels;
+  p->buf = (MYFLT*) (p->auxData.auxp);
+  p->prvBuf = (MYFLT*) p->buf + (int32_t)n;
+  memset(p->buf, 0, n*sizeof(MYFLT));
+  // create circular buffer, on fail set mode to synchronous
+  if (csound->oparms->realtime==1 && p->fforceSync==0 &&
+      (p->cb = csound->CreateCircularBuffer(csound,
+                                            p->bufSize*p->nChannels*2,
+                                            sizeof(MYFLT))) != NULL){
+    DISKIN_INST **top, *current;
+#ifndef __EMSCRIPTEN__
+    int32_t *start;
+#endif
+    // allocate buffer
+    p->aOut_bufsize =  ((unsigned int)p->bufSize) < CS_KSMPS ?
+      ((MYFLT)CS_KSMPS) : ((MYFLT)p->bufSize);
+    n = p->aOut_bufsize*sizeof(MYFLT)*p->nChannels;
+    if (n != (int32_t)p->auxData2.size)
+      csound->AuxAlloc(csound, (int32_t) n, &(p->auxData2));
+    p->aOut_buf = (MYFLT *) (p->auxData2.auxp);
+    memset(p->aOut_buf, 0, n);
+    top = (DISKIN_INST **)csound->QueryGlobalVariable(csound, "DISKIN_INST");
+#ifndef __EMSCRIPTEN__
+    if (top == NULL){
+      csound->CreateGlobalVariable(csound, "DISKIN_INST", sizeof(DISKIN_INST *));
+      top = (DISKIN_INST **) csound->QueryGlobalVariable(csound, "DISKIN_INST");
+      *top = (DISKIN_INST *) csound->Calloc(csound, sizeof(DISKIN_INST));
+      csound->CreateGlobalVariable(csound, "DISKIN_PTHREAD", sizeof(void**));
+      csound->CreateGlobalVariable(csound,
+                                   "DISKIN_THREAD_START", sizeof(int32_t));
+      current = *top;
+    }
+    else
+#endif
+      {
+        current = *top;
+        while(current->nxt != NULL) { /* find next empty slot in chain */
+          current = current->nxt;
+        }
+        current->nxt = (DISKIN_INST *) csound->Calloc(csound,
+                                                      sizeof(DISKIN_INST));
+        current = current->nxt;
+      }
+    current->csound = csound;
+    current->diskin = p;
+    current->nxt = NULL;
 
-    /* done initialisation */
-    p->initDone = 1;
-    return OK;
+#ifndef __EMSCRIPTEN__
+    if ( *(start = csound->QueryGlobalVariable(csound,
+                                               "DISKIN_THREAD_START")) == 0) {
+      uintptr_t diskin_io_thread(void *p);
+      void **thread = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
+      *thread = csound->CreateThread(diskin_io_thread, *top);
+      *start = 1;
+    }
+#endif
+    p->async = 1;
+    /* print file information */
+    if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
+      csound->Message(csound, "%s '%s'\n"
+                      "         %d Hz, %d %s, %"  PRId64 " %s",
+                      Str("diskin2: opened (asynchronously)"),
+                      csound->GetFileName(fd),
+                      sfinfo.samplerate, sfinfo.channels,
+                      Str("channel(s)"),
+                      (int64_t)sfinfo.frames,
+                      Str("sample frames\n"));
+    }
+  }
+  else {
+    p->aOut_buf = NULL;
+    p->aOut_bufsize = 0;
+    p->async = 0;
+    n = CS_KSMPS*p->nChannels*sizeof(MYFLT);
+    
+    // allocate audio data buffer for synchr processing
+    // this is done to avoid using output variable memory
+    if (n != (int32_t)p->audioData.size)
+       csound->AuxAlloc(csound, (int32_t) n, &(p->audioData));
+    for(n = 0; n < p->nChannels; n++)
+      p->aOut[n] = ((MYFLT *)p->audioData.auxp + n*CS_KSMPS);
+         
+    /* print file information */
+    if (UNLIKELY((csound->oparms_.msglevel & 7) == 7)) {
+      csound->Message(csound, "%s '%s':\n"
+                      "         %d Hz, %d %s, %" PRId64 " %s\n",
+                      Str("diskin2: opened"),
+                      csound->GetFileName(fd),
+                      sfinfo.samplerate, sfinfo.channels,
+                      Str("channel(s)"),
+                      (int64_t)sfinfo.frames,
+                      Str("sample frames\n"));
+    }
+  }
+
+  /* done initialisation */
+  p->initDone = 1;
+  return OK;
 }
 
 int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p){
@@ -589,15 +589,13 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
       p->pos_frac_inc = (int64_t)(f + (f < 0.0 ? -0.5 : 0.5));
 #endif
     }
-    /* clear outputs to zero first */
-    for (chn = 0; chn < p->nChannels; chn++)
-      for (nn = 0; nn < nsmps; nn++)
-        p->aOut[chn][nn] = FL(0.0);
+    /* clear audio data buffer to zero first */
+    memset(p->audioData.auxp, 0, p->audioData.size);
     /* file read position */
     if (UNLIKELY(early)) nsmps -= early;
     ndx = (int32_t) (p->pos_frac >> POS_FRAC_SHIFT);
     switch (p->winSize) {
-    case 1:                   /* ---- no interpolation ---- */
+    case 1:    /* ---- no interpolation ---- */
       for (nn = offset; nn < nsmps; nn++) {
         if (p->pos_frac & ((int64_t)POS_FRAC_SCALE >> 1))
           ndx++;                      /* round to nearest sample */
@@ -737,10 +735,14 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
         diskin2_file_pos_inc(p, &ndx);
       }
     }
-    /* apply 0dBFS scale */
-    for (chn = 0; chn < p->nChannels; chn++)
+    /* apply 0dBFS scale and copy to outputs */
+    for (chn = 0; chn < p->oChannels; chn++) {
+      if(chn < p->nChannels) {
       for (nn = offset; nn < nsmps; nn++)
-        p->aOut[chn][nn] *= csound->e0dbfs;
+        p->out[chn][nn] = p->aOut[chn][nn] * csound->e0dbfs;
+      } else /* excess channels set to 0 */
+        p->out[chn][nn] = FL(0.0);
+    }
     return OK;
  file_error:
     csound->ErrorMsg(csound, Str("diskin2: file descriptor closed or invalid\n"));
@@ -950,7 +952,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     MYFLT samp;
     int32_t chn;
     void *cb = p->cb;
-    int32_t chans = p->nChannels;
+    int32_t chans = p->nChannels, ochans = p->oChannels;
     p->transpose =  *p->kTranspose;
 
     if (offset || early) {
@@ -966,14 +968,11 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
                                Str("diskin2: not initialised"));
     }
     for (nn = offset; nn < nsmps; nn++){
-
-      for (chn = 0; chn < chans; chn++) {
-        //int32_t i =0;
-        //do {
-        // i =
-        csound->ReadCircularBuffer(csound, cb, &samp, 1);
-        //} while(i==0);
-        p->aOut[chn][nn] = csound->e0dbfs*samp;
+      for (chn = 0; chn < ochans; chn++) {
+        if(chn < chans) {
+         csound->ReadCircularBuffer(csound, cb, &samp, 1);
+         p->out[chn][nn] = csound->e0dbfs*samp;
+        } else p->out[chn][nn] = FL(0.0);
       }
     }
     return OK;
