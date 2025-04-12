@@ -114,6 +114,7 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
+    AUXCH   audioData;
   MYFLT *aOut_buf;
   MYFLT aOut_bufsize;
   void *cb;
