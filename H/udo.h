@@ -23,7 +23,28 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     MYFLT         *ar[1];
 } UOPCODE;
 
-/* IV - Sep 8 2002: added opcodes: xin, xout, and setksmps */
+/* the number of optional outputs defined in entry.c */
+#define SUBINSTNUMOUTS  8
+
+typedef struct {                        /* IV - Oct 16 2002 */
+    OPDS    h;
+    MYFLT   *ar[VARGMAX];
+    INSDS   *ip, *parent_ip;
+    AUXCH   saved_spout;
+    OPCOD_IOBUFS    buf;
+} SUBINST;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *i_ksmps;
+} SETKSMPS;
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *os;
+    MYFLT   *in_cvt;
+    MYFLT   *out_cvt;
+} OVSMPLE;
 
 typedef struct {
     OPDS    h;

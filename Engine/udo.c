@@ -27,8 +27,9 @@
 #include "csound_data_structures.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
-#include "insert.h"
 #include "namedins.h"
+
+INSDS *instance(CSOUND *, int32_t);
 
 /* Sets up pass-by-ref for input/output to/from UDO instance.
 * Will search for xin/xout opcodes in init chain to read variable to

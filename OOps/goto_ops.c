@@ -23,9 +23,10 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h" /*                            GOTO_OPS.C        */
-#include "insert.h"     /* for goto's */
-#include "aops.h"       /* for cond's */
+#include "csoundCore.h" 
+#include "udo.h"   
+#include "goto_ops.h" 
+#include "aops.h"      
 #include "csound_standard_types.h"
 extern int32_t string_arg_to_insno(CSOUND *, void *p, int32_t is_string);
 

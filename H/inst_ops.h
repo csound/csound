@@ -1,7 +1,7 @@
 /*
-    insert.h:
+    inst_ops.h:
 
-    Copyright (C) 1991, 2002 Barry Vercoe, Istvan Varga
+    Copyright (C) 2025 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -21,69 +21,18 @@
     02110-1301 USA
 */
 
-#ifndef INSERT_H
-#define INSERT_H
+#ifndef INSTOPS_H
+#define INSTOPS_H
 
 #include "csoundCore.h"
-#include "udo.h"
 #include "aops.h"
-
-typedef struct {                        /*       INSERT.H                */
-    OPDS    h;
-    LBLBLK  *lblblk;
-} GOTO;
-
-typedef struct {
-    OPDS    h;
-    int32_t     *cond;
-    LBLBLK  *lblblk;
-} CGOTO;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *ndxvar, *incr, *limit;
-    LBLBLK  *l;
-} LOOP_OPS;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *idel, *idur;
-    LBLBLK  *lblblk;
-    int32   cnt1, cnt2;
-} TIMOUT;
-
-typedef struct {
-    OPDS    h;
-} LINK;
 
 typedef struct {
     OPDS    h;
     INSTANCEREF *inst;
     MYFLT  *ktrig;
 } KILLOP;
-
-int32_t kill_instancek(CSOUND *csound, KILLOP *p);
-
-
-int32 sa_early(CSOUND *csound, AOP *p);
-int32 sa_offset(CSOUND *csound, AOP *p);
   
-/* the number of optional outputs defined in entry.c */
-#define SUBINSTNUMOUTS  8
-
-typedef struct {                        /* IV - Oct 16 2002 */
-    OPDS    h;
-    MYFLT   *ar[VARGMAX];
-    INSDS   *ip, *parent_ip;
-    AUXCH   saved_spout;
-    OPCOD_IOBUFS    buf;
-} SUBINST;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *i_ksmps;
-} SETKSMPS;
-
 typedef struct {                        /* IV - Oct 20 2002 */
     OPDS    h;
     MYFLT   *i_insno, *iname;
@@ -97,22 +46,8 @@ typedef struct {                        /* JPff Feb 2019 */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kInsNo, *kFlags, *kRelease;
-} TURNOFF2;
-
-typedef struct {
-    OPDS    h;
     MYFLT   *insno;
 } DELETEIN;
-
-INSDS *instance(CSOUND *, int32_t);
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *os;
-    MYFLT   *in_cvt;
-    MYFLT   *out_cvt;
-} OVSMPLE;
 
 typedef struct {
   OPDS h;
@@ -158,6 +93,9 @@ typedef struct {
   MYFLT *val;
 } PARM_INSTR;
 
+int32_t kill_instancek(CSOUND *csound, KILLOP *p);
+int32 sa_early(CSOUND *csound, AOP *p);
+int32 sa_offset(CSOUND *csound, AOP *p);
 int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p);
 int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p);
 int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p);
@@ -166,5 +104,13 @@ int32_t pause_instance_opcode(CSOUND *csound, PAUSE_INSTR *p);
 int32_t set_instance_parameter(CSOUND *csound, PARM_INSTR *p);
 int32_t get_instance(CSOUND *csound, DEL_INSTR *p);
 int32_t splice_instance(CSOUND *csound, SPLICE_INSTR *p);
+
+INSDS *instance(CSOUND *, int32_t);
+INSDS *create_instance(CSOUND *csound, int32_t insno);
+void free_instance(CSOUND *csound, INSDS *ip);
+int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+void free_instr_var_memory(CSOUND* csound, INSDS* ip);
+int32_t init_instance(CSOUND *csound, INSDS *ip, EVTBLK *newevtp);
+int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead);
 
 #endif

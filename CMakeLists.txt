@@ -802,6 +802,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/inst_ops.c
     OOps/lpred.c
     OOps/pffft.c
     OOps/goto_ops.c

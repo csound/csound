@@ -29,7 +29,7 @@
 #include "csoundCore.h"
 #include "tok.h"
 #include "csound_orc.h"
-#include "insert.h"
+#include "udo.h"
 #include "namedins.h"
 #include "interlocks.h"
 #include "csound_orc_semantics.h"

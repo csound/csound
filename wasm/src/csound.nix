@@ -401,6 +401,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../OOps/dumpf.c \
       ../OOps/fftlib.c \
       ../OOps/goto_ops.c \
+      ../OOps/inst_ops.c \
       ../OOps/lpred.c \
       ../OOps/midiinterop.c \
       ../OOps/midiops.c \

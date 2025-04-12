@@ -24,8 +24,10 @@
 
 #pragma once
 
-#include "csoundCore.h"         /*                      ENTRY1.H        */
-#include "insert.h"
+#include "csoundCore.h"    
+#include "inst_ops.h"
+#include "udo.h"
+#include "goto_ops.h"
 #include "aops.h"
 #include "complex_ops.h"
 #include "midiops.h"

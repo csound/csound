@@ -30,7 +30,6 @@
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
-#include "insert.h"
 #include "oload.h"
 #include "pstream.h"
 #include "csound_orc_semantics.h"
@@ -56,6 +55,7 @@ void free_instr_var_memory(CSOUND *, INSDS *);
 void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
+INSDS *instance(CSOUND *, int32_t);
 
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
