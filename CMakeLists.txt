@@ -744,8 +744,6 @@ set(libcsound_SRCS
     Top/csound.c
     Top/argdecode.c
     Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
     Top/csmodule.c
     Top/getstring.c
     Top/main.c

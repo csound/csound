@@ -34,6 +34,9 @@
 #include "pstream.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound_orc_compile.h"
+#include "namedins.h"
+#include "inst_ops.h"
 
 extern const char *SYNTHESIZED_ARG;
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
@@ -44,18 +47,16 @@ static void build_const_pool(CSOUND *, INSTRTXT *, char *, int32_t inarg,
                     ENGINE_STATE *engineState);
 static void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
 static void debug_print(CSOUND *csound);
+static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
+                      ENGINE_STATE *engineState, int32_t merge);
 
 MYFLT initialise_io(CSOUND *csound);
-void print_tree(CSOUND *, char *, TREE *);
-void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
-int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
-                      ENGINE_STATE *engineState, int32_t merge);
-int32_t check_instr_name(char *s);
-void free_instr_var_memory(CSOUND *, INSDS *);
 void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
-INSDS *instance(CSOUND *, int32_t);
+void sanitize(CSOUND *csound);
+void add_opcode_defs(CSOUND *csound); 
+
 
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
@@ -81,7 +82,8 @@ static char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState,
   and return the p-field num ( >= 0 ) 
   else return -1  
 */
-int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip, char *s) 
+int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
+                   INSTRTXT *ip, char *s) 
 {
   CS_VARIABLE *var1 =
     csoundFindVariableWithName(csound,
@@ -315,7 +317,7 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
 /**
  * Create an Opcode (OPTXT) from the AST node given for a given engineState
  */
-OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
+static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
                      ENGINE_STATE *engineState) {
   TEXT *tp;
   TREE *inargs, *outargs;
@@ -455,8 +457,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
  * Globals, unlike locals, keep their memory space
  * in separate blocks, pointed by var->memBlock
  */
-CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
-                       char *name, void *typeArg) {
+CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
+                                 CS_TYPE *type, char *name, void *typeArg) {
   CS_VARIABLE *var =
     csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
   size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
@@ -490,7 +492,7 @@ void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
  * Create an Instrument (INSTRTXT) from the AST node given for use as
  * Instrument0. Called from csound_orc_compile.
  */
-INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
+static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                              ENGINE_STATE *engineState, CS_VAR_POOL *varPool) {
   INSTRTXT *ip;
   OPTXT *op;
@@ -788,7 +790,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
    setting of system parameters such as ksmps etc,
    but it allows i-time code to be compiled and run.
 **/
-INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
+static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
                                    ENGINE_STATE *engineState,
                                    CS_VAR_POOL *varPool) {
   INSTRTXT *ip;
@@ -849,7 +851,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   return ip;
 }
 
-int32_t tree_contains_fn_p(CSOUND *csound, TREE* t)
+static int32_t tree_contains_fn_p(CSOUND *csound, TREE* t)
 {
 
   while (t!=NULL) {
@@ -866,7 +868,7 @@ int32_t tree_contains_fn_p(CSOUND *csound, TREE* t)
  * Create an Instrument (INSTRTXT) from the AST node given. Called from
  * csound_orc_compile.
  */
-INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
+static INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
                             ENGINE_STATE *engineState) {
   INSTRTXT *ip;
   OPTXT *op;
@@ -981,8 +983,6 @@ void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip) {
   ip->muted = 1;
 }
 
-void deleteVarPoolMemory(void *csound, CS_VAR_POOL *pool);
-
 /**
    This function deletes an inactive instrument which has been replaced
 */
@@ -1044,7 +1044,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
  * if none is active, send it to be deleted
  * 2) add a dead instr to deadpool (because it still has active instances)
  */
-void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
+static void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
   /* check current items in deadpool to see if they need deleting */
   int32_t i;
   for (i = 0; i < csound->dead_instr_no; i++) {
@@ -1087,18 +1087,15 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
                     csound->dead_instr_no - 1);
 }
 
-MYFLT named_instr_find(CSOUND *csound, char *s);
-MYFLT named_instr_find_in_engine(CSOUND *csound, char *s,
-                                  ENGINE_STATE *engineState);
-
 static void unlink_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,ENGINE_STATE  *engineState);
 /**
    allocate entry for named instrument ip with name s
    instrument number is set to insno
    If named instr exists, it is replaced.
 */
-int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
-                      ENGINE_STATE *engineState, int32_t merge) {
+static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
+                                 int32 insno, ENGINE_STATE *engineState,
+                                 int32_t merge) {
   INSTRNAME *inm, *inm2, *inm_head;
   int32_t no = insno;
 
@@ -1213,7 +1210,8 @@ cont:
 /**
    assign instrument numbers to all named instruments
 */
-void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
+void named_instr_assign_numbers(CSOUND *csound,
+                                       ENGINE_STATE *engineState) {
   INSTRNAME *inm, *inm2, *inm_first;
   int32_t num = 0, inum, insno_priority = 0;
 
@@ -1328,9 +1326,9 @@ static void unlink_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,ENGINE_STATE  *en
    checking to see if number is greater than number of pointers currently
    allocated and if so expand pool of instruments
 */
-void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
-                     ENGINE_STATE *engineState, int32_t merge) {
-
+static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
+                            int32 instrNum, ENGINE_STATE *engineState,
+                            int32_t merge) {
 
   if (UNLIKELY(instrNum >= engineState->maxinsno)) {
     int32_t i;
@@ -1414,7 +1412,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
                     instrNum, engineState->maxinsno, instrtxt);
 }
 
-void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
+static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
                     ENGINE_STATE *engineState) {
   if (opcodeInfo) {
     int32_t num = engineState->maxinsno; /* store after any other instruments */
@@ -1456,8 +1454,8 @@ static int32_t inargs_check(OPCODINFO *opinfo, char *inargs) {
   return 0;
 }
 
-OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
-                            char *inargs) {
+static OPCODINFO *find_opcode_info(CSOUND *csound, char *opname,
+                                   char *outargs, char *inargs) {
   OPCODINFO *opinfo = csound->opcodeInfo;
   if (UNLIKELY(opinfo == NULL)) {
     csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
@@ -1522,7 +1520,7 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
    4) Call instr_prep() and csoundRecalculateVarPoolMemory() for each new instrument
    5) patch up nxtinstxt order
 */
-int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
+static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   int32_t i, end = engineState->maxinsno;
   ENGINE_STATE *current_state = &csound->engineState;
   INSTRTXT *current;
@@ -1599,7 +1597,7 @@ int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   return 0;
 }
 
-int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
+static int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
   cs_hash_table_free(csound, engineState->constantsPool);
   csoundFreeVarPool(csound, engineState->varPool);
   csound->Free(csound, engineState->instrtxtp);
@@ -1607,7 +1605,7 @@ int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
   return 0;
 }
 
-void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
+static void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
   cs_cons_free_complete(csound, typeTable->labelList);
   csound->Free(csound, typeTable);
 }
@@ -1938,8 +1936,7 @@ if (engineState != &csound->engineState) {
   return CSOUND_SUCCESS;
 }
 
-void sanitize(CSOUND *csound);
-void add_opcode_defs(CSOUND *csound); 
+
 /**
    Parse and compile an orchestra given on an string (OPTIONAL)
    if str is NULL the string is taken from the internal corfile
@@ -2257,7 +2254,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name) {
   return n;
 }
 
-void debug_print(CSOUND *csound) {
+static void debug_print(CSOUND *csound) {
   INSTRTXT *current;
   CONS_CELL *val = cs_hash_table_keys(csound, csound->engineState.stringPool);
   CONS_CELL *const_val =

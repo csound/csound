@@ -51,7 +51,6 @@
 #include "csound_compiler.h"
 #include "csound_misc.h"
 #include "csound_server.h"
-#include "cscore.h"
 #include "csound_data_structures.h"
 #include "pools.h"
 #include "soundfile.h"
@@ -707,7 +706,6 @@ typedef struct _FFT_SETUP {
 /**@}*/
 /** @name Macros to access INSDS/OPDS data from opcodes */
 /**@{ */
-
 
 #define CS_KSMPS (p->h.insdshead->ksmps)
 #define CS_KCNT (p->h.insdshead->kcounter)
@@ -1451,7 +1449,6 @@ struct CSOUND_ {
   void (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
   int32_t (*csoundExitGraphCallback_)(CSOUND *);
   int32_t (*csoundYieldCallback_)(CSOUND *);
-  void (*cscoreCallback_)(CSOUND *);
   void *(*OpenSoundFileCallback_)(CSOUND *, const char *, int32_t, void *);
   FILE *(*OpenFileCallback_)(CSOUND *, const char *, const char *);
   void (*FileOpenCallback_)(CSOUND *, const char *, int32_t, int32_t, int32_t);

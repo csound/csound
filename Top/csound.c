@@ -716,7 +716,6 @@ static const CSOUND cenviron_ = {
   (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
   (int32_t (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
   defaultCsoundYield,
-  cscore_,        /*  cscoreCallback_     */
   (void*(*)(CSOUND*, const char*, int32_t,  void*)) NULL,/* OpenSoundFileCallback_ */
   (FILE*(*)(CSOUND*, const char*, const char*)) NULL, /* OpenFileCallback_ */
   (void(*)(CSOUND*, const char*, int32_t,  int32_t,  int32_t)) NULL, /* FileOpenCallback_ */
@@ -1002,8 +1001,6 @@ static const CSOUND cenviron_ = {
   {
     {0,0}, {0,0},  /* srngcnt, orngcnt    */
     0, 0, 0, 0, 0, /* srngflg, sectno, lplayed, segamps, sormsg */
-    NULL, NULL,    /* ep, epend           */
-    NULL           /* lsect               */
   },
   //NULL,           /*  musmonGlobals       */
   {
@@ -2647,11 +2644,6 @@ PUBLIC void csoundRewindScore(CSOUND *csound) {
   rewind_score(csound);
   if (csound->oparms->FMidiname != NULL)
     midifile_rewind_score(csound);
-}
-
-PUBLIC void csoundSetCscoreCallback(CSOUND *p,
-                                    void (*cscoreCallback)(CSOUND *)) {
-  p->cscoreCallback_ = (cscoreCallback != NULL ? cscoreCallback : cscore_);
 }
 
 static void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,

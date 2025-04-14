@@ -24,8 +24,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
-extern void print_tree(CSOUND *csound, char*, TREE *l);
-extern void delete_tree(CSOUND *csound, TREE *l);
+#include "csound_orc_semantics.h"
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {

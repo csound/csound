@@ -335,58 +335,6 @@ int32_t start_engine(CSOUND *csound)
          initialise_io(csound);
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
-    //csound->scfp
-    if (UNLIKELY(O->usingcscore)) {
-      if (STA(lsect) == NULL) {
-        STA(lsect) = (EVENT*) csound->Malloc(csound, sizeof(EVENT));
-        STA(lsect)->op = 'l';
-      }
-      csound->ErrorMsg(csound, Str("using Cscore processing\n"));
-      /* override stdout in */
-      if (UNLIKELY(!(csound->oscfp = fopen("cscore.out", "w"))))
-        csoundDie(csound, Str("cannot create cscore.out"));
-      csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 1, 0);
-      /* rdscor for cscorefns */
-      // API support for cscore is dropped in 7.0
-      // csoundInitializeCscore(csound, csound->scfp, csound->oscfp);
-      /* call cscore, optionally re-enter via lplay() */
-      csound->cscoreCallback_(csound);
-      fclose(csound->oscfp); csound->oscfp = NULL;
-      if (csound->scfp != NULL) {
-        fclose(csound->scfp);
-        csound->scfp = NULL;
-      }
-      if (STA(lplayed))
-        return 0;
-
-      /*  read from cscore.out */
-      if (UNLIKELY(!(csound->scfp = fopen("cscore.out", "r")))) {
-        csoundDie(csound, Str("cannot reopen cscore.out"));
-      }
-      else {
-        CORFIL *inf = corfile_create_w(csound);
-        int32_t c;
-        while ((c=getc(csound->scfp))!=EOF) corfile_putc(csound, c, inf);
-        corfile_rewind(inf);
-        csound->scorestr = inf;
-        corfile_rm(csound, &csound->scstr);
-      }
-      csoundNotifyFileOpened(csound, "cscore.out", CSFTYPE_SCORE_OUT, 0, 0);
-      /* write to cscore.srt */
-      if (UNLIKELY(!(csound->oscfp = fopen("cscore.srt", "w"))))
-        csoundDie(csound, Str("cannot reopen cscore.srt"));
-      csoundNotifyFileOpened(csound, "cscore.srt", CSFTYPE_SCORE_OUT, 1, 0);
-      csound->ErrorMsg(csound, Str("sorting cscore.out ..\n"));
-      /* csound->scorestr = copy_to_corefile(csound, "cscore.srt", NULL, 1); */
-      scsortstr(csound, csound->scorestr);  /* call the sorter again */
-      fclose(csound->scfp); csound->scfp = NULL;
-      fputs(corfile_body(csound->scstr), csound->oscfp);
-      fclose(csound->oscfp); csound->oscfp = NULL;
-      csound->ErrorMsg(csound, Str("\t... done\n"));
-      csound->ErrorMsg(csound, Str("playing from cscore.srt\n"));
-      O->usingcscore = 0;
-    }
-
      csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
@@ -579,22 +527,6 @@ int32_t csoundCleanup(CSOUND *csound)
 
     csoundUnlockMutex(csound->API_lock);
     return dispexit(csound);    /* hold or terminate the display output     */
-}
-
-int32_t lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
-{
-  /* if (csound->musmonGlobals == NULL) */
-  /*  csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
-  STA(lplayed) = 1;
-  if (!STA(sectno)) {
-    if(csound->oparms->msglevel ||csound->oparms->odebug)
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
-    }
-  STA(ep) = &a->e[1];                  /* from 1st evlist member */
-  STA(epend) = STA(ep) + a->nevents;    /*   to last              */
-  while (csoundPerformKsmps(csound) == 0)  /* play list members      */
-    ;                                     /* NB: empoty loop */
-  return OK;
 }
 
 /* make list to turn on instrs for indef */
@@ -1114,13 +1046,6 @@ int32_t sense_events(CSOUND *csound)
     }
     else {
       /* else read next score event */
-      if (UNLIKELY(O->usingcscore)) {       /*    get next lplay event  */
-        /* FIXME: this may be non-portable */
-        if (STA(ep) < STA(epend))           /* nxt event    */
-          memcpy((void*) e, (void*) &((*STA(ep)++)->strarg), sizeof(EVTBLK));
-        else                                /* else lcode   */
-          memcpy((void*) e, (void*) &(STA(lsect)->strarg), sizeof(EVTBLK));
-      } else
         if (!(rdscor(csound, e))){
           /* or rd nxt evt from scstr */
           e->opcod = 'e';

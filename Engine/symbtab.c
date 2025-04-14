@@ -34,6 +34,7 @@
 #include "interlocks.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound_orc_compile.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -44,7 +45,6 @@
 #endif
 
 extern int32_t csound_orcget_lineno(void*);
-extern char** split_args(CSOUND* csound, char* argString);
 
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {

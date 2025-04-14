@@ -34,36 +34,21 @@
 #include "csound_standard_types.h"
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_compile.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 # define strtok_r strtok_s
 #endif
 
-CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable); 
-extern char *csound_orcget_text ( void *scanner );
+static CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable);
 static int32_t is_label(char* ident, CONS_CELL* labelList);
-extern uint64_t csound_orcget_locn(void *);
-extern  int32_t tree_arg_list_count(TREE *);
-void print_tree(CSOUND *, char *, TREE *);
-char *remove_type_quoting(CSOUND *csound, const char *outype);
+static char* convert_internal_to_external(CSOUND* csound, char* arg);
+static int32_t is_reserved(char*);
 
-/* from csound_orc_compile.c */
-extern int32_t args_required(char* arrayName);
-extern char** split_args(CSOUND* csound, char* argString);
-OENTRIES* find_opcode2(CSOUND*, char*);
-char* resolve_opcode_get_outarg(CSOUND* csound,
-                                OENTRIES* entries, char* inArgTypes);
-int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable);
-char* convert_internal_to_external(CSOUND* csound, char* arg);
-char* convert_external_to_internal(CSOUND* csound, char* arg);
-void do_baktrace(CSOUND *csound, uint64_t files);
-
-extern int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
+char *csound_orcget_text ( void *scanner );
+uint64_t csound_orcget_locn(void *);
+int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                               char *outtypes, char *intypes, int32_t flags);
-extern TREE * create_opcode_token(CSOUND *csound, char* op);
-int32_t is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";

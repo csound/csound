@@ -28,36 +28,18 @@
 #include "csound_type_system.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound_orc_compile.h"
 #include <inttypes.h>
 
-extern void print_tree(CSOUND *, char *, TREE *);
-extern void handle_optional_args(CSOUND *, TREE *);
-extern ORCTOKEN *make_token(CSOUND *, char *);
-extern ORCTOKEN *make_label(CSOUND *, char *);
-extern OENTRIES* find_opcode2(CSOUND *, char*);
-extern char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
-extern TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast);
-extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                                       TYPE_TABLE* typeTable);
-extern void add_arg(CSOUND* csound, char* varName, char* annotation,
-                    TYPE_TABLE* typeTable);
-extern void add_array_arg(CSOUND* csound, char* varName, char* annotation,
-                          int32_t dimensions,
-                          TYPE_TABLE* typeTable);
-extern char* get_array_sub_type(CSOUND* csound, char*);
-extern char* convert_external_to_internal(CSOUND* csound, char* arg);
+
+ORCTOKEN *make_token(CSOUND *, char *);
+ORCTOKEN *make_label(CSOUND *, char *);
+
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
-char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
-                           char* outArgTypes);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
-extern void do_baktrace(CSOUND *csound, uint64_t files);
-extern CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
-                                 char* varBaseName, TYPE_TABLE* typeTable);
-
-
 static int32_t genlabs = 300;
 
 TREE* tree_tail(TREE* node) {

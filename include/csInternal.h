@@ -282,8 +282,6 @@ extern "C" {
       int16   sectno;
       int32_t     lplayed;
       int32_t     segamps, sormsg;
-      EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
-      EVENT   *lsect;
    };
 
    struct libsndStatics__ {
