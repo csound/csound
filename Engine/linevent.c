@@ -28,7 +28,6 @@
 #include <fcntl.h>
 #endif
 
-#include "linevent.h"
 
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
@@ -46,18 +45,30 @@
 #define LBUFSIZ1 32768
 #define LF        '\n'
 
-/* typedef struct { */
-/*     char    *Linep, *Linebufend; */
-/*     FILE    *Linecons; */
-/*     int32_t     stdmode; */
-/*     EVTBLK  prve; */
-/*     char    Linebuf[LBUFSIZ]; */
-/* } LINEVENT_GLOBALS; */
-
 static void sense_line(CSOUND *csound, void *userData);
-int32_t csoundRegisterSenseEventCallback(CSOUND *,
-                                       void (*func)(CSOUND *, void *),
-                                       void *userData);
+static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, void *),
+                 void *userData)
+{
+  EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
+
+  if (fp == NULL) {
+    fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
+    csound->evtFuncChain = (void*) fp;
+  }
+  else {
+    while (fp->nxt != NULL)
+      fp = fp->nxt;
+    fp->nxt = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
+    fp = fp->nxt;
+  }
+  if (UNLIKELY(fp == NULL))
+    return CSOUND_MEMORY;
+  fp->func = func;
+  fp->userData = userData;
+  fp->nxt = NULL;
+  csound->oparms->RTevents = 1;
+  return 0;
+}
 
 #define STA(x)   (csound->lineventStatics.x)
 #define MAXSTR 1048576 /* 1MB */
@@ -108,7 +119,7 @@ void linevent_open(CSOUND *csound)
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-    csoundRegisterSenseEventCallback(csound, sense_line, NULL);
+    set_sense_event_callback(csound, sense_line, NULL);
 }
 
 #ifdef PIPES
@@ -193,7 +204,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
-    csoundRegisterSenseEventCallback(csound, sense_line, NULL);
+    set_sense_event_callback(csound, sense_line, NULL);
 
     return 0;
 }

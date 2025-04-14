@@ -36,7 +36,6 @@
 #include "csound_standard_types.h"
 #include "csound_orc_compile.h"
 #include "namedins.h"
-#include "inst_ops.h"
 
 extern const char *SYNTHESIZED_ARG;
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";

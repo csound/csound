@@ -25,7 +25,7 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "namedins.h"
-#include "linevent.h"
+#include "inst_ops.h"
 /* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
 #ifdef _MSC_VER
 #include "H/schedule.h"

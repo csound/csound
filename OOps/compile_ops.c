@@ -104,9 +104,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   csound->Free(csound, code);
   return csound->InitError(csound, "failed to compile instr\n");
 }
-#include "linevent.h"
-int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+
 /* compiles and runs an anonymous instrument
    run_instr Scode, idur[, ...]  
 */

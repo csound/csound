@@ -32,27 +32,10 @@
 #include <math.h>
 #include "corfile.h"
 #include "fgens.h"
-
 #include "csdebug.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
-
-int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
-int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
-void    midi_open(CSOUND *);
-void    midi_open_out(CSOUND *);
-void    midi_close(CSOUND *);
-void    m_chn_init_all(CSOUND *);
-void    free_inactive_instances(CSOUND*);
-void    beat_expire(CSOUND *, double), time_expire(CSOUND *, double);
-void    sf_open_in(CSOUND *), sf_open_out(CSOUND*), sf_open_nosound(CSOUND*);
-void    set_io_backend(CSOUND *), sf_close_in(CSOUND*), sf_close_out(CSOUND*);
-void    linevent_open(CSOUND *);
-void    linevent_close(CSOUND *);
-void    remote_cleanup(CSOUND *);
-char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
-void    print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 #define RT_SPIN_TRYLOCK { int32_t trylock = CSOUND_SUCCESS; \
@@ -71,14 +54,6 @@ void    print_csound_version(CSOUND*);
 #else
 #define RT_SPIN_UNLOCK csoundSpinUnLock(&csound->alloc_spinlock);
 #endif
-
-/* extern  void    initialize_instrument0(CSOUND *); */
-
-typedef struct evt_cb_func {
-  void    (*func)(CSOUND *, void *);
-  void    *userData;
-  struct evt_cb_func  *nxt;
-} EVT_CB_FUNC;
 
 #define STA(x)   (csound->musmonStatics.x)
 
@@ -1450,38 +1425,4 @@ void rewind_score(CSOUND *csound)
   if (csound->scstr)
     corfile_rewind(csound->scstr);
   else csound->Warning(csound, Str("cannot rewind score: no score in memory\n"));
-}
-
-/**
- * Register a function to be called once in every control period
- * by sense_events(). Any number of functions may be registered,
- * and will be called in the order of registration.
- * The callback function takes two arguments: the Csound instance
- * pointer, and the userData pointer as passed to this function.
- * Returns zero on success.
- */
-int32_t csoundRegisterSenseEventCallback(CSOUND *csound,
-                                            void (*func)(CSOUND *, void *),
-                                            void *userData)
-{
-  EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
-
-  if (fp == NULL) {
-    fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
-    csound->evtFuncChain = (void*) fp;
-  }
-  else {
-    while (fp->nxt != NULL)
-      fp = fp->nxt;
-    fp->nxt = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
-    fp = fp->nxt;
-  }
-  if (UNLIKELY(fp == NULL))
-    return CSOUND_MEMORY;
-  fp->func = func;
-  fp->userData = userData;
-  fp->nxt = NULL;
-  csound->oparms->RTevents = 1;
-
-  return 0;
 }

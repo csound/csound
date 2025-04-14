@@ -1485,7 +1485,7 @@ void close_all_files(CSOUND *csound)
 
 /* The fromScore parameter should be 1 if opening a score include file,
    0 if opening an orchestra include file */
-void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
+void *fopen_path(CSOUND *csound, FILE **fp, const char *name, const char *basename,
                  char *env, int32_t fromScore)
 {
     void *fd;

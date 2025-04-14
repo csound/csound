@@ -54,7 +54,6 @@
 #include "oscils.h"
 #include "midifile.h"
 #include "midiinterop.h"
-#include "linevent.h"
 #include "str_ops.h"
 #include "bus.h"
 #include "pstream.h"

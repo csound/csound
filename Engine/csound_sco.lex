@@ -31,17 +31,18 @@
 #include "csoundCore.h"
 #include "score_param.h"
 #include "csound_scoparse.h"
+  
 
 #define YYSTYPE MYFLT
 #define YYLTYPE SCOTOKEN
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "corfile.h"
+#include "files.h"
 YYLTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 static  SCOTOKEN *make_string(CSOUND *, char *);
 static  SCOTOKEN *make_int(CSOUND *, int);
 static  SCOTOKEN *make_num(CSOUND *, double);
-extern  void *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 
 #define YY_EXTRA_TYPE  SCORE_PARM *
 #define PARM    yyget_extra(yyscanner)

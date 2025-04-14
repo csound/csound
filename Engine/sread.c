@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
+#include "files.h"
 #include "Engine/score_param.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
@@ -45,7 +46,6 @@ static  void    salcinit(CSOUND *);
 static  void    salcblk(CSOUND *), flushlin(CSOUND *);
 static  int32_t     getop(CSOUND *), getpfld(CSOUND *, int32_t);
         MYFLT   stof(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int32_t);
 extern int32_t csound_prslex_init(void *);
 extern void csound_prsset_extra(void *, void *);
 

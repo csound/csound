@@ -22,9 +22,9 @@
 */
 
 
-#include "csoundCore.h" 
-#include "inst_ops.h"     /* for goto's */
-#include "namedins.h"   
+#include "csoundCore.h"
+#include "inst_ops.h"
+#include "namedins.h"
 #include "interlocks.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
@@ -306,7 +306,6 @@ static int32_t splice_after_instance(CSOUND *csound,
 
 
 // Instance manipulation opcodes
-#include "linevent.h"
 /* play opcode
    plays an instrument given as an instrument definition reference 
    indefinitely and returns an instance ref

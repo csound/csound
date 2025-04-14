@@ -35,22 +35,16 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_compile.h"
 #include <inttypes.h>
 
-static  void show_allocs(CSOUND *);
-static  void deact(CSOUND *, INSDS *);
-static  void sched_off_time(CSOUND *, INSDS *);
+static void show_allocs(CSOUND *);
+static void deact(CSOUND *, INSDS *);
+static void sched_off_time(CSOUND *, INSDS *);
 static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                            MEVENT *mep);
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
-void beat_expire(CSOUND *, double);
-void time_expire(CSOUND *, double);
-int32_t args_required(char* argString);
-void do_baktrace(CSOUND *, uint64_t);
-void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt);
-int32_t csoundDeinitialiseOpcodes(CSOUND *csound, INSDS *ip);
-INSDS *instance(CSOUND *, int32_t);
 
 static void print_messages(CSOUND *csound, int32_t attr, const char *str){
 #if defined(WIN32)

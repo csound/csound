@@ -227,6 +227,10 @@ extern "C" {
   char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
 
 
+  void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
+                   const char *basename,
+                   char *env, int32_t fromScore);
+
   void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
                                      const char *name, void *param,
                                      const char *env,
@@ -240,6 +244,8 @@ extern "C" {
                                 MYFLT *buf, int32_t items);
 
   int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t whence);
+
+  char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 
 
 #ifdef __cplusplus

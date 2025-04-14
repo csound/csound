@@ -299,6 +299,12 @@ extern "C" {
       FILE    *pin, *pout;
       int32_t dither;
    };
+
+  typedef struct evt_cb_func {
+  void    (*func)(CSOUND *, void *);
+  void    *userData;
+  struct evt_cb_func  *nxt;
+} EVT_CB_FUNC;
      
 #ifdef __cplusplus
 }
