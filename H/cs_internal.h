@@ -1,5 +1,5 @@
 /*
-  csInternal.h: csound internal data structures
+  cs_internal.h: csound internal data structures
 
   Copyright (C) 1991-2024 
 
@@ -26,10 +26,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* The definitions and declarations in this section 
-   are not available externally to plugins.
-*/
-#ifdef __BUILDING_LIBCSOUND
+  
     typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
@@ -302,10 +299,7 @@ extern "C" {
       FILE    *pin, *pout;
       int32_t dither;
    };
-   
-
-#endif  /* __BUILDING_LIBCSOUND */
-  
+     
 #ifdef __cplusplus
 }
 #endif /*  __cplusplus */

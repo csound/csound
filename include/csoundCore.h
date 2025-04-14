@@ -1010,8 +1010,14 @@ typedef struct _CSOUND_UTIL {
   int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
 } CSOUND_UTIL;
 
-#include "csInternal.h"
-
+/* The definitions and declarations in this header
+   are not part of the API and thus not 
+   available externally to plugins 
+*/
+#ifdef __BUILDING_LIBCSOUND  
+#include "cs_internal.h"
+#endif
+  
 /**
  * Contains all function pointers, data, and data pointers required
  * to run one instance of Csound.
