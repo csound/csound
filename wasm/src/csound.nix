@@ -566,8 +566,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/wpfilters.c \
       ../Opcodes/zak.c \
       ../Top/argdecode.c \
-      ../Top/cscore_internal.c \
-      ../Top/cscorfns.c \
       ../Top/csdebug.c \
       ../Top/csmodule.c \
       ../Top/getstring.c \

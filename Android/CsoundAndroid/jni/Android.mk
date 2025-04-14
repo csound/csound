@@ -154,8 +154,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/squinewave.c \
 $(CSOUND_SRC_ROOT)/Opcodes/sequencer.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Top/csdebug.c \
-$(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
-$(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
 $(CSOUND_SRC_ROOT)/Top/csound.c \
 $(CSOUND_SRC_ROOT)/Top/getstring.c \
