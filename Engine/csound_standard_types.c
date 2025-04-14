@@ -24,6 +24,7 @@
 #include "csoundCore.h"
 #include "csound_standard_types.h"
 #include "pstream.h"
+#include "find_opcode.h"
 #include <stdlib.h>
 
 

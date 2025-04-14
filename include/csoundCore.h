@@ -53,8 +53,8 @@
 #include "csound_server.h"
 #include "csound_data_structures.h"
 #include "pools.h"
-#include "soundfile.h"
 #include "coreDefs.h"
+#include "soundfile.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1011,7 +1011,6 @@ typedef struct _CSOUND_UTIL {
 } CSOUND_UTIL;
 
 #include "csInternal.h"
-#include "find_opcode.h"
 
 /**
  * Contains all function pointers, data, and data pointers required

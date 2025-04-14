@@ -19,8 +19,7 @@
 extern "C" {
     extern OENTRIES* find_opcode2 (CSOUND* csound, const char* opname);
     extern OENTRY* resolve_opcode (CSOUND*, OENTRIES* entries,  const char* outArgTypes, const char* inArgTypes);
-  //extern OENTRY* find_opcode_new (CSOUND* csound,  const char* opname, const char* outArgsFound, const char* inArgsFound);
-
+    extern OENTRY* find_opcode_new (CSOUND* csound,  const char* opname, const char* outArgsFound, const char* inArgsFound);
     extern bool check_in_arg (const char* found, const char* required);
     extern bool check_in_args (CSOUND* csound, const char* outArgsFound, const char* opOutArgs);
     extern bool check_out_arg (const char* found, const char* required);

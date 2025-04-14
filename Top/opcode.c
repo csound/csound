@@ -29,6 +29,7 @@
 #include "udo.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "find_opcode.h"
 
 /* Print opcodes in system */
 /* John ffitch -- 26 Jan 97 */
