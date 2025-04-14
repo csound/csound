@@ -145,7 +145,6 @@
   "csoundReadScore",
   "csoundReadScoreAsync",
   "csoundRegisterKeyboardCallback",
-  "csoundRegisterSenseEventCallback",
   "csoundRemoveKeyboardCallback",
   "csoundReset",
   "csoundRewindScore",
