@@ -1240,7 +1240,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 0;
 }
 
-PUBLIC int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
+int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   OPARMS *O = csound->oparms;
   char *s, **argv;
   int32_t n;
