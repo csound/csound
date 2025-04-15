@@ -66,14 +66,6 @@ class Csound : CSOUND {
   friend class Table;
   template <typename T> friend class AuxMem;
 
-  /**
-    @private
-    opcode function template (deinit-time)
-   */
-  template <typename T> static int32_t deinit(CSOUND *csound, void *p) {
-    return ((T *)p)->deinit();
-  }
-
 public:
   /** Host Data
    */
@@ -103,14 +95,6 @@ public:
     Message(this, "%s\n", LocalizeString(s.c_str()));
   }
 
-  /** system sampling rate
-   */
-  //MYFLT sr() { return GetSr(this); }
-
-  /** system control rate
-   */
-  //MYFLT kr() { return GetKr(this); }
-
   /** system max amp reference
    */
   MYFLT _0dbfs() { return Get0dBFS(this); }
@@ -131,11 +115,6 @@ public:
    */
   int64_t current_time_samples() { return GetCurrentTimeSamples(this); }
 
-  /** time count (seconds)
-   */
-  //double current_time_seconds() {
-  //  return GetCurrentTimeSamples(this) / GetSr(this);
-  //}
 
   /** check for audio signal variable argument
    */
