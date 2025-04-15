@@ -953,7 +953,6 @@ static inline uint32_t GetEarlySmps(OPDS *p) {
  * Returns the sample-accurate offset at the start
  * of the ksmps block.
  */  
-  
 static inline uint32_t GetKsmpsOffset(OPDS *p) {
   return (uint32_t) p->insdshead->ksmps_offset;
 }
