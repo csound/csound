@@ -8,7 +8,7 @@ nchnls = 2
 0dbfs = 1
 
 instr hello
-exitnow(-1)
+
 endin
 
 instr 3
