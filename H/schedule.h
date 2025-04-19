@@ -90,5 +90,9 @@ typedef struct {
   MYFLT *table;
 } SEQTIM;
 
+typedef struct {
+  OPDS h;
+  MYFLT *arg[PMAX];
+} RMEVT;
 
 

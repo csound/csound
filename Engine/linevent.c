@@ -55,7 +55,7 @@
 /*     char    Linebuf[LBUFSIZ]; */
 /* } LINEVENT_GLOBALS; */
 
-static void sensLine(CSOUND *csound, void *userData);
+void sensLine(CSOUND *csound, void *userData);
 int32_t csoundRegisterSenseEventCallback(CSOUND *,
                                        void (*func)(CSOUND *, void *),
                                        void *userData);
@@ -239,7 +239,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-static void sensLine(CSOUND *csound, void *userData)
+void sensLine(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
