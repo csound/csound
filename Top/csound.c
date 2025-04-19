@@ -1086,7 +1086,7 @@ static const CSOUND cenviron_ = {
     1,            /*    displays          */
     1, 0, 135,    /*    graphsoff ...     */
     0, 0,         /*    Beatmode, ...     */
-    0, 0,         /*    usingcscore, ...  */
+    0, 
     0, 0, 0, 0,   /*    RTevents, ...     */
     0, 0,         /*    ringbell, ...     */
     0, 0, 0,      /*    rewrt_hdr, ...    */

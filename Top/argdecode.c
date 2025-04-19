@@ -587,9 +587,6 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strcmp(s, "orc"))) {
     csound->use_only_orchfile = 1; /* orchfile without scorefile */
     return 1;
-  } else if (!(strcmp(s, "cscore"))) {
-    O->usingcscore = 1; /* use cscore processing  */
-    return 1;
   } else if (!(strcmp(s, "nodisplays"))) {
     O->displays = 0; /* no func displays */
     return 1;
@@ -1281,9 +1278,6 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             } else
               csound->LongJmp(csound, retval);
           }
-          break;
-        case 'C':
-          O->usingcscore = 1; /* use cscore processing  */
           break;
         case 'I':
           csound->initonly = 1;   /* I-only overrides */

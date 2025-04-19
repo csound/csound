@@ -162,8 +162,6 @@ extern "C" {
     int32_t     Beatmode;
     /* hardware buffer size (samples) */
     int32_t     oMaxLag;
-    /* cscore flag */
-    int32_t     usingcscore;
     /* linevents flag (-L)*/
     int32_t Linein;
     /* realtime events flag (scoreless, -L, -F, -M) */
