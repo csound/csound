@@ -100,6 +100,12 @@ int32 strarg2insno(CSOUND *csound, void *p, int32_t is_string)
     return insno;
 }
 
+/* API function for instrument numbers
+ */
+int32 csoundGetInstrNumber(CSOUND *csound, const char *str) {
+  return strarg2insno(csound, (void *) str, 1);
+}
+
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
