@@ -1113,7 +1113,8 @@ extern "C" {
    * event parameters is nparams MYFLT array with the event parameters (p-fields)
    * optionally run asynchronously (async = 1)
    */
-  PUBLIC void  csoundEvent(CSOUND *, int32_t type, MYFLT *params, int32_t nparams, int32_t async);
+  PUBLIC void  csoundEvent(CSOUND *, int32_t type, MYFLT *params,
+                           int32_t nparams, int32_t async);
 
   /**
    * Send a new event as a NULL-terminated string

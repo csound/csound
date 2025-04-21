@@ -328,44 +328,56 @@ class PUBLIC Csound
   {
     csoundEventString(csound, s, async);
   }
-  virtual void SetExternalMidiInOpenCallback(
-                                             int32_t (*func)(CSOUND *, void **, const char *))
+  virtual int32_t GetInstrNumber(const char *name){
+    return csoundGetInstrNumber(csound, name);
+  }
+  virtual void SetExternalMidiInOpenCallback(int32_t (*func)(CSOUND *,
+                                                             void **,
+                                                             const char *))
   {
     csoundSetExternalMidiInOpenCallback(csound, func);
   }
-  virtual void SetExternalMidiReadCallback(
-                                           int32_t (*func)(CSOUND *, void *, unsigned char *, int))
+  virtual void SetExternalMidiReadCallback(int32_t (*func)(CSOUND *,
+                                                           void *,
+                                                           unsigned char *,
+                                                           int))
   {
     csoundSetExternalMidiReadCallback(csound, func);
   }
-  virtual void SetExternalMidiInCloseCallback(
-                                              int32_t (*func)(CSOUND *, void *))
+  virtual void SetExternalMidiInCloseCallback(int32_t (*func)(CSOUND *,
+                                                              void *))
   {
     csoundSetExternalMidiInCloseCallback(csound, func);
   }
-  virtual void SetExternalMidiOutOpenCallback(
-                                              int32_t (*func)(CSOUND *, void **, const char *))
+  virtual void SetExternalMidiOutOpenCallback(int32_t (*func)(CSOUND *,
+                                                              void **,
+                                                              const char *))
   {
     csoundSetExternalMidiOutOpenCallback(csound, func);
   }
-  virtual void SetExternalMidiWriteCallback(
-                                            int32_t (*func)(CSOUND *, void *, const unsigned char *, int))
+  virtual void SetExternalMidiWriteCallback(int32_t (*func)(CSOUND *,
+                                                            void *,
+                                                            const
+                                                            unsigned char *,
+                                                            int))
   {
     csoundSetExternalMidiWriteCallback(csound, func);
   }
-  virtual void SetExternalMidiOutCloseCallback(
-                                               int32_t (*func)(CSOUND *, void *))
+  virtual void SetExternalMidiOutCloseCallback(int32_t (*func)(CSOUND *,
+                                                               void *))
   {
     csoundSetExternalMidiOutCloseCallback(csound, func);
   }
-  virtual void SetExternalMidiErrorStringCallback(
-                                                  const char *(*func)(int))
+  virtual void SetExternalMidiErrorStringCallback(const char *(*func)(int))
   {
     csoundSetExternalMidiErrorStringCallback(csound, func);
   }
-  virtual int32_t AppendOpcode(const char *opname, int32_t dsblksiz, int32_t flags,
-                           const char *outypes, const char *intypes, int(*init)(CSOUND *, void *),
-                           int(*perf)(CSOUND *, void *), int(*deinit)(CSOUND *, void *))
+  virtual int32_t AppendOpcode(const char *opname, int32_t dsblksiz,
+                               int32_t flags, const char *outypes,
+                               const char *intypes,
+                               int(*init)(CSOUND *, void *),
+                               int(*perf)(CSOUND *, void *),
+                               int(*deinit)(CSOUND *, void *))
   {
     return csoundAppendOpcode(csound, opname, dsblksiz, flags,
                               outypes, intypes, init, perf, deinit);
