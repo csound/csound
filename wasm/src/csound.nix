@@ -265,8 +265,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     substituteInPlace Engine/musmon.c \
       --replace 'csoundUDPServerClose(csound);' ""
 
-    substituteInPlace Engine/new_orc_parser.c \
-      --replace 'csound_orcdebug = O->odebug;' ""
 
     # date and fs
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
