@@ -265,6 +265,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     substituteInPlace Engine/musmon.c \
       --replace 'csoundUDPServerClose(csound);' ""
 
+    substituteInPlace Engine/new_orc_parser.c \
+      --replace 'csound_orcdebug = O->odebug;' ""
 
     # date and fs
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
@@ -347,11 +349,11 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_prslex.c \
       ../Engine/csound_standard_types.c \
       ../Engine/csound_type_system.c \
-      ../Engine/entry.c \
+      ../Engine/entry1.c \
       ../Engine/environ.c \
       ../Engine/extract.c \
       ../Engine/fgens.c \
-      ../Engine/filesys.c \      
+      ../Engine/filesys.c \
       ../Engine/insert.c \
       ../Engine/srconvert.c \
       ../Engine/udo.c \
@@ -400,7 +402,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../OOps/dumpf.c \
       ../OOps/fftlib.c \
       ../OOps/goto_ops.c \
-      ../OOps/inst_ops.c \
       ../OOps/lpred.c \
       ../OOps/midiinterop.c \
       ../OOps/midiops.c \
@@ -565,6 +566,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/wpfilters.c \
       ../Opcodes/zak.c \
       ../Top/argdecode.c \
+      ../Top/cscore_internal.c \
+      ../Top/cscorfns.c \
       ../Top/csdebug.c \
       ../Top/csmodule.c \
       ../Top/getstring.c \
