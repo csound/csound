@@ -58,15 +58,7 @@ ORCTOKEN* make_int(CSOUND *,char *);
 ORCTOKEN* make_num(CSOUND *,char *);
 ORCTOKEN *make_token(CSOUND *csound, char *s);
 TREE* copy_node(CSOUND*, TREE*);
-/*void instr0(CSOUND *, ORCTOKEN*, TREE*, TREE*);*/
-/* extern TREE* statement_list; */
-/* double get_num(TREE*); */
-/*int get_int(TREE*);*/
-/*TREE* check_opcode(TREE*, TREE*, TREE*);*/
-/*TREE* check_opcode0(TREE*, TREE*);*/
-/*void start_instr(int32_t);*/
-/* extern double sr, kr;
-extern int32_t ksmps, nchnls; */
+extern void csp_orc_sa_print_list(CSOUND*);
 
 void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
 int32_t  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);

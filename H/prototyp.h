@@ -122,6 +122,12 @@ extern "C" {
   void    midi_close(CSOUND *);
   void    m_chn_init_all(CSOUND *);
   void    print_csound_version(CSOUND*);
+  int32_t realtset(CSOUND *, SRTBLK *);
+  MYFLT   realt(CSOUND *, MYFLT);
+  uintptr_t event_insert_thread(void *);
+  int32_t sens_midi(CSOUND *);
+  void sort(CSOUND*);
+  void twarp(CSOUND*);
 
 /**
  * Register a function to be called by csoundReset(), in reverse order

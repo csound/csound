@@ -29,8 +29,6 @@
 #include "csound_standard_types.h"
 #include "namedins.h"
 
-INSDS *instance(CSOUND *, int32_t);
-
 /* Sets up pass-by-ref for input/output to/from UDO instance.
 * Will search for xin/xout opcodes in init chain to read variable to
 * setup VARPOOL, iterate init and perf chains to do arg lookup of each

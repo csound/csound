@@ -2725,10 +2725,6 @@ int32_t csound_orcwrap(void* dummy)
   return (1);
 }
 
-/* UTILITY FUNCTIONS */
-
-extern int32_t csound_orcget_lineno(void*);
-extern char *csound_orcget_current_pointer(void *);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)

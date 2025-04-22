@@ -58,6 +58,10 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
                                  char* varBaseName, TYPE_TABLE* typeTable);
 void delete_tree(CSOUND *csound, TREE *l);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
+// bison functions
+extern int32_t csound_orcget_lineno(void*);
+extern char *csound_orcget_current_pointer(void *);
+
 
 typedef struct csstructvar {
   CS_VAR_MEM** members;

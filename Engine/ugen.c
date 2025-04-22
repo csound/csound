@@ -43,8 +43,7 @@
 #include "ugen.h"
 #include "csound_standard_types.h"
 #include "csound_orc.h"
-
-extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
+#include "csound_orc_semantics.h"
 
 // this value is chosen arbitrarily, feel free to modify
 //static const int32_t MAX_VAR_ARGS = 8;

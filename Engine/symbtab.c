@@ -44,8 +44,6 @@
 # define strtok_r strtok_s
 #endif
 
-extern int32_t csound_orcget_lineno(void*);
-
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
       if (strchr("ijop", *in) != NULL) {

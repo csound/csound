@@ -317,7 +317,6 @@ int32_t start_engine(CSOUND *csound)
 
 #ifndef __EMSCRIPTEN__
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
-      extern uintptr_t event_insert_thread(void *);
       csound->init_pass_threadlock = csoundCreateMutex(0);
       csound->ErrorMsg(csound, "Initialising spinlock...\n");
       csoundSpinLockInit(&csound->alloc_spinlock);
@@ -931,8 +930,6 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 
 #define RNDINT64(x) ((int64_t) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
 
-extern  int32_t     sensMidi(CSOUND *);
-
 /* sense events for one k-period            */
 /* return value is one of the following:    */
 /*   0: continue performance                */
@@ -1153,7 +1150,7 @@ int32_t sense_events(CSOUND *csound)
 
     /* MIDI note messages */
     if (O->Midiin || O->FMidiin)
-      while ((sensType = sensMidi(csound)) != 0)
+      while ((sensType = sens_midi(csound)) != 0)
         if ((retval = process_rt_event(csound, sensType)) != 0) {
           goto scode;
         }
@@ -1343,7 +1340,6 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   case 'f':                         /* function table */
     break;
   case 'e':                         /* end of score, */
-  case 'l':                         /*   lplay list, */
   case 's':                         /*   section:    */
     start_time = (double)time_ofs/csound->esr;
     if (evt->pcnt >= 2)

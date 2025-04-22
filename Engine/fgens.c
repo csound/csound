@@ -36,8 +36,6 @@
 #include <stdlib.h>
 #include "fftlib.h"
 
-
-extern double besseli(double);
 static int32_t gen01raw(FGDATA *, FUNC *);
 static int32_t gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int32_t gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);

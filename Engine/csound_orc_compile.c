@@ -36,6 +36,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc_compile.h"
 #include "namedins.h"
+#include "aops.h"
 
 extern const char *SYNTHESIZED_ARG;
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
@@ -664,7 +665,6 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   if (A4 == 0)
     csound->A4 = 440.0;
   else {
-    extern void csound_aops_init_tables(CSOUND *);
     csound->A4 = A4;
     csound_aops_init_tables(csound);
   }

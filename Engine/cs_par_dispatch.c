@@ -33,13 +33,7 @@
 #include "cs_par_ops.h"
 #include "cs_par_structs.h"
 
-/***********************************************************************
- * external prototypes not in headers
- */
-extern ORCTOKEN *lookup_token(CSOUND *csound, char *);
-extern void print_tree(CSOUND *, char *, TREE *);
-
-/***********************************************************************
+/*
  * Global Var Lock Inserts
  */
 

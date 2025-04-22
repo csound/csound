@@ -456,7 +456,6 @@ static void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
     for (nn = 0; nn < 128; nn++) {
       ip = chn->kinsptr[nn];
       while (ip != NULL) {
-/*      xturnoff_now(csound, ip);   */
         xturnoff(csound, ip);   /* allow release - is this correct ? */
         ip = ip->nxtolap;
       }
@@ -477,7 +476,7 @@ static void midNotesOff(CSOUND *csound)
 /* sense a MIDI event, collect the data & dispatch */
 /* called from sense_events(), returns 2 if MIDI on/off */
 
-int32_t sensMidi(CSOUND *csound)
+int32_t sens_midi(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
     MEVENT  *mep = p->Midevtblk;
