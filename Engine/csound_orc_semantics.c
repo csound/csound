@@ -1030,17 +1030,17 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
   {
     int32_t argsFoundCount = args_required(outArgsFound);
-    int32_t args_requiredCount = args_required(opOutArgs);
-    char** args_required = split_args(csound, opOutArgs);
+    int32_t argsRequiredCount = args_required(opOutArgs);
+    char** argsRequired = split_args(csound, opOutArgs);
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
     char* varArg = NULL;
     int32_t returnVal = 1;
 
-    if ((argsFoundCount > args_requiredCount) &&
-        !(is_out_var_arg(args_required[args_requiredCount - 1]))) {
-      csound->Free(csound, args_required);
+    if ((argsFoundCount > argsRequiredCount) &&
+        !(is_out_var_arg(argsRequired[argsRequiredCount - 1]))) {
+      csound->Free(csound, argsRequired);
       return 0;
     }
 
@@ -1055,7 +1055,7 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
           break;
         }
       } else {
-        char* argRequired = args_required[argTypeIndex++];
+        char* argRequired = argsRequired[argTypeIndex++];
         if (!check_out_arg(argFound, argRequired)) {
           returnVal = 0;
           break;
@@ -1068,8 +1068,8 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
     if (returnVal && varArg == NULL) {
 
-      if (argTypeIndex < args_requiredCount) {
-        char* argRequired = args_required[argTypeIndex];
+      if (argTypeIndex < argsRequiredCount) {
+        char* argRequired = argsRequired[argTypeIndex];
         returnVal = is_out_var_arg(argRequired);
       } else {
         returnVal = 1;
@@ -1080,10 +1080,10 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
       csound->Free(csound, argsFound[n]);
     }
     csound->Free(csound, argsFound);
-    for (n=0; args_required[n] != NULL; n++) {
-      csound->Free(csound, args_required[n]);
+    for (n=0; argsRequired[n] != NULL; n++) {
+      csound->Free(csound, argsRequired[n]);
     }
-    csound->Free(csound, args_required);
+    csound->Free(csound, argsRequired);
 
     return returnVal;
   }
