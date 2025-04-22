@@ -161,7 +161,8 @@ extern "C" {
 #include "text.h"
 #include "prototyp.h"
 #include "cwindow.h"
-#include "files.h"
+#include "filesys.h"
+#include "environ.h"
 #include "remote.h"
 
   /**

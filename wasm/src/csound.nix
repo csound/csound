@@ -350,9 +350,10 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_standard_types.c \
       ../Engine/csound_type_system.c \
       ../Engine/entry.c \
-      ../Engine/files.c \
+      ../Engine/environ.c \
       ../Engine/extract.c \
       ../Engine/fgens.c \
+      ../Engine/filesys.c \      
       ../Engine/insert.c \
       ../Engine/srconvert.c \
       ../Engine/udo.c \

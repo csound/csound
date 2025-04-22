@@ -27,7 +27,7 @@
 #include <inttypes.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
-#include "files.h"
+#include "filesys.h"
 #include "Engine/score_param.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */

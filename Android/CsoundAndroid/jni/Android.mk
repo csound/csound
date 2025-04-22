@@ -30,9 +30,10 @@ LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
 $(CSOUND_SRC_ROOT)/Engine/cfgvar.c \
 $(CSOUND_SRC_ROOT)/Engine/corfiles.c \
 $(CSOUND_SRC_ROOT)/Engine/entry.c \
-$(CSOUND_SRC_ROOT)/Engine/files.c \
+$(CSOUND_SRC_ROOT)/Engine/environ.c \
 $(CSOUND_SRC_ROOT)/Engine/extract.c \
 $(CSOUND_SRC_ROOT)/Engine/fgens.c \
+$(CSOUND_SRC_ROOT)/Engine/filesys.c \
 $(CSOUND_SRC_ROOT)/Engine/insert.c \
 $(CSOUND_SRC_ROOT)/Engine/srconvert.c \
 $(CSOUND_SRC_ROOT)/Engine/udo.c \

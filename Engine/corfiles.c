@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include "files.h"
+#include "filesys.h"
 #include "corfile.h"
 
 

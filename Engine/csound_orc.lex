@@ -40,7 +40,7 @@
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
 #include "corfile.h"
-#include "files.h"  
+#include "filesys.h"  
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
