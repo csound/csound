@@ -302,8 +302,7 @@ class PUBLIC Csound
   {
     csoundMessageV(csound, attr, format, args);
   }
-  virtual void SetMessageCallback(
-                                  void (*csoundMessageCallback_)(CSOUND *, int32_t attr,
+  virtual void SetMessageCallback(void (*csoundMessageCallback_)(CSOUND *, int32_t attr,
                                                                  const char *format, va_list valist))
   {
     csoundSetMessageCallback(csound, csoundMessageCallback_);
