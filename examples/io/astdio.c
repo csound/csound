@@ -3,9 +3,17 @@
 #include <csdl.h>
 #include <poll.h>
 
-static int32_t open_device(CSOUND *csound, const csRtAudioParams *p){
+static int32_t open_output(CSOUND *csound, 
+		const csRtAudioParams *p){
   // nothing to do here, so exit
   return OK;
+}
+
+static int32_t open_input(CSOUND *csound, 
+		const csRtAudioParams *p){
+  // set stdin to receive data
+  int mode = fcntl(0, F_GETFL, 0);
+  fcntl(0, F_SETFL, mode | O_NDELAY);
 }
 
 static void audio_out(CSOUND *csound, const MYFLT *s, int32_t nbytes) {
@@ -56,8 +64,8 @@ int32_t csoundModuleInit(CSOUND *csound)
     return 0;
   // print message - module selected
   csound->Message(csound, "stdio audo module enabled\n");
-  csound->SetPlayopenCallback(csound, open_device);
-  csound->SetRecopenCallback(csound, open_device);
+  csound->SetPlayopenCallback(csound, open_output);
+  csound->SetRecopenCallback(csound, open_input);
   csound->SetRtplayCallback(csound, audio_out);
   csound->SetRtrecordCallback(csound, audio_in);
   csound->SetRtcloseCallback(csound, close_device);

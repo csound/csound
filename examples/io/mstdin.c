@@ -5,7 +5,9 @@
 
 static int32_t midi_open(CSOUND *csound,void **userData,
                          const char *devName){
-  // nothing to do, so exit
+  // set stdin to get data 
+  int mode = fcntl(0, F_GETFL, 0);
+  fcntl(0, F_SETFL, mode | O_NDELAY);
   return OK;
 }
 
