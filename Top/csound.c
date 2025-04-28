@@ -2489,6 +2489,7 @@ PUBLIC uint32_t csoundGetChannels(CSOUND *csound, int32_t isInput) {
  */
 
 PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound) {
+  // icurTimeSamples is frames updated in ksmps-blocks
   return csound->icurTimeSamples;
 }
 
