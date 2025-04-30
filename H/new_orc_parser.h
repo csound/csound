@@ -1,7 +1,7 @@
 /*
     new_orc_parser.h: parser functions from bison
 
-    Copyright (C) 2007, 2017 by Stee Yi ad John ffitch
+    Copyright (C) 2007, 2017 by Steven Yi and John ffitch
 
     This file is part of Csound.
 
