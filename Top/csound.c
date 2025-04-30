@@ -77,8 +77,6 @@ long csoundGetInputBufferSize(CSOUND *);
 long csoundGetOutputBufferSize(CSOUND *);
 void *csoundGetNamedGens(CSOUND *);
 int32_t *csoundGetChannelLock(CSOUND *csound, const char *name);
-int32_t csoundCompileCsd(CSOUND *csound, const char *csd_filename);
-int32_t csoundCompileCsdText(CSOUND *csound, const char *csd_text);
 int32_t csoundCleanup(CSOUND *);
 void csoundInputMessage(CSOUND *csound, const char *sc);
 int32_t csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
@@ -2458,13 +2456,6 @@ PUBLIC void csoundEvent(CSOUND *csound, int32_t type, MYFLT *params,
     csoundScoreEventAsync(csound, c, params, nparams);
   else
     csoundScoreEventInternal(csound, c, params, nparams);
-}
-
-PUBLIC int32_t csoundCompileCSD(CSOUND *csound, const char *csd, int32_t mode) {
-  if (mode)
-    return csoundCompileCsdText(csound, csd);
-  else
-    return csoundCompileCsd(csound, csd);
 }
 
 PUBLIC void csoundSetHostAudioIO(CSOUND *csound) {
