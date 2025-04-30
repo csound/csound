@@ -617,7 +617,7 @@ extern "C" {
 
   /**
    * Compiles a Csound input file (CSD, .csd file) or a tx string
-   * containing the CSD code.
+   * containing the CSD code, in synchronous or asynchronous (async = 1) mode.
    * Returns a non-zero error code on failure.
    *
    * If csoundStart is called before csoundCompileCSD, the <CsOptions>
@@ -661,7 +661,8 @@ extern "C" {
    * an application or a multi-language piece.
    *
    */
-  PUBLIC int32_t csoundCompileCSD(CSOUND *csound, const char *csd, int32_t mode);
+  PUBLIC int32_t csoundCompileCSD(CSOUND *csound, const char *csd, int32_t mode,
+                                  int32_t async);
 
   /**
    * Prepares Csound for performance. Normally called after compiling
