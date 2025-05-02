@@ -1,6 +1,5 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac -M0 --opcode-lib=./libmstdin.dylib -+rtmidi=stdin --opcode-lib=./libastdio.dylib -+rtaudio=stdio
 </CsOptions>
 <CsInstruments>
 nchnls = 1
