@@ -836,8 +836,10 @@ static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
         csound->Message(csound, "In INSTR GLOBAL: %s\n",
                         current->value->lexeme);
       if (UNLIKELY(current->type == T_ASSIGNMENT &&
-                   strcmp(oentry->opname, "=.r") == 0))
-        csound->Warning(csound, Str("system constants can only be set once\n"));
+                   strcmp(oentry->opname, "=.r") == 0)){
+        if (csoundGetDebug(csound))           
+        csound->Warning(csound, Str("system constants can only be set once"));
+                   }
       else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
