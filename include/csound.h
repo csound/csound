@@ -162,8 +162,6 @@ extern "C" {
     int32_t     Beatmode;
     /* hardware buffer size (samples) */
     int32_t     oMaxLag;
-    /* cscore flag */
-    int32_t     usingcscore;
     /* linevents flag (-L)*/
     int32_t Linein;
     /* realtime events flag (scoreless, -L, -F, -M) */
@@ -412,7 +410,7 @@ extern "C" {
   PUBLIC MYFLT csoundGetKr(CSOUND *);
 
   /**
-   * Returns the number of audio sample frames per control sample.
+   * Returns the audio vector size in frames (= sr/kr)
    */
   PUBLIC uint32_t csoundGetKsmps(CSOUND *);
 
@@ -435,7 +433,7 @@ extern "C" {
   PUBLIC MYFLT csoundGetA4(CSOUND *);
 
   /**
-   * Return the current performance time in samples
+   * Return the current performance time in sample frames
    */
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 

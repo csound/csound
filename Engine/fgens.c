@@ -36,8 +36,6 @@
 #include <stdlib.h>
 #include "fftlib.h"
 
-
-extern double besseli(double);
 static int32_t gen01raw(FGDATA *, FUNC *);
 static int32_t gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int32_t gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
@@ -102,8 +100,8 @@ static int32_t GENUL(FGDATA *ff, FUNC *ftp)
  * number is automatically assigned.
  * Returns zero on success.
  */
-
-int32_t hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int32_t mode)
+int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
+                              int32_t mode)
 {
     int32    genum, ltest;
     int32_t     lobits, msg_enabled, i;
@@ -287,15 +285,15 @@ int32_t hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int32_t mode)
  * point32_t) of 'len' samples. The table data is not cleared to zero.
  * Return value is zero on success.
  */
-
-int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum, int32_t len)
+int32_t alloc_function_table(CSOUND *csound, int32_t tableNum,
+                                    int32_t len)
 {
     int32_t   i, size;
     FUNC  **nn, *ftp;
 
     if (UNLIKELY(tableNum <= 0 || len <= 0 || len > (int32_t) MAXLEN))
       return -1;
-    if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary     */
+    if (UNLIKELY(tableNum > csound->maxfnum)) { /* extend list if necessary */
       for (size = csound->maxfnum; size < tableNum; size += MAXFNUM)
         ;
       nn = (FUNC**) csound->ReAlloc(csound,
@@ -351,7 +349,7 @@ int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum, int32_t len)
  * Return value is zero on success.
  */
 
-int32_t csoundFTDelete(CSOUND *csound, int32_t tableNum)
+int32_t free_function_table(CSOUND *csound, int32_t tableNum)
 {
     FUNC  *ftp;
 
@@ -1044,7 +1042,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     n = gen14(ff, ftp);       /* now draw ftable   */
     ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
     ff->fno--;                /* F. Pinot, the first function table */
-                              /* is scaled and displayed by hfgens */
+                              /* is scaled and displayed by create_function_table */
     return n;
 }
 
@@ -1160,7 +1158,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
         return fterror(ff, Str("a range given exceeds table length"));
       }
 
-      if (LIKELY((fnp=csoundFTFind(csound,&fn))!=NULL)) { /* make sure fn exists */
+      if (LIKELY((fnp=find_function_table(csound,&fn))!=NULL)) { /* make sure fn exists */
         fp = fnp->ftable, fnlen = fnp->flen-1;        /* and set it up */
       }
       else {
@@ -1389,7 +1387,7 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
       ftp           = ftalloc(ff);
-      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in csoundFTFind */
+      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in find_function_table */
     }
     fp = ftp->ftable;
     j = 0;
@@ -2058,7 +2056,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
+    if (UNLIKELY((src = find_function_table(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -2373,7 +2371,7 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
 
 
 static FUNC *gen01_defer_load(CSOUND *csound, int32_t fno);
-PUBLIC int32_t csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int32_t tableNum)
+int32_t csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int32_t tableNum)
 {
     FUNC    *ftp;
 
@@ -2395,7 +2393,7 @@ PUBLIC int32_t csoundGetTable(CSOUND *csound, MYFLT **tablePtr, int32_t tableNum
 }
 
 
-PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
+int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
 {
     FUNC    *ftp;
     if (UNLIKELY((uint32_t) (tableNum - 1) >= (uint32_t) csound->maxfnum))
@@ -2417,7 +2415,7 @@ PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t table
 /* at any stage                                 */
 /* find ptr to a deferred-size ftable structure */
 /***********************************************/
-FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
+FUNC *find_function_table(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int32_t     fno = MYFLT2LONG(*argp);
@@ -2696,7 +2694,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
     else
       csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
 
-    if (UNLIKELY(PVOCEX_LoadFile(csound, filename, &pp) != 0))
+    if (UNLIKELY(load_PVOCEX_file(csound, filename, &pp) != 0))
       return fterror(ff, Str("Failed to load PVOC-EX file"));
     //csoundDie(csound, Str("Failed to load PVOC-EX file"));
     p.fftsize  = pp.fftsize;
@@ -2865,7 +2863,7 @@ static int32_t gen52(FGDATA *ff, FUNC *ftp)
       MYFLT *pp;
       if (LIKELY((n * 3) + 6<PMAX-1)) pp = &(ff->e.p[(n * 3) + 6]);
       else pp = &(ff->e.c.extra[(n * 3) + 6-PMAX]);
-      f = csoundFTFind(csound, pp);
+      f = find_function_table(csound, pp);
       if (UNLIKELY(f == NULL))
         return NOTOK;
       len2 = (int32_t) f->flen;
@@ -3156,7 +3154,7 @@ int32_t resize_table(CSOUND *csound, RESIZE *p)
       printf("WARNING: EXPERIMENTAL CODE\n");
       warned = 1;
     }
-    if (UNLIKELY((ftp = csoundFTFind(csound, p->fn)) == NULL))
+    if (UNLIKELY((ftp = find_function_table(csound, p->fn)) == NULL))
       return NOTOK;
     if (ftp->flen<fsize)
       ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,

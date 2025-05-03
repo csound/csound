@@ -25,6 +25,7 @@
 
 #include "csoundCore.h"
 #include "aops.h"
+#include "schedule.h"
 
 typedef struct _compile {
   OPDS h;

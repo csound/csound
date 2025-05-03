@@ -22,7 +22,7 @@
 
 #include "compile_ops.h"
 #include <stdio.h>
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
+int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 
 int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
@@ -56,7 +56,7 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
     csound->Free(csound,orc);
     return NOTOK;
   }
-  *p->res = (MYFLT)(csoundCompileOrcInternal(csound, orc, 0));
+  *p->res = (MYFLT)(csound_compile_orc(csound, orc, 0));
   fclose(fp);
   csound->Free(csound,orc);
   return OK;
@@ -70,7 +70,7 @@ int32_t compile_csd_i(CSOUND *csound, COMPILE *p){
 int32_t compile_str_i(CSOUND *csound, COMPILE *p){
   //void csp_orc_sa_print_list(CSOUND*);
   //printf("START\n");
-  *p->res = (MYFLT)(csoundCompileOrcInternal(csound,
+  *p->res = (MYFLT)(csound_compile_orc(csound,
                                              ((STRINGDAT *)p->str)->data, 0));
   //printf("END\n");
   //csp_orc_sa_print_list(csound);
@@ -94,7 +94,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
 
   if(csound->GetDebug(csound)) csound->Message(csound, "%s \n", code);
   // compile code
-  if(csoundCompileOrcInternal(csound, code, 0) == CSOUND_SUCCESS) {
+  if(csound_compile_orc(csound, code, 0) == CSOUND_SUCCESS) {
     // pass the instrument out
     p->instr->instr = instrs[num];
     csound->Free(csound, code);
@@ -103,9 +103,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   csound->Free(csound, code);
   return csound->InitError(csound, "failed to compile instr\n");
 }
-#include "linevent.h"
-int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+
 /* compiles and runs an anonymous instrument
    run_instr Scode, idur[, ...]  
 */
@@ -120,7 +118,7 @@ int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p) {
   if(csound->GetDebug(csound))
     csound->Message(csound, "%s \n", code);
   // compile code
-  if(csoundCompileOrcInternal(csound, code, 0) == CSOUND_SUCCESS) {
+  if(csound_compile_orc(csound, code, 0) == CSOUND_SUCCESS) {
        LINEVENT pp;
        MYFLT zero = FL(0.0);
        MYFLT num = (MYFLT) csound->StringArg2Insno(csound, "__ANONYMOUS__", 1);
@@ -137,7 +135,7 @@ int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p) {
        }
       pp.flag = 1;
       csound->Free(csound, code); 
-      return eventOpcodeI_(csound, &pp, 0, 'i');
+      return event_opcode_init(csound, &pp, 0, 'i');
   }
   csound->Free(csound, code);
   return csound->InitError(csound, "failed to compile instr\n");
@@ -158,7 +156,7 @@ int32_t run_instr(CSOUND *csound, RINSTR *p) {
          pp.args[i+3] = p->argums[i];
        }
       pp.flag = 1;
-      return eventOpcodeI_(csound, &pp, 2, 'i');
+      return event_opcode_init(csound, &pp, 2, 'i');
 }
 
 int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
@@ -177,7 +175,7 @@ int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
          pp.args[i+3] = p->argums[i];
        }
        pp.flag = 1;
-       return eventOpcode_(csound, &pp, 2, 'i');
+       return event_opcode_perf(csound, &pp, 2, 'i');
       } else return OK;
 }
 

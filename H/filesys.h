@@ -1,7 +1,7 @@
 /*
-    envvar.h:
+    filesys.h: file system functions
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2025 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -21,56 +21,16 @@
     02110-1301 USA
 */
 
-#ifndef CSOUND_ENVVAR_H
-#define CSOUND_ENVVAR_H
+#ifndef CSOUND_FILESYS_H
+#define CSOUND_FILESYS_H
 
 #if !defined(__BUILDING_LIBCSOUND)
-#  error "Csound plugins and host applications should not include envvar.h"
+#  error "Csound plugins and host applications should not include files.h"
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-  /**
-   * Set environment variable 'name' to 'value'.
-   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
-   * if the environment variable could not be set for some reason.
-   */
-  int32_t csoundSetEnv(CSOUND *csound, const char *name, const char *value);
-
-  /**
-   * Append 'value' to environment variable 'name', using ';' as
-   * separator character.
-   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
-   * if the environment variable could not be set for some reason.
-   */
-  int32_t csoundAppendEnv(CSOUND *csound, const char *name, const char *value);
-
-  /**
-   * Prepend 'value' to environment variable 'name', using ';' as
-   * separator character.
-   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or CSOUND_MEMORY
-   * if the environment variable could not be set for some reason.
-   */
-  int32_t csoundPrependEnv(CSOUND *csound, const char *name, const char *value);
-
-  /**
-   * Initialise environment variable database, and copy system
-   * environment variables.
-   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
-   * CSOUND_MEMORY in case of an error.
-   */
-  int32_t csoundInitEnv(CSOUND *csound);
-
-  /**
-   * Parse 's' as an assignment to environment variable, in the format
-   * "NAME=VALUE" for replacing the previous value, or "NAME+=VALUE"
-   * for appending.
-   * Returns CSOUND_SUCCESS on success, and CSOUND_ERROR or
-   * CSOUND_MEMORY in case of an error.
-   */
-  int32_t csoundParseEnv(CSOUND *csound, const char *s);
 
   /** Check if file name is valid, and copy with converting pathname delimiters */
   char *csoundConvertPathname(CSOUND *csound, const char *filename);
@@ -227,6 +187,10 @@ extern "C" {
   char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
 
 
+  void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
+                   const char *basename,
+                   char *env, int32_t fromScore);
+
   void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
                                      const char *name, void *param,
                                      const char *env,
@@ -241,9 +205,8 @@ extern "C" {
 
   int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t whence);
 
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif  /* CSOUND_ENVVAR_H */
+#endif  /* CSOUND_FILESYS_H */

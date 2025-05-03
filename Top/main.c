@@ -43,8 +43,8 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *csd);
 uintptr_t kperfThread(void *cs);
 // void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
 // void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
-void csoundInputMessageInternal(CSOUND *csound, const char *message);
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str,
+void csound_input_message(CSOUND *csound, const char *message);
+int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 
 void checkOptions(CSOUND *csound) {
@@ -311,7 +311,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
   if (csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 
-  if (UNLIKELY(csoundCompileOrcInternal(csound, NULL, 0) != 0)) {
+  if (UNLIKELY(csound_compile_orc(csound, NULL, 0) != 0)) {
     if (csound->oparms->daemon != 1 && csound->orchname != NULL)
       csoundDie(csound, Str("cannot compile orchestra"));
     else {
@@ -483,7 +483,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
   }
   if (csound->instr0 == NULL) { /* compile dummy instr0 to allow csound to
                                    start with no orchestra */
-    csoundCompileOrcInternal(csound, "idummy = 0\n", 0);
+    csound_compile_orc(csound, "idummy = 0\n", 0);
   }
 
   if ((n = setjmp(csound->exitjmp)) != 0) {
@@ -562,7 +562,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
 
   allocate_message_queue(csound); /* if de-alloc by reset */
 
-  return musmon(csound);
+  return start_engine(csound);
 }
 
 PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
@@ -575,7 +575,7 @@ static int32_t csoundCompileCSDText(CSOUND *csound, const char *csd_text, int32_
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
     csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
-    res = csoundCompileOrcInternal(csound, NULL, async);
+    res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
       if ((csound->engineStatus & CS_STATE_COMP) != 0) {
           char *sc;

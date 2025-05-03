@@ -21,6 +21,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "namedins.h"
 #include <stdlib.h>
 
 #ifdef USE_DOUBLE
@@ -29,15 +30,13 @@
 #  define MYFLT_INT_TYPE int32_t
 #endif
 
-int32_t csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
-                               int32_t mode, int32_t allow_release, int32_t async);
-int32_t csoundCompileTreeInternal(CSOUND *csound, TREE *root, int32_t async);
-int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
+int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
+int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
-void killInstance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
+void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
                   int32_t mode, int32_t allow_release);
-void csoundInputMessageInternal(CSOUND *csound, const char *message);
+void csound_input_message(CSOUND *csound, const char *message);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *message);
 void csoundTableCopyOutInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
 void csoundTableCopyInInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
@@ -140,7 +139,7 @@ void message_dequeue(CSOUND *csound) {
       case INPUT_MESSAGE:
         {
           const char *str = msg->args;
-          csoundInputMessageInternal(csound, str);
+          csound_input_message(csound, str);
         }
 
         break;
@@ -237,7 +236,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(int32_t));
           memcpy(&rls, msg->args  + ARG_ALIGN*4,
                  sizeof(int32_t));
-          killInstance(csound, instr, insno, ip, mode, rls);
+          xturnoff_instance(csound, instr, insno, ip, mode, rls);
         }
         break;
       }
@@ -317,10 +316,7 @@ static inline int64_t *csoundScoreEventAbsolute_enqueue(CSOUND *csound, char typ
   return message_enqueue(csound,SCORE_EVENT_ABS, args, argsize);
 }
 
-/* this is to be called from
-   csoundKillInstanceInternal() in insert.c
-*/
-void killInstance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
+void kill_instance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
                           INSDS *ip, int32_t mode,
                           int32_t allow_release) {
   const int32_t argsize = ARG_ALIGN*5;
@@ -334,9 +330,9 @@ void killInstance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
 }
 
 /* this is to be called from
-   csoundCompileTreeInternal() in csound_orc_compile.c
+   csound_compile_tree() in csound_orc_compile.c
 */
-void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
+void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *ids) {
   const int32_t argsize = ARG_ALIGN*3;
   char args[ARG_ALIGN*3];
   memcpy(args, &e, sizeof(ENGINE_STATE *));
@@ -351,7 +347,7 @@ void mergeState_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *id
 */
 void csoundInputMessage(CSOUND *csound, const char *message){
   csoundLockMutex(csound->API_lock);
-  csoundInputMessageInternal(csound, message);
+  csound_input_message(csound, message);
   csoundUnlockMutex(csound->API_lock);
 }
 
@@ -391,19 +387,13 @@ int32_t csoundScoreEventAbsolute(CSOUND *csound, char type,
   return OK;
 }
 
-int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
-                       int32_t mode, int32_t allow_release){
-  int32_t async = 0;
-  return csoundKillInstanceInternal(csound, instr, instrName, mode,
-                                    allow_release, async);
-}
 
 int32_t init0(CSOUND *csound);
 
 MYFLT csoundEvalCode(CSOUND *csound, const char *str)
 {
   int32_t async = 0;
-  if (str && csoundCompileOrcInternal(csound,str,async)
+  if (str && csound_compile_orc(csound,str,async)
       == CSOUND_SUCCESS){
     if(!(csound->engineStatus & CS_STATE_COMP)) {
       init0(csound);
@@ -463,23 +453,54 @@ void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
                                    const MYFLT *pfields, long numFields,
                                    double time_ofs)
 {
-
   csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
 }
 
 int32_t csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
   int32_t async = 1;
-  return csoundCompileTreeInternal(csound, root, async);
+  return csound_compile_tree(csound, root, async);
 }
 
 int32_t csoundCompileOrcAsync(CSOUND *csound, const char *str) {
   int32_t async = 1;
-  return csoundCompileOrcInternal(csound, str, async);
+  return csound_compile_orc(csound, str, async);
 }
 
-int32_t csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
-                            int32_t mode, int32_t allow_release){
-  int32_t async = 1;
-  return csoundKillInstanceInternal(csound, instr, instrName, mode,
-                                    allow_release, async);
+int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
+                       int32_t mode, int32_t allow_release, int32_t async)
+{
+  INSDS *ip;
+  int32_t   insno;
+
+  if (instrName) {
+    instr = named_instr_find(csound, instrName);
+    insno = (int32_t) instr;
+  } else insno = instr;
+
+  if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
+               csound->engineState.instrtxtp[insno] == NULL)) {
+    return CSOUND_ERROR;
+  }
+
+  if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+    csoundUnlockMutex(csound->API_lock);
+    return CSOUND_ERROR;
+  }
+  ip = &(csound->actanchor);
+
+  while ((ip = ip->nxtact) != NULL && (int32_t) ip->insno != insno);
+  if (UNLIKELY(ip == NULL)) {
+    return CSOUND_ERROR;
+  }
+
+  if (!async) {
+    csoundLockMutex(csound->API_lock);
+    xturnoff_instance(csound, instr, insno, ip, mode, allow_release);
+    csoundUnlockMutex(csound->API_lock);
+  }
+  else
+    kill_instance_enqueue(csound, instr, insno, ip, mode, allow_release);
+  return CSOUND_SUCCESS;
 }
+
+

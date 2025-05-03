@@ -752,8 +752,6 @@ set(libcsound_SRCS
     Top/csound.c
     Top/argdecode.c
     Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
     Top/csmodule.c
     Top/getstring.c
     Top/main.c
@@ -767,10 +765,11 @@ set(libcsound_SRCS
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
-    Engine/entry1.c
-    Engine/envvar.c
+    Engine/entry.c
     Engine/extract.c
+    Engine/environ.c
     Engine/fgens.c
+    Engine/filesys.c
     Engine/insert.c
     Engine/srconvert.c
     Engine/udo.c
@@ -810,6 +809,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/inst_ops.c
     OOps/lpred.c
     OOps/pffft.c
     OOps/goto_ops.c

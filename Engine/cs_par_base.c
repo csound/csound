@@ -23,10 +23,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "csoundCore.h"
-
 #include "cs_par_base.h"
+
 static int32_t csp_set_exists(struct set_t *set, void *data);
 
 int32_t csp_thread_index_get(CSOUND *csound)
@@ -62,26 +61,6 @@ int32_t csp_thread_index_get(CSOUND *csound)
 
 /* **** An implementation of Barriers for MAC that lacks them **** */
 #if defined(__MACH__) || defined(ANDROID) || defined(__HAIKU__)
-/*#define BARRIER_SERIAL_THREAD (-1)
-
-typedef struct {
-  pthread_mutex_t mut;
-  pthread_cond_t cond;
-  uint32_t count, max, iteration;
-} barrier_t;
-*/
-extern int32_t barrier_init(barrier_t *b, void *,uint32_t max);
-extern int32_t barrier_destroy(barrier_t *b);
-extern int32_t barrier_wait(barrier_t *b);
-
-#ifndef PTHREAD_BARRIER_SERIAL_THREAD
-/*#define pthread_barrier_t barrier_t */
-#define PTHREAD_BARRIER_SERIAL_THREAD BARRIER_SERIAL_THREAD
-#define pthread_barrier_init(barrier, attr, count) \
-  barrier_init(barrier,NULL,count)
-#define pthread_barrier_destroy barrier_destroy
-#define pthread_barrier_wait barrier_wait
-#endif
 
 int32_t barrier_init(barrier_t *b, void *dump, uint32_t max)
 {
@@ -139,6 +118,15 @@ int32_t barrier_wait(barrier_t *b)
 
     return ret;
 }
+
+#ifndef PTHREAD_BARRIER_SERIAL_THREAD
+#define PTHREAD_BARRIER_SERIAL_THREAD BARRIER_SERIAL_THREAD
+#define pthread_barrier_init(barrier, attr, count) \
+  barrier_init(barrier,NULL,count)
+#define pthread_barrier_destroy barrier_destroy
+#define pthread_barrier_wait barrier_wait
+#endif
+ 
 #endif
 
 /***********************************************************************

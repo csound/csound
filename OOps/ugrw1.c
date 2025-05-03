@@ -226,7 +226,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
                          "UDO %s:", p->h.insdshead->instr->opcode_info->name); //
  
        csound->MessageS(csound, CSOUNDMSG_ORCH, Str("\ttime %11.5f: "),
-                               csound->icurTime/CS_ESR-CS_ONEDKR);
+                               csound->icurTimeSamples/CS_ESR-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */

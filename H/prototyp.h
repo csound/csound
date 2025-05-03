@@ -21,95 +21,113 @@
     02110-1301 USA
 */
 /*  PROTOTYP.H  */
+
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
 #include <sysdep.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void    cscore_(CSOUND *);
-void    *mmalloc(CSOUND *, size_t);
-void    *mcalloc(CSOUND *, size_t);
-void    *mrealloc(CSOUND *, void *, size_t);
-void    mfree(CSOUND *, void *);
-void    *mmallocDebug(CSOUND *, size_t, char*, int32_t);
-void    *mcallocDebug(CSOUND *, size_t, char*, int32_t);
-void    *mreallocDebug(CSOUND *, void *, size_t, char*, int32_t);
-void    mfreeDebug(CSOUND *, void *, char*, int32_t);
-char    *cs_strdup(CSOUND*, const char*);
-char    *cs_strndup(CSOUND*, const char*, size_t);
-void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
-int32_t     csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
-                            AUXASYNC *, aux_cb , void *);
-void    fdrecord(CSOUND *, FDCH *), csound_fd_close(CSOUND *, FDCH *);
-void    fdchclose(CSOUND *, INSDS *);
-CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
-CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
-CS_PRINTF2  int32_t     csoundInitError(CSOUND *, const char *, ...);
-CS_PRINTF3  int32_t     csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
-CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
-CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
-CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
-void    csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
-void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
-CS_NORETURN void    csoundLongJmp(CSOUND *, int32_t retval);
-TEXT    *getoptxt(CSOUND *, int32_t *);
-void    dispinit(CSOUND *);
-int32_t     init0(CSOUND *);
-void    scsort(CSOUND *, FILE *, FILE *);
-char    *scsortstr(CSOUND *, CORFIL *);
-int32_t     scxtract(CSOUND *, CORFIL *, FILE *);
-int32_t     rdscor(CSOUND *, EVTBLK *);
-int32_t     musmon(CSOUND *);
-void    RTLineset(CSOUND *);
-FUNC    *csoundFTFind(CSOUND *, MYFLT *);
-FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
-FUNC    *csoundFTnp2Find(CSOUND *, MYFLT *);
-FUNC    *csoundFTnp2Finde(CSOUND *, MYFLT *);
-void    list_opcodes(CSOUND *, int32_t);
-char    *getstrformat(int32_t format);
-int32_t     sfsampsize(int32_t sf_format);
-char    *type2string(int32_t type);
-int32_t     type2csfiletype(int32_t type, int32_t encoding);
-int32_t     sftype2csfiletype(int32_t type);
-void    rewriteheader(CSOUND *csound, void *ofd);
-#if 0
-int32_t     readOptions_file(CSOUND *, FILE *, int32_t);
-#else
-int32_t     readOptions(CSOUND *, CORFIL *, int32_t);
-#endif
-PUBLIC int32_t     argdecode(CSOUND *, int32_t, const char **);
-void    remove_tmpfiles(CSOUND *);
-void    add_tmpfile(CSOUND *, char *);
-void    xturnoff(CSOUND *, INSDS *);
-void    xturnoff_now(CSOUND *, INSDS *);
-int32_t     insert_score_event(CSOUND *, EVTBLK *, double);
-//MEMFIL  *ldmemfile(CSOUND *, const char *);
-//MEMFIL  *ldmemfile2(CSOUND *, const char *, int32_t);
-MEMFIL  *ldmemfile2withCB(CSOUND *csound, const char *filnam, int32_t csFileType,
-                          int32_t (*callback)(CSOUND*, MEMFIL*));
-void    rlsmemfiles(CSOUND *);
-int32_t     delete_memfile(CSOUND *, const char *);
-char    *csoundTmpFileName(CSOUND *, const char *);
-void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
-int32_t     getsndin(CSOUND *, void *, MYFLT *, int32_t, void *);
-void    *sndgetset(CSOUND *, void *);
-void    dbfs_init(CSOUND *, MYFLT dbfs);
-int32_t     csoundLoadExternals(CSOUND *);
-SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, void *sfinfo);
-int32_t     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
-void    print_opcodedir_warning(CSOUND *);
-int32_t     check_rtaudio_name(char *fName, char **devName, int32_t isOutput);
-int32_t     csoundLoadOpcodeDB(CSOUND *, const char *);
-void    csoundDestroyOpcodeDB(CSOUND *);
-int32_t     csoundCheckOpcodePluginFile(CSOUND *, const char *);
-//int     csoundLoadAllPluginOpcodes(CSOUND *);
-int32_t     csoundLoadAndInitModule(CSOUND *, const char *);
-void    csoundNotifyFileOpened(CSOUND *, const char *, int32_t, int32_t, int32_t);
-int32_t     insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
-
-char *get_arg_string(CSOUND *, MYFLT);
+  void *mmalloc(CSOUND *, size_t);
+  void *mcalloc(CSOUND *, size_t);
+  void *mrealloc(CSOUND *, void *, size_t);
+  void mfree(CSOUND *, void *);
+  void *mmalloc_debug(CSOUND *, size_t, char*, int32_t);
+  void *mcalloc_debug(CSOUND *, size_t, char*, int32_t);
+  void *mrealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
+  void mfree_debug(CSOUND *, void *, char*, int32_t);
+  void auxalloc(CSOUND *, size_t, AUXCH *);
+  void auxchfree(CSOUND *, INSDS *);
+  int32_t auxalloc_async(CSOUND *, size_t , AUXCH *,
+                         AUXASYNC *, aux_cb , void *);
+  void fdrecord(CSOUND *, FDCH *);
+  void csound_fd_close(CSOUND *, FDCH *);
+  void fdchclose(CSOUND *, INSDS *);
+  char *cs_strdup(CSOUND*, const char*);
+  char *cs_strndup(CSOUND*, const char*, size_t);
+  CS_PRINTF2  void synterr(CSOUND *, const char *, ...);
+  CS_NORETURN CS_PRINTF2  void csoundDie(CSOUND *, const char *, ...);
+  CS_PRINTF2  int32_t csoundInitError(CSOUND *, const char *, ...);
+  CS_PRINTF3  int32_t csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
+  CS_PRINTF2  void csoundWarning(CSOUND *, const char *, ...);
+  CS_PRINTF2  void csoundDebugMsg(CSOUND *, const char *, ...);
+  CS_PRINTF2  void csoundErrorMsg(CSOUND *, const char *, ...);
+  void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
+  void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
+  CS_NORETURN void csoundLongJmp(CSOUND *, int32_t retval);
+  TEXT *getoptxt(CSOUND *, int32_t *);
+  void  dispinit(CSOUND *);
+  int32_t init0(CSOUND *);
+  void scsort(CSOUND *, FILE *, FILE *);
+  char *scsortstr(CSOUND *, CORFIL *);
+  int32_t scxtract(CSOUND *, CORFIL *, FILE *);
+  int32_t rdscor(CSOUND *, EVTBLK *);
+  int32_t start_engine(CSOUND *);
+  void list_opcodes(CSOUND *, int32_t);
+  char  *getstrformat(int32_t format);
+  int32_t sfsampsize(int32_t sf_format);
+  char *type2string(int32_t type);
+  int32_t type2csfiletype(int32_t type, int32_t encoding);
+  int32_t sftype2csfiletype(int32_t type);
+  void  rewriteheader(CSOUND *csound, void *ofd);
+  int32_t readOptions(CSOUND *, CORFIL *, int32_t);
+  int32_t argdecode(CSOUND *, int32_t, const char **);
+  void  remove_tmpfiles(CSOUND *);
+  void  add_tmpfile(CSOUND *, char *);
+  void  xturnoff(CSOUND *, INSDS *);
+  void  xturnoff_now(CSOUND *, INSDS *);
+  INSDS *instance(CSOUND *, int32_t);
+  INSDS *create_instance(CSOUND *csound, int32_t insno);
+  void free_instance(CSOUND *csound, INSDS *ip);
+  int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+  void free_instr_var_memory(CSOUND* csound, INSDS* ip);
+  int32_t init_instance(CSOUND *csound, INSDS *ip, EVTBLK *newevtp);
+  int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead);
+  int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
+  int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
+  void free_inactive_instances(CSOUND*);
+  void beat_expire(CSOUND *, double);
+  void time_expire(CSOUND *, double);
+  int32_t insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
+  MEMFIL *load_memfile_with_cb(CSOUND *csound, const char *filnam, int32_t csFileType,
+                               int32_t (*callback)(CSOUND*, MEMFIL*));
+  void    free_memfiles(CSOUND *);
+  int32_t  delete_memfile(CSOUND *, const char *);
+  char    *csoundTmpFileName(CSOUND *, const char *);
+  void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
+  int32_t getsndin(CSOUND *, void *, MYFLT *, int32_t, void *);
+  void    *sndgetset(CSOUND *, void *);
+  void    dbfs_init(CSOUND *, MYFLT dbfs);
+  int32_t csoundLoadExternals(CSOUND *);
+  SNDMEMFILE *csoundLoadSoundFile(CSOUND *, const char *name, void *sfinfo);
+  int32_t load_PVOCEX_file(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
+  void    print_opcodedir_warning(CSOUND *);
+  int32_t check_rtaudio_name(char *fName, char **devName, int32_t isOutput);
+  int32_t csoundLoadOpcodeDB(CSOUND *, const char *);
+  void    csoundDestroyOpcodeDB(CSOUND *);
+  int32_t csoundCheckOpcodePluginFile(CSOUND *, const char *);
+  int32_t csoundLoadAndInitModule(CSOUND *, const char *);
+  void    csoundNotifyFileOpened(CSOUND *, const char *, int32_t, int32_t, int32_t);
+  char *get_arg_string(CSOUND *, MYFLT);
+  void    linevent_open(CSOUND *);
+  void    linevent_close(CSOUND *);
+  void    sf_open_in(CSOUND *);
+  void sf_open_out(CSOUND*);
+  void sf_open_nosound(CSOUND*);
+  void    set_io_backend(CSOUND *);
+  void sf_close_in(CSOUND*);
+  void sf_close_out(CSOUND*);
+  void    midi_open(CSOUND *);
+  void    midi_open_out(CSOUND *);
+  void    midi_close(CSOUND *);
+  void    m_chn_init_all(CSOUND *);
+  void    print_csound_version(CSOUND*);
+  int32_t realtset(CSOUND *, SRTBLK *);
+  MYFLT   realt(CSOUND *, MYFLT);
+  uintptr_t event_insert_thread(void *);
+  int32_t sens_midi(CSOUND *);
+  void sort(CSOUND*);
+  void twarp(CSOUND*);
 
 /**
  * Register a function to be called by csoundReset(), in reverse order
