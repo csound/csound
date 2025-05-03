@@ -23,7 +23,7 @@ static CS_VARIABLE* create_tuple(void* cs, void* p, INSDS *ctx) {
       csound->Calloc(csound, sizeof(CS_VARIABLE));
     IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(TUPLE));
-    var->initializeVariableMemory = &varInitMemory;
+    var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
 }
