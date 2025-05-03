@@ -8,16 +8,16 @@ typedef struct TUPLE {
   size_t size;
 } TUPLE;
 
-static void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
   memset(memblock, 0, var->memBlockSize);
 }
 
-static void tupleCopyValue(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+static void tuple_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                         const void* src, INSDS *ctx) {
   memcpy(dest, src, sizeof(TUPLE));
 }
 
-static CS_VARIABLE* createTuple(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_tuple(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*) cs;
     CS_VARIABLE* var = (CS_VARIABLE *)
       csound->Calloc(csound, sizeof(CS_VARIABLE));
@@ -29,11 +29,11 @@ static CS_VARIABLE* createTuple(void* cs, void* p, INSDS *ctx) {
 }
 
 CS_TYPE CS_VAR_TYPE_TUPLE = {
-   "Tuple", "Tuple", CS_ARG_TYPE_BOTH, createTuple, tupleCopyValue,
+   "Tuple", "Tuple", CS_ARG_TYPE_BOTH, create_tuple, tuple_copy_value,
     NULL, NULL, 0
 };
 
-static int32_t addTuple(CSOUND *csound) {
+static int32_t add_tuple(CSOUND *csound) {
   return csound->AddVariableType(csound, csound->GetTypePool(csound),
                                &CS_VAR_TYPE_TUPLE);                           
 }
@@ -82,7 +82,7 @@ PUBLIC int32_t  csoundModuleCreate(CSOUND *csound) {
 // Called on plugin load to initialise module
 PUBLIC  int32_t  csoundModuleInit(CSOUND *csound){
   // add the new data type to Csound
-  addTuple(csound);
+  add_tuple(csound);
   // add new opcodes
   csound->AppendOpcode(csound, "init", sizeof(TUPINIT), 0,
                      ":Tuple;", "m", (SUBR) tuple_init, NULL, NULL);
