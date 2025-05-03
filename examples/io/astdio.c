@@ -3,13 +3,13 @@
 #include <csdl.h>
 #include <poll.h>
 
-static int32_t open_output(CSOUND *csound, 
+static int32_t open_output(CSOUND *csound,
 		const csRtAudioParams *p){
   // nothing to do here, so exit
   return OK;
 }
 
-static int32_t open_input(CSOUND *csound, 
+static int32_t open_input(CSOUND *csound,
 		const csRtAudioParams *p){
   // set stdin to receive data
   int mode = fcntl(0, F_GETFL, 0);
@@ -20,7 +20,7 @@ static void audio_out(CSOUND *csound, const MYFLT *s, int32_t nbytes) {
   int32_t n, nsmps;
   // number of interleaved samples in buffer
   nsmps = nbytes / sizeof(MYFLT);
-  // send each sample to stdout 
+  // send each sample to stdout
   for(n = 0; n < nsmps; n++)
     fprintf(stdout, "%f\n", s[n]);
 }
@@ -33,18 +33,18 @@ static int32_t audio_in(CSOUND *csound, MYFLT *s, int32_t nbytes) {
   nsmps = nbytes / sizeof(MYFLT);
   // poll for input data on stdin
   if(poll(&fd, 1, 0)) {
-    // read each sample from input 
+    // read each sample from input
     while(scanf("%f", &data) > 0 && cnt < nsmps)
       s[cnt++] = data;
   }
   // return the number of samples read
-  return cnt/sizeof(MYFLT);  
+  return cnt/sizeof(MYFLT);
 }
 
 static void close_device(CSOUND *csound) {
   // nothing to do
 }
-  
+
 
 int32_t csoundModuleCreate(CSOUND *csound){
   // print message announcing module
@@ -59,11 +59,11 @@ int32_t csoundModuleInit(CSOUND *csound)
     (csound->QueryGlobalVariable(csound, "_RTAUDIO"));
   if (module == NULL)
     return 0;
-  // module section check 
+  // module section check
   if (strcmp(module, "stdio") != 0)
     return 0;
   // print message - module selected
-  csound->Message(csound, "stdio audo module enabled\n");
+  csound->Message(csound, "stdio audio module enabled\n");
   csound->SetPlayopenCallback(csound, open_output);
   csound->SetRecopenCallback(csound, open_input);
   csound->SetRtplayCallback(csound, audio_out);
