@@ -796,7 +796,7 @@ static inline int32_t byte_order(void) {
       int32_t i[2];
     } z;
     z.d = xx;
-    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
+    return ((z.i[sel]&0x7ff80000)==0x7ff80000); // was 0x7ff00000 - failing on clang 17!
 #else
   union {
     float f;
