@@ -11,8 +11,10 @@ set(stdutil_SRCS
     SDIF/sdif.c )
 
 if(BUILD_UTILITIES)
-   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} SndFile::sndfile)
-    make_utility(atsa        atsa_main.c)
+   if(USE_LIBSNDFILE)
+      make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} SndFile::sndfile)
+   endif()
+   make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
     make_utility(dnoise      dnoise_main.c)
@@ -44,7 +46,7 @@ if(BUILD_UTILITIES)
     endif()
 
     check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
-    if (BUILD_SRC_CONV)
+    if (BUILD_SRC_CONV AND USE_LIBSNDFILE)
         make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")
     endif()
 

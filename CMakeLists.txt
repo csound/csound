@@ -313,8 +313,8 @@ if(NOT MSVC AND NOT WASM)
                 else()
                 message(STATUS  "not using address sanitizer")
                endif()
-            endif()        
-        endif()        
+            endif()
+        endif()
     endif()
 endif()
 
@@ -543,7 +543,9 @@ endif()
 check_deps(USE_LIBSNDFILE SndFile_FOUND)
 
 # this makes sure make_plugin() can find headers
-list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
+if(USE_LIBSNDFILE)
+    list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
+endif()
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
@@ -1595,4 +1597,29 @@ if(MINGW)
     file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libstdc++-6.dll DESTINATION "${BUILD_DIR}")
     file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libgcc_s_seh-1.dll DESTINATION "${BUILD_DIR}")
     file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+endif()
+
+
+# WASM32 WASI Support
+option(USE_WASM32_WASI "Build WASM32 WASI target if compiler supports it" ON)
+if(USE_WASM32_WASI)
+    # Check if compiler supports WASI
+    include(cmake/CheckWASISupport.cmake)
+    check_wasi_support(WASI_SUPPORTED)
+
+    if(WASI_SUPPORTED)
+        message(STATUS "Building libsndfile.a for WASM32 WASI target")
+        include(cmake/AddLibsndfileWasm32WASI.cmake)
+        add_libsndfile_wasm32_wasi(libsndfile_wasm32_wasi_ext)
+
+        # Add a custom target to build csound.wasm
+        add_custom_target(csound_wasm
+            DEPENDS libsndfile_wasm32
+            COMMENT "Building csound.wasm (libsndfile.a dependency built)"
+        )
+
+        message(STATUS "WASM32 WASI target added. Build with: cmake --build . --target csound_wasm")
+    else()
+        message(STATUS "WASI support not detected in compiler, skipping WASM32 WASI target")
+    endif()
 endif()
