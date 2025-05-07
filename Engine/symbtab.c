@@ -29,11 +29,12 @@
 #include "csoundCore.h"
 #include "tok.h"
 #include "csound_orc.h"
-#include "insert.h"
+#include "udo.h"
 #include "namedins.h"
 #include "interlocks.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound_orc_compile.h"
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)
@@ -42,9 +43,6 @@
 #if defined(_WIN32) || defined(_WIN64)
 # define strtok_r strtok_s
 #endif
-
-extern int32_t csound_orcget_lineno(void*);
-extern char** splitArgs(CSOUND* csound, char* argString);
 
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
@@ -119,8 +117,8 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     typeSpecifier[1] = '\0';
 
-    in_args = splitArgs(csound, inm->intypes);
-    out_args = splitArgs(csound, inm->outtypes);
+    in_args = split_args(csound, inm->intypes);
+    out_args = split_args(csound, inm->outtypes);
 
     if (UNLIKELY(in_args == NULL)) {
       synterr(csound,

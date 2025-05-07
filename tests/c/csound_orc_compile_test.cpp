@@ -43,32 +43,32 @@ public:
 };
 
 extern "C" {
-    extern int32_t argsRequired (const char* arrayName);
-    extern char** splitArgs (CSOUND* csound, const char* argString);
+    extern int32_t args_required (const char* arrayName);
+    extern char** split_args (CSOUND* csound, const char* argString);
 }
 
 TEST_F (OrcCompileTests, testArgsRequired)
 {
-    ASSERT_EQ (1, argsRequired("a"));
-    ASSERT_EQ (2, argsRequired("ka"));
-    ASSERT_EQ (3, argsRequired("kak"));
-    ASSERT_EQ (2, argsRequired("ak"));
-    ASSERT_EQ (3, argsRequired("a[]ka"));
-    ASSERT_EQ (4, argsRequired("a[]k[]ka"));
-    ASSERT_EQ (4, argsRequired("a[][]k[][]ka"));
-    ASSERT_EQ (0, argsRequired(NULL));
+    ASSERT_EQ (1, args_required("a"));
+    ASSERT_EQ (2, args_required("ka"));
+    ASSERT_EQ (3, args_required("kak"));
+    ASSERT_EQ (2, args_required("ak"));
+    ASSERT_EQ (3, args_required("a[]ka"));
+    ASSERT_EQ (4, args_required("a[]k[]ka"));
+    ASSERT_EQ (4, args_required("a[][]k[][]ka"));
+    ASSERT_EQ (0, args_required(NULL));
 }
 
 TEST_F (OrcCompileTests, testSplitArgs)
 {
-    char** results = splitArgs(csound, "kak");
+    char** results = split_args(csound, "kak");
 
     ASSERT_STREQ ("k", results[0]);
     ASSERT_STREQ ("a", results[1]);
     ASSERT_STREQ ("k", results[2]);
     csound->Free(csound, results);
 
-    results = splitArgs(csound, "a[]k[]ka");
+    results = split_args(csound, "a[]k[]ka");
 
     ASSERT_STREQ ("[a]", results[0]);
     ASSERT_STREQ ("[k]", results[1]);
@@ -76,7 +76,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("a", results[3]);
     csound->Free(csound, results);
 
-    results = splitArgs(csound, "a[][]k[][]ka");
+    results = split_args(csound, "a[][]k[][]ka");
 
     ASSERT_STREQ ("[[a]", results[0]);
     ASSERT_STREQ ("[[k]", results[1]);

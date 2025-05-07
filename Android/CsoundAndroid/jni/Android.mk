@@ -29,10 +29,11 @@ LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
 $(CSOUND_SRC_ROOT)/Engine/cfgvar.c \
 $(CSOUND_SRC_ROOT)/Engine/corfiles.c \
-$(CSOUND_SRC_ROOT)/Engine/entry1.c \
-$(CSOUND_SRC_ROOT)/Engine/envvar.c \
+$(CSOUND_SRC_ROOT)/Engine/entry.c \
+$(CSOUND_SRC_ROOT)/Engine/environ.c \
 $(CSOUND_SRC_ROOT)/Engine/extract.c \
 $(CSOUND_SRC_ROOT)/Engine/fgens.c \
+$(CSOUND_SRC_ROOT)/Engine/filesys.c \
 $(CSOUND_SRC_ROOT)/Engine/insert.c \
 $(CSOUND_SRC_ROOT)/Engine/srconvert.c \
 $(CSOUND_SRC_ROOT)/Engine/udo.c \
@@ -73,6 +74,7 @@ $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
 $(CSOUND_SRC_ROOT)/OOps/lpred.c \
 $(CSOUND_SRC_ROOT)/OOps/pffft.c \
+$(CSOUND_SRC_ROOT)/OOps/inst_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/midiinterop.c \
 $(CSOUND_SRC_ROOT)/OOps/midiops.c \
@@ -153,8 +155,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/squinewave.c \
 $(CSOUND_SRC_ROOT)/Opcodes/sequencer.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Top/csdebug.c \
-$(CSOUND_SRC_ROOT)/Top/cscore_internal.c \
-$(CSOUND_SRC_ROOT)/Top/cscorfns.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
 $(CSOUND_SRC_ROOT)/Top/csound.c \
 $(CSOUND_SRC_ROOT)/Top/getstring.c \

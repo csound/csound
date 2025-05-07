@@ -514,8 +514,8 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     {"caf", TYP_CAF},     {"wve", TYP_WVE},   {"ogg", TYP_OGG},
     {"mpc2k", TYP_MPC2K}, {"rf64", TYP_RF64}, {NULL, -1}};
 
-extern void sfopenout(CSOUND *csound);
-extern void sfcloseout(CSOUND *csound);
+extern void sf_open_out(CSOUND *csound);
+extern void sf_close_out(CSOUND *csound);
 
 static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   OPARMS *O = csound->oparms;
@@ -586,9 +586,6 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strcmp(s, "orc"))) {
     csound->use_only_orchfile = 1; /* orchfile without scorefile */
-    return 1;
-  } else if (!(strcmp(s, "cscore"))) {
-    O->usingcscore = 1; /* use cscore processing  */
     return 1;
   } else if (!(strcmp(s, "nodisplays"))) {
     O->displays = 0; /* no func displays */
@@ -1193,10 +1190,10 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
         csound->LongJmp(csound, 1);
-      sfopenout(csound);
+      sf_open_out(csound);
       csound->MessageS(csound, CSOUNDMSG_STDOUT, "system sr: %f\n",
                        csound->GetSystemSr(csound, 0));
-      sfcloseout(csound);
+      sf_close_out(csound);
       // csound->LongJmp(csound, 0);
     }
     csound->info_message_request = 1;
@@ -1240,7 +1237,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 0;
 }
 
-PUBLIC int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
+int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   OPARMS *O = csound->oparms;
   char *s, **argv;
   int32_t n;
@@ -1255,7 +1252,7 @@ PUBLIC int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   for (i = 0; i <= argc; i++) {
     nbytes += ((int32_t)strlen(argv_[i]) + 1);
   }
-  p1 = (char *)csound->Malloc(csound, nbytes); /* will be freed by memRESET() */
+  p1 = (char *)csound->Malloc(csound, nbytes); /* will be freed by memreset() */
   p2 = (char *)p1 + ((int32_t)sizeof(char *) * (argc + 1));
   argv = (char **)p1;
   for (i = 0; i <= argc; i++) {
@@ -1281,9 +1278,6 @@ PUBLIC int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             } else
               csound->LongJmp(csound, retval);
           }
-          break;
-        case 'C':
-          O->usingcscore = 1; /* use cscore processing  */
           break;
         case 'I':
           csound->initonly = 1;   /* I-only overrides */
@@ -1693,7 +1687,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type,
     return;
 
   oparms->outfilename =
-      csound->Malloc(csound, strlen(name) + 1); /* will be freed by memRESET */
+      csound->Malloc(csound, strlen(name) + 1); /* will be freed by memreset */
   strcpy(oparms->outfilename, name);            /* unsafe -- REVIEW */
   if (strcmp(oparms->outfilename, "stdout") == 0) {
     set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
@@ -1754,7 +1748,7 @@ PUBLIC void csoundSetInput(CSOUND *csound, const char *name) {
     return;
 
   oparms->infilename =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      csound->Malloc(csound, strlen(name)); /* will be freed by memreset */
   strcpy(oparms->infilename, name);
   if (strcmp(oparms->infilename, "stdin") == 0) {
     set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
@@ -1774,7 +1768,7 @@ PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name) {
     return;
 
   oparms->Midiname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      csound->Malloc(csound, strlen(name)); /* will be freed by memreset */
   strcpy(oparms->Midiname, name);
   if (!strcmp(oparms->Midiname, "stdin")) {
     set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
@@ -1794,7 +1788,7 @@ PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name) {
     return;
 
   oparms->FMidiname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      csound->Malloc(csound, strlen(name)); /* will be freed by memreset */
   strcpy(oparms->FMidiname, name);
   if (!strcmp(oparms->FMidiname, "stdin")) {
     set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
@@ -1814,7 +1808,7 @@ PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name) {
     return;
 
   oparms->FMidioutname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      csound->Malloc(csound, strlen(name)); /* will be freed by memreset */
   strcpy(oparms->FMidioutname, name);
 }
 
@@ -1826,7 +1820,7 @@ PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name) {
     return;
 
   oparms->Midioutname =
-      csound->Malloc(csound, strlen(name)); /* will be freed by memRESET */
+      csound->Malloc(csound, strlen(name)); /* will be freed by memreset */
   strcpy(oparms->Midioutname, name);
 }
 

@@ -33,7 +33,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-static int32_t Load_Het_File_(CSOUND *csound, const char *filnam,
+static int32_t load_het_file(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
 {
     FILE *f;
@@ -95,38 +95,9 @@ static MYFLT read_ieee(FILE* f, int32_t *end)
     }
     x = cs_strtod(buff, NULL);
     return (MYFLT)x;
-    /* union { */
-    /*   double d; */
-    /*   struct {int  j,k;}  n; */
-    /*   int64_t  i; */
-    /* } x; */
-    /* int32_t sign=1, ex; */
-    /* int64_t man; */
-    /* int64_t bit = 1; */
-    /* char buff[32]; */
-    /* char *p; */
-    /* bit <<= 62; */
-    /* p = fgets(buff, 32, f); */
-    /* printf("... %s", buff); */
-    /* if (p==NULL || feof(f)) { */
-    /*   printf("ending\n"); */
-    /*   *end = 1; */
-    /*   return FL(0.0); */
-    /* } */
-    /* if (strstr(p, "0x0p+0")) { */
-    /*   return FL(0.0); */
-    /* } */
-    /* if (buff[0]=='-') sign=-1; */
-    /* p = strchr(buff, '.')+1; */
-    /* sscanf(p, "%lxp%d", &man, &ex); */
-    /* x.i = man; */
-    /* if (man!=(int64_t)0) x.i |= bit; */
-    /* x.d = ldexp(x.d, ex-1); */
-    /* if (sign<0) x.d =-x.d; */
-    /* return (MYFLT)x.d; */
 }
 
-static int32_t Load_CV_File_(CSOUND *csound, const char *filnam,
+static int32_t load_cv_file(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
 {
     FILE *f;
@@ -138,7 +109,6 @@ static int32_t Load_CV_File_(CSOUND *csound, const char *filnam,
     CVSTRUCT cvh = {0,0,0,0,0.0,0,0,0,0,{0}};
     char buff[120];
     char *p;
-    //void *dummy = 0;
 
     f = fopen(filnam, "r");
     csoundNotifyFileOpened(csound, filnam, CSFTYPE_CVANAL, 0, 0);
@@ -158,10 +128,6 @@ static int32_t Load_CV_File_(CSOUND *csound, const char *filnam,
     cvh.channel = (int32_t) strtol(p, &p, 10);
     cvh.Hlen = (int32_t) strtol(p, &p, 10);
     cvh.Format = (int32_t) strtol(p, &p, 10);
-    /* fscanf(f, "%d %d %d %g %d %d %d %d\n",  */
-    /*        &cvh.headBsize, &cvh.dataBsize, &cvh.dataFormat, */
-    /*        &cvh.samplingRate, &cvh.src_chnls, &cvh.channel, */
-    /*        &cvh.Hlen, &cvh.Format); */
     cvh.headBsize = sizeof(int32)*8 + sizeof(MYFLT);
     memcpy(&all[0], &cvh, sizeof(CVSTRUCT));
 
@@ -184,7 +150,7 @@ static int32_t Load_CV_File_(CSOUND *csound, const char *filnam,
     return 0;                                   /*   return 0 for OK   */
 }
 
-static int32_t Load_LP_File_(CSOUND *csound, const char *filnam,
+static int32_t load_lp_file(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)
 {
     FILE *f;
@@ -210,16 +176,6 @@ static int32_t Load_LP_File_(CSOUND *csound, const char *filnam,
     lph.framrate = (MYFLT)cs_strtod(buff, &p);
     lph.srate = (MYFLT)cs_strtod(p, &p);
     lph.duration = (MYFLT)cs_strtod(p, &p);
-    /* lph.text[0] = (char)strtol(p, &p, 0); */
-    /* lph.text[1] = (char)strtol(p, &p, 0); */
-    /* lph.text[2] = (char)strtol(p, &p, 0); */
-    /* lph.text[3] = (char)strtol(p, &p, 0); */
-    /* printf("LPHeader %d %d %d %d\n%f %f %f\n", */
-    /*        lph.headersize, lph.lpmagic, lph.npoles, lph.nvals, */
-    /*        lph.framrate, lph.srate, lph.duration); */
-    /* fscanf(f, "%f %f %f %.2x %.2x %.2x %.2x\n", */
-    /*        &lph.framrate, &lph.srate, &lph.duration, */
-    /*        &lph.text[0], &lph.text[1], &lph.text[2], &lph.text[3]); */
     // This needs surgery if in/out different MYFLT sizes *** FIX ME ***
     lph.headersize = sizeof(int32)*4+sizeof(MYFLT)*3;
     memcpy(&all[0], &lph, lph.headersize);
@@ -244,7 +200,7 @@ static int32_t Load_LP_File_(CSOUND *csound, const char *filnam,
     return 0;                                   /*   return 0 for OK   */
 }
 
-static int32_t Load_File_(CSOUND *csound, const char *filnam,
+static int32_t load_file(CSOUND *csound, const char *filnam,
                        char **allocp, int32 *len, int32_t csFileType)
 {
     FILE *f;
@@ -258,7 +214,7 @@ static int32_t Load_File_(CSOUND *csound, const char *filnam,
       ignore_value(fgets(buff, 6, f));
       if (strcmp(buff, "HETRO")==0) {
         fclose(f);
-        return Load_Het_File_(csound, filnam, allocp, len);
+        return load_het_file(csound, filnam, allocp, len);
       }
     }
     else if (csFileType==CSFTYPE_CVANAL) {
@@ -266,7 +222,7 @@ static int32_t Load_File_(CSOUND *csound, const char *filnam,
       ignore_value(fgets(buff, 7, f));
       if (strcmp(buff, "CVANAL")==0) {
         fclose(f);
-        return Load_CV_File_(csound, filnam, allocp, len);
+        return load_cv_file(csound, filnam, allocp, len);
       }
     }
     else if (csFileType==CSFTYPE_LPC) {
@@ -274,7 +230,7 @@ static int32_t Load_File_(CSOUND *csound, const char *filnam,
       ignore_value(fgets(buff, 7, f));
       if (strcmp(buff, "LPANAL")==0) {
         fclose(f);
-        return Load_LP_File_(csound, filnam, allocp, len);
+        return load_lp_file(csound, filnam, allocp, len);
       }
     }
     /* notify the host if it asked */
@@ -300,22 +256,6 @@ static int32_t Load_File_(CSOUND *csound, const char *filnam,
     return 1;
 }
 
-/* Backwards-compatible wrapper for ldmemfile2().
-   Please use ldmemfile2() or ldmemfile2withCB() in all new code instead.
-MEMFIL *ldmemfile(CSOUND *csound, const char *filnam)
-{
-    return ldmemfile2withCB(csound, filnam, CSFTYPE_UNKNOWN, NULL);
-}
-*/
-/* Takes an additional parameter specifying the type of the file being opened.
-   The type constants are defined in the enumeration CSOUND_FILETYPES.
-   Use ldmemfile2() to load file without additional processing.
-MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int32_t csFileType)
-{
-    return ldmemfile2withCB(csound, filnam, csFileType, NULL);
-}
-*/
-
 /* This version of ldmemfile2 allows you to specify a callback procedure
    to process the file's data after it is loaded.  This method ensures that
    your procedure is only called once even if the file is "loaded" multiple
@@ -324,7 +264,7 @@ MEMFIL *ldmemfile2(CSOUND *csound, const char *filnam, int32_t csFileType)
    Callback signature:     int32_t myfunc(CSOUND* csound, MEMFIL* mfp)
    Callback return value:  OK (0) or NOTOK (-1)
  */
-MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int32_t csFileType,
+MEMFIL *load_memfile_with_cb(CSOUND *csound, const char *filnam, int32_t csFileType,
                          int32_t (*callback)(CSOUND*, MEMFIL*))
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
@@ -354,7 +294,7 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int32_t csFileType,
       delete_memfile(csound, filnam);
       return NULL;
     }
-    if (UNLIKELY(Load_File_(csound, pathnam, &allocp, &len, csFileType) != 0)) {
+    if (UNLIKELY(load_file(csound, pathnam, &allocp, &len, csFileType) != 0)) {
       /* loadfile */
       csoundMessage(csound, Str("cannot load %s, or SADIR undefined\n"),
                             pathnam);
@@ -382,7 +322,7 @@ MEMFIL *ldmemfile2withCB(CSOUND *csound, const char *filnam, int32_t csFileType,
 
 /* clear the memfile array, & free all allocated space */
 
-void rlsmemfiles(CSOUND *csound)
+void free_memfiles(CSOUND *csound)
 {
     MEMFIL  *mfp = csound->memfiles, *nxt;
 
@@ -437,12 +377,12 @@ static int32_t pvx_err_msg(CSOUND *csound, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    csound->ErrMsgV(csound, Str("PVOCEX_LoadFile(): error:\n    "), fmt, args);
+    csound->ErrMsgV(csound, Str("error loading PVOCEX file:\n    "), fmt, args);
     va_end(args);
     return -1;
 }
 
-int32_t PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
+int32_t load_PVOCEX_file(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 {
     PVOCDATA      pvdata;
     WAVEFORMATEX  fmt;

@@ -53,7 +53,7 @@
 
 #define ST(x)   (((REMOTE_GLOBALS*) ((CSOUND*)csound)->remoteGlobals)->x)
 
-void remote_Cleanup(CSOUND *csound);
+void remote_cleanup(CSOUND *csound);
 
 void remoteRESET(CSOUND *csound)
 {
@@ -225,12 +225,12 @@ static int32_t callox(CSOUND *csound)
 
 error:
     /* Clean up anything we may have allocated before running out of memory */
-    remote_Cleanup(csound);
+    remote_cleanup(csound);
     return -1;
 }
 
 /* Cleanup the above; called from musmon csoundCleanup */
-void remote_Cleanup(CSOUND *csound)
+void remote_cleanup(CSOUND *csound)
 {
     int32_t fd;
     if (csound->remoteGlobals == NULL) return;
@@ -712,7 +712,7 @@ char remoteID(CSOUND *csound)
 }
 
 /* Cleanup the above; called from musmon csoundCleanup */
-void remote_Cleanup(CSOUND *csound)
+void remote_cleanup(CSOUND *csound)
 {
     csound->remoteGlobals = NULL;
     return;

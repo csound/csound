@@ -24,9 +24,8 @@
 #include "csoundCore.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
 #include "extract.h"
-
-extern  int32_t     realtset(CSOUND *, SRTBLK *);
-extern  MYFLT   realt(CSOUND *, MYFLT);
+#include "prototyp.h"
+#include "sread.h"
 
 static  void    include(EXTRACT_STATICS*, SRTBLK *);
 

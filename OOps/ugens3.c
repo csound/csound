@@ -1455,7 +1455,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
 
   if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
     /* readfile if reqd */
-    if (UNLIKELY((mfp = ldmemfile2withCB(csound, filnam,
+    if (UNLIKELY((mfp = load_memfile_with_cb(csound, filnam,
                                          CSFTYPE_HETRO, NULL)) == NULL)) {
       return csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
     }

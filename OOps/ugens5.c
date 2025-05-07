@@ -618,7 +618,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
       goto lpend;                             /* rtn if file prv known */
     /* Load analysis in memory file */
     /* else read file  */
-    if (UNLIKELY((mfp = ldmemfile2withCB(csound, lpfilname, CSFTYPE_LPC, NULL))
+    if (UNLIKELY((mfp = load_memfile_with_cb(csound, lpfilname, CSFTYPE_LPC, NULL))
                  == NULL)) {
       return csound->InitError(csound, Str("LPREAD cannot load %s"), lpfilname);
     }

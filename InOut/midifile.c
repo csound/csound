@@ -766,7 +766,7 @@ int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int32_t nBytes)
 
 int32_t csoundMIDIFileClose(CSOUND *csound)
 {
-    /* nothing to do: memRESET() will free any allocated memory */
+    /* nothing to do: memreset() will free any allocated memory */
     MIDIFILE = (void*) NULL;
     return 0;
 }

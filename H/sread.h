@@ -1,7 +1,7 @@
 /*
-    find_opcode.h:
+    sread.h:
 
-    Copyright (C) 2016 by John ffitc
+    Copyright (C) 1991, 1997 Barry Vercoe, John ffitch
 
     This file is part of Csound.
 
@@ -20,16 +20,18 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#ifndef _FIND_OPCODE_H_
-#define _FIND_OPCODE_H_
 
-char* get_opcode_short_name(CSOUND* csound, char* opname);
-
-PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname,
-                               char* outArgsFound, char* inArgsFound);
-PUBLIC OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
-                               char* outArgsFound, char* inArgsFound);
-/* find OENTRY with the specified name in opcode list */
-
-OENTRY* find_opcode(CSOUND *, char *);
+#ifndef __SREAD_H
+#define __SREAD_H
+#include "score_param.h"
+  int32_t csound_prslex_init(void *);
+  void csound_prsset_extra(void *, void *);
+  int32_t csound_prslex(CSOUND*, void*);
+  int32_t csound_prslex_destroy(void *);
+  void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
+  void swritestr(CSOUND*, CORFIL *sco, int32_t first);
+  void sfree(CSOUND *csound);
+  int32_t  sread(CSOUND *csound);
+  void sread_initstr(CSOUND *, CORFIL *sco);
+  MYFLT stof(CSOUND *, char *);
 #endif

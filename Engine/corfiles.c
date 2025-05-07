@@ -26,10 +26,10 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include "filesys.h"
+#include "corfile.h"
 
 
-extern int32_t csoundFileClose(CSOUND*, void*);
-CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 
 CORFIL *corfile_create_w(CSOUND *csound)
 {
@@ -215,8 +215,6 @@ char *corfile_current(CORFIL *f)
 }
 
 /* *** THIS NEEDS TO TAKE ACCOUNT OF SEARCH PATH *** */
-void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
-                 const char *basename, char *env, int32_t fromScore);
 CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
                          const char *env, int32_t fromScore)
 {
@@ -235,7 +233,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       return copy_url_corefile(csound, fname+2, fromScore);
     }
 #endif
-    fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
+    fd = fopen_path(csound, &ff, (const char *)fname, NULL, (char *)env, fromScore);
     if (UNLIKELY(ff==NULL)) return NULL;
     mm = corfile_create_w(csound);
     if (fromScore) corfile_putc(csound, '\n', mm);
@@ -284,7 +282,7 @@ struct MemoryStruct {
 
 
 static size_t
-WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+write_memory_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
   size_t realsize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
@@ -315,7 +313,7 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int32_t fromScore)
     chunk.size = 0;    /* no data at this point */
     chunk.cs = csound;
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     n = curl_easy_perform(curl);
@@ -337,82 +335,3 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int32_t fromScore)
 
 #endif
 
-#if 0
-int32_t main(void)
-{
-    CURL *curl_handle;
-    CURLcode res;
-
-    struct MemoryStruct chunk;
-
-    /* will grown as needed by the realloc above */
-    chunk.memory = csound->Malloc(csound, 1);
-    chunk.size = 0;    /* no data at this point */
-
-    curl_global_init(CURL_GLOBAL_ALL);
-
-    /* init the curl session */
-    curl_handle = curl_easy_init();
-
-    /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://www.example.com/");
-
-    /* send all data to this function  */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-
-    /* we pass our 'chunk' struct to the callback function */
-    curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void *)&chunk);
-
-    /* some servers don't like requests that are made without a user-agent
-       field, so we provide one */
-    curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-
-    /* get it! */
-    res = curl_easy_perform(curl_handle);
-
-    /* check for errors */
-    if (res != CURLE_OK) {
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-              curl_easy_strerror(res));
-    }
-    else {
-      /*
-       * Now, our chunk.memory points to a memory block that is chunk.size
-       * bytes big and contains the remote file.
-       *
-       * Do something nice with it!
-       */
-
-      printf("%lu bytes retrieved\n", (long)chunk.size);
-    }
-
-    /* cleanup curl stuff */
-    curl_easy_cleanup(curl_handle);
-
-    if (chunk.memory)
-      free(chunk.memory);
-
-    /* we're done with libcurl, so clean it up */
-    curl_global_cleanup();
-
-    return 0;
-}
-#endif
-
-#ifdef JPFF
-/* Start of directory of corfiles currently unused except experimental in CsFileC */
-typedef struct dir {
-  char       *name;
-  CORFIL     *corfile;
-  struct dir *next;
-} CORDIR;
-
-void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename)
-{
-    CORDIR *entry = csound->Malloc(csound, sizeof(CORDIR));
-    entry->name = cs_strdup(csound, filename);
-    entry->corfile = smpf;
-    entry->next = (CORDIR *)csound->directory;
-    csound->directory = entry;
-}
-#endif

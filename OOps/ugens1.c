@@ -310,7 +310,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
   nsegs = 6;          /* DADSR */
   if ((segp = (SEG *) p->auxch.auxp) == NULL ||
       nsegs*sizeof(SEG) < (uint32_t)p->auxch.size) {
-    csoundAuxAlloc(csound, (size_t) nsegs * sizeof(SEG), &p->auxch);
+    csound->AuxAlloc(csound, (size_t) nsegs * sizeof(SEG), &p->auxch);
     p->cursegp = segp = (SEG *) p->auxch.auxp;
     segp[nsegs-1].cnt = MAXPOS; /* set endcount for safety */
   }
