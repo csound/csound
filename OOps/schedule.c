@@ -355,18 +355,18 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     MYFLT *data = pfields->data;
     evt.pcnt = (int16) lowpfields;
     for (i = 0; i < (int32_t) lowpfields; i++) {
-          evt.p[i + 1] = data[i];
+        evt.p[i + 1] = data[i];
     }
 
     if (numpfields > lowpfields) {
         int rest = numpfields - lowpfields;
-        evt.c.extra = csound->Malloc(csound, sizeof(MYFLT)*(rest+2));
+        evt.c.extra = csound->Malloc(csound, sizeof(MYFLT)*(rest+1));
         if (UNLIKELY(evt.c.extra == NULL)) {
-        csound->ErrorMsg(csound, Str("Out of Memory for extra block, "
+            csound->ErrorMsg(csound, Str("Out of Memory for extra block, "
                                     "event p1=%f, p2=%f"), evt.p[0], evt.p[1]);
-        return CSOUND_MEMORY;
+            return CSOUND_MEMORY;
         }
-        memcpy(evt.c.extra, &(pfields[lowpfields]), sizeof(MYFLT)*rest+2);
+        memcpy(evt.c.extra, &(data[PMAX-1]), sizeof(MYFLT)*(rest+1));
         evt.c.extra[0] = rest;
     }
     ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);

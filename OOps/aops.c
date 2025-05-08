@@ -2346,27 +2346,25 @@ int32_t painit(CSOUND *csound, PAINIT *p)
 
 int32_t painit(CSOUND *csound, PAINIT *p) {
     int32_t n;
-    printf("passign\n");
     EVTBLK *evt = csound->init_event;
     int32_t pcnt = evt->pcnt;
     int32_t start = (int32_t)(*p->start);
     int32_t end = (int32_t)(*p->end);
-    if (end == FL(0.0)) {
-      end = pcnt;
+    int32_t numextra = 0;
+    if (evt->c.extra != NULL) {
+      numextra = (int32_t)evt->c.extra[0];
     }
-    int32_t numfields = end - start + 1;
-    tabinit(csound, p->inits, numfields, p->h.insdshead);
+    if(end == FL(0.0)) {
+      end = pcnt + numextra;
+    }
     int32_t pargsend = end < PMAX - 1 ? end : PMAX - 1;
     int32_t numpargs = pargsend - start + 1;
+    tabinit(csound, p->inits, end - start, p->h.insdshead);
     for (n=0; n < numpargs; n++) {
       ((MYFLT*)p->inits->data)[n] = evt->p[n+start];
     }
-    if (end > PMAX && evt->c.extra != NULL) {
-      int32_t rest = end - PMAX + 1;
-      int32_t numextra = (int32_t)evt->c.extra[0];
-      if (rest > numextra)
-        rest = numextra;
-      for (n=0; n < rest; n++) {
+    if (evt->c.extra != NULL && end > PMAX) {
+      for (n=0; n < (end - PMAX); n++) {
         ((MYFLT*)p->inits->data)[n+numpargs] = evt->c.extra[1+n];
       }
     }
