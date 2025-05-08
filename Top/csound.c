@@ -223,11 +223,11 @@ static void free_opcode_table(CSOUND *csound) {
   cs_hash_table_free(csound, csound->opcodes);
 }
 
-static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs) { 
+static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs) {
   return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
 }
 
-  
+
 static void create_opcode_table(CSOUND *csound) {
 
   int32_t err;
@@ -836,7 +836,7 @@ static const CSOUND cenviron_ = {
   FL(-1.0),       /*  mtpdsr              */
   FL(0.0),        /*  onedksmps           */
   FL(0.0),        /*  onedkr              */
-  FL(0.0),        /*  kicvt               */ 
+  FL(0.0),        /*  kicvt               */
   0,              /*  reinitflag          */
   0,              /*  tieflag             */
   DFLT_DBFS,      /*  e0dbfs              */
@@ -848,9 +848,9 @@ static const CSOUND cenviron_ = {
   {0},
 #elif defined(LINUX)
   {{{0}}},        /*  exitjmp of type jmp_buf */
-#else 
-  {0},  
-#endif 
+#else
+  {0},
+#endif
   NULL,           /*  frstbp              */
   0,              /*  sectcnt             */
   0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
@@ -910,7 +910,7 @@ static const CSOUND cenviron_ = {
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
-    {NULL, FL(0.0)}  
+    {NULL, FL(0.0)}
   },
   {0L },          /*  rngcnt              */
   0, 0,           /*  rngflg, multichan   */
@@ -1083,7 +1083,7 @@ static const CSOUND cenviron_ = {
     1,            /*    displays          */
     1, 0, 135,    /*    graphsoff ...     */
     0, 0,         /*    Beatmode, ...     */
-    0, 
+    0,
     0, 0, 0, 0,   /*    RTevents, ...     */
     0, 0,         /*    ringbell, ...     */
     0, 0, 0,      /*    rewrt_hdr, ...    */
@@ -1114,7 +1114,7 @@ static const CSOUND cenviron_ = {
     0.0,           /*   limiter */
     DFLT_SR, DFLT_KR,  /* defaults */
     0,             /* mp3 mode */
-    0              /* instr redefinition flag */ 
+    0              /* instr redefinition flag */
   },
   {0, 0, {0}}, /* REMOT_BUF */
   NULL,           /* remoteGlobals        */
@@ -1179,7 +1179,7 @@ static const CSOUND cenviron_ = {
   0,              /* message_string_queue_wp */
   NULL,           /* message_string_queue */
   0,              /* io_initialised */
-  0,              /* options_checked */    
+  0,              /* options_checked */
   NULL,           /* op */
   0,              /* mode */
   NULL,           /* opcodedir */
@@ -1199,7 +1199,7 @@ static const CSOUND cenviron_ = {
   sndgetset,
   getsndin
   },
-  0 /* instance count */    
+  0 /* instance count */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -2854,15 +2854,33 @@ int32_t csoundScoreEventInternal(CSOUND *csound, char type,
   int32_t i;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
+  int lowpfields = numFields < (PMAX-1) ? numFields : (PMAX-1);
 
   evt.strarg = NULL;
   evt.scnt = 0;
   evt.opcod = type;
-  evt.pcnt = (int16)numFields;
-  for (i = 0; i < (int32_t)numFields; i++)
-    evt.p[i + 1] = pfields[i];
-  ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
-  return ret;
+  // evt.pcnt = (int16)numFields;
+  evt.pcnt = (int16) lowpfields;
+  for (i = 0; i < (int32_t) lowpfields; i++)
+        evt.p[i + 1] = pfields[i];
+
+if (numFields > lowpfields) {
+  int rest = numFields - lowpfields;
+  evt.c.extra = csound->Malloc(csound, sizeof(MYFLT)*(rest+2));
+  if (UNLIKELY(evt.c.extra == NULL)) {
+    csound->ErrorMsg(csound, Str("Out of Memory for extra block, "
+                                 "event p1=%f, p2=%f"), evt.p[0], evt.p[1]);
+    return CSOUND_MEMORY;
+  }
+  memcpy(evt.c.extra, &(pfields[lowpfields]), sizeof(MYFLT)*rest+2);
+  evt.c.extra[0] = rest;
+}
+ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+// This seems like a waste, there should be a way to communicate
+// to insert_score_event... that it can own the extra block
+if (evt.c.extra != NULL)
+  csound->Free(csound, evt.c.extra);
+return ret;
 }
 
 int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
@@ -4431,5 +4449,3 @@ INSTRTXT *csoundGetInstrument(CSOUND *csound, int32_t insno, const char *name) {
     insno = named_instr_find(csound, (char *)name);
   return csound->engineState.instrtxtp[insno];
 }
-
-

@@ -263,7 +263,7 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
      /* pass in the memory to hold the instance after insertion */
     evt.pinstance = (void *) p->inst;
     *((MYFLT **)evt.pinstance) = NULL;
-    
+
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       int32_t res;
@@ -316,6 +316,7 @@ int32_t instance_opcode_Instr(CSOUND *csound, LINEVENT2 *p)
     return instance_opcode(csound, p, 2);
 }
 
+/*
 int32_t schedule_array(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;
@@ -332,7 +333,49 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     return event_opcode_init(csound, &pp, 0, 'i');
 }
+*/
 
+int32_t schedule_array(CSOUND *csound, SCHED *p)
+{
+    EVTBLK evt;
+    int32_t i;
+    int32_t ret;
+    ARRAYDAT *pfields = (ARRAYDAT *) p->which;
+    if(pfields->dimensions > 1) {
+        csound->ErrorMsg(csound, Str("Only 1D arrays accepted"));
+        return NOTOK;
+    }
+    int32_t numpfields = pfields->sizes[0];
+    memset(&evt, 0, sizeof(EVTBLK));
+    int lowpfields = numpfields < (PMAX-1) ? numpfields : (PMAX-1);
+    char type = 'i';
+    evt.strarg = NULL;
+    evt.scnt = 0;
+    evt.opcod = type;
+    MYFLT *data = pfields->data;
+    evt.pcnt = (int16) lowpfields;
+    for (i = 0; i < (int32_t) lowpfields; i++) {
+          evt.p[i + 1] = data[i];
+    }
+
+    if (numpfields > lowpfields) {
+        int rest = numpfields - lowpfields;
+        evt.c.extra = csound->Malloc(csound, sizeof(MYFLT)*(rest+2));
+        if (UNLIKELY(evt.c.extra == NULL)) {
+        csound->ErrorMsg(csound, Str("Out of Memory for extra block, "
+                                    "event p1=%f, p2=%f"), evt.p[0], evt.p[1]);
+        return CSOUND_MEMORY;
+        }
+        memcpy(evt.c.extra, &(pfields[lowpfields]), sizeof(MYFLT)*rest+2);
+        evt.c.extra[0] = rest;
+    }
+    ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+    // This seems like a waste, there should be a way to communicate
+    // to insert_score_event... that it can own the extra block.
+    if (evt.c.extra != NULL)
+        csound->Free(csound, evt.c.extra);
+    return ret;
+}
 
 
 int32_t schedule(CSOUND *csound, SCHED *p)
@@ -352,9 +395,9 @@ int32_t schedule(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR)
       return event_opcode_init(csound, &pp, 2, 'i');
-    else 
+    else
       return event_opcode_init(csound, &pp, 0, 'i');
-      
+
 }
 /* from aops.h */
 int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
@@ -386,8 +429,8 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
     char s[16384], sf[64];
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
-      insno = (MYFLT) instr_num(csound, ref->instr); 
-    }    
+      insno = (MYFLT) instr_num(csound, ref->instr);
+    }
     snprintf(s, 16384, "i %f %f %f", insno, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
@@ -792,7 +835,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     }
     else if (GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->args[0];
-      evt.p[1] = (MYFLT) instr_num(csound, ref->instr); 
+      evt.p[1] = (MYFLT) instr_num(csound, ref->instr);
     }
     else {
       evt.strarg = NULL; evt.scnt = 0;
@@ -892,5 +935,3 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
-
-

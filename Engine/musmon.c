@@ -526,7 +526,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
     return csound->InitError(csound, "cannot turnon self with zero delay\n");
-  
+
   evt.p[1] = (MYFLT) insno;
   evt.p[2] = *p->itime;
   evt.p[3] = FL(-1.0);
@@ -553,7 +553,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
     return csound->InitError(csound, "cannot turnon self with zero delay\n");
-  
+
   evt.p[1] = (MYFLT) insno;
   evt.p[2] = *p->itime;
   evt.p[3] = FL(-1.0);
@@ -654,7 +654,7 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
 }
 
 static void indef_off(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
-{             
+{
   INSDS *ip;
   int32_t   insno;
 
@@ -1253,6 +1253,21 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   e->evt.pinstance = evt->pinstance;
   e->evt.opcod = evt->opcod;
   e->evt.pcnt = evt->pcnt;
+  if(evt->c.extra != NULL && evt->c.extra[0] > 0) {
+    int numextra = evt->c.extra[0];
+    if (e->evt.c.extra == NULL) {
+      e->evt.c.extra = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(numextra+2));
+    }
+    else if (e->evt.c.extra[0] < numextra) {
+      e->evt.c.extra = (MYFLT*) csound->ReAlloc(csound, e->evt.c.extra, sizeof(MYFLT)*(numextra+2));
+    }
+    memcpy(e->evt.c.extra, evt->c.extra, sizeof(MYFLT)*(numextra+2));
+    e->evt.c.extra[0] = numextra;
+  }
+  else if(e->evt.c.extra != NULL) {
+    e->evt.c.extra[0] = 0;
+  }
+
   p = &(e->evt.p[0]);
   i = 0;
   while (++i <= evt->pcnt)    /* copy p-field list */
@@ -1381,7 +1396,6 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   csound->freeEvtNodes = e;
   return retval;
 }
-
 
 /* called by csoundRewindScore() to reset performance to time zero */
 void rewind_score(CSOUND *csound)
