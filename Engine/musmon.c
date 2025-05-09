@@ -532,7 +532,6 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.p[1] = (MYFLT) insno;
   evt.p[2] = *p->itime;
   evt.p[3] = FL(-1.0);
-  evt.c.extra = NULL;
   return insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
 }
 
@@ -561,7 +560,6 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   evt.p[1] = (MYFLT) insno;
   evt.p[2] = *p->itime;
   evt.p[3] = FL(-1.0);
-  evt.c.extra = NULL;
   return insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
 }
 

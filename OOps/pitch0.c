@@ -201,10 +201,7 @@ int32_t pfun(CSOUND *csound, PFUN *p)
     int32_t n = (int32_t)MYFLT2LONG(*p->pnum);
     MYFLT ans;
     if (n<1) ans = FL(0.0);
-    else if (n<PMAX) ans = csound->init_event->p[n];
-    else if (csound->init_event->c.extra && n<PMAX+csound->init_event->c.extra[0])
-      ans = csound->init_event->c.extra[n-PMAX+1];
-    else ans = FL(0.0);
+    else ans = csound->init_event->p[n];
     /*csound->Message(csound, "p(%d) %f\n", n,ans);*/
     *p->ans = ans;
     return OK;

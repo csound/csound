@@ -401,10 +401,10 @@ typedef struct {
     MYFLT   p3orig;
     /** All p-fields for this event (SSTRCOD: string argument) */
     MYFLT   *p; //p[PMAX + 1];
-    union {                   /* To ensure size is same as earlier */
-      MYFLT   *extra;
-      MYFLT   p[2];
-    } c;
+    // union {                   /* To ensure size is same as earlier */
+    //  MYFLT   *extra;
+    //  MYFLT   p[2];
+    //} c;
   } EVTBLK;
 
 
@@ -584,7 +584,7 @@ typedef struct {
     /** sampling rate */
     MYFLT   sr;
     /** args  */
-    MYFLT args[PMAX - 4];
+    MYFLT *args;
     /** arg count */
     int32_t argcnt;
     /** GEN01 parameters */

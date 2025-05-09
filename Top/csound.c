@@ -934,7 +934,7 @@ static const CSOUND cenviron_ = {
   FL(0.0), FL(0.0),       /*  curp2, nxtim        */
   0,              /*  cyclesRemaining     */
   { 0, NULL, NULL, 0, '\0', 0, FL(0.0),
-    FL(0.0), NULL, {NULL}},   /*  evt */
+    FL(0.0), NULL},   /*  evt */
   NULL,           /*  memalloc_db         */
   (MGLOBAL*) NULL, /* midiGlobals         */
   NULL,           /*  envVarDB            */
@@ -987,8 +987,7 @@ static const CSOUND cenviron_ = {
     NULL, NULL,   /* Linep, Linebufend    */
     0,            /* stdmode              */
     {
-      0, NULL, NULL, 0, 0, 0, FL(0.0), FL(0.0), NULL,
-      {NULL},
+      0, NULL, NULL, 0, 0, 0, FL(0.0), FL(0.0), NULL
     },            /* EVTBLK  prve         */
     NULL,        /* Linebuf              */
     0,            /* linebufsiz */
