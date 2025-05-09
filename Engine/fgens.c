@@ -108,6 +108,8 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     FUNC    *ftp;
     FGDATA  ff;
     MYFLT   flen;
+    MYFLT   pfields[PMAX+1];
+    
 
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
@@ -118,8 +120,11 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     msg_enabled = csound->oparms->msglevel & 7;
     memset(&ff, '\0', sizeof(ff)); /* for Valgrind */
     ff.csound = csound;
-    memcpy((char*) &(ff.e), (char*) evtblkp,
-           (size_t) ((char*) &(evtblkp->p[2]) - (char*) evtblkp));
+  
+    memcpy(&(ff.e), evtblkp, sizeof(EVTBLK));
+    //(size_t) ((char*) &(evtblkp->p[2]) - (char*) evtblkp));
+    ff.e.p = (MYFLT *) pfields;
+    ff.e.p[1] = evtblkp->p[1];
     ff.fno = (int32_t) MYFLT2LRND(ff.e.p[1]);
     if (!ff.fno) {
       if (!mode)

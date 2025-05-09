@@ -510,7 +510,9 @@ int32_t turnon(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
   int32_t insno;
+  MYFLT pfields[4]  = {0};
   memset(&evt, 0, sizeof(EVTBLK));
+  evt.p = (MYFLT *) pfields;
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
   evt.pcnt = 3;
@@ -541,9 +543,11 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
   int32_t     insno;
+  MYFLT pfields[4]  = {0};
   memset(&evt, 0, sizeof(EVTBLK));
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
+  evt.p = (MYFLT *) pfields;
   evt.pcnt = 3;
   insno = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   if (UNLIKELY(insno == NOT_AN_INSTRUMENT))
@@ -902,9 +906,15 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
     /* pop from the list */
     csound->OrcTrigEvts = e->nxt;
     retval = process_score_event(csound, evt, 1);
+    
     if (evt->strarg != NULL) {
       csound->Free(csound, evt->strarg);
       evt->strarg = NULL;
+    }
+    // For RT events, now free p-fields
+    if (evt->p != NULL) {
+      csound->Free(csound, evt->p);
+      evt->p = NULL;
     }
     /* push back to free alloc stack so it can be reused later */
     e->nxt = csound->freeEvtNodes;
@@ -1224,7 +1234,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   CSOUND        *st = csound;
   MYFLT         *p;
   uint32        start_kcnt;
-  int32_t           i, retval;
+  int32_t       i, retval;
 
   retval = -1;
   /* make a copy of the event... */
@@ -1249,10 +1259,11 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
     }
     memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
     e->evt.scnt = evt->scnt;
-  }
+  } else e->evt.strarg = NULL;
   e->evt.pinstance = evt->pinstance;
   e->evt.opcod = evt->opcod;
   e->evt.pcnt = evt->pcnt;
+  e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(evt->pcnt+1));
   p = &(e->evt.p[0]);
   i = 0;
   while (++i <= evt->pcnt)    /* copy p-field list */
@@ -1368,6 +1379,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   }
   /* Make sure sense_events() looks for RT events */
   csound->oparms->RTevents = 1;
+ 
   return 0;
 
  pfld_err:

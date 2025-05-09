@@ -49,7 +49,7 @@ typedef struct {
         MYFLT   *kamp, *xcps, *type;
         AUXCH   auxd;
         MYFLT   *sine;
-        int32_t     lasttype;
+        int32_t lasttype;
         int32    phs;
 } LFO;
 

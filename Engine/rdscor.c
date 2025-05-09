@@ -177,6 +177,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
     MYFLT   *pp, *plim;
     int32_t     c;
 
+    e->p = csound->Calloc(csound, sizeof(MYFLT)*(PMAX+1));
     e->pinstance = NULL;
     if (csound->scstr == NULL ||
         csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
@@ -188,6 +189,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
 
       return(1);
     }
+    
 
   /* else read the real score */
     while ((c = corfile_getc(csound->scstr)) != '\0') {

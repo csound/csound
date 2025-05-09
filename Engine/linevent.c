@@ -270,10 +270,12 @@ static void sense_line(CSOUND *csound, void *userData)
 
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
+        MYFLT pfields[PMAX+1];
         char    *sstrp = NULL;
         int32_t     scnt = 0;
         int32_t     strsiz = 0;
         memset(&e, 0, sizeof(EVTBLK));
+        e.p = (MYFLT *) pfields;
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (isblank(c))              /* skip initial white space */
@@ -429,8 +431,9 @@ static void sense_line(CSOUND *csound, void *userData)
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
         if (e.opcod == 'i') {                   /* do carries for instr data */
-          memcpy((void*) &STA(prve), (void*) &e,
-                 (size_t) ((char*) &(e.p[pcnt + 1]) - (char*) &e));
+          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK));
+                 // (size_t) ((char*) &(e.p[pcnt + 1]) - (char*) &e));
+          
           /* FIXME: how to carry string args ? */
           STA(prve).strarg = NULL;
         }

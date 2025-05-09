@@ -53,6 +53,8 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p,
     int32_t     i;
     char    opcod;
     memset(&evt, 0, sizeof(EVTBLK));
+    char  pfields[VARGMAX+1] = {0};
+    evt.p = (MYFLT *) pfields;
 
     if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
@@ -152,7 +154,11 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p,
     EVTBLK  evt;
     int32_t     i, err = 0;
     char    opcod;
+    char  pfields[VARGMAX+1] = {0};
     memset(&evt, 0, sizeof(EVTBLK));
+    if (p->flag==1) evt.pcnt = p->argno-1;
+    else evt.pcnt = p->INOCOUNT - 1;
+    evt.p = (MYFLT *) pfields;
 
     if (p1==0)
          opcod = *((STRINGDAT*) p->args[0])->data;
@@ -163,15 +169,14 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p,
       return csound->InitError(csound, "%s", Str(errmsg_1));
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = opcod;
-    if (p->flag==1) evt.pcnt = p->argno-1;
-    else
-      evt.pcnt = p->INOCOUNT - 1;
+
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (insname == 1) {
         MYFLT res;
         res = named_instr_find(csound, ((STRINGDAT *)p->args[1])->data);
         if (UNLIKELY(res == FL(0.0))) return NOTOK;
+        csound->Message(csound, "using %p \n",evt.p);
         evt.p[1] = res;
         evt.strarg = NULL; evt.scnt = 0;
         for (i = 2; i <= evt.pcnt; i++)
@@ -185,8 +190,10 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p,
         res = instr_num(csound, ref->instr);
         evt.p[1] = (MYFLT)res;
         evt.strarg = NULL; evt.scnt = 0;
-        for (i = 2; i <= evt.pcnt; i++)
+        for (i = 2; i <= evt.pcnt; i++) {
           evt.p[i] = *p->args[i];
+        }
+     
       }
       else {
         evt.strarg = NULL; evt.scnt = 0;
@@ -259,6 +266,8 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT;
+    char  pfields[PMAX+1] = {0};
+    evt.p = (MYFLT *) pfields;
 
      /* pass in the memory to hold the instance after insertion */
     evt.pinstance = (void *) p->inst;
@@ -318,26 +327,23 @@ int32_t instance_opcode_Instr(CSOUND *csound, LINEVENT2 *p)
 
 int32_t schedule_array(CSOUND *csound, SCHED *p)
 {
-    LINEVENT pp;
+    EVTBLK pp = {0};
     ARRAYDAT *pfields = (ARRAYDAT *) p->which;
     MYFLT *args = pfields->data;
-    int32_t i;
-    pp.h = p->h;
-    char c[2] = "i";
-    pp.args[0] = (MYFLT *) c;
-    pp.argno = pfields->sizes[0] + 1;
-    for (i=1; i < pp.argno ; i++) {
-      pp.args[i] = args+i-1;
-    }
-    pp.flag = 1;
-    return event_opcode_init(csound, &pp, 0, 'i');
+    pp.opcod = 'i';
+    pp.pcnt = pfields->sizes[0] + 1;
+    pp.p = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*pp.pcnt);
+    memcpy((pp.p)+1, args, sizeof(MYFLT)*(pp.pcnt-1));
+    insert_score_event_at_sample(csound, &pp, csound->icurTimeSamples);
+    csound->Free(csound, pp.p);
+    return OK;
 }
 
 
 
 int32_t schedule(CSOUND *csound, SCHED *p)
 {
-    LINEVENT pp;
+    LINEVENT pp = {0};
     int32_t i;
     pp.h = p->h;
     char c[2] = "i";
@@ -400,7 +406,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
           strncat(s, sf, 16384-strlen(s));
        }
     }
-
+        
     csound_input_message(csound, s);
     return OK;
 }
@@ -421,6 +427,7 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
           strncat(s, sf, 16384-strlen(s));
        }
     }
+
     csound_input_message(csound, s);
     return OK;
 }
@@ -428,7 +435,7 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
 
 int32_t schedule_S(CSOUND *csound, SCHED *p)
 {
-    LINEVENT pp;
+    LINEVENT pp = {0};
     int32_t i;
     pp.h = p->h;
     char c[2] = "i";
@@ -456,7 +463,7 @@ int32_t ifschedule(CSOUND *csound, WSCHED *p)
 int32_t kschedule(CSOUND *csound, WSCHED *p)
 {
     if (p->todo && *p->trigger != FL(0.0)) {
-      LINEVENT pp;
+      LINEVENT pp = {0};
       int32_t i;
       pp.h = p->h;
       char c[2] = "i";
@@ -736,6 +743,8 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     EVTBLK  evt;
     char    name[512];
     memset(&evt, 0, sizeof(EVTBLK));
+    char  pfields[PMAX+1] = {0};
+    evt.p = (MYFLT *) pfields;
 
     if (p->timrem > 0)
       p->timrem--;

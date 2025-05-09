@@ -400,7 +400,7 @@ typedef struct {
     /** Length */
     MYFLT   p3orig;
     /** All p-fields for this event (SSTRCOD: string argument) */
-    MYFLT   p[PMAX + 1];
+    MYFLT   *p; //p[PMAX + 1];
     union {                   /* To ensure size is same as earlier */
       MYFLT   *extra;
       MYFLT   p[2];

@@ -72,6 +72,10 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
 
   *p->ifno = FL(0.0);
   ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
+  n = GetInputArgCnt((OPDS *)p);
+  ftevt->pcnt = (int16) n;
+  n -= 5;
+  ftevt->p = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(ftevt->pcnt+1));
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
   fp = &ftevt->p[0];
@@ -123,9 +127,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   else {
     fp[5] = *p->p5;                                   /* else no string */
   }
-  n = GetInputArgCnt((OPDS *)p);
-  ftevt->pcnt = (int16) n;
-  n -= 5;
+
   if (n > 0) {
     MYFLT **argp = p->argums;
     fp += 6;
@@ -134,6 +136,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     } while (--n);
   }
   n = csound->FTCreate(csound, &ftp, ftevt, 1);         /* call the fgen */
+  csound->Free(csound,ftevt->p);
   csound->Free(csound, ftevt);
   if (UNLIKELY(n != 0))
     return csound->InitError(csound, "%s", Str("ftgen error"));
@@ -640,9 +643,13 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   FUNC    *ftp;
   EVTBLK  *ftevt;
   int32_t     n;
+  ARRAYDAT *array = (ARRAYDAT*) (p->p5);
 
   *p->ifno = FL(0.0);
   ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
+  n = array->sizes[0];
+  ftevt->pcnt = (int16) n+4;
+  ftevt->p = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(ftevt->pcnt+1));  
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
   fp = &ftevt->p[0];
@@ -671,11 +678,9 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
     }
   }
 
-  ARRAYDAT *array = (ARRAYDAT*) (p->p5);
-  n = array->sizes[0];
-  ftevt->pcnt = (int16) n+4;
   memcpy(&fp[5], array->data, n*sizeof(MYFLT));
   n = csound->FTCreate(csound, &ftp, ftevt, 1);         /* call the fgen */
+  csound->Free(csound,ftevt->p);
   csound->Free(csound,ftevt);
   if (UNLIKELY(n != 0))
     return csound->InitError(csound, "%s", Str("ftgen error"));
