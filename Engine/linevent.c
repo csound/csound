@@ -255,6 +255,7 @@ static void sense_line(CSOUND *csound, void *userData)
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
+    int32_t msize = PMAX;
 
     while (1) {
       if(STA(oflag) > oflag) break;
@@ -270,7 +271,7 @@ static void sense_line(CSOUND *csound, void *userData)
 
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
-        MYFLT pfields[PMAX+1];
+        MYFLT *pfields = csound->Calloc(csound, sizeof(MYFLT)*(msize+1));
         char    *sstrp = NULL;
         int32_t     scnt = 0;
         int32_t     strsiz = 0;
@@ -417,7 +418,13 @@ static void sense_line(CSOUND *csound, void *userData)
           }
           e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
           cp = newcp - 1;
-        } while (pcnt < PMAX);
+
+          if(pcnt >= msize) {
+            msize += PMAX;
+            e.p = csound->ReAlloc(csound, e.p, sizeof(MYFLT)*msize);
+          }
+          
+        } while (1);
         
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
         else  /* Check for sufficient pfields (0-based, opcode counted already). */
@@ -431,8 +438,13 @@ static void sense_line(CSOUND *csound, void *userData)
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
         if (e.opcod == 'i') {                   /* do carries for instr data */
-          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK));
-                 // (size_t) ((char*) &(e.p[pcnt + 1]) - (char*) &e));
+          // free carry p-fields
+          if(STA(prve).p != NULL) csound->Free(csound, STA(prve).p);
+          // copy evtblk (except p-field pointer at the end)
+          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK) - sizeof(MYFLT*));
+          // allocate and copy new carry p-fields
+          STA(prve).p = csound->Calloc(csound, sizeof(MYFLT)*(e.pcnt+1));
+          memcpy(STA(prve).p, e.p, sizeof(MYFLT)*(e.pcnt+1));
           
           /* FIXME: how to carry string args ? */
           STA(prve).strarg = NULL;
