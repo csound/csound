@@ -992,7 +992,7 @@ static const CSOUND cenviron_ = {
     NULL,        /* Linebuf              */
     0,            /* linebufsiz */
     NULL, NULL,
-    0
+    0, NULL, 0
   },
   {
     {0,0}, {0,0},  /* srngcnt, orngcnt    */

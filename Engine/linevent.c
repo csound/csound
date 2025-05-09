@@ -199,6 +199,11 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
       return -1;
     }
 
+    // allocate pfield memory
+    if(STA(pfields) == NULL) {
+     STA(msize) = PMAX;
+     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+    }
 
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
@@ -255,7 +260,6 @@ static void sense_line(CSOUND *csound, void *userData)
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
-    int32_t msize = PMAX;
 
     while (1) {
       if(STA(oflag) > oflag) break;
@@ -271,11 +275,12 @@ static void sense_line(CSOUND *csound, void *userData)
 
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
-        MYFLT *pfields = csound->Calloc(csound, sizeof(MYFLT)*(msize+1));
+        MYFLT *pfields = STA(pfields);
         char    *sstrp = NULL;
         int32_t     scnt = 0;
         int32_t     strsiz = 0;
         memset(&e, 0, sizeof(EVTBLK));
+        memset(pfields, 0, STA(msize)*sizeof(MYFLT));
         e.p = (MYFLT *) pfields;
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
@@ -419,9 +424,9 @@ static void sense_line(CSOUND *csound, void *userData)
           e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
           cp = newcp - 1;
 
-          if(pcnt >= msize) {
-            msize += PMAX;
-            e.p = csound->ReAlloc(csound, e.p, sizeof(MYFLT)*msize);
+          if(pcnt >= STA(msize)) {
+            STA(msize) += PMAX;
+            STA(pfields) = e.p = csound->ReAlloc(csound, e.p, sizeof(MYFLT)*STA(msize));
           }
           
         } while (1);
@@ -483,7 +488,7 @@ static void sense_line(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
-
+    
 }
 
 
