@@ -119,6 +119,15 @@ void linevent_open(CSOUND *csound)
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
+
+        // allocate pfield memory
+    if(STA(pfields) == NULL) {
+     STA(msize) = PMAX;
+     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+    }
+
+
+    
     set_sense_event_callback(csound, sense_line, NULL);
 }
 
