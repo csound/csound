@@ -331,9 +331,9 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     ARRAYDAT *pfields = (ARRAYDAT *) p->which;
     MYFLT *args = pfields->data;
     pp.opcod = 'i';
-    pp.pcnt = pfields->sizes[0] + 1;
-    pp.p = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*pp.pcnt);
-    memcpy((pp.p)+1, args, sizeof(MYFLT)*(pp.pcnt-1));
+    pp.pcnt = pfields->sizes[0];
+    pp.p = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*(pp.pcnt+1));
+    memcpy(pp.p+1, args, sizeof(MYFLT)*pp.pcnt);
     insert_score_event_at_sample(csound, &pp, csound->icurTimeSamples);
     csound->Free(csound, pp.p);
     return OK;

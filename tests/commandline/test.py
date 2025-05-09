@@ -228,13 +228,17 @@ def runTest():
         ["test_maxalloc_turnoff_default.csd", "Test maxalloc opcode defaults 0"],
         ["test_maxalloc_turnoff_eq_0.csd", "Test maxalloc opcode value of 0"],
         ["test_maxalloc_turnoff_eq_1.csd", "Test maxalloc opcode value of 1"],
-        ["test_maxalloc_turnoff_eq_2.csd", "Test maxalloc opcode value of 2"]
+        ["test_maxalloc_turnoff_eq_2.csd", "Test maxalloc opcode value of 2"],
     ]
+
+    pfieldTests = [["test_pfields_array.csd", "Test dynamic allocation of pfields, schedule and ftgen"]\
+                       ]     
 
     tests += arrayTests
     tests += structTests
     tests += udoTests
     tests += maxallocTests
+    tests += pfieldTests
 
     output = ""
     tempfile = 'csound_test_output.txt'

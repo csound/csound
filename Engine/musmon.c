@@ -1261,8 +1261,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   e->evt.pinstance = evt->pinstance;
   e->evt.opcod = evt->opcod;
   e->evt.pcnt = evt->pcnt;
-  e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(evt->pcnt+1));
-  p = &(e->evt.p[0]);
+  p = e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(evt->pcnt+1));
   i = 0;
   while (++i <= evt->pcnt)    /* copy p-field list */
     p[i] = evt->p[i];
