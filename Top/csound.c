@@ -223,8 +223,8 @@ static void free_opcode_table(CSOUND *csound) {
   cs_hash_table_free(csound, csound->opcodes);
 }
 
-static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs) { 
-  return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
+static void insert_score_event(CSOUND *csound, int32_t type, const MYFLT *pfields, int32_t pnum) { 
+  csoundEvent(csound, type, pfields, pnum, 0);
 }
 
   
@@ -2445,7 +2445,7 @@ PUBLIC void csoundEventString(CSOUND *csound, const char *message,
     csoundReadScoreInternal(csound, message);
 }
 
-PUBLIC void csoundEvent(CSOUND *csound, int32_t type, MYFLT *params,
+PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
                         int32_t nparams, int32_t async) {
   char c = 'i';
   if (type == CS_TABLE_EVENT)
@@ -2613,15 +2613,14 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
   if (aTime > 0.0) {
     EVTBLK evt;
     memset(&evt, 0, sizeof(EVTBLK));
-    char  pfields[4];
-    evt.p = (MYFLT *) pfields;
+    MYFLT pfields[3];
     evt.strarg = NULL;
     evt.scnt = 0;
     evt.opcod = 'a';
     evt.pcnt = 3;
-    evt.p[2] = evt.p[1] = FL(0.0);
-    evt.p[3] = (MYFLT)aTime;
-    insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+    evt.p[1] = evt.p[0] = FL(0.0);
+    evt.p[2] = (MYFLT)aTime;
+    insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   }
 }
 
@@ -2859,16 +2858,11 @@ int32_t csoundScoreEventInternal(CSOUND *csound, char type,
   EVTBLK evt;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
-  evt.p = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*(numFields+1));
-
   evt.strarg = NULL;
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  memcpy((evt.p)+1, pfields, sizeof(MYFLT)*(numFields));
-  csound->Message(csound, "pfield: %f\n", evt.p[1]);
-  ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
-  csound->Free(csound, evt.p);
+  ret = insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   return ret;
 }
 
@@ -2883,15 +2877,11 @@ int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
   EVTBLK evt;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
-  evt.p = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*(numFields+1));
-
   evt.strarg = NULL;
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  memcpy((evt.p)+1, pfields, sizeof(MYFLT)*(numFields));
-  ret = insert_score_event_at_sample(csound, &evt, time_ofs*csound->esr);
-  free(evt.p);
+  ret = insert_score_event_at_sample(csound, &evt, pfields, time_ofs*csound->esr);
   return ret;
 }
 

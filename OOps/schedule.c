@@ -123,7 +123,8 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p,
       evt.pcnt = 2;
     }
 
-    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples) != 0))
+    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, evt.p+1,
+                                              csound->icurTimeSamples) != 0))
       return csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
                                opcod);
@@ -232,10 +233,11 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p,
     else if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && evt.p[1] > 0) {
       evt.p[2] = evt.p[1];
       evt.pcnt = 2;
-      err = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+      err = insert_score_event_at_sample(csound, &evt, evt.p+1, csound->icurTimeSamples);
     }
     else
-      err = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+      err = insert_score_event_at_sample(csound, &evt, evt.p+1,
+                                         csound->icurTimeSamples);
     if (UNLIKELY(err))
       csound->InitError(csound, Str("event_i: error creating '%c' event"),
                                 opcod);
@@ -302,7 +304,7 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
       for (i = 2; i <= evt.pcnt; i++)
         evt.p[i] = *p->args[i-1];
     }
-      if (insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples) != 0) {
+    if (insert_score_event_at_sample(csound, &evt, evt.p+1, csound->icurTimeSamples) != 0) {
         csound->Message(csound, Str("instance: error creating event\n"));
         return NOTOK;
       }
@@ -332,9 +334,7 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     MYFLT *args = pfields->data;
     pp.opcod = 'i';
     pp.pcnt = pfields->sizes[0];
-    pp.p = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*(pp.pcnt+1));
-    memcpy(pp.p+1, args, sizeof(MYFLT)*pp.pcnt);
-    insert_score_event_at_sample(csound, &pp, csound->icurTimeSamples);
+    insert_score_event_at_sample(csound, &pp, args, csound->icurTimeSamples);
     csound->Free(csound, pp.p);
     return OK;
 }
@@ -826,7 +826,8 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     else
       p->timrem = 0;
     return
-      (insert_score_event_at_sample(csound, &evt, starttime) == 0 ? OK : NOTOK);
+      (insert_score_event_at_sample(csound, &evt, evt.p+1,
+                                    starttime) == 0 ? OK : NOTOK);
 }
 
 int32_t ktriginstr_S(CSOUND *csound, TRIGINSTR *p){

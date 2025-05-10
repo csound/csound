@@ -473,7 +473,7 @@ static void sense_line(CSOUND *csound, void *userData)
           e.p[2] = e.p[1];
           e.pcnt = 2;
         }
-        insert_score_event_at_sample(csound, &e, csound->icurTimeSamples);
+        insert_score_event_at_sample(csound, &e, e.p+1, csound->icurTimeSamples);
         continue;
       Lerr:
         n = (int32_t) (cp - Linestart);                     /* error position */

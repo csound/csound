@@ -510,7 +510,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
   int32_t insno;
-  MYFLT pfields[4]  = {0};
+  MYFLT pfields[3]  = {0};
   memset(&evt, 0, sizeof(EVTBLK));
   evt.p = (MYFLT *) pfields;
   evt.strarg = NULL; evt.scnt = 0;
@@ -529,10 +529,10 @@ int32_t turnon(CSOUND *csound, TURNON *p)
      *p->itime == 0)
     return csound->InitError(csound, "cannot turnon self with zero delay\n");
   
-  evt.p[1] = (MYFLT) insno;
-  evt.p[2] = *p->itime;
-  evt.p[3] = FL(-1.0);
-  return insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+  evt.p[0] = (MYFLT) insno;
+  evt.p[1] = *p->itime;
+  evt.p[2] = FL(-1.0);
+  return insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* make list to turn on instrs for indef */
@@ -542,7 +542,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
   int32_t     insno;
-  MYFLT pfields[4]  = {0};
+  MYFLT pfields[3]  = {0};
   memset(&evt, 0, sizeof(EVTBLK));
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
@@ -557,10 +557,10 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
      *p->itime == 0)
     return csound->InitError(csound, "cannot turnon self with zero delay\n");
   
-  evt.p[1] = (MYFLT) insno;
-  evt.p[2] = *p->itime;
-  evt.p[3] = FL(-1.0);
-  return insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+  evt.p[0] = (MYFLT) insno;
+  evt.p[1] = *p->itime;
+  evt.p[2] = FL(-1.0);
+  return insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -1219,20 +1219,23 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
 /*   char   *strarg   string argument of event (NULL if none)         */
 /*   char   opcod     event opcode (a, e, f, i, l, q, s)              */
 /*   int16  pcnt      number of p-fields (>=3 for q, i, a; >=4 for f) */
-/*   MYFLT  p[]       array of p-fields, p[1]..p[pcnt] should be set  */
+/* Actual pfields are furnished in a separate array                   */
 /*  p2orig and p3orig are calculated from p[2] and p[3].              */
-/* The contents of 'evt', including the string argument, need not be  */
-/* preserved after calling this function, as a copy of the event is   */
-/* made.                                                              */
+/* The contents of 'evt', including the string argument, and 'pfields */
+/* need not be preserved after calling this function, as a copy of    */
+/* the event is made.                                                 */
 /* Return value is zero on success.                                   */
-int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
+int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
+                                     const MYFLT *pfields,
+                                     int64_t time_ofs)
 {
   double        start_time;
   EVTNODE       *e, *prv;
   CSOUND        *st = csound;
-  MYFLT         *p;
+  MYFLT         *pf;
   uint32        start_kcnt;
   int32_t       i, retval;
+  EVTBLK        *evt;
 
   retval = -1;
   /* make a copy of the event... */
@@ -1245,33 +1248,32 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
     if (UNLIKELY(e == NULL))
       return CSOUND_MEMORY;
   }
-  if (evt->strarg != NULL) {  /* copy string argument if present */
+  if (ep->strarg != NULL) {  /* copy string argument if present */
     /* NEED TO COPY WHOLE STRING STRUCTURE */
-    int32_t n = evt->scnt;
-    char *p = evt->strarg;
-    while (n--) { p += strlen(p)+1; };
-    e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (p-evt->strarg)+1);
+    int32_t n = ep->scnt;
+    char *s = ep->strarg;
+    while (n--) { s += strlen(s)+1; };
+    e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (s-ep->strarg)+1);
     if (UNLIKELY(e->evt.strarg == NULL)) {
       csound->Free(csound, e);
       return CSOUND_MEMORY;
     }
-    memcpy(e->evt.strarg, evt->strarg, p-evt->strarg+1 );
-    e->evt.scnt = evt->scnt;
+    memcpy(e->evt.strarg, ep->strarg, s-ep->strarg+1 );
+    e->evt.scnt = ep->scnt;
   } else e->evt.strarg = NULL;
-  e->evt.pinstance = evt->pinstance;
-  e->evt.opcod = evt->opcod;
-  e->evt.pcnt = evt->pcnt;
-  p = e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(evt->pcnt+1));
-  i = 0;
-  while (++i <= evt->pcnt)    /* copy p-field list */
-    p[i] = evt->p[i];
+  e->evt.pinstance = ep->pinstance;
+  e->evt.opcod = ep->opcod;
+  e->evt.pcnt = ep->pcnt;
+  pf = e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
+  for(i=0; i < ep->pcnt; i++)    /* copy p-field list */
+    pf[i+1] = pfields[i];
   /* ...and use the copy from now on */
   evt = &(e->evt);
 
   /* check for required p-fields */
   switch (evt->opcod) {
   case 'f':
-    if (UNLIKELY((evt->pcnt < 4) && (p[1]>0)))
+    if (UNLIKELY((evt->pcnt < 4) && (pf[1]>0)))
       goto pfld_err;
     goto cont;
   case 'i':
@@ -1283,19 +1285,19 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   case 'd':
   cont:
     /* calculate actual start time in seconds and k-periods */
-    start_time = (double) p[2] + (double)time_ofs/csound->esr;
+    start_time = (double) pf[2] + (double)time_ofs/csound->esr;
     start_kcnt = (uint32_t) time2kcnt(csound, start_time);
     /* correct p2 value for section offset */
-    p[2] = (MYFLT) (start_time - st->timeOffs);
-    if (p[2] < FL(0.0))
-      p[2] = FL(0.0);
+    pf[2] = (MYFLT) (start_time - st->timeOffs);
+    if (pf[2] < FL(0.0))
+      pf[2] = FL(0.0);
     /* start beat: this is possibly wrong */
     evt->p2orig = (MYFLT) (((start_time - st->icurTimeSamples/st->esr) /
                             st->ibeatTime)
                            + (st->curBeat - st->beatOffs));
     if (evt->p2orig < FL(0.0))
       evt->p2orig = FL(0.0);
-    evt->p3orig = p[3];
+    evt->p3orig = pf[3];
     break;
   default:
     start_kcnt = 0UL;   /* compiler only */
@@ -1311,25 +1313,24 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name */
     if (evt->opcod=='d') {
-      if (evt->strarg != NULL && IsStringCode(p[1])) {
+      if (evt->strarg != NULL && IsStringCode(pf[1])) {
         i = (int32_t) named_instr_find(csound, evt->strarg);
-        //printf("d opcode %s -> %d\n", evt->strarg, i);
-        p[1] = -i;
+        pf[1] = -i;
       }
       else {
-        i = (int32_t) fabs((double) p[1]);
-        p[1] = -i;
+        i = (int32_t) fabs((double) pf[1]);
+        pf[1] = -i;
       }
     }
-    else if (evt->strarg != NULL && IsStringCode(p[1])) {
+    else if (evt->strarg != NULL && IsStringCode(pf[1])) {
       MYFLT n = named_instr_find(csound, evt->strarg);
-      p[1] = n;
+      pf[1] = n;
       i =(int32_t) n;
       if (n<0) {i= -i;}
     }
     else
-      i = (int32_t) fabs((double) p[1]);
-    csound->Message(csound, "pfield: %f\n", p[1]);
+      i = (int32_t) fabs((double) pf[1]);
+    csound->Message(csound, "pfield: %f\n", pf[1]);
     if (UNLIKELY((uint32_t) (i - 1) >=
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {
@@ -1352,7 +1353,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
   case 's':                         /*   section:    */
     start_time = (double)time_ofs/csound->esr;
     if (evt->pcnt >= 2)
-      start_time += (double) p[2];
+      start_time += (double) pf[2];
     evt->pcnt = 0;
     start_kcnt = (uint32_t)time2kcnt(csound, start_time);
     break;

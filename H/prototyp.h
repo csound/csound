@@ -88,7 +88,7 @@ extern "C" {
   void free_inactive_instances(CSOUND*);
   void beat_expire(CSOUND *, double);
   void time_expire(CSOUND *, double);
-  int32_t insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
+  int32_t insert_score_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
   MEMFIL *load_memfile_with_cb(CSOUND *csound, const char *filnam, int32_t csFileType,
                                int32_t (*callback)(CSOUND*, MEMFIL*));
   void    free_memfiles(CSOUND *);

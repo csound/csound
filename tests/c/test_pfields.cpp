@@ -102,3 +102,20 @@ TEST_F (PfieldTests, testScoreEvent)
   result = csoundPerformKsmps(csound);
   ASSERT_TRUE (result == 0);
 }
+const char *orc1 = "0dbfs = 1\n"
+        "alwayson \"Ins\", 2, 3, 4, 5 \n"
+        "instr Ins \n"
+        "ipfields[] passign 1\n"
+        "printarray ipfields \n"
+        "endin \n";
+
+
+TEST_F (PfieldTests, testAlwaysOn)
+{
+  int32_t result = csoundCompileOrc(csound,orc1, 0);
+  ASSERT_TRUE (result == 0);
+  result = csoundStart(csound);
+  ASSERT_TRUE (result == 0);
+  result = csoundPerformKsmps(csound);
+  ASSERT_TRUE (result == 0);
+}
