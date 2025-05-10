@@ -2851,6 +2851,11 @@ csoundSetOutputChannelCallback(CSOUND *csound,
 
 int32_t csoundScoreEventInternal(CSOUND *csound, char type,
                                  const MYFLT *pfields, long numFields) {
+  if ((csound->engineStatus & CS_STATE_COMP) == 0) {
+      csound->Message(csound,
+                    Str("Csound has not started yet, no events scheduled.\n"));
+    return CSOUND_ERROR;
+  }
   EVTBLK evt;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
@@ -2861,14 +2866,20 @@ int32_t csoundScoreEventInternal(CSOUND *csound, char type,
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
   memcpy((evt.p)+1, pfields, sizeof(MYFLT)*(numFields));
+  csound->Message(csound, "pfield: %f\n", evt.p[1]);
   ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
-  free(evt.p);
+  csound->Free(csound, evt.p);
   return ret;
 }
 
 int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
                                          const MYFLT *pfields, long numFields,
                                          double time_ofs) {
+  if ((csound->engineStatus & CS_STATE_COMP) == 0) {
+      csound->Message(csound,
+                    Str("Csound has not started yet, no events scheduled.\n"));
+    return CSOUND_ERROR;
+  }  
   EVTBLK evt;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));

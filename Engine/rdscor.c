@@ -214,7 +214,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
     unwarped:
       e->opcod = c;         /*  UNWARPED scorefile:         */
       pp = &e->p[0];
-      plim = &e->p[PMAX];             /*    caution, irregular format */
+      plim = &e->p[PMAX];             /*    caution, irregular format */  
       while (1) {
         while ((c = corfile_getc(csound->scstr))==' ' ||
                c=='\t'); /* eat whitespace */
@@ -223,13 +223,16 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
         corfile_ungetc(csound->scstr);          /* pfld:  back up */
         if (!scanflt(csound, ++pp))  break;     /*   & read value */
         if (UNLIKELY(pp >= plim)) {
+          size_t ofs;
+          ofs = pp - e->p;
           msize += PMAX;
-          e->p =  (MYFLT*) csound->ReAlloc(csound, &(e->p),
+          e->p =  (MYFLT*) csound->ReAlloc(csound, e->p,
                                            sizeof(MYFLT)*msize);
           if (UNLIKELY(e->p==NULL)) {
             fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
+          pp = e->p + ofs;
         }
       }
       e->p2orig = e->p[2];                 /* now go count the pfields */
@@ -259,9 +262,12 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
                 while (corfile_getc(csound->scstr) != '\n' &&
                        scanflt(csound, ++pp)) { /* p4....  */
                   if(pp >= plim) {
+                    size_t ofs;
+                    ofs = pp - e->p;
                     msize += PMAX;
-                    e->p =  (MYFLT*) csound->ReAlloc(csound, &(e->p),
+                    e->p = (MYFLT*) csound->ReAlloc(csound, e->p,
                                                      sizeof(MYFLT)*msize);
+                    pp = e->p + ofs;
                     if (UNLIKELY(e->p==NULL)) {
                       fprintf(stderr, Str("Out of Memory\n"));
                       exit(7);
@@ -275,7 +281,8 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
         e->opcod = 'f'; e->p[1] = FL(0.0); e->pcnt = 2; e->scnt = 0;
         return 1;
       }
-      e->pcnt = pp - &e->p[0];                   /* count the pfields */
+      e->pcnt = pp - e->p;                   /* count the pfields */
+      csound->Message(csound, "pcnt: %d\n",  e->pcnt);
       if (csound->sstrlen) {        /* if string arg present, save it */
         e->strarg = csound->sstrbuf; csound->sstrbuf = NULL;
         e->scnt = csound->scnt;

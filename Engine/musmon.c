@@ -1329,6 +1329,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_o
     }
     else
       i = (int32_t) fabs((double) p[1]);
+    csound->Message(csound, "pfield: %f\n", p[1]);
     if (UNLIKELY((uint32_t) (i - 1) >=
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {

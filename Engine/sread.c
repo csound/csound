@@ -611,12 +611,6 @@ static void ifa(CSOUND *csound)
     while (getpfld(csound,0)) {   /* while there's another pfield,  */
       nocarry = 0;
       ++(csound->sread.bp)->pcnt;
-      /* if (UNLIKELY(++(csound->sread.bp)->pcnt == PMAX)) { */
-      /*   sreaderr(csound, Str("instr pcount exceeds PMAX")); */
-      /*   csound->Message(csound, Str("      remainder of line flushed\n")); */
-      /*   flushlin(csound); */
-      /*   continue; */
-      /* } */
       if (*(csound->sread.sp) == '^' &&
           (csound->sread.op) == 'i' &&
           (csound->sread.bp)->pcnt == 2) {
