@@ -1211,33 +1211,11 @@ static inline uint64_t time2kcnt(CSOUND *csound, double tval)
   return 0UL;
 }
 
-/* Schedule new score event to be played. 'time_ofs' is the amount of */
-/* time in samples to add to evt->p[2] to get the actual start time   */
-/* of the event (measured from the beginning of performance, and not  */
-/* section) in seconds.                                               */
-/* Required parameters in 'evt':                                      */
-/*   char   *strarg   string argument of event (NULL if none)         */
-/*   char   opcod     event opcode (a, e, f, i, l, q, s)              */
-/*   int16  pcnt      number of p-fields (>=3 for q, i, a; >=4 for f) */
-/* Actual pfields are furnished in a separate array                   */
-/*  p2orig and p3orig are calculated from p[2] and p[3].              */
-/* The contents of 'evt', including the string argument, and 'pfields */
-/* need not be preserved after calling this function, as a copy of    */
-/* the event is made.                                                 */
-/* Return value is zero on success.                                   */
-int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
-                                     const MYFLT *pfields,
-                                     int64_t time_ofs)
-{
-  double        start_time;
-  EVTNODE       *e, *prv;
-  CSOUND        *st = csound;
-  MYFLT         *pf;
-  uint32        start_kcnt;
-  int32_t       i, retval;
-  EVTBLK        *evt;
 
-  retval = -1;
+
+
+static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
+  EVTNODE       *e;
   /* make a copy of the event... */
   if (csound->freeEvtNodes != NULL) {             /* pop alloc from stack */
     e = csound->freeEvtNodes;                     /*   if available       */
@@ -1246,7 +1224,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
   else {
     e = (EVTNODE*) csound->Calloc(csound, sizeof(EVTNODE)); /* or alloc new one */
     if (UNLIKELY(e == NULL))
-      return CSOUND_MEMORY;
+      return NULL;
   }
   if (ep->strarg != NULL) {  /* copy string argument if present */
     /* NEED TO COPY WHOLE STRING STRUCTURE */
@@ -1256,7 +1234,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
     e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (s-ep->strarg)+1);
     if (UNLIKELY(e->evt.strarg == NULL)) {
       csound->Free(csound, e);
-      return CSOUND_MEMORY;
+      return NULL;
     }
     memcpy(e->evt.strarg, ep->strarg, s-ep->strarg+1 );
     e->evt.scnt = ep->scnt;
@@ -1264,13 +1242,20 @@ int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
   e->evt.pinstance = ep->pinstance;
   e->evt.opcod = ep->opcod;
   e->evt.pcnt = ep->pcnt;
-  pf = e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
-  for(i=0; i < ep->pcnt; i++)    /* copy p-field list */
-    pf[i+1] = pfields[i];
-  /* ...and use the copy from now on */
-  evt = &(e->evt);
+  e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
+  return e;
+}
 
-  /* check for required p-fields */
+static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
+  double        start_time;
+  EVTNODE       *prv;
+  CSOUND        *st = csound;
+  uint32        start_kcnt;
+  int32_t       i, retval = -1;
+  EVTBLK        *evt = &(e->evt);
+  MYFLT         *pf = evt->p;
+
+   /* check for required p-fields */
   switch (evt->opcod) {
   case 'f':
     if (UNLIKELY((evt->pcnt < 4) && (pf[1]>0)))
@@ -1391,7 +1376,58 @@ int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
   e->nxt = csound->freeEvtNodes;
   csound->freeEvtNodes = e;
   return retval;
+
 }
+
+/* Schedule new score event to be played. 'time_ofs' is the amount of */
+/* time in samples to add to evt->p[2] to get the actual start time   */
+/* of the event (measured from the beginning of performance, and not  */
+/* section) in seconds.                                               */
+/* Required parameters in 'evt':                                      */
+/*   char   *strarg   string argument of event (NULL if none)         */
+/*   char   opcod     event opcode (a, e, f, i, l, q, s)              */
+/*   int16  pcnt      number of p-fields (>=3 for q, i, a; >=4 for f) */
+/* Actual pfields are furnished in a separate array                   */
+/*  p2orig and p3orig are calculated from p[2] and p[3].              */
+/* The contents of 'evt', including the string argument, and 'pfields'*/
+/* need not be preserved after calling this function, as a copy of    */
+/* the event is made.                                                 */
+/* Return value is zero on success.                                   */
+int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
+                                     const MYFLT *pfields,
+                                     int64_t time_ofs)
+{
+
+  MYFLT *pf;
+  int  i;
+  EVTNODE *e = copy_evtblk(csound, ep);
+  pf = e->evt.p;
+  for(i=0; i < ep->pcnt; i++)    /* copy p-field list */
+    pf[i+1] = pfields[i];
+
+  return insert_event_node(csound,e,time_ofs);
+}
+ 
+
+/** second version for argument pointers as pfields */
+int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
+                                     MYFLT *pfields[VARGMAX],
+                                     int64_t time_ofs)
+{
+
+  MYFLT *pf;
+  int  i;
+  EVTNODE *e = copy_evtblk(csound, ep);
+  pf = e->evt.p;
+  for(i=0; i < ep->pcnt; i++)    /* copy p-field list */
+    pf[i+1] = *(pfields[i]);
+
+  return insert_event_node(csound,e,time_ofs);
+}
+
+
+
+
 
 
 /* called by csoundRewindScore() to reset performance to time zero */

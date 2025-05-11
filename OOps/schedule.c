@@ -340,28 +340,30 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
 }
 
 
-
-int32_t schedule(CSOUND *csound, SCHED *p)
+int32_t schedule(CSOUND *csound, SCHEDO *p)
 {
-    LINEVENT pp = {0};
-    int32_t i;
-    pp.h = p->h;
-    char c[2] = "i";
-    pp.args[0] = (MYFLT *) c;
-    pp.args[1] = p->which;
-    pp.args[2] = p->when;
-    pp.args[3] = p->dur;
-    pp.argno = p->INOCOUNT+1;
-    for (i=4; i < pp.argno ; i++) {
-      pp.args[i] = p->argums[i-4];
-    }
-    pp.flag = 1;
-    if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR)
-      return event_opcode_init(csound, &pp, 2, 'i');
-    else 
-      return event_opcode_init(csound, &pp, 0, 'i');
-      
+  EVTBLK evt = {0};
+  evt.opcod = 'i';
+  evt.pcnt = p->INOCOUNT;
+
+  if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_INSTR) {
+    // handling argum[0] as instrument type
+    MYFLT insno;
+    int32_t res;
+    INSTREF *ref = (INSTREF *) p->argums[0];
+    insno = instr_num(csound, ref->instr);
+    p->argums[0] = &insno;
+    res = insert_score_args_at_sample(csound, &evt, p->argums,
+                                      csound->icurTimeSamples);
+    p->argums[0] = (MYFLT *) ref;
+    return res;
+  }
+  return insert_score_args_at_sample(csound, &evt, p->argums,
+                                      csound->icurTimeSamples);
 }
+
+
+
 /* from aops.h */
 int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
 
