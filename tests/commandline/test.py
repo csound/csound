@@ -231,7 +231,8 @@ def runTest():
         ["test_maxalloc_turnoff_eq_2.csd", "Test maxalloc opcode value of 2"],
     ]
 
-    pfieldTests = [["test_pfields_array.csd", "Test dynamic allocation of pfields, schedule and ftgen"]\
+    pfieldTests = [["test_pfields_array.csd", "Test dynamic allocation of pfields, schedule and ftgen"],
+                   ["test_schedule.csd", "Test pfields on all forms of schedule"],    
                        ]     
 
     tests += arrayTests

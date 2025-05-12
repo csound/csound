@@ -282,7 +282,6 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
         return 1;
       }
       e->pcnt = (int32_t) (pp - e->p);                   /* count the pfields */
-      csound->Message(csound, "pcnt: %d\n",  e->pcnt);
       if (csound->sstrlen) {        /* if string arg present, save it */
         e->strarg = csound->sstrbuf; csound->sstrbuf = NULL;
         e->scnt = csound->scnt;

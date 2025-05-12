@@ -1315,7 +1315,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     }
     else
       i = (int32_t) fabs((double) pf[1]);
-    csound->Message(csound, "pfield: %f\n", pf[1]);
+    
     if (UNLIKELY((uint32_t) (i - 1) >=
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {

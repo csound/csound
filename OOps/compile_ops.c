@@ -124,18 +124,15 @@ int32_t compile_and_run_instr(CSOUND *csound, CARINSTR *p) {
        MYFLT num = (MYFLT) csound->StringArg2Insno(csound, "__ANONYMOUS__", 1);
        int32_t i;
        pp.h = p->h;
-       char c[2] = "i";
-       pp.args[0] = (MYFLT *) c;
-       pp.args[1] = (MYFLT *) &num;
-       pp.args[2] = &zero;
-       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
-       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       pp.args[0] = (MYFLT *) &num;
+       pp.args[1] = &zero;
+       pp.args[2] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 1 : 2);
        for (i=0; i < p->INOCOUNT-1;i++) {
-         pp.args[i+3] = p->argums[i];
+         pp.args[i+2] = p->argums[i];
        }
-      pp.flag = 1;
       csound->Free(csound, code); 
-      return event_opcode_init(csound, &pp, 0, 'i');
+      return event_opcode_init(csound, &pp, pp.argno, 0, 'i');
   }
   csound->Free(csound, code);
   return csound->InitError(csound, "failed to compile instr\n");
@@ -146,17 +143,14 @@ int32_t run_instr(CSOUND *csound, RINSTR *p) {
        MYFLT zero = FL(0.0);
        int32_t i;
        pp.h = p->h;
-       char c[2] = "i";
-       pp.args[0] = (MYFLT *) c;
-       pp.args[1] = (MYFLT *) p->instr;
-       pp.args[2] = &zero;
-       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
-       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       pp.args[0] = (MYFLT *) p->instr;
+       pp.args[1] = &zero;
+       pp.args[2] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 1 : 2);
        for (i=1; i < p->INOCOUNT-1;i++) {
-         pp.args[i+3] = p->argums[i];
+         pp.args[i+2] = p->argums[i];
        }
-      pp.flag = 1;
-      return event_opcode_init(csound, &pp, 2, 'i');
+      return event_opcode_init(csound, &pp, pp.argno, 2, 'i');
 }
 
 int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
@@ -165,17 +159,14 @@ int32_t run_instr_k(CSOUND *csound, RINSTRK *p) {
        MYFLT zero = FL(0.0);
        int32_t i;
        pp.h = p->h;
-       char c[2] = "i";
-       pp.args[0] = (MYFLT *) c;
-       pp.args[1] = (MYFLT *) p->instr;
-       pp.args[2] = &zero;
-       pp.args[3] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
-       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 2 : 3);
+       pp.args[0] = (MYFLT *) p->instr;
+       pp.args[1] = &zero;
+       pp.args[2] = p->INOCOUNT > 1 ? p->argums[0] : &zero;
+       pp.argno = p->INOCOUNT + (p->INOCOUNT > 1 ? 1 : 2);
        for (i=1; i < p->INOCOUNT-1;i++) {
-         pp.args[i+3] = p->argums[i];
+         pp.args[i+2] = p->argums[i];
        }
-       pp.flag = 1;
-       return event_opcode_perf(csound, &pp, 2, 'i');
+       return event_opcode_perf(csound, &pp, pp.argno, 2, 'i');
       } else return OK;
 }
 
