@@ -50,7 +50,7 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
                                  int32_t mode, char opcod)
 {
     EVTBLK  evt;
-    int32_t  res;
+    int32_t  res = OK;
     memset(&evt, 0, sizeof(EVTBLK));
     MYFLT insno;
     MYFLT   *aref = NULL;
@@ -122,17 +122,14 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
       res = csound->PerfError(csound, &(p->h),
                                Str("event: error creating '%c' event"),
                                opcod);
-    else res = NOTOK;
-
     if(aref != NULL) args[0] = aref;
-    
     return res;
 }
 
 int32_t event_opcode(CSOUND *csound, LINEVENT *p)
 {
   int32_t pcnt = (int32_t) (p->INOCOUNT - 1);
-  return event_opcode_perf(csound, p, pcnt, 0, p->opcod->data[0]);
+  return event_opcode_init(csound, p, pcnt, 0, p->opcod->data[0]);
 }
 
 int32_t event_opcode_S(CSOUND *csound, LINEVENT *p)
@@ -248,56 +245,57 @@ int32_t event_opcode_i_Instr(CSOUND *csound, LINEVENT *p){
 #include "csound_standard_types.h"
 
 int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
-                        int32_t insname)
+                        int32_t mode)
 {
     EVTBLK  evt;
-    int32_t     i;
+    int32_t  res = OK;
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT;
-    char  pfields[PMAX+1] = {0};
-    evt.p = (MYFLT *) pfields;
-
+    MYFLT *aref = NULL;
+    MYFLT insno;
+    MYFLT **args = p->args;
+    
      /* pass in the memory to hold the instance after insertion */
     evt.pinstance = (void *) p->inst;
     *((MYFLT **)evt.pinstance) = NULL;
     
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
-      int32_t res;
-      if (insname == 2) {
-        int32_t res;
-        INSTREF *ref = (INSTREF *) p->args[0];
-        res = instr_num(csound, ref->instr);
-        evt.p[1] = (MYFLT)res;
+      if (mode == 2) {
+        INSTREF *ref = (INSTREF *) args[0];
+        insno = instr_num(csound, ref->instr);
+        aref = args[0];
+        args[0] = &insno;
         evt.strarg = NULL; evt.scnt = 0;
       }
-      else if (insname == 1) {
-        res = csound->StringArg2Insno(csound,
-                                   ((STRINGDAT*) p->args[0])->data, 1);
-        if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
-        evt.p[1] = (MYFLT)res;
+      else if (mode == 1) {
+        insno = csound->StringArg2Insno(csound,
+                                   ((STRINGDAT*) args[0])->data, 1);
+        if (UNLIKELY(insno  == 0)) return NOTOK;
+        aref = args[0];
+        args[0] = &insno;
         evt.strarg = NULL; evt.scnt = 0;
       }
       else {
-        if (IsStringCode(*p->args[0])) {
-          res = csound->StringArg2Insno(csound,
-                                     get_arg_string(csound, *p->args[0]), 1);
-          if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
-          evt.p[1] = (MYFLT)res;
-        } else evt.p[1] = *p->args[0];
+        if (IsStringCode(*args[0])) {
+          insno = csound->StringArg2Insno(csound,
+                                     get_arg_string(csound, *args[0]), 1);
+         if (UNLIKELY(insno == 0)) return NOTOK;
+         aref = args[0];
+          args[0] = &insno;
+        } 
         evt.strarg = NULL; evt.scnt = 0;
       }
-      for (i = 2; i <= evt.pcnt; i++)
-        evt.p[i] = *p->args[i-1];
     }
-    if (insert_score_event_at_sample(csound, &evt, evt.p+1,
+    if (insert_score_args_at_sample(csound, &evt, args,
                                      csound->icurTimeSamples) != 0) {
         csound->Message(csound, Str("instance: error creating event\n"));
-        return NOTOK;
+        res = NOTOK;
       }
 
-    return OK;
+    if(aref != NULL) args[0] = aref;
+    return res;
 }
 
 int32_t instance_opcode_(CSOUND *csound, LINEVENT2 *p)

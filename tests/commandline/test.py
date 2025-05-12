@@ -232,7 +232,9 @@ def runTest():
     ]
 
     pfieldTests = [["test_pfields_array.csd", "Test dynamic allocation of pfields, schedule and ftgen"],
-                   ["test_schedule.csd", "Test pfields on all forms of schedule"],    
+                   ["test_schedule.csd", "Test pfields on all forms of schedule"],
+                   ["test_schedule_instr.csd", "Test pfields on all forms of schedule with instance"],  
+                   ["test_event_pfields.csd", "Test pfields on all forms of event"],    
                        ]     
 
     tests += arrayTests
