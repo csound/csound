@@ -343,8 +343,19 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
                                       csound->icurTimeSamples);
     p->argums[0] = (MYFLT *) ref;
     return res;
+  } else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_S) {
+    MYFLT insno;
+    int32_t res;
+    MYFLT *ref = p->argums[0];
+    insno = named_instr_find(csound, ((STRINGDAT *) p->argums[0])->data);
+    if (UNLIKELY(insno == FL(0.0))) return NOTOK;  
+    p->argums[0] = &insno;
+    res = insert_score_args_at_sample(csound, &evt, p->argums,
+                                      csound->icurTimeSamples);
+    p->argums[0] = ref;
+    return res;
   }
-  return insert_score_args_at_sample(csound, &evt, p->argums,
+  else return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
 }
 
@@ -418,22 +429,6 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
 
     csound_input_message(csound, s);
     return OK;
-}
-
-
-int32_t schedule_S(CSOUND *csound, SCHED *p)
-{
-    LINEVENT pp = {0};
-    int32_t i;
-    pp.h = p->h;
-    pp.args[0] = p->which;
-    pp.args[1] = p->when;
-    pp.args[2] = p->dur;
-    pp.argno = p->INOCOUNT;
-    for (i=3; i < pp.argno ; i++) {
-      pp.args[i] = p->argums[i-3];
-    }
-    return event_opcode_init(csound, &pp, pp.argno, 1, 'i');
 }
 
 
