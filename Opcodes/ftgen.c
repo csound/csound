@@ -110,8 +110,9 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     fp[5] = SSTRCOD;
     if (n < 0)
       n = -n;
-    switch (n) {                      /*   must be Gen01, 23, 28, 43, 49 */
+    switch (n) {                      
     case 1:
+    case 2:
     case 23:
     case 28:
     case 43:
@@ -657,6 +658,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   fp[1] = *p->p1;                                     /* copy p1 - p5 */
   fp[2] = ftevt->p2orig = FL(0.0);                    /* force time 0 */
   fp[3] = ftevt->p3orig = *p->p3;
+  if(fp[3] == 0) fp[3] = ftevt->p3orig = n;
   fp[4] = *p->p4;
 
 

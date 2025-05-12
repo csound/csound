@@ -16,7 +16,7 @@ ipfields[] passign 4
 iend = lenarray(ipfields) - 1
 print ipfields[iend]
 print p5000
-i1 ftgen 0, 0, lenarray(ipfields), 2, ipfields ; tests arrays for ftgen
+i1 ftgen 0, 0, 0, 2, ipfields ; tests arrays for ftgen
 turnoff
 endin
 
