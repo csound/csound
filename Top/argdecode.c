@@ -1428,6 +1428,10 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'F':
           FIND(Str("no midifile name"));
+          if (strcmp(s, "run") == 0) {
+            O->FMidiin = 1;
+            break;
+          }
           O->FMidiname = s; /* Midifile name */
           s += (int32_t)strlen(s);
           if (strcmp(O->FMidiname, "stdin") == 0) {

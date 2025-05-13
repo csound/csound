@@ -1,7 +1,7 @@
 /*
     midifile.c:
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005 Istvan Varga, (C) 2025 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -68,6 +68,9 @@ typedef struct midifile_s {
     double          currentTempo;       /* current tempo in BPM             */
     int32_t             eventListIndex;     /* index of next MIDI event in list */
     int32_t             tempoListIndex;     /* index of next tempo change       */
+    uint64_t        koffs;
+    /* item id in list */ 
+    int32_t          id; 
    struct midifile_s    *nxt;
 } midifile_t;
 
@@ -571,12 +574,14 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
     FILE    *f = NULL;
     void    *fd = NULL;
     char    *m;
+    int32_t  midifile_id = 0;
     int32_t  i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
     int32_t  mute_track;
     midifile_t **top = (midifile_t **) &MIDIFILE, *midifile = NULL;
 
     while (*top != NULL) { /* navigate down the list */
       top = &((*top)->nxt);
+      midifile_id++;
     }
     
     /* open file */
@@ -654,9 +659,9 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
     *top = (void*) csound->Calloc(csound, sizeof(midifile_t));
     midifile = *top;
     MF(name) = cs_strdup(csound, name);
-    csound->Message(csound, "midifile %p %s \n", midifile, name);
+    MF(id) = midifile_id;
     /* calculate ticks per second or beat based on time code */
-    if (UNLIKELY(timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0))) {
+    if (UNLIKELY(timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0))){
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);
       goto err_return;
     }
@@ -680,6 +685,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
       MF(timeCode) *= (double) (timeCode & 0xFF);
     }
     /* initialise structure data */
+    MF(koffs) = (uint64_t) csound->global_kcounter;
     MF(totalKcnt) = csound->global_kcounter;
     MF(nEvents) = 0; MF(maxEvents) = 0;
     MF(nTempo) = 0; MF(maxTempo) = 0;
@@ -717,7 +723,8 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
     sortEventLists(csound, midifile);
     /* successfully read MIDI file */
     csound->Message(csound, Str("done.\n"));
-    return 0;
+    /* always zero in case of -F */
+    return midifile_id;
 
     /* in case of error: clean up and report error */
  err_return:
@@ -728,14 +735,15 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
 }
 
 int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name) {
-  return midi_file_open(csound, name);
+  int32_t res = midi_file_open(csound, name);
+  return  res >= 0 ? 0 : res;
 }
 /* read MIDI file event data at performace time */
 int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
                        unsigned char *buf, int32_t nBytes)
 {
     midifile_t  *mf;
-    int32_t         i, j, n, nRead;
+    int32_t     i, j, n, nRead;
     mf = midifile;
     if (mf == NULL)
       return 0;
@@ -744,14 +752,16 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     j = mf->tempoListIndex;
     if (i >= mf->nEvents && j >= mf->nTempo) {
       /* there are no more events, */
-      if ((unsigned long) csound->global_kcounter >= mf->totalKcnt
+      if ((unsigned long) csound->global_kcounter >= (mf->totalKcnt + mf->koffs)
           /*&& !(csound->MTrkend) */) {
         /* and end of file is reached */
          csound->Message(csound, Str("end of midi track in '%s'\n"),
                                 mf->name);
          csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                                 csound->Mforcdecs, csound->Mxtroffs);
-         if(strcmp(mf->name, csound->oparms->FMidiname) == 0) 
+         
+         if(csound->oparms->FMidiname &&
+            strcmp(mf->name, csound->oparms->FMidiname) == 0) 
                   csound->MTrkend = 1;
          midi_file_close(csound, midifile);
          csound->oparms->FMidiin = 0;
@@ -763,14 +773,16 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     /* otherwise read any events with time less than or equal to */
     /* current orchestra time */
     while (j < mf->nTempo &&
-           (unsigned long) csound->global_kcounter >= mf->tempoList[j].kcnt) {
+           (unsigned long) csound->global_kcounter >= (mf->tempoList[j].kcnt
+                                                       + mf->koffs)) {
       /* tempo change */
       mf->currentTempo = mf->tempoList[j++].tempoVal;
     }
     mf->tempoListIndex = j;
     nRead = 0;
     while (i < mf->nEvents &&
-           (unsigned long) csound->global_kcounter >= mf->eventList[i].kcnt) {
+           (unsigned long) csound->global_kcounter >=
+           (mf->eventList[i].kcnt + mf->koffs)) {
       n = msgDataBytes((int32_t) mf->eventList[i].st) + 1;
       if (n < 1) {
         i++; continue;        /* unknown or system event: skip */
@@ -869,5 +881,13 @@ int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   *p->kResult = csound->oparms->FMidiin;
+  return OK;
+}
+
+int32_t midi_file_opcode(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  OPARMS *parms = csound->oparms;
+  parms->FMidiin = 1;
+  *pp->res = midi_file_open(csound, pp->mfile->data);
   return OK;
 }

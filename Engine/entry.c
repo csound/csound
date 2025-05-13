@@ -1622,6 +1622,7 @@ OENTRY opcodlst_1[] = {
     "SS", NULL, (SUBR) readOSC_perf},
   { "OSClisten", S(ROSCA), 0, "kk[]",
     "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf},
+  { "midifile", S(MFILE), 0, "i", "S", midi_file_opcode},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

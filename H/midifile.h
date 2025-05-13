@@ -1,7 +1,7 @@
 /*
     midifile.h:
 
-    Copyright (C) 2005 Istvan Varga
+    Copyright (C) 2005 Istvan Varga, (C) 2025 Victor Lazzarini
 
     This file is part of Csound.
 
@@ -47,10 +47,17 @@ typedef struct {
     MYFLT   *kResult;
 } MIDITEMPO;
 
+typedef struct {
+    OPDS    h;
+    MYFLT *res;
+    STRINGDAT *mfile;
+} MFILE;
+  
 /* miditempo opcode: returns the current tempo of MIDI file */
 
-extern int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
-extern int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
+int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+int32_t midi_file_opcode(CSOUND *csound, void *p);  
 
 #ifdef __cplusplus
 }
