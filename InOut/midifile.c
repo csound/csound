@@ -67,10 +67,10 @@ typedef struct midiFile_s {
     double          currentTempo;       /* current tempo in BPM             */
     int32_t             eventListIndex;     /* index of next MIDI event in list */
     int32_t             tempoListIndex;     /* index of next tempo change       */
-} midiFile_t;
+} midifile_t;
 
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
-#define MF(x)       (((midiFile_t*) MIDIFILE)->x)
+#define MF(x)       (midifile->x)
 
 static int32_t getCh(CSOUND *csound, FILE *f, int32_t *bytesLeft)
 {
@@ -150,8 +150,9 @@ static int32_t msgDataBytes(int32_t c)
     return -1;
 }
 
-static int32_t alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *data,
-                                       int32_t st, int32_t d1, int32_t d2)
+static int32_t alloc_event(CSOUND *csound, midifile_t *midifile,
+                            unsigned long kcnt, unsigned char *data,
+                            int32_t st, int32_t d1, int32_t d2)
 {
     midiEvent_t *tmp;
     IGN(data);
@@ -177,7 +178,9 @@ static int32_t alloc_event(CSOUND *csound, unsigned long kcnt, unsigned char *da
     return 0;
 }
 
-static int32_t alloc_tempo(CSOUND *csound, unsigned long kcnt, double tempoVal)
+static int32_t alloc_tempo(CSOUND *csound,
+                           midifile_t *midifile,
+                           unsigned long kcnt, double tempoVal)
 {
     tempoEvent_t *tmp;
     /* expand array if necessary */
@@ -198,11 +201,13 @@ static int32_t alloc_tempo(CSOUND *csound, unsigned long kcnt, double tempoVal)
     return 0;
 }
 
-static int32_t readEvent(CSOUND *csound, FILE *f, int32_t *tlen,
-                     unsigned long tickCnt, int32_t st, int32_t *saved_st);
+static int32_t readEvent(CSOUND *csound, FILE *f,
+                         midifile_t *midifile, int32_t *tlen,
+                        unsigned long tickCnt, int32_t st, int32_t *saved_st);
 
-static int32_t checkRealTimeEvent(CSOUND *csound, FILE *f, int32_t *tlen,
-                              unsigned long tickCnt, int32_t st, int32_t *saved_st)
+static int32_t checkRealTimeEvent(CSOUND *csound, FILE *f, midifile_t *midifile,
+                                  int32_t *tlen, unsigned long tickCnt,
+                                  int32_t st, int32_t *saved_st)
 {
     if (st & 0x80) {
       if (UNLIKELY(st < 0xF8 || st > 0xFE)) {
@@ -211,15 +216,16 @@ static int32_t checkRealTimeEvent(CSOUND *csound, FILE *f, int32_t *tlen,
         return -1;
       }
       /* handle real time message (return code -2) */
-      if (readEvent(csound, f, tlen, tickCnt, st, saved_st) != 0)
+      if (readEvent(csound, f, midifile, tlen, tickCnt, st, saved_st) != 0)
         return -1;
       return -2;
     }
     return st;
 }
 
-static int32_t readEvent(CSOUND *csound, FILE *f, int32_t *tlen,
-                     unsigned long tickCnt, int32_t st, int32_t *saved_st)
+static int32_t readEvent(CSOUND *csound, FILE *f, midifile_t *midifile,
+                         int32_t *tlen,unsigned long tickCnt,
+                         int32_t st, int32_t *saved_st)
 {
     int32_t i, c, d, cnt, dataBytes[2];
 
@@ -243,13 +249,13 @@ static int32_t readEvent(CSOUND *csound, FILE *f, int32_t *tlen,
         /* read data byte(s) */
         d = getCh(csound, f, tlen);
         if (d < 0 || *tlen < 0) return -1;
-        d = checkRealTimeEvent(csound, f, tlen, tickCnt, d, saved_st);
+        d = checkRealTimeEvent(csound, f, midifile, tlen, tickCnt, d, saved_st);
         if (d == -2)    /* read real time event: continue with reading data */
           continue;
         if (d < 0) return -1;
         dataBytes[cnt++] = d;
       }
-      return alloc_event(csound, tickCnt, NULL, st,
+      return alloc_event(csound, midifile, tickCnt, NULL, st,
                          dataBytes[0], dataBytes[1]);
     }
     /* message is of unknown or special type */
@@ -268,7 +274,7 @@ static int32_t readEvent(CSOUND *csound, FILE *f, int32_t *tlen,
                                       "exclusive message\n"));
           return -1;
         }
-        d = checkRealTimeEvent(csound, f, tlen, tickCnt, d, saved_st);
+        d = checkRealTimeEvent(csound, f, midifile, tlen, tickCnt, d, saved_st);
         if (d == -2)            /* if read real time event, */
           i++;                  /* continue with reading message bytes */
         else if (UNLIKELY(d < 0))
@@ -326,7 +332,7 @@ static int32_t readEvent(CSOUND *csound, FILE *f, int32_t *tlen,
             csound->Message(csound, Str(" *** invalid tempo\n"));
             return -1;
           }
-          return alloc_tempo(csound, tickCnt, (60000000.0 / (double) d));
+          return alloc_tempo(csound, midifile, tickCnt, (60000000.0 / (double) d));
         case 0x2F:                        /* end of track */
           if (UNLIKELY(i)) {
             csound->Message(csound, Str(" *** invalid end of track event\n"));
@@ -354,10 +360,10 @@ static int32_t readEvent(CSOUND *csound, FILE *f, int32_t *tlen,
     return -1;
 }
 
-static int32_t readTrack(CSOUND *csound, FILE *f)
+static int32_t readTrack(CSOUND *csound, FILE *f, midifile_t *midifile)
 {
     uint32_t    tickCnt;
-    int32_t             i, c, tlen, st, saved_st;
+    int32_t     i, c, tlen, st, saved_st;
 
     /* check for track header */
     for (i = 0; i < 4; i++) {
@@ -391,7 +397,7 @@ static int32_t readTrack(CSOUND *csound, FILE *f)
       if (st < 0 || tlen < 0)
         return -1;
       /* process event */
-      if (readEvent(csound, f, &tlen, tickCnt, st, &saved_st) != 0)
+      if (readEvent(csound, f, midifile, &tlen, tickCnt, st, &saved_st) != 0)
         return -1;
     }
     /* successfully read track */
@@ -464,7 +470,7 @@ static CS_NOINLINE void tempoEvent_sort(tempoEvent_t *p, tempoEvent_t *tmp,
 
 /* sort event lists by time and convert tick times to Csound k-periods */
 
-static void sortEventLists(CSOUND *csound)
+static void sortEventLists(CSOUND *csound, midifile_t *midifile)
 {
     double        timeVal, tempoVal;
     unsigned long prvTicks, curTicks, tickEvent, tickTempo;
@@ -543,23 +549,27 @@ static void sortEventLists(CSOUND *csound)
 }
 
  /* ------------------------------------------------------------------------ */
-
+int32_t midi_file_close(CSOUND *csound, midifile_t *midifile) {
+  if(midifile)
+    csound->Free(csound, midifile);
+  return 0;
+}
 /* open MIDI file, read all tracks, and create event list */
-
-int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name)
+int32_t midi_file_open(CSOUND *csound, const char *name, midifile_t **pmf)
 {
     FILE    *f = NULL;
     void    *fd = NULL;
     char    *m;
-    int32_t     i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
-    int32_t     mute_track;
-
-    if (MIDIFILE != NULL)
+    int32_t  i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
+    int32_t  mute_track;
+    midifile_t *midifile = NULL;
+  
+    if (*pmf != NULL)
       return 0;         /* already opened */
     /* open file */
     if (UNLIKELY(name == NULL || name[0] == '\0'))
       return -1;
-    //if (*name==3) name++;       /* Because of ETX added bt readOptions */
+    //if (*name==3) name++; /* Because of ETX added bt readOptions */
     if (strcmp(name, "stdin") == 0)
       f = stdin;
     else {
@@ -628,7 +638,8 @@ int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name)
       timeCode = (timeCode << 8) | c;
     }
     /* allocate structure */
-    MIDIFILE = (void*) csound->Calloc(csound, sizeof(midiFile_t));
+    midifile = (void*) csound->Calloc(csound, sizeof(midifile_t));
+    *pmf = midifile;
     /* calculate ticks per second or beat based on time code */
     if (UNLIKELY(timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0))) {
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);
@@ -680,7 +691,7 @@ int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name)
         csound->Message(csound, Str(" Track %2d\n"), i);
       else
         csound->Message(csound, Str(" Track %2d is muted\n"), i);
-      if (readTrack(csound, f) != 0)
+      if (readTrack(csound, f, midifile) != 0)
         goto err_return;
       if (mute_track)                   /* if track is muted, discard any */
         MF(nEvents) = saved_nEvents;    /* non-tempo events read */
@@ -688,7 +699,7 @@ int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name)
     if (fd != NULL)
       csound->FileClose(csound, fd);
     /* prepare event and tempo list for reading */
-    sortEventLists(csound);
+    sortEventLists(csound, midifile);
     /* successfully read MIDI file */
     csound->Message(csound, Str("done.\n"));
     return 0;
@@ -697,36 +708,42 @@ int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name)
  err_return:
     if (fd != NULL)
       csound->FileClose(csound, fd);
-    csoundMIDIFileClose(csound);
+    midi_file_close(csound, midifile);
     return -1;
 }
 
+int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name) {
+  return midi_file_open(csound, name, (midifile_t **) &MIDIFILE);
+}
 /* read MIDI file event data at performace time */
-
-int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int32_t nBytes)
+int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
+                       unsigned char *buf, int32_t nBytes)
 {
-    midiFile_t  *mf;
+    midifile_t  *mf;
     int32_t         i, j, n, nRead;
-
-    mf = (midiFile_t*) MIDIFILE;
+    mf = midifile;
     if (mf == NULL)
       return 0;
+    
     i = mf->eventListIndex;
     j = mf->tempoListIndex;
     if (i >= mf->nEvents && j >= mf->nTempo) {
       /* there are no more events, */
       if ((unsigned long) csound->global_kcounter >= mf->totalKcnt &&
           !(csound->MTrkend)) {
-        /* and end of file is reached: */
-        csound->Message(csound, Str("end of midi track in '%s'\n"),
+        /* and end of file is reached */
+        if(midifile == MIDIFILE) {
+          // -F global midifile
+         csound->Message(csound, Str("end of midi track in '%s'\n"),
                                 csound->oparms->FMidiname);
-        csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
+         csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                                 csound->Mforcdecs, csound->Mxtroffs);
-        csound->MTrkend = 1;
-        csoundMIDIFileClose(csound);
-        csound->oparms->FMidiin = 0;
-        if (csound->oparms->ringbell && !(csound->oparms->termifend))
+         csound->MTrkend = 1;
+         midi_file_close(csound, midifile);
+         csound->oparms->FMidiin = 0;
+         if (csound->oparms->ringbell && !(csound->oparms->termifend))
           csound->Message(csound, "\a");
+        }
       }
       return 0;
     }
@@ -762,11 +779,15 @@ int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int32_t nBytes)
     return nRead;
 }
 
-/* destroy MIDI file event list */
+int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf,
+                           int32_t nbytes) {
+  return midi_file_read(csound, MIDIFILE, buf, nbytes);
+}
 
+/* destroy MIDI file event list */
 int32_t csoundMIDIFileClose(CSOUND *csound)
 {
-    /* nothing to do: memreset() will free any allocated memory */
+    midi_file_close(csound, MIDIFILE);
     MIDIFILE = (void*) NULL;
     return 0;
 }
@@ -780,8 +801,9 @@ void midifile_rewind_score(CSOUND *csound)
 {
     int32_t i;
    OPARMS *O = csound->oparms;
+   midifile_t *midifile = (midifile_t *) MIDIFILE;
 
-    if (MIDIFILE != NULL) {
+    if (midifile != NULL) {
       /* reset event index and tempo */
       MF(currentTempo) = default_tempo;
       MF(eventListIndex) = 0;
@@ -805,7 +827,8 @@ void midifile_rewind_score(CSOUND *csound)
 
 int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
 {
-    if (MIDIFILE == NULL)
+    midifile_t *midifile = (midifile_t *) MIDIFILE;
+    if (midifile == NULL)
       *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
     else
       *(p->kResult) = (MYFLT) MF(currentTempo);
