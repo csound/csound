@@ -268,6 +268,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       if(ftp->args != NULL) csound->Free(csound, ftp->args);
       ftp->args = csound->Calloc(csound, sizeof(MYFLT)*size);
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
+      csound->Message(csound, "********************************Saved args\n");
     }
     csound->Free(csound, ff.e.p);
     return 0;
@@ -2412,13 +2413,10 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     }
     /* save arguments */
     ftp->argcnt = ff->e.pcnt - 3;
-    {  /* Note this does not handle extened args -- JPff */
-      int32_t size=ftp->argcnt;
-      //if (size>=PMAX) size=PMAX; // Coverity 96615 says this overflows
-      memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size);
-      /* for (k=0; k < size; k++)
-         csound->Message(csound, "%f\n", ftp->args[k]);*/
-    }
+    int32_t size=ftp->argcnt;
+    if(ftp->args != NULL) csound->Free(csound, ftp->args);
+    ftp->args = csound->Calloc(csound, sizeof(MYFLT)*size);
+    memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size); 
     return OK;
 }
 
