@@ -885,9 +885,13 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     int32_t i;
     if (csound->currevent == NULL) {
       evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
+      evt->pcnt = pmax+1;
+      evt->p = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*evt->pcnt);
       csound->currevent = evt;
     }
     else evt = csound->currevent;
+    if(evt->pcnt < pmax+1)
+      evt->p = (MYFLT *) csound->ReAlloc(csound, evt->p, sizeof(MYFLT)*pmax+1);
     evt->pcnt = pmax+1;
     for (i =0; i < evt->pcnt; i++) {
       evt->p[i] = pfields[i].value;

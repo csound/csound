@@ -882,6 +882,7 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 {
   EVTBLK  *evt;
   int32_t     retval, insno, rfd;
+ 
 
   retval = 0;
   if (csound->curp2 * csound->esr < (double)csound->icurTimeSamples) {
@@ -909,12 +910,9 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
       csound->Free(csound, evt->strarg);
       evt->strarg = NULL;
     }
-    // For RT events, now free p-fields
-    if (evt->p != NULL) {
-      csound->Free(csound, evt->p);
-      evt->p = NULL;
-    }
-    /* push back to free alloc stack so it can be reused later */
+    
+    /* push back to free alloc stack so it can be reused later 
+    */
     e->nxt = csound->freeEvtNodes;
     csound->freeEvtNodes = e;
   }
@@ -1241,8 +1239,13 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
   } else e->evt.strarg = NULL;
   e->evt.pinstance = ep->pinstance;
   e->evt.opcod = ep->opcod;
-  e->evt.pcnt = ep->pcnt;
-  e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
+  if(e->evt.p == NULL ||
+     e->evt.pcnt < ep->pcnt) {
+    // alloc memory
+     e->evt.pcnt = ep->pcnt;
+     if(e->evt.p != NULL) csound->Free(csound, e->evt.p);
+     e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
+  }
   return e;
 }
 
