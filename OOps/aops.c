@@ -2267,7 +2267,9 @@ int32_t inRange(CSOUND *csound, INRANGE *p)
 /*     ival    pfld indx */
 int32_t pcount(CSOUND *csound, PFIELD *p)
 {
-  *p->ians = (MYFLT) csound->init_event->pcnt;
+  if(csound->init_event != NULL)
+     *p->ians = (MYFLT) csound->init_event->pcnt;
+  else *p->ians = 3;
   return OK;
 }
 
@@ -2300,6 +2302,7 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 
 int32_t pinit(CSOUND *csound, PINIT *p)
 {
+  if(csound->init_event != NULL) {
   int32_t n;
   int32_t    nargs = p->OUTOCOUNT;
   int32_t    pargs = csound->init_event->pcnt;
@@ -2321,13 +2324,15 @@ int32_t pinit(CSOUND *csound, PINIT *p)
         strlen(((STRINGDAT *)p->inits[n])->data)+1;
     }
     else  *p->inits[n] = csound->init_event->p[n+start];
-  }
+   }
+  } else return csoundInitError(csound, "no pfields available\n");
   return OK;
 }
 
 #include "arrays.h"
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
+ if(csound->init_event != NULL) { 
   int32_t n;
   int32_t    pargs = csound->init_event->pcnt;
   int32_t    start = (int32_t)(*p->start);
@@ -2339,6 +2344,7 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   for (n=0; n<=pargs-start; n++) {
     ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
   }
+  } else return csoundInitError(csound, "no pfields available\n");
   return OK;
 }
 
