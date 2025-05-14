@@ -880,7 +880,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     if (pmax < pfield_index) pmax = pfield_index;
   }
 
-  EVTBLK evt;
+  EVTBLK evt = {0};
   if (pmax > 0) {
     int32_t i;
     csound->init_event = &evt;
@@ -892,7 +892,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   } else csound->init_event = NULL;
 
   error = init_pass(csound, ip);
-  csound->Free(csound, evt.p);
+  if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
   if(error == 0)
     ATOMIC_SET(ip->init_done, 1);

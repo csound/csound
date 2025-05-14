@@ -209,7 +209,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
         return -1;
       }
       *ftpp = ftp;
-      return 0;
+      goto end;
     }
 
     if (ff.flen < 0L) {
@@ -258,17 +258,19 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       csound->Free(csound, ftp);
       return -1;
     }
+
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
     ftresdisp(&ff, ftp);           /* rescale and display      */
+                                   
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
+     end:    
     ftp->argcnt = ff.e.pcnt - 3;
     {  
       int32_t size=ftp->argcnt;
       if(ftp->args != NULL) csound->Free(csound, ftp->args);
       ftp->args = csound->Calloc(csound, sizeof(MYFLT)*size);
       memcpy(ftp->args, &(ff.e.p[4]), sizeof(MYFLT)*size); /* is this right? */
-      csound->Message(csound, "********************************Saved args\n");
     }
     csound->Free(csound, ff.e.p);
     return 0;
@@ -2262,7 +2264,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     int32_t     truncmsg = 0;
     int32   inlocs = 0;
     int32_t     def = 0, table_length = ff->flen + 1;
-
+    
     p = &tmpspace;
     memset(p, 0, sizeof(SOUNDIN));
     {
@@ -2411,12 +2413,6 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
       tab[ff->flen] = tab[0];  /* guard point */
       ftp->flen -= 1;  /* exclude guard point */
     }
-    /* save arguments */
-    ftp->argcnt = ff->e.pcnt - 3;
-    int32_t size=ftp->argcnt;
-    if(ftp->args != NULL) csound->Free(csound, ftp->args);
-    ftp->args = csound->Calloc(csound, sizeof(MYFLT)*size);
-    memcpy(ftp->args, &(ff->e.p[4]), sizeof(MYFLT)*size); 
     return OK;
 }
 
