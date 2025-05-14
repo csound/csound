@@ -236,6 +236,7 @@ def runTest():
                    ["test_schedule_instr.csd", "Test pfields on all forms of schedule with instance"],  
                    ["test_event_pfields.csd", "Test pfields on all forms of event"],
                    ["test_recursive_schedule.csd", "Test recursive events"],
+                   ["test_midifile.csd", "Test midi file input (-F)"],
                        ]     
 
     tests += arrayTests
