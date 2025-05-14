@@ -51,6 +51,7 @@ typedef struct {
     OPDS    h;
     MYFLT *res;
     STRINGDAT *mfile;
+    MYFLT *port;
 } MFILE;
   
 /* miditempo opcode: returns the current tempo of MIDI file */

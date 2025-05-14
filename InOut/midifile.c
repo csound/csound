@@ -70,7 +70,8 @@ typedef struct midifile_s {
     int32_t             tempoListIndex;     /* index of next tempo change       */
     uint64_t        koffs;
     /* item id in list */ 
-    int32_t          id; 
+    int32_t          id;
+    int32_t           port;
    struct midifile_s    *nxt;
 } midifile_t;
 
@@ -563,13 +564,13 @@ int32_t midi_file_close(CSOUND *csound, midifile_t *p) {
   if(prv == NULL) // top of the list
     MIDIFILE = midifile->nxt;
   else prv->nxt = midifile->nxt;// patch up the list
-  csound->Free(csound, p);
+  //csound->Free(csound, p);
   return 0;
 }
 
 /* open MIDI file, add to list, read all tracks, 
    and create event list */
-int32_t midi_file_open(CSOUND *csound, const char *name)
+int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
 {
     FILE    *f = NULL;
     void    *fd = NULL;
@@ -660,6 +661,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
     midifile = *top;
     MF(name) = cs_strdup(csound, name);
     MF(id) = midifile_id;
+    MF(port) = port;
     /* calculate ticks per second or beat based on time code */
     if (UNLIKELY(timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0))){
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);
@@ -735,7 +737,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name)
 }
 
 int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name) {
-  int32_t res = midi_file_open(csound, name);
+  int32_t res = midi_file_open(csound, name, 0);
   return  res >= 0 ? 0 : res;
 }
 /* read MIDI file event data at performace time */
@@ -744,10 +746,12 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
 {
     midifile_t  *mf;
     int32_t     i, j, n, nRead;
+    uint8_t     port;
     mf = midifile;
     if (mf == NULL)
       return 0;
-    
+
+    port = (uint8_t) mf->port;
     i = mf->eventListIndex;
     j = mf->tempoListIndex;
     if (i >= mf->nEvents && j >= mf->nTempo) {
@@ -795,6 +799,11 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       }
       nRead += n;
       *buf++ = mf->eventList[i].st;
+      if (port)  {
+        *buf++ = (uint8_t) (0x80 | port);
+         nRead++;
+         nBytes--;
+      } // optional port
       if (n > 1) *buf++ = mf->eventList[i].d1;
       if (n > 2) *buf++ = mf->eventList[i].d2;
       i++;
@@ -886,8 +895,7 @@ int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
 
 int32_t midi_file_opcode(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
-  OPARMS *parms = csound->oparms;
-  parms->FMidiin = 1;
-  *pp->res = midi_file_open(csound, pp->mfile->data);
+  *pp->res = midi_file_open(csound, pp->mfile->data,
+                            (uint8_t) *pp->port);
   return OK;
 }

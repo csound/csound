@@ -1427,11 +1427,17 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->Midiin = 1;
           break;
         case 'F':
-          FIND(Str("no midifile name"));
-          if (strcmp(s, "run") == 0) {
-            O->FMidiin = 1;
-            break;
+          //FIND(Str("no midifile"));
+           if (*s == '\0')  {
+            int32_t largc = argc;
+            char **largv = argv;
+            if (UNLIKELY(!(--largc) || (((s = *++largv) != NULL) && *s == '-'))){
+              // no filename simply switches on midi reading
+              O->FMidiin = 1;
+              if(*s == '-') s++; 
+              break;
           }
+          } 
           O->FMidiname = s; /* Midifile name */
           s += (int32_t)strlen(s);
           if (strcmp(O->FMidiname, "stdin") == 0) {
