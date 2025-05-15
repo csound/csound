@@ -70,11 +70,12 @@ typedef struct midifile_s {
     int32_t             tempoListIndex;     /* index of next tempo change       */
     uint64_t        koffs;                /* kcounter offset */
     int32_t         mute;                /* mute flag      */
-  int32_t         pause;               /* pause flag     */
+    int32_t         pause;               /* pause flag     */
     /* item id in list */ 
     int32_t          id;
     int32_t           port;
-   struct midifile_s    *nxt;
+     double            tempo;
+    struct midifile_s    *nxt;
 } midifile_t;
 
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
@@ -703,6 +704,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     MF(eventList) = (midiEvent_t*) NULL;
     MF(tempoList) = (tempoEvent_t*) NULL;
     MF(currentTempo) = default_tempo;
+    MF(tempo) = -1.;
     MF(eventListIndex) = 0;
     MF(tempoListIndex) = 0;
     /* read all tracks */
@@ -758,6 +760,8 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     int32_t     i, j, n, nRead;
     uint8_t     port;
     int32_t     fflag = 0;  // flag for -F file
+    MYFLT tscal; 
+
 
     mf = midifile;
     if (mf == NULL)
@@ -767,9 +771,13 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
        strcmp(mf->name,
               csound->oparms->FMidiname) == 0) fflag = 1;
 
-    // paused - just return nothing
-    if(mf->pause) 
+    // paused - just return nothing, also if tempo is zero
+    if(mf->pause || mf->tempo == 0.) 
       return 0;
+
+
+    tscal = mf->tempo > 0  ? mf->currentTempo/mf->tempo : -1.0/mf->tempo;
+
     
     port = (uint8_t) mf->port;
     i = mf->eventListIndex;
@@ -795,16 +803,19 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     }
     /* otherwise read any events with time less than or equal to */
     /* current orchestra time */
+
     while (j < mf->nTempo &&
-           (unsigned long) csound->global_kcounter >= (mf->tempoList[j].kcnt
+           (unsigned long) csound->global_kcounter >= (mf->tempoList[j].kcnt*tscal
                                                        + mf->koffs)) {
       mf->currentTempo = mf->tempoList[j++].tempoVal;
+      tscal = mf->tempo > 0  ? mf->currentTempo/mf->tempo : -1./mf->tempo;
     }
     mf->tempoListIndex = j;
     nRead = 0;
+ 
     while (i < mf->nEvents &&
            (unsigned long) csound->global_kcounter >=
-           (mf->eventList[i].kcnt + mf->koffs)) {
+           (mf->eventList[i].kcnt*tscal + mf->koffs)) {
       n = msgDataBytes((int32_t) mf->eventList[i].st) + 1;
       if (n < 1 || mf->mute) {
         // if track is muted, we skip events;
@@ -994,9 +1005,26 @@ int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
   if (mf == NULL)
       *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
   else
-      *(p->kResult) = (MYFLT) mf->currentTempo;
+    *(p->kResult) = mf->tempo >= 0 ? mf->tempo :
+      -mf->currentTempo/mf->tempo;
   return OK;
 }
+
+int32_t midi_set_tempo(CSOUND *csound, void *pp)
+{
+  MIDITEMPO *p = (MIDITEMPO *) pp;
+  if(p->h.insdshead->m_chnbp == NULL) {
+  int32_t num = (int32_t) *p->kResult;
+  midifile_t *mf = find_midifile(csound, num);
+  if (mf != NULL) {
+    mf->tempo = *p->num;
+  }
+ }
+  return OK;
+}
+
+
+
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   *p->kResult = csound->oparms->FMidiin;
