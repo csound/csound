@@ -1040,8 +1040,10 @@ OENTRY opcodlst_1[] = {
   { "midiin",   S(MIDIIN),0,      "kkkk", "",      midiin_set, midiin, NULL },
   { "pgmchn",   S(PGMIN),0,       "kk",   "o",     pgmin_set, pgmin, NULL },
   { "ctlchn",   S(CTLIN),0,       "kkk",  "oo",    ctlin_set, ctlin, NULL },
-  { "miditempo", S(MIDITEMPO),0,  "k",    "",
-    (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
+  { "miditempo", S(MIDITEMPO),0,  "i",    "o",
+    (SUBR) midiTempoOpcode, NULL, NULL    },
+  { "miditempo", S(MIDITEMPO),0,  "k",    "o",
+    NULL, (SUBR) midiTempoOpcode, NULL    },
   { "midifilestatus", S(MIDITEMPO),0,   "k",    "",
     NULL, (SUBR) midiFileStatus, NULL },
   { "midinoteoff", S(MIDINOTEON),0   ,"", "xx",   midinoteoff, midinoteoff, },
@@ -1622,7 +1624,12 @@ OENTRY opcodlst_1[] = {
     "SS", NULL, (SUBR) readOSC_perf},
   { "OSClisten", S(ROSCA), 0, "kk[]",
     "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf},
-  { "midifile", S(MFILE), 0, "i", "So", midi_file_opcode},
+  { "midifileopen", S(MFILE), 0, "i", "So", midi_file_opcode},
+  { "midifileplay", S(MFILE), 0, "", "i", midi_file_play},
+  { "midifilepause", S(MFILE), 0, "", "i", midi_file_pause},
+  { "midifilemute", S(MFILE), 0, "", "i", midi_file_mute},
+  { "midifilerewind", S(MFILE), 0, "", "i", midi_file_rewind},
+  { "midifilelen", S(MFILE), 0, "i", "i", midi_file_len},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

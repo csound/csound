@@ -1427,7 +1427,6 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->Midiin = 1;
           break;
         case 'F':
-          //FIND(Str("no midifile"));
            if (*s == '\0')  {
             int32_t largc = argc;
             char **largv = argv;

@@ -448,7 +448,7 @@ int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctl
     return OK;
 }
 
-static void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
+void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
 {
     INSDS   *ip;
     int32_t     nn;

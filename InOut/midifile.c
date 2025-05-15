@@ -68,7 +68,9 @@ typedef struct midifile_s {
     double          currentTempo;       /* current tempo in BPM             */
     int32_t             eventListIndex;     /* index of next MIDI event in list */
     int32_t             tempoListIndex;     /* index of next tempo change       */
-    uint64_t        koffs;
+    uint64_t        koffs;                /* kcounter offset */
+    int32_t         mute;                /* mute flag      */
+  int32_t         pause;               /* pause flag     */
     /* item id in list */ 
     int32_t          id;
     int32_t           port;
@@ -564,7 +566,7 @@ int32_t midi_file_close(CSOUND *csound, midifile_t *p) {
   if(prv == NULL) // top of the list
     MIDIFILE = midifile->nxt;
   else prv->nxt = midifile->nxt;// patch up the list
-  //csound->Free(csound, p);
+  // no data struct deletion - this is done by reset() 
   return 0;
 }
 
@@ -579,7 +581,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     int32_t  i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
     int32_t  mute_track;
     midifile_t **top = (midifile_t **) &MIDIFILE, *midifile = NULL;
-
+    
     while (*top != NULL) { /* navigate down the list */
       top = &((*top)->nxt);
       midifile_id++;
@@ -588,7 +590,6 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     /* open file */
     if (UNLIKELY(name == NULL || name[0] == '\0'))
       return -1;
-    //if (*name==3) name++; /* Because of ETX added bt readOptions */
     if (strcmp(name, "stdin") == 0)
       f = stdin;
     else {
@@ -600,6 +601,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
         return -1;
       }
     }
+    if(csound->oparms->msglevel & 0x400)
     csound->Message(csound, Str("Reading MIDI file '%s'...\n"), name);
     /* check header */
     for (i = 0; i < 4; i++) {
@@ -646,6 +648,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
       goto err_return;
     }
     if (UNLIKELY(nTracks > 1 && !fileFormat)) {
+      if(csound->oparms->msglevel & 0x400)
       csound->Message(csound, Str("WARNING: format 0 MIDI file with "
                                   "multiple tracks\n"));
     }
@@ -662,6 +665,12 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     MF(name) = cs_strdup(csound, name);
     MF(id) = midifile_id;
     MF(port) = port;
+    // set all to pause except for -F file
+    if(csound->oparms->FMidiname &&
+       strcmp(name, csound->oparms->FMidiname) == 0)
+      MF(pause) = 0;
+    else MF(pause) = 1;
+    
     /* calculate ticks per second or beat based on time code */
     if (UNLIKELY(timeCode < 1 || (timeCode >= 0x8000 && (timeCode & 0xFF) == 0))){
       csound->Message(csound, Str(" *** invalid time code: %d\n"), timeCode);
@@ -705,14 +714,15 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
         if (*m == '1')
           mute_track = 1;
         else if (UNLIKELY(*m != '0')) {
+          if(csound->oparms->msglevel & 0x400) 
           csound->Message(csound, Str(" *** invalid mute track list format\n"));
           goto err_return;
         }
         m++;
       }
-      if (!mute_track)
+      if (!mute_track && (csound->oparms->msglevel & 0x400))
         csound->Message(csound, Str(" Track %2d\n"), i);
-      else
+      else if(csound->oparms->msglevel & 0x400)
         csound->Message(csound, Str(" Track %2d is muted\n"), i);
       if (readTrack(csound, f, midifile) != 0)
         goto err_return;
@@ -747,30 +757,39 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     midifile_t  *mf;
     int32_t     i, j, n, nRead;
     uint8_t     port;
+    int32_t     fflag = 0;  // flag for -F file
+
     mf = midifile;
     if (mf == NULL)
       return 0;
 
+    if(csound->oparms->FMidiname &&
+       strcmp(mf->name,
+              csound->oparms->FMidiname) == 0) fflag = 1;
+
+    // paused - just return nothing
+    if(mf->pause) 
+      return 0;
+    
     port = (uint8_t) mf->port;
     i = mf->eventListIndex;
     j = mf->tempoListIndex;
     if (i >= mf->nEvents && j >= mf->nTempo) {
       /* there are no more events, */
-      if ((unsigned long) csound->global_kcounter >= (mf->totalKcnt + mf->koffs)
-          /*&& !(csound->MTrkend) */) {
-        /* and end of file is reached */
+      if ((unsigned long) csound->global_kcounter >= (mf->totalKcnt + mf->koffs)) {
+        if(csound->oparms->msglevel & 0x400) {
          csound->Message(csound, Str("end of midi track in '%s'\n"),
                                 mf->name);
          csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                                 csound->Mforcdecs, csound->Mxtroffs);
-         
-         if(csound->oparms->FMidiname &&
-            strcmp(mf->name, csound->oparms->FMidiname) == 0) 
-                  csound->MTrkend = 1;
-         midi_file_close(csound, midifile);
-         csound->oparms->FMidiin = 0;
-         if (csound->oparms->ringbell && !(csound->oparms->termifend))
-          csound->Message(csound, "\a");
+         }
+         if(fflag){ // stop track close, files
+            csound->MTrkend = 1;
+            midi_file_close(csound, midifile);
+           if (csound->oparms->ringbell && !(csound->oparms->termifend))
+                      csound->Message(csound, "\a");
+           }
+          mf->pause = 1; 
       }
       return 0;
     }
@@ -779,7 +798,6 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     while (j < mf->nTempo &&
            (unsigned long) csound->global_kcounter >= (mf->tempoList[j].kcnt
                                                        + mf->koffs)) {
-      /* tempo change */
       mf->currentTempo = mf->tempoList[j++].tempoVal;
     }
     mf->tempoListIndex = j;
@@ -788,8 +806,10 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
            (unsigned long) csound->global_kcounter >=
            (mf->eventList[i].kcnt + mf->koffs)) {
       n = msgDataBytes((int32_t) mf->eventList[i].st) + 1;
-      if (n < 1) {
-        i++; continue;        /* unknown or system event: skip */
+      if (n < 1 || mf->mute) {
+        // if track is muted, we skip events;
+        // also if number of databytes is less than 1 
+        i++; continue;        
       }
       nBytes -= n;
       if (UNLIKELY(nBytes < 0)) {
@@ -800,10 +820,11 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       nRead += n;
       *buf++ = mf->eventList[i].st;
       if (port)  {
+        // optional port mapping offset
         *buf++ = (uint8_t) (0x80 | port);
          nRead++;
          nBytes--;
-      } // optional port
+      } 
       if (n > 1) *buf++ = mf->eventList[i].d1;
       if (n > 2) *buf++ = mf->eventList[i].d2;
       i++;
@@ -846,7 +867,7 @@ extern  void    midi_ctl_reset(CSOUND *csound, int16 chan);
 
 void midifile_rewind_score(CSOUND *csound)
 {
-    int32_t i;
+   int32_t i;
    OPARMS *O = csound->oparms;
    midifile_t *midifile = (midifile_t *) MIDIFILE;
 
@@ -855,7 +876,6 @@ void midifile_rewind_score(CSOUND *csound)
                csound->oparms->FMidiname) == 0) break;
         midifile = midifile->nxt;      
    }
-
     if (midifile != NULL) {
       /* reset event index and tempo */
       MF(currentTempo) = default_tempo;
@@ -876,26 +896,111 @@ void midifile_rewind_score(CSOUND *csound)
 
  /* ------------------------------------------------------------------------ */
 
-/* miditempo opcode: returns the current tempo of MIDI file or score */
 
+
+// midifile opcodes
+int32_t midi_file_opcode(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  // non-op if triggered by midi
+  if(pp->h.insdshead->m_chnbp == NULL) { 
+    *pp->res = midi_file_open(csound, pp->mfile->data,
+                              (uint8_t) *pp->port);
+  }
+  return OK;
+}
+
+midifile_t *find_midifile(CSOUND *csound, int32_t id) {
+  midifile_t *midifile = (midifile_t *) MIDIFILE;
+  while(midifile != NULL && MF(id) != id)
+    midifile = midifile->nxt;
+  return midifile;    
+}
+
+void AllNotesOff(CSOUND *csound, MCHNBLK *chn);
+int32_t midi_file_mute(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  if(pp->h.insdshead->m_chnbp == NULL) {
+    midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+    if(mf) {
+      mf->mute = mf->mute ? 0 : 1;
+      if(mf->mute) {
+        for(int i = 0; i < 16; i++)
+          AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+      }
+    }
+  }
+  return OK;
+}
+
+
+int32_t midi_file_pause(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  if(pp->h.insdshead->m_chnbp == NULL) {
+    midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+    if(mf && mf->pause == 0)  {
+      mf->pause = 1;
+      mf->koffs = csound->global_kcounter;
+      for(int i = 0; i < 16; i++)
+        AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+    }
+  }
+  return OK;
+}
+
+int32_t midi_file_play(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  if(pp->h.insdshead->m_chnbp == NULL) {
+    if(pp->h.insdshead->m_chnbp == NULL) {
+      midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+      if(mf && mf->pause) {
+        mf->pause = 0; 
+        mf->koffs = csound->global_kcounter - mf->koffs;
+      }
+    }
+  }
+  return OK;
+}
+
+int32_t midi_file_rewind(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  if(pp->h.insdshead->m_chnbp == NULL) {
+    midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+    if(mf->pause == 0) { // if not paused ... 
+      for(int i = 0; i < 16; i++)
+        AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+      mf->koffs = (uint64_t) csound->global_kcounter;
+    } else mf->koffs = (uint64_t) 0;
+    mf->currentTempo = default_tempo;
+    mf->eventListIndex = 0;
+    mf->tempoListIndex = 0;
+  }
+  return OK;
+}
+
+int32_t midi_file_len(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  int32_t num = (int32_t) *((MYFLT *)pp->mfile);
+  midifile_t *mf = find_midifile(csound, (int32_t) num);
+  if(mf)
+    *pp->res = mf->eventList[mf->nEvents-1].kcnt/csoundGetKr(csound);
+  else *pp->res = 0.0;
+  return OK;
+}
+
+/* miditempo opcode: returns the current tempo of a 
+  MIDI file or score */
 int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
 {
-    midifile_t *midifile = (midifile_t *) MIDIFILE;
-    if (midifile == NULL)
+  int32_t num = (int32_t) *p->num;
+  midifile_t *mf = find_midifile(csound, num);
+  if (mf == NULL)
       *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
-    else
-      *(p->kResult) = (MYFLT) MF(currentTempo);
-    return OK;
+  else
+      *(p->kResult) = (MYFLT) mf->currentTempo;
+  return OK;
 }
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   *p->kResult = csound->oparms->FMidiin;
-  return OK;
-}
-
-int32_t midi_file_opcode(CSOUND *csound, void *p) {
-  MFILE *pp = (MFILE *) p;
-  *pp->res = midi_file_open(csound, pp->mfile->data,
-                            (uint8_t) *pp->port);
   return OK;
 }

@@ -45,6 +45,7 @@ int32_t csoundMIDIFileClose(CSOUND *csound);
 typedef struct {
     OPDS    h;
     MYFLT   *kResult;
+    MYFLT   *num;
 } MIDITEMPO;
 
 typedef struct {
@@ -58,7 +59,12 @@ typedef struct {
 
 int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p);
-int32_t midi_file_opcode(CSOUND *csound, void *p);  
+int32_t midi_file_opcode(CSOUND *csound, void *p);
+int32_t midi_file_mute(CSOUND *csound, void *p);
+int32_t midi_file_pause(CSOUND *csound, void *p);
+int32_t midi_file_play(CSOUND *csound, void *p);
+int32_t midi_file_rewind(CSOUND *csound, void *p);
+int32_t midi_file_len(CSOUND *csound, void *p);  
 
 #ifdef __cplusplus
 }
