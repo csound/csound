@@ -601,7 +601,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
         return -1;
       }
     }
-    if(csound->oparms->msglevel & 0x400)
+    if(csound->oparms->msglevel & 7)
     csound->Message(csound, Str("Reading MIDI file '%s'...\n"), name);
     /* check header */
     for (i = 0; i < 4; i++) {
@@ -648,7 +648,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
       goto err_return;
     }
     if (UNLIKELY(nTracks > 1 && !fileFormat)) {
-      if(csound->oparms->msglevel & 0x400)
+      if(csound->oparms->msglevel & 7)
       csound->Message(csound, Str("WARNING: format 0 MIDI file with "
                                   "multiple tracks\n"));
     }
@@ -714,15 +714,15 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
         if (*m == '1')
           mute_track = 1;
         else if (UNLIKELY(*m != '0')) {
-          if(csound->oparms->msglevel & 0x400) 
+          if(csound->oparms->msglevel & 7) 
           csound->Message(csound, Str(" *** invalid mute track list format\n"));
           goto err_return;
         }
         m++;
       }
-      if (!mute_track && (csound->oparms->msglevel & 0x400))
+      if (!mute_track && (csound->oparms->msglevel & 7))
         csound->Message(csound, Str(" Track %2d\n"), i);
-      else if(csound->oparms->msglevel & 0x400)
+      else if(csound->oparms->msglevel & 7)
         csound->Message(csound, Str(" Track %2d is muted\n"), i);
       if (readTrack(csound, f, midifile) != 0)
         goto err_return;
@@ -777,7 +777,7 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     if (i >= mf->nEvents && j >= mf->nTempo) {
       /* there are no more events, */
       if ((unsigned long) csound->global_kcounter >= (mf->totalKcnt + mf->koffs)) {
-        if(csound->oparms->msglevel & 0x400) {
+        if(csound->oparms->msglevel & 7) {
          csound->Message(csound, Str("end of midi track in '%s'\n"),
                                 mf->name);
          csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
