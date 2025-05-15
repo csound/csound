@@ -895,9 +895,6 @@ void midifile_rewind_score(CSOUND *csound)
 }
 
  /* ------------------------------------------------------------------------ */
-
-
-
 // midifile opcodes
 int32_t midi_file_opcode(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
@@ -917,6 +914,7 @@ midifile_t *find_midifile(CSOUND *csound, int32_t id) {
 }
 
 void AllNotesOff(CSOUND *csound, MCHNBLK *chn);
+
 int32_t midi_file_mute(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
   if(pp->h.insdshead->m_chnbp == NULL) {

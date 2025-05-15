@@ -418,7 +418,7 @@ int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctl
     MCHNBLK  *chn;
     MEVENT   mev;
 
-    if (chan < 0 || chan > 15)
+    if (chan < 0 || chan >= MAXCHAN)
       return csound->InitError(csound, Str("illegal channel number"));
     chn = csound->m_chnbp[chan];
     if (insno <= 0) {

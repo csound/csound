@@ -1430,10 +1430,10 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
            if (*s == '\0')  {
             int32_t largc = argc;
             char **largv = argv;
-            if (UNLIKELY(!(--largc) || (((s = *++largv) != NULL) && *s == '-'))){
+            char *ls = s;
+            if (UNLIKELY(!(--largc) || (((ls = *++largv) != NULL) && *ls == '-'))){
               // no filename simply switches on midi reading
               O->FMidiin = 1;
-              if(*s == '-') s++; 
               break;
           }
           } 
