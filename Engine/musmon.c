@@ -272,6 +272,15 @@ int32_t start_engine(CSOUND *csound)
 
     print_engine_parameters(csound);
 
+    /* Enable musmon to handle external MIDI input, if it has been enabled. 
+       called before init() so that any file passed -F is the first on the
+       list.
+    */
+    if (O->Midiin || O->FMidiin || O->RMidiin) {
+      O->RTevents = 1;
+      midi_open(csound);                 /*   alloc bufs & open files    */
+    }
+
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
@@ -280,11 +289,7 @@ int32_t start_engine(CSOUND *csound)
     csound->evt_poll_cnt    = 0;
     csound->evt_poll_maxcnt =
       (int)(250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
-    /* Enable musmon to handle external MIDI input, if it has been enabled. */
-    if (O->Midiin || O->FMidiin || O->RMidiin) {
-      O->RTevents = 1;
-      midi_open(csound);                 /*   alloc bufs & open files    */
-    }
+
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
       O->Midioutname = NULL;
@@ -292,6 +297,7 @@ int32_t start_engine(CSOUND *csound)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       midi_open_out(csound);
+    
     if(O->msglevel) {
       csound->ErrorMsg(csound, Str("orch now loaded\n"));
     }

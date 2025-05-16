@@ -558,7 +558,7 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
 }
 
 /* remove specific midifile from list */
-int32_t midi_file_close(CSOUND *csound, midifile_t *p) {
+static int32_t midi_file_close(CSOUND *csound, midifile_t *p) {
   midifile_t *midifile = MIDIFILE, *prv = NULL;
   while(midifile != p) {
     prv = midifile;
@@ -573,12 +573,12 @@ int32_t midi_file_close(CSOUND *csound, midifile_t *p) {
 
 /* open MIDI file, add to list, read all tracks, 
    and create event list */
-int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
+static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
 {
   FILE    *f = NULL;
   void    *fd = NULL;
   char    *m;
-  int32_t  midifile_id = 0;
+  int32_t  midifile_id = csound->oparms->FMidiname ? 0 : 1;
   int32_t  i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
   int32_t  mute_track;
   midifile_t **top = (midifile_t **) &MIDIFILE, *midifile = NULL;
@@ -602,7 +602,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
       return -1;
     }
   }
-  if(csound->oparms->msglevel & 7)
+  // if(csound->oparms->msglevel & 7)
     csound->Message(csound, Str("Reading MIDI file '%s'...\n"), name);
   /* check header */
   for (i = 0; i < 4; i++) {
@@ -667,8 +667,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
   MF(id) = midifile_id;
   MF(port) = port;
   // set all to pause except for -F file
-  if(csound->oparms->FMidiname &&
-     strcmp(name, csound->oparms->FMidiname) == 0)
+  if(MF(id) == 0)
     MF(pause) = 0;
   else MF(pause) = 1;
     
@@ -753,25 +752,23 @@ int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name) {
   return  res >= 0 ? 0 : res;
 }
 /* read MIDI file event data at performace time */
-int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
+static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
                        unsigned char *buf, int32_t nBytes)
 {
   midifile_t  *mf;
   int32_t     i, j, n, nRead;
   uint8_t     port;
-  int32_t     fflag = 0;  // flag for -F file
 
   mf = midifile;
   if (mf == NULL)
     return 0;
 
-  if(csound->oparms->FMidiname &&
-     strcmp(mf->name,
-            csound->oparms->FMidiname) == 0) fflag = 1;
-
   // paused - just return nothing, also if tempo is zero
-  if(mf->pause) 
+  if(mf->pause) {
     return 0;
+  }
+
+  
   
   port = (uint8_t) mf->port;
   i = mf->eventListIndex;
@@ -785,7 +782,7 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
         csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                         csound->Mforcdecs, csound->Mxtroffs);
       }
-      if(fflag){ // stop track close, files
+      if(mf->id == 0){ // -F midifile stop track close files
         csound->MTrkend = 1;
         midi_file_close(csound, midifile);
         if (csound->oparms->ringbell && !(csound->oparms->termifend))
@@ -866,7 +863,7 @@ int32_t csoundMIDIFileClose(CSOUND *csound)
 }
 
 /* midirecv.c, resets MIDI controllers on a channel */
-extern  void    midi_ctl_reset(CSOUND *csound, int16 chan);
+void    midi_ctl_reset(CSOUND *csound, int16 chan);
 
 /* called by csoundRewindScore() to reset performance to time zero */
 
@@ -911,7 +908,7 @@ int32_t midi_file_opcode(CSOUND *csound, void *p) {
   return OK;
 }
 
-midifile_t *find_midifile(CSOUND *csound, int32_t id) {
+static midifile_t *find_midifile(CSOUND *csound, int32_t id) {
   midifile_t *midifile = (midifile_t *) MIDIFILE;
   while(midifile != NULL && MF(id) != id)
     midifile = midifile->nxt;
@@ -1033,10 +1030,10 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
         AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
     } 
     for(i = 0; i < mf->nEvents-1; i++) {
-      if(mf->eventList[i].kcnt >= posk) break; 
+      if(mf->eventList[i].kcnt*mf->temposcal >= posk) break; 
     }
     mf->koffs = (int64_t)
-      csound->global_kcounter - mf->eventList[i].kcnt;
+      csound->global_kcounter - mf->eventList[i].kcnt*mf->temposcal;
     mf->eventListIndex = i;
     mf->tempoListIndex = i;
   }

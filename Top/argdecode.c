@@ -1435,8 +1435,9 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               // no filename simply switches on midi reading
               O->FMidiin = 1;
               break;
+             }
           }
-          } 
+           FIND(Str("no midi file"));
           O->FMidiname = s; /* Midifile name */
           s += (int32_t)strlen(s);
           if (strcmp(O->FMidiname, "stdin") == 0) {
