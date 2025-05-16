@@ -1632,6 +1632,8 @@ OENTRY opcodlst_1[] = {
   { "midifilelen", S(MFILE), 0, "i", "i", midi_file_len},
   { "miditempo", S(MIDITEMPO), 0, "", "ii", midi_set_tempo},
   { "miditempo", S(MIDITEMPO), 0, "", "ik", NULL, midi_set_tempo},
+  { "midifilepos", S(MIDITEMPO), 0, "", "ii", midi_set_pos},
+  { "midifilepos", S(MIDITEMPO), 0, "", "ik", NULL, midi_set_pos},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

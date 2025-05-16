@@ -65,7 +65,8 @@ int32_t midi_file_pause(CSOUND *csound, void *p);
 int32_t midi_file_play(CSOUND *csound, void *p);
 int32_t midi_file_rewind(CSOUND *csound, void *p);
 int32_t midi_file_len(CSOUND *csound, void *p);
-  int32_t midi_set_tempo(CSOUND *csound, void *p);
+int32_t midi_set_tempo(CSOUND *csound, void *p);
+  int32_t midi_set_pos(CSOUND *csound, void *pp);
 
 #ifdef __cplusplus
 }

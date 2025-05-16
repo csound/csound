@@ -68,7 +68,7 @@ typedef struct midifile_s {
   double          currentTempo;       /* current tempo in BPM             */
   int32_t             eventListIndex;     /* index of next MIDI event in list */
   int32_t             tempoListIndex;     /* index of next tempo change       */
-  uint64_t        koffs;                /* kcounter offset */
+  int64_t        koffs;                /* kcounter offset */
   int32_t         mute;                /* mute flag      */
   int32_t         pause;               /* pause flag     */
   /* item id in list */ 
@@ -697,7 +697,7 @@ int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     MF(timeCode) *= (double) (timeCode & 0xFF);
   }
   /* initialise structure data */
-  MF(koffs) = (uint64_t) csound->global_kcounter;
+  MF(koffs) = (int64_t) csound->global_kcounter;
   MF(totalKcnt) = csound->global_kcounter;
   MF(nEvents) = 0; MF(maxEvents) = 0;
   MF(nTempo) = 0; MF(maxTempo) = 0;
@@ -807,7 +807,6 @@ int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   }
   mf->tempoListIndex = j;
   nRead = 0;
- 
   while (i < mf->nEvents &&
          (unsigned long) csound->global_kcounter >=
          (mf->eventList[i].kcnt*mf->temposcal + mf->koffs)) {
@@ -972,7 +971,7 @@ int32_t midi_file_rewind(CSOUND *csound, void *p) {
     if(mf->pause == 0) { // if not paused ... 
       for(int i = 0; i < 16; i++)
         AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
-      mf->koffs = (uint64_t) csound->global_kcounter;
+      mf->koffs = (int64_t) csound->global_kcounter;
     } else mf->koffs = (uint64_t) 0;
     mf->currentTempo = default_tempo;
     mf->eventListIndex = 0;
@@ -1020,7 +1019,29 @@ int32_t midi_set_tempo(CSOUND *csound, void *pp)
   return OK;
 }
 
-
+int32_t midi_set_pos(CSOUND *csound, void *p) {
+  MFILE *pp = (MFILE *) p;
+  if(pp->h.insdshead->m_chnbp == NULL) {
+    int i;
+    midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+    int64_t posk;
+    MYFLT pos = *((MYFLT *)pp->mfile);
+    if(pos < 0.) pos = 0.; 
+    posk = (int64_t) (pos*csoundGetKr(csound));
+    if(mf->pause == 0) { // if not paused ... 
+      for(i = 0; i < 16; i++)
+        AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
+    } 
+    for(i = 0; i < mf->nEvents-1; i++) {
+      if(mf->eventList[i].kcnt >= posk) break; 
+    }
+    mf->koffs = (int64_t)
+      csound->global_kcounter - mf->eventList[i].kcnt;
+    mf->eventListIndex = i;
+    mf->tempoListIndex = i;
+  }
+  return OK;
+}
 
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
