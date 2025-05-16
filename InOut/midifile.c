@@ -1000,7 +1000,7 @@ int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
   if (mf == NULL)
     *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
   else
-    *(p->kResult) = mf->currentTempo*mf->temposcal;
+    *(p->kResult) = mf->currentTempo*(1./mf->temposcal);
   return OK;
 }
 
