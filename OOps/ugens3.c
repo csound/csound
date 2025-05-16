@@ -218,7 +218,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         fract = siz - FLOOR(siz);
         int32_t i = (int32_t)siz;
         v1 = ft[i++];
-        v2 = (i == ftlen) ? ft[0] : ft[i];
+        v2 = ft[i];
         fmod = (v1 + (v2 - v1) * fract) * ndx;
         mphsf += mincf;
         cfreq = car + fmod;
