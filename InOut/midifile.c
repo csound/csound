@@ -1004,25 +1004,25 @@ int32_t midi_set_tempo(CSOUND *csound, void *pp)
 {
   MIDITEMPO *p = (MIDITEMPO *) pp;
   if(p->h.insdshead->m_chnbp == NULL) {
-    int32_t num = (int32_t) *p->kResult;
+    int32_t num = (int32_t) *p->num;
     midifile_t *mf = find_midifile(csound, num);
     if (mf != NULL) {
       if(*p->num > 0 )
-        mf->temposcal = mf->currentTempo / *p->num;
+        mf->temposcal = mf->currentTempo / *p->kResult;
       else if(*p->num < 0)
-        mf->temposcal = -1. / *p->num;
+        mf->temposcal = -1. / *p->kResult;
     }
   }
   return OK;
 }
 
 int32_t midi_set_pos(CSOUND *csound, void *p) {
-  MFILE *pp = (MFILE *) p;
+  MIDITEMPO *pp = (MIDITEMPO *) p;
   if(pp->h.insdshead->m_chnbp == NULL) {
     int i;
-    midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
+    midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
     int64_t posk;
-    MYFLT pos = *((MYFLT *)pp->mfile);
+    MYFLT pos = *(pp->kResult);
     if(pos < 0.) pos = 0.; 
     posk = (int64_t) (pos*csoundGetKr(csound));
     if(mf->pause == 0) { // if not paused ... 
