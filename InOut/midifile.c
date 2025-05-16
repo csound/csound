@@ -578,6 +578,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
   FILE    *f = NULL;
   void    *fd = NULL;
   char    *m;
+  // ID 0 is reserved for -F midifile
   int32_t  midifile_id = csound->oparms->FMidiname ? 0 : 1;
   int32_t  i, c, hdrLen, fileFormat, nTracks, timeCode, saved_nEvents;
   int32_t  mute_track;
@@ -782,9 +783,8 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
         csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                         csound->Mforcdecs, csound->Mxtroffs);
       }
-      if(mf->id == 0){ // -F midifile stop track close files
+      if(mf->id == 0){ // -F midifile mark stop track but data is kept.
         csound->MTrkend = 1;
-        midi_file_close(csound, midifile);
         if (csound->oparms->ringbell && !(csound->oparms->termifend))
           csound->Message(csound, "\a");
       }
