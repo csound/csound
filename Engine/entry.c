@@ -1630,8 +1630,8 @@ OENTRY opcodlst_1[] = {
   { "midifilemute", S(MFILE), 0, "", "o", midi_file_mute},
   { "midifilerewind", S(MFILE), 0, "", "o", midi_file_rewind},
   { "midifilelen", S(MFILE), 0, "i", "o", midi_file_len},
-  { "miditempo", S(MIDITEMPO), 0, "", "io", midi_set_tempo},
-  { "miditempo", S(MIDITEMPO), 0, "", "ko", NULL, midi_set_tempo},
+  { "midifiletempo", S(MIDITEMPO), 0, "", "io", midi_set_tempo},
+  { "midifiletempo", S(MIDITEMPO), 0, "", "ko", NULL, midi_set_tempo},
   { "midifilepos", S(MIDITEMPO), 0, "", "io", midi_set_pos},
   { "midifilepos", S(MIDITEMPO), 0, "", "ko", NULL, midi_set_pos},
   /* terminate list */
