@@ -101,12 +101,12 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         cphs += cinc;
       } else {
         mincf = mod * CS_ONEDSR;
-        mphsf -= FLOOR(mphsf);
+        mphsf = PHMOD1(mphsf);
         fmod = *(ftab + (int32_t)(mphsf*ftlen)) * ndx;
         mphsf += mincf;
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        cphsf -= FLOOR(cphsf);
+        cphsf = PHMOD1(cphsf);
         ar[n] = *(ftab + (int32_t)(cphsf*ftlen)) * amp;
         cphsf += cincf;
       }
@@ -131,12 +131,12 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
       } else {
-        mphsf -= FLOOR(mphsf);
+        mphsf = PHMOD1(mphsf);
         fmod = *(ftab + (int32_t)(mphsf*ftlen)) * ndx;
         mphsf += mincf;
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        cphsf -= FLOOR(cphsf);
+        cphsf = PHMOD1(cphsf);
         ar[n] = *(ftab + (int32_t)(cphsf*ftlen)) * amp;
         cphsf += cincf;
       }
@@ -213,9 +213,9 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         cphs += cinc;
       } else {
         mincf = mod * CS_ONEDSR;
-        mphsf -= FLOOR(mphsf);
+        mphsf = PHMOD1(mphsf);
         MYFLT siz = mphsf*ftlen;
-        fract = siz - FLOOR(siz);
+        fract = PHMOD1(siz);
         int32_t i = (int32_t)siz;
         v1 = ft[i++];
         v2 = ft[i];
@@ -223,9 +223,9 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         mphsf += mincf;
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        cphsf -= FLOOR(cphsf);
+        cphsf = PHMOD1(cphsf);
         siz = cphsf*ftlen;
-        fract = siz - FLOOR(siz);
+        fract = PHMOD1(siz);
         i = (int32_t)siz;
         v1 = ft[i++];
         v2 = ft[i];
@@ -258,9 +258,9 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
       } else {
-        mphsf -= FLOOR(mphsf);
+        mphsf = PHMOD1(mphsf);
         MYFLT siz = mphsf*ftlen;
-        fract = siz - FLOOR(siz);
+        fract = PHMOD1(siz);
         int32_t i = (int32_t)siz;
         v1 = ft[i++];
         v2 = ft[i];
@@ -268,9 +268,9 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         mphsf += mincf;
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        cphsf -= FLOOR(cphsf);
+        cphsf = PHMOD1(cphsf);
         siz = cphsf*ftlen;
-        fract = siz - FLOOR(siz);
+        fract = PHMOD1(siz);
         i = (int32_t)siz;
         v1 = ft[i++];
         v2 = ft[i];
