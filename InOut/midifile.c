@@ -768,8 +768,6 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   if(mf->pause) {
     return 0;
   }
-
-  
   
   port = (uint8_t) mf->port;
   i = mf->eventListIndex;
@@ -794,7 +792,6 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   }
   /* otherwise read any events with time less than or equal to */
   /* current orchestra time */
-
   while (j < mf->nTempo &&
          (unsigned long) csound->global_kcounter >=
          (mf->tempoList[j].kcnt*mf->temposcal + mf->koffs)) {
@@ -1007,10 +1004,11 @@ int32_t midi_set_tempo(CSOUND *csound, void *pp)
     int32_t num = (int32_t) *p->num;
     midifile_t *mf = find_midifile(csound, num);
     if (mf != NULL) {
-      if(*p->num > 0 )
+      if(*p->kResult > 0 )
         mf->temposcal = mf->currentTempo / *p->kResult;
-      else if(*p->num < 0)
+      else if(*p->kResult < 0)
         mf->temposcal = -1. / *p->kResult;
+      mf->koffs *= mf->temposcal;
     }
   }
   return OK;
@@ -1021,6 +1019,7 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
   if(pp->h.insdshead->m_chnbp == NULL) {
     int i;
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
+    if(mf) {
     int64_t posk;
     MYFLT pos = *(pp->kResult);
     if(pos < 0.) pos = 0.; 
@@ -1036,9 +1035,20 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
       csound->global_kcounter - mf->eventList[i].kcnt*mf->temposcal;
     mf->eventListIndex = i;
     mf->tempoListIndex = i;
+    }
   }
   return OK;
 }
+
+int32_t midi_get_pos(CSOUND *csound, void *p) {
+  MIDITEMPO *pp = (MIDITEMPO *) p;
+  midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
+  if(mf) {
+    *pp->kResult = (csound->global_kcounter - mf->koffs)/csoundGetKr(csound);
+  } else *pp->kResult = 0;
+  return OK;
+}
+
 
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){

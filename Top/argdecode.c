@@ -597,8 +597,13 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strcmp(s, "defer-gen1"))) {
     O->gen01defer = 1; /* defer GEN01 sample loads */
     return 1;          /*   until performance time */
-  } else if (!(strncmp(s, "midifile=", 9))) {
-    s += 9;
+  } else if (!(strncmp(s, "midifile", 8))) {
+    s += 8;
+    if(*s != '=') {
+      O->FMidiin = 1;
+      return 1;
+    }
+    s++;
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
