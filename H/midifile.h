@@ -54,20 +54,34 @@ typedef struct {
     STRINGDAT *mfile;
     MYFLT *port;
 } MFILE;
+
+
+typedef struct {
+    OPDS    h;
+    MYFLT   *kstat;
+    MYFLT   *kchn;
+    MYFLT   *kdat1;
+    MYFLT   *kdat2;
+    MYFLT   *ktime;
+    MYFLT   *kevt;
+    MYFLT   *num;
+} MIDIFEVT;  
   
 /* miditempo opcode: returns the current tempo of MIDI file */
 
-int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
-int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p);
-int32_t midi_file_opcode(CSOUND *csound, void *p);
-int32_t midi_file_mute(CSOUND *csound, void *p);
-int32_t midi_file_pause(CSOUND *csound, void *p);
-int32_t midi_file_play(CSOUND *csound, void *p);
-int32_t midi_file_rewind(CSOUND *csound, void *p);
-int32_t midi_file_len(CSOUND *csound, void *p);
-int32_t midi_set_tempo(CSOUND *csound, void *p);
-int32_t midi_set_pos(CSOUND *csound, void *pp);
-int32_t midi_get_pos(CSOUND *csound, void *pp);
+  int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
+  int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+  int32_t midi_file_opcode(CSOUND *csound, void *p);
+  int32_t midi_file_mute(CSOUND *csound, void *p);
+  int32_t midi_file_pause(CSOUND *csound, void *p);
+  int32_t midi_file_play(CSOUND *csound, void *p);
+  int32_t midi_file_rewind(CSOUND *csound, void *p);
+  int32_t midi_file_len(CSOUND *csound, void *p);
+  int32_t midi_set_tempo(CSOUND *csound, void *p);
+  int32_t midi_set_pos(CSOUND *csound, void *pp);
+  int32_t midi_get_pos(CSOUND *csound, void *pp);
+  int32_t midi_file_get_number_events(CSOUND *csound, void *p);
+  int32_t midi_file_get_event(CSOUND *csound, void *p);
 #ifdef __cplusplus
 }
 #endif

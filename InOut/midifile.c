@@ -1050,6 +1050,34 @@ int32_t midi_get_pos(CSOUND *csound, void *p) {
 }
 
 
+int32_t midi_file_get_number_events(CSOUND *csound, void *p) {
+  MIDITEMPO *pp = (MIDITEMPO *) p;
+  midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
+  if(mf) {
+    *pp->kResult = mf->nEvents;
+  } else *pp->kResult = 0;
+  return OK;
+}
+
+int32_t midi_file_get_event(CSOUND *csound, void *pp) {
+  MIDIFEVT *p = (MIDIFEVT *) pp;
+  midifile_t *mf = find_midifile(csound, (int32_t) *p->num);
+  if(mf) {
+    int32_t i = (int32_t) *p->kevt;
+    if(i >= 0 && i < mf->nEvents) {
+      *p->kstat = mf->eventList[i].st & 0xF0;
+      *p->kchn = (mf->eventList[i].st & 0x0F) + 1;
+      *p->kdat1 = mf->eventList[i].d1;
+      *p->kdat2 = mf->eventList[i].d2;
+      *p->ktime = mf->eventList[i].kcnt/csoundGetKr(csound);
+      return OK;
+    }
+  } 
+  *p->kstat = *p->kchn = *p->kdat1 = *p->kdat2 = *p->ktime = 0.f;
+  return OK;
+}
+
+
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   *p->kResult = csound->oparms->FMidiin;
