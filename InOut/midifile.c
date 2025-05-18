@@ -1066,7 +1066,7 @@ int32_t midi_file_get_event(CSOUND *csound, void *pp) {
     int32_t i = (int32_t) *p->kevt;
     if(i >= 0 && i < mf->nEvents) {
       *p->kstat = mf->eventList[i].st & 0xF0;
-      *p->kchn = (mf->eventList[i].st & 0x0F) + 1;
+      *p->kchn = ((mf->eventList[i].st & 0x0F) + 1)*mf->port;
       *p->kdat1 = mf->eventList[i].d1;
       *p->kdat2 = mf->eventList[i].d2;
       *p->ktime = mf->eventList[i].kcnt/csoundGetKr(csound);
