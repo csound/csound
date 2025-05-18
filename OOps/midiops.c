@@ -156,6 +156,12 @@ int32_t notnum(CSOUND *csound, MIDIKMB *p)       /* valid only at I-time */
     return OK;
 }
 
+int32_t event_type(CSOUND *csound, void *p) {
+  MIDIKMB * pp = ((MIDIKMB *)p);
+  *pp->r = pp->h.insdshead->m_chnbp == NULL ? 0 : 1;
+  return OK;
+}
+
 /* cpstmid by G.Maldonado */
 int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
 {

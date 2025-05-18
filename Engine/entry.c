@@ -1044,7 +1044,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) midiTempoOpcode, NULL, NULL    },
   { "miditempo", S(MIDITEMPO),0,  "k",    "o",
     NULL, (SUBR) midiTempoOpcode, NULL    },
-  { "midifilestatus", S(MIDITEMPO),0,   "k",    "",
+  { "midifilestatus", S(MIDITEMPO),0,   "k",    "o",
     NULL, (SUBR) midiFileStatus, NULL },
   { "midinoteoff", S(MIDINOTEON),0   ,"", "xx",   midinoteoff, midinoteoff, },
   { "midinoteonkey", S(MIDINOTEON),0, "", "xx",   midinoteonkey, midinoteonkey },
@@ -1637,8 +1637,9 @@ OENTRY opcodlst_1[] = {
   { "midifilepos", S(MIDITEMPO), 0, "i", "o", midi_get_pos},
   { "midifilepos", S(MIDITEMPO), 0, "k", "o", NULL, midi_get_pos},
   { "midifilevents", S(MIDITEMPO), 0, "i", "o", midi_file_get_number_events},
+  { "midifilein", S(MIDIFEVT), 0, "iiiii", "io",midi_file_get_event},
   { "midifilein", S(MIDIFEVT), 0, "kkkkk", "ko", NULL, midi_file_get_event},
-  
+  { "eventtype", S(MIDIKMB), 0, "i", "", event_type},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

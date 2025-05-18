@@ -781,12 +781,12 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
         csound->Message(csound, Str("%d forced decays, %d extra noteoffs\n"),
                         csound->Mforcdecs, csound->Mxtroffs);
       }
+      mf->pause = 1; 
       if(mf->id == 0){ // -F midifile mark stop track but data is kept.
         csound->MTrkend = 1;
         if (csound->oparms->ringbell && !(csound->oparms->termifend))
           csound->Message(csound, "\a");
       }
-      mf->pause = 1; 
     }
     return 0;
   }
@@ -1080,6 +1080,10 @@ int32_t midi_file_get_event(CSOUND *csound, void *pp) {
 
 
 int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
-  *p->kResult = csound->oparms->FMidiin;
+  find_midifile(csound, (int32_t) *p->num);
+   midifile_t *mf = find_midifile(csound, (int32_t) *p->num);
+  if(mf) {
+    *p->kResult = mf->pause == 1 ? 0 : 1;
+  } else *p->kResult = 0;
   return OK;
 }
