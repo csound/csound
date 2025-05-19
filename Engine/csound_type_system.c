@@ -53,6 +53,17 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       }
       current = current->next;
     }
+    // now check again with braces
+    char type[64]; 
+    current = pool->head;
+    while (current != NULL) {
+      snprintf(type, 64, "%s[]", current->cstype->varTypeName);
+      printf("%s %s\n", type, type);
+      if (strcmp(typeName, type) == 0) {
+        return current->cstype;
+      }
+      current = current->next;
+    }
     return NULL;
 }
 
@@ -157,7 +168,7 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
         current = current->next;
       }
     else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type"),
+                                      Str("cannot create variable %s: NULL type\n"),
                                       name);
     return NULL;
 }

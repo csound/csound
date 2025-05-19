@@ -51,7 +51,6 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                           int32_t dimensions,
                           TYPE_TABLE* typeTable);
-char* get_array_sub_type(CSOUND* csound, char*);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,

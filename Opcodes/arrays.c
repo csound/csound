@@ -3754,6 +3754,166 @@ int32_t perf_window(CSOUND *csound, FFT *p) {
 
 }
 
+typedef struct COPS1 {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *a, *b;
+} COPS1;
+
+int32_t cops_init(CSOUND *csound, COPS1 *p) {
+  int32_t size;
+  if(IS_ARRAY_ARG(p->a) &&
+     IS_ARRAY_ARG(p->b)){
+    ARRAYDAT *aa = (ARRAYDAT *) p->a; 
+    ARRAYDAT *ab = (ARRAYDAT *) p->b;
+    size = aa->sizes[0] < ab->sizes[0] ? aa->sizes[0] : ab->sizes[0]; 
+  } else if (IS_ARRAY_ARG(p->a)) size = ((ARRAYDAT *)p->a)->sizes[0];
+  else if (IS_ARRAY_ARG(p->b)) size = ((ARRAYDAT *)p->b)->sizes[0];
+  else size = 1;
+  tabinit(csound, p->out, size, p->h.insdshead);
+  return OK;
+}  
+
+static inline void
+cmplx_sc_prod(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
+  for(int i = 0; i < n; i++) {
+    if(!in[i].isPolar) {
+      out[i].real = in[i].real*num;
+      out[i].imag = in[i].imag*num;
+    } else {
+      out[i].real = in[i].real*num;
+      out[i].imag = in[i].imag;
+    }
+  }
+}
+
+int32_t complex_x_scalar(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array;
+  MYFLT num;
+  if(IS_ARRAY_ARG(p->b)) {
+   array = (ARRAYDAT *) p->b;
+   num = *p->a;
+  } else {
+   array = (ARRAYDAT *) p->b;
+   num = *p->a;
+  } 
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in = (COMPLEXDAT *) array->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_sc_prod(out,in,num,len);
+  return OK;
+}
+
+
+
+static inline void
+cmplx_sc_div(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
+  for(int i = 0; i < n; i++) {
+    if(!in[i].isPolar) {
+      out[i].real = in[i].real/num;
+      out[i].imag = in[i].imag/num;
+    } else {
+      out[i].real = in[i].real/num;
+      out[i].imag = in[i].imag;
+    }
+  }
+}
+
+int32_t complex_div_scalar(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array = (ARRAYDAT *) p->a;
+  MYFLT num = *p->b;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in = (COMPLEXDAT *) array->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_sc_div(out,in,num,len);
+  return OK;
+}
+
+static inline void
+cmplx_sc_add(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
+  for(int i = 0; i < n; i++) {
+    if(!in[i].isPolar) {
+      out[i].real = in[i].real + num;
+      out[i].imag = in[i].imag + num;
+    } else {
+      MYFLT re, im;
+      re = cos(in[i].imag)*in[i].real;  
+      im = sin(in[i].imag)*in[i].real;
+      re += num;
+      im += num;
+      out[i].real = HYPOT(re,im);
+      out[i].imag = ATAN2(im,re);
+    }
+  }
+}
+
+int32_t complex_plus_scalar(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array;
+  MYFLT num;
+  if(IS_ARRAY_ARG(p->b)) {
+   array = (ARRAYDAT *) p->b;
+   num = *p->a;
+  } else {
+   array = (ARRAYDAT *) p->a;
+   num = *p->b;
+  } 
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in = (COMPLEXDAT *) array->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_sc_add(out,in,num,len);
+  return OK;
+}
+
+int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array = (ARRAYDAT *) p->b;
+  MYFLT num = *p->a;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in = (COMPLEXDAT *) array->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  for(int i = 0; i < len; i++) {
+    if(!in[i].isPolar) {
+      out[i].real = num - in[i].real;
+      out[i].imag = num - in[i].imag;
+    } else {
+      MYFLT re, im;
+      re = cos(in[i].imag)*in[i].real;  
+      im = sin(in[i].imag)*in[i].real;
+      re = num - re;
+      im = num - im;
+      out[i].real = HYPOT(re,im);
+      out[i].imag = ATAN2(im,re);
+    }
+  }
+  return OK;
+}
+
+int32_t complex_minus_scalar(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array = (ARRAYDAT *) p->a;
+  MYFLT num = *p->b;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in = (COMPLEXDAT *) array->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  for(int i = 0; i < len; i++) {
+    if(!in[i].isPolar) {
+      out[i].real = in[i].real - num;
+      out[i].imag = in[i].imag - num;
+    } else {
+      MYFLT re, im;
+      re = cos(in[i].imag)*in[i].real;  
+      im = sin(in[i].imag)*in[i].real;
+      re -= num;
+      im -= num;
+      out[i].real = HYPOT(re,im);
+      out[i].imag = ATAN2(im,re);
+    }
+  }
+  return OK;
+}
+
+
+
+
+
 #include "pstream.h"
 
 typedef struct _pvsceps {
@@ -4570,6 +4730,23 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter
 
+
+// complex array get
+typedef struct {
+  OPDS h;
+  COMPLEXDAT *res;
+  ARRAYDAT   *array;
+  MYFLT      *ndx;
+} CAGET;
+
+int32_t complex_array_get(CSOUND *csound, CAGET *p) {
+  COMPLEXDAT c = ((COMPLEXDAT *)p->array->data)[(int32_t) *p->ndx];
+  p->res->real = c.real;
+  p->res->imag = c.imag;
+  p->res->isPolar = c.isPolar;
+  return OK;
+}
+
 static OENTRY arrayvars_localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, "i", "i", (SUBR)nxtpow2},
@@ -4597,6 +4774,7 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.x", sizeof(ARRAY_SET), 0, "", ".[].z", NULL, (SUBR)array_set},
     { "##array_get.k", sizeof(ARRAY_GET), 0, "k", "k[]m", NULL,(SUBR)array_get },
     { "##array_get.a", sizeof(ARRAY_GET), 0, "a", "a[]m",NULL, (SUBR)array_get },
+    { "##array_get.C", sizeof(CAGET), 0, ":Complex;", ":Complex;[]m", NULL, (SUBR)complex_array_get},
     { "##array_get.x", sizeof(ARRAY_GET), 0, ".", ".[]m",(SUBR)array_get },
     { "##array_get.K", sizeof(ARRAY_GET), 0, ".", ".[]z",NULL, (SUBR)array_get},
     { "i.Ai", sizeof(ARRAY_GET),0,      "i",    "k[]m", (SUBR)array_get  },
@@ -4608,6 +4786,22 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset, (SUBR)tabadd},
     {"##add.[i]", sizeof(TABARITH), 0, "i[]", "i[]i[]",
      (SUBR)tabaddi},
+    /* complex arithmetic */
+    {"##add.Complex[]k", sizeof(COPS1), 0, ":Complex;[]", ":Complex;[]k",
+     (SUBR) cops_init,(SUBR)complex_plus_scalar},
+    {"##add.kComplex[]", sizeof(COPS1), 0, ":Complex;[]", "k:Complex;[]",
+     (SUBR) cops_init,(SUBR)complex_plus_scalar},
+    {"##mul.Complex[]k", sizeof(COPS1), 0, ":Complex;[]", ":Complex;[]k",
+     (SUBR) cops_init,(SUBR)complex_x_scalar},
+    {"##mul.kComplex[]", sizeof(COPS1), 0, ":Complex;[]", "k:Complex;[]",
+     (SUBR) cops_init,(SUBR)complex_x_scalar},
+     {"##div.Complex[]k", sizeof(COPS1), 0, ":Complex;[]", ":Complex;[]k",
+     (SUBR) cops_init,(SUBR)complex_div_scalar},   
+    {"##sub.Complex[]k", sizeof(COPS1), 0, ":Complex;[]", ":Complex;[]k",
+     (SUBR) cops_init,(SUBR)complex_minus_scalar},
+    {"##sub.kComplex[]", sizeof(COPS1), 0, ":Complex;[]", "k:Complex;[]",
+     (SUBR) cops_init,(SUBR)scalar_minus_complex},  
+    
     /* ******************************************** */
     {"##sub.[a]", sizeof(TABARITH), 0, "a[]", "a[]a[]",
      (SUBR)tabarithset, (SUBR)tabasub},
@@ -4615,8 +4809,6 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset, (SUBR)tabsub},
     {"##sub.[i]", sizeof(TABARITH), 0, "i[]", "i[]i[]",
      (SUBR)tabsubi},
-    //    {"##neg.[]",  sizeof(TABARITH), 0, "k[]", "k[]",
-    //                                         (SUBR)tabarithset1, (SUBR)tabneg},
     {"##mul.[a]", sizeof(TABARITH), 0, "a[]", "a[]a[]",
      (SUBR)tabarithset,(SUBR)tabamul},
     {"##mul.[]", sizeof(TABARITH), 0, "k[]", "k[]k[]",

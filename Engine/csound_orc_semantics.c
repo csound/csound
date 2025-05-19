@@ -184,27 +184,6 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
   return NULL;
 }
 
-//FIXME - current just returns subtype but assumes single char type name,
-// should check for long type names, as well as check dimensions and remove one
-char* get_array_sub_type(CSOUND* csound, char* arrayName) {
-  char temp[2];
-  char *t = arrayName;
-
-  if (*t == '#') t++;
-  if (*t == 'g') t++;
-
-  if (*t == 't') { /* Support legacy t-vars by mapping to k subtypes */
-    return cs_strdup(csound, "k");
-  }
-
-  while (*t == '[') {
-    t++;
-  }
-  temp[0] = *t;
-  temp[1] = 0;
-  return cs_strdup(csound, temp);
-}
-
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
   if (arrayVar->subType == NULL) return NULL;
 
@@ -1557,6 +1536,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 
     var = csoundCreateVariable(csound, csound->typePool,
                                type, varName, typeArg);
+
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -1588,7 +1568,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
   const CS_TYPE* varType;
-
+  
   // search on  all pools
   var = find_var_from_pools(csound, varName, varName, typeTable);
   if (var == NULL) {
@@ -1614,10 +1594,10 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     varInit.dimensions = dimensions;
     varInit.type = varType;
     typeArg = &varInit;
-
     var = csoundCreateVariable(csound, csound->typePool,
                                &CS_VAR_TYPE_ARRAY,
                                varName, typeArg);
+
     
     csoundAddVariable(csound, pool, var);
   } else {
@@ -2688,7 +2668,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
-
         if (previous != NULL) {
           previous->next = current;
         }
@@ -2708,7 +2687,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   }
 
- if (PARSER_DEBUG)
+  if (PARSER_DEBUG)
     csound->Message(csound, "[End Verifying AST]\n");
 
   cs_cons_free(csound, typeTable->labelList);
