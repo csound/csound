@@ -29,6 +29,7 @@
 #include "udo.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "find_opcode.h"
 
 /* Print opcodes in system */
 /* John ffitch -- 26 Jan 97 */
@@ -263,7 +264,7 @@ static int32_t check_oentry(OENTRY *ep) {
     else return 0;
 }
 
-CS_VARIABLE *addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
+CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
                                char *name, void *typeArg);
 
 /** This function takes an OENTRY and adds a corresponding
@@ -285,7 +286,7 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
                                           varName)) == NULL) {
       // printf("var: %s \n", varName);
       // create new variable
-      var = addGlobalVariable(csound, &csound->engineState, (CS_TYPE *) type, varName,
+      var = add_global_variable(csound, &csound->engineState, (CS_TYPE *) type, varName,
                               NULL);
     } else csound->Free(csound, varName);
     if(var != NULL) {

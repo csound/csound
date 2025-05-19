@@ -29,6 +29,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
+
+  
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
@@ -38,11 +40,11 @@
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
 #include "corfile.h"
+#include "filesys.h"  
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
 extern ORCTOKEN *lookup_token(CSOUND *, char *, void *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int32_t);
 ORCTOKEN *new_token(CSOUND *csound, int32_t type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);

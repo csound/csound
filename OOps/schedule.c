@@ -25,7 +25,7 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "namedins.h"
-#include "linevent.h"
+#include "inst_ops.h"
 /* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
 #ifdef _MSC_VER
 #include "H/schedule.h"
@@ -33,11 +33,289 @@
 #include "schedule.h"
 #endif
 #include "csound_standard_types.h"
+#include "fgens.h"
 
-extern void csoundInputMessageInternal(CSOUND *, const char *);
-int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+void csound_input_message(CSOUND *, const char *);
+void sense_line(CSOUND *csound, void *userData);
 
+MYFLT named_instr_find(CSOUND *csound, char *s);
+static const char *errmsg_1 =
+  Str_noop("event: param 1 must be"
+           " \"a\", \"i\", \"q\", \"f\", \"d\", or \"e\"");
+static const char *errmsg_2 =
+  Str_noop("event: string name is allowed only for"
+           " \"i\", \"d\", and \"q\" events");
+
+int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p,
+                                 int32_t insname, char p1)
+{
+    EVTBLK  evt;
+    int32_t     i;
+    char    opcod;
+    memset(&evt, 0, sizeof(EVTBLK));
+
+    if (p1==0)
+         opcod = *((STRINGDAT*) p->args[0])->data;
+    else  opcod = p1;
+
+    if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
+                  opcod != 'e' && opcod != 'd')
+                 /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
+      return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_1));
+    evt.strarg = NULL; evt.scnt = 0;
+    evt.opcod = opcod;
+    if (p->flag==1) evt.pcnt = p->argno-2;
+    else
+      evt.pcnt = p->INOCOUNT - 1;
+
+    /* IV - Oct 31 2002: allow string argument */
+    if (evt.pcnt > 0) {
+      if (insname == 1) {
+        MYFLT res;
+        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
+          return csound->PerfError(csound, &(p->h), "%s", Str(errmsg_2));
+        res = named_instr_find(csound, ((STRINGDAT *)p->args[1])->data);
+        if (UNLIKELY(res == FL(0.0))) return NOTOK;
+        evt.p[1] = res;
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      else if (insname == 2) {
+        int32_t res;
+        INSTREF *ref = (INSTREF *) p->args[1];
+        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
+          return csound->InitError(csound, "%s", Str(errmsg_2));
+        res = instr_num(csound, ref->instr);
+        evt.p[1] = (MYFLT)res;
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      else {
+        MYFLT res;
+        if (IsStringCode(*p->args[1])) {
+          res = named_instr_find(csound, ((STRINGDAT *)p->args[1])->data);
+          if (UNLIKELY(res == FL(0.0))) return NOTOK;
+          evt.p[1] = res;
+        } else {                  /* Should check for valid instr num here */
+          MYFLT insno = FABS(*p->args[1]);
+          evt.p[1] = *p->args[1];
+          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
+                       insno > csound->engineState.maxinsno ||
+                       !csound->engineState.instrtxtp[(int)insno]))) {
+            csound->Message(csound, Str("Cannot Find Instrument %d. No action.\n"),
+                           (int32_t) insno);
+            return OK;
+          }
+        }
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      for (i = 2; i <= evt.pcnt; i++)
+        evt.p[i] = *p->args[i];
+    }
+
+    if(opcod == 'd') {
+      evt.opcod = 'i';
+      evt.p[1] *= -1;
+    }
+
+    if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && evt.p[1] > 0) {
+      evt.p[2] = evt.p[1];
+      evt.pcnt = 2;
+    }
+
+    if (UNLIKELY(insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples) != 0))
+      return csound->PerfError(csound, &(p->h),
+                               Str("event: error creating '%c' event"),
+                               opcod);
+    return OK;
+}
+
+int32_t event_opcode(CSOUND *csound, LINEVENT *p)
+{
+    return event_opcode_perf(csound, p, 0, 0);
+}
+
+int32_t event_opcode_S(CSOUND *csound, LINEVENT *p)
+{
+    return event_opcode_perf(csound, p, 1, 0);
+}
+
+int32_t event_opcode_Instr(CSOUND *csound, LINEVENT *p)
+{
+    return event_opcode_perf(csound, p, 2, 0);
+}
+
+
+
+/* i-time version of event opcode */
+int32_t event_opcode_init(CSOUND *csound, LINEVENT *p,
+                                 int32_t insname, char p1)
+{
+    EVTBLK  evt;
+    int32_t     i, err = 0;
+    char    opcod;
+    memset(&evt, 0, sizeof(EVTBLK));
+
+    if (p1==0)
+         opcod = *((STRINGDAT*) p->args[0])->data;
+    else opcod = p1;
+    if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
+                  opcod != 'e' && opcod != 'd')
+                 /*|| ((STRINGDAT*) p->args[0])->data[1] != '\0'*/))
+      return csound->InitError(csound, "%s", Str(errmsg_1));
+    evt.strarg = NULL; evt.scnt = 0;
+    evt.opcod = opcod;
+    if (p->flag==1) evt.pcnt = p->argno-1;
+    else
+      evt.pcnt = p->INOCOUNT - 1;
+    /* IV - Oct 31 2002: allow string argument */
+    if (evt.pcnt > 0) {
+      if (insname == 1) {
+        MYFLT res;
+        res = named_instr_find(csound, ((STRINGDAT *)p->args[1])->data);
+        if (UNLIKELY(res == FL(0.0))) return NOTOK;
+        evt.p[1] = res;
+        evt.strarg = NULL; evt.scnt = 0;
+        for (i = 2; i <= evt.pcnt; i++)
+           evt.p[i] = *p->args[i];
+      }
+      else if (insname == 2) {
+        int32_t res;
+        INSTREF *ref = (INSTREF *) p->args[1];
+        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
+          return csound->InitError(csound, "%s", Str(errmsg_2));
+        res = instr_num(csound, ref->instr);
+        evt.p[1] = (MYFLT)res;
+        evt.strarg = NULL; evt.scnt = 0;
+        for (i = 2; i <= evt.pcnt; i++)
+          evt.p[i] = *p->args[i];
+      }
+      else {
+        evt.strarg = NULL; evt.scnt = 0;
+        if (IsStringCode(*p->args[1])) {
+          MYFLT res = named_instr_find(csound, ((STRINGDAT *)p->args[1])->data);
+          if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
+          evt.p[1] = (MYFLT)res;
+        }
+        else {                  /* Should check for valid instr num here */
+          MYFLT insno = FABS(*p->args[1]);
+          evt.p[1] = *p->args[1];
+          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
+                       insno > csound->engineState.maxinsno ||
+                       !csound->engineState.instrtxtp[(int)insno]))) {
+            csound->Message(csound, Str("Cannot Find Instrument %d. No action.\n"),
+                           (int32_t) insno);
+            return OK;
+          }
+          evt.strarg = NULL; evt.scnt = 0;
+        }
+        for (i = 2; i <= evt.pcnt; i++)
+          evt.p[i] = *p->args[i];
+      }
+
+    }
+    if(opcod == 'd') {
+      evt.opcod = 'i';
+      evt.p[1] *= -1;
+    }
+
+
+    if (opcod == 'f' && (int32_t) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
+      FUNC  *dummyftp;
+      err = create_function_table(csound, &dummyftp, &evt, 0);
+    }
+    else if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && evt.p[1] > 0) {
+      evt.p[2] = evt.p[1];
+      evt.pcnt = 2;
+      err = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+    }
+    else
+      err = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+    if (UNLIKELY(err))
+      csound->InitError(csound, Str("event_i: error creating '%c' event"),
+                                opcod);
+    return (err == 0 ? OK : NOTOK);
+}
+
+int32_t event_opcode_i(CSOUND *csound, LINEVENT *p)
+{
+    return event_opcode_init(csound, p, 0, 0);
+}
+
+int32_t event_opcode_i_S(CSOUND *csound, LINEVENT *p)
+{
+    return event_opcode_init(csound, p, 1, 0);
+}
+
+int32_t event_opcode_i_Instr(CSOUND *csound, LINEVENT *p)
+{
+    return event_opcode_init(csound, p, 2, 0);
+}
+#include "csound_standard_types.h"
+
+int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
+                        int32_t insname)
+{
+    EVTBLK  evt;
+    int32_t     i;
+    evt.strarg = NULL; evt.scnt = 0;
+    evt.opcod = 'i';
+    evt.pcnt = p->INOCOUNT;
+
+     /* pass in the memory to hold the instance after insertion */
+    evt.pinstance = (void *) p->inst;
+    *((MYFLT **)evt.pinstance) = NULL;
+    
+    /* IV - Oct 31 2002: allow string argument */
+    if (evt.pcnt > 0) {
+      int32_t res;
+      if (insname == 2) {
+        int32_t res;
+        INSTREF *ref = (INSTREF *) p->args[0];
+        res = instr_num(csound, ref->instr);
+        evt.p[1] = (MYFLT)res;
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      else if (insname == 1) {
+        res = csound->StringArg2Insno(csound,
+                                   ((STRINGDAT*) p->args[0])->data, 1);
+        if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
+        evt.p[1] = (MYFLT)res;
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      else {
+        if (IsStringCode(*p->args[0])) {
+          res = csound->StringArg2Insno(csound,
+                                     get_arg_string(csound, *p->args[0]), 1);
+          if (UNLIKELY(evt.p[1] == (MYFLT) NOT_AN_INSTRUMENT)) return NOTOK;
+          evt.p[1] = (MYFLT)res;
+        } else evt.p[1] = *p->args[0];
+        evt.strarg = NULL; evt.scnt = 0;
+      }
+      for (i = 2; i <= evt.pcnt; i++)
+        evt.p[i] = *p->args[i-1];
+    }
+      if (insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples) != 0) {
+        csound->Message(csound, Str("instance: error creating event\n"));
+        return NOTOK;
+      }
+
+    return OK;
+}
+
+int32_t instance_opcode_(CSOUND *csound, LINEVENT2 *p)
+{
+    return instance_opcode(csound, p, 0);
+}
+
+int32_t instance_opcode_S(CSOUND *csound, LINEVENT2 *p)
+{
+    return instance_opcode(csound, p, 1);
+}
+
+int32_t instance_opcode_Instr(CSOUND *csound, LINEVENT2 *p)
+{
+    return instance_opcode(csound, p, 2);
+}
 
 int32_t schedule_array(CSOUND *csound, SCHED *p)
 {
@@ -53,7 +331,7 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
       pp.args[i] = args+i-1;
     }
     pp.flag = 1;
-    return eventOpcodeI_(csound, &pp, 0, 'i');
+    return event_opcode_init(csound, &pp, 0, 'i');
 }
 
 
@@ -74,9 +352,9 @@ int32_t schedule(CSOUND *csound, SCHED *p)
     }
     pp.flag = 1;
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR)
-      return eventOpcodeI_(csound, &pp, 2, 'i');
+      return event_opcode_init(csound, &pp, 2, 'i');
     else 
-      return eventOpcodeI_(csound, &pp, 0, 'i');
+      return event_opcode_init(csound, &pp, 0, 'i');
       
 }
 /* from aops.h */
@@ -126,9 +404,8 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
        }
     }
     
-    csoundInputMessageInternal(csound, s);
-    // flush scoreline
-    sensLine(csound, NULL);
+    csound_input_message(csound, s);
+    sense_line(csound, NULL);
     return OK;
 }
 
@@ -151,9 +428,9 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
           strncat(s, sf, 16384-strlen(s));
        }
     }
-    // flush scoreline
-    sensLine(csound, NULL);
-    csoundInputMessageInternal(csound, s);
+
+    csound_input_message(csound, s);
+    sense_line(csound, NULL);
     return OK;
 }
 
@@ -173,7 +450,7 @@ int32_t schedule_S(CSOUND *csound, SCHED *p)
       pp.args[i] = p->argums[i-4];
     }
     pp.flag = 1;
-    return eventOpcodeI_(csound, &pp, 1, 'i');
+    return event_opcode_init(csound, &pp, 1, 'i');
 }
 
 
@@ -203,14 +480,14 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
       p->todo =0;
       pp.flag = 1;
       if (IS_STR_ARG(p->which)){
-        return eventOpcode_(csound, &pp, 1, 'i');
+        return event_opcode_perf(csound, &pp, 1, 'i');
       }
       if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR){
-         return eventOpcode_(csound, &pp, 2, 'i');
+         return event_opcode_perf(csound, &pp, 2, 'i');
       }
       else {
         pp.flag = 0;
-        return eventOpcode_(csound, &pp, 0, 'i');
+        return event_opcode_perf(csound, &pp, 0, 'i');
       }
     }
     else return OK;
@@ -443,10 +720,10 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
-      insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
+      insno = (int32_t)string_arg_to_insno_p(csound, ((STRINGDAT*)p->args[0])->data);
     else if (IsStringCode(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
-      insno = (int32_t)strarg2insno_p(csound, ss);
+      insno = (int32_t)string_arg_to_insno_p(csound, ss);
     }
     else
       insno = (int32_t)FABS(*p->args[0]);

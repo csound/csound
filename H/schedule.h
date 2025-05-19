@@ -53,6 +53,21 @@ typedef struct {
         int32    phs;
 } LFO;
 
+
+typedef struct {
+    OPDS   h;
+    MYFLT  *args[VARGMAX];
+    int32_t argno;
+    int32_t flag;
+} LINEVENT;
+
+typedef struct {
+    OPDS   h;
+    INSTANCEREF *inst;
+    MYFLT  *args[VARGMAX];
+    int32_t argno;
+} LINEVENT2;
+
 /*****************************************************************/
 /* triginstr - Start instrument events at k-rate from orchestra. */
 /* August 1999 by rasmus ekman.                                  */
@@ -95,4 +110,5 @@ typedef struct {
   MYFLT *arg[PMAX];
 } RMEVT;
 
-
+int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t s, char p1);

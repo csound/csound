@@ -28,36 +28,18 @@
 #include "csound_type_system.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "csound_orc_compile.h"
 #include <inttypes.h>
 
-extern void print_tree(CSOUND *, char *, TREE *);
-extern void handle_optional_args(CSOUND *, TREE *);
-extern ORCTOKEN *make_token(CSOUND *, char *);
-extern ORCTOKEN *make_label(CSOUND *, char *);
-extern OENTRIES* find_opcode2(CSOUND *, char*);
-extern char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
-extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                                       TYPE_TABLE* typeTable);
-extern void add_arg(CSOUND* csound, char* varName, char* annotation,
-                    TYPE_TABLE* typeTable);
-extern void add_array_arg(CSOUND* csound, char* varName, char* annotation,
-                          int32_t dimensions,
-                          TYPE_TABLE* typeTable);
-extern char* get_array_sub_type(CSOUND* csound, char*);
-extern char* convert_external_to_internal(CSOUND* csound, char* arg);
+
+ORCTOKEN *make_token(CSOUND *, char *);
+ORCTOKEN *make_label(CSOUND *, char *);
+
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
-char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
-                           char* outArgTypes);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
-extern void do_baktrace(CSOUND *csound, uint64_t files);
-extern CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
-                                 char* varBaseName, TYPE_TABLE* typeTable);
-
-
 static int32_t genlabs = 300;
 
 TREE* tree_tail(TREE* node) {
@@ -460,16 +442,16 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     if (is_expression_node(current)) {
       TREE* newArg;
 
-      anchor = appendToTree(csound, anchor,
+      anchor = append_to_tree(csound, anchor,
                             create_expression(csound, current, line, locn,
                                               typeTable));
       last = tree_tail(anchor);
       newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = appendToTree(csound, newArgList, newArg);
+      newArgList = append_to_tree(csound, newArgList, newArg);
       current = current->next;
     } else {
       TREE* temp;
-      newArgList = appendToTree(csound, newArgList, current);
+      newArgList = append_to_tree(csound, newArgList, current);
       temp = current->next;
       current->next = NULL;
       current = temp;
@@ -484,18 +466,18 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     if (is_expression_node(current)) {
       TREE* newArg;
 
-      anchor = appendToTree(csound, anchor,
+      anchor = append_to_tree(csound, anchor,
                             create_expression(csound, current, line,
                                               locn, typeTable));
       last = tree_tail(anchor);
 
       newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = appendToTree(csound, newArgList, newArg);
+      newArgList = append_to_tree(csound, newArgList, newArg);
       current = current->next;
     }
     else {
       TREE* temp;
-      newArgList = appendToTree(csound, newArgList, current);
+      newArgList = append_to_tree(csound, newArgList, current);
       temp = current->next;
       current->next = NULL;
       current = temp;
@@ -1033,7 +1015,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       csound->Free(csound, currentArg);
 
       /* Set as anchor if necessary */
-      anchor = appendToTree(csound, anchor, expressionNodes);
+      anchor = append_to_tree(csound, anchor, expressionNodes);
 
       /* reconnect into chain */
       last = tree_tail(expressionNodes);
@@ -1062,7 +1044,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     currentArg = currentArg->next;
   }
 
-  anchor = appendToTree(csound, anchor, current);
+  anchor = append_to_tree(csound, anchor, current);
 
 
   // handle LHS expressions (i.e. array-set's)
@@ -1126,7 +1108,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       arraySet->right->next->next =
         currentArg->right; // TODO - check if this handles expressions
 
-      anchor = appendToTree(csound, anchor, arraySet);
+      anchor = append_to_tree(csound, anchor, arraySet);
       currentArg = temp;
     }
     previousArg = currentArg;
@@ -1135,7 +1117,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
   handle_optional_args(csound, current);
   collapse_last_assigment(csound, anchor, typeTable);
-  appendToTree(csound, anchor, originalNext);
+  append_to_tree(csound, anchor, originalNext);
   return anchor;
 }
 
@@ -1162,7 +1144,7 @@ TREE* expand_if_statement(CSOUND* csound,
                                 right->locn, typeTable);
 
 
-    anchor = appendToTree(csound, anchor, expressionNodes);
+    anchor = append_to_tree(csound, anchor, expressionNodes);
 
     /* reconnect into chain */
     last = tree_tail(expressionNodes);
@@ -1196,7 +1178,7 @@ TREE* expand_if_statement(CSOUND* csound,
       tempRight = ifBlockCurrent->right;
 
       if (ifBlockCurrent->type == ELSE_TOKEN) {
-        appendToTree(csound, anchor, tempRight);
+        append_to_tree(csound, anchor, tempRight);
         break;
       }
 
@@ -1205,7 +1187,7 @@ TREE* expand_if_statement(CSOUND* csound,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable);
 
-      anchor = appendToTree(csound, anchor, expressionNodes);
+      anchor = append_to_tree(csound, anchor, expressionNodes);
 
       last = tree_tail(expressionNodes);
 
@@ -1241,7 +1223,7 @@ TREE* expand_if_statement(CSOUND* csound,
           );
         }
         gotoToken->next = statements;
-        anchor = appendToTree(csound, anchor, gotoToken);
+        anchor = append_to_tree(csound, anchor, gotoToken);
 
         /* relinking */
         last = tree_tail(last);
@@ -1255,12 +1237,12 @@ TREE* expand_if_statement(CSOUND* csound,
           if (UNLIKELY(PARSER_DEBUG))
             csound->Message(csound, "Creating simple goto token\n");
 
-          appendToTree(csound, last, gotoEndLabelToken);
+          append_to_tree(csound, last, gotoEndLabelToken);
 
           gotoEndLabelToken->next = labelEnd;
         }
         else {
-          appendToTree(csound, last, labelEnd);
+          append_to_tree(csound, last, labelEnd);
         }
 
         ifBlockCurrent = tempRight->next;
@@ -1270,14 +1252,14 @@ TREE* expand_if_statement(CSOUND* csound,
     if (endLabelCounter > 0) {
       TREE *endLabel = create_synthetic_label(csound,
                                               endLabelCounter);
-      anchor = appendToTree(csound, anchor, endLabel);
+      anchor = append_to_tree(csound, anchor, endLabel);
 
       typeTable->labelList = cs_cons(csound,
                                      cs_strdup(csound,
                                                endLabel->value->lexeme),
                                      typeTable->labelList);
     }
-    anchor = appendToTree(csound, anchor, current->next);
+    anchor = append_to_tree(csound, anchor, current->next);
   }
   else {
     csound->Message(csound,
@@ -1324,7 +1306,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
       current->locn,
       typeTable
     );
-    anchor = appendToTree(csound, anchor, expressionNodes);
+    anchor = append_to_tree(csound, anchor, expressionNodes);
     last = tree_tail(anchor);
   }
 
@@ -1350,7 +1332,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoToken->right->next = labelEnd;
 
 
-  last = appendToTree(csound, last, gotoToken);
+  last = append_to_tree(csound, last, gotoToken);
   last = tree_tail(last);
 
 
@@ -1361,7 +1343,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
                                                      topLabel,
                                                      (gotoType==1 ? 0 : 1));
 
-  appendToTree(csound, last, gotoTopLabelToken);
+  append_to_tree(csound, last, gotoTopLabelToken);
   gotoTopLabelToken->next = labelEnd;
 
 

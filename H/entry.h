@@ -1,7 +1,8 @@
 /*
-  entry1.h:
+  entry.h:
 
-    Copyright (C) 1991 Barry Vercoe, John ffitch
+    Copyright (C) 1991-2005 Barry Vercoe, John ffitch, 
+                       Victor Lazzarini, Steven Yi
 
     This file is part of Csound.
 
@@ -23,8 +24,10 @@
 
 #pragma once
 
-#include "csoundCore.h"         /*                      ENTRY1.H        */
-#include "insert.h"
+#include "csoundCore.h"    
+#include "inst_ops.h"
+#include "udo.h"
+#include "goto_ops.h"
 #include "aops.h"
 #include "complex_ops.h"
 #include "midiops.h"
@@ -51,7 +54,6 @@
 #include "oscils.h"
 #include "midifile.h"
 #include "midiinterop.h"
-#include "linevent.h"
 #include "str_ops.h"
 #include "bus.h"
 #include "pstream.h"
@@ -260,7 +262,7 @@ int32_t dsplay(CSOUND *, void *), fftset(CSOUND *, void *);
 int32_t kdspfft(CSOUND *, void *), dspfft(CSOUND *, void *);
 int32_t xyinset(CSOUND *, void *);
 int32_t tempeset(CSOUND *, void *), tempest(CSOUND *, void *);
-int32_t tempset(CSOUND *, void *), tempo(CSOUND *, void *);
+int32_t tempo_set(CSOUND *, void *), tempo(CSOUND *, void *);
 int32_t old_kdmpset(CSOUND *, void *), old_kdmp2set(CSOUND *, void *);
 int32_t old_kdmp3set(CSOUND *, void *), old_kdmp4set(CSOUND *, void *);
 int32_t kdmpset_p(CSOUND *, void *), kdmp2set_p(CSOUND *, void *);
@@ -352,11 +354,11 @@ int32_t ifschedule(CSOUND *, void *), kschedule(CSOUND *, void *);
 int32_t triginset(CSOUND *, void *), ktriginstr(CSOUND *, void *);
 int32_t triginset_S(CSOUND *, void *), ktriginstr_S(CSOUND *, void *);
 int32_t trigseq_set(CSOUND *, void *), trigseq(CSOUND *, void *);
-int32_t eventOpcode(CSOUND *, void *), eventOpcodeI(CSOUND *, void *);
-int32_t eventOpcode_Instr(CSOUND *, void *), eventOpcodeI_Instr(CSOUND *, void *);
-int32_t eventOpcode_S(CSOUND *, void *), eventOpcodeI_S(CSOUND *, void *);
-int32_t instanceOpcode(CSOUND *, void *), instanceOpcode_S(CSOUND *, void *);
-int32_t instanceOpcode_Instr(CSOUND *, void *p);
+int32_t event_opcode(CSOUND *, void *), event_opcode_i(CSOUND *, void *);
+int32_t event_opcode_Instr(CSOUND *, void *), event_opcode_i_Instr(CSOUND *, void *);
+int32_t event_opcode_S(CSOUND *, void *), event_opcode_i_S(CSOUND *, void *);
+int32_t instance_opcode_(CSOUND *, void *), instance_opcode_S(CSOUND *, void *);
+int32_t instance_opcode_Instr(CSOUND *, void *p);
 int32_t kill_instance(CSOUND *csound, void *p);
 int32_t lfoset(CSOUND *, void *);
 int32_t lfok(CSOUND *, void *), lfoa(CSOUND *, void *);
@@ -370,7 +372,7 @@ int32_t pvsmaskaset(CSOUND *, void *), pvsmaska(CSOUND *, void *);
 int32_t pvsftwset(CSOUND *, void *), pvsftw(CSOUND *, void *);
 int32_t pvsftrset(CSOUND *, void *), pvsftr(CSOUND *, void *);
 int32_t pvsinfo(CSOUND *, void *);
-int32_t gettempo(CSOUND *, void *), fassign(CSOUND *, void *);
+int32_t get_tempo(CSOUND *, void *), fassign(CSOUND *, void *);
 int32_t loopseg_set(CSOUND *, void *);
 int32_t loopseg(CSOUND *, void *), lpshold(CSOUND *, void *);
 int32_t lineto_set(CSOUND *, void *), lineto(CSOUND *, void *);
@@ -401,7 +403,6 @@ int32_t midipitchbend(CSOUND *, void *);
 int32_t mididefault(CSOUND *, void *);
 int32_t subinstrset_S(CSOUND *, void *);
 int32_t subinstrset(CSOUND *, void *), subinstr(CSOUND *, void *);
-int32_t useropcdset(CSOUND *, void *), useropcd(CSOUND *, void *);
 int32_t useropcdset_newstyle(CSOUND *, void *);
 int32_t setksmpsset(CSOUND *, void *);
 int32_t xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
@@ -496,8 +497,8 @@ int32_t pvaluestr(CSOUND *, void*);
 int32_t pinit(CSOUND *, void*);
 int32_t painit(CSOUND *, void*);
 int32_t paini(CSOUND *, void*);
-int32_t copyVarGeneric(CSOUND *csound, void *p);
-int32_t copyVarGenericInit(CSOUND *csound, void *p);
+int32_t copy_var_generic(CSOUND *csound, void *p);
+int32_t copy_var_generic_init(CSOUND *csound, void *p);
 int32_t gauss_scalar(CSOUND *csound, void *p);
 int32_t gauss_vector(CSOUND *csound, void *p);
 int32_t lpfil_init(CSOUND *csound, void *p);

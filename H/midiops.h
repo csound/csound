@@ -230,4 +230,6 @@ typedef struct {
   STRINGDAT *file;
   FILE    *fout;
 } PRINTPRESETS;
+
+int32_t event_type(CSOUND *csound, void *p);
 #endif

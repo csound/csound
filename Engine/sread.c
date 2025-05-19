@@ -27,7 +27,9 @@
 #include <inttypes.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "corfile.h"
-#include "Engine/score_param.h"
+#include "filesys.h"
+#include "sread.h"
+#include "aops.h"
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */
@@ -43,15 +45,7 @@ static  void    ifa(CSOUND *), setprv(CSOUND *);
 static  void    carryerror(CSOUND *), pcopy(CSOUND *, int32_t,  int32_t,  SRTBLK*);
 static  void    salcinit(CSOUND *);
 static  void    salcblk(CSOUND *), flushlin(CSOUND *);
-static  int32_t     getop(CSOUND *), getpfld(CSOUND *, int32_t);
-        MYFLT   stof(CSOUND *, char *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int32_t);
-extern int32_t csound_prslex_init(void *);
-extern void csound_prsset_extra(void *, void *);
-
-extern int32_t csound_prslex(CSOUND*, void*);
-extern int32_t csound_prslex_destroy(void *);
-extern void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
+static  int32_t getop(CSOUND *), getpfld(CSOUND *, int32_t);
 
 #define STA(x)  (csound->sread.x)
 
@@ -180,8 +174,6 @@ static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
 static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
 {
     MYFLT ans;
-    extern MYFLT MOD(MYFLT,MYFLT);
-
     switch (c) {
     case '+': ans = a + b; break;
     case '-': ans = a - b; break;
@@ -199,7 +191,7 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-static inline int32_t isNameChar(int32_t c, int32_t pos)
+static inline int32_t is_name_char(int32_t c, int32_t pos)
 {
     //c = (int32_t) ((unsigned char) c);
     if (UNLIKELY(c<0)) return 0;
@@ -282,16 +274,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
     csound->sectcnt++;
     rtncod = 0;
     salcinit(csound);           /* init the mem space for this section  */
-#ifdef never
-    if (csound->score_parser) {
-      extern int32_t scope(CSOUND*);
-      printf("**********************************************************\n");
-      printf("*******************EXPERIMENTAL CODE**********************\n");
-      printf("**********************************************************\n");
-      scope(csound);
-      exit(0);
-    }
-#endif
     //printf("sread starts with >>%s<<\n", csound->expanded_sco->body);
     while (((csound->sread.op) = getop(csound)) != EOF) {
       /* read next op from scorefile */
@@ -447,7 +429,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t   c;
           int32_t   i = 0, j;
           while (isblank(c = getscochar(csound, 1)));
-          while (isNameChar(c, i)) {
+          while (is_name_char(c, i)) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
@@ -488,7 +470,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t c;
           int32_t i = 0;
           while (isblank(c = getscochar(csound, 1)));
-          while (isNameChar(c, i)) {
+          while (is_name_char(c, i)) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
