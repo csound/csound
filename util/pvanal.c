@@ -779,6 +779,9 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
       *(anal + k) += *(pvx->analWindow + i) * *(pvx->input + j);
     }
     csound->RealFFT(csound, pvx->setup, anal);
+    anal[N] = anal[1];
+    anal[1] = anal[N+1] = FL(0.0);
+    
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in

@@ -3462,6 +3462,8 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     csound->Calloc(csound, sizeof(CSOUND_FFT_SETUP));
   setup->N = FFTsize;
   setup->p2 = IS_POW_TWO(FFTsize);
+  if(!setup->p2) lib = 0;
+  
   switch(lib){
 #if defined(__MACH__)
   case VDSP_LIB:
@@ -3487,32 +3489,47 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     setup->lib = lib;
     break;
   default:
+    if(!setup->p2)
+      setup->buffer = (MYFLT *)
+        csound->Calloc(csound, sizeof(MYFLT)*(FFTsize+2));
     setup->lib = 0;
     setup->d = d;
-    return (void *) setup;
+    return setup;
   }
-  setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*FFTsize);
+  
+  setup->buffer = (MYFLT *) align_alloc(csound, sizeof(MYFLT)*(FFTsize+2));
   csound->RegisterResetCallback(csound, (void*) setup,
                                 (int32_t (*)(CSOUND *, void *))
                                 setupDispose);
   return (void *) setup;
 }
+
  
 void csoundRealFFT2(CSOUND *csound,
                      void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
-  
+  int32_t N = setup->N;
+  int32_t siz = (int32_t) (sizeof(MYFLT)*N);
   if(!setup->p2) {
-     setup->d == FFT_FWD ?
+     memcpy(setup->buffer, sig, siz);
+     if(setup->d == FFT_FWD) {
       csoundRealFFTnp2(csound,
-                     sig,setup->N) :
+                       setup->buffer, N);
+      memcpy(sig, setup->buffer, siz);
+      // pack Nyquist point
+      sig[1] = setup->buffer[N]; 
+     } else {
+      // unpack Nyquist point
+      setup->buffer[N] = sig[1]; 
       csoundInverseRealFFTnp2(csound,
-                     sig,setup->N);
+                     setup->buffer, N);
+      memcpy(sig, setup->buffer, siz);
+     }     
      setup->lib = 0;
      return;
-  }
-
+  } 
+           
   switch(setup->lib) {
 #if defined(__MACH__)
   case VDSP_LIB:
@@ -3525,9 +3542,9 @@ void csoundRealFFT2(CSOUND *csound,
   default:
     setup->d == FFT_FWD ?
       csoundRealFFT(csound,
-                     sig,setup->N) :
+                     sig,N) :
       csoundInverseRealFFT(csound,
-                     sig,setup->N);
+                     sig,N);
     setup->lib = 0;
   }
 }

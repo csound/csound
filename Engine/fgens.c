@@ -200,8 +200,9 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
       if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
-                   genum != 28 && genum != 44 && genum != 49 && genum<=GENMAX)) {
-        return fterror(&ff, Str("deferred size for GENs 1, 2, 23, 28 or 49 only"));
+                   genum != 28 && genum != 44 && genum != 49 &&
+                   genum != 53 && genum<=GENMAX)) {
+        return fterror(&ff, Str("deferred size not supported"));
       }
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
@@ -2924,6 +2925,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     double  tmp;
     MYFLT   scaleFac;
     int32_t     i, j, npts2 = (npts << 1);
+    void *setup;
 
     scaleFac = csound->GetInverseRealFFTScale(csound, npts);
     /* ---- linear phase impulse response ---- */
@@ -2935,7 +2937,8 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       obuf[i++] = FL(0.0);
     } while (i < npts);
     obuf[1] = ibuf[j] * scaleFac;
-    csoundInverseRealFFT(csound, obuf, npts);
+    setup = csound->RealFFTSetup(csound, npts, FFT_INV);
+    csound->RealFFT(csound, setup, obuf);
     obuf[npts] = FL(0.0);               /* clear guard point */
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
@@ -2955,7 +2958,8 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       buf1[j] = obuf[i];
     for ( ; j < npts2; j++)
       buf1[j] = FL(0.0);
-    csoundRealFFT(csound, buf1, npts2);
+    setup = csound->RealFFTSetup(csound, npts2, FFT_FWD);
+    csound->RealFFT(csound, setup, buf1);
     for (i = j = 0; i < npts; i++, j += 2) {
       tmp = (double) buf1[j];
       tmp = sqrt(tmp * tmp + 1.0e-20);
@@ -2970,7 +2974,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     }
     for (j = i - 2; i < npts2; i++, j--)    /* need full spectrum,     */
       buf1[i] = buf1[j];                    /* not just the lower half */
-    csoundRealFFT(csound, buf1, npts2);
+    csound->RealFFT(csound, setup, buf1);
     /* and convolve with 1/tan(x) impulse response */
     buf2[0] = FL(0.0);
     buf2[1] = FL(0.0);
@@ -2980,7 +2984,8 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     }
     csoundRealFFTMult(csound, buf1, buf1, buf2, npts2, scaleFac);
     /* store unwrapped phase response in buf1 */
-    csoundInverseRealFFT(csound, buf1, npts2);
+    setup = csound->RealFFTSetup(csound, npts2, FFT_INV);
+    csound->RealFFT(csound, setup, buf1);
     /* convert from magnitude/phase format to real/imaginary */
     for (i = 2; i < npts2; i += 2) {
       double  ph;
@@ -2994,7 +2999,8 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     buf2[0] = scaleFac * obuf[0];
     buf2[1] = scaleFac * obuf[npts];
     /* perform inverse FFT to get impulse response */
-    csoundInverseRealFFT(csound, buf2, npts2);
+    setup = csound->RealFFTSetup(csound, npts2, FFT_INV);
+    csound->RealFFT(csound, setup, buf2);
     /* copy output, truncating to table length + guard point */
     for (i = 0; i <= npts; i++)
       obuf[i] = buf2[i];
@@ -3010,45 +3016,60 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     MYFLT   *srcftp, *dstftp, *winftp = NULL;
     int32_t     nargs = ff->e.pcnt - 4;
-    int32_t     mode = 0, srcftno, winftno = 0, srcflen, dstflen, winflen = 0;
+    int32_t     mode = 0, srcftno, winftno = 0,
+      srcflen, dstflen = 0, winflen = 0;
+    int32_t flag = 0;
 
-    if (UNLIKELY(nargs < 1 || nargs > 3)) {
-      return fterror(ff, Str("GEN53: invalid number of gen arguments"));
+    if (UNLIKELY(nargs < 1)) { // fail if src is not given,
+                               // ignore any extra args
+      return fterror(ff,
+                     Str("GEN53: invalid number of gen arguments"));
     }
     srcftno = (int32_t) MYFLT2LRND(ff->e.p[5]);
     if (nargs > 1)
       mode = (int32_t) MYFLT2LRND(ff->e.p[6]);
     if (nargs > 2)
       winftno = (int32_t) MYFLT2LRND(ff->e.p[7]);
-
-    dstftp = ftp->ftable; dstflen = (int32_t) ftp->flen;
-    if (UNLIKELY(dstflen < 8 || (dstflen & (dstflen - 1)))) {
-      return fterror(ff, Str("GEN53: invalid table length"));
-    }
     srcflen = csoundGetTable(csound, &srcftp, srcftno);
+    if(!ftp) {
+      ff->flen = srcflen * 2;
+      ftp = ftalloc(ff);
+      flag = 1;
+    } 
+    dstftp = ftp->ftable;
+    dstflen = (int32_t) ftp->flen;
     if (UNLIKELY(srcflen < 0)) {
       return fterror(ff, Str("GEN53: invalid source table number"));
     }
     if (UNLIKELY(mode & (~15))) {
-      return fterror(ff, Str("GEN53: mode must be in the range 0 to 15"));
+      return
+        fterror(ff, Str("GEN53: mode must be in the range 0 to 15"));
     }
     if (UNLIKELY((!(mode & 2) && srcflen != (dstflen >> 1)) ||
                  ((mode & 2) && srcflen != dstflen))) {
-      return fterror(ff, Str("GEN53: invalid source table length:"));
-    }
+      // reallocate table if needed 
+      if(!(mode & 2)) ftp->flen = srcflen * 2;
+      else ftp->flen = srcflen;
+      ftp->ftable = dstftp =
+        (MYFLT *) csound->ReAlloc(csound, ftp->ftable,
+                                 sizeof(MYFLT)*(ftp->flen+2));
+      dstflen = ff->flen = ftp->flen;
+    } 
     if (winftno) {
       winflen = csoundGetTable(csound, &winftp, winftno);
-      if (UNLIKELY(winflen <= 0 || (winflen & (winflen - 1)))) {
+      if (UNLIKELY(winflen <= 0)) {
         return fterror(ff, Str("GEN53: invalid window table"));
       }
     }
     if (mode & 2) {     /* if input data is impulse response: */
       MYFLT *tmpft;
       int32_t   i, j;
+      void *setup;
       tmpft = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)
                                               * (size_t) ((dstflen >> 1) + 1));
       memcpy(dstftp, srcftp, sizeof(MYFLT) * (size_t) dstflen);
-      csoundRealFFT(csound, dstftp, dstflen);
+      setup = csound->RealFFTSetup(csound, dstflen, FFT_FWD);
+      csound->RealFFT(csound, setup, dstftp);
       tmpft[0] = dstftp[0];
       for (i = 2, j = 1; i < dstflen; i += 2, j++)
         tmpft[j] = HYPOT(dstftp[i], dstftp[i + 1]);
@@ -3059,10 +3080,12 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
       csound->Free(csound, tmpft);
     }
     else  {              /* input is frequency response: */
-      csound->Message(csound, Str("GEN 53: frequency response input, "));
+      csound->Message(csound, Str("GEN 53: amplitude response input, "));
       gen53_freq_response_to_ir(csound, dstftp, srcftp, winftp,
                                         dstflen, winflen, mode);
     }
+    if(flag)
+      ftresdisp(ff, ftp); 
     return OK;
 }
 
