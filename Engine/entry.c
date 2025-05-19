@@ -145,6 +145,7 @@ OENTRY opcodlst_1[] = {
   { "init.k", S(ASSIGNM),0,       "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   { "init.a", S(ASSIGNM),0,       "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
   { "unschedule", S(RMEVT), 0, "","*", remove_event},
+  { "unscheduleall", S(RMEVT), 0, "","*", remove_all_events},
   { "instrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
   { "nstrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
   { "opcodeinfo", S(OPINFO) ,0,  "", ":OpcodeDef;", (SUBR) opcode_info},

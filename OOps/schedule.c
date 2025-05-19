@@ -930,7 +930,7 @@ static int32_t events_match(CSOUND *csound,
 
 
 
-static void remove_rt_event(CSOUND *csound, EVTBLK *evt) {
+static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
   EVTNODE *e = csound->OrcTrigEvts;
   EVTBLK  *evtn = &(e->evt);
   while(e != NULL && e != csound->freeEvtNodes) {
@@ -949,7 +949,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt) {
       }
       csound->Message(csound, "\n");
       }
-      break;
+      if(!cont) break;
     }
     e = e->nxt;
   }
@@ -958,7 +958,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt) {
 void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
                     char *str);
 
-int32_t remove_event(CSOUND *csound, RMEVT *p) {
+int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
   EVTBLK evt;
   int i, pcnt = p->INOCOUNT;
   memset(&evt, 0, sizeof(EVTBLK));
@@ -986,8 +986,15 @@ int32_t remove_event(CSOUND *csound, RMEVT *p) {
     else evt.p[i] = *p->arg[i-1];
   }
     
-  remove_rt_event(csound, &evt);
+  remove_rt_event(csound, &evt, cont);
   if(evt.strarg != NULL) csound->Free(csound, evt.strarg);
   return OK;
 }
 
+int32_t remove_event(CSOUND *csound, RMEVT *p) {
+  return remove_event_op(csound, p, 0);
+}
+
+int32_t remove_all_events(CSOUND *csound, RMEVT *p) {
+  return remove_event_op(csound, p, 1);
+}

@@ -629,3 +629,4 @@ int32_t undersampleset(CSOUND *csound, void *p);
 int32_t schedule_instr(CSOUND *csound, void *p);
 int32_t myflt_size(CSOUND *csound, void *p);
 int32_t remove_event(CSOUND *csound, void *p);
+int32_t remove_all_events(CSOUND *csound, void *p);
