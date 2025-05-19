@@ -398,7 +398,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
 
       if (UNLIKELY(out == 0)) {
-        synterr(csound, Str("error: opcode '%s' for expression with arg "
+        synterr(csound, Str("opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
                 opname, argTypeRight, tree->line);
         do_baktrace(csound, tree->locn);
@@ -415,7 +415,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return ret;
       }
 
-      synterr(csound, Str("error: opcode '%s' for expression with arg "
+      synterr(csound, Str("opcode '%s' for expression with arg "
                           "types %s returns out-args != 1, line %d\n"),
               opname, argTypeRight, tree->line);
       do_baktrace(csound, tree->locn);
@@ -451,9 +451,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       argTypeLeft = convert_internal_to_external(csound, argTypeLeft);
       argTypeRight = convert_internal_to_external(csound, argTypeRight);
 
+
       len1 = (int32_t) strlen(argTypeLeft);
       len2 = (int32_t) strlen(argTypeRight);
       inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
+
+      
 
       memcpy(inArgTypes, argTypeLeft, len1);
       memcpy(inArgTypes + len1, argTypeRight, len2);
@@ -464,7 +467,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       csound->Free(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
-        synterr(csound, Str("error: opcode '%s' for expression with arg "
+      
+        synterr(csound, Str("opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
                 opname, inArgTypes, tree->line);
         do_baktrace(csound, tree->locn);
@@ -1156,7 +1160,18 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   // accummulation
   // now remove any : or ; leftover in typename
   type = remove_type_quoting(csound, arg);
-  
+
+  // treat the case where we have typename[]
+  char *typ = type;
+  type++;
+  while(*type != '\0') { 
+    if(*type == '[' && *(type+1) ==  ']') {
+      *type = '\0'; break;
+    }
+    type++;
+  }
+  type = typ;
+
   // update arg & len
   arg = type;
   len = strlen(arg);
@@ -1575,7 +1590,6 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     if (annotation != NULL) {
       // check for global annotation
       pool = find_global_annotation(varName, typeTable);
-      printf("%s \n", annotation);
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
       t = varName;
@@ -2663,7 +2677,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (current == NULL) {
         return 0;
       }
-
+      
       if(!verify_opcode(csound, current, typeTable)) {
         return 0;
       }

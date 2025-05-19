@@ -131,7 +131,6 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         aDest->sizes = cs->Malloc(cs, sizeof(int32_t) * aSrc->dimensions);
         memcpy(aDest->sizes, aSrc->sizes, sizeof(int32_t) * aSrc->dimensions);
         aDest->arrayType = aSrc->arrayType;
-
         if(aDest->data != NULL) {
             cs->Free(cs, aDest->data);
         }

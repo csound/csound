@@ -338,17 +338,21 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     int32_t flag = 0;
     CS_TYPE* type = csoundGetTypeForArg(assign->a);
-  
+      
     if(type == &CS_VAR_TYPE_ARRAY) {
+      
       ARRAYDAT* adat = (ARRAYDAT*) assign->a;
       if(adat->arrayType == &CS_VAR_TYPE_I ||
          adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;
+      // complex arrays need to be copied at i-time  
+      if(adat->arrayType == &CS_VAR_TYPE_COMPLEX)
+        copy_var_generic(csound, p);
     } else if(type == &CS_VAR_TYPE_I ||
               type == &CS_VAR_TYPE_b ||
               type == &CS_VAR_TYPE_INSTR 
               ) flag = 1;
     if (flag) {
-        assign->h.perf = copy_var_no_op;
+      assign->h.perf = copy_var_no_op;
       copy_var_generic(csound, p);
     }
     return OK;
