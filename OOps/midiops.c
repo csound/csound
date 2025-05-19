@@ -158,7 +158,7 @@ int32_t notnum(CSOUND *csound, MIDIKMB *p)       /* valid only at I-time */
 
 int32_t event_type(CSOUND *csound, void *p) {
   MIDIKMB * pp = ((MIDIKMB *)p);
-  *pp->r = pp->h.insdshead->m_chnbp == NULL ? 0 : 1;
+  *pp->r = GetEventType(&(pp->h));
   return OK;
 }
 

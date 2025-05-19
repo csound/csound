@@ -898,7 +898,7 @@ void midifile_rewind_score(CSOUND *csound)
 int32_t midi_file_opcode(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
   // non-op if triggered by midi
-  if(pp->h.insdshead->m_chnbp == NULL) { 
+  if(GetEventType(&(pp->h)) == 0) { 
     *pp->res = midi_file_open(csound, pp->mfile->data,
                               (uint8_t) *pp->port);
   }
@@ -916,7 +916,7 @@ void AllNotesOff(CSOUND *csound, MCHNBLK *chn);
 
 int32_t midi_file_mute(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
-  if(pp->h.insdshead->m_chnbp == NULL) {
+  if(GetEventType(&(pp->h)) == 0) {
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
     if(mf) {
       mf->mute = mf->mute ? 0 : 1;
@@ -932,7 +932,7 @@ int32_t midi_file_mute(CSOUND *csound, void *p) {
 
 int32_t midi_file_pause(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
-  if(pp->h.insdshead->m_chnbp == NULL) {
+  if(GetEventType(&(pp->h)) == 0) {
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
     if(mf && mf->pause == 0)  {
       mf->pause = 1;
@@ -946,7 +946,7 @@ int32_t midi_file_pause(CSOUND *csound, void *p) {
 
 int32_t midi_file_play(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
-  if(pp->h.insdshead->m_chnbp == NULL) {
+  if(GetEventType(&(pp->h)) == 0) {
     if(pp->h.insdshead->m_chnbp == NULL) {
       midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
       if(mf && mf->pause) {
@@ -960,7 +960,7 @@ int32_t midi_file_play(CSOUND *csound, void *p) {
 
 int32_t midi_file_rewind(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
-  if(pp->h.insdshead->m_chnbp == NULL) {
+  if(GetEventType(&(pp->h)) == 0) {
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->res);
     if(mf->pause == 0) { // if not paused ... 
       for(int i = 0; i < 16; i++)
@@ -1000,7 +1000,7 @@ int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
 int32_t midi_set_tempo(CSOUND *csound, void *pp)
 {
   MIDITEMPO *p = (MIDITEMPO *) pp;
-  if(p->h.insdshead->m_chnbp == NULL) {
+  if(GetEventType(&(p->h)) == 0) {
     int32_t num = (int32_t) *p->num;
     midifile_t *mf = find_midifile(csound, num);
     if (mf != NULL) {
@@ -1016,7 +1016,7 @@ int32_t midi_set_tempo(CSOUND *csound, void *pp)
 
 int32_t midi_set_pos(CSOUND *csound, void *p) {
   MIDITEMPO *pp = (MIDITEMPO *) p;
-  if(pp->h.insdshead->m_chnbp == NULL) {
+  if(GetEventType(&(pp->h)) == 0) {
     int i;
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
     if(mf) {
