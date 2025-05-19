@@ -748,8 +748,8 @@ typedef struct _FFT_SETUP {
 /**
  * Phase modulo-1 for oscillators
  */
-static inline double PHMOD1(double p) {
-  return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t)p;
+static inline MYFLT PHMOD1(MYFLT p) {
+  return p < 0 ? p - (int64_t) (p-1) : p - (uint64_t)p;
 }
 
 /**
