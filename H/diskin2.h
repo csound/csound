@@ -33,7 +33,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aOut[DISKIN2_MAXCHN];
+    MYFLT   *out[DISKIN2_MAXCHN];
     MYFLT   *iFileCode;
     MYFLT   *kTranspose;
     MYFLT   *iSkipTime;
@@ -49,10 +49,11 @@ typedef struct {
     MYFLT   SkipInit;
     MYFLT   fforceSync;
 
-    int32_t     initDone;
-    int32_t     nChannels;
-    int32_t     bufSize;            /* in sample frames, power of two */
-    int32_t     wrapMode;
+    int32_t initDone;
+    int32_t nChannels;
+    int32_t oChannels;
+    int32_t bufSize;            /* in sample frames, power of two */
+    int32_t wrapMode;
     int32   fileLength;         /* in sample frames */
     int32   bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
@@ -68,6 +69,8 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
+    AUXCH   audioData;
+    MYFLT   *aOut[DISKIN2_MAXCHN];
     MYFLT   *aOut_buf;
     MYFLT   aOut_bufsize;
     void    *cb;
@@ -111,6 +114,7 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
+    AUXCH   audioData;
   MYFLT *aOut_buf;
   MYFLT aOut_bufsize;
   void *cb;

@@ -329,12 +329,11 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       /* *(anal + k) += *(analWindow + i) * *(input + j); */
       anal[k] += analWindow[i] * input[j];
     }
-     csound->RealFFT(csound,p->setup,anal);    
-    if (!(N & (N - 1))) {
-      anal[N] = anal[1];
-      anal[1] = anal[N + 1] = FL(0.0);
-    }
-
+     csound->RealFFT(csound, p->setup, anal);
+     /* unpack FFT data */
+     anal[N] = anal[1];
+     anal[1] = anal[N+1] = FL(0.0);
+ 
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -421,7 +420,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
     p->IOi = p->Ii;
 }
 
-static void anal_tick(CSOUND *csound, PVSANAL *p,MYFLT samp)
+static void anal_frame(CSOUND *csound, PVSANAL *p,MYFLT samp)
 {
     MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
 
@@ -688,7 +687,7 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
     }
     nsmps -= early;
     for (i=offset; i < nsmps; i++)
-      anal_tick(csound,p,ain[i]);
+      anal_frame(csound,p,ain[i]);
     return OK;
 }
 
@@ -834,7 +833,7 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
     return OK;
 }
 
-static MYFLT synth_tick(CSOUND *csound, PVSYNTH *p)
+static MYFLT synth_frame(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *outbuf = (MYFLT *) (p->overlapbuf.auxp);
 
@@ -930,16 +929,13 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
        locations are referenced modulo obuflen.  Therefore, the main
        program must take care to zero each location which it "shifts"
        out (to standard output). The subroutines reals and fft
-       together perform an efficient inverse FFT.  */
-    if (!(NO & (NO - 1))) {
-      /*printf("N %d %d \n", NO, NO & (NO-1));*/
-      syn[1] = syn[NO];
-      /* csound->InverseRealFFT(csound, syn, NO);*/
-      csound->RealFFT(csound,p->setup,syn);
-      syn[NO] = syn[NO + 1] = FL(0.0);
-    }
-    else // np2
-      csound->RealFFT(csound,p->setup,syn);
+       together perform an efficient inverse FFT.  
+       NB: csound->RealFFT() always expects packed-FFT data
+     */
+    syn[1] = syn[NO];
+    csound->RealFFT(csound,p->setup,syn);
+    syn[NO] = syn[NO + 1] = FL(0.0);
+
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;
@@ -1055,7 +1051,7 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
       memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (i=offset; i<nsmps; i++)
-      aout[i] = synth_tick(csound, p);
+      aout[i] = synth_frame(csound, p);
     return OK;
 }
 
