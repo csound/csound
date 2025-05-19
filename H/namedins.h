@@ -41,18 +41,20 @@ int32_t check_instr_name(char *);
 /* return value is zero if none was found */
 
 MYFLT named_instr_find(CSOUND *, char *);
+MYFLT named_instr_find_in_engine(CSOUND *csound, char *s,
+                                 ENGINE_STATE *engineState);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-int32 strarg2insno(CSOUND *, void *, int32_t);
+int32 string_arg_to_insno(CSOUND *, void *, int32_t);
 
-/* same as strarg2insno, but runs at perf time, */
+/* same as string_arg_to_insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-int32 strarg2insno_p(CSOUND *, char *);
+int32 string_arg_to_insno_p(CSOUND *, char *);
 
 /* convert opcode string argument to instrument number */
 /* (also allows user defined opcode names); if the integer */
@@ -60,7 +62,7 @@ int32 strarg2insno_p(CSOUND *, char *);
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-int32 strarg2opcno(CSOUND *, void *, int32_t, int32_t);
+int32 string_arg_to_opcno(CSOUND *, void *, int32_t, int32_t);
 
 /* create file name from opcode argument (string or MYFLT)      */
 /*   CSOUND *csound:                                            */
@@ -96,7 +98,7 @@ int32 strarg2opcno(CSOUND *, void *, int32_t, int32_t);
 /*      mmalloc() and the caller is responsible for freeing the */
 /*      allocated memory with mfree() or csound->Free()         */
 
-char *strarg2name(CSOUND *, char *, void *, const char *, int32_t);
+char *string_arg_to_name(CSOUND *, char *, void *, const char *, int32_t);
 
 /* ----------------------------------------------------------------------- */
 

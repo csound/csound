@@ -62,10 +62,10 @@ TEST_F (TypeSystemTests, testTypeSystem)
 
 TEST_F (TypeSystemTests, testGetVarSimpleName)
 {
-    ASSERT_STREQ ("a1", getVarSimpleName(csound, "a1"));
-    ASSERT_STREQ ("a1", getVarSimpleName(csound, "[a]1"));
-    ASSERT_STREQ ("StestString", getVarSimpleName(csound, "StestString"));
-    ASSERT_STREQ ("StestString", getVarSimpleName(csound, "[S]testString"));
+    ASSERT_STREQ ("a1", csoundGetVarSimpleName(csound, "a1"));
+    ASSERT_STREQ ("a1", csoundGetVarSimpleName(csound, "[a]1"));
+    ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "StestString"));
+    ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "[S]testString"));
 }
 
 //void test_array_name_variable_clashing(void)

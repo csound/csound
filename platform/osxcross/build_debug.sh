@@ -57,3 +57,5 @@ for program in $(ls $prefix/bin); do
         $prefix_arm64/bin/$program \
         -output $prefix/bin/$program
 done
+
+zsign -a $prefix/Library/Frameworks/CsoundLib64.framework/Versions/7.0/CsoundLib64

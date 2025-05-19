@@ -1895,7 +1895,7 @@ int32_t ochn(CSOUND *csound, OUTX *p)
 {
   uint32_t nch = p->INOCOUNT;
   if (nch>csound->nchnls)
-    csound->Warning(csound, Str("Excess channels ignored\n"));
+    csound->Warning(csound, Str("Excess channels ignored"));
   return OK;
 }
 
