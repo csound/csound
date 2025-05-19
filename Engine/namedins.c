@@ -100,7 +100,7 @@ int32 string_arg_to_insno(CSOUND *csound, void *p, int32_t is_string)
     return insno;
 }
 
-/* same as string_arg_to_insno, but runs at perf time, */
+/* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 int32 string_arg_to_insno_p(CSOUND *csound, char *s)
@@ -231,12 +231,11 @@ char *string_arg_to_name(CSOUND *csound, char *s, void *p, const char *baseName,
     return s;
 }
 
-/* ----------------------------------------------------------------------- */
-/* the following functions are for efficient management of the opcode list */
-
-
-
-
+/* API function for instrument numbers
+ */
+int32 csoundGetInstrNumber(CSOUND *csound, const char *str) {
+  return string_arg_to_insno(csound, (void *) str, 1);
+}
 
 /* -------- IV - Jan 29 2005 -------- */
 

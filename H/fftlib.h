@@ -135,8 +135,9 @@ extern "C" {
    * Compute in-place real FFT.
    *
    * buf:     array of FFTsize + 2 MYFLT values, in interleaved real/imaginary
-   *          format (note: the real part of the Nyquist frequency is stored
-   *          in buf[FFTsize], and not in buf[1]).
+   *          format, with 0Hz and Nyquist packed up in the buf[0] and buf[1], 
+   *          respectively (in forward output and inverse input data).
+   *
    * setup:   an FFT setup created with csoundRealFFT2Setup()
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);

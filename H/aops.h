@@ -232,4 +232,5 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
 void csound_aops_init_tables(CSOUND *);
 MYFLT MOD(MYFLT, MYFLT);
+int32_t inarray_set(CSOUND *csound, INA *p);
 

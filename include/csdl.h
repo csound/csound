@@ -57,11 +57,18 @@ static int32_t op_init(CSOUND *csound, OPCODE *p)
     return OK;
 }
 
-static int32_t op_k(CSOUND *csound, OPCODE *p)
+static int32_t op_perf(CSOUND *csound, OPCODE *p)
 {
-// code called at k-rate goes here
+// code called at perf-time goes here
     return OK;
 }
+
+static int32_t op_deinit(CSOUND *csound, OPCODE *p)
+{
+// code called at deinit-time goes here
+    return OK;
+}
+
 
 // You can use these functions if you need to prepare and cleanup things on
 // loading/unloading the library, but they can be absent if you don't need them
@@ -77,7 +84,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     int32_t     err = 0;
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->dsblksiz, ep->thread,
+                                  ep->opname, ep->dsblksiz, 
                                   ep->outypes, ep->intypes,
                                   (int32_t (*)(CSOUND *, void *)) ep->init,
                                   (int32_t (*)(CSOUND *, void *)) ep->perf,
@@ -95,7 +102,7 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
 
 static OENTRY localops[] =
 {
-  { "opcode",   sizeof(OPCODE),  0, 3, "i",    "ii", (SUBR)op_init, (SUBR)op_k }}
+  { "opcode",   sizeof(OPCODE),  0, "i",    "ii", (SUBR)op_init, (SUBR)op_k }}
 };
 
 LINKAGE(localops)
@@ -122,17 +129,8 @@ extern "C" {
 
 /* Use the Str() macro for translations of strings */
 #undef Str
-
-  /* VL commenting this out so ALL uses of Str(x)
-     call LocalizeString() [which might be a stub]
-     This would allows us to keep an eye on
-     -Wformat-security warnings
-  */
-//#ifndef GNU_GETTEXT
-//#define Str(x)  (x)
-//#else
 #define Str(x)  (csound->LocalizeString(x))
-//#endif
+
 
 PUBLIC  int64_t  csound_opcode_init(CSOUND *, OENTRY **);
 PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);
@@ -149,7 +147,7 @@ PUBLIC  int32_t     csoundModuleInfo(void);
 #define LINKAGE                                                         \
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 { (void) csound; *ep = localops; return (int64_t) sizeof(localops);  } \
-PUBLIC int32_t csoundModuleInfo(void)                                       \
+PUBLIC  int32_t csoundModuleInfo(void)                                       \
 { return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); }
 
 /** The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin opcodes

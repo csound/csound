@@ -466,7 +466,7 @@ typedef struct {
     uint64_t kcounter;
     MYFLT    esr, sicvt, pidsr;                  /* local sr */
     MYFLT    onedsr;
-    int32_t     in_cvt, out_cvt; /* resampling converter modes for in and out */
+    int32_t  in_cvt, out_cvt; /* resampling converter modes for in and out */
     uint32_t ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
 
@@ -932,9 +932,27 @@ static inline int32_t GetInstrumentNumber(OPDS *p) {
 /**
  * Returns the local ksmps of instrument/UDO containing opcode p.
  * This is an alternative to the macro CS_KSMPS.
+ * 
  */
 static inline uint32_t GetLocalKsmps(OPDS *p) {
-  return (uint32_t)p->insdshead->ksmps;
+  return (uint32_t)  p->insdshead->ksmps;
+}
+
+/**
+ * Returns the number of samples left at the
+ * end of the ksmps block in early sample-accurate
+ * exit.
+ */  
+static inline uint32_t GetEarlySmps(OPDS *p) {
+  return (uint32_t) p->insdshead->ksmps_no_end;
+}
+
+/**
+ * Returns the sample-accurate offset at the start
+ * of the ksmps block.
+ */  
+static inline uint32_t GetKsmpsOffset(OPDS *p) {
+  return (uint32_t) p->insdshead->ksmps_offset;
 }
 
 /**
