@@ -58,7 +58,6 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     current = pool->head;
     while (current != NULL) {
       snprintf(type, 64, "%s[]", current->cstype->varTypeName);
-      printf("%s %s\n", type, type);
       if (strcmp(typeName, type) == 0) {
         return current->cstype;
       }

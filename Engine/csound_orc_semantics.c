@@ -1575,6 +1575,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     if (annotation != NULL) {
       // check for global annotation
       pool = find_global_annotation(varName, typeTable);
+      printf("%s \n", annotation);
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
       t = varName;

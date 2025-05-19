@@ -100,7 +100,10 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
       snprintf(s, 16, "#%c%d[]", type[1], argCount);
-      add_array_arg(csound, s,  type, 1, typeTable);
+      if(*type == '[') // [type]
+      add_array_arg(csound, s,  NULL, 1, typeTable);
+      else // type[] 
+      add_array_arg(csound, s,  type, 1, typeTable);  
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
