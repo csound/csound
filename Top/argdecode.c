@@ -597,8 +597,13 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strcmp(s, "defer-gen1"))) {
     O->gen01defer = 1; /* defer GEN01 sample loads */
     return 1;          /*   until performance time */
-  } else if (!(strncmp(s, "midifile=", 9))) {
-    s += 9;
+  } else if (!(strncmp(s, "midifile", 8))) {
+    s += 8;
+    if(*s != '=') {
+      O->FMidiin = 1;
+      return 1;
+    }
+    s++;
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
@@ -1427,7 +1432,17 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->Midiin = 1;
           break;
         case 'F':
-          FIND(Str("no midifile name"));
+           if (*s == '\0')  {
+            int32_t largc = argc;
+            char **largv = argv;
+            char *ls = s;
+            if (UNLIKELY(!(--largc) || (((ls = *++largv) != NULL) && *ls == '-'))){
+              // no filename simply switches on midi reading
+              O->FMidiin = 1;
+              break;
+             }
+          }
+           FIND(Str("no midi file"));
           O->FMidiname = s; /* Midifile name */
           s += (int32_t)strlen(s);
           if (strcmp(O->FMidiname, "stdin") == 0) {

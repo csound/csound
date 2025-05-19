@@ -967,6 +967,15 @@ static inline uint64_t GetLocalKcounter(OPDS *p) {
 static inline char *GetOpcodeName(OPDS *p) {
   return p->optext->t.oentry->opname;
 }
+
+/**
+ * Returns the event type (0 for score/realtine,
+ *   1 for MIDI)
+ */
+static inline int32_t GetEventType(OPDS *p) {
+   return p->insdshead->m_chnbp == NULL ? 0 : 1;
+}
+  
 /**@}*/
 
 static inline char le_test() {
