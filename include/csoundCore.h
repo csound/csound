@@ -51,11 +51,10 @@
 #include "csound_compiler.h"
 #include "csound_misc.h"
 #include "csound_server.h"
-#include "cscore.h"
 #include "csound_data_structures.h"
 #include "pools.h"
-#include "soundfile.h"
 #include "coreDefs.h"
+#include "soundfile.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -708,7 +707,6 @@ typedef struct _FFT_SETUP {
 /** @name Macros to access INSDS/OPDS data from opcodes */
 /**@{ */
 
-
 #define CS_KSMPS (p->h.insdshead->ksmps)
 #define CS_KCNT (p->h.insdshead->kcounter)
 #define CS_EKR (p->h.insdshead->ekr)
@@ -729,7 +727,7 @@ typedef struct _FFT_SETUP {
 #define ORTXT h.optext->t
 #define INOCOUNT ORTXT.inArgCount
 #define OUTOCOUNT ORTXT.outArgCount
-#define CURTIME (((double)csound->icurTime) / ((double)csound->esr))
+#define CURTIME (((double)csound->icurTimeSamples) / ((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps) / ((double)csound->esr))
 
 /**@}*/
@@ -750,8 +748,8 @@ typedef struct _FFT_SETUP {
 /**
  * Phase modulo-1 for oscillators
  */
-static inline double PHMOD1(double p) {
-  return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t)p;
+static inline MYFLT PHMOD1(MYFLT p) {
+  return p < 0 ? p - (int64_t) (p-1) : p - (uint64_t)p;
 }
 
 /**
@@ -798,7 +796,7 @@ static inline int32_t byte_order(void) {
       int32_t i[2];
     } z;
     z.d = xx;
-    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
+    return ((z.i[sel]&0x7ff80000)==0x7ff80000); // was 0x7ff00000 - failing on clang 17!
 #else
   union {
     float f;
@@ -987,6 +985,15 @@ static inline uint64_t GetLocalKcounter(OPDS *p) {
 static inline char *GetOpcodeName(OPDS *p) {
   return p->optext->t.oentry->opname;
 }
+
+/**
+ * Returns the event type (0 for score/realtine,
+ *   1 for MIDI)
+ */
+static inline int32_t GetEventType(OPDS *p) {
+   return p->insdshead->m_chnbp == NULL ? 0 : 1;
+}
+  
 /**@}*/
 
 static inline char le_test() {
@@ -1030,9 +1037,14 @@ typedef struct _CSOUND_UTIL {
   int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
 } CSOUND_UTIL;
 
-#include "csInternal.h"
-#include "find_opcode.h"
-
+/* The definitions and declarations in this header
+   are not part of the API and thus not 
+   available externally to plugins 
+*/
+#ifdef __BUILDING_LIBCSOUND  
+#include "cs_internal.h"
+#endif
+  
 /**
  * Contains all function pointers, data, and data pointers required
  * to run one instance of Csound.
@@ -1469,7 +1481,6 @@ struct CSOUND_ {
   void (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
   int32_t (*csoundExitGraphCallback_)(CSOUND *);
   int32_t (*csoundYieldCallback_)(CSOUND *);
-  void (*cscoreCallback_)(CSOUND *);
   void *(*OpenSoundFileCallback_)(CSOUND *, const char *, int32_t, void *);
   FILE *(*OpenFileCallback_)(CSOUND *, const char *, const char *);
   void (*FileOpenCallback_)(CSOUND *, const char *, int32_t, int32_t, int32_t);
@@ -1509,7 +1520,7 @@ struct CSOUND_ {
   MYFLT esr;
   MYFLT ekr;
   /** current time in seconds, inc. per kprd */
-  int64_t icurTime; /* Current time in samples */
+  int64_t icurTimeSamples; /* Current time in samples */
   double curTime_inc;
   /** start time of current section    */
   double timeOffs, beatOffs;

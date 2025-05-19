@@ -94,7 +94,7 @@
 (define-alien-routine "csoundCreate" (* T) (a (* T)) (b c-string))
 (define-alien-routine "csoundCompile" int (a (* T)) (b int) (c (* c-string)))
 (define-alien-routine "csoundCompileOrc" int (a (* T)) (b c-string) (c int))
-(define-alien-routine "csoundCompileCSD" int (a (* T)) (b c-string) (c int))
+(define-alien-routine "csoundCompileCSD" int (a (* T)) (b c-string) (c int) (d int))
 (define-alien-routine "csoundSetOption" int (a (* T)) (b c-string))
 (define-alien-routine "csoundGetKr" double (a (* T)))
 (define-alien-routine "csoundGetSr" double (a (* T)))
@@ -145,7 +145,7 @@
   " Compile code from string, optionally asynchronously "
   (csoundCompileOrc csound orc async))
 
-(defun csound-compile-csd (csound csd &key (is-text 0))
+(defun csound-compile-csd (csound csd &key (is-text 0) (async 0))
   " Compile code in CSD file or optionally from a text string "
   (csoundCompileCSD csound csd is-text))
 

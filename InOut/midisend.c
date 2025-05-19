@@ -65,7 +65,7 @@ static CS_NOINLINE void
 
     if (nbytes < 2)
       return;
-    s = csound->icurTime/csound->esr;
+    s = csound->icurTimeSamples/csound->esr;
     /* this check (for perf time run?) used the global pds, which has now
        been removed. My impression is that it is sufficient to check
        for csound->ids, but this might need attention if MIDI file output
@@ -164,7 +164,7 @@ void poly_after_touch(CSOUND *csound, int32_t chan, int32_t note_num, int32_t va
     send_midi_message(csound, (chan & 0x0F) | MD_POLYAFTER, note_num, value);
 }
 
-void openMIDIout(CSOUND *csound)
+void midi_open_out(CSOUND *csound)
 {
     MGLOBAL       *p = csound->midiGlobals;
     midiOutFile_t *fp;

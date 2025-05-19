@@ -205,9 +205,9 @@ class PUBLIC Csound
     argv[6] = (char*) 0;
     return csoundCompile(csound, 6, &(argv[0]));
   }
-  virtual int32_t CompileCSD(const char *csd, int32_t mode)
+  virtual int32_t CompileCSD(const char *csd, int32_t mode, int32_t async = 0)
   {
-    return csoundCompileCSD(csound, csd, mode);
+    return csoundCompileCSD(csound, csd, mode, async);
   }
   virtual int32_t Start()
   {
@@ -302,8 +302,7 @@ class PUBLIC Csound
   {
     csoundMessageV(csound, attr, format, args);
   }
-  virtual void SetMessageCallback(
-                                  void (*csoundMessageCallback_)(CSOUND *, int32_t attr,
+  virtual void SetMessageCallback(void (*csoundMessageCallback_)(CSOUND *, int32_t attr,
                                                                  const char *format, va_list valist))
   {
     csoundSetMessageCallback(csound, csoundMessageCallback_);

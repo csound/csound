@@ -168,4 +168,5 @@ int32_t getRemoteInsRfdCount(CSOUND *csound);
 /* musmon: determine whether MIDI channel accepts remove events */
 int32_t getRemoteChnRfd(CSOUND *csound, int32_t chan);
 
+void    remote_cleanup(CSOUND *);
 #endif      /* CSOUND_REMOTE_H */

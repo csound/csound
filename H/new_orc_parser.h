@@ -1,7 +1,7 @@
 /*
-    linevent.h:
+    new_orc_parser.h: parser functions from bison
 
-    Copyright (C) 2001 matt ingalls
+    Copyright (C) 2007, 2017 by Steven Yi and John ffitch
 
     This file is part of Csound.
 
@@ -21,29 +21,17 @@
     02110-1301 USA
 */
 
-#ifndef CSOUND_LINEVENT_H
-#define CSOUND_LINEVENT_H
+void csound_orcrestart(FILE*, void *);
+void print_csound_predata(void *);
+int32_t csound_prelex_init(void *);
+void csound_preset_extra(void *, void *);
+int32_t csound_prelex(CSOUND*, void*);
+int32_t csound_prelex_destroy(void *);
+struct yy_buffer_state *csound_orc_scan_buffer(const char *, size_t, void*);
+int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
+int32_t csound_orclex_init(void *);
+void csound_orcset_extra(void *, void *);
+void csound_orcset_lineno(int32_t,  void*);
+int32_t csound_orclex_destroy(void *);
+TREE* csound_orc_optimize(CSOUND *, TREE *);
 
-/*****************************************************************/
-/* linevent                                                      */
-/* Dec 2001 by matt ingalls                                      */
-/*****************************************************************/
-typedef struct {
-    OPDS   h;
-    MYFLT  *args[VARGMAX];
-    int32_t argno;
-    int32_t flag;
-} LINEVENT;
-
-
-typedef struct {
-    OPDS   h;
-    INSTANCEREF *inst;
-    MYFLT  *args[VARGMAX];
-    int32_t argno;
-} LINEVENT2;
-
-
-int32_t play_instr(CSOUND *csound, LINEVENT2 *p);
-
-#endif      /* CSOUND_LINEVENT_H */

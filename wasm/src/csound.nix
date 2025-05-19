@@ -349,10 +349,11 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_prslex.c \
       ../Engine/csound_standard_types.c \
       ../Engine/csound_type_system.c \
-      ../Engine/entry1.c \
-      ../Engine/envvar.c \
+      ../Engine/entry.c \
+      ../Engine/environ.c \
       ../Engine/extract.c \
       ../Engine/fgens.c \
+      ../Engine/filesys.c \
       ../Engine/insert.c \
       ../Engine/srconvert.c \
       ../Engine/udo.c \
@@ -565,8 +566,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/wpfilters.c \
       ../Opcodes/zak.c \
       ../Top/argdecode.c \
-      ../Top/cscore_internal.c \
-      ../Top/cscorfns.c \
       ../Top/csdebug.c \
       ../Top/csmodule.c \
       ../Top/getstring.c \

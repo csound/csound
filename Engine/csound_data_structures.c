@@ -29,13 +29,8 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
     CS_HASH_TABLE* hashTable,
     char* key, void* value);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* FUNCTIONS FOR CONS_CELL */
-
-PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
+CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
     CONS_CELL* cell = csound->Malloc(csound, sizeof(CONS_CELL));
     cell->value = val;
     cell->next = cons;
@@ -43,7 +38,7 @@ PUBLIC CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons) {
     return cell;
 }
 
-PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
+CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
     if (cons1 == NULL) return cons2;
     if (cons2 == NULL) return cons1;
 
@@ -56,7 +51,7 @@ PUBLIC CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2) {
     return cons1;
 }
 
-PUBLIC int32_t cs_cons_length(CONS_CELL* head) {
+int32_t cs_cons_length(CONS_CELL* head) {
     CONS_CELL* current = head;
     int32_t count = 0;
     while (current != NULL) {
@@ -66,7 +61,7 @@ PUBLIC int32_t cs_cons_length(CONS_CELL* head) {
     return count;
 }
 
-PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head) {
+void cs_cons_free(CSOUND* csound, CONS_CELL* head) {
     CONS_CELL *current, *next;
 
     if (head == NULL) return;
@@ -81,7 +76,7 @@ PUBLIC void cs_cons_free(CSOUND* csound, CONS_CELL* head) {
 }
 
 
-PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
+void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
 
     CONS_CELL *current, *next;
 
@@ -99,7 +94,7 @@ PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
 
 /* FUNCTION FOR HASH SET */
 
-PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
+CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
     CS_HASH_TABLE* table =
       (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
     table->count = 0;
@@ -145,7 +140,7 @@ static uint32_t cs_name_hash(CS_HASH_TABLE* table, char *s)
     return (h % table->table_size);
 }
 
-PUBLIC void* cs_hash_table_get(CSOUND* csound,
+void* cs_hash_table_get(CSOUND* csound,
                                CS_HASH_TABLE* hashTable, char* key) {
     IGN(csound);
     uint32_t index;
@@ -240,19 +235,19 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
     return key;
 }
 
-PUBLIC void cs_hash_table_put(CSOUND* csound,
+void cs_hash_table_put(CSOUND* csound,
                               CS_HASH_TABLE* hashTable, char* key, void* value) {
     cs_hash_table_put_no_key_copy(csound, hashTable,
                                   cs_strdup(csound, key), value);
 }
 
-PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
+char* cs_hash_table_put_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
     return cs_hash_table_put_no_key_copy(csound, hashTable,
                                          cs_strdup(csound, key), NULL);
 }
 
-PUBLIC void cs_hash_table_remove(CSOUND* csound,
+void cs_hash_table_remove(CSOUND* csound,
                                  CS_HASH_TABLE* hashTable, char* key) {
     CS_HASH_TABLE_ITEM *previous, *item;
     uint32_t index;
@@ -282,7 +277,7 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound,
     }
 }
 
-PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     CONS_CELL* head = NULL;
 
     int32_t i = 0;
@@ -298,7 +293,7 @@ PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     return head;
 }
 
-PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     CONS_CELL* head = NULL;
 
     int32_t i = 0;
@@ -314,7 +309,7 @@ PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable)
     return head;
 }
 
-PUBLIC void cs_hash_table_merge(CSOUND* csound,
+void cs_hash_table_merge(CSOUND* csound,
                                 CS_HASH_TABLE* target, CS_HASH_TABLE* source) {
     // TODO - check if this is the best strategy for merging
     int32_t i = 0;
@@ -339,7 +334,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
 
 }
 
-PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     int32_t i;
 
     for (i = 0; i < hashTable->table_size; i++) {
@@ -355,7 +350,7 @@ PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     csound->Free(csound, hashTable);
 }
 
-PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 
     int32_t i;
 
@@ -373,7 +368,7 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
     csound->Free(csound, hashTable);
 }
 
-PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 
     int32_t i;
 
@@ -408,10 +403,3 @@ char *cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int32_t n)
     }
     return "";
 }
-
-
-
-
-#ifdef __cplusplus
-  extern "C" {
-#endif
