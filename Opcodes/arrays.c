@@ -4565,13 +4565,44 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
   return OK;
 }
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT *res;
+  MYFLT *asig;
+} A2ARR;
 
-// reverse, scramble, mirror, stutter, rotate, ...
-// jpff: stutter is an interesting one (very musical). It basically
-//          randomly repeats (holds) values based on a probability parameter
+int32_t asig2array_init(CSOUND *csound, A2ARR *p) {
+  int32_t nsmps = CS_KSMPS;
+  tabinit(csound, p->res, nsmps, p->h.insdshead);
+  return OK;
+}
+
+int32_t asig2array_perf(CSOUND *csound, A2ARR *p) {
+  size_t bytes = CS_KSMPS*sizeof(MYFLT);
+  memcpy(p->res->data, p->asig, bytes);
+  return OK;
+}
+
+typedef struct {
+  OPDS h;
+  MYFLT *asig;
+  ARRAYDAT *karr;
+} ARR2A;
+
+int32_t array2asig_perf(CSOUND *csound, ARR2A *p) {
+  size_t bytes = CS_KSMPS*sizeof(MYFLT);
+  size_t arrs = p->karr->sizes[0]*sizeof(MYFLT);
+  if(bytes > arrs) memset(p->asig, 0, bytes);
+  memcpy(p->asig, p->karr->data, bytes < arrs ? bytes : arrs);
+  return OK;
+}
+
 
 static OENTRY arrayvars_localops[] =
   {
+    { "array.a", sizeof(A2ARR), 0, "k[]", "a", (SUBR)asig2array_init,
+      (SUBR)asig2array_perf},
+    { "a.A", sizeof(ARR2A), 0, "a", "k[]", NULL, (SUBR)array2asig_perf},
     { "nxtpow2", sizeof(INOUT), 0, "i", "i", (SUBR)nxtpow2},
     { "init.i", sizeof(ARRAYINIT), 0, "i[]", "m", (SUBR)array_init },
     { "init.k", sizeof(ARRAYINIT), 0, "k[]", "m", (SUBR)array_init },
