@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+# cmake_minimum_required(VERSION 3.5)
 
 if (MINGW)
   add_custom_target(csdtests ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py --runtime-environment=wine --csound-executable=${CMAKE_BINARY_DIR}/csound --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} --source-dir=${CMAKE_CURRENT_SOURCE_DIR})

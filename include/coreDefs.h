@@ -84,10 +84,10 @@ static const uint32_t PHMASK = (1 << 24) - 1;
 #define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
-#define SSTRCOD    (double)NAN
+#define SSTRCOD    (double) NAN
 #else
   extern int32 MYNAN;
-#define SSTRCOD    (float)NAN
+#define SSTRCOD    (float) NAN
 #endif
 #define SSTRSIZ    1024
 #define ALLCHNLS   0x7fff

@@ -216,6 +216,7 @@ option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
 option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
+option(USE_ASA  "Use address sanitizer in Debug build" ON)
 
 # secret rabbit code
 if (USE_VCPKG)
@@ -303,8 +304,15 @@ if(NOT MSVC AND NOT WASM)
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32 -Wpointer-sign")
                 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32 -Wpointer-sign")
             else()
-                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32 -Wpointer-sign -fsanitize=address")
-                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32 -Wpointer-sign -fsanitize=address")
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshorten-64-to-32 -Wpointer-sign")
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32 -Wpointer-sign")
+               if(USE_ASA)
+                message(STATUS  "using address sanitizer")
+                set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wshorten-64-to-32 -fsanitize=address")
+                else()
+                message(STATUS  "not using address sanitizer")
+               endif()
             endif()        
         endif()        
     endif()
@@ -744,8 +752,6 @@ set(libcsound_SRCS
     Top/csound.c
     Top/argdecode.c
     Top/csdebug.c
-    Top/cscore_internal.c
-    Top/cscorfns.c
     Top/csmodule.c
     Top/getstring.c
     Top/main.c
@@ -759,10 +765,11 @@ set(libcsound_SRCS
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
-    Engine/entry1.c
-    Engine/envvar.c
+    Engine/entry.c
     Engine/extract.c
+    Engine/environ.c
     Engine/fgens.c
+    Engine/filesys.c
     Engine/insert.c
     Engine/srconvert.c
     Engine/udo.c
@@ -802,6 +809,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/inst_ops.c
     OOps/lpred.c
     OOps/pffft.c
     OOps/goto_ops.c

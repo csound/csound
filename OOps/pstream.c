@@ -384,7 +384,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
       strNcpy(pvfilnam, get_arg_string(csound, *p->ifilno), MAXNAME-1);
     else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 
-    if (UNLIKELY(PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {
+    if (UNLIKELY(load_PVOCEX_file(csound, pvfilnam, &pp) != 0)) {
       return csound->InitError(csound, Str("Failed to load PVOC-EX file"));
     }
     p->ptr = 0;

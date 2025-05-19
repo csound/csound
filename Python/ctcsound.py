@@ -275,7 +275,7 @@ libcsound.csoundCompileOrc.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
 libcsound.csoundEvalCode.restype = MYFLT
 libcsound.csoundEvalCode.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundCompileCSD.restype = ct.c_int32
-libcsound.csoundCompileCSD.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
+libcsound.csoundCompileCSD.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32, ct.c_int32]
 libcsound.csoundStart.restype = ct.c_int32
 libcsound.csoundStart.argtypes = [CSOUND_p]
 libcsound.csoundPerformKsmps.restype = ct.c_int32
@@ -789,8 +789,9 @@ class Csound:
         """
         return libcsound.csoundEvalCode(self.cs, cstring(code))
 
-    def compile_csd(self, csd, mode):
-        """Compiles a Csound input file (.csd file) or a text string.
+    def compile_csd(self, csd, mode, async_ = False):
+        """Compiles a Csound input file (.csd file) or a text string,
+        in synchronous or asynchronous (async_ = True) mode.
 
         Returns a non-zero error code on failure.
 
@@ -832,7 +833,7 @@ class Csound:
         This is convenient when it is desirable to package the csd as part of
         an application or a multi-language piece.
         """
-        return libcsound.csoundCompileCSD(self.cs, cstring(csd), ct.c_int32(mode))
+        return libcsound.csoundCompileCSD(self.cs, cstring(csd), ct.c_int32(mode), ct.c_int32(async))
 
     def start(self):
         """Prepares Csound for performance.

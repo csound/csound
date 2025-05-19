@@ -136,7 +136,7 @@ void *mmalloc(CSOUND *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mmallocDebug(CSOUND *csound, size_t size, char *file, int32_t line)
+void *mmalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
     void *ans = mmalloc(csound,size);
     csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
@@ -175,7 +175,7 @@ void *mcalloc(CSOUND *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mcallocDebug(CSOUND *csound, size_t size, char *file, int32_t line)
+void *mcalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
     void *ans = mcalloc(csound,size);
     csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
@@ -220,7 +220,7 @@ void mfree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINUNLOCK
 }
 
-void mfreeDebug(CSOUND *csound, void *ans, char *file, int32_t line)
+void mfree_debug(CSOUND *csound, void *ans, char *file, int32_t line)
 {
     printf("Free %p %s:%d\n", ans, file, line);
     mfree(csound,ans);
@@ -286,14 +286,14 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     return DATA_PTR(pp);
 }
 
-void *mreallocDebug(CSOUND *csound, void *oldp, size_t size, char *file, int32_t line)
+void *mrealloc_debug(CSOUND *csound, void *oldp, size_t size, char *file, int32_t line)
 {
     void *p = mrealloc(csound, oldp, size);
     csound->DebugMsg(csound, "Realloc %p->%p (%zu) %s:%d\n", oldp, p, size, file, line);
     return p;
 }
 
-void memRESET(CSOUND *csound)
+void memreset(CSOUND *csound)
 {
     memAllocBlock_t *pp, *nxtp;
 

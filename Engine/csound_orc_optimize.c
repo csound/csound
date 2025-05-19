@@ -24,8 +24,8 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
-extern void print_tree(CSOUND *csound, char*, TREE *l);
-extern void delete_tree(CSOUND *csound, TREE *l);
+#include "csound_orc_semantics.h"
+#include "aops.h"
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {
@@ -181,7 +181,6 @@ static inline int32_t same_type(char *var, char ty)
 /* Called directly from the parser; constant fold and some alebraic identities */
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {
-    extern MYFLT MOD(MYFLT, MYFLT);
     TREE* current = root;
     while (current) {
       switch (current->type) {

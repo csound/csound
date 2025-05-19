@@ -23,7 +23,7 @@
 
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
-#include "insert.h"
+#include "udo.h"
 
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {

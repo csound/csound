@@ -151,7 +151,7 @@ static void spoutsf_noscale(CSOUND *csound)
 }
 
 /* diskfile write option for audtran's */
-/*      assigned during sfopenout()    */
+/*      assigned during sf_open_out()    */
 
 static void writesf(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
@@ -178,7 +178,7 @@ static void writesf(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
         {
           char    s[512];
           CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->icurTime/csound->esr, &n);
+                  csound->icurTimeSamples/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -232,7 +232,7 @@ static void writesf_dither_16(CSOUND *csound, const MYFLT *outbuf, int32_t nbyte
         {
           char    s[512];
           CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->icurTime/csound->esr, &n);
+                  csound->icurTimeSamples/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -286,7 +286,7 @@ static void writesf_dither_8(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes
         {
           char    s[512];
           CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->icurTime/csound->esr, &n);
+                  csound->icurTimeSamples/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -338,7 +338,7 @@ static void writesf_dither_u16(CSOUND *csound, const MYFLT *outbuf, int32_t nbyt
         {
           char    s[512];
           CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->icurTime/csound->esr, &n);
+                  csound->icurTimeSamples/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -391,7 +391,7 @@ static void writesf_dither_u8(CSOUND *csound, const MYFLT *outbuf, int32_t nbyte
         {
           char    s[512];
           CS_SPRINTF(s, "%ld(%.3f)%n", (long) csound->nrecs,
-                  csound->icurTime/csound->esr, &n);
+                  csound->icurTimeSamples/csound->esr, &n);
           if (n > 0) {
             memset(&(s[n]), '\b', n);
             s[n + n] = '\0';
@@ -461,7 +461,7 @@ int32_t check_rtaudio_name(char *fName, char **devName, int32_t isOutput)
     return -1;
 }
 
-void sfopenin(CSOUND *csound)           /* init for continuous soundin */
+void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
 {
    OPARMS  *O = csound->oparms;
     char    *sfname, *fullName;
@@ -601,7 +601,7 @@ static char* copyrightcode(int32_t n)
       return a[n];
 }
 
-void sfopenout(CSOUND *csound)                  /* init for sound out       */
+void sf_open_out(CSOUND *csound)                  /* init for sound out       */
 {                                               /* (not called if nosound)  */
    OPARMS  *O = csound->oparms;
     char    *s, *fName, *fullName;
@@ -904,7 +904,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     STA(outbufrem) = O->outbufsamps;
 }
 
-void sfclosein(CSOUND *csound)
+void sf_close_in(CSOUND *csound)
 {
     alloc_globals(csound);
     if (!STA(isfopen))
@@ -927,7 +927,7 @@ void sfclosein(CSOUND *csound)
     STA(isfopen) = 0;
 }
 
-void sfcloseout(CSOUND *csound)
+void sf_close_out(CSOUND *csound)
 {
    OPARMS  *O = csound->oparms;
     int32_t     nb;
@@ -991,11 +991,11 @@ static void sndwrterr(CSOUND *csound, int32_t nret, int32_t nput)
     csound->ErrorMsg(csound,
                      Str("(disk may be full...\n closing the file ...)"));
     STA(outbufrem) = csound->oparms->outbufsamps;  /* consider buf is flushed */
-    sfcloseout(csound);                           /* & try to close the file */
+    sf_close_out(csound);                           /* & try to close the file */
     csound->Die(csound, Str("\t... closed\n"));
 }
 
-void sfnopenout(CSOUND *csound)
+void sf_open_nosound(CSOUND *csound)
 {
     alloc_globals(csound);
     csound->Message(csound, Str("not writing to sound disk\n"));
@@ -1052,7 +1052,7 @@ static void audtran_dummy(CSOUND *csound, const MYFLT *buf, int32_t nbytes)
 /* direct recv & tran calls to the right audio formatter  */
 /*                            & init its audio_io bufptr  */
 
-void iotranset(CSOUND *csound)
+void set_io_backend(CSOUND *csound)
 {
    OPARMS  *O;
 

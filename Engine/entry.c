@@ -1,7 +1,7 @@
 /*
-  entry1.c:
+  entry.c:
 
-  Copyright (C) 1991 Barry Vercoe, John ffitch
+  Copyright (C) 1991-2025 Barry Vercoe, John ffitch, Victor Lazzarini, Steven Yi
 
   This file is part of Csound
 
@@ -21,7 +21,7 @@
   02110-1301 USA
 */
 
-#include "entry1.h"             /*                      ENTRY1.C        */
+#include "entry.h"          
 #include "interlocks.h"
 
 /* inarg types include the following:
@@ -87,7 +87,7 @@ OENTRY opcodlst_1[] = {
   { "declare", 0,    0,            "",     "",   NULL, NULL, NULL, NULL },
   { "$label", S(LBLBLK),  0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,      "",     "m",  NULL, NULL, NULL, NULL },
-  { "##userOpcode", S(UOPCODE),0,  "", "", useropcdset, useropcd, NULL, NULL },
+  { "##userOpcode", S(UOPCODE),0,  "", "", (SUBR) useropcdset, (SUBR) useropcd, NULL, NULL },
   { "xin",  S(XIN_MAX),0,     "****************", "",  xinset,  NULL, NULL, NULL },
   { "xout", S(XOUT_MAX),0,    "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,    "",   "i", setksmpsset, NULL, NULL },
@@ -147,7 +147,7 @@ OENTRY opcodlst_1[] = {
   { "instrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
   { "nstrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
   { "opcodeinfo", S(OPINFO) ,0,  "", ":OpcodeDef;", (SUBR) opcode_info},
-  { "=.opcd", S(ASSIGN), 0, ":OpcodeDef;", ":OpcodeDef;", (SUBR) copyVarGeneric},
+  { "=.opcd", S(ASSIGN), 0, ":OpcodeDef;", ":OpcodeDef;", (SUBR) copy_var_generic},
   { "init.opcd", S(ASSIGN), 0, ":OpcodeDef;", "S", (SUBR) opcode_ref},
   { "opcoderef", S(ASSIGN), 0, ":OpcodeDef;", "S", (SUBR) opcode_ref},
   { "create", S(AOP),0,  ":Opcode;", ":OpcodeDef;o", (SUBR) create_opcode_simple},
@@ -163,7 +163,7 @@ OENTRY opcodlst_1[] = {
   { "perf", S(OPRUN), 0, "*", ":Opcode;*", NULL, (SUBR) opcode_object_perf},
   { "setp", S(AOP), 0, "", ":Opcode;k.", NULL, (SUBR) set_opcode_param },
   { "getp", S(AOP), 0, ".", ":Opcode;k", NULL, (SUBR) get_opcode_output },
-  { "init.instr", S(ASSIGN) ,0,  ":InstrDef;", ":InstrDef;", (SUBR) copyVarGenericInit},
+  { "init.instr", S(ASSIGN) ,0,  ":InstrDef;", ":InstrDef;", (SUBR) copy_var_generic_init},
   { "floatsize", S(ASSIGN) ,0, "i", "", myflt_size },
   /* VL 4.4.24 removing thread field:
      These boolean were all marked thread 0, with both init and perf functions.
@@ -663,7 +663,7 @@ OENTRY opcodlst_1[] = {
   { "readks.i", S(KREADS),0,        "S",    "ii",    krdsset_p, kreads     },
   { "xyin",   S(XYIN), _QQ,       "kk",   "iiiiioo",xyinset,NULL          },
   { "tempest",  S(TEMPEST),0,     "k","kiiiiiiiiiop",tempeset,tempest},
-  { "tempo",    S(TEMPO),0,       "",     "ki",   tempset,tempo           },
+  { "tempo",    S(TEMPO),0,       "",     "ki",   tempo_set,tempo           },
   { "pow.i",    S(POW),0,         "i",    "iip",  ipow,    NULL,  NULL    },
   { "pow.k",    S(POW),0,          "k",    "kkp",  NULL,    ipow,  NULL    },
   { "pow.a",    S(POW),0,          "a",    "akp",  NULL,  apow    },
@@ -958,12 +958,12 @@ OENTRY opcodlst_1[] = {
   { "schedkwhennamed.S", S(TRIGINSTR),0, "",
     "kkkSkz",triginset_S, ktriginstr_S, NULL },
   { "trigseq", S(TRIGSEQ),0,      "",     "kkkkkz", trigseq_set, trigseq, NULL },
-  { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, eventOpcode_Instr, NULL   },
-  { "event", S(LINEVENT),0,        "",     "Skz",  NULL, eventOpcode, NULL   },
-  { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  eventOpcodeI_Instr, NULL, NULL  },
-  { "event_i", S(LINEVENT),0,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
-  { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, eventOpcode_S, NULL   },
-  { "event_i.S", S(LINEVENT),0,     "",    "SSm",  eventOpcodeI_S, NULL, NULL  },
+  { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, event_opcode_Instr, NULL   },
+  { "event", S(LINEVENT),0,        "",     "Skz",  NULL, event_opcode, NULL   },
+  { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL  },
+  { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL  },
+  { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
+  { "event_i.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL  },
   { "play", S(LINEVENT2), 0,  ":Instr;", ":InstrDef;m", (SUBR) play_instr, NULL, NULL },
   { "pause", S(PAUSE_INSTR), 0,  "", ":Instr;k", NULL, (SUBR) pause_instance_opcode,  NULL },
   { "create", S(CREATE_INSTANCE), 0,  ":Instr;", ":InstrDef;", (SUBR) create_instance_opcode, NULL, NULL },
@@ -973,25 +973,25 @@ OENTRY opcodlst_1[] = {
   { "delete", S(DEL_INSTR), 0,  "", ":Instr;", NULL, NULL, (SUBR) delete_instance_opcode },
   { "getinstance", S(DEL_INSTR), 0,  ":Instr;", "", (SUBR) get_instance, NULL, NULL },
   { "splice", S(SPLICE_INSTR), 0,  "i", ":Instr;:Instr;i", (SUBR) splice_instance, NULL, NULL },  
-  { "schedule.instri", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instanceOpcode_Instr, NULL, NULL  },
-  { "schedule.instrk", S(LINEVENT2),0,    ":Instr;",  ":InstrDef;kz",  NULL, instanceOpcode_Instr, NULL   },
-  { "schedule.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "schedule.k", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "schedule.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "schedule.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instanceOpcode_S, NULL },
+  { "schedule.instri", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instance_opcode_Instr, NULL, NULL  },
+  { "schedule.instrk", S(LINEVENT2),0,    ":Instr;",  ":InstrDef;kz",  NULL, instance_opcode_Instr, NULL   },
+  { "schedule.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instance_opcode_, NULL, NULL  },
+  { "schedule.k", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instance_opcode_, NULL   },
+  { "schedule.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instance_opcode_S, NULL, NULL},
+  { "schedule.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instance_opcode_S, NULL },
   /* START DEPRECATED */
-  { "nstance", S(LINEVENT2),0,      "k",  ":InstrDef;kz",  NULL, instanceOpcode_Instr, NULL   },
-  { "nstance", S(LINEVENT2),0,      "k",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "nstance.instr", S(LINEVENT2),0,   "i",  ":InstrDef;iim",  instanceOpcode_Instr, NULL, NULL  },
-  { "nstance.instr", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instanceOpcode_Instr, NULL, NULL  },
-  { "nstance", S(LINEVENT2),0,      ":Instr;",  ":InstrDef;kz",  NULL, instanceOpcode_Instr, NULL   },
-  { "nstance.i", S(LINEVENT2),0,   "i",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "nstance.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instanceOpcode, NULL, NULL  },
-  { "nstance", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instanceOpcode, NULL   },
-  { "nstance.kS", S(LINEVENT2),0,   "k",  "SSz",  NULL, instanceOpcode_S, NULL },
-  { "nstance.S", S(LINEVENT2),0,   "i",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "nstance.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instanceOpcode_S, NULL, NULL},
-  { "nstance.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instanceOpcode_S, NULL },
+  { "nstance", S(LINEVENT2),0,      "k",  ":InstrDef;kz",  NULL, instance_opcode_Instr, NULL   },
+  { "nstance", S(LINEVENT2),0,      "k",  "kkz",  NULL, instance_opcode_, NULL   },
+  { "nstance.instr", S(LINEVENT2),0,   "i",  ":InstrDef;iim",  instance_opcode_Instr, NULL, NULL  },
+  { "nstance.instr", S(LINEVENT2),0,   ":Instr;",  ":InstrDef;iim",  instance_opcode_Instr, NULL, NULL  },
+  { "nstance", S(LINEVENT2),0,      ":Instr;",  ":InstrDef;kz",  NULL, instance_opcode_Instr, NULL   },
+  { "nstance.i", S(LINEVENT2),0,   "i",  "iiim",  instance_opcode_, NULL, NULL  },
+  { "nstance.i", S(LINEVENT2),0,   ":Instr;",  "iiim",  instance_opcode_, NULL, NULL  },
+  { "nstance", S(LINEVENT2),0,      ":Instr;",  "kkz",  NULL, instance_opcode_, NULL   },
+  { "nstance.kS", S(LINEVENT2),0,   "k",  "SSz",  NULL, instance_opcode_S, NULL },
+  { "nstance.S", S(LINEVENT2),0,   "i",  "Siim",  instance_opcode_S, NULL, NULL},
+  { "nstance.S", S(LINEVENT2),0,   ":Instr;",  "Siim",  instance_opcode_S, NULL, NULL},
+  { "nstance.kS", S(LINEVENT2),0,   ":Instr;",  "SSz",  NULL, instance_opcode_S, NULL },
   { "turnoff.i", S(KILLOP),0,     "",     "i", kill_instance, NULL, NULL  },
   { "turnoff.k", S(KILLOP),0,      "",     "k", NULL, kill_instance, NULL},
   { "turnoff.k", S(KILLOP),0,      "",     "kk", NULL, (SUBR) kill_instancek, NULL},
@@ -1040,9 +1040,11 @@ OENTRY opcodlst_1[] = {
   { "midiin",   S(MIDIIN),0,      "kkkk", "",      midiin_set, midiin, NULL },
   { "pgmchn",   S(PGMIN),0,       "kk",   "o",     pgmin_set, pgmin, NULL },
   { "ctlchn",   S(CTLIN),0,       "kkk",  "oo",    ctlin_set, ctlin, NULL },
-  { "miditempo", S(MIDITEMPO),0,  "k",    "",
-    (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
-  { "midifilestatus", S(MIDITEMPO),0,   "k",    "",
+  { "miditempo", S(MIDITEMPO),0,  "i",    "o",
+    (SUBR) midiTempoOpcode, NULL, NULL    },
+  { "miditempo", S(MIDITEMPO),0,  "k",    "o",
+    NULL, (SUBR) midiTempoOpcode, NULL    },
+  { "midifilestatus", S(MIDITEMPO),0,   "k",    "o",
     NULL, (SUBR) midiFileStatus, NULL },
   { "midinoteoff", S(MIDINOTEON),0   ,"", "xx",   midinoteoff, midinoteoff, },
   { "midinoteonkey", S(MIDINOTEON),0, "", "xx",   midinoteonkey, midinoteonkey },
@@ -1110,7 +1112,7 @@ OENTRY opcodlst_1[] = {
   { "cngoto", S(CGOTO),0,         "",     "Bl",   ingoto, kngoto, NULL     },
   { "cnkgoto", S(CGOTO),0,          "",     "Bl",   NULL,  kngoto, NULL     },
   { "cingoto", S(CGOTO),0,         "",     "Bl",   ingoto, NULL, NULL     },
-  { "tempoval", S(GTEMPO),0,    "k", "",      NULL, (SUBR)gettempo, NULL    },
+  { "tempoval", S(GTEMPO),0,    "k", "",      NULL, (SUBR)get_tempo, NULL    },
   { "downsamp",S(DOWNSAMP),0, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
   { "upsamp", S(UPSAMP),0,     "a", "k",    NULL,   (SUBR)upsamp        },
   /* IV - Sep 5 2002 */
@@ -1388,8 +1390,8 @@ OENTRY opcodlst_1[] = {
   { "passign.i", S(PAINIT), 0,  "i[]", "po",  (SUBR)painit,    NULL, NULL },
   { "passign.k", S(PAINIT), 0,  "k[]", "po",  (SUBR)painit,    NULL, NULL },
   /* ----------------------------------------------------------------------- */
-  { "=.generic", S(ASSIGN), 0, ".", ".", (SUBR)copyVarGenericInit,
-    (SUBR)copyVarGeneric, NULL},
+  { "=.generic", S(ASSIGN), 0, ".", ".", (SUBR)copy_var_generic_init,
+    (SUBR)copy_var_generic, NULL},
   { "monitor",  sizeof(MONITOR_OPCODE), IB,   "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   { "outrg", S(OUTRANGE), IR, "", "ky",
@@ -1622,6 +1624,22 @@ OENTRY opcodlst_1[] = {
     "SS", NULL, (SUBR) readOSC_perf},
   { "OSClisten", S(ROSCA), 0, "kk[]",
     "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf},
+  { "midifileopen", S(MFILE), 0, "i", "So", midi_file_opcode},
+  { "midifileplay", S(MFILE), 0, "", "o", midi_file_play},
+  { "midifilepause", S(MFILE), 0, "", "o", midi_file_pause},
+  { "midifilemute", S(MFILE), 0, "", "o", midi_file_mute},
+  { "midifilerewind", S(MFILE), 0, "", "o", midi_file_rewind},
+  { "midifilelen", S(MFILE), 0, "i", "o", midi_file_len},
+  { "midifiletempo", S(MIDITEMPO), 0, "", "io", midi_set_tempo},
+  { "midifiletempo", S(MIDITEMPO), 0, "", "ko", NULL, midi_set_tempo},
+  { "midifilepos", S(MIDITEMPO), 0, "", "io", midi_set_pos},
+  { "midifilepos", S(MIDITEMPO), 0, "", "ko", NULL, midi_set_pos},
+  { "midifilepos", S(MIDITEMPO), 0, "i", "o", midi_get_pos},
+  { "midifilepos", S(MIDITEMPO), 0, "k", "o", NULL, midi_get_pos},
+  { "midifilevents", S(MIDITEMPO), 0, "i", "o", midi_file_get_number_events},
+  { "midifilein", S(MIDIFEVT), 0, "iiiii", "io",midi_file_get_event},
+  { "midifilein", S(MIDIFEVT), 0, "kkkkk", "ko", NULL, midi_file_get_event},
+  { "eventtype", S(MIDIKMB), 0, "i", "", event_type},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

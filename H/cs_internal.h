@@ -1,5 +1,5 @@
 /*
-  csInternal.h: csound internal data structures
+  cs_internal.h: csound internal data structures
 
   Copyright (C) 1991-2024 
 
@@ -26,10 +26,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-/* The definitions and declarations in this section 
-   are not available externally to plugins.
-*/
-#ifdef __BUILDING_LIBCSOUND
+  
     typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
@@ -164,7 +161,8 @@ extern "C" {
 #include "text.h"
 #include "prototyp.h"
 #include "cwindow.h"
-#include "envvar.h"
+#include "filesys.h"
+#include "environ.h"
 #include "remote.h"
 
   /**
@@ -282,8 +280,6 @@ extern "C" {
       int16   sectno;
       int32_t     lplayed;
       int32_t     segamps, sormsg;
-      EVENT   **ep, **epend;      /* pointers for stepping through lplay list */
-      EVENT   *lsect;
    };
 
    struct libsndStatics__ {
@@ -304,10 +300,13 @@ extern "C" {
       FILE    *pin, *pout;
       int32_t dither;
    };
-   
 
-#endif  /* __BUILDING_LIBCSOUND */
-  
+  typedef struct evt_cb_func {
+  void    (*func)(CSOUND *, void *);
+  void    *userData;
+  struct evt_cb_func  *nxt;
+} EVT_CB_FUNC;
+     
 #ifdef __cplusplus
 }
 #endif /*  __cplusplus */

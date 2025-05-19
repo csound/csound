@@ -34,36 +34,21 @@
 #include "csound_standard_types.h"
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_compile.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 # define strtok_r strtok_s
 #endif
 
-CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable); 
-extern char *csound_orcget_text ( void *scanner );
+static CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable);
 static int32_t is_label(char* ident, CONS_CELL* labelList);
-extern uint64_t csound_orcget_locn(void *);
-extern  int32_t tree_arg_list_count(TREE *);
-void print_tree(CSOUND *, char *, TREE *);
-char *remove_type_quoting(CSOUND *csound, const char *outype);
+static char* convert_internal_to_external(CSOUND* csound, char* arg);
+static int32_t is_reserved(char*);
 
-/* from csound_orc_compile.c */
-extern int32_t argsRequired(char* arrayName);
-extern char** splitArgs(CSOUND* csound, char* argString);
-OENTRIES* find_opcode2(CSOUND*, char*);
-char* resolve_opcode_get_outarg(CSOUND* csound,
-                                OENTRIES* entries, char* inArgTypes);
-int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable);
-char* convert_internal_to_external(CSOUND* csound, char* arg);
-char* convert_external_to_internal(CSOUND* csound, char* arg);
-void do_baktrace(CSOUND *csound, uint64_t files);
-
-extern int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
+char *csound_orcget_text ( void *scanner );
+uint64_t csound_orcget_locn(void *);
+int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                               char *outtypes, char *intypes, int32_t flags);
-extern TREE * create_opcode_token(CSOUND *csound, char* op);
-int32_t is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
@@ -245,9 +230,9 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
   return NULL;
 }
 
-static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
+static int32_t is_irate(/*CSOUND *csound,*/ TREE *t)
 {                  /* check that argument is an i-rate constant or variable */
-  //print_tree(csound, "isirate",  t);
+  //print_tree(csound, "is_irate",  t);
   if (t->type == INTEGER_TOKEN) {
     //printf("integer case\n");
     return 1;
@@ -261,10 +246,10 @@ static int32_t isirate(/*CSOUND *csound,*/ TREE *t)
     return 1;
   }
   else if (t->type == T_ARRAY) {
-    if (isirate(t->right)==0) return 0;
+    if (is_irate(t->right)==0) return 0;
     t = t->next;
     while (t) {
-      if (isirate(t)==0) return 0;
+      if (is_irate(t)==0) return 0;
       t = t->next;
     }
     return 1;
@@ -411,7 +396,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         print_tree(csound, "i()", tree);
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
-          isirate(tree->right->right)) {
+          is_irate(tree->right->right)) {
         synterr(csound, Str("Use of i() with array element ill formed\n"));
       }
       else
@@ -443,8 +428,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return NULL;
       }
 
-      if (argsRequired(out) == 1) {
-        char** args = splitArgs(csound, out);
+      if (args_required(out) == 1) {
+        char** args = split_args(csound, out);
         char *ret = cs_strdup(csound, args[0]);
         csound->Free(csound, argTypeRight);
         csound->Free(csound, entries);
@@ -905,33 +890,33 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
   }
 
   {
-    int32_t argsFoundCount = argsRequired(inArgsFound);
-    int32_t argsRequiredCount = argsRequired(opInArgs);
-    char** argsRequired = splitArgs(csound, opInArgs);
+    int32_t argsFoundCount = args_required(inArgsFound);
+    int32_t args_requiredCount = args_required(opInArgs);
+    char** args_required = split_args(csound, opInArgs);
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
     char* varArg = NULL;
     int32_t returnVal = 1;
 
-    if (argsRequired == NULL) {
+    if (args_required == NULL) {
       return 0;
     }
     if (argsFoundCount>=VARGMAX) {
       return -1;
     }
 
-    if ((argsFoundCount > argsRequiredCount) &&
-        !(is_in_var_arg(argsRequired[argsRequiredCount - 1]))) {
-      csound->Free(csound, argsRequired);
+    if ((argsFoundCount > args_requiredCount) &&
+        !(is_in_var_arg(args_required[args_requiredCount - 1]))) {
+      csound->Free(csound, args_required);
       return 0;
     }
 
-    argsFound = splitArgs(csound, inArgsFound);
+    argsFound = split_args(csound, inArgsFound);
 
     if (argsFoundCount == 0) {
-      if (is_in_var_arg(argsRequired[0])) {
-        varArg = argsRequired[0];
+      if (is_in_var_arg(args_required[0])) {
+        varArg = args_required[0];
       }
     } else {
       for (i = 0; i < argsFoundCount; i++) {
@@ -943,7 +928,7 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
             break;
           }
         } else {
-          char* argRequired = argsRequired[argTypeIndex++];
+          char* argRequired = args_required[argTypeIndex++];
           if (!check_in_arg(argFound, argRequired)) {
             returnVal = 0;
             break;
@@ -956,8 +941,8 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
     }
 
     if (returnVal && varArg == NULL) {
-      while (argTypeIndex < argsRequiredCount) {
-        char* c = argsRequired[argTypeIndex++];
+      while (argTypeIndex < args_requiredCount) {
+        char* c = args_required[argTypeIndex++];
 
         if (!is_in_optional_arg(c) && !is_in_var_arg(c)) {
           returnVal = 0;
@@ -972,10 +957,10 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       csound->Free(csound, argsFound[n]);
     }
     csound->Free(csound, argsFound);
-    for (n=0; argsRequired[n] != NULL; n++) {
-      csound->Free(csound, argsRequired[n]);
+    for (n=0; args_required[n] != NULL; n++) {
+      csound->Free(csound, args_required[n]);
     }
-    csound->Free(csound, argsRequired);
+    csound->Free(csound, args_required);
 
     return returnVal;
   }
@@ -1044,9 +1029,9 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
   }
 
   {
-    int32_t argsFoundCount = argsRequired(outArgsFound);
-    int32_t argsRequiredCount = argsRequired(opOutArgs);
-    char** argsRequired = splitArgs(csound, opOutArgs);
+    int32_t argsFoundCount = args_required(outArgsFound);
+    int32_t argsRequiredCount = args_required(opOutArgs);
+    char** argsRequired = split_args(csound, opOutArgs);
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
@@ -1059,7 +1044,7 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
       return 0;
     }
 
-    argsFound = splitArgs(csound, outArgsFound);
+    argsFound = split_args(csound, outArgsFound);
 
     for (i = 0; i < argsFoundCount; i++) {
       char* argFound = argsFound[i];
@@ -1125,7 +1110,7 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
-                argsRequired(inArgTypes), temp->opname, VARGMAX);
+                args_required(inArgTypes), temp->opname, VARGMAX);
 
       return temp;
     }
@@ -1172,7 +1157,7 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
 
 /* Converts internal array specifier from [[a] to a[][].
    Used by get_arg_string_from_tree to create an arg string that is
-   compatible with the ones found in OENTRY's.  splitArgs converts back
+   compatible with the ones found in OENTRY's.  split_args converts back
    to internal representation. */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int32_t i = 0, dimensions;
@@ -2740,10 +2725,6 @@ int32_t csound_orcwrap(void* dummy)
   return (1);
 }
 
-/* UTILITY FUNCTIONS */
-
-extern int32_t csound_orcget_lineno(void*);
-extern char *csound_orcget_current_pointer(void *);
 /* BISON PARSER FUNCTION */
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)
@@ -2791,7 +2772,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
  * down  list to append at end; checks for NULL's and returns
  * appropriate nodes
  */
-TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast)
+TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast)
 {
   IGN(csound);
   TREE *current;
@@ -3281,8 +3262,8 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                      __LINE__);
     }
     if (ep->intypes != NULL) {
-      nreqd = argsRequired(ep->intypes);
-      inArgParts = splitArgs(csound, ep->intypes);
+      nreqd = args_required(ep->intypes);
+      inArgParts = split_args(csound, ep->intypes);
     }
 
     if (UNLIKELY(PARSER_DEBUG)) {
@@ -3299,7 +3280,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_int(csound, "0"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'P':
         case 'p':
@@ -3307,14 +3288,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_int(csound, "1"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "10"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
 
         case 'V':
@@ -3323,14 +3304,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_num(csound, ".5"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
                            make_int(csound, "127"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'J':
         case 'j':
@@ -3338,7 +3319,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
                            make_int(csound, "-1"));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
-          else appendToTree(csound, l->right, temp);
+          else append_to_tree(csound, l->right, temp);
           break;
         case 'M':
         case 'N':
@@ -3367,7 +3348,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 }
 
 
-CS_VARIABLE *addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState,
+CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
                                CS_TYPE *type, char *name, void *typeArg);
 void add_instr_variable(CSOUND *csound,  TREE *x) {
   /* add instr variable to engine varpool 
@@ -3376,7 +3357,7 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
   if (x->type == T_IDENT) {
     
     char *varname = x->value->lexeme;
-    CS_VARIABLE *var = addGlobalVariable(csound, &csound->engineState,
+    CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
                                          (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)

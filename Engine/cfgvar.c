@@ -234,8 +234,7 @@ static int32_t cfg_alloc_structure(CSOUND* csound,
  * csoundCreateGlobalConfigurationVariable().
  */
 
-PUBLIC int
-  csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
+int csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
                                     void *p, int32_t type, int32_t flags,
                                     void *min, void *max,
                                     const char *shortDesc,
@@ -327,7 +326,7 @@ static int32_t set_cfgvariable_value(csCfgVariable_t *pp, void *value)
  * in the case of csoundSetGlobalConfigurationVariable().
  */
 
-PUBLIC int32_t csoundSetConfigurationVariable(CSOUND *csound,
+int32_t csoundSetConfigurationVariable(CSOUND *csound,
                                               const char *name, void *value)
 {
     csCfgVariable_t *pp;
@@ -394,7 +393,7 @@ static int32_t parse_cfg_variable(csCfgVariable_t *pp, const char *value)
  * in the case of csoundParseGlobalConfigurationVariable().
  */
 
-PUBLIC int32_t csoundParseConfigurationVariable(CSOUND *csound, const char *name,
+int32_t csoundParseConfigurationVariable(CSOUND *csound, const char *name,
                                                     const char *value)
 {
     csCfgVariable_t *pp;
@@ -412,14 +411,15 @@ PUBLIC int32_t csoundParseConfigurationVariable(CSOUND *csound, const char *name
  * The return value may be NULL if the variable is not found in the database.
  */
 
-PUBLIC csCfgVariable_t
-    *csoundQueryConfigurationVariable(CSOUND *csound, const char *name)
+csCfgVariable_t *csoundQueryConfigurationVariable(CSOUND *csound,
+                                                  const char *name)
 {
     if (csound->cfgVariableDB == NULL) {
         return NULL;
     }
     return (csCfgVariable_t*) cs_hash_table_get(csound,
-                                                csound->cfgVariableDB, (char*)name);
+                                                csound->cfgVariableDB,
+                                                (char*)name);
 }
 
 /* compare function for qsort() */
@@ -472,7 +472,7 @@ static csCfgVariable_t **list_db_entries(CSOUND* csound, CS_HASH_TABLE *db)
  * should not be freed.
  */
 
-PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
+csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
 {
     return (list_db_entries(csound, csound->cfgVariableDB));
 }
@@ -483,7 +483,7 @@ PUBLIC csCfgVariable_t **csoundListConfigurationVariables(CSOUND *csound)
  * csoundListConfigurationVariables().
  */
 
-PUBLIC void csoundDeleteCfgVarList(CSOUND* csound, csCfgVariable_t **lst)
+void csoundDeleteCfgVarList(CSOUND* csound, csCfgVariable_t **lst)
 {
     if (lst != NULL)
       csound->Free(csound, lst);
@@ -512,7 +512,7 @@ static int32_t remove_entry_from_db(CSOUND* csound, CS_HASH_TABLE *db, const cha
  * CSOUNDCFG_INVALID_NAME if the variable was not found.
  */
 
-PUBLIC int32_t csoundDeleteConfigurationVariable(CSOUND *csound, const char *name)
+int32_t csoundDeleteConfigurationVariable(CSOUND *csound, const char *name)
 {
     return remove_entry_from_db(csound, csound->cfgVariableDB, name);
 }
@@ -557,7 +557,7 @@ int32_t csoundDeleteAllConfigurationVariables(CSOUND *csound)
  * CSOUNDCFG error code. The string is not translated.
  */
 
-PUBLIC const char *csoundCfgErrorCodeToString(int32_t errcode)
+const char *csoundCfgErrorCodeToString(int32_t errcode)
 {
     if (errcode > 0 || errcode < CSOUNDCFG_LASTERROR)
       return errmsg_list[1 - CSOUNDCFG_LASTERROR];      /* unknown */
