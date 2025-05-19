@@ -737,6 +737,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "Now %d active instr %d\n", tp->active, insno);
   if (UNLIKELY((prvp = *ipp) != NULL)) {          /*   if key currently activ */
+    if(O->msglevel & 0x400)
     csoundWarning(csound,
                   Str("MIDI note overlaps with key %d on same channel"),
                   (int32_t) mep->dat1);

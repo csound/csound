@@ -748,8 +748,8 @@ typedef struct _FFT_SETUP {
 /**
  * Phase modulo-1 for oscillators
  */
-static inline double PHMOD1(double p) {
-  return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t)p;
+static inline MYFLT PHMOD1(MYFLT p) {
+  return p < 0 ? p - (int64_t) (p-1) : p - (uint64_t)p;
 }
 
 /**
@@ -967,6 +967,15 @@ static inline uint64_t GetLocalKcounter(OPDS *p) {
 static inline char *GetOpcodeName(OPDS *p) {
   return p->optext->t.oentry->opname;
 }
+
+/**
+ * Returns the event type (0 for score/realtine,
+ *   1 for MIDI)
+ */
+static inline int32_t GetEventType(OPDS *p) {
+   return p->insdshead->m_chnbp == NULL ? 0 : 1;
+}
+  
 /**@}*/
 
 static inline char le_test() {
