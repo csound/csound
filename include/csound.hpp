@@ -327,6 +327,9 @@ class PUBLIC Csound
   {
     csoundEventString(csound, s, async);
   }
+  virtual int32_t GetInstrNumber(const char *name){
+    return csoundGetInstrNumber(csound, name);
+  }
   virtual void SetExternalMidiInOpenCallback(int32_t (*func)(CSOUND *,
                                                              void **,
                                                              const char *))
