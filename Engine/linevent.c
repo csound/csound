@@ -45,12 +45,11 @@
 #define LBUFSIZ1 32768
 #define LF        '\n'
 
-static void sense_line(CSOUND *csound, void *userData);
+void sense_line(CSOUND *csound, void *userData);
 static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, void *),
                  void *userData)
 {
   EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
-
   if (fp == NULL) {
     fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
     csound->evtFuncChain = (void*) fp;
@@ -69,6 +68,7 @@ static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, v
   csound->oparms->RTevents = 1;
   return 0;
 }
+
 
 #define STA(x)   (csound->lineventStatics.x)
 #define MAXSTR 1048576 /* 1MB */
@@ -264,7 +264,7 @@ void csound_input_message(CSOUND *csound, const char *message)
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-static void sense_line(CSOUND *csound, void *userData)
+void sense_line(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);

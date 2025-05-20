@@ -113,8 +113,16 @@ typedef struct {
   MYFLT *table;
 } SEQTIM;
 
+
 int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
                                     MYFLT *pfields[VARGMAX],
                                     int64_t time_ofs);
 int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t cnt, int32_t s, char p1);
 int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t cnt, int32_t s, char p1);
+
+typedef struct {
+  OPDS h;
+  MYFLT *arg[PMAX];
+} RMEVT;
+
+

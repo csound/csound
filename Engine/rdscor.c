@@ -1,24 +1,24 @@
 /*
-  rdscor.c:
+    rdscor.c:
 
-  Copyright (C) 2011 John ffitch (after Barry Vercoe)
+    Copyright (C) 2011 John ffitch (after Barry Vercoe)
 
-  This file is part of Csound.
+    This file is part of Csound.
 
-  The Csound Library is free software; you can redistribute it
-  and/or modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-  Csound is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU Lesser General Public License for more details.
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-  You should have received a copy of the GNU Lesser General Public
-  License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
@@ -27,107 +27,26 @@
 
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
-  int32 n;
-  char *ss;
-  INSDS* ip = csound->ids->insdshead;
-  while (ip->opcod_iobufs != NULL) {
-    ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
-  }
-  ss = ip->strarg;  /* look at this instr's strarg */
-
-#ifdef USE_DOUBLE
-  {
-    union {
-      MYFLT d;
-      int32 i[2];
-    } ch;
-    ch.d = p;
-    if (byte_order()==0)
-      n = ch.i[1]&0xffff;
-    else
-      n = ch.i[0]&0xffff;
-    //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
-  }
-#else
-  {
-    union {
-      MYFLT d;
-      int32 j;
-    } ch;
-    ch.d = p; n = ch.j&0xffff;
-    //printf("SUNION %.8x \n", ch.j);
-  }
-#endif
-  while (n-- > 0) {
-    ss += strlen(ss)+1;
-  }
-  //printf(" *** -> %s\n", ss);
-  return ss;
-}
-
-static void dumpline(CSOUND *);
-
-static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
-{
-  int32_t     c;
-  while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n')
-    ;
-}
-
-static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
-{   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
-  int32_t     c;
-
-  while ((c = corfile_getc(csound->scstr)) == ' ' ||
-         c == '\t')  /* skip leading white space */
-    ;
-  if (UNLIKELY(c == ';')) {             /* Comments terminate line */
-    flushline(csound);
-    return 0;
-  }
-  if (c == '"') {                             /* if find a quoted string  */
-    char *sstrp;
-    int32_t n = csound->scnt;
-    if ((sstrp = csound->sstrbuf) == NULL)
-      sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
-    while (n--!=0) sstrp += strlen(sstrp)+1;
-    n = (int32_t) (sstrp-csound->sstrbuf);
-    while ((c = corfile_getc(csound->scstr)) != '"') {
-      if (c=='\\') { c = corfile_getc(csound->scstr);
-        switch (c) {
-        case '"': c = '"'; break;
-        case '\'': c = '\''; break;
-        case '\\': c = '\\'; break;
-        case 'a': c = '\a'; break;
-        case 'b': c = '\b'; break;
-        case 'f': c = '\f'; break;
-        case 'n': c = '\n'; break;
-        case 'r': c = '\r'; break;
-        case 't': c = '\t'; break;
-        case 'v': c = '\v'; break;
-        }
-      }
-      *sstrp++ = c;
-      n++;
-      if (n > csound->strsiz-10) {
-        csound->sstrbuf = csound->ReAlloc(csound, csound->sstrbuf,
-                                          csound->strsiz+=SSTRSIZ);
-        sstrp = csound->sstrbuf+n;
-      }
+    int32 n;
+    char *ss;
+    INSDS* ip = csound->ids->insdshead;
+    while (ip->opcod_iobufs != NULL) {
+      ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
     }
-    *sstrp++ = '\0';
+    ss = ip->strarg;  /* look at this instr's strarg */
+
 #ifdef USE_DOUBLE
     {
-      int32_t sel = (byte_order()+1)&1;
       union {
         MYFLT d;
         int32 i[2];
       } ch;
-      ch.d = SSTRCOD;
-      //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
-      ch.i[sel] += csound->scnt++;
-      *pfld = ch.d;           /* set as string with count */
-      //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
+      ch.d = p;
+      if (byte_order()==0)
+        n = ch.i[1]&0xffff;
+      else
+        n = ch.i[0]&0xffff;
+      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
     }
 #else
     {
@@ -135,41 +54,194 @@ static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
         MYFLT d;
         int32 j;
       } ch;
-      ch.d = SSTRCOD;
-      //printf("****** %.8x\n", ch.j);
-      ch.j += csound->scnt++;
-      *pfld = ch.d;           /* set as string with count */
+      ch.d = p; n = ch.j&0xffff;
+      //printf("SUNION %.8x \n", ch.j);
     }
 #endif
-    csound->sstrlen = (int32_t) (sstrp - csound->sstrbuf);  /*    & overall length  */
-    //printf("csound->sstrlen = %d\n", csound->sstrlen);
-    return(1);
+    while (n-- > 0) {
+      ss += strlen(ss)+1;
+    }
+    //printf(" *** -> %s\n", ss);
+    return ss;
+}
+
+char* get_arg_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
+{
+    int32 n;
+    char *ss = evt->strarg;
+#ifdef USE_DOUBLE
+    {
+      union {
+        MYFLT d;
+        int32 i[2];
+      } ch;
+      ch.d = p;
+      if (byte_order()==0)
+        n = ch.i[1]&0xffff;
+      else
+        n = ch.i[0]&0xffff;
+      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
+    }
+#else
+    {
+      union {
+        MYFLT d;
+        int32 j;
+      } ch;
+      ch.d = p; n = ch.j&0xffff;
+      //printf("SUNION %.8x \n", ch.j);
+    }
+#endif
+    while (n-- > 0) {
+      ss += strlen(ss)+1;
+    }
+    //printf(" *** -> %s\n", ss);
+    return ss;
+}
+
+
+void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
+                    char *str) {
+  int32_t scnt = e->scnt;
+  size_t strsiz = strlen(str);
+  if (e->strarg == NULL) {
+    e->strarg = csound->Malloc(csound, strsiz+1);
+    memcpy(e->strarg, str, strsiz);
   }
-  if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
+  else {
+    strsiz = strlen(e->strarg);
+    e->strarg = csound->ReAlloc(csound, e->strarg,
+                                strsiz+strlen(str)+1);
+    memcpy(e->strarg+strsiz, str, strlen(str));
+  }
+
+#ifdef USE_DOUBLE              
+  int32_t sel = (byte_order()+1)&1;
+  union {
+    MYFLT d;
+    int32 i[2];
+  } ch;
+  ch.d = SSTRCOD; ch.i[sel] += scnt++;
+  e->p[pcnt] = ch.d;           /* set as string with count */
+#else
+  union {
+    MYFLT d;
+    int32 i;
+  } ch;
+  ch.d = SSTRCOD; ch.i += scnt++;
+  e->p[pcnt] = ch.d;           /* set as string with count */
+#endif
+ e->scnt = scnt;
+}
+
+
+
+static void dumpline(CSOUND *);
+
+static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
+{
+    int32_t     c;
+    while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n')
+        ;
+}
+
+static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
+{   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
+    int32_t     c;
+
+    while ((c = corfile_getc(csound->scstr)) == ' ' ||
+           c == '\t')  /* skip leading white space */
+        ;
+    if (UNLIKELY(c == ';')) {             /* Comments terminate line */
+      flushline(csound);
+      return 0;
+    }
+    if (c == '"') {                             /* if find a quoted string  */
+      char *sstrp;
+      int32_t n = csound->scnt;
+      if ((sstrp = csound->sstrbuf) == NULL)
+        sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
+      while (n--!=0) sstrp += strlen(sstrp)+1;
+      n = (int32_t) (sstrp-csound->sstrbuf);
+      while ((c = corfile_getc(csound->scstr)) != '"') {
+        if (c=='\\') { c = corfile_getc(csound->scstr);
+          switch (c) {
+          case '"': c = '"'; break;
+          case '\'': c = '\''; break;
+          case '\\': c = '\\'; break;
+          case 'a': c = '\a'; break;
+          case 'b': c = '\b'; break;
+          case 'f': c = '\f'; break;
+          case 'n': c = '\n'; break;
+          case 'r': c = '\r'; break;
+          case 't': c = '\t'; break;
+          case 'v': c = '\v'; break;
+          }
+        }
+        *sstrp++ = c;
+        n++;
+        if (n > csound->strsiz-10) {
+          csound->sstrbuf = csound->ReAlloc(csound, csound->sstrbuf,
+                                            csound->strsiz+=SSTRSIZ);
+          sstrp = csound->sstrbuf+n;
+        }
+      }
+      *sstrp++ = '\0';
+#ifdef USE_DOUBLE
+      {
+        int32_t sel = (byte_order()+1)&1;
+        union {
+          MYFLT d;
+          int32 i[2];
+        } ch;
+        ch.d = SSTRCOD;
+        //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
+        ch.i[sel] += csound->scnt++;
+        *pfld = ch.d;           /* set as string with count */
+        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
+      }
+#else
+      {
+        union {
+          MYFLT d;
+          int32 j;
+        } ch;
+        ch.d = SSTRCOD;
+        //printf("****** %.8x\n", ch.j);
+        ch.j += csound->scnt++;
+        *pfld = ch.d;           /* set as string with count */
+      }
+#endif
+      csound->sstrlen = (int32_t) (sstrp - csound->sstrbuf);  /*    & overall length  */
+      //printf("csound->sstrlen = %d\n", csound->sstrlen);
+      return(1);
+    }
+    if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
+      corfile_ungetc(csound->scstr);
+      csound->Message(csound,
+                      Str("ERROR: illegal character %c(%.2x) in scoreline: "),
+                      c, c);
+      dumpline(csound);
+      return(0);
+    }
     corfile_ungetc(csound->scstr);
-    csound->Message(csound,
-                    Str("ERROR: illegal character %c(%.2x) in scoreline: "),
-                    c, c);
-    dumpline(csound);
-    return(0);
-  }
-  corfile_ungetc(csound->scstr);
-  {
-    MYFLT ans = corfile_get_flt(csound->scstr);
-    *pfld = ans;
-    //printf("%s(%d):%lf %lf\n", __FILE__, __LINE__, ans, *pfld);
-  }
-  return(1);
+    {
+      MYFLT ans = corfile_get_flt(csound->scstr);
+      *pfld = ans;
+      //printf("%s(%d):%lf %lf\n", __FILE__, __LINE__, ans, *pfld);
+    }
+    return(1);
 }
 
 static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
-  int32_t     c;
-  while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n') {
-    csound->Message(csound, "%c", c);
-  }
-  csound->Message(csound, Str("\n\tremainder of line flushed\n"));
+    int32_t     c;
+    while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n') {
+      csound->Message(csound, "%c", c);
+    }
+    csound->Message(csound, Str("\n\tremainder of line flushed\n"));
 }
+
 
 int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 /*  & maintain section warped status   */
@@ -177,8 +249,6 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
   MYFLT   *pp, *plim;
   int32_t c;
   int msize = PMAX;
-
-    
   e->pinstance = NULL;
   if (csound->scstr == NULL ||
       csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */

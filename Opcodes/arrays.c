@@ -3307,47 +3307,6 @@ typedef struct {
   uint32_t    len;
 } OUTA;
 
-static int32_t ina_set(CSOUND *csound, OUTA *p)
-{
-  ARRAYDAT *aa = p->tabin;
-  // should call ensure here but it is a-rate
-  aa->dimensions = 1;
-  if (aa->sizes) csound->Free(csound, aa->sizes);
-  if (aa->data) csound->Free(csound, aa->data);
-  aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-  aa->sizes[0] = p->len = csound->GetNchnls_i(csound);
-  aa->data = (MYFLT*)
-    csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
-  aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
-  return OK;
-}
-
-static int32_t ina(CSOUND *csound, OUTA *p)
-{
-  IGN(csound);
-  ARRAYDAT *aa = p->tabin;
-  uint32_t offset = p->h.insdshead->ksmps_offset;
-  uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t n, l, nsmps = CS_KSMPS;
-  MYFLT       *data = aa->data;
-  MYFLT       *sp= CS_SPIN;
-  uint32_t len = (uint32_t)p->len;
-  for (l=0; l<len; l++) {
-    sp = CS_SPIN + l;
-    memset(data, '\0', nsmps*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-    }
-    for (n = 0; n < nsmps; n++) {
-      if (n<offset) data[n] = FL(0.0);
-      else          data[n] = *sp;
-      //printf("chn %d n=%d data=%f (%p)\n", l, n, data[n], &data[n]);
-      sp += len;
-    }
-    data += CS_KSMPS;
-  }
-  return OK;
-}
 
 static int32_t monitora_perf(CSOUND *csound, OUTA *p)
 {
@@ -4565,13 +4524,44 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
   return OK;
 }
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT *res;
+  MYFLT *asig;
+} A2ARR;
 
-// reverse, scramble, mirror, stutter, rotate, ...
-// jpff: stutter is an interesting one (very musical). It basically
-//          randomly repeats (holds) values based on a probability parameter
+int32_t asig2array_init(CSOUND *csound, A2ARR *p) {
+  int32_t nsmps = CS_KSMPS;
+  tabinit(csound, p->res, nsmps, p->h.insdshead);
+  return OK;
+}
+
+int32_t asig2array_perf(CSOUND *csound, A2ARR *p) {
+  size_t bytes = CS_KSMPS*sizeof(MYFLT);
+  memcpy(p->res->data, p->asig, bytes);
+  return OK;
+}
+
+typedef struct {
+  OPDS h;
+  MYFLT *asig;
+  ARRAYDAT *karr;
+} ARR2A;
+
+int32_t array2asig_perf(CSOUND *csound, ARR2A *p) {
+  size_t bytes = CS_KSMPS*sizeof(MYFLT);
+  size_t arrs = p->karr->sizes[0]*sizeof(MYFLT);
+  if(bytes > arrs) memset(p->asig, 0, bytes);
+  memcpy(p->asig, p->karr->data, bytes < arrs ? bytes : arrs);
+  return OK;
+}
+
 
 static OENTRY arrayvars_localops[] =
   {
+    { "array.a", sizeof(A2ARR), 0, "k[]", "a", (SUBR)asig2array_init,
+      (SUBR)asig2array_perf},
+    { "a.A", sizeof(ARR2A), 0, "a", "k[]", NULL, (SUBR)array2asig_perf},
     { "nxtpow2", sizeof(INOUT), 0, "i", "i", (SUBR)nxtpow2},
     { "init.i", sizeof(ARRAYINIT), 0, "i[]", "m", (SUBR)array_init },
     { "init.k", sizeof(ARRAYINIT), 0, "k[]", "m", (SUBR)array_init },
@@ -4869,7 +4859,6 @@ static OENTRY arrayvars_localops[] =
     { "lentab.k", sizeof(TABQUERY1), _QQ, "k", "k[]p", NULL, (SUBR) tablength },
     { "lenarray.ix", sizeof(TABQUERY1), 0, "i", ".[]p", (SUBR) tablength },
     { "lenarray.kx", sizeof(TABQUERY1), 0, "k", ".[]p", NULL, (SUBR)tablength },
-    { "in.A", sizeof(OUTA), 0, "a[]", "", (SUBR)ina_set, (SUBR)ina},
     { "monitor.A", sizeof(OUTA), IB, "a[]", "",
       (SUBR)monitora_init, (SUBR)monitora_perf},
     { "rfft", sizeof(FFT), 0, "k[]","k[]",

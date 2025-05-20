@@ -23,6 +23,7 @@
 
 #include "csoundCore.h" /*                                      AOPS.C  */
 #include "aops.h"
+#include "arrays.h"
 #include <math.h>
 #include <time.h>
 
@@ -1468,6 +1469,11 @@ int32_t in(CSOUND *csound, INM *p)
     return OK;
 }
 
+int32_t inarray_set(CSOUND *csound, INA *p){
+  tabinit(csound, p->tabout, csound->inchnls, p->h.insdshead);
+  return OK;
+}
+
 int32_t inarray(CSOUND *csound, INA *p)
 {
   MYFLT *data = p->tabout->data;
@@ -2329,7 +2335,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
   return OK;
 }
 
-#include "arrays.h"
+
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
  if(csound->init_event != NULL) { 

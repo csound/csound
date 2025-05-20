@@ -1113,7 +1113,8 @@ extern "C" {
    * optionally run asynchronously (async = 1)
    * NB: This is non-op before csoundStart() is called.
    */
-  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const MYFLT *params, int32_t nparams, int32_t async);
+  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const MYFLT *params,
+                           int32_t nparams, int32_t async);
 
   /**
    * Schedule new score or realtime event(s) as a NULL-terminated string
@@ -1128,6 +1129,13 @@ extern "C" {
    * optionally run asynchronously (async = 1)
    */
   PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
+
+  /**
+   * Get the instrument number for a given instrument name string
+   * for use in numeric parameters list (csoundEvent())
+   * returns the instrument number or -1 if not found.
+   */ 
+  PUBLIC int32 csoundGetInstrNumber(CSOUND *, const char *name); 
 
   /**
    * Set the ASCII code of the most recent key pressed.
