@@ -65,6 +65,77 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     return ss;
 }
 
+char* get_arg_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
+{
+    int32 n;
+    char *ss = evt->strarg;
+#ifdef USE_DOUBLE
+    {
+      union {
+        MYFLT d;
+        int32 i[2];
+      } ch;
+      ch.d = p;
+      if (byte_order()==0)
+        n = ch.i[1]&0xffff;
+      else
+        n = ch.i[0]&0xffff;
+      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
+    }
+#else
+    {
+      union {
+        MYFLT d;
+        int32 j;
+      } ch;
+      ch.d = p; n = ch.j&0xffff;
+      //printf("SUNION %.8x \n", ch.j);
+    }
+#endif
+    while (n-- > 0) {
+      ss += strlen(ss)+1;
+    }
+    //printf(" *** -> %s\n", ss);
+    return ss;
+}
+
+
+void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
+                    char *str) {
+  int32_t scnt = e->scnt;
+  size_t strsiz = strlen(str);
+  if (e->strarg == NULL) {
+    e->strarg = csound->Malloc(csound, strsiz+1);
+    memcpy(e->strarg, str, strsiz);
+  }
+  else {
+    strsiz = strlen(e->strarg);
+    e->strarg = csound->ReAlloc(csound, e->strarg,
+                                strsiz+strlen(str)+1);
+    memcpy(e->strarg+strsiz, str, strlen(str));
+  }
+
+#ifdef USE_DOUBLE              
+  int32_t sel = (byte_order()+1)&1;
+  union {
+    MYFLT d;
+    int32 i[2];
+  } ch;
+  ch.d = SSTRCOD; ch.i[sel] += scnt++;
+  e->p[pcnt] = ch.d;           /* set as string with count */
+#else
+  union {
+    MYFLT d;
+    int32 i;
+  } ch;
+  ch.d = SSTRCOD; ch.i += scnt++;
+  e->p[pcnt] = ch.d;           /* set as string with count */
+#endif
+ e->scnt = scnt;
+}
+
+
+
 static void dumpline(CSOUND *);
 
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
