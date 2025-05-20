@@ -2381,3 +2381,45 @@ int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
   return OK;
 }
 
+int32_t monitora_perf(CSOUND *csound, MONITOR_A *p)
+{
+  ARRAYDAT *aa = p->tabin;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, j, l, nsmps = CS_KSMPS;
+  MYFLT       *data = aa->data;
+  MYFLT       *sp= CS_SPOUT;
+  uint32_t len = (uint32_t)p->len;
+
+  for (l=0; l<len; l++) {
+    sp = CS_SPOUT;
+    memset(data, '\0', nsmps*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+    }
+    for (i = 0; i<nsmps; i++) {
+      for (j = 0; j<csound->GetNchnls(csound); j++) {
+        if (i<offset)
+          data[i+j*nsmps] = FL(0.0);
+        else
+          data[i+j*nsmps] = sp[i+j*nsmps];
+      }
+    }
+  }
+  return OK;
+}
+
+int32_t monitora_init(CSOUND *csound, MONITOR_A *p)
+{
+  ARRAYDAT *aa = p->tabin;
+  // should call ensure here but it is a-rate
+  aa->dimensions = 1;
+  if (aa->sizes) csound->Free(csound, aa->sizes);
+  if (aa->data) csound->Free(csound, aa->data);
+  aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+  aa->sizes[0] = p->len = csound->GetNchnls(csound);
+  aa->data = (MYFLT*)
+    csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
+  aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
+  return OK;
+}
