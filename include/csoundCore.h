@@ -466,7 +466,7 @@ typedef struct {
     uint64_t kcounter;
     MYFLT    esr, sicvt, pidsr;                  /* local sr */
     MYFLT    onedsr;
-    int32_t     in_cvt, out_cvt; /* resampling converter modes for in and out */
+    int32_t  in_cvt, out_cvt; /* resampling converter modes for in and out */
     uint32_t ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
 
@@ -748,8 +748,8 @@ typedef struct _FFT_SETUP {
 /**
  * Phase modulo-1 for oscillators
  */
-static inline double PHMOD1(double p) {
-  return p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t)p;
+static inline MYFLT PHMOD1(MYFLT p) {
+  return p < 0 ? p - (int64_t) (p-1) : p - (uint64_t)p;
 }
 
 /**
@@ -932,9 +932,27 @@ static inline int32_t GetInstrumentNumber(OPDS *p) {
 /**
  * Returns the local ksmps of instrument/UDO containing opcode p.
  * This is an alternative to the macro CS_KSMPS.
+ * 
  */
 static inline uint32_t GetLocalKsmps(OPDS *p) {
-  return (uint32_t)p->insdshead->ksmps;
+  return (uint32_t)  p->insdshead->ksmps;
+}
+
+/**
+ * Returns the number of samples left at the
+ * end of the ksmps block in early sample-accurate
+ * exit.
+ */  
+static inline uint32_t GetEarlySmps(OPDS *p) {
+  return (uint32_t) p->insdshead->ksmps_no_end;
+}
+
+/**
+ * Returns the sample-accurate offset at the start
+ * of the ksmps block.
+ */  
+static inline uint32_t GetKsmpsOffset(OPDS *p) {
+  return (uint32_t) p->insdshead->ksmps_offset;
 }
 
 /**
@@ -967,6 +985,15 @@ static inline uint64_t GetLocalKcounter(OPDS *p) {
 static inline char *GetOpcodeName(OPDS *p) {
   return p->optext->t.oentry->opname;
 }
+
+/**
+ * Returns the event type (0 for score/realtine,
+ *   1 for MIDI)
+ */
+static inline int32_t GetEventType(OPDS *p) {
+   return p->insdshead->m_chnbp == NULL ? 0 : 1;
+}
+  
 /**@}*/
 
 static inline char le_test() {

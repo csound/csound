@@ -105,6 +105,10 @@ typedef struct {
   MYFLT *table;
 } SEQTIM;
 
+typedef struct {
+  OPDS h;
+  MYFLT *arg[PMAX];
+} RMEVT;
 
 int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
