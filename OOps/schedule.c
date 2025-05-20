@@ -35,7 +35,8 @@
 #include "csound_standard_types.h"
 #include "fgens.h"
 
-extern void csound_input_message(CSOUND *, const char *);
+void csound_input_message(CSOUND *, const char *);
+void sense_line(CSOUND *csound, void *userData);
 
 MYFLT named_instr_find(CSOUND *csound, char *s);
 static const char *errmsg_1 =
@@ -377,6 +378,7 @@ static void add_string_arg(char *s, const char *arg) {
   //printf("%s \n", c);
 }
 
+void sensLine(CSOUND *csound, void *userData);
 
 int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
@@ -387,7 +389,8 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
       insno = (MYFLT) instr_num(csound, ref->instr); 
-    }    
+    }
+    
     snprintf(s, 16384, "i %f %f %f", insno, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
@@ -400,8 +403,9 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
           strncat(s, sf, 16384-strlen(s));
        }
     }
-
+    
     csound_input_message(csound, s);
+    sense_line(csound, NULL);
     return OK;
 }
 
@@ -409,8 +413,11 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
 {
     int32_t i;
     int32_t argno = p->INOCOUNT+1;
+    // compensate for sensline happening at the end of kcycle
+    MYFLT when = *p->when < 1/csound->ekr ?
+      *p->when : *p->when - 1/csound->ekr; 
     char s[16384], sf[64];
-    snprintf(s, 16384, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, *p->when, *p->dur);
+    snprintf(s, 16384, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
         if (csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S)
@@ -421,7 +428,9 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
           strncat(s, sf, 16384-strlen(s));
        }
     }
+
     csound_input_message(csound, s);
+    sense_line(csound, NULL);
     return OK;
 }
 
@@ -892,5 +901,100 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
+char* get_arg_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
+
+static int32_t events_match(CSOUND *csound,
+                            EVTBLK *evt1, EVTBLK *evt2) {
+
+  if(evt1->opcod == evt2->opcod &&
+     evt1->p2orig == evt2->p2orig &&
+     evt1->p3orig == evt2->p3orig &&
+     evt1->p[1] == evt2->p[1] &&
+     evt1->pcnt == evt2->pcnt) {
+    int i;
+    for(i = 4; i < evt1->pcnt+1; i++) {
+      // TODO: encode string in evt1
+      // for now we just ignore any string arg
+      if(IsStringCode(evt2->p[i])) {
+        char *str1 = get_arg_string_from_evt(csound, evt1->p[i],evt1); 
+        char *str2 = get_arg_string_from_evt(csound, evt2->p[i],evt2);
+        if(strcmp(str1, str2)) return 0;
+      }
+      else if(evt1->p[i] != evt2->p[i]) return 0;
+    }
+    return 1;
+  }
+
+  return 0;
+}
 
 
+
+static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
+  EVTNODE *e = csound->OrcTrigEvts;
+  EVTBLK  *evtn = &(e->evt);
+  while(e != NULL && e != csound->freeEvtNodes) {
+    if(events_match(csound, evt, evtn)) {
+      int i;
+      csound->OrcTrigEvts = e->nxt;       
+      e->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = e;
+      if(csound->oparms->msglevel > 0) {
+      csound->Message(csound, "unscheduled event: %c", evtn->opcod);
+      for(i = 1; i < evtn->pcnt+1; i++) {
+        if(IsStringCode(evtn->p[i]))
+          csound->Message(csound, "%s ",
+                          get_arg_string_from_evt(csound, evtn->p[i], evtn));
+        else csound->Message(csound, "%.3f ", evtn->p[i]);
+      }
+      csound->Message(csound, "\n");
+      }
+      if(!cont) break;
+    }
+    e = e->nxt;
+  }
+}
+
+void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
+                    char *str);
+
+int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
+  EVTBLK evt;
+  int i, pcnt = p->INOCOUNT;
+  memset(&evt, 0, sizeof(EVTBLK));
+  evt.p2orig = *p->arg[1];
+  evt.p3orig = *p->arg[2];
+  evt.pcnt = pcnt;
+  evt.opcod = 'i';
+ 
+  // named instruments
+  if(IS_STR_ARG(p->arg[0])) {
+     evt.p[1] = named_instr_find(csound,
+                                 ((STRINGDAT *)p->arg[0])->data);
+  } else if(GetTypeForArg(p->arg[0]) == &CS_VAR_TYPE_INSTR){
+    INSTREF *ref = (INSTREF *) p->arg[0];
+    evt.p[1] =  instr_num(csound, ref->instr);
+  }
+  else evt.p[1] = *p->arg[0];
+  
+  for(i = 2; i < pcnt+1; i++) {
+    // TODO: encode string args, ignored for now
+    if(IS_STR_ARG(p->arg[i-1])) {
+       STRINGDAT *str = (STRINGDAT *) p->arg[i-1];
+       set_evt_strarg(csound, &evt, i, str->data);
+      }
+    else evt.p[i] = *p->arg[i-1];
+  }
+    
+  remove_rt_event(csound, &evt, cont);
+  if(evt.strarg != NULL) csound->Free(csound, evt.strarg);
+  return OK;
+}
+
+int32_t remove_event(CSOUND *csound, RMEVT *p) {
+  return remove_event_op(csound, p, 0);
+}
+
+int32_t remove_all_events(CSOUND *csound, RMEVT *p) {
+  return remove_event_op(csound, p, 1);
+}
