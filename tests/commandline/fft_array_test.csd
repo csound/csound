@@ -9,8 +9,8 @@ nchnls = 1
 
 instr 1
  kArr[] genarray_i 0,1023
- spec:Complex[] rfft kArr
- kArr rifft spec
+ spec:Complex[] fft kArr
+ kArr fft spec
 endin
 
 </CsInstruments>

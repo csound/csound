@@ -140,7 +140,7 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
 }
 // NB: outputs are NOT packed (N+1 size)
 static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
-  int32_t N = p->out->sizes[0];
+  int32_t N = p->out->sizes[0]-1;
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->out->data;
   memcpy(tmp,p->in->data,N*sizeof(MYFLT));
