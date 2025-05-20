@@ -2860,13 +2860,11 @@ int32_t tabgen(CSOUND *csound, TABGEN *p)
   tabinit(csound, p->tab, size, p->h.insdshead);
   if (UNLIKELY(p->tab->data==NULL)) {
     tabinit(csound, p->tab, size, p->h.insdshead);
-    p->tab->sizes[0] = size;
   }
 
   data =  p->tab->data;
   for (i=0; i < size; i++) {
     data[i] = start;
-
     start += incr;
   }
 

@@ -207,7 +207,10 @@ def runTest():
         ["arrays/array_get_inline.csd", "tests parsing and eval of inline array[getters]"],
         ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
-        ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],        
+        ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
+        ["complex_array_test.csd", "testing complex array ops"],
+        ["fft_array_test.csd", "testing complex fft array ops"],
+        ["rfft_array_test.csd", "testing complex rfft array ops"],
     ]
 
 
