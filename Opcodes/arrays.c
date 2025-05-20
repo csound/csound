@@ -74,11 +74,6 @@ typedef struct _fft {
   AUXCH mem;
 } FFT;
 
-
-static uint32_t isPowerOfTwo (uint32_t x) {
-  return x != 0  ? !(x & (x - 1)) : 0;
-}
-
 static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
@@ -122,11 +117,11 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
       c[j].real = tmp[i];
       c[j].imag = tmp[i+1];
     }
-   } else {
-      MYFLT *re = p->out->data;
-      for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
-        re[j] = tmp[i];
-      } 
+  } else {
+    MYFLT *re = p->out->data;
+    for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
+      re[j] = tmp[i];
+    } 
   }
   return OK;
 }
@@ -138,12 +133,12 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
-  tabinit(csound, p->out,N, p->h.insdshead);
+  tabinit(csound, p->out,N+1, p->h.insdshead);
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
 }
-
+// NB: outputs are NOT packed (N+1 size)
 static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
   int32_t N = p->out->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
@@ -152,15 +147,18 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
   csound->RealFFT(csound,p->setup,tmp);
   for(int32_t i = 0, j = 0; i < N; i+=2, j++) {
     c[j].real = tmp[i];
-    c[j].imag = tmp[i+1];
+    if(j) c[j].imag = tmp[i+1];
+    else c[j].imag = 0.;
   }
+  c[N].real = tmp[1];
+  c[N].imag =  0.;  
   return OK;
 }
 
 static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0];
+  int32_t   N = p->in->sizes[0] - 1;
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
@@ -170,21 +168,23 @@ static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
   return OK;
 }
 
+// NB: these expect NOT packed (N+1 size) inputs
 static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
   int32_t N = p->out->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
-    for(int32_t i = 0, j = 0; i < N; i+=2, j++) {
-    c[j].real = tmp[i];
-    c[j].imag = tmp[i+1];
+  for(int32_t i = 0, j = 0; i < N; i+=2, j++) {
+    tmp[i] = c[j].real;
+    if(j) tmp[i+1] = c[j].imag;
   }
+  tmp[1] = c[N].real;
   csound->RealFFT(csound,p->setup,tmp);
   memcpy(p->out->data,tmp,N*sizeof(MYFLT));
   return OK;
 }
 
 static int32_t init_rfft(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
@@ -209,7 +209,7 @@ static  int32_t rfft_i(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_rifft(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
@@ -234,19 +234,14 @@ static int32_t rifft_i(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_rfftmult(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-      if(p->in2->sizes == NULL)
+  if(p->in2->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   if (UNLIKELY(N != p->in2->sizes[0]))
     return csound->InitError(csound, "%s", Str("array sizes do not match\n"));
-  /*if (isPowerOfTwo(N))*/
   tabinit(csound, p->out, N, p->h.insdshead);
-  /* else
-     return
-     csound->InitError(csound, "%s",
-     Str("non-pow-of-two case not implemented yet\n"));*/
   return OK;
 }
 
@@ -281,7 +276,7 @@ static int32_t fft_i(CSOUND *csound, FFT *p) {
 
 
 static int32_t init_ifft(CSOUND *csound, FFT *p) {
-   if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n"); 
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
@@ -305,7 +300,7 @@ static int32_t ifft_i(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_recttopol(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   tabinit(csound, p->out, N, p->h.insdshead);
@@ -341,9 +336,9 @@ static int32_t perf_poltorect(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_poltorect2(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-      if(p->in2->sizes == NULL)
+  if(p->in2->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if (LIKELY(p->in2->sizes[0] == p->in->sizes[0])) {
     int32_t   N = p->in2->sizes[0];
@@ -373,7 +368,7 @@ static int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_mags(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   tabinit(csound, p->out, N/2+1, p->h.insdshead);
@@ -405,7 +400,7 @@ static int32_t perf_phs(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_logarray(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   tabinit(csound, p->out, p->in->sizes[0], p->h.insdshead);
   if (LIKELY(*((MYFLT *)p->in2)))
@@ -432,7 +427,7 @@ static int32_t perf_logarray(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_rtoc(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   tabinit(csound, p->out, N*2, p->h.insdshead);
@@ -459,7 +454,7 @@ static int32_t rtoc_i(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_ctor(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   tabinit(csound, p->out, N/2, p->h.insdshead);
@@ -486,7 +481,7 @@ static int32_t ctor_i(CSOUND *csound, FFT *p) {
 
 
 static int32_t init_window(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
   int32_t   i,type = (int32_t) *p->f;
@@ -536,19 +531,13 @@ typedef struct _pvsceps {
 
 static int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p) {
   int32_t N = p->fin->N;
-  if (LIKELY(isPowerOfTwo(N))) {
-    p->setup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
-    tabinit(csound, p->out, N/2+1, p->h.insdshead);
-  }
-  else
-    return csound->InitError(csound, "%s",
-                             Str("non-pow-of-two case not implemented yet\n"));
+  p->setup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
+  tabinit(csound, p->out, N/2+1, p->h.insdshead);
   p->lastframe = 0;
   return OK;
 }
 
 static int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
-
   if (p->lastframe < p->fin->framecount) {
     int32_t N = p->fin->N;
     int32_t i, j;
@@ -572,20 +561,14 @@ static int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
 
 
 static int32_t init_ceps(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t N = p->in->sizes[0]-1;
   if (UNLIKELY(N < 64))
     return csound->InitError(csound, "%s",
                              Str("FFT size too small (min 64 samples)\n"));
-  if (LIKELY(isPowerOfTwo(N))) {
-    p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
-    tabinit(csound, p->out, N+1, p->h.insdshead);
-  }
-  else
-    return csound->InitError(csound, "%s",
-                             Str("non-pow-of-two case not implemented yet\n"));
-
+  p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
+  tabinit(csound, p->out, N+1, p->h.insdshead);
   return OK;
 }
 
@@ -609,16 +592,11 @@ static int32_t perf_ceps(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_iceps(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t N = p->in->sizes[0]-1;
-  if (LIKELY(isPowerOfTwo(N))) {
-    p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
-    tabinit(csound, p->out, N+1, p->h.insdshead);
-  }
-  else
-    return csound->InitError(csound, "%s",
-                             Str("non-pow-of-two case not implemented yet\n"));
+  p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
+  tabinit(csound, p->out, N+1, p->h.insdshead);
   N++;
   if (p->mem.auxp == NULL || p->mem.size < N*sizeof(MYFLT))
     csound->AuxAlloc(csound, N*sizeof(MYFLT), &p->mem);
@@ -639,7 +617,7 @@ static int32_t perf_iceps(CSOUND *csound, FFT *p) {
 }
 
 static int32_t rows_init(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if (p->in->dimensions == 2) {
     int32_t siz = p->in->sizes[1];
@@ -775,7 +753,7 @@ static int32_t rows_init_S(CSOUND *csound, FFT *p) {
 }
 
 static int32_t cols_init(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if (LIKELY(p->in->dimensions == 2)) {
     int32_t siz = p->in->sizes[0];
@@ -862,7 +840,7 @@ static int32_t set_rows_i(CSOUND *csound, FFT *p) {
 
 
 static int32_t set_cols_init(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t siz = p->in->sizes[0];
   int32_t col = *((MYFLT *)p->in2);
@@ -967,7 +945,7 @@ static int32_t shiftin_perf(CSOUND *csound, FFT *p) {
 
 
 static int32_t shiftout_init(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t siz = p->in->sizes[0];
   p->n = ((int32_t)*((MYFLT *)p->in2) % siz);
@@ -1008,20 +986,15 @@ static int32_t unwrap(CSOUND *csound, FFT *p) {
 
 
 static int32_t init_dct(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
-  if (LIKELY(isPowerOfTwo(N))) {
-    if (UNLIKELY(p->in->dimensions > 1))
-      return csound->InitError(csound, "%s",
-                               Str("dct: only one-dimensional arrays allowed"));
-    tabinit(csound, p->out, N, p->h.insdshead);
-    p->setup =  csound->DCTSetup(csound,N,FFT_FWD);
-    return OK;
-  }
-  else return
-         csound->InitError(csound, "%s",
-                           Str("dct: non-pow-of-two sizes not yet implemented"));
+  if (UNLIKELY(p->in->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                             Str("dct: only one-dimensional arrays allowed"));
+  tabinit(csound, p->out, N, p->h.insdshead);
+  p->setup =  csound->DCTSetup(csound,N,FFT_FWD);
+  return OK;
 }
 
 static int32_t kdct(CSOUND *csound, FFT *p) {
@@ -1040,21 +1013,15 @@ static int32_t dct(CSOUND *csound, FFT *p) {
 }
 
 static int32_t init_dctinv(CSOUND *csound, FFT *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   N = p->in->sizes[0];
-  if (LIKELY(isPowerOfTwo(N))) {
-    if (UNLIKELY(p->in->dimensions > 1))
-      return csound->InitError(csound, "%s",
-                               Str("dctinv: only one-dimensional arrays allowed"));
-    tabinit(csound, p->out, N, p->h.insdshead);
-    p->setup =  csound->DCTSetup(csound,N,FFT_INV);
-    return OK;
-  }
-  else
-    return
-      csound->InitError(csound, "%s",
-                        Str("dctinv: non-pow-of-two sizes not yet implemented"));
+  if (UNLIKELY(p->in->dimensions > 1))
+    return csound->InitError(csound, "%s",
+                             Str("dctinv: only one-dimensional arrays allowed"));
+  tabinit(csound, p->out, N, p->h.insdshead);
+  p->setup =  csound->DCTSetup(csound,N,FFT_INV);
+  return OK;
 }
 
 static int32_t dctinv(CSOUND *csound, FFT *p) {
@@ -1097,7 +1064,7 @@ static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
 }
 
 static int32_t mfb_init(CSOUND *csound, MFB *p) {
-    if(p->in->sizes == NULL)
+  if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   int32_t   L = *p->len;
   int32_t N = p->in->sizes[0];
@@ -1214,9 +1181,9 @@ typedef struct interl{
 
 
 static int32_t interleave_i (CSOUND *csound, INTERL *p) {
-    if(p->b->sizes == NULL)
+  if(p->b->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-      if(p->c->sizes == NULL)
+  if(p->c->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if(p->b->dimensions == 1 &&
      p->c->dimensions == 1 &&
@@ -1243,7 +1210,7 @@ static int32_t interleave_perf (CSOUND *csound, INTERL *p) {
 }
 
 static int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
-    if(p->c->sizes == NULL)
+  if(p->c->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
   if(p->c->dimensions == 1) {
     int32_t len = p->c->sizes[0]/2, i,j;
