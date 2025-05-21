@@ -1812,7 +1812,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     //sfinfo.frames = (sflib_count_t)0; /* was -1 */
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
-    sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
+    sfinfo.format = AE_FLOAT | TYP2SF(TYP_WAV);
     fd = csound->FileOpen(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
                           NULL, CSFTYPE_WAVE, 0);
     if (UNLIKELY(fd == NULL)) {
