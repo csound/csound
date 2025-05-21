@@ -996,7 +996,7 @@ static CS_NOINLINE void atsa_sound_write_noninterleaved(CSOUND *csound, SNDFILE 
         tmpBuf[j++] = bufs[n][i];
       if (j >= k || i == (nFrames - 1)) {
         n = j / nChannels;
-        n = (int) csound->SndfileWrite(csound, sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
+        n = (int) csound->SndfileWrite(csound, sf, (void *) &(tmpBuf[0]), (sf_count_t) n);
         j = 0;
       }
     }
