@@ -396,6 +396,42 @@ int32_t real_div_complex(CSOUND *csound, AOP *p) {
   return OK;
 }
 
+int32_t complex_exp(CSOUND *csond, CXOP *p) {
+ COMPLEXDAT *ans = p->ans;
+ COMPLEXDAT *cmpx =  p->a;
+ if(!cmpx->isPolar) {
+   ans->real = EXP(cmpx->real)*COS(cmpx->imag);
+   ans->imag = EXP(cmpx->real)*SIN(cmpx->imag);
+   ans->isPolar = 0;
+ } else {
+   // exp(Rexp(jw)) = exp(Rcos(w) + Rjsin(w)) = exp(Rcos(w))exp(jRsin(w))
+   ans->real = EXP(cmpx->real*COS(cmpx->imag));
+   ans->imag = cmpx->real*SIN(cmpx->imag);
+   ans->isPolar = 1;
+ }
+ return OK;
+}
+
+int32_t complex_log(CSOUND *csond, CXOP *p) {
+ COMPLEXDAT *ans =  p->ans;
+ COMPLEXDAT *cmpx =  p->a;
+ if(!cmpx->isPolar) {
+   ans->real = LOG(HYPOT(cmpx->real,cmpx->imag));
+   ans->imag = ATAN2(cmpx->imag,cmpx->real);
+   ans->isPolar = 0;
+ } else {
+   //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
+   MYFLT logr = LOG(cmpx->real);
+   ans->real = HYPOT(logr, cmpx->imag);
+   ans->imag = ATAN2(cmpx->imag, logr);
+   ans->isPolar = 1;
+ }
+ return OK;
+}
+
+
+
+
 
 /** Complex array operators
  */
@@ -971,4 +1007,42 @@ int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
   return OK;
 }
 
+int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
+  int32_t n = p->out->sizes[0];
+  COMPLEXDAT *ans = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->out->data;
+  for(int i = 0; i < n; i++) {
+    if(!cmpx[i].isPolar) {
+      ans[i].real = EXP(cmpx[i].real)*COS(cmpx[i].imag);
+      ans[i].imag = EXP(cmpx[i].real)*SIN(cmpx[i].imag);
+      ans[i].isPolar = 0;
+    } else {
+      // exp(Rexp(jw)) = exp(Rcos(w) + Rjsin(w)) = exp(Rcos(w))exp(jRsin(w))
+      ans[i].real = EXP(cmpx[i].real*COS(cmpx[i].imag));
+      ans[i].imag = cmpx[i].real*SIN(cmpx[i].imag);
+      ans[i].isPolar = 1;
+    }
+  }
+  return OK;
+}
 
+int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
+  int32_t n = p->out->sizes[0];
+  COMPLEXDAT *ans = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->out->data;
+  for(int i = 0; i < n; i++) { 
+    if(!cmpx[i].isPolar) {
+      ans[i].real = LOG(HYPOT(cmpx[i].real,cmpx[i].imag));
+      ans[i].imag = ATAN2(cmpx[i].imag,cmpx[i].real);
+      ans[i].isPolar = 0;
+    } else {
+      //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
+      MYFLT logr;
+      logr = LOG(cmpx[i].real);
+      ans[i].real = HYPOT(logr, cmpx[i].imag);
+      ans[i].imag = ATAN2(cmpx[i].imag, logr);
+      ans[i].isPolar = 1;
+    }
+  }
+  return OK;
+}
