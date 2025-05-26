@@ -263,7 +263,7 @@ i 1 0 -1
 </CsoundSynthesizer>   
      )";
 
-  int32_t result = csoundCompileCSD(csound, instrument,0,0);
+  int32_t result = csoundCompileCSD(csound,instrument,1,0);
   ASSERT_TRUE(result == 0);
   result = csoundStart(csound);
   ASSERT_TRUE(result == 0);
