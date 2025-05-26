@@ -109,9 +109,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     FUNC    *ftp;
     FGDATA  ff;
     MYFLT   flen;
-
-    printf("%d \n", evtblkp->pcnt);
-    
+  
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
       csound->gensub = (GEN*) csound->Malloc(csound, sizeof(GEN) * (GENMAX + 1));
