@@ -109,6 +109,8 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     FUNC    *ftp;
     FGDATA  ff;
     MYFLT   flen;
+
+    printf("%d \n", evtblkp->pcnt);
     
     *ftpp = NULL;
     if (UNLIKELY(csound->gensub == NULL)) {
@@ -121,7 +123,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     ff.csound = csound;
   
     memcpy(&(ff.e), evtblkp, sizeof(EVTBLK));
-    ff.e.p = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT) * (PMAX+1));
+    ff.e.p = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT) * (evtblkp->pcnt + 2));
     ff.e.p[1] = evtblkp->p[1];
     ff.fno = (int32_t) MYFLT2LRND(ff.e.p[1]);
     if (!ff.fno) {
@@ -160,8 +162,6 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     if (UNLIKELY(ff.e.pcnt <= 4)) {             /*  chk minimum arg count   */
       return fterror(&ff, Str("insufficient gen arguments"));
     }
-    if (UNLIKELY(ff.e.pcnt>PMAX)) 
-        ff.e.p = csound->ReAlloc(csound, ff.e.p, sizeof(MYFLT) * ff.e.pcnt);
      memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
              sizeof(MYFLT) * ((int32_t) ff.e.pcnt - 1));
     if (isstrcod(ff.e.p[4])) {

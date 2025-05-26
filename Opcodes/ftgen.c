@@ -649,7 +649,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   *p->ifno = FL(0.0);
   ftevt =(EVTBLK*) csound->Malloc(csound, sizeof(EVTBLK));
   n = array->sizes[0];
-  ftevt->pcnt = (int16) n+4;
+  ftevt->pcnt =  n+4;
   ftevt->p = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(ftevt->pcnt+1));  
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
