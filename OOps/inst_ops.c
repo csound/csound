@@ -328,6 +328,8 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
     INSDS *ip;
     int32_t res, i;
     INSTREF *ref = (INSTREF *) p->args[0];
+    char  pfields[PMAX+1] = {0};
+    evt.p = (MYFLT *) pfields;
     res = instr_num(csound, ref->instr);
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
@@ -409,6 +411,8 @@ int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p) {
 */
 int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
   EVTBLK evt;
+  char  pfields[PMAX+1] = {0};
+  evt.p = (MYFLT *) pfields;
   INSTANCEREF *ref = (INSTANCEREF *) p->args[0];
   int32_t i;
   if(ref->instance != NULL) {

@@ -1105,18 +1105,25 @@ extern "C" {
                                  channelCallback_t outputChannelCalback);
 
   /**
-   * Send a new event. 'type' is the event type
+   * Schedule a new realtime event. 'type' is the event type
    * type 0 - instrument instance     CS_INSTR_EVENT
    * type 1 - function table instance CS_TABLE_EVENT
    * type 2 - end event               CS_END_EVENT
    * event parameters is nparams MYFLT array with the event parameters (p-fields)
    * optionally run asynchronously (async = 1)
+   * NB: This is non-op before csoundStart() is called.
    */
-  PUBLIC void  csoundEvent(CSOUND *, int32_t type, MYFLT *params,
+  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const MYFLT *params,
                            int32_t nparams, int32_t async);
 
   /**
-   * Send a new event as a NULL-terminated string
+   * Schedule new score or realtime event(s) as a NULL-terminated string
+   * Two operation modes are supported:
+   * - Score events: any calls before csoundStart() add the string events to 
+   * the score (before pre-processing) (async should be set to 0).
+   * - Realtime events: after the engine starts, string events are added to
+   * the realtime event queue.
+   *
    * Multiple events separated by newlines are possible
    * and score preprocessing (carry, etc) is applied.
    * optionally run asynchronously (async = 1)

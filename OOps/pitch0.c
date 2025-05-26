@@ -198,20 +198,21 @@ int32_t maxalloc_S(CSOUND *csound, CPU_MAXALLOC *p)
 
 int32_t pfun(CSOUND *csound, PFUN *p)
 {
+  if(csound->init_event != NULL) {  
     int32_t n = (int32_t)MYFLT2LONG(*p->pnum);
     MYFLT ans;
     if (n<1) ans = FL(0.0);
-    else if (n<PMAX) ans = csound->init_event->p[n];
-    else if (csound->init_event->c.extra && n<PMAX+csound->init_event->c.extra[0])
-      ans = csound->init_event->c.extra[n-PMAX+1];
-    else ans = FL(0.0);
+    else ans = csound->init_event->p[n];
     /*csound->Message(csound, "p(%d) %f\n", n,ans);*/
     *p->ans = ans;
     return OK;
+  }
+  return csoundInitError(csound, "no pfields available\n");
 }
 
 int32_t pfunk_init(CSOUND *csound, PFUNK *p)
 {
+  if(csound->init_event != NULL) { 
     int32_t i, n = (int32_t)MYFLT2LONG(*p->pnum);
     MYFLT ans, *pfield;
     if (n<1 || n>PMAX) ans = FL(0.0);
@@ -224,6 +225,8 @@ int32_t pfunk_init(CSOUND *csound, PFUNK *p)
       pfield[i] = csound->init_event->p[i];
     *p->ans = ans;
     return OK;
+  }
+    return csoundInitError(csound, "no pfields available\n");
 }
 
 int32_t pfunk(CSOUND *csound, PFUNK *p)

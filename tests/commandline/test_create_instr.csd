@@ -17,5 +17,6 @@ event_i("e", 0, 2)
 
 </CsInstruments>
 <CsScore>
+;f0 2
 </CsScore>
 </CsoundSynthesizer>
