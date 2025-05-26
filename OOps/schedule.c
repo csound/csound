@@ -322,7 +322,6 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     pp.opcod = 'i';
     pp.pcnt = pfields->sizes[0];
     insert_score_event_at_sample(csound, &pp, args, csound->icurTimeSamples);
-    csound->Free(csound, pp.p);
     return OK;
 }
 

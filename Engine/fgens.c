@@ -160,11 +160,8 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     if (UNLIKELY(ff.e.pcnt <= 4)) {             /*  chk minimum arg count   */
       return fterror(&ff, Str("insufficient gen arguments"));
     }
-    int msize = PMAX;
-    while (UNLIKELY(ff.e.pcnt>msize)) {
-        msize += PMAX;
-        ff.e.p = csound->ReAlloc(csound, ff.e.p, sizeof(MYFLT) * msize);
-     }
+    if (UNLIKELY(ff.e.pcnt>PMAX)) 
+        ff.e.p = csound->ReAlloc(csound, ff.e.p, sizeof(MYFLT) * ff.e.pcnt);
      memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
              sizeof(MYFLT) * ((int32_t) ff.e.pcnt - 1));
     if (isstrcod(ff.e.p[4])) {
