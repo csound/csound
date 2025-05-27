@@ -6,18 +6,16 @@
 0dbfs = 1
 
 instr Oscil
-    kval = p5
-    kamp = p4
-    out oscili(kamp*0.1,kval)
+    out oscili(p4,p5)
 endin
 
 instr 10
    myInstance:Instr = create(Oscil)
-   err1:i = init(myInstance,0.1,300)
+   err1:i = init(myInstance)
    slid:k = expon(100, p3, 300)
-   env:k = linen(1,0.1,p3,0.1)
+   env:k = linen(0.1,0.1,p3,0.1)
    setp(myInstance, 5, slid)
-   err2:k = perf(myInstance,env)
+   err2:k = perf(myInstance, env)
   // run at deinit time
    delete(myInstance) 
 endin
