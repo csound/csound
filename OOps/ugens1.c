@@ -1094,6 +1094,7 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
 {
   MYFLT a,b,dur;
   MYFLT len = csound->curip->p3.value;
+  
 
   if ((dur = *p->idur) > FL(0.0)) {
     MYFLT iris = *p->iris, idec = *p->idec;

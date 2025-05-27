@@ -435,7 +435,7 @@ int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
 /** Instance performance opcode
     single perf-pass for instance
 
-    err:k perf Instr
+    err:k perf Instr[,p4,...]
 
     runs only at perf-time
 */
@@ -443,16 +443,26 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
   INSDS *ip = p->in->instance; 
   if(ip != NULL) {
     if(instr_context_check(csound, ip, p->h.insdshead) == OK){
-    // check for initialisation flag, pass on any perf errors
-    if (ip->init_done) 
-      *p->out = FL(perf_instance(csound, ip));
-    else return csound->PerfError(csound, &(p->h),  
-                                  "instr %d not initialised\n",
-                                  ip->insno);
+        if(p->INOCOUNT > 1) {
+         int32_t argn = p->INOCOUNT - 1, n;
+         INSTRTXT *tp = csound->engineState.instrtxtp[ip->insno];
+          int32_t pmax = tp->pmax - 4;
+          CS_VAR_MEM* pfield = ((CS_VAR_MEM*) &ip->p0) + 4;
+          
+          for(n = 0; n < argn && n <= pmax; n++) {
+            pfield[n].value = *p->args[n];
+          }
+        } 
+      // check for initialisation flag, pass on any perf errors
+      if (ip->init_done) 
+        *p->out = FL(perf_instance(csound, ip));
+      else return csound->PerfError(csound, &(p->h),  
+                                    "instr %d not initialised\n",
+                                    ip->insno);
     } else {
       return csound->PerfError(csound, &(p->h), "context mismatch, "
                                "cannot perform instr %d instance",
-                      ip->insno);
+                               ip->insno);
     }
   }
   else csound->PerfError(csound, &(p->h),  
@@ -501,7 +511,7 @@ int32_t set_instance_parameter(CSOUND *csound, PARM_INSTR *p){
     int32_t n = *p->par;
     INSTRTXT *tp = csound->engineState.instrtxtp[ip->insno];
     if(n <= tp->pmax) {
-      CS_VAR_MEM* pfield = ((CS_VAR_MEM*) &ip->p0) + n + 1;
+      CS_VAR_MEM* pfield = ((CS_VAR_MEM*) &ip->p0) + n;
       pfield->value = *p->val;
     }
   }

@@ -1353,7 +1353,7 @@ OENTRY opcodlst_1[] = {
   { "pause", S(PAUSE_INSTR), 0,  "", ":Instr;k", NULL, (SUBR) pause_instance_opcode,  NULL },
   { "create", S(CREATE_INSTANCE), 0,  ":Instr;", ":InstrDef;", (SUBR) create_instance_opcode, NULL, NULL },
   { "init", S(INIT_INSTANCE), 0,  "i", ":Instr;m", (SUBR) init_instance_opcode, NULL, NULL },
-  { "perf", S(PERF_INSTR), 0,  "k", ":Instr;", NULL, (SUBR) perf_instance_opcode, NULL },
+  { "perf", S(PERF_INSTR), 0,  "k", ":Instr;M", NULL, (SUBR) perf_instance_opcode, NULL },
   { "setp", S(PARM_INSTR), 0,  "", ":Instr;kk", NULL, (SUBR) set_instance_parameter, NULL },
   { "delete", S(DEL_INSTR), 0,  "", ":Instr;", NULL, NULL, (SUBR) delete_instance_opcode },
   { "getinstance", S(DEL_INSTR), 0,  ":Instr;", "", (SUBR) get_instance, NULL, NULL },
