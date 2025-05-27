@@ -569,6 +569,9 @@ PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
   return csoundCompileArgs(csound, argc, argv);
 }
 
+// from threadsafe.c
+void csoundInputMessageAsync(CSOUND *csound, const char *message);
+
 static int32_t csoundCompileCSDText(CSOUND *csound, const char *csd_text, int32_t async) {
   int32_t res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
   if (LIKELY(res)) {
@@ -590,7 +593,9 @@ static int32_t csoundCompileCSDText(CSOUND *csound, const char *csd_text, int32_
               csound->Message(
                   csound, Str("Real-time score events (engineStatus: %d).\n"),
                   csound->engineStatus);
-            csoundEventString(csound, (const char *) sc, async);
+            if(async)
+            csoundInputMessageAsync(csound, (const char *) sc);
+            else csound_input_message(csound, (const char *) sc);
           }
       } else {
         if (csound->scorestr == NULL) {
