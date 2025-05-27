@@ -66,6 +66,7 @@ typedef struct {
   OPDS h;
   MYFLT *out;
   INSTANCEREF *in;
+  MYFLT *args[VARGMAX];
 } PERF_INSTR;
 
 typedef struct {
