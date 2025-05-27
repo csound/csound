@@ -28,9 +28,17 @@ typedef struct {
         OPDS   h;
         MYFLT  *which, *when, *dur;
         MYFLT  *argums[VARGMAX-3];
-        int32_t    midi;
+        int32_t midi;
         INSDS  *kicked;
 } SCHED;
+
+
+typedef struct {
+        OPDS   h;
+        MYFLT  *argums[VARGMAX];
+} SCHEDO;
+
+
 
 typedef struct {
         OPDS   h;
@@ -49,16 +57,16 @@ typedef struct {
         MYFLT   *kamp, *xcps, *type;
         AUXCH   auxd;
         MYFLT   *sine;
-        int32_t     lasttype;
+        int32_t lasttype;
         int32    phs;
 } LFO;
 
 
 typedef struct {
     OPDS   h;
+    STRINGDAT *opcod;
     MYFLT  *args[VARGMAX];
     int32_t argno;
-    int32_t flag;
 } LINEVENT;
 
 typedef struct {
@@ -105,10 +113,16 @@ typedef struct {
   MYFLT *table;
 } SEQTIM;
 
+
+int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
+                                    MYFLT *pfields[VARGMAX],
+                                    int64_t time_ofs);
+int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t cnt, int32_t s, char p1);
+int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t cnt, int32_t s, char p1);
+
 typedef struct {
   OPDS h;
   MYFLT *arg[PMAX];
 } RMEVT;
 
-int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
-int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
+

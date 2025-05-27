@@ -598,6 +598,8 @@ int32_t insSendevt(CSOUND *csound, EVTBLK *evt, int32_t rfd)
     EVTBLK *cpp = (EVTBLK *)bp->data;       /* align an EVTBLK struct */
     int32_t nn;
     MYFLT *f, *g;
+    if(cpp->p == NULL)
+      cpp->p = csound->Calloc(csound, sizeof(MYFLT)*(PMAX+1));
     cpp->pinstance = NULL;
     cpp->strarg = NULL;                     /* copy the initial header */
     cpp->scnt = 0;

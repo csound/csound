@@ -676,7 +676,6 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   INSDS     *ip, **ipp, *prvp, *nxtp;
   OPARMS    *O = csound->oparms;
   CS_VAR_MEM *pfields;
-  EVTBLK  *evt;
   int32_t pmax = 0, error = 0;
 
   if (UNLIKELY(csound->advanceCnt))
@@ -798,10 +797,9 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     }
     pmax = tp->pmax;
   }
-
-
+  
+  
   /* MIDI channel message note on routing overrides pset: */
-
   if (O->midiKey) {
     int32_t pfield_index = O->midiKey;
     CS_VAR_MEM* pfield = (pfields + pfield_index);
@@ -882,21 +880,21 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     }
     if (pmax < pfield_index) pmax = pfield_index;
   }
+
+  EVTBLK evt = {0};
   if (pmax > 0) {
     int32_t i;
-    if (csound->currevent == NULL) {
-      evt = (EVTBLK *) csound->Calloc(csound, sizeof(EVTBLK));
-      csound->currevent = evt;
-    }
-    else evt = csound->currevent;
-    evt->pcnt = pmax+1;
-    for (i =0; i < evt->pcnt; i++) {
-      evt->p[i] = pfields[i].value;
-    }
-  }
+    csound->init_event = &evt;
+    csound->init_event->pcnt = pmax;
+    csound->init_event->p = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*(pmax+1));
+    for (i =1; i < csound->init_event->pcnt+1; i++) {
+      csound->init_event->p[i] = pfields[i].value;
+   }
+  } else csound->init_event = NULL;
 
-  csound->init_event = csound->currevent;
   error = init_pass(csound, ip);
+  if(evt.p) csound->Free(csound, evt.p);
+  csound->init_event = NULL;
   if(error == 0)
     ATOMIC_SET(ip->init_done, 1);
 

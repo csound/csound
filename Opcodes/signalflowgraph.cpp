@@ -1203,25 +1203,21 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
   /**
    * State.
    */
-  EVTBLK evtblk;
   int32_t init(CSOUND *csound) {
     MYFLT offset = csound->GetScoreOffsetSeconds(csound);
-    evtblk.opcod = 'i';
-    evtblk.strarg = 0;
-    evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = csound->StringArg2Insno(csound, Sinstrument->data, 1);
-    evtblk.p[2] = evtblk.p2orig = offset;
-    evtblk.p[3] = evtblk.p3orig = FL(-1.0);
+    MYFLT p[VARGMAX] = {0};
+    p[0] = csound->StringArg2Insno(csound, Sinstrument->data, 1);
+    p[1] = offset;
+    p[2] = FL(-1.0);
     size_t inArgCount = GetInputArgCnt((OPDS *)this);
     // Add 2, for hard-coded p2 and p3.
-    evtblk.pcnt = (int16)inArgCount + 2;
-    // Subtract 1, for only required inarg p1.
+    int32_t pcnt = (int32_t) inArgCount + 2;
     size_t argumN = inArgCount - 1;
-    // Start evtblk at 4, argums at 0.
-    for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
-      evtblk.p[pfieldI] = *argums[argumI];
+    // Start pfield at 3, argums at 0.
+    for (size_t pfieldI = 3, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
+      p[pfieldI] = *argums[argumI];
     }
-    csound->InsertScoreEvent(csound, &evtblk, 0);
+    csound->Event(csound, 0, p, pcnt);  
     return OK;
   }
 };
@@ -1235,28 +1231,25 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
   /**
    * State.
    */
-  EVTBLK evtblk;
   int32_t init(CSOUND *csound) {
     std::string source =
         csound->StringArg2Name(csound, (char *)0, Sinstrument, (char *)"", (int)0);
     MYFLT offset = csound->GetScoreOffsetSeconds(csound);
-    evtblk.opcod = 'i';
-    evtblk.strarg = 0;
-    evtblk.p[0] = FL(0.0);
-    evtblk.p[1] = *Sinstrument;
-    evtblk.p[2] = evtblk.p2orig = offset;
-    evtblk.p[3] = evtblk.p3orig = FL(-1.0);
+    MYFLT p[VARGMAX] = {0};
+    p[0] = *Sinstrument;
+    p[1] = offset;
+    p[2] = FL(-1.0);
 
     size_t inArgCount = GetInputArgCnt((OPDS *) this);
     // Add 2, for hard-coded p2 and p3.
-    evtblk.pcnt = (int16)inArgCount + 2;
+    int32_t pcnt = (int32_t) inArgCount + 2;
     // Subtract 1, for only required inarg p1.
     size_t argumN = inArgCount - 1;
-    // Start evtblk at 4, argums at 0.
-    for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
-      evtblk.p[pfieldI] = *argums[argumI];
+    // Start pfield at 3, argums at 0.
+    for (size_t pfieldI = 3, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
+      p[pfieldI] = *argums[argumI];
     }
-    csound->InsertScoreEvent(csound, &evtblk, 0);
+    csound->Event(csound, 0, p, pcnt);  
     return OK;
   }
 };

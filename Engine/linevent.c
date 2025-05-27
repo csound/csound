@@ -119,6 +119,15 @@ void linevent_open(CSOUND *csound)
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
+
+        // allocate pfield memory
+    if(STA(pfields) == NULL) {
+     STA(msize) = PMAX;
+     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+    }
+
+
+    
     set_sense_event_callback(csound, sense_line, NULL);
 }
 
@@ -199,6 +208,11 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
       return -1;
     }
 
+    // allocate pfield memory
+    if(STA(pfields) == NULL) {
+     STA(msize) = PMAX;
+     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+    }
 
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     STA(prve).opcod = ' ';
@@ -270,10 +284,13 @@ void sense_line(CSOUND *csound, void *userData)
 
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
+        MYFLT *pfields = STA(pfields);
         char    *sstrp = NULL;
         int32_t     scnt = 0;
         int32_t     strsiz = 0;
         memset(&e, 0, sizeof(EVTBLK));
+        memset(pfields, 0, STA(msize)*sizeof(MYFLT));
+        e.p = (MYFLT *) pfields;
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (isblank(c))              /* skip initial white space */
@@ -415,7 +432,13 @@ void sense_line(CSOUND *csound, void *userData)
           }
           e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
           cp = newcp - 1;
-        } while (pcnt < PMAX);
+
+          if(pcnt >= STA(msize)) {
+            STA(msize) += PMAX;
+            STA(pfields) = e.p = csound->ReAlloc(csound, e.p, sizeof(MYFLT)*STA(msize));
+          }
+          
+        } while (1);
         
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
         else  /* Check for sufficient pfields (0-based, opcode counted already). */
@@ -429,8 +452,14 @@ void sense_line(CSOUND *csound, void *userData)
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
         if (e.opcod == 'i') {                   /* do carries for instr data */
-          memcpy((void*) &STA(prve), (void*) &e,
-                 (size_t) ((char*) &(e.p[pcnt + 1]) - (char*) &e));
+          // free carry p-fields
+          if(STA(prve).p != NULL) csound->Free(csound, STA(prve).p);
+          // copy evtblk (except p-field pointer at the end)
+          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK) - sizeof(MYFLT*));
+          // allocate and copy new carry p-fields
+          STA(prve).p = csound->Calloc(csound, sizeof(MYFLT)*(e.pcnt+1));
+          memcpy(STA(prve).p, e.p, sizeof(MYFLT)*(e.pcnt+1));
+          
           /* FIXME: how to carry string args ? */
           STA(prve).strarg = NULL;
         }
@@ -444,7 +473,7 @@ void sense_line(CSOUND *csound, void *userData)
           e.p[2] = e.p[1];
           e.pcnt = 2;
         }
-        insert_score_event_at_sample(csound, &e, csound->icurTimeSamples);
+        insert_score_event_at_sample(csound, &e, e.p+1, csound->icurTimeSamples);
         continue;
       Lerr:
         n = (int32_t) (cp - Linestart);                     /* error position */
@@ -468,7 +497,7 @@ void sense_line(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
-
+    
 }
 
 

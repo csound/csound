@@ -223,8 +223,8 @@ static void free_opcode_table(CSOUND *csound) {
   cs_hash_table_free(csound, csound->opcodes);
 }
 
-static int32_t insert_score_event(CSOUND *csound, EVTBLK *evt, double time_ofs) { 
-  return insert_score_event_at_sample(csound, evt, time_ofs*csound->esr);
+static void insert_score_event(CSOUND *csound, int32_t type, const MYFLT *pfields, int32_t pnum) { 
+  csoundEvent(csound, type, pfields, pnum, 0);
 }
 
   
@@ -934,7 +934,7 @@ static const CSOUND cenviron_ = {
   FL(0.0), FL(0.0),       /*  curp2, nxtim        */
   0,              /*  cyclesRemaining     */
   { 0, NULL, NULL, 0, '\0', 0, FL(0.0),
-    FL(0.0), { FL(0.0) }, {NULL}},   /*  evt */
+    FL(0.0), NULL},   /*  evt */
   NULL,           /*  memalloc_db         */
   (MGLOBAL*) NULL, /* midiGlobals         */
   NULL,           /*  envVarDB            */
@@ -987,13 +987,12 @@ static const CSOUND cenviron_ = {
     NULL, NULL,   /* Linep, Linebufend    */
     0,            /* stdmode              */
     {
-      0, NULL, NULL, 0, 0, 0, FL(0.0), FL(0.0), { FL(0.0) },
-      {NULL},
+      0, NULL, NULL, 0, 0, 0, FL(0.0), FL(0.0), NULL
     },            /* EVTBLK  prve         */
     NULL,        /* Linebuf              */
     0,            /* linebufsiz */
     NULL, NULL,
-    0
+    0, NULL, 0
   },
   {
     {0,0}, {0,0},  /* srngcnt, orngcnt    */
@@ -2446,7 +2445,7 @@ PUBLIC void csoundEventString(CSOUND *csound, const char *message,
     csoundReadScoreInternal(csound, message);
 }
 
-PUBLIC void csoundEvent(CSOUND *csound, int32_t type, MYFLT *params,
+PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
                         int32_t nparams, int32_t async) {
   char c = 'i';
   if (type == CS_TABLE_EVENT)
@@ -2614,13 +2613,14 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
   if (aTime > 0.0) {
     EVTBLK evt;
     memset(&evt, 0, sizeof(EVTBLK));
+    MYFLT pfields[3];
     evt.strarg = NULL;
     evt.scnt = 0;
     evt.opcod = 'a';
     evt.pcnt = 3;
-    evt.p[2] = evt.p[1] = FL(0.0);
-    evt.p[3] = (MYFLT)aTime;
-    insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+    evt.p[1] = evt.p[0] = FL(0.0);
+    evt.p[2] = (MYFLT)aTime;
+    insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   }
 }
 
@@ -2850,36 +2850,38 @@ csoundSetOutputChannelCallback(CSOUND *csound,
 
 int32_t csoundScoreEventInternal(CSOUND *csound, char type,
                                  const MYFLT *pfields, long numFields) {
+  if ((csound->engineStatus & CS_STATE_COMP) == 0) {
+      csound->Message(csound,
+                    Str("Csound has not started yet, no events scheduled.\n"));
+    return CSOUND_ERROR;
+  }
   EVTBLK evt;
-  int32_t i;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
-
   evt.strarg = NULL;
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  for (i = 0; i < (int32_t)numFields; i++)
-    evt.p[i + 1] = pfields[i];
-  ret = insert_score_event_at_sample(csound, &evt, csound->icurTimeSamples);
+  ret = insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   return ret;
 }
 
 int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
                                          const MYFLT *pfields, long numFields,
                                          double time_ofs) {
+  if ((csound->engineStatus & CS_STATE_COMP) == 0) {
+      csound->Message(csound,
+                    Str("Csound has not started yet, no events scheduled.\n"));
+    return CSOUND_ERROR;
+  }  
   EVTBLK evt;
-  int32_t i;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
-
   evt.strarg = NULL;
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  for (i = 0; i < (int32_t)numFields; i++)
-    evt.p[i + 1] = pfields[i];
-  ret = insert_score_event_at_sample(csound, &evt, time_ofs*csound->esr);
+  ret = insert_score_event_at_sample(csound, &evt, pfields, time_ofs*csound->esr);
   return ret;
 }
 

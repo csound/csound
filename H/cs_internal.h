@@ -266,12 +266,14 @@ extern "C" {
 
    struct lineventStatics__ {
       char    *Linep, *Linebufend;
-      int32_t     stdmode;
-      EVTBLK  prve;
-      char    *Linebuf;
-      int32_t     linebufsiz;
-      char *orchestra, *orchestrab;
+      int32_t   stdmode;
+      EVTBLK    prve;
+      char      *Linebuf;
+      int32_t   linebufsiz;
+      char      *orchestra, *orchestrab;
       int32_t   oflag;
+      MYFLT     *pfields;
+     int32_t   msize;
    };
 
    struct musmonStatics__ {

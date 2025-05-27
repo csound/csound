@@ -996,7 +996,7 @@ static CS_NOINLINE void atsa_sound_write_noninterleaved(CSOUND *csound, SNDFILE 
         tmpBuf[j++] = bufs[n][i];
       if (j >= k || i == (nFrames - 1)) {
         n = j / nChannels;
-        n = (int) csound->SndfileWrite(csound, sf, (void *) &(tmpBuf[0]), (sf_count_t) m);
+        n = (int) csound->SndfileWrite(csound, sf, (void *) &(tmpBuf[0]), (sf_count_t) n);
         j = 0;
       }
     }
@@ -1812,7 +1812,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     //sfinfo.frames = (sflib_count_t)0; /* was -1 */
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
-    sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
+    sfinfo.format = AE_FLOAT | TYP2SF(TYP_WAV);
     fd = csound->FileOpen(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
                           NULL, CSFTYPE_WAVE, 0);
     if (UNLIKELY(fd == NULL)) {

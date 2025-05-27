@@ -349,7 +349,7 @@ int32_t clarinset(CSOUND *, void *), clarin(CSOUND *, void *);
 int32_t fluteset(CSOUND *, void *), flute(CSOUND *, void *);
 int32_t bowedset(CSOUND *, void *), bowed(CSOUND *, void *);
 int32_t brassset(CSOUND *, void *), brass(CSOUND *, void *);
-int32_t schedule(CSOUND *, void *), schedule_S(CSOUND *, void *);
+int32_t schedule(CSOUND *, void *);
 int32_t schedule_N(CSOUND *, void *), schedule_SN(CSOUND *, void *);
 int32_t ifschedule(CSOUND *, void *), kschedule(CSOUND *, void *);
 int32_t triginset(CSOUND *, void *), ktriginstr(CSOUND *, void *);

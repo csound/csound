@@ -394,17 +394,13 @@ typedef struct {
     /** Event type */
     char    opcod;
     /** Number of p-fields */
-    int16   pcnt;
+    int32_t  pcnt;
     /** Event start time */
     MYFLT   p2orig;
     /** Length */
     MYFLT   p3orig;
     /** All p-fields for this event (SSTRCOD: string argument) */
-    MYFLT   p[PMAX + 1];
-    union {                   /* To ensure size is same as earlier */
-      MYFLT   *extra;
-      MYFLT   p[2];
-    } c;
+    MYFLT   *p; // dynamically-allocated
   } EVTBLK;
 
 
@@ -584,7 +580,7 @@ typedef struct {
     /** sampling rate */
     MYFLT   sr;
     /** args  */
-    MYFLT args[PMAX - 4];
+    MYFLT *args;
     /** arg count */
     int32_t argcnt;
     /** GEN01 parameters */
@@ -1100,7 +1096,7 @@ struct CSOUND_ {
   /** @name Events and Score */
   /**@{ */
   int32_t (*CheckEvents)(CSOUND *);
-  int32_t (*InsertScoreEvent)(CSOUND *, EVTBLK *, double);
+  void (*Event)(CSOUND *, int32_t, const MYFLT *, int32_t);
   MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
   void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
   void (*RewindScore)(CSOUND *);

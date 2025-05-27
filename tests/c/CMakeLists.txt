@@ -27,6 +27,7 @@ if(BUILD_TESTS)
         perfthread_test.cpp
         csound_test_sndfile.cpp
         test_new_type.cpp
+        test_pfields.cpp
     )
 
     target_compile_features(unittests PUBLIC cxx_std_17)
