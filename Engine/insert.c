@@ -105,6 +105,7 @@ static void no_op(CSOUND *csound, int32_t attr,
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   int32_t error = 0;
   OPDS *ids = csound->ids;
+  INSDS *curip = csound->curip;
   if(csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
@@ -113,12 +114,13 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
     csound->mode = 1;
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csound->oparms->odebug)) {  
-      csound->Message(csound, "init %s:\n", csound->op);
-    }
+      csound->Message(csound, "init %s (%p):\n", csound->op, csound->ids);
+     }
     error = (*csound->ids->init)(csound, csound->ids);
     csound->mode = 0;
   }
   csound->ids = ids;
+  csound->curip = curip;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
   return error;
@@ -1468,7 +1470,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   if (O->midiVelocity>n) n = O->midiVelocity;
   if (O->midiVelocityAmp>n) n = O->midiVelocityAmp;
   pextra = n-3;
-  pextrab = ((i = tp->pmax - 3L) > 0 ? (int32_t) i * sizeof(CS_VAR_MEM) : 0);
+  pextrab = ((i = tp->pmax - 3L) > 0 ? (int32_t) (i * sizeof(CS_VAR_MEM)) : 0);
   /* alloc new space,  */
   pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
   ip =
@@ -1542,8 +1544,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     }
 
     if (UNLIKELY(odebug))
-      csound->Message(csound, Str("op (%s) allocated at %p\n"),
-                      ep->opname, opds);
+      csound->Message(csound, Str("op (%s) allocated at %p for instr %d nxt %p\n"),
+                      ep->opname, opds, insno, nxtopds);
     opds->optext = optxt;                     /* set common headata */
     opds->insdshead = ip;
     if (strcmp(ep->opname, "$label") == 0) {     /* LABEL:       */
@@ -1795,6 +1797,7 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
     ip->no_end = 0;
     ip->linked = 0;
     ip->nxtoff = ip->nxtact = ip->prvact = NULL; /* NOT in act chain */
+ 
 
     csound->instance_count++;
     ip->instance_id = csound->instance_count;
