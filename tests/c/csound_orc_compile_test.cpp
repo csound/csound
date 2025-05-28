@@ -222,6 +222,34 @@ const char* event = R"(
     ASSERT_FALSE(result == 0);
 }
 
+TEST_F (OrcCompileTests, testReCompileCSD)
+{
+  const char* instrument = R"(
+<CsoundSynthesizer>
+<CsInstruments>
+
+instr 1
+endin
+
+</CsInstruments>
+<CsScore>
+i 1 0 1000
+</CsScore>
+</CsoundSynthesizer>   
+     )";
+
+  int32_t result = csoundCompileCSD(csound,instrument,1,0);
+  ASSERT_TRUE(result == 0);
+  result = csoundStart(csound);
+  ASSERT_TRUE(result == 0);
+  result = csoundPerformKsmps(csound);
+  result = csoundCompileCSD(csound,instrument,1,0);
+  ASSERT_TRUE(result == 0);
+  result = csoundPerformKsmps(csound);
+  ASSERT_TRUE(result == 0);
+
+}
+
 TEST_F (OrcCompileTests, testSampleAccurate)
 {
   const char* instrument = R"(
