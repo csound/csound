@@ -222,6 +222,19 @@ const char* event = R"(
     ASSERT_FALSE(result == 0);
 }
 
+TEST_F (OrcCompileTests, test0dbfs)
+{
+  const char* instrument = R"(
+   0dbfs = 1
+     )";
+
+  printf("%f \n", csoundGet0dBFS(csound));
+  int result = csoundCompileOrc(csound, instrument);
+  ASSERT_TRUE(result == 0);
+  MYFLT val = csoundGet0dBFS(csound);
+  ASSERT_TRUE(val == 1.0);
+}
+
 TEST_F (OrcCompileTests, testSampleAccurate)
 {
   const char* instrument = R"(
