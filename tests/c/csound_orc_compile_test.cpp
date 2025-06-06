@@ -222,6 +222,18 @@ const char* event = R"(
     ASSERT_FALSE(result == 0);
 }
 
+TEST_F (OrcCompileTests, test0dbfs)
+{
+  const char* instrument = R"(
+   0dbfs = 1
+     )";
+
+  int result = csoundCompileOrc(csound, instrument);
+  ASSERT_TRUE(result == 0);
+  MYFLT val = csoundGet0dBFS(csound);
+  ASSERT_TRUE(val == 1.0);
+}
+
 TEST_F (OrcCompileTests, testReCompileCSD)
 {
   const char* instrument = R"(
@@ -247,8 +259,7 @@ i 1 0 1000
   ASSERT_TRUE(result == 0);
   result = csoundPerformKsmps(csound);
   ASSERT_TRUE(result == 0);
-
-}
+ }
 
 TEST_F (OrcCompileTests, testSampleAccurate)
 {
