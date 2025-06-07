@@ -54,5 +54,4 @@ void corfile_set(CORFIL *f, int32_t n);
 void corfile_seek(CORFIL *f, int32_t n, int32_t dir);
 void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f);
 void add_corfile(CSOUND* csound, CORFIL *smpf, char *filename);
-CORFIL *copy_url_corefile(CSOUND *, const char *, int);
 #endif
