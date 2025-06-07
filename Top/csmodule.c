@@ -762,7 +762,7 @@ int32_t csoundLoadExternals(CSOUND *csound)
   s = csound->dl_opcodes_oplibs;
   if (UNLIKELY(s == NULL || s[0] == '\0'))
     return 0;
-  /* IV - Feb 19 2005 */
+
   csound->dl_opcodes_oplibs = NULL;
   csoundMessage(csound, "%s", Str("Loading command-line libraries:\n"));
   cnt = 1;
@@ -789,7 +789,9 @@ int32_t csoundLoadExternals(CSOUND *csound)
       if (UNLIKELY(err == CSOUND_INITIALIZATION || err == CSOUND_MEMORY))
         csoundDie(csound, Str(" *** error loading '%s'"), fname);
       else if (!err)
-        csoundMessage(csound, "  %s\n", fname);
+        csoundMessage(csound, "loaded %s\n", fname);
+      else
+        csoundMessage(csound, "failed to load %s\n", fname);
     }
   } while (++i < cnt);
   /* file list is no longer needed */
