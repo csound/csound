@@ -45,7 +45,6 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsi
       return NULL;
     }
     memset(p->buffer, 0, numelem*elemsize);
-    printf("numelem %d \n", numelem);
     return (void *)p;
 }
 

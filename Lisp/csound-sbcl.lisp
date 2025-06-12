@@ -75,8 +75,8 @@
 
 (in-package :csound)
 
-
-
+;; float traps disabled
+(sb-int:set-floating-point-modes :traps nil)
 (defvar *libcsound*
   (concatenate 'string (posix-getenv "HOME")
                "/Library/Frameworks/CsoundLib64.framework/CsoundLib64"))

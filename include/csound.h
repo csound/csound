@@ -677,8 +677,8 @@ extern "C" {
   PUBLIC int32_t csoundStart(CSOUND *csound);
 
   /**
-   * Senses input events, and performs one control sample worth (ksmps) of
-   * audio output. csoundStart() must be called first.
+   * Senses input events, and performs one block of
+   * audio output containing ksmps frames. csoundStart() must be called first.
    * Returns false during performance, and true when performance is finished.
    * If called until it returns true, will perform an entire score.
    * Enables external software to control the execution of Csound,
