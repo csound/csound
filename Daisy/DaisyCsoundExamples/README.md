@@ -22,7 +22,7 @@ Both examples showcase the use of DaisyCsound's analog and digital interfaces.
    - Pressing and releasing the **RESET** button  
    - Releasing the **BOOT** button  
 6. Run `make program-boot` to flash the bootloader program.  
-7. After the board reboots (you’ll see an LED slowly fading in and out), press and release the **BOOT** button again.  
+7. After the board is flashed, press the RESET button once more (you’ll see an LED slowly fading in and out), then press and release the **BOOT** button again.  
 8. Run `make program-dfu` to upload the firmware.
 
 Once complete, your Csound-based firmware should be running on the Daisy board.
