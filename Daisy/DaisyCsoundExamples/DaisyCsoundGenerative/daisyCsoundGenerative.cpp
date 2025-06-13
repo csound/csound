@@ -1,22 +1,46 @@
+/*
+  daisyCsoundGenerative.cpp:
 
+  Copyright (C) 2025 Aman Jagawni
+
+  This file is part of Csound.
+
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+*/
 
 #include "daisy_seed.h"
 #include "daisysp.h"
 #include <array>
 #include <stdio.h>
 #include "daisyCsoundGenerative.h"
-#include "csound.h"
-#include "plugin.h"
+#include <csound.h>
+#include <plugin.h>
 
 
 using namespace daisy;
 using namespace daisy::seed;
 
-
+/*
+// this function can be used to provide a message callback 
+// for csound
 static void DaisyCsoundMessageCallback(CSOUND     *csound,
                                        int         attr,
                                        const char *format,
                                        va_list     args);
+*/
 
 
 DaisySeed hw;
@@ -175,6 +199,7 @@ int main(void)
     System::Delay(5000);
 
     CSOUND *cs = csoundCreate(NULL, NULL);
+    // uncomment to set message callback
     // csoundSetMessageCallback(cs, DaisyCsoundMessageCallback);
     csoundSetHostData(cs, (void *)&hw);
     csoundSetHostAudioIO(cs);
@@ -195,10 +220,9 @@ int main(void)
         csound = cs;
         csoundSetOption(cs, "-n");
         csoundSetOption(cs, "--ksmps=512");
-        //   csoundSetOption(cs, "-M0");
         csoundSetOption(cs, "-dm0");
 
-        int ret = csoundCompileCSD(cs, csdText.c_str(), 1);
+        int ret = csoundCompileCSD(cs, csdText.c_str(), 1, 0);
 
         if(ret == 0)
         {
@@ -212,8 +236,6 @@ int main(void)
             digiHandler.initDigiPins();
             while(1)
             {
-                // hw.PrintLine("Hello from Daisy Csound\n");
-
                 for(int i = 0; i < numAdcChannels; i++)
                 {
                     adcVals[i] = hw.adc.GetFloat(i);
@@ -228,21 +250,17 @@ int main(void)
             }
             csoundReset(cs);
         }
-        else
-        {
-            // hw.PrintLine("Error: could not compile csd. \n");
-        }
     }
     else
     {
-        //  hw.PrintLine("Error: csoundCreate failed.\n");
-        return 1;
+        return CSOUND_ERROR;
     }
-    return 0;
+    return CSOUND_SUCCESS;
 }
 
+/*
+// message callback
 constexpr size_t kMessageBufferSize = 64;
-
 static void DaisyCsoundMessageCallback(CSOUND     *csound,
                                        int         attr,
                                        const char *format,
@@ -250,7 +268,6 @@ static void DaisyCsoundMessageCallback(CSOUND     *csound,
 {
     char messageBuffer[kMessageBufferSize];
     vsnprintf(messageBuffer, kMessageBufferSize, format, args);
-
-
     hw.PrintLine("%s", messageBuffer);
 }
+*/

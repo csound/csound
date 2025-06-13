@@ -107,12 +107,18 @@ static const uint32_t PHMASK = (1 << 24) - 1;
 
 #ifndef PI
 #define PI      (3.141592653589793238462643383279502884197)
-#endif /* pi */
+#endif /* pi */ 
 #define TWOPI   (6.283185307179586476925286766559005768394)
 #define HALFPI  (1.570796326794896619231321691639751442099)
+#ifndef PI_F  
 #define PI_F    ((MYFLT) PI)
+#endif
+#ifndef TWOPI_F    
 #define TWOPI_F ((MYFLT) TWOPI)
+#endif
+#ifndef HALFPI_F  
 #define HALFPI_F ((MYFLT) HALFPI)
+#endif  
 #define INF     (2147483647.0)
 #define ROOT2   (1.414213562373095048801688724209698078569)
 /* CONSTANTS FOR USE IN MSGLEVEL */

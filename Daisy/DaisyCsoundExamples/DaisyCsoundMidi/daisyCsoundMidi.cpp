@@ -18,6 +18,8 @@ static int32_t ReadMidiData(CSOUND        *csound,
                             void          *userData,
                             unsigned char *mbuf,
                             int32_t        nbytes);
+/*
+// MIDI output - needs to be implemented
 static int32_t
 OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
 static int32_t CloseMidiOutDevice(CSOUND *csound, void *userData);
@@ -25,11 +27,14 @@ static int32_t WriteMidiData(CSOUND              *csound,
                              void                *userData,
                              const unsigned char *mbuf,
                              int                  nbytes);
+*/
+/*
+// use this for Csound message callbacks
 static void    DaisyCsoundMessageCallback(CSOUND     *csound,
                                           int         attr,
                                           const char *format,
                                           va_list     args);
-
+*/
 
 DaisySeed      hw;
 MidiUsbHandler midi;
@@ -217,7 +222,7 @@ int main(void)
         csoundSetOption(cs, "-M0");
         csoundSetOption(cs, "-dm0");
 
-        int ret = csoundCompileCSD(cs, csdText.c_str(), 1);
+        int ret = csoundCompileCSD(cs, csdText.c_str(), 1, 0);
 
         if(ret == 0)
         {
@@ -298,9 +303,9 @@ int32_t ReadMidiData(CSOUND        *csound,
     return 0;
 }
 
-
+/*
+// use this for Csound message callbacks
 constexpr size_t kMessageBufferSize = 64;
-
 static void DaisyCsoundMessageCallback(CSOUND     *csound,
                                        int         attr,
                                        const char *format,
@@ -312,3 +317,4 @@ static void DaisyCsoundMessageCallback(CSOUND     *csound,
 
     hw.PrintLine("%s", messageBuffer);
 }
+*/

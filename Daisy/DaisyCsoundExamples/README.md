@@ -10,8 +10,8 @@ Both examples showcase the use of DaisyCsound's analog and digital interfaces.
 
 ## Instructions
 
-1. Place this folder inside your `DaisyExamples` directory (assuming you've already cloned the [DaisyExamples GitHub repository](https://github.com/electro-smith/DaisyExamples)).  
-2. Open a terminal and navigate (`cd`) to one of the example folders.  
+1. Place this folder inside your `DaisyExamples` directory (assuming
+you've already downloaded and installed the Daisy tools from Electrosmith)
 3. Open the included `Makefile` and update the following variables to match your system’s Csound installation:
    - `CSOUND_INCLUDE_DIR`  
    - `CSOUND_LIB_DIR`  
