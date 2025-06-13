@@ -20,7 +20,6 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
   02111-1307 USA
 */
-#if
 #ifndef DAISY_CSOUND_H
 #define DAISY_CSOUND_H
 
