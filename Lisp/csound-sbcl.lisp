@@ -75,8 +75,8 @@
 
 (in-package :csound)
 
-
-
+;; float traps disabled
+(sb-int:set-floating-point-modes :traps nil)
 (defvar *libcsound*
   (concatenate 'string (posix-getenv "HOME")
                "/Library/Frameworks/CsoundLib64.framework/CsoundLib64"))
@@ -147,7 +147,7 @@
 
 (defun csound-compile-csd (csound csd &key (is-text 0) (async 0))
   " Compile code in CSD file or optionally from a text string "
-  (csoundCompileCSD csound csd is-text))
+  (csoundCompileCSD csound csd is-text async))
 
 (defun csound-set-option (csound option)
   " Set one or more engine options, called before csound-start " 
@@ -197,9 +197,9 @@
   " Set the control channel name to value "
   (csoundSetControlChannel csound name value))
 
-(defun csound-get-control-channel (csound name &key err)
+(defun csound-get-control-channel (csound name)
   " Get the value from control channel name"
-  (csoundSetControlChannel csound name err))
+  (csoundSetControlChannel csound name))
 
 (defun csound-get-spout (csound)
   " Get the pointer to the main output (spout), use dref to access data "

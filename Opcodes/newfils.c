@@ -2615,7 +2615,7 @@ typedef struct vcf {
   double piosr;
 } VCF;
 
-int32_t vcf_init(CSOUND *csound, VCFNL *p) {
+int32_t vcf_init(CSOUND *csound, VCF *p) {
   double g, *G = p->G;
   p->piosr = PI/CS_ESR;
   p->ff = *p->f;
