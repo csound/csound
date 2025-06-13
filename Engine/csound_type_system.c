@@ -53,6 +53,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       }
       current = current->next;
     }
+    if(UNLIKELY(typeName[strlen(typeName)-1] != ']')) return NULL;
     // now check again with braces
     char type[64]; 
     current = pool->head;
