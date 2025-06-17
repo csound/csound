@@ -108,7 +108,7 @@ static int32_t delay_line_bytes_alloc(SC_REVERB *p, int32_t n)
     return nBytes;
 }
 
-static void next_random_lineseg(SC_REVERB *p, delayLine *lp, int32_t n)
+static inline void next_random_lineseg(SC_REVERB *p, delayLine *lp, int32_t n)
 {
     double  prvDel, nxtDel, phs_incVal;
 
@@ -307,14 +307,112 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
                              "%s", Str("reverbsc: not initialised"));
 }
 
-/* module interface functions */
 
+
+static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
+{
+    MYFLT    ainL, ainR, aoutL, aoutR;
+    MYFLT    v0, v1, frac;
+    delayLine  **lp = p->delayLines;
+    int32_t  rp;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i, n, nsmps = CS_KSMPS;
+    int32_t   bufferSize; /* Local copy */
+    double    dampFact = p->dampFact;
+    MYFLT  *inR = p->ainR, *inL = p->ainL;
+    MYFLT   *outR = p->aoutR, *outL = p->aoutL;
+    MYFLT kFeedBack = *p->kFeedBack;
+    MYFLT iPitchMod = *p->iPitchMod;
+    MYFLT sr = p->sampleRate;
+    delayLine *lpn;
+    int32_t linear = *p->iPitchMod == 0 ? 0 : 1;
+
+    if (UNLIKELY(p->initDone <= 0)) goto err1;
+    /* calculate tone filter coefficient if frequency changed */
+    if (*(p->kLPFreq) != p->prv_LPFreq) {
+      p->prv_LPFreq = *(p->kLPFreq);
+      dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
+      dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
+    }
+    if (UNLIKELY(offset)) {
+      memset(p->aoutL, '\0', offset*sizeof(MYFLT));
+      memset(p->aoutR, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&p->aoutL[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->aoutR[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    /* update delay lines */
+    for (i = offset; i < nsmps; i++) {
+      /* calculate "resultant junction pressure" and mix to input signals */
+      ainL = aoutL = aoutR = 0.0;
+      for (n = 0; n < 8; n++)
+        ainL += lp[n]->filterState;
+      ainL *= jpScale;
+      ainR = ainL + inR[i];
+      ainL += inL[i];
+      /* loop through all delay lines */
+#pragma unroll       
+      for (n = 0; n < 8; n++) {
+        lpn = lp[n];
+        bufferSize = lpn->bufferSize;
+        /* send input signal and feedback to delay line */
+        lpn->buf[lpn->writePos] = (MYFLT) ((n & 1 ? ainR : ainL)
+                                         - lpn->filterState);
+        if (UNLIKELY(++lpn->writePos >= bufferSize))
+            lpn->writePos -= bufferSize;
+        /* read from delay line with cubic interpolation */
+        if (lpn->readPosFrac >= DELAYPOS_SCALE) {
+          lpn->readPos += (lpn->readPosFrac >> DELAYPOS_SHIFT);
+          lpn->readPosFrac &= DELAYPOS_MASK;
+        }
+        if (UNLIKELY(lpn->readPos >= bufferSize))
+          lpn->readPos -= bufferSize;
+        if(linear) {
+        frac = (double) lpn->readPosFrac * (1.0 / (double) DELAYPOS_SCALE);
+        v0 = lpn->buf[lpn->readPos];
+        v1 = lpn->readPos != bufferSize - 1 ? lpn->buf[lpn->readPos + 1] : lpn->buf[0];
+        v0 = (v1 - v0) * frac + v0;
+        } else v0 = lpn->buf[lpn->readPos];
+        /* update buffer read position */
+        lpn->readPosFrac += lpn->readPosFrac_inc;
+        /* apply feedback gain and lowpass filter */
+        v0 *= kFeedBack;
+        v0 = (lpn->filterState - v0) * dampFact + v0;
+        lpn->filterState = v0;
+        /* mix to output */
+        if (n & 1)
+          aoutR += v0;
+        else
+          aoutL += v0;
+        /* start next random line segment if current one has reached endpoint */
+        if (--(lpn->randLine_cnt) <= 0)
+          next_random_lineseg(p, lpn, n);
+      }
+      outL[i] = (MYFLT) (aoutL * outputGain);
+      outR[i] = (MYFLT) (aoutR * outputGain);
+    }
+
+    return OK;
+ err1:
+    return csound->PerfError(csound, &(p->h),
+                             "%s", Str("reverbsc2: not initialised"));
+}
+
+/* module interface functions */
 int32_t reverbsc_init_(CSOUND *csound)
 {
     return csound->AppendOpcode(csound, "reverbsc",
                                 (int32_t) sizeof(SC_REVERB), 0,  "aa", "aakkjpo",
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_init,
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_perf,
-                                NULL);
+                                NULL) + csound->AppendOpcode(csound, "reverbsc2",
+                                (int32_t) sizeof(SC_REVERB), 0,  "aa", "aakkjpo",
+                                (int32_t (*)(CSOUND *, void *)) sc_reverb_init,
+                                (int32_t (*)(CSOUND *, void *)) sc_reverb_perf2,
+                                                             NULL);
+      
 }
 

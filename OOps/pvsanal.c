@@ -266,10 +266,9 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     return OK;
 }
 
-static void generate_frame(CSOUND *csound, PVSANAL *p)
-{
-  int32_t got, i,j,k,ii;
-  int64_t tocp;
+static void generate_frame(CSOUND *csound, PVSANAL *p) {
+    int32_t got, i,j,k,ii;
+    int64_t tocp;
     int32_t N = p->fsig->N;
     int32_t N2 = N/2;
     int32_t buflen = p->buflen;
@@ -310,11 +309,8 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
        pairs of real and imaginary values for the lowest (N/2 + 1)
        channels.   The subroutines fft and reals together implement
        one efficient FFT call for a real input sequence.  */
-
-    /* for (i = 0; i < N+2; i++)
-     *(anal + i) = FL(0.0);  */     /*initialize*/
+    
     memset(anal, 0, sizeof(MYFLT)*(N+2));
-
     j = (p->nI - analWinLen - 1 + buflen) % buflen;     /*input pntr*/
 
     k = p->nI - analWinLen - 1;                 /*time shift*/
@@ -326,7 +322,6 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
         j -= buflen;
       if (UNLIKELY(++k >= N))
         k -= N;
-      /* *(anal + k) += *(analWindow + i) * *(input + j); */
       anal[k] += analWindow[i] * input[j];
     }
      csound->RealFFT(csound, p->setup, anal);
@@ -348,41 +343,30 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
         real = *i0;
         imag = *i1;
         *i0 = HYPOT(real, imag);
-        /* phase unwrapping */
-        /*if (*i0 == 0.)*/
         if (UNLIKELY(*i0 < FL(1.0E-10)))
-          /* angleDif = 0.0f; */
           phase = FL(0.0);
 
         else {
-
           phase = ATAN2(imag,real);
-
-          /*angleDif  = (phase = (float)rratio) - *oi;
-           *oi = phase;
-           phase = (MYFLT)rratio;
-           */
         }
 
         *i1 = phase;
       }
     }
 #endif
-    /*if (format==PVS_AMP_FREQ) {*/
-    for (i=ii=0    /*,i0=anal,i1=anal+1,oi=oldInPhase*/;
+    for (i=ii=0;
          i <= N2;
-         i++,ii+=2 /*i0+=2,i1+=2, oi++*/) {
-      real = anal[ii] /* *i0 */;
-      imag = anal[ii+1] /* *i1 */;
-      /**i0*/ anal[ii] = HYPOT(real, imag);
-      /* phase unwrapping */
-      /*if (*i0 == 0.)*/
-      if (UNLIKELY(/* *i0 */ anal[ii] < FL(1.0E-10)))
+         i++,ii+=2) {
+      real = anal[ii];
+      imag = anal[ii+1];
+      anal[ii] = HYPOT(real, imag);
+
+      if (UNLIKELY(anal[ii] < FL(1.0E-10)))
         angleDif = FL(0.0);
       else {
         rratio =  atan2((double)imag,(double)real);
-        angleDif  = (phase = (MYFLT)rratio) - /**oi*/ oldInPhase[i];
-        /* *oi */ oldInPhase[i] = phase;
+        angleDif  = (phase = (MYFLT)rratio) - oldInPhase[i];
+        oldInPhase[i] = phase;
       }
 
       if (angleDif > PI_F)
@@ -391,48 +375,40 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
         angleDif = angleDif + TWOPI_F;
 
       /* add in filter center freq.*/
-      /* *i1 */ anal[ii+1]  = angleDif * p->RoverTwoPi + ((MYFLT) i * p->Fexact);
-
+      anal[ii+1]  = angleDif * p->RoverTwoPi + ((MYFLT) i * p->Fexact);
     }
-    /* } */
-    /* else must be PVOC_COMPLEX */
     fp = anal;
     ofp = (float *) (p->fsig->frame.auxp);      /* RWD MUST be 32bit */
+#ifdef USE_DOUBLE    
     for (i=0;i < N+2;i++)
-      /* *ofp++ = (float)(*fp++); */
       ofp[i] = (float) fp[i];
-
+#else 
+    memcpy(ofp, fp, sizeof(float)*(N+2));
+#endif    
     p->nI += p->fsig->overlap;                          /* increment time */
     if (p->nI > (synWinLen + p->fsig->overlap))
-      p->Ii = /*I*/p->fsig->overlap;
+      p->Ii = p->fsig->overlap;
     else
       if (p->nI > synWinLen)
         p->Ii = p->nI - synWinLen;
       else {
         p->Ii = 0;
-
-        /*  for (i=p->nO+synWinLen; i<buflen; i++)
-            if (i > 0)
-            *(output+i) = 0.0f;
-            */
       }
 
     p->IOi = p->Ii;
 }
 
-static void anal_frame(CSOUND *csound, PVSANAL *p,MYFLT samp)
+static inline void anal_frame(CSOUND *csound, PVSANAL *p, MYFLT samp)
 {
     MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
 
-    if (p->inptr== p->fsig->overlap) {
+    if (p->inptr == p->fsig->overlap) {
       generate_frame(csound, p);
       p->fsig->framecount++;
       p->inptr = 0;
 
     }
-    //printf("inptr = %d fsig->overlap=%d\n", p->inptr, p->fsig->overlap);
     inbuf[p->inptr++] = samp;
-
 }
 
 static inline double mod2Pi(double x)
