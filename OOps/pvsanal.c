@@ -374,18 +374,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
   p->IOi = p->Ii;
 }
 
-static inline void anal_frame(CSOUND *csound, PVSANAL *p, MYFLT samp)
-{
-  MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
 
-  if (p->inptr == p->fsig->overlap) {
-    generate_frame(csound, p);
-    p->fsig->framecount++;
-    p->inptr = 0;
-
-  }
-  inbuf[p->inptr++] = samp;
-}
 
 static inline double mod2Pi(double x)
 {
@@ -625,9 +614,9 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *inbuf = (MYFLT *) (p->overlapbuf.auxp);
 
   ain = p->ain;
-
   if (UNLIKELY(p->input.auxp==NULL)) {
     return csound->PerfError(csound,&(p->h),
                              Str("pvsanal: not Initialised.\n"));
@@ -638,8 +627,14 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
       return pvssanal(csound, p);
   }
   nsmps -= early;
-  for (i=offset; i < nsmps; i++)
-    anal_frame(csound,p,ain[i]);
+  for (i=offset; i < nsmps; i++) {
+    if (p->inptr == p->fsig->overlap) {
+      generate_frame(csound, p);
+      p->fsig->framecount++;
+      p->inptr = 0;
+    }
+    inbuf[p->inptr++] = ain[i];
+  }
   return OK;
 }
 
@@ -784,24 +779,12 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
   return OK;
 }
 
-static MYFLT synth_frame(CSOUND *csound, PVSYNTH *p)
-{
-  MYFLT *outbuf = (MYFLT *) (p->overlapbuf.auxp);
-
-  if (p->outptr== p->fsig->overlap) {
-    process_frame(csound, p);
-    p->outptr = 0;
-  }
-  return outbuf[p->outptr++];
-}
-
 static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
   int32_t i,j,k,ii,NO,NO2;
   float *anal;                                        /* RWD MUST be 32bit */
   MYFLT *syn, *output;
   MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
-  int32_t N = p->fsig->N;
   MYFLT *obufptr,*outbuf,*synWindow;
   MYFLT mag,angledif, the_phase;
   int32_t synWinLen = p->fsig->winsize / 2;
@@ -815,7 +798,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
 
   /* fsigs MUST be correct format, as we offer no mechanism for
      assignment to a different one*/
-  NO = N;        /* always the same  */
+  NO = p->fsig->N;        /* always the same  */
   NO2 = NO/2;
   syn = (MYFLT *) (p->synbuf.auxp);
   anal = (float *) (p->fsig->frame.auxp);             /* RWD MUST be 32bit */
@@ -835,7 +818,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
   memcpy(syn, anal, sizeof(MYFLT)*(NO+2));
 #endif
 
-
   for (i=ii=0 ; i<= NO2; i++, ii+=2) {
     mag = syn[ii]; 
     angledif = p->TwoPioverR * (syn[ii+1] - (i * p->Fexact));
@@ -844,18 +826,13 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     while(the_phase < 0) the_phase += TWOPI;
     oldOutPhase[i] = the_phase;
     phase = (int32_t) (the_phase*conv);
-    syn[ii]  = mag * tab[(phase+off)%flen]; 
-    // COS(the_phase); 
     syn[ii+1] = mag * tab[phase];
     // SIN(the_phase); 
+    phase += off;
+    syn[ii]  = mag * tab[phase < flen ? phase : phase - flen];
+    // COS(the_phase); 
   }
-
-  /* for phase normalization */
-  if (++(p->bin_index) == NO2+1)
-    p->bin_index = 0;
-
-  /* else it must be PVOC_COMPLEX */
-
+  
   /* synthesis: The synthesis subroutine uses the Weighted Overlap-Add
      technique to reconstruct the time-domain signal.  The (N/2 + 1)
      phase vocoder channel outputs at time n are inverse Fourier
@@ -907,7 +884,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
 
   /* increment time */
   p->nO += overlap;
-
   if (p->nO > (synWinLen + overlap))
     p->Ii = overlap;
   else
@@ -966,6 +942,7 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *aout = p->aout;
+  MYFLT *outbuf = (MYFLT *) (p->overlapbuf.auxp);
 
   if (UNLIKELY(p->output.auxp==NULL)) {
     return csound->PerfError(csound,&(p->h),
@@ -977,8 +954,13 @@ int32_t pvsynth(CSOUND *csound, PVSYNTH *p)
     nsmps -= early;
     memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
   }
-  for (i=offset; i<nsmps; i++)
-    aout[i] = synth_frame(csound, p);
+  for (i=offset; i<nsmps; i++) {
+   if (p->outptr== p->fsig->overlap) {
+    process_frame(csound, p);
+    p->outptr = 0;
+   }
+   aout[i] = outbuf[p->outptr++];
+  }
   return OK;
 }
 
