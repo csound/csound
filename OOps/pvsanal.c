@@ -281,7 +281,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
     MYFLT *analWindow = (MYFLT *) (p->analwinbuf.auxp) + analWinLen;
     MYFLT *oldInPhase = (MYFLT *) (p->oldInPhase.auxp);
     MYFLT angleDif,real,imag,phase;
-    double rratio;
+    MYFLT rratio;
 
     got = p->fsig->overlap;      /*always assume */
     fp = (MYFLT *) (p->overlapbuf.auxp);
@@ -347,7 +347,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
           phase = FL(0.0);
 
         else {
-          phase = ATAN2(imag,real);
+          phase = atan2(imag,real);
         }
 
         *i1 = phase;
@@ -364,8 +364,8 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
       if (UNLIKELY(anal[ii] < FL(1.0E-10)))
         angleDif = FL(0.0);
       else {
-        rratio =  atan2((double)imag,(double)real);
-        angleDif  = (phase = (MYFLT)rratio) - oldInPhase[i];
+        rratio =  ATAN2(imag,real);
+        angleDif  = (phase = rratio) - oldInPhase[i];
         oldInPhase[i] = phase;
       }
 
@@ -379,12 +379,12 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
     }
     fp = anal;
     ofp = (float *) (p->fsig->frame.auxp);      /* RWD MUST be 32bit */
-#ifdef USE_DOUBLE    
+    #ifdef USE_DOUBLE    
     for (i=0;i < N+2;i++)
       ofp[i] = (float) fp[i];
-#else 
+    #else 
     memcpy(ofp, fp, sizeof(float)*(N+2));
-#endif    
+    #endif    
     p->nI += p->fsig->overlap;                          /* increment time */
     if (p->nI > (synWinLen + p->fsig->overlap))
       p->Ii = p->fsig->overlap;
@@ -828,15 +828,21 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
     int32_t N = p->fsig->N;
     MYFLT *obufptr,*outbuf,*synWindow;
-    MYFLT mag,phase,angledif, the_phase;
+    MYFLT mag,angledif, the_phase;
     int32_t synWinLen = p->fsig->winsize / 2;
     int32_t overlap = p->fsig->overlap;
+    MYFLT ft = -1.;
+    FUNC *ftp = csound->FTFind(csound, &ft);
+    MYFLT *tab = ftp->ftable;
+    int32_t flen = ftp->flen;
+    MYFLT conv = flen/TWOPI;
+    int32_t off = flen/4, phase;
     /*int32 format = p->fsig->format; */
 
     /* fsigs MUST be corect format, as we offer no mechanism for
        assignment to a different one*/
 
-    NO = N;        /* always the same */
+    NO = N;        /* always the same  */
     NO2 = NO/2;
     syn = (MYFLT *) (p->synbuf.auxp);
     anal = (float *) (p->fsig->frame.auxp);             /* RWD MUST be 32bit */
@@ -849,47 +855,27 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
        converted to real and imaginary values and are returned in syn.
        This automatically incorporates the proper phase scaling for
        time modifications. */
-
-    if (LIKELY(NO <= N)) {
+#ifdef USE_DOUBLE      
       for (i = 0; i < NO+2; i++)
         syn[i] = (MYFLT) anal[i];
-    }
-    else {
-      for (i = 0; i <= N+1; i++)
-        syn[i] = (MYFLT) anal[i];
-      for (i = N+2; i < NO+2; i++)
-        syn[i] = FL(0.0);
-    }
-#ifdef NOTDEF
-    if (format==PVS_AMP_PHASE) {
-      for (ii=0 /*, i0=syn, i1=syn+1*/; ii<= NO2; ii+=2 /* i++, i0+=2,  i1+=2*/) {
-        mag = syn[ii];    /* *i0; */
-        phase = syn[ii+1]; /* *i1; */
-        /* *i0 */ syn[ii] = (MYFLT)((double)mag * cos((double)phase));
-        /* *i1 */ syn[ii+1] = (MYFLT)((double)mag * sin((double)phase));
-      }
-    }
-    else if (format == PVS_AMP_FREQ) {
+#else
+      memcpy(syn, anal, sizeof(MYFLT)*(NO+2));
 #endif
-      for (i=ii=0 /*, i0=syn, i1=syn+1*/; i<= NO2; i++, ii+=2 /*i0+=2,  i1+=2*/) {
-        mag = syn[ii]; /* *i0; */
-        /* RWD variation to keep phase wrapped within +- TWOPI */
-        /* this is spread across several frame cycles, as the problem does not
-           develop for a while */
 
-        angledif = p->TwoPioverR * ( /* *i1 */ syn[ii+1] - ((MYFLT)i * p->Fexact));
-        the_phase = /* *(oldOutPhase + i) */ oldOutPhase[i] + angledif;
-        if (i== p->bin_index)
-          the_phase = (MYFLT) fmod(the_phase,TWOPI);
-        /* *(oldOutPhase + i) = the_phase; */
+
+      for (i=ii=0 ; i<= NO2; i++, ii+=2) {
+        mag = syn[ii]; 
+        angledif = p->TwoPioverR * (syn[ii+1] - (i * p->Fexact));
+        the_phase =  oldOutPhase[i] + angledif;
+        while(the_phase >= TWOPI) the_phase -= TWOPI;
+        while(the_phase < 0) the_phase += TWOPI;
         oldOutPhase[i] = the_phase;
-        phase = the_phase;
-        /* *i0 */ syn[ii]  = (MYFLT)((double)mag * cos((double)phase));
-        /* *i1 */ syn[ii+1] = (MYFLT)((double)mag * sin((double)phase));
+        phase = (int32_t) (the_phase*conv);
+        syn[ii]  = mag * tab[(phase+off)%flen]; 
+        // COS(the_phase); 
+        syn[ii+1] = mag * tab[phase];
+        // SIN(the_phase); 
       }
-#ifdef NOTDEF
-    }
-#endif
 
     /* for phase normalization */
     if (++(p->bin_index) == NO2+1)
@@ -927,7 +913,6 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
         j -= p->buflen;
       if (++k >= NO)
         k -= NO;
-      /* *(output + j) += *(syn + k) * *(synWindow + i); */
       output[j] += syn[k] * synWindow[i];
     }
 
@@ -936,17 +921,10 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     for (i = 0; i < p->IOi;) {  /* shift out next IOi values */
       int64_t todo = (p->IOi-i <= output+p->buflen - p->nextOut ?
                   p->IOi-i : output+p->buflen - p->nextOut);
-      /*outfloats(nextOut, todo, ofd);*/
-      /*copy data to external buffer */
-      /*for (n=0;n < todo;n++)
-       *obufptr++ = p->nextOut[n]; */
       memcpy(obufptr, p->nextOut, sizeof(MYFLT)*todo);
       obufptr += todo;
-
       i += todo;
 
-      /* for (j = 0; j < todo; j++)
-       *p->nextOut++ = FL(0.0); */
       memset(p->nextOut, 0, sizeof(MYFLT)*todo);
       p->nextOut += todo;
 
@@ -957,7 +935,7 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     /* increment time */
     p->nO += overlap;
 
-    if (p->nO > (synWinLen + /*I*/overlap))
+    if (p->nO > (synWinLen + overlap))
       p->Ii = overlap;
     else
       if (p->nO > synWinLen)
