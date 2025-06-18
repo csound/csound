@@ -283,9 +283,9 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
           pi = sqrt(-disc)/2.0;
           p0 = p1 = (-b1)/2.0;
           if (p0*p0+pi*pi>=1.0) {
-            double theta = atan2(pi, p0);
+            double theta = ATAN2(pi, p0);
             if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
-            p0 = NEARONE * cos(theta);
+            p0 = NEARONE * COS(theta);
             //pi = NEARONE * sin(theta);
             b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
           }
@@ -330,11 +330,11 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             pi = sqrt(-disc)/2.0;
             p0=p1=(-b1)/2.0;
             if (p0*p0+pi*pi>=1.0) {
-              double theta = atan2(pi, p0);
+              double theta = ATAN2(pi, p0);
               if (warn) csound->Warning(csound,
                                         "%s", Str("rezzy instability corrected"));
               //printf("b1, b2 = %f, %f ->", b1,b2);
-              p0 = NEARONE * cos(theta);
+              p0 = NEARONE * COS(theta);
               //pi = NEARONE * sin(theta);
               b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
               //printf(" b1, b2 = %f, %f\n", b1, b2);
@@ -394,7 +394,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
           pi = sqrt(-disc)/2.0;
           p0=p1=(-b1)/2.0;
           if (p0*p0+pi*pi>=1.0) {
-            double theta = atan2(pi, p0);
+            double theta = ATAN2(pi, p0);
             //printf("b1, b2= %f, %f ", b1, b2);
             if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
             b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
@@ -445,7 +445,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             pi = sqrt(-disc)/2.0;
             p0=p1=(-b1)/2.0;
             if (p0*p0+pi*pi >=1.0) {
-              double theta = atan2(pi,p0);
+              double theta = ATAN2(pi,p0);
               //printf("b1, b2= %f, %f ", b1, b2);
               if (warn) csound->Warning(csound,
                                         "%s", Str("rezzy instability corrected"));
