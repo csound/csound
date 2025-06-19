@@ -314,7 +314,6 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
     MYFLT    ainL, ainR, aoutL, aoutR;
     MYFLT    v0, v1, frac;
     delayLine  **lp = p->delayLines;
-    int32_t  rp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
@@ -323,8 +322,6 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
     MYFLT  *inR = p->ainR, *inL = p->ainL;
     MYFLT   *outR = p->aoutR, *outL = p->aoutL;
     MYFLT kFeedBack = *p->kFeedBack;
-    MYFLT iPitchMod = *p->iPitchMod;
-    MYFLT sr = p->sampleRate;
     delayLine *lpn;
     int32_t linear = *p->iPitchMod == 0 ? 0 : 1;
 

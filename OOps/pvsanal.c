@@ -782,19 +782,21 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
 static void process_frame(CSOUND *csound, PVSYNTH *p)
 {
   int32_t i,j,k,ii,NO,NO2;
-  float *anal;                                        /* RWD MUST be 32bit */
+  float *anal;                                        
   MYFLT *syn, *output;
   MYFLT *oldOutPhase = (MYFLT *) (p->oldOutPhase.auxp);
   MYFLT *obufptr,*outbuf,*synWindow;
   MYFLT mag,angledif, the_phase;
   int32_t synWinLen = p->fsig->winsize / 2;
   int32_t overlap = p->fsig->overlap;
+#ifndef USE_DOUBLE
   MYFLT ft = -1.;
   FUNC *ftp = csound->FTFind(csound, &ft);
   MYFLT *tab = ftp->ftable;
   int32_t flen = ftp->flen;
   MYFLT conv = flen/TWOPI;
   int32_t off = flen/4, phase;
+#endif  
 
   /* fsigs MUST be correct format, as we offer no mechanism for
      assignment to a different one*/
@@ -825,12 +827,16 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
     while(the_phase >= TWOPI) the_phase -= TWOPI;
     while(the_phase < 0) the_phase += TWOPI;
     oldOutPhase[i] = the_phase;
+#ifdef USE_DOUBLE
+   syn[ii+1] = mag * SIN(the_phase);
+   syn[ii]  = mag * COS(the_phase);
+#else
     phase = (int32_t) (the_phase*conv);
     syn[ii+1] = mag * tab[phase];
-    // SIN(the_phase); 
     phase += off;
     syn[ii]  = mag * tab[phase < flen ? phase : phase - flen];
-    // COS(the_phase); 
+#endif
+    
   }
   
   /* synthesis: The synthesis subroutine uses the Weighted Overlap-Add
