@@ -35,6 +35,8 @@ static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, size_t siz){
 }
 
 
+
+
 static inline
 double fast_tanh(double x)
 {
@@ -2405,7 +2407,9 @@ int32_t vcfnl_init(CSOUND *csound, VCFNL *p) {
   G[1] = G[0]*G[0]; // G^2
   G[2] = G[0]*G[1]; // G^3
   G[3] = G[0]*G[2]; // G^4
-  if(*p->istor == 0) memset(p->s, 0, 4*sizeof(MYFLT));
+  if(*p->istor == 0) {
+    p->s[0] = p->s[1] = p->s[2] = p->s[3] = 0.;
+  }
   tab = csound->QueryGlobalVariable(csound, "::TANH::");
   if(tab == NULL) {
     int32_t i;
@@ -2463,7 +2467,7 @@ int32_t vcfnl_perfk(CSOUND *csound, VCFNL *p) {
       u = G[0]*nlf(tab,w*kn,max,size)*kno1;
       if(j == 1) y1[i] = s[1];
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2506,7 +2510,7 @@ int32_t vcfnl_perfak(CSOUND *csound, VCFNL *p) {
       u = G[0]*nlf(tab,w*kn,max,size)*kno1;
       if(j == 1) y1[i] = s[1];
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2554,7 +2558,7 @@ int32_t vcfnl_perfka(CSOUND *csound, VCFNL *p) {
       u = G[0]*nlf(tab,w*kn,max,size)*kno1;
       if(j == 1) y1[i] = s[1];
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2598,7 +2602,7 @@ int32_t vcfnl_perfaa(CSOUND *csound, VCFNL *p) {
       u = G[0]*nlf(tab,w*kn,max,size)*kno1;
       if(j == 1) y1[i] = s[1];
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2656,7 +2660,7 @@ int32_t vcf_perfk(CSOUND *csound, VCF *p) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
   }
- 
+
   for (i=offset; i<nsmps; i++) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
@@ -2667,7 +2671,7 @@ int32_t vcf_perfk(CSOUND *csound, VCF *p) {
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2707,7 +2711,7 @@ int32_t vcf_perfak(CSOUND *csound, VCF *p) {
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2732,7 +2736,6 @@ int32_t vcf_perfka(CSOUND *csound, VCF *p) {
     G[2] = G[0]*G[1];
     G[3] = G[0]*G[2];
   }
-
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
   }
@@ -2752,7 +2755,7 @@ int32_t vcf_perfka(CSOUND *csound, VCF *p) {
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
@@ -2793,7 +2796,7 @@ int32_t vcf_perfaa(CSOUND *csound, VCF *p) {
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*o;
+    s[3] = u - A*o;
     y[i] = o;
   }
   return OK;
