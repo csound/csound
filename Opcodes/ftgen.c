@@ -129,6 +129,10 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     fp[5] = *p->p5;                                   /* else no string */
   }
 
+  n = GetInputArgCnt(&p->h);
+  ftevt->pcnt = (int16) n;
+  n -= 5;
+
   if (n > 0) {
     MYFLT **argp = p->argums;
     fp += 6;
