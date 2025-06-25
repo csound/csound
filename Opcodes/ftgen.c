@@ -106,11 +106,11 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   }
 
   if (istring2) {  /* string argument: */
-    n = (int32_t) fp[4];
+    int32_t geno = (int32_t) fp[4];
     fp[5] = SSTRCOD;
-    if (n < 0)
-      n = -n;
-    switch (n) {                      
+    if (geno < 0)
+      geno = -geno;
+    switch (geno) {                      
     case 1:
     case 2:
     case 23:
@@ -128,10 +128,6 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   else {
     fp[5] = *p->p5;                                   /* else no string */
   }
-
-  n = GetInputArgCnt(&p->h);
-  ftevt->pcnt = (int16) n;
-  n -= 5;
 
   if (n > 0) {
     MYFLT **argp = p->argums;
