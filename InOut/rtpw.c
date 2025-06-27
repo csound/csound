@@ -161,6 +161,17 @@ static void  rtpw_close(CSOUND *csound) {
   return;
 }
 
+
+static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
+  return nbytes;
+}
+
+static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
+
+  return OK;
+}
+
+
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 			   int32_t isOutput){
   return 0;
@@ -187,13 +198,12 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
       if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtaudio: pipewire module enabled\n"));
       csound->SetPlayopenCallback(csound, rtpw_open_out);
-      csound->SetRecopenCallback(csound, NULL);
+      csound->SetRecopenCallback(csound, rtpw_open_in);
       csound->SetRtplayCallback(csound, rtpw_play);
-      csound->SetRtrecordCallback(csound, NULL);
+      csound->SetRtrecordCallback(csound, rtpw_record);
       csound->SetRtcloseCallback(csound, rtpw_close);
       csound->SetAudioDeviceListCallback(csound, rtpw_list);
     }
-
 }
 
 PUBLIC int32_t csoundModuleDestroy(CSOUND *csound){
