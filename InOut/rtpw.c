@@ -42,6 +42,7 @@ typedef struct {
   int32_t nchnls;
   int32_t buframes;
   int32_t cbflag;
+  CSOUND *csound;
 } RTPW;
 
 
@@ -76,6 +77,7 @@ static void rtpw_callback(void *p) {
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
    }
    if(sil  > 0){
+    rtpw->csound->Warning(rtpw->csound, "WARNING: %d silent frames", sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
    }
    spabuf->datas[0].chunk->offset = 0;
@@ -163,6 +165,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
                           PW_STREAM_FLAG_RT_PROCESS,
                           params, 1);
   pw_thread_loop_start(rtpw->loop);
+  rtpw->csound = csound;
   *p = (void *) rtpw;
   pw_thread_loop_unlock(rtpw->loop);
   return CSOUND_SUCCESS;   
