@@ -37,7 +37,7 @@ typedef struct {
   struct pw_stream *stream;
   struct spa_pod_builder b;
   struct spa_ringbuffer ring;  
-  uint8_t *buffer;
+  uint8_t pbuffer[1024];
   uint8_t *cbuffer;
   int32_t nchnls;
   int32_t buframes;
@@ -46,7 +46,7 @@ typedef struct {
 } RTPW;
 
 
-static void rtpw_callback(void *p) {
+static void rtpw_out_callback(void *p) {
   RTPW *rtpw = (RTPW *) p;
   struct pw_buffer *pwbuf;
   struct spa_buffer *spabuf;
@@ -103,17 +103,17 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
       spa_system_eventfd_read(rtpw->cloop->system, rtpw->cbflag, &cnt);
     }
     if(rem > nframes) rem = nframes;
-      spa_ringbuffer_write_data(&rtpw->ring,rtpw->cbuffer,rtpw->buframes*fbytes,
+    spa_ringbuffer_write_data(&rtpw->ring,rtpw->cbuffer,rtpw->buframes*fbytes,
                                 (i%rtpw->buframes)*fbytes,outbuf,rem*fbytes);
-     nframes -= rem;
-     outbuf += rem*rtpw->nchnls;
-     spa_ringbuffer_write_update(&rtpw->ring, i + rem);
+    nframes -= rem;
+    outbuf += rem*rtpw->nchnls;
+    spa_ringbuffer_write_update(&rtpw->ring, i + rem);
   }
 }
 
 static const struct pw_stream_events stream_events = {
         PW_VERSION_STREAM_EVENTS,
-        .process = rtpw_callback,
+        .process = rtpw_out_callback,
 };
 
 /**
@@ -123,13 +123,10 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   void **p;
   const struct spa_pod *params[1];    
   RTPW *rtpw;
-  int32_t bufsiz = sizeof(MYFLT)*parm->bufSamp_SW*parm->nChannels;
   pw_init(NULL,NULL);
-   
   p = (void**) csound->GetRtPlayUserData(csound);
   if(*p != NULL) return 0;
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
-  rtpw->buffer = csound->Calloc(csound, bufsiz);
   rtpw->cbuffer = csound->Calloc(csound,sizeof(MYFLT)*parm->bufSamp_HW*
 				 parm->nChannels);  
   rtpw->nchnls = parm->nChannels;
@@ -148,12 +145,12 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
 				       PW_KEY_MEDIA_ROLE,"Music",NULL),
 				       &stream_events,rtpw);
       
-  rtpw->b = SPA_POD_BUILDER_INIT(rtpw->buffer, bufsiz);    
+  rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));    
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
 					 &SPA_AUDIO_INFO_RAW_INIT
 					 (.format = MYFLT_FORMAT,
 					  .channels = parm->nChannels,
-					  .rate = parm->sampleRate));
+					  .rate = parm->sampleRate));  
   rtpw->cbflag =
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
@@ -180,7 +177,6 @@ static void  rtpw_close(CSOUND *csound) {
   pw_thread_loop_unlock(rtpw->loop);
   pw_thread_loop_stop(rtpw->loop);
   pw_thread_loop_destroy(rtpw->loop);
-  csound->Free(csound, rtpw->buffer);
   csound->Free(csound, rtpw->cbuffer);  
   csound->Free(csound, rtpw);
   *p  = NULL;
