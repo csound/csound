@@ -1,3 +1,25 @@
+/*
+  rtpw.c: pipewire audio IO backend
+
+  Copyright (C) 2025 V Lazzarini
+
+  This file is part of Csound.
+
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
+*/
 #include <spa/param/audio/format-utils.h>
 #include <pipewire/pipewire.h>
 #include <spa/utils/ringbuffer.h>
@@ -30,7 +52,7 @@ static void rtpw_callback(void *p) {
   uint8_t *bufp;
   uint32_t i, rem, sil;
   int32_t n, frames, fbytes = rtpw->nchnls*sizeof(MYFLT);
-  
+   
   if ((pwbuf = pw_stream_dequeue_buffer(rtpw->stream)) == NULL) {
      pw_log_warn("out of buffers: %m");
      return;
@@ -39,41 +61,37 @@ static void rtpw_callback(void *p) {
    spabuf = pwbuf->buffer;
    if ((bufp = spabuf->datas[0].data) == NULL) return;
    frames = spabuf->datas[0].maxsize / fbytes;
- 
-   /* the amount of space in the ringbuffer and the read
-      index */
+
    n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
    if (pwbuf->requested)
       frames = SPA_MIN((int32_t)pwbuf->requested,frames);
-   /* we can read if there is something available */
    rem = n > 0 ? SPA_MIN(n,frames) : 0;
-   /* and fill the remainder with silence */
+   
    sil = frames - rem;
    if(rem > 0){
-    /* read data into the buffer */
     spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
 			     rtpw->buframes * fbytes,
                              (i % rtpw->buframes) * fbytes,
                              bufp, rem * fbytes);
-    /* update the read pointer */
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
    }
    if(sil  > 0){
-    /* set the rest of the buffer to silence */
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
    }
    spabuf->datas[0].chunk->offset = 0;
    spabuf->datas[0].chunk->stride = fbytes;
    spabuf->datas[0].chunk->size = frames*fbytes;
+   pw_stream_queue_buffer(rtpw->stream, pwbuf); 
    spa_system_eventfd_write(rtpw->cloop->system, rtpw->cbflag, 1);
 }
 
 static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
   RTPW *rtpw = (RTPW *) *csound->GetRtPlayUserData(csound);
-  int32_t nframes = sizeof(MYFLT)*nbytes/rtpw->nchnls;
-  int32_t rem, fbytes, n, i;
+  int32_t nframes = nbytes/(sizeof(MYFLT)*rtpw->nchnls);
+  int32_t rem, fbytes = sizeof(MYFLT)*rtpw->nchnls, n, i;
   uint64_t cnt;
-  while(nframes > 0) {
+
+  while(nframes > 0) {    
      while (1) {
       n = spa_ringbuffer_get_write_index(&rtpw->ring, &i);
       spa_assert(n >= 0);
@@ -83,7 +101,7 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
       spa_system_eventfd_read(rtpw->cloop->system, rtpw->cbflag, &cnt);
     }
     if(rem > nframes) rem = nframes;
-    spa_ringbuffer_write_data(&rtpw->ring,rtpw->cbuffer,rtpw->buframes*fbytes,
+      spa_ringbuffer_write_data(&rtpw->ring,rtpw->cbuffer,rtpw->buframes*fbytes,
                                 (i%rtpw->buframes)*fbytes,outbuf,rem*fbytes);
      nframes -= rem;
      outbuf += rem*rtpw->nchnls;
@@ -96,6 +114,9 @@ static const struct pw_stream_events stream_events = {
         .process = rtpw_callback,
 };
 
+/**
+   open pipewire for output
+ */
 static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   void **p;
   const struct spa_pod *params[1];    
@@ -104,13 +125,15 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   pw_init(NULL,NULL);
    
   p = (void**) csound->GetRtPlayUserData(csound);
-  if(p != NULL) return 0;
+  if(*p != NULL) return 0;
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
   rtpw->buffer = csound->Calloc(csound, bufsiz);
   rtpw->cbuffer = csound->Calloc(csound,sizeof(MYFLT)*parm->bufSamp_HW*
 				 parm->nChannels);  
   rtpw->nchnls = parm->nChannels;
   rtpw->buframes = parm->bufSamp_HW;
+  csound->Message(csound, "hw frames: %d sw frames: %d\n", rtpw->buframes,
+		  parm->bufSamp_SW);
   
   rtpw->loop = pw_thread_loop_new("csound", NULL);
   rtpw->cloop = pw_thread_loop_get_loop(rtpw->loop);
@@ -142,7 +165,6 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   pw_thread_loop_start(rtpw->loop);
   *p = (void *) rtpw;
   pw_thread_loop_unlock(rtpw->loop);
-  
   return CSOUND_SUCCESS;   
 }
 
@@ -153,6 +175,7 @@ static void  rtpw_close(CSOUND *csound) {
   pw_thread_loop_lock(rtpw->loop);
   pw_stream_destroy(rtpw->stream);
   pw_thread_loop_unlock(rtpw->loop);
+  pw_thread_loop_stop(rtpw->loop);
   pw_thread_loop_destroy(rtpw->loop);
   csound->Free(csound, rtpw->buffer);
   csound->Free(csound, rtpw->cbuffer);  
@@ -160,7 +183,6 @@ static void  rtpw_close(CSOUND *csound) {
   *p  = NULL;
   return;
 }
-
 
 static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
   return nbytes;
@@ -180,6 +202,7 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
   IGN(csound);
+  csound->Message(csound, "created pipewire module\n");
   return 0;
 }
 
@@ -204,6 +227,8 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
       csound->SetRtcloseCallback(csound, rtpw_close);
       csound->SetAudioDeviceListCallback(csound, rtpw_list);
     }
+
+   return CSOUND_SUCCESS;
 }
 
 PUBLIC int32_t csoundModuleDestroy(CSOUND *csound){
