@@ -321,10 +321,6 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
         typeR->varTypeName, typeA->varTypeName);
     }
 
-    if(typeR == &CS_VAR_TYPE_ARRAY) {
-      tabinit_like(csound, (ARRAYDAT *) assign->r, (ARRAYDAT *) assign->a);
-    }
-
     typeR->copyValue(csound, typeR, assign->r, assign->a, assign->h.insdshead);
     return OK;
 }
@@ -338,10 +334,13 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
     if(type == &CS_VAR_TYPE_ARRAY) {
       ARRAYDAT* adat = (ARRAYDAT*) assign->a;
       ARRAYDAT* rdat = (ARRAYDAT*) assign->r;
+      if(csoundGetTypeForArg(assign->r) == &CS_VAR_TYPE_ARRAY) {
+        tabinit_like(csound, (ARRAYDAT *) assign->r, (ARRAYDAT *) assign->a);
+      } 
       if(adat->arrayType == &CS_VAR_TYPE_I ||
          adat->arrayType == &CS_VAR_TYPE_INSTR ||
          rdat->arrayType == &CS_VAR_TYPE_I) flag = 1;
-    } else if(type == &CS_VAR_TYPE_I ||
+      } else if(type == &CS_VAR_TYPE_I ||
               type == &CS_VAR_TYPE_b ||
               type == &CS_VAR_TYPE_INSTR 
               ) flag = 1;
