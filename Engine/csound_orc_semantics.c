@@ -579,6 +579,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return NULL;
       }
     }
+    __attribute__((fallthrough)); 
   case T_IDENT:
 
     s = tree->value->lexeme;

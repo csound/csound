@@ -228,7 +228,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     char    *q = p->str->data;
     size_t     len = p->str->size;
 
-    if (UNLIKELY(len>=buffersize)) {
+    if (UNLIKELY(len >= (size_t) buffersize)) {
       csound->Warning(csound, "%s", Str("string truncated in socksend"));
       len = buffersize-1;
     }
@@ -672,7 +672,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
         switch(p->type->data[i]){
         case 'f':
           /* realloc if necessary */
-          if(buffersize + 4 > bsize) {
+          if((size_t) buffersize + 4 > bsize) {
             aux_realloc(csound, buffersize + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -684,7 +684,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 'd':
           /* realloc if necessary */
-          if(buffersize + 8 > bsize) {
+          if((size_t) buffersize + 8 > bsize) {
             aux_realloc(csound, buffersize + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -696,7 +696,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 't':
           /* realloc if necessary */
-          if(buffersize + 4 > bsize) {
+          if((size_t) buffersize + 4 > bsize) {
             aux_realloc(csound, buffersize + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -712,7 +712,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
         case 'm':
         case 'c':
           /* realloc if necessary */
-          if(buffersize + 4 > bsize) {
+          if((size_t) buffersize + 4 > bsize) {
             aux_realloc(csound, buffersize + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -724,7 +724,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 'h':
           /* realloc if necessary */
-          if(buffersize + 8 > bsize) {
+          if((size_t) buffersize + 8 > bsize) {
             aux_realloc(csound, buffersize + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -739,7 +739,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           size = (int32_t) strlen(s->data)+1;
           size = ceil(size/4.)*4;
           /* realloc if necessary */
-          if(buffersize + size > bsize) {
+          if((size_t) buffersize + size > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -750,7 +750,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
         case 'G':
           ft = csound->FTFind(csound, p->arg[i]);
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
-          if(buffersize + size + 4 > bsize) {
+          if((size_t) buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -768,7 +768,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           for(j=0; j < ar->dimensions; j++) {
             size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
           }
-          if(buffersize + size + 12 > bsize) {
+          if((size_t) buffersize + size + 12 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -790,7 +790,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           for(j=0; j < ar->dimensions; j++) {
             size += (int32_t)ar->sizes[j]*sizeof(MYFLT);
           }
-          if(buffersize + size + 12 > bsize) {
+          if((size_t) buffersize + size + 12 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
@@ -804,7 +804,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 'a':
           size = (int32_t) (CS_KSMPS+1)*sizeof(MYFLT);
-          if(buffersize + size + 4 > bsize) {
+          if((size_t) buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;

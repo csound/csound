@@ -47,7 +47,7 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
 
   // csound->Message(csound, "Pass-by-ref UDO %s\n", p->h.optext->t.oentry->opname);
 
-  size_t i;
+  int32_t  i;
   OPDS *ichain = lcurip->nxti;
   OPDS *pchain = lcurip->nxtp;
 

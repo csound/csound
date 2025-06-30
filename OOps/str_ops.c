@@ -776,7 +776,8 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
   int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
-    size_t     strt, end, rev = 0;
+    int32_t    strt, end;
+    size_t  rev = 0;
     size_t       len, i;
 
     if (p->Ssrc->data == NULL) return NOTOK;

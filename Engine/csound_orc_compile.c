@@ -1401,7 +1401,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, Str("no active instances of instr %d\n"),
                         instrNum);
-        free_instrtxt(csound, engineState->instrtxtp[instrNum]);
+      free_instrtxt(csound, engineState->instrtxtp[instrNum]);
     }
     }
   }
@@ -2242,7 +2242,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name) {
   while (n < 255 && filedir[n] && n < 255) { /* Do we have it already? */
     if (strcmp(filedir[n], name) == 0)
       return n; /* yes */
-      n++;      /* look again */
+    n++;      /* look again */
   }
   // Not there so add
   // ensure long enough?

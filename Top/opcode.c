@@ -388,8 +388,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
   OENTRY *ep = t->oentry;
   char *types;
   CS_TYPE *argtype;
-  int32_t n = 0, i = 0, opt = 0;
-  size_t len;
+  int32_t n = 0, opt = 0;
+  int32_t  len, i = 0;
   MYFLT **outargs;
   MYFLT **inargs;
   if(obj->udo_flag) {
@@ -1013,7 +1013,7 @@ int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
                           MYFLT *arg) {
   if(obj->inargp != NULL) {
     MYFLT **inargp = obj->inargp;
-    int32_t n = obj->dataspace->optext->t.inArgCount;
+    uint32_t n = obj->dataspace->optext->t.inArgCount;
     if(ndx > n) return NOTOK;
     if(csoundGetTypeForArg(inargp[ndx]) != csoundGetTypeForArg(arg)) {
       // We check if set arg was k and now we send in a constant or ivar
@@ -1302,7 +1302,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   obj = (OPCODEOBJ *) array->data;
   n = array->sizes[0];
   // check all array args are 1-dim arrays of at least same size as obj[]
-  for(i = 0; i < p->INOCOUNT + p->OUTOCOUNT; i++)
+  for(i = 0; i < (int32_t) (p->INOCOUNT + p->OUTOCOUNT); i++)
     if(csoundGetTypeForArg(p->args[i]) == &CS_VAR_TYPE_ARRAY) {
       array = (ARRAYDAT *) p->args[i];
       if(array->dimensions > 1)
@@ -1316,7 +1316,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       return csound->InitError(csound, "incompatible context, "
                                "cannot initialise opcode obj for %s\n",
                                obj[i].dataspace->optext->t.oentry->opname);
-    for(j = 0; j < p->OUTOCOUNT; j++) {
+    for(j = 0; j < (int32_t) p->OUTOCOUNT; j++) {
       if((types[j] = csoundGetTypeForArg(p->args[j]))
           == &CS_VAR_TYPE_ARRAY) {
       array = (ARRAYDAT *)  p->args[j]; // each outarg is an array
@@ -1327,7 +1327,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       } else // single var
          args[j] = p->args[j];
     }
-    for(j = 0; j < p->INOCOUNT - 1; j++) {
+    for(j = 0; j < (int32_t) p->INOCOUNT - 1; j++) {
       // skip the obj argument
       m = j + p->OUTOCOUNT + 1;
       if((types[m] = csoundGetTypeForArg(p->args[m]))
