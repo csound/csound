@@ -106,11 +106,11 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   }
 
   if (istring2) {  /* string argument: */
-    n = (int32_t) fp[4];
+    int32_t geno = (int32_t) fp[4];
     fp[5] = SSTRCOD;
-    if (n < 0)
-      n = -n;
-    switch (n) {                      
+    if (geno < 0)
+      geno = -geno;
+    switch (geno) {                      
     case 1:
     case 2:
     case 23:

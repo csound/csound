@@ -203,7 +203,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
 
     if ((outphases[i] = output[i] = (float) sqrt(powerspec)) != 0.0f) {
       output[i + 1] = ((a * db - b * da) / powerspec) * factor + i2 * fund;
-      ph = (float) atan2(b, a);
+      ph = (float) ATAN2(b, a);
       /*double d = ph - outphases[i + 1];
         while (d > PI)
         d -= TWOPI;

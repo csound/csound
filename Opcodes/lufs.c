@@ -345,7 +345,7 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
           }
 
           //average power
-          ampower = 0.5 * p->mPk / p->kcount;
+          ampower =  p->mPk / p->kcount;
 
           // Integrated Loudness
           *p->kint = -0.691 + 10 * LOG10(ampower);

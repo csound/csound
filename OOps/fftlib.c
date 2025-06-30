@@ -3364,16 +3364,20 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
                    MYFLT *sig) {
   int32_t i, N = setup->N;
   float s, *buf;
+#ifdef USE_DOUBLE
   buf = (float *) setup->buffer;
   for(i=0;i<N;i++)
     buf[i] = sig[i];
+#else
+  buf = sig;
+#endif
   pffft_transform_ordered((PFFFT_Setup *)
                           setup->setup,
                           buf,buf,NULL,setup->d);
   s = (setup->d == PFFFT_BACKWARD ?
-       (MYFLT) setup->N : FL(1.0));
+       (MYFLT) (1./setup->N) : FL(1.0));
   for(i=0;i<N;i++)
-    sig[i] = buf[i]/s;
+    sig[i] = buf[i]*s;
 }
 
 #if defined(__MACH__)
@@ -3945,14 +3949,18 @@ void pffft_RealFFT(CSOUND *csound,
   float s, *buf;
   int32_t M = ConvertFFTSize(csound, FFTsize);
   pffft_setup(csound, FFTsize, M);
+#ifdef USE_DOUBLE
   buf = (float *)csound->vdsp_buffer;
   for(i=0;i<FFTsize;i++)
     buf[i] = sig[i];
+#else
+    buf = sig;
+#endif
   pffft_transform_ordered(csound->setup[M],
                           buf,buf,NULL,d);
-  s = (d == PFFFT_BACKWARD ? (MYFLT)FFTsize : FL(1.0));
+  s = (d == PFFFT_BACKWARD ? (MYFLT)(1./FFTsize) : FL(1.0));
   for(i=0;i<FFTsize;i++)
-    sig[i] = buf[i]/s;
+    sig[i] = buf[i]*s;
 }
 #endif
 #endif

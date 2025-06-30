@@ -761,15 +761,15 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
       for (i=2,k=1; i < N; i+=2, k++) {
         double bph, fph, dph;
         /* freqs */
-        bph = atan2(bwin[i+1],bwin[i]);
-        fph = atan2(fwin[i+1],fwin[i]);
+        bph = ATAN2(bwin[i+1],bwin[i]);
+        fph = ATAN2(fwin[i+1],fwin[i]);
         /* pdiff, compensate for rotation */
         dph = fph - bph - rotfac*k;
         while(dph > PI) dph -= TWOPI;
         while(dph < -PI) dph += TWOPI;
         fout[i+1] = (float) (dph*factor + k*fund);
         /* mags */
-        fout[i] = (float) hypot(fwin[i],fwin[i+1]);
+        fout[i] = (float) HYPOT(fwin[i],fwin[i+1]);
       }
 
       p->fout[j]->framecount++;
@@ -916,15 +916,15 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
       for (i=2,k=1; i < N; i+=2, k++) {
         double bph, fph, dph;
         /* freqs */
-        bph = atan2(bwin[i+1],bwin[i]);
-        fph = atan2(fwin[i+1],fwin[i]);
+        bph = ATAN2(bwin[i+1],bwin[i]);
+        fph = ATAN2(fwin[i+1],fwin[i]);
         /* pdiff, compensate for rotation */
         dph = fph - bph - rotfac*k;
         while(dph > PI) dph -= TWOPI;
         while(dph < -PI) dph += TWOPI;
         fout[i+1] = (float) (dph*factor + k*fund);
         /* mags */
-        fout[i] = (float) hypot(fwin[i],fwin[i+1]);
+        fout[i] = (float) HYPOT(fwin[i],fwin[i+1]);
       }
 
       p->fout[j]->framecount++;

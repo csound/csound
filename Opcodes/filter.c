@@ -507,8 +507,8 @@ static void complex2polar(fcomplex a[], fpolar b[], int32_t N)
     int32_t i;
 
     for (i=0; i<N; i++) {
-      b[i].mag = hypot(a[i].r,a[i].i);
-      b[i].ph = atan2(a[i].i,a[i].r);
+      b[i].mag = HYPOT(a[i].r,a[i].i);
+      b[i].ph = ATAN2(a[i].i,a[i].r);
     }
 }
 
