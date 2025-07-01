@@ -65,6 +65,7 @@ $(CSOUND_SRC_ROOT)/InOut/window.c \
 $(CSOUND_SRC_ROOT)/InOut/winEPS.c \
 $(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/OOps/aops.c \
+$(CSOUND_SRC_ROOT)/OOps/array_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/bus.c \
 $(CSOUND_SRC_ROOT)/OOps/cmath.c \
 $(CSOUND_SRC_ROOT)/OOps/complex_ops.c \

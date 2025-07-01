@@ -803,6 +803,7 @@ set(libcsound_SRCS
     InOut/window.c
     InOut/winEPS.c
     InOut/circularbuffer.c
+    OOps/array_ops.c
     OOps/aops.c
     OOps/bus.c
     OOps/cmath.c

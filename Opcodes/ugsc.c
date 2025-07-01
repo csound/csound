@@ -720,6 +720,81 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
     return OK;
 }
 
+#include "arrays.h"
+
+typedef struct {
+        OPDS h;
+        ARRAYDAT *out;
+        MYFLT *in;
+        MYFLT xnm1[12], ynm1[12], coef[12];
+} HILBERTA;
+
+
+static int32_t hilbertset_array(CSOUND *csound, HILBERTA *p)
+{
+    int32_t j;  
+    double poles[12] = {0.3609, 2.7412, 11.1573, 44.7581, 179.6242, 798.4578,
+                        1.2524, 5.5671, 22.3423, 89.6271, 364.7914, 2770.1114};
+    double polefreq, rc, alpha, beta;
+    for (j=0; j<12; j++) {
+      polefreq = poles[j] * 15.0;
+      rc = 1.0 / (2.0 * PI * polefreq);
+      alpha = 1.0 / rc;
+      alpha = alpha * 0.5 * (double)CS_ONEDSR;
+      beta = (1.0 - alpha) / (1.0 + alpha);
+      p->xnm1[j] = p->ynm1[j] = FL(0.0);
+      p->coef[j] = -(MYFLT)beta;
+    }
+    tabinit(csound, p->out, CS_KSMPS, p->h.insdshead);
+    for(int k=0; k < CS_KSMPS; k++)
+      ((COMPLEXDAT *)p->out->data)[k].isPolar = 0;  
+    return OK;
+}
+
+static int32_t hilbert_array(CSOUND *csound, HILBERTA *p)
+{
+    MYFLT xn1, yn1, xn2, yn2;
+    MYFLT *in;
+    COMPLEXDAT *out;
+    MYFLT *coef;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t j;
+
+    coef = p->coef;
+    out = (COMPLEXDAT *) p->out->data;
+    in = p->in;
+
+    if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(COMPLEXDAT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(COMPLEXDAT));
+    }
+    for (n=offset; n<nsmps; n++) {
+      xn1 = in[n];
+      for (j=0; j < 6; j++) {
+        yn1 = coef[j] * (xn1 - p->ynm1[j]) + p->xnm1[j];
+        p->xnm1[j] = xn1;
+        p->ynm1[j] = yn1;
+        xn1 = yn1;
+      }
+      xn2 = in[n];
+      for (j=6; j < 12; j++) {
+        yn2 = coef[j] * (xn2 - p->ynm1[j]) + p->xnm1[j];
+        p->xnm1[j] = xn2;
+        p->ynm1[j] = yn2;
+        xn2 = yn2;
+      }
+      out[n].real = yn2;
+      out[n].imag = yn1;
+    }
+    return OK;
+}
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
@@ -733,7 +808,9 @@ static OENTRY localops[] =
    { "lowpass2.ak", S(LP2), 0, "a", "aakao",   (SUBR)lp2_set, (SUBR)lp2ak   },
    { "lowpass2.ka", S(LP2), 0, "a", "akao",    (SUBR)lp2_set, (SUBR)lp2ka   },
    { "phaser2", S(PHASER2), 0, "a", "akkkkkko",(SUBR)phaser2set,(SUBR)phaser2},
-   { "phaser1", S(PHASER1), 0, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1}
+   { "phaser1", S(PHASER1), 0, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1},
+   { "hilbert", S(HILBERTA), 0, ":Complex;[]", "a",
+     (SUBR)hilbertset_array, (SUBR)hilbert_array },
 };
 
 int32_t ugsc_init_(CSOUND *csound)

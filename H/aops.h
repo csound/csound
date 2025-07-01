@@ -221,6 +221,12 @@ typedef struct iref_num {
   INSTREF *in;
 } IREF_NUM;
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT *tabin;
+  uint32_t    len;
+} MONITOR_A;
+
 int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p);
 int32_t get_instr_num(CSOUND *csound, IREF_NUM *p);
 int32_t get_instr_name(CSOUND *csound, IREF_NUM *p);
@@ -233,4 +239,5 @@ int32_t hw_channels(CSOUND *csound, ASSIGN *p);
 void csound_aops_init_tables(CSOUND *);
 MYFLT MOD(MYFLT, MYFLT);
 int32_t inarray_set(CSOUND *csound, INA *p);
-
+int32_t monitora_perf(CSOUND *csound, MONITOR_A *p);
+int32_t monitora_init(CSOUND *csound, MONITOR_A *p);

@@ -1168,6 +1168,7 @@ int32_t oscak(CSOUND *csound, OSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
+ 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
@@ -1260,6 +1261,10 @@ int32_t osckki(CSOUND *csound, OSC   *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
+
+  if(!IS_ASIG_ARG(p->sr))
+    return csound->PerfError(csound, &(p->h), "output is not asig\n") ;
+
 
     if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
     lobits = ftp->lobits;
@@ -1367,7 +1372,6 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
 
 int32_t oscaai(CSOUND *csound, OSC   *p)
 {
-
     FUNC    *ftp;
     MYFLT   v1, fract, *ar, *ampp, *cpsp, *ftab, *ft;
     int32_t   phs, lobits;

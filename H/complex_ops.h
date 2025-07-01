@@ -19,6 +19,7 @@
    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
    02110-1301 USA
 */
+#include "arrays.h"
 
 typedef struct {
   OPDS    h;
@@ -39,6 +40,12 @@ typedef struct {
   MYFLT *a, *b;
   MYFLT *isPolar;
 } R2CXOP;
+
+typedef struct COPS1 {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *a, *b;
+} COPS1;
 
 
 int32_t complex_assign(CSOUND *csound, R2CXOP *p);
@@ -62,3 +69,34 @@ int32_t complex_mul_real(CSOUND *csound, AOP *p);
 int32_t complex_div_real(CSOUND *csound, AOP *p);
 int32_t complex_to_polar(CSOUND *csound, CXOP *p);
 int32_t polar_to_complex(CSOUND *csound, CXOP *p);
+int32_t complex_log(CSOUND *csound, CXOP *p);
+int32_t complex_exp(CSOUND *csound, CXOP *p);
+                         
+
+int32_t cops_init(CSOUND *csound, COPS1 *p);
+int32_t complex_x_scalar(CSOUND *csound, COPS1 *p);
+int32_t complex_plus_scalar(CSOUND *csound, COPS1 *p);
+int32_t complex_div_scalar(CSOUND *csound, COPS1 *p);
+int32_t complex_minus_scalar(CSOUND *csound, COPS1 *p);
+int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p);
+int32_t complex_x_complex(CSOUND *csound, COPS1 *p);
+int32_t complex_plus_complex(CSOUND *csound, COPS1 *p);
+int32_t complex_div_complex(CSOUND *csound, COPS1 *p);
+int32_t complexa_minus_complex(CSOUND *csound, COPS1 *p);
+int32_t complex_minus_complexa(CSOUND *csound, COPS1 *p);
+int32_t complexa_x_complexa(CSOUND *csound, COPS1 *p); 
+int32_t complexa_div_complexa(CSOUND *csound, COPS1 *p);
+int32_t complexa_plus_complexa(CSOUND *csound, COPS1 *p);
+int32_t complexa_sub_complexa(CSOUND *csound, COPS1 *p);
+int32_t complex_array_real(CSOUND *csound, COPS1 *p);
+int32_t complex_array_imag(CSOUND *csound, COPS1 *p);
+int32_t complex_array_abs(CSOUND *csound, COPS1 *p);
+int32_t complex_array_arg(CSOUND *csound, COPS1 *p);
+int32_t complex_array_conj(CSOUND *csound, COPS1 *p);
+int32_t cops_init_r(CSOUND *csound, COPS1 *p);
+int32_t complex_array_polar(CSOUND *csound, COPS1 *p);
+int32_t complex_array_complex(CSOUND *csound, COPS1 *p);
+int32_t cops_init_a(CSOUND *csound, COPS1 *p);
+int32_t complex_array_assign(CSOUND *csound, COPS1 *p);
+int32_t complex_array_exp(CSOUND *csound, COPS1 *p);
+int32_t complex_array_log(CSOUND *csound, COPS1 *p);

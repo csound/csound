@@ -66,6 +66,13 @@ char *remove_type_quoting(CSOUND *csound, const char *outype) {
      return type;
 }
 
+int32_t find_brace(char *s) {
+  while(*s != '\0') {
+    if(*s++ == '[') return 1;
+  }
+  return 0;
+}
+
 char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
                      TYPE_TABLE* typeTable)
 {
@@ -91,10 +98,12 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
      // still have : prepended and ; appended to name
      // we need to remove these for the type system to recognise the type
     char *type = remove_type_quoting(csound, outype);
-    // FIXME - struct arrays
-    if (*type == '[') {
+    if (find_brace(type)) {
       snprintf(s, 16, "#%c%d[]", type[1], argCount);
-      add_array_arg(csound, s, NULL, 1, typeTable);
+      if(*type == '[') // [type]
+      add_array_arg(csound, s,  NULL, 1, typeTable);
+      else // type[] 
+      add_array_arg(csound, s,  type, 1, typeTable);  
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
