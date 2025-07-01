@@ -53,6 +53,17 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       }
       current = current->next;
     }
+    if(UNLIKELY(typeName[strlen(typeName)-1] != ']')) return NULL;
+    // now check again with braces
+    char type[64]; 
+    current = pool->head;
+    while (current != NULL) {
+      snprintf(type, 64, "%s[]", current->cstype->varTypeName);
+      if (strcmp(typeName, type) == 0) {
+        return current->cstype;
+      }
+      current = current->next;
+    }
     return NULL;
 }
 
@@ -157,7 +168,7 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
         current = current->next;
       }
     else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type"),
+                                      Str("cannot create variable %s: NULL type\n"),
                                       name);
     return NULL;
 }
@@ -329,8 +340,6 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     int32_t flag = 0;
     CS_TYPE* type = csoundGetTypeForArg(assign->a);
-    
-  
     if(type == &CS_VAR_TYPE_ARRAY) {
       ARRAYDAT* adat = (ARRAYDAT*) assign->a;
       ARRAYDAT* rdat = (ARRAYDAT*) assign->r;
@@ -338,14 +347,16 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
         tabinit_like(csound, (ARRAYDAT *) assign->r, (ARRAYDAT *) assign->a);
       } 
       if(adat->arrayType == &CS_VAR_TYPE_I ||
-         adat->arrayType == &CS_VAR_TYPE_INSTR ||
-         rdat->arrayType == &CS_VAR_TYPE_I) flag = 1;
-      } else if(type == &CS_VAR_TYPE_I ||
+         adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;
+      // complex arrays need to be copied at i-time  
+      if(adat->arrayType == &CS_VAR_TYPE_COMPLEX)
+        copy_var_generic(csound, p);
+    } else if(type == &CS_VAR_TYPE_I ||
               type == &CS_VAR_TYPE_b ||
               type == &CS_VAR_TYPE_INSTR 
               ) flag = 1;
     if (flag) {
-        assign->h.perf = copy_var_no_op;
+      assign->h.perf = copy_var_no_op;
       copy_var_generic(csound, p);
     }
     return OK;

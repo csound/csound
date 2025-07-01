@@ -393,6 +393,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../InOut/windin.c \
       ../InOut/window.c \
       ../OOps/aops.c \
+      ../OOps/array_ops.c \
       ../OOps/bus.c \
       ../OOps/cmath.c \
       ../OOps/complex_ops.c \

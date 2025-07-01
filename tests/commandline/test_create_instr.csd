@@ -6,7 +6,7 @@
 
 0dbfs = 1
 
-myinstr:InstrDef = createinstr({{
+myinstr:InstrDef = create({{
  sig:a oscili p4, p5
  env:a linen sig, 0.1, p3,0.1
  out env
