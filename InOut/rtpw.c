@@ -419,7 +419,9 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
         buf[i++] = *(s++) | (char) 0x20;
    }
    buf[i] = (char) 0;
-   if (strcmp(&(buf[0]), "rtpw") == 0) {
+   if (strcmp(&(buf[0]), "rtpw") == 0 ||
+       strcmp(&(buf[0]), "pw") == 0 ||
+       strcmp(&(buf[0]), "pipewire") == 0){
       if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtaudio: pipewire module enabled\n"));
       csound->SetPlayopenCallback(csound, rtpw_open_out);
