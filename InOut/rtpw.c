@@ -72,6 +72,7 @@ static void rtpw_out_callback(void *p) {
    
    sil = frames - rem;
    if(rem > 0){
+     //rtpw->csound->Message(rtpw->csound, "%d rem frames\n", rem); 
     spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
 			     rtpw->buframes * fbytes,
                              (i % rtpw->buframes) * fbytes,
@@ -79,7 +80,7 @@ static void rtpw_out_callback(void *p) {
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
    }
    if(sil  > 0){
-    rtpw->csound->Warning(rtpw->csound, "WARNING: %d silent frames", sil);
+    rtpw->csound->Warning(rtpw->csound, "%d silent frames", sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
    }
    spabuf->datas[0].chunk->offset = 0;
@@ -112,6 +113,7 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
     outbuf += rem*rtpw->nchnls;
     spa_ringbuffer_write_update(&rtpw->ring, i + rem);
   }
+  //csound->Message(csound, "frames out %d\n", nbytes/fbytes);
 }
 
 static const struct pw_stream_events stream_events_out = {
@@ -124,6 +126,7 @@ static const struct pw_stream_events stream_events_out = {
  */
 static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   void **p;
+  struct pw_properties *props;
   const struct spa_pod *params[1];    
   RTPW *rtpw;
   p = (void**) csound->GetRtPlayUserData(csound);
@@ -139,13 +142,17 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   rtpw->loop = pw_thread_loop_new("csound-out", NULL);
   rtpw->cloop = pw_thread_loop_get_loop(rtpw->loop);
   pw_thread_loop_lock(rtpw->loop);
+
+  props = pw_properties_new(PW_KEY_MEDIA_TYPE,"Audio",
+			    PW_KEY_MEDIA_CATEGORY,"Playback",
+			    PW_KEY_MEDIA_ROLE,"Music",NULL);
+  if(parm->devName != NULL)
+    pw_properties_set(props, PW_KEY_TARGET_OBJECT, parm->devName);
   
   rtpw->stream = pw_stream_new_simple(rtpw->cloop,
-				      "csound-out", pw_properties_new
-				      (PW_KEY_MEDIA_TYPE,"Audio",
-				       PW_KEY_MEDIA_CATEGORY,"Playback",
-				       PW_KEY_MEDIA_ROLE,"Music",NULL),
+				      "csound-out", props,
 				       &stream_events_out,rtpw);
+  
       
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));    
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
@@ -158,9 +165,9 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
   pw_stream_connect(rtpw->stream,
-                          PW_DIRECTION_OUTPUT,
+		          PW_DIRECTION_OUTPUT, 
                           PW_ID_ANY,
-                          PW_STREAM_FLAG_AUTOCONNECT |
+		          PW_STREAM_FLAG_AUTOCONNECT |
                           PW_STREAM_FLAG_MAP_BUFFERS |
                           PW_STREAM_FLAG_RT_PROCESS,
                           params, 1);
@@ -190,6 +197,8 @@ static void rtpw_in_callback(void *p) {
   if ((bufp = spabuf->datas[0].data) == NULL) return;
   frames = spabuf->datas[0].chunk->size / sizeof(MYFLT);
 
+  //rtpw->csound->Message(rtpw->csound, "in frames:%d \n", frames);
+
   while(frames > 0) {
     n = spa_ringbuffer_get_write_index(&rtpw->ring, &i);
     if(n < 0 || n > rtpw->buframes) break; // under/overrun
@@ -217,6 +226,7 @@ static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
   int32_t wbytes = 0;
   nframes = (uint32_t) (nbytes/(csound->GetNchnls_i(csound)*sizeof(MYFLT)));
 
+ 
   if(csound->GetNchnls_i(csound) == (uint32_t) rtpw->nchnls) {
     while(nframes > 0) {
       n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
@@ -251,6 +261,7 @@ static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
       }
     }
   }
+  //csound->Message(csound, "frames in %d\n", wbytes/fbytes);
   return wbytes;
 }
 
@@ -301,6 +312,7 @@ static const struct pw_stream_events stream_events_in = {
  */
 static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   void **p;
+  struct pw_properties *props;
   const struct spa_pod *params[1];    
   RTPW *rtpw;
 
@@ -319,11 +331,15 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   rtpw->cloop = pw_thread_loop_get_loop(rtpw->loop);
   pw_thread_loop_lock(rtpw->loop);
 
+  props = pw_properties_new(PW_KEY_MEDIA_TYPE,"Audio",
+			    PW_KEY_MEDIA_CATEGORY,"Record",
+			    PW_KEY_MEDIA_ROLE,"Music",NULL);
+
+  if(parm->devName != NULL)
+    pw_properties_set(props, PW_KEY_TARGET_OBJECT, parm->devName);
+
   rtpw->stream = pw_stream_new_simple(rtpw->cloop,
-				      "csound-in", pw_properties_new
-				      (PW_KEY_MEDIA_TYPE,"Audio",
-				       PW_KEY_MEDIA_CATEGORY,"Record",
-				       PW_KEY_MEDIA_ROLE,"Music",NULL),
+				      "csound-in", props,
 				       &stream_events_in,rtpw);
       
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));    
