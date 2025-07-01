@@ -632,7 +632,9 @@ else()
     if(MSVC)
         message(FATAL_ERROR "Dirent.h not found, Csound will not be able to load dynamic plugins. Cannot continue with project generation")
     else()
+     if(NOT BARE_METAL)
         message(WARNING "Dirent.h not found, Csound will not be able to load dynamic plugins such as real-time audio")
+    endif()
     endif()
 endif()
 
@@ -1255,12 +1257,18 @@ if(APPLE)
     set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
 endif()
 
+
 if(NOT IOS OR OSXCROSS_TARGET)
+if(NOT BARE_METAL)
     add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
+else()
+   add_library(${CSOUNDLIB} STATIC ${libcsound_SRCS})
+endif()
     target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
     set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 endif()
+
 
 if(APPLE)
     if(NOT IOS OR OSXCROSS_TARGET)

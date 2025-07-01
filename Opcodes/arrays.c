@@ -395,7 +395,7 @@ static int32_t perf_phs(CSOUND *csound, FFT *p) {
   in = p->in->data;
   out = p->out->data;
   for (i=2,j=1;j<end-1;i+=2,j++)
-    out[j] = atan2(in[i+1],in[i]);
+    out[j] = ATAN2(in[i+1],in[i]);
   return OK;
 }
 

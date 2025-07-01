@@ -313,6 +313,7 @@ static int32_t copy_var_no_op(CSOUND *csound, void *p) {
 }
 
 #include "csound_standard_types.h"
+#include "arrays.h"
 /* GENERIC VARIABLE COPYING */
 int32_t copy_var_generic(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
@@ -339,10 +340,12 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     int32_t flag = 0;
     CS_TYPE* type = csoundGetTypeForArg(assign->a);
-      
     if(type == &CS_VAR_TYPE_ARRAY) {
-      
       ARRAYDAT* adat = (ARRAYDAT*) assign->a;
+      ARRAYDAT* rdat = (ARRAYDAT*) assign->r;
+      if(csoundGetTypeForArg(assign->r) == &CS_VAR_TYPE_ARRAY) {
+        tabinit_like(csound, (ARRAYDAT *) assign->r, (ARRAYDAT *) assign->a);
+      } 
       if(adat->arrayType == &CS_VAR_TYPE_I ||
          adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;
       // complex arrays need to be copied at i-time  

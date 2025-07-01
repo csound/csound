@@ -1,11 +1,34 @@
+/*
+  daisyCsoundMidi.cpp:
+
+  Copyright (C) 2025 Aman Jagawni
+
+  This file is part of Csound.
+
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
+*/
+
 #include "daisy_seed.h"
 #include "daisysp.h"
 #include <array>
 #include <stdio.h>
 #include "daisyCsoundMidi.h"
 #include "midiBuffer.h"
-#include "csound.h"
-#include "plugin.h"
+#include <csound.h>
+#include <plugin.h>
 
 using namespace daisy;
 using namespace daisy::seed;
@@ -18,6 +41,8 @@ static int32_t ReadMidiData(CSOUND        *csound,
                             void          *userData,
                             unsigned char *mbuf,
                             int32_t        nbytes);
+/*
+// MIDI output - needs to be implemented
 static int32_t
 OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
 static int32_t CloseMidiOutDevice(CSOUND *csound, void *userData);
@@ -25,11 +50,14 @@ static int32_t WriteMidiData(CSOUND              *csound,
                              void                *userData,
                              const unsigned char *mbuf,
                              int                  nbytes);
+*/
+/*
+// use this for Csound message callbacks
 static void    DaisyCsoundMessageCallback(CSOUND     *csound,
                                           int         attr,
                                           const char *format,
                                           va_list     args);
-
+*/
 
 DaisySeed      hw;
 MidiUsbHandler midi;
@@ -217,7 +245,7 @@ int main(void)
         csoundSetOption(cs, "-M0");
         csoundSetOption(cs, "-dm0");
 
-        int ret = csoundCompileCSD(cs, csdText.c_str(), 1);
+        int ret = csoundCompileCSD(cs, csdText.c_str(), 1, 0);
 
         if(ret == 0)
         {
@@ -298,9 +326,9 @@ int32_t ReadMidiData(CSOUND        *csound,
     return 0;
 }
 
-
+/*
+// use this for Csound message callbacks
 constexpr size_t kMessageBufferSize = 64;
-
 static void DaisyCsoundMessageCallback(CSOUND     *csound,
                                        int         attr,
                                        const char *format,
@@ -312,3 +340,4 @@ static void DaisyCsoundMessageCallback(CSOUND     *csound,
 
     hw.PrintLine("%s", messageBuffer);
 }
+*/

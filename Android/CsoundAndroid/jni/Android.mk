@@ -16,10 +16,10 @@ endif
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
 LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 
-#ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), arm64-v8a))
-#LOCAL_ARM_NEON  := true
-#LOCAL_CFLAGS += -DHAVE_NEON -mfloat-abi=softfp
-#endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a | arm64-v8a ))
+LOCAL_ARM_NEON  := true
+LOCAL_CFLAGS += -DHAVE_NEON #-mfpu=neon -mfloat-abi=softfp
+endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
 
 #ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi x86))
 #LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
