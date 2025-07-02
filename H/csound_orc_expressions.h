@@ -36,7 +36,9 @@ int32_t is_statement_expansion_required(TREE* root);
 void handle_optional_args(CSOUND *csound, TREE *l);
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int32_t);
+                             TYPE_TABLE* typeTable, int);
+TREE* expand_switch_statement(CSOUND* csound, TREE* current,TYPE_TABLE* typeTable,
+  char* switchArgType);
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType);
 char *remove_type_quoting(CSOUND *csound, const char *outype);

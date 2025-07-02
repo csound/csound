@@ -127,6 +127,7 @@ def runTest():
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
 	["test_sprintf2.csd", "test string assignment and printing that causes reallocation"],
+    ["test_switch_statement.csd", "tests the new switch statement operator"],
 	["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
 	["test_label_within_if_block.csd", "test label within if block"],
 
@@ -150,7 +151,7 @@ def runTest():
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
-
+	["test_for_in.csd", "for in loop"],
 	["test_opcode_as_function.csd", "test expression"],
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
