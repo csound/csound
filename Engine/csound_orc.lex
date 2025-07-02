@@ -29,8 +29,6 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
-
-  
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
@@ -194,6 +192,18 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "enduntil"      { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = OD_TOKEN;
                   return OD_TOKEN; }
+"switch"        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = SWITCH_TOKEN;
+                  return SWITCH_TOKEN; }
+"case"          { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = CASE_TOKEN;
+                  return CASE_TOKEN; }
+"default"       { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = DEFAULT_TOKEN;
+                  return DEFAULT_TOKEN; }
+"endsw"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ENDSW_TOKEN;
+                  return ENDSW_TOKEN; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = GOTO_TOKEN;

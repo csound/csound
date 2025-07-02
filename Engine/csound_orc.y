@@ -88,8 +88,13 @@
 %token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
+%token SWITCH_TOKEN
+%token CASE_TOKEN
+%token DEFAULT_TOKEN
+%token ENDSW_TOKEN
 %token FOR_TOKEN
 %token IN_TOKEN
+
 
 %token S_ELIPSIS
 %token T_ARRAY
@@ -417,6 +422,7 @@ statement : out_arg_list assignment expr_list NEWLINE
           | if_then
           | until
           | while
+          | switch
           | for_in
           | LABEL_TOKEN
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
@@ -489,6 +495,38 @@ while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
                 $$->left = $2;
                 $$->right = $4; }
       ;
+
+case  : CASE_TOKEN expr_list NEWLINE statement_list
+      {
+        $$ = make_leaf(csound, LINE, LOCN, CASE_TOKEN, (ORCTOKEN *)$1);
+        $$->left = $2;
+        $$->right = $4;
+      }
+      | DEFAULT_TOKEN NEWLINE statement_list
+      {
+        $$ = make_leaf(csound, LINE, LOCN, DEFAULT_TOKEN, (ORCTOKEN *)$1);
+        $$->right = $3;
+      }
+      ;
+
+case_list : case_list case
+            { TREE * tempLastNode = $1;
+                while (tempLastNode->right!=NULL &&
+                  tempLastNode->right->next!=NULL) {
+                  tempLastNode = tempLastNode->right->next;
+                }
+                tempLastNode->right->next = $2;
+                $$ = $1; }
+            | case { $$ = $1; }
+            ;
+
+switch  : SWITCH_TOKEN expr NEWLINE case_list ENDSW_TOKEN
+        {
+          $$ = make_leaf(csound,LINE,LOCN, SWITCH_TOKEN, (ORCTOKEN *)$1);
+          $$->left = $2;
+          $$->right = $4;
+        }
+        ;
 
 for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
         {
