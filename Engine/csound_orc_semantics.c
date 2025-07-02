@@ -2592,36 +2592,18 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case FOR_TOKEN: {
       char* arrayArgType = get_arg_type2(csound, current->right->left, typeTable);
-      char* assignmentSymbol = current->left->value->lexeme;
-
+      
       if (*arrayArgType != '[') {
-        synterr(
-          csound,
-          Str("Line: %d invalid array argument in for-of statement: found '%s'\n"),
-          current->line,
-          current->right->left->value->lexeme
-        );
+        if(current->right->left->value != NULL) 
+        synterr(csound,Str("Line: %d invalid argument in for statement: "
+                           "found '%s', which is not an array\n"),
+          current->line,current->right->left->value->lexeme);
+        else synterr(csound,Str("Line: %d expected an array variable in for statement."),
+                     current->line);
         return 0;
       }
 
-      if (arrayArgType[1] != *assignmentSymbol) {
-        synterr(
-          csound,
-          Str("Line: %d mismatching argument types in for-of statement!\n"
-              "'%s' runs on different rate from '%s'\n"),
-          current->line,
-          assignmentSymbol,
-          current->right->left->value->lexeme
-        );
-        return 0;
-      }
-
-      current = expand_for_statement(
-        csound,
-        current,
-        typeTable,
-        arrayArgType
-      );
+      current = expand_for_statement(csound, current, typeTable, arrayArgType);
 
       if (previous != NULL) {
         previous->next = current;

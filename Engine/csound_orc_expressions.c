@@ -1681,7 +1681,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   labelGotoIdent->value->type = T_IDENT;
   arrayLengthArgToken->next = labelGotoIdent;
 
-
+  
   csound->Free(csound, indexName);
   csound->Free(csound, arrayName);
   csound->Free(csound, arrayLengthName);

@@ -151,7 +151,7 @@ def runTest():
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
-
+	["test_for_in.csd", "for in loop"],
 	["test_opcode_as_function.csd", "test expression"],
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
