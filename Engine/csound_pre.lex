@@ -176,7 +176,7 @@ QNAN            "qnan"[ \t]*\(
                   csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
                   if (PARM->isString==0) {
-                    sprintf(bb, "#sline %d ", csound_preget_lineno(yyscanner));
+                    snprintf(bb, 80, "#sline %d ", csound_preget_lineno(yyscanner));
                     corfile_puts(csound, bb, csound->expanded_orc);
                   }
                 }
@@ -266,6 +266,7 @@ QNAN            "qnan"[ \t]*\(
                      PARM->alt_stack[PARM->macro_stack_ptr].line =
                        csound_preget_lineno(yyscanner);
                      PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+                     PARM->alt_stack[PARM->macro_stack_ptr].included = 0;
                      PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
                      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                      csound_preset_lineno(1, yyscanner);
@@ -385,6 +386,7 @@ QNAN            "qnan"[ \t]*\(
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+                       PARM->alt_stack[PARM->macro_stack_ptr].included = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr++].s = csound->orc_macros;
                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
@@ -485,6 +487,7 @@ QNAN            "qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
+                  
                   csound->DebugMsg(csound, "csound_pre(%d): line now %d at %d\n",
                                    __LINE__,
                                    csound_preget_lineno(yyscanner),
@@ -497,6 +500,12 @@ QNAN            "qnan"[ \t]*\(
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
                   csound_pre_line(csound, csound->orchstr, yyscanner);
                   //print_csound_predata(csound,"After pre_line", yyscanner);
+                  if (PARM->alt_stack[PARM->macro_stack_ptr].included) {
+                    char bb[80];
+                    snprintf(bb, 80, "\n#line   %d\n",
+                            PARM->alt_stack[PARM->macro_stack_ptr].line);
+                    corfile_puts(csound, bb, csound->expanded_orc);
+                  }
                 }
 {DEFINE}        {
                   if (PARM->isString != 1)
@@ -771,7 +780,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
+      snprintf(bb, 80, "#source %"PRIu64"\n", PARM->locn = make_location(PARM)) ;
       PARM->llocn = PARM->locn;
       corfile_puts(csound, bb, csound->expanded_orc);
     }
@@ -814,6 +823,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       printf("%s\n",PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+    PARM->alt_stack[PARM->macro_stack_ptr].included = 1;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
@@ -848,7 +858,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       char bb[128];
       PARM->lstack[PARM->depth] = n;
-      sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
+      snprintf(bb, 128, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
       PARM->llocn = PARM->locn;
       corfile_puts(csound, bb, csound->expanded_orc);
     }
@@ -887,6 +897,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       *(strrchr(PARM->path,DIRSEP)) = '\0';
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+    PARM->alt_stack[PARM->macro_stack_ptr].included = 1;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
     csound_pre_scan_string(cf->body, yyscanner);
@@ -1029,7 +1040,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       if (UNLIKELY(c == EOF || c == '\0'))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
-        int n = strlen(name0)+4;
+        int32_t n = (int32_t) strlen(name0)+4;
         if (UNLIKELY(i+n >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
           if (UNLIKELY(mm->body == NULL)) {
@@ -1315,7 +1326,7 @@ static void add_math_const_macro(CSOUND *csound, char * name, char *body)
 
     mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
     mm->name = (char*) csound->Calloc(csound, strlen(name) + 3);
-    sprintf(mm->name, "M_%s", name);
+    snprintf(mm->name, strlen(name) + 3, "M_%s", name);
     mm->next = csound->orc_macros;
     csound->orc_macros = mm;
     mm->margs = MARGS;    /* Initial size */
@@ -1416,13 +1427,13 @@ void csound_pre_line(CSOUND *csound, CORFIL* cf, void *yyscanner)
       uint64_t llocn = PARM->llocn;
       if (UNLIKELY(locn != llocn)) {
         char bb[80];
-        sprintf(bb, "#source %"PRIu64"\n", locn);
+        snprintf(bb, 80, "#source %"PRIu64"\n", locn);
         corfile_puts(csound, bb, cf);
       }
       PARM->llocn = locn;
       if (UNLIKELY(n!=PARM->line+1)) {
         char bb[80];
-        sprintf(bb, "#line   %d\n", n);
+        snprintf(bb, 80, "#line   %d\n", n);
         corfile_puts(csound, bb, cf);
       }
     }

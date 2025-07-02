@@ -42,15 +42,28 @@ int32_t pvsopc_ModuleInit(CSOUND *csound)
     err |= pvscent_init_(csound);
     err |= pvsdemix_init_(csound);
     err |= pvsband_init_(csound);
+    err |= pvsbuffer_localops_init_(csound);
+    err |= pvsgendy_localops_init_(csound);
 
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
-/*
+#ifdef BUILD_PLUGINS
+
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {  
+        return 0;
+}
+
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
+  return pvsopc_ModuleInit(csound);
+}
+
 PUBLIC int32_t csoundModuleInfo(void)
-{s
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
+{
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t
 ) sizeof(MYFLT));
 }
-*/
+
+#endif
+
 

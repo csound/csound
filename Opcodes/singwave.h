@@ -72,6 +72,7 @@ typedef struct Modulatr {
 } Modulatr;
 
 typedef struct SingWave {
+  OPDS        h;
     Modulatr    modulator;
     Envelope    envelope;
     Envelope    pitchEnvelope;

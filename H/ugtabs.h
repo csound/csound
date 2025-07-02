@@ -21,6 +21,7 @@
     02110-1301 USA
 */
 
+#pragma once
 
 typedef struct _tabl {
   OPDS h;
@@ -28,7 +29,7 @@ typedef struct _tabl {
   MYFLT mul;
   int32 np2;
   int32 len;
-  int iwrap;
+  int32_t iwrap;
   FUNC *ftp;
 } TABL;
 

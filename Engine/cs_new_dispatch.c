@@ -46,7 +46,7 @@
 #endif
 
 /* Used as an error value */
-//typedef int taskID;
+//typedef int32_t taskID;
 #define INVALID (-1)
 #define WAIT    (-2)
 
@@ -74,11 +74,11 @@
 //static watchList * wlmm;
 
 #define INIT_SIZE (100)
-//static int task_max_size;
+//static int32_t task_max_size;
 
 static void dag_print_state(CSOUND *csound)
 {
-    int i;
+    int32_t i;
     watchList *w;
     printf("*** %d tasks\n", csound->dag_num_active);
     for (i=0; i<csound->dag_num_active; i++) {
@@ -105,7 +105,7 @@ static void dag_print_state(CSOUND *csound)
       case WAITING:
         {
           char *tt = csound->dag_task_dep[i];
-          int j;
+          int32_t j;
           printf("status=WAITING for tasks [");
           for (j=0; j<i; j++) if (tt[j]) printf("%d ", j);
           printf("]\n");
@@ -121,7 +121,7 @@ static void dag_print_state(CSOUND *csound)
 static void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
-    int max = csound->dag_task_max_size;
+    int32_t max = csound->dag_task_max_size;
     csound->dag_task_status = csound->Calloc(csound, sizeof(stateWithPadding)*max);
     csound->dag_task_watch  = csound->Calloc(csound, sizeof(watchList*)*max);
     csound->dag_task_map    = csound->Calloc(csound, sizeof(INSDS*)*max);
@@ -132,7 +132,7 @@ static void create_dag(CSOUND *csound)
 static void recreate_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
-    int max = csound->dag_task_max_size;
+    int32_t max = csound->dag_task_max_size;
     csound->dag_task_status =
       csound->ReAlloc(csound, (stateWithPadding *)csound->dag_task_status,
                sizeof(stateWithPadding)*max);
@@ -147,7 +147,7 @@ static void recreate_dag(CSOUND *csound)
       (watchList *)csound->ReAlloc(csound, csound->dag_wlmm, sizeof(watchList)*max);
 }
 
-static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
+static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int32_t insno)
 {
     INSTR_SEMANTICS *current_instr =
       csp_orc_sa_instr_get_by_num(csound, insno);
@@ -164,12 +164,12 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
     return current_instr;
 }
 
-static int dag_intersect(CSOUND *csound, struct set_t *current,
-                         struct set_t *later, int cnt)
+static int32_t dag_intersect(CSOUND *csound, struct set_t *current,
+                         struct set_t *later, int32_t cnt)
 {
     IGN(cnt);
     struct set_t *ans;
-    int res = 0;
+    int32_t res = 0;
     struct set_element_t *ele;
     ans = csp_set_intersection(csound, current, later);
     res = ans->count;
@@ -187,7 +187,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
 {
     INSDS *save = chain;
     INSDS **task_map;
-    int i;
+    int32_t i;
 
     //printf("DAG BUILD***************************************\n");
     csound->dag_num_active = 0;
@@ -222,7 +222,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       printf("dag_num_active = %d\n", csound->dag_num_active);
     i = 0; chain = save;
     while (chain != NULL) {     /* for each instance check against later */
-      int j = i+1;              /* count of instance */
+      int32_t j = i+1;              /* count of instance */
       if (UNLIKELY(csound->oparms->odebug))
         printf("\nWho depends on %d (instr %d)?\n", i, chain->insno);
       INSDS *next = chain->nxtact;
@@ -231,7 +231,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       //csp_set_print(csound, current_instr->write);
       while (next) {
         INSTR_SEMANTICS *later_instr = dag_get_info(csound, next->insno);
-        int cnt = 0;
+        int32_t cnt = 0;
         if (UNLIKELY(csound->oparms->odebug)) printf("%d ", j);
         //csp_set_print(csound, later_instr->read);
         //csp_set_print(csound, later_instr->write);
@@ -274,8 +274,8 @@ void dag_build(CSOUND *csound, INSDS *chain)
 
 void dag_reinit(CSOUND *csound)
 {
-    int i;
-    int max = csound->dag_task_max_size;
+    int32_t i;
+    int32_t max = csound->dag_task_max_size;
     volatile stateWithPadding *task_status = csound->dag_task_status;
     watchList * volatile *task_watch = csound->dag_task_watch;
     watchList *wlmm = csound->dag_wlmm;
@@ -286,7 +286,7 @@ void dag_reinit(CSOUND *csound)
     task_status[0].s = AVAILABLE;
     task_watch[0] = NULL;
     for (i=1; i<csound->dag_num_active; i++) {
-      int j;
+      int32_t j;
       task_status[i].s = AVAILABLE;
       task_watch[i] = NULL;
       if (csound->dag_task_dep[i]==NULL) continue;
@@ -324,12 +324,12 @@ void dag_reinit(CSOUND *csound)
                               __ATOMIC_SEQ_CST)
 #endif
 
-taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
+taskID dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads, taskID next_task)
 {
-    int i;
-    int count_waiting = 0;
-    int active = csound->dag_num_active;
-    int start = (index * active) / numThreads;
+    int32_t i;
+    int32_t count_waiting = 0;
+    int32_t active = csound->dag_num_active;
+    int32_t start = (index * active) / numThreads;
     volatile stateWithPadding *task_status = csound->dag_task_status;
     enum state current_task_status;
 
@@ -348,7 +348,11 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
       switch (current_task_status) {
       case AVAILABLE :
         // Need to CAS as the value may have changed
+#ifndef WIN32        
         if (ATOMIC_CAS(&(task_status[i].s), current_task_status, INPROGRESS)) {
+#else
+          if (ATOMIC_CAS((long *) &(task_status[i].s), current_task_status, INPROGRESS)) {
+#endif
           return (taskID)i;
         }
         break;
@@ -385,7 +389,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
 /* This static is OK as not written */
 static const watchList DoNotRead = { INVALID, NULL};
 
-inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
+inline static int32_t move_watch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)
 {
      IGN(csound);
@@ -409,11 +413,11 @@ inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
 taskID dag_end_task(CSOUND *csound, taskID i)
 {
     watchList *to_notify, *next;
-    int canQueue;
-    int j, k;
+    int32_t canQueue;
+    int32_t j, k;
     watchList * volatile *task_watch = csound->dag_task_watch;
     enum state current_task_status;
-    int wait_on_current_tasks;
+    int32_t wait_on_current_tasks;
     taskID next_task = INVALID;
     ATOMIC_WRITE(csound->dag_task_status[i].s, DONE); /* as DONE is zero */
     // A write barrier /might/ be useful here to avoid the case
@@ -443,7 +447,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
         if (current_task_status == WAITING) {   // Prefer watching blocked tasks
           //printf("found task %d to watch %d status %d\n",
           //       k, j, csound->dag_task_status[k].s);
-          if (moveWatch(csound, &task_watch[k], to_notify)) {
+          if (move_watch(csound, &task_watch[k], to_notify)) {
             //printf("task %d now watches %d\n", j, k);
             canQueue = 0;
             wait_on_current_tasks = 0;
@@ -473,7 +477,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
           if (current_task_status != DONE) {   // Prefer watching blocked tasks
             //printf("found task %d to watch %d status %d\n",
             //       k, j, csound->dag_task_status[k].s);
-            if (moveWatch(csound, &task_watch[k], to_notify)) {
+            if (move_watch(csound, &task_watch[k], to_notify)) {
               //printf("task %d now watches %d\n", j, k);
               canQueue = 0;
               break;
@@ -503,373 +507,4 @@ taskID dag_end_task(CSOUND *csound, taskID i)
 }
 
 
-/* INV : Acyclic */
-/* INV : Each entry is read by a single thread,
- *       no writes (but see OPT : Watch ordering) */
-/* Thus no protection needed */
 
-/* INV : Watches for different tasks are disjoint */
-/* INV : Multiple threads can add to a watch list but only one will remove
- *       These are the only interactions */
-/* Thus the use of CAS / atomic operations */
-
-/* Used to mark lists that should not be added to, see NOTE : Race condition */
-#if 0
-watchList nullList;
-watchList *doNotAdd = &nullList;
-watchList endwatch = { NULL, NULL };
-
-/* Lists of tasks that depend on the given task */
-watchList ** watch;         /* OPT : Structure lay out */
-watchListMemoryManagement *wlmm; /* OPT : Structure lay out */
-
-/* INV : wlmm[X].s.id == X; */  /* OPT : Data structure redundancy */
-/* INV : status[X] == WAITING => wlmm[X].used */
-/* INV : wlmm[X].s is in watch[Y] => wlmm[X].used */
-
-
-/* Watch list helper functions */
-
-void initialiseWatch (watchList **w, taskID id) {
-  wlmm[id].used = TRUE;
-  wlmm[id].s.id = id;
-  wlmm[id].s.tail = *w;
-  *w = &(wlmm[id].s);
-}
-
-inline watchList * getWatches(taskID id) {
-
-    return __atomic_test_and_set (&(watch[id]), doNotAdd);
-}
-
-int moveWatch (watchList **w, watchList *t) {
-  watchList *local;
-
-  t->tail = NULL;
-
-  do {
-    local = atomicRead(*w);
-
-    if (local == doNotAdd) {
-      return 0;
-    } else {
-      t->tail = local;
-    }
-  } while (!atomicCAS(*w,local,t));   /* OPT : Delay loop */
-
-  return 1;
-}
-
-void appendToWL (taskID id, watchList *l) {
-  watchList *w;
-
-  do {
-    w = watch[id];
-    l->tail = w;
-    w = __atomic_compare_exchange_n(&(watch[id]),w,l, false, \
-                                    __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
-  } while (!(w == l));
-
-}
-
-inline void deleteWatch (watchList *t) {
-  wlmm[t->id].used = FALSE;
-}
-
-
-
-
-typedef struct monitor {
-  pthread_mutex_t l = PTHREAD_MUTEX_INITIALIZER;
-  unsigned int threadsWaiting = 0;    /* Shadows the length of
-                                         workAvailable wait queue */
-  queue<taskID> q;                    /* OPT : Dispatch order */
-  pthread_cond_t workAvailable = PTHREAD_COND_INITIALIZER;
-  pthread_cond_t done = PTHREAD_COND_INITIALIZER;
-} monitor;                                    /* OPT : Lock-free */
-
-/* INV : q.size() + dispatched <= ID */
-/* INV : foreach(id,q.contents()) { status[id] = AVAILABLE; } */
-/* INV : threadsWaiting <= THREADS */
-
-monitor dispatch;
-
-
-void addWork(monitor *dispatch, taskID id) {
-  pthread_mutex_lock(&dispatch->l);
-
-  status[id] = AVAILABLE;
-  dispatch->q.push(id);
-  if (threadsWaiting >= 1) {
-    pthread_cond_signal(&dispatch->c);
-  }
-
-  pthread_mutex_unlock(&dispatch->l);
-  return;
-}
-
-taskID getWork(monitor *dispatch) {
-  taskID returnValue;
-
-  pthread_mutex_lock(&dispatch->l);
-
-  while (q.empty()) {
-    ++dispatch->threadsWaiting;
-
-    if (dispatch->threadsWaiting == THREADS) {
-      /* Will the last person out please turn off the lights! */
-      pthread_cond_signal(&dispatch->done);
-    }
-
-    pthread_cond_wait(&dispatch->l,&dispatch->workAvailable);
-    --dispatch->threadsWaiting;
-
-    /* NOTE : A while loop is needed as waking from this requires
-     * reacquiring the mutex and in the mean time someone
-     * might have got it first and removed the work. */
-  }
-
-  returnValue = q.pop();
-
-  pthread_mutex_unlock(&dispatch->l);
-  return returnValue;
-
-}
-
-void waitForWorkToBeCompleted (monitor *dispatch) {
-  /* Requires
-   * INV : threadsWaiting == THREADS <=> \forall id \in ID . status[id] == DONE
-   */
-
-  pthread_mutex_lock(&dispatch->l);
-
-  if (dispatch->threadsWaiting < THREADS) {
-    pthread_cond_wait(&dispatch->l,&dispatch->done);
-  }
-
-  /* This assertion is more difficult to prove than it might first appear */
-  assert(dispatch->threadsWaiting == THREADS);
-
-  pthread_mutex_unlock(&dispatch->l);
-  return;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void mainThread (State *s) {
-
-  /* Set up the DAG */
-  if (s->firstRun || s->updateNeeded) {
-    dep = buildDAG(s);        /* OPT : Dispatch order */
-    /* Other : Update anything that is indexed by task
-     * (i.e. all arrays given length ID) */
-  }
-
-  /* Reset the data structure */
-  foreach (id in ID) {
-    watch[id] = NULL;
-  }
-
-  /* Initialise the dispatch queue */
-  foreach (id in ID) {       /* OPT : Dispatch order */
-    if (dep[id] == EMPTYSET) {
-      atomicWrite(status[id] = AVAILABLE);
-      addWork(*dispatch,id);
-
-    } else {
-      atomicWrite(status[id] = WAITING);
-      initialiseWatch(&watch[choose(dep[id])], id);  /* OPT : Watch ordering */
-
-    }
-  }
-
-/* INV : Data structure access invariants start here */
-/* INV : Status only decrease from now */
-/* INV : Watch list for id contains a subset of the things that depend on id */
-/* INV : Each id appears in at most one watch list */
-/* INV : doNotAdd only appears at the head of a watch list */
-/* INV : if (watch[id] == doNotAdd) then { status[id] == DONE; } */
-
-  waitForWorkToBeCompleted(*dispatch);
-
-  return;
-}
-
-void workerThread (State *s) {
-  taskID work;
-  watchList *tasksToNotify, next;
-  bool canQueue;
-
-  do {
-
-    task = getWork(dispatch);
-
-    /* Do stuff */
-    atomicWrite(status[work] = INPROGRESS);
-    doStuff(work);
-    atomicWrite(status[work] = DONE);    /* NOTE : Race condition */
-
-
-    tasksToNotify = getWatches(work);
-
-    while (tasksToNotify != NULL) {
-      next = tasksToNotify->tail;
-
-      canQueue = TRUE;
-      foreach (dep in dep[tasksToNotify->id]) {  /* OPT : Watch ordering */
-        if (atomicRead(status[dep]) != DONE) {
-          /* NOTE : Race condition */
-          if (moveWatch(watch[dep],tasksToNotify)) {
-            canQueue = FALSE;
-            break;
-          } else {
-            /* Have hit the race condition, try the next option */
-            assert(atomicRead(status[dep]) == DONE);
-          }
-        }
-      }
-
-      if (canQueue) {                    /* OPT : Save one work item */
-        addWork(*dispatch,tasksToNotify->id);
-        deleteWatch(tasksToNotify);
-      }
-
-      tasksToNotify = next;
-    }
-
-  } while (1);  /* NOTE : some kind of control for thread exit needed */
-
-  return;
-}
-
-
-
-
-/* OPT : Structure lay out
- *
- * All data structures that are 1. modified by one or more thread and
- * 2. accessed by multiple threads, should be aligned to cache lines and
- * padded so that there is only one instance per cache line.  This will reduce
- * false memory contention between objects that just happen to share a cache
- * line.  Blocking to 64 bytes will probably be sufficient and if people really
- * care about performance that much they can tune to their particular
- * architecture.
- */
-
-/* OPT : Watch ordering
- *
- * Moving a watch is relatively cheap (in the uncontended case) but
- * it would be best to avoid moving watches where possible.  The ideal
- * situation would be for every task to watch the last pre-requisite.
- * There are two places in the code that affect the watch ordering;
- * the initial assignment and the movement when a watch is triggered.
- * Prefering WAITING tasks (in the later) and lower priority tasks
- * (if combined with the dispatch order optimisation below) are probably
- * good choices.  One mechanism would be to reorder the set (or array) of
- * dependencies to store this information.  When looking for a (new) watch,
- * tasks are sorted with increasing status first and then the first one picked.
- * Keeping the list sorted (or at least split between WAITING and others) with
- * each update should (if the dispatch order is fixed / slowly adapting) result
- * in the best things to watch moving to the front and thus adaptively give
- * the best possible tasks to watch.  The interaction with a disaptch order
- * heuristic would need to be considered.  Note that only one thread will
- * look at any given element of dep[] so they can be re-ordered without
- * needing locking.
- */
-
-/* OPT : Structure lay out
- *
- * Some of the fields are not strictly needed and are just there to make
- * the algorithm cleaner and more intelligible.  The id fields of the watch
- * lists are not really needed as there is one per task and their position
- * within the watchListMemoryManager array allows the task to be infered.
- * Likewise the used flag in the memory manager is primarily for book-keeping
- * and checking / assertions and could be omitted.
- */
-
-/* OPT : Delay loop
- *
- * In theory it is probably polite to put a slowly increasing delay in
- * after a failed compare and swap to reduce pressure on the memory
- * subsystem in the highly contended case.  As multiple threads adding
- * to a task's watch list simultaneously is probably a rare event, the
- * delay loop is probably unnecessary.
- */
-
-/* OPT : Dispatch order
- *
- * The order in which tasks are dispatched affects the amount of
- * parallelisation possible.  Picking the exact scheduling order, even
- * if the duration of the tasks is known is probably NP-Hard (see
- * bin-packing*) so heuristics are probably the way to go.  The proporition
- * of tasks which depend on a given task is probably a reasonable primary
- * score, with tie-breaks going to longer tasks.  This can either be
- * applied to just the initial tasks (either in ordering the nodes in the DAG)
- * or in the order in which they are traversed.  Alternatively by
- * sorting the queue / using a heap / other priority queuing structure
- * it might be possible to do this dynamically.  The best solution would
- * probably be adaptive with a task having its priority incremented
- * each time another worker thread blocks on a shortage of work, with these
- * increments also propagated 'upwards' in the DAG.
- *
- * *. Which means that a solver could be used to give the best possible
- *    schedule / the maximum parallelisation.  This could be useful for
- *    optimisation.
- */
-
-/* OPT : Lock-free
- *
- * A lock free dispatch mechanism is probably possible as threads can
- * scan the status array for things listed as AVAILABLE and then atomicCAS
- * to INPROGRESS to claim them.  But this starts to involve busy-waits or
- * direct access to futexes and is probably not worth it.
- */
-
-/* OPT : Save one work item
- *
- * Rather than adding all watching tasks who have their dependencies met to
- * the dispatch queue, saving one (perhaps the best, see OPT : Dispatch order)
- * means the thread does not have to wait.  In the case of a purely linear DAG
- * this should be roughly as fast as the single threaded version.
- */
-
-
-/* NOTE : Race condition
- *
- * There is a subtle race condition:
- *
- *   Thread 1                             Thread 2
- *   --------                             --------
- *                                        atomicRead(status[dep]) != DONE
- *   atomicWrite(status[work] = DONE);
- *   tasksToNotify = getWatches(work);
- *                                        moveWatch(watch[dep],tasksToNotify);
- *
- * The key cause is that the status and the watch list cannot be updated
- * simultaneously.  However as getWatches removes all watches and moves or
- * removes them, it is sufficient to have a doNotAdd watchList node to detect
- * this race condition and resolve it by having moveWatch() fail.
- */
-
-void newdag_alloc(CSOUND *csound, int numtasks)
-{
-    doNotAdd = &endwatch;
-??
-    watch = (watchList **)csound->Calloc(csound, sizeof(watchList *)*numtasks);
-    wlmm = (watchListMemoryManagement *)
-      csound->Calloc(csound, sizeof(watchListMemoryManagement)*numtasks);
-
-}
-
-#endif

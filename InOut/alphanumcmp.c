@@ -22,13 +22,14 @@
  Modified from http://www.davekoelle.com/files/alphanum.hpp
 */
 
+#include "alphanumcmp.h"
 #include <ctype.h>
 
-int alphanum_isdigit(const char c) {
+int32_t alphanum_isdigit(const char c) {
     return c>='0' && c<='9';
 }
 
-int alphanum_cmp(const char *l, const char *r) {
+int32_t alphanum_cmp(const char *l, const char *r) {
     enum mode_t { STRING, NUMBER } mode=STRING;
 
     while(*l && *r) {
@@ -36,8 +37,8 @@ int alphanum_cmp(const char *l, const char *r) {
             char l_char, r_char;
             while((l_char=*l) && (r_char=*r)) {
                 // check if these are digit characters
-                const int l_digit = alphanum_isdigit(l_char);
-                const int r_digit = alphanum_isdigit(r_char);
+                const int32_t l_digit = alphanum_isdigit(l_char);
+                const int32_t r_digit = alphanum_isdigit(r_char);
                 // if both characters are digits, we continue in NUMBER mode
                 if(l_digit && r_digit) {
                     mode=NUMBER;
@@ -52,7 +53,7 @@ int alphanum_cmp(const char *l, const char *r) {
                 // compute the difference of both characters
                 l_char = toupper(l_char);
                 r_char = toupper(r_char);
-                const int diff = l_char - r_char;
+                const int32_t diff = l_char - r_char;
                 // if they differ we have a result
                 if(diff != 0) 
                     return diff;
@@ -80,7 +81,7 @@ int alphanum_cmp(const char *l, const char *r) {
             // if the difference is not equal to zero, we have a comparison result
             const long diff = l_int - r_int;
             if(diff != 0)
-                return diff;
+              return (int32_t) diff;
 
             // otherwise we process the next substring in STRING mode
             mode=STRING;

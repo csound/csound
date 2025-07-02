@@ -25,13 +25,13 @@
 
 typedef struct _circular_buffer {
   char *buffer;
-  int  wp;
-  int rp;
-  int numelem;
-  int elemsize; /* in number of bytes */
+  int32_t  wp;
+  int32_t rp;
+  int32_t numelem;
+  int32_t elemsize; /* in number of bytes */
 } circular_buffer;
 
-void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize){
+void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsize){
     circular_buffer *p;
     if ((p = (circular_buffer *)
          csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
@@ -48,8 +48,8 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize){
     return (void *)p;
 }
 
-int checkspace(circular_buffer *p, int writeCheck){
-    int wp = p->wp, rp = p->rp, numelem = p->numelem;
+int32_t checkspace(circular_buffer *p, int32_t writeCheck){
+    int32_t wp = p->wp, rp = p->rp, numelem = p->numelem;
     if(writeCheck){
       if (wp > rp) return rp - wp + numelem - 1;
       else if (wp < rp) return rp - wp - 1;
@@ -62,15 +62,15 @@ int checkspace(circular_buffer *p, int writeCheck){
     }
 }
 
-int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
+int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
 {
     IGN(csound);
     if (p == NULL) return 0;
     {
-      int remaining;
-      int itemsread, numelem = ((circular_buffer *)p)->numelem;
-      int elemsize = ((circular_buffer *)p)->elemsize;
-      int i=0, rp = ((circular_buffer *)p)->rp;
+      int32_t remaining;
+      int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
+      int32_t elemsize = ((circular_buffer *)p)->elemsize;
+      int32_t i=0, rp = ((circular_buffer *)p)->rp;
       char *buffer = ((circular_buffer *)p)->buffer;
       if ((remaining = checkspace(p, 0)) == 0) {
         return 0;
@@ -94,14 +94,14 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
     }
 }
 
-int csoundPeekCircularBuffer(CSOUND *csound, void *p, void *out, int items)
+int32_t csoundPeekCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
 {
     IGN(csound);
     if (p == NULL) return 0;
-    int remaining;
-    int itemsread, numelem = ((circular_buffer *)p)->numelem;
-    int elemsize = ((circular_buffer *)p)->elemsize;
-    int i=0, rp = ((circular_buffer *)p)->rp;
+    int32_t remaining;
+    int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int32_t elemsize = ((circular_buffer *)p)->elemsize;
+    int32_t i=0, rp = ((circular_buffer *)p)->rp;
     char *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 0)) == 0) {
         return 0;
@@ -121,9 +121,9 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
 {
     IGN(csound);
     if (p == NULL) return;
-    int remaining;
-    int itemsread, numelem = ((circular_buffer *)p)->numelem;
-    int i=0, rp = ((circular_buffer *)p)->rp;
+    int32_t remaining;
+    int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
+    int32_t i=0, rp = ((circular_buffer *)p)->rp;
     //MYFLT *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 0)) == 0) {
         return;
@@ -143,14 +143,14 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
 }
 
 
-int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items)
+int32_t csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int32_t items)
 {
     IGN(csound);
     if (p == NULL) return 0;
-    int remaining;
-    int itemswrite, numelem = ((circular_buffer *)p)->numelem;
-    int elemsize = ((circular_buffer *)p)->elemsize;
-    int i=0, wp = ((circular_buffer *)p)->wp;
+    int32_t remaining;
+    int32_t itemswrite, numelem = ((circular_buffer *)p)->numelem;
+    int32_t elemsize = ((circular_buffer *)p)->elemsize;
+    int32_t i=0, wp = ((circular_buffer *)p)->wp;
     char *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 1)) == 0) {
         return 0;

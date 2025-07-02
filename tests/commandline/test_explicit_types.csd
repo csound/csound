@@ -11,8 +11,10 @@ nchnls	=	2
 
 instr 1	
 
-sigLeft:a vco2 0.5, 440 
+glid:k expon 440, p3, 880
+sigLeft:a vco2 0.5, glid 
 sigRight:a = vco2(0.5, 660)
+
 
 signals:a[] init 4
 signals[0] = sigLeft

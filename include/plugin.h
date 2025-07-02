@@ -26,7 +26,11 @@
 
 #ifndef _PLUGIN_H_
 #define _PLUGIN_H_
+#ifdef CS_INTERNAL
+#include "csoundCore.h"
+#else
 #include "csdl.h"
+#endif
 #include "pstream.h"
 #include "arrays.h"
 #include <array>
@@ -62,14 +66,6 @@ class Csound : CSOUND {
   friend class Table;
   template <typename T> friend class AuxMem;
 
-  /**
-    @private
-    opcode function template (deinit-time)
-   */
-  template <typename T> static int deinit(CSOUND *csound, void *p) {
-    return ((T *)p)->deinit();
-  }
-
 public:
   /** Host Data
    */
@@ -77,13 +73,13 @@ public:
 
   /** init-time error message
    */
-  int init_error(const std::string &s) {
+  int32_t init_error(const std::string &s) {
     return InitError(this, "%s\n", LocalizeString(s.c_str()));
   }
 
   /** perf-time error message
    */
-  int perf_error(const std::string &s, OPDS *inst) {
+  int32_t perf_error(const std::string &s, OPDS *inst) {
     return PerfError(this, inst, "%s\n", LocalizeString(s.c_str()));
   }
 
@@ -98,14 +94,6 @@ public:
   void message(const std::string &s) {
     Message(this, "%s\n", LocalizeString(s.c_str()));
   }
-
-  /** system sampling rate
-   */
-  MYFLT sr() { return GetSr(this); }
-
-  /** system control rate
-   */
-  MYFLT kr() { return GetKr(this); }
 
   /** system max amp reference
    */
@@ -127,11 +115,6 @@ public:
    */
   int64_t current_time_samples() { return GetCurrentTimeSamples(this); }
 
-  /** time count (seconds)
-   */
-  double current_time_seconds() {
-    return GetCurrentTimeSamples(this) / GetSr(this);
-  }
 
   /** check for audio signal variable argument
    */
@@ -141,15 +124,15 @@ public:
 
   /** midi channel number for this instrument
    */
-  int midi_channel(OPDS *p) { return GetMidiChannelNumber(p); }
+  int32_t midi_channel(OPDS *p) { return GetMidiChannelNumber(p); }
 
   /** midi note number for this instrument
    */
-  int midi_note_num(OPDS *p) { return GetMidiNoteNumber(p); }
+  int32_t midi_note_num(OPDS *p) { return GetMidiNoteNumber(p); }
 
   /** midi note velocity for this instrument
    */
-  int midi_note_vel(OPDS *p) { return GetMidiVelocity(p); }
+  int32_t midi_note_vel(OPDS *p) { return GetMidiVelocity(p); }
 
   /** midi aftertouch for this channel
    */
@@ -182,12 +165,6 @@ public:
     return (const INSDS *) GetMidiChannel(p)->kinsptr;
   }
 
-  /** deinit registration for a given plugin class
-   */
-  template <typename T> void plugin_deinit(T *p) {
-    RegisterDeinitCallback(this, (void *)p, deinit<T>);
-  }
-
   /** Csound memory allocation - malloc style
    */
   void *malloc(size_t size) { return Malloc(this, size); }
@@ -213,7 +190,7 @@ public:
       returns a handle to the FFT setup.
    */
   fftp fft_setup(uint32_t size, uint32_t direction) {
-    return (fftp)RealFFT2Setup(this, size, direction);
+    return (fftp)RealFFTSetup(this, size, direction);
   }
 
   /** FFT operation, in-place, but also
@@ -221,13 +198,7 @@ public:
       to the transformed data memory.
   */
   std::complex<MYFLT> *rfft(fftp setup, MYFLT *data) {
-    if (!setup->p2) {
-      if (setup->d == FFT_FWD)
-        RealFFTnp2(this, data, setup->N);
-      else
-        InverseRealFFTnp2(this, data, setup->N);
-    } else
-      RealFFT2(this, setup, data);
+    RealFFT(this, setup, data);
     return reinterpret_cast<std::complex<MYFLT> *>(data);
   }
 
@@ -246,7 +217,7 @@ public:
 
   /** Creates a global variable in the current Csound object
   */
-  int create_global_variable(const char *name, size_t nbytes) {
+  int32_t create_global_variable(const char *name, size_t nbytes) {
     return CreateGlobalVariable(this, name, nbytes);
   }
 
@@ -258,7 +229,7 @@ public:
 
   /** Destroy an existing named global variable
    */
-  int destroy_global_variable(const char* name) {
+  int32_t destroy_global_variable(const char* name) {
      return DestroyGlobalVariable(this, name);
   }
 
@@ -270,7 +241,7 @@ public:
 
   /** Sleep
    */
-  void sleep(int ms) { Sleep(ms); }
+  void sleep(int32_t ms) { Sleep(ms); }
 };
 
 /**
@@ -352,11 +323,11 @@ public:
 
   /** array subscript access (write)
    */
-  MYFLT &operator[](int n) { return sig[n]; }
+  MYFLT &operator[](int32_t n) { return sig[n]; }
 
   /** array subscript access (read)
    */
-  const MYFLT &operator[](int n) const { return sig[n]; }
+  const MYFLT &operator[](int32_t n) const { return sig[n]; }
 
   /** get early exit sample position
    */
@@ -379,8 +350,8 @@ template <typename T> class Vector : ARRAYDAT {
 public:
   /** Initialise the container
    */
-  void init(Csound *csound, int size) {
-    tabinit(csound, this, size);
+  void init(Csound *csound, int32_t size, INSDS *ctx) {
+    tabinit(csound, this, size, ctx);
   }
 
   /** iterator type
@@ -421,11 +392,11 @@ public:
 
   /** array subscript access (write)
    */
-  T &operator[](int n) { return ((T *)data)[n]; }
+  T &operator[](int32_t n) { return ((T *)data)[n]; }
 
   /** array subscript access (read)
    */
-  const T &operator[](int n) const { return ((T *)data)[n]; }
+  const T &operator[](int32_t n) const { return ((T *)data)[n]; }
 
   /** array subscript access (read)
    */
@@ -543,7 +514,7 @@ public:
       size_t bytes = (n + 2) * sizeof(float);
       if (frame.auxp == nullptr || frame.size < bytes) {
         csound->AuxAlloc(csound, bytes, &frame);
-        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0);
+        std::fill((float *)frame.auxp, (float *)frame.auxp + n + 2, 0.f);
       }
     } else {
       size_t bytes = (n + 2) * sizeof(MYFLT) * nsmps;
@@ -591,7 +562,7 @@ public:
 
   /** get fsig data format
    */
-  int fsig_format() { return format; }
+  int32_t fsig_format() { return format; }
 
   /** get data frame as floats
    */
@@ -655,11 +626,11 @@ public:
 
   /** array subscript access operator (write)
    */
-  T &operator[](int n) { return ((T *)frame.auxp)[n]; }
+  T &operator[](int32_t n) { return ((T *)frame.auxp)[n]; }
 
   /** array subscript access operator (read)
    */
-  const T &operator[](int n) const { return ((T *)frame.auxp)[n]; }
+  const T &operator[](int32_t n) const { return ((T *)frame.auxp)[n]; }
 
   /** frame data pointer
    */
@@ -677,8 +648,8 @@ class Table : FUNC {
 public:
   /** Initialise this object from an opcode
       argument arg */
-  int init(Csound *csound, MYFLT *arg) {
-    Table *f = (Table *)csound->FTnp2Finde(csound, arg);
+  int32_t init(Csound *csound, MYFLT *arg) {
+    Table *f = (Table *)csound->FTFind(csound, arg);
     if (f != nullptr) {
       std::copy(f, f + 1, this);
       return OK;
@@ -726,11 +697,11 @@ public:
 
   /** array subscript access operator (write)
    */
-  MYFLT &operator[](int n) { return ftable[n]; }
+  MYFLT &operator[](int32_t n) { return ftable[n]; }
 
   /** array subscript access operator (read)
    */
-  const MYFLT &operator[](int n) const { return ftable[n]; }
+  const MYFLT &operator[](int32_t n) const { return ftable[n]; }
 
   /** function table data pointer
    */
@@ -749,7 +720,7 @@ template <typename T> class AuxMem : AUXCH {
 public:
   /** allocate memory for the container
    */
-  void allocate(Csound *csound, int n) {
+  void allocate(Csound *csound, int32_t n) {
     size_t bytes = n * sizeof(T);
     if (auxp == nullptr || size != bytes) {
       csound->AuxAlloc(csound, bytes, (AUXCH *)this);
@@ -791,11 +762,11 @@ public:
 
   /** array subscript access (write)
    */
-  T &operator[](int n) { return ((T *)auxp)[n]; }
+  T &operator[](int32_t n) { return ((T *)auxp)[n]; }
 
   /** array subscript access (read)
    */
-  const T &operator[](int n) const { return ((T *)auxp)[n]; }
+  const T &operator[](int32_t n) const { return ((T *)auxp)[n]; }
 
   /** returns a pointer to the vector data
    */
@@ -816,11 +787,11 @@ public:
 public:
   /** parameter access via array subscript (write)
    */
-  MYFLT &operator[](int n) { return *ptrs[n]; }
+  MYFLT &operator[](int32_t n) { return *ptrs[n]; }
 
   /** parameter access via array subscript (read)
    */
-  const MYFLT &operator[](int n) const { return *ptrs[n]; }
+  const MYFLT &operator[](int32_t n) const { return *ptrs[n]; }
 
   /** iterator type
   */
@@ -856,30 +827,30 @@ public:
 
   /** parameter data (MYFLT pointer) at index n
    */
-  MYFLT *operator()(int n) { return ptrs[n]; }
+  MYFLT *operator()(int32_t n) { return ptrs[n]; }
 
   /** @private:
        same as operator()
    */
-  MYFLT *data(int n) { return ptrs[n]; }
+  MYFLT *data(int32_t n) { return ptrs[n]; }
 
   /** parameter string data (STRINGDAT ref) at index n
    */
-  STRINGDAT &str_data(int n) { return (STRINGDAT &)*ptrs[n]; }
+  STRINGDAT &str_data(int32_t n) { return (STRINGDAT &)*ptrs[n]; }
 
   /** parameter fsig data (Fsig ref) at index n
    */
-  Fsig &fsig_data(int n) { return (Fsig &)*ptrs[n]; }
+  Fsig &fsig_data(int32_t n) { return (Fsig &)*ptrs[n]; }
 
   /** 1-D array data as Vector template ref
    */
-  template <typename T> Vector<T> &vector_data(int n) {
+  template <typename T> Vector<T> &vector_data(int32_t n) {
     return (Vector<T> &)*ptrs[n];
   }
 
   /** returns 1-D numeric array data
    */
-  myfltvec &myfltvec_data(int n) { return (myfltvec &)*ptrs[n]; }
+  myfltvec &myfltvec_data(int32_t n) { return (myfltvec &)*ptrs[n]; }
 
 };
 
@@ -899,15 +870,19 @@ template <std::size_t N> struct InPlug : OPDS {
 
   /** i-time function placeholder
    */
-  int init() { return OK; }
+  int32_t init() { return OK; }
+
+  /** deinit function placeholder
+   */
+  int32_t deinit() { return OK; }
 
   /** k-rate function placeholder
    */
-  int kperf() { return OK; }
+  int32_t kperf() { return OK; }
 
   /** a-rate function placeholder
    */
-  int aperf() { return OK; }
+  int32_t aperf() { return OK; }
 
   /** @private
       sample-accurate offset for
@@ -949,60 +924,60 @@ template <std::size_t N> struct InPlug : OPDS {
 
    /** sampling rate
    */
-  MYFLT sr() { return csound->sr(); }
+  MYFLT sr() { return insdshead->esr; }
 
   /** midi channel number for this instrument
    */
-  int midi_channel() { return ((CSOUND *)csound)->GetMidiChannelNumber(this); }
+  int32_t midi_channel() { return GetMidiChannelNumber(this); }
 
   /** midi note number for this instrument
    */
-  int midi_note_num() { return ((CSOUND *)csound)->GetMidiNoteNumber(this); }
+  int32_t midi_note_num() { return GetMidiNoteNumber(this); }
 
   /** midi note velocity for this instrument
    */
-  int midi_note_vel() { return ((CSOUND *)csound)->GetMidiVelocity(this); }
+  int32_t midi_note_vel() { return GetMidiVelocity(this); }
 
   /** midi aftertouch for this channel
    */
   MYFLT midi_chn_aftertouch() {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->aftouch; }
+    return GetMidiChannel(this)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
   MYFLT midi_chn_polytouch(uint32_t note) {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->polyaft[note];
+    return GetMidiChannel(this)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
   MYFLT midi_chn_ctl(uint32_t ctl) {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->ctl_val[ctl];
+    return GetMidiChannel(this)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
   MYFLT midi_chn_pitchbend() {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->pchbend; }
+    return GetMidiChannel(this)->pchbend; }
 
   /** list of active instrument instances for this channel \n
       returns an INSDS array with 128 items, one per
       MIDI note number. Inactive instances are marked NULL.
    */
   const INSDS *midi_chn_list() {
-    return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
+    return (const INSDS *) GetMidiChannel(this)->kinsptr;
   }
 
  /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->iopadr ? true : false;
+    return this->init ? true : false;
   }
 
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
-      return this->opaddr ? true : false;
+      return this->perf ? true : false;
   }
 
 };
@@ -1024,15 +999,19 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
 
   /** i-time function placeholder
    */
-  int init() { return OK; }
+  int32_t init() { return OK; }
+
+  /** deinit function placeholder
+   */
+  int32_t deinit() { return OK; }
 
   /** k-rate function placeholder
    */
-  int kperf() { return OK; }
+  int32_t kperf() { return OK; }
 
   /** a-rate function placeholder
    */
-  int aperf() { return OK; }
+  int32_t aperf() { return OK; }
 
   /** @private
       sample-accurate offset for
@@ -1081,60 +1060,60 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
 
    /** sampling rate
    */
-  MYFLT sr() { return csound->sr(); }
+  MYFLT sr() { return insdshead->esr; }
 
   /** midi channel number for this instrument
    */
-  int midi_channel() { return ((CSOUND *)csound)->GetMidiChannelNumber(this); }
+  int32_t midi_channel() { return GetMidiChannelNumber(this); }
 
   /** midi note number for this instrument
    */
-  int midi_note_num() { return ((CSOUND *)csound)->GetMidiNoteNumber(this); }
+  int32_t midi_note_num() { return GetMidiNoteNumber(this); }
 
   /** midi note velocity for this instrument
    */
-  int midi_note_vel() { return ((CSOUND *)csound)->GetMidiVelocity(this); }
+  int32_t midi_note_vel() { return GetMidiVelocity(this); }
 
   /** midi aftertouch for this channel
    */
   MYFLT midi_chn_aftertouch() {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->aftouch; }
+    return GetMidiChannel(this)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
   MYFLT midi_chn_polytouch(uint32_t note) {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->polyaft[note];
+    return GetMidiChannel(this)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
   MYFLT midi_chn_ctl(uint32_t ctl) {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->ctl_val[ctl];
+    return GetMidiChannel(this)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
   MYFLT midi_chn_pitchbend() {
-    return ((CSOUND *)csound)->GetMidiChannel(this)->pchbend; }
+    return  GetMidiChannel(this)->pchbend; }
 
   /** list of active instrument instances for this channel \n
       returns an INSDS array with 128 items, one per
       MIDI note number. Inactive instances are marked NULL.
    */
   const INSDS *midi_chn_list() {
-    return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
+    return (const INSDS *) GetMidiChannel(this)->kinsptr;
   }
 
   /** check if this opcode runs at init time
   */
   bool is_init() {
-    return this->iopadr ? true : false;
+    return this->init ? true : false;
   }
 
   /** check if this opcode runs at perf time
   */
   bool is_perf() {
-      return this->opadr ? true : false;
+    return (this->perf != NULL);
   }
 
 };
@@ -1152,16 +1131,26 @@ template <std::size_t N, std::size_t M> struct FPlugin : Plugin<N, M> {
   @private
   opcode thread function template (i-time)
 */
-template <typename T> int init(CSOUND *csound, T *p) {
+template <typename T> int32_t init(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   return p->init();
 }
 
 /**
+  @private
+  opcode thread function template (deinit)
+*/
+template <typename T> int32_t deinit(CSOUND *csound, T *p) {
+  p->csound = (Csound *)csound;
+  return p->deinit();
+}
+ 
+
+/**
    @private
    opcode thread function template (k-rate)
 */
-template <typename T> int kperf(CSOUND *csound, T *p) {
+template <typename T> int32_t kperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   p->nsmps_set();
   return p->kperf();
@@ -1171,7 +1160,7 @@ template <typename T> int kperf(CSOUND *csound, T *p) {
   @private
   opcode thread function template (a-rate)
 */
-template <typename T> int aperf(CSOUND *csound, T *p) {
+template <typename T> int32_t aperf(CSOUND *csound, T *p) {
   p->csound = (Csound *)csound;
   p->sa_offset();
   return p->aperf();
@@ -1180,39 +1169,37 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
 /** plugin registration function template
  */
 template <typename T>
-int plugin(Csound *csound, const char *name, const char *oargs,
+int32_t plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
   if(thr == thread::ia || thr == thread::a) {
-  thr = thr == thread::ia ? 3 : 2;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)aperf<T>, NULL);
+                          (SUBR)aperf<T>, (SUBR)deinit<T>);
   }
   else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)kperf<T>, NULL);
+                          (SUBR)kperf<T>, (SUBR)deinit<T>);
 }
 
 /** plugin registration function template
     for classes with self-defined opcode argument types
  */
 template <typename T>
-int plugin(Csound *csound, const char *name, uint32_t thr,
+int32_t plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
   if(thr == thread::ia || thr == thread::a) {
-  thr = thr == thread::ia ? 3 : 2;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)aperf<T>, NULL);
+                          (SUBR)aperf<T>, (SUBR)deinit<T>);
 
   }
   else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)kperf<T>, NULL);
+                          (SUBR)kperf<T>, (SUBR)deinit<T>);
 
 }
 

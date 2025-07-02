@@ -22,6 +22,8 @@
 */
 
                                                         /*      ZAK.H */
+#pragma once
+
 typedef struct {
     MYFLT         *zkstart;
     int64_t       zklast;
@@ -140,21 +142,21 @@ typedef struct {
         void    *zz;
 } ZACL;
 
-int zacl(CSOUND*,ZACL *p);
-int zakinit(CSOUND*,ZAKINIT *p);
-int zamod(CSOUND*,ZAMOD *p);
-int zar(CSOUND*,ZAR *p);
-int zarg(CSOUND*,ZARG *p);
-int zaset(CSOUND*,ZAR *p);
-int zaw(CSOUND*,ZAW *p);
-int zawm(CSOUND*,ZAWM *p);
-int zir(CSOUND*,ZKR *p);
-int ziw(CSOUND*,ZKW *p);
-int ziwm(CSOUND*,ZKWM *p);
-int zkcl(CSOUND*,ZKCL *p);
-int zkmod(CSOUND*,ZKMOD *p);
-int zkr(CSOUND*,ZKR *p);
-int zkset(CSOUND*,ZKR *p);
-int zkw(CSOUND*,ZKW *p);
-int zkwm(CSOUND*,ZKWM *p);
+int32_t zacl(CSOUND*,ZACL *p);
+int32_t zakinit(CSOUND*,ZAKINIT *p);
+int32_t zamod(CSOUND*,ZAMOD *p);
+int32_t zar(CSOUND*,ZAR *p);
+int32_t zarg(CSOUND*,ZARG *p);
+int32_t zaset(CSOUND*,ZAR *p);
+int32_t zaw(CSOUND*,ZAW *p);
+int32_t zawm(CSOUND*,ZAWM *p);
+int32_t zir(CSOUND*,ZKR *p);
+int32_t ziw(CSOUND*,ZKW *p);
+int32_t ziwm(CSOUND*,ZKWM *p);
+int32_t zkcl(CSOUND*,ZKCL *p);
+int32_t zkmod(CSOUND*,ZKMOD *p);
+int32_t zkr(CSOUND*,ZKR *p);
+int32_t zkset(CSOUND*,ZKR *p);
+int32_t zkw(CSOUND*,ZKW *p);
+int32_t zkwm(CSOUND*,ZKWM *p);
 

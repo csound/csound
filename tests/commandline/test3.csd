@@ -9,8 +9,7 @@ nchnls=2
 
 	instr 1	;untitled
 
-iamp = 10000
-ifreq = 440
+iamp,ifreq = 10000,440
 
 aout	vco2 iamp, ifreq
 

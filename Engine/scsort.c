@@ -23,23 +23,17 @@
 
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
+#include "sread.h"
+#include "prototyp.h"
 #include <ctype.h>
 
-extern void sort(CSOUND*);
-extern void twarp(CSOUND*);
-extern void swritestr(CSOUND*, CORFIL *sco, int first);
-extern void sfree(CSOUND *csound);
-//extern void sread_init(CSOUND *csound);
-extern int  sread(CSOUND *csound);
 
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
-
-extern void sread_initstr(CSOUND *, CORFIL *sco);
 char *scsortstr(CSOUND *csound, CORFIL *scin)
 {
-    int     n;
-    int     first = 0;
+    int32_t     n;
+    int32_t     first = 0;
     CORFIL *sco;
 
     csound->scoreout = NULL;
@@ -64,7 +58,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     }
     //printf("**** first = %d body = >>%s<<\n", first, sco->body);
     if (first) {
-      int i = 0;
+      int32_t i = 0;
       while (isspace(sco->body[i])) i++;
       if (sco->body[i] == 'e' && sco->body[i+1] == '\n' && sco->body[i+2] != 'e') {
         corfile_rewind(sco);
@@ -80,6 +74,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     }
     else {
       char *str = cs_strdup(csound,sco->body);
+      //printf("body >>%s<<\n", str);
       corfile_rm(csound, &(sco));
       return str;
     }

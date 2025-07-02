@@ -3,6 +3,9 @@
 #include "csound.h"
 #include "gtest/gtest.h"
 
+#define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
+#define csoundReadScore(a,b) csoundEventString(a,b,0)
+
 class MessageBufferTests : public ::testing::Test {
 public:
     MessageBufferTests ()
@@ -15,16 +18,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
         //csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
     }
 
@@ -33,15 +33,15 @@ public:
 
 TEST_F (MessageBufferTests, testCreateBuffer)
 {
-    int argc = 2;
+    int32_t argc = 2;
     const char *argv[] = {"csound", "-v"};
     csoundCompile(csound, argc, argv);
 
-    int cnt = csoundGetMessageCnt(csound);
+    int32_t cnt = csoundGetMessageCnt(csound);
     ASSERT_TRUE (cnt > 0);
     const char * msg = csoundGetFirstMessage(csound);
     ASSERT_TRUE (msg != NULL);
-    int newcnt = csoundGetMessageCnt(csound);
+    int32_t newcnt = csoundGetMessageCnt(csound);
     ASSERT_EQ (cnt, newcnt);
     csoundPopFirstMessage(csound);
     newcnt = csoundGetMessageCnt(csound);
@@ -50,19 +50,20 @@ TEST_F (MessageBufferTests, testCreateBuffer)
 
 TEST_F (MessageBufferTests, testBufferRun)
 {
-    int result = csoundCompileOrc(csound, "instr 1\n"
+    int32_t result = csoundCompileOrc(csound, "instr 1\n"
                                   "asig oscil 0.1, 440\n"
                                   "out asig\n"
                                   "endin\n");
+    ASSERT_EQ(result, CSOUND_SUCCESS);
     csoundReadScore(csound, "i 1 0 0.1\n");
     csoundStart(csound);
 
-    csoundPerform(csound);
+    while(csoundPerformKsmps(csound) == 0);
 
     while (csoundGetMessageCnt(csound)) {
         const char * msg = csoundGetFirstMessage(csound);
         ASSERT_TRUE (msg != NULL);
+        printf("CSOUND MESSAGE: %s\n", msg);
         csoundPopFirstMessage(csound);
-        printf("CSOUND MESSAGE: %s", msg);
     }
 }

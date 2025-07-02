@@ -4,6 +4,7 @@ let lib = pkgs.lib;
     wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
     wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
     wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
+    libmpg123 = pkgs.callPackage ./libmpg123.nix { inherit static; };
 
 in pkgs.stdenvNoCC.mkDerivation rec {
     name = "libsndfile";
@@ -51,7 +52,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -I${pkgs.flac.dev}/include \
          -I${pkgs.libvorbis.dev}/include \
          -I${pkgs.lame}/include \
-         -I${pkgs.mpg123}/include \
+         -I${libmpg123}/include \
          -D__wasi__=1 \
          -D__wasm32__=1 \
          -DOS_IS_WIN32=0 \

@@ -47,7 +47,7 @@ void dump_cfg_variables(CSOUND *csound);
 /* be '-+NAME' for true, and '-+no-NAME' for false. */
 /* Return value is zero on success. */
 
-int parse_option_as_cfgvar(CSOUND *csound, const char *s);
+int32_t parse_option_as_cfgvar(CSOUND *csound, const char *s);
 
 #ifdef __cplusplus
 }

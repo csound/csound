@@ -42,7 +42,7 @@ int main(void)                          /* stdio stub for standalone scsort */
     CSOUND *csound;
     int    err;
 
-    csound = csoundCreate(NULL);
+    csound = csoundCreate(NULL,NULL);
 #if defined(LINUX) || defined(SGI) || defined(sol) || \
     defined(__MACH__) || defined(__EMX__)
     signal(SIGPIPE, SIG_DFL);

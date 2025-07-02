@@ -25,8 +25,12 @@
 /* Controls                                 */
 /********************************************/
 
+#pragma once
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
-
+#else
+#include "csoundCore.h"
+#endif
 typedef struct CONTROL_GLOBALS_ {
     CSOUND  *csound;
     char    cmd[100];

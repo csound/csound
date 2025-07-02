@@ -18,7 +18,12 @@
 
 #ifndef WIN32
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include <time.h>
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -67,7 +72,7 @@ typedef struct {
          *    cpus[0] thru cpus[n] == tics for each separate cpu
          *    cpus[Cpu_tot]        == tics from the 1st /proc/stat line */
 
-static int32_t deinit_cpupercent(CSOUND *csound, void *pdata)
+int32_t deinit_cpupercent(CSOUND *csound, void *pdata)
 {
     CPUMETER *p = (CPUMETER *) pdata;
     fclose(p->fp);
@@ -100,10 +105,7 @@ int32_t cpupercent_init(CSOUND *csound, CPUMETER* p)
     csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
-    p->cnt = (p->trig = (int32_t)(*p->itrig * csound->GetSr(csound)));
-    // Would it be better to add a deinit process so the closing happens in perf?
-    //csound->CreateFileHandle(csound, &p->fp, CSFILE_STD, "/proc/stat");
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_cpupercent);
+    p->cnt = (p->trig = (int32_t)(*p->itrig * CS_ESR));
     return k;
 }
 
@@ -224,6 +226,14 @@ typedef struct {
 } CPUMETER;
 
 
+int32_t deinit_cpupercent(CSOUND *csound, void *p)
+{
+   IGN(p);
+  csound->Message(csound, "not implemented\n");
+    return OK;
+}
+
+
 int32_t cpupercent_init(CSOUND *csound, CPUMETER *p) {
    IGN(p);
   csound->Message(csound, "not implemented\n");
@@ -259,10 +269,10 @@ systime(CSOUND *csound, SYST *p){
 #define S(x)    sizeof(x)
 
 static OENTRY cpumeter_localops[] = {
-  { "cpumeter",   S(CPUMETER),   0,3, "kzzzzzzzz", "i",
-    (SUBR)cpupercent_init, (SUBR)cpupercent   },
-{ "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
-{ "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
+  { "cpumeter",   S(CPUMETER),   0, "kzzzzzzzz", "i",
+    (SUBR)cpupercent_init, (SUBR)cpupercent, (SUBR) deinit_cpupercent },
+{ "systime", S(SYST),0,  "k",    "", (SUBR)systime, (SUBR)systime},
+{ "systime", S(SYST),0,  "i",    "", (SUBR)systime}
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)

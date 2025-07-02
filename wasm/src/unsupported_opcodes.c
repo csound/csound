@@ -13,23 +13,23 @@ static int32_t osc_unsupported_warning(CSOUND *csound, NOOP *p) {
 }
 
 static OENTRY OSC_localops[] =
-  {{ "OSCsend_lo", S, 0, 3, "", "kSkSS*",
+  {{ "OSCsend_lo", S, 0, "", "kSkSS*",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning },
-   { "OSCinit", S, 0, 1, "i", "i",
+   { "OSCinit", S, 0, "i", "i",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning },
-   { "OSCinitM", S, 0, 1, "i", "Si",
+   { "OSCinitM", S, 0, "i", "Si",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning },
-   { "OSClisten", S,0, 3, "k", "iSS*",
+   { "OSClisten", S,0, "k", "iSS*",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning },
-   { "OSClisten", S, 0, 3, "k", "iSS",
+   { "OSClisten", S, 0, "k", "iSS",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning },
-   { "OSClisten", S,0, 3, "kk[]", "iSS",
+   { "OSClisten", S,0, "kk[]", "iSS",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning},
-   { "OSCcount", S, 0, 3, "k", "",
+   { "OSCcount", S, 0, "k", "",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning},
-   { "OSCsend", S, 0, 3, "", "kSkSS*",
+   { "OSCsend", S, 0, "", "kSkSS*",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning},
-   { "OSCbundle", S, 0, 3, "", "kSkS[]S[]k[][]o",
+   { "OSCbundle", S, 0, "", "kSkS[]S[]k[][]o",
      (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning, (SUBR)osc_unsupported_warning }};
 
 int32_t unsupported_opdoces_init_(CSOUND *csound) {

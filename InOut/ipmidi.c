@@ -43,10 +43,10 @@
 #include "midiops.h"
 #include "oload.h"
 
-static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
+static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-    static int sock;
-    int status;
+    static int32_t sock;
+    int32_t status;
     struct sockaddr_in saddr;
     struct ip_mreq mreq;
 
@@ -114,15 +114,15 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     return 0;
 }
 
-static int ReadMidiData_(CSOUND *csound, void *userData,
-                         unsigned char *mbuf, int nbytes)
+static int32_t ReadMidiData_(CSOUND *csound, void *userData,
+                         unsigned char *mbuf, int32_t nbytes)
 {
      IGN(csound);
-    int             n;
-    int             sock = *((int *) userData);
+    int32_t             n;
+    int32_t             sock = *((int32_t *) userData);
     fd_set          rset;
     struct timeval  timeout;
-    int             rc;
+    int32_t             rc;
 
     n = 0;
     FD_ZERO(&rset);
@@ -135,7 +135,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 #ifdef WIN32
       n = recv(sock, mbuf, nbytes, 0);
 #else
-      n = read(sock, mbuf, nbytes);
+      n = (int32_t) read(sock, mbuf, nbytes);
 #endif
       printf("ReadMidiData__ n = %d\n", n);
     }
@@ -144,10 +144,10 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
     return n;
 }
 
-static int CloseMidiInDevice_(CSOUND *csound, void *userData)
+static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
 {
      IGN(csound);
-    int             sock = *((int *) userData);
+    int32_t             sock = *((int32_t *) userData);
     //printf("CloseMidiInDevice_\n");
     close(sock);
 #ifdef WIN32
@@ -158,29 +158,29 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
-     OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+    const OPARMS *O;
+     O = csound->GetOParms(csound) ;
     /* nothing to do, report success */
-    if (oparms.msglevel & 0x400)
+    if (O->msglevel & 0x400)
       csound->Message(csound, "%s",
                       Str("ipMIDI real time MIDI plugin for Csound\n"));
     return 0;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
 
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
       return 0;
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
-    if (oparms.msglevel & 0x400)
+    if (O->msglevel & 0x400)
       csound->Message(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
@@ -188,8 +188,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
     /* does not depend on MYFLT type */
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8));
 }

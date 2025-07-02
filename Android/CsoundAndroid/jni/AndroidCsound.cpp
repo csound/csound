@@ -15,13 +15,18 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 }
 }
 
+#if !defined(__BUILDING_LIBCSOUND) 
+#define __BUILDING_LIBCSOUND
+#endif
+
+#include <csoundCore.h>
 #include <pthread.h>
 void AndroidCsound::setOpenSlCallbacks() {
 
    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","setOpenSlCallbacks"); 
 
    if(csoundQueryGlobalVariable(csound,"::async::") == NULL) 
-    if (this->CreateGlobalVariable("::async::", sizeof(int)) == 0) {
+     if (csoundCreateGlobalVariable(csound,"::async::", sizeof(int)) == 0) {
       int *p = ((int *)csoundQueryGlobalVariable(csound,"::async::"));
        *p = asyncProcess;
     __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","==set callbacks");
@@ -35,7 +40,7 @@ void AndroidCsound::setOpenSlCallbacks() {
     }
 
    if(csoundQueryGlobalVariable(csound,"::paused::") == NULL) {
-    if (this->CreateGlobalVariable("::paused::", sizeof(int)) == 0) {
+     if (csoundCreateGlobalVariable(csound,"::paused::", sizeof(int)) == 0) {
        int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
        *p = 0;
     }

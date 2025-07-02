@@ -299,20 +299,21 @@ e
         await cs.terminateInstance();
       });
 
-      it("can load and run c++ plugins", async function () {
-        const testWithPlugin = Object.assign(
-          {
-            withPlugins: ["./plugin_example_cxx.wasm"],
-          },
-          test,
-        );
-        const cs = await Csound(testWithPlugin);
+    // DISABLED due to cxx plugin using source not updated for CS7
+    //   it("can load and run c++ plugins", async function () {
+    //     const testWithPlugin = Object.assign(
+    //       {
+    //         withPlugins: ["./plugin_example_cxx.wasm"],
+    //       },
+    //       test,
+    //     );
+    //     const cs = await Csound(testWithPlugin);
 
-        assert.equal(0, await cs.compileCsdText(cxxPluginTest));
-        await cs.start();
-        await cs.stop();
-        await cs.terminateInstance();
-      });
+    //     assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+    //     await cs.start();
+    //     await cs.stop();
+    //     await cs.terminateInstance();
+    //   });
 
       it("emits public events in realtime performance", async function () {
         if (test.name !== "WORKER, AW, SAB") {

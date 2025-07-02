@@ -74,45 +74,23 @@
                                  if it's possible...
  */
 
-/* description of an fsig analysis frame*/
-enum PVS_WINTYPE {
-    PVS_WIN_HAMMING = 0,
-    PVS_WIN_HANN,
-    PVS_WIN_KAISER,
-    PVS_WIN_CUSTOM,
-    PVS_WIN_BLACKMAN,
-    PVS_WIN_BLACKMAN_EXACT,
-    PVS_WIN_NUTTALLC3,
-    PVS_WIN_BHARRIS_3,
-    PVS_WIN_BHARRIS_MIN,
-    PVS_WIN_RECT
-};
-
-
-enum PVS_ANALFORMAT {
-    PVS_AMP_FREQ = 0,
-    PVS_AMP_PHASE,
-    PVS_COMPLEX,
-    PVS_TRACKS          /* added VL, 24.06.2005 */
-};
-
 typedef struct {
   MYFLT re;
   MYFLT im;
 } CMPLX;
 
-typedef struct pvsdat {
+struct pvsdat {
         int32           N;
-        int             sliding; /* Flag to indicate sliding case */
+        int32_t             sliding; /* Flag to indicate sliding case */
         int32           NB;
         int32           overlap;
         int32           winsize;
-        int             wintype;
+        int32_t             wintype;
         int32           format;         /* fixed for now to AMP:FREQ */
         uint32          framecount;
         AUXCH           frame;          /* RWD MUST always be 32bit floats */
                                         /* But not in sliding case when MYFLT */
-} PVSDAT;
+};
 
 /* may be no point supporting Kaiser in an opcode unless we can support
    the param too but we can have kaiser in a PVOCEX file. */
@@ -224,7 +202,7 @@ typedef struct {
         /* internal*/
         int32    overlap,winsize,fftsize,wintype,format;
         uint32   lastframe;
-        int             nwarned,pwarned;    /* range errors for kdepth */
+        int32_t             nwarned,pwarned;    /* range errors for kdepth */
         FUNC    *maskfunc;
 } PVSMASKA;
 
@@ -264,7 +242,7 @@ typedef struct {
         MYFLT   *ifilno;
         MYFLT   *ichan;
         /* internal */
-        int     ptr;
+        int32_t     ptr;
         int32   overlap,winsize,fftsize,wintype,format;
         uint32  chans, nframes,lastframe,chanoffset,blockalign;
         MYFLT   arate;

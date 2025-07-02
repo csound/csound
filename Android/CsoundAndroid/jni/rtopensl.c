@@ -29,6 +29,9 @@
 #include <stdint.h>
 #include <time.h>
 
+MYFLT *csoundGetOutputBuffer(CSOUND *csound);
+int csoundPerformBuffer(CSOUND *csound);
+
 typedef struct OPEN_SL_PARAMS_ {
 
   CSOUND      *csound;
@@ -112,7 +115,7 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
   else {
     int items = p->outBufSamples,
       i, r = 0, ret = 1, paused;
-    MYFLT *outputBuffer = csound->GetOutputBuffer(csound);
+    MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
     short *playBuffer = p->playBuffer;
     paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
     memset(playBuffer, 0, items*sizeof(short));
@@ -147,7 +150,7 @@ void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
   if(p->async){
     int n = nbytes/sizeof(MYFLT);
     int m = 0, l, w = n;
-    MYFLT sr = csound->GetSr(csound);
+    MYFLT sr = csoundGetSr(csound);
     do{
       l = csound->WriteCircularBuffer(csound,p->outcb,&buffer[m],n);
       m += l;

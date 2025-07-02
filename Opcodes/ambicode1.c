@@ -28,7 +28,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <assert.h>
 #include <math.h>
@@ -106,7 +110,7 @@ static int32_t ibformenc(CSOUND * csound, AMBIC * p)
       return OK;
     default:
       return csound->InitError
-        (csound, Str("The numbers of input and output arguments are not valid."));
+        (csound, "%s", Str("The numbers of input and output arguments are not valid."));
   }
 }
 
@@ -114,7 +118,7 @@ static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
 {
     if (UNLIKELY(p->tabout->data==NULL || p->tabout->dimensions!=1))
       return csound->InitError(csound,
-                               Str("array not initialised in ambibformenc1"));
+                               "%s", Str("array not initialised in ambibformenc1"));
 
     /* All we do in here is police our parameters. */
     switch (p->tabout->sizes[0]) {
@@ -124,7 +128,7 @@ static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
       return OK;
     default:
       return csound->InitError
-        (csound, Str("The numbers of input and output arguments are not valid."));
+        (csound, "%s", Str("The numbers of input and output arguments are not valid."));
   }
 }
 
@@ -296,11 +300,11 @@ ibformdec(CSOUND * csound, AMBID * p) {
                  p->INOCOUNT != 1 + 9 &&
                  p->INOCOUNT != 1 + 16)) {
       return csound->InitError(csound,
-                               Str("The number of input arguments is not valid."));
+                               "%s", Str("The number of input arguments is not valid."));
     }
     else if (UNLIKELY(*(p->isetup) < 1 || *(p->isetup) > 5)) {
       return csound->InitError(csound,
-                               Str("The isetup value should be between 1 and 5."));
+                               "%s", Str("The isetup value should be between 1 and 5."));
     }
     else {
       /* Then we check the output arguments. */
@@ -326,7 +330,7 @@ ibformdec(CSOUND * csound, AMBID * p) {
       }
       else {
         return csound->InitError(csound,
-                                 Str("The output channel count does not"
+                                 "%s", Str("The output channel count does not"
                                      " match the isetup value."));
       }
     }
@@ -686,18 +690,18 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
     int32_t dim;
     if (p->tabout->data==NULL || p->tabout->dimensions!=1)
       return csound->InitError(csound,
-                               Str("bformdec1 output array not initialised"));
+                               "%s", Str("bformdec1 output array not initialised"));
     dim = p->tabin->sizes[0];
     /* All we do in here is police our parameters. */
     if (UNLIKELY(dim != 4 &&
                  dim != 9 &&
                  dim != 16)) {
       return csound->InitError(csound,
-                               Str("The number of input arguments is not valid."));
+                               "%s", Str("The number of input arguments is not valid."));
     }
     else if (UNLIKELY(*(p->isetup) < 1 || *(p->isetup) > 5)) {
       return csound->InitError(csound,
-                               Str("The isetup value should be between 1 and 5."));
+                               "%s", Str("The isetup value should be between 1 and 5."));
     }
     else {
       p->dim = dim = p->tabout->sizes[0];
@@ -724,7 +728,7 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
       }
       else {
         return csound->InitError(csound,
-                                 Str("The output channel count does not"
+                                 "%s", Str("The output channel count does not"
                                      " match the isetup value."));
       }
     }
@@ -1084,13 +1088,13 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
 #define S(x) sizeof(x)
 
 static OENTRY ambicode1_localops[] = {
-  { "bformenc1.a", S(AMBIC), 0, 3, "mmmmmmmmmmmmmmmm", "akk",
-                (SUBR)ibformenc,  (SUBR)abformenc },
-  { "bformenc1.A", S(AMBIC), 0, 3, "a[]", "akk",
+  { "bformenc1.a", S(AMBIC), 0,  "mmmmmmmmmmmmmmmm", "akk",
+                (SUBR)ibformenc,  (SUBR)abformenc },         
+  { "bformenc1.A", S(AMBIC), 0,  "a[]", "akk",
                 (SUBR)ibformenc_a,  (SUBR)abformenc_a },
-  { "bformdec1.a", S(AMBID), 0, 3, "mmmmmmmm", "iy",
+  { "bformdec1.a", S(AMBID), 0,  "mmmmmmmm", "iy",
     (SUBR)ibformdec,  (SUBR)abformdec },
-  { "bformdec1.A", S(AMBIDA), 0, 3, "a[]", "ia[]",
+  { "bformdec1.A", S(AMBIDA), 0,  "a[]", "ia[]",
     (SUBR)ibformdec_a,  (SUBR)abformdec_a },
 };
 

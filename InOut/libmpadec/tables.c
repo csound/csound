@@ -20,7 +20,6 @@
 /* $Id: tables.c,v 1.1.1.1 2004/07/27 02:58:48 metal_man Exp $ */
 
 #include <math.h>
-#include "csoundCore.h"
 #include "mpadec_internal.h"
 
 const uint16_t crc_table[256] = {
@@ -798,7 +797,7 @@ static int32_t intwinbase[] = {
 static void make_synth_window(mpadec_t mpadec, MYFLT scale)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    register int i, j, k;
+    register int32_t i, j, k;
 
     scale = -scale;
     for (i = 0, j = 0, k = 0; i < 256; i++, j++, k += 32) {
@@ -820,7 +819,7 @@ static void make_synth_window(mpadec_t mpadec, MYFLT scale)
 static void init_limits(mpadec_t mpadec, int32_t sblimit)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    register int i, j;
+    register int32_t i, j;
 
     for (i = 0; i < 9; i++) {
       for (j = 0; j < 23; j++) {
@@ -840,7 +839,7 @@ static void init_limits(mpadec_t mpadec, int32_t sblimit)
 static void init_layer2(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int i, j, k; uint8_t *tab;
+    int32_t i, j, k; uint8_t *tab;
     static MYFLT mulmul[27] = { 0.0, -2.0/3.0, 2.0/3.0, 2.0/7.0, 2.0/15.0,
                                 2.0/31.0, 2.0/63.0, 2.0/127.0, 2.0/255.0,
                                 2.0/511.0, 2.0/1023.0, 2.0/2047.0, 2.0/4095.0,
@@ -892,7 +891,7 @@ static void init_layer2(mpadec_t mpadec)
 static void init_layer3(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int i, j, k, l;
+    int32_t i, j, k, l;
 
     for (i = -256; i < 122; i++)
       mpa->tables.gainpow2[i + 256] = pow(2.0, -0.25*(i + 210));
@@ -919,7 +918,7 @@ static void init_layer3(mpadec_t mpadec)
         0.5*sin((2*i + 1)*M_PI/24.0)/cos((2*i + 7)*M_PI/24.0);
     }
     for (i = 0; i < 4; i++) {
-      int len = (i == 2) ? 12 : 36;
+      int32_t len = (i == 2) ? 12 : 36;
       for (j = 0; j < len; j += 2) {
         mpa->tables.win[1][i][j] = mpa->tables.win[0][i][j];
         mpa->tables.win[1][i][j + 1] = -mpa->tables.win[0][i][j + 1];
@@ -969,7 +968,7 @@ static void init_layer3(mpadec_t mpadec)
       }
       bdf = bi->short_diff + 3;
       for (cb = 3; cb < 13; cb++) {
-        int l = (*bdf++) >> 1;
+        int32_t l = (*bdf++) >> 1;
         for (lwin = 0; lwin < 3; lwin++, mp += 4) {
           mp[0] = l;
           mp[1] = j + lwin;
@@ -982,7 +981,7 @@ static void init_layer3(mpadec_t mpadec)
       mp = mpa->tables.map[i][1] = mpa->tables.mapbuf1[i];
       bdf = bi->short_diff;
       for (cb = 0, j = 0; cb < 13; cb++) {
-        int l = (*bdf++) >> 1;
+        int32_t l = (*bdf++) >> 1;
         for (lwin = 0; lwin < 3; lwin++, mp += 4) {
           mp[0] = l;
           mp[1] = j + lwin;
@@ -1003,7 +1002,7 @@ static void init_layer3(mpadec_t mpadec)
     for (i = 0; i < 5; i++) {
       for (j = 0; j < 6; j++) {
         for (k = 0; k < 6; k++) {
-          register int n = k + 6*j + 36*i;
+          register int32_t n = k + 6*j + 36*i;
           mpa->tables.i_slen2[n] = i | (j << 3) | (k << 6) | (3 << 12);
         }
       }
@@ -1011,14 +1010,14 @@ static void init_layer3(mpadec_t mpadec)
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 4; j++) {
         for (k = 0; k < 4; k++) {
-          register int n = k + 4*j + 16*i;
+          register int32_t n = k + 4*j + 16*i;
           mpa->tables.i_slen2[n + 180] = i | (j << 3) | (k << 6) | (4 << 12);
         }
       }
     }
     for (i = 0; i < 4; i++) {
       for (j = 0; j < 3; j++) {
-        register int n = j + 3*i;
+        register int32_t n = j + 3*i;
         mpa->tables.i_slen2[n + 244] = i | (j << 3) | (5 << 12);
         mpa->tables.n_slen2[n + 500] = i | (j << 3) | (2 << 12) | (1 << 15);
       }
@@ -1027,7 +1026,7 @@ static void init_layer3(mpadec_t mpadec)
       for (j = 0; j < 5; j++) {
         for (k = 0; k < 4; k++) {
           for (l = 0; l < 4; l++) {
-            register int n = l + 4*k + 16*j + 80*i;
+            register int32_t n = l + 4*k + 16*j + 80*i;
             mpa->tables.n_slen2[n] = i | (j << 3) | (k << 6) | (l << 9);
           }
         }
@@ -1036,7 +1035,7 @@ static void init_layer3(mpadec_t mpadec)
     for (i = 0; i < 5; i++) {
       for (j = 0; j < 5; j++) {
         for (k = 0; k < 4; k++) {
-          register int n = k + 4*j + 20*i;
+          register int32_t n = k + 4*j + 20*i;
           mpa->tables.n_slen2[n + 400] = i | (j << 3) | (k << 6) | (1 << 12);
         }
       }

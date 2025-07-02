@@ -23,7 +23,7 @@
 
 #include "csoundCore.h"
 #include <stdlib.h>
-int mkstemp(char *);
+//int32_t mkstemp(char *);
 #include <ctype.h>
 #ifndef __wasi__
 #include <errno.h>
@@ -73,13 +73,15 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 #endif
     do {
 #ifndef WIN32
-      int fd;
+      int32_t fd;
       char *tmpdir = getenv("TMPDIR");
       if (tmpdir != NULL && tmpdir[0] != '\0')
         snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
       else
         strcpy(lbuf, "/tmp/csond-XXXXXX");
+#ifndef BARE_METAL      
       umask(0077);
+#endif      
         /* ensure exclusive access on buggy implementations of mkstemp */
       if (UNLIKELY((fd = mkstemp(lbuf)) < 0))
         csound->Die(csound, Str(" *** cannot create temporary file"));
@@ -111,7 +113,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
       /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
       /* (suggested by Matt Ingalls) */
       if (strncmp(lbuf, "/var/tmp/", 9) == 0) {
-        int i = 3;
+        int32_t i = 3;
         do {
           i++;
           lbuf[i - 4] = lbuf[i];
@@ -133,12 +135,12 @@ static inline void alloc_globals(CSOUND *csound)
     STA(csdlinecount) = 0;
 }
 
-static char *my_fgets(CSOUND *csound, char *s, int n, FILE *stream)
+static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
 {
     char *a = s;
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
-      int ch = getc(stream);
+      int32_t ch = getc(stream);
       if (UNLIKELY(ch == EOF)) {             /* error or EOF       */
         if (s == a) return NULL;             /* no chars -> leave  */
         if (ferror(stream)) a = NULL;
@@ -189,7 +191,7 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
-static int blank_buffer(/*CSOUND *csound,*/ char *buffer)
+static int32_t blank_buffer(/*CSOUND *csound,*/ char *buffer)
 {
     const char *s;
     for (s = &(buffer[0]); *s != '\0' && *s != '\n'; s++) {
@@ -203,12 +205,12 @@ static int blank_buffer(/*CSOUND *csound,*/ char *buffer)
 
 
 /* Consider wrapping corfile_fgets for this function */
-static char *my_fgets_cf(CSOUND *csound, char *s, int n, CORFIL *stream)
+static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
 {
     char *a = s;
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
-      int ch = corfile_getc(stream);
+      int32_t ch = corfile_getc(stream);
       if (UNLIKELY(ch == EOF)) {             /* error or EOF       */
         if (s == a) return NULL;             /* no chars -> leave  */
         break;
@@ -229,12 +231,27 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int n, CORFIL *stream)
     return a;
 }
 
+/* Remove the 0x03 and 0x18 characters that the option parser inserted
+ * to handle quoted arguments and escaped characters. */
+static void remove_special_placeholders(char *s, size_t n)
+{
+    int32_t i, offset = 0;
+
+    for (i = 0; i <= n; i++) {
+        if (s[i] == 0x03 || s[i] == 0x18) {
+            offset++;
+        } else if (offset > 0) {
+            s[i-offset] = s[i];
+        }
+    }
+}
+
 /* readingCsOptions should be non-zero when readOptions() is called
    while reading the <CsOptions> tag, but zero in other cases. */
-int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
+int32_t readOptions(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
-    int   argc = 0;
+    int32_t   argc = 0;
     const char  *argv[CSD_MAX_ARGS];
     char  buffer[CSD_MAX_LINE_LEN];
 
@@ -243,7 +260,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
       p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
-        int len = strlen(p)-2;
+        int32_t len = (int32_t) strlen(p)-2;
         while (len>0 && (isblank(p[len]))) len--;
         p[len+1] = '\n'; p[len+2] = '\0';
       }
@@ -321,7 +338,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           break;
         }
         else if (*p=='"' && *(p-1) != '\\') {
-          int is_escape = 0;
+          int32_t is_escape = 0;
           char *old = NULL;
           *p=3; /* ETX char used to mark the limits of a string */
           while ((*p != '"' || is_escape) && *p != '\0') {
@@ -334,6 +351,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           if (*p == '"') {
             if (isspace(*(p+1))) {
               *p = '\0';
+              remove_special_placeholders((char *)argv[argc], strlen(argv[argc]));
               break;
             }
             else {
@@ -346,7 +364,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
       //argc++;                /* according to Nicola but wrong */
 #ifdef _DEBUG
       {
-        int i;
+        int32_t i;
         for (i=0;  i<=argc; i++) printf("%d: %s\n", i, argv[i]);
       }
 #endif
@@ -369,7 +387,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
 
 
 #if 1
-static int all_blank(char* start, char* end)
+static int32_t all_blank(char* start, char* end)
 {
     while (start != end) {
       if (!isblank(*start)) return 0;
@@ -378,17 +396,17 @@ static int all_blank(char* start, char* end)
     return 1;
 }
 
-static int createOrchestra(CSOUND *csound, CORFIL *cf)
+static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *q;
     CORFIL *incore = corfile_create_w(csound);
     char  buffer[CSD_MAX_LINE_LEN];
-    int state = 0;
+    int32_t state = 0;
 
     csound->orcLineOffset = STA(csdlinecount)+1;
  nxt:
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-      int c;
+      int32_t c;
       p = buffer;
 
       if (state == 0 &&
@@ -461,12 +479,12 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 #else
-static int createOrchestra(CSOUND *csound, CORFIL *cf)
+static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     CORFIL *incore = corfile_create_w(csound);
     char  buffer[CSD_MAX_LINE_LEN];
-    int comm = 0;
+    int32_t comm = 0;
 
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
@@ -506,10 +524,10 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
 #endif
 
 #if 1
-static int createScore(CSOUND *csound, CORFIL *cf)
+static int32_t createScore(CSOUND *csound, CORFIL *cf)
 {
     char   *p, *q;
-    int    state = 0;
+    int32_t    state = 0;
     char   buffer[CSD_MAX_LINE_LEN];
 
     if (csound->scorestr == NULL)
@@ -518,7 +536,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
     csound->scoLineOffset = STA(csdlinecount);
  nxt:
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-      int c;
+      int32_t c;
       p = buffer;
       if (state == 0 &&
           (q = strstr(p, "</CsScore>")) &&
@@ -574,7 +592,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 #else
-static int createScore(CSOUND *csound, CORFIL *cf)
+static int32_t createScore(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
     char   buffer[CSD_MAX_LINE_LEN];
@@ -601,7 +619,7 @@ static int createScore(CSOUND *csound, CORFIL *cf)
 }
 #endif
 
-static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
+static int32_t createExScore(CSOUND *csound, char *p, CORFIL *cf)
 {
 #ifdef IOS
   csoundErrorMsg(csound, "External scores not supported on iOS");
@@ -648,7 +666,12 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
         char sys[1024];
         csoundFileClose(csound, fd);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
-        if (UNLIKELY(system(sys) != 0)) {
+#ifdef IOS
+int system_result = 0;
+#else
+int system_result = system(sys);
+#endif
+        if (UNLIKELY(system_result != 0)) {
           csoundErrorMsg(csound, Str("External generation failed"));
           if (UNLIKELY(remove(extname) || remove(STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove"));
@@ -693,8 +716,8 @@ static int createExScore(CSOUND *csound, char *p, CORFIL *cf)
 
 static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
 {
-    int c;
-    int n, nbits;
+    int32_t c;
+    int32_t n, nbits;
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
@@ -717,9 +740,9 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
       if (isupper(c))
         c -= 'A';
       else if (islower(c))
-        c -= ((int) 'a' - 26);
+        c -= ((int32_t) 'a' - 26);
       else if (isdigit(c))
-        c -= ((int) '0' - 52);
+        c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
       else if (c == '/')
@@ -750,8 +773,8 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
 #ifdef JPFF
 static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 {
-    int c;
-    int n, nbits;
+    int32_t c;
+    int32_t n, nbits;
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
@@ -774,9 +797,9 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
       if (isupper(c))
         c -= 'A';
       else if (islower(c))
-        c -= ((int) 'a' - 26);
+        c -= ((int32_t) 'a' - 26);
       else if (isdigit(c))
-        c -= ((int) '0' - 52);
+        c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
       else if (c == '/')
@@ -806,7 +829,7 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 }
 #endif
 
-static int createMIDI2(CSOUND *csound, CORFIL *cf)
+static int32_t createMIDI2(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     FILE  *midf;
@@ -840,9 +863,9 @@ static int createMIDI2(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int createSample(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t createSample(CSOUND *csound, char *buffer, CORFIL *cf)
 {
-    int   num;
+    int32_t   num;
     FILE  *smpf;
     void  *fd;
     char  sampname[256];
@@ -875,7 +898,7 @@ static int createSample(CSOUND *csound, char *buffer, CORFIL *cf)
     return FALSE;
 }
 
-static int createFile(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t createFile(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     FILE  *smpf;
     void  *fd;
@@ -925,7 +948,7 @@ static int createFile(CSOUND *csound, char *buffer, CORFIL *cf)
 }
 
 #ifdef JPFF
-static int createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     CORFIL  *smpf;
     char  filename[256];
@@ -966,14 +989,14 @@ static int createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
 }
 #endif
 
-static int createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     FILE  *smpf;
     void  *fd;
     char  filename[256];
     char  buff[1024];
     char *p = buffer, *q;
-    int res=FALSE;
+    int32_t res=FALSE;
 
     filename[0] = '\0';
 
@@ -1010,12 +1033,12 @@ static int createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
     return res;
 }
 
-static int checkVersion(CSOUND *csound, CORFIL *cf)
+static int32_t checkVersion(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
-    int   major = 0, minor = 0;
-    int   result = TRUE;
-    int   version = csoundGetVersion();
+    int32_t   major = 0, minor = 0;
+    int32_t   result = TRUE;
+    int32_t   version = csoundGetVersion();
     char  buffer[CSD_MAX_LINE_LEN];
 
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
@@ -1059,10 +1082,10 @@ static int checkVersion(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int checkLicence(CSOUND *csound, CORFIL *cf)
+static int32_t checkLicence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;
-    int   len = 1;
+    int32_t   len = 1;
     char  buffer[CSD_MAX_LINE_LEN];
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
@@ -1086,9 +1109,9 @@ static int checkLicence(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int checkShortLicence(CSOUND *csound, CORFIL *cf)
+static int32_t checkShortLicence(CSOUND *csound, CORFIL *cf)
 {
-    int   type = 0;
+    int32_t   type = 0;
     char  buff[CSD_MAX_LINE_LEN];
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
@@ -1104,12 +1127,12 @@ static int checkShortLicence(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-int read_unified_file4(CSOUND *csound, CORFIL *cf)
+int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
 {
-    int   result = TRUE;
-    int   r;
-    int started = FALSE;
-    int notrunning = csound->engineStatus & CS_STATE_COMP;
+    int32_t   result = TRUE;
+    int32_t   r;
+    int32_t started = FALSE;
+    int32_t notrunning = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
 #ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
@@ -1126,6 +1149,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)
           csoundMessage(csound, Str("STARTING FILE\n"));
+        //printf("****csd starts on line %d\n", STA(csdlinecount));
         started = TRUE;
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||

@@ -163,42 +163,42 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->sr);
+          csound->Sscanf(s,"%lf",&t->sr);
 #else
-          csound->sscanf(s,"%f",&t->sr);
+          csound->Sscanf(s,"%f",&t->sr);
 #endif
           break;
         case 'c':
           FIND(Str("no channel"))
-          sscanf(s,"%d",&channel);
+          csound->Sscanf(s,"%d",&channel);
           break;
         case 'b':
           FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->beg_time);
+          csound->Sscanf(s,"%lf",&t->beg_time);
 #else
-          csound->sscanf(s,"%f",&t->beg_time);
+          csound->Sscanf(s,"%f",&t->beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->input_dur);
+          csound->Sscanf(s,"%lf",&t->input_dur);
 #else
-          csound->sscanf(s,"%f",&t->input_dur);
+          csound->Sscanf(s,"%f",&t->input_dur);
 #endif
           break;
         case 'f':
           FIND(Str("no fundamental estimate"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->fund_est);
+          csound->Sscanf(s,"%lf",&t->fund_est);
 #else
-          csound->sscanf(s,"%f",&t->fund_est);
+          csound->Sscanf(s,"%f",&t->fund_est);
 #endif
           break;
         case 'h':
           FIND(Str("no harmonic count"))
-          sscanf(s,"%hd",&t->hmax);
+          csound->Sscanf(s,"%hd",&t->hmax);
           if (UNLIKELY(t->hmax > HMAX))
             csound->Message(csound, Str("over %d harmonics but continuing"),
                             HMAX);
@@ -210,22 +210,22 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'M':
           FIND(Str("no amplitude maximum"))
-          csound->sscanf(s,"%lf",&t->m_ampsum);
+          csound->Sscanf(s,"%lf",&t->m_ampsum);
           break;
         case 'm':
           FIND(Str("no amplitude minimum"))
-          sscanf(s,"%d",&t->amp_min);
+          csound->Sscanf(s,"%d",&t->amp_min);
           break;
         case 'n':
           FIND(Str("no number of output points"))
-          sscanf(s,"%d",&t->num_pts);
+          csound->Sscanf(s,"%d",&t->num_pts);
           break;
         case 'l':
           FIND(Str("no filter cutoff"))
 #if defined(USE_DOUBLE)
-          csound->sscanf(s,"%lf",&t->freq_c);
+          csound->Sscanf(s,"%lf",&t->freq_c);
 #else
-          csound->sscanf(s,"%f",&t->freq_c);
+          csound->Sscanf(s,"%f",&t->freq_c);
 #endif
           break;
         case 'X':
@@ -256,19 +256,19 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY((t->input_dur < 0) || (t->beg_time < 0)))
       return quit(csound,Str("input and begin times cannot be less than zero"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, t->infilnam, &p,
+    if (UNLIKELY((infd = (csound->GetUtility(csound))->SndinGetSetSA(csound, t->infilnam, &p,
                                     &t->beg_time, &t->input_dur,
                                              &t->sr, channel)) == NULL)) {
       char errmsg[256];
       snprintf(errmsg, 256, Str("Cannot open %s"), t->infilnam);
       return quit(csound, errmsg);
     }
-    nsamps = p->getframes;
+    nsamps = (int32_t) p->getframes;
     /* alloc for MYFLTs */
     t->auxp = (MYFLT*) csound->Malloc(csound, nsamps * sizeof(MYFLT));
     /* & read them in */
     if (UNLIKELY((t->smpsin =
-                  csound->getsndin(csound, infd,
+                  (csound->GetUtility(csound))->Sndin(csound, infd,
                                    t->auxp, nsamps, p)) <= 0)) {
       char errmsg[256];
       csound->Message(csound, "smpsin = %"PRId64"\n", (int64_t) t->smpsin);
@@ -597,9 +597,31 @@ static void output(HET *t, int32 smpl, int32_t hno, int32_t pnt)
     }
 }
 
+static const char *hetro_usage_txt[] = {
+  Str_noop("Usage: hetro [options...] inputSoundfile outputfile"),
+  Str_noop("Options:"),
+  Str_noop("    -s <samplerate>"),
+  Str_noop("    -c <channel>"),
+  Str_noop("    -b <beginTime>"),
+  Str_noop("    -d <duration>"),
+  Str_noop("    -f <fundamental estimate"),
+  Str_noop("    -h <harmonic count>"),
+  Str_noop("    -M <maximum amplitide>"),
+  Str_noop("    -m <minimum amplitide>"),
+  Str_noop("    -n <number of output points>"),
+  Str_noop("    -l <filter cutoff>"),
+  Str_noop("    -X <newformat>"),
+  Str_noop("    -x <oldformat>"),
+  Str_noop("    -- <log file>"),
+    NULL
+};
+
 static int32_t quit(CSOUND *csound, char *msg)
 {
+    int32_t i;
     csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
+    for (i = 0; hetro_usage_txt[i] != NULL; i++)
+      csound->Message(csound, "%s\n", Str(hetro_usage_txt[i]));
     return -1;
 }
 
@@ -634,11 +656,11 @@ static int32_t filedump(HET *t, CSOUND *csound)
 
     /* fullpath else cur dir */
     if (t->newformat) {
-      if (UNLIKELY(csound->FileOpen2(csound, &ff, CSFILE_STD, t->outfilnam,
+      if (UNLIKELY(csound->FileOpen(csound, &ff, CSFILE_STD, t->outfilnam,
                                      "w", "", CSFTYPE_HETROT, 0) == NULL))
       return quit(csound, Str("cannot create output file\n"));
     } else
-      if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, t->outfilnam,
+      if (UNLIKELY(csound->FileOpen(csound, &ofd, CSFILE_FD_W, t->outfilnam,
                                      NULL, "", CSFTYPE_HETRO, 0) == NULL))
         return quit(csound, Str("cannot create output file\n"));
 
@@ -677,7 +699,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
     for (h = 0; h < t->hmax; h++) {
       int16 *mp = magout, *fp = frqout;
       int16 *lastmag, *lastfrq, pkamp = 0;
-      int32_t mpoints, fpoints, contig = 0;
+      int32_t mpoints, fpoints;
       *mp++ = -1;                      /* set brkpoint type codes  */
       *fp++ = -2;
       lastmag = mp;
@@ -710,7 +732,6 @@ static int32_t filedump(HET *t, CSOUND *csound)
           *fp++ = frq;
           lastmag = mp;         /* record last significant seg  */
           lastfrq = fp;
-          contig++;
         }
         else {
           if (mp > lastmag) {   /* for non-significant segments */
@@ -721,7 +742,6 @@ static int32_t filedump(HET *t, CSOUND *csound)
           *mp++ = 0;
           *fp++ = tim;
           *fp++ = frq;
-          contig = 0;
         }
       }
       if (lastmag < mp) {          /* if last signif not last point */
@@ -733,8 +753,8 @@ static int32_t filedump(HET *t, CSOUND *csound)
         *(fp-1) = *(fp-3);       /*   & zero the freq change      */
       *mp++ = END;                 /* add the sequence delimiters   */
       *fp++ = END;
-      mpoints = ((mp - magout) / 2) - 1;
-      nbytes = (mp - magout) * sizeof(int16);
+      mpoints = (int32_t) ((mp - magout) / 2) - 1;
+      nbytes = (int32_t)((mp - magout) * sizeof(int16));
       if (t->newformat) {
         int32_t i;
         for (i=0; i<(mp - magout); i++)
@@ -753,8 +773,8 @@ static int32_t filedump(HET *t, CSOUND *csound)
       }
 #endif
       lenfil += nbytes;
-      fpoints = ((fp - frqout) / 2) - 1;
-      nbytes = (fp - frqout) * sizeof(int16);
+      fpoints = (int32_t) ((fp - frqout) / 2) - 1;
+      nbytes = (int32_t)((fp - frqout) * sizeof(int16));
       if (t->newformat) {
         int32_t i;
         for (i=0; i<fp - frqout; i++)
@@ -920,9 +940,9 @@ static int32_t is_sdiffile(char *name)
 
 int32_t hetro_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "hetro", hetro);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "hetro", hetro);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "hetro",
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "hetro",
                                              Str("Soundfile analysis for adsyn"));
     }
     return retval;

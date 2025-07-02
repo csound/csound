@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
 //#include <ieee754.h>
 
 #ifdef __HAIKU__
@@ -54,8 +58,6 @@ static int32_t urand_init(CSOUND *csound, URANDOM *p)
     int32_t ur = open("/dev/urandom", O_RDONLY);
     if (UNLIKELY(ur<0)) return NOTOK;
     p->ur = ur;
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) urand_deinit);
     p->mul = FL(0.5)*(*p->imax - *p->imin);
     p->add = FL(0.5)*(*p->imax + *p->imin);
     return OK;
@@ -109,10 +111,10 @@ static int32_t urand_arun(CSOUND *csound, URANDOM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY urandom_localops[] = {
-  { "urandom.i", S(URANDOM), 0, 1, "i", "jp", (SUBR) urand_irate },
-  { "urandom.k", S(URANDOM), 0, 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run},
-  { "urandom.a", S(URANDOM), 0, 3, "a", "jp",
-                                    (SUBR) urand_init, (SUBR) urand_arun}
+  { "urandom.i", S(URANDOM), 0,  "i", "jp", (SUBR) urand_irate },
+  { "urandom.k", S(URANDOM), 0,  "k", "jp", (SUBR) urand_init, (SUBR) urand_run, (SUBR) urand_deinit},
+  { "urandom.a", S(URANDOM), 0,  "a", "jp",
+    (SUBR) urand_init, (SUBR) urand_arun, (SUBR) urand_deinit}
 };
 
 LINKAGE_BUILTIN(urandom_localops)

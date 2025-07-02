@@ -19,18 +19,24 @@
 
 /* $Id: mp3dec.c,v 1.6 2009/03/01 15:27:05 jpff Exp $ */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "mp3dec_internal.h"
 
-mp3dec_t mp3dec_init(void)
+mp3dec_t mp3dec_init(CSOUND *csound)
 {
     register struct mp3dec_t *mp3 =
       (struct mp3dec_t *)malloc(sizeof(struct mp3dec_t));
 
     if (!mp3) return NULL;
     memset(mp3, 0, sizeof(struct mp3dec_t));
+    mp3->csound = csound;
     mp3->size = sizeof(struct mp3dec_t);
-    mp3->fd = -1;
+    mp3->f = NULL;
     mp3->mpadec = mpadec_init();
     if (!mp3->mpadec) {
       free(mp3);
@@ -39,66 +45,79 @@ mp3dec_t mp3dec_init(void)
     return mp3;
 }
 
-int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
+void *mp3dec_open_file(mp3dec_t mp3dec, char *name, FILE **f)
+{
+    register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
+    mp3->fd = mp3->csound->FileOpen(mp3->csound, f, CSFILE_STD,
+                                    name, "rb", "SFDIR;SSDIR",
+                                    CSFTYPE_OTHER_BINARY, 0);
+    return mp3->fd;
+}
+
+int32_t mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int32_t nogap)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
     int64_t tmp;
-    int r;
+    int32_t r;
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
-    if (fd < 0) {
+    if (f == NULL) {
       mp3dec_reset(mp3);
       return MP3DEC_RETCODE_INVALID_PARAMETERS;
     }
-    if (mp3->flags & MP3DEC_FLAG_INITIALIZED) close(mp3->fd);
-    mp3->fd = fd;
+    if (mp3->flags & MP3DEC_FLAG_INITIALIZED) 
+      mp3->csound->FileClose(mp3->csound, mp3->fd);
+    mp3->f = f;
     mp3->flags = MP3DEC_FLAG_SEEKABLE;
     mp3->stream_offset = mp3->stream_size = mp3->stream_position = 0;
     mp3->in_buffer_offset = mp3->in_buffer_used = 0;
     mp3->out_buffer_offset = mp3->out_buffer_used = 0;
-    tmp = lseek(fd, (off_t)0, SEEK_CUR);
-    if (tmp >= 0) mp3->stream_offset = tmp;
+    // VL: the code below used lseek and was changed to fseek,
+    // but the two functions are not equivalent.
+    // Fixed using ftell() whenever the result of lseek()
+    // was used as the current position
+    tmp = fseek(f, (off_t)0, SEEK_CUR);
+    if (tmp == 0) mp3->stream_offset = ftell(f);
     else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
     if (mp3->flags & MP3DEC_FLAG_SEEKABLE) {
-      tmp = lseek(fd, (off_t)0, SEEK_END);
-      if (tmp >= 0) {
-        mp3->stream_size = tmp;
-        tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
-        if (tmp<0) fprintf(stderr, "seek failure im mp3\n");
-      } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
+      tmp = fseek(f, (off_t) 0, SEEK_END);
+      if (tmp == 0) {
+        mp3->stream_size = ftell(f);
+        tmp = fseek(f, mp3->stream_offset, SEEK_SET);
+        if (tmp != 0) fprintf(stderr, "seek failure im mp3\n");
+      } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;     
     }
     if (mp3->stream_size > mp3->stream_offset) {
       mp3->stream_size -= mp3->stream_offset;
       if (length && (length < mp3->stream_size)) mp3->stream_size = length;
     } else mp3->stream_size = length;
     // check for ID3 tag
-    if (lseek(fd, (off_t)0, SEEK_SET)==0) {
+    if (fseek(f, (off_t)0, SEEK_SET) == 0) {
       char hdr[10];
-      if (read(fd, &hdr, 10)!= 10) return MP3DEC_RETCODE_NOT_MPEG_STREAM;
+      if (fread(&hdr, 1, 10, f)!= 10) return MP3DEC_RETCODE_NOT_MPEG_STREAM;
       if (hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3') {
         /* A*2^21+B*2^14+C*2^7+D=A*2097152+B*16384+C*128+D*/
         mp3->stream_offset = hdr[6]*2097152+hdr[7]*16384+hdr[8]*128+hdr[9] + 10;
         // fprintf(stderr, "==== found ID3 tag, skipping %lld bytes ==== \n",
         //     mp3->stream_offset);
       }
-      (void) lseek(fd, mp3->stream_offset, SEEK_SET);
-    }
-    r = read(fd, mp3->in_buffer, 4);
+      (void) fseek(f, mp3->stream_offset, SEEK_SET);
+    } else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE; 
+    r = (int32_t) fread(mp3->in_buffer, 1, 4, f);
     if (r < 4) {
       mp3dec_reset(mp3);
       return ((r < 0) ? MP3DEC_RETCODE_INVALID_PARAMETERS :
               MP3DEC_RETCODE_NOT_MPEG_STREAM);
     } else mp3->in_buffer_used = r;
     if (mp3->flags & MP3DEC_FLAG_SEEKABLE)
-      tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
-    else tmp = -1;
-    if (tmp < 0) {
+      tmp = fseek(f, mp3->stream_offset, SEEK_SET);
+    if (tmp != 0) {
       int32_t n = sizeof(mp3->in_buffer) - mp3->in_buffer_used;
       mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
       if (mp3->stream_size && (n > (mp3->stream_size - mp3->in_buffer_used)))
         n = (int32_t)(mp3->stream_size - mp3->in_buffer_used);
-      n = read(fd, mp3->in_buffer + mp3->in_buffer_used, n);
+      n =  (int32_t) fread(mp3->in_buffer + mp3->in_buffer_used, 1, n, f);
       if (n < 0) n = 0;
       mp3->in_buffer_used += n;
       mp3->stream_position = mp3->in_buffer_used;
@@ -107,7 +126,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       int32_t n = sizeof(mp3->in_buffer);
       if (mp3->stream_size && (n > mp3->stream_size))
         n = (int32_t)mp3->stream_size;
-      n = read(fd, mp3->in_buffer, n);
+      n =  (int32_t) fread(mp3->in_buffer, 1, n, f);
       if (n < 0) n = 0;
       mp3->stream_position = mp3->in_buffer_used = n;
     }
@@ -130,13 +149,14 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       r = mpadec_decode(mp3->mpadec, mp3->in_buffer, mp3->in_buffer_used,
                         NULL, 0, &mp3->in_buffer_offset, NULL);
       mp3->in_buffer_used -= mp3->in_buffer_offset;
+      
       if (r != MPADEC_RETCODE_OK) {
         // this is a fix for ID3 tag at the start of a file
         while (r == 7) { /* NO SYNC, read more data */
           int32_t n = sizeof(mp3->in_buffer);
           if (mp3->stream_size && (n > mp3->stream_size))
             n = (int32_t)mp3->stream_size;
-          n = read(fd, mp3->in_buffer, n);
+          n =  (int32_t) fread(mp3->in_buffer, 1, n, f);
           if (n <= 0){ /* n = 0; */ break; } /* EOF */
           mp3->stream_position = mp3->in_buffer_used = n;
           r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
@@ -163,30 +183,32 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
     if (mp3->taginfo.flags & 1) {
       mp3->mpainfo.frames = mp3->taginfo.frames;
       if (mp3->mpainfo.frames && mp3->mpainfo.frame_samples) {
-        mp3->mpainfo.bitrate = (int32_t)
-          ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
-                   ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.frames)));
+        mp3->mpainfo.bitrate = (int32_t) 
+         ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
+                ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.frames)));
       }
     } else if (mp3->mpainfo.bitrate && mp3->mpainfo.frame_samples) {
-      mp3->mpainfo.frames = (int32_t)
-        ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
-                 ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.bitrate)));
-    }
+      mp3->mpainfo.frames = (int32_t) 
+      ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
+               ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.bitrate)));
+    } 
     mp3->mpainfo.duration =
       (mp3->mpainfo.frames*mp3->mpainfo.frame_samples +
        (mp3->mpainfo.frequency >> 1))/mp3->mpainfo.frequency;
+    
     mp3->flags |= MP3DEC_FLAG_INITIALIZED;
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_uninit(mp3dec_t mp3dec)
+int32_t mp3dec_uninit(mp3dec_t mp3dec)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
-    if (mp3->flags & MP3DEC_FLAG_INITIALIZED) close(mp3->fd);
-    mp3->fd = -1;
+    if (mp3->flags & MP3DEC_FLAG_INITIALIZED)
+      mp3->csound->FileClose(mp3->csound, mp3->fd);
+    mp3->f = NULL;
     mp3->flags = 0;
     mpadec_uninit(mp3->mpadec);
     mp3->size = 0;
@@ -194,14 +216,15 @@ int mp3dec_uninit(mp3dec_t mp3dec)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_reset(mp3dec_t mp3dec)
+int32_t mp3dec_reset(mp3dec_t mp3dec)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
       return MP3DEC_RETCODE_INVALID_HANDLE;
-    if (mp3->flags & MP3DEC_FLAG_INITIALIZED) close(mp3->fd);
-    mp3->fd = -1;
+    if (mp3->flags & MP3DEC_FLAG_INITIALIZED)
+      mp3->csound->FileClose(mp3->csound, mp3->fd);
+    mp3->f = NULL;
     mp3->flags = 0;
     mpadec_reset(mp3->mpadec);
     mp3->stream_offset = mp3->stream_size = mp3->stream_position = 0;
@@ -212,7 +235,7 @@ int mp3dec_reset(mp3dec_t mp3dec)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg)
+int32_t mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
@@ -224,7 +247,7 @@ int mp3dec_configure(mp3dec_t mp3dec, mpadec_config_t *cfg)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_get_info(mp3dec_t mp3dec, void *info, int info_type)
+int32_t mp3dec_get_info(mp3dec_t mp3dec, void *info, int32_t info_type)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
 
@@ -246,10 +269,10 @@ int mp3dec_get_info(mp3dec_t mp3dec, void *info, int info_type)
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used)
+int32_t mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *used)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
-    uint32_t n, src_used, dst_used; int r;
+    uint32_t n, src_used, dst_used; int32_t r;
 
     if (used) *used = 0;
     if (!mp3 || (mp3->size != sizeof(struct mp3dec_t)) || !mp3->mpadec)
@@ -293,7 +316,7 @@ int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *use
       n = sizeof(mp3->in_buffer) - mp3->in_buffer_used;
       if (mp3->stream_size && (n > (mp3->stream_size - mp3->stream_position)))
         n = (int32_t)(mp3->stream_size - mp3->stream_position);
-      if (n) r = read(mp3->fd, mp3->in_buffer + mp3->in_buffer_used, n);
+      if (n) r =  (int32_t) fread(mp3->in_buffer + mp3->in_buffer_used, 1, n, mp3->f);
       else r = 0;
       if (r < 0) r = 0;
       mp3->in_buffer_used += r;
@@ -305,7 +328,7 @@ int mp3dec_decode(mp3dec_t mp3dec, uint8_t *buf, uint32_t bufsize, uint32_t *use
     return MP3DEC_RETCODE_OK;
 }
 
-int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
+int32_t mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int32_t units)
 {
     register struct mp3dec_t *mp3 = (struct mp3dec_t *)mp3dec;
     int64_t newpos;
@@ -316,7 +339,9 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
     if (!(mp3->flags & MP3DEC_FLAG_SEEKABLE)) return MP3DEC_RETCODE_SEEK_FAILED;
     if (units == MP3DEC_SEEK_BYTES) {
       newpos = (pos < mp3->stream_size) ? pos : mp3->stream_size;
-      newpos = lseek(mp3->fd, mp3->stream_offset + newpos, SEEK_SET);
+      if(fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET) == 0)
+        newpos = ftell(mp3->f);
+      else newpos = -1;
       if (newpos < 0) return MP3DEC_RETCODE_SEEK_FAILED;
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
@@ -332,7 +357,9 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
       if (newpos > mp3->stream_size) newpos = mp3->stream_size;
       pos = (pos%mp3->mpainfo.decoded_frame_samples)*
         mp3->mpainfo.decoded_sample_size;
-      newpos = lseek(mp3->fd, mp3->stream_offset + newpos, SEEK_SET);
+      if(fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET) == 0)
+         newpos = ftell(mp3->f);
+      else newpos = -1;
       if (newpos < 0) return MP3DEC_RETCODE_SEEK_FAILED;
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
@@ -353,7 +380,10 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
              (pos*mp3->stream_size + (mp3->mpainfo.duration >> 1))/
              mp3->mpainfo.duration;
       if (newpos > mp3->stream_size) newpos = mp3->stream_size;
-      newpos = lseek(mp3->fd, mp3->stream_offset + newpos, SEEK_SET);
+      
+      if(fseek(mp3->f, mp3->stream_offset + newpos, SEEK_SET) == 0)
+        newpos = ftell(mp3->f);
+      else newpos = -1;
       if (newpos < 0) return MP3DEC_RETCODE_SEEK_FAILED;
       mp3->stream_position = newpos - mp3->stream_offset;
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
@@ -362,7 +392,7 @@ int mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int units)
     return MP3DEC_RETCODE_OK;
 }
 
-char *mp3dec_error(int code)
+char *mp3dec_error(int32_t code)
 {
     static char *mp3_errors[] = { "No error",
                                   "Invalid handle",

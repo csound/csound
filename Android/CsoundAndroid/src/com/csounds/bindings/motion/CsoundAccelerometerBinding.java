@@ -25,8 +25,6 @@
 
 package com.csounds.bindings.motion;
 
-import java.util.List;
-
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -37,8 +35,10 @@ import android.util.Log;
 import com.csounds.CsoundObj;
 import com.csounds.bindings.AbstractBinding;
 
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
+import java.util.List;
+
+import csnd7.CsoundMYFLTArray;
+import csnd7.controlChannelType;
 
 public class CsoundAccelerometerBinding extends AbstractBinding implements SensorEventListener {
 

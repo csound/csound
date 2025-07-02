@@ -31,10 +31,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import com.csounds.CsoundObj;
 import com.csounds.bindings.AbstractBinding;
 
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
-
-import android.util.Log;
+import csnd7.CsoundMYFLTArray;
+import csnd7.controlChannelType;
 
 public class CsoundSliderBinding extends AbstractBinding{
 	private SeekBar seekBar;

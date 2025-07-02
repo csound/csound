@@ -416,26 +416,26 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&sr); break;
+                        csound->Sscanf(s,"%lf",&sr); break;
 #else
-                        csound->sscanf(s,"%f",&sr); break;
+                        csound->Sscanf(s,"%f",&sr); break;
 #endif
         case 'c':       FIND(Str("no channel"))
-                        sscanf(s,"%d",&channel); break;
+                        csound->Sscanf(s,"%d",&channel); break;
         case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&beg_time); break;
+                        csound->Sscanf(s,"%lf",&beg_time); break;
 #else
-                        csound->sscanf(s,"%f",&beg_time); break;
+                        csound->Sscanf(s,"%f",&beg_time); break;
 #endif
         case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&input_dur); break;
+                        csound->Sscanf(s,"%lf",&input_dur); break;
 #else
-                        csound->sscanf(s,"%f",&input_dur); break;
+                        csound->Sscanf(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
-                        sscanf(s,"%d",&lpc.poleCount);
+                        csound->Sscanf(s,"%d",&lpc.poleCount);
                         if (lpc.poleCount<=0) {
                           csound->Message(csound, "%s",
                                           Str("Invalid pole count; set to 1\n"));
@@ -443,7 +443,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         }
                         break;
         case 'h':       FIND(Str("no hopsize"))
-                        sscanf(s,"%d",&slice); break;
+                        csound->Sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))
                         // MKG 2014 Jan 29: No linkage for strlcat with MinGW here.
                         //but wrong; corrected
@@ -455,21 +455,21 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&pchlow);
+                        csound->Sscanf(s,"%lf",&pchlow);
 #else
-                        csound->sscanf(s,"%f",&pchlow);
+                        csound->Sscanf(s,"%f",&pchlow);
 #endif
                         if (pchlow == 0.0)
                           lpc.doPitch = 0; /* -P0 inhibits ptrack */
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&pchhigh); break;
+                        csound->Sscanf(s,"%lf",&pchhigh); break;
 #else
-                        csound->sscanf(s,"%f",&pchhigh); break;
+                        csound->Sscanf(s,"%f",&pchhigh); break;
 #endif
         case 'v':       FIND(Str("no verbose level"))
-                        sscanf(s,"%d",&lpc.verbose);
+                        csound->Sscanf(s,"%d",&lpc.verbose);
                         if (lpc.verbose > 1)  lpc.debug = 1;
                         break;
         case 'g':
@@ -545,7 +545,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     lpg = (LPANAL_GLOBALS*) csound->Calloc(csound, sizeof(LPANAL_GLOBALS));
     lpg->firstcall = 1;
 
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = (csound->GetUtility(csound))->SndinGetSetSA(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       char errmsg[256];
       snprintf(errmsg,256,Str("error while opening %s"), infilnam);
@@ -554,11 +554,11 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* Try to open output file */
     if (new_format) {
-      if (UNLIKELY(csound->FileOpen2(csound, &oFd, CSFILE_STD,
+      if (UNLIKELY(csound->FileOpen(csound, &oFd, CSFILE_STD,
                                      outfilnam, "w", "", CSFTYPE_LPC, 0) == NULL))
         quit(csound, Str("cannot create output file"));
     }
-    else if (UNLIKELY(csound->FileOpen2(csound, &ofd, CSFILE_FD_W, outfilnam,
+    else if (UNLIKELY(csound->FileOpen(csound, &ofd, CSFILE_FD_W, outfilnam,
                                         NULL, "", CSFTYPE_LPC, 0) == NULL))
       quit(csound, Str("cannot create output file"));
 
@@ -574,7 +574,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     lph->srate = (MYFLT)p->sr;
     lph->framrate = (MYFLT) p->sr / slice;
     lph->duration = input_dur;
-    hsize = tp - (char *) lph;              /* header size including text */
+    hsize = (int32_t)(tp - (char *) lph);              /* header size including text */
     lph->headersize = (hsize + 3) & -4;     /* rounded up to 4 byte bndry */
     if (lph->headersize > LPBUFSIZ)    /* UNNECESSARY ?? */
       lph->headersize = LPBUFSIZ;
@@ -585,7 +585,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
               lph->headersize, lph->lpmagic, lph->npoles, lph->nvals,
               (double)lph->framrate, (double)lph->srate, (double)lph->duration);
     }
-    else if ((nb = write(ofd,(char *)lph,(int32_t)lph->headersize)) <
+    else if ((nb = (int32_t) write(ofd,(char *)lph,(int32_t)lph->headersize)) <
         lph->headersize)
       quit(csound,Str("cannot write header"));
 
@@ -598,7 +598,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     sigbuf2 = sigbuf + slice;
 
     /* Try to read first frame in buffer */
-    if (UNLIKELY((n = csound->getsndin(csound, infd, sigbuf, lpc.WINDIN, p)) <
+    if (UNLIKELY((n = (csound->GetUtility(csound))->Sndin(csound, infd, sigbuf, lpc.WINDIN, p)) <
                  lpc.WINDIN))
       quit(csound,Str("soundfile read error, could not fill first frame"));
 
@@ -608,12 +608,12 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* Initialise for analysis */
     counter = 0;
-    analframes = (p->getframes - 1) / slice;
+    analframes = (int32_t)((p->getframes - 1) / slice);
 
     /* Some display stuff */
 #if 0
     dispinit(csound);
-    csound->dispset(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
+    csound->SetDisplay(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
     /* Space for a array */
@@ -622,7 +622,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     lpc.x = (double *) csound->Malloc(csound,   /* alloc a double array */
                                       lpc.WINDIN * sizeof(double));
 #ifdef TRACE
-    csound->FileOpen2(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
+    csound->FileOpen(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
                       CSFTYPE_OTHER_TEXT, 0);
 #endif
 
@@ -754,7 +754,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
           fprintf(oFd, "%a\n", (double)coef[j]);
       }
       else
-        if (UNLIKELY((nb = write(ofd, (char *)coef, osiz)) != osiz))
+        if (UNLIKELY((nb = (int32_t) write(ofd, (char *)coef, osiz)) != osiz))
           quit(csound, Str("write error"));
       memcpy(sigbuf, sigbuf2, sizeof(MYFLT)*slice);
 
@@ -764,7 +764,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       /*              *fp1++ = *fp2++;} */
 
       /* Get next sound frame */
-      if ((n = csound->getsndin(csound, infd, sigbuf2, slice, p)) == 0)
+      if ((n = (csound->GetUtility(csound))->Sndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
       if (UNLIKELY(!csound->CheckEvents(csound)))
         return -1;
@@ -1287,10 +1287,10 @@ static void ptable(CSOUND *csound,
 
 int32_t lpanal_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "lpanal", lpanal);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "lpanal", lpanal);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "lpanal",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "lpanal",
                                       Str("Linear predictive analysis for lpread"));
     }
     return retval;

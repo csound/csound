@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
 #define CHANNELS 128
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)

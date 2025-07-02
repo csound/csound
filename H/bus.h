@@ -1,29 +1,31 @@
 /*
-    bus.h:
+  bus.h:
 
-    Copyright (C) 2004 John ffitch
-        (C) 2005, 2006 Istvan Varga
-        (C) 2006 Victor Lazzarini
+  Copyright (C) 2004 John ffitch
+  (C) 2005, 2006 Istvan Varga
+  (C) 2006 Victor Lazzarini
 
-    This file is part of Csound.
+  This file is part of Csound.
 
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-    Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 /*                                                      BUS.H           */
+
+#pragma once
 
 #ifndef CSOUND_BUS_H
 #define CSOUND_BUS_H
@@ -38,36 +40,41 @@
 extern "C" {
 #endif
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     MYFLT   *r, *a;
-} CHNVAL;
+  } CHNVAL;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     PVSDAT   *r;
     MYFLT    *a,*N, *overlap, *winsize, *wintype, *format;
     PVSDAT   init;
-} FCHAN;
+    PVSDAT  *f;
+    spin_lock_t *lock;
+    char  name[MAX_CHAN_NAME+1];
+    int32_t n;
+  } FCHAN;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     MYFLT   *ans;
     MYFLT   *keyDown;
     int32_t evtbuf;
-} KSENSE;
+  } KSENSE;
 
-typedef struct channelEntry_s {
+  typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelHints_t hints;
     MYFLT       *data;
     spin_lock_t lock;               /* Multi-thread protection */
     int32_t     type;
     int32_t     datasize;  /* size of allocated chn data */
+    const CS_TYPE *varType; /* variable type used by channel */
     char        name[1];
-} CHNENTRY;
+  } CHNENTRY;
 
-typedef struct {
+  typedef struct {
     OPDS        h;
     MYFLT       *arg;
     STRINGDAT   *iname;
@@ -75,9 +82,9 @@ typedef struct {
     spin_lock_t *lock;
     int32_t     pos;
     char        chname[MAX_CHAN_NAME+1];
-} CHNGET;
+  } CHNGET;
 
-typedef struct {
+  typedef struct {
     OPDS        h;
     ARRAYDAT    *arrayDat;
     STRINGDAT   *iname;
@@ -88,16 +95,16 @@ typedef struct {
     MYFLT**     channelPtrs;
     STRINGDAT   *channels;
     char        chname[MAX_CHAN_NAME+1];
-} CHNGETARRAY;
+  } CHNGETARRAY;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     STRINGDAT   *iname[MAX_CHAN_NAME+1];
     MYFLT   *fp[MAX_CHAN_NAME+1];
     spin_lock_t *lock[MAX_CHAN_NAME+1];
-} CHNCLEAR;
+  } CHNCLEAR;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
     MYFLT   *imode;
@@ -111,16 +118,25 @@ typedef struct {
     MYFLT   *iheight;
     STRINGDAT *Sattributes;
     spin_lock_t      *lock;
-} CHN_OPCODE_K;
+  } CHN_OPCODE_K;
 
-typedef struct {
+  typedef struct {
+    OPDS    h;
+    STRINGDAT   *iname;
+    MYFLT   *imode;
+    STRINGDAT *type;
+    ARRAYDAT *idim;
+    spin_lock_t *lock;
+  } CHN_OPCODE_ARRAY;
+  
+  typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
     MYFLT   *imode;
     spin_lock_t   *lock;
-} CHN_OPCODE;
+  } CHN_OPCODE;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     MYFLT   *arg;
     STRINGDAT   *iname;
@@ -129,9 +145,9 @@ typedef struct {
     MYFLT   *idflt;
     MYFLT   *imin;
     MYFLT   *imax;
-} CHNEXPORT_OPCODE;
+  } CHNEXPORT_OPCODE;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     MYFLT   *itype;
     MYFLT   *imode;
@@ -140,83 +156,89 @@ typedef struct {
     MYFLT   *imin;
     MYFLT   *imax;
     STRINGDAT   *iname;
-} CHNPARAMS_OPCODE;
+  } CHNPARAMS_OPCODE;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     MYFLT   *value, *valID;
     AUXCH   channelName;
     const CS_TYPE *channelType;
     void *channelptr;
-} INVAL;
+  } INVAL;
 
-typedef struct {
+  typedef struct {
     OPDS    h;
     MYFLT   *valID, *value;
     AUXCH   channelName;
     const CS_TYPE *channelType;
     void *channelptr;
-} OUTVAL;
+  } OUTVAL;
 
-int32_t     chano_opcode_perf_k(CSOUND *, CHNVAL *);
-int32_t     chano_opcode_perf_a(CSOUND *, CHNVAL *);
-int32_t     chani_opcode_perf_k(CSOUND *, CHNVAL *);
-int32_t     chani_opcode_perf_a(CSOUND *, CHNVAL *);
-int32_t     pvsin_init(CSOUND *, FCHAN *);
-int32_t     pvsin_perf(CSOUND *, FCHAN *);
-int32_t     pvsout_init(CSOUND *, FCHAN *);
-int32_t     pvsout_perf(CSOUND *, FCHAN *);
+  int32_t     chano_opcode_perf_k(CSOUND *, CHNVAL *);
+  int32_t     chano_opcode_perf_a(CSOUND *, CHNVAL *);
+  int32_t     chani_opcode_perf_k(CSOUND *, CHNVAL *);
+  int32_t     chani_opcode_perf_a(CSOUND *, CHNVAL *);
+  int32_t     pvsin_init(CSOUND *, FCHAN *);
+  int32_t     pvsin_perf(CSOUND *, FCHAN *);
+  int32_t     pvsout_init(CSOUND *, FCHAN *);
+  int32_t     pvsout_perf(CSOUND *, FCHAN *);
 
-int32_t     sensekey_perf(CSOUND *, KSENSE *);
+  int32_t     sensekey_perf(CSOUND *, KSENSE *);
 
-//Rory 2020
-int32_t     chnget_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
-int32_t     chnget_array_opcode_init(CSOUND *, CHNGETARRAY *);
-int32_t     chnget_array_opcode_perf_k(CSOUND *, CHNGETARRAY *);
-int32_t     chnget_array_opcode_perf_a(CSOUND *, CHNGETARRAY *);
-int32_t     chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p);
-int32_t     chnset_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
-int32_t     chnset_array_opcode_init(CSOUND *, CHNGETARRAY *);
-int32_t     chnset_array_opcode_perf_k(CSOUND *csound, CHNGETARRAY *p);
-int32_t     chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p);
-int32_t     chnset_array_opcode_perf_S(CSOUND *csound, CHNGETARRAY *p);
+  //Rory 2020
+  int32_t     chnget_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
+  int32_t     chnget_array_opcode_init(CSOUND *, CHNGETARRAY *);
+  int32_t     chnget_array_opcode_perf_k(CSOUND *, CHNGETARRAY *);
+  int32_t     chnget_array_opcode_perf_a(CSOUND *, CHNGETARRAY *);
+  int32_t     chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p);
+  int32_t     chnset_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
+  int32_t     chnset_array_opcode_init(CSOUND *, CHNGETARRAY *);
+  int32_t     chnset_array_opcode_perf_k(CSOUND *csound, CHNGETARRAY *p);
+  int32_t     chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p);
+  int32_t     chnset_array_opcode_perf_S(CSOUND *csound, CHNGETARRAY *p);
 
-int32_t     notinit_opcode_stub(CSOUND *, void *);
-int32_t     chnget_opcode_init_i(CSOUND *, CHNGET *);
-int32_t     chnget_opcode_init_k(CSOUND *, CHNGET *);
-int32_t     chnget_opcode_init_a(CSOUND *, CHNGET *);
-int32_t     chnget_opcode_init_S(CSOUND *, CHNGET *);
-int32_t     chnget_opcode_perf_S(CSOUND *, CHNGET *);
-int32_t     chnset_opcode_init_i(CSOUND *, CHNGET *);
-int32_t     chnset_opcode_init_k(CSOUND *, CHNGET *);
-int32_t     chnset_opcode_init_a(CSOUND *, CHNGET *);
-int32_t     chnset_opcode_init_S(CSOUND *, CHNGET *);
-int32_t     chnset_opcode_perf_S(CSOUND *, CHNGET *);
-int32_t     chnmix_opcode_init(CSOUND *, CHNGET *);
-int32_t     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
-int32_t     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
-int32_t     chn_k_opcode_init_S(CSOUND *, CHN_OPCODE_K *);
-int32_t     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
-int32_t     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
-int32_t     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
-int32_t     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
+  int32_t     notinit_opcode_stub(CSOUND *, void *);
+  int32_t     chnget_opcode_init_i(CSOUND *, CHNGET *);
+  int32_t     chnget_opcode_init_k(CSOUND *, CHNGET *);
+  int32_t     chnget_opcode_init_a(CSOUND *, CHNGET *);
+  int32_t     chnget_opcode_init_S(CSOUND *, CHNGET *);
+  int32_t     chnget_opcode_perf_S(CSOUND *, CHNGET *);
+  int32_t     chnset_opcode_init_i(CSOUND *, CHNGET *);
+  int32_t     chnset_opcode_init_k(CSOUND *, CHNGET *);
+  int32_t     chnset_opcode_init_a(CSOUND *, CHNGET *);
+  int32_t     chnset_opcode_init_S(CSOUND *, CHNGET *);
+  int32_t     chnset_opcode_perf_S(CSOUND *, CHNGET *);
+  int32_t     chnmix_opcode_init(CSOUND *, CHNGET *);
+  int32_t     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
+  int32_t     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
+  int32_t     chn_k_opcode_init_S(CSOUND *, CHN_OPCODE_K *);
+  int32_t     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
+  int32_t     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
+  int32_t     chn_opcode_init_ARRAY(CSOUND *, CHN_OPCODE_ARRAY *p);
+  int32_t     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);
+  int32_t     chnparams_opcode_init(CSOUND *, CHNPARAMS_OPCODE *);
 
-int32_t kinval(CSOUND *csound, INVAL *p);
-int32_t kinvalS(CSOUND *csound, INVAL *p);
-int32_t invalset(CSOUND *csound, INVAL *p);
-int32_t invalset_string(CSOUND *csound, INVAL *p);
-int32_t invalset_string_S(CSOUND *csound, INVAL *p);
-int32_t invalset_S(CSOUND *csound, INVAL *p);
-int32_t invalsetgo(CSOUND *csound, INVAL *p);
-int32_t invalsetSgo(CSOUND *csound, INVAL *p);
-int32_t koutval(CSOUND *csound, OUTVAL *p);
-int32_t koutvalS(CSOUND *csound, OUTVAL *p);
-int32_t outvalset(CSOUND *csound, OUTVAL *p);
-int32_t outvalset_string(CSOUND *csound, OUTVAL *p);
-int32_t outvalset_string_S(CSOUND *csound, OUTVAL *p);
-int32_t outvalset_S(CSOUND *csound, OUTVAL *p);
-int32_t outvalsetgo(CSOUND *csound, OUTVAL *p);
-int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p);
+  int32_t     chnget_opcode_init_ARRAY(CSOUND *, CHNGET *);
+  int32_t     chnset_opcode_init_ARRAY(CSOUND *, CHNGET *);
+  int32_t     chnclear_opcode_init_ARRAY(CSOUND *, CHNCLEAR *);
+ 
+
+  int32_t kinval(CSOUND *csound, INVAL *p);
+  int32_t kinvalS(CSOUND *csound, INVAL *p);
+  int32_t invalset(CSOUND *csound, INVAL *p);
+  int32_t invalset_string(CSOUND *csound, INVAL *p);
+  int32_t invalset_string_S(CSOUND *csound, INVAL *p);
+  int32_t invalset_S(CSOUND *csound, INVAL *p);
+  int32_t invalsetgo(CSOUND *csound, INVAL *p);
+  int32_t invalsetSgo(CSOUND *csound, INVAL *p);
+  int32_t koutval(CSOUND *csound, OUTVAL *p);
+  int32_t koutvalS(CSOUND *csound, OUTVAL *p);
+  int32_t outvalset(CSOUND *csound, OUTVAL *p);
+  int32_t outvalset_string(CSOUND *csound, OUTVAL *p);
+  int32_t outvalset_string_S(CSOUND *csound, OUTVAL *p);
+  int32_t outvalset_S(CSOUND *csound, OUTVAL *p);
+  int32_t outvalsetgo(CSOUND *csound, OUTVAL *p);
+  int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p);
 #ifdef __cplusplus
 }
 #endif

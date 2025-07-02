@@ -135,7 +135,7 @@ static void do_ifht(MYFLT *real, int32 n)
 
 static void pfht(MYFLT *fz, int32 n)
 {
-    int32        i, k, k1, k2, k3, k4, kx;
+    int32_t        i, k, k1, k2, k3, k4, kx;
     MYFLT       *fi, *fn, *gi;
     TRIG_VARS;
 
@@ -218,7 +218,7 @@ static void pfht(MYFLT *fz, int32 n)
       MYFLT s1, c1;
 
       k += 2;
-      k1 = 1L << k;
+      k1 = 1 << k;
       k2 = k1 << 1;
       k4 = k2 << 1;
       k3 = k2 + k1;
@@ -315,9 +315,9 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
 
     flen = (int32)*p->len;
     if (UNLIKELY(flen<1))
-      return csound->InitError(csound, Str("cross2: length must be at least 1"));
+      return csound->InitError(csound, "%s", Str("cross2: length must be at least 1"));
     p->m = plog2(flen);
-    flen = 1L << p->m;
+    flen = 1 << p->m;
 
     if (ovlp < FL(2.0)) ovlp = FL(2.0);
     else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);
@@ -337,7 +337,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
     p->in1 = b;            b += 2 * flen;
     p->in2 = b;            //b += 2 * flen;
 
-    if ((ftp = csound->FTnp2Finde(csound, p->iwin)) != NULL)
+    if ((ftp = csound->FTFind(csound, p->iwin)) != NULL)
       p->win = ftp;
     else return NOTOK;
 
@@ -441,7 +441,7 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "cross2",  S(CON), TR, 3, "a", "aaiiik",(SUBR)Xsynthset, (SUBR)Xsynth}
+  { "cross2",  S(CON), TR,  "a", "aaiiik",(SUBR)Xsynthset, (SUBR)Xsynth}
 };
 
 int32_t cross2_init_(CSOUND *csound)

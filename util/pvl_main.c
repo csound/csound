@@ -24,7 +24,7 @@
 #include "csound.h"
 #include <stdarg.h>
 
-static void messageCallback_(CSOUND *csound, int attr,
+static void messageCallback_(CSOUND *csound, int32_t attr,
                              const char *fmt, va_list args)
 {
     (void) csound;
@@ -38,12 +38,12 @@ static void messageCallback_(CSOUND *csound, int attr,
     }
 }
 
-int main(int argc, char **argv)
+int32_t main(int32_t argc, char **argv)
 {
     CSOUND  *csound;
-    int     n = -1;
+    int32_t     n = -1;
 
-    if ((csound = csoundCreate(NULL)) != NULL) {
+    if ((csound = csoundCreate(NULL,NULL)) != NULL) {
       csoundSetMessageCallback(csound, messageCallback_);
       n = csoundRunUtility(csound, "pvlook", argc, argv);
       csoundDestroy(csound);

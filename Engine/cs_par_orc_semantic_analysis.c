@@ -27,17 +27,15 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "tok.h"
-
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-
 #include "interlocks.h"
+#include "find_opcode.h"
 
-OENTRY* find_opcode(CSOUND *, char *);
 /***********************************************************************
  * static function prototypes
  */
-/* static int csp_thread_index_get(CSOUND *csound); */
+/* static int32_t csp_thread_index_get(CSOUND *csound); */
 static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name);
 
 /***********************************************************************
@@ -61,44 +59,6 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
 
     return instr;
 }
-
-/***********************************************************************
- * parse time support
- */
-
-//static INSTR_SEMANTICS *curr;
-//static INSTR_SEMANTICS *root;
-
-/* void csp_orc_sa_cleanup(CSOUND *csound) */
-/* { */
-/*     INSTR_SEMANTICS *current = csound-> instRoot, *h = NULL; */
-/*     csp_orc_sa_print_list(csound); */
-/*     while (current != NULL) { */
-
-/*       csp_set_dealloc(csound, &(current->read)); */
-/*       csp_set_dealloc(csound, &(current->write)); */
-/*       csp_set_dealloc(csound, &(current->read_write)); */
-
-/*       h = current; */
-/*       current = current->next; */
-/*       csound->Free(csound, h); */
-/*     } */
-/*     current = csound->instCurr; */
-/*     while (current != NULL) { */
-
-/*       csp_set_dealloc(csound, &(current->read)); */
-/*       csp_set_dealloc(csound, &(current->write)); */
-/*       csp_set_dealloc(csound, &(current->read_write)); */
-
-/*       h = current; */
-/*       current = current->next; */
-/*       csound->Free(csound, h); */
-/*     } */
-
-/*     csound->instCurr = NULL; */
-/*     csound->instRoot = NULL; */
-/* } */
-
 
 static void sanitise_set(CSOUND *csound, struct set_t* p)
 {
@@ -238,7 +198,7 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
     }
 }
 
-static void csp_orc_sa_interlocksf(CSOUND *csound, int code, char *name)
+static void csp_orc_sa_interlocksf(CSOUND *csound, int32_t code, char *name)
 {
     if (code&0xfff8) {
       /* zak etc */
@@ -271,7 +231,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
     csp_orc_sa_interlocksf(csound, ep->flags, name);
 }
 
-//static int inInstr = 0;
+//static int32_t inInstr = 0;
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {

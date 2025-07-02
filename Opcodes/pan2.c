@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 #include <math.h>
@@ -43,7 +46,7 @@ static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
     int32_t type = p->type = MYFLT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
-      return csound->InitError(csound, Str("Unknown panning type"));
+      return csound->InitError(csound, "%s", Str("Unknown panning type"));
     p->lastpan = -FL(1.0);
     return OK;
 }
@@ -169,7 +172,7 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
 
 static OENTRY pan2_localops[] =
 {
- { "pan2", sizeof(PAN2), 0, 3, "aa", "axo", (SUBR) pan2set, (SUBR) pan2run },
+ { "pan2", sizeof(PAN2), 0,  "aa", "axo", (SUBR) pan2set, (SUBR) pan2run },
 };
 
 LINKAGE_BUILTIN(pan2_localops)

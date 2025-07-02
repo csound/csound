@@ -6,6 +6,7 @@ if [ -z "$NDK_MODULE_PATH" ]; then
 fi
 
 echo "Using NDK_MODULE_PATH: $NDK_MODULE_PATH\n"
+mkdir $NDK_MODULE_PATH
 cd $NDK_MODULE_PATH
 
 # LIBSNDFILE
@@ -18,30 +19,6 @@ if [ -e libsndfile-android ]; then
 else
   echo "Cloning libsndfile-android...";
   git clone $LIBSNDFILE_REPO
-fi
-
-# FLUIDSYNTH
-FLUIDSYNTH_REPO=http://bitbucket.org/kunstmusik/fluidsynth-android.git
-if [ -e fluidsynth-android ]; then
-  echo "fluidsynth-android already exists, doing a pull to get the latest";
-  cd fluidsynth-android;
-  git pull;
-  cd ..;
-else
-  echo "Cloning fluidsynth-android...";
-  git clone $FLUIDSYNTH_REPO
-fi
-
-# STK
-STK_REPO=http://github.com/thestk/stk.git
-if [ -e stk ]; then
-  echo "STK already exists, doing a pull to get the latest";
-  cd stk;
-  git pull;
-  cd ..;
-else
-  echo "Cloning STK...";
-  git clone $STK_REPO
 fi
 
 # OpenSoundControl

@@ -116,8 +116,8 @@ extern "C" {
      __attribute__ ((format_arg (1)));
   PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
   PUBLIC double cs_strtod(char* nptr, char** endptr);
-  PUBLIC int cs_sprintf(char *str, const char *format, ...);
-  PUBLIC int cs_sscanf(char *str, const char *format, ...);
+  PUBLIC int32_t cs_sprintf(char *str, const char *format, ...);
+  PUBLIC int32_t cs_sscanf(char *str, const char *format, ...);
 #ifdef __cplusplus
 }
 #endif

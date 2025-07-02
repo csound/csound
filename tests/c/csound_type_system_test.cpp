@@ -26,15 +26,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL");
+      csound = csoundCreate (0, 0);
+      csoundCreateMessageBuffer (csound, 0);
+      csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
         csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
@@ -48,7 +46,8 @@ TEST_F (TypeSystemTests, testTypeSystem)
   TYPE_POOL* pool = csound->typePool;
   CS_VAR_POOL* varPool = csound->engineState.varPool;
   
-  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1", NULL);
+  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A,
+                                          const_cast<char*>("a1"), NULL);
   ASSERT_TRUE (var != NULL);
   
   csoundAddVariable(csound, varPool, var);
@@ -63,10 +62,10 @@ TEST_F (TypeSystemTests, testTypeSystem)
 
 TEST_F (TypeSystemTests, testGetVarSimpleName)
 {
-    ASSERT_STREQ ("a1", getVarSimpleName(csound, "a1"));
-    ASSERT_STREQ ("a1", getVarSimpleName(csound, "[a]1"));
-    ASSERT_STREQ ("StestString", getVarSimpleName(csound, "StestString"));
-    ASSERT_STREQ ("StestString", getVarSimpleName(csound, "[S]testString"));
+    ASSERT_STREQ ("a1", csoundGetVarSimpleName(csound, "a1"));
+    ASSERT_STREQ ("a1", csoundGetVarSimpleName(csound, "[a]1"));
+    ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "StestString"));
+    ASSERT_STREQ ("StestString", csoundGetVarSimpleName(csound, "[S]testString"));
 }
 
 //void test_array_name_variable_clashing(void)

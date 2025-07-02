@@ -1,6 +1,5 @@
 /*
     ugrw1.h:
-
     Copyright (C) 1997 Robin Whittle
 
     This file is part of Csound.
@@ -43,6 +42,8 @@
  * clearly indicated as such.
  */
 
+#pragma once
+
 #include "csoundCore.h"
 
 /*
@@ -75,7 +76,7 @@ typedef struct {
                                  * length by tblwset() depending on ixmode.
                                  */
         int32    xbmul;          /* Internal variable for iwrap and igmode. */
-        int     iwgm;           /* Internal variable for offset. */
+        int32_t     iwgm;           /* Internal variable for offset. */
         MYFLT   offset;         /* Pointer to data structure used to access
                                  * function table. tblwset() writes this, based
                                  * on the value of xfn.
@@ -108,8 +109,8 @@ typedef struct {
 
         /* Storage to remember what the table numbers were from a previous k
            cycle, and to store pointers to their FUNC data structures. */
-        int     pdft;           /* Previous destination */
-        int     ps1ft, ps2ft;   /* source function table numbers. */
+        int32_t     pdft;           /* Previous destination */
+        int32_t     ps1ft, ps2ft;   /* source function table numbers. */
         FUNC    *funcd, *funcs1, *funcs2;
 } TABLEMIX;
 
@@ -122,8 +123,8 @@ typedef struct {
 
         /* Storage to remember what the table numbers were from a previous k
            cycle, and to store pointers to their FUNC data structures. */
-        int     pdft;           /* Previous destination */
-        int     psft;           /* source function table numbers. */
+        int32_t     pdft;           /* Previous destination */
+        int32_t     psft;           /* source function table numbers. */
         FUNC    *funcd, *funcs;
 } TABLECOPY;
 
@@ -168,7 +169,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *rslt;
-        int32    instartk;
+        uint64_t    instartk;
 } RDTIME;
 
 /*****************************************************************************/
@@ -182,7 +183,7 @@ typedef struct {
         MYFLT   *named;
         MYFLT   printat, ctime; /* Time when initialised; initialised */
         int32   pspace;         /* How many spaces to print */
-        int     initialised;    /* Non zero for initialised */
+        int32_t     initialised;    /* Non zero for initialised */
 } PRINTK;
 
 /* PRINTKS data structure for printks() and printksset()  */
@@ -192,7 +193,7 @@ typedef struct {
         MYFLT   *ptime;         /* How much time to leave between each print */
         MYFLT   *kvals[VARGMAX-2];/* values to print */
         MYFLT   printat, ctime; /* Time when initialised; Cycle time */
-        int     initialised;
+        int32_t     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
         char* old;
 } PRINTKS;
@@ -235,15 +236,15 @@ typedef struct {
         MYFLT   *dummy, dummy1;
 } IOZ;
 
-int instimek(CSOUND*,RDTIME *p);
-int instimes(CSOUND*,RDTIME *p);
-int instimset(CSOUND*,RDTIME *p);
+int32_t instimek(CSOUND*,RDTIME *p);
+int32_t instimes(CSOUND*,RDTIME *p);
+int32_t instimset(CSOUND*,RDTIME *p);
 
-int eventcycles(CSOUND*,RDTIME *p);
-int eventtime(CSOUND*,RDTIME *p);
+int32_t eventcycles(CSOUND*,RDTIME *p);
+int32_t eventtime(CSOUND*,RDTIME *p);
 
-int elapsedcycles(CSOUND*,RDTIME *p);
-int elapsedtime(CSOUND*,RDTIME *p);
+int32_t elapsedcycles(CSOUND*,RDTIME *p);
+int32_t elapsedtime(CSOUND*,RDTIME *p);
 
 
 //int itablecopy(CSOUND*,TABLECOPY *p);
@@ -253,20 +254,20 @@ int elapsedtime(CSOUND*,RDTIME *p);
 //int itablew(CSOUND*,TABLEW *p);
 //int ktablew(CSOUND*,TABLEW   *p);
 //int ktablewkt(CSOUND*,TABLEW *p);
-int peaka(CSOUND*,PEAK *p);
-int peakk(CSOUND*,PEAK *p);
-int printk(CSOUND*,PRINTK *p);
-int printk2(CSOUND*,PRINTK2 *p);
-int printk4(CSOUND*,PRINTK2 *p);
-int printk2set(CSOUND*,PRINTK2 *p);
-int printks(CSOUND*,PRINTKS *p);
-int printkset(CSOUND*,PRINTK *p);
-int printksset(CSOUND*,PRINTKS *p);
-int printksset_S(CSOUND*,PRINTKS *p);
-int printsset(CSOUND*,PRINTS *p);
-int printsset_S(CSOUND*,PRINTS *p);
-int printk3(CSOUND*,PRINTK3 *p);
-int printk3set(CSOUND*,PRINTK3 *p);
+int32_t peaka(CSOUND*,PEAK *p);
+int32_t peakk(CSOUND*,PEAK *p);
+int32_t printk(CSOUND*,PRINTK *p);
+int32_t printk2(CSOUND*,PRINTK2 *p);
+int32_t printk4(CSOUND*,PRINTK2 *p);
+int32_t printk2set(CSOUND*,PRINTK2 *p);
+int32_t printks(CSOUND*,PRINTKS *p);
+int32_t printkset(CSOUND*,PRINTK *p);
+int32_t printksset(CSOUND*,PRINTKS *p);
+int32_t printksset_S(CSOUND*,PRINTKS *p);
+int32_t printsset(CSOUND*,PRINTS *p);
+int32_t printsset_S(CSOUND*,PRINTS *p);
+int32_t printk3(CSOUND*,PRINTK3 *p);
+int32_t printk3set(CSOUND*,PRINTK3 *p);
 
 //int tablecopy(CSOUND*,TABLECOPY *p);
 //int tablecopyset(CSOUND*,TABLECOPY *p);
@@ -282,8 +283,8 @@ int printk3set(CSOUND*,PRINTK3 *p);
 //int tablewkt(CSOUND*,TABLEW *p);
 //int tblsetw(CSOUND*,TABLEW *p);
 //int tblsetwkt(CSOUND*,TABLEW *p);
-int timek(CSOUND*,RDTIME *p);
-int timesr(CSOUND*,RDTIME *p);
-int inz(CSOUND*,IOZ *p);
-int outz(CSOUND*,IOZ *p);
+int32_t timek(CSOUND*,RDTIME *p);
+int32_t timesr(CSOUND*,RDTIME *p);
+int32_t inz(CSOUND*,IOZ *p);
+int32_t outz(CSOUND*,IOZ *p);
 

@@ -68,13 +68,13 @@ typedef struct debug_instr_s {
     void *instrptr;
     MYFLT p1, p2, p3;
     uint64_t kcounter;
-    int line;
+    int32_t line;
     struct debug_instr_s *next;
 } debug_instr_t;
 
 typedef struct debug_opcode_s {
     char opname[16];
-    int line;
+    int32_t line;
     // TODO: Fill opcode linked list
     struct debug_opcode_s *next;
     struct debug_opcode_s *prev;
@@ -113,10 +113,10 @@ typedef enum {
 } debug_status_t;
 
 typedef struct bkpt_node_s {
-    int line; /* if line is < 0 breakpoint is for instrument instances */
+    int32_t line; /* if line is < 0 breakpoint is for instrument instances */
     MYFLT instr; /* instrument number (including fractional part */
-    int skip; /* number of times to skip when arriving at the breakpoint */
-    int count; /* current backwards count for skip, when 0 break */
+    int32_t skip; /* number of times to skip when arriving at the breakpoint */
+    int32_t count; /* current backwards count for skip, when 0 break */
     bkpt_mode_t mode;
     struct bkpt_node_s *next;
 } bkpt_node_t;
@@ -198,12 +198,12 @@ PUBLIC void csoundDebuggerClean(CSOUND *csound);
  * @param skip number of control blocks to skip
  *
 */
-PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int instr, int skip);
+PUBLIC void csoundSetBreakpoint(CSOUND *csound, int32_t line, int32_t instr, int32_t skip);
 
 /** Remove a previously set line breakpoint
  *
 */
-PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line, int instr);
+PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr);
 
 /** Set a breakpoint for an instrument number
  *
@@ -220,7 +220,7 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line, int instr);
  * @param instr instrument number
  * @param skip number of control blocks to skip
  */
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip);
+PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip);
 
 /** Remove instrument breakpoint
  *

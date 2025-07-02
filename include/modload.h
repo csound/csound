@@ -40,15 +40,15 @@ void on_load(Csound *);
 }
 
 extern "C" {
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   csnd::on_load((csnd::Csound *)csound);
   return 0;
 }

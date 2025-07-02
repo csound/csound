@@ -118,10 +118,10 @@ static int32_t pv_export(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t pv_export_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pv_export", pv_export);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "pv_export", pv_export);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "pv_export",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "pv_export",
                                       Str("translate PVOC analysis file "
                                           "to text form"));
     }

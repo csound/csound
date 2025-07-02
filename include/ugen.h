@@ -16,6 +16,8 @@
  * - context: required for things like hold, releasing, etc.
  * */
 
+#pragma once
+
 #include "csoundCore.h"
 #include <stdbool.h>
 
@@ -28,9 +30,9 @@ typedef struct {
   OPDS* opds;
   CS_VAR_POOL* inPool;
   CS_VAR_POOL* outPool;
-  int inPoolCount;
-  int outPoolCount;
-  int inocount;
+  int32_t inPoolCount;
+  int32_t outPoolCount;
+  int32_t inocount;
 } UGEN;
 
 typedef struct {
@@ -64,13 +66,13 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
  * TODO - consider using CS_VARIABLE instead of void* so that 
  * type check can happen here.
  * */
-PUBLIC bool ugen_set_output(UGEN* ugen, int index, void* arg);
+PUBLIC bool ugen_set_output(UGEN* ugen, int32_t index, void* arg);
 
 /** Set input argument pointer for opcode's data struct by index. 
  * TODO - consider using CS_VARIABLE instead of void* so that 
  * type check can happen here.
  * */
-PUBLIC bool ugen_set_input(UGEN* ugen, int index, void* arg);
+PUBLIC bool ugen_set_input(UGEN* ugen, int32_t index, void* arg);
 
 /** Set value for output argument for opcode's data struct by index. Assumes UGEN arguments are not set by reference. 
  * 
@@ -78,20 +80,20 @@ PUBLIC bool ugen_set_input(UGEN* ugen, int index, void* arg);
  * type check can happen here. Also, would provide hook to use
  * CS_TYPE's copyValue function.
  */
-PUBLIC bool ugen_set_output_value(UGEN* ugen, int index, void* arg);
+PUBLIC bool ugen_set_output_value(UGEN* ugen, int32_t index, void* arg);
 
 /** Set value for input argument for opcode's data struct by index. Assumes UGEN arguments are not set by reference. 
  *
  * TODO - consider using CS_VARIABLE instead of void* so that 
  * type check can happen here.
  * */
-PUBLIC bool ugen_set_input_value(UGEN* ugen, int index, void* arg);
+PUBLIC bool ugen_set_input_value(UGEN* ugen, int32_t index, void* arg);
 
 /** Run the init-pass for the opcode instance held in UGEN. */
-PUBLIC int ugen_init(UGEN* ugen);
+PUBLIC int32_t ugen_init(UGEN* ugen);
 
 /** Run the perf-pass for the opcode instance held in UGEN. */
-PUBLIC int ugen_perform(UGEN* ugen);
+PUBLIC int32_t ugen_perform(UGEN* ugen);
 
 /** Delets the opcode instance held in UGEN. */
 PUBLIC bool ugen_delete(UGEN* ugen);

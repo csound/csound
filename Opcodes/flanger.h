@@ -21,9 +21,11 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *asig, *xdel, *kfeedback, *maxd;
+        MYFLT   *ar, *asig, *xdel, *kfeedback, *maxd, *iskip;
         MYFLT   yt1; /* filter instance variables */
         AUXCH   aux;  /* delay instance variables */
         int32   left;
