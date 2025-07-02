@@ -25,8 +25,11 @@
  Modified from http://www.davekoelle.com/files/alphanum.hpp
 
 */
-
-
-int alphanum_cmp(const char *l, const char *r);
+#if defined(HAVE_STDINT_H)
+#  include <stdint.h>
+#else
+typedef int int32_t;
+#endif
+int32_t alphanum_cmp(const char *l, const char *r);
 
 #endif  // __ALPHANUMCMP_H__

@@ -39,7 +39,7 @@ typedef void (*sighandler_t)(int);
 
 sigjmp_buf env;
 
-void handler(int sig)
+void handler(int32_t sig)
 {
     siglongjmp(env, 1);
 }
@@ -48,13 +48,13 @@ void handler(int sig)
 
 #define DIRSEP '\\'
 
-int csOpenLibrary(void **library, const char *libraryPath)
+int32_t csOpenLibrary(void **library, const char *libraryPath)
 {
     *library = (void*) LoadLibrary(libraryPath);
     return (*library != NULL ? 0 : -1);
 }
 
-int csCloseLibrary(void *library)
+int32_t csCloseLibrary(void *library)
 {
     return (int) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
 }
@@ -64,15 +64,15 @@ void *csGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif  (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 #define DIRSEP '/'
 
-int csOpenLibrary(void **library, const char *libraryPath)
+int32_t csOpenLibrary(void **library, const char *libraryPath)
 {
-    int flg = RTLD_NOW;
+    int32_t flg = RTLD_NOW;
     if (libraryPath != NULL) {
-      int len = (int) strlen(libraryPath);
+      int32_t len = (int) strlen(libraryPath);
       /* ugly hack to fix importing modules in Python opcodes */
       if (len >= 9 && strcmp(&(libraryPath[len - 9]), "/libpy.so") == 0)
         flg |= RTLD_GLOBAL;
@@ -83,7 +83,7 @@ int csOpenLibrary(void **library, const char *libraryPath)
     return (*library != NULL ? 0 : -1);
 }
 
-int csCloseLibrary(void *library)
+int32_t csCloseLibrary(void *library)
 {
     return (int) dlclose(library);
 }
@@ -95,13 +95,13 @@ void *csGetLibrarySymbol(void *library, const char *procedureName)
 
 #else /* case for platforms without shared libraries -- added 062404, akozar */
 
-int csOpenLibrary(void **library, const char *libraryPath)
+int32_t csOpenLibrary(void **library, const char *libraryPath)
 {
     *library = NULL;
     return -1;
 }
 
-int csCloseLibrary(void *library)
+int32_t csCloseLibrary(void *library)
 {
     return 0;
 }
@@ -118,31 +118,30 @@ typedef struct oentry {
         char    *opname;
         uint16_t dsblksiz;
         uint16_t flags;
-        uint8_t thread;
         char    *outypes;
         char    *intypes;
-        int     (*iopadr)(void *, void *p);
-        int     (*kopadr)(void *, void *p);
-        int     (*aopadr)(void *, void *p);
+        int32_t     (*init)(void *, void *p);
+        int32_t     (*perf)(void *, void *p);
+        int32_t     (*deinit)(void *, void *p);
         void    *useropinfo;    /* user opcode parameters */
 } OENTRY;
 
-typedef int (*SUBR)(void *, void *);
+typedef int32_t (*SUBR)(void *, void *);
 
 typedef struct _cs {
     SUBR dummy[190];
-  int (*AppendOpcode)(void *, char *);
-  int (*AppendOpcodes)(void *, OENTRY *, int);
+  int32_t (*AppendOpcode)(void *, char *);
+  int32_t (*AppendOpcodes)(void *, OENTRY *, int);
       } CS;
 
 char *gfname;                   /* Global so can be printed in fn below */
 
-int csAppendOpcode(void *cs, char* op)
+int32_t csAppendOpcode(void *cs, char* op)
 {
     printf("Opcode %s in %s\n", op, gfname);
 }
 
-int csAppendOpcodes(void *cs, OENTRY *o, int n)
+int32_t csAppendOpcodes(void *cs, OENTRY *o, int32_t n)
 {
     while (n>0) {
       csAppendOpcode(cs, o->opname);
@@ -154,11 +153,11 @@ int csAppendOpcodes(void *cs, OENTRY *o, int n)
 /* load a single plugin library, and run csModuleCreate() if present */
 /* returns zero on success */
 
-static int csLoadExternal(const char *libraryPath)
+static int32_t csLoadExternal(const char *libraryPath)
 {
     char            *fname;
     void            *h, *p;
-    int             err;
+    int32_t             err;
     OENTRY          *O;
     long (*opcode_init)(void *, OENTRY **);
 
@@ -177,7 +176,7 @@ static int csLoadExternal(const char *libraryPath)
     printf("Library '%s'\n", libraryPath);
     err = csOpenLibrary(&h, libraryPath);
     if (err) {
- #if !(defined(NACL)) && (defined(LINUX) || defined(__HAIKU__))
+ #if (defined(LINUX) || defined(__HAIKU__))
       fprintf(stderr, "could not open library '%s' (%s)\n",
                libraryPath, dlerror());
  #else
@@ -198,10 +197,10 @@ static int csLoadExternal(const char *libraryPath)
       }
     }
     else {                      /* Could be C++ type.... */
-      int (*init_func)(void *);
+      int32_t (*init_func)(void *);
       CS cs;
       //printf("no init\n");
-      init_func = (int (*)(void*))csGetLibrarySymbol(h, "csoundModuleInit");
+      init_func = (int32_t (*)(void*))csGetLibrarySymbol(h, "csoundModuleInit");
       if (init_func == NULL)  return 4;
       // printf("Possibly C++ linkage\n");
       // We may be able to call this with a dummy argument to give access
@@ -219,9 +218,9 @@ static int csLoadExternal(const char *libraryPath)
     return 0;
 }
 
-int main(int argc, char**argv)
+int32_t main(int32_t argc, char**argv)
 {
-    int i = 1;
+    int32_t i = 1;
     signal(SIGSEGV, handler);
     while (argc>1) {
       // This needs protection

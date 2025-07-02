@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #define MAXVOICE 128
 
 typedef struct {

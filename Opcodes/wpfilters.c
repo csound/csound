@@ -63,7 +63,7 @@ static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -139,7 +139,7 @@ static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
     int32_t mode = MYFLT2LONG(*p->mode);
@@ -235,7 +235,7 @@ static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -333,7 +333,7 @@ static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -458,7 +458,7 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -625,7 +625,7 @@ static int32_t diode_ladder_perf(CSOUND* csound,
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -815,7 +815,7 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -954,7 +954,7 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -1057,21 +1057,21 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
 static OENTRY wpfilters_localops[] =
   {
-   { "zdf_1pole", sizeof(ZDF_1POLE), 0,3,"a","axOo",
+   { "zdf_1pole", sizeof(ZDF_1POLE), 0,"a","axOo",
       (SUBR)zdf_1pole_init,(SUBR)zdf_1pole_perf},
-   { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,3,"aa","axo",
+   { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,"aa","axo",
       (SUBR)zdf_1pole_mode_init,(SUBR)zdf_1pole_mode_perf},
-   { "zdf_2pole", sizeof(ZDF_2POLE), 0,3,"a","axxOo",
+   { "zdf_2pole", sizeof(ZDF_2POLE), 0,"a","axxOo",
       (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf},
-   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
+   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,"aaa","axxo",
       (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf},
-   { "zdf_ladder", sizeof(ZDF_LADDER), 0,3,"a","axxo",
+   { "zdf_ladder", sizeof(ZDF_LADDER), 0,"a","axxo",
       (SUBR)zdf_ladder_init,(SUBR)zdf_ladder_perf},
-   { "diode_ladder", sizeof(DIODE_LADDER), 0,3,"a","axxOPo",
+   { "diode_ladder", sizeof(DIODE_LADDER), 0,"a","axxOPo",
       (SUBR)diode_ladder_init,(SUBR)diode_ladder_perf},
-   { "K35_lpf", sizeof(K35_LPF), 0,3,"a","axxOPo",
+   { "K35_lpf", sizeof(K35_LPF), 0,"a","axxOPo",
       (SUBR)k35_lpf_init,(SUBR)k35_lpf_perf},
-   { "K35_hpf", sizeof(K35_LPF), 0,3,"a","axxOPo",(SUBR)
+   { "K35_hpf", sizeof(K35_LPF), 0,"a","axxOPo",(SUBR)
       k35_hpf_init,(SUBR)k35_hpf_perf},
   };
 

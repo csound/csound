@@ -24,7 +24,13 @@
     02110-1301 USA
 */
 
-#include <csdl.h>
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#include "interlocks.h"
+#endif
+
 #include <math.h>
 
 /*  Wave-terrain synthesis opcode
@@ -174,13 +180,13 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 
     if (*(p->ktabx) != p->oldfnx || p->xarr == NULL) {
       p->oldfnx = *(p->ktabx);
-      FUNC *ftp = csound->FTFindP(csound, p->ktabx);    /* new table parameters */
+      FUNC *ftp = csound->FTFind(csound, p->ktabx);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->xarr = ftp->ftable) == NULL))) return NOTOK;
       p->sizx = (MYFLT)ftp->flen;
     }
     if (*(p->ktaby) != p->oldfny || p->yarr == NULL) {
       p->oldfny = *(p->ktaby);
-      FUNC *ftp = csound->FTFindP(csound, p->ktaby);    /* new table parameters */
+      FUNC *ftp = csound->FTFind(csound, p->ktaby);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->yarr = ftp->ftable) == NULL))) return NOTOK;
       p->sizy = (MYFLT)ftp->flen;
     }
@@ -215,7 +221,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
       aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
 
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
-      theta += pch*((period*TWOPI_F) / csound->GetSr(csound));
+      theta += pch*((period*TWOPI_F) / CS_ESR);
     }
 
     p->theta = theta;
@@ -225,7 +231,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 #define S(x)    sizeof(x)
 
 static OENTRY wter_localops[] = {
-  { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk",
+  { "wterrain2", S(WAVETER), TR,   "a", "kkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 

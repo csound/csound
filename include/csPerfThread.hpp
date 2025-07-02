@@ -52,9 +52,9 @@ class CsPerfThread_PerformScore;
 #include "csound.hpp"
 #include "csPerfThread.hpp"
 
-int main(int argc, char *argv[])
+int32_t main(int32_t argc, char *argv[])
 {
- int result=0;
+ int32_t result=0;
  Csound cs;
  result = cs.Compile(argc,argv);
 
@@ -99,14 +99,6 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-
-#ifdef SWIGPYTHON
-struct PUBLIC pycallbackdata {
-  PyObject *func;
-  PyObject *data;
-};
-#endif
-
 typedef struct {
     void *cbuf;
     void *sfile;
@@ -114,6 +106,8 @@ typedef struct {
     bool running;
     void* condvar;
     void* mutex;
+    char *sfname;
+    CSOUND *csound;
 } recordData_t;
 
 class PUBLIC CsoundPerformanceThread {
@@ -126,13 +120,13 @@ class PUBLIC CsoundPerformanceThread {
     void    *flushLock;
     void    *recordLock;
     void    *perfThread;
-    int     paused;
-    int     status;
+    int32_t     paused;
+    int32_t     status;
     void    *cdata;
     recordData_t recordData;
-    int  running;
+    int32_t  running;
     void (*processcallback)(void *cdata);
-    int  Perform();
+    int32_t  Perform();
     void csPerfThread_constructor(CSOUND *);
     void QueueMessage(CsoundPerformanceThreadMessage *);
  public:
@@ -143,7 +137,7 @@ class PUBLIC CsoundPerformanceThread {
   /**
    * Returns 1 if the performance thread is running, 0 otherwise
    */
-  int isRunning() { return running;}
+  int32_t IsRunning() { return running;}
 
   /**
   * Returns the process callback as a void pointer
@@ -169,7 +163,7 @@ class PUBLIC CsoundPerformanceThread {
      * the end of score was reached or performance was stopped, and
      * negative if an error occured.
      */
-    int GetStatus()
+    int32_t GetStatus()
     {
       return status;
     }
@@ -194,7 +188,7 @@ class PUBLIC CsoundPerformanceThread {
      * Starts recording the output from Csound. The sample rate and number
      * of channels are taken directly from the running Csound instance.
      */
-    void Record(std::string filename, int samplebits = 16, int numbufs = 4);
+    void Record(std::string filename, int32_t samplebits = 16, int32_t numbufs = 4);
     /**
      * Stops recording and closes audio file.
      */
@@ -205,7 +199,7 @@ class PUBLIC CsoundPerformanceThread {
      * the start time of the event is measured from the beginning of
      * performance, instead of the default of relative to the current time.
      */
-    void ScoreEvent(int absp2mode, char opcod, int pcnt, const MYFLT *p);
+    void ScoreEvent(int32_t absp2mode, char opcod, int32_t pcnt, const MYFLT *p);
     /**
      * Sends a score event as a string, similarly to line events (-L).
      */
@@ -220,7 +214,24 @@ class PUBLIC CsoundPerformanceThread {
      * and a negative value if an error occured. Also releases any resources
      * associated with the performance thread object.
      */
-    int Join();
+     
+    void CompileOrc(const char *code);
+    /**
+     * Compiles the given orchestra code
+     */
+    
+    void EvalCode(const char *code, void (*returncb)(MYFLT));
+    /**
+     * Evaluates the given code, calls the `returncb` callback with the 
+     * value passed to the `return` opcode in global space. 
+     */
+     
+    void RequestCallback(void (*func)(CsoundPerformanceThread *));
+    /**
+     * Calls the given callback within the context of the performance thread
+     */
+    
+    int32_t Join();
     /**
      * Waits until all pending messages (pause, send score event, etc.)
      * are actually received by the performance thread.
@@ -228,6 +239,7 @@ class PUBLIC CsoundPerformanceThread {
     void FlushMessageQueue();
     // --------
     CsoundPerformanceThread(Csound *);
+    CsoundPerformanceThread(Csound &);
     CsoundPerformanceThread(CSOUND *);
     ~CsoundPerformanceThread();
     // --------

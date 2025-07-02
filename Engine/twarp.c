@@ -30,7 +30,7 @@ typedef struct {
     MYFLT   timbas;
 } TSEG;
 
-int     realtset(CSOUND *, SRTBLK *);
+int32_t     realtset(CSOUND *, SRTBLK *);
 MYFLT   realt(CSOUND *, MYFLT);
 
 void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
@@ -38,7 +38,7 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
     SRTBLK  *bp;
     MYFLT   absp3;
     MYFLT   endtime;
-    int     negp3;
+    int32_t     negp3;
 
     if (UNLIKELY((bp = csound->frstbp) == NULL))      /* if null file,         */
       return;
@@ -90,7 +90,7 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
     } while ((bp = bp->nxtblk) != NULL);
 }
 
-int realtset(CSOUND *csound, SRTBLK *bp)
+int32_t realtset(CSOUND *csound, SRTBLK *bp)
 {
     char    *p;
     char    c;

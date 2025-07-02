@@ -33,21 +33,21 @@
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csound->Rand31(csound->RandSeed1(csound)) - 1) / FL(2147483645.0);
     return (x * a);
 }
 
 static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    */
 {
     FUNC        *gftp, *eftp;
-    int32        bufsize;
+    size_t        bufsize;
     MYFLT       *d;
 
-    if (LIKELY((gftp = csound->FTnp2Finde(csound, p->igfn)) != NULL))
+    if (LIKELY((gftp = csound->FTFind(csound, p->igfn)) != NULL))
       p->gftp = gftp;
     else return NOTOK;
 
-    if (LIKELY((eftp = csound->FTnp2Finde(csound, p->iefn)) != NULL))
+    if (LIKELY((eftp = csound->FTFind(csound, p->iefn)) != NULL))
       p->eftp = eftp;
     else return NOTOK;
 
@@ -74,7 +74,7 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     return OK;
 }
 
-static inline unsigned int ISPOW2(unsigned int x) {
+static inline uint32_t ISPOW2(uint32_t x) {
   return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 
@@ -93,23 +93,23 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     MYFLT       gcount = p->gcount;
     uint32_t elen, glen;
     MYFLT gcvt, ecvt, einc;
-    int pow2tab;
+    int32_t pow2tab;
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     if (UNLIKELY(kglen<=FL(0.0)))
       return csound->PerfError(csound, &(p->h),
-                               Str("grain: grain length zero"));
+                               "%s", Str("grain: grain length zero"));
     gtp  = p->gftp;
     gtbl = gtp->ftable;
     glen = gtp->flen;
-    gcvt = glen/csound->GetSr(csound);
+    gcvt = glen/CS_ESR;
 
     pow2tab = ISPOW2(glen);
 
     etp  = p->eftp;
     etbl = etp->ftable;
     elen = etp->flen;
-    ecvt = elen/csound->GetSr(csound);
+    ecvt = elen/CS_ESR;
 
     lb   = gtp->lobits;
     lb2  = etp->lobits;
@@ -122,7 +122,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
     ekglen  = (int32)(CS_ESR * kglen);   /* Useful constant */
-    inc2    = (int32)(csound->sicvt / kglen); /* Constant for each cycle */
+    inc2    = (int32)(CS_SICVT / kglen); /* Constant for each cycle */
     einc =  (1./kglen) * ecvt;
     bufsize = CS_KSMPS + ekglen;
     xdns    = p->xdns;
@@ -146,7 +146,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
         isc2 = 0;
         if(pow2tab) {
           /* VL 21/11/18 original code, fixed-point indexing */
-        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
+        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * CS_SICVT);
         do {
           *temp++ += amp  * *(gtbl + (isc >> lb)) *
                      *(etbl + (isc2 >> lb2));
@@ -172,7 +172,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
         }
       }
       xdns += p->dnsadv;
-      gcount += *xdns * csound->onedsr;
+      gcount += *xdns * CS_ONEDSR;
       xamp += p->ampadv;
       xlfr += p->lfradv;
     }
@@ -189,14 +189,14 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("grain: not initialised"));
+                             "%s", Str("grain: not initialised"));
 }
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
-   { "grain", S(PGRA),  TR, 3,   "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
+   { "grain", S(PGRA),  TR,    "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
   };
 
 int32_t grain_init_(CSOUND *csound)

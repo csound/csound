@@ -117,10 +117,10 @@ static int32_t het_import(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t het_import_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "het_import", het_import);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "het_import", het_import);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "het_import",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "het_import",
                                       Str("translate text form to "
                                           "hetro analysis file"));
     }

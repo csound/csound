@@ -124,7 +124,7 @@ NM              [nm][ \t]+
                                        yyscanner);
 #if 0
                   if (PARM->isString==0) {
-                    sprintf(bb, "#sline %d ", csound_prsget_lineno(yyscanner));
+                    snprintf(bb, 80, "#sline %d ", csound_prsget_lineno(yyscanner));
                     corfile_puts(csound, bb, PARM->cf);
                   }
 #endif
@@ -783,6 +783,8 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    // this inserts a new line in included score to avoid lexer crash
+    strcat(cf->body, "\n");
     csound_prs_scan_string(cf->body, yyscanner);
     corfile_rm(csound, &cf);
     csound->DebugMsg(csound,"Set line number to 1\n");
@@ -991,7 +993,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       if (UNLIKELY(c == EOF || c=='\0'))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
-        int n = strlen(name0)+4;
+        int n = (int32_t) strlen(name0)+4;
         if (UNLIKELY(i+n >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
           if (UNLIKELY(mm->body == NULL)) {
@@ -1826,7 +1828,7 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
       csound->LongJmp(csound, 1);
     }
     PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
-    csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n",
+    csound->DebugMsg(csound,"csound-prs(%d): loc=%llu ; lastloc=%llu\n",
                      __LINE__, PARM->llocn, PARM->locn);
     if ( !YY_CURRENT_BUFFER ) return 0;
     csound->DebugMsg(csound,"End of input; popping to %p\n",

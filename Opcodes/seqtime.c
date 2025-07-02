@@ -50,9 +50,9 @@ static int32_t seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
     int32 start, loop;
     int32 *ndx = &p->ndx;
     p->pfn = (int32) *p->kfn;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL)) {
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
       return csound->InitError(csound,
-                               Str("seqtime: incorrect table number"));
+                               "%s", Str("seqtime: incorrect table number"));
     }
     *ndx = (int32) *p->initndx;
     p->done = 0;
@@ -90,7 +90,7 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
       int32 *ndx = &p->ndx;
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
-        if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL)) goto err1;
+        if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) goto err1;
         p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
@@ -144,7 +144,7 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("seqtime: incorrect table number"));
+                             "%s", Str("seqtime: incorrect table number"));
 }
 
 /**---------------------------------------**/
@@ -155,8 +155,8 @@ static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
     int32 start, loop;
     int32 *ndx = &p->ndx;
     p->pfn = (int32) *p->kfn;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL)) {
-      return csound->InitError(csound, Str("seqtim: incorrect table number"));
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->kfn)) == NULL)) {
+      return csound->InitError(csound, "%s", Str("seqtim: incorrect table number"));
     }
     *ndx = (int32) *p->kinitndx;
     p->done=0;
@@ -197,7 +197,7 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
 
       if (p->pfn != (int32)*p->kfn) {
         FUNC *ftp;
-        if (UNLIKELY( (ftp = csound->FTFindP(csound, p->kfn) ) == NULL)) goto err1;
+        if (UNLIKELY( (ftp = csound->FTFind(csound, p->kfn) ) == NULL)) goto err1;
         p->pfn = (int32)*p->kfn;
         p->table = ftp->ftable;
       }
@@ -250,14 +250,14 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("seqtim: incorrect table number"));
+                             "%s", Str("seqtim: incorrect table number"));
 }
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "seqtime", S(SEQTIM),  TR, 3, "k",    "kkkkk", (SUBR)seqtim_set, (SUBR)seqtim   },
-{ "seqtime2", S(SEQTIM2),TR, 3, "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
+{ "seqtime", S(SEQTIM),  TR,  "k",    "kkkkk", (SUBR)seqtim_set, (SUBR)seqtim   },
+{ "seqtime2", S(SEQTIM2),TR,  "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
 };
 
 int32_t seqtime_init_(CSOUND *csound)

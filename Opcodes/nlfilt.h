@@ -22,6 +22,8 @@
 */
 
                         /* Structure for Dobson/Fitch nonlinear filter */
+#pragma once
+
 typedef struct  {
         OPDS    h;
         MYFLT   *ar, *in, *a, *b, *d, *C, *L;   /* The parameter */

@@ -1,32 +1,37 @@
-/* 
- 
+/*
+
  CsoundBinding.java:
- 
+
  Copyright (C) 2011 Victor Lazzarini, Steven Yi
- 
+
  This file is part of Csound Android Examples.
- 
+
  The Csound Android Examples is free software; you can redistribute it
  and/or modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.   
- 
+ version 2.1 of the License, or (at your option) any later version.
+
  Csound is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  02111-1307 USA
- 
+
  */
 
 package com.csounds;
 
+import java.io.File;
+import java.util.ArrayList;
+
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
+import android.media.AudioAttributes;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
@@ -35,14 +40,11 @@ import android.webkit.JavascriptInterface;
 
 import com.csounds.bindings.CsoundBinding;
 
-import java.io.File;
-import java.util.ArrayList;
-
-import csnd6.AndroidCsound;
-import csnd6.Csound;
-import csnd6.CsoundCallbackWrapper;
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
+import csnd7.AndroidCsound;
+import csnd7.Csound;
+import csnd7.CsoundCallbackWrapper;
+import csnd7.CsoundMYFLTArray;
+import csnd7.controlChannelType;
 
 public class CsoundObj {
 	/** Used to post Csound runtime messages to the host. */
@@ -53,6 +55,7 @@ public class CsoundObj {
 		/** Append the message to the message display. */
 		public void postMessage(String message);
 	};
+
 	private Csound csound;
 	private ArrayList<CsoundBinding> bindings;
 	private ArrayList<CsoundObjListener> listeners;
@@ -62,7 +65,7 @@ public class CsoundObj {
 	private Thread thread;
 	private boolean audioInEnabled = false;
 	private boolean messageLoggingEnabled = false;
-	private boolean useAudioTrack = false;
+
 	int retVal = 0;
 	private boolean pause = false;
 	private CsoundCallbackWrapper callbacks;
@@ -76,7 +79,7 @@ public class CsoundObj {
 	public CsoundObj() {
 		this(false);
 	}
-	
+
 	public CsoundObj(boolean useAudioTrack){
 		  this(useAudioTrack,true);
 	}
@@ -85,9 +88,8 @@ public class CsoundObj {
 		bindings = new ArrayList<CsoundBinding>();
 		listeners = new ArrayList<CsoundObjListener>();
 		scoreMessages = new ArrayList<String>();
-		this.useAudioTrack = useAudioTrack;
         this.isAsync = isAsync;
-        
+
 		if (useAudioTrack) {
 			// Log.d("CsoundObj", "audio track");
 			csound = new Csound();
@@ -148,7 +150,7 @@ public class CsoundObj {
 			String message = new String(mess);
 			scoreMessages.add(message);
 		}
-		} else csound.InputMessage(mess);
+		} else csound.EventString(mess);
 	}
 
 	public/* synchronized */void removeBinding(CsoundBinding binding) {
@@ -165,10 +167,10 @@ public class CsoundObj {
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
 
 		getCsound().GetChannelPtr(
-				ptr.GetPtr(),
+				ptr.GetVoidPtr(),
 				channelName,
 				channelType.swigValue()
-						| controlChannelType.CSOUND_INPUT_CHANNEL.swigValue());
+                          | controlChannelType.CSOUND_INPUT_CHANNEL.swigValue());
 		return ptr;
 	}
 
@@ -179,7 +181,7 @@ public class CsoundObj {
 		CsoundMYFLTArray ptr = new CsoundMYFLTArray(channelSize);
 
 		getCsound().GetChannelPtr(
-				ptr.GetPtr(),
+				ptr.GetVoidPtr(),
 				channelName,
 				channelType.swigValue()
 						| controlChannelType.CSOUND_OUTPUT_CHANNEL.swigValue());
@@ -194,12 +196,13 @@ public class CsoundObj {
 		sendScore(score);
 	}
 
-    public void compileCsdText(String csd_text) {
-        csound.CompileCsdText(csd_text);
+   	public void compileCsdText(String csd_text) {
+            csound.CompileCSD(csd_text, 1);
     }
+
     public void updateOrchestra(String orchestraString) {
-        csound.CompileOrc(orchestraString);
-    }
+		csound.CompileOrc(orchestraString);
+    	}
 
 	public void compileOrc(String orchestraString) {
 		csound.CompileOrc(orchestraString);
@@ -216,23 +219,29 @@ public class CsoundObj {
 			listeners.remove(listener);
 		}
 	}
-	
-	public void startCsound(final File csdFile) {
+
+	public void startCsound(final File csdFile, Context ctx) {
 		stopped = false;
 		thread = new Thread() {
 			public void run() {
 				setPriority(Thread.MAX_PRIORITY);
-				if (useAudioTrack == false) {
-					// Log.d("CsoundObj", "USING OPENSL");
-					runCsoundOpenSL(csdFile);
-				} else {
 					// Log.d("CsoundObj", "USING AUDIO TRACK");
-					runCsoundAudioTrack(csdFile);
-				}
+                runCsoundAudioTrack(csdFile,ctx);
 			}
 		};
 		thread.start();
 	}
+
+    public void startCsound(final File csdFile) {
+        stopped = false;
+        thread = new Thread() {
+            public void run() {
+                setPriority(Thread.MAX_PRIORITY);
+                runCsoundOpenSL(csdFile);
+                }
+        };
+        thread.start();
+    }
 
 	public void togglePause() {
 		pause = !pause;
@@ -260,12 +269,12 @@ public class CsoundObj {
 				e.printStackTrace();
 			}
 		}
-	 } 
- 
+	 }
+
 	public boolean getAsyncStatus() { return isAsync; }
 
 	public int getNumChannels() {
-		return csound.GetNchnls();
+		return csound.GetChannels();
 	}
 
 	public int getKsmps() {
@@ -275,11 +284,6 @@ public class CsoundObj {
 	public int getError() {
 		return retVal;
 	}
-
-    @JavascriptInterface
-    public int SetOption(String option) {
-        return csound.SetOption(option);
-    }
 
 	/* Render Methods */
 
@@ -300,12 +304,9 @@ public class CsoundObj {
 			callbacks.SetMessageCallback();
 		}
 		if(!isAsync) this.pause();
-		if(f.getAbsolutePath().toLowerCase().endsWith(".csd")) {
-			retVal = csound.Compile(f.getAbsolutePath());
-		} else {
-            csound.SetOption("-odac");
-			retVal = csound.Start();
-		}
+		retVal = csound.Compile(f.getAbsolutePath());
+                if(retVal == 0)
+                    retVal = csound.Start();
 		Log.d("CsoundObj", "Return Value2: " + retVal);
 		if (retVal == 0) {
 			for (int i = 0; i < bindings.size(); i++) {
@@ -322,6 +323,7 @@ public class CsoundObj {
 				CsoundObjListener listener = listeners.get(i);
 				listener.csoundObjStarted(this);
 			}
+
 			startTime = System.nanoTime()*1.0e-6;
 			//double tmptime = startTime;
 			if(!isAsync) this.play();
@@ -331,12 +333,8 @@ public class CsoundObj {
             	 ret = csound.PerformKsmps();
             	 if(ret != 0) break;
     			 stime += csound.GetKsmps();
-    		     
+
     			 systime = System.nanoTime()*1.0e-6;
-    	         //Log.d("CsoundObj", "java time:" + (systime - startTime));
-    	         //Log.d("CsoundObj", "java diff:" + (systime - tmptime));
-    	         //tmptime = systime;
-    	       
     				synchronized (mLock) {
     					CsoundBinding cacheable;
     					String mess;
@@ -346,7 +344,7 @@ public class CsoundObj {
     					}
     					for (int i = 0; i < scoreMessages.size(); i++) {
     						mess = scoreMessages.get(i);
-    						csound.InputMessage(mess);
+    						csound.EventString(mess);
     					}
     					scoreMessages.clear();
     					for (int i = 0; i < bindings.size(); i++) {
@@ -367,21 +365,19 @@ public class CsoundObj {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-            	 
+
              }
 			}
 			if (!isAsync) {
-				csound.InputMessage("e 0");
+				csound.EventString("e 0");
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
-			//csound.Stop();
-			//csound.Cleanup();
 			csound.Reset();
-			
+
 			synchronized (mLock) {
 				for (int i = 0; i < bindings.size(); i++) {
 					CsoundBinding cacheable = bindings.get(i);
@@ -404,8 +400,9 @@ public class CsoundObj {
 		Log.d("CsoundObj", "THREAD END");
 	}
 
-	private void runCsoundAudioTrack(File f) {
-		csound.SetHostImplementedAudioIO(1, 0);
+
+    private void runCsoundAudioTrack(File f, Context ctx) {
+		csound.SetHostAudioIO();
 
 		if (messageLoggingEnabled) {
 			callbacks = new CsoundCallbackWrapper(csound) {
@@ -429,10 +426,20 @@ public class CsoundObj {
 					cacheable.setup(this);
 				}
 			}
-			int channelConfig = (csound.GetNchnls() == 2) ? AudioFormat.CHANNEL_OUT_STEREO
+                        int channelConfig = (csound.GetChannels() == 2) ? AudioFormat.CHANNEL_OUT_STEREO
 					: AudioFormat.CHANNEL_OUT_MONO;
+                        int channelInConfig = AudioFormat.CHANNEL_IN_MONO;
+                        AudioManager audioManager = (AudioManager) ctx.getSystemService(Context.AUDIO_SERVICE);
+                        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build();
+                        AudioFormat audioFormat = new AudioFormat.Builder()
+                            .setSampleRate((int) csound.GetSr())
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setChannelMask(channelConfig)
+                            .build();
 
-			int channelInConfig = AudioFormat.CHANNEL_IN_MONO;
 
 			int minSize = AudioTrack.getMinBufferSize((int) csound.GetSr(),
 					channelConfig, AudioFormat.ENCODING_PCM_16BIT);
@@ -444,17 +451,24 @@ public class CsoundObj {
 				minSize = (minSize > recordMinSize) ? minSize : recordMinSize;
 			}
 
-			AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-					(int) csound.GetSr(), channelConfig,
-					AudioFormat.ENCODING_PCM_16BIT, minSize,
-					AudioTrack.MODE_STREAM);
+			//AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+			//		(int) csound.GetSr(), channelConfig,
+			//		AudioFormat.ENCODING_PCM_16BIT, minSize,
+			//		AudioTrack.MODE_STREAM);
+
+
+                        AudioTrack audioTrack = new AudioTrack(audioAttributes,
+                                                               audioFormat,
+                                                               minSize*2,
+                                                               AudioTrack.MODE_STREAM,
+                                                               0);
+
 			Log.d("CsoundObj", "Buffer Size: " + minSize);
 
 			AudioRecord audioRecord = null;
 			CsoundMYFLTArray audioIn = null;
 
 			if (audioInEnabled) {
-
 				audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
 						(int) csound.GetSr(), channelInConfig,
 						AudioFormat.ENCODING_PCM_16BIT, minSize);
@@ -484,10 +498,12 @@ public class CsoundObj {
 			}
 			audioTrack.play();
 			int counter = 0;
-			int nchnls = csound.GetNchnls();
+			int nchnls = csound.GetChannels();
 			int recBufferSize = csound.GetKsmps();
 			int bufferSize = recBufferSize * nchnls;
 			short[] samples = new short[bufferSize];
+                        CsoundMYFLTArray spout = new CsoundMYFLTArray();
+                        spout.SetConstPtr(csound.GetSpout());
 			float multiplier = (float) (Short.MAX_VALUE / csound.Get0dBFS());
 			float recMultiplier = 1 / multiplier;
 			Log.d("CsoundObj", "Multiplier: " + multiplier + " : "
@@ -512,11 +528,10 @@ public class CsoundObj {
 				}
 			}
 			while (csound.PerformKsmps() == 0 && !stopped) {
-				for (int i = 0; i < csound.GetKsmps(); i++) {
-					samples[counter++] = (short) (csound.GetSpoutSample(i, 0) * multiplier);
+                            for (int i = 0, j = 0; i < csound.GetKsmps(); i++, j += nchnls) {
+					samples[counter++] = (short) (spout.GetConstValue(j) * multiplier);
 					if (nchnls > 1) {
-						samples[counter++] = (short) (csound.GetSpoutSample(i,
-								1) * multiplier);
+						samples[counter++] = (short) (spout.GetConstValue(j+1) * multiplier);
 					}
 				}
 				if (counter >= bufferSize) {
@@ -530,7 +545,7 @@ public class CsoundObj {
 					}
 					for (int i = 0; i < scoreMessages.size(); i++) {
 						String mess = scoreMessages.get(i);
-						csound.InputMessage(mess);
+						csound.EventString(mess);
 					}
 					scoreMessages.clear();
 					for (int i = 0; i < bindings.size(); i++) {
@@ -566,8 +581,6 @@ public class CsoundObj {
 				audioRecord.release();
 				audioIn.Clear();
 			}
-			csound.Stop();
-			csound.Cleanup();
 			csound.Reset();
 			synchronized (mLock) {
 				for (int i = 0; i < bindings.size(); i++) {

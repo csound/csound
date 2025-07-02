@@ -74,18 +74,19 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
       if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
         return NOTOK;
     p->ftp = ftp;
+    p->floatph = !IS_POW_TWO(ftp->flen);
 
     if (*p->igatefun > FL(0.0))
-      if (UNLIKELY((AmpGateFunc = csound->FTnp2Finde(csound, p->igatefun)) == NULL))
+      if (UNLIKELY((AmpGateFunc = csound->FTFind(csound, p->igatefun)) == NULL))
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 
     if (stringname==0){
-      if (csound->ISSTRCOD(*p->ifilno))
-        strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME-1);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      if (IsStringCode(*p->ifilno))
+        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
+      else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
-    else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;
@@ -143,10 +144,10 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   amp, frq, v1, fract, *oscphase;
+    MYFLT   amp, frq, v1, fract, *oscphase, phasef, incrf;
     int32    phase, incr;
     FUNC    *ftp;
-    int32    lobits;
+    int32    lobits, floatph = p->floatph;
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     ftp = p->ftp;
@@ -158,7 +159,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
       frIndx = (MYFLT) p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, Str("PVADD ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s", Str("PVADD ktimpnt truncated to last frame"));
       }
     }
     FetchInForAdd(p->frPtr, p->buf, size, frIndx,
@@ -174,32 +175,42 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     for (i = (int32_t) *p->ibinoffset; i < p->maxbin; i += binincr) {
       lobits = ftp->lobits;
       phase = (int32) *oscphase;
+      phasef = *oscphase;
       frq = p->buf[i * 2 + 1] * *p->kfmod;
       if (p->buf[i * 2 + 1] == FL(0.0) || frq >= CS_ESR * FL(0.5)) {
-        incr = 0;               /* Hope then does not matter */
+        incr = incrf = 0;               /* Hope then does not matter */
         amp = FL(0.0);
       }
       else {
-        MYFLT tmp = frq * csound->sicvt;
-        incr = (int32) MYFLT2LONG(tmp);
+        if(floatph) incrf = frq * CS_ONEDSR;
+        else incr = (int32) MYFLT2LONG(frq * CS_SICVT);
         amp = p->buf[i * 2];
       }
       for (n=offset;n<nsmps;n++) {
+        if(!floatph) {
         fract = PFRAC(phase);
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
         ar[n] += (v1 + (*ftab - v1) * fract) * amp;
         phase += incr;
         phase &= PHMASK;
+        } else {
+          MYFLT pos = phasef * ftp->flen;
+          MYFLT frac = pos - (int32_t) pos;
+          ftab = ftp->ftable + (int32_t) pos;
+          v1 = *ftab++;
+          ar[n] += (v1 + (*ftab - v1) * frac) * amp;
+          phasef = PHMOD1(phasef + incrf);
+        }
       }
-      *oscphase = (MYFLT) phase;
+      *oscphase = floatph ? phasef : (MYFLT) phase;
       oscphase++;
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pvadd: not initialised"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("pvadd: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h), Str("PVADD timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), "%s", Str("PVADD timpnt < 0"));
 }
 
 int32_t pvaddset(CSOUND *csound, PVADD *p){

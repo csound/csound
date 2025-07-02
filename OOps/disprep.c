@@ -25,6 +25,7 @@
 #include <math.h>
 #include "cwindow.h"
 #include "disprep.h"
+#include "csound_standard_types.h"
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */
@@ -36,12 +37,17 @@ int32_t printv(CSOUND *csound, PRINTV *p)
     int32_t    nargs = p->INOCOUNT;
     char   **txtp = p->h.optext->t.inlist->arg;
     MYFLT  **valp = p->iargs;
+   
 
+    if(p->h.insdshead->instr->opcode_info == NULL)
     csound->MessageS(csound, CSOUNDMSG_ORCH,
                      "instr %d:", (int32_t) p->h.insdshead->p1.value);
+    else
+     csound->MessageS(csound, CSOUNDMSG_ORCH,
+                      "UDO %s:", p->h.insdshead->instr->opcode_info->name);     
     while (nargs--) {
       csound->MessageS(csound, CSOUNDMSG_ORCH,
-                       "  %s = %5.3f", *txtp++, **valp++);
+                       "\t%s = %5.3f", *txtp++, **valp++);
     }
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
@@ -60,7 +66,7 @@ int32_t fdspset(CSOUND *csound, FSIGDISP *p){
     snprintf(strmsg, 256, Str("instr %d, pvs-signal %s:"),
             (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
-                    (int32_t) *p->flag, Str("display"));
+                    (int32_t) *p->flag, Str("pvsdisp"));
     p->lastframe = 0;
     return OK;
 
@@ -88,7 +94,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
 
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       npts = (int32)(*p->iprd * CS_EKR);
-    else npts = (int32)(*p->iprd * csound->esr);
+    else npts = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(npts <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in display"));
 
@@ -257,7 +263,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
     }
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       step_size = (int32)(*p->iprd * CS_EKR);
-    else step_size = (int32)(*p->iprd * csound->esr);
+    else step_size = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(step_size <= 0)) {
       return csound->InitError(csound, Str("illegal iprd in ffy display"));
     }
@@ -298,7 +304,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       p->start = minbin;
       dispset(csound, &p->dwindow,
               csound->disprep_fftcoefs+p->start, p->npts, strmsg,
-              (int32_t) *p->iwtflg, Str("fft"));
+              (int32_t) *p->iwtflg, Str("dispfft"));
        }
 
     return OK;
@@ -347,6 +353,8 @@ static void Lin2DB(MYFLT *buffer, int32_t size)
     }
 }
 
+void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+
 static void d_fft(      /* perform an FFT as reqd below */
   CSOUND *csound,
   MYFLT  *sce,   /* input array - pure packed real */
@@ -357,7 +365,7 @@ static void d_fft(      /* perform an FFT as reqd below */
 {
     memcpy(dst, sce, sizeof(MYFLT) * size);     /* copy into scratch buffer */
     ApplyHalfWin(dst, hWin, size);
-    csound->RealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
+    csoundRealFFT(csound, dst, (int32_t) size);   /* perform the FFT */
     dst[size] = dst[1];
     dst[1] = dst[size + 1L] = FL(0.0);
     Rect2Polar(dst, (size >> 1) + 1, scal);
@@ -522,13 +530,15 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     }
     {
       MYFLT *funp = ftp->ftable;
-      int32_t phs = 0;
-      int32_t inc = (int32_t)PHMASK / npts;
-      int32_t nn, lobits = ftp->lobits;
+      MYFLT phs = 0;
+      MYFLT inc = ((MYFLT)ftp->flen)/npts;
+      //int32_t inc = (int32_t)PHMASK / npts;
+      int32_t nn;//, lobits = ftp->lobits;
       for (fltp=p->hbeg, nn=npts*4; nn--; )   /* clr 2 circ & 1st 2 lin bufs */
         *fltp++ = FL(0.0);
       for (fltp=p->ftable+npts, nn=npts; nn--; ) {  /* now sample the ftable  */
-        *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
+        *--fltp = *(funp + (int32_t) (phs*ftp->flen));
+        // *--fltp = *(funp + (phs >> lobits));        /* backwards into tbl buf */
         phs += inc;
       }
     }
@@ -618,7 +628,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
         MYFLT *hcur = p->hcur;
         MYFLT *hend = p->hend;
         MYFLT *tblp = p->ftable;
-        int32_t  wrap;
+        long  wrap;
         *hcur++ = kin + expect * p->xfdbak;   /* join insample & expect val */
         if (hcur < hend)  p->hcur = hcur;     /* stor pntr for next insamp  */
         else p->hcur = p->hbeg;
@@ -726,7 +736,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       MYFLT *linp = p->linexp;
       MYFLT *xcur = p->xcur;
       MYFLT *xend = p->xend;
-      int32_t wrap = xcur - p->xbeg;
+      long wrap = xcur - p->xbeg;
       while (xcur < xend)                   /* lineariz the circ xbuf */
         *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )

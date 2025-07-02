@@ -21,7 +21,12 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 
 typedef struct {
@@ -36,8 +41,8 @@ typedef struct {
 
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
-    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
-      return csound->InitError(csound, Str("tabsum: No table"));
+    if (UNLIKELY((p->ftp = csound->FTFind(csound, p->itab)) == NULL)) {
+      return csound->InitError(csound, "%s", Str("tabsum: No table"));
     }
     return OK;
 }
@@ -54,7 +59,7 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
     if (UNLIKELY(ftp==NULL))
 
       return csound->PerfError(csound, &(p->h),
-                               Str("tabsum: Not initialised"));
+                               "%s", Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
     min = MYFLT2LRND(*p->kmin);
     max = MYFLT2LRND(*p->kmax);
@@ -71,7 +76,7 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY tabsum_localops[] = {
-{ "tabsum",     S(TABSUM),     0, 3,     "k",    "iOO",
+{ "tabsum",     S(TABSUM),     0,      "k",    "iOO",
                 (SUBR)tabsuminit, (SUBR)tabsum },
 };
 

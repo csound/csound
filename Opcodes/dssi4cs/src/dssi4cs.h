@@ -42,6 +42,7 @@ typedef struct DSSI4CS_PLUGIN_ {
     int32_t PluginNumber;
     int32_t * PluginCount;
     void * NextPlugin;
+    int32_t ksmps;
     /* float * kinputs_[]; */
     /* float * koutputs_[]; */
 } DSSI4CS_PLUGIN;

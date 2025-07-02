@@ -69,7 +69,7 @@ typedef struct FormSwep {
 #define FormSwep_setSweepRate(p,aRate)  (p.sweepRate = aRate)
 #define FormSwep_clear(p)               (p.outputs[0]=p.outputs[1]=FL(0.0))
 void FormSwep_setTargets(FormSwep *, MYFLT, MYFLT, MYFLT);
-MYFLT FormSwep_tick(CSOUND *, FormSwep *, MYFLT);
+MYFLT FormSwep_tick(OPDS *, FormSwep *, MYFLT);
 
 typedef struct Wave {
     FUNC        *wave;

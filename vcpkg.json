@@ -1,26 +1,45 @@
 {
-    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
     "name": "csound",
-    "version-string": "7.0.0",
-    "builtin-baseline": "e79c0d2b5d72eb3063cf32a1f7de1a9cf19930f3",
+    "version-string": "6.18.1",
+    "builtin-baseline": "216c741d2d61fdb5e8ef22b7526b73f8bc860bd8",
     "dependencies": [
         "zlib",
         "libsamplerate",
-        "portmidi",
-        "portaudio",
-        "liblo",
+        {
+            "name": "portmidi",
+            "platform": "!android & !emscripten & !ios"
+        },
+        {
+            "name": "liblo",
+            "platform": "!android & !emscripten & !ios"
+        },
+        {
+            "name": "gtest",
+            "platform": "!android & !emscripten & !ios"
+        },
+        {
+            "name": "jack2",
+            "platform": "linux|osx"
+        },
+        {
+            "name": "portaudio",
+            "platform": "!android & !emscripten & !ios"
+        },
         {
             "name": "dirent",
             "platform": "windows"
         },
         {
             "name": "libsndfile",
-            "features": ["external-libs"]
+            "features": [
+                "external-libs",
+                "mpeg"
+            ]
         },
-        "gtest",
         {
             "name": "gettext",
-            "platform": "osx"
+            "platform": "linux|osx"
         }
     ]
 }

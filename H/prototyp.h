@@ -21,109 +21,113 @@
     02110-1301 USA
 */
 /*  PROTOTYP.H  */
+
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
 #include <sysdep.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void    cscore_(CSOUND *);
-void    *mmalloc(CSOUND *, size_t);
-void    *mcalloc(CSOUND *, size_t);
-void    *mrealloc(CSOUND *, void *, size_t);
-void    mfree(CSOUND *, void *);
-void    *mmallocDebug(CSOUND *, size_t, char*, int);
-void    *mcallocDebug(CSOUND *, size_t, char*, int);
-void    *mreallocDebug(CSOUND *, void *, size_t, char*, int);
-void    mfreeDebug(CSOUND *, void *, char*, int);
-char    *cs_strdup(CSOUND*, char*);
-char    *cs_strndup(CSOUND*, char*, size_t);
-void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
-int     csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
-                            AUXASYNC *, aux_cb , void *);
-void    fdrecord(CSOUND *, FDCH *), csound_fd_close(CSOUND *, FDCH *);
-void    fdchclose(CSOUND *, INSDS *);
-CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
-CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
-CS_PRINTF2  int     csoundInitError(CSOUND *, const char *, ...);
-CS_PRINTF3  int     csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
-CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
-CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
-CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
-void    csoundErrorMsgS(CSOUND *, int attr, const char *, ...);
-void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
-CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
-TEXT    *getoptxt(CSOUND *, int *);
-void    reverbinit(CSOUND *);
-void    dispinit(CSOUND *);
-int     init0(CSOUND *);
-void    scsort(CSOUND *, FILE *, FILE *);
-char    *scsortstr(CSOUND *, CORFIL *);
-int     scxtract(CSOUND *, CORFIL *, FILE *);
-int     rdscor(CSOUND *, EVTBLK *);
-int     musmon(CSOUND *);
-void    RTLineset(CSOUND *);
-FUNC    *csoundFTFind(CSOUND *, MYFLT *);
-FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
-FUNC    *csoundFTnp2Find(CSOUND *, MYFLT *);
-FUNC    *csoundFTnp2Finde(CSOUND *, MYFLT *);
-MYFLT   intpow(MYFLT, int32);
-void    list_opcodes(CSOUND *, int);
-char    *getstrformat(int format);
-int     sfsampsize(int sf_format);
-char    *type2string(int type);
-int     type2csfiletype(int type, int encoding);
-int     sftype2csfiletype(int type);
-void    rewriteheader(void *ofd);
-#if 0
-int     readOptions_file(CSOUND *, FILE *, int);
-#else
-int     readOptions(CSOUND *, CORFIL *, int);
-#endif
-PUBLIC int     argdecode(CSOUND *, int, const char **);
-void    remove_tmpfiles(CSOUND *);
-void    add_tmpfile(CSOUND *, char *);
-void    xturnoff(CSOUND *, INSDS *);
-void    xturnoff_now(CSOUND *, INSDS *);
-int     insert_score_event(CSOUND *, EVTBLK *, double);
-//MEMFIL  *ldmemfile(CSOUND *, const char *);
-//MEMFIL  *ldmemfile2(CSOUND *, const char *, int);
-MEMFIL  *ldmemfile2withCB(CSOUND *csound, const char *filnam, int csFileType,
-                          int (*callback)(CSOUND*, MEMFIL*));
-void    rlsmemfiles(CSOUND *);
-int     delete_memfile(CSOUND *, const char *);
-char    *csoundTmpFileName(CSOUND *, const char *);
-void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
-int     getsndin(CSOUND *, void *, MYFLT *, int, void *);
-void    *sndgetset(CSOUND *, void *);
-void    dbfs_init(CSOUND *, MYFLT dbfs);
-int     csoundLoadExternals(CSOUND *);
-SNDMEMFILE  *csoundLoadSoundFile(CSOUND *, const char *name, void *sfinfo);
-int     PVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
-void    print_opcodedir_warning(CSOUND *);
-int     check_rtaudio_name(char *fName, char **devName, int isOutput);
-int     csoundLoadOpcodeDB(CSOUND *, const char *);
-void    csoundDestroyOpcodeDB(CSOUND *);
-int     csoundCheckOpcodePluginFile(CSOUND *, const char *);
-//int     csoundLoadAllPluginOpcodes(CSOUND *);
-int     csoundLoadAndInitModule(CSOUND *, const char *);
-void    csoundNotifyFileOpened(CSOUND *, const char *, int, int, int);
-int     insert_score_event_at_sample(CSOUND *, EVTBLK *, int64_t);
-
-char *get_arg_string(CSOUND *, MYFLT);
-
-/**
- * Register a function to be called at note deactivation.
- * Should be called from the initialisation routine of an opcode.
- * 'p' is a pointer to the OPDS structure of the opcode, and 'func'
- * is the function to be called, with the same arguments and return
- * value as in the case of opcode init/perf functions.
- * The functions are called in reverse order of registration.
- * Returns zero on success.
- */
-int csoundRegisterDeinitCallback(CSOUND *, void *p,
-                                 int (*func)(CSOUND *, void *));
+  void *mmalloc(CSOUND *, size_t);
+  void *mcalloc(CSOUND *, size_t);
+  void *mrealloc(CSOUND *, void *, size_t);
+  void mfree(CSOUND *, void *);
+  void *mmalloc_debug(CSOUND *, size_t, char*, int32_t);
+  void *mcalloc_debug(CSOUND *, size_t, char*, int32_t);
+  void *mrealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
+  void mfree_debug(CSOUND *, void *, char*, int32_t);
+  void auxalloc(CSOUND *, size_t, AUXCH *);
+  void auxchfree(CSOUND *, INSDS *);
+  int32_t auxalloc_async(CSOUND *, size_t , AUXCH *,
+                         AUXASYNC *, aux_cb , void *);
+  void fdrecord(CSOUND *, FDCH *);
+  void csound_fd_close(CSOUND *, FDCH *);
+  void fdchclose(CSOUND *, INSDS *);
+  char *cs_strdup(CSOUND*, const char*);
+  char *cs_strndup(CSOUND*, const char*, size_t);
+  CS_PRINTF2  void synterr(CSOUND *, const char *, ...);
+  CS_NORETURN CS_PRINTF2  void csoundDie(CSOUND *, const char *, ...);
+  CS_PRINTF2  int32_t csoundInitError(CSOUND *, const char *, ...);
+  CS_PRINTF3  int32_t csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
+  CS_PRINTF2  void csoundWarning(CSOUND *, const char *, ...);
+  CS_PRINTF2  void csoundDebugMsg(CSOUND *, const char *, ...);
+  CS_PRINTF2  void csoundErrorMsg(CSOUND *, const char *, ...);
+  void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
+  void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
+  CS_NORETURN void csoundLongJmp(CSOUND *, int32_t retval);
+  TEXT *getoptxt(CSOUND *, int32_t *);
+  void  dispinit(CSOUND *);
+  int32_t init0(CSOUND *);
+  void scsort(CSOUND *, FILE *, FILE *);
+  char *scsortstr(CSOUND *, CORFIL *);
+  int32_t scxtract(CSOUND *, CORFIL *, FILE *);
+  int32_t rdscor(CSOUND *, EVTBLK *);
+  int32_t start_engine(CSOUND *);
+  void list_opcodes(CSOUND *, int32_t);
+  char  *getstrformat(int32_t format);
+  int32_t sfsampsize(int32_t sf_format);
+  char *type2string(int32_t type);
+  int32_t type2csfiletype(int32_t type, int32_t encoding);
+  int32_t sftype2csfiletype(int32_t type);
+  void  rewriteheader(CSOUND *csound, void *ofd);
+  int32_t readOptions(CSOUND *, CORFIL *, int32_t);
+  int32_t argdecode(CSOUND *, int32_t, const char **);
+  void  remove_tmpfiles(CSOUND *);
+  void  add_tmpfile(CSOUND *, char *);
+  void  xturnoff(CSOUND *, INSDS *);
+  void  xturnoff_now(CSOUND *, INSDS *);
+  INSDS *instance(CSOUND *, int32_t);
+  INSDS *create_instance(CSOUND *csound, int32_t insno);
+  void free_instance(CSOUND *csound, INSDS *ip);
+  int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+  void free_instr_var_memory(CSOUND* csound, INSDS* ip);
+  int32_t init_instance(CSOUND *csound, INSDS *ip, EVTBLK *newevtp);
+  int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead);
+  int32_t insert_midi_event(CSOUND *, int32_t,  MCHNBLK*, MEVENT*);
+  int32_t insert_event(CSOUND *, int32_t,  EVTBLK*);
+  void free_inactive_instances(CSOUND*);
+  void beat_expire(CSOUND *, double);
+  void time_expire(CSOUND *, double);
+  int32_t insert_score_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
+  MEMFIL *load_memfile_with_cb(CSOUND *csound, const char *filnam, int32_t csFileType,
+                               int32_t (*callback)(CSOUND*, MEMFIL*));
+  void    free_memfiles(CSOUND *);
+  int32_t  delete_memfile(CSOUND *, const char *);
+  char    *csoundTmpFileName(CSOUND *, const char *);
+  void    *SAsndgetset(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *, int32_t);
+  int32_t getsndin(CSOUND *, void *, MYFLT *, int32_t, void *);
+  void    *sndgetset(CSOUND *, void *);
+  void    dbfs_init(CSOUND *, MYFLT dbfs);
+  int32_t csoundLoadExternals(CSOUND *);
+  SNDMEMFILE *csoundLoadSoundFile(CSOUND *, const char *name, void *sfinfo);
+  int32_t load_PVOCEX_file(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
+  void    print_opcodedir_warning(CSOUND *);
+  int32_t check_rtaudio_name(char *fName, char **devName, int32_t isOutput);
+  int32_t csoundLoadOpcodeDB(CSOUND *, const char *);
+  void    csoundDestroyOpcodeDB(CSOUND *);
+  int32_t csoundCheckOpcodePluginFile(CSOUND *, const char *);
+  int32_t csoundLoadAndInitModule(CSOUND *, const char *);
+  void    csoundNotifyFileOpened(CSOUND *, const char *, int32_t, int32_t, int32_t);
+  char *get_arg_string(CSOUND *, MYFLT);
+  void    linevent_open(CSOUND *);
+  void    linevent_close(CSOUND *);
+  void    sf_open_in(CSOUND *);
+  void sf_open_out(CSOUND*);
+  void sf_open_nosound(CSOUND*);
+  void    set_io_backend(CSOUND *);
+  void sf_close_in(CSOUND*);
+  void sf_close_out(CSOUND*);
+  void    midi_open(CSOUND *);
+  void    midi_open_out(CSOUND *);
+  void    midi_close(CSOUND *);
+  void    m_chn_init_all(CSOUND *);
+  void    print_csound_version(CSOUND*);
+  int32_t realtset(CSOUND *, SRTBLK *);
+  MYFLT   realt(CSOUND *, MYFLT);
+  uintptr_t event_insert_thread(void *);
+  int32_t sens_midi(CSOUND *);
+  void sort(CSOUND*);
+  void twarp(CSOUND*);
 
 /**
  * Register a function to be called by csoundReset(), in reverse order
@@ -133,8 +137,8 @@ int csoundRegisterDeinitCallback(CSOUND *, void *p,
  * on success.
  * The return value of csoundRegisterResetCallback() is zero on success.
  */
-int csoundRegisterResetCallback(CSOUND *, void *userData,
-                                int (*func)(CSOUND *, void *));
+int32_t csoundRegisterResetCallback(CSOUND *, void *userData,
+                                int32_t (*func)(CSOUND *, void *));
 
 /**
  * Returns the name of the opcode of which the data structure
@@ -145,7 +149,7 @@ char *csoundGetOpcodeName(void *p);
 /**
  * Returns the number of input arguments for opcode 'p'.
  */
-int csoundGetInputArgCnt(void *p);
+int32_t csoundGetInputArgCnt(void *p);
 
 
 /** Returns the CS_TYPE for an opcode's arg pointer */
@@ -163,12 +167,12 @@ unsigned long csoundGetInputArgSMask(void *p);
 /**
  * Returns the name of input argument 'n' (counting from 0) for opcode 'p'.
  */
-char *csoundGetInputArgName(void *p, int n);
+char *csoundGetInputArgName(void *p, int32_t n);
 
 /**
  * Returns the number of output arguments for opcode 'p'.
  */
-int csoundGetOutputArgCnt(void *p);
+int32_t csoundGetOutputArgCnt(void *p);
 
 /**
  * Returns a binary value of which bit 0 is set if the first output
@@ -181,7 +185,7 @@ unsigned long csoundGetOutputArgSMask(void *p);
 /**
  * Returns the name of output argument 'n' (counting from 0) for opcode 'p'.
  */
-char *csoundGetOutputArgName(void *p, int n);
+char *csoundGetOutputArgName(void *p, int32_t n);
 
 /**
  * Set release time in control periods (1 / csound->ekr second units)
@@ -189,7 +193,7 @@ char *csoundGetOutputArgName(void *p, int n);
  * the specified value, it is not changed.
  * Returns the new release time.
  */
-int csoundSetReleaseLength(void *p, int n);
+int32_t csoundSetReleaseLength(void *p, int32_t n);
 
 /**
  * Set release time in seconds for opcode 'p' to 'n'.
@@ -199,65 +203,13 @@ int csoundSetReleaseLength(void *p, int n);
  */
 MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n);
 
-/**
- * Returns MIDI channel number (0 to 15) for the instrument instance
- * that called opcode 'p'.
- * In the case of score notes, -1 is returned.
- */
-int csoundGetMidiChannelNumber(void *p);
 
-/**
- * Returns a pointer to the MIDI channel structure for the instrument
- * instance that called opcode 'p'.
- * In the case of score notes, NULL is returned.
- */
-MCHNBLK *csoundGetMidiChannel(void *p);
-
-/**
- * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiNoteNumber(void *p);
-
-/**
- * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiVelocity(void *p);
-
-/**
- * Returns non-zero if the current note (owning opcode 'p') is releasing.
- */
-int csoundGetReleaseFlag(void *p);
-
-/**
- * Returns the note-off time in seconds (measured from the beginning of
- * performance) of the current instrument instance, from which opcode 'p'
- * was called. The return value may be negative if the note has indefinite
- * duration.
- */
-double csoundGetOffTime(void *p);
-
-/**
- * Returns the array of p-fields passed to the instrument instance
- * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
- * guaranteed to be available. p2 is measured in seconds from the
- * beginning of the current section.
- */
-MYFLT *csoundGetPFields(void *p);
-
-/**
- * Returns the instrument number (p1) for opcode 'p'.
- */
-int csoundGetInstrumentNumber(void *p);
 
 /**
  * Returns pointer to a string constant storing an error massage
  * for error code 'errcode'.
  */
-const char *csoundExternalMidiErrorString(CSOUND *, int errcode);
+const char *csoundExternalMidiErrorString(CSOUND *, int32_t errcode);
 
 /**
  * Appends a list of opcodes implemented by external software to Csound's
@@ -266,25 +218,25 @@ const char *csoundExternalMidiErrorString(CSOUND *, int errcode);
  * in 'n'.
  * Returns zero on success.
  */
-int csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int n);
+int32_t csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int32_t n);
 
 /**
  * Check system events, yielding cpu time for coopertative multitasking, etc.
  */
-int csoundYield(CSOUND *);
+int32_t csoundYield(CSOUND *);
 
 /**
  * Register utility with the specified name.
  * Returns zero on success.
  */
-int csoundAddUtility(CSOUND *, const char *name,
-                     int (*UtilFunc)(CSOUND *, int, char **));
+int32_t csoundAddUtility(CSOUND *, const char *name,
+                     int32_t (*UtilFunc)(CSOUND *, int32_t, char **));
 
 /**
  * Set description text for the specified utility.
  * Returns zero on success.
  */
-int csoundSetUtilityDescription(CSOUND *, const char *utilName,
+int32_t csoundSetUtilityDescription(CSOUND *, const char *utilName,
                                 const char *utilDesc);
 
 /**
@@ -292,8 +244,42 @@ int csoundSetUtilityDescription(CSOUND *, const char *utilName,
  * and free database. This function is called by csoundReset().
  * Return value is CSOUNDCFG_SUCCESS in case of success.
  */
-int csoundDeleteAllConfigurationVariables(CSOUND *);
+int32_t csoundDeleteAllConfigurationVariables(CSOUND *);
 
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef  USE_DOUBLE
+#define sflib_write_MYFLT  sflib_write_double
+#define sflib_writef_MYFLT  sflib_writef_double
+#define sflib_read_MYFLT   sflib_read_double
+#define sflib_readf_MYFLT   sflib_readf_double
+#else
+#define sflib_write_MYFLT  sflib_write_float
+#define sflib_writef_MYFLT  sflib_writef_float
+#define sflib_read_MYFLT   sflib_read_float
+#define sflib_readf_MYFLT   sflib_readf_float
+#endif
+ 
+#ifdef __cplusplus
+extern "C" {
+#endif
+  int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize);
+  void *sflib_open(const char *path, int32_t mode, SFLIB_INFO *sfinfo);
+  void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc);
+  int32_t sflib_close(void *sndfile);
+  long sflib_seek(void *handle, long frames, int32_t whence);
+  long sflib_read_float(void *sndfile, float *ptr, long items);
+  long sflib_readf_float(void *handle, float *ptr, long frames);
+  long sflib_read_double(void *sndfile, double *ptr, long items);
+  long sflib_readf_double(void *handle, double *ptr, long frames);
+  long sflib_write_float(void *sndfile, float *ptr, long items);
+  long sflib_writef_float(void *handle, float *ptr, long frames);
+  long sflib_write_double(void *handle, double *ptr, long items);
+  long sflib_writef_double(void *handle, double *ptr, long frames);
+  int32_t sflib_set_string(void *sndfile, int32_t str_type, const char* str);
+  const char *sflib_strerror(void *);  
 #ifdef __cplusplus
 }
 #endif

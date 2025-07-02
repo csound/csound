@@ -34,8 +34,8 @@ import android.widget.Button;
 import com.csounds.CsoundObj;
 import com.csounds.bindings.AbstractBinding;
 
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
+import csnd7.CsoundMYFLTArray;
+import csnd7.controlChannelType;
 
 public class CsoundButtonBinding extends AbstractBinding {
 

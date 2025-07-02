@@ -43,9 +43,9 @@ void myflt_pool_free(CSOUND *csound, MYFLT_POOL *pool){
     }
 }
 
-int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
-    int retVal = -1;
-    int i;
+int32_t myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
+    int32_t retVal = -1;
+    int32_t i;
 
     for (i = 0; i < pool->count; i++) {
       if (pool->values[i].value == value) {
@@ -57,8 +57,8 @@ int myflt_pool_indexof(MYFLT_POOL* pool, MYFLT value) {
     return retVal;
 }
 
-int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
-    int index = myflt_pool_indexof(pool, value);
+int32_t myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
+    int32_t index = myflt_pool_indexof(pool, value);
 
     if (index == -1) {
 
@@ -78,7 +78,7 @@ int myflt_pool_find_or_add(CSOUND* csound, MYFLT_POOL* pool, MYFLT value) {
     return index;
 }
 
-int myflt_pool_find_or_addc(CSOUND* csound, MYFLT_POOL* pool, char* s) {
+int32_t myflt_pool_find_or_addc(CSOUND* csound, MYFLT_POOL* pool, char* s) {
 
     MYFLT val = (MYFLT) cs_strtod(s, NULL);
     return myflt_pool_find_or_add(csound, pool, val);

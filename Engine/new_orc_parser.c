@@ -27,15 +27,11 @@
 #include "csound_orc.h"
 #include "corfile.h"
 #include "score_param.h"
+#include "csound_orc_semantics.h"
+#include "new_orc_parser.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
-#  if 0 && defined(__MACH__)
-typedef void*   DIR;
-DIR             opendir(const char *);
-struct dirent   *readdir(DIR*);
-int             closedir(DIR*);
-#  endif
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -43,46 +39,11 @@ int             closedir(DIR*);
 #  include <direct.h>
 #endif
 
-extern void csound_orcrestart(FILE*, void *);
-
-extern int csound_orcdebug;
-
-extern void print_csound_predata(void *);
-extern int csound_prelex_init(void *);
-extern void csound_preset_extra(void *, void *);
-
-extern int csound_prelex(CSOUND*, void*);
-extern int csound_prelex_destroy(void *);
-
-extern int csound_orc_scan_buffer (const char *, size_t, void*);
-extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
-extern int csound_orclex_init(void *);
-extern void csound_orcset_extra(void *, void *);
-extern void csound_orcset_lineno(int, void*);
-extern int csound_orclex_destroy(void *);
-extern void print_tree(CSOUND *, char *, TREE *);
-extern TREE* verify_tree(CSOUND *, TREE *, TYPE_TABLE*);
-extern TREE *csound_orc_expand_expressions(CSOUND *, TREE *);
-extern TREE* csound_orc_optimize(CSOUND *, TREE *);
-//extern void csp_orc_analyze_tree(CSOUND* csound, TREE* root);
-extern void csp_orc_sa_print_list(CSOUND*);
-
-#if 0
-static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
-{
-    csound->DebugMsg(csound,"********* Extra Pre Data %p *********\n", x);
-    csound->DebugMsg(csound,"macros = %p, macro_stack_ptr = %u, ifdefStack=%p,\n"
-           "isIfndef=%d\n, line=%d\n",
-           x->macros, x->macro_stack_ptr, x->ifdefStack, x->isIfndef, x->line);
-    csound->DebugMsg(csound,"******************\n");
-}
-#endif
-
 uint64_t make_location(PRE_PARM *qq)
 {
-    int d = qq->depth;
+    int32_t d = qq->depth;
     uint64_t loc = 0;
-    int n = (d>8?d-7:0);
+    int32_t n = (d>8?d-7:0);
     for (; n<=d; n++) {
       loc = (loc<<8)+(qq->lstack[n]);
     }
@@ -91,9 +52,9 @@ uint64_t make_location(PRE_PARM *qq)
 
 uint64_t make_slocation(PRS_PARM *qq)
 {
-    int d = qq->depth;
+    int32_t d = qq->depth;
     uint64_t loc = 0;
-    int n = (d>8?d-7:0);
+    int32_t n = (d>8?d-7:0);
     for (; n<=d; n++) {
       loc = (loc<<8)+(qq->lstack[n]);
     }
@@ -115,7 +76,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
         strcpy(buff, "#line 0\n");
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
-          int n = (int)strlen(fname);
+          int32_t n = (int)strlen(fname);
           //printf("**  name=%s n=%d\n", fname, n);
           if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
             strlcat(buff, "#include \"", 1024);
@@ -140,8 +101,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
-    int err;
-    OPARMS *O = csound->oparms;
+    int32_t err;
     csound->parserNamedInstrFlag = 2;
     {
       PRE_PARM    qq;
@@ -216,19 +176,12 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       /* Parse */
       memset(&pp, '\0', sizeof(PARSE_PARM));
 
-      csound_orcdebug = O->odebug;
       csound_orclex_init(&pp.yyscanner);
 
       csound_orcset_extra(&pp, pp.yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
                              corfile_tell(csound->expanded_orc), pp.yyscanner);
-
-      //csound_orcset_lineno(csound->orcLineOffset, pp.yyscanner);
-      //printf("%p\n", astTree);
       err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
-      //printf("%p\n", astTree);
-      //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
-      //csp_orc_sa_cleanup(csound);
       corfile_rm(csound, &csound->expanded_orc);
 #ifdef PARCS
       if (UNLIKELY(csound->oparms->odebug)) csp_orc_sa_print_list(csound);
@@ -266,10 +219,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       typeTable->labelList = NULL;
 
       astTree = verify_tree(csound, astTree, typeTable);
-//      csound->Free(csound, typeTable->instr0LocalPool);
-//      csound->Free(csound, typeTable->globalPool);
-//      csound->Free(csound, typeTable);
-      //print_tree(csound, "AST - FOLDED\n", astTree);
 
       if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
         err = 3;
@@ -285,10 +234,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
       err = 0;
 
-      //csp_orc_analyze_tree(csound, astTree);
-
-//      astTree = csound_orc_expand_expressions(csound, astTree);
-//
       if (UNLIKELY(PARSER_DEBUG)) {
         print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
       }
@@ -312,26 +257,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-      //print_tree(csound, "AST after optmize", astTree);
       // small hack: use an extra node as head of tree list to hold the
       // typeTable, to be used during compilation
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
-
-      /* if (str!=NULL){ */
-      /*        if (typeTable != NULL) { */
-      /*     csoundFreeVarPool(csound, typeTable->globalPool); */
-      /*     if (typeTable->instr0LocalPool != NULL) { */
-      /*       csoundFreeVarPool(csound, typeTable->instr0LocalPool); */
-      /*     } */
-      /*     if (typeTable->localPool != typeTable->instr0LocalPool) { */
-      /*       csoundFreeVarPool(csound, typeTable->localPool); */
-      /*     } */
-      /*     csound->Free(csound, typeTable); */
-      /*   } */
-      /* } */
-
       return newRoot;
     }
 }

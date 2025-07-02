@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct {
@@ -59,7 +62,7 @@ static int32_t compset(CSOUND *csound, CMPRS *p)
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
-    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L))
+    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * CS_ESR)) <= 0L))
       delsmps = 1L;                             /* alloc 2 delay bufs   */
     csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
     p->abuf = (MYFLT *)p->auxch.auxp;
@@ -92,7 +95,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     /* VL: scale by 0dbfs, code is tuned to work in 16bit range */
-    MYFLT scal = FL(32768.0)/csound->e0dbfs;
+    MYFLT scal = FL(32768.0)/csound->Get0dBFS(csound);
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
@@ -120,17 +123,17 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
         p->kneemul = FL(1.0);
     }
     if (*p->katt != p->curatt) {
-      if ((p->curatt = *p->katt) < csound->onedsr)
+      if ((p->curatt = *p->katt) < CS_ONEDSR)
         p->c2 = 0.0;
       else
-        p->c2 = pow(0.5, csound->onedsr / p->curatt);
+        p->c2 = pow(0.5, CS_ONEDSR / p->curatt);
       p->c1 = 1.0 - p->c2;
     }
     if (*p->krls != p->currls) {
-      if ((p->currls = *p->krls) < csound->onedsr)
+      if ((p->currls = *p->krls) < CS_ONEDSR)
         p->d2 = 0.0;
       else
-        p->d2 = pow(0.5, csound->onedsr / p->currls);
+        p->d2 = pow(0.5, CS_ONEDSR / p->currls);
       p->d1 = 1.0 - p->d2;
     }
     ar = p->ar;
@@ -207,16 +210,16 @@ static int32_t distset(CSOUND *csound, DIST *p)
     double  b;
     FUNC    *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
     p->ftp = ftp;
     p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((double) (*p->ihp * csound->tpidsr)); /*  and rms coefs */
+    b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
-    p->min_rms = csound->e0dbfs * DV32768;
+    p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor) {
       p->prvq = FL(0.0);
       p->prvd = FL(1000.0) * p->min_rms;
@@ -282,9 +285,9 @@ static int32_t distort(CSOUND *csound, DIST *p)
 #define S(x)    sizeof(x)
 
 static OENTRY compress_localops[] = {
-  { "compress", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
-  { "compress2", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
-  { "distort", S(DIST), TR, 3, "a", "akiqo", (SUBR) distset, (SUBR) distort },
+  { "compress", S(CMPRS), 0,  "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
+  { "compress2", S(CMPRS), 0,  "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
+  { "distort", S(DIST), TR,  "a", "akiqo", (SUBR) distset, (SUBR) distort },
 };
 
 LINKAGE_BUILTIN(compress_localops)

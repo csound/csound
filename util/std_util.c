@@ -80,11 +80,12 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
     err |= scale_init_(csound);
     err |= sndinfo_init_(csound);
     err |= srconv_init_(csound);
+    err |= smf_conv_init_(csound);
     return err;
 }
 
 PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }
 

@@ -22,10 +22,15 @@
   02110-1301 USA
 */
 
+#ifdef  HAVE_SOCKETS
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <sys/types.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
@@ -112,7 +117,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
 #endif
     /* create server address: where we want to send to and clear it out */
@@ -158,12 +163,12 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                             sizeof(p->server_addr)) == SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
         }
         wp = 0;
       }
       if (ff) { // Scale for 0dbfs and make LE
-        int16 val = (int16)((32768.0*asig[i])/csound->e0dbfs);
+        int16 val = (int16)((32768.0*asig[i])/csound->Get0dBFS(csound));
         union cheat {
           char  benchar[2];
           int16 bensht;
@@ -195,12 +200,12 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
       /* send the package when we have a full buffer */
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
                           sizeof(p->server_addr)) == SOCKET_ERROR)) {
-        return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+        return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
       }
       p->wp = 0;
     }
     if (ff) { // Scale for 0dbfs and make LE
-      int16 val = (int16)((32768.0* (*ksig))/csound->e0dbfs);
+      int16 val = (int16)((32768.0* (*ksig))/csound->Get0dBFS(csound));
       union cheat {
         char  benchar[2];
         int16 bensht;
@@ -221,10 +226,10 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     int32_t     buffersize = p->bsize;
     char    *out = (char *) p->aux.auxp;
     char    *q = p->str->data;
-    int32_t     len = p->str->size;
+    size_t     len = p->str->size;
 
     if (UNLIKELY(len>=buffersize)) {
-      csound->Warning(csound, Str("string truncated in socksend"));
+      csound->Warning(csound, "%s", Str("string truncated in socksend"));
       len = buffersize-1;
     }
     memcpy(out, q, len);
@@ -232,7 +237,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                         sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-      return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+      return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
     }
     return OK;
 }
@@ -263,7 +268,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -311,12 +316,12 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
                             sizeof(p->server_addr)) ==SOCKET_ERROR)) {
-          return csound->PerfError(csound, &(p->h), Str("sendto failed"));
+          return csound->PerfError(csound, &(p->h), "%s", Str("sendto failed"));
         }
         wp = 0;
       }
       if (ff) { // Scale for 0dbfs and make LE
-        int16 val = 0x8000*(asigl[i]/csound->e0dbfs);
+        int16 val = 0x8000*(asigl[i]/csound->Get0dBFS(csound));
         union {
           char  benchar[2];
           int16 bensht;
@@ -325,7 +330,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
         ch.benchar[0] = 0xFF & val;
         ch.benchar[1] = 0xFF & (val >> 8);
         outs[wp] = ch.bensht;
-        val = 0x8000*(asigl[i+1]/csound->e0dbfs);
+        val = 0x8000*(asigl[i+1]/csound->Get0dBFS(csound));
         ch.benchar[0] = 0xFF & val;
         ch.benchar[1] = 0xFF & (val >> 8);
         outs[wp + 1] = ch.bensht;
@@ -345,7 +350,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
 {
     printf("closing stream\n");
-    int n = close(p->sock);
+    int32_t n = close(p->sock);
     if (n<0) printf("close = %d errno=%d\n", n, errno);
     //shutdown(p->sock, SHUT_RDWR);
     return OK;
@@ -370,7 +375,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
 #endif
     /* create server address: where we want to connect to */
@@ -409,9 +414,6 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 #endif
       return csound->InitError(csound, Str("connect failed (%d)"), err);
     }
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) stsend_deinit);
-
     return OK;
 }
 
@@ -420,12 +422,15 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
-
+#ifndef WIN32
     if (UNLIKELY(n != send(p->sock, &p->asig[offset], n, 0))) {
+#else
+      if (UNLIKELY(n != send(p->sock, (const char *) (&p->asig[offset]), n, 0))) {
+#endif
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, &(p->h),
-                               Str("write to socket failed"));
+                               "%s", Str("write to socket failed"));
     }
     return OK;
 }
@@ -444,9 +449,9 @@ typedef struct {
   int32_t sock, iargs;
   MYFLT   last;
   struct sockaddr_in server_addr;
-  int err_state;
-  int init_done;
-  int fstime;
+  int32_t err_state;
+  int32_t init_done;
+  int32_t fstime;
 } OSCSEND2;
 
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
@@ -464,7 +469,7 @@ static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
-    uint32_t     bsize;
+    size_t     bsize;
 
     if (p->init_done) {
       csound->Warning(csound, "already initialised");
@@ -472,15 +477,15 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     }
 
     if(p->INOCOUNT > 4) {
-      if(!IS_STR_ARG(p->type)) 
+      if(!IS_STR_ARG(p->type))
                return csound->InitError(csound,
-                             Str("Message type is not given as a string\n"));
+                             "%s", Str("Message type is not given as a string\n"));
     }
 
-   
+
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) strlen(p->type->data) + 4))
        return csound->InitError(csound,
-                             Str("insufficient number of arguments for "
+                             "%s", Str("insufficient number of arguments for "
                                  "OSC message types\n"));
 
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -491,7 +496,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -505,23 +510,25 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) oscsend_deinit);
-
-    if(p->INCOUNT > 4) {
-              if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
+    if(p->INOCOUNT > 4) {
+      size_t i, iarg = p->type->size-1, nargs = p->INOCOUNT - 5;
+    STRINGDAT *s;
+    ARRAYDAT *ar;
+    FUNC *ft;
+    int32_t j;
+    if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
       /* allocate space for the types buffer */
       csound->AuxAlloc(csound, strlen(p->type->data), &p->types);
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
 
     // todo: parse type to allocate memory
-    size_t i, iarg = 0;
-    STRINGDAT *s;
-    ARRAYDAT *ar;
-    FUNC *ft;
-    int32_t j;
     bsize = 0;
-    for(i=0; i < p->type->size-1; i++) {
+    if(iarg > nargs)
+     return csound->InitError(csound,
+                     "not enough args: had %lu, needed %lu\n",
+                      nargs, iarg);
+
+    for(i=0,iarg=0; i < p->type->size-1; i++) {
       switch(p->type->data[i]){
       case 't':
         if (UNLIKELY(p->INOCOUNT < (uint32_t) p->type->size + 5))
@@ -538,7 +545,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         break;
       case 's':
         if (UNLIKELY(!IS_STR_ARG(p->arg[i])))
-          return csound->InitError(csound, Str("expecting a string argument\n"));
+          return csound->InitError(csound, "%s", Str("expecting a string argument\n"));
         s = (STRINGDAT *)p->arg[i];
         bsize += strlen(s->data) + 64;
         iarg++;
@@ -559,7 +566,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'G':
-        ft = csound->FTnp2Finde(csound, p->arg[i]);
+        ft = csound->FTFind(csound, p->arg[i]);
         bsize += (sizeof(MYFLT)*ft->flen);
         iarg++;
         break;
@@ -585,7 +592,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     else {
       memset(p->aux.auxp, 0, bsize);
     }
-    p->iargs = iarg;
+    p->iargs = (int32_t) iarg;
     } else {
       bsize = strlen(p->dest->data)+1;
       bsize = ceil(bsize/4.)*4;
@@ -605,28 +612,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     return OK;
 }
 
-static inline char le_test(){
-    union _le {
-      char c[2];
-      short s;
-    } le = {{0x0001}};
-    return le.c[0];
-}
-
-static inline char *byteswap(char *p, int32_t N){
-    if(le_test()) {
-      char tmp;
-      int32_t j ;
-      for(j = 0; j < N/2; j++) {
-        tmp = p[j];
-        p[j] = p[N - j - 1];
-        p[N - j - 1] = tmp;
-      }
-    }
-    return p;
-}
-
-static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
+static inline size_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
     char *p = aux->auxp;
     aux->auxp = csound->ReAlloc(csound, p, size);
     aux->size = size;
@@ -639,22 +625,23 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
     if(*p->kwhen != p->last || p->fstime) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
-      int32_t buffersize = 0, size, i, bsize = p->aux.size;
+      int32_t buffersize = 0, i, size;
+      size_t bsize = p->aux.size;
       char *out = (char *) p->aux.auxp;
       p->fstime = 0;
 
       memset(out,0,bsize);
       /* package destination in 4-byte zero-padded block */
-      size = strlen(p->dest->data)+1;
+      size = (int32_t) strlen(p->dest->data)+1;
       memcpy(out,p->dest->data,size);
       size = ceil(size/4.)*4;
       buffersize += size;
-      if(p->INCOUNT > 4) {
+      if(p->INOCOUNT > 4) {
       /* package type in a 4-byte zero-padded block;
          add a comma to the beginning of the type string.
       */
       out[buffersize] = ',';
-      size = strlen(p->type->data)+1;
+      size = (int32_t) strlen(p->type->data)+1;
       /* check for b type before copying */
       for(i = 0; i < p->iargs; i++) {
         if(p->type->data[i] == 'b') {
@@ -749,7 +736,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           break;
         case 's':
           s = (STRINGDAT *)p->arg[i];
-          size = strlen(s->data)+1;
+          size = (int32_t) strlen(s->data)+1;
           size = ceil(size/4.)*4;
           /* realloc if necessary */
           if(buffersize + size > bsize) {
@@ -761,7 +748,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'G':
-          ft = csound->FTnp2Finde(csound, p->arg[i]);
+          ft = csound->FTFind(csound, p->arg[i]);
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
           if(buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
@@ -850,7 +837,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           csound->Warning(csound, Str("OSCsend failed to send "
                                       "message with destination %s to %s:%d\n"),
                                       p->dest->data, p->ipaddress->data,
-                          (int) *p->port);
+                          (int32_t) *p->port);
         }
         p->err_state = 1;
         return OK;
@@ -872,16 +859,16 @@ typedef struct {
   ARRAYDAT *type;
   ARRAYDAT *arg;
   MYFLT *imtu;
-  int mtu;
+  int32_t mtu;
   AUXCH   aux;    /* MTU bytes */
   int32_t sock, iargs;
   MYFLT   last;
   struct sockaddr_in server_addr;
-  int no_msgs;
+  int32_t no_msgs;
 } OSCBUNDLE;
 
 
-static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
+static int32_t oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
   /* check array sizes:
      type and dest should match
      arg should have the same number of rows as
@@ -902,7 +889,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
     if(p->no_msgs < p->arg->sizes[0])
       return csound->InitError(csound, "%s", Str("arg array not big enough\n"));
 
-    if(*p->imtu) p->mtu = (int) *p->imtu;
+    if(*p->imtu) p->mtu = (int32_t) *p->imtu;
     else p->mtu = MAX_PACKET_SIZE;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
@@ -912,7 +899,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -942,14 +929,16 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
                           Str("Bundle msg exceeded max packet size, not sent\n")); \
           return OK; }
 
-static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
+#define MAX_TYPEY_PER_BUNDLED_MESSAGE 1024
+
+static int32_t oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
     if(*p->kwhen != p->last) {
       int32_t i, n, size = 0, tstrs,
         dstrs, msize, buffsize = 0, tmp;
       STRINGDAT *dest, *type;
       float fdata;
       int32_t idata, cols;
-      char tstr[64], *dstr;
+      char tstr[MAX_TYPEY_PER_BUNDLED_MESSAGE], *dstr;
       char *buff = (char *) p->aux.auxp;
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
       memset(buff, 0, p->mtu);
@@ -965,12 +954,12 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
       for(i = 0; i < p->no_msgs; i++, size = 0) {
         int32_t siz;
         dstr = dest[i].data;
-        dstrs = strlen(dstr)+1;
+        dstrs = (int32_t) strlen(dstr)+1;
         size += ceil((dstrs)/4.)*4;
         tstr[0] = ',';
-        strncpy(tstr+1, type[i].data, 62);
-        tstr[63]='\0';
-        tstrs = strlen(tstr)+1;
+        strncpy(tstr+1, type[i].data, MAX_TYPEY_PER_BUNDLED_MESSAGE-2);
+        tstr[MAX_TYPEY_PER_BUNDLED_MESSAGE-1]='\0';
+        tstrs = (int32_t) strlen(tstr)+1;
         size += ceil((tstrs)/4.)*4;
         msize = tstrs - 2; /* tstrs-2 is the number of ints or floats in msg */
         size += msize*4;
@@ -1009,38 +998,52 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
           break;
           default:
             csound->Message(csound,
-                            Str("only bundles with i and f types are supported \n"));
+                            "%s", Str("only bundles with i and f types are supported \n"));
           }
         }
       }
 
       if (UNLIKELY(sendto(p->sock, (void*) p->aux.auxp, buffsize, 0, to,
                           sizeof(p->server_addr)) < 0))
-        return csound->PerfError(csound, &(p->h), Str("OSCbundle failed"));
+        return csound->PerfError(csound, &(p->h), "%s", Str("OSCbundle failed"));
       p->last = *p->kwhen;
     }
     return OK;
 }
+
+static int32_t oscbundle_deinit(CSOUND *csound, OSCBUNDLE *p)
+{
+
+#if defined(WIN32)
+    closesocket((SOCKET)p->sock);
+    WSACleanup();
+#else
+    close(p->sock);
+#endif
+    return OK;
+}
+
 
 
 #define S(x)    sizeof(x)
 
 static OENTRY socksend_localops[] =
   {
-   { "socksend.a", S(SOCKSEND), 0, 3, "", "aSiio", (SUBR) init_send,
+   { "socksend.a", S(SOCKSEND), 0, "", "aSiio", (SUBR) init_send,
      (SUBR) send_send },
-   { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
+   { "socksend.k", S(SOCKSEND), 0, "", "kSiio", (SUBR) init_send,
      (SUBR) send_send_k, NULL },
-   { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
+   { "socksend.S", S(SOCKSENDT), 0, "", "SSiio", (SUBR) init_send,
      (SUBR) send_send_Str, NULL },
-   { "socksends", S(SOCKSENDS), 0, 3, "", "aaSiio", (SUBR) init_sendS,
+   { "socksends", S(SOCKSENDS), 0, "", "aaSiio", (SUBR) init_sendS,
      (SUBR) send_sendS },
-   { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
-     (SUBR) send_ssend },
-   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSN", (SUBR)osc_send2_init,
-     (SUBR)osc_send2 },
-   { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
-     (SUBR)oscbundle_perf },
+   { "stsend", S(SOCKSEND), 0, "", "aSi", (SUBR) init_ssend,
+     (SUBR) send_ssend, (SUBR) stsend_deinit },
+   { "OSCsend", S(OSCSEND2), 0, "", "kSkSN", (SUBR)osc_send2_init,
+     (SUBR)osc_send2, (SUBR) oscsend_deinit },
+   { "OSCbundle", S(OSCBUNDLE), 0, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
+     (SUBR)oscbundle_perf, (SUBR) oscbundle_deinit},
 };
 
 LINKAGE_BUILTIN(socksend_localops)
+#endif

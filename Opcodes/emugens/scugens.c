@@ -96,7 +96,7 @@ sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
 typedef struct {
     OPDS  h;
     MYFLT *out, *in, *lagtime, *initial_value;
-    int started;
+    int32_t started;
     MYFLT lag, b1, y1;
     MYFLT sr;
 } LAG0;
@@ -106,7 +106,7 @@ static int32_t lag0_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     p->lag = -1;
     p->started = 0;
     p->b1 = FL(0.0);
-    p->sr = csound->GetKr(csound);
+    p->sr = CS_EKR;
     p->y1 = 0;
     return OK;
 }
@@ -117,7 +117,7 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
     p->started = 1;
     p->y1 = *(p->initial_value);
     p->b1 = FL(0.0);
-    p->sr = csound->GetKr(csound);
+    p->sr = CS_EKR;
     return OK;
 }
 
@@ -163,7 +163,7 @@ static int32_t laga_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     IGN(csound);
     p->lag = -1;
     p->b1 = FL(0.0);
-    p->sr = csound->GetSr(csound);
+    p->sr = CS_ESR;
     p->started = 0;
     p->y1 = -INF;
     return OK;
@@ -173,7 +173,7 @@ static int32_t laga_init_initial_value(CSOUND *csound, LAG0 *p) {
     IGN(csound);
     p->lag = -1;
     p->b1 = FL(1.0);
-    p->sr = csound->GetSr(csound);
+    p->sr = CS_ESR;
     p->started = 1;
     p->y1 = *p->initial_value;
     return OK;
@@ -236,11 +236,11 @@ typedef struct {
     MYFLT *out, *in, *lagtimeU, *lagtimeD, *first;
     MYFLT  lagu, lagd, b1u, b1d, y1;
     MYFLT sr;
-    int started;
+    int32_t started;
 } LagUD;
 
 
-static int32_t _lagud_init(CSOUND *csound, LagUD *p, int started) {
+static int32_t _lagud_init(CSOUND *csound, LagUD *p, int32_t started) {
     IGN(csound);
     p->lagu = -1;
     p->lagd = -1;
@@ -248,7 +248,7 @@ static int32_t _lagud_init(CSOUND *csound, LagUD *p, int started) {
     p->b1u = started ? FL(1.0) : FL(0.0);
     p->b1d = p->b1u;
     p->started = started;
-    p->sr = csound->GetKr(csound);
+    p->sr = CS_EKR;
     return OK;
 }
 
@@ -342,7 +342,7 @@ lagud_a(CSOUND *csound, LagUD *p) {
             out[n]= y1;
         }
     } else {
-        MYFLT sr = csound->GetSr(csound);
+        MYFLT sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
         MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps);
@@ -392,7 +392,7 @@ trig_a(CSOUND *csound, Trig *p) {
 
     MYFLT *in = p->in;
     MYFLT dur = *p->dur;
-    MYFLT sr = csound->GetSr(csound);
+    MYFLT sr = CS_ESR;
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
     unsigned long counter = p->counter;
@@ -425,7 +425,7 @@ static int
 trig_k(CSOUND *csound, Trig *p) {
     MYFLT curtrig = *p->in;
     MYFLT dur = *p->dur;
-    MYFLT kr = csound->GetKr(csound);
+    MYFLT kr = CS_EKR;
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
     uint64_t counter = p->counter;
@@ -578,7 +578,7 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
     MYFLT resetPos = *p->resetPos;
     MYFLT previn   = p->previn;
     MYFLT level    = p->level;
-    int trig = (previn <= FL(0.0)) && (curin > FL(0.0));
+    int32_t trig = (previn <= FL(0.0)) && (curin > FL(0.0));
     MYFLT frac = FL(1.0) - previn/(curin-previn);
 
     for(n=offset; n<nsmps; n++) {
@@ -618,72 +618,72 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY scugens_localops[] = {
-    {"sc_lag",    S(LAG0),   0, 3, "k", "kk",
+    {"sc_lag",    S(LAG0),   0,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
-    {"lag",    S(LAG0),   0, 3, "k", "kk",
+    {"lag",    S(LAG0),   0,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
 
-    {"sc_lag",    S(LAG0),   0, 3, "k", "kki",
+    {"sc_lag",    S(LAG0),   0,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
-    {"lag",    S(LAG0),   0, 3, "k", "kki",
+    {"lag",    S(LAG0),   0,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
 
-    {"sc_lag",    S(LAG0),    0, 3, "a", "aki",
+    {"sc_lag",    S(LAG0),    0,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next},
-    {"lag",    S(LAG0),    0, 3, "a", "aki",
+    {"lag",    S(LAG0),    0,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next},
 
-    {"sc_lag",    S(LAG0),    0, 3, "a", "ak",
+    {"sc_lag",    S(LAG0),    0,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
-    {"lag",    S(LAG0),    0, 3, "a", "ak",
+    {"lag",    S(LAG0),    0,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
 
-    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkki",
+    {"sc_lagud",  S(LagUD),  0,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
-    {"lagud",  S(LagUD),  0, 3, "k", "kkki",
+    {"lagud",  S(LagUD),  0,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
 
-    {"sc_lagud",  S(LagUD),  0, 3, "a", "akki",
+    {"sc_lagud",  S(LagUD),  0,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
-    {"lagud",  S(LagUD),  0, 3, "a", "akki",
+    {"lagud",  S(LagUD),  0,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
 
-    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkk",
+    {"sc_lagud",  S(LagUD),  0,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
-    {"lagud",  S(LagUD),  0, 3, "k", "kkk",
+    {"lagud",  S(LagUD),  0,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
 
-    {"sc_lagud",  S(LagUD),  0, 3, "a", "akk",
+    {"sc_lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
-    {"lagud",  S(LagUD),  0, 3, "a", "akk",
+    {"lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
 
 
-    {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
-    {"trighold",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
+    {"sc_trig",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
+    {"trighold",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
 
-    {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
-    {"trighold",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+    {"sc_trig",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+    {"trighold",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
 
-    {"sc_phasor", S(Phasor), 0, 3, "k", "kkkkO",
+    {"sc_phasor", S(Phasor), 0,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk },
-    {"trigphasor", S(Phasor), 0, 3, "k", "kkkkO",
+    {"trigphasor", S(Phasor), 0,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk },
 
-    {"sc_phasor", S(Phasor), 0, 3, "a", "akkkO",
+    {"sc_phasor", S(Phasor), 0,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak },
-    {"trigphasor", S(Phasor), 0, 3, "a", "akkkO",
+    {"trigphasor", S(Phasor), 0,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak },
 
-    {"sc_phasor", S(Phasor), 0, 3, "a", "aakkO",
+    {"sc_phasor", S(Phasor), 0,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
-    {"trigphasor", S(Phasor), 0, 3, "a", "aakkO",
+    {"trigphasor", S(Phasor), 0,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
 
-    {"sc_phasor", S(Phasor), 0, 3, "a", "kkkkO",
+    {"sc_phasor", S(Phasor), 0,  "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk },
 
-    {"trigphasor", S(Phasor), 0, 3, "a", "kkkkO",
+    {"trigphasor", S(Phasor), 0,  "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk }
 };
 

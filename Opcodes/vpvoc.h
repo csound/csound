@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct {
     FUNC    *function, *nxtfunction;
     MYFLT   d;
@@ -57,5 +59,6 @@ typedef struct {
     AUXCH   auxtab;         /* For table is all else fails */
     PVOC_GLOBALS  *pp;
     AUXCH memenv;
+  void *setup;
 } VPVOC;
 

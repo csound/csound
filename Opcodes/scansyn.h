@@ -20,7 +20,15 @@
     02110-1301 USA
 */
 
+#pragma once
+
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#include "interlocks.h"
+#endif
+
 
 typedef struct SCANSYN_GLOBALS_ SCANSYN_GLOBALS;
 

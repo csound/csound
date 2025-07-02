@@ -22,6 +22,8 @@
 */
 
                         /*                                      DISPREP.H       */
+#pragma once
+
 #include "pstream.h"
 
 typedef struct {
@@ -42,7 +44,7 @@ typedef struct {
         OPDS    h;
         PVSDAT  *fin;
         MYFLT   *points, *flag;
-        int     size;
+        int32_t     size;
         WINDAT  dwindow;
         AUXCH   fdata;
         uint32  lastframe;
@@ -56,8 +58,8 @@ typedef struct {
         MYFLT   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg, *imin, *imax;
         MYFLT   *sampbuf, *bufp, *endp, overN;
         int32   windsize, overlap, ncoefs;
-        int     hanning, dbout;
-        int     npts, start;
+        int32_t     hanning, dbout;
+        int32_t     npts, start;
         WINDAT  dwindow;
         AUXCH   auxch;
         AUXCH  smpbuf;
@@ -67,14 +69,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *kout,*kin,*iprd,*imindur,*imemdur,*ihp,*ithresh,*ihtim,*ixfdbak;
         MYFLT   *istartempo,*ifn,*idisprd,*itweek;
-        int     countdown, timcount, npts, minlam, maxlam;
+        int32_t     countdown, timcount, npts, minlam, maxlam;
         MYFLT   *hbeg, *hcur, *hend;
         MYFLT   *xbeg, *xcur, *xend;
         MYFLT   *stmemp, *linexp, *ftable, *xscale, *lmults;
         int16   *lambdas;
         MYFLT   *stmemnow, ncross, coef0, coef1, yt1, thresh;
         MYFLT   fwdcoef, fwdmask, xfdbak, avglam, tempscal, tempo, tweek;
-        int     dcntdown, dtimcnt;
+        int32_t     dcntdown, dtimcnt;
         WINDAT  dwindow;
         AUXCH   auxch;
 } TEMPEST;

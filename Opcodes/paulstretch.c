@@ -32,9 +32,12 @@
 #endif
 #include <math.h>
 #include <math.h>
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
-#include "H/fftlib.h"
 
 #ifdef ANDROID
 float crealf(_Complex float);
@@ -59,6 +62,7 @@ typedef struct {
     AUXCH m_hinv_buf;
     AUXCH m_output;
     AUXCH m_tmp;
+    void *setup, *isetup;
 } PAULSTRETCH;
 
 static void compute_block(CSOUND *csound, PAULSTRETCH *p)
@@ -85,8 +89,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     /* re-order bins and take FFT */
     tmp[p->windowsize] = tmp[1];
     tmp[p->windowsize + 1] = FL(0.0);
-    csoundRealFFTnp2(csound, tmp, p->windowsize);
-
+    csound->RealFFT(csound, p->setup, tmp);
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
@@ -106,8 +109,7 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 
     /* re-order bins and take inverse FFT */
     tmp[1] = tmp[p->windowsize];
-    csoundInverseRealFFTnp2(csound, tmp, p->windowsize);
-
+    csound->RealFFT(csound, p->isetup, tmp);
     /* apply window and overlap */
     for (i = 0; i < windowsize; i++) {
       tmp[i] *= window[i];
@@ -122,12 +124,12 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 
 static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
-    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
+    FUNC *ftp = csound->FTFind(csound, p->ifn);
     uint32_t i = 0;
     uint32_t size;
 
     if (ftp == NULL)
-      return csound->InitError(csound, Str("paulstretch: table not found"));
+      return csound->InitError(csound, "%s", Str("paulstretch: table not found"));
 
     p->ft = ftp;
     p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));
@@ -170,7 +172,8 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     }
     p->start_pos = FL(0.0);
     p->counter = 0;
-
+    p->setup = csound->RealFFTSetup(csound, p->windowsize, FFT_FWD);
+    p->isetup = csound->RealFFTSetup(csound, p->windowsize, FFT_INV);
     return OK;
 }
 
@@ -201,7 +204,7 @@ static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 }
 
 static OENTRY paulstretch_localops[] = {
-  { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR, 3, "a", "iii",
+  { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR,  "a", "iii",
     (int32_t (*)(CSOUND *, void *)) ps_init,
     (int32_t (*)(CSOUND *, void *)) paulstretch_perf}
 };

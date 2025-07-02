@@ -25,7 +25,12 @@
   02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "interlocks.h"
 #include <math.h>
 
@@ -428,7 +433,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->amplo = MINAMPS;
     p->amphi = MAXAMPS;
     p->npartial = 7;
-    p->dbfs = FL(32768.0)/csound->e0dbfs;
+    p->dbfs = FL(32768.0)/csound->Get0dBFS(csound);
     p->prevf = p->cps = 100.0;
     return (OK);
 }
@@ -557,13 +562,13 @@ typedef struct plltrack_
 
 } PLLTRACK;
 
-void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t TYPE)
+void update_coefs(PLLTRACK *p, double fr, double Q, BIQUAD *biquad, int32_t TYPE)
 {
     double k, ksq, div, ksqQ;
 
     switch(TYPE){
     case LP2:
-      k = tan(fr*csound->pidsr);
+      k = tan(fr*CS_PIDSR);
       ksq = k*k;
       ksqQ = ksq*Q;
       div = ksqQ+k+Q;
@@ -575,7 +580,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t T
       break;
 
     case LP1:
-      k = 1.0/tan(csound->pidsr*fr);
+      k = 1.0/tan(CS_PIDSR*fr);
       ksq = k*k;
       biquad->a0 = 1.0 / ( 1.0 + ROOT2 * k + ksq);
       biquad->a1 = 2.0*biquad->a0;
@@ -585,7 +590,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t T
       break;
 
     case HP:
-      k = tan(csound->pidsr*fr);
+      k = tan(CS_PIDSR*fr);
       ksq = k*k;
       biquad->a0 = 1.0 / ( 1.0 + ROOT2 * k + ksq);
       biquad->a1 = -2.*biquad->a0;
@@ -604,7 +609,7 @@ int32_t plltrack_set(CSOUND *csound, PLLTRACK *p)
     p->x1 = p->cos_x = p->sin_x = 0.0;
     p->x2 = 1.0;
     p->klpf_o = p->klpfQ_o = p->klf_o = p->khf_o = 0.0;
-    update_coefs(csound,10.0, 0.0, &p->fils[4], LP1);
+    update_coefs(p,10.0, 0.0, &p->fils[4], LP1);
     p->ace = p->xce = 0.0;
     for (i=0; i < 6; i++)
       p->fils[i].del1 = p->fils[i].del2 = 0.0;
@@ -627,10 +632,10 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     int32_t
       itest = 0;
 
-    _0dbfs = csound->e0dbfs;
+    _0dbfs = csound->Get0dBFS(csound);
     ksmps = CS_KSMPS;
     esr = CS_ESR;
-    scal = 2.0*csound->pidsr;
+    scal = 2.0*CS_PIDSR;
 
     /* check for muted input & bypass */
     if (ksmps > 1){
@@ -663,19 +668,19 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 
 
     if (p->khf_o != khf) {
-      update_coefs(csound, khf, 0.0, &biquad[0], LP1);
-      update_coefs(csound, khf, 0.0, &biquad[1], LP1);
-      update_coefs(csound, khf, 0.0, &biquad[2], LP1);
+      update_coefs(p, khf, 0.0, &biquad[0], LP1);
+      update_coefs(p, khf, 0.0, &biquad[1], LP1);
+      update_coefs(p, khf, 0.0, &biquad[2], LP1);
       p->khf_o = khf;
     }
 
     if (p->klf_o != klf) {
-      update_coefs(csound, klf, 0.0, &biquad[3], HP);
+      update_coefs(p, klf, 0.0, &biquad[3], HP);
       p->klf_o = klf;
     }
 
     if (p->klpf_o != klpf || p->klpfQ_o != klpfQ ) {
-      update_coefs(csound, klpf, klpfQ, &biquad[5], LP2);
+      update_coefs(p, klpf, klpfQ, &biquad[5], LP2);
       p->klpf_o = klpf; p->klpfQ_o = klpfQ;
     }
 
@@ -753,11 +758,11 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 
 static OENTRY pitchtrack_localops[] =
   {
-   {"ptrack", S(PITCHTRACK), 0, 3, "kk", "aio",
+   {"ptrack", S(PITCHTRACK), 0,  "kk", "aio",
     (SUBR)pitchtrackinit, (SUBR)pitchtrackprocess},
-   {"pitchac", S(PITCHTRACK), 0, 3, "k", "akki",
+   {"pitchac", S(PITCHTRACK), 0,  "k", "akki",
     (SUBR)pitchafset, (SUBR)pitchafproc},
-   {"plltrack", S(PLLTRACK), 0, 3, "aa", "akOOOOO",
+   {"plltrack", S(PLLTRACK), 0,  "aa", "akOOOOO",
     (SUBR)plltrack_set, (SUBR)plltrack_perf}
 
 };

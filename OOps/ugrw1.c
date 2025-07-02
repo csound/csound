@@ -48,6 +48,7 @@
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>
+#include "csound_standard_types.h"
 
 /*****************************************************************************/
 /*****************************************************************************/
@@ -112,7 +113,7 @@ int32_t elapsedtime(CSOUND *csound, RDTIME *p)
 int32_t instimset(CSOUND *csound, RDTIME *p)
 {
    IGN(csound);
-    p->instartk = CS_KCNT;
+   p->instartk = CS_KCNT;
     *p->rslt = FL(0.0);
     return OK;
 }
@@ -182,7 +183,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
     if (*p->ptime < CS_ONEDKR)
       p->ctime = FL(0.0);
     else
-      p->ctime = *p->ptime * csound->ekr;
+      p->ctime = *p->ptime * CS_EKR;
 
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
@@ -217,10 +218,15 @@ int32_t printk(CSOUND *csound, PRINTK *p)
        * Print instrument number and time. Instrument number stuff from
        * printv() in disprep.c.
        */
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%4d ",
+      if(p->h.insdshead->instr->opcode_info == NULL)
+         csound->MessageS(csound, CSOUNDMSG_ORCH, "instr %d:",
                                (int32_t)p->h.insdshead->p1.value);
-      csound->MessageS(csound, CSOUNDMSG_ORCH, Str("time %11.5f: "),
-                               csound->icurTime/csound->esr-CS_ONEDKR);
+       else
+        csound->MessageS(csound, CSOUNDMSG_ORCH,
+                         "UDO %s:", p->h.insdshead->instr->opcode_info->name); //
+ 
+       csound->MessageS(csound, CSOUNDMSG_ORCH, Str("\ttime %11.5f: "),
+                               csound->icurTimeSamples/CS_ESR-CS_ONEDKR);
       /* Print spaces and then the value we want to read.   */
       if (p->pspace > 0L) {
         char  s[128];   /* p->pspace is limited to 120 in printkset() above */
@@ -255,7 +261,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     if (*p->ptime < CS_ONEDKR)
       p->ctime = CS_ONEDKR;
     else
-      p->ctime = *p->ptime * csound->ekr;
+      p->ctime = *p->ptime * CS_EKR;
     if(!p->h.insdshead->reinitflag)
        p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
@@ -569,7 +575,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
 {
     char        string[8192]; /* matt ingals replacement */
 
-    if (csound->ISSTRCOD(*p->ifilcod) == 0) {
+    if (IsStringCode(*p->ifilcod) == 0) {
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
@@ -708,19 +714,23 @@ int32_t printk2(CSOUND *csound, PRINTK2 *p)
     MYFLT   value = *p->val;
 
     if (p->oldvalue != value) {
-      csound->MessageS(csound, CSOUNDMSG_ORCH, " i%d ",
+     if(p->h.insdshead->instr->opcode_info == NULL)      
+       csound->MessageS(csound, CSOUNDMSG_ORCH, "instr %d:",
                                                (int32_t)p->h.insdshead->p1.value);
+     else
+     csound->MessageS(csound, CSOUNDMSG_ORCH,
+                      "UDO %s:", p->h.insdshead->instr->opcode_info->name);
       if (p->pspace > 0) {
         char  s[128];   /* p->pspace is limited to 120 in printk2set() above */
         memset(s, ' ', (size_t) p->pspace);
         s[p->pspace] = '\0';
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "\t%s", s);
       }
       if (*p->named)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "\t%s = %11.5f\n",
                          *p->h.optext->t.inlist->arg, *p->val);
       else
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "\t%11.5f\n", *p->val);
       p->oldvalue = value;
     }
     return OK;
@@ -754,6 +764,18 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
     return OK;
 }
 
+#include "../Opcodes/zak.h"
+static int64_t GetZaBounds(CSOUND *csound, MYFLT **zastart){
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zastart = NULL;
+      return -1;
+    }
+    *zastart = zz->zastart;
+    return zz->zalast;
+}
+
 /* inz writes to za space at a rate as many channels as can. */
 int32_t inz(CSOUND *csound, IOZ *p)
 {
@@ -764,7 +786,7 @@ int32_t inz(CSOUND *csound, IOZ *p)
     uint32_t n, nsmps = CS_KSMPS;
     /* Check to see this index is within the limits of za space.     */
     MYFLT* zastart;
-    int zalast = csound->GetZaBounds(csound, &zastart);
+    int64_t zalast = GetZaBounds(csound, &zastart);
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx + nchns >= zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
@@ -796,11 +818,11 @@ int32_t outz(CSOUND *csound, IOZ *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     nchns = csound->GetNchnls(csound);
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = csound->spout_tmp;
 
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;
-    int zalast = csound->GetZaBounds(csound, &zastart);
+    int64_t zalast = GetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
     if (UNLIKELY((indx + nchns) >= zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
@@ -809,23 +831,12 @@ int32_t outz(CSOUND *csound, IOZ *p)
       /* Now read from the array in za space and write to the output. */
       readloc = zastart + (indx * nsmps);
       early = nsmps-early;
-      if (!csound->spoutactive) {
-        memset(spout, '\0', nchns*nsmps*sizeof(MYFLT));
-        for (i = 0; i < nchns; i++) {
-          memcpy(&spout[i * nsmps+offset], readloc+offset,
-                 (early-offset)*sizeof(MYFLT));
-          readloc += nsmps;
-        }
-        csound->spoutactive = 1;
-      }
-      else {
-        for (i = 0; i < nchns; i++) {
+      for (i = 0; i < nchns; i++) {
           for (n = offset; n < nsmps-early; n++) {
             spout[n + i*nsmps] += readloc[n];
           }
           readloc += nsmps;
         }
-      }
     }
     return OK;
  err1:

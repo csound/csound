@@ -34,34 +34,34 @@ typedef struct csCfgVariableHead_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
     void            *p;               /* pointer to value                   */
-    int             type;             /* type (e.g. CSOUNDCFG_INTEGER)      */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             type;             /* type (e.g. CSOUNDCFG_INTEGER)      */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
 } csCfgVariableHead_t;
 
-/* int type */
+/* int32_t type */
 
 typedef struct csCfgVariableInt_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
-    int             *p;               /* pointer to value                   */
-    int             type;             /* type (CSOUNDCFG_INTEGER)           */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             *p;               /* pointer to value                   */
+    int32_t             type;             /* type (CSOUNDCFG_INTEGER)           */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
-    int             min;              /* minimum allowed value              */
-    int             max;              /* maximum allowed value              */
+    int32_t             min;              /* minimum allowed value              */
+    int32_t             max;              /* maximum allowed value              */
 } csCfgVariableInt_t;
 
-/* boolean type (int with a value of 0 or 1) */
+/* boolean type (int32_t with a value of 0 or 1) */
 
 typedef struct csCfgVariableBoolean_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
-    int             *p;               /* pointer to value                   */
-    int             type;             /* type (CSOUNDCFG_BOOLEAN)           */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             *p;               /* pointer to value                   */
+    int32_t             type;             /* type (CSOUNDCFG_BOOLEAN)           */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
 } csCfgVariableBoolean_t;
@@ -72,8 +72,8 @@ typedef struct csCfgVariableFloat_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
     float           *p;               /* pointer to value                   */
-    int             type;             /* type (CSOUNDCFG_FLOAT)             */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             type;             /* type (CSOUNDCFG_FLOAT)             */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
     float           min;              /* minimum allowed value              */
@@ -86,8 +86,8 @@ typedef struct csCfgVariableDouble_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
     double          *p;               /* pointer to value                   */
-    int             type;             /* type (CSOUNDCFG_DOUBLE)            */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             type;             /* type (CSOUNDCFG_DOUBLE)            */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
     double          min;              /* minimum allowed value              */
@@ -100,8 +100,8 @@ typedef struct csCfgVariableMYFLT_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
     MYFLT           *p;               /* pointer to value                   */
-    int             type;             /* type (CSOUNDCFG_MYFLT)             */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             type;             /* type (CSOUNDCFG_MYFLT)             */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
     MYFLT           min;              /* minimum allowed value              */
@@ -114,11 +114,11 @@ typedef struct csCfgVariableString_s {
     union csCfgVariable_u *nxt;       /* pointer to next structure in chain */
     unsigned char   *name;            /* name of the variable               */
     char            *p;               /* value: array of 'maxlen' chars     */
-    int             type;             /* type (CSOUNDCFG_STRING)            */
-    int             flags;            /* bitwise OR of flags                */
+    int32_t             type;             /* type (CSOUNDCFG_STRING)            */
+    int32_t             flags;            /* bitwise OR of flags                */
     unsigned char   *shortDesc;       /* short description (NULL if none)   */
     unsigned char   *longDesc;        /* long description (NULL if none)    */
-    int             maxlen;           /* maximum length + 1                 */
+    int32_t             maxlen;           /* maximum length + 1                 */
 } csCfgVariableString_t;
 
 /* union of all variable types */
@@ -176,7 +176,7 @@ typedef union csCfgVariable_u {
    */
   PUBLIC int
     csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
-                                      void *p, int type, int flags,
+                                      void *p, int32_t type, int32_t flags,
                                       void *min, void *max,
                                       const char *shortDesc,
                                       const char *longDesc);
@@ -186,7 +186,7 @@ typedef union csCfgVariable_u {
    * The 'name' and 'value' parameters, and return value are the same as
    * in the case of csoundSetGlobalConfigurationVariable().
    */
-  PUBLIC int csoundSetConfigurationVariable(CSOUND *csound, const char *name,
+  PUBLIC int32_t csoundSetConfigurationVariable(CSOUND *csound, const char *name,
                                                             void *value);
 
   /**
@@ -195,7 +195,7 @@ typedef union csCfgVariable_u {
    * The 'name' and 'value' parameters, and return value are the same as
    * in the case of csoundParseGlobalConfigurationVariable().
    */
-  PUBLIC int csoundParseConfigurationVariable(CSOUND *csound, const char *name,
+  PUBLIC int32_t csoundParseConfigurationVariable(CSOUND *csound, const char *name,
                                               const char *value);
 
   /**
@@ -231,13 +231,13 @@ typedef union csCfgVariable_u {
    * Return value is CSOUNDCFG_SUCCESS in case of success, or
    * CSOUNDCFG_INVALID_NAME if the variable was not found.
    */
-  PUBLIC int csoundDeleteConfigurationVariable(CSOUND *csound,
+  PUBLIC int32_t csoundDeleteConfigurationVariable(CSOUND *csound,
                                                const char *name);
   /**
    * Returns pointer to an error string constant for the specified
    * CSOUNDCFG error code. The string is not translated.
    */
-  PUBLIC const char *csoundCfgErrorCodeToString(int errcode);
+  PUBLIC const char *csoundCfgErrorCodeToString(int32_t errcode);
 
 /* This pragma must come after all public function declarations */
 

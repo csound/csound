@@ -21,8 +21,8 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
-
+#pragma once
+#include "stdopcod.h"
 #define POWER_BUFSIZE 1000
 
 typedef struct {

@@ -40,7 +40,7 @@ static void pv_import_usage(CSOUND *csound)
     csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file\n"));
 }
 
-static float getnum(FILE* inf, int *term)
+static float getnum(FILE* inf, int32_t *term)
 {
     char buff[100];
     int32_t  cc;
@@ -136,7 +136,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
       for (i=1;;i++) {
         uint32_t j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
-          int term;
+          int32_t term;
           frame[j] = getnum(inf, &term);
           if (term==EOF) goto ending;
           if (feof(inf)) goto ending;
@@ -158,10 +158,10 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t pv_import_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "pv_import", pv_import);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "pv_import", pv_import);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "pv_import",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "pv_import",
                                       Str("translate text form to "
                                           "PVOC analysis file"));
     }

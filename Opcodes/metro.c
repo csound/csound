@@ -65,7 +65,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, Str("metro:init phase truncation"));
+        csound->Warning(csound, "%s", Str("metro:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
     }
     p->flag=1;
@@ -125,7 +125,7 @@ static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, Str("metro2:init phase truncation"));
+        csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
       p->curphs = (MYFLT)phs - (MYFLT)longphs;
       p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
     }
@@ -194,8 +194,8 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) {
-      return csound->InitError(csound, Str("splitrig: incorrect table number"));
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
+      return csound->InitError(csound, "%s", Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;
@@ -242,7 +242,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     FUNC *ftp;
     MYFLT *table;
     uint32_t j;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))  return NOTOK;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))  return NOTOK;
     table = p->table = ftp->ftable;
     p->numParm = p->INOCOUNT-2; /* ? */
     for (j = 0; j < ftp->flen; j+= p->numParm) {
@@ -346,12 +346,12 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),  0,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
-  { "metro2", S(METRO2), 0,  3,      "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
-  { "metrobpm",S(METRO), 0,  3,      "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
-  { "splitrig", S(SPLIT_TRIG), 0, 3, "",  "kkiiz",
+  { "metro",  S(METRO),  0,        "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
+  { "metro2", S(METRO2), 0,        "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
+  { "metrobpm",S(METRO), 0,        "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
+  { "splitrig", S(SPLIT_TRIG), 0,  "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
-  { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
+  { "timedseq",S(TIMEDSEQ), TR,  "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
 };
 
 int32_t metro_init_(CSOUND *csound)

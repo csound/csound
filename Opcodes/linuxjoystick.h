@@ -18,8 +18,11 @@
   02110-1301 USA
 
 */
+#pragma once
+
 #include <unistd.h>
 #include "csdl.h"
+
 #include "linux/joystick.h"
 
 typedef struct

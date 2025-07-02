@@ -29,6 +29,8 @@
  *
  */
 
+#pragma once
+
 #ifndef __filter_h
 #define __filter_h
 
