@@ -105,17 +105,17 @@ typedef struct devparams_ {
     snd_pcm_t       *handle;        /* handle                           */
     void            *buf;           /* sample conversion buffer         */
     char            *device;        /* device name                      */
-    int             format;         /* sample format                    */
-    int             sampleSize;     /* MYFLT sample frame size in bytes */
+    int32_t             format;         /* sample format                    */
+    int32_t             sampleSize;     /* MYFLT sample frame size in bytes */
     uint32_t        srate;          /* sample rate in Hz                */
-    int             nchns;          /* number of channels               */
-    int             buffer_smps;    /* buffer length in samples         */
-    int             period_smps;    /* period time in samples           */
+    int32_t             nchns;          /* number of channels               */
+    int32_t             buffer_smps;    /* buffer length in samples         */
+    int32_t             period_smps;    /* period time in samples           */
     /* playback sample conversion function */
-    void            (*playconv)(int, MYFLT *, void *, int *);
+    void            (*playconv)(int32_t, MYFLT *, void *, int32_t *);
     /* record sample conversion function */
-    void            (*rec_conv)(int, void *, MYFLT *);
-    int             seed;           /* random seed for dithering        */
+    void            (*rec_conv)(int32_t, void *, MYFLT *);
+    int32_t             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
 #ifdef BUF_SIZE
@@ -126,7 +126,7 @@ typedef struct devparams_ {
 typedef struct alsaMidiInputDevice_ {
     unsigned char  buf[BUF_SIZE];
     snd_rawmidi_t  *dev;
-    int            bufpos, nbytes, datreq;
+    int32_t            bufpos, nbytes, datreq;
     unsigned char  prvStatus, dat1, dat2;
     struct alsaMidiInputDevice_ *next;
 } alsaMidiInputDevice;
@@ -134,8 +134,8 @@ typedef struct alsaMidiInputDevice_ {
 
 typedef struct midiDevFile_ {
     unsigned char  buf[BUF_SIZE];
-    int            fd;
-    int            bufpos, nbytes, datreq;
+    int32_t            fd;
+    int32_t            bufpos, nbytes, datreq;
     unsigned char  prvStatus, dat1, dat2;
 } midiDevFile;
 
@@ -151,7 +151,7 @@ static const unsigned char dataBytes[16] = {
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
 };
 
-int set_scheduler_priority(CSOUND *csound, int priority)
+int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
 {
     struct sched_param p;
 
@@ -191,21 +191,21 @@ int set_scheduler_priority(CSOUND *csound, int priority)
 
 /* sample conversion routines for playback */
 
-static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
 {
     MYFLT tmp_f;
-    int   tmp_i;
-    int n;
+    int32_t   tmp_i;
+    int32_t n;
     for (n=0; n<nSmps; n++) {
-      int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
+      int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
       tmp_f = (MYFLT) ((rnd>>1) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
       tmp_f += inBuf[n] * (MYFLT) 0x8000;
 #ifndef USE_DOUBLE
-      tmp_i = (int) lrintf(tmp_f);
+      tmp_i = (int32_t) lrintf(tmp_f);
 #else
-      tmp_i = (int) lrint(tmp_f);
+      tmp_i = (int32_t) lrint(tmp_f);
 #endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
@@ -213,20 +213,20 @@ static void MYFLT_to_short(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
     }
 }
 
-static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed)
+static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
 {
     MYFLT tmp_f;
-    int   tmp_i;
-    int n;
+    int32_t   tmp_i;
+    int32_t n;
     for (n=0; n<nSmps; n++) {
-      int rnd = (((*seed) * 15625) + 1) & 0xFFFF;
+      int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = rnd;
       tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
       tmp_f += inBuf[n] * (MYFLT) 0x8000;
 #ifndef USE_DOUBLE
-      tmp_i = (int) lrintf(tmp_f);
+      tmp_i = (int32_t) lrintf(tmp_f);
 #else
-      tmp_i = (int) lrint(tmp_f);
+      tmp_i = (int32_t) lrint(tmp_f);
 #endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
@@ -234,19 +234,19 @@ static void MYFLT_to_short_u(int nSmps, MYFLT *inBuf, int16_t *outBuf, int *seed
     }
 }
 
-static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf,
-                                     int16_t *outBuf, int *seed)
+static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
+                                     int16_t *outBuf, int32_t *seed)
 {
   IGN(seed);
     MYFLT tmp_f;
-    int   tmp_i;
-    int n;
+    int32_t   tmp_i;
+    int32_t n;
     for (n=0; n<nSmps; n++) {
       tmp_f = inBuf[n] * (MYFLT) 0x8000;
 #ifndef USE_DOUBLE
-      tmp_i = (int) lrintf(tmp_f);
+      tmp_i = (int32_t) lrintf(tmp_f);
 #else
-      tmp_i = (int) lrint(tmp_f);
+      tmp_i = (int32_t) lrint(tmp_f);
 #endif
       if (tmp_i < -0x8000) tmp_i = -0x8000;
       if (tmp_i > 0x7FFF) tmp_i = 0x7FFF;
@@ -254,12 +254,12 @@ static void MYFLT_to_short_no_dither(int nSmps, MYFLT *inBuf,
     }
 }
 
-static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
+static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t *seed)
 {
     MYFLT   tmp_f;
     int64_t tmp_i;
     (void) seed;
-    int n;
+    int32_t n;
     for (n=0; n<nSmps; n++) {
       tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
 #ifndef USE_DOUBLE
@@ -274,45 +274,45 @@ static void MYFLT_to_long(int nSmps, MYFLT *inBuf, int32_t *outBuf, int *seed)
     }
 }
 
-static void MYFLT_to_float(int nSmps, MYFLT *inBuf, float *outBuf, int *seed)
+static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *seed)
 {
     (void) seed;
-    int n;
+    int32_t n;
     for (n=0; n<nSmps; n++)
       outBuf[n] = (float) inBuf[n];
 }
 
 /* sample conversion routines for recording */
 
-static void short_to_MYFLT(int nSmps, int16_t *inBuf, MYFLT *outBuf)
+static void short_to_MYFLT(int32_t nSmps, int16_t *inBuf, MYFLT *outBuf)
 {
-    int n;
+    int32_t n;
     MYFLT adjust = FL(1.0) / (MYFLT) 0x8000;
     for (n=0; n<nSmps; n++)
       outBuf[n] = (MYFLT) inBuf[n] * adjust;
 }
 
-static void long_to_MYFLT(int nSmps, int32_t *inBuf, MYFLT *outBuf)
+static void long_to_MYFLT(int32_t nSmps, int32_t *inBuf, MYFLT *outBuf)
 {
-    int n;
+    int32_t n;
     MYFLT adjust = FL(1.0) / (MYFLT) 0x80000000UL;
     for (n=0; n<nSmps; n++)
       outBuf[n] = (MYFLT) inBuf[n] * adjust;
 }
 
-static void float_to_MYFLT(int nSmps, float *inBuf, MYFLT *outBuf)
+static void float_to_MYFLT(int32_t nSmps, float *inBuf, MYFLT *outBuf)
 {
-    int n;
+    int32_t n;
     for (n=0; n<nSmps; n++)
       outBuf[n] = (MYFLT) inBuf[n];
 }
 
 /* select sample format */
 
-static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
-                                   int play, int csound_dither)
+static snd_pcm_format_t set_format(void (**convFunc)(void), int32_t csound_format,
+                                   int32_t play, int32_t csound_dither)
 {
-    int16   endian_test = 0x1234;
+    int16_t   endian_test = 0x1234;
 
     (*convFunc) = NULL;
     /* select conversion routine */
@@ -361,36 +361,36 @@ static snd_pcm_format_t set_format(void (**convFunc)(void), int csound_format,
     return SND_PCM_FORMAT_UNKNOWN;
 }
 
-static void DAC_channels(CSOUND *csound, int chans){
-    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+static void DAC_channels(CSOUND *csound, int32_t chans){
+    int32_t *dachans = (int32_t *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
     if (dachans == NULL) {
       if (csound->CreateGlobalVariable(csound, "_DAC_CHANNELS_",
-                                       sizeof(int)) != 0)
+                                       sizeof(int32_t)) != 0)
         return;
-      dachans = (int *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
+      dachans = (int32_t *) csound->QueryGlobalVariable(csound, "_DAC_CHANNELS_");
       *dachans = chans;
     }
 }
 
-static void ADC_channels(CSOUND *csound, int chans){
-    int *dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+static void ADC_channels(CSOUND *csound, int32_t chans){
+    int32_t *dachans = (int32_t *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
     if (dachans == NULL) {
       if (csound->CreateGlobalVariable(csound, "_ADC_CHANNELS_",
-                                       sizeof(int)) != 0)
+                                       sizeof(int32_t)) != 0)
         return;
-      dachans = (int *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
+      dachans = (int32_t *) csound->QueryGlobalVariable(csound, "_ADC_CHANNELS_");
       *dachans = chans;
     }
 }
 
 /* set up audio device */
 #define MSGLEN (512)
-static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
+static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
 {
     snd_pcm_hw_params_t *hw_params;
     snd_pcm_sw_params_t *sw_params;
     snd_pcm_format_t    alsaFmt;
-    int                 err, n, alloc_smps;
+    int32_t                 err, n, alloc_smps;
     CSOUND              *p = csound;
     char                *devName, msg[MSGLEN];
 
@@ -420,7 +420,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       goto err_return_msg;
     }
     /*=======================*/
-    unsigned int hwchns;
+    uint32_t hwchns;
     if (UNLIKELY(snd_pcm_hw_params_get_channels_max(hw_params, &hwchns) < 0)) {
       strNcpy(msg, Str("Could not retrieve max number of channels"), MSGLEN);
       goto err_return_msg;
@@ -441,12 +441,12 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     /* sample format, */
     alsaFmt = SND_PCM_FORMAT_UNKNOWN;
     if(dev->srate  == 0) dev->format = AE_FLOAT;
-    dev->sampleSize = (int) sizeof(MYFLT) * dev->nchns;
+    dev->sampleSize = (int32_t) sizeof(MYFLT) * dev->nchns;
     {
       void  (*fp)(void) = NULL;
       alsaFmt = set_format(&fp, dev->format, play, csound->GetDitherMode(csound));
-      if (play) dev->playconv = (void (*)(int, MYFLT*, void*, int*)) fp;
-      else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
+      if (play) dev->playconv = (void (*)(int32_t, MYFLT*, void*, int*)) fp;
+      else      dev->rec_conv = (void (*)(int32_t, void*, MYFLT*)) fp;
     }
 
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
@@ -462,37 +462,37 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* number of channels, */
     if (UNLIKELY(snd_pcm_hw_params_set_channels(dev->handle, hw_params,
-                                                (unsigned int) dev->nchns) < 0)) {
+                                                (uint32_t) dev->nchns) < 0)) {
       strNcpy(msg, Str("Unable to set number of channels on soundcard"), MSGLEN);
       goto err_return_msg;
     }
     /* sample rate, (patched for sound cards that object to fixed rate) */
     {
-      unsigned int target;
+      uint32_t target;
       if(dev->srate == 0) {
         // VL 2-4-2019 this code gets HW sr for use in Csound.
-        unsigned int hwsr;
+        uint32_t hwsr;
         snd_pcm_hw_params_t *pms;
         snd_pcm_hw_params_alloca(&pms);
         snd_pcm_hw_params_any(dev->handle, pms);
         snd_pcm_hw_params_get_rate(pms, &hwsr, 0);
         if(hwsr == 0) hwsr = 44100;
-        csound->system_sr(csound, hwsr);
+        csound->GetSystemSr(csound, hwsr);
         target = dev->srate = hwsr;
         MSG(p, "alsa hw sampling rate: %d\n", hwsr);
       }
-      else target = (unsigned int) dev->srate;
+      else target = (uint32_t) dev->srate;
 
       if (UNLIKELY(snd_pcm_hw_params_set_rate_near(dev->handle,
                                                    hw_params,
-                                                   (unsigned int *) &dev->srate, 0)
+                                                   (uint32_t *) &dev->srate, 0)
                    < 0)) {
         strNcpy(msg, Str("Unable to set sample rate on soundcard"), MSGLEN);
         goto err_return_msg;
       }
       if (dev->srate!=target)
         p->MessageS(p, CSOUNDMSG_WARNING, Str(" *** rate set to %d\n"), dev->srate);
-      csound->system_sr(csound, dev->srate);
+      csound->GetSystemSr(csound, dev->srate);
     }
 
     /* buffer size, */
@@ -503,10 +503,10 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     {
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
-      if (err < 0 || (int) nn != dev->buffer_smps) {
+      if (err < 0 || (int32_t) nn != dev->buffer_smps) {
         if (UNLIKELY(err >= 0))  {
           p->Message(p, Str("ALSA: -B %d not allowed on this device; "
-                            "using %d instead\n"), dev->buffer_smps, (int) nn);
+                            "using %d instead\n"), dev->buffer_smps, (int32_t) nn);
           dev->buffer_smps=nn;
         }
       }
@@ -523,13 +523,13 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       alloc_smps = dev->period_smps;    /* is allocated for the buffer */
     {
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->period_smps;
-      int               dir = 0;
+      int32_t               dir = 0;
       err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
                                                    &dir);
-      if (err < 0 || (int) nn != dev->period_smps) {
+      if (err < 0 || (int32_t) nn != dev->period_smps) {
         if (UNLIKELY(err >= 0)) {
           p->Message(p, Str("ALSA: -b %d not allowed on this device; "
-                            "using %d instead\n"), dev->period_smps, (int) nn);
+                            "using %d instead\n"), dev->period_smps, (int32_t) nn);
           dev->period_smps=nn;
         }
       }
@@ -596,8 +596,8 @@ static void list_devices(CSOUND *csound)
         strncpy (card_, temp, 2);
         temp = strtok_r (NULL, ":", &th);
         strncpy (num_, temp, 2);
-        int card = atoi (card_);
-        int num = atoi (num_);
+        int32_t card = atoi (card_);
+        int32_t num = atoi (num_);
         temp = strchr (line_, ':');
         if (temp)
           temp = temp + 2;
@@ -612,7 +612,7 @@ static void list_devices(CSOUND *csound)
 }
 
 static void trim_trailing_whitespace(char *s) {
-    int i = 0, index = -1;
+    int32_t i = 0, index = -1;
     while(s[i] != '\0') {
         if(s[i] != ' ' && s[i] != '\t' && s[i] != '\n')
             index = i;
@@ -621,7 +621,7 @@ static void trim_trailing_whitespace(char *s) {
     s[index+1] = '\0';
 }
 
-int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
+int32_t listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutput){
 
   IGN(csound);
     FILE * f = fopen("/proc/asound/pcm", "r");
@@ -632,7 +632,7 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     char num_[] = "  ";
     char *temp;
     char tmp[64];
-    int n =0;
+    int32_t n =0;
     memset(line, '\0', 128); memset(line_, '\0', 128);
     if (f)  {
       char *th;
@@ -650,8 +650,8 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
           return 0;
         }
         strncpy (num_, temp, 2);
-        int card = atoi (card_);
-        int num = atoi (num_);
+        int32_t card = atoi (card_);
+        int32_t num = atoi (num_);
         temp = strchr (line_, ':');
         if (temp) {
           temp = temp + 2;
@@ -679,10 +679,10 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
     return n;
 }
 
-static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
+static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t play)
 {    DEVPARAMS *dev;
     void      **userDataPtr;
-    int       retval;
+    int32_t       retval;
 
     userDataPtr = (play ? (void**) csound->GetRtPlayUserData(csound)
                    : (void**) csound->GetRtRecordUserData(csound));
@@ -710,12 +710,12 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     dev->device = parm->devName;
     dev->format = parm->sampleFormat;
     dev->sampleSize = 1;
-    dev->srate = (int) (parm->sampleRate > 0 ? parm->sampleRate  + 0.5f : 0);
+    dev->srate = (int32_t) (parm->sampleRate > 0 ? parm->sampleRate  + 0.5f : 0);
     dev->nchns = parm->nChannels;
 
     dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int, MYFLT*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int, void*, MYFLT*)) NULL;
+    dev->playconv = (void (*)(int32_t, MYFLT*, void*, int*)) NULL;
+    dev->rec_conv = (void (*)(int32_t, void*, MYFLT*)) NULL;
     dev->seed = 1;
     /* open device */
     retval = set_device_params(csound, dev, play);
@@ -728,14 +728,14 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
 
 /* open for audio input */
 
-static int recopen_(CSOUND *csound, const csRtAudioParams *parm)
+static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     return open_device(csound, parm, 0);
 }
 
 /* open for audio output */
 
-static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
+static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     return open_device(csound, parm, 1);
 }
@@ -750,10 +750,10 @@ static int playopen_(CSOUND *csound, const csRtAudioParams *parm)
         csound->Warning(csound, Str(x));                  \
   }
 
-static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
+static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
 {
     DEVPARAMS *dev;
-    int       n, m, err;
+    int32_t       n, m, err;
 
     dev = (DEVPARAMS*) *(csound->GetRtRecordUserData(csound));
     if (dev->handle == NULL) {
@@ -766,7 +766,7 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 
     m = 0;
     while (n) {
-      err = (int) snd_pcm_readi(dev->handle, dev->buf, (snd_pcm_uframes_t) n);
+      err = (int32_t) snd_pcm_readi(dev->handle, dev->buf, (snd_pcm_uframes_t) n);
       if (err >= 0) {
         n -= err; m += err; continue;
       }
@@ -796,10 +796,10 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuf, int nbytes)
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
+static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
 {
     DEVPARAMS *dev;
-    int     n, err;
+    int32_t     n, err;
 
     dev = (DEVPARAMS*) *(csound->GetRtPlayUserData(csound));
     if (dev->handle == NULL)
@@ -811,7 +811,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
     dev->playconv(n * dev->nchns, (MYFLT*) outbuf, dev->buf, &(dev->seed));
 
     while (n) {
-      err = (int) snd_pcm_writei(dev->handle, dev->buf, (snd_pcm_uframes_t) n);
+      err = (int32_t) snd_pcm_writei(dev->handle, dev->buf, (snd_pcm_uframes_t) n);
       if (err >= 0) {
         n -= err; continue;
       }
@@ -865,7 +865,7 @@ static void rtclose_(CSOUND *csound)
 
 static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
 {
-    int         err;
+    int32_t         err;
     alsaMidiInputDevice *dev;
 
     dev = (alsaMidiInputDevice*) csound->Malloc(csound,
@@ -887,15 +887,15 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
 }
 
 // This is the function which contains code from amidi
-static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
+static int32_t midi_in_open(CSOUND *csound, void **userData, const char *devName)
 {
     alsaMidiInputDevice *dev = NULL, *newdev, *olddev;
     //const char  *s = "hw:0,0";
-    int card;
-    int device;
+    int32_t card;
+    int32_t device;
     snd_ctl_t *ctl;
     char* name;
-    int numdevs = 0;
+    int32_t numdevs = 0;
     name = (char *) csound->Calloc(csound, 32* sizeof(char));
 
     (*userData) = NULL;
@@ -966,11 +966,11 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
     return 0;
 }
 
-static int midi_in_read(CSOUND *csound,
-                        void *userData, unsigned char *buf, int nbytes)
+static int32_t midi_in_read(CSOUND *csound,
+                        void *userData, unsigned char *buf, int32_t nbytes)
 {
     alsaMidiInputDevice *dev = (alsaMidiInputDevice*) userData;
-    int             bufpos = 0;
+    int32_t             bufpos = 0;
     unsigned char   c;
     IGN(csound);
 
@@ -983,7 +983,7 @@ static int midi_in_read(CSOUND *csound,
     while (dev && dev->dev) {
       while ((nbytes - bufpos) >= 3) {
         if (dev->bufpos >= dev->nbytes) { /* read from device */
-          int n = (int) snd_rawmidi_read(dev->dev, &(dev->buf[0]), BUF_SIZE);
+          int32_t n = (int32_t) snd_rawmidi_read(dev->dev, &(dev->buf[0]), BUF_SIZE);
           dev->bufpos = 0;
           if (n <= 0) {                   /* until there is no more data left */
             dev->nbytes = 0;
@@ -1001,13 +1001,13 @@ static int midi_in_read(CSOUND *csound,
         if (c < (unsigned char) 0x80) {           /* data byte */
           if (dev->datreq <= 0)
             continue;
-          if (dev->datreq == (int) dataBytes[(int) dev->prvStatus >> 4])
+          if (dev->datreq == (int32_t) dataBytes[(int32_t) dev->prvStatus >> 4])
             dev->dat1 = c;
           else
             dev->dat2 = c;
           if (--(dev->datreq) != 0)
             continue;
-          dev->datreq = dataBytes[(int) dev->prvStatus >> 4];
+          dev->datreq = dataBytes[(int32_t) dev->prvStatus >> 4];
           buf[bufpos] = dev->prvStatus;
           buf[bufpos + 1] = dev->dat1;
           buf[bufpos + 2] = dev->dat2;
@@ -1016,7 +1016,7 @@ static int midi_in_read(CSOUND *csound,
         }
         else if (c < (unsigned char) 0xF0) {      /* channel message */
           dev->prvStatus = c;
-          dev->datreq = dataBytes[(int) c >> 4];
+          dev->datreq = dataBytes[(int32_t) c >> 4];
           continue;
         }
         if (c < (unsigned char) 0xF4)             /* ignore system messages */
@@ -1027,9 +1027,9 @@ static int midi_in_read(CSOUND *csound,
     return bufpos;
 }
 
-static int midi_in_close(CSOUND *csound, void *userData)
+static int32_t midi_in_close(CSOUND *csound, void *userData)
 {
-    int ret = 0, retval = 0;
+    int32_t ret = 0, retval = 0;
     alsaMidiInputDevice *olddev, *dev = NULL;
     (void) csound;
     dev = (alsaMidiInputDevice*) userData;
@@ -1046,11 +1046,11 @@ static int midi_in_close(CSOUND *csound, void *userData)
     return retval;
 }
 
-static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
+static int32_t midi_out_open(CSOUND *csound, void **userData, const char *devName)
 {
     snd_rawmidi_t *dev = NULL;
     const char  *s = "hw:0,0";
-    int         err;
+    int32_t         err;
 
     (*userData) = NULL;
     if (devName != NULL && devName[0] != '\0')
@@ -1066,8 +1066,8 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
     return 0;
 }
 
-static int midi_out_write(CSOUND *csound,
-                          void *userData, const unsigned char *buf, int nbytes)
+static int32_t midi_out_write(CSOUND *csound,
+                          void *userData, const unsigned char *buf, int32_t nbytes)
 {
     (void) csound;
     snd_rawmidi_write((snd_rawmidi_t*) userData, buf, (size_t) nbytes);
@@ -1075,9 +1075,9 @@ static int midi_out_write(CSOUND *csound,
     return nbytes;
 }
 
-static int midi_out_close(CSOUND *csound, void *userData)
+static int32_t midi_out_close(CSOUND *csound, void *userData)
 {
-    int retval = 0;
+    int32_t retval = 0;
     (void) csound;
     if (userData != NULL) {
       snd_rawmidi_drain((snd_rawmidi_t*) userData);
@@ -1089,7 +1089,7 @@ static int midi_out_close(CSOUND *csound, void *userData)
 /* The following functions include code from Csound 4.23 (mididevice.c), */
 /* written by John ffitch, David Ratajczak, and others. */
 
-static int midi_in_open_file(CSOUND *csound, void **userData,
+static int32_t midi_in_open_file(CSOUND *csound, void **userData,
                              const char *devName)
 {
     midiDevFile *dev;
@@ -1144,11 +1144,11 @@ static int midi_in_open_file(CSOUND *csound, void **userData,
     return 0;
 }
 
-static int midi_in_read_file(CSOUND *csound, void *userData,
-                             unsigned char *buf, int nbytes)
+static int32_t midi_in_read_file(CSOUND *csound, void *userData,
+                             unsigned char *buf, int32_t nbytes)
 {
     midiDevFile   *dev = (midiDevFile*) userData;
-    int           bufpos = 0;
+    int32_t           bufpos = 0;
     unsigned char c;
 
     while ((nbytes - bufpos) >= 3) {
@@ -1156,7 +1156,7 @@ static int midi_in_read_file(CSOUND *csound, void *userData,
         /* For select() call, from David Ratajczak */
         fd_set    rfds;
         struct timeval tv;
-        int       n;
+        int32_t       n;
 
         dev->bufpos = 0;
         dev->nbytes = 0;
@@ -1197,13 +1197,13 @@ static int midi_in_read_file(CSOUND *csound, void *userData,
       if (c < (unsigned char) 0x80) {           /* data byte */
         if (dev->datreq <= 0)
           continue;
-        if (dev->datreq == (int) dataBytes[(int) dev->prvStatus >> 4])
+        if (dev->datreq == (int32_t) dataBytes[(int32_t) dev->prvStatus >> 4])
           dev->dat1 = c;
         else
           dev->dat2 = c;
         if (--(dev->datreq) != 0)
           continue;
-        dev->datreq = dataBytes[(int) dev->prvStatus >> 4];
+        dev->datreq = dataBytes[(int32_t) dev->prvStatus >> 4];
         buf[bufpos] = dev->prvStatus;
         buf[bufpos + 1] = dev->dat1;
         buf[bufpos + 2] = dev->dat2;
@@ -1212,7 +1212,7 @@ static int midi_in_read_file(CSOUND *csound, void *userData,
       }
       else if (c < (unsigned char) 0xF0) {      /* channel message */
         dev->prvStatus = c;
-        dev->datreq = dataBytes[(int) c >> 4];
+        dev->datreq = dataBytes[(int32_t) c >> 4];
         continue;
       }
       if (c < (unsigned char) 0xF4)             /* ignore system messages */
@@ -1221,12 +1221,12 @@ static int midi_in_read_file(CSOUND *csound, void *userData,
     return bufpos;
 }
 
-static int midi_in_close_file(CSOUND *csound, void *userData)
+static int32_t midi_in_close_file(CSOUND *csound, void *userData)
 {
-    int     retval = 0;
+    int32_t     retval = 0;
 
     if (userData != NULL) {
-      int   fd = ((midiDevFile*) userData)->fd;
+      int32_t   fd = ((midiDevFile*) userData)->fd;
       if (fd > 2)
         retval = close(fd);
       csound->Free(csound, userData);
@@ -1234,10 +1234,10 @@ static int midi_in_close_file(CSOUND *csound, void *userData)
     return retval;
 }
 
-static int midi_out_open_file(CSOUND *csound, void **userData,
+static int32_t midi_out_open_file(CSOUND *csound, void **userData,
                               const char *devName)
 {
-    int     fd = 1;     /* stdout */
+    int32_t     fd = 1;     /* stdout */
 
     (*userData) = NULL;
     if (devName != NULL && devName[0] != '\0' &&
@@ -1256,23 +1256,23 @@ static int midi_out_open_file(CSOUND *csound, void **userData,
     return 0;
 }
 
-static int midi_out_write_file(CSOUND *csound, void *userData,
-                               const unsigned char *buf, int nbytes)
+static int32_t midi_out_write_file(CSOUND *csound, void *userData,
+                               const unsigned char *buf, int32_t nbytes)
 {
-    int     retval;
+    int32_t     retval;
 
     (void) csound;
-    retval = (int) write((int) ((uintptr_t) userData), buf, (size_t) nbytes);
+    retval = (int32_t) write((int32_t) ((uintptr_t) userData), buf, (size_t) nbytes);
     return retval;
 }
 
-static int midi_out_close_file(CSOUND *csound, void *userData)
+static int32_t midi_out_close_file(CSOUND *csound, void *userData)
 {
-    int     retval = 0;
+    int32_t     retval = 0;
 
     (void) csound;
     if (userData != NULL) {
-      int   fd = (int) ((uintptr_t) userData);
+      int32_t   fd = (int32_t) ((uintptr_t) userData);
       if (fd > 2)
         retval = close(fd);
     }
@@ -1283,8 +1283,8 @@ static int midi_out_close_file(CSOUND *csound, void *userData)
 
 #define ALSASEQ_SYSEX_BUFFER_SIZE  (1024)
 
-static int alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
-                                 unsigned int capability, const char *name)
+static int32_t alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
+                                 uint32_t capability, const char *name)
 {
   IGN(csound);
     snd_seq_client_info_t *client_info = amidi->cinfo;
@@ -1292,7 +1292,7 @@ static int alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
 
     snd_seq_client_info_set_client(client_info, -1);
     while (snd_seq_query_next_client(amidi->seq, client_info) >= 0) {
-      int client_id;
+      int32_t client_id;
       if ((client_id = snd_seq_client_info_get_client(client_info)) < 0)
         break;
       snd_seq_port_info_set_client(port_info, client_id);
@@ -1314,9 +1314,9 @@ static int alsaseq_get_client_id(CSOUND *csound, alsaseqMidi *amidi,
  * escape characters '\' from the string s. If escape_all is zero,
  * '\' is removed only when it is the escape char for c.
  */
-static char *my_strchr(const char *s, int c, int escape_all)
+static char *my_strchr(const char *s, int32_t c, int32_t escape_all)
 {
-    int    refill, success = 0, escape = 0, changed = 0;
+    int32_t    refill, success = 0, escape = 0, changed = 0;
     char   *old = (char*)s;
 
     for (refill = 1; *s != '\0'; s++) {
@@ -1359,10 +1359,10 @@ static char *my_strchr(const char *s, int c, int escape_all)
 }
 
 /* Searching for port number after ':' at the end of the string */
-static int get_port_from_string(CSOUND *csound, char *str)
+static int32_t get_port_from_string(CSOUND *csound, char *str)
 {
   IGN(csound);
-  int port = 0;
+  int32_t port = 0;
     char *end, *tmp, *c = str;
 
     while (1) {
@@ -1383,12 +1383,12 @@ static int get_port_from_string(CSOUND *csound, char *str)
     return port;
 }
 
-static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
-                           unsigned int capability, const char *addr_str)
+static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
+                           uint32_t capability, const char *addr_str)
 {
     snd_seq_addr_t  addr;
     char            *s, *client_spec, direction_str[5];
-    int             (*amidi_connect)(snd_seq_t*, int, int, int);
+    int32_t             (*amidi_connect)(snd_seq_t*, int, int, int);
 
     if (capability == SND_SEQ_PORT_CAP_READ) {
       strcpy(direction_str, "from");
@@ -1402,7 +1402,7 @@ static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
     snd_seq_port_info_alloca(&amidi->pinfo);
     client_spec = s = (char*) addr_str;
     while (s != NULL) {
-      int err;
+      int32_t err;
       if ((s = my_strchr(client_spec, ',', 0)) != NULL)
         *s = '\0';
       if (*client_spec <= '9' && *client_spec >= '0') { /* client_id[:port] */
@@ -1420,7 +1420,7 @@ static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
         }
       }
       else { /* client_name[:port] */
-        int client, port;
+        int32_t client, port;
         port = get_port_from_string(csound, client_spec);
         client = alsaseq_get_client_id(csound, amidi, capability, client_spec);
         if (client >= 0) {
@@ -1447,9 +1447,9 @@ static int alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
     return OK;
 }
 
-static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
+static int32_t alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
 {
-    int              err, client_id, port_id;
+    int32_t              err, client_id, port_id;
     alsaseqMidi      *amidi;
     csCfgVariable_t  *cfg;
     char             *client_name;
@@ -1510,10 +1510,10 @@ static int alsaseq_in_open(CSOUND *csound, void **userData, const char *devName)
     return OK;
 }
 
-static int alsaseq_in_read(CSOUND *csound,
-                           void *userData, unsigned char *buf, int nbytes)
+static int32_t alsaseq_in_read(CSOUND *csound,
+                           void *userData, unsigned char *buf, int32_t nbytes)
 {
-    int               err;
+    int32_t               err;
     alsaseqMidi       *amidi = (alsaseqMidi*) userData;
     snd_seq_event_t   *ev;
     IGN(csound);
@@ -1526,7 +1526,7 @@ static int alsaseq_in_read(CSOUND *csound,
     return (err==-ENOENT) ? 0 : err;
 }
 
-static int alsaseq_in_close(CSOUND *csound, void *userData)
+static int32_t alsaseq_in_close(CSOUND *csound, void *userData)
 {
     alsaseqMidi *amidi = (alsaseqMidi*) userData;
     IGN(csound);
@@ -1539,9 +1539,9 @@ static int alsaseq_in_close(CSOUND *csound, void *userData)
     return OK;
 }
 
-static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName)
+static int32_t alsaseq_out_open(CSOUND *csound, void **userData, const char *devName)
 {
-    int              err, client_id, port_id;
+    int32_t              err, client_id, port_id;
     alsaseqMidi      *amidi;
     csCfgVariable_t  *cfg;
     char             *client_name;
@@ -1606,8 +1606,8 @@ static int alsaseq_out_open(CSOUND *csound, void **userData, const char *devName
     return OK;
 }
 
-static int alsaseq_out_write(CSOUND *csound,
-                             void *userData, const unsigned char *buf, int nbytes)
+static int32_t alsaseq_out_write(CSOUND *csound,
+                             void *userData, const unsigned char *buf, int32_t nbytes)
 {
     alsaseqMidi  *amidi = (alsaseqMidi*) userData;
     IGN(csound);
@@ -1621,7 +1621,7 @@ static int alsaseq_out_write(CSOUND *csound,
     return nbytes;
 }
 
-static int alsaseq_out_close(CSOUND *csound, void *userData)
+static int32_t alsaseq_out_close(CSOUND *csound, void *userData)
 {
     alsaseqMidi  *amidi = (alsaseqMidi*) userData;
     IGN(csound);
@@ -1637,16 +1637,16 @@ static int alsaseq_out_close(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
-    int minsched, maxsched, *priority, maxlen;
+    int32_t minsched, maxsched, *priority, maxlen;
     char *alsaseq_client;
-    csound->CreateGlobalVariable(csound, "::priority", sizeof(int));
-    priority = (int *) (csound->QueryGlobalVariable(csound, "::priority"));
+    csound->CreateGlobalVariable(csound, "::priority", sizeof(int32_t));
+    priority = (int32_t *) (csound->QueryGlobalVariable(csound, "::priority"));
     if (priority == NULL)
       csound->Message(csound, Str("warning... could not create global var\n"));
     minsched = -20;
-    maxsched = (int) sched_get_priority_max(SCHED_RR);
+    maxsched = (int32_t) sched_get_priority_max(SCHED_RR);
     csound->CreateConfigurationVariable(csound, "rtscheduler", priority,
                                         CSOUNDCFG_INTEGER, 0, &minsched, &maxsched,
                                         Str("RT scheduler priority, alsa module"),
@@ -1661,18 +1661,18 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                     NULL);
     /* nothing to do, report success */
     {
-      OPARMS oparms;
-      csound->GetOParms(csound, &oparms);
-      if (oparms.msglevel & 0x400)
+     const OPARMS *O;
+      O = csound->GetOParms(csound) ;
+      if (O->msglevel & 0x400)
         csound->Message(csound, Str("ALSA real-time audio and MIDI module "
                                     "for Csound by Istvan Varga\n"));
     }
     return 0;
 }
 
-int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
-    int count = 0;
-    int card, err;
+int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
+    int32_t count = 0;
+    int32_t card, err;
 
     card = -1;
     if ((err = snd_card_next(&card)) < 0) {
@@ -1687,8 +1687,8 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
     do {
       snd_ctl_t *ctl;
       char name[32];
-      int device;
-      int err;
+      int32_t device;
+      int32_t err;
 
       snprintf(name, 32, "hw:%d", card);
       if ((err = snd_ctl_open(&ctl, name, 0)) < 0) {
@@ -1708,9 +1708,9 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
         snd_rawmidi_info_t *info;
         const char *name;
         const char *sub_name;
-        int subs, subs_in, subs_out;
-        int sub;
-        int err;
+        int32_t subs, subs_in, subs_out;
+        int32_t sub;
+        int32_t err;
 
         snd_rawmidi_info_alloca(&info);
         snd_rawmidi_info_set_device(info, device);
@@ -1817,7 +1817,7 @@ int listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
 #define perm_ok(pinfo,bits)                                             \
   ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
 
-static int check_permission(snd_seq_port_info_t *pinfo, int perm)
+static int32_t check_permission(snd_seq_port_info_t *pinfo, int32_t perm)
 {
     if (perm) {
       if (perm & LIST_INPUT) {
@@ -1836,10 +1836,10 @@ static int check_permission(snd_seq_port_info_t *pinfo, int perm)
     return 1;
 }
 
-int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
+int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
-    int numdevs = 0, count = 0;
+    int32_t numdevs = 0, count = 0;
     snd_seq_t *seq;
 
     IGN(csound);
@@ -1878,8 +1878,8 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
     return numdevs;
 }
 
-static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
-    int count = 0;
+static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput){
+    int32_t count = 0;
     char *s;
     s = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
     if (strncmp(s, "alsaraw", 8) == 0) { /* ALSA Raw MIDI */
@@ -1894,22 +1894,22 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
     return count;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound)
+PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
-    int     i;
+    int32_t     i;
     char    buf[9];
     char    *s = NULL;
     memset(buf, '\0', 9);
-    OPARMS oparms;
-    csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+    O = csound->GetOParms(csound) ;
 
-    csound->module_list_add(csound, "alsa", "audio");
-    csound->module_list_add(csound, "alsaraw", "midi");
-    csound->module_list_add(csound, "alsaseq", "midi");
-    csound->module_list_add(csound, "devfile", "midi");
+    csound->ModuleListAdd(csound, "alsa", "audio");
+    csound->ModuleListAdd(csound, "alsaraw", "midi");
+    csound->ModuleListAdd(csound, "alsaseq", "midi");
+    csound->ModuleListAdd(csound, "devfile", "midi");
 
     csCfgVariable_t *cfg;
-    int priority;
+    int32_t priority;
     if ((cfg=csound->QueryConfigurationVariable(csound, "rtscheduler")) != NULL) {
       priority = *(cfg->i.p);
       if (priority != 0) set_scheduler_priority(csound, priority);
@@ -1925,7 +1925,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      if (oparms.msglevel & 0x400 || oparms.odebug)
+      if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
@@ -1943,7 +1943,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsaraw") == 0 || strcmp(&(buf[0]), "alsa") == 0) {
-      if (oparms.msglevel & 0x400 || oparms.odebug)
+      if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
@@ -1955,7 +1955,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
-      if (oparms.msglevel & 0x400 || oparms.odebug)
+      if (O->msglevel & 0x400 || O->odebug)
         csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
       csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
@@ -1966,7 +1966,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
-      if (oparms.msglevel & 0x400)
+      if (O->msglevel & 0x400)
         csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
       csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
@@ -1980,7 +1980,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound)
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
 {
     csCfgVariable_t *cfg;
 
@@ -1990,7 +1990,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
     return OK;
 }
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

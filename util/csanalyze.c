@@ -22,6 +22,7 @@
  */
 
 #include "csound.h"
+#include "csound_compiler.h"
 
 extern void     print_tree(CSOUND *, char *, TREE *);
 
@@ -36,7 +37,7 @@ void usage() {
 
 
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
     CSOUND* csound;
 
     header();
@@ -48,7 +49,7 @@ int main(int argc, char** argv) {
 
     printf("Input File: %s", argv[1]);
 
-    csound = csoundCreate(NULL);
+    csound = csoundCreate(NULL,NULL);
 
     printf("csound=%p\n", csound);
     return 0;

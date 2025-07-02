@@ -28,12 +28,12 @@
 typedef struct csUtility_s {
     char                *name;
     struct csUtility_s  *nxt;
-    int                 (*UtilFunc)(CSOUND*, int, char**);
+    int32_t                 (*UtilFunc)(CSOUND*, int32_t,  char**);
     char                *desc;
 } csUtility_t;
 
-int csoundAddUtility(CSOUND *csound, const char *name,
-                                     int (*UtilFunc)(CSOUND*, int, char**))
+int32_t csoundAddUtility(CSOUND *csound, const char *name,
+                                     int32_t (*UtilFunc)(CSOUND*, int32_t,  char**))
 {
     csUtility_t *p;
     /* csound->Message(csound, "csoundAddUtility: name: %s  function: 0x%p\n",
@@ -68,13 +68,13 @@ int csoundAddUtility(CSOUND *csound, const char *name,
 void print_csound_version(CSOUND *csound);
 void print_sndfile_version(CSOUND* csound);
 
-PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
-                            int argc, char **argv)
+PUBLIC int32_t csoundRunUtility(CSOUND *csound, const char *name,
+                            int32_t argc, char **argv)
 {
     csUtility_t   *p;
     char          **lst;
     volatile void *saved_exitjmp;
-    volatile int  n;
+    volatile int32_t  n;
 
     if (UNLIKELY(csound == NULL))
       return -1;
@@ -114,16 +114,16 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
  notFound:
     if (name != NULL && name[0] != '\0') {
       print_opcodedir_warning(csound);
-      csound->ErrorMsg(csound, Str("Error: utility '%s' not found"), name);
+      csound->ErrorMsg(csound, Str("Error: utility '%s' was not found\n"), name);
     }
     else
-      csound->ErrorMsg(csound, Str("Error: utility not found"));
-    lst = csound->ListUtilities(csound);
+      csound->ErrorMsg(csound, Str("Error: utility not found\n"));
+    lst = csound->csound_util.ListUtilities(csound);
     if (lst != NULL && lst[0] != NULL) {
-      int i;
+      int32_t i;
       csound->Message(csound, Str("The available utilities are:\n"));
       for (i = 0; lst[i] != NULL; i++) {
-        const char *desc = csound->GetUtilityDescription(csound, lst[i]);
+        const char *desc = csound->csound_util.GetUtilityDescription(csound, lst[i]);
         if (desc != NULL)
           csound->Message(csound, "    %s\t%s\n", lst[i], Str(desc));
         else
@@ -138,7 +138,7 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
     return n;
 }
 
-static int cmp_func(const void *a, const void *b)
+static int32_t cmp_func(const void *a, const void *b)
 {
     return strcmp(*((char**) a), *((char**) b));
 }
@@ -151,11 +151,11 @@ static int cmp_func(const void *a, const void *b)
  * The return value may be NULL in case of an error.
  */
 
-PUBLIC char **csoundListUtilities(CSOUND *csound)
+char **csoundListUtilities(CSOUND *csound)
 {
     csUtility_t *p = (csUtility_t*) csound->utility_db;
     char        **lst;
-    int         utilCnt = 0;
+    int32_t         utilCnt = 0;
 
     /* find out the number of utilities */
     while (p != NULL)
@@ -181,7 +181,7 @@ PUBLIC char **csoundListUtilities(CSOUND *csound)
  * Releases an utility list previously returned by csoundListUtilities().
  */
 
-PUBLIC void csoundDeleteUtilityList(CSOUND *csound, char **lst)
+void csoundDeleteUtilityList(CSOUND *csound, char **lst)
 {
     if (lst != NULL)
       csound->Free(csound, lst);
@@ -192,7 +192,7 @@ PUBLIC void csoundDeleteUtilityList(CSOUND *csound, char **lst)
  * Returns zero on success.
  */
 
-int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
+int32_t csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
                                                 const char *utilDesc)
 {
     csUtility_t *p = (csUtility_t*) csound->utility_db;
@@ -225,8 +225,7 @@ int csoundSetUtilityDescription(CSOUND *csound, const char *utilName,
  * Returns NULL if the utility was not found, or it has no description,
  * or an error occured.
  */
-
-PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
+const char *csoundGetUtilityDescription(CSOUND *csound,
                                                const char *utilName)
 {
     csUtility_t *p = (csUtility_t*) csound->utility_db;
@@ -252,11 +251,11 @@ PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
  * after sorting the score to clean up. On success, zero is returned.
  */
 
-PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
+PUBLIC int32_t csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
 {
-    int   err;
+    int32_t   err;
     CORFIL *inf = corfile_create_w(csound);
-    int c;
+    int32_t c;
     if ((err = setjmp(csound->exitjmp)) != 0) {
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
@@ -279,12 +278,12 @@ PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
  * should be called after score extraction to clean up.
  * The return value is zero on success.
  */
-PUBLIC int csoundScoreExtract(CSOUND *csound,
+PUBLIC int32_t csoundScoreExtract(CSOUND *csound,
                               FILE *inFile, FILE *outFile, FILE *extractFile)
 {
-    int   err;
+    int32_t   err;
     CORFIL *inf = corfile_create_w(csound);
-    int c;
+    int32_t c;
     if ((err = setjmp(csound->exitjmp)) != 0) {
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }

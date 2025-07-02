@@ -39,6 +39,7 @@
 
 %apply int { size_t };
 typedef unsigned int uint32_t;
+typedef int int32_t;
 
 /* %typemap(freearg) char ** {
   free((char *) $1);

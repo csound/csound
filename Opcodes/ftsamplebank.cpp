@@ -19,6 +19,8 @@
     02110-1301 USA
  */
 
+#ifdef HAVE_DIRENT_H
+
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -35,8 +37,8 @@ using namespace csound;
 /* this function will load all samples of supported types into function
    tables number 'index' and upwards.
    It return the number of samples loaded */
-int loadSamplesToTables(CSOUND *csound, int index, char *directory,
-                        int skiptime, int format, int channel);
+int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
+                        int32_t skiptime, int32_t format, int32_t channel);
 
 //-----------------------------------------------------------------
 //      i-rate class
@@ -64,14 +66,14 @@ public:
   }
 
   // init-pass
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
 
     *numberOfFiles = loadSamplesToTables(
         csound, *index, (char *)sDirectory->data, *skiptime, *format, *channel);
     return OK;
   }
 
-  int noteoff(CSOUND *) { return OK; }
+  int32_t noteoff(CSOUND *) { return OK; }
 };
 
 //-----------------------------------------------------------------
@@ -88,7 +90,7 @@ public:
   MYFLT *skiptime;
   MYFLT *format;
   MYFLT *channel;
-  int internalCounter;
+  int32_t internalCounter;
   kftsamplebank() : internalCounter(0) {
     channel = 0;
     index = 0;
@@ -99,7 +101,7 @@ public:
   }
 
   // init-pass
-  int init(CSOUND *csound) {
+  int32_t init(CSOUND *csound) {
     IGN(csound);
     *numberOfFiles =
           loadSamplesToTables(csound, *index, (char *)sDirectory->data,
@@ -108,9 +110,9 @@ public:
     return OK;
   }
 
-  int noteoff(CSOUND *) { return OK; }
+  int32_t noteoff(CSOUND *) { return OK; }
 
-  int kontrol(CSOUND *csound) {
+  int32_t kontrol(CSOUND *csound) {
     // if directry changes update tables..
     if (*trigger == 1) {
       *numberOfFiles =
@@ -125,14 +127,14 @@ public:
 //-----------------------------------------------------------------
 //      load samples into function tables
 //-----------------------------------------------------------------
-int loadSamplesToTables(CSOUND *csound, int index, char *directory,
-                        int skiptime, int format, int channel) {
+int32_t loadSamplesToTables(CSOUND *csound, int32_t index, char *directory,
+                        int32_t skiptime, int32_t format, int32_t channel) {
 
   if (directory) {
     DIR *dir = opendir(directory);
     std::vector<std::string> fileNames;
     std::vector<std::string> fileExtensions;
-    int noOfFiles = 0;
+    int32_t noOfFiles = 0;
     fileExtensions.push_back(".wav");
     fileExtensions.push_back(".aiff");
     fileExtensions.push_back(".ogg");
@@ -144,7 +146,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
       while ((ent = readdir(dir)) != NULL) {
         std::ostringstream fullFileName;
         // only use supported file types
-        for (int i = 0; (size_t)i < fileExtensions.size(); i++)
+        for (int32_t i = 0; (size_t)i < fileExtensions.size(); i++)
         {
           std::string fname = ent->d_name;
           std::string extension;
@@ -174,7 +176,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
       std::sort(fileNames.begin(), fileNames.end());
 
       // push statements to score, starting with table number 'index'
-      for (int y = 0; (size_t)y < fileNames.size(); y++) {
+      for (int32_t y = 0; (size_t)y < fileNames.size(); y++) {
         std::ostringstream statement;
         statement << "f" << index + y << " 0 0 1 \"" << fileNames[y] << "\" "
                   << skiptime << " " << format << " " << channel << "\n";
@@ -208,36 +210,9 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
                                    char *extension);
 
 #include "arrays.h"
-#if 0
-/* from Opcodes/arrays.c */
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {
-    if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss;
-      if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-        p->arrayMemberSize = var->memBlockSize;
-      }
-      ss = p->arrayMemberSize*size;
-      if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
-        p->allocated = ss;
-      }
-      else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->allocated = ss;
-      }
-      if (p->dimensions==0) {
-        p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-      }
-    }
-    p->sizes[0] = size;
-}
-#endif
 
-static int directory(CSOUND *csound, DIR_STRUCT *p) {
-  int inArgCount = p->INOCOUNT;
+static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
+  int32_t inArgCount = p->INOCOUNT;
   char *extension, *file;
   std::vector<std::string> fileNames;
 
@@ -250,7 +225,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   }
 
   else if (inArgCount == 2) {
-    CS_TYPE *argType = csound->GetTypeForArg(p->extension);
+    CS_TYPE *argType = GetTypeForArg(p->extension);
     if (strcmp("S", argType->varTypeName) == 0) {
       extension = csound->Strdup(csound, ((STRINGDAT *)p->extension)->data);
       fileNames = searchDir(csound, p->directoryName->data, extension);
@@ -260,11 +235,11 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
                                    " must be a string"));
   }
 
-  int numberOfFiles = fileNames.size();
-  tabinit(csound, p->outArr, numberOfFiles);
+  int32_t numberOfFiles = (int32_t) fileNames.size();
+  tabinit(csound, p->outArr, numberOfFiles, p->h.insdshead);
   STRINGDAT *strings = (STRINGDAT *)p->outArr->data;
 
-  for (int i = 0; i < numberOfFiles; i++) {
+  for (int32_t i = 0; i < numberOfFiles; i++) {
     file = &fileNames[i][0u];
     strings[i].size = strlen(file) + 1;
     strings[i].data = csound->Strdup(csound, file);
@@ -284,7 +259,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
   if (directory) {
     DIR *dir = opendir(directory);
     std::string fileExtension(extension);
-    int noOfFiles = 0;
+    //    int32_t noOfFiles = 0;
 
     // check for valid path first
     if (dir) {
@@ -306,7 +281,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
           } else
             fullFileName << ent->d_name;
 
-          noOfFiles++;
+          //noOfFiles++;
           fileNames.push_back(fullFileName.str());
         }
       }
@@ -326,20 +301,20 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
 
 extern "C" {
 
-PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit_ftsamplebank(CSOUND *csound) {
 
-  int status = csound->AppendOpcode(
-      csound, (char *)"ftsamplebank.k", sizeof(kftsamplebank), 0, 3,
+  int32_t status = csound->AppendOpcode(
+      csound, (char *)"ftsamplebank.k", sizeof(kftsamplebank), 0,
       (char *)"k", (char *)"Skkkkk",
-      (int (*)(CSOUND *, void *))kftsamplebank::init_,
-      (int (*)(CSOUND *, void *))kftsamplebank::kontrol_,
-      (int (*)(CSOUND *, void *))0);
+      (int32_t (*)(CSOUND *, void *))kftsamplebank::init_,
+      (int32_t (*)(CSOUND *, void *))kftsamplebank::kontrol_,
+      (int32_t (*)(CSOUND *, void *))0);
 
   status |= csound->AppendOpcode(
-      csound, (char *)"ftsamplebank.i", sizeof(iftsamplebank), 0, 1,
+      csound, (char *)"ftsamplebank.i", sizeof(iftsamplebank), 0, 
       (char *)"i", (char *)"Siiii",
-      (int (*)(CSOUND *, void *))iftsamplebank::init_,
-      (int (*)(CSOUND *, void *))0, (int (*)(CSOUND *, void *))0);
+      (int32_t (*)(CSOUND *, void *))iftsamplebank::init_,
+      (int32_t (*)(CSOUND *, void *))0, (int32_t (*)(CSOUND *, void *))0);
 
   /*  status |= csound->AppendOpcode(csound,
       (char*)"ftsamplebank",
@@ -353,25 +328,26 @@ PUBLIC int csoundModuleInit_ftsamplebank(CSOUND *csound) {
       0); */
 
   status |= csound->AppendOpcode(
-      csound, (char *)"directory", sizeof(DIR_STRUCT), 0, 1, (char *)"S[]",
-      (char *)"SN", (int (*)(CSOUND *, void *))directory,
-      (int (*)(CSOUND *, void *))0, (int (*)(CSOUND *, void *))0);
+      csound, (char *)"directory", sizeof(DIR_STRUCT), 0, (char *)"S[]",
+      (char *)"SN", (int32_t (*)(CSOUND *, void *))directory,
+      (int32_t (*)(CSOUND *, void *))0, (int32_t (*)(CSOUND *, void *))0);
   return status;
 }
 
-#ifndef INIT_STATIC_MODULES
-PUBLIC int csoundModuleCreate(CSOUND *csound) {
+#ifdef BUILD_PLUGINS
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
 
-PUBLIC int csoundModuleInit(CSOUND *csound) {
+PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return csoundModuleInit_ftsamplebank(csound);
 }
 
-PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
 #endif
 }
+#endif

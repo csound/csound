@@ -1,4 +1,4 @@
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__MINGW32__)
 # include <Windows.h>
 #else
 # include "unistd.h"
@@ -20,25 +20,23 @@ TEST(PerfThreadsTests, PerfThread) {
     Csound csound;
     csound.SetOption((char*)"-odac");
     csound.CompileOrc(instrument);
-    csound.ReadScore((char*)"i 1 0  3 10000 5000\n");
+    csound.EventString((char*)"i 1 0  3 10000 5000\n");
     csound.Start();
 
     CsoundPerformanceThread performanceThread1(csound.GetCsound());
     performanceThread1.Play();
     performanceThread1.Join();
-    csound.Cleanup();
     csound.Reset();
 
     CsoundPerformanceThread performanceThread2(csound.GetCsound());
     csound.SetOption((char*)"-odac");
     csound.CompileOrc(instrument);
-    csound.ReadScore((char*)"i 1 0  3 10000 5000\n");
+    csound.EventString((char*)"i 1 0  3 10000 5000\n");
     csound.Start();
 
     performanceThread2.Play();
     performanceThread2.Join();
 
-    csound.Cleanup();
     csound.Reset();
 }
 
@@ -47,29 +45,23 @@ TEST(PerfThreadsTests, Record) {
         "0dbfs = 1.0\n"
         "ksmps = 64\n"
         "instr 1 \n"
-        "a1 line 0, p3, 0.5   \n"
-        "out  a1   \n"
+        "a1 linen p4,0.1, p3, 0.1   \n"
+        "out  oscili(a1,p5)   \n"
         "endin \n";
 
     Csound csound;
-    csound.SetOption((char*)"-otestplay.wav");
-    csound.SetOption((char*)"-W");
+    csound.SetOption("-odac");
+    csound.SetOption("-W");
     csound.CompileOrc(instrument);
-    csound.ReadScore((char*)"i 1 0  3 0.5 5000\n");
     csound.Start();
+    csound.EventString((char*)"i 1 0 1 0.5 440");
 
     CsoundPerformanceThread performanceThread1(csound.GetCsound());
     performanceThread1.Play();
-    //performanceThread1.Record("testrec.wav");
-
-#if !defined(WIN32)
-    sleep(1);
-#else
-    Sleep(1000);
-#endif
-
-    //performanceThread1.StopRecord();
+    performanceThread1.Record("testrec.wav");
+    csoundSleep(2000);
+    performanceThread1.StopRecord();
+    performanceThread1.Stop();
     performanceThread1.Join();
-    csound.Cleanup();
     csound.Reset();
 }

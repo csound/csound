@@ -41,7 +41,7 @@ static int32_t pvscentset(CSOUND *csound, PVSCENT *p)
     if (UNLIKELY(!((p->fin->format==PVS_AMP_FREQ) ||
                    (p->fin->format==PVS_AMP_PHASE))))
       return csound->InitError(csound,
-                               Str("pvscent: format must be amp-phase"
+                               "%s", Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));
     return OK;
 }
@@ -59,20 +59,24 @@ static int32_t pvscent(CSOUND *csound, PVSCENT *p)
         c += fin[i].re*j;
         d += fin[i].re;
       }
+      *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
     }
     else {
       float *fin = (float *) p->fin->frame.auxp;
       if (p->lastframe < p->fin->framecount) {
-        //printf("N=%d binsize=%f\n", N, binsize);
+        // printf("N=%d binsize=%f\n", N, binsize);
         for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
           c += fin[i]*j;         /* This ignores phase */
           d += fin[i];
           //printf("%d (%f) sig=%f c=%f d=%f\n", i,j,fin[i],c,d);
         }
         p->lastframe = p->fin->framecount;
+        p->old = (d==FL(0.0) ? FL(0.0) : c/d);
       }
+      *p->ans = p->old;
     }
-    *p->ans = (d==FL(0.0) ? FL(0.0) : c/d);
+
+
     return OK;
 }
 
@@ -151,6 +155,7 @@ static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
       for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
         c += fin[i].re*(j - cd)*(j - cd);
       }
+      *p->ans = SQRT(c);
     }
     else {
       float *fin = (float *) p->fin->frame.auxp;
@@ -167,9 +172,10 @@ static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
           c += fin[i]*(j - cd)*(j - cd);
         }
         p->lastframe = p->fin->framecount;
+        p->old = *p->ans = SQRT(c);
       }
+      *p->ans = p->old;
     }
-    *p->ans = SQRT(c);
     return OK;
 }
 
@@ -210,7 +216,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
-    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound,p->fsize,FFT_FWD);
     return OK;
 }
 
@@ -246,7 +252,7 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
         if (k == fsize-1) k=0;
         else k++;
       }
-      csound->RealFFT2(csound, p->setup, windowed);
+      csound->RealFFT(csound, p->setup, windowed);
       cf=FL(0.5)*binsize;
       mag = fabs(windowed[0])/fsize;
       c += mag*cf;
@@ -313,7 +319,7 @@ int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, Str("SDFT case not implemented yet"));
+      return csound->InitError(csound, "%s", Str("SDFT case not implemented yet"));
     size = sizeof(MYFLT)*(p->fin->N+2);
     if (p->peakfreq.auxp == NULL || p->peakfreq.size < size)
       csound->AuxAlloc(csound, size, &p->peakfreq);
@@ -321,7 +327,7 @@ int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
       csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
-                               Str("PV Frames must be in AMP_FREQ format!\n"));
+                               "%s", Str("PV Frames must be in AMP_FREQ format!\n"));
     }
 
     return OK;
@@ -348,7 +354,7 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
     int32_t PrevNotAdj          = FALSE;
 
     /* Un-normalise the threshold value */
-    Threshold *= csound->e0dbfs;
+    Threshold *= csound->Get0dBFS(csound);
 
     /* If a new frame is ready... */
     if (p->lastframe < p->fin->framecount) {
@@ -449,14 +455,14 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
 }
 
 static OENTRY localops[] = {
-  { "pvscent", sizeof(PVSCENT), 0, 3, "k", "f",
+  { "pvscent", sizeof(PVSCENT), 0,  "k", "f",
                              (SUBR)pvscentset, (SUBR)pvscent },
-  { "pvsbandwidth", sizeof(PVSCENT), 0, 3, "k", "f",
+  { "pvsbandwidth", sizeof(PVSCENT), 0,  "k", "f",
                              (SUBR)pvscentset, (SUBR)pvsbandw },
-  { "pvscent", sizeof(PVSCENT), 0, 3, "a", "f",
+  { "pvscent", sizeof(PVSCENT), 0,  "a", "f",
                              (SUBR)pvscentset, (SUBR)pvsscent },
-  { "centroid", sizeof(CENT), 0, 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
-  { "pvspitch", sizeof(PVSPITCH), 0, 3, "kk", "fk",
+  { "centroid", sizeof(CENT), 0,  "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
+  { "pvspitch", sizeof(PVSPITCH), 0,  "kk", "fk",
                             (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
 };
 

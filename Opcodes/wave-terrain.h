@@ -21,7 +21,10 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#pragma once
+
+#include "stdopcod.h"
+
 typedef struct {
 
   OPDS h;

@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
+#define __BUILDING_LIBCSOUND
+#include "csoundCore.h"
 
-#include "csound.h"
 
 class IOTests : public ::testing::Test {
 public:
@@ -15,16 +16,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL -odac");
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
+      csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
     }
@@ -35,12 +33,12 @@ public:
 TEST_F (IOTests, testDeviceList)
 {
     char *name, *type;
-    int n = 0;
+    int32_t n = 0;
 
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "midi") == 0) {
             csoundSetMIDIModule(csound,name);
-            int i,ndevs = csoundGetMIDIDevList(csound,NULL,1);
+            int32_t i,ndevs = csoundGetMIDIDevList(csound,NULL,1);
             CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) malloc(ndevs*sizeof(CS_MIDIDEVICE));
             csoundGetMIDIDevList(csound,devs,1);
             for(i=0; i < ndevs; i++) {
@@ -51,7 +49,7 @@ TEST_F (IOTests, testDeviceList)
             free(devs);
         } else if (strcmp(type, "audio") == 0) {
             csoundSetRTAudioModule(csound,name);
-            int i,ndevs = csoundGetAudioDevList(csound,NULL,1);
+            int32_t i,ndevs = csoundGetAudioDevList(csound,NULL,1);
             CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) malloc(ndevs*sizeof(CS_AUDIODEVICE));
             csoundGetAudioDevList(csound,devs,1);
             for(i=0; i < ndevs; i++) {
@@ -67,7 +65,7 @@ TEST_F (IOTests, testDeviceList)
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "midi") == 0) {
             csoundSetMIDIModule(csound,name);
-            int i,ndevs = csoundGetMIDIDevList(csound,NULL,0);
+            int32_t i,ndevs = csoundGetMIDIDevList(csound,NULL,0);
             CS_MIDIDEVICE *devs = (CS_MIDIDEVICE *) malloc(ndevs*sizeof(CS_MIDIDEVICE));
             csoundGetMIDIDevList(csound,devs,0);
             for(i=0; i < ndevs; i++) {
@@ -78,7 +76,7 @@ TEST_F (IOTests, testDeviceList)
             free(devs);
         } else if (strcmp(type, "audio") == 0) {
             csoundSetRTAudioModule(csound,name);
-            int i,ndevs = csoundGetAudioDevList(csound,NULL,0);
+            int32_t i,ndevs = csoundGetAudioDevList(csound,NULL,0);
             CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *) malloc(ndevs*sizeof(CS_AUDIODEVICE));
             csoundGetAudioDevList(csound,devs,0);
             printf("Module %d:  %s (%s): %i devices\n", n, name, type, ndevs);
@@ -92,25 +90,25 @@ TEST_F (IOTests, testDeviceList)
     }
 }
 
-int key_callback_evt(void *userData, void *p, unsigned int type)
+int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
-    int *prev = (int *) userData;
-    *((int *) p) = *prev;
+    int32_t *prev = (int32_t *) userData;
+    *((int32_t *) p) = *prev;
     *prev += 1;
     return CSOUND_SUCCESS;
 }
 
-int key_callback_txt(void *userData, void *p, unsigned int type)
+int32_t key_callback_txt(void *userData, void *p, uint32_t type)
 {
-    int *prev = (int *) userData;
-    *((int *) p) =  *prev;
+    int32_t *prev = (int32_t *) userData;
+    *((int32_t *) p) =  *prev;
     *prev += 1;
     return CSOUND_SUCCESS;
 }
 
 TEST_F (IOTests, testKeyboardIO)
 {
-    int ret, err, prev = 100;
+    int32_t ret, prev = 100;
 
     ret = csoundRegisterKeyboardCallback(csound, key_callback_evt, &prev, CSOUND_CALLBACK_KBD_EVENT);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
@@ -128,8 +126,8 @@ TEST_F (IOTests, testKeyboardIO)
             "chnset kdown2, \"down2\"\n"
             "endin \n";
 
-    csoundCompileOrc(csound, instrument);
-    csoundReadScore(csound, "i 1 0 1");
+    csoundCompileOrc(csound, instrument, 0);
+    csoundEventString(csound, "i 1 0 1", 0);
 
     ret = csoundStart(csound);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
@@ -152,7 +150,7 @@ TEST_F (IOTests, testKeyboardIO)
 TEST_F (IOTests, testAudioModules)
 {
     char *name, *type;
-    int n = 0;
+    int32_t n = 0;
 
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "audio") == 0) {
@@ -163,16 +161,16 @@ TEST_F (IOTests, testAudioModules)
                     "out asig\n"
                     "endin \n";
             csoundSetOption(csound, "-B4096");
-            csoundCompileOrc(csound, instrument);
-            csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
-            csoundSetRTAudioModule(csound, name);
-            csoundSetOutput(csound, "dac", NULL, NULL);
-            int ret = csoundStart(csound);
+            csoundSetOption(csound, "-odac");
+            csoundCompileOrc(csound, instrument, 0);
+            csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
+            csoundSetRTAudioModule(csound, name);     
+            int32_t ret = csoundStart(csound);
             if (strcmp(name, "jack") != 0) { // Jack module would fail this test if jack is not running
               ASSERT_TRUE (ret == 0);
             }
             if (ret == 0) {
-              ret = csoundPerform(csound);
+              while(ret == 0) ret = csoundPerformKsmps(csound);
               ASSERT_TRUE (ret > 0);
             }
             csoundReset(csound);
@@ -190,13 +188,14 @@ TEST_F (IOTests, testAudioHostBased)
             "out asig\n"
             "endin \n";
     csoundSetOption(csound, "-B4096");
-    csoundCompileOrc(csound, instrument);
-    csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
-    csoundSetHostImplementedAudioIO(csound, 1, 256);
-    csoundSetOutput(csound, "dac", NULL, NULL);
-    int ret = csoundStart(csound);
+    csoundSetOption(csound, "-odac");
+    csoundCompileOrc(csound, instrument, 0);
+    csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
+    csoundSetHostAudioIO(csound);
+
+    int32_t ret = csoundStart(csound);
     ASSERT_TRUE (ret == 0);
-    ret = csoundPerform(csound);
+    while(ret == 0) ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret > 0);
     csoundReset(csound);
 }
@@ -204,7 +203,7 @@ TEST_F (IOTests, testAudioHostBased)
 TEST_F (IOTests, testMidiModules)
 {
     char *name, *type;
-    int n = 0;
+    int32_t n = 0;
 
     while(!csoundGetModule(csound, n++, &name, &type)) {
         if (strcmp(type, "midi") == 0) {
@@ -215,13 +214,13 @@ TEST_F (IOTests, testMidiModules)
                     "out asig\n"
                     "endin \n";
             csoundSetOption(csound, "-B4096");
-            csoundCompileOrc(csound, instrument);
-            csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
+            csoundSetOption(csound, "-odac");
+            csoundCompileOrc(csound, instrument, 0);
+            csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
             csoundSetMIDIModule(csound, name);
-            csoundSetOutput(csound, "dac", NULL, NULL);
-            int ret = csoundStart(csound);
+            int32_t ret = csoundStart(csound);
             ASSERT_TRUE (ret == 0);
-            ret = csoundPerform(csound);
+            while(ret == 0) ret = csoundPerformKsmps(csound);
             ASSERT_TRUE (ret > 0);
             csoundReset(csound);
         }
@@ -237,13 +236,13 @@ TEST_F (IOTests, testMidiHostBased)
             "out asig\n"
             "endin \n";
     csoundSetOption(csound, "-B4096");
-    csoundCompileOrc(csound, instrument);
-    csoundReadScore(csound, "i 1 0 0.1\n e 0.2");
-    csoundSetHostImplementedMIDIIO(csound, 1);
-    csoundSetOutput(csound, "dac", NULL, NULL);
-    int ret = csoundStart(csound);
+    csoundSetOption(csound, "-odac");  
+    csoundCompileOrc(csound, instrument, 0);
+    csoundEventString(csound, "i 1 0 0.1\n e 0.2", 0);
+    csoundSetHostMIDIIO(csound);
+    int32_t ret = csoundStart(csound);
     ASSERT_TRUE (ret == 0);
-    ret = csoundPerform(csound);
+    while(ret == 0) ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret > 0);
     csoundReset(csound);
 }

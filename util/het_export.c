@@ -51,7 +51,7 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
       het_export_usage(csound);
       return 1;
     }
-    inf = csound->ldmemfile2withCB(csound, argv[1], CSFTYPE_HETRO,NULL);
+    inf = csound->LoadMemoryFile(csound, argv[1], CSFTYPE_HETRO,NULL);
     if (UNLIKELY(inf == NULL)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
@@ -78,10 +78,10 @@ static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t het_export_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "het_export", het_export);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "het_export", het_export);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "het_export",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "het_export",
                                       Str("translate hetro analysis file "
                                           "to text form"));
     }

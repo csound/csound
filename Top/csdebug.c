@@ -25,6 +25,8 @@
 
 #include "csdebug.h"
 
+int32_t kperf_nodebug(CSOUND *csound);
+int32_t kperf_debug(CSOUND *csound);  
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
 debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);
 void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list);
@@ -94,7 +96,7 @@ PUBLIC void csoundDebugStart(CSOUND *csound)
     data->status = CSDEBUG_STATUS_RUNNING;
 }
 
-PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int instr, int skip)
+PUBLIC void csoundSetBreakpoint(CSOUND *csound, int32_t line, int32_t instr, int32_t skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
@@ -114,10 +116,10 @@ PUBLIC void csoundSetBreakpoint(CSOUND *csound, int line, int instr, int skip)
     newpoint->skip = skip;
     newpoint->count = skip;
     newpoint->mode = CSDEBUG_BKPT_LINE;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
+    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line, int instr)
+PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
@@ -134,10 +136,10 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int line, int instr)
     newpoint->line = line;
     newpoint->instr = instr;
     newpoint->mode = CSDEBUG_BKPT_DELETE;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
+    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip)
+PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
@@ -154,7 +156,7 @@ PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int skip)
     newpoint->skip = skip;
     newpoint->count = skip;
     newpoint->mode = CSDEBUG_BKPT_INSTR;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
+    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
 PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
@@ -166,7 +168,7 @@ PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
     newpoint->line = -1;
     newpoint->instr = instr;
     newpoint->mode = CSDEBUG_BKPT_DELETE;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
+    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
 PUBLIC void csoundClearBreakpoints(CSOUND *csound)
@@ -178,7 +180,7 @@ PUBLIC void csoundClearBreakpoints(CSOUND *csound)
     newpoint->line = -1;
     newpoint->instr = -1;
     newpoint->mode = CSDEBUG_BKPT_CLEAR_ALL;
-    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint, 1);
+    csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
 PUBLIC void csoundSetBreakpointCallback(CSOUND *csound,

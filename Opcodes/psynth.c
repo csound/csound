@@ -94,18 +94,18 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("psynth: first input not in TRACKS format\n"));
+                               "%s", Str("psynth: first input not in TRACKS format\n"));
     }
-    p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
+    p->func = csound->FTFind(p->h.insdshead->csound, p->ftb);
     if (UNLIKELY(p->func == NULL)) {
-      return csound->InitError(csound, Str("psynth: function table not found\n"));
+      return csound->InitError(csound, "%s", Str("psynth: function table not found\n"));
     }
 
     p->tracks = 0;
     p->hopsize = p->fin->overlap;
     p->pos = 0;
     p->numbins = numbins;
-    p->factor = p->hopsize * csound->onedsr;
+    p->factor = p->hopsize * CS_ONEDSR;
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
@@ -161,7 +161,7 @@ static int32_t psynth_process(CSOUND *csound, _PSYN *p)
     int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
-    ratio = size * csound->onedsr;
+    ratio = size * CS_ONEDSR;
     factor = p->factor;
 
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -261,18 +261,18 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("psynth: first input not in TRACKS format\n"));
+                               "%s", Str("psynth: first input not in TRACKS format\n"));
     }
-    p->func = csound->FTnp2Find(p->h.insdshead->csound, p->ftb);
+    p->func = csound->FTFind(p->h.insdshead->csound, p->ftb);
     if (UNLIKELY(p->func == NULL)) {
-      return csound->InitError(csound, Str("psynth: function table not found\n"));
+      return csound->InitError(csound, "%s", Str("psynth: function table not found\n"));
     }
 
     p->tracks = 0;
     p->hopsize = p->fin->overlap;
     p->pos = 0;
     p->numbins = numbins;
-    p->factor = p->hopsize * csound->onedsr;
+    p->factor = p->hopsize * CS_ONEDSR;
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
@@ -331,7 +331,7 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
-    incrph = csound->onedsr;
+    incrph = CS_ONEDSR;
     lotwopi = (double)(size) / TWOPI_F;
     factor = p->factor;
     facsqr = p->facsqr;
@@ -475,7 +475,7 @@ static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
-    incrph = csound->onedsr;
+    incrph = CS_ONEDSR;
     lotwopi = (double) (size) / TWOPI_F;
     factor = p->factor;
     facsqr = p->facsqr;
@@ -606,7 +606,7 @@ static int32_t trans_init(CSOUND *csound, _PTRANS *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound, Str("Input not in TRACKS format\n"));
+      return csound->InitError(csound, "%s", Str("Input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fout->N = p->fin->N) / 2 + 1;
@@ -699,7 +699,7 @@ static int32_t trlowest_init(CSOUND *csound, _PLOW *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
-      return csound->InitError(csound, Str("Input not in TRACKS format\n"));
+      return csound->InitError(csound, "%s", Str("Input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fout->N = p->fin->N) / 2 + 1;
@@ -805,7 +805,7 @@ static int32_t trsplit_init(CSOUND *csound, _PSPLIT *p)
     int32_t     numbins;
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
-      return csound->InitError(csound, Str("trsplit: input not "
+      return csound->InitError(csound, "%s", Str("trsplit: input not "
                                            "in TRACKS format\n"));
     }
 
@@ -902,12 +902,12 @@ static int32_t trmix_init(CSOUND *csound, _PSMIX *p)
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("trmix: first input not in TRACKS format\n"));
+                               "%s", Str("trmix: first input not in TRACKS format\n"));
     }
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("trmix: second input not in TRACKS format\n"));
+                               "%s", Str("trmix: second input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fsig1->N = p->fsig2->N) / 2 + 1;
@@ -981,12 +981,12 @@ static int32_t trfil_init(CSOUND *csound, _PSFIL *p)
 
     if (UNLIKELY(p->fin->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("trfil: input not in TRACKS format\n"));
+                               "%s", Str("trfil: input not in TRACKS format\n"));
     }
-    p->tab = csound->FTnp2Find(csound, p->ifn);
+    p->tab = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(p->tab == NULL)) {
       return csound->InitError(csound,
-                               Str("trfil: could not find function table\n"));
+                               "%s", Str("trfil: could not find function table\n"));
     }
     p->len = p->tab->flen;
     p->numbins = numbins = (p->fout->N = p->fin->N) / 2 + 1;
@@ -1065,12 +1065,12 @@ static int32_t trcross_init(CSOUND *csound, _PSCROSS *p)
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("trmix: first input not in TRACKS format\n"));
+                               "%s", Str("trmix: first input not in TRACKS format\n"));
     }
 
     if (UNLIKELY(p->fsig3->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("trmix: second input not in TRACKS format\n"));
+                               "%s", Str("trmix: second input not in TRACKS format\n"));
     }
 
     p->numbins = numbins = (p->fsig1->N = p->fsig2->N) / 2 + 1;
@@ -1174,7 +1174,7 @@ static int32_t binit_init(CSOUND *csound, _PSBIN *p)
 
     if (UNLIKELY(p->fsig2->format != PVS_TRACKS)) {
       return csound->InitError(csound,
-                               Str("binit: first input not in TRACKS format\n"));
+                               "%s", Str("binit: first input not in TRACKS format\n"));
     }
 
     N = p->N = (int32_t) *p->ipar;
@@ -1243,40 +1243,40 @@ static int32_t binit_process(CSOUND *csound, _PSBIN *p)
 
 static OENTRY localops[] =
   {
-   {"tradsyn", sizeof(_PSYN),0,  3, "a", "fkkkij", (SUBR) psynth_init,
+   {"tradsyn", sizeof(_PSYN),0,  "a", "fkkkij", (SUBR) psynth_init,
      (SUBR) psynth_process}
     ,
-   {"sinsyn", sizeof(_PSYN2), TR, 3, "a", "fkkij", (SUBR) psynth2_init,
+   {"sinsyn", sizeof(_PSYN2), TR, "a", "fkkij", (SUBR) psynth2_init,
      (SUBR) psynth2_process}
     ,
-   {"resyn", sizeof(_PSYN), TR, 3, "a", "fkkkij", (SUBR) psynth_init,
+   {"resyn", sizeof(_PSYN), TR, "a", "fkkkij", (SUBR) psynth_init,
      (SUBR) psynth3_process}
     ,
-    {"trscale", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
+    {"trscale", sizeof(_PTRANS),0,  "f", "fz", (SUBR) trans_init,
      (SUBR) trscale_process}
     ,
-    {"trshift", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
+    {"trshift", sizeof(_PTRANS),0,  "f", "fz", (SUBR) trans_init,
      (SUBR) trshift_process}
     ,
-    {"trsplit", sizeof(_PSPLIT),0,  3, "ff", "fz", (SUBR) trsplit_init,
+    {"trsplit", sizeof(_PSPLIT),0,  "ff", "fz", (SUBR) trsplit_init,
      (SUBR) trsplit_process}
     ,
-    {"trmix", sizeof(_PSMIX),0,  3, "f", "ff", (SUBR) trmix_init,
+    {"trmix", sizeof(_PSMIX),0,  "f", "ff", (SUBR) trmix_init,
      (SUBR) trmix_process}
     ,
-    {"trlowest", sizeof(_PLOW),0,  3, "fkk", "fk", (SUBR) trlowest_init,
+    {"trlowest", sizeof(_PLOW),0,  "fkk", "fk", (SUBR) trlowest_init,
      (SUBR) trlowest_process}
     ,
-    {"trhighest", sizeof(_PLOW),0,  3, "fkk", "fk", (SUBR) trlowest_init,
+    {"trhighest", sizeof(_PLOW),0,  "fkk", "fk", (SUBR) trlowest_init,
      (SUBR) trhighest_process}
     ,
-    {"trfilter", sizeof(_PSFIL),0,  3, "f", "fki", (SUBR) trfil_init,
+    {"trfilter", sizeof(_PSFIL),0,  "f", "fki", (SUBR) trfil_init,
      (SUBR) trfil_process}
     ,
-    {"trcross", sizeof(_PSCROSS),0,  3, "f", "ffkz", (SUBR) trcross_init,
+    {"trcross", sizeof(_PSCROSS),0,  "f", "ffkz", (SUBR) trcross_init,
      (SUBR) trcross_process}
     ,
-    {"binit", sizeof(_PSBIN),0,  3, "f", "fi", (SUBR) binit_init,
+    {"binit", sizeof(_PSBIN),0,  "f", "fi", (SUBR) binit_init,
      (SUBR) binit_process}
   };
 

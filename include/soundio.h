@@ -24,7 +24,7 @@
 #ifndef CSOUND_SOUNDIO_H
 #define CSOUND_SOUNDIO_H
 
-#include "soundfile.h"
+#include "csoundCore.h"
 
 
 #ifdef WIN32
@@ -55,16 +55,16 @@ typedef struct {
         void   *sinfd;             /* sound file handle                    */
         MYFLT   *inbufp, *bufend;   /* current buffer position, end of buf  */
         void    *fd;                /* handle returned by csoundFileOpen()  */
-        int     bufsmps;            /* number of mono samples in buffer     */
-        int     format;             /* sample format (AE_SHORT, etc.)       */
-        int     channel;            /* requested channel (ALLCHNLS: all)    */
-        int     nchanls;            /* number of channels in file           */
-        int     sampframsiz;        /* sample frame size in bytes           */
-        int     filetyp;            /* file format (TYP_WAV, etc.)          */
-        int     analonly;           /* non-zero for analysis utilities      */
-        int     endfile;            /* end of file reached ? non-zero: yes  */
-        int     sr;                 /* sample rate in Hz                    */
-        int     do_floatscaling;    /* scale floats by fscalefac ? 0: no    */
+        int32_t     bufsmps;            /* number of mono samples in buffer     */
+        int32_t     format;             /* sample format (AE_SHORT, etc.)       */
+        int32_t     channel;            /* requested channel (ALLCHNLS: all)    */
+        int32_t     nchanls;            /* number of channels in file           */
+        int32_t     sampframsiz;        /* sample frame size in bytes           */
+        int32_t     filetyp;            /* file format (TYP_WAV, etc.)          */
+        int32_t     analonly;           /* non-zero for analysis utilities      */
+        int32_t     endfile;            /* end of file reached ? non-zero: yes  */
+        int32_t     sr;                 /* sample rate in Hz                    */
+        int32_t     do_floatscaling;    /* scale floats by fscalefac ? 0: no    */
         int64_t audrem, framesrem, getframes;   /* samples, frames, frames */
         MYFLT   fscalefac;
         MYFLT   skiptime;

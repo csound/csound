@@ -75,13 +75,13 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
  * On error, a negative value is returned.
  */
 
-PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait)
 {
     long    retval;
 
     if (argv == NULL || argv[0] == NULL)
       return -1L;
-    retval = (long) _spawnvp((noWait ? (int) _P_NOWAIT : (int) _P_WAIT),
+    retval = (long) _spawnvp((noWait ? (int32_t) _P_NOWAIT : (int32_t) _P_WAIT),
                              argv[0], argv);
     if (!noWait && retval >= 0L)
       retval &= 255L;
@@ -109,7 +109,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
  * On error, a negative value is returned.
  */
 
-PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait)
 {
     long    retval;
 
@@ -124,7 +124,7 @@ PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
       exit(0);
     }
     else if (retval > 0L && noWait == 0) {
-      int   status = 0;
+      int32_t   status = 0;
       while (waitpid((pid_t) retval, &status, 0) != (pid_t) ECHILD) {
         if (WIFEXITED(status) != 0) {
           retval = (long) (WEXITSTATUS(status)) & 255L;
@@ -147,7 +147,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
     s = milliseconds / (size_t) 1000;
     n = milliseconds - (s * (size_t) 1000);
-    n = (size_t) ((int) n * 1000000);
+    n = (size_t) ((int32_t) n * 1000000);
     ts.tv_sec = (time_t) s;
     ts.tv_nsec = (long) n;
     while (nanosleep(&ts, &ts) != 0)
@@ -169,19 +169,19 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
 #if !defined( __MACH__)&&!defined(__HAIKU__)&&!defined(ANDROID)&& \
-    !defined(NACL)&&!defined(__CYGWIN__)
+    !defined(__CYGWIN__)
 
 typedef struct barrier {
     pthread_mutex_t mut;
     pthread_cond_t cond;
-    unsigned int count, max, iteration;
+    uint32_t count, max, iteration;
 } barrier_t;
 #endif
 #endif
 
 
 PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
-                                 unsigned int stack,
+                                 uint32_t stack,
                                  void *userdata)
 {
     pthread_attr_t attr;
@@ -221,7 +221,7 @@ PUBLIC void *csoundGetCurrentThreadId(void)
 PUBLIC uintptr_t csoundJoinThread(void *thread)
 {
     void *threadRoutineReturnValue = NULL;
-    int pthreadReturnValue;
+    int32_t pthreadReturnValue;
     pthread_t *pthread = (pthread_t *)thread;
     if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
@@ -250,10 +250,10 @@ PUBLIC void *csoundCreateThreadLock(void)
     return (void*) pthread_mutex;
 }
 
-PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
     {
-      register int retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
+      register int32_t retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
       if (!retval)
         return retval;
       if (!milliseconds)
@@ -273,7 +273,7 @@ PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
       s = milliseconds / (size_t) 1000;
       n = milliseconds - (s * (size_t) 1000);
       s += (size_t) tv.tv_sec;
-      n = (size_t) (((int) n * 1000 + (int) tv.tv_usec) * 1000);
+      n = (size_t) (((int32_t) n * 1000 + (int32_t) tv.tv_usec) * 1000);
       ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
       ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
       return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
@@ -330,10 +330,10 @@ PUBLIC void *csoundCreateThreadLock(void)
     return (void*) p;
 }
 
-PUBLIC int csoundWaitThreadLock(void *threadLock, size_t milliseconds)
+PUBLIC int32_t csoundWaitThreadLock(void *threadLock, size_t milliseconds)
 {
     CsoundThreadLock_t  *p;
-    int                 retval = 0;
+    int32_t                 retval = 0;
     p = (CsoundThreadLock_t*) threadLock;
     pthread_mutex_lock(&(p->m));
     if (!p->s) {
@@ -349,7 +349,7 @@ PUBLIC int csoundWaitThreadLock(void *threadLock, size_t milliseconds)
         s = milliseconds / (size_t) 1000;
         n = milliseconds - (s * (size_t) 1000);
         s += (size_t) tv.tv_sec;
-        n = (size_t) (((int) n * 1000 + (int) tv.tv_usec) * 1000);
+        n = (size_t) (((int32_t) n * 1000 + (int32_t) tv.tv_usec) * 1000);
         ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
         ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
         do {
@@ -406,7 +406,7 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
 #endif  /* !LINUX */
 
 
-PUBLIC void *csoundCreateBarrier(unsigned int max)
+PUBLIC void *csoundCreateBarrier(uint32_t max)
 {
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
   /* iteration needed to distinguish between separate sets of max threads */
@@ -425,14 +425,14 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
 #else
   pthread_barrier_t *barrier =
     (pthread_barrier_t *) malloc(sizeof(pthread_barrier_t));
-  int status = pthread_barrier_init(barrier, 0, max);
+  int32_t status = pthread_barrier_init(barrier, 0, max);
   fprintf(stderr, "Create barrier %d => %p (%d)\n", max, barrier, status);
   if (status) return 0;
   return barrier;
 #endif
 }
 
-PUBLIC int csoundDestroyBarrier(void *barrier)
+PUBLIC int32_t csoundDestroyBarrier(void *barrier)
 {
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
   barrier_t *b = (barrier_t *)barrier;
@@ -447,11 +447,11 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
 }
 
 /* when barrier is passed, all threads except one return 0 */
-PUBLIC int csoundWaitBarrier(void *barrier)
+PUBLIC int32_t csoundWaitBarrier(void *barrier)
 {
 #if !defined(HAVE_PTHREAD_BARRIER_INIT)
-  int ret;
-  unsigned int it;
+  int32_t ret;
+  uint32_t it;
     barrier_t *b = (barrier_t *)barrier;
     pthread_mutex_lock(&b->mut);
     b->count++;
@@ -486,15 +486,15 @@ PUBLIC int csoundWaitBarrier(void *barrier)
  * csoundCreateMutex() are not compatible.
  */
 
-PUBLIC void *csoundCreateMutex(int isRecursive)
+PUBLIC void *csoundCreateMutex(int32_t isRecursive)
 {
     pthread_mutex_t     *mutex_ = (pthread_mutex_t*) NULL;
     pthread_mutexattr_t attr;
 
     if (pthread_mutexattr_init(&attr) == 0) {
       if (pthread_mutexattr_settype(&attr, (isRecursive ?
-                                            (int) PTHREAD_MUTEX_RECURSIVE
-                                            : (int) PTHREAD_MUTEX_DEFAULT))
+                                            (int32_t) PTHREAD_MUTEX_RECURSIVE
+                                            : (int32_t) PTHREAD_MUTEX_DEFAULT))
           == 0) {
         mutex_ = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
         if (mutex_ != NULL) {
@@ -528,7 +528,7 @@ PUBLIC void csoundLockMutex(void *mutex_)
  * Note: this function may be unimplemented on Windows.
  */
 
-PUBLIC int csoundLockMutexNoWait(void *mutex_)
+PUBLIC int32_t csoundLockMutexNoWait(void *mutex_)
 {
     return pthread_mutex_trylock((pthread_mutex_t*) mutex_);
 }
@@ -600,7 +600,7 @@ typedef struct {
   HANDLE      threadLock;
 } threadParams;
 
-static unsigned int __stdcall threadRoutineWrapper(void *p)
+static uint32_t __stdcall threadRoutineWrapper(void *p)
 {
   uintptr_t (*threadRoutine)(void *);
   void      *userData;
@@ -608,13 +608,13 @@ static unsigned int __stdcall threadRoutineWrapper(void *p)
   threadRoutine = ((threadParams*) p)->func;
   userData = ((threadParams*) p)->userdata;
   SetEvent(((threadParams*) p)->threadLock);
-  return (unsigned int) threadRoutine(userData);
+  return (uint32_t) threadRoutine(userData);
 }
 
-PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), unsigned int stack, void *userdata) {
+PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack, void *userdata) {
   threadParams  p;
   void          *h;
-  unsigned int  threadID;
+  uint32_t  threadID;
 
   p.func = threadRoutine;
   p.userdata = userdata;
@@ -635,7 +635,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 {
   threadParams  p;
   void          *h;
-  unsigned int  threadID;
+  uint32_t  threadID;
 
   p.func = threadRoutine;
   p.userdata = userdata;
@@ -672,9 +672,9 @@ PUBLIC void *csoundCreateThreadLock(void)
   return (void*) threadLock;
 }
 
-PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-  return (int) WaitForSingleObject((HANDLE) lock, milliseconds);
+  return (int32_t) WaitForSingleObject((HANDLE) lock, milliseconds);
 }
 
 PUBLIC void csoundWaitThreadLockNoTimeout(void *lock)
@@ -711,7 +711,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
  * csoundCreateMutex() are not compatible.
  */
 
-PUBLIC void *csoundCreateMutex(int isRecursive)
+PUBLIC void *csoundCreateMutex(int32_t isRecursive)
 {
   CRITICAL_SECTION  *cs;
 
@@ -741,7 +741,7 @@ PUBLIC void csoundLockMutex(void *mutex_)
  * Note: this function may be unimplemented on Windows.
  */
 
-PUBLIC int csoundLockMutexNoWait(void *mutex_)
+PUBLIC int32_t csoundLockMutexNoWait(void *mutex_)
 {
 #ifdef NO_WIN9X_COMPATIBILITY
   BOOL    retval;
@@ -793,13 +793,13 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
  * On error, a negative value is returned.
  */
 
-PUBLIC long csoundRunCommand(const char * const *argv, int noWait)
+PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait)
 {
   long    retval;
 
   if (argv == NULL || argv[0] == NULL)
     return -1L;
-  retval = (long) _spawnvp((noWait ? (int) _P_NOWAIT : (int) _P_WAIT),
+  retval = (long) _spawnvp((noWait ? (int32_t) _P_NOWAIT : (int32_t) _P_WAIT),
       argv[0], argv);
   if (!noWait && retval >= 0L)
     retval &= 255L;
@@ -836,10 +836,10 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
 typedef struct barrier {
     CRITICAL_SECTION* mut;
     CONDITION_VARIABLE* cond;
-    unsigned int count, max, iteration;
+    uint32_t count, max, iteration;
 } win_barrier_t;
 
-PUBLIC void *csoundCreateBarrier(unsigned int max)
+PUBLIC void *csoundCreateBarrier(uint32_t max)
 {
   win_barrier_t *barrier =
     (win_barrier_t*)malloc(sizeof(win_barrier_t));
@@ -861,7 +861,7 @@ PUBLIC void *csoundCreateBarrier(unsigned int max)
   //return (void*) barrier;
 }
 
-PUBLIC int csoundDestroyBarrier(void *barrier)
+PUBLIC int32_t csoundDestroyBarrier(void *barrier)
 {
     win_barrier_t *winb = (win_barrier_t*)barrier;
     free(winb->cond);
@@ -873,10 +873,10 @@ PUBLIC int csoundDestroyBarrier(void *barrier)
     //return 0;
 }
 
-PUBLIC int csoundWaitBarrier(void *barrier)
+PUBLIC int32_t csoundWaitBarrier(void *barrier)
 {
-    int ret;
-    unsigned int it;
+    int32_t ret;
+    uint32_t it;
   win_barrier_t *winb = (win_barrier_t*)barrier;
   csoundLockMutex(winb->mut);
   winb->count++;
@@ -905,7 +905,7 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 
 #else
 
-PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), unsigned int stack,
+PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
                                 void *userdata)
 {
     //notImplementedWarning_("csoundCreateThread");
@@ -938,7 +938,7 @@ PUBLIC void *csoundCreateThreadLock(void)
     return NULL;
 }
 
-PUBLIC int csoundWaitThreadLock(void *lock, size_t milliseconds)
+PUBLIC int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
     //notImplementedWarning_("csoundWaitThreadLock");
     return 0;
@@ -959,7 +959,7 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
     //notImplementedWarning_("csoundDestroyThreadLock");
 }
 
-PUBLIC void *csoundCreateMutex(int isRecursive)
+PUBLIC void *csoundCreateMutex(int32_t isRecursive)
 {
     //notImplementedWarning_("csoundCreateMutex");
     return NULL;
@@ -970,7 +970,7 @@ PUBLIC void csoundLockMutex(void *mutex_)
     //notImplementedWarning_("csoundLockMutex");
 }
 
-PUBLIC int csoundLockMutexNoWait(void *mutex_)
+PUBLIC int32_t csoundLockMutexNoWait(void *mutex_)
 {
     //notImplementedWarning_("csoundLockMutexNoWait");
     return 0;
@@ -986,19 +986,19 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
     //notImplementedWarning_("csoundDestroyMutex");
 }
 
-PUBLIC void *csoundCreateBarrier(unsigned int max)
+PUBLIC void *csoundCreateBarrier(uint32_t max)
 {
     //notImplementedWarning_("csoundDestroyBarrier");
     return NULL;
 }
 
-PUBLIC int csoundDestroyBarrier(void *barrier)
+PUBLIC int32_t csoundDestroyBarrier(void *barrier)
 {
     //notImplementedWarning_("csoundDestroyBarrier");
     return 0;
 }
 
-PUBLIC int csoundWaitBarrier(void *barrier)
+PUBLIC int32_t csoundWaitBarrier(void *barrier)
 {
     //notImplementedWarning_("csoundWaitBarrier");
     return 0;
@@ -1023,7 +1023,7 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
     // notImplementedWarning_("csoundDestroyCondVar");
 }
 
-PUBLIC long csoundRunCommand(const char * const *argv, int noWait) {
+PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait) {
     //notImplementedWarning_("csoundRunCommand");
     return 0;
 }
@@ -1047,11 +1047,11 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
     _InterlockedExchange(spinlock, 0);
 }
 
-int csoundSpinTryLock(spin_lock_t *spinlock) {
+int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
     return _InterlockedExchange(spinlock, 1) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
-int csoundSpinLockInit(spin_lock_t *spinlock) {
+int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
     *spinlock = SPINLOCK_INIT;
     return 0;
 }
@@ -1069,11 +1069,11 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
     os_unfair_lock_unlock(spinlock);
 }
 
-int csoundSpinTryLock(spin_lock_t *spinlock) {
+int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
     return os_unfair_lock_trylock(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
-int csoundSpinLockInit(spin_lock_t *spinlock) {
+int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
     IGN(spinlock);
     return 0;
 }
@@ -1088,12 +1088,12 @@ void csoundSpinUnLock(spin_lock_t *spinlock) {
     OSSpinLockUnlock((volatile OSSpinLock *) spinlock);
 }
 
-int csoundSpinTryLock(spin_lock_t *spinlock) {
+int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
     return OSSpinLockTry((volatile OSSpinLock *) spinlock) == true ?
       CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
-int csoundSpinLockInit(spin_lock_t *spinlock) {
+int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
     *spinlock = SPINLOCK_INIT;
     return 0;
 }
@@ -1111,11 +1111,11 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
     pthread_spin_unlock(spinlock);
 }
 
-int csoundSpinTryLock(spin_lock_t *spinlock) {
+int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
     return pthread_spin_trylock(spinlock);
 }
 
-int csoundSpinLockInit(spin_lock_t *spinlock) {
+int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
     return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
 }
 
@@ -1135,7 +1135,7 @@ void csoundSpinUnLock(spin_lock_t *spinlock){
     __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
 }
 
-int csoundSpinTryLock(spin_lock_t *spinlock) {
+int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
     spin_lock_t unset = 0;
     spin_lock_t set = 1;
     return __atomic_compare_exchange_n(spinlock, &unset, set, false,
@@ -1143,7 +1143,7 @@ int csoundSpinTryLock(spin_lock_t *spinlock) {
       CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
-int csoundSpinLockInit(spin_lock_t *spinlock) {
+int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
     *spinlock = SPINLOCK_INIT;
     return 0;
 }
@@ -1156,12 +1156,12 @@ void csoundSpinUnLock(spin_lock_t *spinlock) {
     IGN(spinlock);
 }
 
-int csoundSpinTryLock(spin_lock_t *spinlock) {
+int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
     IGN(spinlock);
     return 1;
 }
 
-int csoundSpinLockInit(spin_lock_t *spinlock) {
+int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
     IGN(spinlock);
     return 0;
 }

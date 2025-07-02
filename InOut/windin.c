@@ -26,7 +26,7 @@
 #include "windin.h"             /* real-time input control units        */
                                 /* 26aug90 dpwe                         */
 
-int xyinset(CSOUND *csound, XYIN *p)
+int32_t xyinset(CSOUND *csound, XYIN *p)
 {
     // This is not the way to do it; set _QQ in interlocks
     IGN(p);
@@ -34,13 +34,13 @@ int xyinset(CSOUND *csound, XYIN *p)
                              Str("xyin opcode has been deprecated in Csound6."));
 }
 
-/* static int deinit_func(CSOUND *csound, void *p) */
+/* static int32_t deinit_func(CSOUND *csound, void *p) */
 /* { */
 /*     csound->csoundKillXYinCallback_(csound, &(((XYIN*) p)->w)); */
 /*     return OK; */
 /* } */
 
-/* int xyinset(CSOUND *csound, XYIN *p) */
+/* int32_t xyinset(CSOUND *csound, XYIN *p) */
 /* { */
 /*     MYFLT   x, y; */
 /*     MYFLT   iymax  = *p->iymax; */
@@ -50,7 +50,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     MYFLT   iyinit = *p->iyinit; */
 /*     MYFLT   ixinit = *p->ixinit; */
 
-/*     if (UNLIKELY((p->timcount = (int)(CS_EKR * *p->iprd + FL(0.5)))<=0)) { */
+/*     if (UNLIKELY((p->timcount = (int32_t)(CS_EKR * *p->iprd + FL(0.5)))<=0)) { */
 /*       return csound->InitError(csound, Str("illegal iprd")); */
 /*     } */
 /*     if (UNLIKELY(iymin > iymax)) {        /\* swap if wrong order *\/ */
@@ -84,7 +84,7 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     return OK; */
 /* } */
 
-/* int xyin(CSOUND *csound, XYIN *p) */
+/* int32_t xyin(CSOUND *csound, XYIN *p) */
 /* { */
 /*     if (UNLIKELY(!(--p->countdown))) {            /\* at each countdown   *\/ */
 /*       p->countdown = p->timcount;                 /\*   reset counter &   *\/ */

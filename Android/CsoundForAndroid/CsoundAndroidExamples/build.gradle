@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.csounds.examples"
     signingConfigs {
         debug {
         }
     }
-    compileSdkVersion 29
+    compileSdkVersion 35
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 33
         versionCode 2
         versionName "6.15.0"
     }
@@ -27,4 +28,6 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':CsoundAndroid')
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'androidx.core:core-ktx:1.15.0' // Optional, useful for Kotlin projects
 }

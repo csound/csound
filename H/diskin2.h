@@ -33,7 +33,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aOut[DISKIN2_MAXCHN];
+    MYFLT   *out[DISKIN2_MAXCHN];
     MYFLT   *iFileCode;
     MYFLT   *kTranspose;
     MYFLT   *iSkipTime;
@@ -49,10 +49,11 @@ typedef struct {
     MYFLT   SkipInit;
     MYFLT   fforceSync;
 
-    int     initDone;
-    int     nChannels;
-    int     bufSize;            /* in sample frames, power of two */
-    int     wrapMode;
+    int32_t initDone;
+    int32_t nChannels;
+    int32_t oChannels;
+    int32_t bufSize;            /* in sample frames, power of two */
+    int32_t wrapMode;
     int32   fileLength;         /* in sample frames */
     int32   bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
@@ -68,10 +69,12 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
+    AUXCH   audioData;
+    MYFLT   *aOut[DISKIN2_MAXCHN];
     MYFLT   *aOut_buf;
     MYFLT   aOut_bufsize;
     void    *cb;
-    int     async;
+    int32_t     async;
   MYFLT     transpose;
 } DISKIN2;
 
@@ -92,10 +95,10 @@ typedef struct {
     MYFLT   BufSize;
     MYFLT   SkipInit;
     MYFLT   fforceSync;
-    int     initDone;
-    int     nChannels;
-    int     bufSize;            /* in sample frames, power of two */
-    int     wrapMode;
+    int32_t     initDone;
+    int32_t     nChannels;
+    int32_t     bufSize;            /* in sample frames, power of two */
+    int32_t     wrapMode;
     int32    fileLength;         /* in sample frames */
     int32    bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
@@ -111,27 +114,31 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
+    AUXCH   audioData;
   MYFLT *aOut_buf;
   MYFLT aOut_bufsize;
   void *cb;
-  int  async;
+  int32_t  async;
 } DISKIN2_ARRAY;
 
-int diskin2_init(CSOUND *csound, DISKIN2 *p);
-int diskin2_init_S(CSOUND *csound, DISKIN2 *p);
-int diskin2_perf(CSOUND *csound, DISKIN2 *p);
-int diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p);
+int32_t soundout_deinit(CSOUND *csound, void *pp);
+int32_t diskin2_async_deinit_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;
     MYFLT   *aOut[DISKIN2_MAXCHN];
     MYFLT   *iFileCode, *iSkipTime, *iSampleFormat, *iSkipInit, *iBufSize;
-    int     nChannels;
-    int     bufSize;            /* in sample frames (power of two) */
+    int32_t     nChannels;
+    int32_t     bufSize;            /* in sample frames (power of two) */
     int_least64_t   fileLength; /* in sample frames */
     int_least64_t   bufStartPos;
     int_least64_t   read_pos;   /* current sample frame being read */

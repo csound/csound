@@ -21,6 +21,7 @@
     02110-1301 USA
 */
 #ifndef CSOUND_CSGBLMTX_H
+#define CSOUND_CSGBLMTX_H
 
 
 #ifdef HAVE_PTHREAD
@@ -46,7 +47,9 @@ void csoundUnLock() {
 #endif
 
 #elif defined(_WIN32) || defined (__WIN32__)
+#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600
+#endif
 #include <windows.h>
 
 #ifdef __cplusplus
@@ -71,7 +74,7 @@ void csoundLock() {
     BOOL status;
     CRITICAL_SECTION* cs;
 
-    status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, &cs);
+    status = InitOnceExecuteOnce(&g_InitOnce, InitHandleFunction, NULL, (void **) &cs);
     if (status) {
       EnterCriticalSection(cs);
     }

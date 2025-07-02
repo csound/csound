@@ -11,10 +11,10 @@ nchnls=1
   ; Linearly change the value of kb from 200 to 0.
   kb line 0, p3, 200
   ; If a "divide by zero" error occurs, substitute -1.
-  ksubst init -1
+  k1 init -1
   
   ; Safely divide the numbers.
-  kresults divz ka, kb, ksubst
+  kresults divz ka, kb, k1
 
   ; Print out the results.
   printks "%f / %f = %f\n", 0.1, ka, kb, kresults

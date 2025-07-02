@@ -27,15 +27,17 @@
 /* Do not declare these in header files; just define them in the module file
  * as extern "C", and declare them here as extern.
  */
-extern int csoundModuleCreate_mixer(CSOUND *csound);
-extern int csoundModuleCreate_signalflowgraph(CSOUND *csound);
-extern int csoundModuleInit_ampmidid(CSOUND *);
-extern int csoundModuleInit_doppler(CSOUND *);
-extern int csoundModuleInit_fractalnoise(CSOUND *);
-extern int csoundModuleInit_ftsamplebank(CSOUND *);
-extern int csoundModuleInit_mixer(CSOUND *);
-extern int csoundModuleInit_signalflowgraph(CSOUND *);
-//# extern int csoundModuleInit_ableton_link_opcodes(CSOUND *);
+extern int32_t csoundModuleCreate_mixer(CSOUND *csound);
+extern int32_t csoundModuleCreate_signalflowgraph(CSOUND *csound);
+extern int32_t csoundModuleInit_ampmidid(CSOUND *);
+extern int32_t csoundModuleInit_doppler(CSOUND *);
+extern int32_t csoundModuleInit_fractalnoise(CSOUND *);
+#ifndef __wasi__
+extern int32_t csoundModuleInit_ftsamplebank(CSOUND *);
+#endif
+extern int32_t csoundModuleInit_mixer(CSOUND *);
+extern int32_t csoundModuleInit_signalflowgraph(CSOUND *);
+//# extern int32_t csoundModuleInit_ableton_link_opcodes(CSOUND *);
 
 
 /**
@@ -53,7 +55,7 @@ extern int csoundModuleInit_signalflowgraph(CSOUND *);
  * A similar pattern must be used if it is necessary to call
  * csoundModuleCreate, etc.
  */
-int init_static_modules(CSOUND *csound)
+int32_t init_static_modules(CSOUND *csound)
 {
     int32_t result = 0;
     csoundMessage(csound, "init_static_modules...\n");

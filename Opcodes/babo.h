@@ -51,6 +51,7 @@ typedef struct
 {
     BaboMemory   core;
     MYFLT       *input;
+    MYFLT         sr;
 } BaboDelay;
 
 typedef BaboDelay BaboTapline;

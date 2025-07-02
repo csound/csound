@@ -21,7 +21,11 @@
     02110-1301 USA
 */
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <time.h>
 
 #ifndef __wasi__
@@ -120,7 +124,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
       p->Scd->size = 1024;
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
-
+#ifndef BARE_METAL   
 #if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__) || defined(__GNUC__)
     if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
@@ -136,6 +140,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
         return -1;
         #endif
       }
+#endif 
     return OK;
 }
 
@@ -168,7 +173,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
       name[1023] = '\0';
     }
-    else csound->strarg2name(csound, name, p->Sfile, "input.", 0);
+    else csound->StringArg2Name(csound, name, p->Sfile, "input.", 0);
     p->fd = fopen(name, "r");
     p->lineno = 0;
     if (p->Sline->size < MAXLINE) {
@@ -178,7 +183,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     }
     if (UNLIKELY(p->fd==NULL))
       return csound->InitError(csound, "%s", Str("readf: failed to open file"));
-    return csound->RegisterDeinitCallback(csound, p, readf_delete);
+    return OK;
 }
 
 static int32_t readf_init(CSOUND *csound, READF *p){
@@ -194,7 +199,7 @@ static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
     if (UNLIKELY(p->fd && (fgets(p->Sline->data,
-                                 p->Sline->size-1, p->fd)==NULL))) {
+                                 (int32_t)p->Sline->size-1, p->fd)==NULL))) {
       int32_t ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
@@ -229,17 +234,17 @@ static int32_t readfi_S(CSOUND *csound, READF *p)
 
 static OENTRY date_localops[] =
 {
-    { "date.i", sizeof(DATEMYFLT),  0, 1, "iI",   "", (SUBR)datemyfltset   },
-    { "date.k", sizeof(DATEMYFLT),  0, 3, "kz",   "", (SUBR)datemyfltset,
+    { "date.i", sizeof(DATEMYFLT),  0,  "iI",   "", (SUBR)datemyfltset   },
+    { "date.k", sizeof(DATEMYFLT),  0,  "kz",   "", (SUBR)datemyfltset,
       (SUBR)datemyfltset },
-    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
-    { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
-    { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
-    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,     },
-    { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
-      (SUBR)readf                                                          },
-    { "readf.S",  sizeof(READF),    0, 3, "Sk",   "S", (SUBR)readf_init_S,
-                                                       (SUBR)readf         }
+    { "dates",  sizeof(DATESTRING), 0,  "S",    "j", (SUBR)datestringset },
+    { "pwd",    sizeof(GETCWD),     0,  "S",    "",  (SUBR)getcurdir     },
+    { "readfi", sizeof(READF),      0,  "Si",   "i", (SUBR)readfi,       },
+    { "readfi.S", sizeof(READF),    0,  "Si",   "S", (SUBR)readfi_S,     },
+    { "readf",  sizeof(READF),      0,  "Sk",   "i", (SUBR)readf_init,
+      (SUBR)readf, (SUBR)readf_delete                                                          },
+    { "readf.S",  sizeof(READF),    0,  "Sk",   "S", (SUBR)readf_init_S,
+      (SUBR)readf, (SUBR)readf_delete         }
 
 };
 

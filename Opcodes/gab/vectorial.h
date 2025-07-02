@@ -20,6 +20,11 @@
 
 #ifndef GAB_VECTORIAL_H
 #define GAB_VECTORIAL_H
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
 
 /* The follwoing from CsoundAV/newopcodes.h */
 typedef struct {

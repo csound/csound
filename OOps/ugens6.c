@@ -262,7 +262,7 @@ int32_t delset(CSOUND *csound, DELAY *p)
     if (UNLIKELY(*p->istor && p->auxch.auxp != NULL))
       return OK;
     /* Round not truncate */
-    if (UNLIKELY((npts = MYFLT2LRND(*p->idlt * csound->esr)) <= 0)) {
+    if (UNLIKELY((npts = MYFLT2LRND(*p->idlt * CS_ESR)) <= 0)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
 
@@ -304,7 +304,7 @@ int32_t delrset(CSOUND *csound, DELAYR *p)
     if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
       return OK;
     /* ksmps is min dely */
-    if (UNLIKELY((npts=(uint32_t)MYFLT2LRND(*p->idlt*csound->esr)) < CS_KSMPS)) {
+    if (UNLIKELY((npts=(uint32_t)MYFLT2LRND(*p->idlt*CS_ESR)) < CS_KSMPS)) {
       return csound->InitError(csound, Str("illegal delay time"));
     }
     if ((auxp = (MYFLT*)p->auxch.auxp) == NULL ||       /* new space if reqd */
@@ -474,7 +474,7 @@ int32_t deltap(CSOUND *csound, DELTAP *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    tap = q->curp - MYFLT2LRND(*p->xdlt * csound->esr);
+    tap = q->curp - MYFLT2LRND(*p->xdlt * CS_ESR);
     while (tap < (MYFLT *) q->auxch.auxp)
       tap += q->npts;
     endp = (MYFLT *) q->auxch.endp;
@@ -510,7 +510,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     endp = (MYFLT *) q->auxch.endp;
     if (!IS_ASIG_ARG(p->xdlt)) {
       if (*p->xdlt == INFINITY) goto err2;
-      delsmps = *p->xdlt * csound->esr;
+      delsmps = *p->xdlt * CS_ESR;
       idelsmps = (int32_t)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
@@ -528,7 +528,7 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
       MYFLT *timp = p->xdlt, *curq = q->curp;
       for (n=offset; n<nsmps; n++) {
         if (timp[n] == INFINITY) goto err2;
-        delsmps = timp[n] * csound->esr;
+        delsmps = timp[n] * CS_ESR;
         idelsmps = (int32_t)delsmps;
         delfrac = delsmps - idelsmps;
         tap = curq++ - idelsmps;
@@ -624,7 +624,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
     endp = (MYFLT *) q->auxch.endp;
     if (!IS_ASIG_ARG(p->xdlt)) {
       if (*p->xdlt == INFINITY) goto err2;
-      delsmps = *p->xdlt * csound->esr;
+      delsmps = *p->xdlt * CS_ESR;
       idelsmps = (int32_t)delsmps;
       delfrac = delsmps - idelsmps;
       tap = q->curp - idelsmps;
@@ -659,7 +659,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
       for (n=offset; n<nsmps; n++) {
         MYFLT ym1, y0, y1, y2;
         if (timp[n] == INFINITY) goto err2;
-        delsmps = *timp++ * csound->esr;
+        delsmps = *timp++ * CS_ESR;
         idelsmps = (int32_t)delsmps;
         delfrac = delsmps - idelsmps;
         if (UNLIKELY((tap = curq++ - idelsmps) < begp))
@@ -741,7 +741,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double)indx - (double)*(del++) * (double)csound->esr;
+        x1 = (double)indx - (double)*(del++) * (double)CS_ESR;
         while (x1 < 0.0) x1 += (double)maxd;
         xpos = (int32_t)x1; x1 -= (double)xpos;
         while (xpos >= maxd) xpos -= maxd;
@@ -774,7 +774,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     else {                          /* window size = 4, cubic interpolation */
       double  x, am1, a0, a1, a2;
       for (n=offset; n<nsmps; n++) {
-        am1 = (double)indx - (double)*(del++) * (double)csound->esr;
+        am1 = (double)indx - (double)*(del++) * (double)CS_ESR;
         while (am1 < 0.0) am1 += (double)maxd;
         xpos = (int32_t) am1; am1 -= (double)xpos;
 
@@ -826,7 +826,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
         /* x2: sine of x1 (for interpolation) */
         /* xpos: integer part of delay time (buffer position to read from) */
 
-        x1 = (double)indx - (double)*(del++) * (double)csound->esr;
+        x1 = (double)indx - (double)*(del++) * (double)CS_ESR;
         while (x1 < 0.0) x1 += (double)maxd;
         xpos = (int32_t) x1; x1 -= (double)xpos;
         while (xpos >= maxd) xpos -= maxd;
@@ -858,7 +858,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
     else {                          /* window size = 4, cubic interpolation */
       double  x, am1, a0, a1, a2;
       for (n=offset; n<nsmps; n++) {
-        am1 = (double)indx - (double)*(del++) * (double)csound->esr;
+        am1 = (double)indx - (double)*(del++) * (double)CS_ESR;
         while (am1 < 0.0) am1 += (double)maxd;
         xpos = (int32_t) am1; am1 -= (double)xpos;
 
@@ -923,7 +923,7 @@ int32_t cmbset(CSOUND *csound, COMB *p)
         return csound->InitError(csound, Str("illegal loop time"));
       }
     }
-    else if (UNLIKELY((lpsiz = MYFLT2LRND(*p->ilpt * csound->esr)) <= 0)) {
+    else if (UNLIKELY((lpsiz = MYFLT2LRND(*p->ilpt * CS_ESR)) <= 0)) {
       return csound->InitError(csound, Str("illegal loop time"));
     }
     nbytes = lpsiz * sizeof(MYFLT);
@@ -991,7 +991,7 @@ int32_t comb(CSOUND *csound, COMB *p)
 
 int32_t invcomb(CSOUND *csound, COMB *p)
 {
-    int32_t n, nsmps = csound->ksmps;
+    int32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *asig, *xp, *endp;
     MYFLT       coef = p->coef;
 
@@ -1068,26 +1068,24 @@ int32_t alpass(CSOUND *csound, COMB *p)
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
                                     FL(0.0437), FL(0.0050), FL(0.0017)};
 
-void reverbinit(CSOUND *csound)         /* called once by oload */
-{                                       /*  to init reverb data */
+void reverbinit(CSOUND *csound, REVERB *p)       
+{                                     
     const MYFLT *lptimp = revlptimes;
-    int32_t     *lpsizp = csound->revlpsiz;
+    int32_t     *lpsizp = p->revlpsiza;
     int32_t n = 6;
-
-    if (csound->revlpsum==0) {
-      csound->revlpsum = 0;
-      for (n=0; n<6; n++) {
-        lpsizp[n] = MYFLT2LRND(lptimp[n] * csound->esr);
-        csound->revlpsum += lpsizp[n];
+    p->revlpsum = 0;
+    for (n=0; n<6; n++) {
+        lpsizp[n] = MYFLT2LRND(lptimp[n] * CS_ESR);
+        p->revlpsum += lpsizp[n];
       }
-    }
 }
 
 int32_t rvbset(CSOUND *csound, REVERB *p)
 {
     if (p->auxch.auxp == NULL) {                        /* if no space yet, */
-      int32      *sizp = csound->revlpsiz;               /*    allocate it   */
-      csound->AuxAlloc(csound, csound->revlpsum * sizeof(MYFLT), &p->auxch);
+      int32      *sizp = p->revlpsiza;               /*    allocate it   */
+      reverbinit(csound, p);
+      csound->AuxAlloc(csound, p->revlpsum * sizeof(MYFLT), &p->auxch);
       p->adr1 = p->p1 = (MYFLT *) p->auxch.auxp;
       p->adr2 = p->p2 = p->adr1 + *sizp++;
       p->adr3 = p->p3 = p->adr2 + *sizp++;              /*    & init ptrs   */
@@ -1100,7 +1098,7 @@ int32_t rvbset(CSOUND *csound, REVERB *p)
       p->prvt = FL(0.0);
     }
     else if (!(*p->istor)) {                    /* else if istor = 0 */
-      memset(p->adr1, '\0', csound->revlpsum * sizeof(MYFLT));
+      memset(p->adr1, '\0', p->revlpsum * sizeof(MYFLT));
       p->p1 = p->adr1;                          /*  and reset   */
       p->p2 = p->adr2;
       p->p3 = p->adr3;
@@ -1194,7 +1192,7 @@ int32_t panset(CSOUND *csound, PAN *p)
 {
     FUNC  *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
       return NOTOK;
     p->ftp = ftp;
     p->xmul = (*p->imode == FL(0.0) ? FL(1.0) : (MYFLT)ftp->flen);

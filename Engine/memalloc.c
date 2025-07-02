@@ -24,6 +24,50 @@
 
 #include "csoundCore.h"                 /*              MEMALLOC.C      */
 
+#ifdef CUSTOM_MALLOC
+#ifndef MALLOC_BASE
+#define MALLOC_BASE 0xC0000000  // STM32H7
+#endif
+
+static unsigned long cur = MALLOC_BASE;
+
+void *my_malloc(unsigned long bytes) {
+  unsigned long tmp = cur;
+  cur += bytes;
+  return (void *) tmp;
+}
+
+void *my_calloc(unsigned long items, unsigned long bytes) {
+  unsigned long tmp = cur;
+  cur += bytes*items;
+  memset((void *) tmp, 0, bytes*items);
+  return (void *) tmp;  
+}
+
+void *my_realloc(void *old, unsigned long bytes) {
+    unsigned long tmp = cur;
+    cur += bytes;
+    memcpy((void *) tmp, old, bytes*items);
+    return (void *) tmp;
+}
+
+void my_free(void *old) {
+  // nothing to do
+  // TODO: implement freeing
+  return;
+}
+
+#define CS_MALLOC mymalloc
+#define CS_CALLOC mycalloc
+#define CS_REALLOC myrealloc
+#define CS_FREE myfree
+#else
+#define CS_MALLOC malloc
+#define CS_CALLOC calloc
+#define CS_REALLOC realloc
+#define CS_FREE free
+#endif
+
 /* This code wraps malloc etc with maintaining a list of allocated memory
    so it can be freed on a reset.  It would not be necessary with a zoned
    allocator.
@@ -39,23 +83,23 @@
 
 typedef struct memAllocBlock_s {
 #ifdef MEMDEBUG
-    int                     magic;      /* 0x6D426C6B ("mBlk")          */
+    int32_t                     magic;      /* 0x6D426C6B ("mBlk")          */
     void                    *ptr;       /* pointer to allocated area    */
 #endif
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
 } memAllocBlock_t;
 
-#define HDR_SIZE    (((int) sizeof(memAllocBlock_t) + 7) & (~7))
+#define HDR_SIZE    (((int32_t) sizeof(memAllocBlock_t) + 7) & (~7))
 #define ALLOC_BYTES(n)  ((size_t) HDR_SIZE + (size_t) (n))
-#define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int) HDR_SIZE))
-#define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int) HDR_SIZE))
+#define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
+#define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
 
 #define MEMALLOC_DB (csound->memalloc_db)
 
 static void memdie(CSOUND *csound, size_t nbytes)
 {
-    csound->ErrorMsg(csound, Str("memory allocate failure for %zd"),
+    csound->ErrorMsg(csound, Str("memory allocate failure for %zd \n"),
                              nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
 }
@@ -72,7 +116,8 @@ void *mmalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = malloc(ALLOC_BYTES(size))) == NULL)) {
+    if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
+        csound->ErrorMsg(csound, "Malloc failed: ");
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
@@ -91,10 +136,10 @@ void *mmalloc(CSOUND *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mmallocDebug(CSOUND *csound, size_t size, char *file, int line)
+void *mmalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
     void *ans = mmalloc(csound,size);
-    printf("Alloc %p (%zu) %s:%d\n", ans, size, file, line);
+    csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
@@ -110,7 +155,8 @@ void *mcalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
+    if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
+      csound->ErrorMsg(csound, "Calloc failed: ");
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
@@ -129,10 +175,10 @@ void *mcalloc(CSOUND *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mcallocDebug(CSOUND *csound, size_t size, char *file, int line)
+void *mcalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
     void *ans = mcalloc(csound,size);
-    printf("Alloc %p (%zu) %s:%d\n", ans, size, file, line);
+    csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
@@ -170,11 +216,11 @@ void mfree(CSOUND *csound, void *p)
     }
     //csound->Message(csound, "free\n");
     /* free memory */
-    free((void*) pp);
+    CS_FREE((void*) pp);
     CSOUND_MEM_SPINUNLOCK
 }
 
-void mfreeDebug(CSOUND *csound, void *ans, char *file, int line)
+void mfree_debug(CSOUND *csound, void *ans, char *file, int32_t line)
 {
     printf("Free %p %s:%d\n", ans, file, line);
     mfree(csound,ans);
@@ -205,7 +251,8 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp->ptr = NULL;
 #endif
     /* allocate memory */
-    p = realloc((void*) pp, ALLOC_BYTES(size));
+    p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
+    pp = p;
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
       CSOUND_MEM_SPINLOCK
@@ -214,6 +261,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
       pp->ptr = oldp;
       CSOUND_MEM_SPINUNLOCK
 #endif
+      csound->ErrorMsg(csound, "Realloc failed: ");  
       memdie(csound, size);
       return NULL;
     }
@@ -238,14 +286,14 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     return DATA_PTR(pp);
 }
 
-void *mreallocDebug(CSOUND *csound, void *oldp, size_t size, char *file, int line)
+void *mrealloc_debug(CSOUND *csound, void *oldp, size_t size, char *file, int32_t line)
 {
     void *p = mrealloc(csound, oldp, size);
-    printf("Realloc %p->%p (%zu) %s:%d\n", oldp, p, size, file, line);
+    csound->DebugMsg(csound, "Realloc %p->%p (%zu) %s:%d\n", oldp, p, size, file, line);
     return p;
 }
 
-void memRESET(CSOUND *csound)
+void memreset(CSOUND *csound)
 {
     memAllocBlock_t *pp, *nxtp;
 
@@ -256,7 +304,7 @@ void memRESET(CSOUND *csound)
 #ifdef MEMDEBUG
       pp->magic = 0;
 #endif
-      free((void*) pp);
+      CS_FREE((void*) pp);
       pp = nxtp;
     }
 }

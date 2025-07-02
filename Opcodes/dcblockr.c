@@ -151,7 +151,8 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
     double   scale = p->scaler;
     int32_t      p1 = p->dp1;
     int32_t      p2 = p->dp2;
-    int32_t      j,del1size, iirdelsize;
+    int32_t      j;
+    uint64_t del1size, iirdelsize;
 
     iirdel[0] = (double *) p->iirdelay1.auxp;
     iirdel[1] = (double *) p->iirdelay2.auxp;
@@ -196,9 +197,9 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "dcblock", S(DCBlocker), 0, 3, "a", "ao",
+  { "dcblock", S(DCBlocker), 0,  "a", "ao",
                                    (SUBR)dcblockrset, (SUBR)dcblockr},
-  { "dcblock2", S(DCBlock2), 0, 3, "a", "aoo",
+  { "dcblock2", S(DCBlock2), 0, "a", "aoo",
                                    (SUBR)dcblock2set, (SUBR)dcblock2}
 };
 

@@ -24,9 +24,8 @@
 #include "csoundCore.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
 #include "extract.h"
-
-extern  int     realtset(CSOUND *, SRTBLK *);
-extern  MYFLT   realt(CSOUND *, MYFLT);
+#include "prototyp.h"
+#include "sread.h"
 
 static  void    include(EXTRACT_STATICS*, SRTBLK *);
 
@@ -57,7 +56,7 @@ static void alloc_globals(EXTRACT_STATICS* extractStatics)
 void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
               FILE *xfp)    /* read the extract control file */
 {
-    int  flag, all;
+    int32_t  flag, all;
     char s[128];
 
     alloc_globals(extractStatics);
@@ -68,7 +67,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
     extractStatics->offsect = 999;  extractStatics->offbeat = FL(0.0);
     while (fscanf(xfp, "%100s", s) > 0) {
       char *c = s;
-      int i;
+      int32_t i;
       //printf("string: %s\n", s);
       switch (*c) {
       case 'i':
@@ -124,7 +123,7 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
 {
     SRTBLK  *bp;
     MYFLT   turnoff, anticip;
-    int     warped;
+    int32_t     warped;
 
     alloc_globals(extractStatics);
 

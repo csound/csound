@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <limits.h>
 #include <math.h>
 
-#define INITERROR(x) csound->InitError(csound, Str("partikkel: " x))
-#define PERFERROR(x) csound->PerfError(csound, &(p->h),Str("partikkel: " x))
-#define WARNING(x) csound->Warning(csound, Str("partikkel: " x))
+#define INITERROR(x) csound->InitError(csound, "%s", Str("partikkel: " x))
+#define PERFERROR(x) csound->PerfError(csound, &(p->h), "%s", Str("partikkel: " x))
+#define WARNING(x) csound->Warning(csound, "%s", Str("partikkel: " x))
 
 /* Assume csound and p pointers are always available */
 #define frand() (csound->RandMT(&p->randstate)/(double)(0xffffffff))
@@ -176,19 +176,16 @@ static inline MYFLT lrplookup(FUNC *tab, uint32_t phase, MYFLT zscale,
     return lrp(a, b, z);
 }
 
-/* Why not use csound->intpow ? */
-static inline double intpow_(MYFLT x, uint32_t n)
+/* floating-point phase version */
+static inline MYFLT lrplookup_f(FUNC *tab, double phase)
 {
-    double ans = 1.0;
-
-    while (n != 0) {
-        if (n & 1)
-            ans *= x;
-        n >>= 1;
-        x *= x;
-    }
-    return ans;
+    MYFLT    pos = PHMOD1(phase)*tab->flen;
+    uint32_t index = (int32_t) phase;
+    MYFLT a = tab->ftable[index];
+    MYFLT b = tab->ftable[index + 1];
+    return lrp(a, b, (pos - index));
 }
+
 
 /* dsf synthesis for trainlets */
 static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
@@ -199,9 +196,14 @@ static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
     uint32_t fbeta, N = grain->harmonics;
     const MYFLT a = grain->falloff;
     const MYFLT a_pow_N = grain->falloff_pow_N;
+    int32_t floatph = !(IS_POW_TWO(tab->flen));
+    
     fbeta = (uint32_t)(beta*(double)UINT_MAX);
 
+    if(!floatph)
     cos_beta = lrplookup(tab, fbeta, zscale, cosineshift);
+    else
+     cos_beta = lrplookup_f(tab, beta);   
     denominator = FL(1.0) - FL(2.0)*a*cos_beta + a*a;
     if (denominator < FL(1e-6) && denominator > FL(-1e-6)) {
         /* handle this special case to avoid divison by zero */
@@ -209,9 +211,15 @@ static inline MYFLT dsf(FUNC *tab, GRAIN *grain, double beta, MYFLT zscale,
     } else {
         /* this factor can also serve as a last, fadable harmonic, if we in the
          * future want to fade the number of harmonics smoothly */
+      if(floatph) {
+         lastharmonic = a_pow_N*lrplookup_f(tab, beta*N);
+         numerator = FL(1.0) - a*cos_beta - lastharmonic
+           + a*a_pow_N*lrplookup_f(tab, (N - 1)*beta);
+      } else {
         lastharmonic = a_pow_N*lrplookup(tab, fbeta*N, zscale, cosineshift);
         numerator = FL(1.0) - a*cos_beta - lastharmonic
             + a*a_pow_N*lrplookup(tab, (N - 1)*fbeta, zscale, cosineshift);
+      }
         result = numerator/denominator - FL(1.0);
     }
     return result;
@@ -224,12 +232,12 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
 
     if ((ret = setup_globals(csound, p)) != OK)
         return ret;
-
+    p->floatph = 0;
     p->grainroot = NULL;
     /* set grainphase to 1.0 to make grain scheduler create a grain immediately
      * after starting opcode */
     p->grainphase = 1.0;
-    p->num_outputs = csound->GetOutputArgCnt(p); /* save for faster access */
+    p->num_outputs = GetOutputArgCnt((OPDS *)p); /* save for faster access */
     /* resolve tables with no default table handling */
     p->costab = csound->FTFind(csound, p->cosine);
     /* resolve some tables with default table handling */
@@ -245,12 +253,15 @@ static int32_t partikkel_init(CSOUND *csound, PARTIKKEL *p)
     p->env_attack_tab = *p->env_attack >= FL(0.0)
                         ? csound->FTFind(csound, p->env_attack)
                         : p->globals->ooo_tab;
+    p->floatph |= !(IS_POW_TWO(p->env_attack_tab->flen));
     p->env_decay_tab = *p->env_decay >= FL(0.0)
                        ? csound->FTFind(csound, p->env_decay)
                        : p->globals->ooo_tab;
+    p->floatph |= !(IS_POW_TWO(p->env_decay_tab->flen));
     p->env2_tab = *p->env2 >= FL(0.0)
                    ? csound->FTFind(csound, p->env2)
                    : p->globals->ooo_tab;
+    p->floatph |= !(IS_POW_TWO(p->env2_tab->flen));
     p->wavfreqstarttab = *p->wavfreq_startmuls >= FL(0.0)
                          ? csound->FTFind(csound, p->wavfreq_startmuls)
                          : p->globals->zzo_tab;
@@ -471,7 +482,7 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             if (grain->harmonics < 2)
                 grain->harmonics = 2;
             grain->falloff = *p->falloff;
-            grain->falloff_pow_N = intpow_(grain->falloff, grain->harmonics);
+            grain->falloff_pow_N = intpow(grain->falloff, grain->harmonics);
             /* normalize trainlets to uniform peak, using geometric sum */
             if (FABS(grain->falloff) > FL(0.9999) &&
                 FABS(grain->falloff) < FL(1.0001))
@@ -483,8 +494,8 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             curwav->gain *= normalize;
         }
 
-        curwav->delta = startfreq*csound->onedsr;
-        enddelta = endfreq*csound->onedsr;
+        curwav->delta = startfreq*CS_ONEDSR;
+        enddelta = endfreq*CS_ONEDSR;
 
         if (i != WAV_TRAINLET) {
             /* set wavphase to samplepos parameter */
@@ -496,7 +507,7 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
         }
         /* place grain between samples. this is especially important to make
          * high frequency synchronous grain streams sounds right */
-        curwav->phase += phase_corr*startfreq*csound->onedsr;
+        curwav->phase += phase_corr*startfreq*CS_ONEDSR;
 
         /* clamp phase in case it's out of bounds */
         curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
@@ -557,7 +568,7 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
     /* krate table lookup, first look up waveform ftables */
     for (n = 0; n < 4; ++n) {
         p->wavetabs[n] = *waveformparams[n] >= FL(0.0)
-                         ? csound->FTnp2Finde(csound, waveformparams[n])
+                         ? csound->FTFind(csound, waveformparams[n])
                          : p->globals->zzz_tab;
         if (UNLIKELY(p->wavetabs[n] == NULL))
             return PERFERROR("unable to load waveform table");
@@ -568,6 +579,8 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
                   : p->globals->ooo_tab;
     if (UNLIKELY(!p->fmenvtab))
         return PERFERROR("unable to load FM envelope table");
+    p->floatph = !(IS_POW_TWO(p->fmenvtab->flen));
+    
 
     if (UNLIKELY(early)) nsmps -= early;
     /* start grain scheduling */
@@ -594,8 +607,9 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
         }
 
         if (p->grainphase >= 1.0) {
+            int32_t floatph = !(IS_POW_TWO(p->disttab->flen)),
+            flen = p->disttab->flen;
             double offset;
-
             do
                 p->grainphase -= 1.0;
             while (UNLIKELY(p->grainphase >= 1.0));
@@ -604,7 +618,8 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
             if (*p->distribution >= FL(0.0)) {
                 /* positive distrib, choose random point in table */
                 uint32_t rnd = csound->RandMT(&p->randstate);
-                offset = p->disttab->ftable[rnd >> p->disttabshift];
+                if(floatph) offset = p->disttab->ftable[(int32_t)((float)flen*rnd/0xffffffff)]; 
+                else offset = p->disttab->ftable[rnd >> p->disttabshift];
                 offset *= *p->distribution;
             } else {
                 /* negative distrib, choose sequential point in table */
@@ -652,7 +667,7 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
         if (p->grainfreq_arate)
             grainfreq = fabs(p->grainfreq[n]);
-        p->graininc = grainfreq*csound->onedsr;
+        p->graininc = grainfreq*CS_ONEDSR;
         p->grainphase += p->graininc;
     }
     return OK;
@@ -666,6 +681,8 @@ static inline void render_wave(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
 {
     uint32_t n;
     double fmenvphase = grain->envphase;
+    int32_t flen = p->fmenvtab->flen;
+    int32_t floatph = p->floatph;
 
     /* wavetable synthesis */
     for (n = grain->start; n < stop; ++n) {
@@ -684,7 +701,9 @@ static inline void render_wave(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
         frac = (MYFLT)(wav->phase - x0);
         buf[n] += lrp(wav->table->ftable[x0], wav->table->ftable[x0 + 1],
                       frac)*wav->gain;
-
+        if(floatph) 
+          fmenv = grain->fmenvtab->ftable[(size_t) (fmenvphase*flen)];
+        else 
         fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
                                         >> grain->fmenvtab->lobits];
         fmenvphase += grain->envinc;
@@ -699,6 +718,8 @@ static inline void render_trainlet(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
 {
     uint32_t n;
     double fmenvphase = grain->envphase;
+    int32_t flen = p->fmenvtab->flen;
+    int32_t floatph = p->floatph;
 
     /* trainlet synthesis */
     for (n = grain->start; n < stop; ++n) {
@@ -712,7 +733,9 @@ static inline void render_trainlet(PARTIKKEL *p, GRAIN *grain, WAVEDATA *wav,
         /* dsf/trainlet synthesis */
         buf[n] += wav->gain*dsf(p->costab, grain, wav->phase, p->zscale,
                                 p->cosineshift);
-
+        if(floatph) 
+          fmenv = grain->fmenvtab->ftable[(size_t) (fmenvphase*flen)];
+        else 
         fmenv = grain->fmenvtab->ftable[(size_t)(fmenvphase*FMAXLEN)
                                         >> grain->fmenvtab->lobits];
         fmenvphase += grain->envinc;
@@ -732,6 +755,7 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
     uint32_t stop = grain->stop > CS_KSMPS
                     ? CS_KSMPS : grain->stop;
     MYFLT *buf = (MYFLT *)p->aux.auxp;
+    int32_t floatph = p->floatph, flen2 = p->env2_tab->flen;
 
     if (grain->start >= CS_KSMPS)
         return; /* grain starts at a later kperiod */
@@ -753,32 +777,44 @@ static inline void render_grain(CSOUND *csound, PARTIKKEL *p, GRAIN *grain)
         MYFLT env, env2, output;
         double envphase;
         FUNC *envtable;
+        int32_t flen1;
 
         /* apply envelopes */
         if (grain->envphase < grain->envattacklen) {
             envtable = p->env_attack_tab;
+            flen1 = envtable->flen;
             envphase = grain->envphase/grain->envattacklen;
         } else if (grain->envphase < grain->envdecaystart) {
             /* for sustain, use last sample in attack table */
             envtable = p->env_attack_tab;
+            flen1 = envtable->flen;
             envphase = 1.0;
         } else if (grain->envphase < 1.0) {
             envtable = p->env_decay_tab;
+            flen1 = envtable->flen;
             envphase = (grain->envphase - grain->envdecaystart)/(1.0 -
                        grain->envdecaystart);
         } else {
             /* clamp envelope phase because of round-off errors */
             envtable = grain->envdecaystart < 1.0 ?
                        p->env_decay_tab : p->env_attack_tab;
+            flen1 = envtable->flen;
             envphase = grain->envphase = 1.0;
         }
 
         /* fetch envelope values */
+        if(floatph) {
+          env = envtable->ftable[(size_t)(envphase*flen1)];
+          env2 = p->env2_tab->ftable[(size_t)(grain->envphase*flen2)];
+        }else {
         env = envtable->ftable[(size_t)(envphase*FMAXLEN)
                                 >> envtable->lobits];
         env2 = p->env2_tab->ftable[(size_t)(grain->envphase*FMAXLEN)
                                    >> p->env2_tab->lobits];
+        }
         env2 = FL(1.0) - grain->env2amount + grain->env2amount*env2;
+
+        
         grain->envphase += grain->envinc;
         /* generate grain output sample */
         output = buf[n]*env*env2;
@@ -840,20 +876,20 @@ static int32_t partikkelsync_init(CSOUND *csound, PARTIKKEL_SYNC *p)
 
     if (UNLIKELY((int32_t)*p->opcodeid == 0))
         return csound->InitError(csound,
-            Str("partikkelsync: opcode id needs to be a non-zero integer"));
+            "%s", Str("partikkelsync: opcode id needs to be a non-zero integer"));
     pg = csound->QueryGlobalVariable(csound, "partikkel");
     if (UNLIKELY(pg == NULL || pg->rootentry == NULL))
         return csound->InitError(csound,
-            Str("partikkelsync: could not find opcode id"));
+            "%s", Str("partikkelsync: could not find opcode id"));
     pe = pg->rootentry;
     while (pe->id != *p->opcodeid && pe->next != NULL)
         pe = pe->next;
     if (UNLIKELY(pe->id != *p->opcodeid))
         return csound->InitError(csound,
-            Str("partikkelsync: could not find opcode id"));
+            "%s", Str("partikkelsync: could not find opcode id"));
     p->ge = pe;
     /* find out if we're supposed to output grain scheduler phase too */
-    p->output_schedphase = csound->GetOutputArgCnt(p) > 1;
+    p->output_schedphase = GetOutputArgCnt((OPDS *)p) > 1;
     return OK;
 }
 
@@ -962,27 +998,27 @@ static int32_t partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
 
 static OENTRY partikkel_localops[] = {
     {
-     "partikkel", sizeof(PARTIKKEL), TR, 3,
+     "partikkel", sizeof(PARTIKKEL), TR, 
         "ammmmmmm",
         "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
         (SUBR)partikkel_init,
         (SUBR)partikkel
     },
     {
-     "partikkelsync", sizeof(PARTIKKEL_SYNC), TR, 3,
+     "partikkelsync", sizeof(PARTIKKEL_SYNC), TR, 
         "am", "i",
         (SUBR)partikkelsync_init,
         (SUBR)partikkelsync
     },
     {
-        "partikkelget", sizeof(PARTIKKEL_GET), TR, 3,
+        "partikkelget", sizeof(PARTIKKEL_GET), TR, 
         "k", "ki",
         (SUBR)partikkelget_init,
         (SUBR)partikkelget,
         (SUBR)NULL
     },
     {
-        "partikkelset", sizeof(PARTIKKEL_SET), TR, 3,
+        "partikkelset", sizeof(PARTIKKEL_SET), TR, 
         "", "kki",
         (SUBR)partikkelset_init,
         (SUBR)partikkelset,

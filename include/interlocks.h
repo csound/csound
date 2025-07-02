@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 // ZAK
 #define ZR (0x0001)
 #define ZW (0x0002)

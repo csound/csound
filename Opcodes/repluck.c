@@ -304,9 +304,9 @@ static int32_t streson(CSOUND *csound, STRES *p)
 
 static OENTRY localops[] =
   {
-   { "repluck", S(WGPLUCK2), 0, 3, "a",  "ikikka",(SUBR)wgpsetin, (SUBR)wgpluck},
-   { "wgpluck2",S(WGPLUCK2), 0, 3, "a",  "ikikk", (SUBR)wgpset, (SUBR)wgpluck},
-   { "streson", S(STRES),    0, 3, "a",  "akk",  (SUBR)stresonset, (SUBR)streson}
+   { "repluck", S(WGPLUCK2), 0,  "a",  "ikikka",(SUBR)wgpsetin, (SUBR)wgpluck},
+   { "wgpluck2",S(WGPLUCK2), 0,  "a",  "ikikk", (SUBR)wgpset, (SUBR)wgpluck},
+   { "streson", S(STRES),    0,  "a",  "akk",  (SUBR)stresonset, (SUBR)streson}
 };
 
 int32_t repluck_init_(CSOUND *csound)

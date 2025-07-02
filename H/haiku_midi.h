@@ -47,7 +47,7 @@ struct MidiEvent {
         MidiEvent(uint8 n, uint8 s=0, uint8 d1=0, uint8 d2=0) :
                 nbytes(n), status(s), data1(d1), data2(d2) {}
         MidiEvent(uint32 seq) {*(uint32 *)&nbytes = seq;}
-        int Size() {return nbytes;}
+        int32_t Size() {return nbytes;}
         uint8 * Bytes() {return (uint8 *)&status;}
         operator uint32() {return *(uint32 *)&nbytes;}
         operator uint8 *() {return (uint8 *)&nbytes;}

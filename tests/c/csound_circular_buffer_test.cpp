@@ -6,6 +6,7 @@
  */
 
 #include "csound.h"
+#include "csound_circular_buffer.h"
 #include "gtest/gtest.h"
 
 class CircularBufferTests : public ::testing::Test {
@@ -13,14 +14,13 @@ public:
     CircularBufferTests ()
     {
         csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
+        csound = csoundCreate (NULL,NULL);
         csoundCreateMessageBuffer (csound, 0);
         csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual ~CircularBufferTests ()
     {
-        csoundCleanup (csound);
         csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
@@ -43,8 +43,8 @@ public:
 
 TEST_F (CircularBufferTests, testReadWrite)
 {
-    int i;
-    int written;
+    int32_t i;
+    int32_t written;
 
     // Write test
     for (i = 0 ; i <256; i++) {
@@ -59,7 +59,7 @@ TEST_F (CircularBufferTests, testReadWrite)
 
     // Read test
     float invals[256];
-    int read = csoundReadCircularBuffer(csound, rb, invals, 256);
+    int32_t read = csoundReadCircularBuffer(csound, rb, invals, 256);
     ASSERT_EQ (read, 256);
 
     for (i = 0 ; i <256; i++) {
@@ -69,7 +69,7 @@ TEST_F (CircularBufferTests, testReadWrite)
 
 TEST_F (CircularBufferTests, testReadWriteDiffSizes)
 {
-    int i, j;
+    int32_t i, j;
 
     for (i = 0 ; i <256; i++) {
         float val = i;
@@ -83,16 +83,16 @@ TEST_F (CircularBufferTests, testReadWriteDiffSizes)
         invals[i] = i;
     }
 
-    int writeindex = 0;
-    int readindex = 0;
+    int32_t writeindex = 0;
+    int32_t readindex = 0;
 
     for (i = 1 ; i < 16; i++) {
-      int read = csoundReadCircularBuffer(csound, rb, outvals, 17 - i);
+      int32_t read = csoundReadCircularBuffer(csound, rb, outvals, 17 - i);
         ASSERT_EQ (read, 17-i);
         for (j = 0; j < read; j++) {
             ASSERT_EQ (outvals[j], readindex++);
         }
-        int written = csoundWriteCircularBuffer(csound, rb, &(invals[writeindex]), i );
+        int32_t written = csoundWriteCircularBuffer(csound, rb, &(invals[writeindex]), i );
         ASSERT_EQ (written, i);
         writeindex += i;
     }
@@ -100,7 +100,7 @@ TEST_F (CircularBufferTests, testReadWriteDiffSizes)
 
 TEST_F (CircularBufferTests, testPeeking)
 {
-    int i, j;
+    int32_t i, j;
 
     for (i = 0 ; i <256; i++) {
         float val = i;
@@ -114,11 +114,11 @@ TEST_F (CircularBufferTests, testPeeking)
         invals[i] = i;
     }
 
-    int writeindex = 0;
-    int readindex = 0;
+    int32_t writeindex = 0;
+    int32_t readindex = 0;
 
     for (i = 1 ; i < 16; i++) {
-        int read = csoundPeekCircularBuffer(csound, rb, outvals, 17 - i);
+        int32_t read = csoundPeekCircularBuffer(csound, rb, outvals, 17 - i);
         ASSERT_EQ (read, 17-i);
 
         for (j = 0; j < read; j++) {
@@ -133,7 +133,7 @@ TEST_F (CircularBufferTests, testPeeking)
             ASSERT_EQ (outvals[j], readindex++);
         }
 
-        int written = csoundWriteCircularBuffer(csound, rb, &(invals[writeindex]), i );
+        int32_t written = csoundWriteCircularBuffer(csound, rb, &(invals[writeindex]), i );
         ASSERT_EQ (written, i);
         writeindex += i;
     }
@@ -141,7 +141,7 @@ TEST_F (CircularBufferTests, testPeeking)
 
 TEST_F (CircularBufferTests, testWraping)
 {
-    int i;
+    int32_t i;
 
     for (i = 0 ; i <16; i++) {
         float val = i;
@@ -150,11 +150,11 @@ TEST_F (CircularBufferTests, testWraping)
 
     for (i = 0 ; i < 65; i++) {
         float val;
-        int read = csoundReadCircularBuffer(csound, rb, &val, 1);
+        int32_t read = csoundReadCircularBuffer(csound, rb, &val, 1);
         ASSERT_EQ (read, 1);
         ASSERT_EQ (val, i);
         val = i + 16;
-        int written = csoundWriteCircularBuffer(csound, rb, &val, 1);
+        int32_t written = csoundWriteCircularBuffer(csound, rb, &val, 1);
         ASSERT_EQ (written, 1);
     }
 }

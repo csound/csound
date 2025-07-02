@@ -22,7 +22,15 @@
 */
 
 
+
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
+#if !(defined(__wasi__))
 
 typedef struct {
   OPDS  h;
@@ -71,7 +79,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || __wasm__
 return OK;
 #else
     if ((int32_t)*p->nowait!=0) {
@@ -121,12 +129,36 @@ call_system_k(CSOUND *csound, SYSTEM *p)
     return OK;
 }
 
+#else
+
+int32_t call_system_i(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+int32_t call_system_set(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+}
+
+int32_t
+call_system_k(CSOUND *csound, void *p)
+{
+  IGN(csound); IGN(p);
+    return OK;
+
+}
+
+#endif // !wasi
+
 #define S(x)    sizeof(x)
 
 static OENTRY system_localops[] = {
-  { "system", S(SYSTEM), 0, 3, "k", "kSO",
+  { "system", S(SYSTEM), 0,  "k", "kSO",
                        (SUBR)call_system_set,(SUBR)call_system_k},
-  { "system_i", S(SYSTEM), 0, 1, "i", "iSo", (SUBR)call_system_i}
+  { "system_i", S(SYSTEM), 0,  "i", "iSo", (SUBR)call_system_i}
 };
 
 LINKAGE_BUILTIN(system_localops)

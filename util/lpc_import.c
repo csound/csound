@@ -111,10 +111,10 @@ static int32_t lpc_import(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t lpc_import_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "lpc_import", lpc_import);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "lpc_import", lpc_import);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "lpc_import",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "lpc_import",
                                       Str("translate text file to "
                                           "linear predictive coding file"));
     }

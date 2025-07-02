@@ -175,12 +175,12 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
     if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
       return
         csound->InitError(csound,
-                          Str("partials: first input not in AMP_FREQ format\n"));
+                          "%s", Str("partials: first input not in AMP_FREQ format\n"));
     }
 
     if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
       csound->Warning(csound,
-                      Str("partials: no phase input, tracks will contain "
+                      "%s", Str("partials: no phase input, tracks will contain "
                           "amp & freq only\n"));
       p->nophase = 1;
     }
@@ -202,7 +202,8 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     float   ftmp, ftmp2;
     int32_t numbins = p->numbins, maxtracks = p->mtracks;
     int32_t prev = p->prev, cur = p->cur, foundcont;
-    int32_t accum = p->accum, minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
+    uint64_t accum = p->accum;
+    int32_t minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
     int32_t tracks; // = p->tracks;
     double  *mags = (double *) p->mags.auxp;
     double *lmags = (double *) p->lmags.auxp;
@@ -381,7 +382,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
              used to identify and match tracks
            */
           tstart[cur + count] = timecount;
-          trkid[cur + count] = ((accum++));// % (maxtracks * 1000));
+          trkid[cur + count] = (int32_t) (accum++);// % (maxtracks * 1000));
           lastpk[cur + count] = timecount;
           count++;
 
@@ -502,8 +503,8 @@ typedef struct  _partxt{
 int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
     if (p->fdch.fd != NULL)
-      csound_fd_close(csound, &(p->fdch));
-    p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, p->fname->data,
+      csound->FDClose(csound, &(p->fdch));
+    p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, p->fname->data,
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
@@ -530,9 +531,9 @@ int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
 
 static OENTRY localops[] =
   {
-    { "partials", sizeof(_PARTS), 0, 3, "f", "ffkkki",
+    { "partials", sizeof(_PARTS), 0,  "f", "ffkkki",
                             (SUBR) partials_init, (SUBR) partials_process },
-    { "part2txt", sizeof(_PARTS), 0, 3, "", "Sf",
+    { "part2txt", sizeof(_PARTS), 0,  "", "Sf",
                             (SUBR) part2txt_init, (SUBR) part2txt_perf }
   };
 

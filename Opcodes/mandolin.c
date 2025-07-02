@@ -39,8 +39,12 @@
 /*  Technology Licensing, Stanford U.       */
 /********************************************/
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "mandolin.h"
 
 static inline int32_t infoTick(MANDOL *p)
@@ -76,10 +80,10 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
 {
     FUNC *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+    if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
       p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
-      return csound->InitError(csound, Str("No table for Mandolin"));
+      return csound->InitError(csound, "%s", Str("No table for Mandolin"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
       if (*p->lowestFreq!=FL(0.0)) {
@@ -89,7 +93,7 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
         p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
       }
       else {
-        csound->Warning(csound, Str("No base frequency for mandolin"));
+        csound->Warning(csound, "%s", Str("No base frequency for mandolin"));
         p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
       }
       p->lastFreq = FL(50.0);

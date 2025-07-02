@@ -21,7 +21,13 @@
  02110-1301 USA
 */
 extern "C" {
+
+#ifdef BUILD_PLUGINS
 #include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+  
 }
 #include <cmath>
 #include <complex>
@@ -146,7 +152,7 @@ are very close to zero
 
 // profile(p9_profile_shape, profile_sample_index_normalized, bandwidth_samples,
 // p10_profile_parameter);
-static MYFLT profile(int shape, MYFLT fi, MYFLT bwi, MYFLT a) {
+static MYFLT profile(int32_t shape, MYFLT fi, MYFLT bwi, MYFLT a) {
   MYFLT x = fi / bwi;
   MYFLT y = 0;
   switch (shape) {
@@ -382,7 +388,7 @@ FUNC(circle)
 
 typedef MYFLT (*base_function_t)(MYFLT, MYFLT);
 
-static base_function_t get_base_function(int index)
+static base_function_t get_base_function(int32_t index)
 {
     if(!index) {
         return NULL;
@@ -457,21 +463,22 @@ results are very close to zero
  * This function computes a Csound function table
  * using Nasca's "padsynth" algorithm..
  */
-static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
+static int32_t padsynth_gen(FGDATA *ff, FUNC *ftp) {
   CSOUND *csound = ff->csound;
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
-  int N = ff->flen;
-  if (N <= 0) return csound->ftError(ff, Str("Illegal table size %d"), N);
+  void *setup;
+  int32_t N = ff->flen;
+  if (N <= 0) return csound->FtError(ff, Str("Illegal table size %d"), N);
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];
   MYFLT p7_partial_bandwidth_scale_factor = ff->e.p[7];
   MYFLT p8_harmonic_stretch = ff->e.p[8];
-  int p9_profile_shape = (int)ff->e.p[9];
+  int32_t p9_profile_shape = (int)ff->e.p[9];
   // base_function_t base_function = get_base_function(p9_profile_shape);
   MYFLT p10_profile_parameter = ff->e.p[10];
-  MYFLT samplerate = csound->GetSr(csound);
+  MYFLT samplerate = ftp->sr;
   log(csound, "samplerate:                  %12d\n", (int)samplerate);
   log(csound, "p1_function_table_number:            %9.4f\n",
       p1_function_table_number);
@@ -492,24 +499,24 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
       p10_profile_parameter);
   // The amplitudes of each partial are in pfield 11 and higher.
   // N.B.: The partials are indexed starting from 1.
-  int partialN = ff->e.pcnt - 10;
+  int32_t partialN = ff->e.pcnt - 10;
   std::vector<MYFLT> A(partialN + 1);
   A[0] = FL(0.0);
-  for (int partialI = 1; partialI <= partialN; ++partialI) {
+  for (int32_t partialI = 1; partialI <= partialN; ++partialI) {
     A[partialI] = ff->e.p[11 + partialI - 1];
   }
-  for (int i = 0; i < N; ++i) {
+  for (int32_t i = 0; i < N; ++i) {
     ftp->ftable[i] = FL(0.0);
   }
   // N.B.: An in-place IFFT of N/2 complex to N real samples is used.
   // ftable[1] contains the real part of the Nyquist frequency; we make it 0.
   std::complex<MYFLT> *spectrum = (std::complex<MYFLT> *)ftp->ftable;
-  int complexN = int(N / 2.0);
-  for (int partialI = 1; partialI <= partialN; ++partialI) {
+  int32_t complexN = int(N / 2.0);
+  for (int32_t partialI = 1; partialI <= partialN; ++partialI) {
     MYFLT partial_Hz =
         p5_fundamental_frequency * p8_harmonic_stretch * ((MYFLT)partialI);
     MYFLT frequency_sample_index_normalized = partial_Hz / ((MYFLT)samplerate);
-    int partial_frequency_index =
+    int32_t partial_frequency_index =
         frequency_sample_index_normalized * ((MYFLT)N);
     MYFLT bandwidth_Hz = (std::pow(2.0, p6_partial_bandwidth / 1200.0) - 1.0) *
                          p5_fundamental_frequency *
@@ -526,7 +533,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
     warn(csound, "  bandwidth_Hz:                      %9.4f\n", bandwidth_Hz);
     warn(csound, "  bandwidth_samples:                  %12.8f\n",
          bandwidth_samples);
-    for (int fft_sample_index = 0; fft_sample_index < complexN;
+    for (int32_t fft_sample_index = 0; fft_sample_index < complexN;
          ++fft_sample_index) {
       MYFLT fft_sample_index_normalized =
           ((MYFLT)fft_sample_index) / ((MYFLT)N);
@@ -543,33 +550,37 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   };
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution(0.0, 6.28318530718);
-  for (int complexI = 0; complexI < complexN; ++complexI) {
+  for (int32_t complexI = 0; complexI < complexN; ++complexI) {
     MYFLT random_phase = distribution(generator);
     MYFLT real = spectrum[complexI].real();
     spectrum[complexI].real(real * std::cos(random_phase));
     spectrum[complexI].imag(real * std::sin(random_phase));
   };
   spectrum[0].imag(0);
-  csound->InverseRealFFT(csound, ftp->ftable, N);
+  setup = csound->RealFFTSetup(csound,N,FFT_INV);
+  csound->RealFFT(csound,setup,ftp->ftable);
   // Normalize,
   MYFLT maximum = FL(0.0);
-  for (int i = 0; i < N; ++i) {
+  for (int32_t i = 0; i < N; ++i) {
     if (std::fabs(ftp->ftable[i]) > maximum) {
       maximum = std::fabs(ftp->ftable[i]);
       // warn(csound, "maximum at %d: %f\n", i, maximum);
     }
   }
-  for (int i = 0; i < N; ++i) {
+  for (int32_t i = 0; i < N; ++i) {
     ftp->ftable[i] /= maximum * ROOT2;
   }
   return OK;
 }
 
+extern "C" {
+  
 static NGFENS padsynth_gens[] = {{(char *)"padsynth", padsynth_gen},
                                  {NULL, NULL}};
 
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound) {
+PUBLIC NGFENS *padsyn_fgen_init(CSOUND *csound) {
   IGN(csound);
   return padsynth_gens;
 }
 };
+}

@@ -474,7 +474,8 @@ SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
-    int32_t i, m = 2*n;
+    int32_t i;
+    size_t m = 2*n;
 
     if ((n << 1) > BUFSIZE) {
       /* Too big for buffer */
@@ -501,7 +502,8 @@ SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
-    int32_t i, m = 4*n;
+    int32_t i;
+    size_t m = 4*n;
 
     if ((n << 2) > BUFSIZE) {
       int32_t num = BUFSIZE >> 2;
@@ -528,7 +530,8 @@ SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     const char *q = block;
-    int32_t i, m = 8*n;
+    int32_t i;
+    size_t m = 8*n;
 
     if ((n << 3) > BUFSIZE) {
       int32_t num = BUFSIZE >> 3;
@@ -564,7 +567,8 @@ SDIFresult SDIF_Read2(void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
-    int32_t i, m = 2*n;
+    int32_t i;
+    size_t m = 2*n;
 
     if ((n << 1) > BUFSIZE) {
       int32_t num = BUFSIZE >> 1;
@@ -593,7 +597,8 @@ SDIFresult SDIF_Read4(void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
-    int32_t i, m = 4*n;
+    int32_t i;
+    size_t m = 4*n;
 
     if ((n << 2) > BUFSIZE) {
       int32_t num = BUFSIZE >> 2;
@@ -624,7 +629,8 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f)
 #ifdef LITTLE_ENDIAN
     SDIFresult r;
     char *q = block;
-    int32_t i, m = 8*n;
+    int32_t i;
+    size_t m = 8*n;
 
     if ((n << 3) > BUFSIZE) {
       int32_t num = BUFSIZE >> 3;
@@ -662,19 +668,21 @@ static int32_t SizeofSanityCheck(void)
     static char errorMessage[sizeof("sizeof(sdif_float64) is 999!!!")];
 
     if (sizeof(sdif_int32) != 4) {
-      sprintf(errorMessage,
+      snprintf(errorMessage, sizeof("sizeof(sdif_float64) is 999!!!"),
               "sizeof(sdif_int32) is %d!", (int32_t)sizeof(sdif_int32));
       OOK = 0;
     }
 
     if (sizeof(sdif_float32) != 4) {
-      sprintf(errorMessage, "sizeof(sdif_float32) is %d!",
+      snprintf(errorMessage, sizeof("sizeof(sdif_float64) is 999!!!"),
+               "sizeof(sdif_float32) is %d!",
               (int32_t)sizeof(sdif_float32));
       OOK = 0;
     }
 
     if (sizeof(sdif_float64) != 8) {
-      sprintf(errorMessage, "sizeof(sdif_float64) is %d!",
+      snprintf(errorMessage, sizeof("sizeof(sdif_float64) is 999!!!"),
+              "sizeof(sdif_float64) is %d!",
               (int32_t)sizeof(sdif_float64));
       OOK = 0;
     }

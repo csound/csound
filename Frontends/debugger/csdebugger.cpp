@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     } else {
         cout << "Invalid instrument breakpoint: " << instr;
     }
-    csound->Perform();
+    while(csound->PerformKsmps() == 0);
 
     csoundDebuggerClean(csound->GetCsound());
     delete csound;

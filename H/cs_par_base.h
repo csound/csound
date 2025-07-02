@@ -24,6 +24,7 @@
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
+#ifdef PARCS
 // Semaphone.h only exists when using pthreads, doesn't apply to Windows
 #ifndef WIN32
   #include <semaphore.h>
@@ -81,7 +82,7 @@
 #define BARRIER_2_WAIT_SYM 0x33
 
 /* return thread index of caller */
-int csp_thread_index_get(CSOUND *csound);
+int32_t csp_thread_index_get(CSOUND *csound);
 
 /* structure headers */
 #define HDR_LEN                 4
@@ -111,17 +112,17 @@ struct set_t {
     char                  hdr[4];
     struct set_element_t *head;
     struct set_element_t *tail;
-    int                  count;
-    int     (*ele_eq_func)(struct set_element_t *, struct set_element_t *);
+    int32_t                  count;
+    int32_t     (*ele_eq_func)(struct set_element_t *, struct set_element_t *);
     void    (*ele_print_func)(CSOUND *, struct set_element_t *);
     struct set_element_t **cache;
 };
 
 /* function pointer types for set member equality */
-typedef int (set_element_data_eq)(struct set_element_t *, struct set_element_t *);
-int csp_set_element_string_eq(struct set_element_t *ele1,
+typedef int32_t (set_element_data_eq)(struct set_element_t *, struct set_element_t *);
+int32_t csp_set_element_string_eq(struct set_element_t *ele1,
                               struct set_element_t *ele2);
-int csp_set_element_ptr_eq(struct set_element_t *ele1,
+int32_t csp_set_element_ptr_eq(struct set_element_t *ele1,
                            struct set_element_t *ele2);
 
 /* function pointer types for set member printing */
@@ -145,7 +146,7 @@ void csp_set_remove(CSOUND *csound,  struct set_t *set, void *data);
 void csp_set_print(CSOUND *csound, struct set_t *set);
 
 /* get a count and access members */
-int csp_set_count(struct set_t *set);
+int32_t csp_set_count(struct set_t *set);
 
 /*
  * set union and intersection
@@ -162,15 +163,15 @@ struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
 /* semaphore */
 /* struct semaphore_spin_t { */
 /*     char    hdr[HDR_LEN]; */
-/*     int     thread_count; */
-/*     int     max_threads; */
-/*     int     arrived; */
-/*     int     held; */
-/*     int     spinlock; */
-/*     int     count; */
-/*     int     lock; */
-/*     int     *key; */
-/*     int     locks[]; */
+/*     int32_t     thread_count; */
+/*     int32_t     max_threads; */
+/*     int32_t     arrived; */
+/*     int32_t     held; */
+/*     int32_t     spinlock; */
+/*     int32_t     count; */
+/*     int32_t     lock; */
+/*     int32_t     *key; */
+/*     int32_t     locks[]; */
 /* }; */
 
 // Kludge to allow us to pass in HANDLE objects to be used as semaphore whilst
@@ -184,7 +185,7 @@ typedef HANDLE sem_t;
  * initially 1 thread is allowed in
  */
 void csp_semaphore_alloc(CSOUND *csound, sem_t **sem,
-                         int max_threads);
+                         int32_t max_threads);
 void csp_semaphore_dealloc(CSOUND *csound, sem_t **sem);
 /* wait at the semaphore. if the number allowed in is greater than the
  * number arrived calling thread continues
@@ -201,5 +202,7 @@ void csp_semaphore_release(CSOUND *csound, sem_t *sem);
 void csp_semaphore_release_end(CSOUND *csound, sem_t *sem);
 /* print semaphore info */
 void csp_semaphore_release_print(CSOUND *csound, sem_t *sem);
+
+#endif
 
 #endif /* end of include guard: __CS_PAR_BASE_H__ */

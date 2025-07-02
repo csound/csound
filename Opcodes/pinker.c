@@ -29,22 +29,26 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                              PINKER.C         */
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif       /*                              PINKER.C         */
 
 typedef struct {
   OPDS h;
   MYFLT *ar;
-  int   inc;
-  int   dec;
+  int32_t   inc;
+  int32_t   dec;
   int32 accu;
   int32 lfsr;
   unsigned char cnt;
-  int offset;
+  int32_t offset;
 } PINKER;
 
 #define PINK_BIAS   FL(440.0)
 
-static int instance_cnt = 0;    /* Is tis thread-safe? */
+static int32_t instance_cnt = 0;    /* Is tis thread-safe? */
 
 // Let preprocessor and compiler calculate two lookup tables for 12-tap
 // FIR filter with these coefficients:
@@ -53,10 +57,10 @@ static int instance_cnt = 0;    /* Is tis thread-safe? */
 
 #define F(cf,m,shift)   (0.0625f*cf*(2*((m)>>shift&1)-1))
 
-#define FA(n)   F(1.190566,n,0)+F(0.162580,n,1)+F(0.002208,n,2)+ \
-                F(0.025475,n,3)+F(-0.001522,n,4)+F(0.007322,n,5)-PINK_BIAS
-#define FB(n)   F(0.001774,n,0)+F(0.004529,n,1)+F(-0.001561,n,2)+ \
-                F(0.000776,n,3)+F(-0.000486,n,4)+F(0.002017,n,5)
+#define FA(n)   ((float)(F(1.190566,n,0)+F(0.162580,n,1)+F(0.002208,n,2)+ \
+                         F(0.025475,n,3)+F(-0.001522,n,4)+F(0.007322,n,5)-PINK_BIAS))
+#define FB(n)   ((float)(F(0.001774,n,0)+F(0.004529,n,1)+F(-0.001561,n,2)+ \
+                         F(0.000776,n,3)+F(-0.000486,n,4)+F(0.002017,n,5)))
 
 #define FA8(n)  FA(n),FA(n+1),FA(n+2),FA(n+3),FA(n+4),FA(n+5),FA(n+6),FA(n+7)
 #define FB8(n)  FB(n),FB(n+1),FB(n+2),FB(n+3),FB(n+4),FB(n+5),FB(n+6),FB(n+7)
@@ -79,32 +83,32 @@ static const unsigned char pnmask[256] =
     PM16(0x02),PM16(0x08),PM16(0x04),PM16(0x08)
 };
 
-static const int ind[] = {     0, 0x0800, 0x0400, 0x0800,
+static const int32_t ind[] = {     0, 0x0800, 0x0400, 0x0800,
                           0x0200, 0x0800, 0x0400, 0x0800,
                           0x0100, 0x0800, 0x0400, 0x0800,
                           0x0200, 0x0800, 0x0400, 0x0800};
 
  /* generate samples of pink noise */
-static int pink_perf(CSOUND* csound, PINKER *p)
+static int32_t pink_perf(CSOUND* csound, PINKER *p)
 {
-    int inc    =   p->inc;
-    int dec    =   p->dec;
+    int32_t inc    =   p->inc;
+    int32_t dec    =   p->dec;
     int32 accu =   p->accu;
     int32 lfsr   =   p->lfsr;
-    int cnt    =   p->cnt;
-    int bit;
-    int n, nn, nsmps = csound->ksmps;
+    int32_t cnt    =   p->cnt;
+    int32_t bit;
+    int32_t n, nn, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int mask;
+    int32_t mask;
     float yy;
     MYFLT *out = p->ar;
-    int loffset = p->offset;
+    int32_t loffset = p->offset;
     if (UNLIKELY(early)) {
       nsmps -= early;
     }
     for (n=offset, nn=loffset; n<nsmps; n++, nn++) {
-      int k = nn%16;   /* algorithm is in 16 sample chunks */
+      int32_t k = nn%16;   /* algorithm is in 16 sample chunks */
 
 /* bit   = lfsr >> 31;        dec &= ~0x0800; */
 /* lfsr <<= 1;                dec |= inc & 0x0800; */
@@ -124,7 +128,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
-      *((int *)(&yy)) = accu;      /* save biased value as float      */
+      *((int32_t *)(&yy)) = accu;      /* save biased value as float      */
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -136,7 +140,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
       //printf("out = %f a,b = %f,%f mask = %.8x dec,inc = %x,%x acc = %x\n",
       //       yy, pfira[lfsr & 0x3F], pfirb[lfsr >>6 & 0x3F],
       //       mask, dec, inc, accu);
-      out[n] = yy*csound->e0dbfs;
+      out[n] = yy*csound->Get0dBFS(csound);
     /* PINK(mask);   PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0200); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0100); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
@@ -151,7 +155,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
     return OK;
 };
 
-static int pink_init(CSOUND *csound, PINKER *p)      // constructor
+static int32_t pink_init(CSOUND *csound, PINKER *p)      // constructor
 {
     IGN(csound);
     p->lfsr  = 0x5EED41F5 + instance_cnt++;   // seed for lfsr,
@@ -173,7 +177,7 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
 
 static OENTRY pinker_localops[] =
 {
- { "pinker", sizeof(PINKER),0,3, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
+ { "pinker", sizeof(PINKER),0, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
 };
 
 LINKAGE_BUILTIN(pinker_localops)

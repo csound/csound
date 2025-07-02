@@ -29,7 +29,7 @@ static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);
 /* allocate an auxds, or expand an old one */
 /*    call only from init (xxxset) modules */
 
-void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
+void auxalloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 {
     if (auxchp->auxp != NULL) {
       /* if allocd with same size, just clear to zero */
@@ -77,7 +77,7 @@ static uintptr_t alloc_thread(void *p) {
       if (newm.auxp != NULL && newm.auxp != ptr)
         csound->Free(csound, newm.auxp);
     } else {
-      csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
+      auxalloc(csound,pp->nbytes,pp->auxchp);
       pp->notify(csound, pp->userData, pp->auxchp);
     }
     return 0;
@@ -89,7 +89,7 @@ static uintptr_t alloc_thread(void *p) {
    pass the newly allocated memory via a
    callback, where it can be swapped if necessary.
 */
-int csoundAuxAllocAsync(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
+int32_t auxalloc_async(CSOUND *csound, size_t nbytes, AUXCH *auxchp,
                         AUXASYNC *as, aux_cb cb, void *userData) {
     as->csound = csound;
     as->nbytes = nbytes;
@@ -116,7 +116,6 @@ void fdrecord(CSOUND *csound, FDCH *fdchp)
 
 /* close a file and remove from fd chain */
 /*  call only from inits, after fdrecord */
-
 void csound_fd_close(CSOUND *csound, FDCH *fdchp)
 {
     FDCH    *prvchp = NULL, *nxtchp;
@@ -145,7 +144,7 @@ void csound_fd_close(CSOUND *csound, FDCH *fdchp)
 }
 
 /* release all xds in instr auxp chain */
-/*   called by insert at orcompact     */
+/*   called by insert at free_inactive_instances     */
 
 void auxchfree(CSOUND *csound, INSDS *ip)
 {

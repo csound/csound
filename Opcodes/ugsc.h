@@ -33,6 +33,8 @@
  *
  */
 
+#pragma once
+
 typedef struct {
         OPDS h;
   MYFLT *low, *high, *band, *in, *kfco, *kq, *iscl, *iskip;
@@ -77,7 +79,7 @@ typedef struct {
 /* Structure for cascade of 2nd order allpass filters */
 typedef struct {
         OPDS h;
-        MYFLT *out, *in, *kbf, *kbw, *order, *mode, *ksep, *fbgain;
+        MYFLT *out, *in, *kbf, *kbw, *order, *mode, *ksep, *fbgain, *iskip;
         int32_t loop, modetype;
         MYFLT *nm1, *nm2, feedback;
         AUXCH aux1, aux2;

@@ -1,0 +1,16 @@
+diff --git a/configure b/configure
+index 52dbf02..70f8e26 100755
+--- a/configure
++++ b/configure
+@@ -17177,6 +17177,11 @@ esac
+ 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for termcap" >&5
+ $as_echo_n "checking for termcap... " >&6; }
++
++if test "x${IOS}" != "x"; then
++  HAVE_TERMCAP=''
++fi
++
+ if test "x${HAVE_TERMCAP}" != "x"; then
+   FRONTEND_LDADD="-l${HAVE_TERMCAP} ${FRONTEND_LDADD}"
+ 

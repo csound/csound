@@ -44,12 +44,12 @@ void lpc_import_usage(void)
     printf("Usage: lpc_import cstext_file lpc_file\n");
 }
 
-int main(int argc, char **argv)
+int32_t main(int32_t argc, char **argv)
 {
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    unsigned int i, j;
+    uint32_t i, j;
     char *str;
     MYFLT *coef;
 

@@ -53,7 +53,7 @@
 
 #define ST(x)   (((REMOTE_GLOBALS*) ((CSOUND*)csound)->remoteGlobals)->x)
 
-void remote_Cleanup(CSOUND *csound);
+void remote_cleanup(CSOUND *csound);
 
 void remoteRESET(CSOUND *csound)
 {
@@ -146,7 +146,7 @@ static int32_t getIpAddress(char *ipaddr)
 
 char remoteID(CSOUND *csound)
 {
-    int32_t len = strlen(ST(ipadrs));
+    int32_t len = (int32_t) strlen(ST(ipadrs));
     return ST(ipadrs)[len-1];
 }
 
@@ -225,12 +225,12 @@ static int32_t callox(CSOUND *csound)
 
 error:
     /* Clean up anything we may have allocated before running out of memory */
-    remote_Cleanup(csound);
+    remote_cleanup(csound);
     return -1;
 }
 
 /* Cleanup the above; called from musmon csoundCleanup */
-void remote_Cleanup(CSOUND *csound)
+void remote_cleanup(CSOUND *csound)
 {
     int32_t fd;
     if (csound->remoteGlobals == NULL) return;
@@ -314,7 +314,7 @@ static int32_t CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to sen
 int32_t CLsend(CSOUND *csound, int32_t conn, void *data, int32_t length)
 {
     int32_t nbytes;
-    if (UNLIKELY((nbytes = write(conn, data, length)) <= 0)) {
+    if (UNLIKELY((nbytes = (int32_t) write(conn, data, length)) <= 0)) {
       csound->ErrorMsg(csound, Str("write to socket failed"));
       return NOTOK;
     }
@@ -598,6 +598,8 @@ int32_t insSendevt(CSOUND *csound, EVTBLK *evt, int32_t rfd)
     EVTBLK *cpp = (EVTBLK *)bp->data;       /* align an EVTBLK struct */
     int32_t nn;
     MYFLT *f, *g;
+    if(cpp->p == NULL)
+      cpp->p = csound->Calloc(csound, sizeof(MYFLT)*(PMAX+1));
     cpp->pinstance = NULL;
     cpp->strarg = NULL;                     /* copy the initial header */
     cpp->scnt = 0;
@@ -608,7 +610,7 @@ int32_t insSendevt(CSOUND *csound, EVTBLK *evt, int32_t rfd)
     for (nn = evt->pcnt + 3; nn--; )        /* copy the remaining data */
       *g++ = *f++;
     bp->type = SCOR_EVT;                    /* insert type and len */
-    bp->len = (char *)g - (char *)bp;
+    bp->len = (int32_t)((char *)g - (char *)bp);
     if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (int32_t)bp->len) < 0)) {
       csound->ErrorMsg(csound, Str("CLsend failed"));
       return NOTOK;
@@ -634,7 +636,7 @@ int32_t MIDIsendevt(CSOUND *csound, MEVENT *evt, int32_t rfd)
     bp->type = MIDI_EVT;                    /* insert type and len    */
     bp->len = sizeof(int32_t) * 2 + sizeof(MEVENT);
 
-    if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0)) {
+    if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (int32_t)bp->len) < 0)) {
       csound->ErrorMsg(csound, Str("CLsend failed"));
       return NOTOK;
     }
@@ -659,7 +661,7 @@ int32_t MIDIsend_msg(CSOUND *csound, MEVENT *evt, int32_t rfd)
     bp->type = MIDI_MSG;                    /* insert type and len    */
     bp->len = sizeof(int32_t) * 2 + sizeof(MEVENT);
 
-    if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (size_t)bp->len) < 0)) {
+    if (UNLIKELY(CLsend(csound, rfd, (void *)bp, (int32_t)bp->len) < 0)) {
       csound->ErrorMsg(csound, Str("CLsend failed"));
       return NOTOK;
     }
@@ -712,7 +714,7 @@ char remoteID(CSOUND *csound)
 }
 
 /* Cleanup the above; called from musmon csoundCleanup */
-void remote_Cleanup(CSOUND *csound)
+void remote_cleanup(CSOUND *csound)
 {
     csound->remoteGlobals = NULL;
     return;

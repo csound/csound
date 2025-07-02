@@ -5,7 +5,6 @@ let lib = pkgs.lib;
     wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
     wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
 
-
 in pkgs.stdenvNoCC.mkDerivation rec {
   name = "mpg123";
   version = "1.29.3";
@@ -32,7 +31,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     rm src/libmpg123/testcpu.c
 
     substituteInPlace src/libmpg123/mpg123.h \
-      --replace '@API_VERSION@' '"${version}"' \
+      --replace '@API_VERSION@' '46' \
       --replace '@BUILD_NO_LARGENAME@' "0" \
       --replace '@INCLUDE_STDLIB_H@' "" \
       --replace '@INCLUDE_SYS_TYPE_H@' ""

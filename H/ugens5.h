@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include "lpc.h"        /*                               UGENS5.H        */
 
 typedef struct {
@@ -39,23 +41,23 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kcf, *kbw, *iscl, *istor;
-        int     scale;
+        int32_t     scale;
         double  c1, c2, c3, yt1, yt2, cosf, prvcf, prvbw;
-        int     asigf, asigw;
+        int32_t     asigf, asigw;
 } RESON;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *khp, *ord, *istor;
         double  c1, c2, *yt1, prvhp;
-        int loop;
+        int32_t loop;
         AUXCH   aux;
 } TONEX;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kcf, *kbw, *ord, *iscl, *istor;
-        int     scale, loop;
+        int32_t     scale, loop;
         double  c1, c2, c3, *yt1, *yt2, cosf, prvcf, prvbw;
         AUXCH   aux;
 } RESONX;
@@ -65,7 +67,7 @@ typedef struct {
         MYFLT   *krmr, *krmo, *kerr, *kcps, *ktimpt, *ifilcod, *inpoles, *ifrmrate;
         int32   headlen, npoles, nvals, lastfram16, lastmsg;
         MYFLT   *kcoefs, framrat16;
-        int     storePoles ;
+        int32_t     storePoles ;
         MEMFIL  *mfp;
         AUXCH   aux;
 } LPREAD;
@@ -114,7 +116,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *islotnum ; /* Assume sizeof(int)== sizeof(MYFLT) */
+        MYFLT   *islotnum ; /* Assume sizeof(int32_t)== sizeof(MYFLT) */
 } LPSLOT ;
 
 typedef struct {
@@ -127,7 +129,7 @@ typedef struct {
         LPREAD  *lp1,*lp2 ;
         int32    lastmsg;
         MYFLT   *kcoefs/*[MAXPOLES*2]*/, framrat16;
-        int             storePoles ;
+        int32_t             storePoles ;
         AUXCH    aux, slotaux;
 } LPINTERPOL ;
 
@@ -136,10 +138,10 @@ typedef struct {
         MYFLT   *ans, *sig, *min, *max;
 } LIMIT;
 
-int kport(CSOUND*,PORT *p);
-int ktone(CSOUND*,TONE *p);
-int katone(CSOUND*,TONE *p);
-int kreson(CSOUND*,RESON *p);
-int kareson(CSOUND*,RESON *p);
-int klimit(CSOUND*,LIMIT *p);
-int limit(CSOUND*,LIMIT *p);
+int32_t kport(CSOUND*,PORT *p);
+int32_t ktone(CSOUND*,TONE *p);
+int32_t katone(CSOUND*,TONE *p);
+int32_t kreson(CSOUND*,RESON *p);
+int32_t kareson(CSOUND*,RESON *p);
+int32_t klimit(CSOUND*,LIMIT *p);
+int32_t limit(CSOUND*,LIMIT *p);

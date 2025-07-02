@@ -16,7 +16,11 @@
   02110-1301 USA
 */
 //#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct {
@@ -36,22 +40,22 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
     FUNC *ftp;
     int64_t flength = 0;
 
-    numOfTabs = p->numOfTabs =((p->INCOUNT-4)); /* count segs & alloc if nec */
+    numOfTabs = p->numOfTabs =((p->INOCOUNT-4)); /* count segs & alloc if nec */
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, *argp++)) == NULL))
-        return csound->InitError(csound, Str("tabmorph: invalid table number"));
+      if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))
+        return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            Str("tabmorph: all tables must have the "
+                            "%s", Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;
       p->table[j] = ftp->ftable;
     }
     p->table[j] = first_table; /* for interpolation */
-    p->length = flength;
+    p->length = (int32_t) flength;
     return OK;
 }
 
@@ -282,13 +286,13 @@ static int32_t atabmorphi(CSOUND *csound, TABMORPH *p)
 
 OENTRY tabmoroph_localops[] = {
 
-{ "tabmorph",  S(TABMORPH), TR, 3,  "k", "kkkkm",
+{ "tabmorph",  S(TABMORPH), TR,   "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
-{ "tabmorphi", S(TABMORPH), TR, 3,  "k", "kkkkm",
+{ "tabmorphi", S(TABMORPH), TR,   "k", "kkkkm",
                (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
-{ "tabmorpha", S(TABMORPH), TR, 3,  "a", "aaaam",
+{ "tabmorpha", S(TABMORPH), TR,   "a", "aaaam",
                (SUBR) tabmorph_set, (SUBR) atabmorphia},
-{ "tabmorphak",S(TABMORPH), TR, 3,  "a", "akkkm",
+{ "tabmorphak",S(TABMORPH), TR,   "a", "akkkm",
                (SUBR) tabmorph_set, (SUBR) atabmorphi }
 
 };

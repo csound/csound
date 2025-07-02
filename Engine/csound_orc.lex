@@ -38,12 +38,12 @@
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
 #include "corfile.h"
+#include "filesys.h"  
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
 extern ORCTOKEN *lookup_token(CSOUND *, char *, void *);
-extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
-ORCTOKEN *new_token(CSOUND *csound, int type);
+ORCTOKEN *new_token(CSOUND *csound, int32_t type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
@@ -63,8 +63,8 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 #define YY_USER_INIT
 
 struct yyguts_t;
-ORCTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
-int get_next_char(char *, int, struct yyguts_t*);
+ORCTOKEN *do_at(CSOUND *, int32_t, struct yyguts_t*);
+int get_next_char(char *, int32_t, struct yyguts_t*);
 %}
 %option reentrant
 %option bison-bridge
@@ -76,8 +76,10 @@ int get_next_char(char *, int, struct yyguts_t*);
    /* to avoid unused function errors */
 %option nounput
 
-IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
+IDENT           [a-zA-Z_][a-zA-Z0-9_]*(@global)?
+IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*
+TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -99,8 +101,10 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 %x sline
 %x src
 %x xstr
+%x declare
 %x udodef
 %x udoarg
+%x forloop
 
 %%
 <*>"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
@@ -130,7 +134,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "|"             { return '|'; }
 "&"             { return '&'; }
 "#"             { return '#'; }
-"¬"             { return '~'; } /* \xC2?\xAC */
+"¬"            { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
 
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
@@ -140,7 +144,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-
+"if"/"("        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = IF_TOKEN;
+                  return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = THEN_TOKEN;
                   return THEN_TOKEN; }
@@ -151,6 +157,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"        { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = ELSEIF_TOKEN;
+                  return ELSEIF_TOKEN; }
+"elseif"/"("    { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -165,7 +174,13 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
+"until"/"("     { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = UNTIL_TOKEN;
+                  return UNTIL_TOKEN; }
 "while"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = WHILE_TOKEN;
+                  return WHILE_TOKEN; }
+"while"/"("     { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
@@ -221,6 +236,27 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   BEGIN(xstr);
                 }
 
+"for"           {  *lvalp = make_token(csound, yytext);
+                   (*lvalp)->type = FOR_TOKEN;
+                   BEGIN(forloop);
+                   return FOR_TOKEN; }
+
+<forloop>{
+
+  [ \t]*          /* eat the whitespace */
+  {IDENT}/[ \t]   { char *pp = yytext;
+                    while (*pp==' ' || *pp=='\t') pp++;
+                    *lvalp = make_token(csound, pp);
+                    if (strcmp(pp, "in") == 0) {
+                      BEGIN(INITIAL);
+                      return IN_TOKEN;
+                    } else {
+                      return T_IDENT;
+                    }
+                  }
+
+}
+
 <xstr>{
 
   "}}"   {
@@ -260,7 +296,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
 
-"declare"       {
+"declare"       { BEGIN(declare);
                   return DECLARE_TOKEN;
                 }
 
@@ -291,6 +327,12 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                     return (*lvalp)->type; }
 
 
+}
+
+<declare>{
+  {IDENT} { BEGIN(INITIAL);
+            *lvalp = lookup_token(csound, yytext, yyscanner);
+            return (*lvalp)->type; }
 }
 
 <udoarg>{
@@ -369,11 +411,22 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
-
+{IDENTB}        { if (UNLIKELY(strchr(yytext, '\n')))
+                       csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                            yyscanner);
+                  *strrchr(yytext, '(') = '\0';
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  return (*lvalp)->type+1; }
 {TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
                   return (*lvalp)->type; }
+{TYPED_IDENTIFIERB} { if (UNLIKELY(strchr(yytext, '\n')))
+                           csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                                yyscanner);
+                      *strrchr(yytext, '(') = '\0';
+                      *lvalp = lookup_token(csound, yytext, yyscanner);
+                      return (*lvalp)->type+1; }
 {INTGR}         {
                     *lvalp = make_int(csound, yytext); return (INTEGER_TOKEN);
                     /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
@@ -441,7 +494,7 @@ static inline int isNameChar(int c, int pos)
 }
   */
 
-ORCTOKEN *new_token(CSOUND *csound, int type)
+ORCTOKEN *new_token(CSOUND *csound, int32_t type)
 {
     ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(ORCTOKEN));
     ans->type = type;
@@ -458,11 +511,11 @@ ORCTOKEN *make_token(CSOUND *csound, char *s)
 ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
-    int len;
+    int32_t len;
     char *ps = s;
     while (*ps != ':') ps++;
     *(ps+1) = '\0';
-    len = strlen(s);
+    len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
     strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
@@ -483,7 +536,7 @@ static void check_newline_for_label(char*s, void* yyscanner) {
 ORCTOKEN *make_string(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
-    int len = strlen(s);
+    int32_t len = (int32_t) strlen(s);
 /* Keep the quote marks */
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strcpy(ans->lexeme, s);
@@ -491,19 +544,19 @@ ORCTOKEN *make_string(CSOUND *csound, char *s)
     return ans;
 }
 
-ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
+ORCTOKEN *do_at(CSOUND *csound, int32_t k, struct yyguts_t *yyg)
 {
     int n, i = 1;
     ORCTOKEN *ans;
     char buf[16];
     char *s = yytext;
-    int len;
+    int32_t len;
     while (*s=='@') s++;
     n = atoi(s);
     while (i<=n-k && i< 0x4000000) i <<= 1;
     ans = new_token(csound, INTEGER_TOKEN);
-    sprintf(buf, "%d", i+k);
-    len = strlen(buf);
+    snprintf(buf, 16, "%d", i+k);
+    len = (int32_t) strlen(buf);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strNcpy(ans->lexeme, buf, len+1);
     ans->value = i;
@@ -514,7 +567,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
 {
     int n = atoi(s);
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
-    int len = strlen(s);
+    int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strNcpy(ans->lexeme, s, len+1);
     ans->value = n;
@@ -525,7 +578,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
 {
     double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
-    int len = strlen(s);
+    int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
     strNcpy(ans->lexeme, s, len+1);
     ans->fvalue = n;

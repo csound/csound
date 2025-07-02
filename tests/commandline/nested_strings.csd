@@ -31,9 +31,9 @@ chnclear "outRight"
 endin
 }}
 
-schedule 1, 2, 1, {{
-schedule 10, 0, -1
-}}
+
+schedule 1, 2, 1, "schedule 10, 0, -1"
+
 
 
 schedule 1, 3, 1, {{

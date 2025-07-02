@@ -20,7 +20,6 @@
 /* $Id: mpadec.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
 #include <stdlib.h>
-#include "csoundCore.h"
 #include "mpadec_internal.h"
 
 extern const uint16_t crc_table[256];
@@ -64,10 +63,10 @@ uint32_t mpa_getbits(mpadec_t mpadec, unsigned n)
     return (mpa->bit_buffer >> mpa->bits_left) & bitmask[n];
 }
 
-uint16_t update_crc(uint16_t init, uint8_t *buf, int length)
+uint16_t update_crc(uint16_t init, uint8_t *buf, int32_t length)
 {
     register uint32_t crc = (uint32_t)init, tmp;
-    register int l = length;
+    register int32_t l = length;
     register uint8_t *b = buf;
 
     for (; l >= 8; l -= 8)
@@ -128,10 +127,10 @@ static uint32_t detect_frame_size(mpadec_t mpadec)
     return (hdr ? (mpa->bytes_left - i) : 0);
 }
 
-static int decode_header(mpadec_t mpadec, uint32_t header)
+static int32_t decode_header(mpadec_t mpadec, uint32_t header)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    unsigned int layer, bridx, fridx;
+    uint32_t layer, bridx, fridx;
 
     layer = 4 - ((header >> 17) & 3);
     bridx = ((header >> 12) & 0x0F);
@@ -293,10 +292,10 @@ static uint32_t sync_buffer(mpadec_t mpadec)
     return retval;
 }
 
-static int first_frame(mpadec_t mpadec)
+static int32_t first_frame(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int i, skip = FALSE;
+    int32_t i, skip = FALSE;
     uint32_t framesize; MYFLT scale;
 
     if (mpa->frame.channels > 1)
@@ -435,7 +434,7 @@ mpadec_t mpadec_init(void)
     return mpa;
 }
 
-int mpadec_uninit(mpadec_t mpadec)
+int32_t mpadec_uninit(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
 
@@ -446,7 +445,7 @@ int mpadec_uninit(mpadec_t mpadec)
     } else return MPADEC_RETCODE_INVALID_HANDLE;
 }
 
-int mpadec_reset(mpadec_t mpadec)
+int32_t mpadec_reset(mpadec_t mpadec)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
 
@@ -474,7 +473,7 @@ int mpadec_reset(mpadec_t mpadec)
     } else return MPADEC_RETCODE_INVALID_HANDLE;
 }
 
-int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
+int32_t mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     int32_t i, sblimit; MYFLT scale;
@@ -542,7 +541,7 @@ int mpadec_configure(mpadec_t mpadec, mpadec_config_t *cfg)
     } else return MPADEC_RETCODE_INVALID_HANDLE;
 }
 
-int mpadec_get_info(mpadec_t mpadec, void *info, int info_type)
+int32_t mpadec_get_info(mpadec_t mpadec, void *info, int32_t info_type)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
 
@@ -599,12 +598,12 @@ int mpadec_get_info(mpadec_t mpadec, void *info, int info_type)
     return MPADEC_RETCODE_OK;
 }
 
-int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+int32_t mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
                   uint8_t *dstbuf, uint32_t dstsize, uint32_t *srcused,
                   uint32_t *dstused)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
-    int retcode = MPADEC_RETCODE_OK;
+    int32_t retcode = MPADEC_RETCODE_OK;
     uint32_t decoded_size = 0;
 
     if (srcused) *srcused = 0;
@@ -706,7 +705,7 @@ int mpadec_decode(mpadec_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
   return retcode;
 }
 
-char *mpadec_error(int code)
+char *mpadec_error(int32_t code)
 {
   static char *mpa_errors[] = { "No error",
                                 "Invalid handle",
@@ -739,7 +738,7 @@ mpadec2_t mpadec2_init(void)
   return mpa;
 }
 
-int mpadec2_uninit(mpadec2_t mpadec)
+int32_t mpadec2_uninit(mpadec2_t mpadec)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
 
@@ -756,7 +755,7 @@ int mpadec2_uninit(mpadec2_t mpadec)
   } else return MPADEC_RETCODE_INVALID_HANDLE;
 }
 
-int mpadec2_reset(mpadec2_t mpadec)
+int32_t mpadec2_reset(mpadec2_t mpadec)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
 
@@ -775,7 +774,7 @@ int mpadec2_reset(mpadec2_t mpadec)
   } else return MPADEC_RETCODE_INVALID_HANDLE;
 }
 
-int mpadec2_configure(mpadec2_t mpadec, mpadec_config_t *cfg)
+int32_t mpadec2_configure(mpadec2_t mpadec, mpadec_config_t *cfg)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
 
@@ -785,7 +784,7 @@ int mpadec2_configure(mpadec2_t mpadec, mpadec_config_t *cfg)
   return (mpadec_configure(mpa->mpadec, cfg));
 }
 
-int mpadec2_get_info(mpadec2_t mpadec, void *info, int info_type)
+int32_t mpadec2_get_info(mpadec2_t mpadec, void *info, int32_t info_type)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
 
@@ -794,11 +793,11 @@ int mpadec2_get_info(mpadec2_t mpadec, void *info, int info_type)
   return (mpadec_get_info(mpa->mpadec, info, info_type));
 }
 
-int mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
+int32_t mpadec2_decode(mpadec2_t mpadec, uint8_t *srcbuf, uint32_t srcsize,
                    uint8_t *dstbuf, uint32_t dstsize, uint32_t *dstused)
 {
   register struct mpadec2_t *mpa = (struct mpadec2_t *)mpadec;
-  uint32_t n, src_used, dst_used; int r;
+  uint32_t n, src_used, dst_used; int32_t r;
 
   if (dstused) *dstused = 0;
   if (!mpa || (mpa->size != sizeof(struct mpadec2_t)))

@@ -117,8 +117,8 @@ struct LFSR : csnd::Plugin<1, 3> {
         return shift_register & ~(0xffffffff << length_);
     }
 
-    int init() {
-        srand(time(NULL));
+    int32_t init() {
+      srand((uint32_t) time(NULL));
 
         length_ = inargs[0];
         probability_ = inargs[1];
@@ -127,13 +127,25 @@ struct LFSR : csnd::Plugin<1, 3> {
         return OK;
     }
 
-    int kperf() {
+    int32_t kperf() {
         outargs[0] = (int) _process();
         return OK;
     }
 };
 
+#ifdef BUILD_PLUGINS
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<LFSR>(csound, "lfsr", "k", "iij", csnd::thread::ik);
 }
+#else 
+extern "C" int32_t lfsr_init_modules(CSOUND *csound) {
+  csnd::plugin<LFSR>((csnd::Csound *) csound, "lfsr", "k", "iij", csnd::thread::ik);
+  return OK;
+}
+
+#endif
+
+
+
+

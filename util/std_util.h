@@ -44,6 +44,7 @@ extern int32_t scale_init_(CSOUND *);
 extern int32_t sndinfo_init_(CSOUND *);
 extern int32_t srconv_init_(CSOUND *);
 extern int32_t xtrct_init_(CSOUND *);
+extern int32_t smf_conv_init_(CSOUND *);
 
 #endif  /* CSOUND_STD_UTIL_H */
 

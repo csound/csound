@@ -134,7 +134,7 @@ void readinstsec(Inst *inst,
         break;
       case '!':
         efindword(s);
-        if ((c = strlen(s)) < 2)
+        if ((c = (int) strlen(s)) < 2)
           scoterror(Str("Must specify 2 or more letters of keyword"));
         if (!strncmp(s, "accidentals", c)) {
           if (findonoff(accidentals))
@@ -525,15 +525,15 @@ void readinstsec(Inst *inst,
           ps->next = NULL;
         }
         ps = nn->p;
-        sprintf(ps->str, "%.02f", nn->instrum);
+        snprintf(ps->str, 32, "%.02f", nn->instrum);
         ps = ps->next;
-        sprintf(ps->str, "%g", ratval(&nn->start));
+        snprintf(ps->str, 32, "%g", ratval(&nn->start));
         ps = ps->next;
-        sprintf(ps->str, "%g", ratval(&nn->dur));
+        snprintf(ps->str, 32, "%g", ratval(&nn->dur));
         ps = ps->next;
-        sprintf(ps->str, "%d", nn->slur);
+        snprintf(ps->str, 32, "%d", nn->slur);
         ps = ps->next;
-        sprintf(ps->str, "%.02f",
+        snprintf(ps->str, 32, "%.02f",
                 pitchval(nn->octave, nn->pitchclass, nn->accid, *transpose));
         if (c == '[') {
           char   *pars;

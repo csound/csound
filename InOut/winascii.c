@@ -46,20 +46,20 @@ void KillAscii(CSOUND *csound, WINDAT *wdptr)
 
 static CS_NOINLINE void DrawAscii_(CSOUND *csound, WINDAT *wdptr, char *points)
 {
-    long    npts    = wdptr->npts;
+  long    npts    = wdptr->npts, incr;
     MYFLT   absmax  = wdptr->absmax;
     char    *s;
     MYFLT   *fp = wdptr->fdata, *fplim = fp + npts;
-    int     n, vscale4, vpos, vmin = VER, vmax = 0, incr;
+    int32_t     n, vscale4, vpos, vmin = VER, vmax = 0;
     MYFLT   scalefactor;
 
     scalefactor = YOFF4 / absmax;                   /*   get normalizing */
     incr = (npts-1)/HOR + 1;                        /*   & sampling facs */
     for (s = points + (YOFF * HOR), n = 0; fp < fplim; n++, fp += incr) {
       s[n] = '_';                                   /* now write x-axis  */
-      vscale4 = (int) (*fp * scalefactor + YOFF4);
+      vscale4 = (int32_t) (*fp * scalefactor + YOFF4);
       vpos = vscale4 >> 2;  /* and sampled pnts (with 1/4 line resolution) */
-      if ((unsigned int) vpos > (unsigned int) VER)
+      if ((uint32_t) vpos > (uint32_t) VER)
         continue;
       if (vpos < vmin)  vmin = vpos;
       if (vpos > vmax)  vmax = vpos;

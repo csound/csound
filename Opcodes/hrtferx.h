@@ -23,6 +23,8 @@
 
 /****************** hrtferxk.h *******************/
 
+#pragma once
+
 #include "3Dug.h"
 
 typedef struct {
@@ -39,4 +41,5 @@ typedef struct {
   MYFLT         outl[BUF_LEN], outr[BUF_LEN];
   MYFLT         x[BUF_LEN], yl[BUF_LEN], yr[BUF_LEN];
   MYFLT         bl[FILT_LENm1], br[FILT_LENm1];
+  void *setup, *isetup;
 } HRTFER;
