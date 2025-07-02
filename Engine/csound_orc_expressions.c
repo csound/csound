@@ -40,7 +40,6 @@ static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
-static int32_t genlabs = 300;
 
 TREE* tree_tail(TREE* node) {
   TREE* t = node;
@@ -309,7 +308,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                                     TYPE_TABLE* typeTable)
 {
   TREE *last = NULL;
-  int32 ln1 = genlabs++, ln2 = genlabs++;
+  int32 ln1 = csound->genlabs++, ln2 = csound->genlabs++;
   TREE *L1 = create_synthetic_label(csound, ln1);
   TREE *L2 = create_synthetic_label(csound, ln2);
   TREE *b = create_boolean_expression(csound, root->left, line, locn,
@@ -1179,7 +1178,7 @@ TREE* expand_if_statement(CSOUND* csound,
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Found if-then\n");
     if (right->next != NULL) {
-      endLabelCounter = genlabs++;
+      endLabelCounter = csound->genlabs++;
     }
 
     while (ifBlockCurrent != NULL) {
@@ -1206,8 +1205,8 @@ TREE* expand_if_statement(CSOUND* csound,
         int32_t gotoType;
 
         statements = tempRight->right;
-        label = create_synthetic_ident(csound, genlabs);
-        labelEnd = create_synthetic_label(csound, genlabs++);
+        label = create_synthetic_ident(csound, csound->genlabs);
+        labelEnd = create_synthetic_label(csound, csound->genlabs++);
         tempRight->right = label;
 
         typeTable->labelList =
@@ -1325,7 +1324,7 @@ TREE* expand_switch_statement(
   TREE* switchExpression = current->left;
 
   TREE* endGoto = create_goto_node(csound, isPerfRate);
-  TREE* endLabel = create_synthetic_label(csound, genlabs++);
+  TREE* endLabel = create_synthetic_label(csound, csound->genlabs++);
   typeTable->labelList = cs_cons(
     csound,
     cs_strdup(csound, endLabel->value->lexeme),
@@ -1349,7 +1348,7 @@ TREE* expand_switch_statement(
 
   while (caseNode) {
     if (caseNode->type == CASE_TOKEN) {
-        caseLabel = create_synthetic_label(csound, genlabs++);
+        caseLabel = create_synthetic_label(csound, csound->genlabs++);
         typeTable->labelList = cs_cons(
           csound,
           cs_strdup(csound, caseLabel->value->lexeme),
@@ -1401,7 +1400,7 @@ TREE* expand_switch_statement(
         }
     } else if (caseNode->type == DEFAULT_TOKEN && gotoChainHeadDefaultCase == NULL) {
       gotoChainHeadDefaultCase = create_goto_node(csound, isPerfRate);
-      defaultCaseLabel = create_synthetic_label(csound, genlabs++);
+      defaultCaseLabel = create_synthetic_label(csound, csound->genlabs++);
       typeTable->labelList = cs_cons(
         csound,
         cs_strdup(csound, defaultCaseLabel->value->lexeme),
@@ -1475,8 +1474,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
   TREE* gotoToken;
 
-  int32 topLabelCounter = genlabs++;
-  int32 endLabelCounter = genlabs++;
+  int32 topLabelCounter = csound->genlabs++;
+  int32 endLabelCounter = csound->genlabs++;
   TREE* tempRight = current->right;
   TREE* last = NULL;
   TREE* labelEnd;
@@ -1547,19 +1546,23 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   CS_TYPE *iType = (CS_TYPE *)&CS_VAR_TYPE_I;
   CS_TYPE *kType = (CS_TYPE *)&CS_VAR_TYPE_K;
+  int32_t isPerfRate = 0;
+  if(arrayArgType[0] == 'k') isPerfRate = 1;
+  else if(arrayArgType[0] == 'i') isPerfRate = 0;
+  else {
+    synterr(csound, "only i- or k-type arrays allowed\n");
+    return NULL;
+  }
+ 
 
-  int32_t isPerfRate = arrayArgType[1] == 'k';
   char* op = (char *)csound->Malloc(csound, 10);
   // create index counter
   TREE *indexAssign = create_empty_token(csound);
   indexAssign->value = make_token(csound, "=");
   indexAssign->type = T_ASSIGNMENT;
   indexAssign->value->type = T_ASSIGNMENT;
-  char *indexName = create_synthetic_var_name(
-    csound,
-    genlabs++,
-    isPerfRate ? 'k' : 'i'
-  );
+  char *indexName = create_synthetic_var_name(csound,csound->genlabs++,
+                                              isPerfRate ? 'k' : 'i');
   TREE *indexIdent = create_empty_token(csound);
   indexIdent->value = make_token(csound, indexName);
   indexIdent->type = T_IDENT;
@@ -1576,11 +1579,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayAssign->value = make_token(csound, "=");
   arrayAssign->type = T_ASSIGNMENT;
   arrayAssign->value->type = T_ASSIGNMENT;
-  char *arrayName = create_synthetic_array_var_name(
-    csound,
-    genlabs++,
-    isPerfRate ? 'k' : 'i'
-  );
+  char *arrayName = create_synthetic_array_var_name(csound,csound->genlabs++,
+                                                    isPerfRate ? 'k' : 'i');
   TREE *arrayIdent = create_empty_token(csound);
   arrayIdent->value = make_token(csound, arrayName);
   arrayIdent->type = T_ARRAY_IDENT;
@@ -1595,11 +1595,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayLength->value = make_token(csound, "=");
   arrayLength->type = T_ASSIGNMENT;
   arrayLength->value->type = T_ASSIGNMENT;
-  char *arrayLengthName = create_synthetic_var_name(
-    csound,
-    genlabs++,
-    isPerfRate ? 'k' : 'i'
-  );
+  char *arrayLengthName = create_synthetic_var_name(csound,csound->genlabs++,
+                                                    isPerfRate ? 'k' : 'i');
   TREE *arrayLengthIdent = create_empty_token(csound);
   arrayLengthIdent->value = make_token(csound, arrayLengthName);
   arrayLengthIdent->type = T_IDENT;
@@ -1613,18 +1610,17 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayLengthFn->right = arrayLengthArrayIdent;
   arrayLength->right = arrayLengthFn;
   arrayAssign->next = arrayLength;
-
-
-  TREE* loopLabel = create_synthetic_label(csound, genlabs++);
+  
+  TREE* loopLabel = create_synthetic_label(csound, csound->genlabs++);
   loopLabel->type = LABEL_TOKEN;
   loopLabel->value->type = LABEL_TOKEN;
-  CS_VARIABLE *loopLabelVar = csoundCreateVariable(
-      csound, csound->typePool, isPerfRate ? kType : iType, loopLabel->value->lexeme, NULL);
+  CS_VARIABLE *loopLabelVar =
+    csoundCreateVariable(csound, csound->typePool, isPerfRate ? kType : iType,
+                         loopLabel->value->lexeme, NULL);
   csoundAddVariable(csound, typeTable->localPool, loopLabelVar);
-  typeTable->labelList = cs_cons(csound,
-                                 cs_strdup(csound, loopLabel->value->lexeme),
+  typeTable->labelList =
+    cs_cons(csound, cs_strdup(csound, loopLabel->value->lexeme),
                                  typeTable->labelList);
-
   arrayLength->next = loopLabel;
 
   // handle case where user provided an index identifier
@@ -1643,6 +1639,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
   arrayGetStatement->left = current->left;
+  
   arrayGetStatement->right = copy_node(csound, arrayIdent);
   arrayGetStatement->right->next = copy_node(csound, indexIdent);
   if (hasOptionalIndex) {
@@ -1660,6 +1657,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   TREE* indexArgToken = copy_node(csound, indexIdent);
   loopLtStatement->right = indexArgToken;
+  // VL: need to set the next statement after loop
+  loopLtStatement->next = current->next;
 
   // loop less-than arg1: increment by 1
   TREE *oneToken = create_empty_token(csound);

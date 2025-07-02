@@ -8,9 +8,10 @@
 instr 1
 j:i init 0
 arr:i[] fillarray 1,2,3
-for iin in arr do
- print iin
+for j in arr do
+ print j
 od
+printarray arr
 endin
 
 instr 2
@@ -19,6 +20,7 @@ arr:k[] fillarray 1,2,3
 for j in arr do
  printk2 j
 od
+turnoff
 endin
 
 

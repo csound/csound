@@ -1932,6 +1932,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   if (!check_args_exist(csound, root->right, typeTable)) {
     return 0;
   }
+  
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
@@ -2571,7 +2572,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_if_statement(csound, current, typeTable);
-
+ 
       if (previous != NULL) {
         previous->next = current;
       }
@@ -2606,8 +2607,13 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     continue;
 
     case FOR_TOKEN: {
+      /** for-loop typing:
+          1) if loop variable does not exist, it takes the type of the array
+          2) if it exists, the loop type follows the variable type
+      */
       char* arrayArgType = get_arg_type2(csound, current->right->left, typeTable);
-      
+      CS_VARIABLE* var = find_var_from_pools(csound, current->left->value->lexeme,
+                                        current->left->value->lexeme, typeTable);
       if (*arrayArgType != '[') {
         if(current->right->left->value != NULL) 
         synterr(csound,Str("Line: %d invalid argument in for statement: "
@@ -2616,15 +2622,25 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         else synterr(csound,Str("Line: %d expected an array variable in for statement."),
                      current->line);
         return 0;
+      }    
+      
+      if(var == NULL) {
+      char  atype[2] = { arrayArgType[1], '\0' };
+      // now create the arg based on the array type
+      add_arg(csound, current->left->value->lexeme, atype,
+              typeTable);
+       arrayArgType++;
+      } else {
+        arrayArgType = var->varType->varTypeName;
+        printf("%s \n", arrayArgType);
       }
-
       current = expand_for_statement(csound, current, typeTable, arrayArgType);
-
       if (previous != NULL) {
         previous->next = current;
       }
     }
-      continue;
+    continue;
+    
     case LABEL_TOKEN:
       break;
 
