@@ -99,6 +99,7 @@
 // define PFFFT_SIMD_DISABLE if you want to use scalar code instead of simd code
 //#define PFFFT_SIMD_DISABLE
 
+
 /*
    Altivec support macros
 */
@@ -135,7 +136,6 @@ inline v4sf ld_ps1(const float *p) { v4sf v=vec_lde(0,p); return vec_splat(vec_p
   SSE1 support macros
 */
 #elif !defined(PFFFT_SIMD_DISABLE) && (defined(__x86_64__) || defined(_M_X64) || defined(i386) || defined(_M_IX86))
-
 #include <xmmintrin.h>
 typedef __m128 v4sf;
 #  define SIMD_SZ 4 // 4 floats by simd vector -- this is pretty much hardcoded in the preprocess/finalize functions anyway so you will have to work if you want to enable AVX with its 256-bit vectors.
@@ -152,9 +152,9 @@ typedef __m128 v4sf;
 #  define VALIGNED(ptr) ((((uintptr_t)(ptr)) & 0xF) == 0)
 
 /*
-  ARM NEON support macros
+  ARM NEON support macros -mfpu=neon --  
 */
-#elif !defined(PFFFT_SIMD_DISABLE) && (defined(__arm__) || defined(IOS))
+#elif !defined(PFFFT_SIMD_DISABLE) && defined(HAVE_NEON) && (defined(__arm__) || defined(__arm64__))
 #  include <arm_neon.h>
 typedef float32x4_t v4sf;
 #  define SIMD_SZ 4
@@ -178,6 +178,7 @@ typedef float32x4_t v4sf;
 #  define VSWAPHL(a,b) vcombine_f32(vget_low_f32(b), vget_high_f32(a))
 #  define VALIGNED(ptr) ((((uintptr_t)(ptr)) & 0x3) == 0)
 #else
+
 #  if !defined(PFFFT_SIMD_DISABLE)
 //#    warning "building with simd disabled !!!!!!!!!!!!!!\n";
 #    define PFFFT_SIMD_DISABLE // fallback to scalar code
@@ -669,7 +670,7 @@ static NEVER_INLINE(void) radf4_ps(int32_t ido, int32_t l1, const v4sf *RESTRICT
         wi = LD_PS1(wa3[i-1]);
         VCPLXMULCONJ(cr4, ci4, wr, wi);
 
-        /* at this point, on SSE, five of "cr2 cr3 cr4 ci2 ci3 ci4" should be loaded in registers */
+        /* at this point32_t,  on SSE, five of "cr2 cr3 cr4 ci2 ci3 ci4" should be loaded in registers */
 
         tr1 = VADD(cr2,cr4);
         tr4 = VSUB(cr4,cr2);

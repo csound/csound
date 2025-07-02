@@ -45,7 +45,7 @@ struct instr_semantics_t;
  */
 #define CONCURRENTPADDING 64
 
-typedef int taskID;
+typedef int32_t taskID;
 
 /* Each task has a status */
 enum state { WAITING = 3,          /* Dependencies have not been finished */

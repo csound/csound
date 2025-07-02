@@ -44,7 +44,7 @@
 
 /* simple linear congruential generator */
 
-PUBLIC int32_t csoundRand31(int32_t *seedVal)
+int32_t csoundRand31(int32_t *seedVal)
 {
     uint64_t  tmp1;
     uint32_t  tmp2;
@@ -87,7 +87,7 @@ static CS_NOINLINE void MT_update_state(uint32_t *mt)
 
 /* generates a random number on [0,0xffffffff]-interval */
 
-PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p)
+uint32_t csoundRandMT(CsoundRandMTState *p)
 {
     int32_t       i = p->mti;
     uint32_t  y;
@@ -112,7 +112,7 @@ PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p)
 /* key_length is its length */
 /* slight change for C++, 2004/2/26 */
 
-PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
+void csoundSeedRandMT(CsoundRandMTState *p,
                              const uint32_t *initKey, uint32_t keyLength)
 {
     int32_t       i, j, k;
@@ -163,13 +163,17 @@ PUBLIC void csoundSeedRandMT(CsoundRandMTState *p,
 void csound_init_rand(CSOUND *csound)
 {
     uint32_t  tmp;
+    int32_t *holdrand;
+    csound->CreateGlobalVariable(csound, "::HOLDRAND::", sizeof(int32));
+    holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
+    *holdrand = 2345678;
 
     csound->csRandState = &(csound->randState_);
     csound->randSeed1 = 15937;
     tmp = (uint32_t) csound->GetRandomSeedFromTime();
     while (tmp >= (uint32_t) 0x7FFFFFFE)
       tmp -= (uint32_t) 0x7FFFFFFE;
-    csound->randSeed2 = ((int) tmp + 1);
+    csound->randSeed2 = ((int32_t) tmp + 1);
     csound->SeedRandMT(&(csound->randState_), NULL, (uint32_t) 5489);
 }
 

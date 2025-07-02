@@ -24,7 +24,11 @@
 /* scale modified and scale2 written as a replacement by JPff Dec 2020 */
 
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 #include <math.h>
 
@@ -168,13 +172,13 @@ gainslider_perf(CSOUND *csound, gainslider *p)
 /* opcode library entries */
 
 static OENTRY ugakbari_localops[] = {
-  { "scale", sizeof(scale), 0, 2, "k", "kkkPO", NULL, (SUBR)scale_process, NULL },
-  { "scale2", sizeof(SCALE2), 0, 3, "k", "kkkOPo", (SUBR)scale2_init, (SUBR)scale2_process, NULL },
-  { "expcurve", sizeof(expcurve), 0, 2, "k", "kk", NULL,
+  { "scale", sizeof(scale), 0,  "k", "kkkPO", NULL, (SUBR)scale_process, NULL },
+  { "scale2", sizeof(SCALE2), 0,  "k", "kkkOPo", (SUBR)scale2_init, (SUBR)scale2_process, NULL },
+  { "expcurve", sizeof(expcurve), 0,  "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },
-  { "logcurve", sizeof(logcurve), 0, 2, "k", "kk", NULL,
+  { "logcurve", sizeof(logcurve), 0,  "k", "kk", NULL,
     (SUBR)logcurve_perf, NULL },
-  { "gainslider", sizeof(gainslider), 0, 2, "k", "k", NULL,
+  { "gainslider", sizeof(gainslider), 0,  "k", "k", NULL,
     (SUBR)gainslider_perf, NULL }
 };
 

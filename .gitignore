@@ -200,6 +200,11 @@ xcuserdata/
 tests/soak/CheckSums
 tests/soak/Output
 Opcodes/stk/
+*-e
+installer/macosx/20*
+iOS/Csound-for-iOS*
+iOS/Csound-iOS
+iOS/share
 
 # Emscripten
 emscripten/examples/javascripts/CsoundObj.js
@@ -236,3 +241,27 @@ dist
 xcode
 *.nupkg
 *.exe
+
+#vcpkg
+vcpkg_installed
+
+#install dir
+bin
+
+# other
+debug
+floats-debug
+vanilla
+attic
+
+.clang_format
+*.code-workspace
+Android/*.zip
+Android/*.tgz
+Android/env_vars.sh
+Android/CsoundForAndroid/.idea
+dependencies
+*.dylib
+iOS/include
+tmp
+*-g

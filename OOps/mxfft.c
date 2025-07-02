@@ -920,6 +920,7 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
     return;
 }
 
+void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 /**
  * Compute in-place real FFT, allowing non power of two FFT sizes.
  *
@@ -933,7 +934,7 @@ void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
     if (!(FFTsize & (FFTsize - 1))) {
       /* if FFT size is power of two: */
-      csound->RealFFT(csound, buf, FFTsize);
+      csoundRealFFT(csound, buf, FFTsize);
       buf[FFTsize] = buf[1];
     }
     else {

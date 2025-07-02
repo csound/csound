@@ -86,9 +86,9 @@ extern  char *          asctime(const struct tm *);
 
 typedef struct winEPS_globals_ {
     FILE    *psFile;
-    void    *psfd;                      /* CSFILE* returned by FileOpen2()  */
+    void    *psfd;                      /* CSFILE* returned by FileOpen()  */
     char    ps_date[40];                /* Print time & date on every plot  */
-    int     currentPage;                /* Current page number              */
+    int32_t     currentPage;                /* Current page number              */
 } winEPS_globals_t;
 
 void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
@@ -98,8 +98,8 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     char      pathnam[1024];
     char      *t;
     time_t    lt;
-    OPARMS oparms;
-     csound->GetOParms(csound, &oparms);
+   const OPARMS *O;
+     O = csound->GetOParms(csound) ;
      IGN(wdptr);
      IGN(name);
 
@@ -108,9 +108,9 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     csound->winEPS_globals = csound->Calloc(csound, sizeof(winEPS_globals_t));
     pp = (winEPS_globals_t *) csound->winEPS_globals;
 
-    filenam = oparms.outfilename;
+    filenam = O->outfilename;
     if (filenam == NULL)
-      filenam = "test";     /* O.outfilename not set yet */
+      filenam = "test";     /* O->outfilename not set yet */
 
     /*  If sound output is being piped directly to the DAC, then */
     /*  there is no PS output, (psFileOK remains 0),             */
@@ -129,7 +129,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
     strlcat(pathnam, ".eps", 1024);
-    pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
+    pp->psfd = csound->FileOpen(csound, &(pp->psFile), CSFILE_STD, pathnam,
                                    "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
     if (UNLIKELY(pp->psfd == NULL)) {
       csound->Message(csound, Str("** Warning **  PostScript file %s "
@@ -182,7 +182,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
 static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
 {
     double bmin, bmax, big;
-    int    i;
+    int32_t    i;
 
     /**
      *  Get most significant digit
@@ -190,13 +190,13 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
 
     bmin = 0.0000001;
     if (fabs(*min) > bmin) {
-      while ((int)(fabs(*min) / bmin))
+      while ((int32_t)(fabs(*min) / bmin))
         bmin = bmin * 10.0;
     }
 
     bmax = 0.0000001;
     if (fabs((double)*max) > bmax) {
-      while ((i = (int)(FABS(*max) / bmax)))
+      while ((i = (int32_t)(FABS(*max) / bmax)))
         bmax = bmax * 10.0;
     }
     if (fabs(bmin) > fabs(bmax))
@@ -211,13 +211,13 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
     if (*max == FL(0.0))
       i = 0;
     else
-      i = (int)((*max / big) * 100.0) + 1;
+      i = (int32_t)((*max / big) * 100.0) + 1;
     *max = (MYFLT) (i * big * 0.01);
 
     if (*min == FL(0.0))
       i = 0;
     else
-      i = (int)((*min / big) * 100.0) - 1;
+      i = (int32_t)((*min / big) * 100.0) - 1;
     *min = (MYFLT) (i * big * 0.01);
 
     if (fabs(*max - *min) < 0.0000001)
@@ -236,7 +236,7 @@ static void PS_drawAxes(winEPS_globals_t *pp,
 {
     MYFLT xx, yy, dx, dy;
     MYFLT fnts, swide;
-    int   i;
+    int32_t   i;
 
     /**
      * Make axes - box
@@ -334,11 +334,11 @@ static void PS_drawAxes(winEPS_globals_t *pp,
 void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
 {
     winEPS_globals_t  *pp;
-    int   iskip = (wdptr->npts < MyPS_WIDTH ?
-                   1 : (int)(wdptr->npts / MyPS_WIDTH));
+    int32_t   iskip = (wdptr->npts < MyPS_WIDTH ?
+                   1 : (int32_t)(wdptr->npts / MyPS_WIDTH));
     MYFLT ymin, ymax, xx, yy, dx, dy, fnts;
     char  cxmin[20], cxmax[20], cymin[20], cymax[20];
-    int   i;
+    int32_t   i;
 
     /**
      *  No action when the output file is not opened
@@ -438,7 +438,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     fprintf(pp->psFile, "stroke \n");
 }
 
-int PS_ExitGraph(CSOUND *csound)
+int32_t PS_ExitGraph(CSOUND *csound)
 {
     winEPS_globals_t  *pp;
     /**

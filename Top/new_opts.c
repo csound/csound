@@ -42,7 +42,7 @@
 void dump_cfg_variables(CSOUND *csound)
 {
     csCfgVariable_t **p;
-    int             i;
+    int32_t             i;
 
     p = csoundListConfigurationVariables(csound);
     if (p == NULL)
@@ -113,11 +113,11 @@ void dump_cfg_variables(CSOUND *csound)
 /* be '-+NAME' for true, and '-+no-NAME' for false. */
 /* Return value is zero on success. */
 
-int parse_option_as_cfgvar(CSOUND *csound, const char *s)
+int32_t parse_option_as_cfgvar(CSOUND *csound, const char *s)
 {
     csCfgVariable_t *p;
 
-    if (UNLIKELY((int) strlen(s) < 3)) {
+    if (UNLIKELY((int32_t) strlen(s) < 3)) {
       csound->Warning(csound, Str(" *** '%s' is not a valid "
                                   "Csound command line option."), s);
       csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
@@ -142,7 +142,7 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
         }
         *(p->b.p) = 1;
       }
-      else if (LIKELY((int) strlen(s) > 5)) {
+      else if (LIKELY((int32_t) strlen(s) > 5)) {
         if (UNLIKELY(strncmp(s, "-+no-", 5) != 0)) {
           csound->Warning(csound, Str(" *** '%s': invalid option name"),
                                   s + 2);
@@ -166,11 +166,11 @@ int parse_option_as_cfgvar(CSOUND *csound, const char *s)
         return 0;
       }
     }
-    else if (LIKELY((int) strlen(s) > 3)) {
+    else if (LIKELY((int32_t) strlen(s) > 3)) {
       char *buf, *val, *tmp;
-      int  retval;
+      int32_t  retval;
       buf = (char*) csound->Malloc(csound,
-                                   sizeof(char) * (size_t) ((int) strlen(s) - 1));
+                                   sizeof(char) * (size_t) ((int32_t) strlen(s) - 1));
       if (UNLIKELY(buf == NULL)) {
         csound->Warning(csound, Str(" *** memory allocation failure"));
         return -1;

@@ -23,6 +23,8 @@
 
 /*                                                              UGENS9.H    */
 
+#pragma once
+
 typedef struct {
     OPDS    h;
     MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;

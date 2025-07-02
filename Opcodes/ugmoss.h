@@ -23,6 +23,8 @@
 
                                                          /* ugmoss.h */
 
+#pragma once
+
 typedef struct {
   OPDS                  h;
   MYFLT                 *ar, *ain, *isize, *ifn;

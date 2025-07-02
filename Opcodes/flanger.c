@@ -28,12 +28,14 @@
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
-        /*---------------- delay  -----------------------*/
+    /*---------------- delay  -----------------------*/
     p->maxdelay = (uint32)(*p->maxd  * CS_ESR);
-    csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
-    p->left = 0;
-    p->yt1 = FL(0.0);
-    p->fmaxd = (MYFLT) p->maxdelay;
+    if ((*p->iskip != 0) || (p->aux.auxp==NULL)) {
+      csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
+      p->left = 0;
+      p->yt1 = FL(0.0);
+      p->fmaxd = (MYFLT) p->maxdelay;
+    }
     return OK;
 }
 
@@ -120,7 +122,7 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
     if (*p->filt_khp != p->prvhp) {
       double b;
       p->prvhp               = *p->filt_khp;
-      b                      = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+      b                      = 2.0 - cos((double)(p->prvhp * CS_TPIDSR));
       p->c2                  = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1                  = FL(1.0) - p->c2;
     }
@@ -199,7 +201,7 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->xdel2cod              = IS_ASIG_ARG(p->xdel2) ? 1 : 0;
 
     if (UNLIKELY(p->xdel1cod != p->xdel2cod))
-      return csound->InitError(csound, Str(
+      return csound->InitError(csound, "%s", Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));
     return OK;
@@ -240,14 +242,14 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
     if (*p->filt_khp1 != p->prvhp1) {
       double b;
       p->prvhp1 = *p->filt_khp1;
-      b = 2.0 - cos((double)(p->prvhp1 * csound->tpidsr));
+      b = 2.0 - cos((double)(p->prvhp1 * CS_TPIDSR));
       p->c2_1 = (MYFLT)(b - sqrt((b * b) - 1.0));
       p->c1_1 = FL(1.0) - p->c2_1;
     }
     if (*p->filt_khp2 != p->prvhp2) {
       double b;
       p->prvhp2 = *p->filt_khp2;
-      b = 2.0 - cos((double)(p->prvhp2 * csound->tpidsr));
+      b = 2.0 - cos((double)(p->prvhp2 * CS_TPIDSR));
       p->c2_2 = (MYFLT)(b - sqrt((double)(b * b) - 1.0));
       p->c1_2 = FL(1.0) - p->c2_2;
     }
@@ -332,9 +334,9 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "flanger", S(FLANGER), 0, 3, "a", "aakv", (SUBR)flanger_set, (SUBR)flanger },
-{ "wguide1", S(WGUIDE1), 0, 3, "a", "axkk",(SUBR) wguide1set, (SUBR)wguide1  },
-{ "wguide2", S(WGUIDE2), 0, 3, "a", "axxkkkk",(SUBR)wguide2set, (SUBR)wguide2 }
+{ "flanger", S(FLANGER), 0,  "a", "aakvo", (SUBR)flanger_set, (SUBR)flanger },
+{ "wguide1", S(WGUIDE1), 0, "a", "axkk",(SUBR) wguide1set, (SUBR)wguide1  },
+{ "wguide2", S(WGUIDE2), 0,  "a", "axxkkkk",(SUBR)wguide2set, (SUBR)wguide2 }
 };
 
 int32_t flanger_init_(CSOUND *csound)

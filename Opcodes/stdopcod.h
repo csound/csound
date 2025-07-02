@@ -24,8 +24,11 @@
 #ifndef CSOUND_STDOPCOD_H
 #define CSOUND_STDOPCOD_H
 
-//#include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 
 
 #include "interlocks.h"
@@ -50,7 +53,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     struct fileinTag  *file_opened;
     int32_t         file_max;
     int32_t         file_num;
-    int32        fout_kreset;
+    int64_t        fout_kreset;
    /* MYFLT       *buf;
       int32_t         buf_size; */ /* VL - now using per instance buffer */
     /* oscbnk.c */
@@ -71,6 +74,7 @@ typedef struct STDOPCOD_GLOBALS_ {
     MYFLT       *tb[16];       /* gab: updated */
     int32_t         tb_ixmode[16]; /* gab: added */
     int32       tb_size[16];   /* gab: added */
+  //OPARMS  oparms;
 } STDOPCOD_GLOBALS;
 
 extern int32_t ambicode_init_(CSOUND *);
@@ -94,8 +98,6 @@ extern int32_t grain_init_(CSOUND *);
 extern int32_t locsig_init_(CSOUND *);
 extern int32_t lowpassr_init_(CSOUND *);
 extern int32_t metro_init_(CSOUND *);
-extern int32_t midiops2_init_(CSOUND *);
-extern int32_t midiops3_init_(CSOUND *);
 extern int32_t newfils_init_(CSOUND *);
 extern int32_t nlfilt_init_(CSOUND *);
 extern int32_t oscbnk_init_(CSOUND *);

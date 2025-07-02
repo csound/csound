@@ -34,7 +34,12 @@
 /*                                                       */
 /*********************************************************/
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "fm4op.h"
 
 /***********************************************************/
@@ -141,15 +146,15 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
 
     if (!FM_tabs_built) build_FM(); /* Ensure tables exist */
 
-    make_ADSR(&p->adsr[0]);
-    make_ADSR(&p->adsr[1]);
-    make_ADSR(&p->adsr[2]);
-    make_ADSR(&p->adsr[3]);
+    make_ADSR(&p->adsr[0], CS_ESR);
+    make_ADSR(&p->adsr[1], CS_ESR);
+    make_ADSR(&p->adsr[2], CS_ESR);
+    make_ADSR(&p->adsr[3], CS_ESR);
     make_TwoZero(&p->twozero);
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->vifn)) == NULL))
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->vifn)) == NULL))
       goto err1;
     p->vibWave = ftp;
-    p->baseFreq = csound->A4;
+    p->baseFreq = csound->GetA4(csound);
     p->ratios[0] = FL(1.0);
     p->ratios[1] = FL(1.0);
     p->ratios[2] = FL(1.0);
@@ -164,25 +169,25 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     return OK;
  err1:
 /* Expect sine wave */
-    return csound->InitError(csound, Str("No table for VibWaveato"));
+    return csound->InitError(csound, "%s", Str("No table for VibWaveato"));
 }
 
 static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
 {
     FUNC        *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn0)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn0)) == NULL)) goto err1;
     p->waves[0] = ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn1)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn1)) == NULL)) goto err1;
     p->waves[1] = ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn2)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn2)) == NULL)) goto err1;
     p->waves[2] = ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn3)) == NULL)) goto err1;
+    if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn3)) == NULL)) goto err1;
     p->waves[3] = ftp;
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
  err1:
-    return csound->InitError(csound, Str("No table for FM4Op"));
+    return csound->InitError(csound, "%s", Str("No table for FM4Op"));
 }
 
 void FM4Op_setRatio(FM4OP *p, int32_t whichOne, MYFLT ratio)
@@ -283,13 +288,13 @@ int32_t tubebellset(CSOUND *csound, FM4OP *p)
     /*      ADSR_setAll(csound, &p->adsr[2], 0.07f,0.00002f,FL(0.0),0.02f); */
     /*      ADSR_setAll(csound, &p->adsr[3], FL(0.04),0.00001f,FL(0.0),0.02f); */
     p->twozero.gain = FL(0.5);
-    p->v_rate = FL(2.0) * p->vibWave->flen * csound->onedsr; /* Vib rate */
+    p->v_rate = FL(2.0) * p->vibWave->flen * CS_ONEDSR; /* Vib rate */
     /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * CS_ONEDSR;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * CS_ONEDSR;
+    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * CS_ONEDSR;
+    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * CS_ONEDSR;
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -313,11 +318,11 @@ int32_t tubebell(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[76];
     p->gains[2] = amp * FM4Op_gains[99];
     p->gains[3] = amp * FM4Op_gains[71];
-    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
-    p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * CS_ONEDSR;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * CS_ONEDSR;
+    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * CS_ONEDSR;
+    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * CS_ONEDSR;
+    p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -362,13 +367,13 @@ int32_t rhodeset(CSOUND *csound, FM4OP *p)
     /*      ADSR_setAll(&p->adsr[2], 0.05f,0.00005f,FL(0.0),0.02f); */
     /*      ADSR_setAll(&p->adsr[3], 0.05f,0.0002f,FL(0.0),0.02f); */
     p->twozero.gain = FL(1.0);
-    p->v_rate = FL(2.0) * p->vibWave->flen * csound->onedsr; /* Vib rate */
+    p->v_rate = FL(2.0) * p->vibWave->flen * CS_ONEDSR; /* Vib rate */
     /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * CS_ONEDSR;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * CS_ONEDSR;
+    p->w_rate[2] = p->baseFreq * p->ratios[2] * p->waves[2]->flen * CS_ONEDSR;
+    p->w_rate[3] = p->baseFreq * p->ratios[3] * p->waves[3]->flen * CS_ONEDSR;
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -409,10 +414,10 @@ int32_t wurleyset(CSOUND *csound, FM4OP *p)
     p->twozero.gain = FL(2.0);
     /* Set Freq */
     p->baseFreq = *p->frequency;
-    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] =               p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * CS_ONEDSR;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * CS_ONEDSR;
+    p->w_rate[2] =               p->ratios[2] * p->waves[2]->flen * CS_ONEDSR;
+    p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * CS_ONEDSR;
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -436,11 +441,11 @@ int32_t wurley(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[82];
     p->gains[2] = amp * FM4Op_gains[82];
     p->gains[3] = amp * FM4Op_gains[68];
-    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * csound->onedsr;
-    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * csound->onedsr;
-    p->w_rate[2] =               p->ratios[2] * p->waves[2]->flen * csound->onedsr;
-    p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * csound->onedsr;
-    p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
+    p->w_rate[0] = p->baseFreq * p->ratios[0] * p->waves[0]->flen * CS_ONEDSR;
+    p->w_rate[1] = p->baseFreq * p->ratios[1] * p->waves[1]->flen * CS_ONEDSR;
+    p->w_rate[2] =               p->ratios[2] * p->waves[2]->flen * CS_ONEDSR;
+    p->w_rate[3] =               p->ratios[3] * p->waves[3]->flen * CS_ONEDSR;
+    p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -521,7 +526,7 @@ int32_t heavymetset(CSOUND *csound, FM4OP *p)
     /*      ADSR_setAll(&p->adsr[2], FL(0.001), 0.0020f, FL(1.0), 0.0002f); */
     /*      ADSR_setAll(&p->adsr[3], 0.050f, 0.0010f, FL(0.2), 0.0002f); */
     p->twozero.gain = FL(2.0);
-    /*     p->v_rate = 5.5 * p->vibWave->flen * csound->onedsr;  Vib rate */
+    /*     p->v_rate = 5.5 * p->vibWave->flen * CS_ONEDSR;  Vib rate */
     ADSR_keyOn(&p->adsr[0]);
     ADSR_keyOn(&p->adsr[1]);
     ADSR_keyOn(&p->adsr[2]);
@@ -546,12 +551,12 @@ int32_t heavymet(CSOUND *csound, FM4OP *p)
     p->gains[2] = amp * FM4Op_gains[91];
     p->gains[3] = amp * FM4Op_gains[68];
 
-    temp         = p->baseFreq * csound->onedsr;
+    temp         = p->baseFreq * CS_ONEDSR;
     p->w_rate[0] = temp * p->ratios[0] * p->waves[0]->flen;
     p->w_rate[1] = temp * p->ratios[1] * p->waves[1]->flen;
     p->w_rate[2] = temp * p->ratios[2] * p->waves[2]->flen;
     p->w_rate[3] = temp * p->ratios[3] * p->waves[3]->flen;
-    p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
+    p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -615,7 +620,7 @@ MYFLT FM4Alg8_tick(FM4OP *p, MYFLT c1, MYFLT c2)
 int32_t b3set(CSOUND *csound, FM4OP *p)
 {
     MYFLT       amp = *p->amp * AMP_RSCALE; /* Normalised */
-    MYFLT       temp = p->baseFreq * csound->onedsr;
+    MYFLT       temp = p->baseFreq * CS_ONEDSR;
 
     if (UNLIKELY(make_FM4Op(csound,p))) return NOTOK;
     if (UNLIKELY(FM4Op_loadWaves(csound,p))) return NOTOK;         /* sines */
@@ -669,11 +674,11 @@ int32_t hammondB3(CSOUND *csound, FM4OP *p)
     for (n=offset;n<nsmps;n++) {
       MYFLT   lastOutput;
       if (moddep > FL(0.0)) {
-        p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
+        p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
         temp = FL(1.0) + (moddep * FL(0.1) *
                           Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                                     p->vibWave->ftable, p->v_rate, FL(0.0)));
-        temp *= p->baseFreq * csound->onedsr;
+        temp *= p->baseFreq * CS_ONEDSR;
         p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
         p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen;
         p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen;
@@ -712,7 +717,7 @@ MYFLT FM4Alg6_tick(CSOUND *csound, FM4OPV *q)
     temp2 = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen, p->vibWave->ftable,
                       p->v_rate, FL(0.0)) * *p->modDepth * FL(0.1);
 
-    temp2 = (FL(1.0) + temp2) * p->baseFreq * csound->onedsr;
+    temp2 = (FL(1.0) + temp2) * p->baseFreq * CS_ONEDSR;
     p->w_rate[0] = temp2 * p->ratios[0] * p->waves[0]->flen;
     p->w_rate[1] = temp2 * p->ratios[1] * p->waves[1]->flen;
     p->w_rate[2] = temp2 * p->ratios[2] * p->waves[2]->flen;
@@ -1054,7 +1059,7 @@ MYFLT FM4Alg4_tick(CSOUND *csound, FM4OP *p, MYFLT c1, MYFLT c2)
     temp = Wave_tick(&p->v_time, (int32_t)p->vibWave->flen,
                      p->vibWave->ftable, p->v_rate, FL(0.0)) *
       *p->modDepth * FL(0.2);
-    temp = p-> baseFreq * (FL(1.0) + temp)* csound->onedsr;
+    temp = p-> baseFreq * (FL(1.0) + temp)* CS_ONEDSR;
     p->w_rate[0] = p->ratios[0] * temp * p->waves[0]->flen;
     p->w_rate[1] = p->ratios[1] * temp * p->waves[1]->flen;
     p->w_rate[2] = p->ratios[2] * temp * p->waves[2]->flen;
@@ -1131,7 +1136,7 @@ int32_t percflute(CSOUND *csound, FM4OP *p)
     p->gains[1] = amp * FM4Op_gains[71] * FL(0.5);
     p->gains[2] = amp * FM4Op_gains[93] * FL(0.5);
     p->gains[3] = amp * FM4Op_gains[85] * FL(0.5);
-    p->v_rate = *p->vibFreq * p->vibWave->flen * csound->onedsr;
+    p->v_rate = *p->vibFreq * p->vibWave->flen * CS_ONEDSR;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

@@ -47,11 +47,13 @@
 #if !defined(WIN32) || defined(__CYGWIN__)
 typedef uint32_t    DWORD;
 #endif
+
 /*  typedef int32_t     BOOL; */
 typedef uint8_t     BYTE;
 typedef uint16_t    WORD;
 typedef short       SHORT;
 typedef char        CHAR;
+typedef int8_t      SBYTE;
 
 typedef uint16_t SFTransform;
 

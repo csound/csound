@@ -22,13 +22,19 @@
 #ifndef __MPADEC_INTERNAL_H
 #define __MPADEC_INTERNAL_H
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
+#include "csoundCore.h"
+#endif
+
 #include "mpadec_config.h"
 #include "mpadec.h"
 
 #define MPADEC_STATE_UNDEFINED 0
 #define MPADEC_STATE_START     1
 #define MPADEC_STATE_DECODE    2
-
+#include "mpadec.h"
 #define MPG_MD_STEREO       0
 #define MPG_MD_JOINT_STEREO 1
 #define MPG_MD_DUAL_CHANNEL 2

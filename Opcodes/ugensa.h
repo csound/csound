@@ -23,14 +23,17 @@
 
 /*                                                      UGENSM.H  */
 
+#pragma once
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct overlap {
   struct overlap *nxtact;
   struct overlap *nxtfree;
   int32          timrem, dectim, formphs, forminc;
-  uint32         risphs;
+  int32         risphs;
   int32          risinc, decphs, decinc;
+  double         formphsf, formincf, risphsf, risincf, decphsf, decincf;
   MYFLT          curamp, expamp;
 } OVERLAP;
 
@@ -40,11 +43,13 @@ typedef struct {
   MYFLT *iolaps, *ifna, *ifnb, *itotdur, *iphs, *itmode, *iskip;
   OVERLAP       basovrlap;
   int32 durtogo, fundphs, fofcount, prvsmps, spdphs; /*last added JMC for FOG*/
+  MYFLT fundphsf, spdphsf;
   MYFLT prvband, expamp, preamp, fogcvt; /*last added JMC for FOG*/
   int16 xincod, ampcod, fundcod;
   int16 formcod, fmtmod, speedcod; /*last added JMC for FOG*/
   AUXCH auxch;
   FUNC  *ftp1, *ftp2;
+  int32   floatph;         /* floating-point phase */
 } FOGS;
 
 /*typedef struct {

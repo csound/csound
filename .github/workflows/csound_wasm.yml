@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@master
-      - uses: cachix/install-nix-action@v16
+        uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v25
         with:
           nix_path: ${{ env.nix_path }}
-      - uses: cachix/cachix-action@v10
+      - uses: cachix/cachix-action@v15
         with:
           name: csound
           authToken: ${{ secrets.CACHIX_TOKEN }}
@@ -30,10 +30,11 @@ jobs:
           nix-env -f '<nixpkgs>' -iA zip
           zip -r lib.zip lib
       - name: Archive Wasm Artifacts
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v4
         with:
           name: lib
           path: ${{ env.wasm_bin_dir }}/lib.zip
+
   browser-test:
     env:
       wasm_bin_dir: ./wasm
@@ -44,16 +45,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@master
-      - uses: cachix/install-nix-action@v16
+        uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v25
         with:
           nix_path: ${{ env.nix_path }}
-      - uses: cachix/cachix-action@v10
+      - uses: cachix/cachix-action@v15
         with:
           name: csound
           authToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E"
       - name: Download Artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v4
         with:
           name: lib
       - name: Uncompress freshly compiled wasm artifacts
@@ -83,21 +84,21 @@ jobs:
           cd $wasm_browser_dir
           nix-shell --pure
           yarn test:ci
-      - name: Fix the test report
-        run: |
-          cd $wasm_browser_dir
-          nix-shell --pure
-          mv tests/results.junit.xml tests/_results.junit.xml
-          ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
-            tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
-          rm tests/_results.junit.xml
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v3
-        with:
-          report_paths: "**/tests/*.junit.xml"
-          fail_on_failure: true
-          include_passed: false
-          detailed_summary: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          check_title_template: |-
-            {{FILE_NAME}} | {{SUITE_NAME}} | {{TEST_NAME}}
+      # - name: Fix the test report
+      #   run: |
+      #     cd $wasm_browser_dir
+      #     nix-shell --pure
+      #     mv tests/results.junit.xml tests/_results.junit.xml
+      #     ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
+      #       tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
+      #     rm tests/_results.junit.xml
+      # - name: Publish Test Report
+      #   uses: mikepenz/action-junit-report@v4
+      #   with:
+      #     report_paths: "**/tests/*.junit.xml"
+      #     fail_on_failure: true
+      #     include_passed: false
+      #     detailed_summary: true
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     check_title_template: |-
+      #       {{FILE_NAME}} | {{SUITE_NAME}} | {{TEST_NAME}}

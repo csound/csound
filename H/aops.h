@@ -23,6 +23,8 @@
 
 /*                                                      AOPS.H          */
 
+#pragma once
+
 #define CSOUND_SPIN_SPINLOCK csoundSpinLock(&csound->spinlock);
 #define CSOUND_SPIN_SPINUNLOCK csoundSpinUnLock(&csound->spinlock);
 #define CSOUND_SPOUT_SPINLOCK csoundSpinLock(&csound->spoutlock);
@@ -38,26 +40,6 @@ typedef struct {
     OPDS    h;
     MYFLT   *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
 } ASSIGNM;
-
-typedef struct {
-    OPDS    h;
-    TABDAT  *a;
-    MYFLT   *size, *value;
-} INITT;
-
-typedef struct {
-    OPDS    h;
-    TABDAT  *tab;
-    MYFLT   *ind;
-    MYFLT   *val;
-} ASSIGNT;
-
-typedef struct {
-    OPDS    h;
-    MYFLT   *ans;
-    TABDAT  *tab;
-    MYFLT   *ind;
-} TABREF;
 
 
 typedef struct {
@@ -195,8 +177,67 @@ typedef struct {
         int32_t narg;
 } OUTRANGE;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *kstartChan, *argums[VARGMAX];
+        int32_t numChans, narg;
+} INRANGE;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ians;
+        MYFLT   *index;
+} PFIELD;
+
+typedef struct {
+        OPDS    h;
+        STRINGDAT   *ians;
+        MYFLT   *index;
+} PFIELDSTR;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *inits[24];
+        MYFLT   *start;
+        MYFLT   *end;
+} PINIT;
+
+typedef struct {
+        OPDS    h;
+        ARRAYDAT *inits;
+        MYFLT   *start;
+        MYFLT   *end;
+} PAINIT;
+
+typedef struct iref_init {
+  OPDS  h;
+  INSTREF *out;
+  MYFLT  *in;
+} IREF_INIT;
+
+typedef struct iref_num {
+  OPDS  h;
+  MYFLT  *out;
+  INSTREF *in;
+} IREF_NUM;
+
+typedef struct {
+  OPDS h;
+  ARRAYDAT *tabin;
+  uint32_t    len;
+} MONITOR_A;
+
+int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p);
+int32_t get_instr_num(CSOUND *csound, IREF_NUM *p);
+int32_t get_instr_name(CSOUND *csound, IREF_NUM *p);
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
+void csound_aops_init_tables(CSOUND *);
+MYFLT MOD(MYFLT, MYFLT);
+int32_t inarray_set(CSOUND *csound, INA *p);
+int32_t monitora_perf(CSOUND *csound, MONITOR_A *p);
+int32_t monitora_init(CSOUND *csound, MONITOR_A *p);

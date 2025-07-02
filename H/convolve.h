@@ -39,12 +39,12 @@ typedef struct cvstruct
     int32        magic;                  /* magic number to identify */
     int32        headBsize;              /* byte offset from start to data */
     int32        dataBsize;              /* total number of bytes of data */
-    int32        dataFormat;             /* (int) format specifier */
+    int32        dataFormat;             /* (int32_t) format specifier */
     MYFLT        samplingRate;           /* of original sample */
     int32        src_chnls;              /* no. of channels in source */
     int32        channel;                /* requested channel(s) */
     int32        Hlen;                   /* length of impulse reponse */
-    int32        Format;                 /* (int) how words are org'd in frm */
+    int32        Format;                 /* (int32_t) how words are org'd in frm */
     char         info[CVDFLTBYTS];       /* extendable byte area */
 } CVSTRUCT;
 

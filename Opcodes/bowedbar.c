@@ -29,8 +29,12 @@
 /*    Towards Physical Modelling of Bar      */
 /*    Percussion Instruments", ICMC'99       */
 /*********************************************/
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "bowedbar.h"
 
 /* Number of banded waveguide modes */
@@ -85,7 +89,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
     make_BiQuad(&p->bandpass[1]);
     make_BiQuad(&p->bandpass[2]);
     make_BiQuad(&p->bandpass[3]);
-    make_ADSR(&p->adsr);
+    make_ADSR(&p->adsr, CS_ESR);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
     if (LIKELY(*p->lowestFreq>=FL(0.0))) {      /* If no init skip */
@@ -95,7 +99,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
         p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
       else {
         csound->Warning(csound,
-                        Str("unknown lowest frequency for bowed bar -- "
+                        "%s", Str("unknown lowest frequency for bowed bar -- "
                             "assuming 50Hz\n"));
         p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
       }
@@ -155,9 +159,9 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
       }
       if (UNLIKELY(p->nr_modes==0))
         return csound->InitError(csound,
-                                 Str("Bowedbar: cannot have zero modes\n"));
+                                 "%s", Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
-        MYFLT R = FL(1.0) - p->freq * p->modes[i] * csound->pidsr;
+        MYFLT R = FL(1.0) - p->freq * p->modes[i] * CS_PIDSR;
         BiQuad_clear(&p->bandpass[i]);
         BiQuad_setFreqAndReson(p->bandpass[i], p->freq * p->modes[i], R);
         BiQuad_setEqualGainZeroes(p->bandpass[i]);

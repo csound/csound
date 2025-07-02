@@ -32,6 +32,8 @@
     02110-1301 USA
 */
 
+#ifndef NO_SERIAL_OPCODES
+
 #include <stdlib.h>
 #include <stdint.h>   /* Standard types */
 #include <string.h>   /* String function definitions */
@@ -39,13 +41,19 @@
 #ifndef WIN32
 #include <unistd.h>   /* UNIX standard function definitions */
 #include <fcntl.h>    /* File control definitions */
+#ifndef __wasm__
 #include <termios.h>  /* POSIX terminal control definitions */
+#endif
 #include <sys/ioctl.h>
 #else
 #include "winsock2.h"
 #endif
 
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 /* **************************************************
@@ -180,9 +188,11 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 {
     IGN(csound);
+#ifndef __wasm__
     struct termios toptions;
-    int32_t fd;
     speed_t brate;
+#endif
+    int32_t fd;
 
     //csound = NULL;              /* Not used */
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
@@ -194,6 +204,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
       return -1;
     }
 
+#ifndef __wasm__
     if (UNLIKELY(tcgetattr(fd, &toptions) < 0)) {
       perror("init_serialport: Couldn't get term attributes");
       close(fd);
@@ -240,6 +251,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
       perror("init_serialport: Couldn't set term attributes");
       return -1;
     }
+#endif
 
     return fd;
 }
@@ -390,10 +402,10 @@ int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
     if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
 #ifndef WIN32
-    if (UNLIKELY(((size_t)write((int32_t)*p->port,
+    if (UNLIKELY(write((int32_t)*p->port,
                        ((STRINGDAT*)p->toWrite)->data,
                        ((STRINGDAT*)p->toWrite)->size))!=
-                 ((STRINGDAT*)p->toWrite)->size)) /* Does Windows write behave correctly? */
+        ((STRINGDAT*)p->toWrite)->size) /* Does Windows write behave correctly? */
         return NOTOK;
 #else
       int32_t nbytes;
@@ -447,7 +459,7 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
      IGN(csound);
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__wasm__)
     tcflush(*p->port, TCIFLUSH); // who knows if this works...
 #endif
     return OK;
@@ -494,7 +506,7 @@ typedef struct {
     int32_t port;
 #endif
   void *lock;
-    int stop;
+    int32_t stop;
     int32_t values[MAXSENSORS];
     int32_t buffer[MAXSENSORS];
 } ARDUINO_GLOBALS;
@@ -547,8 +559,8 @@ unsigned char arduino_get_byte(int32_t port)
 unsigned char arduino_get_byte(HANDLE port)
 {
     unsigned char b;
- top:
     size_t bytes;
+ top:
     ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
     if (bytes != 1) goto top;
     return b;
@@ -559,18 +571,18 @@ unsigned char arduino_get_byte(HANDLE port)
 uintptr_t arduino_listen(void *p)
 {
 #define SYN (0xf8)
-    unsigned int ans = 0;
+    uint32_t ans = 0;
     uint16_t c, val;
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
     CSOUND *csound = q->csound;
-    //printf("Q=%p\n", q);
+    if (DEBUG) printf("Q=%p\n", q);
     // Read until we see a header word
     while((c = arduino_get_byte(q->port))!=SYN) {
       if (DEBUG) printf("ignore low %.2x\n", c);
     }
     // Should be synced now
     while (1) {
-      unsigned int hi, low;
+      uint32_t hi, low;
       // critical region
       csound->LockMutex(q->lock);
       memcpy(q->values, q->buffer, MAXSENSORS*sizeof(int32_t));
@@ -579,7 +591,7 @@ uintptr_t arduino_listen(void *p)
       if (q->stop)
         //#ifndef WIN32
         //pthread_exit(NULL);
-        //#else
+        //#elsex
         return 0;
       //#endif
       low = arduino_get_byte(q->port);
@@ -589,6 +601,8 @@ uintptr_t arduino_listen(void *p)
       if (DEBUG) printf("low hi = %.2x %.2x\n", low, hi);
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
+      if (DEBUG) printf("In bits: va1=%.2x va2= %.2x; c1=%.2x\n",
+                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f); 
       if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
       q->buffer[c] = val;
     }
@@ -607,7 +621,7 @@ int32_t arduino_deinit(CSOUND *csound, ARD_START *p)
 int32_t arduinoStart(CSOUND* csound, ARD_START* p)
 {
     ARDUINO_GLOBALS *q;
-    int n;
+    int32_t n;
     MYFLT xx =
       (MYFLT)serialport_init(csound,
                              (const char *)p->portName->data,
@@ -638,8 +652,6 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     // Start listening thread
     q->stop = 0;
     q->thread = csound->CreateThread(arduino_listen, (void *)q);
-    csound->RegisterDeinitCallback(csound, p,
-                                   (int32_t (*)(CSOUND *, void *)) arduino_deinit);
     *p->returnedPort = xx;
  return OK;
 }
@@ -665,14 +677,14 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
 {
     ARDUINO_GLOBALS *q = p->q;
     MYFLT val;
-    int ind = *p->index;
+    int32_t ind = *p->index;
     if (ind <0 || ind>MAXSENSORS)
       return csound->PerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
     csound->LockMutex(q->lock);
     val = (MYFLT)q->values[ind];
     csound->UnlockMutex(q->lock);
-    //printf("ind %d val %d\n", ind, q->values[ind]);
+    if (DEBUG) printf("ind %d val %d\n", ind, q->values[ind]);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
     return OK;
@@ -696,10 +708,10 @@ int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
 {
     ARDUINO_GLOBALS *q = p->q;
     JOINT val;
-    int ind1 = *p->index1;
-    int ind2 = *p->index2;
-    int ind3 = *p->index3;
-    int c1, c2, c3;
+    int32_t ind1 = *p->index1;
+    int32_t ind2 = *p->index2;
+    int32_t ind3 = *p->index3;
+    int32_t c1, c2, c3;
     if (ind1<0 || ind1>MAXSENSORS ||
         ind2<0 || ind2>MAXSENSORS ||
         ind3 <0 || ind3>MAXSENSORS)
@@ -738,34 +750,36 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
 #define S(x)    sizeof(x)
 
 static OENTRY serial_localops[] = {
-    { (char *)"serialBegin", S(SERIALBEGIN), 0, 1, (char *)"i", (char *)"So",
+    { (char *)"serialBegin", S(SERIALBEGIN), 0,  (char *)"i", (char *)"So",
       (SUBR)serialBegin, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialEnd", S(SERIALEND), 0, 2, (char *)"", (char *)"i",
+    { (char *)"serialEnd", S(SERIALEND), 0, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialEnd, (SUBR)NULL   },
-    { (char *)"serialWrite_i", S(SERIALWRITE), 0, 1, (char *)"", (char *)"ii",
+    { (char *)"serialWrite_i", S(SERIALWRITE), 0,  (char *)"", (char *)"ii",
       (SUBR)serialWrite, (SUBR)NULL, (SUBR)NULL   },
-       { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, 1, (char *)"", (char *)"iS",
+       { (char *)"serialWrite_i.S", S(SERIALWRITE), 0, (char *)"", (char *)"iS",
       (SUBR)serialWrite_S, (SUBR)NULL, (SUBR)NULL   },
-    { (char *)"serialWrite", S(SERIALWRITE), WR, 2, (char *)"", (char *)"ik",
+    { (char *)"serialWrite", S(SERIALWRITE), WR, (char *)"", (char *)"ik",
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
-    { (char *)"serialWrite.S", S(SERIALWRITE), WR, 2, (char *)"", (char *)"iS",
+    { (char *)"serialWrite.S", S(SERIALWRITE), WR, (char *)"", (char *)"iS",
       (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL   },
-    { (char *)"serialRead", S(SERIALREAD), 0, 2, (char *)"k", (char *)"i",
+    { (char *)"serialRead", S(SERIALREAD), 0, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
-    { (char *)"serialPrint", S(SERIALPRINT), WR,2, (char *)"", (char *)"i",
+    { (char *)"serialPrint", S(SERIALPRINT), WR, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
-    { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
+    { (char *)"serialFlush", S(SERIALFLUSH), 0, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-    { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
-    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio",
+    { "arduinoStart", S(ARD_START), 0,  "i", "So", (SUBR)arduinoStart, NULL,
+      (SUBR) arduino_deinit},
+    { "arduinoRead", S(ARD_READ), 0, "k", "iio",
       (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
-    { "arduinoReadF", S(ARD_READF), 0, 3, "k", "iiii",
+    { "arduinoReadF", S(ARD_READF), 0, "k", "iiii",
       (SUBR)arduinoReadFSetup, (SUBR)arduinoReadF  },
-    { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
-/* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
+    { "arduinoStop", S(ARD_START), 0,  "", "i", (SUBR)arduinoStop, NULL  },
+/* { (char *)"serialAvailable", S(SERIALAVAIL), 0, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
-/* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
+/* { (char *)"serialPeekByte", S(SERIALPEEK),0,  (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialPeekByte, (SUBR)NULL   } */
 };
 
 LINKAGE_BUILTIN(serial_localops)
+#endif // ifndef NO_SERIAL_OPCODES

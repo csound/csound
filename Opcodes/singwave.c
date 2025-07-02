@@ -33,8 +33,12 @@
 /*  excitation source for other instruments*/
 /*******************************************/
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
+
 #include "singwave.h"
 #include "moog1.h"
 
@@ -79,10 +83,10 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound,i)) != NULL))
+    if (LIKELY((ftp = csound->FTFind(csound,i)) != NULL))
       p->wave = ftp;
     else { /* Expect sine wave */
-      return csound->InitError(csound, Str("No table for Modulatr"));
+      return csound->InitError(csound, "%s", Str("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*  p->v_rate = 6.0; */
@@ -96,7 +100,7 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 }
 
 #define Modulatr_setVibFreq(p,vibFreq)  \
-        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*csound->onedsr)
+        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*CS_ONEDSR)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 static MYFLT Modulatr_tick(CSOUND *csound, Modulatr *p)
@@ -122,9 +126,9 @@ static int32_t make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivf
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound,ifn)) != NULL)) p->wave = ftp;
+    if (LIKELY((ftp = csound->FTFind(csound,ifn)) != NULL)) p->wave = ftp;
     else {
-      return csound->InitError(csound, Str("No table for Singwave"));
+      return csound->InitError(csound, "%s", Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);
@@ -152,7 +156,7 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 {
     MYFLT temp = p->rate;
 
-    p->rate = (MYFLT)p->wave->flen * aFreq * csound->onedsr;
+    p->rate = (MYFLT)p->wave->flen * aFreq * CS_ONEDSR;
     temp -= p->rate;
     temp = FABS(temp);
     Envelope_setTarget(&p->pitchEnvelope, p->rate);
@@ -331,7 +335,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
       return NOTOK;
     Envelope_setRate(csound, &(p->voiced.envelope), FL(0.001));
     Envelope_setTarget(&(p->voiced.envelope), FL(0.0));
-
+    p->voiced.h = p->h;
     make_Noise(p->noise);
 
     for (i=0; i<4; i++) {
@@ -360,7 +364,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     {
       MYFLT temp, freq = *p->frequency;
       if ((freq * FL(22.0)) > CS_ESR)      {
-        csound->Warning(csound, Str("This note is too high!!\n"));
+        csound->Warning(csound, "%s", Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
       p->basef = freq;
@@ -415,13 +419,13 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       //      printf("%d: temp=%f ", n, temp);
       temp  += Envelope_tick(&p->noiseEnv) * Noise_tick(csound, &p->noise);
       //      printf("%f\n", temp);
-      lastOutput  = FormSwep_tick(csound, &p->filters[0], temp);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[0], temp);
       //      printf("%d: output=%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[1], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[1], lastOutput);
       //      printf("%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[2], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[2], lastOutput);
       //      printf("%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[3], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[3], lastOutput);
       //      printf("%f ", lastOutput);
       lastOutput *= p->lastGain;
       //      printf("%f ", lastOutput);

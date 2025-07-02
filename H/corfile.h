@@ -22,7 +22,6 @@
 */
 
 #ifndef __corfil
-
 #define __corfil
 
 CORFIL *corfile_create_w(CSOUND*);

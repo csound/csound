@@ -71,10 +71,10 @@
 #  define UNLIKELY(x)   x
 #endif
 
-static int rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
-static int filetyp, outformat;
+static int32_t rewrt_hdr = 0, heartbeat = 0, ringbell = 0, peaks = SF_TRUE;
+static int32_t filetyp, outformat;
 static char* outfilename = NULL;
-static int block = 0;
+static int32_t block = 0;
 #define FIND(MSG)                                                   \
 {                                                                   \
     if (*s == '\0')                                                 \
@@ -103,7 +103,7 @@ static void heartbeater(void)
       break;
     case 3:
       {
-        int n;
+        int32_t n;
         fprintf(stderr, "%d%n", block, &n);
         while (n--) fprintf(stderr, "\010");
       }
@@ -115,7 +115,7 @@ static void heartbeater(void)
     return;
 }
 
-static char set_output_format(char c, char outformch, int *outformat)
+static char set_output_format(char c, char outformch, int32_t *outformat)
 {
     if (UNLIKELY(outformat)) {
       fprintf(stderr, Str("Sound format -%c has been overruled by -%c"),
@@ -163,7 +163,7 @@ static void dieu(char *s)
     usage();
 }
 
-int main(int argc, char **argv)
+int32_t main(int32_t argc, char **argv)
 {
     SF_INFO sfinfo;
 
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
             break;
           case 'H':
             if (isdigit(*s)) {
-              int n;
+              int32_t n;
               sscanf(s, "%d%n", &heartbeat, &n);
               s += n;
             }
@@ -420,11 +420,11 @@ int main(int argc, char **argv)
     if (tvflg) {
       SRC_STATE *state;
       SRC_DATA  data;
-      int err;
-      int C         = (int)(0.01*Rin);
+      int32_t err;
+      int32_t C         = (int)(0.01*Rin);
       float* input  = (float*)calloc(sizeof(float), C*Chans);
       float* output = (float*)calloc(sizeof(float), C*Chans);
-      int count     = 0, countin = 0;
+      int32_t count     = 0, countin = 0;
       double P0     = warp[0].ratio; /* Last ratio */
       double P1     = warp[1].ratio; /* next ratio (at end of segment) */
       sf_count_t CC = 0;             /* index through segment */
@@ -465,8 +465,8 @@ int main(int argc, char **argv)
         /* printf("CC=%d, C=%d, ratio=%f P1=%f x/N=%f\n", */
         /*        CC, C, data.src_ratio, P1, (double)CC/N); */
         if (data.input_frames==0) {
-          int cn = C;
-          if (target-CC<C) { cn=target-CC; printf("only %d left to eos\n", cn); }
+          int32_t cn = C;
+          if (target-CC<C) { cn=(int32_t)(target-CC); printf("only %d left to eos\n", cn); }
           if (cn!= (data.input_frames = sf_readf_float(inf, input, cn)))
             data.end_of_input = SF_TRUE;
           data.data_in = input;
@@ -497,11 +497,11 @@ int main(int argc, char **argv)
     else {                      /* Simpler case with large steops */
       SRC_STATE *state;
       SRC_DATA  data;
-      int err;
-      int C = IBUF;
+      int32_t err;
+      int32_t C = IBUF;
       float* input = (float*)calloc(sizeof(float), C*Chans);
       float* output = (float*)calloc(sizeof(float), C*Chans);
-      int count = 0;
+      int32_t count = 0;
 
       state = src_new(Q, Chans, &err);
       if (UNLIKELY(state==NULL)) {
@@ -580,7 +580,7 @@ static const char *usage_txt[] = {
 
 static void usage(void)
 {
-    int i = -1;
+    int32_t i = -1;
 
     while (usage_txt[++i] != NULL)
       printf("%s\n", Str(usage_txt[i]));

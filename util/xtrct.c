@@ -1,5 +1,5 @@
 /*
-    xtrct.c
+    xtrct.c!
 
     Copyright (C) 1995 John ffitch
 
@@ -92,7 +92,7 @@ static void usage(CSOUND *csound, char *mesg, ...)
 
 static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
 {
-    OPARMS      O;
+    OPARMS *     O = (OPARMS *) csound->Calloc(csound, sizeof(OPARMS));
     char        *inputfile = NULL;
     SNDFILE*    infd;
     SNDFILE*    outfd;
@@ -102,9 +102,9 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     int32_t         debug   = 0;
     int32_t         Omsg;
     XTRC        xtrc;
+    memcpy(O,csound->GetOParms(csound), sizeof(OPARMS));
 
-    csound->GetOParms(csound, &O);
-    Omsg = O.msglevel;
+    Omsg = O->msglevel;
 
     /* Check arguments */
     xtrc.sample = -1; xtrc.stime = -FL(1.0);
@@ -121,9 +121,9 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
           switch(c) {
           case 'o':
             FIND(Str("no outfilename"))
-            O.outfilename = s;         /* soundout name */
+            O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
+            if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
               csound->Die(csound, "%s", Str("-o cannot be stdin"));
             break;
           case 'S':
@@ -227,13 +227,13 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             }
             break;
           case 'H':
-            O.heartbeat = 1;
+            O->heartbeat = 1;
             break;
           case 'R':
-            O.rewrt_hdr = 1;
+            O->rewrt_hdr = 1;
             break;
           case 'N':
-            O.ringbell = 1;            /* notify on completion */
+            O->ringbell = 1;            /* notify on completion */
             break;
           case 'v':                     /* Verbose mode */
             debug = 1;
@@ -274,42 +274,43 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
 
     xtrc.outputs = xtrc.p->nchanls;
 
-    O.outformat = xtrc.p->format; /* Copy from input file */
-    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
-    O.filetyp = xtrc.p->filetyp; /* Copy from input file */
-    O.sfheader = 1;
-    if (O.outfilename == NULL)
-      O.outfilename = "test";
+    O->outformat = xtrc.p->format; /* Copy from input file */
+    O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+    O->filetyp = xtrc.p->filetyp; /* Copy from input file */
+    
+    if (O->outfilename == NULL)
+      O->outfilename = "test";
 
-    csound->SetUtilSr(csound, (MYFLT)xtrc.p->sr);
-    csound->SetUtilNchnls(csound, xtrc.outputs);
+    (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)xtrc.p->sr);
+    (csound->GetUtility(csound))->SetUtilNchnls(csound, xtrc.outputs);
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = (int32_t) ((MYFLT)xtrc.p->sr + FL(0.5));
     sfinfo.channels = xtrc.outputs;
-    sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
+    sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
     /* open file for write */
     fd = NULL;
-    if (strcmp(O.outfilename, "stdout") == 0 ||
-        strcmp(O.outfilename, "-") == 0) {
-      outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
+    if (strcmp(O->outfilename, "stdout") == 0 ||
+        strcmp(O->outfilename, "-") == 0) {
+      outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
-          sflib_close(outfd);
+          csound->SndfileClose(csound,outfd);
           csound->Die(csound, "%s", Str("Memory allocation failure"));
         }
       }
     }
     else
-      fd = csound->FileOpen2(csound, &outfd, CSFILE_SND_W,
-                       O.outfilename, &sfinfo, "SFDIR",
-                       csound->type2csfiletype(O.filetyp, O.outformat), 0);
+      fd = csound->FileOpen(csound, &outfd, CSFILE_SND_W,
+                       O->outfilename, &sfinfo, "SFDIR",
+                       csound->Type2CsfileType(O->filetyp, O->outformat), 0);
     if (UNLIKELY(fd == NULL))
       csound->Die(csound, Str("Failed to open output file %s: %s"),
-                  O.outfilename, Str(sflib_strerror(NULL)));
-    ExtractSound(csound, &xtrc, infd, outfd, &O);
-    if (O.ringbell)
+                  O->outfilename, Str(csound->SndfileStrError(csound,NULL)));
+    ExtractSound(csound, &xtrc, infd, outfd, O);
+    if (O->
+        ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
     return 0;
 }
@@ -320,12 +321,12 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
     SNDFILE*    infd;
     MYFLT       dur;
 
-    csound->SetUtilSr(csound,FL(0.0));      /* set esr 0. with no orchestra   */
+    (csound->GetUtility(csound))->SetUtilSr(csound,FL(0.0));      /* set esr 0. with no orchestra   */
     x->p = (SOUNDIN *) csound->Calloc(csound, sizeof(SOUNDIN));
     x->p->channel = ALLCHNLS;
     x->p->skiptime = FL(0.0);
     strNcpy(x->p->sfname, name,  MAXSNDNAME-1);
-    if ((infd = csound->sndgetset(csound, x->p)) == 0) /*open sndfil, do skiptime*/
+    if ((infd = (csound->GetUtility(csound))->SndinGetSet(csound, x->p)) == 0) /*open sndfil, do skiptime*/
         return(0);
     x->p->getframes = x->p->framesrem;
     dur = (MYFLT) x->p->getframes / x->p->sr;
@@ -337,31 +338,31 @@ EXsndgetset(CSOUND *csound, XTRC *x, char *name)
 static void
 ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *oparms)
 {
-    double buffer[NUMBER_OF_SAMPLES];
+    MYFLT buffer[NUMBER_OF_SAMPLES];
     long  read_in;
     //    long  frames = 0;
     int32_t   block = 0;
 
-    sflib_seek(infd, x->sample, SEEK_CUR);
+    csound->SndfileSeek(csound, infd, x->sample, SEEK_CUR);
     while (x->numsamps>0) {
       int32_t num = NUMBER_OF_SAMPLES / x->outputs;
       if (x->numsamps < num)
-        num = x->numsamps;
+        num = (int32_t) x->numsamps;
       x->numsamps -= num;
-      read_in = sflib_readf_double(infd, buffer, num);
-      sflib_writef_double(outfd, buffer, read_in);
+      read_in = csound->SndfileRead(csound, infd, buffer, num);
+      csound->SndfileWrite(csound, outfd, buffer, read_in);
       block++;
       //frames += read_in;
       if (oparms->rewrt_hdr) {
-        sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
-        sflib_seek(outfd, 0L, SEEK_END); /* Place at end again */
+        csound->SndfileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+        csound->SndfileSeek(csound, outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (oparms->heartbeat) {
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
       if (read_in < num) break;
     }
-    sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+    csound->SndfileCommand(csound,outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
     return;
 }
 
@@ -369,9 +370,9 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
 
 int32_t xtrct_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "extractor", xtrct);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "extractor", xtrct);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "extractor",
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "extractor",
                                              Str("Extract part of a sound file"));
     }
     return retval;

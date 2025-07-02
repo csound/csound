@@ -19,12 +19,18 @@
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
-*/
+*/ 
 
+#ifdef  HAVE_SOCKETS 
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
+
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include <stdlib.h>
 #include <sys/types.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -126,7 +132,7 @@ static uintptr_t udpRecv(void *pdata)
 
     while (p->threadon) {
       /* get the data from the socket and store it in a tmp buffer */
-      if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
+      if ((bytes = (int32_t) recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
         csound->WriteCircularBuffer(csound, p->cb, tmp, bytes/sizeof(MYFLT));
       }
     }
@@ -142,10 +148,10 @@ static int32_t deinit_udpRecv_S(CSOUND *csound, void *pdata)
 
 #ifndef WIN32
     close(p->sock);
-    csound->Message(csound, Str("OSCraw: Closing socket\n"));
+    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
 #else
     closesocket(p->sock);
-    csound->Message(csound, Str("OSCraw: Closing socket\n"));
+    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
 #endif
     return OK;
 }
@@ -161,7 +167,7 @@ static uintptr_t udpRecv_S(void *pdata)
 
     while (p->threadon) {
       /* get the data from the socket and store it in a tmp buffer */
-      if ((bytes = recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
+      if ((bytes = (int32_t) recvfrom(p->sock, (void *)tmp, MTU, 0, &from, &clilen)) > 0) {
         bytes = (bytes+sizeof(MYFLT)-1)/sizeof(MYFLT);
         csound->WriteCircularBuffer(csound, p->cb, tmp, bytes);
       }
@@ -184,17 +190,17 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
 #else
     {
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR))
-        return csound->InitError(csound, Str("Cannot set nonblock"));
+        return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
     }
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -204,7 +210,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, Str("bind failed"));
+      return csound->InitError(csound, "%s", Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -221,12 +227,11 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
       buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-    p->buffsize = p->buffer.size/sizeof(MYFLT);
+    p->buffsize = (int32_t)(p->buffer.size/sizeof(MYFLT));
     p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
     return OK;
@@ -247,10 +252,10 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -260,7 +265,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, Str("bind failed"));
+      return csound->InitError(csound, "%s", Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -277,12 +282,11 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       buf = (MYFLT *) p->tmp.auxp;      /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-    p->buffsize = p->buffer.size/sizeof(MYFLT);
+    p->buffsize = (int32_t) (p->buffer.size/sizeof(MYFLT));
     p->cb = csound->CreateCircularBuffer(csound,  *p->ptr3, sizeof(MYFLT));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv_S, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv_S);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
     return OK;
@@ -316,7 +320,7 @@ static int32_t send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
       str->data = csound->ReAlloc(csound, str->data, len+1);
       str->size  = len;
     }
-    strNcpy(str->data, &p->buf[p->outsamps], len+1);
+    strncpy(str->data, &p->buf[p->outsamps], len+1);
     p->outsamps += len+1;       /* Move bffer on */
     return OK;
 }
@@ -362,10 +366,10 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -375,7 +379,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, Str("bind failed"));
+      return csound->InitError(csound, "%s", Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -396,10 +400,9 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
-    csound->RegisterDeinitCallback(csound, (void *) p, deinit_udpRecv);
     p->buf = p->buffer.auxp;
     p->outsamps = p->rcvsamps = 0;
-    p->buffsize = p->buffer.size/sizeof(MYFLT);
+    p->buffsize = (int32_t)(p->buffer.size/sizeof(MYFLT));
     return OK;
 }
 
@@ -451,7 +454,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     }
 #else
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
 #endif
 
@@ -522,7 +525,11 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
     memset(q, '\0', k);
  again:
     errno = 0;
-    n = recv(p->conn, q, k, 0);
+#ifndef WIN32    
+    n = (int32_t) recv(p->conn, q, k, 0);
+#else
+    n = (int32_t) recv(p->conn, (char *) q, k, 0);
+#endif    
     if (n==0) {      /* Connection broken */
       if (p->res) *p->res = -1;
       close(p->sock);
@@ -531,7 +538,7 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
     }
     if (UNLIKELY(n<0||errno!=0))
       return csound->PerfError(csound, &(p->h),
-                               Str("read from socket failed"));
+                               "%s", Str("read from socket failed"));
     if (k==n) {
       if (p->res) *p->res = sizeof(MYFLT) * CS_KSMPS;
       return OK;
@@ -566,10 +573,10 @@ static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
     RAWOSC *p = (RAWOSC *) pp;
 #ifndef WIN32
     close(p->sock);
-    csound->Message(csound, Str("OSCraw: Closing socket\n"));
+    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
 #else
     closesocket(p->sock);
-    csound->Message(csound, Str("OSCraw: Closing socket\n"));
+    csound->Message(csound, "%s", Str("OSCraw: Closing socket\n"));
 #endif
     return OK;
 }
@@ -588,14 +595,14 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
 #else
     u_long nMode = 1; // 1: NON-BLOCKING
     if (ioctlsocket (p->sock, FIONBIO, &nMode) == SOCKET_ERROR)
-       return csound->InitError(csound, Str("Cannot set nonblock"));
+       return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock < 0)) {
-      return csound->InitError(csound, Str("creating socket"));
+      return csound->InitError(csound, "%s", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -605,7 +612,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, Str("bind failed"));
+      return csound->InitError(csound, "%s", Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -614,34 +621,13 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
       buf = (MYFLT *) p->buffer.auxp;   /* make sure buffer is empty */
       memset(buf, 0, MTU);
     }
-
-    csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
     if(p->sout->data == NULL)
-      tabinit(csound, p->sout, 2);
+      tabinit(csound, p->sout, 2, p->h.insdshead);
 
   return OK;
 }
 
-static inline char le_test(){
-    union _le {
-      char c[2];
-      short s;
-    } le = {{0x0001}};
-    return le.c[0];
-}
 
-static inline char *byteswap(char *p, int32_t N){
-    if (le_test()) {
-      char tmp;
-      int32_t j ;
-      for(j = 0; j < N/2; j++) {
-        tmp = p[j];
-        p[j] = p[N - j - 1];
-        p[N - j - 1] = tmp;
-      }
-    }
-    return p;
-}
 
 static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
@@ -649,7 +635,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     if (sout->sizes[0] < 2 ||
        sout->dimensions > 1)
       return
-        csound->PerfError(csound, &(p->h), Str("output array too small\n"));
+        csound->PerfError(csound, &(p->h), "%s", Str("output array too small\n"));
 
     STRINGDAT *str = (STRINGDAT *) p->sout->data;
     char *buf = (char *) p->buffer.auxp;
@@ -661,7 +647,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
     char *types  = NULL;
     struct sockaddr from;
     socklen_t clilen = sizeof(from);
-    int32_t bytes =
+    int32_t bytes = (int32_t)
       recvfrom(p->sock, (void *)buf, MTU-1, 0, &from, &clilen);
     if (bytes < 0) bytes = 0;
 
@@ -687,7 +673,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             memset(str[n].data,0,len+1);
             str[n].size  = len+1;
           }
-          strNcpy(str[n].data, buf, len+1);
+          strncpy(str[n].data, buf, len+1);
           //str[n].data[len] = '\0'; // explicitly terminate it.
           n++;
           buf += ((size_t) ceil((len+1)/4.)*4);
@@ -698,7 +684,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
             str[n].size  = len+1;
           }
-          strNcpy(str[n].data, buf, len+1);
+          strncpy(str[n].data, buf, len+1);
           //str[n].data[str[n].size-1] = '\0'; // explicitly terminate it.
           types = str[n].data;
           n++;
@@ -731,7 +717,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
-            strNcpy(str[n].data, buf, len+1);
+            strncpy(str[n].data, buf, len+1);
             //str[n].data[len] = '\0';
             len = ceil((len+1)/4.)*4;
             buf += len;
@@ -743,7 +729,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
-            strNcpy(str[n].data, buf, len+1);
+            strncpy(str[n].data, buf, len+1);
             //str[n].data[len] = '\0';
             buf += len;
           }
@@ -764,21 +750,23 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY sockrecv_localops[] = {
-  { "sockrecv.k", S(SOCKRECV), 0, 3, "k", "ii",
-    (SUBR) init_recv, (SUBR) send_recv_k, NULL },
-  { "sockrecv.a", S(SOCKRECV), 0, 3, "a", "ii",
-    (SUBR) init_recv, (SUBR) send_recv, NULL },
-  { "sockrecv.S", S(SOCKRECVSTR), 0, 3, "S", "ii",
+  { "sockrecv.k", S(SOCKRECV), 0, "k", "ii",
+    (SUBR) init_recv, (SUBR) send_recv_k, NULL, (SUBR) deinit_udpRecv },
+  { "sockrecv.a", S(SOCKRECV), 0, "a", "ii",
+    (SUBR) init_recv, (SUBR) send_recv, (SUBR) deinit_udpRecv },
+  { "sockrecv.S", S(SOCKRECVSTR), 0, "S", "ii",
     (SUBR) init_recv_S,
-    (SUBR) send_recv_S, NULL },
-  { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii",
+    (SUBR) send_recv_S, NULL, (SUBR) deinit_udpRecv_S },
+  { "sockrecvs", S(SOCKRECV), 0, "aa", "ii",
     (SUBR) init_recvS,
-    (SUBR) send_recvS, NULL },
-  { "strecv", S(SOCKRECVT), 0, 3, "az", "Si",
+    (SUBR) send_recvS,  (SUBR) deinit_udpRecv },
+  { "strecv", S(SOCKRECVT), 0, "az", "Si",
     (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
-  { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",
-    (SUBR) init_raw_osc, (SUBR) perf_raw_osc, NULL, NULL}
+  { "OSCraw", S(RAWOSC), 0, "S[]k", "i",
+    (SUBR) init_raw_osc, (SUBR) perf_raw_osc,
+    (SUBR) destroy_raw_osc, NULL}
 };
 
 LINKAGE_BUILTIN(sockrecv_localops)
+#endif

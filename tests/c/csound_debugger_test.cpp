@@ -2,11 +2,18 @@
  * File:   csound_debugger_test.c
  * Author: mantaraya36
  */
-
+#define __BUILDING_LIBCSOUND
 #include <stdio.h>
-#include "gtest/gtest.h"
-#include "csound.h"
+
+#include "csoundCore.h"
 #include "csdebug.h"
+#include "gtest/gtest.h"
+
+
+
+extern "C"  void csoundInputMessage(CSOUND *csound, const char * sc);
+
+//#define csoundInputMessage(a,b) csoundEventString(a,b,0)
 
 class DebuggerTests : public ::testing::Test {
 public:
@@ -20,16 +27,13 @@ public:
 
     virtual void SetUp ()
     {
-        csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
-        csound = csoundCreate (0);
-        csoundCreateMessageBuffer (csound, 0);
-        csoundSetOption (csound, "--logfile=NULL");
+      csound = csoundCreate (NULL,NULL);
+      csoundCreateMessageBuffer (csound, 0);
+      //csoundSetOption (csound, "--logfile=NULL");
     }
 
     virtual void TearDown ()
     {
-        csoundCleanup (csound);
-        csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
         csound = nullptr;
     }
@@ -56,7 +60,7 @@ TEST_F (DebuggerTests, testAddBreakpoint)
 
 static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    int *count = (int *) userdata;
+    int32_t *count = (int32_t *) userdata;
     *count = *count + 1;
 }
 
@@ -69,10 +73,10 @@ TEST_F (DebuggerTests, testAddCallback)
 
 TEST_F (DebuggerTests, testBreakpointOnce)
 {
-    int i;
-    int break_count = 0;
+    int32_t i;
+    int32_t break_count = 0;
 
-    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
+    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n", 0);
     csoundInputMessage(csound, "i 1.1 0   1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -90,7 +94,7 @@ TEST_F (DebuggerTests, testBreakpointOnce)
 static void brkpt_cb2(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
 //    INSDS *i = csoundDebugGetInstrument(csound);
-    int *count = (int *) userdata;
+    int32_t *count = (int32_t *) userdata;
     *count = *count + 1;
     csoundRemoveInstrumentBreakpoint(csound, bkpt_info->breakpointInstr->p1);
     csoundDebugContinue(csound);
@@ -98,10 +102,10 @@ static void brkpt_cb2(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 
 TEST_F (DebuggerTests, testBreakpointRemove)
 {
-    int i;
-    int break_count = 0;
+    int32_t i;
+    int32_t break_count = 0;
 
-    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n");
+    csoundCompileOrc(csound, "instr 1\nasig oscil 1, p4\nendin\n", 0);
     csoundInputMessage(csound, "i 1.1 0   1 440");
     csoundInputMessage(csound, "i 1.2 0   1 880");
     csoundInputMessage(csound, "i 1.1 0.1 1 440");
@@ -140,7 +144,7 @@ static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
 
 TEST_F (DebuggerTests, testVariables)
 {
-    csoundCompileOrc(csound, "instr 1\n ivar init 2.5\n kvar init 3.5\n asig init 0.5\nSvar init \"hello\"\n endin\n");
+  csoundCompileOrc(csound, "instr 1\n ivar init 2.5\n kvar init 3.5\n asig init 0.5\nSvar init \"hello\"\n endin\n", 0);
     csoundInputMessage(csound, "i 1 0  1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -155,13 +159,14 @@ static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
     debug_instr_t *debug_instr = bkpt_info->breakpointInstr;
     ASSERT_EQ (debug_instr->p1, 1);
     ASSERT_EQ (debug_instr->p2, 0);
-    ASSERT_EQ (debug_instr->p3, 1.1);
+    ASSERT_EQ (debug_instr->p3, (MYFLT) 1.1);
+
     ASSERT_EQ (debug_instr->kcounter, 0);
 }
 
 TEST_F (DebuggerTests, testBreakpointInstrument)
 {
-    csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n");
+  csoundCompileOrc(csound, "instr 1\n Svar init \"hello\"\n endin\n", 0);
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
     csoundDebuggerInit(csound);
@@ -171,10 +176,9 @@ TEST_F (DebuggerTests, testBreakpointInstrument)
     csoundDebuggerClean(csound);
 }
 
-int count = 0;
+int32_t count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
     count++;
 }
 
@@ -186,7 +190,7 @@ TEST_F (DebuggerTests, testLineBreakpointAddRemove)
                      "ksig line 0, p3, 1\n"
                      "ksig2 line 1, p3, 0\n"
                      "asig3 oscils 0.5, 440, 0.5\n"
-                     "endin\n");
+                     "endin\n", 0);
 
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
@@ -232,7 +236,7 @@ TEST_F (DebuggerTests, testLineBreakpoint)
                      "ksig line 0, p3, 1\n"
                      "ksig2 line 1, p3, 0\n"
                      "asig3 oscils 0.5, 440, 0.5\n"
-                     "endin\n");
+                     "endin\n", 0);
 
     csoundInputMessage(csound, "i 1 0  1.1 440");
     csoundStart(csound);
@@ -280,7 +284,7 @@ TEST_F (DebuggerTests, testLineBreakpoint)
 static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
-    int *line = (int *) line_;
+    int32_t *line = (int32_t *) line_;
     ASSERT_EQ (debug_opcode->line, *line);
 
     if (*line == 5) {
@@ -318,9 +322,10 @@ TEST_F (DebuggerTests, testLineBreakpointOrcFile)
 
     const char* argv[] = {"csound", "debug.orc", "debug.sco"};
     csoundCompile(csound, 3, argv);
+    csoundStart(csound);
 
     csoundDebuggerInit(csound);
-    int line = 5;
+    int32_t line = 5;
     csoundSetBreakpointCallback(csound, brkpt_cb7, &line);
     csoundSetBreakpoint(csound, line, 0, 0);
     csoundPerformKsmps(csound);
@@ -359,22 +364,22 @@ static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
     switch (count) {
     case 0:
-        ASSERT_EQ (bkpt_info->breakpointInstr->p1, 1.2);
+        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 1.2);
         break;
     case 1:
-        ASSERT_EQ (bkpt_info->breakpointInstr->p1, 1.3);
+        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 1.3);
         break;
     case 2:
-        ASSERT_EQ (bkpt_info->breakpointInstr->p1, 30);
+        ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 30);
         break;
     case 3:
-         ASSERT_EQ (bkpt_info->breakpointInstr->p1, 30.1);
+         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 30.1);
         break;
     case 4:
-         ASSERT_EQ (bkpt_info->breakpointInstr->p1, 1);
+         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT) 1);
         break;
     case 5:
-         ASSERT_EQ (bkpt_info->breakpointInstr->p1, 1.2);
+         ASSERT_EQ (bkpt_info->breakpointInstr->p1, (MYFLT)1.2);
         break;
     }
     count++;
@@ -408,7 +413,7 @@ TEST_F (DebuggerTests, testNext)
                              "kvar = kvar + 1\n"
                              "ksig2 line 1, p3, 0\n"
                              "kvar = kvar + 1\n"
-                             "endin\n");
+                             "endin\n", 0);
 
     csoundInputMessage(csound, "i 1 0  0.1");
     csoundInputMessage(csound, "i 1.2 0  0.1");
@@ -440,7 +445,7 @@ TEST_F (DebuggerTests, testNext)
     csoundRemoveInstrumentBreakpoint(csound, 1.2);
     csoundDebugContinue(csound);
 
-    int i;
+    int32_t i;
     for (i = 0; i < 200; i++) {
         csoundPerformKsmps(csound);
     }
@@ -465,3 +470,4 @@ TEST_F (DebuggerTests, testNext)
 
     ASSERT_EQ(count, 5);
 }
+

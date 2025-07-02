@@ -21,8 +21,11 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
+#ifdef BUILD_PLUGINS
+#include "csdl.h"
+#else
 #include "csoundCore.h"
+#endif
 #include "interlocks.h"
 
 typedef struct _equ {
@@ -88,7 +91,7 @@ static int32_t equ_process(CSOUND *csound, equ *p)
 }
 
 static OENTRY eqfil_localops[] = {
-  {"eqfil", sizeof(equ), 0, 3,
+  {"eqfil", sizeof(equ), 0, 
    "a", "akkko", (SUBR)equ_init, (SUBR)equ_process},
 };
 

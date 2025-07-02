@@ -24,14 +24,17 @@
 
 /*                                                      UGENS7.H        */
 
+#pragma once
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct ovrlap {
         struct ovrlap  *nxtact, *nxtfree;
         int32    timrem, dectim, formphs, forminc, risphs, risinc, decphs, decinc;
+        double  formphsf, formincf, risphsf, risincf, decphsf, decincf;
         MYFLT   curamp, expamp;
         MYFLT   glissbas;/* Gliss factor to add to forminc (ifna index incr) */
-        int32    sampct;         /* Sample count since grain started */
+       int32    sampct;         /* Sample count since grain started */
 } OVRLAP;
 
 typedef struct {
@@ -41,11 +44,13 @@ typedef struct {
   /* kgliss and ifmode are same field */
         OVRLAP  basovrlap;
         int32    durtogo, fundphs, fofcount, prvsmps;
+        MYFLT   fundphsf;
         MYFLT   prvband, expamp, preamp;
         int16   foftype;        /* Distinguish fof and fof2 */
         int16   xincod, ampcod, fundcod, formcod, fmtmod;
         AUXCH   auxch;
         FUNC    *ftp1, *ftp2;
+        int32   floatph;         /* floating-point phase */
 } FOFS;
 
 typedef struct {

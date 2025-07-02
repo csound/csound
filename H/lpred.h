@@ -49,7 +49,7 @@ extern "C" {
    * NF: fft size, power-of-two (NF >= N*2-1)
    * returns: autocorrelation r
    */
-  MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size, MYFLT *b, int NF);
+  MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int32_t size, MYFLT *b, int32_t NF);
 
 
   /**
@@ -60,7 +60,7 @@ extern "C" {
    *
    * returns: opaque LP structure to use with linear prediction function
    */
-  void *csoundLPsetup(CSOUND *csound, int N, int M);
+  void *csoundLPsetup(CSOUND *csound, int32_t N, int32_t M);
 
   /**
    * Linear prediction setup deallocation
@@ -96,7 +96,7 @@ extern "C" {
    * returns: array with N cepstrum coefficients
    * NB: cepstrum is computed from power spectrum
    */
-  MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int M, int N);
+  MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int32_t M, int32_t N);
 
   /**
    * Compute all-pole coefficients and linear prediction error
@@ -112,7 +112,7 @@ extern "C" {
    * E in place of coefficient 0 [E,c1,...,cM]
    * NB: cepstrum is expected to be computed from power spectrum
    */
-  MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int N, int M);
+  MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int32_t N, int32_t M);
 
   /**
    * Returns the computed RMS from LP object
@@ -193,6 +193,7 @@ extern "C" {
     int32_t M, N, wlen, cp, bp;
     MYFLT *win;
     void *setup;
+    void *fftsetup;
   } LPCPVS;
 
 
@@ -227,7 +228,7 @@ extern "C" {
     MYFLT   *ar, *asig;
     ARRAYDAT *kparm;
     MYFLT   *kmin, *kmax, *iprd, *imod, *iscl, *istor;
-    int     scale, ord;
+    int32_t     scale, ord;
     AUXCH   y1m,y2m,y1o,y2o,y1c,y2c;
     MYFLT kcnt;
   } RESONB;

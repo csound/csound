@@ -9,12 +9,12 @@ nchnls	=	2
 struct MyType  imaginary:k, real:k, kimaginary, kreal
 struct MyType2 x:i, y:i
 
-opcode processMyType(in:MyType):(MyType)
+opcode processMyType(var:MyType):(MyType)
   retVal:MyType init 0, 0, 0, 0
-  retVal.imaginary = in.imaginary + 1
-  retVal.real = in.real + 1
-  retVal.kimaginary = in.kimaginary + 1
-  retVal.kreal = in.kreal + 1
+  retVal.imaginary = var.imaginary + 1 
+  retVal.real = var.real + 1 
+  retVal.kimaginary = var.kimaginary + 1
+  retVal.kreal = var.kreal + 1 
   xout retVal
 endop
 

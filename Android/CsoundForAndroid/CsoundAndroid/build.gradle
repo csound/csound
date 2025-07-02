@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
+    namespace "com.csounds.lib"
     compileSdkVersion 29
     defaultConfig {
         minSdkVersion 21

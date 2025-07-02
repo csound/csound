@@ -24,6 +24,9 @@
 */
 
                                                         /* biquad.h */
+
+#pragma once
+
 #include "stdopcod.h"
 
                                 /* Structure for biquadratic filter */
@@ -62,9 +65,9 @@ typedef struct {
     OPDS    h;
     MYFLT   *ar,
             *xamp, *xcps, *wave, *pw, *sine, *maxd, *leak, *inyq, *iphs, *iskip;
-    MYFLT   ynm1, ynm2, leaky, nyq;
+   MYFLT   ynm1, ynm2, leaky, nyq, fphs;
     int16   ampcod, cpscod;
-    int32   lphs;
+  int32   lphs,  floatph;
     FUNC    *ftp;
  /* Insert VDelay here */
     AUXCH   aux;

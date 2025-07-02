@@ -54,7 +54,7 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       stick->initme = 1;
     }
     if (UNLIKELY(*stick->ktable != stick->table)) {
-      if (UNLIKELY((void *)(stick->ftp = csound->FTnp2Find(csound, stick->ktable))
+      if (UNLIKELY((void *)(stick->ftp = csound->FTFind(csound, stick->ktable))
                    == NULL)) {
         csound->Warning(csound, Str("linuxjoystick: No such table %f"),
                         *(float*)(stick->ktable));
@@ -141,7 +141,7 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 }
 
 static OENTRY localops[] = {
-  { "joystick", sizeof(LINUXJOYSTICK), 0, 2, "k", "kk",
+  { "joystick", sizeof(LINUXJOYSTICK), 0,  "k", "kk",
     NULL, (SUBR) linuxjoystick, NULL
   },
 };

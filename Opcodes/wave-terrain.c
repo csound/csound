@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
+
 #include "wave-terrain.h"
 #include <math.h>
 
@@ -34,8 +34,8 @@
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
-    FUNC *ftpx = csound->FTnp2Find(csound, p->i_tabx);
-    FUNC *ftpy = csound->FTnp2Find(csound, p->i_taby);
+    FUNC *ftpx = csound->FTFind(csound, p->i_tabx);
+    FUNC *ftpy = csound->FTFind(csound, p->i_taby);
 
     /* CHECK */
     if (UNLIKELY((ftpx == NULL)||(ftpy == NULL))) {
@@ -66,7 +66,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     MYFLT krx = *(p->krx), kry = *(p->kry);
     MYFLT sizx = p->sizx, sizy = p->sizy;
     MYFLT theta = p->theta;
-    MYFLT dtpidsr = csound->tpidsr;
+    MYFLT dtpidsr = CS_TPIDSR;
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
@@ -114,8 +114,8 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
   uint32_t srcpos = 0;
   uint32_t dstpos = (uint32_t)MYFLT2LONG(*p->ipos);
 
-  FUNC *fsrc = csound->FTnp2Find(csound, p->isrc); /* Source table */
-  FUNC *fdst = csound->FTnp2Find(csound, p->idst); /* Destination table */
+  FUNC *fsrc = csound->FTFind(csound, p->isrc); /* Source table */
+  FUNC *fdst = csound->FTFind(csound, p->idst); /* Destination table */
 
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
     return csound->InitError(csound,  "%s",  Str("Source table must be same size or "
@@ -146,11 +146,11 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
-    FUNC *fpoint = csound->FTnp2Find(csound, p->i_point);
-    FUNC *fmass  = csound->FTnp2Find(csound, p->i_mass);
-    FUNC *fstiff = csound->FTnp2Find(csound, p->i_stiff);
-    FUNC *fdamp  = csound->FTnp2Find(csound, p->i_damp);
-    FUNC *fvel   = csound->FTnp2Find(csound, p->i_vel);
+    FUNC *fpoint = csound->FTFind(csound, p->i_point);
+    FUNC *fmass  = csound->FTFind(csound, p->i_mass);
+    FUNC *fstiff = csound->FTFind(csound, p->i_stiff);
+    FUNC *fdamp  = csound->FTFind(csound, p->i_damp);
+    FUNC *fvel   = csound->FTFind(csound, p->i_vel);
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {
@@ -218,7 +218,7 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     FUNC *fstiff = p->fstiff;
     FUNC *fdamp  = p->fdamp;
     FUNC *fvel   = p->fvel;
-    MYFLT inc    = p->size * *(p->kpch) * csound->onedsr;
+    MYFLT inc    = p->size * *(p->kpch) * CS_ONEDSR;
     MYFLT amp    = *(p->kamp);
     MYFLT pos    = p->pos;
     MYFLT *aout  = p->aout;
@@ -272,7 +272,7 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
       /* NO INTERPOLATION */
       aout[i] = fpoint->ftable[(int32_t)pos] * amp;
 
-      pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
+      pos += inc /* p->size * *(p->kpch) * CS_ONEDSR */;
       if (UNLIKELY(pos > p->size)) {
         pos -= p->size;
       }
@@ -291,11 +291,11 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "wterrain", S(WAVETER), TR, 3,  "a", "kkkkkkii",
+  { "wterrain", S(WAVETER), TR,   "a", "kkkkkkii",
     (SUBR)wtinit, (SUBR)wtPerf },
-  { "scantable", S(SCANTABLE),TR, 3,"a", "kkiiiii",
+  { "scantable", S(SCANTABLE),TR, "a", "kkiiiii",
     (SUBR)scantinit,(SUBR)scantPerf},
-  { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
+  { "scanhammer",S(SCANHAMMER),TB, "", "iiii", (SUBR)scanhinit, NULL, NULL    }
 };
 
 int32_t wave_terrain_init_(CSOUND *csound)

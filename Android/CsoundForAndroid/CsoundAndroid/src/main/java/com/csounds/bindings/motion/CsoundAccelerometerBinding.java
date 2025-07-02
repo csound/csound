@@ -37,8 +37,8 @@ import com.csounds.bindings.AbstractBinding;
 
 import java.util.List;
 
-import csnd6.CsoundMYFLTArray;
-import csnd6.controlChannelType;
+import csnd7.CsoundMYFLTArray;
+import csnd7.controlChannelType;
 
 public class CsoundAccelerometerBinding extends AbstractBinding implements SensorEventListener {
 

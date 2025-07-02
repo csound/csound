@@ -4,8 +4,9 @@
 set(CMAKE_VERBOSE_MAKEFILE ON)
 #### NOTE the processor type needs setting
 include(CheckCCompilerFlag)
-set(CMAKE_C_FLAGS "")
+set(CMAKE_C_FLAGS "-DHAVE_NEON ")
 set(CMAKE_CXX_FLAGS "")
+
 
 
 

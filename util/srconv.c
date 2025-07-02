@@ -66,13 +66,13 @@
 #if 0
 static  void    usage(CSOUND *);
 
-static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
-                       SNDFILE *outfd, int length, OPARMS *oparms)
+static int32_t writebuffer(CSOUND *csound, MYFLT *out_buf, int32_t *block,
+                       SNDFILE *outfd, int32_t length,const OPARMS **oparms)
 {
-    sflib_write_MYFLT(outfd, out_buf, length);
+    csound->SndfileWriteSamples(csound, outfd, out_buf, length);
     (*block)++;
     if (oparms->rewrt_hdr)
-      csound->rewriteheader((struct SNDFILE *)outfd);
+      csound->RewriteHeader(csound, SNDFILE *)outfd);
     switch (oparms->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\010",
@@ -83,7 +83,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
         break;
       case 3:
         {
-          int n;
+          int32_t n;
           csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", *block, &n);
           while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\010");
         }
@@ -95,7 +95,7 @@ static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
 }
 
 static char set_output_format(CSOUND *csound, char c, char outformch,
-                              OPARMS *oparms)
+                             const OPARMS **oparms)
 {
     if (oparms->outformat) {
       csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
@@ -143,7 +143,7 @@ static void dieu(CSOUND *csound, char *s)
     usage(csound);
 }
 
-static int srconv(CSOUND *csound, int argc, char **argv)
+static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 {
     MYFLT
       *input,     /* pointer to start of input buffer */
@@ -210,7 +210,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     FILE        *tvfp = NULL;   /* time-vary function file */
     SOUNDIN     *p;
-    int         channel = ALLCHNLS;
+    int32_t         channel = ALLCHNLS;
     MYFLT       beg_time = FL(0.0), input_dur = FL(0.0), sr = FL(0.0);
     char        *infile = NULL, *bfile = NULL;
     SNDFILE     *inf = NULL;
@@ -219,20 +219,21 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     char        outformch = 's';
     unsigned    outbufsiz = 0U;
     SNDFILE     *outfd = NULL;
-    OPARMS      O;
-    int         block = 0;
+    OPARMS      *O = csound->Calloc(csound, sizeof(OPARMS));
+    int32_t     block = 0;
     char        err_msg[256];
 
-    O.outformat = AE_SHORT;
+    O->outformat = AE_SHORT;
     /* csound->e0dbfs = csound->dbfs_to_float = FL(1.0);*/
+    memcpy(O, csound->GetOParms(csound), sizeof(OPARMS));
 
     if ((envoutyp = csound->GetEnv(csound, "SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
-        O.filetyp = TYP_AIFF;
+        O->filetyp = TYP_AIFF;
       else if (strcmp(envoutyp, "WAV") == 0)
-        O.filetyp = TYP_WAV;
+        O->filetyp = TYP_WAV;
       else if (strcmp(envoutyp, "IRCAM") == 0)
-        O.filetyp = TYP_IRCAM;
+        O->filetyp = TYP_IRCAM;
       else {
         snprintf(err_msg, 256, Str("%s not a recognized SFOUTYP env setting"),
                 envoutyp);
@@ -251,30 +252,30 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           switch (c) {
           case 'o':
             FIND(Str("no outfilename"))
-            O.outfilename = s;         /* soundout name */
+            O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(O.outfilename, "stdin") == 0) {
+            if (strcmp(O->outfilename, "stdin") == 0) {
               csound->ErrorMsg(csound, "%s", Str("-o cannot be stdin"));
               return -1;
             }
 #if defined(WIN32)
-            if (strcmp(O.outfilename, "stdout") == 0) {
+            if (strcmp(O->outfilename, "stdout") == 0) {
               csound->ErrorMsg(csound, "%s", Str("stdout audio not supported"));
               return -1;
             }
 #endif
             break;
           case 'A':
-            O.filetyp = TYP_AIFF;      /* AIFF output request*/
+            O->filetyp = TYP_AIFF;      /* AIFF output request*/
             break;
           case 'J':
-            O.filetyp = TYP_IRCAM;     /* IRCAM output request */
+            O->filetyp = TYP_IRCAM;     /* IRCAM output request */
             break;
           case 'W':
-            O.filetyp = TYP_WAV;       /* WAV output request */
+            O->filetyp = TYP_WAV;       /* WAV output request */
             break;
           case 'h':
-            O.filetyp = TYP_RAW;       /* skip sfheader  */
+            O->filetyp = TYP_RAW;       /* skip sfheader  */
             break;
           case 'c':
           case '8':
@@ -284,42 +285,42 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'l':
           case '3':
           case 'f':
-            outformch = set_output_format(csound, c, outformch, &O);
+            outformch = set_output_format(csound, c, outformch, ;
             break;
           case 'R':
-            O.rewrt_hdr = 1;
+            O->rewrt_hdr = 1;
             break;
           case 'H':
             if (isdigit(*s)) {
-              int n;
-              sscanf(s, "%d%n", &O.heartbeat, &n);
+              int32_t n;
+              csound->Sscanf(s, "%d%n", &O->heartbeat, &n);
               s += n;
             }
-            else O.heartbeat = 1;
+            else O->heartbeat = 1;
             break;
           case 'N':
-            O.ringbell = 1;        /* notify on completion */
+            O->ringbell = 1;        /* notify on completion */
             break;
           case 'Q':
             FIND(Str("No Q argument"))
-            sscanf(s,"%d", &Q);
+            csound->Sscanf(s,"%d", &Q);
             while (*++s);
             break;
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &P);
+            csound->Sscanf(s,"%lf", &P);
 #else
-            csound->sscanf(s,"%f", &P);
+            csound->Sscanf(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &Rout);
+            csound->Sscanf(s,"%lf", &Rout);
 #else
-            csound->sscanf(s,"%f", &Rout);
+            csound->Sscanf(s,"%f", &Rout);
 #endif
             while (*++s);
             break;
@@ -351,7 +352,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       usage(csound);
       return -1;
     }
-    if ((inf = csound->SAsndgetset(csound, infile, &p, &beg_time,
+    if ((inf = (csound->GetUtility(csound))->SndinGetSetSA(csound, infile, &p, &beg_time,
                                    &input_dur, &sr, channel)) == NULL) {
       csound->ErrorMsg(csound, Str("error while opening %s"), infile);
       return -1;
@@ -433,34 +434,34 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     }
     /* This is not right *********  */
     if (P != FL(0.0)) {
-      csound->SetUtilSr(csound,Rin);
+      (csound->GetUtility(csound))->SetUtilSr(csound,Rin);
     }
     if (P == FL(0.0)) {
-      csound->SetUtilSr(csound,Rout);
+      (csound->GetUtility(csound))->SetUtilSr(csound,Rout);
     }
 
-    if (O.outformat == 0)
-      O.outformat = AE_SHORT;//p->format;
-    O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
-    if (O.filetyp == TYP_RAW) {
-      O.sfheader = 0;
-      O.rewrt_hdr = 0;
+    if (O->outformat == 0)
+      O->outformat = AE_SHORT;//p->format;
+    O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+    if (O->filetyp == TYP_RAW) {
+      
+      O->rewrt_hdr = 0;
     }
     else
-      O.sfheader = 1;
+      
 #ifdef NeXT
-    if (O.outfilename == NULL && !O.filetyp)
-      O.outfilename = "test.snd";
-    else if (O.outfilename == NULL)
-      O.outfilename = "test";
+    if (O->outfilename == NULL && !O->filetyp)
+      O->outfilename = "test.snd";
+    else if (O->outfilename == NULL)
+      O->outfilename = "test";
 #else
-    if (O.outfilename == NULL) {
-      if (O.filetyp == TYP_WAV)
-        O.outfilename = "test.wav";
-      else if (O.filetyp == TYP_AIFF)
-        O.outfilename = "test.aif";
+    if (O->outfilename == NULL) {
+      if (O->filetyp == TYP_WAV)
+        O->outfilename = "test.wav";
+      else if (O->filetyp == TYP_AIFF)
+        O->outfilename = "test.aif";
       else
-        O.outfilename = "test";
+        O->outfilename = "test";
     }
 #endif
     {
@@ -469,45 +470,45 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       sfinfo.samplerate = (int) ((double) Rout + 0.5);
       sfinfo.channels = (int) p->nchanls;
-      //printf("filetyp=%x outformat=%x\n", O.filetyp, O.outformat);
-      sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
-      if (strcmp(O.outfilename, "stdout") != 0) {
-        name = csound->FindOutputFile(csound, O.outfilename, "SFDIR");
+      //printf("filetyp=%x outformat=%x\n", O->filetyp, O->outformat);
+      sfinfo.format = TYPE2SF(O->filetyp) | FORMAT2SF(O->outformat);
+      if (strcmp(O->outfilename, "stdout") != 0) {
+        name = csound->FindOutputFile(csound, O->outfilename, "SFDIR");
         if (name == NULL) {
-          snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
+          snprintf(err_msg, 256, Str("cannot open %s."), O->outfilename);
           goto err_rtn_msg;
         }
-        outfd = sflib_open(name, SFM_WRITE, &sfinfo);
+        outfd = csound->SndfileOpen(csound,name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
-                                   csound->type2csfiletype(O.filetyp,
-                                                           O.outformat),
+                                   csound->Type2CsfileType(O->filetyp,
+                                                           O->outformat),
                                    1, 0);
         else {
-          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), sflib_strerror(NULL));
+          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), csound->SndfileStrError(csound,NULL));
           goto err_rtn_msg;
         }
         csound->Free(csound, name);
       }
       else
-        outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 1);
+        outfd = csound->SndfileOpenFd(csound,1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
-        snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
+        snprintf(err_msg, 256, Str("cannot open %s."), O->outfilename);
         goto err_rtn_msg;
       }
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
-                                      O.outfilename);
-      sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
+                                      O->outfilename);
+      csound->SndfileCommand(csound,outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
-    csound->SetUtilSr(csound, (MYFLT)p->sr);
-    csound->SetUtilNchnls(csound, Chans = p->nchanls);
+    (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)p->sr);
+    (csound->GetUtility(csound))->SetUtilNchnls(csound, Chans = p->nchanls);
 
-    outbufsiz = OBUF * O.sfsampsize;                   /* calc outbuf size */
+    outbufsiz = OBUF * O->sfsampsize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
-                    outbufsiz, csound->getstrformat(O.outformat),
-                    O.outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
+                    outbufsiz, csound->GetStrFormat(O->outformat),
+                    O->outfilename);
+    csound->Message(csound, " (%s)\n",csound->Type2String(O->filetyp));
 
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the
@@ -587,7 +588,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
  /* initialization: */
 
-    nread = csound->getsndin(csound, inf, input, IBUF2, p);
+    nread = (csound->GetUtility(csound))->Sndin(csound, inf, input, IBUF2, p);
     for(i=0; i < nread; i++)
        input[i] *= 1.0/csound->Get0dBFS(csound);
     nMax = (long)(input_dur * p->sr);
@@ -627,7 +628,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           nextOut++;
           if (nextOut >= (output + OBUF)) {
             nextOut = output;
-            writebuffer(csound, output, &block, outfd, OBUF, &O);
+            writebuffer(csound, output, &block, outfd, OBUF, ;
           }
         }
 
@@ -644,7 +645,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
+            nread = (csound->GetUtility(csound))->Sndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;
@@ -687,7 +688,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           nextOut++;
           if (nextOut >= (output + OBUF)) {
             nextOut = output;
-            writebuffer(csound, output, &block, outfd, OBUF, &O);
+            writebuffer(csound, output, &block, outfd, OBUF, ;
           }
         }
 
@@ -704,7 +705,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
-            nread = csound->getsndin(csound, inf, nextIn, IBUF2, p);
+            nread = (csound->GetUtility(csound))->Sndin(csound, inf, nextIn, IBUF2, p);
             for(i=0; i < nread; i++)
                input[i] *= 1.0/csound->Get0dBFS(csound);
             nextIn += nread;
@@ -745,9 +746,9 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 
     }
     nread = nextOut - output;
-    writebuffer(csound, output, &block, outfd, nread, &O);
+    writebuffer(csound, output, &block, outfd, nread, ;
     csound->Message(csound, "\n\n");
-    if (O.ringbell)
+    if (O->ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
     return 0;
 
@@ -761,12 +762,12 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 #include <unistd.h>
 #endif
 
-static int srconv(CSOUND *csound, int argc, char **argv)
+static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 {
   (void) argc;
     csound->Message(csound, "%s",
                     Str("Do not use srconv but the src_conv program\n"));
-#ifndef MSVC
+#if !defined(MSVC) && !defined(__wasm__)
     return execv("src_conv", argv);
 #else
     return 0;
@@ -805,7 +806,7 @@ static const char *usage_txt[] = {
 
 static void usage(CSOUND *csound)
 {
-    int i = -1;
+    int32_t i = -1;
 
     while (usage_txt[++i] != NULL)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
@@ -814,7 +815,7 @@ static void usage(CSOUND *csound)
 static double ino(double x)
 {
     double  y, t, e, de, sde, xi;
-    int     i;
+    int32_t     i;
 
     y = x * 0.5;
     t = 1.0e-08;
@@ -831,7 +832,7 @@ static double ino(double x)
     return e;
 }
 
-static void kaiser(int nf, float *w, int n, int ieo, double beta)
+static void kaiser(int32_t nf, float *w, int32_t n, int32_t ieo, double beta)
 {
 
 /*
@@ -843,7 +844,7 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 */
 
     double  bes, xind, xi;
-    int     i;
+    int32_t     i;
 
     bes = ino(beta);
     xind = (double) ((nf - 1) * (nf - 1));
@@ -861,11 +862,11 @@ static void kaiser(int nf, float *w, int n, int ieo, double beta)
 
 /* module interface */
 
-int srconv_init_(CSOUND *csound)
+int32_t srconv_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "srconv", srconv);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "srconv", srconv);
     if (!retval) {
-      retval = csound->SetUtilityDescription(csound, "srconv",
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "srconv",
                                              Str("Sample rate conversion"));
     }
     return retval;

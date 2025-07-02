@@ -62,7 +62,7 @@ static int32_t pluckExcite(CSOUND *csound, WGPLUCK* p)
 {
     MYFLT *shape;
     int32_t i;
-    int32_t size = p->wg.upperRail.size;
+    int64_t size = p->wg.upperRail.size;
 
     /* set the delay element to pick at */
     p->pickSamp=(len_t)(size * *p->pickPos);
@@ -116,7 +116,7 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
                        (waveguide*)&p->wg,             /* waveguide       */
                        (MYFLT)*p->freq,                /* f0 frequency    */
                        (MYFLT*)p->upperData.auxp,      /* upper rail data */
-                       (MYFLT*)p->lowerData.auxp);     /* lower rail data */
+                       (MYFLT*)p->lowerData.auxp, CS_ESR);     /* lower rail data */
 #ifdef WG_VERBOSE
     csound->Message(csound, "done.\n");
 #endif
@@ -138,7 +138,7 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
     /* Define the required magnitude response of H1 at w0 and PI */
 
     /* Constrain attenuation specification to dB per second */
-    MYFLT NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*CS_ESR/f0  */
+    MYFLT NRecip = p->wg.f0 * CS_ONEDSR;  /*  N=t*CS_ESR/f0  */
     MYFLT H1_w0 = POWER(FL(10.0),-A_w0*FL(0.05)*NRecip);
     MYFLT H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
     {
@@ -169,7 +169,7 @@ static MYFLT *pluckShape(CSOUND *csound, WGPLUCK* p)
     shape = (MYFLT *)csound->Malloc(csound, len*sizeof(MYFLT));
     if (UNLIKELY(!shape)) {
       csound->InitError(csound,
-                        Str("wgpluck:Could not allocate for initial shape"));
+                        "%s", Str("wgpluck:Could not allocate for initial shape"));
       return NULL;
     }
     scale = FL(0.5) * scale;      /* Scale was squared!! */
@@ -245,7 +245,7 @@ static inline int32_t circularBufferCircularBuffer(CSOUND *csound,
     MYFLT *data = cb->data;
     /* if (UNLIKELY(!data)) */
     /*   return csound->InitError(csound, */
-    /*                            Str("wgpluck: Buffer memory not allocated!")); */
+    /*                            "%s", Str("wgpluck: Buffer memory not allocated!")); */
 
   /* Initialize pointers and variables */
     cb->size            = N;
@@ -305,14 +305,16 @@ static void waveguideWaveguide(CSOUND *csound,
                         waveguide* wg,
                         MYFLT  freq,
                         MYFLT* upperData,
-                        MYFLT* lowerData)
+                        MYFLT* lowerData, MYFLT sr)
 {
     MYFLT size, df;
 
     wg->excited = 0;
     wg->p       = FL(0.0); /* tuning filter state variable */
     wg->f0      = freq;
-    wg->w0      = csound->tpidsr*freq;
+    wg->w0      = 2*PI*freq/sr;
+    wg->sr = sr;
+
 
 #ifdef WG_VERBOSE
     csound->Message(csound, "f0=%f, w0=%f\n", wg->f0, wg->w0);
@@ -320,7 +322,7 @@ static void waveguideWaveguide(CSOUND *csound,
 
     /* Calculate the size of the delay lines and set them */
     /* Set pointers to appropriate positions in instrument memory */
-    size = CS_ESR / freq - FL(1.0);
+    size = wg->sr / freq - FL(1.0);
 
     /* construct the fractional part of the delay */
     df = (size - (len_t)size); /* fractional delay amount */
@@ -342,7 +344,8 @@ static void waveguideWaveguide(CSOUND *csound,
 /* Set the allpass tuning filter coefficient */
 static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 {
-    MYFLT k=csound->onedsr * wg->w0;
+
+  MYFLT k= (1/wg->sr) * wg->w0;
 
   /*c = (1.0-df)/(1.0+df);*/ /* Solve for coefficient from df */
     wg->c = -sinf((k-k*df)/FL(2.0))/sinf((k+k*df)/FL(2.0));
@@ -356,7 +359,7 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 
 static OENTRY localops[] =
   {
-   { "wgpluck",S(WGPLUCK),0, 3,"a","iikiiia",
+   { "wgpluck",S(WGPLUCK),0, "a","iikiiia",
      (SUBR)pluckPluck,(SUBR)pluckGetSamps}
 };
 

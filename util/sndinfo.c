@@ -67,7 +67,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
         continue;
       }
       memset(&sflib_info, 0, sizeof(SFLIB_INFO));
-      hndl = sflib_open(fname, SFM_READ, &sflib_info);
+      hndl = csound->SndfileOpen(csound,fname, SFM_READ, &sflib_info);
       if (UNLIKELY(hndl == NULL)) {
         csound->Message(csound, Str("%s: Not a sound file\n"), fname);
         csound->Free(csound, fname);
@@ -76,7 +76,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
       }
       else {
         csound->NotifyFileOpened(csound, fname,
-                            csound->sftype2csfiletype(sflib_info.format), 0, 0);
+                            csound->SndfileType2CsfileType(sflib_info.format), 0, 0);
         csound->Message(csound, "%s:\n", fname);
         csound->Free(csound, fname);
         switch (sflib_info.channels) {
@@ -103,8 +103,8 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
         csound->Message(csound,
                         Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
                         (long) sflib_info.samplerate, channame,
-                        (long) (csound->sfsampsize(sflib_info.format) * 8),
-                        csound->type2string(SF2TYPE(sflib_info.format)),
+                        (long) (csound->SndfileSampleSize(sflib_info.format) * 8),
+                       csound->Type2String(SF2TYPE(sflib_info.format)),
                         (MYFLT) sflib_info.frames / sflib_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sflib_info.frames);
@@ -112,7 +112,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           SFLIB_INSTRUMENT inst;
           int32_t     k;
 
-          if (sflib_command(hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
+          if (csound->SndfileCommand(csound,hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
             csound->Message(csound, Str("  Gain        : %d\n"),
                             inst.gain);
             csound->Message(csound, Str("  Base note   : %d\n"),
@@ -144,7 +144,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           
           SF_BROADCAST_INFO bext;
 
-          if (sflib_command(hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
+          if (csound->SndfileCommand(csound,hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
               != 0) {
             csound->Message(csound, Str("Description      : %.*s\n"),
                             (int32_t) sizeof (bext.description), bext.description);
@@ -168,7 +168,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           }
         }
 #endif
-        sflib_close(hndl);
+        csound->SndfileClose(csound,hndl);
       }
     }
 
@@ -179,10 +179,10 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
 
 int32_t sndinfo_init_(CSOUND *csound)
 {
-    int32_t retval = csound->AddUtility(csound, "sndinfo", sndinfo);
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "sndinfo", sndinfo);
     if (!retval) {
       retval =
-        csound->SetUtilityDescription(csound, "sndinfo",
+        (csound->GetUtility(csound))->SetUtilityDescription(csound, "sndinfo",
                                       Str("Prints information about sound files"));
     }
     return retval;

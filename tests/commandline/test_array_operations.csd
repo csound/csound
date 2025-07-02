@@ -251,7 +251,7 @@ instr Arr_Num_Math
     printks "kArr4 = kArr3 * 10: ", 0
     PrtArr1k kArr4
     printks "kArr5 = kArr4 / 10: ", 0
-    PrtArr1k kArr5
+    PrtArr1k kArr5 
     turnoff
 endin
 

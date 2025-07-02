@@ -27,8 +27,8 @@
 
 #include <math.h>
 
-#define AMP_SCALE (csound->e0dbfs)
-#define AMP_RSCALE (csound->dbfs_to_float)
+#define AMP_SCALE (csound->Get0dBFS(csound))
+#define AMP_RSCALE (FL(1.)/AMP_SCALE)
 
 /*******************************************/
 /*  Noise Generator Class,                 */
@@ -79,7 +79,7 @@ MYFLT DLineL_tick(DLineL *, MYFLT);
 /*  the target value (the state bit).      */
 /*******************************************/
 
-#define RATE_NORM       (FL(22050.0)/csound->esr)
+#define RATE_NORM       (FL(22050.0)/CS_ESR)
 
 typedef struct Envelope {
     MYFLT       value;
@@ -177,9 +177,10 @@ typedef struct ADSR {
     MYFLT       decayRate;
     MYFLT       sustainLevel;
     MYFLT       releaseRate;
+    MYFLT       sr;
 } ADSR;
 
-void make_ADSR(ADSR*);
+void make_ADSR(ADSR*, MYFLT sr);
 void dest_ADSR(ADSR*);
 void ADSR_keyOn(ADSR*);
 void ADSR_keyOff(ADSR*);
@@ -223,7 +224,7 @@ void BiQuad_setZeroCoeffs(BiQuad*, MYFLT *);
 #define BiQuad_setFreqAndReson(b,freq,reson)    \
         { (b).poleCoeffs[1]= -((reson)*(reson)); \
           (b).poleCoeffs[0]= FL(2.0)*(reson)*\
-          (MYFLT)cos((double)(freq)*(double)csound->tpidsr); }
+            (MYFLT)cos((double)(freq)*CS_TPIDSR); }
 MYFLT BiQuad_tick(BiQuad*, MYFLT);
 #define BiQuad_lastOut(x)       (x)->lastOutput
 
