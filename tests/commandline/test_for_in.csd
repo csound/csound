@@ -1,23 +1,36 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac
+-n
 </CsOptions>
 <CsInstruments>
 0dbfs = 1
 
+/* for-in loop
+   for var in array do
+   ...
+   od
+   running either at i or k (perf) time
+*/
+
+/* case 1
+   loop var is not declared
+   loop type follows array type
+   (i-type in this case)
+*/
 instr 1
-j:i init 0
-arr:i[] fillarray 1,2,3
-for j in arr do
+for j in [1,2,3] do
  print j
 od
-printarray arr
 endin
 
+/* case 2
+   loop var is declared
+   loop type follows var type
+   regardless of array type
+*/
 instr 2
 j:k init 0
-arr:k[] fillarray 1,2,3
-for j in arr do
+for j in [1,2,3] do
  printk2 j
 od
 turnoff
