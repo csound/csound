@@ -176,6 +176,7 @@ def runTest():
     ["test_fail_mismatched_types.csd", "syntax error on mismatched type declaration", 1],        
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
+    ["test_unary_expressions.csd", "various unary operators in various expressions"],
     ["testnewline.csd", "test newline in statements"],
     ["test_string_in_event.csd", "test multiple strings in realtime event"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],

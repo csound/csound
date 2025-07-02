@@ -137,6 +137,8 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "¬"            { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
 
+\xC2?\xAC{OPTWHITE} { return '~'; } /* BACKWARDS COMPATABILITY */
+
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "@i"            { return T_MAPI; }
