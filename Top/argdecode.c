@@ -331,10 +331,10 @@ static const char *longUsageList[] = {
     Str_noop("--midi-devices[=in|out] list available MIDI devices and exit"),
     Str_noop(
         "--get-system-sr         print system sr and exit, requires realtime\n"
-        "                        audio output (e.g. -odac) to be defined "
+        "                        audio in/out (e.g. -odac and or -iadc) to be defined "
         "first)"),
     Str_noop("--use-system-sr         print system sr and use realtime audio\n"
-             "                        output (e.g. -odac) to be defined first"),
+             "                        in/out  (e.g. -odac and or -iadc) to be defined first"),
     Str_noop("--ksmps=N               override ksmps"),
     Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
              "PFFFT = 1, vDSP =2)"),
@@ -1186,6 +1186,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "get-system-sr", 13))) {
     if (O->outfilename && !(strncmp(O->outfilename, "dac", 3))) {
+      printf("here\n");
       /* these are default values to get the
          backend to open successfully */
       set_output_format(O, 'f');
@@ -1195,7 +1196,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       csoundLoadExternals(csound);
       if (csoundInitModules(csound) != 0)
         csound->LongJmp(csound, 1);
-      sf_open_out(csound);
+      if(O->infilename && !strncmp(O->infilename, "adc", 3)){
+	// first check input (needed on some backends)
+	csound->inchnls = 1;
+	sf_open_in(csound);
+	sf_close_in(csound);
+      }
+      // then output
+      sf_open_out(csound);	
       csound->MessageS(csound, CSOUNDMSG_STDOUT, "system sr: %f\n",
                        csound->GetSystemSr(csound, 0));
       sf_close_out(csound);
