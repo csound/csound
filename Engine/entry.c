@@ -285,8 +285,8 @@ OENTRY opcodlst_1[] = {
   { "init.a", sizeof(ARRAYINIT), 0, "a[]", "m", (SUBR)array_init },
   { "init.S", sizeof(ARRAYINIT), 0, "S[]", "m", (SUBR)array_init },
   { "init.0", sizeof(ARRAYINIT), 0, ".[]", "m", (SUBR)array_init },
-  { "fillarray.k", sizeof(TABFILL), 0, "k[]", "m", (SUBR)tabfill },
   { "fillarray.i", sizeof(TABFILL), 0, "i[]", "m", (SUBR)tabfill },
+  { "fillarray.k", sizeof(TABFILL), 0, "k[]", "m", (SUBR)tabfill },
   { "fillarray.s", sizeof(TABFILL), 0, "S[]", "W", (SUBR)tabfill },
   { "fillarray.K", sizeof(TABFILL), 0, "k[]", "z", NULL, (SUBR)tabfill },
   { "fillarray.f", sizeof(TABFILLF), 0, "k[]", "S", (SUBR)tabfillf },
@@ -587,7 +587,7 @@ OENTRY opcodlst_1[] = {
   { "lentab.i", sizeof(TABQUERY1), _QQ, "i", "k[]p", (SUBR) tablength },
   { "lentab.k", sizeof(TABQUERY1), _QQ, "k", "k[]p", NULL, (SUBR) tablength },
   { "lenarray.ix", sizeof(TABQUERY1), 0, "i", ".[]p", (SUBR) tablength },
-  { "lenarray.kx", sizeof(TABQUERY1), 0, "k", ".[]p", NULL, (SUBR)tablength },
+  { "lenarray.kx", sizeof(TABQUERY1), 0, "k", ".[]p", (SUBR)tablength, (SUBR)tablength },
   /* complex arrays */
   {"##add.Complex[]Complex[]", sizeof(COPS1), 0, ":Complex;[]",
    ":Complex;[]:Complex;[]",
