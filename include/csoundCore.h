@@ -1773,6 +1773,7 @@ struct CSOUND_ {
   spin_lock_t osc_spinlock;
   CSOUND_UTIL csound_util;
   uint64_t instance_count;
+  int32_t genlabs;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

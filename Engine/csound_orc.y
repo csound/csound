@@ -534,7 +534,7 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $3->right = $6;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3);
         }
-        | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+      | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
         {
           $2->next = $4;
           $5->left = $6;
