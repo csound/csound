@@ -264,30 +264,24 @@ static int32_t set_stream_parameters(CSOUND *csound, PaStreamParameters *sp,
   sp->channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
 #endif  
   sp->sampleFormat = (PaSampleFormat) paFloat32;
-  sp->suggestedLatency = (PaTime) ((double) parm->bufSamp_HW
+  sp->suggestedLatency = (PaTime) ((double) parm->bufSamp_SW
                                    / (double) parm->sampleRate);
   sp->hostApiSpecificStreamInfo = NULL;
   return 0;
 }
 
-static CS_NOINLINE void clear_output_buffer(PA_BLOCKING_STREAM *pabs,
-                                            float *buf)
-{
-  int32_t   nsmps = pabs->outBufSamples;
-  memset(buf,0, nsmps*sizeof(float));
-}
+
 
 static int32_t audio_callback(const void *input, void *output,unsigned long framecount,
                               const PaStreamCallbackTimeInfo *timeInfo,
-                              PaStreamCallbackFlags statusFlags, void *userData)
-{
+                              PaStreamCallbackFlags statusFlags, void *userData){
  
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
   CSOUND  *csound = pabs->csound;
   float   *paInput = (float*) input;
   float   *paOutput = (float*) output;
-  int32_t samps = pabs->outBufSamples;
-  clear_output_buffer(pabs, paOutput);
+  int32_t samps;
+  memset(output,0,framecount*sizeof(float)*pabs->outParm.nChannels);
    
   if (pabs->complete == 1) return paContinue;
   
@@ -295,13 +289,16 @@ static int32_t audio_callback(const void *input, void *output,unsigned long fram
   if (pabs->paStream == NULL || pabs->paused) return paContinue;
 #endif
   
-  if (pabs->mode & 1) {     
+  if (pabs->mode & 1){
+    samps = (int32_t) (pabs->inParm.nChannels*framecount);
     for(int i = 0; i < samps; i++)
       pabs->inputBuffer[i] = paInput[i];
     csound->WriteCircularBuffer(csound,pabs->incb,pabs->inputBuffer,samps);
   }
   if (pabs->mode & 2) {
-    int32_t n = csound->ReadCircularBuffer(csound,pabs->outcb,pabs->outputBuffer,samps);
+    samps = pabs->outBufSamples;
+    int32_t n = csound->ReadCircularBuffer(csound,pabs->outcb,
+                                           pabs->outputBuffer,samps);
     for(int i = 0; i < n; i++)
       paOutput[i] = pabs->outputBuffer[i];     
   }
