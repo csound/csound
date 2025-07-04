@@ -736,16 +736,17 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
     int32_t n = nbytes/sizeof(MYFLT);
     int32_t m = 0, l;//, w = n;
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
+    MYFLT sr = cdata->sr;
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
       n -= l;
-      //if(n) usleep(MICROS*w/sr);
+      if(n) usleep(MICROS*n/sr);
     } while(n);
     return nbytes;
 }
 
-OSStatus  Csound_Render(void *inRefCon,
+OSStatus Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
                         UInt32 inBusNumber,
@@ -764,13 +765,6 @@ OSStatus  Csound_Render(void *inRefCon,
     IGN(inBusNumber);
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
-    /* for (k = 0; k < onchnls; k++) { */
-    /*   buffer = (Float32 *) ioData->mBuffers[k].mData; */
-    /*   for(j=0; (uint32_t) j < inNumberFrames; j++){ */
-    /*     buffer[j] = (Float32) outputBuffer[j*onchnls+k] ; */
-    /*     outputBuffer[j*onchnls+k] = FL(0.0); */
-    /*   } */
-    /* } */
     uint32_t i, l = 0, chns;
     for (i = 0; i < ioData->mNumberBuffers; i++) {
       buffer = (Float32 *) ioData->mBuffers[i].mData;
@@ -789,19 +783,19 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
 {
     csdata  *cdata;
     int32_t n = nbytes/sizeof(MYFLT);
-    int32_t m = 0, l;//, w = n;
+    int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
+    MYFLT sr = cdata->sr;
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
       m += l;
       n -= l;
-      //if(n) usleep(MICROS*n/sr);
+      if(n) usleep(MICROS*n/sr);
     } while(n);
 }
 
 /* close the I/O device entirely  */
 /* called only when both complete */
-
 static void rtclose_(CSOUND *csound)
 {
     csdata *cdata;

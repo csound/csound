@@ -29,6 +29,7 @@ typedef struct _circular_buffer {
   int32_t rp;
   int32_t numelem;
   int32_t elemsize; /* in number of bytes */
+  spin_lock_t lock;
 } circular_buffer;
 
 void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsize){
@@ -45,21 +46,25 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsi
       return NULL;
     }
     memset(p->buffer, 0, numelem*elemsize);
+    csoundSpinLockInit(&p->lock);
     return (void *)p;
 }
 
 int32_t checkspace(circular_buffer *p, int32_t writeCheck){
-    int32_t wp = p->wp, rp = p->rp, numelem = p->numelem;
+    csoundSpinLock(&p->lock);
+    int32_t wp = p->wp, rp = p->rp, numelem = p->numelem, res;
     if(writeCheck){
-      if (wp > rp) return rp - wp + numelem - 1;
-      else if (wp < rp) return rp - wp - 1;
-      else return numelem - 1;
+      if (wp > rp) res = rp - wp + numelem - 1;
+      else if (wp < rp) res = rp - wp - 1;
+      else res = numelem - 1;
     }
     else {
-      if (wp > rp) return wp - rp;
-      else if (wp < rp) return wp - rp + numelem;
-      else return 0;
+      if (wp > rp) res = wp - rp;
+      else if (wp < rp) res = wp - rp + numelem;
+      else res = 0;
     }
+    csoundSpinUnLock(&p->lock);
+    return res;
 }
 
 int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
@@ -145,7 +150,6 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
 
 int32_t csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int32_t items)
 {
-    IGN(csound);
     if (p == NULL) return 0;
     int32_t remaining;
     int32_t itemswrite, numelem = ((circular_buffer *)p)->numelem;
