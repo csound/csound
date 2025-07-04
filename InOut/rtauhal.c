@@ -455,7 +455,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                           kLinearPCMFormatFlagIsNonInterleaved;
     format.mBytesPerPacket = sizeof(Float32);
     format.mFramesPerPacket = 1;
-    format.mBytesPerFrame = sizeof(Float32);
+    format.mBytesPerFrame = sizeof(Float32)*nchnls;
     format.mChannelsPerFrame = nchnls;
     format.mBitsPerChannel = sizeof(Float32)*8;
     AudioUnitSetProperty(*aunit, kAudioUnitProperty_StreamFormat,
@@ -680,7 +680,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->csound = csound;
     cdata->outputBuffer =
       (MYFLT *) csound->Calloc(csound,
-                               csound->GetOutputBufferSize(csound)* sizeof(MYFLT));
+                               csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
     memset(cdata->outputBuffer, 0,
            csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
     cdata->outcb =
@@ -709,12 +709,6 @@ OSStatus  Csound_Input(void *inRefCon,
 
     AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
                     inNumberFrames, cdata->inputdata);
-    /*for (k = 0; k < inchnls; k++){
-      buffer = (Float32 *) cdata->inputdata->mBuffers[k].mData;
-      for(j=0; (uint32_t) j < inNumberFrames; j++){
-        inputBuffer[j*inchnls+k] = buffer[j];
-      }
-      }*/
     uint32_t i, chns;
     for (i = 0; i <  cdata->inputdata->mNumberBuffers; i++) {
       buffer = (Float32 *)  cdata->inputdata->mBuffers[i].mData;
@@ -734,14 +728,14 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
 {
     csdata  *cdata;
     int32_t n = nbytes/sizeof(MYFLT);
-    int32_t m = 0, l;//, w = n;
+    int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
     MYFLT sr = cdata->sr;
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(MICROS*n/sr);
+      if(n) usleep(MICROS/sr);
     } while(n);
     return nbytes;
 }
@@ -790,7 +784,7 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(MICROS*n/sr);
+      if(n) usleep(MICROS/sr);
     } while(n);
 }
 
