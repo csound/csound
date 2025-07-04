@@ -343,8 +343,8 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
     if(type == &CS_VAR_TYPE_ARRAY) {
       ARRAYDAT* adat = (ARRAYDAT*) assign->a;
       ARRAYDAT* rdat = (ARRAYDAT*) assign->r;
-      if(csoundGetTypeForArg(assign->r) == &CS_VAR_TYPE_ARRAY) {
-        tabinit_like(csound, (ARRAYDAT *) assign->r, (ARRAYDAT *) assign->a);
+      if(csoundGetTypeForArg(rdat) == &CS_VAR_TYPE_ARRAY) {
+        tabinit_like(csound, rdat, (ARRAYDAT *) adat);
       } 
       if(adat->arrayType == &CS_VAR_TYPE_I ||
          adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;

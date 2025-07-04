@@ -1198,7 +1198,8 @@ static const CSOUND cenviron_ = {
   sndgetset,
   getsndin
   },
-  0 /* instance count */    
+    0, /* instance count */
+    300 /* genLabs */
 };
 
 void csound_aops_init_tables(CSOUND *cs);

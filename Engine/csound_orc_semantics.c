@@ -1933,6 +1933,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   if (!check_args_exist(csound, root->right, typeTable)) {
     return 0;
   }
+  
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
@@ -2185,9 +2186,24 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
+
+  // if it's an assignment from one user defined object to another
+  // we create a reference to it instead of initializing new struct
+  if (var->varType->userDefinedType && var->next != NULL &&
+      strcmp(var->varType->varTypeName, var->next->varType->varTypeName) == 0) {
+        var->next->refCount += 1;
+        var->varType = var->next->varType;
+        var->memBlock = var->next->memBlock;
+        var->memBlockSize = var->next->memBlockSize;
+        var->memBlockIndex = var->next->memBlockIndex;
+        var->dimensions = var->next->dimensions;
+        var->subType = var->next->subType;
+        var->updateMemBlockSize = var->next->updateMemBlockSize;
+    }
+  
   int32_t len = cs_cons_length(members);
   int32_t i;
-
+  
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
   if(csound->GetDebug(csound)) {
       csound->Message(csound, "Initializing Struct...\n");
@@ -2557,7 +2573,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_if_statement(csound, current, typeTable);
-
+ 
       if (previous != NULL) {
         previous->next = current;
       }
@@ -2580,44 +2596,52 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       continue;
-    case FOR_TOKEN: {
-      char* arrayArgType = get_arg_type2(csound, current->right->left, typeTable);
-      char* assignmentSymbol = current->left->value->lexeme;
 
-      if (*arrayArgType != '[') {
-        synterr(
-          csound,
-          Str("Line: %d invalid array argument in for-of statement: found '%s'\n"),
-          current->line,
-          current->right->left->value->lexeme
-        );
-        return 0;
-      }
-
-      if (arrayArgType[1] != *assignmentSymbol) {
-        synterr(
-          csound,
-          Str("Line: %d mismatching argument types in for-of statement!\n"
-              "'%s' runs on different rate from '%s'\n"),
-          current->line,
-          assignmentSymbol,
-          current->right->left->value->lexeme
-        );
-        return 0;
-      }
-
-      current = expand_for_statement(
-        csound,
-        current,
-        typeTable,
-        arrayArgType
-      );
+    case SWITCH_TOKEN: {
+      char* switchArgType = get_arg_type2(csound, current->left, typeTable);
+      current = expand_switch_statement(csound, current, typeTable, switchArgType);
 
       if (previous != NULL) {
         previous->next = current;
       }
     }
-      continue;
+    continue;
+
+    case FOR_TOKEN: {
+      /** for-loop typing:
+          1) if loop variable does not exist, it takes the type of the array
+          2) if it exists, the loop type follows the variable type
+      */
+      char* arrayArgType = get_arg_type2(csound, current->right->left, typeTable);
+      CS_VARIABLE* var = find_var_from_pools(csound, current->left->value->lexeme,
+                                        current->left->value->lexeme, typeTable);
+      if (*arrayArgType != '[') {
+        if(current->right->left->value != NULL) 
+        synterr(csound,Str("Line: %d invalid argument in for statement: "
+                           "found '%s', which is not an array\n"),
+          current->line,current->right->left->value->lexeme);
+        else synterr(csound,Str("Line: %d expected an array variable in for statement."),
+                     current->line);
+        return 0;
+      }    
+      
+      if(var == NULL) {
+      char  atype[2] = { arrayArgType[1], '\0' };
+      // now create the arg based on the array type
+      add_arg(csound, current->left->value->lexeme, atype,
+              typeTable);
+       arrayArgType++;
+      } else {
+        arrayArgType = var->varType->varTypeName;
+        printf("%s \n", arrayArgType);
+      }
+      current = expand_for_statement(csound, current, typeTable, arrayArgType);
+      if (previous != NULL) {
+        previous->next = current;
+      }
+    }
+    continue;
+    
     case LABEL_TOKEN:
       break;
 
@@ -2822,6 +2846,37 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
     }
 
     ans->next = (tree->next == NULL) ? NULL : copy_node(csound, tree->next);
+    ans->len = tree->len;
+    ans->rate = tree->rate;
+    ans->line = tree->line;
+    ans->locn  = tree->locn;
+    ans->markup = NULL;
+  }
+  return ans;
+}
+
+/* Copy only left and right branches (skips next) */
+TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
+  TREE *ans = NULL;
+
+  if(tree != NULL) {
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    if (UNLIKELY(ans==NULL)) {
+      /* fprintf(stderr, "Out of memory\n"); */
+      exit(1);
+    }
+    ans->type = tree->type;
+    ans->left = tree->left;
+    ans->right = tree->right;
+
+    if (tree->value != NULL) {
+      ans->value = make_token(csound, tree->value->lexeme);
+      ans->value->optype = cs_strdup(csound, tree->value->optype);
+    } else {
+      ans->value = NULL;
+    }
+
+    ans->next = NULL;
     ans->len = tree->len;
     ans->rate = tree->rate;
     ans->line = tree->line;
