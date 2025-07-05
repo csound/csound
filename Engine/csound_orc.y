@@ -578,14 +578,13 @@ expr    : function_call
         | struct_expr
         ;
 
-gen_array:  '[' expr S_ELIPSIS2 expr_list  ']' {
+gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "genarray"));
             $$->right = $2;
             append_to_tree(csound, $$->right, $4);
              }
 
-static_array :
-           '[' expr_list ']' {
+static_array : '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));
             $$->right = $2;
           }
