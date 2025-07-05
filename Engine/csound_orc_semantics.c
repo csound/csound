@@ -807,6 +807,26 @@ int32_t check_array_arg(char* found, char* required) {
   return (*f == *r);
 }
 
+int32_t check_array_arg_in(char* found, char* required) {
+  char* f = found;
+  char* r = required;
+
+  while (*r == '[') r++;
+
+  if (*r == '.' || *r == '?' || *r == '*') {
+    return 1;
+  }
+
+  while (*f == '[') f++;
+
+  // special case: k args with i inputs
+  if(*r == 'k' && *f == 'i') return 1;
+  return (*f == *r);
+}
+
+
+
+
 int32_t check_in_arg(char* found, char* required) {
   char* t;
   int32_t i;
@@ -826,7 +846,7 @@ int32_t check_in_arg(char* found, char* required) {
     if (*found != *required) {
       return 0;
     }
-    return check_array_arg(found, required);
+    return check_array_arg_in(found, required);
   }
 
   t = (char*)POLY_IN_TYPES[0];
