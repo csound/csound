@@ -97,6 +97,7 @@
 
 
 %token S_ELIPSIS
+%token S_ELIPSIS2
 %token T_ARRAY
 %token T_ARRAY_IDENT
 %token T_DECLARE
@@ -572,14 +573,23 @@ expr    : function_call
         | number
         | string
         | array_expr
+        | gen_array
         | static_array
         | struct_expr
         ;
 
-static_array : '[' expr_list ']' {
+gen_array:  '[' expr S_ELIPSIS2 expr_list  ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "genarray"));
+            $$->right = $2;
+            append_to_tree(csound, $$->right, $4);
+             }
+
+static_array :
+           '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));
             $$->right = $2;
           }
+          
 
 /* TODO: Investigate whether this should allow for expressions as base before brackets to make more generic
 */
