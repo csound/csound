@@ -2647,12 +2647,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if(var == NULL) {
       char  atype[2] = { arrayArgType[1], '\0' };
       // now create the arg based on the array type
-      add_arg(csound, current->left->value->lexeme, atype,
+       add_arg(csound, current->left->value->lexeme, atype,
               typeTable);
        arrayArgType++;
       } else {
         arrayArgType = var->varType->varTypeName;
-        printf("%s \n", arrayArgType);
       }
       current = expand_for_statement(csound, current, typeTable, arrayArgType);
       if (previous != NULL) {

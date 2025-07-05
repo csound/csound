@@ -1626,6 +1626,11 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   // handle case where user provided an index identifier
   int32_t hasOptionalIndex = 0;
   if (current->left->next != NULL) {
+    CS_VARIABLE* var = find_var_from_pools(csound, current->left->next->value->lexeme,
+                                        current->left->next->value->lexeme, typeTable);
+    if(var == NULL)
+      add_arg(csound, current->left->next->value->lexeme, arrayArgType, typeTable);
+    
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
     optionalUserIndexAssign->value = make_token(csound, "=");

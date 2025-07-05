@@ -244,19 +244,19 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                    return FOR_TOKEN; }
 
 <forloop>{
-
+   ","            { return ','; }
+   
   [ \t]*          /* eat the whitespace */
-  {IDENT}/[ \t]   { char *pp = yytext;
+  {IDENT}/[ \t]*   { char *pp = yytext;
                     while (*pp==' ' || *pp=='\t') pp++;
                     *lvalp = make_token(csound, pp);
                     if (strcmp(pp, "in") == 0) {
                       BEGIN(INITIAL);
                       return IN_TOKEN;
-                    } else {
+                    } else {                 
                       return T_IDENT;
                     }
                   }
-
 }
 
 <xstr>{
