@@ -2871,7 +2871,7 @@ sprintf_opcode_(CSOUND *csound,
     i = 0;
 
     while (1) {
-        if (UNLIKELY(i >= strsegsize)) {
+      if (UNLIKELY((size_t) i >= strsegsize)) {
             csound->Warning(csound, "%s", "println: Allocating memory");
             strsegsize *= 2;
             p->strseg.data = strseg = csound->ReAlloc(csound, strseg, strsegsize);

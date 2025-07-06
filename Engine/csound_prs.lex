@@ -652,14 +652,16 @@ static void comment(yyscan_t yyscanner)              /* Skip until nextline */
     char c;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c = input(yyscanner)) != '\n' && c != '\r') { /* skip */
-      if (UNLIKELY((int)c == EOF || c=='\0')) {
+      int cc = (int) c;
+      if (UNLIKELY(cc == EOF || c=='\0')) {
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
           YY_BUFFER_EOF_PENDING;
         return;
       }
     }
     if (c == '\r' && (c = input(yyscanner)) != '\n') {
-      if (LIKELY((int)c != EOF && c!='\0'))
+      int cc = (int) c;
+      if (LIKELY(cc != EOF && c!='\0'))
         unput(c);
       else
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =

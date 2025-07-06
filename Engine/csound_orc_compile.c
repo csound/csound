@@ -680,10 +680,38 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   // if --use-system-sr is applied, then we need to
   // initialise IO early to get the sampling rate
   // at this stage we have enough data on channels
-  // to do this. Only applies to audio device output
-  if(O->sr_override == -1.0 &&
-     !strncmp(O->outfilename, "dac",3)) {
+  // to do this.
+  if(O->sr_override == -1.0 && ((O->outfilename &&
+				!strncmp(O->outfilename, "dac",3)) ||
+				(O->infilename &&
+				 !strncmp(O->infilename, "adc",3)))
+     ) {
     MYFLT tmp_sr = csound->esr;
+    if(O->outformat == 0){
+      O->outformat = AE_SHORT;
+    }
+  if (O->filetyp <= 0) {
+    const char *envoutyp;
+    envoutyp = csoundGetEnv(csound, "SFOUTYP");
+    if (envoutyp != NULL && envoutyp[0] != '\0') {
+      if (strcmp(envoutyp, "AIFF") == 0)
+        O->filetyp = TYP_AIFF;
+      else if (strcmp(envoutyp, "WAV") == 0 || strcmp(envoutyp, "WAVE") == 0)
+        O->filetyp = TYP_WAV;
+      else if (strcmp(envoutyp, "IRCAM") == 0)
+        O->filetyp = TYP_IRCAM;
+      else if (strcmp(envoutyp, "RAW") == 0)
+        O->filetyp = TYP_RAW;
+      else {
+        csound->Die(csound, Str("%s not a recognised SFOUTYP env setting"), envoutyp);
+      }
+    } else
+#if !defined(__MACH__)
+      O->filetyp = TYP_WAV; /* default to WAV if even SFOUTYP is unset */
+#else
+      O->filetyp = TYP_AIFF; /* ... or AIFF on the Mac */
+#endif
+  }
     csound->esr = -1.0;
     O->sr_override = initialise_io(csound);
     if(O->sr_override > 0) {
@@ -1401,7 +1429,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       if (UNLIKELY(csound->oparms->odebug))
         csound->Message(csound, Str("no active instances of instr %d\n"),
                         instrNum);
-        free_instrtxt(csound, engineState->instrtxtp[instrNum]);
+      free_instrtxt(csound, engineState->instrtxtp[instrNum]);
     }
     }
   }
@@ -2242,7 +2270,7 @@ uint8_t file_to_int(CSOUND *csound, const char *name) {
   while (n < 255 && filedir[n] && n < 255) { /* Do we have it already? */
     if (strcmp(filedir[n], name) == 0)
       return n; /* yes */
-      n++;      /* look again */
+    n++;      /* look again */
   }
   // Not there so add
   // ensure long enough?
