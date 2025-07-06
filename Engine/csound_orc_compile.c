@@ -681,7 +681,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   // initialise IO early to get the sampling rate
   // at this stage we have enough data on channels
   // to do this. Only applies to audio device output
-  if(O->sr_override == -1.0 &&
+  if(O->sr_override == -1.0 && O->outfilename &&
      !strncmp(O->outfilename, "dac",3)) {
     MYFLT tmp_sr = csound->esr;
     csound->esr = -1.0;
