@@ -416,7 +416,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     // of output pointer array
     else if(*types == 'm') {
       // get the size of output array
-      len = strlen(types);
+      len = (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -435,7 +435,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     }
     // same for all other multi output types
     else if(*types == 'z') {
-      len = strlen(types);
+      len = (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -451,7 +451,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       break;
     }
     else if(*types == 'I') {
-      len = strlen(types);
+      len = (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -467,7 +467,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       break;
     }
     else if(*types == 'X') {
-      len = strlen(types);
+      len = (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {  
           argtype = check_arg_type(args[n], cstypes, n);
@@ -487,7 +487,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       break;
     }
     else if(*types == 'N') {
-      len = strlen(types);
+      len = (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) { 
           argtype = check_arg_type(args[n], cstypes, n);
@@ -509,7 +509,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       break;
     }   
     else if(*types == 'F') {
-      len = strlen(types);
+      len = (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);  

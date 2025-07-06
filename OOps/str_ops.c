@@ -799,9 +799,9 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     end = (int32_t) (*(p->iend) + FL(1.5)) - 1;
 #endif
     if (strt < 0 || (size_t)strt > len)
-      strt = len;
+      strt = (int32_t) len;
     if (end < 0 || (size_t)end > len)
-      end = len;
+      end = (int32_t) len;
     if (strt == end) {
       /* trivial case: empty output */
       dst[0] = '\0';
@@ -810,8 +810,8 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     if (strt > end) {
       size_t   tmp = strt;
       /* reverse output */
-      strt = end;
-      end = tmp;
+      strt = (int32_t) end;
+      end = (int32_t) tmp;
       rev = 1;
     }
 
