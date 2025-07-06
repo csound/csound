@@ -69,7 +69,8 @@ typedef struct _message_queue {
 
 /* atomicGetAndIncrementWithModulus */
 static long atomicGet_Incr_Mod(volatile long* val, long mod) {
-  volatile long oldVal, newVal;
+  long oldVal;
+  long newVal;
   do {
     oldVal = *val;
     newVal = (oldVal + 1) % mod;

@@ -2673,7 +2673,8 @@ PUBLIC const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){
 
 PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
                                const void* data) {
-  size_t siz = 0, i;
+  size_t siz = 0;
+  int32_t i;
   for(i = 0; i < adat->dimensions; i++)
     siz += adat->sizes[i];
   memcpy(adat->data, data, siz*adat->arrayMemberSize);

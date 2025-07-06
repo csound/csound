@@ -235,7 +235,7 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
  * to handle quoted arguments and escaped characters. */
 static void remove_special_placeholders(char *s, size_t n)
 {
-    int32_t i, offset = 0;
+    size_t  i, offset = 0;
 
     for (i = 0; i <= n; i++) {
         if (s[i] == 0x03 || s[i] == 0x18) {

@@ -3,6 +3,7 @@
 message(STATUS "")
 message(STATUS "## REALTIME AUDIO AND MIDI ##")
 
+option(USE_PIPEWIRE "Build the PipeWire I/O module" ON)
 option(USE_PULSEAUDIO "Build the PulseAudio I/O module" ON)
 option(USE_PORTAUDIO "Build the PortAudio I/O module" ON)
 option(USE_PORTMIDI "Build the PortMIDI I/O module" ON)
@@ -97,6 +98,13 @@ check_deps(USE_PULSEAUDIO PulseAudio_FOUND)
 
 if(USE_PULSEAUDIO)
     make_plugin(rtpulse rtpulse.c PulseAudio::PulseAudio)
+endif()
+
+find_package(PipeWire)
+check_deps(USE_PIPEWIRE PipeWire_FOUND)
+
+if(USE_PIPEWIRE)
+  make_plugin(rtpw rtpw.c PipeWire::PipeWire)
 endif()
 
 check_deps(USE_PORTAUDIO portaudio_FOUND)

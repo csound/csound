@@ -485,7 +485,7 @@ SDIFresult SDIF_Write2(const void *block, size_t n, FILE *f)
       return SDIF_Write2(((char *) block) + num, n-num, f);
     }
 
-    for (i = 0; i < m; i += 2) {
+    for (i = 0; (size_t) i < m; i += 2) {
       p[i] = q[i+1];
       p[i+1] = q[i];
     }
@@ -512,7 +512,7 @@ SDIFresult SDIF_Write4(const void *block, size_t n, FILE *f)
       return SDIF_Write4(((char *) block) + num, n-num, f);
     }
 
-    for (i = 0; i < m; i += 4) {
+    for (i = 0; (size_t) i < m; i += 4) {
       p[i] = q[i+3];
       p[i+3] = q[i];
       p[i+1] = q[i+2];
@@ -540,7 +540,7 @@ SDIFresult SDIF_Write8(const void *block, size_t n, FILE *f)
       return SDIF_Write8(((char *) block) + num, n-num, f);
     }
 
-    for (i = 0; i < m; i += 8) {
+    for (i = 0; (size_t) i < m; i += 8) {
       p[i] = q[i+7];
       p[i+7] = q[i];
       p[i+1] = q[i+6];
@@ -580,7 +580,7 @@ SDIFresult SDIF_Read2(void *block, size_t n, FILE *f)
     if (fread(p,2,n,f) != n)
       return ESDIF_READ_FAILED;
 
-    for (i = 0; i < m; i += 2) {
+    for (i = 0; (size_t) i < m; i += 2) {
       q[i] = p[i+1];
       q[i+1] = p[i];
     }
@@ -609,7 +609,7 @@ SDIFresult SDIF_Read4(void *block, size_t n, FILE *f)
 
     if (fread(p,4,n,f) != n) return ESDIF_READ_FAILED;
 
-    for (i = 0; i < m; i += 4) {
+    for (i = 0; (size_t) i < m; i += 4) {
       q[i] = p[i+3];
       q[i+3] = p[i];
       q[i+1] = p[i+2];
@@ -642,7 +642,7 @@ SDIFresult SDIF_Read8(void *block, size_t n, FILE *f)
     if (fread(p,8,n,f) != n)
       return ESDIF_READ_FAILED;
 
-    for (i = 0; i < m; i += 8) {
+    for (i = 0; (size_t) i < m; i += 8) {
       q[i] = p[i+7];
       q[i+7] = p[i];
       q[i+1] = p[i+6];
