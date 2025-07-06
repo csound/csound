@@ -57,36 +57,36 @@ static void rtpw_out_callback(void *p) {
   int32_t n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(MYFLT));
    
   if ((pwbuf = pw_stream_dequeue_buffer(rtpw->stream)) == NULL) {
-     pw_log_warn("out of buffers: %m");
-     return;
+    pw_log_warn("out of buffers: %m");
+    return;
   }
   
-   spabuf = pwbuf->buffer;
-   if ((bufp = spabuf->datas[0].data) == NULL) return;
-   frames = spabuf->datas[0].maxsize / fbytes;
+  spabuf = pwbuf->buffer;
+  if ((bufp = spabuf->datas[0].data) == NULL) return;
+  frames = spabuf->datas[0].maxsize / fbytes;
 
-   n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
-   if (pwbuf->requested)
-      frames = SPA_MIN((int32_t)pwbuf->requested,frames);
-   rem = n > 0 ? SPA_MIN(n,frames) : 0;
+  n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
+  if (pwbuf->requested)
+    frames = SPA_MIN((int32_t)pwbuf->requested,frames);
+  rem = n > 0 ? SPA_MIN(n,frames) : 0;
    
-   sil = frames - rem;
-   if(rem > 0){
+  sil = frames - rem;
+  if(rem > 0){
     spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
 			     rtpw->buframes * fbytes,
                              (i % rtpw->buframes) * fbytes,
                              bufp, rem * fbytes);
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
-   }
-   if(sil  > 0){
+  }
+  if(sil  > 0){
     rtpw->csound->Warning(rtpw->csound, "%d dropped output frames", sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
-   }
-   spabuf->datas[0].chunk->offset = 0;
-   spabuf->datas[0].chunk->stride = fbytes;
-   spabuf->datas[0].chunk->size = frames*fbytes;
-   pw_stream_queue_buffer(rtpw->stream, pwbuf); 
-   spa_system_eventfd_write(rtpw->cloop->system, rtpw->cbflag, 1);
+  }
+  spabuf->datas[0].chunk->offset = 0;
+  spabuf->datas[0].chunk->stride = fbytes;
+  spabuf->datas[0].chunk->size = frames*fbytes;
+  pw_stream_queue_buffer(rtpw->stream, pwbuf); 
+  spa_system_eventfd_write(rtpw->cloop->system, rtpw->cbflag, 1);
 }
 
 static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
@@ -97,7 +97,7 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
   uint64_t cnt;
 
   while(nframes > 0) {    
-     while (1) {
+    while (1) {
       n = spa_ringbuffer_get_write_index(&rtpw->ring, &i);
       spa_assert(n >= 0);
       spa_assert(n <= rtpw->buframes);
@@ -107,7 +107,7 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
     }
     if(rem > nframes) rem = nframes;
     spa_ringbuffer_write_data(&rtpw->ring,rtpw->cbuffer,rtpw->buframes*fbytes,
-                                (i%rtpw->buframes)*fbytes,outbuf,rem*fbytes);
+			      (i%rtpw->buframes)*fbytes,outbuf,rem*fbytes);
     nframes -= rem;
     outbuf += rem*rtpw->nchnls;
     spa_ringbuffer_write_update(&rtpw->ring, i + rem);
@@ -115,14 +115,14 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
 }
 
 static const struct pw_stream_events stream_events_out = {
-        PW_VERSION_STREAM_EVENTS,
-        .process = rtpw_out_callback,
+  PW_VERSION_STREAM_EVENTS,
+  .process = rtpw_out_callback,
 };
 
 static int32_t list_outputs(CSOUND *csound);
 /**
    open pipewire for output
- */
+*/
 static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   void **p;
   struct pw_properties *props;
@@ -153,7 +153,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   
   rtpw->stream = pw_stream_new_simple(rtpw->cloop,
 				      "csound-out", props,
-				       &stream_events_out,rtpw);
+				      &stream_events_out,rtpw);
   
       
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));    
@@ -167,12 +167,12 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
   pw_stream_connect(rtpw->stream,
-		          PW_DIRECTION_OUTPUT, 
-                          PW_ID_ANY,
-		          PW_STREAM_FLAG_AUTOCONNECT |
-                          PW_STREAM_FLAG_MAP_BUFFERS |
-                          PW_STREAM_FLAG_RT_PROCESS,
-                          params, 1);
+		    PW_DIRECTION_OUTPUT, 
+		    PW_ID_ANY,
+		    PW_STREAM_FLAG_AUTOCONNECT |
+		    PW_STREAM_FLAG_MAP_BUFFERS |
+		    PW_STREAM_FLAG_RT_PROCESS,
+		    params, 1);
   pw_thread_loop_start(rtpw->loop);
   rtpw->csound = csound;
   *p = (void *) rtpw;
@@ -293,23 +293,23 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
   
   if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels) {
     // update channel count and realloc buffer
-   rtpw->nchnls = rtpw->format.info.raw.channels;
-   rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(MYFLT)*rtpw->buframes*
-				 rtpw->nchnls);
-   csound->Message(csound, "pw - reallocated hw buffer: %d\n", rtpw->buframes);
+    rtpw->nchnls = rtpw->format.info.raw.channels;
+    rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(MYFLT)*rtpw->buframes*
+				    rtpw->nchnls);
+    csound->Message(csound, "pw - reallocated hw buffer: %d\n", rtpw->buframes);
   }
  
 }
 
 static const struct pw_stream_events stream_events_in = {
-        PW_VERSION_STREAM_EVENTS,
-        .process = rtpw_in_callback,
-	.param_changed = parm_callback,
+  PW_VERSION_STREAM_EVENTS,
+  .process = rtpw_in_callback,
+  .param_changed = parm_callback,
 };
 
 /**
    Open pipewire for input
- */
+*/
 static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   void **p;
   struct pw_properties *props;
@@ -341,7 +341,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
 
   rtpw->stream = pw_stream_new_simple(rtpw->cloop,
 				      "csound-in", props,
-				       &stream_events_in,rtpw);
+				      &stream_events_in,rtpw);
       
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));    
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
@@ -351,12 +351,12 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
   pw_stream_connect(rtpw->stream,
-                          PW_DIRECTION_INPUT,
-                          PW_ID_ANY,
-                          PW_STREAM_FLAG_AUTOCONNECT |
-                          PW_STREAM_FLAG_MAP_BUFFERS |
-                          PW_STREAM_FLAG_RT_PROCESS,
-                          params, 1);
+		    PW_DIRECTION_INPUT,
+		    PW_ID_ANY,
+		    PW_STREAM_FLAG_AUTOCONNECT |
+		    PW_STREAM_FLAG_MAP_BUFFERS |
+		    PW_STREAM_FLAG_RT_PROCESS,
+		    params, 1);
 
   pw_thread_loop_start(rtpw->loop);
   spa_format_audio_raw_parse(params[0], &rtpw->format.info.raw);
@@ -376,185 +376,217 @@ static void  rtpw_close(CSOUND *csound) {
   void **p = csound->GetRtPlayUserData(csound);
   RTPW *rtpw = (RTPW *) *p; 
   if(rtpw != NULL) {
-  pw_thread_loop_lock(rtpw->loop);
-  pw_stream_destroy(rtpw->stream);
-  pw_thread_loop_unlock(rtpw->loop);
-  pw_thread_loop_stop(rtpw->loop);
-  pw_thread_loop_destroy(rtpw->loop);
-  csound->Free(csound, rtpw->cbuffer);  
-  csound->Free(csound, rtpw);
-  *p  = NULL;
+    pw_thread_loop_lock(rtpw->loop);
+    pw_stream_destroy(rtpw->stream);
+    pw_thread_loop_unlock(rtpw->loop);
+    pw_thread_loop_stop(rtpw->loop);
+    pw_thread_loop_destroy(rtpw->loop);
+    csound->Free(csound, rtpw->cbuffer);  
+    csound->Free(csound, rtpw);
+    *p  = NULL;
   }
   p = csound->GetRtRecordUserData(csound);
   rtpw = (RTPW *) *p; 
   if(rtpw != NULL) {
-  pw_thread_loop_lock(rtpw->loop);
-  pw_stream_destroy(rtpw->stream);
-  pw_thread_loop_unlock(rtpw->loop);
-  pw_thread_loop_stop(rtpw->loop);
-  pw_thread_loop_destroy(rtpw->loop);
-  csound->Free(csound, rtpw->cbuffer);  
-  csound->Free(csound, rtpw);
-  *p  = NULL;
+    pw_thread_loop_lock(rtpw->loop);
+    pw_stream_destroy(rtpw->stream);
+    pw_thread_loop_unlock(rtpw->loop);
+    pw_thread_loop_stop(rtpw->loop);
+    pw_thread_loop_destroy(rtpw->loop);
+    csound->Free(csound, rtpw->cbuffer);  
+    csound->Free(csound, rtpw);
+    *p  = NULL;
   }
   return;
 }
 
+
+
+
 // list outputs
-struct sink_data {
-    struct pw_loop *loop;
-    struct pw_thread_loop *tloop;
-    struct pw_context *context;
-    struct pw_core *core;
-    struct pw_registry *registry;
-    struct spa_hook registry_listener;
-    CSOUND *csound;
-    int done;
+struct sink_info {
+  uint32_t id;
+  char name[256];
+  char description[512];
+  uint32_t n_channels;
+  bool is_default;
 };
 
-struct sink_info {
-    uint32_t id;
-    char name[256];
-    char description[512];
-    uint32_t n_channels;
-    bool is_default;
+
+struct sink_data {
+  struct pw_loop *loop;
+  struct pw_thread_loop *tloop;
+  struct pw_context *context;
+  struct pw_core *core;
+  struct pw_registry *registry;
+  struct spa_hook registry_listener;
+  CSOUND *csound;
+  int no_devs;
+  int display;
+  struct sink_info sinks[256];
+  int done;
 };
 
 static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
                                   const char *type, uint32_t version,
                                   const struct spa_dict *props) {
-    struct sink_data *sink_data = data;
-    const char *media_class;
-    const char *node_name;
-    const char *node_description;
-    CSOUND *csound = sink_data->csound; 
+  struct sink_data *sink_data = data;
+  const char *media_class;
+  const char *node_name;
+  const char *node_description;
+  CSOUND *csound = sink_data->csound;
+  struct sink_info *sinks = sink_data->sinks;
+  int32_t display = sink_data->display;
     
-    // Check if this is an audio sink node
-    if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
-        if (props) {
-            media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
-            if (media_class && strcmp(media_class, "Audio/Sink") == 0) {
-                node_name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
-                node_description = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
-                
-                csound->Message(csound, "Sink Node Found:\n");
-                csound->Message(csound, "  ID: %u\n", id);
-                csound->Message(csound,"  Name: %s\n", node_name ? node_name : "Unknown");
-                csound->Message(csound,"  Description: %s\n",
-				node_description ? node_description : "No description");
-                csound->Message(csound,"  Media Class: %s\n", media_class);
-                csound->Message(csound,"---\n");
-            }
-        }
+  // Check if this is an audio sink node
+  if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
+    if (props) {
+      media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+      if (media_class && strcmp(media_class, "Audio/Sink") == 0) {
+	if(sink_data->no_devs < 256) {
+	  int32_t n = sink_data->no_devs;
+	  node_name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+	  node_description = spa_dict_lookup(props,
+					     PW_KEY_NODE_DESCRIPTION);
+	  if(display){
+	    csound->Message(csound, "  sink node: %d\n", n);
+	    csound->Message(csound, "  ID: %u\n", id);
+	    csound->Message(csound,"  name: %s\n",
+			    node_name ? node_name : "Unknown");
+	    csound->Message(csound,"  description: %s\n",
+			    node_description ? node_description :
+			    "No description");
+	    csound->Message(csound,"  media class: %s\n ----\n",
+			    media_class);
+	  }
+	  sinks[n].n_channels = 2;
+	  sinks[n].id = id;
+	  strncpy(sinks[n].name, node_name, 256);
+	  strncpy(sinks[n].description, node_description, 512);
+	  sink_data->no_devs++;
+	}
+      }
     }
+  }
 }
 
 static void registry_event_global_remove(void *data, uint32_t id) {
 }
 
 static const struct pw_registry_events registry_events = {
-    PW_VERSION_REGISTRY_EVENTS,
-    .global = registry_event_global,
-    .global_remove = registry_event_global_remove,
+  PW_VERSION_REGISTRY_EVENTS,
+  .global = registry_event_global,
+  .global_remove = registry_event_global_remove,
 };
 
 static void core_event_done(void *data, uint32_t id, int seq)
 {
-    struct sink_data *sink_data = data;
-    sink_data->done = 1;
-    pw_thread_loop_stop(sink_data->tloop);
+  struct sink_data *sink_data = data;
+  sink_data->done = 1;
+  pw_thread_loop_stop(sink_data->tloop);
 }
 
 static void core_event_error(void *data, uint32_t id, int seq, int res, const char *message)
 {
-    struct sink_data *sink_data = data;
-    sink_data->csound->Message(sink_data->csound, "Core error: %s\n", message);
-    sink_data->done = 1;
-    pw_thread_loop_stop(sink_data->tloop);
+  struct sink_data *sink_data = data;
+  sink_data->csound->Message(sink_data->csound, "Core error: %s\n", message);
+  sink_data->done = 1;
+  pw_thread_loop_stop(sink_data->tloop);
 }
 
 static const struct pw_core_events core_events = {
-    PW_VERSION_CORE_EVENTS,
-    .done = core_event_done,
-    .error = core_event_error,
+  PW_VERSION_CORE_EVENTS,
+  .done = core_event_done,
+  .error = core_event_error,
 };
 
-int query_pipewire_sinks(CSOUND *csound)
+int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t display)
 {
-    struct sink_data data = {0};
-    struct spa_hook core_listener;
-    int ret = 0;
-    data.csound = csound;
+  struct sink_data data = {0};
+  struct spa_hook core_listener;
+  data.csound = csound;
+  data.display = display;
+  data.no_devs = 0;
 
-    data.tloop = pw_thread_loop_new("sink-query", NULL);
-    data.loop = pw_thread_loop_get_loop(data.tloop);
+  data.tloop = pw_thread_loop_new("sink-query", NULL);
+  data.loop = pw_thread_loop_get_loop(data.tloop);
     
-    // Create main loop
-    if (!data.loop) {
-        csound->Message(csound, "Failed to create main loop\n");
-        ret = -1;
-        goto cleanup;
+  // Create main loop
+  if (!data.loop) {
+    csound->Message(csound, "Failed to create main loop\n");
+    goto cleanup;
+  }
+    
+  // Create context
+  data.context = pw_context_new(pw_thread_loop_get_loop(data.tloop), NULL, 0);
+  if (!data.context) {
+    csound->Message(csound, "Failed to create context\n");
+    goto cleanup;
+  }
+    
+  // Connect to PipeWire daemon
+  data.core = pw_context_connect(data.context, NULL, 0);
+  if (!data.core) {
+    csound->Message(csound, "Failed to connect to PipeWire\n");
+    goto cleanup;
+  }
+    
+  // Add core event listener
+  pw_core_add_listener(data.core, &core_listener, &core_events, &data);
+    
+  // Get registry
+  data.registry = pw_core_get_registry(data.core, PW_VERSION_REGISTRY, 0);
+  if (!data.registry) {
+    csound->Message(csound, "Failed to get registry\n");
+    goto cleanup;
+  }
+    
+  // Add registry event listener
+  pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
+    
+  if(display)
+   csound->Message(csound, "pipewire sinks:\n");
+  pw_thread_loop_start(data.tloop);
+  usleep(100000);
+  if(display)
+    csound->Message(csound, "found %d sinks\n", data.no_devs);   
+    
+ cleanup:
+  pw_thread_loop_stop(data.tloop);
+  // Clean up resources
+  if (data.registry) {
+    spa_hook_remove(&data.registry_listener);
+    pw_proxy_destroy((struct pw_proxy*)data.registry);
+  }
+  if (data.core) {
+    spa_hook_remove(&core_listener);
+    pw_core_disconnect(data.core);
+  }
+  if (data.context)
+    pw_context_destroy(data.context);
+  pw_thread_loop_destroy(data.tloop);
+    
+  if(list) {
+    for(int i = 0; i < data.no_devs; i++) {
+      strncpy(list[i].device_name, data.sinks[i].name, 63);
+      snprintf(list[i].device_id, 63, "%s%d",
+	       "dac" , data.sinks[i].id);
+      list[i].max_nchnls = data.sinks[i].n_channels;
+      list[i].isOutput = 1;        
     }
-    
-    // Create context
-    data.context = pw_context_new(pw_thread_loop_get_loop(data.tloop), NULL, 0);
-    if (!data.context) {
-        csound->Message(csound, "Failed to create context\n");
-        ret = -1;
-        goto cleanup;
-    }
-    
-    // Connect to PipeWire daemon
-    data.core = pw_context_connect(data.context, NULL, 0);
-    if (!data.core) {
-      csound->Message(csound, "Failed to connect to PipeWire\n");
-        ret = -1;
-        goto cleanup;
-    }
-    
-    // Add core event listener
-    pw_core_add_listener(data.core, &core_listener, &core_events, &data);
-    
-    // Get registry
-    data.registry = pw_core_get_registry(data.core, PW_VERSION_REGISTRY, 0);
-    if (!data.registry) {
-        csound->Message(csound, "Failed to get registry\n");
-        ret = -1;
-        goto cleanup;
-    }
-    
-    // Add registry event listener
-    pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
-    
-    // Run main loop until done
-    pw_thread_loop_start(data.tloop);
-    usleep(100000);
-    
-cleanup:
-    pw_thread_loop_stop(data.tloop);
-    // Clean up resources
-    if (data.registry) {
-        spa_hook_remove(&data.registry_listener);
-        pw_proxy_destroy((struct pw_proxy*)data.registry);
-    }
-    if (data.core) {
-        spa_hook_remove(&core_listener);
-        pw_core_disconnect(data.core);
-    }
-    if (data.context)
-        pw_context_destroy(data.context);
-    
-    pw_thread_loop_destroy(data.tloop);
-    return ret;
+  }
+  return data.no_devs;
 }
 
 static int32_t list_outputs(CSOUND *csound) {
-  return query_pipewire_sinks(csound);
+  return query_pipewire_sinks(csound, NULL, 1);
 }
 
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
-			   int32_t isOutput){
-  return 0;
+			 int32_t isOutput){
+  if(isOutput)
+    return query_pipewire_sinks(csound, list, 0);
+  else return 0;
 }
 
 
@@ -568,30 +600,30 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 }
 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
-   const OPARMS *O = csound->GetOParms(csound);
-   csound->ModuleListAdd(csound, "rtpw", "audio");
-   char buf[32];
-   char *s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
-   int i = 0;
-   if (s != NULL) {
-      while (*s != (char) 0 && i < 8)
-        buf[i++] = *(s++) | (char) 0x20;
-   }
-   buf[i] = (char) 0;
-   if (strcmp(&(buf[0]), "rtpw") == 0 ||
-       strcmp(&(buf[0]), "pw") == 0 ||
-       strcmp(&(buf[0]), "pipewire") == 0){
-      if (O->msglevel & 0x400 || O->odebug)
-        csound->Message(csound, Str("rtaudio: pipewire module enabled\n"));
-      csound->SetPlayopenCallback(csound, rtpw_open_out);
-      csound->SetRecopenCallback(csound, rtpw_open_in);
-      csound->SetRtplayCallback(csound, rtpw_play);
-      csound->SetRtrecordCallback(csound, rtpw_record);
-      csound->SetRtcloseCallback(csound, rtpw_close);
-      csound->SetAudioDeviceListCallback(csound, rtpw_list);
-      pw_init(NULL,NULL);
-    }
-   return CSOUND_SUCCESS;
+  const OPARMS *O = csound->GetOParms(csound);
+  csound->ModuleListAdd(csound, "rtpw", "audio");
+  char buf[32];
+  char *s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
+  int i = 0;
+  if (s != NULL) {
+    while (*s != (char) 0 && i < 8)
+      buf[i++] = *(s++) | (char) 0x20;
+  }
+  buf[i] = (char) 0;
+  if (strcmp(&(buf[0]), "rtpw") == 0 ||
+      strcmp(&(buf[0]), "pw") == 0 ||
+      strcmp(&(buf[0]), "pipewire") == 0){
+    if (O->msglevel & 0x400 || O->odebug)
+      csound->Message(csound, Str("rtaudio: pipewire module enabled\n"));
+    csound->SetPlayopenCallback(csound, rtpw_open_out);
+    csound->SetRecopenCallback(csound, rtpw_open_in);
+    csound->SetRtplayCallback(csound, rtpw_play);
+    csound->SetRtrecordCallback(csound, rtpw_record);
+    csound->SetRtcloseCallback(csound, rtpw_close);
+    csound->SetAudioDeviceListCallback(csound, rtpw_list);
+    pw_init(NULL,NULL);
+  }
+  return CSOUND_SUCCESS;
 }
 
 PUBLIC int32_t csoundModuleDestroy(CSOUND *csound){
