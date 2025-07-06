@@ -119,6 +119,7 @@ static const struct pw_stream_events stream_events_out = {
         .process = rtpw_out_callback,
 };
 
+static int32_t list_outputs(CSOUND *csound);
 /**
    open pipewire for output
  */
@@ -127,6 +128,8 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   struct pw_properties *props;
   const struct spa_pod *params[1];    
   RTPW *rtpw;
+
+  list_outputs(csound);
   p = (void**) csound->GetRtPlayUserData(csound);
   if(*p != NULL) return 0;
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
@@ -395,6 +398,158 @@ static void  rtpw_close(CSOUND *csound) {
   *p  = NULL;
   }
   return;
+}
+
+// list outputs
+struct sink_data {
+    struct pw_loop *loop;
+    struct pw_thread_loop *tloop;
+    struct pw_context *context;
+    struct pw_core *core;
+    struct pw_registry *registry;
+    struct spa_hook registry_listener;
+    CSOUND *csound;
+    int done;
+};
+
+struct sink_info {
+    uint32_t id;
+    char name[256];
+    char description[512];
+    uint32_t n_channels;
+    bool is_default;
+};
+
+static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
+                                  const char *type, uint32_t version,
+                                  const struct spa_dict *props) {
+    struct sink_data *sink_data = data;
+    const char *media_class;
+    const char *node_name;
+    const char *node_description;
+    CSOUND *csound = sink_data->csound; 
+    
+    // Check if this is an audio sink node
+    if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
+        if (props) {
+            media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+            if (media_class && strcmp(media_class, "Audio/Sink") == 0) {
+                node_name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+                node_description = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
+                
+                csound->Message(csound, "Sink Node Found:\n");
+                csound->Message(csound, "  ID: %u\n", id);
+                csound->Message(csound,"  Name: %s\n", node_name ? node_name : "Unknown");
+                csound->Message(csound,"  Description: %s\n",
+				node_description ? node_description : "No description");
+                csound->Message(csound,"  Media Class: %s\n", media_class);
+                csound->Message(csound,"---\n");
+            }
+        }
+    }
+}
+
+static void registry_event_global_remove(void *data, uint32_t id) {
+}
+
+static const struct pw_registry_events registry_events = {
+    PW_VERSION_REGISTRY_EVENTS,
+    .global = registry_event_global,
+    .global_remove = registry_event_global_remove,
+};
+
+static void core_event_done(void *data, uint32_t id, int seq)
+{
+    struct sink_data *sink_data = data;
+    sink_data->done = 1;
+    pw_thread_loop_stop(sink_data->tloop);
+}
+
+static void core_event_error(void *data, uint32_t id, int seq, int res, const char *message)
+{
+    struct sink_data *sink_data = data;
+    sink_data->csound->Message(sink_data->csound, "Core error: %s\n", message);
+    sink_data->done = 1;
+    pw_thread_loop_stop(sink_data->tloop);
+}
+
+static const struct pw_core_events core_events = {
+    PW_VERSION_CORE_EVENTS,
+    .done = core_event_done,
+    .error = core_event_error,
+};
+
+int query_pipewire_sinks(CSOUND *csound)
+{
+    struct sink_data data = {0};
+    struct spa_hook core_listener;
+    int ret = 0;
+    data.csound = csound;
+
+    data.tloop = pw_thread_loop_new("sink-query", NULL);
+    data.loop = pw_thread_loop_get_loop(data.tloop);
+    
+    // Create main loop
+    if (!data.loop) {
+        csound->Message(csound, "Failed to create main loop\n");
+        ret = -1;
+        goto cleanup;
+    }
+    
+    // Create context
+    data.context = pw_context_new(pw_thread_loop_get_loop(data.tloop), NULL, 0);
+    if (!data.context) {
+        csound->Message(csound, "Failed to create context\n");
+        ret = -1;
+        goto cleanup;
+    }
+    
+    // Connect to PipeWire daemon
+    data.core = pw_context_connect(data.context, NULL, 0);
+    if (!data.core) {
+      csound->Message(csound, "Failed to connect to PipeWire\n");
+        ret = -1;
+        goto cleanup;
+    }
+    
+    // Add core event listener
+    pw_core_add_listener(data.core, &core_listener, &core_events, &data);
+    
+    // Get registry
+    data.registry = pw_core_get_registry(data.core, PW_VERSION_REGISTRY, 0);
+    if (!data.registry) {
+        csound->Message(csound, "Failed to get registry\n");
+        ret = -1;
+        goto cleanup;
+    }
+    
+    // Add registry event listener
+    pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
+    
+    // Run main loop until done
+    pw_thread_loop_start(data.tloop);
+    usleep(100000);
+    
+cleanup:
+    pw_thread_loop_stop(data.tloop);
+    // Clean up resources
+    if (data.registry) {
+        spa_hook_remove(&data.registry_listener);
+        pw_proxy_destroy((struct pw_proxy*)data.registry);
+    }
+    if (data.core) {
+        spa_hook_remove(&core_listener);
+        pw_core_disconnect(data.core);
+    }
+    if (data.context)
+        pw_context_destroy(data.context);
+    
+    pw_thread_loop_destroy(data.tloop);
+    return ret;
+}
+
+static int32_t list_outputs(CSOUND *csound) {
+  return query_pipewire_sinks(csound);
 }
 
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
