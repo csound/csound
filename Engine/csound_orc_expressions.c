@@ -290,6 +290,7 @@ int32_t is_boolean_expression_node(TREE *node)
 
   switch(node->type) {
   case S_EQ:
+  case S_EQT:
   case S_NEQ:
   case S_GE:
   case S_LE:
@@ -821,6 +822,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   case S_EQ:
     strNcpy(op, "==", 80);
     break;
+  case S_EQT:
+    strNcpy(op, "===", 80);
+    break;   
   case S_NEQ:
     strNcpy(op, "!=", 80);
     break;
@@ -853,12 +857,13 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                       get_arg_type2(csound, root->left, typeTable), 
                       get_arg_type2(csound, root->right, typeTable));
   }
+
+ 
   if (root->type == S_UNOT)     
     outarg = get_boolean_arg(csound,
                              typeTable,
                              *get_arg_type2(csound, root->left, typeTable) =='k' ||
                              *get_arg_type2(csound, root->left, typeTable) =='B');
-  
   else 
     outarg = get_boolean_arg(csound,
                              typeTable,
@@ -1628,8 +1633,9 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   if (current->left->next != NULL) {
     CS_VARIABLE* var = find_var_from_pools(csound, current->left->next->value->lexeme,
                                         current->left->next->value->lexeme, typeTable);
-    if(var == NULL)
-      add_arg(csound, current->left->next->value->lexeme, arrayArgType, typeTable);
+    if(var == NULL) {
+      add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable);
+    }
     
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);

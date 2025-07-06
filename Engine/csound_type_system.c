@@ -363,3 +363,15 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
 }
 
 
+int32_t type_of(CSOUND *csound, ASSIGN *p) {
+  CS_TYPE *type = GetTypeForArg(p->a);
+  STRINGDAT *types = (STRINGDAT *) p->r;
+  strncpy(types->data, type->varTypeName, types->size);
+  return OK;
+}
+
+int32_t check_type(CSOUND *csound, RELAT *p) {
+  *p->rbool = (GetTypeForArg(p->a) == GetTypeForArg(p->b)) ? 1 : 0;
+  return OK;
+}
+

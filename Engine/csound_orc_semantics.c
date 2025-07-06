@@ -161,6 +161,8 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
   switch(tree->type) {
   case S_EQ:
     return "==";
+  case S_EQT:
+    return "===";  
   case S_NEQ:
     return "!=";
   case S_GE:
@@ -539,6 +541,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return cs_strdup(csound, out);
 
     }
+  }
+
+  if(tree == NULL) {
+   synterr(csound, "NULL tree");
+   longjmp(csound->exitjmp,0);
+   return 0;
   }
  
   switch(tree->type) {

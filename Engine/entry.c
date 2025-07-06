@@ -190,6 +190,9 @@ OENTRY opcodlst_1[] = {
   { "<=",     S(RELAT),0,  /* 0,*/      "b",    "ii",   le,     NULL             },
   { "<=.0",     S(RELAT),0,  /* 0,*/      "B",    "kk",   NULL,     le              },
   { "==",     S(RELAT),0,  /* 0,*/       "b",    "ii",   eq,     NULL              },
+  { "==",     S(RELAT),0,  /* 0,*/       "b",    "ib",   eq,     NULL              },
+  { "==",     S(RELAT),0,  /* 0,*/       "b",    "bi",   eq,     NULL              },
+  { "===",     S(RELAT),0,  /* 0,*/       "b",    "..",   check_type,     NULL     },
   { "==.0",     S(RELAT),0,  /* 0,*/       "B",    "kk",   NULL,     eq              },
   { "!=",     S(RELAT),0,  /* 0,*/       "b",    "ii",   ne,     NULL              },
   { "!=.0",     S(RELAT),0,  /* 0,*/       "B",    "kk",  NULL,     ne              },
@@ -2027,6 +2030,8 @@ OENTRY opcodlst_1[] = {
   { "midifilein", S(MIDIFEVT), 0, "iiiii", "io",midi_file_get_event},
   { "midifilein", S(MIDIFEVT), 0, "kkkkk", "ko", NULL, midi_file_get_event},
   { "eventtype", S(MIDIKMB), 0, "i", "", event_type},
+  { "typeof", S(ASSIGN), 0, "S", ".", type_of },
+  { "typecheck", S(RELAT), 0, "b", "..", check_type }, 
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

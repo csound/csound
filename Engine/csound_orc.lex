@@ -122,6 +122,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "<"             { return S_LT; }
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
+"==="           { return S_EQT; }
 "+="            { return S_ADDIN; }
 "-="            { return S_SUBIN; }
 "*="            { return S_MULIN; }
