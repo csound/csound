@@ -1182,11 +1182,11 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       list_midi_devices(csound, 0);
       list_midi_devices(csound, 1);
     }
-    csound->info_message_request = 1;
+    //csound->info_message_request = 1;
     return 1;
   } else if (!(strncmp(s, "get-system-sr", 13))) {
-    if (O->outfilename && !(strncmp(O->outfilename, "dac", 3))) {
-      printf("here\n");
+    if((O->outfilename && !strncmp(O->outfilename, "dac", 3)) ||
+       (O->infilename && !strncmp(O->infilename, "adc",3))){
       /* these are default values to get the
          backend to open successfully */
       set_output_format(O, 'f');
@@ -1203,11 +1203,13 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
 	sf_close_in(csound);
       }
       // then output
+      if(O->outfilename && !strncmp(O->outfilename, "dac", 3)){
       sf_open_out(csound);	
+      sf_close_out(csound);
+      }
       csound->MessageS(csound, CSOUNDMSG_STDOUT, "system sr: %f\n",
                        csound->GetSystemSr(csound, 0));
-      sf_close_out(csound);
-      // csound->LongJmp(csound, 0);
+      csound->LongJmp(csound, 0);
     }
     csound->info_message_request = 1;
     return 1;

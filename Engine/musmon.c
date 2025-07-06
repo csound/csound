@@ -105,8 +105,12 @@ MYFLT initialise_io(CSOUND *csound) {
     if (!csound->enableHostImplementedAudioIO) {
       if (O->sfread)
         sf_open_in(csound);
-      if (O->sfwrite && !csound->initonly)
+      if (O->sfwrite && !csound->initonly) {
+	if(csound->esr == -1.0 &&
+	   check_rtaudio_name(O->outfilename, NULL, 1))
+	  csound->esr = csound->GetSystemSr(csound, 0);
         sf_open_out(csound);
+      }
       else
        sf_open_nosound(csound);
     }

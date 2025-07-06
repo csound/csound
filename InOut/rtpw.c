@@ -180,8 +180,6 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   return CSOUND_SUCCESS;   
 }
 
-
-
 static void rtpw_in_callback(void *p) {
   RTPW *rtpw = (RTPW *) p;
   struct pw_buffer *pwbuf;
