@@ -113,6 +113,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                                        yyscanner);
                 }
 "->"            { return S_ELIPSIS; }
+"..."           { return S_ELIPSIS2; }
 
 "!="            { return S_NEQ; }
 "&&"            { return S_AND; }
