@@ -35,6 +35,7 @@
 %token S_LT
 %token S_LE
 %token S_EQ
+%token S_EQT
 %token S_ADDIN
 %token S_SUBIN
 %token S_MULIN
@@ -111,7 +112,7 @@
 %left S_AND S_OR
 %left '|'
 %left '&'
-%left S_LT S_GT S_LE S_GE S_EQ S_NEQ
+%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -534,14 +535,14 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $3->right = $6;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3);
         }
-      | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+        | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
         {
           $2->next = $4;
           $5->left = $6;
           $5->right = $8;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
         }
-        ;
+        ; 
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
  {
@@ -666,6 +667,8 @@ binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+'
           | expr '=' error
           | expr S_EQ optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr S_EQ error
+          | expr S_EQT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQT, $1, $4); }
+          | expr S_EQT error
           | expr S_GT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $4); }
           | expr S_GT error
           | expr S_LT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $4); }
