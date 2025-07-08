@@ -823,7 +823,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     strNcpy(op, "==", 80);
     break;
   case S_EQT:
-    strNcpy(op, "===", 80);
+    strNcpy(op, "=t", 80);
     break;   
   case S_NEQ:
     strNcpy(op, "!=", 80);

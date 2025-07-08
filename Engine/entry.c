@@ -192,7 +192,7 @@ OENTRY opcodlst_1[] = {
   { "==",     S(RELAT),0,  /* 0,*/       "b",    "ii",   eq,     NULL              },
   { "==",     S(RELAT),0,  /* 0,*/       "b",    "ib",   eq,     NULL              },
   { "==",     S(RELAT),0,  /* 0,*/       "b",    "bi",   eq,     NULL              },
-  { "===",     S(RELAT),0,  /* 0,*/       "b",    "..",   check_type,     NULL     },
+  { "=t",     S(RELAT),0,  /* 0,*/       "b",    "..",   check_type,     NULL     },
   { "==.0",     S(RELAT),0,  /* 0,*/       "B",    "kk",   NULL,     eq              },
   { "!=",     S(RELAT),0,  /* 0,*/       "b",    "ii",   ne,     NULL              },
   { "!=.0",     S(RELAT),0,  /* 0,*/       "B",    "kk",  NULL,     ne              },
