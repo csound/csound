@@ -141,6 +141,7 @@ def runTest():
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
 	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
+    ["test_iarr_operators.csd", "test i[] operators"],
 	["test_booleans.csd", "tests using boolean data-types"],
     ["test_type_eq.csd", "test type equality operator"],
 	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
