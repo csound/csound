@@ -128,6 +128,7 @@ extern "C" {
   int32_t sens_midi(CSOUND *);
   void sort(CSOUND*);
   void twarp(CSOUND*);
+  void add_csobj(CSOUND *csound, TYPE_POOL* pool);
 
 /**
  * Register a function to be called by csoundReset(), in reverse order
