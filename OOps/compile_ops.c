@@ -473,7 +473,7 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
 static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->r;
   CSOUND *engine = csobj->csound;
-  int32_t chn = (int32_t) *p->b-1;
+  int32_t chn = (int32_t) *p->a-1;
   int32_t nchnls = engine->inchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
@@ -487,7 +487,7 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
     int start = csobj->nsmps-ksmps;
     if(start < 0) start += esmps;
     start *= nchnls;
-    MYFLT *in = p->a;
+    MYFLT *in = p->b;
     MYFLT *out = csoundGetSpin(engine);
     for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++)
       out[i] = in[j];
@@ -542,7 +542,7 @@ void add_csobj(CSOUND *csound, TYPE_POOL *pool) {
   csoundAppendOpcode(csound, "inch", sizeof(AOP), 0,
                        "a", ":Csound;k", NULL, (SUBR) getochn_csobj, NULL);
   csoundAppendOpcode(csound, "outch", sizeof(AOP), 0,
-                       "", ":Csound;ak", NULL, (SUBR) setichn_csobj, NULL);
+                       "", ":Csound;ka", NULL, (SUBR) setichn_csobj, NULL);
   csoundAppendOpcode(csound, "delete", sizeof(ASSIGN), 0,
                        "", ":Csound;", NULL, NULL, (SUBR) destroy_csobj);
   csoundAppendOpcode(csound, "destroy", sizeof(ASSIGN), 0,
