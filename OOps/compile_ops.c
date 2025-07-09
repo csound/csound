@@ -313,6 +313,8 @@ int32_t myflt_size(CSOUND *csound, ASSIGN *p) {
 typedef struct {
   CSOUND *csound;
   int32_t nsmps;
+  MYFLT  *bufferout;
+  MYFLT  *bufferin;
 } CS_OBJ;
 
 static void csobj_var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -336,8 +338,7 @@ static CS_VARIABLE* create_csobj_var(void* cs, void* p, INSDS *ctx) {
 }
 
 static int32_t create_csobj(CSOUND *csound, ASSIGN *p) {
-  ((CS_OBJ *) p->r)->csound = csoundCreate(NULL, NULL);
-  
+  ((CS_OBJ *) p->r)->csound = csoundCreate(NULL, NULL);  
   return OK;
 }
 
@@ -361,6 +362,12 @@ static int32_t start_csobj(CSOUND *csound, AOP *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->a;
   CSOUND *engine = csobj->csound;
   csobj->nsmps = engine->ksmps;
+  csobj->bufferout = (MYFLT *) mcalloc(csound,
+                                      sizeof(MYFLT)*csobj->nsmps
+                                      *engine->nchnls);
+  csobj->bufferin = (MYFLT *) mcalloc(csound,
+                                      sizeof(MYFLT)*csobj->nsmps
+                                      *engine->inchnls);  
   *p->r = csoundStart(engine);
   return OK;
 }
@@ -379,12 +386,26 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   CSOUND *engine = csobj->csound;
   uint32 ksmps = CS_KSMPS;
   uint32 esmps = engine->ksmps;
+  int32_t nchnls = engine->nchnls;
+  MYFLT *spout = engine->spout;
+  MYFLT *bufferout = csobj->bufferout;
+  MYFLT *spin = engine->spin;
+  MYFLT *bufferin = csobj->bufferin;
+  
   if(esmps >= ksmps) {
-    if(csobj->nsmps >= esmps) {
-      *p->r = csoundPerformKsmps(engine);
-      csobj->nsmps -= esmps;
+   for(int i=0; i < ksmps; i++) {
+    if(csobj->nsmps == esmps) {
+      *p->r = csoundPerformKsmps(engine);             
+      csobj->nsmps = 0;
     }
-    csobj->nsmps += ksmps;
+    memcpy(spin+csobj->nsmps*nchnls,
+            bufferin+csobj->nsmps*nchnls,
+            sizeof(MYFLT)*nchnls);   
+    memcpy(bufferout+csobj->nsmps*nchnls,
+           spout+csobj->nsmps*nchnls,
+           sizeof(MYFLT)*nchnls);
+    csobj->nsmps += 1;
+   }
   } else {
     while(csobj->nsmps < ksmps) {
       *p->r = csoundPerformKsmps(engine);
@@ -460,9 +481,9 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
     if(start < 0) start += esmps;
     start *= nchnls;
     MYFLT *out = p->r;
-    const MYFLT *in = csoundGetSpout(engine);
+    const MYFLT *in = csobj->bufferout;
     for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++) 
-      out[j] = in[i];
+      out[j] = in[i%esmps];
   } else
     return csound->PerfError(csound, &p->h,
                              "Csound obj ksmps cannot be less"
@@ -484,13 +505,12 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   }
    
   if(esmps >= ksmps) {
-    int start = csobj->nsmps-ksmps;
-    if(start < 0) start += esmps;
+    int start = csobj->nsmps;
     start *= nchnls;
     MYFLT *in = p->b;
-    MYFLT *out = csoundGetSpin(engine);
+    MYFLT *out = csobj->bufferin;
     for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++)
-      out[i] = in[j];
+      out[i%esmps] = in[j];
   } else
     return csound->PerfError(csound, &p->h,
                              "Csound obj ksmps cannot be less"
@@ -501,6 +521,8 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
 
 static int32_t destroy_csobj(CSOUND *csound, ASSIGN *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->r;
+  mfree(csound, csobj->bufferout);
+  mfree(csound, csobj->bufferin);  
   csoundDestroy(csobj->csound);
   csobj->csound = NULL;
   return OK;
