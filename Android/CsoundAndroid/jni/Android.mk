@@ -19,11 +19,11 @@ LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a | arm64-v8a ))
 LOCAL_ARM_NEON  := true
 LOCAL_CFLAGS += -DHAVE_NEON #-mfpu=neon -mfloat-abi=softfp
-endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
+endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a 
 
-#ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi x86))
-#LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
-#endif # TARGET_ARCH_ABI == armeabi
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), x86 | x86_64))
+LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
+endif # TARGET_ARCH_ABI ==
 ###
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
