@@ -810,9 +810,16 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     root->locn = locn;
   }
 
+  
   if (root->type == T_IDENT) {
     return root;
   }
+
+  if(root->type == TRUE_TOKEN)
+    return create_ans_token(csound, "true");
+
+  if(root->type == FALSE_TOKEN)
+    return create_ans_token(csound, "false");
 
   op = csound->Calloc(csound, 80);
   switch(root->type) {
@@ -1156,7 +1163,7 @@ TREE* expand_if_statement(CSOUND* csound,
       create_boolean_expression(csound, left, right->line,
                                 right->locn, typeTable);
 
-
+   
     anchor = append_to_tree(csound, anchor, expressionNodes);
 
     /* reconnect into chain */
@@ -1199,7 +1206,7 @@ TREE* expand_if_statement(CSOUND* csound,
         create_boolean_expression(csound, tempLeft,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable);
-
+ 
       anchor = append_to_tree(csound, anchor, expressionNodes);
 
       last = tree_tail(expressionNodes);

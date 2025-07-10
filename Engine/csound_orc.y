@@ -95,6 +95,8 @@
 %token ENDSW_TOKEN
 %token FOR_TOKEN
 %token IN_TOKEN
+%token TRUE_TOKEN
+%token FALSE_TOKEN
 
 
 %token S_ELIPSIS
@@ -577,6 +579,8 @@ expr    : function_call
         | gen_array
         | static_array
         | struct_expr
+        | true_const
+        | false_const
         ;
 
 gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
@@ -658,7 +662,7 @@ unary_expr : '~' expr %prec S_UMINUS
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
           }
 
-        | '+' error           { $$ = NULL; }
+        | '+' error           { $$ = NULL; }        
         ;
 
 binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $4); }
@@ -787,7 +791,17 @@ string : STRING_TOKEN
         { $$ = make_leaf(csound, LINE,LOCN, STRING_TOKEN, (ORCTOKEN *)$1); }
         ;
 
+false_const: FALSE_TOKEN
+       { $$ = make_leaf(csound, LINE,LOCN, FALSE_TOKEN,
+                        make_token(csound,"false")); }
+       ;
 
+true_const: TRUE_TOKEN
+           { $$ = make_leaf(csound, LINE,LOCN, TRUE_TOKEN,
+                            make_token(csound,"true")); }
+       ;
+
+         
 number : NUMBER_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, NUMBER_TOKEN, (ORCTOKEN *)$1); }
        ;
