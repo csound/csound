@@ -361,13 +361,12 @@ static int32_t compile_csobj(CSOUND *csound, AOP *p) {
 static int32_t start_csobj(CSOUND *csound, AOP *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->a;
   CSOUND *engine = csobj->csound;
+  uint32_t bsiz = (CS_KSMPS < engine->ksmps ?
+                   engine->ksmps : CS_KSMPS)*sizeof(MYFLT);
   csobj->nsmps = engine->ksmps;
-  csobj->bufferout = (MYFLT *) mcalloc(csound,
-                                      sizeof(MYFLT)*csobj->nsmps
-                                      *engine->nchnls);
-  csobj->bufferin = (MYFLT *) mcalloc(csound,
-                                      sizeof(MYFLT)*csobj->nsmps
-                                      *engine->inchnls);  
+  
+  csobj->bufferout = (MYFLT *) mcalloc(csound,bsiz*engine->nchnls);
+  csobj->bufferin = (MYFLT *) mcalloc(csound,bsiz*engine->inchnls);  
   *p->r = csoundStart(engine);
   return OK;
 }
@@ -386,7 +385,8 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   CSOUND *engine = csobj->csound;
   uint32 ksmps = CS_KSMPS;
   uint32 esmps = engine->ksmps;
-  int32_t nchnls = engine->nchnls;
+  int32_t nchnls = engine->nchnls, inc;
+  int32_t inchnls = engine->inchnls;
   MYFLT *spout = engine->spout;
   MYFLT *bufferout = csobj->bufferout;
   MYFLT *spin = engine->spin;
@@ -398,21 +398,28 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
       *p->r = csoundPerformKsmps(engine);             
       csobj->nsmps = 0;
     }
-    memcpy(spin+csobj->nsmps*nchnls,
-            bufferin+csobj->nsmps*nchnls,
-            sizeof(MYFLT)*nchnls);   
-    memcpy(bufferout+csobj->nsmps*nchnls,
-           spout+csobj->nsmps*nchnls,
+    inc = csobj->nsmps*inchnls;
+    memcpy(spin+inc,bufferin+inc,
+            sizeof(MYFLT)*inchnls);
+    inc = csobj->nsmps*nchnls;
+    memcpy(bufferout+inc,
+           spout+inc,
            sizeof(MYFLT)*nchnls);
     csobj->nsmps += 1;
    }
   } else {
-    while(csobj->nsmps < ksmps) {
+    for(int j = 0; j < ksmps; j++) {
+      if(csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);
-      csobj->nsmps += esmps;
+       csobj->nsmps = 0;
+      }
+      inc = (csobj->nsmps*inchnls);
+      memcpy(spin+inc,bufferin+j*nchnls,sizeof(MYFLT)*inchnls);
+      inc = (csobj->nsmps*nchnls);
+      memcpy(bufferout+j*nchnls,spout+inc,sizeof(MYFLT)*nchnls);      
+      csobj->nsmps += 1;
     }
-    csobj->nsmps -= ksmps;
-  }
+   }
   return OK;
 }
 
@@ -469,6 +476,8 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   int32_t nchnls = engine->nchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
+  MYFLT *out = p->r;
+  MYFLT *in = csobj->bufferout;
    
   if(chn > engine->nchnls) {
     return csound->PerfError(csound, &p->h,
@@ -480,14 +489,13 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
     int start = csobj->nsmps-ksmps;
     if(start < 0) start += esmps;
     start *= nchnls;
-    MYFLT *out = p->r;
-    const MYFLT *in = csobj->bufferout;
+    esmps *= nchnls;
     for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++) 
       out[j] = in[i%esmps];
-  } else
-    return csound->PerfError(csound, &p->h,
-                             "Csound obj ksmps cannot be less"
-                             " than instrument ksmps\n");
+  } else {
+    for(int i = chn, j = 0; j < ksmps; i+=nchnls, j++) 
+      out[j] = in[i];
+  }
   return OK;
 }
 
@@ -498,6 +506,8 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   int32_t nchnls = engine->inchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
+  MYFLT *in = p->b;
+  MYFLT *out = csobj->bufferin;  
   if(chn > engine->nchnls) {
     return csound->PerfError(csound, &p->h,
                              "requested channel %d not available\n",
@@ -507,14 +517,13 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   if(esmps >= ksmps) {
     int start = csobj->nsmps;
     start *= nchnls;
-    MYFLT *in = p->b;
-    MYFLT *out = csobj->bufferin;
+    esmps *= nchnls;
     for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++)
       out[i%esmps] = in[j];
-  } else
-    return csound->PerfError(csound, &p->h,
-                             "Csound obj ksmps cannot be less"
-                             " than instrument ksmps\n");
+  } else {
+    for(int i = chn, j = 0; j < ksmps; i+=nchnls, j++)
+      out[i] = in[j];
+  }
 
   return OK;
 }
