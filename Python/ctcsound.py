@@ -93,41 +93,66 @@ PVSDAT_p = ct.c_void_p
 # OPARMS, uses more meaningful names
 #
 class CsoundParams(ct.Structure):
-    _fields_ = [("debug_mode", ct.c_int32),         # debug mode, 0 or 1
-                ("buffer_frames", ct.c_int32),      # number of frames in in/out buffers
-                ("hardware_buffer_frames", ct.c_int32), # ibid. hardware
-                ("displays", ct.c_int32),           # graph displays, 0 or 1
-                ("ascii_graphs", ct.c_int32),       # use ASCII graphs, 0 or 1
-                ("postscript_graphs", ct.c_int32),  # use postscript graphs, 0 or 1
-                ("message_level", ct.c_int32),      # message printout control
-                ("tempo", ct.c_int32),              # tempo ("sets Beatmode)
-                ("ring_bell", ct.c_int32),          # bell, 0 or 1
-                ("use_cscore", ct.c_int32),         # use cscore for processing
-                ("terminate_on_midi", ct.c_int32),  # terminate performance at the end
-                                                    #   of midifile, 0 or 1
-                ("heartbeat", ct.c_int32),          # print heart beat, 0 or 1
-                ("defer_gen01_load", ct.c_int32),   # defer GEN01 load, 0 or 1
-                ("midi_key", ct.c_int32),           # pfield to map midi key no
-                ("midi_key_cps", ct.c_int32),       # pfield to map midi key no as cps
-                ("midi_key_oct", ct.c_int32),       # pfield to map midi key no as oct
-                ("midi_key_pch", ct.c_int32),       # pfield to map midi key no as pch
-                ("midi_velocity", ct.c_int32),      # pfield to map midi velocity
-                ("midi_velocity_amp", ct.c_int32),  # pfield to map midi velocity as amplitude
-                ("no_default_paths", ct.c_int32),   # disable relative paths from files, 0 or 1
-                ("number_of_threads", ct.c_int32),  # number of threads for multicore performance
-                ("syntax_check_only", ct.c_int32),  # do not compile, only check syntax
-                ("csd_line_counts", ct.c_int32),    # csd line error reporting
-                ("compute_weights", ct.c_int32),    # deprecated, kept for backwards comp.
-                ("realtime_mode", ct.c_int32),      # use realtime priority mode, 0 or 1
-                ("sample_accurate", ct.c_int32),    # use sample-level score event accuracy
-                ("sample_rate_override", MYFLT),    # overriding sample rate
-                ("control_rate_override", MYFLT),   # overriding control rate
-                ("nchnls_override", ct.c_int32),    # overriding number of out channels
-                ("nchnls_i_override", ct.c_int32),  # overriding number of in channels
-                ("e0dbfs_override", MYFLT),         # overriding 0dbfs
-                ("daemon", ct.c_int32),             # daemon mode
-                ("ksmps_override", ct.c_int32),     # ksmps override
-                ("FFT_library", ct.c_int32)]        # fft_lib
+    _fields_ = [("debug_mode", ct.c_int32), # debug flag
+        ("sf_read", ct.c_int32),            # sound input read flag
+        ("sf_write", ct.c_int32),           # sound output write flab (-s)
+        ("file_type", ct.c_int32),          # soundfile type code
+        ("in_buffer_samples", ct.c_int32),  # input buffer size in samples
+        ("out_buffer_samples", ct.c_int32), # output buffer size in samples
+        ("in_format", ct.c_int32),          # input soundfile format
+        ("out_format", ct.c_int32),         # output soundfile format
+        ("sf_sample_size", ct.c_int32),     # sample size
+        ("displays", ct.c_int32),           # displays flag
+        ("graphs_off", ct.c_int32),         # graphs flag
+        ("postscript", ct.c_int32),         # postscript graphs flag
+        ("message_level", ct.c_int32),      # message level (-m)
+        ("beat_mode", ct.c_int32),          # beat mode
+        ("max_lag", ct.c_int32),            # hardware buffer size (samples)
+        ("line_in", ct.c_int32),            # linevents flag (-L)
+        ("rt_events", ct.c_int32),          # realtime events flag (scoreless, -L, -F, -M)
+        ("midi_in", ct.c_int32),            # midi input flag (-M)
+        ("f_midi_in", ct.c_int32),          # midi file input flag (-F)
+        ("r_midi_in", ct.c_int32),          # remote events flag
+        ("ringbell", ct.c_int32),           # ringbell flag
+        ("term_mf_end", ct.c_int32),        # terminate on midi file input flag (-T)
+        ("rewrite_header", ct.c_int32),     # rewrite header flag
+        ("heartbeat", ct.c_int32),          # heartbeat flag
+        ("gen01_defer", ct.c_int32),        # GEN01 defer allocation flag
+        ("cmd_tempo", ct.c_double),         # tempo value (-t)
+        ("sr_override", MYFLT),             # sampling rate override (-r)
+        ("kr_override", MYFLT),             # controle rate override (-k)
+        ("nchnls_override", ct.c_int32),    # nchnls override
+        ("nchnls_i_override", ct.c_int32),  # nchnls_i override
+        ("in_filename", ct.c_char_p),       # input file name (-i)
+        ("out_filename", ct.c_char_p),      # output file name (-o)
+        ("linename", ct.c_char_p),          # line events source (-L)
+        ("midiname", ct.c_char_p),          # midi input device name (-M)
+        ("f_midiname", ct.c_char_p),        # midi input file name (-F)
+        ("midi_out_name", ct.c_char_p),     # midi output device name (-M)
+        ("f_midi_out_name", ct.c_char_p),   # midi output file name (-F)
+        ("midi_key", ct.c_int32),           # midi key pfield mapping
+        ("midi_key_cps", ct.c_int32),       # midi key-cps pfield mapping
+        ("midi_key_oct", ct.c_int32),       # midi key-oct pfield mapping
+        ("midi_key_pch", ct.c_int32),       # midi key-pch pfield mapping
+        ("midi_velocity", ct.c_int32),      # midi vel pfield mapping
+        ("midi_velocity_amp", ct.c_int32),  # midi vel-amp pfield mapping
+        ("no_default_paths", ct.c_int32),   # default paths flag
+        ("number_of_threads", ct.c_int32),  # multicore number of threads (-j)
+        ("syntax_check_only", ct.c_int32),  # syntax check only flag
+        ("use_csd_line_counts", ct.c_int32), # csd line nums option
+        ("sample_accurate", ct.c_int32),    # sample accurate flag
+        ("realtime", ct.c_int32),           # realtime priority flag
+        ("e0dbfs_override", MYFLT),         # 0dbfs override
+        ("daemon", ct.c_int32),             # daemon mode flag
+        ("quality", ct.c_double),           # OGG encoding quality
+        ("ksmps_override", ct.c_int32),     # ksmps override
+        ("fft_lib", ct.c_int32),            # FFT library option
+        ("echo", ct.c_int32),               # UDP echo commands flag
+        ("limiter", MYFLT),                 # audio output limiter option
+        ("sr_default", MYFLT),              # default sampling rate
+        ("kr_default", MYFLT),              # default control rate
+        ("mp3_mode", ct.c_int32),           # MP3 encoding mode
+        ("redef", ct.c_int32)]              # instr redefinition flag
 
 #
 # Device information
@@ -179,9 +204,7 @@ CSOUND_STRING_CHANNEL = 3
 CSOUND_PVS_CHANNEL = 4
 CSOUND_VAR_CHANNEL = 5
 CSOUND_ARRAY_CHANNEL = 6
-
 CSOUND_CHANNEL_TYPE_MASK = 15
-
 CSOUND_INPUT_CHANNEL = 16
 CSOUND_OUTPUT_CHANNEL = 32
 
@@ -391,6 +414,7 @@ libcsound.csoundSetOutputChannelCallback.argtypes = [CSOUND_p, CHANNELFUNC]
 libcsound.csoundEvent.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(MYFLT),
                                   ct.c_int32, ct.c_int32]
 libcsound.csoundEventString.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
+libcsound.csoundGetInstrNumber.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundKeyPress.argtypes = [CSOUND_p, ct.c_char]
 KEYBOARDFUNC = ct.CFUNCTYPE(ct.c_int32, ct.py_object, ct.c_void_p, ct.c_uint32)
 libcsound.csoundRegisterKeyboardCallback.restype = ct.c_int32
@@ -570,14 +594,15 @@ class Csound:
         return libcsound.csoundGetKr(self.cs)
 
     def ksmps(self):
-        """Returns the number of audio sample frames per control sample."""
+        """Returns the audio vector size in frames (= sr/kr)."""
         return libcsound.csoundGetKsmps(self.cs)
 
     def channels(self, is_input=False):
         """Returns the number of audio channels in the Csound instance.
 
         If is_input = False, the value of nchnls is returned,
-        otherwise nchnls_i.
+        otherwise nchnls_i. If this variable is not set,
+        the value is always taken from nchnls.
         """
         return libcsound.csoundGetChannels(self.cs, ct.c_int32(is_input))
 
@@ -590,7 +615,7 @@ class Csound:
         return libcsound.csoundGetA4(self.cs)
 
     def current_time_samples(self):
-        """Returns the current performance time in samples."""
+        """Returns the current performance time in sample frames."""
         return libcsound.csoundGetCurrentTimeSamples(self.cs)
 
     def size_of_MYFLT(self):
@@ -608,7 +633,7 @@ class Csound:
     def env(self, name):
         """Gets the value of environment variable name.
 
-        The searching order is: local environment of Csound,
+        The searching order is: local environment of Csound ,
         variables set with set_global_env(), and system environment variables.
         Should be called after compile_().
         Return value is None if the variable is not set.
@@ -629,7 +654,7 @@ class Csound:
         return libcsound.csoundSetGlobalEnv(cstring(name), cstring(value))
 
     def set_option(self, option):
-        """Set csound option (flag).
+        """Set csound options (flag).
 
         This needs to be called before any code is compiled.
         Multiple options are allowed in one string.
@@ -767,7 +792,7 @@ class Csound:
         return libcsound.csoundCompile(self.cs, argc, argv)
 
     def compile_orc(self, orc, async_=False):
-        """Parses, and compiles the given orchestra from an ASCII string.
+        """Parses, and compiles the given orchestra given on a string.
 
         Also evaluating any global space code (i-time only)
         in synchronous or asynchronous (async_ = True) mode.
@@ -780,7 +805,7 @@ class Csound:
     def eval_code(self, code):
         """Parses and compiles an orchestra given on an string, synchronously.
 
-        Evaluating any global space code (i-time only).
+        It evaluates synchronously any global space code (i-time only).
         On SUCCESS it returns a value passed to the
         'return' opcode in global space:
 
@@ -790,17 +815,15 @@ class Csound:
         return libcsound.csoundEvalCode(self.cs, cstring(code))
 
     def compile_csd(self, csd, mode, async_ = False):
-        """Compiles a Csound input file (.csd file) or a text string,
-        in synchronous or asynchronous (async_ = True) mode.
+        """Compiles a Csound input file (.csd file) or a text string.
 
+        In synchronous or asynchronous (async_ = True) mode.
         Returns a non-zero error code on failure.
 
         If start is called before compile_csd, the <CsOptions>
         element is ignored (but set_option can be called any number of
-        times), the <CsScore> element is not pre-processed, but dispatched as
-        real-time events; and performance continues indefinitely, or until
-        ended by calling stop or some other logic. In this "real-time"
-        mode, the sequence of calls should be:
+        times), the <CsScore> element is dispatched as  score events (e.g.
+        as it is done by event_string()).
 
             cs.set_option("option(s)")
             cs.start()
@@ -809,17 +832,13 @@ class Csound:
                cs.perform_ksmps()
                # Something to break out of the loop
                # when finished here...
-            cs.reset()
 
         NB: this function can be called repeatedly during performance to
         replace or add new instruments and events.
 
         But if compile_csd is called before start, the <CsOptions>
         element is used, the <CsScore> section is pre-processed and dispatched
-        normally, and performance terminates when the score terminates, or
-        stop is called. In this "non-real-time" mode (which can still
-        output real-time audio and handle real-time events), the sequence of
-        calls should be:
+        normally, and performance terminates when the score terminates.
 
             cs.compile_csd(csd_filename, 0)
             cs.start()
@@ -827,13 +846,12 @@ class Csound:
                 finished = cs.perform_ksmps()
                 if finished:
                     break
-            cs.reset()
 
         if mode = 1, csd contains a full CSD code (rather than a filename).
         This is convenient when it is desirable to package the csd as part of
         an application or a multi-language piece.
         """
-        return libcsound.csoundCompileCSD(self.cs, cstring(csd), ct.c_int32(mode), ct.c_int32(async))
+        return libcsound.csoundCompileCSD(self.cs, cstring(csd), ct.c_int32(mode), ct.c_int32(async_))
 
     def start(self):
         """Prepares Csound for performance.
@@ -850,13 +868,11 @@ class Csound:
         return libcsound.csoundStart(self.cs)
 
     def perform_ksmps(self):
-        """Senses input events, and performs audio output.
+        """Senses input events, and performs one block of audio output.
 
-        This is done for one control sample worth (ksmps) of audio output.
-        start() must be called first.
-        Returns False during performance, and True when
-        performance is finished. If called until it returns True,
-        it will perform an entire score.
+        The block contains ksmps frames. start() must be called first.
+        Returns False during performance, and True when performance is finished.
+        If called until it returns True, it will perform an entire score.
         Enables external software to control the execution of Csound,
         and to synchronize performance with audio input and output.
         """
@@ -873,33 +889,16 @@ class Csound:
         return libcsound.csoundRunUtility(self.cs, cstring(name), argc, argv)
 
     def reset(self):
-        """Resets all internal memory and state.
+        """Resets all internal memory and state in preparation for a new performance.
 
-        In preparation for a new performance.
-        Enable external software to run successive Csound performances
+        Enables external software to run successive Csound performances
         without reloading Csound.
         """
         libcsound.csoundReset(self.cs)
 
     #
-    # Realtime Audio I/O
+    # Audio I/O
     #
-    def set_host_audio_IO(self):
-        """Disable all default handling of sound I/O.
-
-        Calling this function after the creation of a Csound object
-        and before the start of performance will disable all default
-        handling of sound I/O by the Csound library via its audio
-        backend module.
-        Host application should in this case use the spin/spout
-        buffers directly.
-        """
-        libcsound.csoundSetHostAudioIO(self.cs)
-
-    def set_RT_audio_module(self, module):
-        """Sets the current RT audio module."""
-        libcsound.csoundSetRTAudioModule(self.cs, cstring(module))
-
     def spin(self):
         """Returns the Csound audio input working buffer (spin) as an ndarray.
 
@@ -913,7 +912,7 @@ class Csound:
         return array_from_pointer(p)
 
     def spout(self):
-        """Returns the address of the Csound audio output working buffer (spout).
+        """Returns the Csound audio output working buffer (spout) as an ndarray.
 
         Enables external software to read audio from Csound after
         calling perform_ksmps().
@@ -925,76 +924,12 @@ class Csound:
         return array_from_pointer(p)
 
     #
-    # Realtime MIDI I/O
-    #
-    def set_host_midi_IO(self):
-        """Disable all default handling of MIDI I/O.
-
-        Call this function after csound_create()
-        and before the start of performance to implement
-        MIDI via the callbacks below.
-        """
-        libcsound.csoundSetHostMIDIIO(self.cs)
-
-    def set_midi_module(self, module):
-        """Sets the current MIDI IO module."""
-        libcsound.csoundSetMIDIModule(self.cs, cstring(module))
-
-    def set_external_midi_in_open_callback(self, function):
-        """Sets a callback for opening real-time MIDI input."""
-        self.ext_midi_in_open_cb_ref = MIDIINOPENFUNC(function)
-        libcsound.csoundSetExternalMidiInOpenCallback(self.cs,
-            self.ext_midi_in_open_cb_ref)
-
-    def set_external_midi_read_callback(self, function):
-        """Sets a callback for reading from real time MIDI input."""
-        self.ext_midi_read_cb_ref = MIDIREADFUNC(function)
-        libcsound.csoundSetExternalMidiReadCallback(self.cs,
-            self.ext_midi_read_cb_ref)
-
-    def set_external_midi_in_close_callback(self, function):
-        """Sets a callback for closing real time MIDI input."""
-        self.ext_midi_in_close_cb_ref = MIDIINCLOSEFUNC(function)
-        libcsound.csoundSetExternalMidiInCloseCallback(self.cs,
-            self.ext_midi_in_close_cb_ref)
-
-    def set_external_midi_out_open_callback(self, function):
-        """Sets a callback for opening real-time MIDI input."""
-        self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
-        libcsound.csoundSetExternalMidiOutOpenCallback(self.cs,
-            self.ext_midi_out_open_cb_ref)
-
-    def set_external_midi_write_callbackk(self, function):
-        """Sets a callback for reading from real time MIDI input."""
-        self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
-        libcsound.csoundSetExternalMidiWriteCallback(self.cs,
-            self.ext_midi_write_cb_ref)
-
-    def set_external_midi_out_close_callback(self, function):
-        """Sets a callback for closing real time MIDI input."""
-        self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
-        libcsound.csoundSetExternalMidiOutCloseCallback(self.cs,
-            self.ext_midi_out_close_cb_ref)
-
-    def set_external_midi_error_string_callback(self, function):
-        """ Sets a callback for converting MIDI error codes to strings."""
-        self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(function)
-        libcsound.csoundSetExternalMidiErrorStringCallback(self.cs,
-            self.ext_midi_err_str_cb_ref)
-
-    def set_midi_device_list_callback(self, function):
-        """Sets a callback for obtaining a list of MIDI devices."""
-        self.midi_dev_list_cb_ref = MIDIDEVLISTFUNC(function)
-        libcsound.csoundSetMIDIDeviceListCallback(self.cs,
-            self.midi_dev_list_cb_ref)
-
-    #
     # Csound Messages and Text
     #
     def message(self, fmt, *args):
         """Displays an informational message.
 
-        This is a workaround because does not support variadic functions.
+        This is a workaround because we do not support variadic functions.
         The arguments are formatted in a string, using the python way, either
         old style or new style, and then this formatted string is passed to
         the Csound display message system.
@@ -1010,7 +945,7 @@ class Csound:
 
         (See msg_attr.h for the list of available attributes). With attr=0,
         message_S() is identical to message().
-        This is a workaround because ctypes does not support variadic functions.
+        This is a workaround because we do not support variadic functions.
         The arguments are formatted in a string, using the python way, either
         old style or new style, and then this formatted string is passed to
         the csound display message system.
@@ -1037,12 +972,10 @@ class Csound:
         """Creates a buffer for storing messages printed by Csound.
 
         Should be called after creating a Csound instance and the buffer
-        can be freed by calling destroyMessageBuffer() before
-        deleting the Csound instance. You will generally want to call
-        cleanup() to make sure the last messages are flushed to
-        the message buffer before destroying Csound.
+        can be freed by calling destroy_message_buffer() before
+        deleting the Csound instance.
 
-        If to_stdout* is True, the messages are also printed to
+        If to_stdout is True, the messages are also printed to
         stdout and stderr (depending on the type of the message),
         in addition to being stored in the buffer.
 
@@ -1308,9 +1241,8 @@ class Csound:
         - "a" (audio sigs): each item is a ksmps-size MYFLT array
         - "i" (init vars): each item is a MYFLT
         - "S" (strings): each item is a STRINGDAT_p (see string_data() and
-          set_string_sata())
+          set_string_data())
         - "k" (control sigs): each item is a MYFLT
-        dimensions - number of array dimensions
         sizes - sizes for each dimension
         returns the ARRAYDAT_p for the requested channel or None on error
         NB: if the channel exists and has already been initialised,
@@ -1439,15 +1371,29 @@ class Csound:
             ct.c_int32(async_))
 
     def event_string(self, message, async_=False):
-        """Send a new event as a string.
+        """Schedule new score or realtime event(s) as a string.
+
+       Two operation modes are supported:
+       - Score events: any calls before start() add the string events to 
+       - the score (before pre-processing) (async_ should be set to False).
+       - Realtime events: after the engine starts, string events are added to
+         the realtime event queue.
 
         Multiple events separated by newlines are possible
         and score preprocessing (carry, etc) is applied.
-        optionally run asynchronously (async_ = True).
+        Optionally run asynchronously (async_ = True).
         """
         libcsound.csoundEventString(self.cs, cstring(message),
             ct.c_int32(async_))
 
+    def instr_number(self, name):
+        """Get the instrument number for a given instrument name string.
+
+        For use in numeric parameters list (event()).
+        Returns the instrument number or -1 if not found.
+        """
+        return int(libcsound.csoundGetInstrNumber(self.cs, cstring(name)))
+    
     def key_press(self, c):
         """Sets the ASCII code of the most recent key pressed.
 
@@ -1457,7 +1403,7 @@ class Csound:
         """
         libcsound.csoundKeyPress(self.cs, cchar(c))
 
-    def register_keyboard_callback(self, function, user_data, type_mask):
+    def register_keyboard_callback(self, function, user_data, type_):
         """Registers general purpose callback functions for keyboard events.
 
         These callbacks will be called to query keyboard events. They
@@ -1507,7 +1453,7 @@ class Csound:
             self.keyboard_cb_text_ref = KEYBOARDFUNC(function)
         return libcsound.csoundRegisterKeyboardCallback(self.cs,
             KEYBOARDFUNC(function),
-            ct.py_object(user_data), ct.c_uint(type_mask))
+            ct.py_object(user_data), ct.c_uint(type_))
 
     def remove_keyboard_callback(self, function):
         """Removes a callback previously set with register_keyboard_callback()."""
@@ -1517,9 +1463,8 @@ class Csound:
     # Tables
     #
     def table_length(self, table):
-        """Returns the length of a function table.
+        """Returns the length of a function table. (Not including the guard point).
 
-        (Not including the guard point).
         If the table does not exist, returns -1.
         """
         return libcsound.csoundTableLength(self.cs, ct.c_int32(table))
@@ -1554,7 +1499,7 @@ class Csound:
             return None
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = ct.cast(ptr, arrayType)
-        return arrFromPointer(p)
+        return array_from_pointer(p)
 
     #
     # Score Handling
@@ -1568,7 +1513,7 @@ class Csound:
         return libcsound.csoundGetScoreTime(self.cs)
 
     def is_score_pending(self):
-        """Tells whether Csound score events are performed or not.
+        """Sets whether Csound score events are performed or not.
 
         Independently of real-time MIDI events (see set_score_pending()).
         """
@@ -1643,6 +1588,89 @@ class Csound:
             OPCODEFUNC(initfunc), OPCODEFUNC(perffunc), OPCODEFUNC(deinitfunc))
 
     #
+    # Realtime Audio I/O
+    #
+    def set_host_audio_IO(self):
+        """Disable all default handling of sound I/O.
+
+        Calling this function after the creation of a Csound object
+        and before the start of performance will disable all default
+        handling of sound I/O by the Csound library via its audio
+        backend module.
+        Host application should in this case use the spin/spout
+        buffers directly.
+        """
+        libcsound.csoundSetHostAudioIO(self.cs)
+
+    def set_RT_audio_module(self, module):
+        """Sets the current RT audio module."""
+        libcsound.csoundSetRTAudioModule(self.cs, cstring(module))
+
+    #
+    # Realtime MIDI I/O
+    #
+    def set_host_midi_IO(self):
+        """Disable all default handling of MIDI I/O.
+
+        Call this function after csound_create()
+        and before the start of performance to implement
+        MIDI via the callbacks below.
+        """
+        libcsound.csoundSetHostMIDIIO(self.cs)
+
+    def set_midi_module(self, module):
+        """Sets the current MIDI IO module."""
+        libcsound.csoundSetMIDIModule(self.cs, cstring(module))
+
+    def set_external_midi_in_open_callback(self, function):
+        """Sets a callback for opening real-time MIDI input."""
+        self.ext_midi_in_open_cb_ref = MIDIINOPENFUNC(function)
+        libcsound.csoundSetExternalMidiInOpenCallback(self.cs,
+            self.ext_midi_in_open_cb_ref)
+
+    def set_external_midi_read_callback(self, function):
+        """Sets a callback for reading from real time MIDI input."""
+        self.ext_midi_read_cb_ref = MIDIREADFUNC(function)
+        libcsound.csoundSetExternalMidiReadCallback(self.cs,
+            self.ext_midi_read_cb_ref)
+
+    def set_external_midi_in_close_callback(self, function):
+        """Sets a callback for closing real time MIDI input."""
+        self.ext_midi_in_close_cb_ref = MIDIINCLOSEFUNC(function)
+        libcsound.csoundSetExternalMidiInCloseCallback(self.cs,
+            self.ext_midi_in_close_cb_ref)
+
+    def set_external_midi_out_open_callback(self, function):
+        """Sets a callback for opening real-time MIDI input."""
+        self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
+        libcsound.csoundSetExternalMidiOutOpenCallback(self.cs,
+            self.ext_midi_out_open_cb_ref)
+
+    def set_external_midi_write_callbackk(self, function):
+        """Sets a callback for reading from real time MIDI input."""
+        self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
+        libcsound.csoundSetExternalMidiWriteCallback(self.cs,
+            self.ext_midi_write_cb_ref)
+
+    def set_external_midi_out_close_callback(self, function):
+        """Sets a callback for closing real time MIDI input."""
+        self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
+        libcsound.csoundSetExternalMidiOutCloseCallback(self.cs,
+            self.ext_midi_out_close_cb_ref)
+
+    def set_external_midi_error_string_callback(self, function):
+        """ Sets a callback for converting MIDI error codes to strings."""
+        self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(function)
+        libcsound.csoundSetExternalMidiErrorStringCallback(self.cs,
+            self.ext_midi_err_str_cb_ref)
+
+    def set_midi_device_list_callback(self, function):
+        """Sets a callback for obtaining a list of MIDI devices."""
+        self.midi_dev_list_cb_ref = MIDIDEVLISTFUNC(function)
+        libcsound.csoundSetMIDIDeviceListCallback(self.cs,
+            self.midi_dev_list_cb_ref)
+
+    #
     # Table Display
     #
     def set_is_graphable(self, is_graphable):
@@ -1650,7 +1678,7 @@ class Csound:
 
         Return the previously set value (initially False).
         """
-        ret = libcsound.csoundSetIsGraphable(self.cs, ct.c_int32(isGraphable))
+        ret = libcsound.csoundSetIsGraphable(self.cs, ct.c_int32(is_graphable))
         return (ret != 0)
 
     def set_make_graph_callback(self, function):
@@ -1835,7 +1863,69 @@ class CsoundPerformanceThread:
         self.cpt = libcspt.csoundCreatePerformanceThread(csp)
 
     def __del__(self):
-        libcspt.csoundDestroyPerformanceThread(self.cpt)
+        libcspt.csoundDestroyPerforma#
+    # Realtime MIDI I/O
+    #
+    def set_host_midi_IO(self):
+        """Disable all default handling of MIDI I/O.
+
+        Call this function after csound_create()
+        and before the start of performance to implement
+        MIDI via the callbacks below.
+        """
+        libcsound.csoundSetHostMIDIIO(self.cs)
+
+    def set_midi_module(self, module):
+        """Sets the current MIDI IO module."""
+        libcsound.csoundSetMIDIModule(self.cs, cstring(module))
+
+    def set_external_midi_in_open_callback(self, function):
+        """Sets a callback for opening real-time MIDI input."""
+        self.ext_midi_in_open_cb_ref = MIDIINOPENFUNC(function)
+        libcsound.csoundSetExternalMidiInOpenCallback(self.cs,
+            self.ext_midi_in_open_cb_ref)
+
+    def set_external_midi_read_callback(self, function):
+        """Sets a callback for reading from real time MIDI input."""
+        self.ext_midi_read_cb_ref = MIDIREADFUNC(function)
+        libcsound.csoundSetExternalMidiReadCallback(self.cs,
+            self.ext_midi_read_cb_ref)
+
+    def set_external_midi_in_close_callback(self, function):
+        """Sets a callback for closing real time MIDI input."""
+        self.ext_midi_in_close_cb_ref = MIDIINCLOSEFUNC(function)
+        libcsound.csoundSetExternalMidiInCloseCallback(self.cs,
+            self.ext_midi_in_close_cb_ref)
+
+    def set_external_midi_out_open_callback(self, function):
+        """Sets a callback for opening real-time MIDI input."""
+        self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
+        libcsound.csoundSetExternalMidiOutOpenCallback(self.cs,
+            self.ext_midi_out_open_cb_ref)
+
+    def set_external_midi_write_callbackk(self, function):
+        """Sets a callback for reading from real time MIDI input."""
+        self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
+        libcsound.csoundSetExternalMidiWriteCallback(self.cs,
+            self.ext_midi_write_cb_ref)
+
+    def set_external_midi_out_close_callback(self, function):
+        """Sets a callback for closing real time MIDI input."""
+        self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
+        libcsound.csoundSetExternalMidiOutCloseCallback(self.cs,
+            self.ext_midi_out_close_cb_ref)
+
+    def set_external_midi_error_string_callback(self, function):
+        """ Sets a callback for converting MIDI error codes to strings."""
+        self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(function)
+        libcsound.csoundSetExternalMidiErrorStringCallback(self.cs,
+            self.ext_midi_err_str_cb_ref)
+
+    def set_midi_device_list_callback(self, function):
+        """Sets a callback for obtaining a list of MIDI devices."""
+        self.midi_dev_list_cb_ref = MIDIDEVLISTFUNC(function)
+        libcsound.csoundSetMIDIDeviceListCallback(self.cs,
+            self.midi_dev_list_cb_ref)
 
     def is_running(self):
         """Returns True if the performance thread is running, False otherwise."""

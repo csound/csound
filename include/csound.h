@@ -163,7 +163,7 @@ extern "C" {
     /* hardware buffer size (samples) */
     int32_t     oMaxLag;
     /* linevents flag (-L)*/
-    int32_t Linein;
+    int32_t     Linein;
     /* realtime events flag (scoreless, -L, -F, -M) */
     int32_t     RTevents;
     /* midi input flag (-M) */
@@ -201,7 +201,7 @@ extern "C" {
     /* MIDI input device name (-M) */
     char       *Midiname;
     /* MIDI input file name (-F) */    
-    char *FMidiname;
+    char       *FMidiname;
     /* MIDI output device name (-Q) */  
     char       *Midioutname;
     /* MIDI output file name */    
@@ -212,7 +212,7 @@ extern "C" {
     int32_t     midiKeyCps;
     /* MIDI key-oct pfield mapping */
     int32_t     midiKeyOct;
-    /* MIDI key-oct pfield mapping */
+    /* MIDI key-pch pfield mapping */
     int32_t     midiKeyPch;
     /* MIDI vel pfield mapping */    
     int32_t     midiVelocity;
@@ -245,9 +245,9 @@ extern "C" {
     /* audio output limiter option */
     MYFLT       limiter;
     /* default sampling rate */
-    MYFLT     sr_default;
+    MYFLT       sr_default;
     /* default control rate */
-    MYFLT kr_default;
+    MYFLT       kr_default;
     /* MP3 encoding mode  */
     int32_t     mp3_mode;
     /* instr redefinition flag */
@@ -769,7 +769,7 @@ extern "C" {
                                               const char *str));
   /**
    * Creates a buffer for storing messages printed by Csound.
-   * Should be called after creating a Csound instance andthe buffer
+   * Should be called after creating a Csound instance and the buffer
    * can be freed by calling csoundDestroyMessageBuffer() before
    * deleting the Csound instance. 
    * If 'toStdOut' is non-zero, the messages are also printed to
