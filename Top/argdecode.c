@@ -289,7 +289,6 @@ static const char *longUsageList[] = {
     Str_noop("--sched=N               set priority to N and lock memory"),
     Str_noop("--opcode-dir=DIR        load all plugins from DIR"),
     Str_noop("--opcode-lib=NAMES      dynamic libraries to load"),
-    Str_noop("--opcode-omit=NAMES     dynamic libraries not to load"),
     Str_noop("--omacro:XXX=YYY        set orchestra macro XXX to value YYY"),
     Str_noop("--smacro:XXX=YYY        set score macro XXX to value YYY"),
     Str_noop("--midi-key=N            route MIDI note on message"),
@@ -1059,7 +1058,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       strcat(csound->dl_opcodes_oplibs, s);
     }
     return 1;
-  } else if (!(strcmp(s, "default-paths"))) {
+  } 
+  else if (!(strcmp(s, "default-paths"))) {
     O->noDefaultPaths = 0;
     return 1;
   } else if (!(strcmp(s, "no-default-paths"))) {
