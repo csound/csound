@@ -522,7 +522,7 @@ static int32_t csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   char *p, *deny;
   char *list = getenv("CS_OMIT_LIBS");
   /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
-  if (list==NULL) return;
+  if (list==NULL) return 0;
   strNcpy(buff, fname, 255); //buff[255]='\0';
   strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
   p = cs_strdup(csound, list);
