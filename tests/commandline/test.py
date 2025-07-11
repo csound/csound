@@ -218,6 +218,7 @@ def runTest():
         ["rfft_array_test.csd", "testing complex rfft array ops"],
         ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
         ["test_gen_array.csd", "testing genarray shorthand"],
+        ["test_array_annotation.csd", "testing array type annotation for opcodes"],
     ]
 
 
