@@ -1113,7 +1113,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
   //    OENTRY* retVal = NULL;
   int32_t i, check;
-
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
     if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
