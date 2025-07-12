@@ -2029,6 +2029,86 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+int32_t mulina(CSOUND *csound, ASSIGN *p)
+{
+  MYFLT* val = p->a;
+  MYFLT* ans = p->r;
+  uint32_t    offset = p->h.insdshead->ksmps_offset;
+  uint32_t    nsmps = CS_KSMPS, n;
+  uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+  CSOUND_SPOUT_SPINLOCK
+    for (n=offset; n<early; n++)
+      ans[n] *= val[n];
+  CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t mulinak(CSOUND *csound, ASSIGN *p)
+{
+  MYFLT val;
+  MYFLT* ans = p->r;
+  uint32_t    offset = p->h.insdshead->ksmps_offset;
+  uint32_t    nsmps = CS_KSMPS, n;
+  uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+  CSOUND_SPOUT_SPINLOCK
+    val = *p->a;
+  for (n=offset; n<early; n++)
+    ans[n] *= val;
+  CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t mulin(CSOUND *csound, ASSIGN *p)
+{
+  CSOUND_SPOUT_SPINLOCK
+    *p->r *= *p->a;
+  CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t divin(CSOUND *csound, ASSIGN *p)
+{
+  CSOUND_SPOUT_SPINLOCK
+    *p->r /= *p->a;
+  CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t divina(CSOUND *csound, ASSIGN *p)
+{
+  MYFLT* val = p->a;
+  MYFLT* ans = p->r;
+  uint32_t    offset = p->h.insdshead->ksmps_offset;
+  uint32_t    nsmps = CS_KSMPS, n;
+  uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+  CSOUND_SPOUT_SPINLOCK
+    for (n=offset; n<early; n++)
+      ans[n] /= val[n];
+  CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t divinak(CSOUND *csound, ASSIGN *p)
+{
+  MYFLT val;
+  MYFLT* ans = p->r;
+  uint32_t    offset = p->h.insdshead->ksmps_offset;
+  uint32_t    nsmps = CS_KSMPS, n;
+  uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+  CSOUND_SPOUT_SPINLOCK
+    val = *p->a;
+  for (n=offset; n<early; n++)
+    ans[n] /= val;
+  CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+
+
 /**
  * Identifies both signaling NaN (sNaN) and quiet NaN (qNaN).
  * 

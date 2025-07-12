@@ -359,6 +359,10 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   case IGOTO_TOKEN:
   case KGOTO_TOKEN:
   case T_OPCALL:
+  case S_ADDIN:
+  case S_SUBIN:
+  case S_DIVIN:
+  case S_MULIN:    
   case T_ASSIGNMENT:
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "create_opcode: Found node for opcode %s\n",
