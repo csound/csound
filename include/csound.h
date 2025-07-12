@@ -154,11 +154,11 @@ extern "C" {
     int32_t     displays;
     /* graphs flag */
     int32_t     graphsoff;
-    /* postscript graphs flag */    
+    /* postscript graphs flag */
     int32_t     postscript;
     /* message level (-m) */
     int32_t     msglevel;
-    /* beat mode */    
+    /* beat mode */
     int32_t     Beatmode;
     /* hardware buffer size (samples) */
     int32_t     oMaxLag;
@@ -168,9 +168,9 @@ extern "C" {
     int32_t     RTevents;
     /* midi input flag (-M) */
     int32_t     Midiin;
-    /* midi file input flag (-F) */    
+    /* midi file input flag (-F) */
     int32_t     FMidiin;
-    /* remote events flag */       
+    /* remote events flag */
     int32_t     RMidiin;
     /* ringbell flag */
     int32_t     ringbell;
@@ -186,25 +186,25 @@ extern "C" {
     double      cmdTempo;
     /* sampling rate override (-r) */
     MYFLT       sr_override;
-    /* control rate override (-k) */    
+    /* control rate override (-k) */
     MYFLT       kr_override;
     /* nchnls override */
     int32_t     nchnls_override;
-    /* nchnls_i override */    
+    /* nchnls_i override */
     int32_t     nchnls_i_override;
     /* input file name (-i) */
     char       *infilename;
     /* output file name (-o) */
     char       *outfilename;
-    /* line events source (-L) */    
+    /* line events source (-L) */
     char       *Linename;
     /* MIDI input device name (-M) */
     char       *Midiname;
-    /* MIDI input file name (-F) */    
+    /* MIDI input file name (-F) */
     char       *FMidiname;
-    /* MIDI output device name (-Q) */  
+    /* MIDI output device name (-Q) */
     char       *Midioutname;
-    /* MIDI output file name */    
+    /* MIDI output file name */
     char       *FMidioutname;
     /* MIDI key pfield mapping */
     int32_t     midiKey;
@@ -214,9 +214,9 @@ extern "C" {
     int32_t     midiKeyOct;
     /* MIDI key-pch pfield mapping */
     int32_t     midiKeyPch;
-    /* MIDI vel pfield mapping */    
+    /* MIDI vel pfield mapping */
     int32_t     midiVelocity;
-    /* MIDI vel-amp pfield mapping */    
+    /* MIDI vel-amp pfield mapping */
     int32_t     midiVelocityAmp;
     /* default paths flag */
     int32_t     noDefaultPaths;
@@ -224,6 +224,8 @@ extern "C" {
     int32_t     numThreads;
     /* syntax check only flag */
     int32_t     syntaxCheckOnly;
+    /* run unit tests flag */
+    int32_t     runUnitTests;
     /* csd line nums option */
     int32_t     useCsdLineCounts;
     /* sample accurate flag */
@@ -253,7 +255,7 @@ extern "C" {
     /* instr redefinition flag */
     int32_t     redef;
   } OPARMS;
- 
+
   /**
    * Device information
    */
@@ -453,6 +455,11 @@ extern "C" {
   PUBLIC void csoundSetHostData(CSOUND *, void *hostData);
 
   /**
+   * Returns the total error count of the current performance.
+   */
+  PUBLIC int csoundErrCnt(CSOUND *csound);
+
+  /**
    * Get pointer to the value of environment variable 'name', searching
    * in this order: local environment of 'csound' (if not NULL), variables
    * set with csoundSetGlobalEnv(), and system environment variables.
@@ -480,7 +487,7 @@ extern "C" {
 
   /**
    *  Get the current set of parameters from a CSOUND instance in
-   *  a struct CSOUND_PARAMS structure. 
+   *  a struct CSOUND_PARAMS structure.
    */
   PUBLIC const OPARMS *csoundGetParams(CSOUND *csound);
 
@@ -706,7 +713,7 @@ extern "C" {
   /** @defgroup AUDIOIO Audio I/O
    *
    *  @{ */
-  
+
   /**
    * Returns the address of the Csound audio input working buffer (spin).
    * Enables external software to write audio into Csound before calling
@@ -722,7 +729,7 @@ extern "C" {
   PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound);
 
   /** @}*/
- 
+
 
   /** @defgroup MESSAGES Csound Messages and Text
    *
@@ -771,7 +778,7 @@ extern "C" {
    * Creates a buffer for storing messages printed by Csound.
    * Should be called after creating a Csound instance and the buffer
    * can be freed by calling csoundDestroyMessageBuffer() before
-   * deleting the Csound instance. 
+   * deleting the Csound instance.
    * If 'toStdOut' is non-zero, the messages are also printed to
    * stdout and stderr (depending on the type of the message),
    * in addition to being stored in the buffer.
@@ -1119,7 +1126,7 @@ extern "C" {
   /**
    * Schedule new score or realtime event(s) as a NULL-terminated string
    * Two operation modes are supported:
-   * - Score events: any calls before csoundStart() add the string events to 
+   * - Score events: any calls before csoundStart() add the string events to
    * the score (before pre-processing) (async should be set to 0).
    * - Realtime events: after the engine starts, string events are added to
    * the realtime event queue.
@@ -1134,8 +1141,8 @@ extern "C" {
    * Get the instrument number for a given instrument name string
    * for use in numeric parameters list (csoundEvent())
    * returns the instrument number or -1 if not found.
-   */ 
-  PUBLIC int32 csoundGetInstrNumber(CSOUND *, const char *name); 
+   */
+  PUBLIC int32 csoundGetInstrNumber(CSOUND *, const char *name);
 
   /**
    * Set the ASCII code of the most recent key pressed.
@@ -1328,7 +1335,7 @@ extern "C" {
                                  int32_t (*perf)(CSOUND *, void *),
                                  int32_t (*deinit)(CSOUND *, void *));
 
-  /** @}*/  
+  /** @}*/
 #endif  /* !CSOUND_CSDL_H */
 
   /* realtime audio module functions */

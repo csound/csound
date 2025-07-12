@@ -66,6 +66,7 @@ $(CSOUND_SRC_ROOT)/InOut/winEPS.c \
 $(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/OOps/aops.c \
 $(CSOUND_SRC_ROOT)/OOps/array_ops.c \
+$(CSOUND_SRC_ROOT)/OOps/assert_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/bus.c \
 $(CSOUND_SRC_ROOT)/OOps/cmath.c \
 $(CSOUND_SRC_ROOT)/OOps/complex_ops.c \
@@ -296,7 +297,7 @@ $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
 $(CSOUND_SRC_ROOT)/Top/init_static_modules.c \
-$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp 
+$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
 #CsoundObj.cpp
 
 LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc

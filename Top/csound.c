@@ -223,11 +223,11 @@ static void free_opcode_table(CSOUND *csound) {
   cs_hash_table_free(csound, csound->opcodes);
 }
 
-static void insert_score_event(CSOUND *csound, int32_t type, const MYFLT *pfields, int32_t pnum) { 
+static void insert_score_event(CSOUND *csound, int32_t type, const MYFLT *pfields, int32_t pnum) {
   csoundEvent(csound, type, pfields, pnum, 0);
 }
 
-  
+
 static void create_opcode_table(CSOUND *csound) {
 
   int32_t err;
@@ -836,7 +836,7 @@ static const CSOUND cenviron_ = {
   FL(-1.0),       /*  mtpdsr              */
   FL(0.0),        /*  onedksmps           */
   FL(0.0),        /*  onedkr              */
-  FL(0.0),        /*  kicvt               */ 
+  FL(0.0),        /*  kicvt               */
   0,              /*  reinitflag          */
   0,              /*  tieflag             */
   DFLT_DBFS,      /*  e0dbfs              */
@@ -848,12 +848,12 @@ static const CSOUND cenviron_ = {
   {0},
 #elif defined(LINUX)
   {{{0}}},        /*  exitjmp of type jmp_buf */
-#else 
-  {0},  
-#endif 
+#else
+  {0},
+#endif
   NULL,           /*  frstbp              */
   0,              /*  sectcnt             */
-  0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
+  0, 0, 0, 0,     /*  inerrcnt, synterrcnt, perferrcnt, total_assert_cnt */
   /* {NULL}, */   /*  instxtanchor  in engineState */
   {   /*  actanchor           */
     NULL,
@@ -910,7 +910,7 @@ static const CSOUND cenviron_ = {
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
     {NULL, FL(0.0)},
-    {NULL, FL(0.0)}  
+    {NULL, FL(0.0)}
   },
   {0L },          /*  rngcnt              */
   0, 0,           /*  rngflg, multichan   */
@@ -1082,7 +1082,7 @@ static const CSOUND cenviron_ = {
     1,            /*    displays          */
     1, 0, 135,    /*    graphsoff ...     */
     0, 0,         /*    Beatmode, ...     */
-    0, 
+    0,
     0, 0, 0, 0,   /*    RTevents, ...     */
     0, 0,         /*    ringbell, ...     */
     0, 0, 0,      /*    rewrt_hdr, ...    */
@@ -1101,6 +1101,7 @@ static const CSOUND cenviron_ = {
     0,            /*    noDefaultPaths    */
     1,            /*    numThreads        */
     0,            /*    syntaxCheckOnly   */
+    0,            /*    runUnitTests      */
     1,            /*    useCsdLineCounts  */
     0,            /*    samp acc   */
     0,            /*    realtime  */
@@ -1113,7 +1114,7 @@ static const CSOUND cenviron_ = {
     0.0,           /*   limiter */
     DFLT_SR, DFLT_KR,  /* defaults */
     0,             /* mp3 mode */
-    0              /* instr redefinition flag */ 
+    0              /* instr redefinition flag */
   },
   {0, 0, {0}}, /* REMOT_BUF */
   NULL,           /* remoteGlobals        */
@@ -1178,7 +1179,7 @@ static const CSOUND cenviron_ = {
   0,              /* message_string_queue_wp */
   NULL,           /* message_string_queue */
   0,              /* io_initialised */
-  0,              /* options_checked */    
+  0,              /* options_checked */
   NULL,           /* op */
   0,              /* mode */
   NULL,           /* opcodedir */
@@ -2874,7 +2875,7 @@ int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
       csound->Message(csound,
                     Str("Csound has not started yet, no events scheduled.\n"));
     return CSOUND_ERROR;
-  }  
+  }
   EVTBLK evt;
   int32_t ret;
   memset(&evt, 0, sizeof(EVTBLK));
