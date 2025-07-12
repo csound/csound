@@ -230,6 +230,12 @@ RELATN(le,<=)
 RELATN(eq,==)
 RELATN(ne,!=)
 
+int32_t bassign(CSOUND *csound, RELAT *p) {
+  *p->rbool = ((int32_t) *p->a != 0) ? 1 : 0;
+  return OK;
+}
+
+
 int32_t b_not(CSOUND *csound, LOGCL *p)
 {
   IGN(csound); *p->rbool = (*p->ibool) ? 0 : 1; return OK; }

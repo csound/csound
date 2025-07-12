@@ -550,9 +550,31 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   switch(tree->type) {
   case NUMBER_TOKEN:
   case INTEGER_TOKEN:
-    return cs_strdup(csound, "c");                              /* const */
+    return cs_strdup(csound, "c");     /* const */
+  case FALSE_TOKEN: {  // trap false expr here
+    CS_VARIABLE *var = find_var_from_pools(csound, "false",
+                                           "false", typeTable);
+    if(var == NULL) {
+    var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "false", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 0;
+    }
+  }
+  return cs_strdup(csound, "b");  /* boolean */
+  case TRUE_TOKEN: { // trap true expr here
+     CS_VARIABLE *var = find_var_from_pools(csound, "true",
+                                           "true", typeTable);
+    if(var == NULL) {   
+     var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "true", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 1;
+    }
+  }
+   return cs_strdup(csound, "b");     /* boolean */
   case STRING_TOKEN:
-    return cs_strdup(csound, "S");                /* quoted String */
+    return cs_strdup(csound, "S");   /* quoted String */
   case LABEL_TOKEN:
     //FIXME: Need to review why label token is used so much in parser,
     //for now treat as T_IDENT
@@ -3445,7 +3467,6 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
      called by bison when instr ids are found
   */
   if (x->type == T_IDENT) {
-    
     char *varname = x->value->lexeme;
     CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
                                          (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,
