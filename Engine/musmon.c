@@ -246,6 +246,12 @@ int32_t start_engine(CSOUND *csound)
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
 
+    /* Initialize unit test counters */
+    if (csound->oparms->runUnitTests) {
+        csound->total_assert_cnt = 0;
+        csound->perferrcnt = 0;
+    }
+
     dbfs_init(csound, csound->e0dbfs);
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
@@ -276,7 +282,7 @@ int32_t start_engine(CSOUND *csound)
 
     print_engine_parameters(csound);
 
-    /* Enable musmon to handle external MIDI input, if it has been enabled. 
+    /* Enable musmon to handle external MIDI input, if it has been enabled.
        called before init() so that any file passed -F is the first on the
        list.
     */
@@ -301,7 +307,7 @@ int32_t start_engine(CSOUND *csound)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       midi_open_out(csound);
-    
+
     if(O->msglevel) {
       csound->ErrorMsg(csound, Str("orch now loaded\n"));
     }
@@ -486,6 +492,25 @@ int32_t csoundCleanup(CSOUND *csound)
       }
       csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
                       csound->perferrcnt);
+
+      /* Print unit test report if enabled */
+      if (csound->oparms->runUnitTests) {
+        int32_t passed = csound->total_assert_cnt - csound->perferrcnt;
+        csound->ErrorMsg(csound, "\n");
+        csound->ErrorMsg(csound, "=====================================\n");
+        csound->ErrorMsg(csound, "         UNIT TEST REPORT            \n");
+        csound->ErrorMsg(csound, "=====================================\n");
+        csound->ErrorMsg(csound, "  Total assertions: %d\n", csound->total_assert_cnt);
+        csound->ErrorMsg(csound, "  Passed: %d\n", passed);
+        csound->ErrorMsg(csound, "  Failed: %d\n", csound->perferrcnt);
+        csound->ErrorMsg(csound, "\n");
+        if (csound->perferrcnt == 0) {
+          csound->ErrorMsg(csound, "  Result: ✓ ALL TESTS PASSED\n");
+        } else {
+          csound->ErrorMsg(csound, "  Result: ✗ TESTS FAILED\n");
+        }
+        csound->ErrorMsg(csound, "=====================================\n");
+      }
       print_benchmark_info(csound, Str("end of performance"));
       if (csound->print_version) print_csound_version(csound);
     }
@@ -538,7 +563,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
     return csound->InitError(csound, "cannot turnon self with zero delay\n");
-  
+
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
@@ -566,7 +591,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
     return csound->InitError(csound, "cannot turnon self with zero delay\n");
-  
+
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
@@ -666,7 +691,7 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
 }
 
 static void indef_off(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
-{             
+{
   INSDS *ip;
   int32_t   insno;
 
@@ -892,7 +917,7 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 {
   EVTBLK  *evt;
   int32_t     retval, insno, rfd;
- 
+
 
   retval = 0;
   if (csound->curp2 * csound->esr < (double)csound->icurTimeSamples) {
@@ -915,13 +940,13 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
     /* pop from the list */
     csound->OrcTrigEvts = e->nxt;
     retval = process_score_event(csound, evt, 1);
-    
+
     if (evt->strarg != NULL) {
       csound->Free(csound, evt->strarg);
       evt->strarg = NULL;
     }
-    
-    /* push back to free alloc stack so it can be reused later 
+
+    /* push back to free alloc stack so it can be reused later
     */
     e->nxt = csound->freeEvtNodes;
     csound->freeEvtNodes = e;
@@ -1328,7 +1353,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     }
     else
       i = (int32_t) fabs((double) pf[1]);
-    
+
     if (UNLIKELY((uint32_t) (i - 1) >=
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {
@@ -1376,7 +1401,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   }
   /* Make sure sense_events() looks for RT events */
   csound->oparms->RTevents = 1;
- 
+
   return 0;
 
  pfld_err:
@@ -1420,7 +1445,7 @@ int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
 
   return insert_event_node(csound,e,time_ofs);
 }
- 
+
 
 /** second version for argument pointers as pfields */
 int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,

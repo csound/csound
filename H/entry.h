@@ -1,7 +1,7 @@
 /*
   entry.h:
 
-    Copyright (C) 1991-2005 Barry Vercoe, John ffitch, 
+    Copyright (C) 1991-2005 Barry Vercoe, John ffitch,
                        Victor Lazzarini, Steven Yi
 
     This file is part of Csound.
@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "csoundCore.h"    
+#include "csoundCore.h"
 #include "inst_ops.h"
 #include "udo.h"
 #include "goto_ops.h"
@@ -55,6 +55,7 @@
 #include "midifile.h"
 #include "midiinterop.h"
 #include "str_ops.h"
+#include "assert_ops.h"
 #include "bus.h"
 #include "pstream.h"
 #include "remote.h"
@@ -522,6 +523,10 @@ int32_t coef2parm(CSOUND *csound, void *p);
 int32_t resonbnk_init(CSOUND *csound, void *p);
 int32_t resonbnk(CSOUND *csound, void *p);
 int32_t schedule_array(CSOUND *csound, void *p);
+int32_t assert_true_opcode(CSOUND *csound, ASSERT_OP *p);
+int32_t assert_false_opcode(CSOUND *csound, ASSERT_OP *p);
+int32_t assert_true_opcode_numeric(CSOUND *csound, ASSERT_OP_NUMERIC *p);
+int32_t assert_false_opcode_numeric(CSOUND *csound, ASSERT_OP_NUMERIC *p);
 int32_t imidic7(CSOUND *csound, void *p);
 int32_t midic7set(CSOUND *csound, void *p);
 int32_t midic7(CSOUND *csound, void *p);
@@ -590,8 +595,8 @@ int32_t pinit(CSOUND *csound, void *p);
 int32_t painit(CSOUND *csound, void *p);
 int32_t inRange_i(CSOUND *csound, void *p);
 int32_t inRange(CSOUND *csound, void *p);
-int32_t sliderTable_i8(CSOUND *csound,  void *p); 
-int32_t sliderTable8(CSOUND *csound,  void *p); 
+int32_t sliderTable_i8(CSOUND *csound,  void *p);
+int32_t sliderTable8(CSOUND *csound,  void *p);
 int32_t sliderTable_i16(CSOUND *csound,  void *p);
 int32_t sliderTable16(CSOUND *csound,  void *p);
 int32_t sliderTable_i8f(CSOUND *csound,  void *p);

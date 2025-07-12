@@ -543,7 +543,7 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $5->right = $8;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
         }
-        ; 
+        ;
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
  {
@@ -589,7 +589,7 @@ static_array : '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));
             $$->right = $2;
           }
-          
+
 
 /* TODO: Investigate whether this should allow for expressions as base before brackets to make more generic
 */
