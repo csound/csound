@@ -178,6 +178,7 @@ def runTest():
     ["test_explicit_globals.csd", "test global declaration of explicit types"],
     ["test_fail_mismatched_types.csd", "syntax error on mismatched type declaration", 1],        
     ["test_declare.csd", "test declare keyword (CS7)"],
+    ["test_sub_str.csd", "test raw string embedded in raw string"],
     ["test_plusname.csd", "test +Name for instr name"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
     ["test_opassign.csd", "test +=, ==, *= and /="],
