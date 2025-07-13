@@ -5,9 +5,8 @@
 <CsInstruments>
 
 
-opcode Test(i1:i,i2:i):b
- i1,i2 xin
- xout (i1 == i2)
+opcode Test(i:i,j:i):b
+ xout (i == j)
 endop
 
 instr 1
