@@ -95,6 +95,12 @@ typedef struct {
   MYFLT *val;
 } PARM_INSTR;
 
+typedef struct {
+  OPDS h;
+  int32_t *rb;
+  INSTANCEREF *in;
+} INSTRACT;
+
 int32_t play_instr(CSOUND *csound, LINEVENT2 *p);
 int32_t kill_instancek(CSOUND *csound, KILLOP *p);
 int32 sa_early(CSOUND *csound, AOP *p);
@@ -107,5 +113,6 @@ int32_t pause_instance_opcode(CSOUND *csound, PAUSE_INSTR *p);
 int32_t set_instance_parameter(CSOUND *csound, PARM_INSTR *p);
 int32_t get_instance(CSOUND *csound, DEL_INSTR *p);
 int32_t splice_instance(CSOUND *csound, SPLICE_INSTR *p);
-
+int32_t isactive(CSOUND *csound, INSTRACT *p);
+int32_t isreleasing(CSOUND *csound, INSTRACT *p);
 #endif

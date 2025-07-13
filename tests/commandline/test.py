@@ -179,6 +179,7 @@ def runTest():
     ["test_fail_mismatched_types.csd", "syntax error on mismatched type declaration", 1],        
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
+    ["test_isactive.csd", "test isactive and isperforming"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
     ["test_opassign.csd", "test +=, ==, *= and /="],
     ["testnewline.csd", "test newline in statements"],

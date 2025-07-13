@@ -530,6 +530,24 @@ int32_t get_instance(CSOUND *csound, DEL_INSTR *p) {
   return OK;
 }
 
+/** Instance active check
+   
+    stat:{b,B} isactive inst:Instr
+*/
+int32_t isactive(CSOUND *csound, INSTRACT *p) {
+  *p->rb = p->in->instance->actflg != 0 ? 1 : 0;
+  return OK;
+}
+
+/** Instance release check
+   
+    stat:{b,B} isreleasing inst:Instr
+*/
+int32_t isreleasing(CSOUND *csound, INSTRACT *p) {
+  *p->rb = p->in->instance->relesing != 0 ? 1 : 0;
+  return OK;
+}
+
 /** Instance order manipulation
     splice instance before or after another instance
 
