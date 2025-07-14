@@ -1268,7 +1268,7 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
   int32_t length;
   OENTRY  *opcodlst_n;
   const INITFN staticmodules[] = {
-#if defined(LINUX)
+#if defined(LINUX) || defined(__MACH__)
     cpumeter_localops_init,
 #endif
 #if !(defined(__wasi__))

@@ -58,7 +58,7 @@ typedef struct CPU_t {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *k0, *kk[8], *itrig;
+        MYFLT   *k0, *kk[31], *itrig;
         AUXCH   cpu_a;
         CPU_t   *cpus;
         uint32_t cpu_max;
@@ -219,12 +219,71 @@ static int32_t cpupercent(CSOUND *csound, CPUMETER* p)
     return OK;
 }
 
-#else
+#elif defined(__MACH__)
+
+#include <sys/sysctl.h>
+#include <sys/types.h>
+#include <mach/mach.h>
+#include <mach/processor_info.h>
+#include <mach/mach_host.h>
+#define MAXCPUS 32
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *kk[MAXCPUS], *itrig;
+        int32_t  cnt, trig;
+} CPUMETER;
+
+int32_t cpumeter_mach(MYFLT *val, int32_t size) {
+ processor_info_array_t cpuInfo;
+ mach_msg_type_number_t numCpuInfo;
+ unsigned numCPUs;
+ 
+ int mib[2U] = { CTL_HW, HW_NCPU };
+ size_t sizeOfNumCPUs = sizeof(numCPUs);
+ int status = sysctl(mib, 2U, &numCPUs, &sizeOfNumCPUs, NULL, 0U);
+
+ if(status == 0) {
+ kern_return_t err =
+   host_processor_info(mach_host_self(),
+                       PROCESSOR_CPU_LOAD_INFO, &numCPUs,
+                       &cpuInfo, &numCpuInfo);
+ if(err == 0) {
+ for(unsigned i = 0U; i < numCPUs; ++i) {
+   float inUse, total;
+   inUse = cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_USER] +
+       cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_SYSTEM]
+       + cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_NICE];
+   total = inUse + cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_IDLE];
+   if(i < size) val[i] = (inUse / total)*100;
+ }
+ }
+ }
+
+ return 0;
+}
+
+static int32_t cpupercent_init(CSOUND *csound, CPUMETER* p){
+    p->cnt = (p->trig = (int32_t)(*p->itrig * CS_ESR));
+    return OK;
+}
+
+static int32_t cpupercent(CSOUND *csound, CPUMETER* p){
+    MYFLT* val = *p->kk;
+    p->cnt -= CS_KSMPS;
+    if (p->cnt< 0) {
+      int32_t n = cpumeter_mach(val, MAXCPUS);
+      p->cnt = p->trig;
+      return n;
+    }
+    return OK;
+}
+
+#else // not mach not linux
 typedef struct {
         OPDS    h;
         MYFLT   *k0, *kk[8], *itrig;
 } CPUMETER;
-
 
 int32_t deinit_cpupercent(CSOUND *csound, void *p)
 {
@@ -232,7 +291,6 @@ int32_t deinit_cpupercent(CSOUND *csound, void *p)
   csound->Message(csound, "not implemented\n");
     return OK;
 }
-
 
 int32_t cpupercent_init(CSOUND *csound, CPUMETER *p) {
    IGN(p);
@@ -245,13 +303,12 @@ int32_t cpupercent(CSOUND *c, CPUMETER *p) {
   IGN(p);
   return OK;
 }
-#endif
 
+#endif // not mach not linux
 typedef struct {
     OPDS   h;
     MYFLT  *ti;
 } SYST;
-
 
 static int32_t
 systime(CSOUND *csound, SYST *p){
@@ -266,15 +323,14 @@ systime(CSOUND *csound, SYST *p){
     return OK;
 }
 
-#define S(x)    sizeof(x)
-
 static OENTRY cpumeter_localops[] = {
-  { "cpumeter",   S(CPUMETER),   0, "kzzzzzzzz", "i",
-    (SUBR)cpupercent_init, (SUBR)cpupercent, (SUBR) deinit_cpupercent },
-{ "systime", S(SYST),0,  "k",    "", (SUBR)systime, (SUBR)systime},
-{ "systime", S(SYST),0,  "i",    "", (SUBR)systime}
+  { "cpumeter",   sizeof(CPUMETER),   0, "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "i",
+    (SUBR)cpupercent_init, (SUBR)cpupercent, NULL },
+{ "systime", sizeof(SYST),0,  "k",    "", (SUBR)systime, (SUBR)systime},
+{ "systime", sizeof(SYST),0,  "i",    "", (SUBR)systime}
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)
-#endif
 
+
+#endif
