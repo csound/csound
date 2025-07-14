@@ -95,6 +95,8 @@
 %token ENDSW_TOKEN
 %token FOR_TOKEN
 %token IN_TOKEN
+%token TRUE_TOKEN
+%token FALSE_TOKEN
 
 
 %token S_ELIPSIS
@@ -543,7 +545,7 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $5->right = $8;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
         }
-        ; 
+        ;
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
  {
@@ -577,6 +579,8 @@ expr    : function_call
         | gen_array
         | static_array
         | struct_expr
+        | true_const
+        | false_const
         ;
 
 gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
@@ -589,7 +593,7 @@ static_array : '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));
             $$->right = $2;
           }
-          
+
 
 /* TODO: Investigate whether this should allow for expressions as base before brackets to make more generic
 */
@@ -658,7 +662,7 @@ unary_expr : '~' expr %prec S_UMINUS
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
           }
 
-        | '+' error           { $$ = NULL; }
+        | '+' error           { $$ = NULL; }        
         ;
 
 binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $4); }
@@ -743,21 +747,13 @@ array_identifier: array_identifier '[' ']' {
 assignment : '='
                 { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); }
               | S_ADDIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##addin")); }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##subin")); }               
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##divin")); }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##mulin")); } 
               ;
 
 in        : IN_TOKEN
@@ -787,7 +783,17 @@ string : STRING_TOKEN
         { $$ = make_leaf(csound, LINE,LOCN, STRING_TOKEN, (ORCTOKEN *)$1); }
         ;
 
+false_const: FALSE_TOKEN
+       { $$ = make_leaf(csound, LINE,LOCN, FALSE_TOKEN,
+                        make_token(csound,"false")); }
+       ;
 
+true_const: TRUE_TOKEN
+           { $$ = make_leaf(csound, LINE,LOCN, TRUE_TOKEN,
+                            make_token(csound,"true")); }
+       ;
+
+         
 number : NUMBER_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, NUMBER_TOKEN, (ORCTOKEN *)$1); }
        ;

@@ -313,8 +313,8 @@ if(NOT MSVC AND NOT WASM)
                 else()
                 message(STATUS  "not using address sanitizer")
                endif()
-            endif()        
-        endif()        
+            endif()
+        endif()
     endif()
 endif()
 
@@ -805,6 +805,7 @@ set(libcsound_SRCS
     InOut/circularbuffer.c
     OOps/array_ops.c
     OOps/aops.c
+    OOps/assert_ops.c
     OOps/bus.c
     OOps/cmath.c
     OOps/complex_ops.c

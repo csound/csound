@@ -521,7 +521,6 @@ static int32_t csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   char *th;
   char *p, *deny;
   char *list = getenv("CS_OMIT_LIBS");
-  /* printf("DEBUG %s(%d): check fname=%s\n", __FILE__, __LINE__, fname); */
   /* printf("DEBUG %s(%d): list %s\n", __FILE__, __LINE__, list); */
   if (list==NULL) return 0;
   strNcpy(buff, fname, 255); //buff[255]='\0';
@@ -532,14 +531,13 @@ static int32_t csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   while (deny) {
     /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
     if (strcmp(deny, buff)==0) {
-      csound->Free(csound, p);
-      /* printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); */
+      csound->Free(csound, p); 
+      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); 
       return 1;
     }
     deny = cs_strtok_r(NULL, ",", &th);
   }
   csound->Free(csound, p);
-  /* printf("DEBUG %s(%d): not found\n", __FILE__, __LINE__); */
   return 0;
 }
 
@@ -1270,7 +1268,7 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
   int32_t length;
   OENTRY  *opcodlst_n;
   const INITFN staticmodules[] = {
-#if defined(LINUX)
+#if defined(LINUX) || defined(__MACH__)
     cpumeter_localops_init,
 #endif
 #if !(defined(__wasi__))

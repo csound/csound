@@ -19,11 +19,11 @@ LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a | arm64-v8a ))
 LOCAL_ARM_NEON  := true
 LOCAL_CFLAGS += -DHAVE_NEON #-mfpu=neon -mfloat-abi=softfp
-endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
+endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a 
 
-#ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi x86))
-#LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
-#endif # TARGET_ARCH_ABI == armeabi
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), x86 | x86_64))
+LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
+endif # TARGET_ARCH_ABI ==
 ###
 
 LOCAL_SRC_FILES := $(CSOUND_SRC_ROOT)/Engine/auxfd.c \
@@ -66,6 +66,7 @@ $(CSOUND_SRC_ROOT)/InOut/winEPS.c \
 $(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/OOps/aops.c \
 $(CSOUND_SRC_ROOT)/OOps/array_ops.c \
+$(CSOUND_SRC_ROOT)/OOps/assert_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/bus.c \
 $(CSOUND_SRC_ROOT)/OOps/cmath.c \
 $(CSOUND_SRC_ROOT)/OOps/complex_ops.c \
@@ -296,7 +297,7 @@ $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
 $(CSOUND_SRC_ROOT)/Top/init_static_modules.c \
-$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp 
+$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
 #CsoundObj.cpp
 
 LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc

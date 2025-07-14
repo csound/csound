@@ -141,6 +141,7 @@ def runTest():
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
 	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
+    ["test_iarr_operators.csd", "test i[] operators"],
 	["test_booleans.csd", "tests using boolean data-types"],
     ["test_type_eq.csd", "test type equality operator"],
 	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
@@ -179,6 +180,7 @@ def runTest():
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
+    ["test_opassign.csd", "test +=, ==, *= and /="],
     ["testnewline.csd", "test newline in statements"],
     ["test_string_in_event.csd", "test multiple strings in realtime event"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
@@ -199,6 +201,7 @@ def runTest():
     ["diskin_excess_channels.csd", "test sample accurate mode"],
     ["test_midifile_ops.csd", "testing midifile opcodes"],
     ["test_csound_object.csd", "test Csound object opcodes"],
+    ["test_true_false.csd", "testing true/false booleans"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
