@@ -324,7 +324,10 @@ out_type : identifier
 
 /* Opcode and Function calls */
 
-/* opcall is an ambiguous rule.  We use it to catch no out-arg function calls, as well as old-style opcode line calls. While ambiguous, it *should* only match valid code. The ambiguity is resolved by the semantic analyzer.  */
+/* opcall is an ambiguous rule.  We use it to catch no out-arg function calls, 
+  as well as old-style opcode line calls. While ambiguous, it *should* only match valid code.
+  The ambiguity is resolved by the semantic analyzer.  
+*/
 opcall  : identifier NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1;
@@ -332,7 +335,7 @@ opcall  : identifier NEWLINE
         | out_arg_list expr_list NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1;
-            $$->right = $2;
+            $$->right = $2;          
           }
         | out_arg_list '(' ')' NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
@@ -346,10 +349,9 @@ opcall  : identifier NEWLINE
             $2->left = $1;
             $2->right = $3;
           }
-
         | function_call NEWLINE
         | function_call '+' expr_list NEWLINE
-          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '+', $1, $3); }
+        { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '+', $1, $3);  }
         | function_call '-' expr_list NEWLINE
           { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '-', $1, $3); }
         | function_call '*' expr_list NEWLINE
@@ -564,14 +566,14 @@ expr_list : expr_list ',' expr
          ;
 
 expr    : function_call
-        | '(' expr ')'
+        | '(' expr ')' 
           { $$ = $2 ; }
         | '(' expr error    { $$ = NULL;  }
         | '(' error         { $$ = NULL; }
         | ternary_expr
         | unary_expr
-        | binary_expr
-        | identifier
+        | binary_expr 
+        | identifier 
         | integer
         | number
         | string
@@ -580,11 +582,12 @@ expr    : function_call
         | static_array
         | struct_expr
         | true_const
-        | false_const
+        | false_const     
         ;
 
+
 gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
-            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "genarray"));
+            $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, make_token(csound, "genarray"));
             $$->right = $2;
             append_to_tree(csound, $$->right, $4);
              }
@@ -635,12 +638,12 @@ unary_expr : '~' expr %prec S_UMINUS
         | '!' expr %prec S_UNOT { $$ = make_node(csound, LINE,LOCN,
                                                     S_UNOT, $2, NULL); }
         | '!' error           { $$ = NULL; }
-        | '-' expr %prec S_UMINUS
+        | '-' expr //%prec S_UMINUS  /* is precedence right? - removing fixes opcall parsing issue */
           {
               $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
           }
         | '-' error           { $$ = NULL; }
-        | '+' expr %prec S_UPLUS
+        | '+' expr //%prec S_UPLUS  /* is precedence right? - removing fixes parsing issue */
           /* { */
           /*     $$ = $2; */
           /*     /\* added to left for disambiguation of opcall in semantic analyzer *\/ */
@@ -718,8 +721,8 @@ out_arg_list : out_arg_list ',' out_arg
              | out_arg
              ;
 
-out_arg : identifier
-        | typed_identifier
+out_arg : identifier 
+        | typed_identifier 
         | array_identifier
         | array_expr
         | struct_expr
