@@ -197,14 +197,16 @@ jobs:
           fetch-depth: 1
           submodules: true
           
-      - name: Checkout and build libsndfile, configure Csound
+      - name: Checkout and build libsndfile
         run: |
-           git clone https://github.com/libsndfile/libsndfile
-           cd libsndfile
-           cmake -B build -DENABLE_EXTERNAL_LIBS=0 -DENABLE_MPEG=0 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../sndfile_install
-           cmake --build build
-           cmake --build build --target install
-           cd ..
+          cd platform/osx
+          chmod +x build_libsndfile.sh
+          ./build_libsndfile.sh
+          cd ../..
+          cd ..
+      
+      - name: Checkout and configure portmidi, portaudio
+        run: |
            git clone https://github.com/PortMidi/portmidi.git
            cd portmidi
            cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portmidi_install
@@ -223,9 +225,16 @@ jobs:
            cmake --build build
            cmake --build build --target install
            cd ..
-           brew install bison flex
+
            cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0
            
+      - name: Brew install bison flex
+        run: |
+          brew install bison flex
+
+      - name: Configure Csound
+        run: cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0
+        
       - name: Build Csound
         run: |
           cmake --build build --config Release
