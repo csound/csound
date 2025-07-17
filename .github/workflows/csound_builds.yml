@@ -225,12 +225,12 @@ jobs:
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
            install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
+           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
            
            
       - name: Build installer
         run: |
            mkdir csound_install/CsoundLib64.framework/libs
-           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs ../lib/libportmidi.dylib
            cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.2.framework/libs
            mkdir -p csound_install/PkgContents/Applications/Csound
            mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
