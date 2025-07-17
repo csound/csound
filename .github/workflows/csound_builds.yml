@@ -224,7 +224,7 @@ jobs:
            install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
-           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib /Applications/Csound/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
+           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
            
            
       - name: Build installer
