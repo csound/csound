@@ -109,7 +109,16 @@ endif()
 
 check_deps(USE_PORTAUDIO portaudio_FOUND)
 if(USE_PORTAUDIO)
+
     make_plugin(rtpa rtpa.c)
+if(APPLE)
+    find_package(CoreFoundation MODULE)
+    find_package(CoreAudio MODULE)
+    find_package(AudioUnit MODULE)
+    find_package(AudioToolbox MODULE)
+     target_link_libraries(rtpa PRIVATE AudioUnit::audiounit
+     CoreFoundation::corefoundation CoreAudio::coreaudio "-framework AudioToolbox")
+ endif()
     # use the static library if available
     target_link_libraries(rtpa PRIVATE $<IF:$<TARGET_EXISTS:portaudio_static>,portaudio_static,portaudio>)
 endif()
