@@ -151,6 +151,7 @@ def runTest():
 	["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
 
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
+ 	["test_opcall_expr.csd", "test expression in opcall"],   
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
 	["test_for_in.csd", "for in loop"],
