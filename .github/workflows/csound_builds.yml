@@ -205,7 +205,7 @@ jobs:
            ./build_libsndfile.sh
            cd ../..
            cd ..
-           
+
            git clone https://github.com/PortMidi/portmidi.git
            cd portmidi
            cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portmidi_install
@@ -227,8 +227,11 @@ jobs:
            cmake --build build --target install
            cd ..
 
-           brew install bison flex
+      - name: Brew install bison and flex
+        run: brew install bison flex
 
+      - name: Configure Csound
+        run: |
            cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0
            
 
