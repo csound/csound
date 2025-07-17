@@ -204,7 +204,6 @@ jobs:
            chmod +x build_libsndfile.sh
            ./build_libsndfile.sh
            cd ../..
-           cd ..
 
            git clone https://github.com/PortMidi/portmidi.git
            cd portmidi
