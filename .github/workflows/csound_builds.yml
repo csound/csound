@@ -204,7 +204,6 @@ jobs:
            chmod +x build_libsndfile.sh
            ./build_libsndfile.sh
            cd ../..
-           cd ..
 
            git clone https://github.com/PortMidi/portmidi.git
            cd portmidi
@@ -232,7 +231,7 @@ jobs:
 
       - name: Configure Csound
         run: |
-           cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0
+           cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0 -DCMAKE_VERBOSE_MAKEFILE=1
            
 
       - name: Build Csound
@@ -241,7 +240,6 @@ jobs:
           cmake --build build --target install
     
       - name: Adjust link paths
-        if: github.ref == 'refs/heads/develop'
         run: |
            install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
@@ -251,7 +249,6 @@ jobs:
            
            
       - name: Build installer
-        if: github.ref == 'refs/heads/develop'
         run: |
            mkdir csound_install/CsoundLib64.framework/libs
            cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
@@ -261,7 +258,6 @@ jobs:
            pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-7.0-vanilla-universal.pkg
 
       - name: Upload zip
-        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4      
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
