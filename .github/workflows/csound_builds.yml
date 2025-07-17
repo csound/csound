@@ -232,6 +232,7 @@ jobs:
           cmake --build build --target install
     
       - name: Adjust link paths
+        if: github.ref == 'refs/heads/develop'
         run: |
            install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
@@ -241,6 +242,7 @@ jobs:
            
            
       - name: Build installer
+        if: github.ref == 'refs/heads/develop'
         run: |
            mkdir csound_install/CsoundLib64.framework/libs
            cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
@@ -250,6 +252,7 @@ jobs:
            pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-7.0-vanilla-universal.pkg
 
       - name: Upload zip
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4      
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
