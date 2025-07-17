@@ -217,6 +217,7 @@ option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
 option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 option(USE_ASA  "Use address sanitizer in Debug build" ON)
+option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 
 # secret rabbit code
 if (USE_VCPKG)
@@ -1483,6 +1484,10 @@ if(NOT IOS OR OSXCROSS_TARGET)
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+endif()
+
+if(USE_STATIC_DEPS)
+target_link_libraries(${CSOUNDLIB}  PRIVATE  "-logg -lvorbis -lopus -lFLAC -lmp3lame -lmpg123")
 endif()
 
 if(BUILD_STATIC_LIBRARY)
