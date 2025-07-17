@@ -4,8 +4,7 @@
 </CsOptions>
 <CsInstruments>
 
-opcode Test,0,ii
- var1:i, var2:i xin
+opcode Test(var1:i,var2:i):void
  if var1 != var2 then
    prints "error\n"
    exitnow(-1)
