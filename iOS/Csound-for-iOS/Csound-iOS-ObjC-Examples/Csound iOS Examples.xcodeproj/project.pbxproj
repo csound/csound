@@ -635,7 +635,6 @@
 				LastUpgradeCheck = 1250;
 				TargetAttributes = {
 					F6B6465814D348E5005F786B = {
-						DevelopmentTeam = JXB7KNW747;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -908,7 +907,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = JXB7KNW747;
+				DEVELOPMENT_TEAM = 4T7354VM5R;
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
@@ -920,7 +919,7 @@
 					"$(PROJECT_DIR)/csound-iOS/libs",
 				);
 				OTHER_LDFLAGS = "-lstdc++";
-				PRODUCT_BUNDLE_IDENTIFIER = com.csounds.CsoundiOSExamplesNew;
+				PRODUCT_BUNDLE_IDENTIFIER = com.csounds.CsoundiOSExamplesNew2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;
@@ -935,7 +934,7 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = JXB7KNW747;
+				DEVELOPMENT_TEAM = 4T7354VM5R;
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
@@ -947,7 +946,7 @@
 					"$(PROJECT_DIR)/csound-iOS/libs",
 				);
 				OTHER_LDFLAGS = "-lstdc++";
-				PRODUCT_BUNDLE_IDENTIFIER = com.csounds.CsoundiOSExamplesNew;
+				PRODUCT_BUNDLE_IDENTIFIER = com.csounds.CsoundiOSExamplesNew2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				WRAPPER_EXTENSION = app;

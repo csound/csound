@@ -205,8 +205,13 @@ jobs:
            cmake --build build
            cmake --build build --target install
            cd ..
+           git clone https://github.com/PortMidi/portmidi.git
+           cd portmidi
+           cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portmidi_install
+           cmake --build build
+           cmake --build build --target install
            brew install bison flex
-           cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+           cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/sndfile_install;$PWD/portmidi_install;" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
            
       - name: Build Csound
         run: |
@@ -218,16 +223,20 @@ jobs:
            install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
            install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
+           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib /Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/libpmidi.dylib
+           
            
       - name: Build installer
         run: |
+           mkdir csound_install/CsoundLib64.framework/libs
+           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs ../lib/libportmidi.dylib
+           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.2.framework/libs
            mkdir -p csound_install/PkgContents/Applications/Csound
            mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
            mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
            pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-7.0-vanilla-universal.pkg
 
       - name: Upload zip
-        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4      
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
