@@ -2,8 +2,8 @@
 set -e
 
 # Configuration
-TARGET_PLATFORM="${1:-macos}"
-PROJECT_NAME="libsndfile_build"
+TARGET_PLATFORM="${1:-macos}"  # default to macOS if nothing is passed
+PROJECT_NAME="libsndfile_build" # Name for our project folder
 LIBOGGVERSION="1.3.1"
 LIBVORBISVERSION="1.3.5"
 OPUSVERSION="1.4"
@@ -29,11 +29,11 @@ cd "${PROJECT_ROOT}"
 
 # Architectures per platform
 if [[ "$TARGET_PLATFORM" == "ios" ]]; then
-  ARCHS=("armv7" "armv7s" "arm64" "x86_64")
+  ARCHS=("armv7" "armv7s" "arm64" "x86_64")  # iOS architectures
   PLATFORM_IOS="true"
   CMAKE_IOS_OPTIONS="-DCMAKE_SYSTEM_NAME=iOS"
 else
-  ARCHS=("x86_64" "arm64")
+  ARCHS=("x86_64" "arm64")  # macOS architectures
   PLATFORM_IOS="false"
   CMAKE_IOS_OPTIONS=""
 fi
@@ -45,7 +45,7 @@ curl -sL "http://downloads.xiph.org/releases/ogg/libogg-${LIBOGGVERSION}.tar.xz"
 curl -sL "http://downloads.xiph.org/releases/vorbis/libvorbis-${LIBVORBISVERSION}.tar.xz" | tar -xJ
 curl -sL "https://downloads.xiph.org/releases/opus/opus-${OPUSVERSION}.tar.gz" | tar -xz
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
-curl -sL "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" | tar xz
+curl -sL "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" | tar xz -C "${SRCDIR}"
 git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
 
 LIBS=("libogg-${LIBOGGVERSION}" "libvorbis-${LIBVORBISVERSION}" "opus-${OPUSVERSION}" "flac-${FLACVERSION}" "lame-${LAMEVERSION}")
@@ -80,29 +80,27 @@ for LIB in "${LIBS[@]}"; do
     ARCHDIR="${INTERDIR}/${PLATFORM}${SDKVERSION}-${ARCH}.sdk"
     mkdir -p "$ARCHDIR"
 
-    # Special handling for LAME directory structure
-    if [[ "$LIB" == "lame-${LAMEVERSION}" ]]; then
-      cd "${SRCDIR}/lame-${LAMEVERSION}" || { echo "Failed to enter LAME directory"; exit 1; }
-    else
-      cd "${SRCDIR}/${LIB}" || { echo "Failed to enter ${LIB} directory"; exit 1; }
-    fi
+    cd "${SRCDIR}/${LIB}"
     
-    make distclean || true
+    # Skip distclean if Makefile doesn't exist
+    if [[ -f "Makefile" ]]; then
+      make distclean || true
+    fi
 
     # Special handling for LAME
     if [[ "$LIB" == "lame-${LAMEVERSION}" ]]; then
       # Update config.sub for modern architectures
       CONFIG_SUB_URL="https://raw.githubusercontent.com/gcc-mirror/gcc/master/config.sub"
-      curl -s "${CONFIG_SUB_URL}" -o "config.sub" || {
+      curl -s "${CONFIG_SUB_URL}" -o "${SRCDIR}/${LIB}/config.sub" || {
         echo "Warning: Failed to download updated config.sub, using manual patch"
         sed -i '' -e 's/arm \*-/arm* | aarch64* | arm64*-/' \
                   -e 's/armeb \*-/armeb* | aarch64* | arm64*-/' \
-                  "config.sub"
+                  "${SRCDIR}/${LIB}/config.sub"
       }
-      chmod +x "config.sub"
+      chmod +x "${SRCDIR}/${LIB}/config.sub"
       
       # LAME specific configure
-      ./configure \
+      "${SRCDIR}/${LIB}/configure" \
         --prefix="$ARCHDIR" \
         --disable-shared \
         --enable-static \
@@ -137,7 +135,7 @@ for LIB in "${LIBS[@]}"; do
 
     # Build and install
     if [[ "$LIB" == "libvorbis-${LIBVORBISVERSION}" ]]; then
-      cd lib
+      cd "${SRCDIR}/${LIB}/lib"
       make -j$(sysctl -n hw.logicalcpu)
       cd ..
       make -j$(sysctl -n hw.logicalcpu) install-exec
@@ -147,9 +145,14 @@ for LIB in "${LIBS[@]}"; do
       make install
     fi
     
-    make clean || true
+    # Skip clean if Makefile doesn't exist
+    if [[ -f "Makefile" ]]; then
+      make clean || true
+    fi
   done
 done
+
+# [Rest of the script remains the same...]
 
 # Create universal .a libraries for dependencies
 for OUTPUT_LIB in "${OUTPUT_LIBS[@]}"; do
