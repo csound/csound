@@ -231,7 +231,7 @@ jobs:
       - name: Build installer
         run: |
            mkdir csound_install/CsoundLib64.framework/libs
-           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.2.framework/libs
+           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
            mkdir -p csound_install/PkgContents/Applications/Csound
            mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
            mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
