@@ -1,4 +1,4 @@
-# OGG_FOUND: if found
+# FLAC_FOUND: if found
 # FLAC::flac: imported module
 
 include(FindPackageHandleStandardArgs)
