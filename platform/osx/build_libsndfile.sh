@@ -188,20 +188,20 @@ for LIB in "${LIBS[@]}"; do
       sed -i '' 's/ test_programs//g' Makefile.in
       sed -i '' 's/^SUBDIRS = .*$/SUBDIRS = /' Makefile.in
       
-      export PKG_CONFIG_PATH="${OUTPUTDIR}/lib/pkgconfig"
+      export PKG_CONFIG_PATH="$ARCHDIR/lib/pkgconfig"
       ./configure \
         --prefix="$ARCHDIR" \
         --disable-shared \
         --enable-static \
         --with-pic \
         --host="$HOST" \
-        CFLAGS="-arch $ARCH -mmacosx-version-min=${MINOSVERSION} -I${OUTPUTDIR}/include -I${OUTPUTDIR}/include/ogg" \
-        CPPFLAGS="-I${OUTPUTDIR}/include -I${OUTPUTDIR}/include/ogg" \
-        LDFLAGS="-arch $ARCH -mmacosx-version-min=${MINOSVERSION} -L${OUTPUTDIR}/lib" \
-        PKG_CONFIG_PATH="${OUTPUTDIR}/lib/pkgconfig" \
+        CFLAGS="-arch $ARCH -mmacosx-version-min=${MINOSVERSION} -I$ARCHDIR/include -I$ARCHDIR/include/ogg" \
+        CPPFLAGS="-I$ARCHDIR/include -I$ARCHDIR/include/ogg" \
+        LDFLAGS="-arch $ARCH -mmacosx-version-min=${MINOSVERSION} -L$ARCHDIR/lib" \
+        PKG_CONFIG_PATH="$ARCHDIR/lib/pkgconfig" \
         PKG_CONFIG_SYSROOT_DIR="/nonexistent" \
-        --with-ogg-libraries="${OUTPUTDIR}/lib" \
-        --with-ogg-includes="${OUTPUTDIR}/include"
+        --with-ogg-libraries="$ARCHDIR/lib" \
+        --with-ogg-includes="$ARCHDIR/include"
     else
       # Standard configure for other libraries
       if [[ "$LIB" == "opus-${OPUSVERSION}" ]]; then
