@@ -187,7 +187,7 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
-  macos_build_vanilla:
+  macos_build_installer:
     name: MacOS build (vanilla)
     runs-on: macos-latest
     steps:
@@ -255,13 +255,13 @@ jobs:
            mkdir -p csound_install/PkgContents/Applications/Csound
            mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
            mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
-           pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-7.0-vanilla-universal.pkg
+           pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
 
       - name: Upload zip
         uses: actions/upload-artifact@v4      
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-vanilla
-          path: ./CsoundLib64-7.0-vanilla-universal.pkg        
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
+          path: ./CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg        
             
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
