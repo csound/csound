@@ -6,6 +6,9 @@ TARGET_PLATFORM="${1:-macos}"  # default to macOS if nothing is passed
 PROJECT_NAME="libsndfile_build" # Name for our project folder
 LIBOGGVERSION="1.3.1"
 LIBVORBISVERSION="1.3.5"
+MPG123_VERSION="1.33.0"
+MPG123_TARBALL="mpg123-${MPG123_VERSION}.tar.bz2"
+MPG123_DIR="mpg123-${MPG123_VERSION}"
 OPUSVERSION="1.4"
 FLACVERSION="1.4.3"
 LAMEVERSION="3.100"
@@ -61,9 +64,6 @@ curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" |
 curl -sL "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" | tar xz -C "${SRCDIR}"
 git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
 # Download mpg123 official release tarball
-MPG123_VERSION="1.33.0"
-MPG123_TARBALL="mpg123-${MPG123_VERSION}.tar.bz2"
-MPG123_DIR="mpg123-${MPG123_VERSION}"
 curl -sL -o "${MPG123_TARBALL}" "https://www.mpg123.de/download/mpg123-1.33.0.tar.bz2"
 tar -xjf "${MPG123_TARBALL}"
 
