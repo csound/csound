@@ -188,6 +188,7 @@ for LIB in "${LIBS[@]}"; do
       sed -i '' 's/ test_programs//g' Makefile.in
       sed -i '' 's/^SUBDIRS = .*$/SUBDIRS = /' Makefile.in
       
+      export PKG_CONFIG_PATH="${OUTPUTDIR}/lib/pkgconfig"
       ./configure \
         --prefix="$ARCHDIR" \
         --disable-shared \
@@ -200,7 +201,7 @@ for LIB in "${LIBS[@]}"; do
         PKG_CONFIG_PATH="${OUTPUTDIR}/lib/pkgconfig" \
         PKG_CONFIG_SYSROOT_DIR="/nonexistent" \
         --with-ogg-libraries="${OUTPUTDIR}/lib" \
-        --with-ogg-includes="${OUTPUTDIR}/include/ogg"
+        --with-ogg-includes="${OUTPUTDIR}/include"
     else
       # Standard configure for other libraries
       if [[ "$LIB" == "opus-${OPUSVERSION}" ]]; then
