@@ -1,22 +1,22 @@
 # OGG_FOUND: if found
-# Ogg::ogg: imported module
+# Oggs::oggs: imported module
 
 include(FindPackageHandleStandardArgs)
 
-find_path(Ogg_INCLUDE_DIR NAMES ogg/ogg.h)
-find_library(Ogg_LIBRARY NAMES ogg libogg.0 libogg)
+find_path(Oggs_INCLUDE_DIR NAMES ogg/ogg.h)
+find_library(Oggs_LIBRARY NAMES ogg libogg.0 libogg)
 
-find_package_handle_standard_args(Ogg
-	FOUND_VAR Ogg_FOUND
-	REQUIRED_VARS Ogg_LIBRARY Ogg_INCLUDE_DIR
+find_package_handle_standard_args(Oggs
+	FOUND_VAR Oggs_FOUND
+	REQUIRED_VARS Oggs_LIBRARY Oggs_INCLUDE_DIR
 )
 
-if (Ogg_FOUND AND NOT TARGET Ogg::ogg)
-	add_library(Ogg::ogg UNKNOWN IMPORTED)
-	set_target_properties(Ogg::ogg PROPERTIES
-		IMPORTED_LOCATION ${Ogg_LIBRARY}
-		INTERFACE_INCLUDE_DIRECTORIES ${Ogg_INCLUDE_DIR}
+if (Oggs_FOUND AND NOT TARGET Oggs::oggs)
+	add_library(Oggs::oggs UNKNOWN IMPORTED)
+	set_target_properties(Oggs::oggs PROPERTIES
+		IMPORTED_LOCATION ${Oggs_LIBRARY}
+		INTERFACE_INCLUDE_DIRECTORIES ${Oggs_INCLUDE_DIR}
 	)
 endif()
 
-mark_as_advanced(Ogg_LIBRARY Ogg_INCLUDE_DIR)
+mark_as_advanced(Oggs_LIBRARY Oggs_INCLUDE_DIR)

@@ -3,20 +3,20 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_path(Mpg123_INCLUDE_DIR NAMES  mpg123.h)
-find_library(Mpg123_LIBRARY NAMES mpg123 libmpg123)
+find_path(Mpg123s_INCLUDE_DIR NAMES  mpg123.h)
+find_library(Mpg123s_LIBRARY NAMES mpg123 libmpg123)
 
-find_package_handle_standard_args(Mpg123
-	FOUND_VAR  Mpg123_FOUND
-	REQUIRED_VARS  Mpg123_LIBRARY  Mpg123_INCLUDE_DIR
+find_package_handle_standard_args(Mpg123s
+	FOUND_VAR  Mpg123s_FOUND
+	REQUIRED_VARS  Mpg123s_LIBRARY  Mpg123s_INCLUDE_DIR
 )
 
-if (Mpg123_FOUND AND NOT TARGET Mpg123::mpg123)
-	add_library(Mpg123::mpg123 UNKNOWN IMPORTED)
-	set_target_properties(Mpg123::mpg123 PROPERTIES
-		IMPORTED_LOCATION ${Mpg123_LIBRARY}
-		INTERFACE_INCLUDE_DIRECTORIES ${Mpg123_INCLUDE_DIR}
+if (Mpg123s_FOUND AND NOT TARGET Mpg123s::mpg123s)
+	add_library(Mpg123s::mpg123s UNKNOWN IMPORTED)
+	set_target_properties(Mpg123s::mpg123s PROPERTIES
+		IMPORTED_LOCATION ${Mpg123s_LIBRARY}
+		INTERFACE_INCLUDE_DIRECTORIES ${Mpg123s_INCLUDE_DIR}
 	)
 endif()
 
-mark_as_advanced(Mpg123_LIBRARY Mpg123_INCLUDE_DIR)
+mark_as_advanced(Mpg123s_LIBRARY Mpg123s_INCLUDE_DIR)
