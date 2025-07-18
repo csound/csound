@@ -126,12 +126,6 @@ for LIB in "${LIBS[@]}"; do
       rm -rf "$FLAC_BUILD_DIR"
       mkdir -p "$FLAC_BUILD_DIR"
       cd "$FLAC_BUILD_DIR"
-      echo "==== CMakeLists.txt after patch ===="
-      cat "${SRCDIR}/flac-${FLACVERSION}/CMakeLists.txt"
-      echo "==== END ===="
-      echo "==== Any other microbench references? ===="
-      grep -r microbench "${SRCDIR}/flac-${FLACVERSION}/"
-      echo "==== END ===="
       rm -rf "${SRCDIR}/flac-${FLACVERSION}/microbench"
       sed -i.bak '/add_subdirectory.*microbench/d' "${SRCDIR}/flac-${FLACVERSION}/CMakeLists.txt"
       cmake .. \
