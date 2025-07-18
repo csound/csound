@@ -207,7 +207,7 @@ cd "${SRCDIR}/libsndfile"
 IFS=";" eval 'ARCH_STRING="${ARCHS[*]}"'
 
 # Configure CMake with all architectures at once
-cmake -B "${BUILDDIR}/libsndfile-universal" \
+cmake -B "${BUILDDIR}/libsndfile-universal" -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
   -DCMAKE_BUILD_TYPE=Release \
   -DBUILD_SHARED_LIBS=OFF \
   -DBUILD_PROGRAMS=OFF \
