@@ -188,7 +188,7 @@ jobs:
         run: cmake --build build --target test csdtests
 
   macos_build_installer:
-    name: MacOS build (vanilla)
+    name: MacOS build (installer)
     runs-on: macos-latest
     steps:
       - name: Checkout source code
