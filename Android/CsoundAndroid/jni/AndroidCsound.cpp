@@ -71,3 +71,9 @@ extern "C" void android_midi_init(CSOUND *csound, JNIEnv* env, jobject obj_in, j
 void Java_com_csounds_CsoundObj_setMidiDevices(JNIEnv* env, jobject, jobject csound, jobject in, jobject out) {
   android_midi_init((CSOUND *)csound,env,in,out);
 }
+
+extern "C" void android_midi_deinit(CSOUND *csound);
+
+void Java_com_csounds_CsoundObj_deinitMidiDevices(JNIEnv* env, jobject, jobject csound) {
+  android_midi_deinit((CSOUND *)csound);
+}

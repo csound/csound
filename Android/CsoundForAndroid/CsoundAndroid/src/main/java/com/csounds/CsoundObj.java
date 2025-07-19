@@ -101,10 +101,19 @@ public class CsoundObj {
 	}
 
     // JNI midi setup
+    private native void setMidiDevices(SWIGTYPE_p_CSOUND_ csound, MidiDevice in, MidiDevice out);
 
-    public native void setMidiDevices(SWIGTYPE_p_CSOUND_ csound, MidiDevice in, MidiDevice out);
+    private native void deinitMidiDevices(SWIGTYPE_p_CSOUND_ csound);
 
-	public boolean isAudioInEnabled() {
+    public void setMidiIO(MidiDevice in, MidiDevice out) {
+        setMidiDevices(csound.GetCsound(), in, out);
+    }
+
+    public void closeMidiIO() {
+        deinitMidiDevices(csound.GetCsound());
+    }
+
+    public boolean isAudioInEnabled() {
 		return audioInEnabled;
 	}
 
