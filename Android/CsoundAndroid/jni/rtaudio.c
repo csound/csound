@@ -34,7 +34,6 @@ typedef struct  {
   int32_t nchnls;
   MYFLT sr;
   void *cb;
-  MYFLT *buffer;
   CSOUND *csound; 
 } AAUDIO_PARAMS;
 
@@ -44,7 +43,6 @@ static aaudio_data_callback_result_t
         int32_t numFrames);
 
 static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
-   csound->Message(csound, "AAUDIO output opening\n");
    AAudioStreamBuilder *builder;
    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
    int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
@@ -52,18 +50,9 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
    AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS*)
       csound->Calloc(csound, sizeof(AAUDIO_PARAMS));
    *playdata = cdata;
-   csound->Message(csound, "creating circular buffer\n");
    cdata->cb = csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels,
-                                             sizeof(MYFLT));
-
-   csound->Message(csound, "created circular buffer\n");
-   cdata->buffer =
-      (MYFLT *) csound->Calloc(csound,
-                               csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
-    memset(cdata->buffer, 0,
-           csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
-   
+                                             sizeof(MYFLT));   
    AAudioStreamBuilder_setDeviceId(builder, dev);  
    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
    AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
@@ -71,6 +60,7 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
    AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+   AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
    AAudioStreamBuilder_setDataCallback(builder, output_callback, cdata);
 
    AAudioStream *stream;
@@ -108,13 +98,7 @@ static aaudio_data_callback_result_t
   CSOUND *csound = cdata->csound;
   int32_t chns = cdata->nchnls;
   int32_t n = numFrames*chns;
-  MYFLT *buffer = cdata->buffer;
-  n = csound->ReadCircularBuffer(csound,cdata->cb,buffer,n);
-  for (int i = 0; i < numFrames*chns; i++) {
-    if(i < n)
-     samples[i] = buffer[i];
-    else samples[i] = 0.f;
-  }
+  csound->ReadCircularBuffer(csound,cdata->cb,samples,n);
   return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
@@ -134,11 +118,6 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
    cdata->cb = csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels,
                                              sizeof(MYFLT));
-   cdata->buffer =
-      (MYFLT *) csound->Calloc(csound,
-                               csound->GetInputBufferSize(csound)*sizeof(MYFLT));
-    memset(cdata->buffer, 0,
-           csound->GetInputBufferSize(csound)*sizeof(MYFLT));
    
    AAudioStreamBuilder_setDeviceId(builder, dev);  
    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
@@ -147,6 +126,7 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
    AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+   AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
    AAudioStreamBuilder_setDataCallback(builder, input_callback, cdata);
 
    AAudioStream *stream;
@@ -183,13 +163,8 @@ static aaudio_data_callback_result_t
   CSOUND *csound = cdata->csound;
   float *samples = (float *) audioData;
   int32_t chns = cdata->nchnls;
-  int32_t n = numFrames*chns, k = csound->GetInputBufferSize(csound);
-  MYFLT *buffer = cdata->buffer;
-  for (int i = 0; i < n; i++) {
-    if(i < k)
-     buffer[i] = samples[i];
-  }
-  csound->WriteCircularBuffer(csound,cdata->cb,buffer,n);
+  int32_t n = numFrames*chns;
+  csound->WriteCircularBuffer(csound,cdata->cb,samples,n);
   return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
@@ -199,7 +174,6 @@ static void close_io(CSOUND *csound) {
     AAudioStream_requestStop(cdata->stream);
     AAudioStream_close(cdata->stream);
     csound->DestroyCircularBuffer(csound, cdata->cb);
-    csound->Free(csound, cdata->buffer);
     csound->Free(csound, cdata);
   }
 
@@ -208,7 +182,6 @@ static void close_io(CSOUND *csound) {
     AAudioStream_requestStop(cdata->stream);
     AAudioStream_close(cdata->stream);
     csound->DestroyCircularBuffer(csound, cdata->cb);
-    csound->Free(csound, cdata->buffer);
     csound->Free(csound, cdata);
   }  
 }

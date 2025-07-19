@@ -88,7 +88,7 @@ public class CsoundObj {
 
     public CsoundObj(boolean isAudioTrack, boolean isAsync) {
         this(0, isAsync);
-    }
+    }    
 
     public CsoundObj(int io_mode){
         this(io_mode, true);
@@ -118,15 +118,16 @@ public class CsoundObj {
 
     public void closeMidiIO() {
         deinitMidiDevices(csound.GetCsound());
-    }
+    }    
 
     public boolean isAudioInEnabled() {
         return audioInEnabled;
-    }    
+    }
 
     public void setAudioInEnabled(boolean audioInEnabled) {
         this.audioInEnabled = audioInEnabled;
     }
+
 
     public boolean isMessageLoggingEnabled() {
         return messageLoggingEnabled;
@@ -216,7 +217,6 @@ public class CsoundObj {
         sendScore(score);
     }
 
-
     public void compileCsdText(String csd_text) {
         csound.CompileCSD(csd_text, 1);
     }
@@ -224,7 +224,6 @@ public class CsoundObj {
     public void updateOrchestra(String orchestraString) {
         csound.CompileOrc(orchestraString);
     }
-
 
     public void compileOrc(String orchestraString) {
         csound.CompileOrc(orchestraString);

@@ -380,7 +380,6 @@ public class CsoundObj {
                             e.printStackTrace();
                         }
                 } else {
-
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
