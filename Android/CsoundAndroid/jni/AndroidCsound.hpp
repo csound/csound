@@ -2,6 +2,7 @@
 %module csnd
 #endif
 #include "csound.hpp"
+#include <jni.h>
 extern "C" long csoundGetKcounter(CSOUND *csound);
 
 
@@ -16,4 +17,6 @@ public:
     unsigned long getStreamTime();
     void Pause(bool pause);
     long GetKcount(){ return csoundGetKcounter(csound); }
+
+    void setMidiCallbacks(jobject midi_in, jobject midi_out);
 };

@@ -1,6 +1,8 @@
 #include "AndroidCsound.hpp"
 #include <android/log.h>
 
+static JavaVM* g_vm;  
+
 extern "C" {
 extern int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm);
 extern int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm);
@@ -49,6 +51,15 @@ void AndroidCsound::setOpenSlCallbacks() {
   
 };
 
+extern "C" void android_midi_init(CSOUND *csound, JNIEnv* env, jobject obj_in, jobject obj_out);
+
+void AndroidCsound::setMidiCallbacks(jobject midi_in, jobject midi_out) {
+  JNIEnv *env;
+  g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
+  android_midi_init(csound, env, midi_in, midi_out);
+}
+
+
 int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
     return csoundSetGlobalEnv(name, variable);
 }
@@ -59,6 +70,10 @@ void AndroidCsound::Pause(bool pause){
 }
 
 unsigned long AndroidCsound::getStreamTime(){
-  
   return *((__uint64_t*) csoundQueryGlobalVariable(csound,"::streamtime::"));
+}
+
+extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+  g_vm = vm;
+  return 0;
 }

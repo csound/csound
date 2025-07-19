@@ -290,6 +290,7 @@ csound_prslex.c \
 csound_orcparse.c \
 rtopensl.c \
 AndroidCsound.cpp \
+AndroidMidi.c \
 $(CSOUND_SRC_ROOT)/Top/csPerfThread.cpp \
 java_interfaceJAVA_wrap.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
@@ -300,7 +301,7 @@ $(CSOUND_SRC_ROOT)/Top/init_static_modules.c \
 $(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -lamidi
 
 # For building with all plugins use:
 
@@ -308,7 +309,7 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += c++_shared sndfile
+LOCAL_SHARED_LIBRARIES += c++_shared sndfile 
 #LOCAL_STATIC_LIBRARIES += sndfile
 
 # Prevents stripping needed exports from the shared library.
