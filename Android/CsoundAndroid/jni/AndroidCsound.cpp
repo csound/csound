@@ -27,7 +27,6 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 void AndroidCsound::setOpenSlCallbacks() {
 
    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","setOpenSlCallbacks"); 
-
    if(csoundQueryGlobalVariable(csound,"::async::") == NULL) 
      if (csoundCreateGlobalVariable(csound,"::async::", sizeof(int)) == 0) {
       int *p = ((int *)csoundQueryGlobalVariable(csound,"::async::"));
@@ -41,16 +40,19 @@ void AndroidCsound::setOpenSlCallbacks() {
     csoundSetMessageCallback(csound, androidMessageCallback);
       __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","==callbacks set"); 
     }
-
    if(csoundQueryGlobalVariable(csound,"::paused::") == NULL) {
      if (csoundCreateGlobalVariable(csound,"::paused::", sizeof(int)) == 0) {
        int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
        *p = 0;
     }
    }
-    
-  
 };
+
+
+extern "C" void aaudio_setup(CSOUND *csound);
+void AndroidCsound::setAAudioCallbacks() {
+  aaudio_setup(csound);
+}
 
 
 int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
