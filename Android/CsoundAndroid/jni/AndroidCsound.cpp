@@ -52,14 +52,6 @@ void AndroidCsound::setOpenSlCallbacks() {
   
 };
 
-extern "C" void android_midi_init(CSOUND *csound, JNIEnv* env, jobject obj_in, jobject obj_out);
-
-void AndroidCsound::setMidiCallbacks(void * midi_in, void * midi_out) {
-  JNIEnv *env;
-  g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
-  android_midi_init(csound, env, (jobject) midi_in, (jobject) midi_out);
-}
-
 
 int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
     return csoundSetGlobalEnv(name, variable);
@@ -74,7 +66,8 @@ unsigned long AndroidCsound::getStreamTime(){
   return *((__uint64_t*) csoundQueryGlobalVariable(csound,"::streamtime::"));
 }
 
-extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
-  g_vm = vm;
-  return JNI_VERSION_1_6;
+
+extern "C" void android_midi_init(CSOUND *csound, JNIEnv* env, jobject obj_in, jobject obj_out);
+void Java_com_csounds_CsoundObj_setMidiDevices(JNIEnv* env, jobject, jobject csound, jobject in, jobject out) {
+  android_midi_init((CSOUND *)csound,env,in,out);
 }

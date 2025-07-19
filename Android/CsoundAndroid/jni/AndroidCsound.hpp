@@ -17,6 +17,4 @@ public:
     unsigned long getStreamTime();
     void Pause(bool pause);
     long GetKcount(){ return csoundGetKcounter(csound); }
-
-    void setMidiCallbacks(void * midi_in, void * midi_out);
 };

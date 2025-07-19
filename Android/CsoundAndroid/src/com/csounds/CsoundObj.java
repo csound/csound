@@ -35,15 +35,16 @@ import android.media.AudioAttributes;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.media.midi.MidiDevice;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
-
 import com.csounds.bindings.CsoundBinding;
 
 import csnd7.AndroidCsound;
 import csnd7.Csound;
 import csnd7.CsoundCallbackWrapper;
 import csnd7.CsoundMYFLTArray;
+import csnd7.SWIGTYPE_p_CSOUND_;
 import csnd7.controlChannelType;
 
 public class CsoundObj {
@@ -88,7 +89,7 @@ public class CsoundObj {
 		bindings = new ArrayList<CsoundBinding>();
 		listeners = new ArrayList<CsoundObjListener>();
 		scoreMessages = new ArrayList<String>();
-        this.isAsync = isAsync;
+                this.isAsync = isAsync;
 
 		if (useAudioTrack) {
 			// Log.d("CsoundObj", "audio track");
@@ -98,6 +99,10 @@ public class CsoundObj {
 			csound = new AndroidCsound(isAsync);
 		}
 	}
+
+    // JNI midi setup
+
+    public native void setMidiDevices(SWIGTYPE_p_CSOUND_ csound, MidiDevice in, MidiDevice out);
 
 	public boolean isAudioInEnabled() {
 		return audioInEnabled;
