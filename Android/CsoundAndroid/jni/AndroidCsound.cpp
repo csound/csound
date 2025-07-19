@@ -76,5 +76,5 @@ unsigned long AndroidCsound::getStreamTime(){
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
   g_vm = vm;
-  return 0;
+  return JNI_VERSION_1_6;
 }
