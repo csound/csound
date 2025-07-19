@@ -1,5 +1,6 @@
 #include "AndroidCsound.hpp"
 #include <android/log.h>
+#include <jni.h>
 
 static JavaVM* g_vm;  
 
@@ -53,10 +54,10 @@ void AndroidCsound::setOpenSlCallbacks() {
 
 extern "C" void android_midi_init(CSOUND *csound, JNIEnv* env, jobject obj_in, jobject obj_out);
 
-void AndroidCsound::setMidiCallbacks(jobject midi_in, jobject midi_out) {
+void AndroidCsound::setMidiCallbacks(void * midi_in, void * midi_out) {
   JNIEnv *env;
   g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
-  android_midi_init(csound, env, midi_in, midi_out);
+  android_midi_init(csound, env, (jobject) midi_in, (jobject) midi_out);
 }
 
 

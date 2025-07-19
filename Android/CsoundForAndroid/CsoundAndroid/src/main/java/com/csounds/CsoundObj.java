@@ -198,9 +198,9 @@ public class CsoundObj {
 
    	public void compileCsdText(String csd_text) {
             csound.CompileCSD(csd_text, 1);
-    }
+    	}
 
-    public void updateOrchestra(String orchestraString) {
+    	public void updateOrchestra(String orchestraString) {
 		csound.CompileOrc(orchestraString);
     	}
 

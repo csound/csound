@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 rm -rf  CsoundForAndroid/CsoundAndroid/src/main/java/com
 cp -r CsoundAndroid/src/com  CsoundForAndroid/CsoundAndroid/src/main/java/
