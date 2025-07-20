@@ -88,7 +88,7 @@ public class CsoundObj {
 
     public CsoundObj(boolean isAudioTrack, boolean isAsync) {
         this(0, isAsync);
-    }    
+    }
 
     public CsoundObj(int io_mode){
         this(io_mode, true);
@@ -118,7 +118,7 @@ public class CsoundObj {
 
     public void closeMidiIO() {
         deinitMidiDevices(csound.GetCsound());
-    }    
+    }
 
     public boolean isAudioInEnabled() {
         return audioInEnabled;
@@ -458,12 +458,14 @@ public class CsoundObj {
             }
 
             startTime = System.nanoTime()*1.0e-6;
+            int slpt = (int) (1000/(csound.GetKr()));
             while(!stopped) {
-                int ret = 0;
-                ret = csound.PerformKsmps();
-                if(ret != 0) break;
+                try {
+                    Thread.sleep(slpt);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 stime += csound.GetKsmps();
-
                 systime = System.nanoTime()*1.0e-6;
                 synchronized (mLock) {
                     CsoundBinding cacheable;
@@ -490,7 +492,13 @@ public class CsoundObj {
                     }
 
             }
-
+            csound.EventString("e 0");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Log.d("CsoundObj", "LOOP END");
             csound.Reset();
 
             synchronized (mLock) {

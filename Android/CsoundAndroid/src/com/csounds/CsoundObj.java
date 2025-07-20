@@ -457,10 +457,13 @@ public class CsoundObj {
             }
 
             startTime = System.nanoTime()*1.0e-6;
+            int slpt = (int) (1000/(csound.GetKr()));            
             while(!stopped) {
-                int ret = 0;
-                ret = csound.PerformKsmps();
-                if(ret != 0) break;
+                try {
+                    Thread.sleep(slpt);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 stime += csound.GetKsmps();
 
                 systime = System.nanoTime()*1.0e-6;
@@ -489,7 +492,12 @@ public class CsoundObj {
                     }
 
             }
-
+            csound.EventString("e 0");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             csound.Reset();
 
             synchronized (mLock) {
