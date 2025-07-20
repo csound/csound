@@ -22,10 +22,9 @@ static void androidMessageCallback(CSOUND*, int attr, const char *format, va_lis
 #define __BUILDING_LIBCSOUND
 #endif
 
-#include <csoundCore.h>
 #include <pthread.h>
 void AndroidCsound::setOpenSlCallbacks() {
-
+   initControls();
    __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","setOpenSlCallbacks"); 
    if(csoundQueryGlobalVariable(csound,"::async::") == NULL) 
      if (csoundCreateGlobalVariable(csound,"::async::", sizeof(int)) == 0) {
@@ -40,17 +39,12 @@ void AndroidCsound::setOpenSlCallbacks() {
     csoundSetMessageCallback(csound, androidMessageCallback);
       __android_log_print(ANDROID_LOG_INFO,"AndroidCsound","==callbacks set"); 
     }
-   if(csoundQueryGlobalVariable(csound,"::paused::") == NULL) {
-     if (csoundCreateGlobalVariable(csound,"::paused::", sizeof(int)) == 0) {
-       int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
-       *p = 0;
-    }
-   }
 };
 
 
 extern "C" void aaudio_setup(CSOUND *csound);
 void AndroidCsound::setAAudioCallbacks() {
+  initControls();
   aaudio_setup(csound);
 }
 
@@ -61,7 +55,8 @@ int AndroidCsound::SetGlobalEnv(const char* name, const char* variable) {
 
 void AndroidCsound::Pause(bool pause){
    int *p = ((int *)csoundQueryGlobalVariable(csound,"::paused::"));
-   *p = pause ?  1  : 0;
+   if(p) *p = pause ?  1  : 0;
+   else csoundMessage(csound, "pause control not set up\n");
 }
 
 unsigned long AndroidCsound::getStreamTime(){

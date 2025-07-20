@@ -55,6 +55,8 @@ public class BaseCsoundActivity extends Activity {
 
 
     // io_mode: 0 - OpenSL, 1 - AAudio, 2 - AudioTrack (Java)
+    // isAsync: true for normal OpenSL operation - false for synchronous,
+    // no-op for other io modes
     protected CsoundObj csoundObj = new CsoundObj(1);
     protected Handler handler = new Handler();
 

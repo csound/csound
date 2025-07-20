@@ -55,6 +55,9 @@ static aaudio_data_callback_result_t
   const MYFLT *bufo = csoundGetSpout(csound);
   MYFLT *bufi = csoundGetSpin(csound);
   memset(samples, 0, numFrames*chns*sizeof(float));
+  // check for pause flag
+  if(*(int *)csoundQueryGlobalVariable(csound,"::paused::"))
+     return AAUDIO_CALLBACK_RESULT_CONTINUE;
   if(cdata->streamin)
     AAudioStream_read(cdata->streamin, samples, numFrames, 0);
   for(int i = 0;  i < numFrames; i++, n++){
