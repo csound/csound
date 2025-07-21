@@ -251,6 +251,17 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
+# Disable features not compatible with WASI
+if(BUILD_WASM32_WASI)
+    message(STATUS "Configuring for WASI build - disabling incompatible features")
+    set(USE_LIBSNDFILE OFF CACHE BOOL "Disabled for WASI build" FORCE)
+    set(BUILD_UTILITIES OFF CACHE BOOL "Disabled for WASI build" FORCE)
+    set(BUILD_TESTS OFF CACHE BOOL "Disabled for WASI build" FORCE)
+    set(USE_CURL OFF CACHE BOOL "Disabled for WASI build" FORCE)
+    set(USE_GETTEXT OFF CACHE BOOL "Disabled for WASI build" FORCE)
+    set(REQUIRE_PTHREADS OFF CACHE BOOL "Disabled for WASI build" FORCE)
+endif()
+
 
 if(BUILD_WITH_LTO)
 set(CSOUNDLIB_SHARED_LINK_OPTIONS -flto -Werror=odr
@@ -1489,35 +1500,35 @@ if(USE_LIBSNDFILE)
            message(STATUS "Found vorbisenc:${Vorbisencs_LIBRARY}")
           else()
            message(STATUS "Vorbisenc not found")
-          endif()          
+          endif()
           Find_Package(Opuss)
           if(Opuss_FOUND)
            message(STATUS "Found opus:${Opuss_LIBRARY}")
           else()
            message(STATUS "Opus not found")
-          endif()          
+          endif()
           Find_Package(FLACS)
           if(FLACS_FOUND)
            message(STATUS "Found flac:${FLACS_LIBRARY}")
           else()
            message(STATUS "FLAC not found")
-          endif()          
+          endif()
           Find_Package(LAME)
            if(LAME_FOUND)
            message(STATUS "Found lame:${LAME_LIBRARY}")
           else()
            message(STATUS "LAME not found")
-          endif()         
+          endif()
           Find_Package(Mpg123s)
           if(Mpg123s_FOUND)
            message(STATUS "Found mpg123:${Mpg123s_LIBRARY}")
           else()
            message(STATUS "Mpg123 not found")
-          endif()          
-          target_link_libraries(${CSOUNDLIB} PUBLIC Oggs::oggs)   
+          endif()
+          target_link_libraries(${CSOUNDLIB} PUBLIC Oggs::oggs)
           target_link_libraries(${CSOUNDLIB} PUBLIC Vorbiss::vorbiss)
           target_link_libraries(${CSOUNDLIB} PUBLIC Vorbisencs::vorbisencs)
-          target_link_libraries(${CSOUNDLIB} PUBLIC FLACS::flacs)   
+          target_link_libraries(${CSOUNDLIB} PUBLIC FLACS::flacs)
           target_link_libraries(${CSOUNDLIB} PUBLIC Opuss::opuss)
           target_link_libraries(${CSOUNDLIB} PUBLIC "${LAME_LIBRARY}")
           target_link_libraries(${CSOUNDLIB} PUBLIC Mpg123s::mpg123s)
@@ -1663,5 +1674,111 @@ if(MINGW)
 endif()
 
 add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c
-    OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
-    util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+     OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
+     util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+# WASM32 WASI Support
+option(BUILD_WASM32_WASI "Build WASM32 WASI target if compiler supports it" OFF)
+
+if(BUILD_WASM32_WASI)
+    # Check if compiler supports WASI
+    include(cmake/CheckWASISupport.cmake)
+    detect_wasi_support(HAS_WASI)
+
+    if(HAS_WASI)
+        message(STATUS "Building libsndfile.a for WASM32 WASI target")
+
+        # Handle WASI_RUNTIMES_LIB if provided
+        if(DEFINED WASI_RUNTIMES_LIB)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L${WASI_RUNTIMES_LIB}")
+            set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -L${WASI_RUNTIMES_LIB}")
+            set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -L${WASI_RUNTIMES_LIB}")
+            message(STATUS "Using WASI runtime libraries from: ${WASI_RUNTIMES_LIB}")
+        endif()
+
+        include(cmake/AddLibsndfileWasm32Wasi.cmake)
+        add_libsndfile_wasm32_wasi(libsndfile_wasm32_wasi_ext)
+
+        # Add a custom target to build csound.wasm
+        # This target will trigger the ExternalProject build
+        add_custom_target(csound_wasm
+            DEPENDS ${LIBSNDFILE_WASM32_TARGET}
+            COMMENT "Building WASM dependencies (libsndfile)"
+        )
+
+        # Create libcsound.wasm executable target using main_wasm.c
+        # This includes all libcsound sources to build a complete WASM library
+        set(libcsound_wasm_SRCS
+            Top/main_wasm.c
+            ${libcsound_SRCS}
+            ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+            Engine/csound_orc_semantics.c
+            Engine/csound_orc_expressions.c
+            Engine/csound_orc_optimize.c
+            Engine/csound_orc_compile.c
+            Engine/new_orc_parser.c
+            Engine/symbtab.c
+            ${PRELEX_SCOOUT}
+        )
+
+        # Add opcodes if not building as plugins
+        if(NOT BUILD_PLUGINS)
+            list(APPEND libcsound_wasm_SRCS
+                ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
+                ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
+                ${gens_SRCS} ${cs_pvs_ops_SRCS} ${newgabops_SRCS} ${oldpvoc_SRCS}
+                ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
+            )
+        endif()
+
+        # Add Unix-specific opcodes if on Unix
+        if(UNIX AND NOT BUILD_PLUGINS)
+            list(APPEND libcsound_wasm_SRCS ${unixops_SRCS})
+        endif()
+
+        # Add performance thread class if enabled
+        if(BUILD_PERFTHREAD_CLASS)
+            list(APPEND libcsound_wasm_SRCS "Top/csPerfThread.cpp")
+        endif()
+
+        # Create the libcsound.wasm executable
+        add_executable(libcsound_wasm ${libcsound_wasm_SRCS})
+
+        # Set target properties for WASM
+        set_target_properties(libcsound_wasm PROPERTIES
+            OUTPUT_NAME "libcsound"
+            SUFFIX ".wasm"
+        )
+
+        # Include directories
+        target_include_directories(libcsound_wasm PRIVATE ${libcsound_private_include_dirs})
+        target_include_directories(libcsound_wasm PUBLIC ${libcsound_public_include_dirs})
+
+        # Compile flags
+        target_compile_options(libcsound_wasm PRIVATE ${libcsound_CFLAGS})
+        if(NOT BUILD_PLUGINS)
+            target_compile_options(libcsound_wasm PRIVATE -DCS_INTERNAL)
+        endif()
+
+        # Link libraries
+        target_link_libraries(libcsound_wasm PRIVATE ${libcsound_LIBS})
+
+        # WASM-specific linker flags
+        target_link_options(libcsound_wasm PRIVATE
+            -Wl,--export-all
+            -Wl,--no-entry
+            -Wl,--allow-undefined
+        )
+
+        # Add dependency on libsndfile for WASM
+        add_dependencies(libcsound_wasm ${LIBSNDFILE_WASM32_TARGET})
+
+        # Update the csound_wasm target to also build libcsound.wasm
+        add_dependencies(csound_wasm libcsound_wasm)
+
+        message(STATUS "WASM32 WASI target added. Build with: cmake --build . --target csound_wasm")
+        message(STATUS "This will build libcsound.wasm from Top/main_wasm.c with all libcsound sources included")
+    else()
+        message(STATUS "WASI support not detected in compiler, skipping WASM32 WASI target")
+    endif()
+endif()
