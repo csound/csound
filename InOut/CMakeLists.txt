@@ -3,6 +3,7 @@
 message(STATUS "")
 message(STATUS "## REALTIME AUDIO AND MIDI ##")
 
+option(USE_PIPEWIRE "Build the PipeWire I/O module" ON)
 option(USE_PULSEAUDIO "Build the PulseAudio I/O module" ON)
 option(USE_PORTAUDIO "Build the PortAudio I/O module" ON)
 option(USE_PORTMIDI "Build the PortMIDI I/O module" ON)
@@ -99,9 +100,26 @@ if(USE_PULSEAUDIO)
     make_plugin(rtpulse rtpulse.c PulseAudio::PulseAudio)
 endif()
 
+find_package(PipeWire)
+check_deps(USE_PIPEWIRE PipeWire_FOUND)
+
+if(USE_PIPEWIRE)
+  make_plugin(rtpw rtpw.c PipeWire::PipeWire)
+endif()
+
 check_deps(USE_PORTAUDIO portaudio_FOUND)
 if(USE_PORTAUDIO)
+
     make_plugin(rtpa rtpa.c)
+if(APPLE)
+   if(NOT OSXCROSS_TARGET)
+    find_package(CoreFoundation MODULE)
+    find_package(CoreAudio MODULE)
+    find_package(AudioUnit MODULE)
+     target_link_libraries(rtpa PRIVATE AudioUnit::audiounit
+     CoreFoundation::corefoundation CoreAudio::coreaudio "-framework AudioToolbox")
+    endif()
+ endif()
     # use the static library if available
     target_link_libraries(rtpa PRIVATE $<IF:$<TARGET_EXISTS:portaudio_static>,portaudio_static,portaudio>)
 endif()

@@ -290,6 +290,7 @@ int32_t is_boolean_expression_node(TREE *node)
 
   switch(node->type) {
   case S_EQ:
+  case S_EQT:
   case S_NEQ:
   case S_GE:
   case S_LE:
@@ -809,9 +810,16 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     root->locn = locn;
   }
 
+  
   if (root->type == T_IDENT) {
     return root;
   }
+
+  if(root->type == TRUE_TOKEN)
+    return create_ans_token(csound, "true");
+
+  if(root->type == FALSE_TOKEN)
+    return create_ans_token(csound, "false");
 
   op = csound->Calloc(csound, 80);
   switch(root->type) {
@@ -821,6 +829,9 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   case S_EQ:
     strNcpy(op, "==", 80);
     break;
+  case S_EQT:
+    strNcpy(op, "=t", 80);
+    break;   
   case S_NEQ:
     strNcpy(op, "!=", 80);
     break;
@@ -853,12 +864,13 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                       get_arg_type2(csound, root->left, typeTable), 
                       get_arg_type2(csound, root->right, typeTable));
   }
+
+ 
   if (root->type == S_UNOT)     
     outarg = get_boolean_arg(csound,
                              typeTable,
                              *get_arg_type2(csound, root->left, typeTable) =='k' ||
                              *get_arg_type2(csound, root->left, typeTable) =='B');
-  
   else 
     outarg = get_boolean_arg(csound,
                              typeTable,
@@ -1151,7 +1163,7 @@ TREE* expand_if_statement(CSOUND* csound,
       create_boolean_expression(csound, left, right->line,
                                 right->locn, typeTable);
 
-
+   
     anchor = append_to_tree(csound, anchor, expressionNodes);
 
     /* reconnect into chain */
@@ -1194,7 +1206,7 @@ TREE* expand_if_statement(CSOUND* csound,
         create_boolean_expression(csound, tempLeft,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable);
-
+ 
       anchor = append_to_tree(csound, anchor, expressionNodes);
 
       last = tree_tail(expressionNodes);
@@ -1626,6 +1638,12 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   // handle case where user provided an index identifier
   int32_t hasOptionalIndex = 0;
   if (current->left->next != NULL) {
+    CS_VARIABLE* var = find_var_from_pools(csound, current->left->next->value->lexeme,
+                                        current->left->next->value->lexeme, typeTable);
+    if(var == NULL) {
+      add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable);
+    }
+    
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
     optionalUserIndexAssign->value = make_token(csound, "=");

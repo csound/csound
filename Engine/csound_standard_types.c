@@ -531,14 +531,14 @@ const char* OPTIONAL_IN_TYPES[] = {
     "P", "kicpr", NULL
 };
 const char* VAR_ARG_IN_TYPES[] = {
-    "m", "icrp",
-    "M", "icrpka",
-    "N", "icrpkaS",
-    "n", "icrp",   /* this one requires odd number of args... */
+    "m", "icrpb",
+    "M", "icrpkabB",
+    "N", "icrpkaSbB",
+    "n", "icrpb",   /* this one requires odd number of args... */
     "W", "S",
     "y", "a",
-    "z", "kicrp",
-    "Z", "kaicrp",  NULL  /* this one needs to be ka alternatating... */
+    "z", "kicrpbB",
+    "Z", "kaicrpbB",  NULL  /* this one needs to be ka alternatating... */
 };
 
 const char* POLY_OUT_TYPES[] = {

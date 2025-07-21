@@ -141,7 +141,9 @@ def runTest():
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
 	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
+    ["test_iarr_operators.csd", "test i[] operators"],
 	["test_booleans.csd", "tests using boolean data-types"],
+    ["test_type_eq.csd", "test type equality operator"],
 	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
 
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
@@ -152,6 +154,7 @@ def runTest():
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
 	["test_for_in.csd", "for in loop"],
+    ["test_for_in2.csd", "for in loop (2nd form)"],
 	["test_opcode_as_function.csd", "test expression"],
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
@@ -177,6 +180,7 @@ def runTest():
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
+    ["test_opassign.csd", "test +=, ==, *= and /="],
     ["testnewline.csd", "test newline in statements"],
     ["test_string_in_event.csd", "test multiple strings in realtime event"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
@@ -196,6 +200,7 @@ def runTest():
     ["test_unschedule.csd", "test unscheduling events"],
     ["diskin_excess_channels.csd", "test sample accurate mode"],
     ["test_midifile_ops.csd", "testing midifile opcodes"],
+    ["test_true_false.csd", "testing true/false booleans"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -213,6 +218,8 @@ def runTest():
         ["complex_array_test.csd", "testing complex array ops"],
         ["fft_array_test.csd", "testing complex fft array ops"],
         ["rfft_array_test.csd", "testing complex rfft array ops"],
+        ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
+        ["test_gen_array.csd", "testing genarray shorthand"],
     ]
 
 

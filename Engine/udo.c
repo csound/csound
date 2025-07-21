@@ -47,7 +47,7 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
 
   // csound->Message(csound, "Pass-by-ref UDO %s\n", p->h.optext->t.oentry->opname);
 
-  size_t i;
+  int32_t  i;
   OPDS *ichain = lcurip->nxti;
   OPDS *pchain = lcurip->nxtp;
 
@@ -976,8 +976,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       CS_PDS = CS_PDS->nxtp;
     }
   }
+  if(p->ip) { // check in case instrument has called turnoff
   p->ip->ksmps_offset = 0; /* reset sample-accuracy offset */
   p->ip->ksmps_no_end = 0;  /* reset end of loop samples */
+  }
   return OK;
 }
 
