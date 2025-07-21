@@ -149,8 +149,6 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
     return "##not";
   case T_ARRAY:
     return "##array_get";
-  case S_ADDIN:
-    return "##addin";
   }
   csound->Warning(csound, Str("Unknown function type found: %d [%c]\n"),
                   tree->type, tree->type);
@@ -161,6 +159,8 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
   switch(tree->type) {
   case S_EQ:
     return "==";
+  case S_EQT:
+    return "=t";  
   case S_NEQ:
     return "!=";
   case S_GE:
@@ -540,13 +540,41 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     }
   }
+
+  if(tree == NULL) {
+   synterr(csound, "NULL tree");
+   longjmp(csound->exitjmp,0);
+   return 0;
+  }
  
   switch(tree->type) {
   case NUMBER_TOKEN:
   case INTEGER_TOKEN:
-    return cs_strdup(csound, "c");                              /* const */
+    return cs_strdup(csound, "c");     /* const */
+  case FALSE_TOKEN: {  // trap false expr here
+    CS_VARIABLE *var = find_var_from_pools(csound, "false",
+                                           "false", typeTable);
+    if(var == NULL) {
+    var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "false", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 0;
+    }
+  }
+  return cs_strdup(csound, "b");  /* boolean */
+  case TRUE_TOKEN: { // trap true expr here
+     CS_VARIABLE *var = find_var_from_pools(csound, "true",
+                                           "true", typeTable);
+    if(var == NULL) {   
+     var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "true", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 1;
+    }
+  }
+   return cs_strdup(csound, "b");     /* boolean */
   case STRING_TOKEN:
-    return cs_strdup(csound, "S");                /* quoted String */
+    return cs_strdup(csound, "S");   /* quoted String */
   case LABEL_TOKEN:
     //FIXME: Need to review why label token is used so much in parser,
     //for now treat as T_IDENT
@@ -562,6 +590,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return NULL;
       }
     }
+    __attribute__((fallthrough)); 
   case T_IDENT:
 
     s = tree->value->lexeme;
@@ -807,6 +836,26 @@ int32_t check_array_arg(char* found, char* required) {
   return (*f == *r);
 }
 
+int32_t check_array_arg_in(char* found, char* required) {
+  char* f = found;
+  char* r = required;
+
+  while (*r == '[') r++;
+
+  if (*r == '.' || *r == '?' || *r == '*') {
+    return 1;
+  }
+
+  while (*f == '[') f++;
+
+  // special case: k args with i inputs
+  if(*r == 'k' && *f == 'i') return 1;
+  return (*f == *r);
+}
+
+
+
+
 int32_t check_in_arg(char* found, char* required) {
   char* t;
   int32_t i;
@@ -826,7 +875,7 @@ int32_t check_in_arg(char* found, char* required) {
     if (*found != *required) {
       return 0;
     }
-    return check_array_arg(found, required);
+    return check_array_arg_in(found, required);
   }
 
   t = (char*)POLY_IN_TYPES[0];
@@ -1766,7 +1815,6 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
   //  print(1,2,3)
   // then it should just be updated to T_OPCALL and returned
   if(root->type == T_FUNCTION) {
-           
     root->type = T_OPCALL;
     return root;
   }
@@ -1778,12 +1826,19 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     return root;
   }
 
+  if (root->type == S_ADDIN ||
+      root->type == S_SUBIN ||
+      root->type == S_MULIN ||
+      root->type == S_DIVIN) return root;
+
   if (root->type != T_OPCALL) {
     synterr(csound,
             Str("Internal Error: convert_statement_to_opcall "
                 "received a non T_OPCALL TREE\n"));
     return NULL;
   }
+
+  
  
   if (root->value != NULL) {
     /* Already processed T_OPCALL, return as-is */
@@ -1932,6 +1987,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   if (!check_args_exist(csound, root->right, typeTable)) {
     return 0;
   }
+  
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
@@ -2571,7 +2627,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_if_statement(csound, current, typeTable);
-
+ 
       if (previous != NULL) {
         previous->next = current;
       }
@@ -2606,8 +2662,13 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     continue;
 
     case FOR_TOKEN: {
+      /** for-loop typing:
+          1) if loop variable does not exist, it takes the type of the array
+          2) if it exists, the loop type follows the variable type
+      */
       char* arrayArgType = get_arg_type2(csound, current->right->left, typeTable);
-      
+      CS_VARIABLE* var = find_var_from_pools(csound, current->left->value->lexeme,
+                                        current->left->value->lexeme, typeTable);
       if (*arrayArgType != '[') {
         if(current->right->left->value != NULL) 
         synterr(csound,Str("Line: %d invalid argument in for statement: "
@@ -2616,15 +2677,24 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         else synterr(csound,Str("Line: %d expected an array variable in for statement."),
                      current->line);
         return 0;
+      }    
+      
+      if(var == NULL) {
+      char  atype[2] = { arrayArgType[1], '\0' };
+      // now create the arg based on the array type
+       add_arg(csound, current->left->value->lexeme, atype,
+              typeTable);
+       arrayArgType++;
+      } else {
+        arrayArgType = var->varType->varTypeName;
       }
-
       current = expand_for_statement(csound, current, typeTable, arrayArgType);
-
       if (previous != NULL) {
         previous->next = current;
       }
     }
-      continue;
+    continue;
+    
     case LABEL_TOKEN:
       break;
 
@@ -3244,6 +3314,15 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int32_t n, int32_t which)
   case S_ADDIN:
     csound->Message(csound,"name=\"##addin\""); break;
     break;
+  case S_SUBIN:
+    csound->Message(csound,"name=\"##subin\""); break;
+    break;
+  case S_DIVIN:
+    csound->Message(csound,"name=\"##divin\""); break;
+    break;
+  case S_MULIN:
+    csound->Message(csound,"name=\"##mulin\""); break;
+    break;    
   case '[':
     csound->Message(csound,"name=\"[\""); break;
   default:
@@ -3388,7 +3467,6 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
      called by bison when instr ids are found
   */
   if (x->type == T_IDENT) {
-    
     char *varname = x->value->lexeme;
     CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
                                          (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,

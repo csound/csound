@@ -901,6 +901,12 @@ int32_t chnget_array_opcode_init_i(CSOUND* csound, CHNGETARRAY* p)
 /* init routine for k, a and S chnget array opcodes */
 int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
 {
+  if((strcmp("k", p->arrayDat->arrayType->varTypeName) == 0 ||
+      strcmp("a", p->arrayDat->arrayType->varTypeName) == 0)
+       && CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
+
     ARRAYDAT* arr = (ARRAYDAT*) p->iname;
     int32_t index = 0;
     p->arraySize = arr->sizes[0];
@@ -911,8 +917,9 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     int32_t err;
     int32_t channelType;
 
-    if (strcmp("k", p->arrayDat->arrayType->varTypeName) == 0)
+    if (strcmp("k", p->arrayDat->arrayType->varTypeName) == 0) {
         channelType = CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL;
+    }
     else if(strcmp("a", p->arrayDat->arrayType->varTypeName) == 0)
         channelType = CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL;
     else
@@ -1063,7 +1070,6 @@ int32_t chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
 }
 
 /* chnset array opcode init function for S arrays */
-
 int32_t chnset_array_opcode_init_i(CSOUND *csound, CHNGETARRAY *p)
 {
     int32_t   err;
@@ -1112,9 +1118,14 @@ int32_t chnset_array_opcode_init_i(CSOUND *csound, CHNGETARRAY *p)
 }
 
 /* init routine for chnset array opcodes - a, k and S */
-
 int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
 {
+  if((strcmp("k", p->arrayDat->arrayType->varTypeName) == 0 ||
+      strcmp("a", p->arrayDat->arrayType->varTypeName) == 0)
+       && CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
+  
     int32_t err;
     int32_t index = 0;
 
@@ -1271,6 +1282,10 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
 /* init routine for chnget opcode (control data) */
 int32_t chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 {
+   if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
+  
     int32_t   err;
     err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
@@ -1288,6 +1303,9 @@ int32_t chnget_opcode_init_k(CSOUND *csound, CHNGET *p)
 /* init routine for chnget opcode (audio data) */
 int32_t chnget_opcode_init_a(CSOUND* csound, CHNGET* p)
 {
+   if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
     int32_t err;
     p->pos = 0;
     err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
@@ -1504,8 +1522,11 @@ int32_t chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
 /* init routine for chnset opcode (control data) */
 int32_t chnset_opcode_init_k(CSOUND* csound, CHNGET* p)
 {
+  if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
+  
     int32_t err;
-
     err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
@@ -1519,6 +1540,9 @@ int32_t chnset_opcode_init_k(CSOUND* csound, CHNGET* p)
 /* init routine for chnset opcode (audio data) */
 int32_t chnset_opcode_init_a(CSOUND* csound, CHNGET* p)
 {
+    if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
     int32_t err;
     p->pos = 0;
     err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
@@ -1535,8 +1559,10 @@ int32_t chnset_opcode_init_a(CSOUND* csound, CHNGET* p)
 
 int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 {
+    if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
     int32_t   err;
-
     err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
@@ -1550,6 +1576,9 @@ int32_t chnmix_opcode_init(CSOUND *csound, CHNGET *p)
 /* init routine for chnclear opcode */
 int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 {
+   if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
     int32_t   err;
     int32_t   i, n = (int32_t)p->INOCOUNT;
     for (i=0; i<n; i++) {
@@ -1568,7 +1597,6 @@ int32_t chnclear_opcode_init(CSOUND *csound, CHNCLEAR *p)
 }
 
 /* send string to bus at init time */
-
 int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
@@ -1752,9 +1780,6 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
     p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char*) p->iname->data);
     return OK;
 }
-
-
-
 
 /* export new channel from global orchestra variable */
 int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
@@ -2107,6 +2132,9 @@ int32_t invalset_string(CSOUND *csound, INVAL *p)
 
 int32_t invalset(CSOUND *csound, INVAL *p)
 {
+   if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
     int32_t   err;
     int32_t type;
 
@@ -2239,6 +2267,10 @@ int32_t outvalset_string(CSOUND *csound, OUTVAL *p)
 
 int32_t outvalset(CSOUND *csound, OUTVAL *p)
 {
+   if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             "local sampling rate not supported\n");
+  
     int32_t type, err;
 
     /* convert numerical channel to string name */
@@ -2349,8 +2381,12 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
     if(adat->arrayType == &CS_VAR_TYPE_I) {
       copy_array(csound, adat, (ARRAYDAT *) p->fp, p->lock);
-    } else 
-    p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
+    } else {
+     if(CS_ESR != csound->esr)
+       return csound->InitError(csound,
+                             "local sampling rate not supported\n");     
+      p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
+    }
     return OK;
   }
   else return NOTOK;
@@ -2373,8 +2409,12 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
     if(adat->arrayType == &CS_VAR_TYPE_I) {
       copy_array(csound, (ARRAYDAT *) p->fp, adat, p->lock);
-    } else 
-    p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
+    } else {
+    if(CS_ESR != csound->esr)
+     return csound->InitError(csound,
+                             "local sampling rate not supported\n");      
+     p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
+    }
     return OK;
   }
   else return NOTOK;
@@ -2385,8 +2425,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 {
     ARRAYDAT *adat;
     int32_t   type, mode, err, siz = 0, i;
-
-
+    
     mode = (int32_t) MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
         return csound->InitError(csound, Str("invalid mode parameter"));
@@ -2673,7 +2712,8 @@ PUBLIC const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){
 
 PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
                                const void* data) {
-  size_t siz = 0, i;
+  size_t siz = 0;
+  int32_t i;
   for(i = 0; i < adat->dimensions; i++)
     siz += adat->sizes[i];
   memcpy(adat->data, data, siz*adat->arrayMemberSize);

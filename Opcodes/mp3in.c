@@ -922,9 +922,10 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
                              MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                              MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                              0.0 };
-  int32_t     skip              = 0, chan = 0, r;
+  int32_t     skip = 0, chan = 0, r;
   FILE    *f;
-  int32_t p                     = 0;
+  void *fd;
+  int32_t p   = 0;
   char    sfname[1024];
   mpadec_info_t mpainfo;
   uint32_t bufsize, bufused = 0;
@@ -974,9 +975,9 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     mp3dec_uninit(mpa);
     return csound->FtError(ff,"%s", mp3dec_error(r));
   }
-  (void)mp3dec_open_file(mpa, sfname, &f);
+  fd = mp3dec_open_file(mpa, sfname, &f);
   //    fd = open(sfname, O_RDONLY); /* search paths */
-  if (UNLIKELY(f < 0)) {
+  if (UNLIKELY(fd == NULL)) {
     mp3dec_uninit(mpa);
     return csound->FtError(ff, "sfname");
   }

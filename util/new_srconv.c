@@ -422,8 +422,8 @@ int32_t main(int32_t argc, char **argv)
       SRC_DATA  data;
       int32_t err;
       int32_t C         = (int)(0.01*Rin);
-      float* input  = (float*)calloc(sizeof(float), C*Chans);
-      float* output = (float*)calloc(sizeof(float), C*Chans);
+      float* input  = (float*)calloc(C*Chans, sizeof(float));
+      float* output = (float*)calloc(C*Chans, sizeof(float));
       int32_t count     = 0, countin = 0;
       double P0     = warp[0].ratio; /* Last ratio */
       double P1     = warp[1].ratio; /* next ratio (at end of segment) */
@@ -499,8 +499,8 @@ int32_t main(int32_t argc, char **argv)
       SRC_DATA  data;
       int32_t err;
       int32_t C = IBUF;
-      float* input = (float*)calloc(sizeof(float), C*Chans);
-      float* output = (float*)calloc(sizeof(float), C*Chans);
+      float* input = (float*)calloc(C*Chans, sizeof(float));
+      float* output = (float*)calloc(C*Chans, sizeof(float));
       int32_t count = 0;
 
       state = src_new(Q, Chans, &err);

@@ -61,7 +61,7 @@ extern "C" {
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)
-#define NOT_AN_INSTRUMENT INT32_MAX  
+#define NOT_AN_INSTRUMENT (-1)
 
 // long max table length is the default for doubles  
 #if defined(USE_DOUBLE) && !defined(SHORT_TABLE_LENGTH)  

@@ -2871,7 +2871,7 @@ sprintf_opcode_(CSOUND *csound,
     i = 0;
 
     while (1) {
-        if (UNLIKELY(i >= strsegsize)) {
+      if (UNLIKELY((size_t) i >= strsegsize)) {
             csound->Warning(csound, "%s", "println: Allocating memory");
             strsegsize *= 2;
             p->strseg.data = strseg = csound->ReAlloc(csound, strseg, strsegsize);
@@ -3140,6 +3140,8 @@ static OENTRY emugens_localops[] = {
       (SUBR)tab2array_init, (SUBR)tab2array_k},
     { "tab2array", S(TAB2ARRAY), TR,  "i[]", "ioop", (SUBR)tab2array_i},
 
+    { "printarray.i", S(ARRAYPRINT), 0,  "", "i[]", (SUBR)arrayprint_i},
+    
     { "printarray", S(ARRAYPRINTK), 0,  "", "k[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0,  "", "k[]kS",
@@ -3153,8 +3155,6 @@ static OENTRY emugens_localops[] = {
     { "printarray.k_notrig", S(ARRAYPRINT), 0,  "", "k[]SS",
       (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
 
-
-    { "printarray.i", S(ARRAYPRINT), 0,  "", "i[]", (SUBR)arrayprint_i},
     { "printarray.fmt_i", S(ARRAYPRINT), 0,  "", "i[]S", (SUBR)arrayprintf_i},
     { "printarray.fmt_label_i", S(ARRAYPRINT), 0,  "", "i[]SS",
       (SUBR)arrayprintf_i},

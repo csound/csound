@@ -35,6 +35,7 @@
 %token S_LT
 %token S_LE
 %token S_EQ
+%token S_EQT
 %token S_ADDIN
 %token S_SUBIN
 %token S_MULIN
@@ -94,9 +95,12 @@
 %token ENDSW_TOKEN
 %token FOR_TOKEN
 %token IN_TOKEN
+%token TRUE_TOKEN
+%token FALSE_TOKEN
 
 
 %token S_ELIPSIS
+%token S_ELIPSIS2
 %token T_ARRAY
 %token T_ARRAY_IDENT
 %token T_DECLARE
@@ -111,7 +115,7 @@
 %left S_AND S_OR
 %left '|'
 %left '&'
-%left S_LT S_GT S_LE S_GE S_EQ S_NEQ
+%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -572,14 +576,24 @@ expr    : function_call
         | number
         | string
         | array_expr
+        | gen_array
         | static_array
         | struct_expr
+        | true_const
+        | false_const
         ;
+
+gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "genarray"));
+            $$->right = $2;
+            append_to_tree(csound, $$->right, $4);
+             }
 
 static_array : '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));
             $$->right = $2;
           }
+
 
 /* TODO: Investigate whether this should allow for expressions as base before brackets to make more generic
 */
@@ -648,7 +662,7 @@ unary_expr : '~' expr %prec S_UMINUS
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
           }
 
-        | '+' error           { $$ = NULL; }
+        | '+' error           { $$ = NULL; }        
         ;
 
 binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $4); }
@@ -666,6 +680,8 @@ binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+'
           | expr '=' error
           | expr S_EQ optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr S_EQ error
+          | expr S_EQT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQT, $1, $4); }
+          | expr S_EQT error
           | expr S_GT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $4); }
           | expr S_GT error
           | expr S_LT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $4); }
@@ -731,21 +747,13 @@ array_identifier: array_identifier '[' ']' {
 assignment : '='
                 { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); }
               | S_ADDIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##addin")); }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##subin")); }               
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##divin")); }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*"));
-                }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##mulin")); } 
               ;
 
 in        : IN_TOKEN
@@ -775,7 +783,17 @@ string : STRING_TOKEN
         { $$ = make_leaf(csound, LINE,LOCN, STRING_TOKEN, (ORCTOKEN *)$1); }
         ;
 
+false_const: FALSE_TOKEN
+       { $$ = make_leaf(csound, LINE,LOCN, FALSE_TOKEN,
+                        make_token(csound,"false")); }
+       ;
 
+true_const: TRUE_TOKEN
+           { $$ = make_leaf(csound, LINE,LOCN, TRUE_TOKEN,
+                            make_token(csound,"true")); }
+       ;
+
+         
 number : NUMBER_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, NUMBER_TOKEN, (ORCTOKEN *)$1); }
        ;

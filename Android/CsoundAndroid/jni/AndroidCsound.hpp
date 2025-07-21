@@ -12,6 +12,7 @@ public:
       asyncProcess = async;
     }
     void setOpenSlCallbacks();
+    void setAAudioCallbacks(); 
     int SetGlobalEnv(const char* name, const char* variable);
     unsigned long getStreamTime();
     void Pause(bool pause);

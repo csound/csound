@@ -57,7 +57,7 @@ static int32_t vaget(CSOUND *csound, VA_GET *p)
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if(LIKELY(ndx >= 0 && ndx < CS_KSMPS)) {
+    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
                       ndx, offset, CS_KSMPS-early);
@@ -74,7 +74,7 @@ static int32_t vaset(CSOUND *csound, VA_SET *p)
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if(LIKELY(ndx >= 0 && ndx < CS_KSMPS)) {
+    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
                       ndx, offset, CS_KSMPS-early);
@@ -91,7 +91,7 @@ static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if(LIKELY(ndx >= 0 && ndx < CS_KSMPS)) {
+    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
                       ndx, offset, CS_KSMPS-early);
@@ -107,7 +107,7 @@ static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    if(LIKELY(ndx >= 0 && ndx < CS_KSMPS)) {
+    if(LIKELY(ndx >= 0 && ndx < (int32) CS_KSMPS)) {
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
                       ndx, offset, CS_KSMPS-early);

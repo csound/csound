@@ -1890,6 +1890,7 @@ void free_instance(CSOUND *csound, INSDS *ip) {
 */
 int32_t init_instance(CSOUND *csound, INSDS *ip,
                       EVTBLK *newevtp){
+  EVTBLK *initevt = csound->init_event;
   INSTRTXT *tp = csound->engineState.instrtxtp[ip->insno];
   CS_VAR_MEM *pfields = NULL;       
   int32_t   i, n, error = CSOUND_SUCCESS;
@@ -1931,6 +1932,7 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
     ATOMIC_SET(ip->init_done, 0);
     ip->actflg = 0;  // set as inactive
   }
+  csound->init_event = initevt;
   return error;
 }
 

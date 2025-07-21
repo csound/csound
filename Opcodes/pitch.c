@@ -1216,7 +1216,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
                                "%s", Str("phasorbnk: not initialised"));
     }
 
-    if (UNLIKELY(index<0 || index>=size)) {
+    if (UNLIKELY(index<0 || (uint64_t) index>=size)) {
       *p->sr = FL(0.0);
       return NOTOK;
     }
@@ -1246,7 +1246,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
                                "%s", Str("phasorbnk: not initialised"));
     }
 
-    if (UNLIKELY(index<0 || index>=size)) {
+    if (UNLIKELY(index<0 || (uint64_t) index>=size)) {
       *p->sr = FL(0.0);
       return NOTOK;
     }
