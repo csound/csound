@@ -91,8 +91,8 @@ static int32_t init_portaudio(CSOUND *csound)
     }
     /* print PortAudio version */
     {
-    if ((s = (char*) Pa_GetVersionText()) != NULL)
-      csound->ErrorMsg(csound, "%s\n", s);
+      if ((s = (char*) Pa_GetVersionText()) != NULL)
+        csound->ErrorMsg(csound, "%s\n", s);
     }
   }
   return 0;
@@ -152,7 +152,7 @@ int32_t list_devices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutput){
 
 
 static int32_t list_portaudio_devices(CSOUND *csound,
-                                         int32_t print_list, int32_t play)
+                                      int32_t print_list, int32_t play)
 {
   int32_t i,n = list_devices(csound, NULL, play);
   IGN(print_list);
@@ -160,9 +160,9 @@ static int32_t list_portaudio_devices(CSOUND *csound,
     (CS_AUDIODEVICE *) csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
   list_devices(csound, devs, play);
   {
-  for(i=0; i < n; i++)
-    csound->ErrorMsg(csound, " %3d: %s (%s)\n",
-                    i, devs[i].device_id, devs[i].device_name);
+    for(i=0; i < n; i++)
+      csound->ErrorMsg(csound, " %3d: %s (%s)\n",
+                       i, devs[i].device_id, devs[i].device_name);
 
   }
   csound->Free(csound, devs);
@@ -227,8 +227,8 @@ static int32_t select_portaudio_device(CSOUND *csound, int32_t devNum, int32_t p
   dev_info = (PaDeviceInfo*) Pa_GetDeviceInfo((PaDeviceIndex) devNum);
   if (dev_info) {
     csound->ErrorMsg(csound, Str("PortAudio: selected %s device '%s'\n"),
-                    (play ? Str("output") : Str("input")),
-                    dev_info->name);
+                     (play ? Str("output") : Str("input")),
+                     dev_info->name);
     if(play) {
       csound->GetSystemSr(csound, (MYFLT) dev_info->defaultSampleRate);
       DAC_channels(csound, dev_info->maxOutputChannels);
@@ -236,13 +236,13 @@ static int32_t select_portaudio_device(CSOUND *csound, int32_t devNum, int32_t p
   }
   else
     pa_PrintErrMsg(csound, "%s",
-                    Str("PortAudio: failed to obtain device info.\n"));
+                   Str("PortAudio: failed to obtain device info.\n"));
   return devNum;
 }
 
 static int32_t set_stream_parameters(CSOUND *csound, PaStreamParameters *sp,
-                                  csRtAudioParams *parm,
-                                  int32_t is_playback)
+                                     csRtAudioParams *parm,
+                                     int32_t is_playback)
 {
   int32_t dev;
   memset(sp, 0, sizeof(PaStreamParameters));
@@ -305,48 +305,45 @@ static int32_t audio_callback(const void *input, void *output,unsigned long fram
   return paContinue;
 }
 
-#define MICROS 1000000
 static int32_t rtrecord_noblock(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
 {
-    int32_t n = nbytes/sizeof(MYFLT);
-    int32_t m = 0, l;
-    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtRecordUserData(csound));
-    MYFLT sr = pabs->inParm.sampleRate;
-    do{
-      l = csound->ReadCircularBuffer(csound,pabs->incb,&inbuff_[m],n);
-      m += l;
-      n -= l;
-      if(n) csound->Sleep(1);
-    } while(n);
-    return nbytes;
+  int32_t n = nbytes/sizeof(MYFLT);
+  int32_t m = 0, l;
+  PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtRecordUserData(csound));
+  do{
+    l = csound->ReadCircularBuffer(csound,pabs->incb,&inbuff_[m],n);
+    m += l;
+    n -= l;
+    if(n) csound->Sleep(1);
+  } while(n);
+  return nbytes;
 }
 
 static void rtplay_noblock(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
 {
-    int32_t n = nbytes/sizeof(MYFLT);
-    int32_t m = 0, l;
-    PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
-    MYFLT sr = pabs->outParm.sampleRate;
-    do {
-      l = csound->WriteCircularBuffer(csound, pabs->outcb,&outbuff_[m],n);
-      m += l;
-      n -= l;
-      if(n) csound->Sleep(1);
-    } while(n);
+  int32_t n = nbytes/sizeof(MYFLT);
+  int32_t m = 0, l;
+  PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
+  do {
+    l = csound->WriteCircularBuffer(csound, pabs->outcb,&outbuff_[m],n);
+    m += l;
+    n -= l;
+    if(n) csound->Sleep(1);
+  } while(n);
 }
 
- static int32_t recopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
- {
+static int32_t recopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
+{
   CSOUND *p = csound;
   PA_BLOCKING_STREAM *pabs;
 
   pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
   if (pabs == NULL) {
-  if (p->CreateGlobalVariable(p, "_rtpaGlobals", sizeof(PA_BLOCKING_STREAM))
-    != 0)
-    return -1;
-  pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
-  pabs->csound = p;
+    if (p->CreateGlobalVariable(p, "_rtpaGlobals", sizeof(PA_BLOCKING_STREAM))
+        != 0)
+      return -1;
+    pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
+    pabs->csound = p;
   }
   pabs->incb = csound->CreateCircularBuffer(csound,parm->bufSamp_HW*parm->nChannels,
                                             sizeof(MYFLT));
@@ -379,7 +376,7 @@ static int32_t set_device_params_noblock(CSOUND *csound)
 
   if (UNLIKELY(pabs->mode & 1)) {
     if (set_stream_parameters(csound, &(pabs->inputPaParameters),
-                               &(pabs->inParm), 0) != 0)
+                              &(pabs->inParm), 0) != 0)
       goto err_return;
     pabs->inBufSamples = pabs->inParm.bufSamp_SW
       * (int32_t) pabs->inputPaParameters.channelCount;
@@ -393,7 +390,7 @@ static int32_t set_device_params_noblock(CSOUND *csound)
   }
   if (pabs->mode & 2) {
     if (UNLIKELY(set_stream_parameters(csound, &(pabs->outputPaParameters),
-                                        &(pabs->outParm), 1) != 0))
+                                       &(pabs->outParm), 1) != 0))
       goto err_return;
     pabs->outBufSamples = pabs->outParm.bufSamp_SW
       * (int32_t) pabs->outputPaParameters.channelCount;
@@ -417,8 +414,8 @@ static int32_t set_device_params_noblock(CSOUND *csound)
     if (UNLIKELY(((pabs->inParm.bufSamp_SW / pabs->ksmps) *
                   pabs->ksmps) != pabs->inParm.bufSamp_SW))
       csound->Warning(csound,
-                       "%s", Str("WARNING: buffer size should be an integer "
-                                 "multiple of ksmps in full-duplex mode\n"));
+                      "%s", Str("WARNING: buffer size should be an integer "
+                                "multiple of ksmps in full-duplex mode\n"));
   }
   
   err = Pa_OpenStream(&stream,
@@ -456,21 +453,21 @@ static int32_t set_device_params_noblock(CSOUND *csound)
   return -1;
 }
 
- static int32_t playopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
- {
+static int32_t playopen_noblock(CSOUND *csound, const csRtAudioParams *parm)
+{
   CSOUND *p = csound;
   PA_BLOCKING_STREAM *pabs;
 
   pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
   if (pabs == NULL) {
-  if (p->CreateGlobalVariable(p, "_rtpaGlobals", sizeof(PA_BLOCKING_STREAM))
-    != 0)
-    return -1;
-  pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
-  pabs->csound = p;
+    if (p->CreateGlobalVariable(p, "_rtpaGlobals", sizeof(PA_BLOCKING_STREAM))
+        != 0)
+      return -1;
+    pabs = (PA_BLOCKING_STREAM*) p->QueryGlobalVariable(p, "_rtpaGlobals");
+    pabs->csound = p;
   }
   pabs->outcb = csound->CreateCircularBuffer(csound,parm->bufSamp_HW*parm->nChannels,
-                                            sizeof(MYFLT));
+                                             sizeof(MYFLT));
   pabs->mode |= 2;
   memcpy(&(pabs->outParm), parm, sizeof(csRtAudioParams));
   *(p->GetRtPlayUserData(p)) = (void*) pabs;
@@ -520,10 +517,10 @@ static void rtclose_noblock(CSOUND *csound)
  *  blocking interface 
  */
 
- /* set up audio device */
- static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
-    const csRtAudioParams *parm, int32_t play)
- {
+/* set up audio device */
+static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev,
+                                 const csRtAudioParams *parm, int32_t play)
+{
   PaStreamParameters  streamParams;
   CSOUND              *p = csound;
   int32_t                 err;
@@ -562,17 +559,17 @@ static void rtclose_noblock(CSOUND *csound)
   /* open stream */
   if (play) {
     err = (int32_t) Pa_OpenStream(&(dev->handle), NULL, &streamParams,
-                              (double) parm->sampleRate,
-                              (unsigned long) parm->bufSamp_SW,
-                              (csound->GetDitherMode(csound) ?
-                               paNoFlag:paDitherOff),
-                              NULL, NULL);
+                                  (double) parm->sampleRate,
+                                  (unsigned long) parm->bufSamp_SW,
+                                  (csound->GetDitherMode(csound) ?
+                                   paNoFlag:paDitherOff),
+                                  NULL, NULL);
   }
   else {
     err = (int32_t) Pa_OpenStream(&(dev->handle), &streamParams, NULL,
-                              (double) parm->sampleRate,
-                              (unsigned long) parm->bufSamp_SW,
-                              paNoFlag, NULL, NULL);
+                                  (double) parm->sampleRate,
+                                  (unsigned long) parm->bufSamp_SW,
+                                  paNoFlag, NULL, NULL);
   }
   if (UNLIKELY(err != (int32_t) paNoError)) {
     pa_PrintErrMsg(p, "%d: %s", err, Pa_GetErrorText((PaError) err));
@@ -585,7 +582,7 @@ static void rtclose_noblock(CSOUND *csound)
                                              * (int32_t) sizeof(float)));
 
   return 0;
- }
+}
 
 /* open for audio input */
 static int32_t recopen_blocking(CSOUND *csound, const csRtAudioParams *parm)
