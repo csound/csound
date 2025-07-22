@@ -400,15 +400,20 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
        csound->Warning(csound,
                       Str("Attempted to set device SR, tried %.1f, got %.1f"),
                       srate, sr);
+       // wait for it
+       csound->Sleep(500);
+       // try again
        AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
        AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
-       
-       if(attempts++ > 5000) {
-        csound->Warning(csound, "could not set sr to %.1f", srate);
+       // try another 5 times max (2.5 sec wait)
+       if(++attempts > 5) { 
+         csound->Warning(csound, "could not set sr to %.1f after %d attempts",
+                         srate, attempts);
          break;
        }
     }
-    csound->Message(csound, "auhal: device sampling rate set to %.1f \n", sr);
+    csound->Message(csound, "auhal: device sampling rate set to %.1f\n",
+                    sr);
 
     HALOutput = AudioComponentFindNext(NULL, &cd);
     if (isInput) {
@@ -731,20 +736,18 @@ OSStatus  Csound_Input(void *inRefCon,
     l = csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
     return 0;
 }
-
-#define MICROS 1000000
+#define slt 100
 static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
 {
     csdata  *cdata;
     int32_t n = nbytes/sizeof(MYFLT);
     int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
-    MYFLT sr = cdata->sr;
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(MICROS/sr);
+      if(n) usleep(slt);
     } while(n);
     return nbytes;
 }
@@ -788,12 +791,12 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
     int32_t n = nbytes/sizeof(MYFLT);
     int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
-    MYFLT sr = cdata->sr;
+    //MYFLT sr = cdata->sr;
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(MICROS/sr);
+      if(n) usleep(slt);
     } while(n);
 }
 
