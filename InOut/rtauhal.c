@@ -402,13 +402,13 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                       srate, sr);
        AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
        AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
-       // 10 attempts
-       if(attempts++ > 10) {
-         csound->Warning(csound, "could not set sr to %.1f", srate);
+       
+       if(attempts++ > 5000) {
+        csound->Warning(csound, "could not set sr to %.1f", srate);
          break;
        }
     }
-    csound->Message(csound, "auhal: device sampling rate set to %.1f\n", sr);
+    csound->Message(csound, "auhal: device sampling rate set to %.1f \n", sr);
 
     HALOutput = AudioComponentFindNext(NULL, &cd);
     if (isInput) {
