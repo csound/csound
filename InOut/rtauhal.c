@@ -791,7 +791,6 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
     int32_t n = nbytes/sizeof(MYFLT);
     int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
-    //MYFLT sr = cdata->sr;
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
       m += l;
