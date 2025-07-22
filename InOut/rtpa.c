@@ -314,7 +314,12 @@ static int32_t rtrecord_noblock(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
     l = csound->ReadCircularBuffer(csound,pabs->incb,&inbuff_[m],n);
     m += l;
     n -= l;
-    if(n) csound->Sleep(1);
+    if(n)
+#ifdef WIN32
+    csound->Sleep(1); // ms res
+#else
+    usleep(100); // more responsive
+#endif 
   } while(n);
   return nbytes;
 }
@@ -328,7 +333,12 @@ static void rtplay_noblock(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes
     l = csound->WriteCircularBuffer(csound, pabs->outcb,&outbuff_[m],n);
     m += l;
     n -= l;
-    if(n) csound->Sleep(1);
+    if(n)
+#ifdef WIN32
+    csound->Sleep(1); // ms res
+#else
+    usleep(100); // more responsive
+#endif  
   } while(n);
 }
 
