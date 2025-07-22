@@ -381,7 +381,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     /* although the SR is set in the stream properties,
        we also need to set the device to match */
-     double sr;
+    double sr;
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     if(!isInput){
       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
@@ -394,12 +394,21 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     if(srate < 0)
       srate  =  csound->GetSystemSr(csound, sr);
-    if(UNLIKELY(sr != srate)) {
-      if(O->msglevel || O->odebug)
+    int attempts = 0;
+    while (UNLIKELY(sr != srate)) {
+      if(O->odebug)
        csound->Warning(csound,
-                      Str("Attempted to set device SR, tried %.1f, got %.1f\n"),
+                      Str("Attempted to set device SR, tried %.1f, got %.1f"),
                       srate, sr);
+       AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
+       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
+       // 10 attempts
+       if(attempts++ > 10) {
+         csound->Warning(csound, "could not set sr to %.1f", srate);
+         break;
+       }
     }
+    csound->Message(csound, "auhal: device sampling rate set to %.1f\n", sr);
 
     HALOutput = AudioComponentFindNext(NULL, &cd);
     if (isInput) {
