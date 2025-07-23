@@ -197,6 +197,7 @@ def runTest():
     ["test_opcode_type.csd", "tests opcode type"],
     ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
     ["test_sa.csd", "test sample accurate mode"],
+    ["test_overload_selection.csd", "test wrong annotation case"],
     ["test_unschedule.csd", "test unscheduling events"],
     ["diskin_excess_channels.csd", "test sample accurate mode"],
     ["test_midifile_ops.csd", "testing midifile opcodes"],
@@ -220,6 +221,7 @@ def runTest():
         ["rfft_array_test.csd", "testing complex rfft array ops"],
         ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
         ["test_gen_array.csd", "testing genarray shorthand"],
+        ["test_array_annotation.csd", "testing array type annotation for opcodes"],
         ["test_slice_array.csd", "testing slice shorthand"],
     ]
 

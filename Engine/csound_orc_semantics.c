@@ -1130,10 +1130,7 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
  */
 OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
-
-  //    OENTRY* retVal = NULL;
   int32_t i, check;
-
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
     if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
@@ -2012,8 +2009,21 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
   /* if there is type annotation, try to resolve it */
-  else oentry = resolve_opcode(csound, entries,
+  else {
+    // if there is a discrepancy between out-types/annotation
+    // print a warning and use out-types
+    if(leftArgString &&
+       strcmp(leftArgString, root->value->optype)){
+      csound->Warning(csound, " output types %s "
+                      "not matching annotation %s\n"
+                      "ignoring annotation.",
+                      leftArgString, root->value->optype) ;
+        oentry = resolve_opcode(csound, entries,
+                            leftArgString, rightArgString);
+      } else 
+      oentry = resolve_opcode(csound, entries,
                                root->value->optype, rightArgString);
+  }
 
 
 
