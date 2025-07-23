@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0
+-o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0 -B1024 -b256
 </CsOptions>
 <CsInstruments>
 nchnls=2
@@ -10,17 +10,17 @@ sr = 44100
 
 instr 1
 
-kaccelX chnget "accelerometerX" 
-kaccelY chnget "accelerometerY" 
-kaccelZ chnget "accelerometerZ" 
+kaccelX chnget "accelerometerX"
+kaccelY chnget "accelerometerY"
+kaccelZ chnget "accelerometerZ"
 
-;kgyroX chnget "gyroX" 
-;kgyroY chnget "gyroY" 
-;kgyroZ chnget "gyroZ" 
+;kgyroX chnget "gyroX"
+;kgyroY chnget "gyroY"
+;kgyroZ chnget "gyroZ"
 
-;kattRoll chnget "attitudeRoll" 
-;kattPitch chnget "attitudePitch" 
-;kattYaw chnget "attitudeYaw" 
+;kattRoll chnget "attitudeRoll"
+;kattPitch chnget "attitudePitch"
+;kattYaw chnget "attitudeYaw"
 kaccelX port kaccelX / 20, 0.01
 kaccelY port kaccelY / 20, 0.01
 kaccelZ port kaccelZ / 20, 0.01
@@ -45,6 +45,6 @@ endin
 f1 0 16384 10 1
 
 i1 0 360000
- 
+
 </CsScore>
 </CsoundSynthesizer>

@@ -58,6 +58,7 @@ typedef struct parse_parm_s {
     int             xstrptr,xstrmax;
     uint64_t        iline;      /* Line number for start of instrument */
     uint64_t        ilocn;      /* and location */
+    int             xsubstr;    /* count for substr */
 } PARSE_PARM;
 
 void    cs_init_math_constants_macros(CSOUND*);

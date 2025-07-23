@@ -580,6 +580,7 @@ expr    : function_call
         | array_expr
         | gen_array
         | static_array
+        | slice_array
         | struct_expr
         | true_const
         | false_const     
@@ -591,6 +592,13 @@ gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
             $$->right = $2;
             append_to_tree(csound, $$->right, $4);
              }
+
+slice_array : identifier '[' expr ':' expr_list  ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray"));
+            $$->right = $1;
+            $$->right = append_to_tree(csound, $$->right, $3);
+            append_to_tree(csound, $$->right, $5);
+           }
 
 static_array : '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));

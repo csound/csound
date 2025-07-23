@@ -1,0 +1,176 @@
+/*
+   rtaudio.c
+   AAudio module for Csound
+
+   Copyright (C) 2011 Victor Lazzarini.
+
+   This file is part of Csound.
+
+   The Csound Library is free software; you can redistribute it
+   and/or modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   Csound is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with Csound; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA
+
+*/
+#include <aaudio/AAudio.h>
+#include "csoundCore.h"
+#include <android/log.h>
+#include <stdint.h>
+#include <time.h>
+
+
+typedef struct  {
+  AAudioStream *streamin, *streamout;
+  int32_t nchnls;
+  CSOUND *csound;
+  int32_t cnt;
+} AAUDIO_PARAMS;
+
+static void audio_output(CSOUND *csound,
+                          const MYFLT *outbuff, int32_t nbytes) {
+  // nothing to do
+}
+
+int32_t csoundPerformKsmps(CSOUND *csound);
+
+static aaudio_data_callback_result_t
+   output_callback(AAudioStream *stream,void *userData, void *audioData,
+                    int32_t numFrames) {
+
+  AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS *) userData;
+  float *samples = (float *) audioData;
+  CSOUND *csound = cdata->csound;
+  int32_t ksmps = csoundGetKsmps(csound), res;
+  int32_t chns = cdata->nchnls, n = cdata->cnt;
+  const MYFLT *bufo = csoundGetSpout(csound);
+  MYFLT *bufi = csoundGetSpin(csound);
+  memset(samples, 0, numFrames*chns*sizeof(float));
+  // check for pause flag
+  if(*(int *)csoundQueryGlobalVariable(csound,"::paused::"))
+     return AAUDIO_CALLBACK_RESULT_CONTINUE;
+  if(cdata->streamin)
+    AAudioStream_read(cdata->streamin, samples, numFrames, 0);
+  for(int i = 0;  i < numFrames; i++, n++){
+    if(n == ksmps){
+      res = csoundPerformKsmps(csound);
+      if(res != 0) return AAUDIO_CALLBACK_RESULT_STOP;
+      n = 0;
+    }
+    memcpy(bufi+n*chns,samples+i*chns,
+        sizeof(float)*chns);
+    memcpy(samples+i*chns, bufo+n*chns,
+           sizeof(float)*chns);
+  }  
+  cdata->cnt = n;
+  return AAUDIO_CALLBACK_RESULT_CONTINUE;
+}
+
+static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
+   AAudioStreamBuilder *builder;
+   aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+   int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
+   void **data = csound->GetRtRecordUserData(csound);
+   AAUDIO_PARAMS *cdata;
+   if(*data == NULL) {
+   cdata = (AAUDIO_PARAMS*)
+      csound->Calloc(csound, sizeof(AAUDIO_PARAMS));
+   *data = cdata;
+   }
+   else cdata = *data;
+   data = csound->GetRtPlayUserData(csound);
+   *data = cdata;
+   
+   AAudioStreamBuilder_setDeviceId(builder, dev);  
+   AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
+   AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+   AAudioStreamBuilder_setSampleRate(builder, parm->sampleRate);
+   AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
+   AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
+   AAudioStreamBuilder_setPerformanceMode(builder,
+                                          AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+   AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
+   AAudioStreamBuilder_setDataCallback(builder, output_callback, cdata);
+
+   AAudioStream *stream;
+   result = AAudioStreamBuilder_openStream(builder, &stream);
+   cdata->nchnls = parm->nChannels;
+   cdata->streamout = stream;
+   cdata->csound = csound;
+   cdata->cnt = 0;
+   result = AAudioStream_requestStart(stream);
+   AAudioStreamBuilder_delete(builder);
+   csound->Message(csound, "AAUDIO output opened\n");
+   return OK;
+}
+
+static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
+   AAudioStreamBuilder *builder;
+   aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+   int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
+   void **data = csound->GetRtRecordUserData(csound);
+   AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS*)
+      csound->Calloc(csound, sizeof(AAUDIO_PARAMS));
+   *data = cdata;
+   AAudioStreamBuilder_setDeviceId(builder, dev);  
+   AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
+   AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+   AAudioStreamBuilder_setSampleRate(builder, parm->sampleRate);
+   AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
+   AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
+   AAudioStreamBuilder_setPerformanceMode(builder,
+                                          AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+   AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
+
+   AAudioStream *stream;
+   result = AAudioStreamBuilder_openStream(builder, &stream);
+   cdata->nchnls = parm->nChannels;
+   cdata->streamin = stream;
+   cdata->csound = csound;
+   result = AAudioStream_requestStart(stream);
+   AAudioStreamBuilder_delete(builder);
+   csound->Message(csound, "AAUDIO input opened\n");
+   return OK;
+}
+
+
+static int32_t audio_input(CSOUND *csound, MYFLT *inbuff, int32_t nbytes){
+    // nothing to do
+    return nbytes;
+}
+
+static void close_io(CSOUND *csound) {
+  AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS *)
+    *(csound->GetRtRecordUserData(csound));
+  if(cdata && cdata->streamin) {
+    AAudioStream_requestStop(cdata->streamin);
+    AAudioStream_close(cdata->streamin);
+    csound->Message(csound, "closed AAudio input\n");
+  }
+  cdata = (AAUDIO_PARAMS *)
+    *(csound->GetRtPlayUserData(csound));
+  if(cdata && cdata->streamout) {
+    AAudioStream_requestStop(cdata->streamout);
+    AAudioStream_close(cdata->streamout);
+    csound->Message(csound, "closed AAudio output\n");
+  }
+  if(cdata) csound->Free(csound, cdata);
+  cdata = NULL;
+}
+
+void aaudio_setup(CSOUND *csound) {
+ csoundSetPlayopenCallback(csound, open_out);
+ csoundSetRecopenCallback(csound, open_in);
+ csoundSetRtplayCallback(csound, audio_output);
+ csoundSetRtrecordCallback(csound, audio_input);
+ csoundSetRtcloseCallback(csound, close_io);
+}

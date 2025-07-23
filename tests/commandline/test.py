@@ -179,6 +179,7 @@ def runTest():
     ["test_explicit_globals.csd", "test global declaration of explicit types"],
     ["test_fail_mismatched_types.csd", "syntax error on mismatched type declaration", 1],        
     ["test_declare.csd", "test declare keyword (CS7)"],
+    ["test_sub_str.csd", "test raw string embedded in raw string"],
     ["test_plusname.csd", "test +Name for instr name"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
     ["test_opassign.csd", "test +=, ==, *= and /="],
@@ -198,6 +199,7 @@ def runTest():
     ["test_opcode_type.csd", "tests opcode type"],
     ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
     ["test_sa.csd", "test sample accurate mode"],
+    ["test_overload_selection.csd", "test wrong annotation case"],
     ["test_unschedule.csd", "test unscheduling events"],
     ["diskin_excess_channels.csd", "test sample accurate mode"],
     ["test_midifile_ops.csd", "testing midifile opcodes"],
@@ -221,6 +223,8 @@ def runTest():
         ["rfft_array_test.csd", "testing complex rfft array ops"],
         ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
         ["test_gen_array.csd", "testing genarray shorthand"],
+        ["test_array_annotation.csd", "testing array type annotation for opcodes"],
+        ["test_slice_array.csd", "testing slice shorthand"],
     ]
 
 

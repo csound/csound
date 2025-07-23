@@ -1,11 +1,11 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d -b512 -B2048
+-o dac -d -B1024 -b128
 </CsOptions>
 <CsInstruments>
 nchnls=2
 0dbfs=1
-ksmps=32
+ksmps=64
 sr = 44100
 
 ga1 init 0
@@ -22,7 +22,7 @@ ky chnget S_yName
 
 kenv linsegr 0, .001, 1, .1, 1, .25, 0
 a1 vco2 ky * .5 * kenv, 60 + (log(1 - kx) * 3000), 0
-
+out a1, a1
 ga1 = ga1 + a1
 
 endin
@@ -40,7 +40,7 @@ a1 moogladder ga1, kcutoff, kresonance
 
 aL, aR reverbsc a1, a1, .72, 5000
 
-outs aL, aR
+out aL, aR
 
 ga1 = 0
 
@@ -52,7 +52,7 @@ endin
 f1 0 16384 10 1
 
 i2 0 360000
- 
+
 </CsScore>
 </CsoundSynthesizer>
 
