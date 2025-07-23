@@ -1502,6 +1502,12 @@ OENTRY opcodlst_1[] = {
   { "db.i",     S(EVAL),0,        "i",    "i",     db                     },
   { "db.k",     S(EVAL),0,         "k",    "k",     NULL, db               },
   { "db.a",     S(EVAL),0,         "a",    "a",     NULL, dba        },
+  { "midiclockin",  S(MIDIKMB),0,     "k",    "",     NULL, midi_clock_in, NULL    },
+  { "midistart",  S(MIDIKMB),0,     "k",    "",     NULL, midi_start, NULL    },
+    { "midistop",  S(MIDIKMB),0,     "k",    "",     NULL, midi_stop, NULL    },
+    { "midicontinue",  S(MIDIKMB),0,     "k",    "",     NULL, midi_continue, NULL    },
+  { "midiclockfreq",  S(MIDIKMB),0,     "k",    "", NULL, midi_clock_freq, NULL    },
+  
   { "midichn",  S(MIDICHN),0,     "i",    "",      midichn, NULL, NULL    },
   { "pgmassign",S(PGMASSIGN),0,   "",     "iio",   pgmassign, NULL, NULL  },
   { "pgmassign.S",S(PGMASSIGN),0,  "",    "iSo",   pgmassign_S, NULL, NULL  },
