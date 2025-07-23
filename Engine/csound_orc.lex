@@ -239,6 +239,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   PARM->xstrptr = 0; PARM->xstrmax = 128;
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xsubstr = 0;
                   BEGIN(xstr);
                 }
 
@@ -264,37 +265,61 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 }
 
 <xstr>{
+  "\{\{" { 
+             PARM->xsubstr += 1; // substr start
+             if (PARM->xstrptr+3==PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending xstr buffer\n");
+             }
+             PARM->xstrbuff[PARM->xstrptr++] = '{';
+             PARM->xstrbuff[PARM->xstrptr++] = '{';
+             PARM->xstrbuff[PARM->xstrptr] = '\0';  
+         }
 
   "}}"   {
-                  BEGIN(INITIAL);
-                  PARM->xstrbuff[PARM->xstrptr++] = '"';
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
-                  /* printf("xstrbuff:>>%s<<\n", PARM->xstrbuff); */
-                  *lvalp = make_string(csound, PARM->xstrbuff);
-                  free(PARM->xstrbuff);
-                  return STRING_TOKEN;
-                }
-
-  "\n"     { /* The next two should be one case but I cannot get that to work */
-                  if (PARM->xstrptr+2==PARM->xstrmax) {
-                      PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+    if(PARM->xsubstr) {
+            PARM->xsubstr -= 1; // substr end
+           if (PARM->xstrptr+3==PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
-                      csound->DebugMsg(csound,"Extending xstr buffer\n");
-                  }
-                  //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
-                  PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
-                }
+               csound->DebugMsg(csound,"Extending xstr buffer\n");
+           }           
+           PARM->xstrbuff[PARM->xstrptr++] = '}';
+           PARM->xstrbuff[PARM->xstrptr++] = '}';
+           PARM->xstrbuff[PARM->xstrptr] = '\0';            
+    } else {
+           BEGIN(INITIAL);
+           PARM->xstrbuff[PARM->xstrptr++] = '"';
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
+           /* printf("xstrbuff:>>%s<<\n", PARM->xstrbuff); */
+           *lvalp = make_string(csound, PARM->xstrbuff);
+            free(PARM->xstrbuff);
+            return STRING_TOKEN;
+          }
+  }
 
-  .         { if (PARM->xstrptr+2==PARM->xstrmax) {
-                      PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+  "\n"  { /* The next two should be one case but I cannot get that to work */
+           if (PARM->xstrptr+2==PARM->xstrmax) {
+               PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
-                      csound->DebugMsg(csound,"Extending xstr buffer\n");
-                  }
-                  //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
-                  PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
-                }
+               csound->DebugMsg(csound,"Extending xstr buffer\n");
+           }
+            //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
+               PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+               PARM->xstrbuff[PARM->xstrptr] = '\0';
+           }
+
+  .        {
+            if (PARM->xstrptr+2==PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+                 csound->DebugMsg(csound,"Extending xstr buffer\n");
+               }
+              //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
+              PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+              PARM->xstrbuff[PARM->xstrptr] = '\0';
+            }
 }
 
 {IDENT}:/[ \t\n]  { char *pp = yytext;
