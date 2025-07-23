@@ -149,8 +149,6 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
     return "##not";
   case T_ARRAY:
     return "##array_get";
-  case S_ADDIN:
-    return "##addin";
   }
   csound->Warning(csound, Str("Unknown function type found: %d [%c]\n"),
                   tree->type, tree->type);
@@ -552,9 +550,31 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   switch(tree->type) {
   case NUMBER_TOKEN:
   case INTEGER_TOKEN:
-    return cs_strdup(csound, "c");                              /* const */
+    return cs_strdup(csound, "c");     /* const */
+  case FALSE_TOKEN: {  // trap false expr here
+    CS_VARIABLE *var = find_var_from_pools(csound, "false",
+                                           "false", typeTable);
+    if(var == NULL) {
+    var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "false", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 0;
+    }
+  }
+  return cs_strdup(csound, "b");  /* boolean */
+  case TRUE_TOKEN: { // trap true expr here
+     CS_VARIABLE *var = find_var_from_pools(csound, "true",
+                                           "true", typeTable);
+    if(var == NULL) {   
+     var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "true", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 1;
+    }
+  }
+   return cs_strdup(csound, "b");     /* boolean */
   case STRING_TOKEN:
-    return cs_strdup(csound, "S");                /* quoted String */
+    return cs_strdup(csound, "S");   /* quoted String */
   case LABEL_TOKEN:
     //FIXME: Need to review why label token is used so much in parser,
     //for now treat as T_IDENT
@@ -1792,7 +1812,6 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
   //  print(1,2,3)
   // then it should just be updated to T_OPCALL and returned
   if(root->type == T_FUNCTION) {
-           
     root->type = T_OPCALL;
     return root;
   }
@@ -1804,12 +1823,19 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     return root;
   }
 
+  if (root->type == S_ADDIN ||
+      root->type == S_SUBIN ||
+      root->type == S_MULIN ||
+      root->type == S_DIVIN) return root;
+
   if (root->type != T_OPCALL) {
     synterr(csound,
             Str("Internal Error: convert_statement_to_opcall "
                 "received a non T_OPCALL TREE\n"));
     return NULL;
   }
+
+  
  
   if (root->value != NULL) {
     /* Already processed T_OPCALL, return as-is */
@@ -3298,6 +3324,15 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int32_t n, int32_t which)
   case S_ADDIN:
     csound->Message(csound,"name=\"##addin\""); break;
     break;
+  case S_SUBIN:
+    csound->Message(csound,"name=\"##subin\""); break;
+    break;
+  case S_DIVIN:
+    csound->Message(csound,"name=\"##divin\""); break;
+    break;
+  case S_MULIN:
+    csound->Message(csound,"name=\"##mulin\""); break;
+    break;    
   case '[':
     csound->Message(csound,"name=\"[\""); break;
   default:
@@ -3442,7 +3477,6 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
      called by bison when instr ids are found
   */
   if (x->type == T_IDENT) {
-    
     char *varname = x->value->lexeme;
     CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
                                          (CS_TYPE*)&CS_VAR_TYPE_INSTR, varname,

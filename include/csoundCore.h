@@ -89,7 +89,7 @@ extern "C" {
   } OENTRY;
 
 
-  /** 
+  /**
    *   holds OENTRYs for opcode overloads
    **/
    typedef struct oentries {
@@ -209,8 +209,8 @@ typedef struct {
 /** @name Standard data type structures */
 /**@{ */
 
- /** 
-      OCTAVE data 
+ /**
+      OCTAVE data
   */
   typedef struct {
     MYFLT   *begp, *curp, *endp, feedback[6];
@@ -218,8 +218,8 @@ typedef struct {
   } OCTDAT;
 
 
-  /** 
-      DOWNSAMP data 
+  /**
+      DOWNSAMP data
   */
   typedef struct {
     int32    npts, nocts, nsamps;
@@ -228,8 +228,8 @@ typedef struct {
     AUXCH   auxch;
   } DOWNDAT;
 
-  /** 
-   * Type defitnion for wsigs  
+  /**
+   * Type defitnion for wsigs
    */
   typedef struct {
     uint32_t   ktimstamp, ktimprd;
@@ -238,7 +238,7 @@ typedef struct {
     AUXCH   auxch;
   } SPECDAT;
 
-  
+
   /**
    * Type definition for arrays
    */
@@ -271,7 +271,7 @@ typedef struct {
     int32_t readonly;       // readonly flag
   } OPCODEOBJ;
 
-  /** 
+  /**
    *  Type definition for instr definition ref
    */
   typedef struct instrRef {
@@ -281,14 +281,14 @@ typedef struct {
 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
   /*
-   * Type definition for string data 
+   * Type definition for string data
    */
   struct stringdat {
     char *data;         // null-terminated string
     size_t size;        // total allocated size
     int64_t timestamp;  // used internally for updates
   };
-  
+
   /**
    * Type definition for complex numbers
    */
@@ -298,7 +298,7 @@ typedef struct {
     int32_t isPolar;
   } COMPLEXDAT;
 
-  /** 
+  /**
   * Type definition for instr instance ref
   */
   typedef struct instanceref {
@@ -407,7 +407,7 @@ typedef struct {
     /**@}*/
   /** @name Instrument and Opcode instances */
   /**@{ */
-  
+
   /**
    * This struct holds the info for a concrete instrument event
    * instance in performance.
@@ -495,7 +495,7 @@ typedef struct {
     CS_VAR_MEM  p3;
 
   } INSDS;
- 
+
   /**
    * This struct holds the info for one opcode instance in a concrete
    * instrument instance in performance.
@@ -535,7 +535,7 @@ typedef struct {
 
   /**
    * Data for GEN01
-   */ 
+   */
   typedef struct {
     MYFLT   gen01;
     MYFLT   ifilno;
@@ -599,7 +599,7 @@ typedef struct {
     EVTBLK  e;
   } FGDATA;
 
-  /* 
+  /*
    * GEN list structure
    */
   typedef struct {
@@ -928,7 +928,7 @@ static inline int32_t GetInstrumentNumber(OPDS *p) {
 /**
  * Returns the local ksmps of instrument/UDO containing opcode p.
  * This is an alternative to the macro CS_KSMPS.
- * 
+ *
  */
 static inline uint32_t GetLocalKsmps(OPDS *p) {
   return (uint32_t)  p->insdshead->ksmps;
@@ -938,7 +938,7 @@ static inline uint32_t GetLocalKsmps(OPDS *p) {
  * Returns the number of samples left at the
  * end of the ksmps block in early sample-accurate
  * exit.
- */  
+ */
 static inline uint32_t GetEarlySmps(OPDS *p) {
   return (uint32_t) p->insdshead->ksmps_no_end;
 }
@@ -946,7 +946,7 @@ static inline uint32_t GetEarlySmps(OPDS *p) {
 /**
  * Returns the sample-accurate offset at the start
  * of the ksmps block.
- */  
+ */
 static inline uint32_t GetKsmpsOffset(OPDS *p) {
   return (uint32_t) p->insdshead->ksmps_offset;
 }
@@ -989,7 +989,7 @@ static inline char *GetOpcodeName(OPDS *p) {
 static inline int32_t GetEventType(OPDS *p) {
    return p->insdshead->m_chnbp == NULL ? 0 : 1;
 }
-  
+
 /**@}*/
 
 static inline char le_test() {
@@ -1034,13 +1034,13 @@ typedef struct _CSOUND_UTIL {
 } CSOUND_UTIL;
 
 /* The definitions and declarations in this header
-   are not part of the API and thus not 
-   available externally to plugins 
+   are not part of the API and thus not
+   available externally to plugins
 */
-#ifdef __BUILDING_LIBCSOUND  
+#ifdef __BUILDING_LIBCSOUND
 #include "cs_internal.h"
 #endif
-  
+
 /**
  * Contains all function pointers, data, and data pointers required
  * to run one instance of Csound.
@@ -1577,6 +1577,7 @@ struct CSOUND_ {
   SRTBLK *frstbp;
   int32_t sectcnt;
   int32_t inerrcnt, synterrcnt, perferrcnt;
+  int32_t total_assert_cnt; /* Total number of assertions when unit tests enabled */
   INSDS actanchor;
   int32 rngcnt[MAXCHNLS];
   int16 rngflg, multichan;

@@ -29,7 +29,7 @@
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
     /*---------------- delay  -----------------------*/
-    p->maxdelay = (uint32)(*p->maxd  * CS_ESR);
+    p->maxdelay = (uint32) fabs(*p->maxd  * CS_ESR);
     if ((*p->iskip != 0) || (p->aux.auxp==NULL)) {
       csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
       p->left = 0;

@@ -184,7 +184,7 @@ endin
 const char* event = R"(
     i "One" 0 1 "Three" "Two"
    )";
-   
+
    int32_t result = csoundCompileOrc(csound, instrument);
    ASSERT_TRUE(result == 0);
    result = csoundStart(csound);
@@ -247,7 +247,7 @@ endin
 <CsScore>
 i 1 0 1000
 </CsScore>
-</CsoundSynthesizer>   
+</CsoundSynthesizer>
      )";
 
   int32_t result = csoundCompileCSD(csound,instrument,1,0);
@@ -271,7 +271,7 @@ endin
 schedule(1,6/sr,0.5)
      )";
 
-    
+
   int32_t result = csoundSetOption(csound, "--sample-accurate");
   ASSERT_TRUE(result == 0);
   result = csoundCompileOrc(csound, instrument);
@@ -282,7 +282,7 @@ schedule(1,6/sr,0.5)
   const MYFLT *spout = csoundGetSpout(csound);
   ASSERT_TRUE(spout[5] == 0.0);
   ASSERT_TRUE(spout[6] == 1.0);
- 
+
 
 }
 
@@ -299,7 +299,7 @@ endin
 <CsScore>
 i 1 0 -1
 </CsScore>
-</CsoundSynthesizer>   
+</CsoundSynthesizer>
      )";
 
   int32_t result = csoundCompileCSD(csound,instrument,1,0);
@@ -309,3 +309,28 @@ i 1 0 -1
   result = csoundPerformKsmps(csound);
 }
 
+TEST_F (OrcCompileTests, testAssert)
+{
+    int32_t result;
+    const char* instrument =
+        "instr 1 \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(1) \n"
+        "endin \n";
+
+    result = csoundSetOption(csound, "--run-unit-tests");
+    ASSERT_TRUE(result == 0);
+    result = csoundCompileOrc(csound, instrument);
+    ASSERT_TRUE(result == 0);
+    csoundReadScore(csound,  "i 1 0 0\n");
+    result = csoundStart(csound);
+    ASSERT_TRUE(result == 0);
+    // Perform one k-cycle to execute the instrument
+    csoundPerformKsmps(csound);
+    ASSERT_EQ (6, csoundErrCnt(csound));
+}

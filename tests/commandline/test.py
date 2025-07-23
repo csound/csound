@@ -180,6 +180,7 @@ def runTest():
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
+    ["test_opassign.csd", "test +=, ==, *= and /="],
     ["testnewline.csd", "test newline in statements"],
     ["test_string_in_event.csd", "test multiple strings in realtime event"],
     ["testmidichannels.csd", "test use of mapped multiport channels"],
@@ -200,6 +201,7 @@ def runTest():
     ["test_unschedule.csd", "test unscheduling events"],
     ["diskin_excess_channels.csd", "test sample accurate mode"],
     ["test_midifile_ops.csd", "testing midifile opcodes"],
+    ["test_true_false.csd", "testing true/false booleans"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -220,6 +222,7 @@ def runTest():
         ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
         ["test_gen_array.csd", "testing genarray shorthand"],
         ["test_array_annotation.csd", "testing array type annotation for opcodes"],
+        ["test_slice_array.csd", "testing slice shorthand"],
     ]
 
 

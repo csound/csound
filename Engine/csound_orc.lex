@@ -145,6 +145,8 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "@i"            { return T_MAPI; }
 "@k"            { return T_MAPK; }
+"false"         { return FALSE_TOKEN; }
+"true"          { return TRUE_TOKEN; }
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
