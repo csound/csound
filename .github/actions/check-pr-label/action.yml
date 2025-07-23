@@ -1,0 +1,49 @@
+name: 'Check PR Label on Merge Commit'
+description: 'Checks if the merged PR associated with the current commit has a specific label.'
+inputs:
+  label:
+    description: 'Label to check for (e.g., release)'
+    required: true
+  github_token:
+    description: 'GitHub token'
+    required: true
+outputs:
+  has_label:
+    description: 'true if label exists, false otherwise'
+    value: ${{ steps.check_label.outputs.has_label }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gh jq
+
+    - name: Find PR and check label
+      id: check_label
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        LABEL_TO_CHECK: ${{ inputs.label }}
+      run: |
+        PR_NUMBER=$(gh pr list --state merged --limit 100 --json number,mergeCommit -q ".[] | select(.mergeCommit.oid==\"${GITHUB_SHA}\") | .number")
+
+        if [ -z "$PR_NUMBER" ]; then
+          echo "No PR found for commit $GITHUB_SHA"
+          echo "has_label=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        LABELS=$(gh pr view "$PR_NUMBER" --json labels -q '.labels[].name')
+
+        if echo "$LABELS" | grep -qw "$LABEL_TO_CHECK"; then
+          echo "Label $LABEL_TO_CHECK found for commit $GITHUB_SHA"
+          echo "has_label=true" >> $GITHUB_OUTPUT
+        else
+          echo "Label $LABEL_TO_CHECK not found for commit $GITHUB_SHA"
+          echo "has_label=false" >> $GITHUB_OUTPUT
+        fi
