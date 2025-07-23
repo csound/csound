@@ -254,7 +254,6 @@ floats-debug
 vanilla
 attic
 
-.clang_format
 *.code-workspace
 Android/*.zip
 Android/*.tgz
