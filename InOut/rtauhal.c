@@ -469,7 +469,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                           kLinearPCMFormatFlagIsNonInterleaved;
     format.mBytesPerPacket = sizeof(Float32);
     format.mFramesPerPacket = 1;
-    format.mBytesPerFrame = sizeof(Float32)*nchnls;
+    format.mBytesPerFrame = sizeof(Float32);
     format.mChannelsPerFrame = nchnls;
     format.mBitsPerChannel = sizeof(Float32)*8;
     AudioUnitSetProperty(*aunit, kAudioUnitProperty_StreamFormat,
