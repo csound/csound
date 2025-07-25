@@ -976,8 +976,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       CS_PDS = CS_PDS->nxtp;
     }
   }
+  if(p->ip) { // check in case instrument has called turnoff
   p->ip->ksmps_offset = 0; /* reset sample-accuracy offset */
   p->ip->ksmps_no_end = 0;  /* reset end of loop samples */
+  }
   return OK;
 }
 

@@ -1074,7 +1074,7 @@ int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
 }
 
 int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
-    IGN(spinlock);
+    *spinlock = OS_UNFAIR_LOCK_INIT;
     return 0;
 }
 

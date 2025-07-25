@@ -162,6 +162,48 @@ int32_t event_type(CSOUND *csound, void *p) {
   return OK;
 }
 
+int32_t midi_clock_in(CSOUND *csound, void *pp) {
+  MIDIKMB * p = ((MIDIKMB *)pp);
+  *p->r = csound->midi_clock_pulse;
+  return OK;
+}
+
+int32_t midi_start(CSOUND *csound, void *pp) {
+  MIDIKMB * p = ((MIDIKMB *)pp);
+  *p->r = csound->midi_start;
+  return OK;
+}
+
+int32_t midi_stop(CSOUND *csound, void *pp) {
+  MIDIKMB * p = ((MIDIKMB *)pp);
+  *p->r = csound->midi_clock_pulse;
+  return OK;
+}
+
+int32_t midi_continue(CSOUND *csound, void *pp) {
+  MIDIKMB * p = ((MIDIKMB *)pp);
+  *p->r = csound->midi_clock_pulse;
+  return OK;
+}
+
+
+int32_t midi_clock_freq(CSOUND *csound, void *pp) {
+   MIDIKMB * p = ((MIDIKMB *)pp);
+   if(csound->midi_clock_pulse) {
+     MYFLT per;
+     // cur time
+     p->scale = CS_KCNT*CS_ONEDKR;
+     // interclock period
+     per = (p->scale - p->prvbend);
+     // midiclock freq 
+     if(per) p->prvout = 1/per;
+     p->prvbend = p->scale;
+   }
+   *p->r = p->prvout;
+    return OK;
+}
+
+
 /* cpstmid by G.Maldonado */
 int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
 {

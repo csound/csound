@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0
+-o dac -+rtmidi=null -d -+msg_color=0 -M0 -m0 -B1024 -b256
 </CsOptions>
 <CsInstruments>
 nchnls=2

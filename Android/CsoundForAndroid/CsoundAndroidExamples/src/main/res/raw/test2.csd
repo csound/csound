@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d -+msg_color=0 -m0
+-o dac -d -+msg_color=0 -m0 -B1024 -b256
 </CsOptions>
 <CsInstruments>
 nchnls=2
@@ -12,8 +12,8 @@ seed 0
 
 instr 1
 
-inoterate chnget "noteRate" 
-inotedur chnget "duration" 
+inoterate chnget "noteRate"
+inotedur chnget "duration"
 
 ;print inoterate
 ;print inotedur
@@ -27,10 +27,10 @@ endin
 
 instr 2
 
-iattack chnget "attack" 
-idecay chnget "decay" 
-isustain chnget "sustain" 
-irelease chnget "release" 
+iattack chnget "attack"
+idecay chnget "decay"
+isustain chnget "sustain"
+irelease chnget "release"
 
 
 ;ipchMul rnd31 .5, -0.5
@@ -55,6 +55,6 @@ f1 0 16384 10 1
 i1 0 1
 
 f 0 3600
- 
+
 </CsScore>
 </CsoundSynthesizer>

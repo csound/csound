@@ -232,4 +232,9 @@ typedef struct {
 } PRINTPRESETS;
 
 int32_t event_type(CSOUND *csound, void *p);
+int32_t midi_clock_in(CSOUND *csound, void *p);
+int32_t midi_stop(CSOUND *csound, void *p);
+int32_t midi_start(CSOUND *csound, void *p);
+int32_t midi_continue(CSOUND *csound, void *p);
+int32_t midi_clock_freq(CSOUND *csound, void *p);
 #endif

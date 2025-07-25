@@ -1,21 +1,21 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -d -B2048 -b512
+-o dac -d -B1024 -b128
 </CsOptions>
 <CsInstruments>
-nchnls=1
+nchnls=2
 0dbfs=1
 ksmps=64
 sr = 44100
 
 instr 1
 
-isl chnget "slider" 
-ksl chnget "slider" 
-ksl port ksl, 0.01, isl 
+isl chnget "slider"
+ksl chnget "slider"
+ksl port ksl, 0.005, isl
 a2 expsegr 0.001,0.01,p4,p3-0.01, 0.001, 0.1, 0.001
 a1 oscili a2, p5*(1+ksl), 1
-out a1
+out a1,a1
 
 endin
 

@@ -93,6 +93,10 @@ MYFLT initialise_io(CSOUND *csound) {
           * O->outbufsamps;
         if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
           O->outbufsamps >>= 1;
+        if(O->outbufsamps < csound->ksmps) {
+          O->outbufsamps = csound->ksmps;
+          O->oMaxLag = csound->ksmps*2;
+        }
       }
       O->inbufsamps = O->outbufsamps;
     }

@@ -4,12 +4,12 @@ Iain McCurdy, 2011.
 <CsoundSynthesizer>
 
 <CsOptions>
--odac -dm0 -+rtmidi=null -+msg_color=0
+-odac -dm0 -+rtmidi=null -+msg_color=0 -B1024 -b256
 </CsOptions>
 
 <CsInstruments>
 sr 		= 		44100
-ksmps 		= 	        64	
+ksmps 		= 	        64
 nchnls 		= 		2
 0dbfs 		= 		1
 
@@ -46,7 +46,7 @@ kbrite		rspline		-2,3,0.0002,3
 ibasfreq	init		icps
 ioctcnt		init		2
 iphs		init		0
-a1 		hsboscil 	kamp, ktone, kbrite, ibasfreq, gisine, gioctfn, ioctcnt, iphs	
+a1 		hsboscil 	kamp, ktone, kbrite, ibasfreq, gisine, gioctfn, ioctcnt, iphs
 amod		oscil		1, ibasfreq*3.47, gisine
 arm		=		a1*amod
 kmix		expseg		0.001, 0.01, rnd(1), rnd(3)+0.3, 0.001

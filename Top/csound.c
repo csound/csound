@@ -1200,7 +1200,8 @@ static const CSOUND cenviron_ = {
   getsndin
   },
     0, /* instance count */
-    300 /* genLabs */
+    300, /* genLabs */
+    0, 0, 0, 0 /* midi RT messages */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
