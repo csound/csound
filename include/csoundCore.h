@@ -1775,6 +1775,10 @@ struct CSOUND_ {
   CSOUND_UTIL csound_util;
   uint64_t instance_count;
   int32_t genlabs;
+  int32_t midi_clock_pulse;
+  int32_t midi_start;
+  int32_t midi_continue;
+  int32_t midi_stop;  
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

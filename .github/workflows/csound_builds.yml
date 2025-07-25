@@ -2,7 +2,6 @@ name: csound_builds
 
 env:
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-  CSOUND_VERSION: 7.0.0
 
 on:
   push:
@@ -13,7 +12,37 @@ on:
     branches:
       - develop
 
+concurrency:
+  group: ${{ github.ref }}
+
 jobs:
+  update_version:
+    name: Update Csound Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.tag.outputs.new_tag }}
+      release: ${{ steps.check_pr.outputs.has_label }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update version
+        id: tag
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          PRERELEASE: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: true
+
+      - name: Check for release label
+        id: check_pr
+        uses: ./.github/actions/check-pr-label
+        with:
+          label: release
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
   linux_build:
     name: Linux/Ubuntu build (apt-get)
     runs-on: ubuntu-latest
@@ -84,6 +113,9 @@ jobs:
   iOS_build:
     name: Csound for iOS
     runs-on: macos-latest
+    needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Install dependencies
         run: brew install bison flex
@@ -98,6 +130,7 @@ jobs:
         run: |
           chmod +x build_libsndfile.sh
           ./build_libsndfile.sh
+
 
       - name: Build Csound iOS xcframework
         working-directory: iOs
@@ -190,6 +223,9 @@ jobs:
   macos_build_installer:
     name: MacOS build (installer)
     runs-on: macos-latest
+    needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
@@ -392,6 +428,9 @@ jobs:
   windows_build:
     name: Windows build (vcpkg)
     runs-on: windows-latest
+    needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v1
@@ -601,6 +640,9 @@ jobs:
   android-release:
     name: Csound for Android 
     runs-on: macos-latest
+    needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Install dependencies
         run: brew install swig bison flex
@@ -641,3 +683,58 @@ jobs:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
           path: Android/csound-android-${{env.CSOUND_VERSION}}
 
+  publish_artifacts:
+    if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
+    name: Publish Artifacts
+    runs-on: ubuntu-latest
+    needs: [update_version, windows_build, macos_build_installer, iOS_build, android-release]
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
+    steps:
+      - name: Download Windows installer
+        uses: actions/download-artifact@v4
+        with:
+          name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
+          path: csound-windows-${{env.CSOUND_VERSION}}
+
+      - name: Download macOS installer
+        uses: actions/download-artifact@v4      
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
+          path: csound-macos-${{env.CSOUND_VERSION}}
+
+      - name: Download iOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Csound-For-iOS-${{env.CSOUND_VERSION}}
+          path: csound-ios-${{env.CSOUND_VERSION}}
+
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: CsoundForAndroid-${{env.CSOUND_VERSION}}
+          path: csound-android-${{env.CSOUND_VERSION}}
+
+      - name: Zip release directories
+        run: |
+          zip -r csound-windows-${{env.CSOUND_VERSION}}.zip csound-windows-${{env.CSOUND_VERSION}}
+          zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
+          zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
+          zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
+
+      - name: List release artifacts
+        run: ls -l
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.SERVICE_ACCOUNT_PAT }}
+          tag_name: ${{ env.CSOUND_VERSION }}
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            csound-windows-${{env.CSOUND_VERSION}}.zip
+            csound-macos-${{env.CSOUND_VERSION}}.zip
+            csound-ios-${{env.CSOUND_VERSION}}.zip
+            csound-android-${{env.CSOUND_VERSION}}.zip

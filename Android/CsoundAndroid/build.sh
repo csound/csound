@@ -24,6 +24,25 @@ sed -i.bak "s/AttachCurrentThread((void \*\*)/AttachCurrentThread(/" jni/java_in
 # Actually build Csound.
 cd jni
 
+if [ -n "$CSOUND_VERSION" ]; then
+    CSOUND_VERSION=$(echo "$CSOUND_VERSION" | sed -E 's/^([0-9]+)\.([0-9]+)\.([0-9]+).*/\1 \2 \3/')
+
+    ORIG_PARAMS="$@"
+
+	set -- $CSOUND_VERSION
+
+	CSOUND_VERSION_MAJOR=$1
+	CSOUND_VERSION_MINOR=$2
+	CSOUND_VERSION_PATCH=$3
+
+    set -- $ORIG_PARAMS
+
+    cp version.template.h version.h
+    sed -i.bak "s/@CSOUND_VERSION_MAJOR@/${CSOUND_VERSION_MAJOR:-7}/" version.h
+    sed -i.bak "s/@CSOUND_VERSION_MINOR@/${CSOUND_VERSION_MINOR:-0}/" version.h
+    sed -i.bak "s/@CSOUND_VERSION_PATCH@/${CSOUND_VERSION_PATCH:-0}/" version.h
+fi
+
 $NDK_BUILD_CMD V=1 -j 6 $1
 
 
