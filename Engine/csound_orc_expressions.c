@@ -145,7 +145,7 @@ static TREE *create_empty_token(CSOUND *csound)
   return ans;
 }
 
-static TREE *create_minus_token(CSOUND *csound)
+static TREE *create_unary_token(CSOUND *csound, char *sym)
 {
   TREE *ans;
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
@@ -160,7 +160,7 @@ static TREE *create_minus_token(CSOUND *csound)
   ans->len = 0;
   ans->rate = -1;
   ans->markup = NULL;
-  ans->value = make_int(csound, "-1");
+  ans->value = make_int(csound, sym);
   return ans;
 }
 
@@ -572,7 +572,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   case S_UMINUS:
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "HANDLING UNARY MINUS!");
-    root->left = create_minus_token(csound);
+    root->left = create_unary_token(csound, "-1");
     strNcpy(op, "##mul", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
                                            root->right, typeTable);
@@ -581,11 +581,10 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
    case S_UPLUS:
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "HANDLING UNARY PLUS!");
-    root->left = create_minus_token(csound);
+    root->left = create_unary_token(csound, "1");
     strNcpy(op, "##mul", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
                                            root->right, typeTable);
-
     break;
 
   case '|':

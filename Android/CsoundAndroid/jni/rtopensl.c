@@ -1,25 +1,25 @@
 /*
-   rtopensl.c
-   OpenSl ES Audio Module for Csound
+  rtopensl.c
+  OpenSl ES Audio Module for Csound
 
-   Copyright (C) 2011 Victor Lazzarini.
+  Copyright (C) 2011 Victor Lazzarini.
 
-   This file is part of Csound.
+  This file is part of Csound.
 
-   The Csound Library is free software; you can redistribute it
-   and/or modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+  The Csound Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
 
-   Csound is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+  Csound is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with Csound; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA
+  You should have received a copy of the GNU Lesser General Public
+  License along with Csound; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA
 
 */
 #include <SLES/OpenSLES.h>
@@ -79,29 +79,16 @@ typedef struct OPEN_SL_PARAMS_ {
   int run;
 } open_sl_params;
 
-double ttime = 0.0, tmax = 0.0;
-unsigned int p_count = 1;
-double old = 0.0;
-#define CONV16BIT (32768)//./csoundGet0dBFS(csound))
+
+#define CONV16BIT (32768)
 #define CONVMYFLT FL(1./32768.)
-static double curtime;
+
 // this callback handler is called every time a buffer finishes playing
 void bqPlayerCallback(SLBufferQueueItf bq, void *context)
 {
   open_sl_params *p = (open_sl_params *) context;
   CSOUND *csound = p->csound;
-  struct timespec ts;
-  double dtime;
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  dtime = ts.tv_sec + 1e-9*ts.tv_nsec;
-#if DEBUG
-  if(dtime - old > 0.021) {
-    csound->Message(csound, "inter-callback: %f s\n", dtime - old );
-    csound->Message(csound, "aver cb time = %f s, max = %f s\n",ttime/p_count, tmax); 
-
-  }
-#endif
-    old = dtime;
+   
   if(p->async){
     int read=0,items = p->outBufSamples, i, r = 0;
     MYFLT *outputBuffer = p->outputBuffer;
@@ -110,35 +97,29 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
     for(i=0;i < read; i++)
       playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
     (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
-    if(p->streamTime != NULL) (*p->streamTime) += (items/csound->GetNchnls(csound));
+    if(p->streamTime != NULL) *p->streamTime +=
+                                items/csound->GetNchnls(csound);
   }
   else {
+    // run Csound 
     int items = p->outBufSamples,
       i, r = 0, ret = 1, paused;
-    MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
     short *playBuffer = p->playBuffer;
-    paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
     memset(playBuffer, 0, items*sizeof(short));
-    if(!paused) ret = csoundPerformBuffer(csound);
-    else csound->Message(csound, "paused \n");
-    if(ret==0){
+    MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
+    if(outputBuffer != NULL) {
+     paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
+     if(!paused) ret = csoundPerformBuffer(csound);
+     else csound->Message(csound, "paused \n");
+     if(ret==0){
       for(i=0;i < items; i++)
 	playBuffer[i] = (short) (outputBuffer[i]*CONV16BIT);
-    } else return;
-      (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
-      if(p->streamTime != NULL) (*p->streamTime) += (items/csound->GetNchnls(csound));
-
+     } else return;
+    }
+    (*bq)->Enqueue(bq,playBuffer,items*sizeof(short));
+    if(p->streamTime != NULL)
+      (*p->streamTime) += (items/csound->GetNchnls(csound));
   }
-  
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  dtime = (ts.tv_sec + 1e-9*ts.tv_nsec) - dtime;
-  if(tmax < dtime) tmax = dtime;
-  if(dtime > 0.01) {
-    csound->Message(csound, "delta = %f s\n", dtime);
-    csound->Message(csound, "Mean callback time: %f s, max = %f s\n",ttime/p_count, tmax);
-  }
-  ttime +=  dtime;
-  p_count++;
 }
 
 #define MICROS 1000000
@@ -146,16 +127,15 @@ void androidrtplay_(CSOUND *csound, const MYFLT *buffer, int nbytes)
 {
   open_sl_params *p =
     (open_sl_params *) *(csound->GetRtPlayUserData(csound));
-
   if(p->async){
     int n = nbytes/sizeof(MYFLT);
-    int m = 0, l, w = n;
+    int m = 0, l;
     MYFLT sr = csoundGetSr(csound);
     do{
       l = csound->WriteCircularBuffer(csound,p->outcb,&buffer[m],n);
       m += l;
       n -= l;
-      //if(n) usleep(MICROS*w/sr);
+      if(n) usleep(MICROS/sr);
     } while(n);
   }
 
@@ -171,12 +151,15 @@ SLresult openSLCreateEngine(open_sl_params *params)
 
   params->csound->Message(params->csound, Str("engineObject... \n"));
   // realize the engine
-  result = (*params->engineObject)->Realize(params->engineObject, SL_BOOLEAN_FALSE);
+  result = (*params->engineObject)->Realize(params->engineObject,
+                                            SL_BOOLEAN_FALSE);
   if(result != SL_RESULT_SUCCESS) goto engine_end;
 
   params->csound->Message(params->csound, Str("realized... \n"));
   // get the engine interface, which is needed in order to create other objects
-  result = (*params->engineObject)->GetInterface(params->engineObject, SL_IID_ENGINE, &(params->engineEngine));
+  result = (*params->engineObject)->GetInterface(params->engineObject,
+                                                 SL_IID_ENGINE,
+                                                 &(params->engineEngine));
   if(result != SL_RESULT_SUCCESS) goto engine_end;
 
   params->csound->Message(params->csound, Str("interface acquired... \n"));
@@ -194,7 +177,7 @@ int openSLPlayOpen(open_sl_params *params)
 
   // configure audio source
   SLDataLocator_BufferQueue loc_bufq = {SL_DATALOCATOR_BUFFERQUEUE, 1};
-  params->csound->Message(params->csound, "==== sr=%d\n", sr);
+  params->csound->Message(params->csound, "==== sr: %d\n", sr);
   switch(sr){
 
   case 8000:
@@ -239,7 +222,8 @@ int openSLPlayOpen(open_sl_params *params)
 
   const SLInterfaceID ids[] = {SL_IID_VOLUME};
   const SLboolean req[] = {SL_BOOLEAN_FALSE};
-  result = (*params->engineEngine)->CreateOutputMix(params->engineEngine, &(params->outputMixObject), 1, ids, req);
+  result = (*params->engineEngine)->CreateOutputMix(params->engineEngine,
+                                                    &(params->outputMixObject), 1, ids, req);
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // realize the output mix
@@ -262,37 +246,51 @@ int openSLPlayOpen(open_sl_params *params)
   // create audio player
   const SLInterfaceID ids1[] = {SL_IID_BUFFERQUEUE};
   const SLboolean req1[] = {SL_BOOLEAN_TRUE};
-  result = (*params->engineEngine)->CreateAudioPlayer(params->engineEngine, &(params->bqPlayerObject), &audioSrc, &audioSnk,
+  result = (*params->engineEngine)->CreateAudioPlayer(params->engineEngine,
+                                                      &(params->bqPlayerObject),
+                                                      &audioSrc, &audioSnk,
 						      1, ids1, req1);
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // realize the player
-  result = (*params->bqPlayerObject)->Realize(params->bqPlayerObject, SL_BOOLEAN_FALSE);
+  result = (*params->bqPlayerObject)->Realize(params->bqPlayerObject,
+                                              SL_BOOLEAN_FALSE);
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // get the play interface
-  result = (*params->bqPlayerObject)->GetInterface(params->bqPlayerObject, SL_IID_PLAY, &(params->bqPlayerPlay));
+  result = (*params->bqPlayerObject)->GetInterface(params->bqPlayerObject,
+                                                   SL_IID_PLAY,
+                                                   &(params->bqPlayerPlay));
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // get the buffer queue interface
-  result = (*params->bqPlayerObject)->GetInterface(params->bqPlayerObject, SL_IID_BUFFERQUEUE,
-						   &(params->bqPlayerBufferQueue));
+  result =
+    (*params->bqPlayerObject)->GetInterface(params->bqPlayerObject,
+                                            SL_IID_BUFFERQUEUE,
+                                            &(params->bqPlayerBufferQueue));
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // register callback on the buffer queue
-  result = (*params->bqPlayerBufferQueue)->RegisterCallback(params->bqPlayerBufferQueue, bqPlayerCallback, params);
+  result =
+    (*params->bqPlayerBufferQueue)->RegisterCallback(params->bqPlayerBufferQueue,
+                                                     bqPlayerCallback, params);
   if(result != SL_RESULT_SUCCESS) goto end_openaudio;
 
   // set the player's state to playing
-  result = (*params->bqPlayerPlay)->SetPlayState(params->bqPlayerPlay, SL_PLAYSTATE_PLAYING);
+  result = (*params->bqPlayerPlay)->SetPlayState(params->bqPlayerPlay,
+                                                 SL_PLAYSTATE_PLAYING);
 
-  if((params->playBuffer = (short *) params->csound->Calloc(params->csound, params->outBufSamples*sizeof(short))) == NULL) {
+  if((params->playBuffer = (short *)
+      params->csound->Calloc(params->csound,
+                             params->outBufSamples*sizeof(short))) == NULL) {
     return -1;
   }
+  usleep(MICROS*0.1);
   params->csound->Message(params->csound, "playbuffer zero \n");
   memset(params->playBuffer, 0, params->outBufSamples*sizeof(short));
   (*params->bqPlayerBufferQueue)->Enqueue(params->bqPlayerBufferQueue,
-					  params->playBuffer,params->outBufSamples*sizeof(short));
+					  params->playBuffer,
+                                          params->outBufSamples*sizeof(short));
  end_openaudio:
   return result;
 }
@@ -300,15 +298,21 @@ int openSLPlayOpen(open_sl_params *params)
 int openSLInitOutParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->outBufSamples  = params->outParm.bufSamp_SW*csound->GetNchnls(csound);
-  if((params->outputBuffer = (MYFLT *) csound->Calloc(csound, params->outBufSamples*sizeof(MYFLT))) == NULL){
-      csound->Message(csound, "Memory allocation failure in opensl module.\n");
-      goto err_return;
-    }
-    if((params->outcb = csoundCreateCircularBuffer(csound, params->outParm.bufSamp_HW*csound->GetNchnls(csound), sizeof(MYFLT))) == NULL) {
-      return -1;
-    }
-    memset(params->outputBuffer, 0, params->outBufSamples*sizeof(MYFLT));
-  csound->Message(csound, "HW buffersize = %d, SW = %d \n", params->outParm.bufSamp_HW, params->outParm.bufSamp_SW);
+  if((params->outputBuffer =
+      (MYFLT *) csound->Calloc(csound, params->outBufSamples*sizeof(MYFLT)))
+     == NULL){
+    csound->Message(csound, "Memory allocation failure in opensl module.\n");
+    goto err_return;
+  }
+  if((params->outcb = csoundCreateCircularBuffer(csound,
+                                                 params->outParm.bufSamp_HW*
+                                                 csound->GetNchnls(csound),
+                                                 sizeof(MYFLT))) == NULL) {
+    return -1;
+  }
+  memset(params->outputBuffer, 0, params->outBufSamples*sizeof(MYFLT));
+  csound->Message(csound, "HW buffersize = %d, SW = %d \n", params->outParm.bufSamp_HW,
+                  params->outParm.bufSamp_SW);
 
   return OK;
 
@@ -319,7 +323,6 @@ int openSLInitOutParams(open_sl_params *params){
 /* open for audio output */
 int androidplayopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
-
   CSOUND *p = csound;
   open_sl_params *params;
   int returnVal;
@@ -382,10 +385,12 @@ int androidrtrecord_(CSOUND *csound, MYFLT *buffer, int nbytes)
   int n = nbytes/sizeof(MYFLT);
   int m = 0, l;
   p = (open_sl_params *) *(csound->GetRtRecordUserData(csound));
+  MYFLT sr = csoundGetSr(csound);
   do{
     l = csound->ReadCircularBuffer(csound,p->incb,&buffer[m],n);
     m += l;
     n -= l;
+    if(n) usleep(MICROS/sr);    
   } while(n);
   return nbytes;
 }
@@ -454,8 +459,10 @@ int openSLRecOpen(open_sl_params *params){
   // (requires the RECORD_AUDIO permission)
   const SLInterfaceID id[1] = {SL_IID_ANDROIDSIMPLEBUFFERQUEUE};
   const SLboolean req[1] = {SL_BOOLEAN_TRUE};
-  result = (*params->engineEngine)->CreateAudioRecorder(params->engineEngine, &(params->recorderObject), &audioSrc,
-							&audioSnk, 1, id, req);
+  result =
+    (*params->engineEngine)->CreateAudioRecorder(params->engineEngine,
+                                                 &(params->recorderObject),
+                                                 &audioSrc,&audioSnk, 1, id, req);
   if (SL_RESULT_SUCCESS != result) {
     csound->Message(csound, "OpenSL: CreateAudioRecorder failed.\n");
     goto end_recopen;
@@ -467,37 +474,46 @@ int openSLRecOpen(open_sl_params *params){
     goto end_recopen;
   } 
   // get the record interface
-  result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_RECORD, &(params->recorderRecord));
+  result = (*params->recorderObject)->GetInterface(params->recorderObject,
+                                                   SL_IID_RECORD,
+                                                   &(params->recorderRecord));
   if (SL_RESULT_SUCCESS != result) {
     csound->Message(csound, "OpenSL: GetInterface SL_IID_RECORD failed.\n");
     goto end_recopen;
   } 
   // get the buffer queue interface
-  result = (*params->recorderObject)->GetInterface(params->recorderObject, SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
+  result = (*params->recorderObject)->GetInterface(params->recorderObject,
+                                                   SL_IID_ANDROIDSIMPLEBUFFERQUEUE,
 						   &(params->recorderBufferQueue));
   if (SL_RESULT_SUCCESS != result) {
     csound->Message(csound, "OpenSL: GetInterface SL_IID_BUFFERQUEUE failed.\n");
     goto end_recopen;
   } 
   // register callback on the buffer queue
-  result = (*params->recorderBufferQueue)->RegisterCallback(params->recorderBufferQueue, bqRecorderCallback,
+  result = (*params->recorderBufferQueue)->RegisterCallback(params->recorderBufferQueue,
+                                                            bqRecorderCallback,
 							    params);
-   if (SL_RESULT_SUCCESS != result) {
+  if (SL_RESULT_SUCCESS != result) {
     csound->Message(csound, "OpenSL: RegisterCallback failed.\n");
     goto end_recopen;
   } 
- result = (*params->recorderRecord)->SetRecordState(params->recorderRecord, SL_RECORDSTATE_RECORDING);
-   if (SL_RESULT_SUCCESS != result) {
+  result = (*params->recorderRecord)->SetRecordState(params->recorderRecord,
+                                                     SL_RECORDSTATE_RECORDING);
+  if (SL_RESULT_SUCCESS != result) {
     csound->Message(csound, "OpenSL: SetRecordState failed.\n");
     goto end_recopen;
   } 
 
-  if((params->recBuffer = (short *) params->csound->Calloc(params->csound, params->inBufSamples*sizeof(short))) == NULL) {
+  if((params->recBuffer = (short *)
+      params->csound->Calloc(params->csound,
+                             params->inBufSamples*sizeof(short))) == NULL) {
     return -1;
   }
   memset(params->recBuffer, 0, params->inBufSamples*sizeof(short));
   (*params->recorderBufferQueue)->Enqueue(params->recorderBufferQueue,
-					  params->recBuffer, params->inBufSamples*sizeof(short)/csound->GetNchnls_i(csound));
+					  params->recBuffer,
+                                          params->inBufSamples*
+                                          sizeof(short)/csound->GetNchnls_i(csound));
  end_recopen:
   return result;
 }
@@ -505,12 +521,18 @@ int openSLRecOpen(open_sl_params *params){
 int openSLInitInParams(open_sl_params *params){
   CSOUND *csound = params->csound;
   params->inBufSamples  = params->inParm.bufSamp_SW*csound->GetNchnls_i(csound);
-  if((params->inputBuffer = (MYFLT *)csound->Calloc(csound, params->inBufSamples*sizeof(MYFLT))) == NULL){
-    csound->Message(params->csound, "Memory allocation failure in opensl module.\n");
+  if((params->inputBuffer =
+      (MYFLT *)csound->Calloc(csound, params->inBufSamples*sizeof(MYFLT)))
+     == NULL){
+    csound->Message(params->csound,
+                    "Memory allocation failure in opensl module.\n");
     return -1;
   }
   memset(params->inputBuffer, 0, params->inBufSamples*sizeof(MYFLT));
-  if((params->incb = csoundCreateCircularBuffer(csound,params->inParm.bufSamp_HW*csound->GetNchnls_i(csound), sizeof(MYFLT)))== NULL) {
+  if((params->incb = csoundCreateCircularBuffer(csound,
+                                                params->inParm.bufSamp_HW*
+                                                csound->GetNchnls_i(csound),
+                                                sizeof(MYFLT)))== NULL) {
     return -1;
   }
   return OK;
@@ -539,11 +561,13 @@ int androidrecopen_(CSOUND *csound, const csRtAudioParams *parm)
   *(p->GetRtRecordUserData(p)) = (void*) params;
   returnVal = openSLInitInParams(params);
   if(returnVal !=  SL_RESULT_SUCCESS) {
-    csound->Message(csound, "OpenSL: openSLInitInParams error (%d).\n", returnVal);
+    csound->Message(csound, "OpenSL: openSLInitInParams error (%d).\n",
+                    returnVal);
   }
   returnVal = openSLRecOpen(params);
   if(returnVal !=  SL_RESULT_SUCCESS) {
-    csound->Message(csound, "OpenSL: openSLRecOpen error (%d).\n", returnVal);
+    csound->Message(csound, "OpenSL: openSLRecOpen error (%d).\n",
+                    returnVal);
     returnVal = -1;
   } else
     csound->Message(csound, Str("OpenSL: open for input.\n"));
@@ -556,14 +580,15 @@ void androidrtclose_(CSOUND *csound)
   open_sl_params *params;
   params = (open_sl_params *) csound->QueryGlobalVariable(csound,
 							  "_openslGlobals");
-  csound->Message(csound, "Mean callback time: %f s, max = %f s\n",ttime/p_count, tmax); 
   params->run = 0;
   if (params == NULL)
     return;
-  // destroy buffer queue audio player object, and invalidate all associated interfaces
+  // destroy buffer queue audio player object, and invalidate
+  // all associated interfaces
   if (params->bqPlayerObject != NULL) {
     SLuint32 state = SL_PLAYSTATE_PLAYING;
-    (*params->bqPlayerPlay)->SetPlayState(params->bqPlayerPlay, SL_PLAYSTATE_STOPPED);
+    (*params->bqPlayerPlay)->SetPlayState(params->bqPlayerPlay,
+                                          SL_PLAYSTATE_STOPPED);
     while(state != SL_PLAYSTATE_STOPPED)
       (*params->bqPlayerPlay)->GetPlayState(params->bqPlayerPlay, &state);
     (*params->bqPlayerObject)->Destroy(params->bqPlayerObject);
@@ -576,7 +601,8 @@ void androidrtclose_(CSOUND *csound)
   // destroy audio recorder object, and invalidate all associated interfaces
   if (params->recorderObject != NULL) {
     SLuint32 state = SL_PLAYSTATE_PLAYING;
-    (*params->recorderRecord)->SetRecordState(params->recorderRecord, SL_RECORDSTATE_STOPPED);
+    (*params->recorderRecord)->SetRecordState(params->recorderRecord,
+                                              SL_RECORDSTATE_STOPPED);
     while(state != SL_RECORDSTATE_STOPPED)
       (*params->recorderRecord)->GetRecordState(params->recorderRecord, &state);
     (*params->recorderObject)->Destroy(params->recorderObject);
