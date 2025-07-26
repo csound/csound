@@ -36,16 +36,6 @@ typedef int32_t BOOL;
 #endif
 
 typedef struct {
-    OPDS   h;
-    MYFLT  *r;
-} REL;
-
-typedef struct {
-    OPDS   h;
-    MYFLT  *extradur;
-} XTRADUR;
-
-typedef struct {
     OPDS        h;
     MYFLT       *freq;
     MYFLT       period, clock_tics;

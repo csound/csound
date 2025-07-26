@@ -181,6 +181,7 @@ def runTest():
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_sub_str.csd", "test raw string embedded in raw string"],
     ["test_plusname.csd", "test +Name for instr name"],
+    ["test_isactive.csd", "test isactive and isperforming"],
     ["test_unary_expressions.csd", "various unary operators in various expressions"],
     ["test_opassign.csd", "test +=, ==, *= and /="],
     ["testnewline.csd", "test newline in statements"],
