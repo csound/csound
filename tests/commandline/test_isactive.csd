@@ -5,20 +5,35 @@
 <CsInstruments>
 
 instr 1
- xtratim 1
- actv:b = active(this)
+ xtratim 0.1
+ actv:b = isactive(this)
  if actv then
-   prints "running\n"
+   prints "this is running\n"
  else
    exitnow(-1)
  endif
 
- rels:B = release(this)
+ rels:B = isreleasing(this)
  if rels then
-   printks "releasing\n", 1
+   printks "releasing this\n", 1
    printk  0.1, times:k()
  endif
+ 
+ rels:B = isreleasing()
+ if rels then
+   printks "releasing - boolean\n", 1
+   printk  0.1, times:k()
+ endif
+
+ rels1:k = isreleasing()
+ if rels1 > 0 then
+   printks "releasing - original\n", 1
+   printk  0.1, times:k()
+ endif
+
 endin
+
+
 schedule(1,0,1)
 
 </CsInstruments>
