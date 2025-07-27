@@ -31,14 +31,7 @@
 /* MEMORY COPYING FUNCTIONS */
 static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
-  MYFLT* f1 = (MYFLT*)dest;
-  MYFLT* f2 = (MYFLT*)src;
-  *f1 = *f2;
-}
-
-static void bool_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
-                      const void* src, INSDS *ctx) {
-  memcpy(dest, src, sizeof(MYFLT));
+   memcpy(dest, src, sizeof(MYFLT));
 }
 
 static void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -452,11 +445,11 @@ const CS_TYPE CS_VAR_TYPE_F = {
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, bool_copy_value, NULL, NULL, 0
+  "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, create_bool, bool_copy_value, NULL, NULL, 0
+  "b", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
