@@ -554,8 +554,10 @@ const char* POLY_OUT_TYPES[] = {
 const char* VAR_ARG_OUT_TYPES[] = {
     "m", "a",
     "z", "k",
-    "I", "Sip", /* had comment of (not implemented yet) in entry1.c */
+    "I", "Sip", /* had comment of (not implemented yet) in entry.c */
     "X", "akip",
     "N", "akipS",
+    "v", "b",
+    "V", "B",
     "F", "f", NULL
 };

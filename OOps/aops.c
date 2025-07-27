@@ -89,7 +89,6 @@ int32_t b2b(CSOUND *csound, ASSIGN *p){
   return OK;
 }
 
-/** not used yet, needs a multiple B/b code in the parser */
 int32_t binit(CSOUND *csound, ASSIGNM *p)
 {
   uint32_t nargs = p->INOCOUNT;
