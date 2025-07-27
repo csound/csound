@@ -86,6 +86,7 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   if(p->ans->arrayType == &CS_VAR_TYPE_B ||
      p->ans->arrayType == &CS_VAR_TYPE_b) {
     for (i=0; i<nargs; i++) {
+      // bool is int32_t but each array slot is sizeof(MYFLT)
       int32_t *idat = (int32_t *) (p->ans->data + (i * memMyfltSize));
       *idat = *valp[i] ? 1 : 0;
     }
