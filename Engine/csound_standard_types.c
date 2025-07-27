@@ -36,6 +36,11 @@ static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   *f1 = *f2;
 }
 
+static void bool_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                      const void* src, INSDS *ctx) {
+  memcpy(dest, src, sizeof(MYFLT));
+}
+
 static void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
   int32_t ksmps = ctx ? ctx->ksmps : csound->ksmps;
@@ -278,7 +283,7 @@ static CS_VARIABLE* create_bool(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(int32_t));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
@@ -447,11 +452,11 @@ const CS_TYPE CS_VAR_TYPE_F = {
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
+  "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, bool_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
+  "b", "boolean", CS_ARG_TYPE_BOTH, create_bool, bool_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {

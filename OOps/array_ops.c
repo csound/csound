@@ -85,16 +85,19 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
   if(p->ans->arrayType == &CS_VAR_TYPE_B ||
      p->ans->arrayType == &CS_VAR_TYPE_b) {
-      int32_t *idat = (int32_t*) p->ans->data;
-      for (i=0; i<nargs; i++) 
-          idat[i] = valp[i] ? 1 : 0;
-  } else 
-  for (i=0; i<nargs; i++) {
-    p->ans->arrayType->copyValue(csound,
-                                 p->ans->arrayType,
-                                 p->ans->data + (i * memMyfltSize),
-                                 valp[i], p->h.insdshead);
+    for (i=0; i<nargs; i++) {
+      int32_t *idat = (int32_t *) (p->ans->data + (i * memMyfltSize));
+      *idat = *valp[i] ? 1 : 0;
+    }
   }
+  else 
+    for (i=0; i<nargs; i++) {
+      p->ans->arrayType->copyValue(csound,
+                                   p->ans->arrayType,
+                                   p->ans->data + (i * memMyfltSize),
+                                   valp[i], p->h.insdshead);
+  
+    }
   return OK;
 }
 
