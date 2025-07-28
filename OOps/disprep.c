@@ -46,8 +46,15 @@ int32_t printv(CSOUND *csound, PRINTV *p)
      csound->MessageS(csound, CSOUNDMSG_ORCH,
                       "UDO %s:", p->h.insdshead->instr->opcode_info->name);     
     while (nargs--) {
+      if(GetTypeForArg(*valp) != &CS_VAR_TYPE_b)
       csound->MessageS(csound, CSOUNDMSG_ORCH,
                        "\t%s = %5.3f", *txtp++, **valp++);
+      else {
+        int32_t b = *((int32_t *) (*valp++));
+        csound->MessageS(csound, CSOUNDMSG_ORCH,
+                         "\t%s = %s", *txtp++, b ? "true" : "false");
+      }
+        
     }
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
