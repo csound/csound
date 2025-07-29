@@ -40,6 +40,11 @@
 # define strtok_r strtok_s
 #endif
 
+// needed for pre-defining struct-arrays 
+void array_free_var_mem(void*, void*);
+CS_VARIABLE* create_array(void*, void*, INSDS *);
+void array_copy_value(CSOUND*, const CS_TYPE*, void*, const void*, INSDS *);
+
 static CS_VAR_POOL *find_global_annotation(char *varName,
                                            TYPE_TABLE* typeTable);
 static int32_t is_label(char* ident, CONS_CELL* labelList);
@@ -2351,7 +2356,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   arrayType->varTypeName = cs_strdup(csound, temp);
   arrayType->varDescription = "user-defined struct-array";
   arrayType->argtype = CS_ARG_TYPE_BOTH;
-  arrayType->createVariable = createArray;
+  arrayType->createVariable = create_array;
   arrayType->copyValue = array_copy_value;
   arrayType->freeVariableMemory = array_free_var_mem;
   arrayType->userDefinedType = 1;
@@ -2377,11 +2382,10 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentryArray.opname = cs_strdup(csound, temp);
   oentryArray.dsblksiz = sizeof(INIT_STRUCT_VAR);
   oentryArray.flags = 0;
-  oentryArray.thread = 1;
   // hlöðver: this works but I don't know why
-  oentryArray.iopadr = initStructVar;
-  oentryArray.kopadr = NULL;
-  oentryArray.aopadr = NULL;
+  oentryArray.init = initStructVar;
+  oentryArray.perf = NULL;
+  oentryArray.deinit = NULL;
   oentryArray.useropinfo = NULL;
 
   memset(temp, '\0', 256);
@@ -2393,7 +2397,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentryArray.outypes = cs_strdup(csound, temp);
   memset(temp, '\0', 256);
 
-  int32_t index = 0;
+  index = 0;
   while (current != NULL) {
     char* memberName = current->value->lexeme;
     char* typedIdentArg = current->value->optype;
@@ -2411,15 +2415,15 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     }
 
     memberName = cs_strdup(csound, memberName);
-    CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
-    CS_VARIABLE* var = memberType->createVariable(csound, type);
+    CS_TYPE* memberType = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+    CS_VARIABLE* var = memberType->createVariable(csound, type, NULL);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;
 
     if (isArrayNode && current->value->optype != NULL) {
 
       char* typedSubtypeIdentArg = current->value->optype;
-      CS_TYPE* arraySubtype = csoundGetTypeWithVarTypeName(
+      CS_TYPE* arraySubtype = (CS_TYPE *) csoundGetTypeWithVarTypeName(
         csound->typePool,
         typedSubtypeIdentArg
       );
@@ -2429,7 +2433,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     char* effectiveTypedIdentArg = isArrayNode ? \
       current->value->optype : typedIdentArg;
 
-    int len = strlen(effectiveTypedIdentArg);
+    int len = (int) strlen(effectiveTypedIdentArg);
 
     if ((isArrayNode && var->subType != NULL && var->subType->userDefinedType) ||
         (var->varType->userDefinedType == 1)) {

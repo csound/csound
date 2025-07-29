@@ -1532,11 +1532,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   typeTable->labelList = cs_cons(csound,
                                  cs_strdup(csound, labelEnd->value->lexeme),
                                  typeTable->labelList);
-  gotoType =
-    last->left->value->lexeme[1] == 'B'; // checking for #B... var name
-
-  // printf("%s\n", last->left->value->lexeme);
-  //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
+  
   gotoToken =
     create_goto_token(csound,
                       current->left->type == T_IDENT ?

@@ -104,7 +104,7 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
-static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
@@ -379,7 +379,7 @@ static void string_free_var_mem(void* csnd, void* p ) {
     }
 }
 
-static void array_free_var_mem(void* csnd, void* p) {
+void array_free_var_mem(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAYDAT* dat = (ARRAYDAT*)p;
 
