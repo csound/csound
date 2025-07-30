@@ -340,7 +340,7 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     insno = instr_num(csound, ref->instr);
     p->argums[0] = &insno;
     res = insert_score_args_at_sample(csound, &evt, p->argums,
-                                      csound->icurTimeSamples);
+                                  csound->icurTimeSamples);
     p->argums[0] = (MYFLT *) ref;
     return res;
   } else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_S) {
@@ -355,8 +355,12 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     p->argums[0] = ref;
     return res;
   }
-  else return insert_score_args_at_sample(csound, &evt, p->argums,
+  else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_I ||
+           GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_C ||
+           GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_P) 
+    return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
+  else return csound->InitError(csound, "invalid instrument argument\n");
 }
 
 
@@ -392,8 +396,11 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
     char s[16384], sf[64];
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
-      insno = (MYFLT) instr_num(csound, ref->instr); 
-    }
+      insno = (MYFLT) instr_num(csound, ref->instr);
+    } else if (GetTypeForArg(p->argums[0]) != &CS_VAR_TYPE_I &&
+           GetTypeForArg(p->argums[0]) != &CS_VAR_TYPE_C &&
+           GetTypeForArg(p->argums[0]) != &CS_VAR_TYPE_P)
+      return csound->InitError(csound, "instrument argument invalid\n");
     
     snprintf(s, 16384, "i %f %f %f", insno, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
