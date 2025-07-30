@@ -26,8 +26,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  
-    typedef struct CSFILE_ {
+#define EXTRA_TIME (1)
+
+  typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
     int32_t type;
@@ -308,7 +309,8 @@ extern "C" {
   void    *userData;
   struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
-     
+
+  
 #ifdef __cplusplus
 }
 #endif /*  __cplusplus */

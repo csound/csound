@@ -1536,6 +1536,25 @@ CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable) {
   return pool;
 }
 
+// on new-type UDOS type-annotations can
+// be used for optional types
+// this checks and converts it to i or k type names
+char *check_optional_type(CSOUND *csound, char *name) {
+    if(is_in_optional_arg(name)) {
+      char *t = (char*)OPTIONAL_IN_TYPES[0];
+      char *o, str[2] =  {0};
+      for (int i = 0; t != NULL; i += 2) {
+        o = (char*)OPTIONAL_IN_TYPES[i + 1];
+        if (strcmp(t, name) == 0) {
+          str[0] = *o;        
+          return cs_strdup(csound, str);   
+        }
+        t = (char*)OPTIONAL_IN_TYPES[i + 2];
+      }
+    }
+    return cs_strdup(csound, name);
+}
+
 /* This function creates a new variable for a rhs argument
    if the variable is not found in any of the pools
    If the variable is found, a consistency check is made
@@ -1558,9 +1577,11 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
     if (annotation != NULL) {
       // check for global annotation in explicit-type rhs vars
       pool = find_global_annotation(varName, typeTable);
-      type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+      // check to see if annotation is optional type
+      char *nm = check_optional_type(csound, annotation);
+      type = csoundGetTypeWithVarTypeName(csound->typePool,nm);
       typeArg = (void *) type;
-     
+      csound->Free(csound, nm);
     } else {
       // check for @global in implicit-type rhs vars
       // and if found, strip it and print warning
@@ -1593,12 +1614,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       }
 
       argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
-      
-      
-
       type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
-
     var = csoundCreateVariable(csound, csound->typePool,
                                type, varName, typeArg);
 
@@ -1606,13 +1623,16 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   } else {
     //TODO - implement reference count increment
     if (annotation != NULL) {
-       // check if a variable is declared with same name
-       // and different type.
-       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
-       if(type != var->varType) 
-         synterr(csound, "%s:%s type mismatch for variable %s:%s",
-                 varName, type->varTypeName, varName,
-                 var->varType->varTypeName);
+      // check for optional type 
+      char *t = check_optional_type(csound, annotation);
+      // check if a variable is declared with same name
+      // and different type.
+      type = csoundGetTypeWithVarTypeName(csound->typePool, t);
+      if(type && type != var->varType) 
+        synterr(csound, "%s:%s type mismatch for variable %s:%s",
+                varName, type->varTypeName, varName,
+                var->varType->varTypeName);
+      csound->Free(csound, t);
     }
   }
 

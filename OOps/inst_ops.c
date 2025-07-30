@@ -530,6 +530,67 @@ int32_t get_instance(CSOUND *csound, DEL_INSTR *p) {
   return OK;
 }
 
+/** Instance active check
+   
+    stat:{b,B} isactive inst:Instr
+*/
+int32_t isactive(CSOUND *csound, INSTRACT *p) {
+  *p->rb = p->in->instance->actflg != 0 ? 1 : 0;
+  return OK;
+}
+
+/** Instance release check
+   
+    stat:{b,B} isreleasing inst:Instr
+*/
+int32_t isreleasing(CSOUND *csound, INSTRACT *p) {
+  *p->rb = p->in->instance->relesing != 0 ? 1 : 0;
+  return OK;
+}
+
+
+
+int32_t release_set(CSOUND *csound, REL *p)
+{
+    IGN(csound);
+    if (p->h.insdshead->xtratim < EXTRA_TIME)
+      /* if not initialised by another opcode */
+      p->h.insdshead->xtratim = EXTRA_TIME;
+    return OK;
+}
+
+int32_t release(CSOUND *csound, REL *p)
+{
+    IGN(csound);
+    if (p->h.insdshead->relesing)
+      *p->r = FL(1.0); /* TRUE */
+    else
+      *p->r = FL(0.0); /* FALSE */
+    return OK;
+}
+
+int32_t release_bool(CSOUND *csound, REL *p)
+{
+    IGN(csound);
+    int32_t *r = (int32_t *) p->r;
+    if (p->h.insdshead->relesing)
+      *r = 1; /* TRUE */
+    else
+      *r = 0; /* FALSE */
+    return OK;
+}
+
+int32_t xtratim(CSOUND *csound, XTRADUR *p)
+{
+    IGN(csound);
+    int32_t *xtra = &(p->h.insdshead->xtratim);
+    int32_t tim = (int32_t)(*p->extradur * p->h.insdshead->ekr);
+    if (*xtra < tim)  /* gab-a5 revised */
+      *xtra = tim;
+    return OK;
+}
+
+
 /** Instance order manipulation
     splice instance before or after another instance
 

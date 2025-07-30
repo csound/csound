@@ -156,6 +156,7 @@ typedef struct {
     int32_t     highest_bin;
     int32_t     frames;
     int32_t     type;
+  int32_t     chn;
 } ANARGS;
 
 /* ATS_FFT
@@ -1550,6 +1551,8 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
         }
       }
       filptr = filptr - M + hop;
+      if(frame_n % 80 == 0) csound->Message(csound, "\n");
+      csound->Message(csound, ".");
     }
     /* save data in sound */
     sound->band_energy = band_arr;
@@ -2020,15 +2023,15 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* warn about multi-channel sound files */
     if (UNLIKELY(sfinfo.channels != 1)) {
       csound->ErrorMsg(csound,
-                       Str("atsa: file has %d channels, must be mono !"),
+                       Str("atsa: file has %d channels, reading channel 1\n"),
                        (int) sfinfo.channels);
-      return NULL;
     }
 
     csound->Message(csound, "%s", Str("tracking...\n"));
 
     /* get sample rate and # of frames from file header */
     anargs->srate = sfinfo.samplerate;
+    anargs->chn = sfinfo.channels;
     sflen = (int) sfinfo.frames;
     sfdur = (float) sflen / anargs->srate;
     /* check analysis parameters */
@@ -2205,8 +2208,10 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     anargs->fft_size = ppp2(2 * anargs->win_size);
 
     /* allocate memory for sound, we read the whole sound in memory */
-    bufs = (mus_sample_t **) csound->Malloc(csound, sizeof(mus_sample_t *));
+    bufs = (mus_sample_t **) csound->Malloc(csound, 2*sizeof(mus_sample_t *));
     bufs[0] =
+        (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
+    bufs[1] =
         (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
     /* make our window */
     window = make_window(csound, anargs->win_type, anargs->win_size);
@@ -2231,7 +2236,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* half a window from first sample */
     filptr = anargs->first_smp - M_2;
     /* read sound into memory */
-    atsa_sound_read_noninterleaved(csound, sf, bufs, 1, sflen);
+    atsa_sound_read_noninterleaved(csound, sf, bufs, anargs->chn, sflen);
 
     /* make our fft-struct */
     fft.size = anargs->fft_size;
@@ -2392,7 +2397,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       csound->Message(csound, "%s", Str("Analysing residual..."));
       residual_analysis(csound, buffer, sound);
 #else
-      csound->Message(csound, "%s", Str("Analysing residual..."));
+      csound->Message(csound, "%s", Str("Analysing residual"));
       residual_analysis(csound, ATSA_RES_FILE, sound);
 #endif
       csound->Message(csound, "%s", Str("done!\n"));
