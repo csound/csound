@@ -397,9 +397,9 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
     if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
       insno = (MYFLT) instr_num(csound, ref->instr);
-    } else if (GetTypeForArg(p->argums[0]) != &CS_VAR_TYPE_I &&
-           GetTypeForArg(p->argums[0]) != &CS_VAR_TYPE_C &&
-           GetTypeForArg(p->argums[0]) != &CS_VAR_TYPE_P)
+    } else if (GetTypeForArg(p->which) != &CS_VAR_TYPE_I &&
+           GetTypeForArg(p->which) != &CS_VAR_TYPE_C &&
+           GetTypeForArg(p->which) != &CS_VAR_TYPE_P)
       return csound->InitError(csound, "instrument argument invalid\n");
     
     snprintf(s, 16384, "i %f %f %f", insno, *p->when, *p->dur);
