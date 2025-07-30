@@ -130,7 +130,7 @@ def runTest():
     ["test_switch_statement.csd", "tests the new switch statement operator"],
 	["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
 	["test_label_within_if_block.csd", "test label within if block"],
-
+    ["test_newstyle_udo_optargs.csd", "test newstyle UDO optional args"],
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
 	["test_arrays2.csd", "test gk-array with single dimension, assignment to expression value"],
 	["test_arrays3.csd", "test k-array with single dimension, assignment with number"],

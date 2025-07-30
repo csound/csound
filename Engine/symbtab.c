@@ -46,7 +46,7 @@
 
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
-      if (strchr("ijop", *in) != NULL) {
+      if (strchr("ijopqvh", *in) != NULL) {
           return "i";
       } else if (strchr("kKOJPV", *in) != NULL) {
           return "k";
