@@ -1024,7 +1024,8 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
 #endif
     break;
   case 7:             /* is the channel I/O callback set ? (0: no, 1: yes) */
-    buf[0] = 0;
+    buf[0] = (csound->InputChannelCallback_ ||
+              csound->OutputChannelCallback_ ? '1' : '0');
     buf[1] = '\0';
     break;
   default:
