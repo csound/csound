@@ -1657,8 +1657,10 @@ endif()
 
 # install mingw libraries
 if(MINGW)
-    file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libstdc++-6.dll DESTINATION "${BUILD_DIR}")
-    file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libgcc_s_seh-1.dll DESTINATION "${BUILD_DIR}")
+    file(GLOB LIBSTDC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libstdc++-6.dll ")
+    file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
+    file(GLOB LIBGCC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libgcc_s_seh-1.dll ")
+    file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
     file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
 endif()
 
