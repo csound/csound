@@ -238,7 +238,8 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   index = 0;
   for (i=0;i<indefArgCount; i++) {
     end = (int)(*p->indexes[i]);
-    if (UNLIKELY(end>=dat->sizes[i]))
+    if (UNLIKELY(end>=dat->sizes[i])||
+        UNLIKELY(end<0))
       return csound->PerfError(csound, &(p->h),
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d"),
@@ -273,7 +274,8 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
   index = 0;
   for (i=0;i<indefArgCount; i++) {
     end = (int)(*p->indexes[i]);
-    if (UNLIKELY(end>=dat->sizes[i]))
+    if (UNLIKELY(end>=dat->sizes[i]) ||
+        UNLIKELY(end<0))
       return csound->PerfError(csound, &(p->h),
                                Str("Array index %d out of range (0,%d) "
                                    "for dimension %d"),
