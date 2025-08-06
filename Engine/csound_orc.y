@@ -115,7 +115,7 @@
 %left S_AND S_OR
 %left '|'
 %left '&'
-%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ
+%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ '=' // VL 6.8.25 for backwards compat
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
