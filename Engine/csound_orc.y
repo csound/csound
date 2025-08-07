@@ -115,7 +115,7 @@
 %left S_AND S_OR
 %left '|'
 %left '&'
-%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ
+%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ '=' // VL 6.8.25 for backwards compat
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -687,7 +687,7 @@ binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+'
           | expr S_NEQ optnewline expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $4); }
           | expr S_NEQ error    { $$ = NULL; }
            /* VL: 18.09.21 added the rule for if x = y for backwards compatibility */
-          | expr '=' expr_list  { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
+          | expr '=' optnewline expr  { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr '=' error
           | expr S_EQ optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr S_EQ error
