@@ -721,7 +721,6 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   return anchor;
 }
 
-//char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -819,6 +818,12 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if(root->type == FALSE_TOKEN)
     return create_ans_token(csound, "false");
+
+  if(root->type == T_FUNCTION) {
+    return create_expression(csound, root, line,
+                             locn, typeTable);
+  }
+
 
   op = csound->Calloc(csound, 80);
   switch(root->type) {

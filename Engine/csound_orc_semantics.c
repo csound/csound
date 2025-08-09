@@ -1000,7 +1000,7 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 }
 
 inline static int32_t is_out_var_arg(char* arg) {
-  return strlen(arg) == 1 && (strchr("mzIXNF*", *arg) != NULL);
+  return strlen(arg) == 1 && (strchr("mzIXNvVF*", *arg) != NULL);
 }
 
 int32_t check_out_arg(char* found, char* required) {

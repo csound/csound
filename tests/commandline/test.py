@@ -143,6 +143,7 @@ def runTest():
              "test expected failure with negative dimension size and array", 1],
     ["test_iarr_operators.csd", "test i[] operators"],
 	["test_booleans.csd", "tests using boolean data-types"],
+	["test_boolean_function.csd", "test boolean function in conditionals"],    
     ["test_type_eq.csd", "test type equality operator"],
 	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
 

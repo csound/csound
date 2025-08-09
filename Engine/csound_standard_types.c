@@ -31,9 +31,7 @@
 /* MEMORY COPYING FUNCTIONS */
 static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
-  MYFLT* f1 = (MYFLT*)dest;
-  MYFLT* f2 = (MYFLT*)src;
-  *f1 = *f2;
+   memcpy(dest, src, sizeof(MYFLT));
 }
 
 static void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -278,7 +276,7 @@ static CS_VARIABLE* create_bool(void* cs, void* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
-    var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(int32_t));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
     return var;
@@ -549,8 +547,10 @@ const char* POLY_OUT_TYPES[] = {
 const char* VAR_ARG_OUT_TYPES[] = {
     "m", "a",
     "z", "k",
-    "I", "Sip", /* had comment of (not implemented yet) in entry1.c */
+    "I", "Sip", /* had comment of (not implemented yet) in entry.c */
     "X", "akip",
     "N", "akipS",
+    "v", "b",
+    "V", "B",
     "F", "f", NULL
 };

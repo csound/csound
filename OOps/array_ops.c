@@ -71,7 +71,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   }
   return OK;
 }
-
+#include "csound_standard_types.h"
 int32_t tabfill(CSOUND *csound, TABFILL *p)
 {
   int32_t    nargs = p->INOCOUNT;
@@ -83,17 +83,26 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
   if (size<nargs) nargs = size;
   memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
-  for (i=0; i<nargs; i++) {
-    p->ans->arrayType->copyValue(csound,
-                                 p->ans->arrayType,
-                                 p->ans->data + (i * memMyfltSize),
-                                 valp[i], p->h.insdshead);
+  if(p->ans->arrayType == &CS_VAR_TYPE_B ||
+     p->ans->arrayType == &CS_VAR_TYPE_b) {
+    for (i=0; i<nargs; i++) {
+      // bool is int32_t but each array slot is sizeof(MYFLT)
+      int32_t *idat = (int32_t *) (p->ans->data + (i * memMyfltSize));
+      *idat = *valp[i] ? 1 : 0;
+    }
   }
+  else 
+    for (i=0; i<nargs; i++) {
+      p->ans->arrayType->copyValue(csound,
+                                   p->ans->arrayType,
+                                   p->ans->data + (i * memMyfltSize),
+                                   valp[i], p->h.insdshead);
+  
+    }
   return OK;
 }
 
 #include <ctype.h>
-
 static MYFLT nextval(FILE *f)
 {
   /* Read the next character; suppress multiple space and comments to a

@@ -77,6 +77,46 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a)
   return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
   }*/
 
+
+int32_t b2s(CSOUND *csound, ASSIGN *p){
+  int32_t *a = (int32_t *) p->a;
+  *p->r = (MYFLT) *a;
+  return OK;
+}
+
+int32_t b2b(CSOUND *csound, ASSIGN *p){
+  memcpy(p->r, p->a, sizeof(int32_t));
+  return OK;
+}
+
+int32_t binit(CSOUND *csound, ASSIGNM *p)
+{
+  uint32_t nargs = p->INOCOUNT;
+  uint32_t nout = p->OUTOCOUNT;
+  int32_t **r = (int32_t **) p->r;
+  uint32_t i;
+  int32_t *tmp;
+  if (UNLIKELY(nargs > p->OUTOCOUNT))
+    return csound->InitError(csound,
+                             Str("Cannot be more In arguments than Out in "
+                                 "init (%d,%d)"),p->OUTOCOUNT, nargs);
+  if (nout==1) {
+    *r[0] =  *p->a[0] != 0 ? 1 : 0;
+    return OK;
+  }
+  tmp = (int32_t *)csound->Malloc(csound, sizeof(int32_t)*p->OUTOCOUNT);
+  for (i=0; i<nargs; i++)
+    tmp[i] = *p->a[i] != 0 ? 1 : 0;
+  for (; i<nout; i++)
+    tmp[i] = *p->a[nargs-1] != 0 ? 1 : 0;;
+  for (i=0; i<nout; i++)
+    *r[i] = tmp[i];
+  csound->Free(csound, tmp);
+  return OK;
+}
+
+
+
 int32_t rassign(CSOUND *csound, ASSIGN *p)
 {
   /* already assigned by otran */
