@@ -26,6 +26,7 @@ endin
 /* case 2
    loop var is declared
    loop type follows var type
+   if a conversion is possible (e.g. k and i)
    regardless of array type
 */
 instr 2
@@ -36,11 +37,21 @@ od
 turnoff
 endin
 
+/* Loops of other array types are
+   also possible 
+*/
+instr 3
+for j in ["hello\n","world\n","!!!\n"] do
+ prints j
+od
+endin
+
 
 </CsInstruments>
 <CsScore>
 i1 0 0
 i2 0 0.001
+i3 0 0
 </CsScore>
 </CsoundSynthesizer>
 
