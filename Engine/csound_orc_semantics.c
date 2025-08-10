@@ -2703,7 +2703,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case FOR_TOKEN: {
       /** for-loop typing:
           1) if loop variable does not exist, it takes the type of the array
-          2) if it exists, the loop type follows the variable type
+          2) if it exists, the loop type follows the variable type when conversion is possible
       */
 
       char* arrayArgType = get_arg_type2(csound, current->right->left,
@@ -2722,9 +2722,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         return 0;
       }    
 
-      char* atype = cs_strdup(csound, arrayArgType+1);
-      char * typ;
-      atype[strlen(atype)-1] = '\0';
+      char* atype = cs_strdup(csound, arrayArgType+1); // skip '['
+      char* typ;
+      atype[strlen(atype)-1] = '\0'; // remove ']'
       if(var == NULL) {
        typ = remove_type_quoting(csound, atype);
        // now create the arg based on the array type
@@ -2732,7 +2732,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
               typeTable);
       } else {
         // now we need to check that the array matches the
-        // var type
+        // var type - automatic conversion possible for i and k
         const CS_TYPE *iType = &CS_VAR_TYPE_I;
         const CS_TYPE *kType = &CS_VAR_TYPE_K;
         const CS_TYPE *avartyp = csoundGetTypeWithVarTypeName(csound->typePool, atype);
@@ -2740,7 +2740,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           if((avartyp == iType && var->varType == kType) ||
              (avartyp == kType && var->varType == iType)) {
             if(csound->GetDebug(csound))
-              csound->Message(csound, "%s-type loop\n", var->varType->varTypeName);
+              csound->Message(csound, "%s-type loop with %s-type array\n",
+                              var->varType->varTypeName, atype);
           }
           else {
             synterr(csound,Str("line %d loop variable type mismatch in for statement,\n"
