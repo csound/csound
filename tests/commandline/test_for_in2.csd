@@ -21,9 +21,18 @@ instr 2
   turnoff
 endin
 
+instr 3
+for S, i in ["hello ","world ","!!! "] do
+ prints S
+ prints "\n"
+ print i
+od
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 0
 i 2 .001 .01
+i3 0 0
 </CsScore>
 </CsoundSynthesizer>
