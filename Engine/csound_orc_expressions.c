@@ -1566,14 +1566,15 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
                            char* arrayArgType) {
 
-  CS_TYPE *iType = (CS_TYPE *)&CS_VAR_TYPE_I;
-  CS_TYPE *kType = (CS_TYPE *)&CS_VAR_TYPE_K;
-  CS_TYPE *aType = (CS_TYPE *)&CS_VAR_TYPE_A;
-  CS_TYPE *xType = (CS_TYPE *)&CS_VAR_TYPE_COMPLEX;
-  CS_TYPE *arrayType = (CS_TYPE *)
+  const CS_TYPE *iType = &CS_VAR_TYPE_I;
+  const CS_TYPE *kType = &CS_VAR_TYPE_K;
+  const CS_TYPE *aType = &CS_VAR_TYPE_A;
+  const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
+  const CS_TYPE *arrayType = 
     csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
   int32_t isPerfRate = 0;
-  
+
+  // these array types generated perf-time loops
   if(arrayType == aType || arrayType == kType ||
      arrayType == xType) isPerfRate = 1;
   else isPerfRate = 0;
@@ -1602,6 +1603,10 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayAssign->value = make_token(csound, "=");
   arrayAssign->type = T_ASSIGNMENT;
   arrayAssign->value->type = T_ASSIGNMENT;
+
+  // this array holds the data for each iteration
+  // the array type generally matches the loop var type
+  // with the exception of 'i' and 'k' which may be used interchangeably
   char *arrayName = create_synthetic_array_var_name(csound,csound->genlabs++,'x');
   TREE *arrayIdent = create_empty_token(csound);
   arrayIdent->value = make_token(csound, arrayName);
