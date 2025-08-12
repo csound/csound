@@ -870,7 +870,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         csound->advanceCnt = kCnt;
         csound->ErrorMsg(csound,
                         Str("time advanced %5.3f beats by score request\n"),
-                        evt->p3orig);
+                         kCnt*csound->onedkr);
       }
     }
     break;
