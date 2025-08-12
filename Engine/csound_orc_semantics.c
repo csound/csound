@@ -2703,8 +2703,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case FOR_TOKEN: {
       /** for-loop typing:
           1) if loop variable does not exist, it takes the type of the array
-          2) if it exists, the loop type follows the variable type
+          2) if it exists, the loop type follows the variable type when conversion is possible
       */
+
       char* arrayArgType = get_arg_type2(csound, current->right->left,
                                          typeTable);
       CS_VARIABLE* var = find_var_from_pools(csound,
@@ -2713,24 +2714,47 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                              typeTable);
       if (*arrayArgType != '[') {
         if(current->right->left->value != NULL) 
-        synterr(csound,Str("Line: %d invalid argument in for statement: "
+        synterr(csound,Str("line:%d invalid argument in for statement: "
                            "found '%s', which is not an array\n"),
           current->line,current->right->left->value->lexeme);
-        else synterr(csound,Str("Line: %d expected an array variable in for statement."),
+        else synterr(csound,Str("line:%d expected an array variable in for statement."),
                      current->line);
         return 0;
       }    
-      
+
+      char* atype = cs_strdup(csound, arrayArgType+1); // skip '['
+      char* typ;
+      atype[strlen(atype)-1] = '\0'; // remove ']'
       if(var == NULL) {
-      char  atype[2] = { arrayArgType[1], '\0' };
-      // now create the arg based on the array type
-       add_arg(csound, current->left->value->lexeme, atype,
+       typ = remove_type_quoting(csound, atype);
+       // now create the arg based on the array type
+       add_arg(csound, current->left->value->lexeme, typ,
               typeTable);
-       arrayArgType++;
       } else {
-        arrayArgType = var->varType->varTypeName;
+        // now we need to check that the array matches the
+        // var type - automatic conversion possible for i and k
+        const CS_TYPE *iType = &CS_VAR_TYPE_I;
+        const CS_TYPE *kType = &CS_VAR_TYPE_K;
+        const CS_TYPE *avartyp = csoundGetTypeWithVarTypeName(csound->typePool, atype);
+        if(var->varType != avartyp) {
+          if((avartyp == iType && var->varType == kType) ||
+             (avartyp == kType && var->varType == iType)) {
+            if(csound->GetDebug(csound))
+              csound->Message(csound, "%s-type loop with %s-type array\n",
+                              var->varType->varTypeName, atype);
+          }
+          else {
+            synterr(csound,Str("line %d loop variable type mismatch in for statement,\n"
+                               "%s for array type %s"),
+                    current->line, var->varType->varTypeName, atype);
+            return 0;
+          }
+        }
+        typ = cs_strdup(csound, var->varType->varTypeName);
       }
-      current = expand_for_statement(csound, current, typeTable, arrayArgType);
+      current = expand_for_statement(csound, current, typeTable, typ);
+      csound->Free(csound, atype);
+      csound->Free(csound, typ);
       if (previous != NULL) {
         previous->next = current;
       }

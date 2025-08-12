@@ -910,12 +910,18 @@ static char* create_synthetic_var_name(CSOUND* csound, int32 count, int32_t pref
   return name;
 }
 
+
+
 static char* create_synthetic_array_var_name(CSOUND* csound, int32 count, int32_t prefix)
 {
   char *name = (char *)csound->Calloc(csound, 36);
   snprintf(name, 36, "%c__synthetic_%"PRIi32"[]", prefix, count);
   return name;
 }
+
+
+
+
 
 static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
 {
@@ -1560,16 +1566,18 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
                            char* arrayArgType) {
 
-  CS_TYPE *iType = (CS_TYPE *)&CS_VAR_TYPE_I;
-  CS_TYPE *kType = (CS_TYPE *)&CS_VAR_TYPE_K;
+  const CS_TYPE *iType = &CS_VAR_TYPE_I;
+  const CS_TYPE *kType = &CS_VAR_TYPE_K;
+  const CS_TYPE *aType = &CS_VAR_TYPE_A;
+  const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
+  const CS_TYPE *arrayType = 
+    csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
   int32_t isPerfRate = 0;
-  if(arrayArgType[0] == 'k') isPerfRate = 1;
-  else if(arrayArgType[0] == 'i') isPerfRate = 0;
-  else {
-    synterr(csound, "only i- or k-type arrays allowed\n");
-    return NULL;
-  }
- 
+
+  // these array types generated perf-time loops
+  if(arrayType == aType || arrayType == kType ||
+     arrayType == xType) isPerfRate = 1;
+  else isPerfRate = 0;
 
   char* op = (char *)csound->Malloc(csound, 10);
   // create index counter
@@ -1595,13 +1603,16 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayAssign->value = make_token(csound, "=");
   arrayAssign->type = T_ASSIGNMENT;
   arrayAssign->value->type = T_ASSIGNMENT;
-  char *arrayName = create_synthetic_array_var_name(csound,csound->genlabs++,
-                                                    isPerfRate ? 'k' : 'i');
+
+  // this array holds the data for each iteration
+  // the array type generally matches the loop var type
+  // with the exception of 'i' and 'k' which may be used interchangeably
+  char *arrayName = create_synthetic_array_var_name(csound,csound->genlabs++,'x');
   TREE *arrayIdent = create_empty_token(csound);
   arrayIdent->value = make_token(csound, arrayName);
   arrayIdent->type = T_ARRAY_IDENT;
   arrayIdent->value->type = T_ARRAY_IDENT;
-  add_array_arg(csound, arrayName, NULL, 1, typeTable);
+  add_array_arg(csound, arrayName, arrayArgType, 1, typeTable);
 
   arrayAssign->left = arrayIdent;
   arrayAssign->right = current->right->left;
