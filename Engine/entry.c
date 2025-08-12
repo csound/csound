@@ -392,9 +392,7 @@ OENTRY opcodlst_1[] = {
   {"##addin.[i", sizeof(TABARITHIN1), 0, "i[]", "i",
    (SUBR)addinAA, NULL },
 
-  {"##addin.[ki", sizeof(TABARITHIN1), 0, "k[]", "i", NULL,
-   (SUBR)addinAA },
-  {"##addin.[kk", sizeof(TABARITHIN1), 0, "k[]", "k", NULL,
+  {"##addin.[k", sizeof(TABARITHIN1), 0, "k[]", "k", NULL,
    (SUBR)addinAA },
 
   {"##addin.[", sizeof(TABARITHIN), 0, "i[]", "i[]",
@@ -415,7 +413,7 @@ OENTRY opcodlst_1[] = {
    (SUBR)tabsubinkk, NULL },
   {"##mulin.[i", sizeof(TABARITHIN1), 0, "i[]", "i",
    (SUBR)mulinAA, NULL },
-  {"##mulin.[k", sizeof(TABARITHIN1), 0, "k[]", "i", NULL,
+  {"##mulin.[k", sizeof(TABARITHIN1), 0, "k[]", "k", NULL,
    (SUBR)mulinAA },
   {"##mulin.[", sizeof(TABARITHIN), 0, "i[]", "i[]",
    (SUBR)tabmulinkk, NULL },
