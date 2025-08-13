@@ -457,7 +457,7 @@ extern "C" {
   /**
    * Returns the total error count of the current performance.
    */
-  PUBLIC int csoundErrCnt(CSOUND *csound);
+  PUBLIC int32_t csoundErrCnt(CSOUND *csound);
 
   /**
    * Get pointer to the value of environment variable 'name', searching
