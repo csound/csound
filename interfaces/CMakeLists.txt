@@ -184,11 +184,17 @@ if(BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function"
             LINK_FLAGS "-Wl,-soname,lib_jcsound.so.1"
             )
-         message(STATUS "Setting soname")   
+         message(STATUS "Setting soname")
          endif()
          if (APPLE)
           set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function" )
+         endif()
+         if (NOT MSVC)
+          # https://swig.org//Doc4.3/Java.html#Java_typemaps_c_to_java_types
+          # Java-specific: "the approach taken by SWIG is mostly portable, but breaks C/C++ aliasing rules"
+          set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
+            PROPERTIES COMPILE_FLAGS "-fno-strict-aliasing -fno-lto" )
          endif()
 
         ADD_CUSTOM_COMMAND(TARGET _jcsound6
