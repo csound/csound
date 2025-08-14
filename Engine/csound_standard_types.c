@@ -483,9 +483,7 @@ const CS_TYPE CS_VAR_TYPE_COMPLEX = {
     NULL, NULL, 0
 };
 
-
 void add_standard_types(CSOUND* csound, TYPE_POOL* pool) {
-
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_K);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_I);
@@ -503,6 +501,8 @@ void add_standard_types(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR_INSTANCE);
+    // CS_OBJ_TYPE & OPS
+    add_csobj(csound, pool);
 }
 
 

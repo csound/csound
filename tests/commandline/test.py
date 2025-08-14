@@ -206,6 +206,7 @@ def runTest():
     ["test_unschedule.csd", "test unscheduling events"],
     ["diskin_excess_channels.csd", "test sample accurate mode"],
     ["test_midifile_ops.csd", "testing midifile opcodes"],
+    ["test_csound_object.csd", "test Csound object opcodes"],
     ["test_true_false.csd", "testing true/false booleans"],
     ]
 

@@ -136,7 +136,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "|"             { return '|'; }
 "&"             { return '&'; }
 "#"             { return '#'; }
-"¬"            { return '~'; } /* \xC2?\xAC */
+"¬"             { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
 
 \xC2?\xAC{OPTWHITE} { return '~'; } /* BACKWARDS COMPATABILITY */
