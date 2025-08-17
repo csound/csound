@@ -128,6 +128,11 @@ check_deps(USE_PORTMIDI PortMidi_FOUND)
 if(USE_PORTMIDI)
     make_plugin(pmidi pmidi.c)
     target_link_libraries(pmidi PRIVATE PortMidi::portmidi)
+if(APPLE)
+    get_filename_component(portmidi_dir ${PortMidi_LIBRARY} DIRECTORY)
+    set_target_properties(pmidi PROPERTIES
+            INSTALL_RPATH ${portmidi_dir} )
+endif()
 endif()
 
 if(USE_IPMIDI)
