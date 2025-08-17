@@ -1616,10 +1616,16 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
       type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
-    var = csoundCreateVariable(csound, csound->typePool,
-                               type, varName, typeArg);
 
-    csoundAddVariable(csound, pool, var);
+    if(pool == typeTable->globalPool) { 
+      var = add_global_variable(csound, &csound->engineState,
+				(CS_TYPE *) type, varName, typeArg); 
+    }
+    else {
+      var = csoundCreateVariable(csound, csound->typePool,
+				 type, varName, typeArg);
+      csoundAddVariable(csound, pool, var);
+    }
   } else {
     //TODO - implement reference count increment
     if (annotation != NULL) {
@@ -1679,12 +1685,17 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     varInit.dimensions = dimensions;
     varInit.type = varType;
     typeArg = &varInit;
-    var = csoundCreateVariable(csound, csound->typePool,
-                               &CS_VAR_TYPE_ARRAY,
-                               varName, typeArg);
 
-    
-    csoundAddVariable(csound, pool, var);
+    if(pool == typeTable->globalPool) { 
+      var = add_global_variable(csound, &csound->engineState,
+				(CS_TYPE *) &CS_VAR_TYPE_ARRAY, varName, typeArg); 
+    }
+    else {
+      var = csoundCreateVariable(csound, csound->typePool,
+				 &CS_VAR_TYPE_ARRAY,
+				 varName, typeArg);
+      csoundAddVariable(csound, pool, var);
+    }
   } else {
     //TODO - implement reference count increment
      if (annotation != NULL) {
