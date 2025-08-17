@@ -129,9 +129,10 @@ if(USE_PORTMIDI)
     make_plugin(pmidi pmidi.c)
     target_link_libraries(pmidi PRIVATE PortMidi::portmidi)
 if(APPLE)
+   if (NOT USE_VCPKG)
     get_filename_component(portmidi_dir ${PortMidi_LIBRARY} DIRECTORY)
-    set_target_properties(pmidi PROPERTIES
-            INSTALL_RPATH ${portmidi_dir} )
+    set_target_properties(pmidi PROPERTIES INSTALL_RPATH ${portmidi_dir} )
+   endif()
 endif()
 endif()
 
