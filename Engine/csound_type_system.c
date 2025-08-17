@@ -260,6 +260,7 @@ void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
           varMem =
                (CS_VAR_MEM *)((CSOUND *)csound)->ReAlloc(csound,varMem,
                                              memSize);
+	  varMem->varType = current->varType;
           current->memBlock = varMem;
        }
        pool->poolSize += current->memBlockSize;
