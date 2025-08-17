@@ -167,7 +167,7 @@ OENTRY opcodlst_1[] = {
   { "unscheduleall", S(RMEVT), 0, "","*", remove_all_events},
   { "instrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;o",   (SUBR) get_instr_num },
   { "##add",   S(IREF_NUM),0,    "i",    ":InstrDef;i",   (SUBR) get_instr_num },
-  { "nstrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;",   (SUBR) get_instr_num },
+  { "nstrnum",   S(IREF_NUM),0,    "i",    ":InstrDef;o",   (SUBR) get_instr_num },
   { "opcodeinfo", S(OPINFO) ,0,  "", ":OpcodeDef;", (SUBR) opcode_info},
   { "=.opcd", S(ASSIGN), 0, ":OpcodeDef;", ":OpcodeDef;", (SUBR) copy_var_generic},
   { "init.opcd", S(ASSIGN), 0, ":OpcodeDef;", "S", (SUBR) opcode_ref},
