@@ -219,6 +219,7 @@ typedef struct iref_num {
   OPDS  h;
   MYFLT  *out;
   INSTREF *in;
+  MYFLT  *offs;
 } IREF_NUM;
 
 typedef struct {
