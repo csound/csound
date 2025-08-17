@@ -1617,8 +1617,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
     var = csoundCreateVariable(csound, csound->typePool,
-                               type, varName, typeArg);
-
+				 type, varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -1680,10 +1679,8 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     varInit.type = varType;
     typeArg = &varInit;
     var = csoundCreateVariable(csound, csound->typePool,
-                               &CS_VAR_TYPE_ARRAY,
-                               varName, typeArg);
-
-    
+				 &CS_VAR_TYPE_ARRAY,
+				 varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
