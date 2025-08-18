@@ -220,6 +220,37 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
+  bare_arm_brew:
+    name: ARM baremetal build (brew)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          brew install --cask gcc-arm-embedded
+          brew install bison flex 
+
+      - name: Configure build
+        run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/arm-none-eabi" -DCUSTOM_CMAKE=../Daisy/Custom.cmake -DCMAKE_TOOLCHAIN_FILE=../Daisy/crosscompile.cmake 
+	
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Install
+        run: cmake --build build --target install
+
+     - name: Upload zip
+       uses: actions/upload-artifact@v4
+       with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-none-eabi
+          path: arm-none-eabi
+
+
   macos_build_installer:
     name: MacOS build (installer)
     runs-on: macos-latest
