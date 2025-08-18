@@ -3,6 +3,8 @@ SET(CMAKE_SYSTEM_NAME Generic)
 SET(CMAKE_SYSTEM_PROCESSOR ARM)
 
 # Specify the cross compiler
+SET(COMPILER_PREFIX "arm-none-eabi")
+
 SET(CMAKE_C_COMPILER arm-none-eabi-gcc)
 SET(CMAKE_CXX_COMPILER arm-none-eabi-g++)
 
