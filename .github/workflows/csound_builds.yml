@@ -223,6 +223,7 @@ jobs:
   bare_arm_brew:
     name: ARM baremetal build (brew)
     runs-on: macos-latest
+    needs: update_version
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
@@ -732,6 +733,12 @@ jobs:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: csound-macos-${{env.CSOUND_VERSION}}
 
+      - name: Download arm-none-eabi package
+        uses: actions/download-artifact@v4      
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-none-eabi
+          path: csound-arm-none-eabi-${{env.CSOUND_VERSION}}
+
       - name: Download iOS artifacts
         uses: actions/download-artifact@v4
         with:
@@ -751,6 +758,7 @@ jobs:
           zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
           zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
+          zip -r csound-arm-none-eabi-${{env.CSOUND_VERSION}}.zip csound-arm-none-eabi-${{env.CSOUND_VERSION}}
 
       - name: List release artifacts
         run: ls -l
@@ -767,3 +775,5 @@ jobs:
             csound-macos-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip
+	    csound-arm-none-eabi-${{env.CSOUND_VERSION}}.zip
+	    
