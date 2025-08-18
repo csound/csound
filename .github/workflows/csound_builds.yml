@@ -250,7 +250,6 @@ jobs:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-none-eabi
           path: arm-none-eabi
 
-
   macos_build_installer:
     name: MacOS build (installer)
     runs-on: macos-latest
