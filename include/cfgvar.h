@@ -174,7 +174,7 @@ typedef union csCfgVariable_u {
    * The other parameters and return value are the same as in the case of
    * csoundCreateGlobalConfigurationVariable().
    */
-  PUBLIC int
+  PUBLIC int32_t
     csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
                                       void *p, int32_t type, int32_t flags,
                                       void *min, void *max,
