@@ -157,7 +157,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
       *p->ihandle = (MYFLT) globals->currSFndx;
       sf = &globals->sfArray[globals->currSFndx];
       qsort(sf->preset, sf->presets_num, sizeof(presetType),
-            (int32_t (*)(const void *, const void * )) compare);
+            (int (*)(const void *, const void * )) compare);
       csound->Free(csound,fname);
       if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
         globals->maxSFndx += 5;

@@ -21,7 +21,7 @@ set(BUILD_DEPRECATED_OPCODES OFF)
 set(BUILD_UTILITIES OFF)
 set(INSTALL_PYTHON_INTERFACE OFF)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w") 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -Wno-incompatible-pointer-types")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -Wno-incompatible-pointer-types") 
 
 

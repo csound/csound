@@ -556,7 +556,7 @@ int32_t *csoundGetChannelLock(CSOUND *csound, const char *name)
     else return NULL;
 }
 
-static int32_t cmp_func(const void *p1, const void *p2)
+static int cmp_func(const void *p1, const void *p2)
 {
     return strcmp(((controlChannelInfo_t*) p1)->name,
                   ((controlChannelInfo_t*) p2)->name);

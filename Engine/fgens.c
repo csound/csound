@@ -1634,7 +1634,7 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
     }
 
     ntabl = nargs >> 2;         /* number of waves to mix */
-    pnum  = (int*) csound->Malloc(csound,sizeof(int32_t) * ntabl);
+    pnum  = (int32_t*) csound->Malloc(csound,sizeof(int32_t) * ntabl);
     for (i = 0; i < ntabl; i++)
       pnum[i] = (i << 2) + 5;   /* p-field numbers */
     do {
