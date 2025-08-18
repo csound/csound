@@ -243,10 +243,10 @@ jobs:
 
       - name: Install
         run: cmake --build build --target install
-
-     - name: Upload zip
-       uses: actions/upload-artifact@v4
-       with:
+      
+      - name: Upload zip
+        uses: actions/upload-artifact@v4
+        with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-none-eabi
           path: arm-none-eabi
 
