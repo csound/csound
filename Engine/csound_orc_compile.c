@@ -2243,7 +2243,16 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
             csoundFindVariableWithName(csound, ip->varPool, s))) {
     arg->type = ARG_LOCAL;
     arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
-  } 
+  }
+  /* now check for local vars shadowing global vars */
+  else if(csoundFindVariableWithName(csound, ip->varPool,
+	   s) != NULL) {
+    arg->type = ARG_LOCAL;
+    setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    if (arg->argPtr == NULL) {
+      csound->Message(csound, Str("Missing local arg: %s\n"), s);
+    }
+  }
   /* now global vars are searched for */
   else if(csoundFindVariableWithName(csound, engineState->varPool,
                                         s) != NULL) {
@@ -2251,12 +2260,12 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     setup_arg_for_var_name(csound, arg, engineState->varPool, s);
     }
     else if(csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                       s) != NULL) {
+	   s) != NULL) {
     arg->type = ARG_GLOBAL;
     setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s);  
     
   }
-  /* otherwise we have a local argument */
+  /* otherwise we have a local arg */
   else {
     arg->type = ARG_LOCAL;
     setup_arg_for_var_name(csound, arg, ip->varPool, s);

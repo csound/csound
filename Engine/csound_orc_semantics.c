@@ -1536,6 +1536,24 @@ CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable) {
   return pool;
 }
 
+static CS_VAR_POOL *get_var_pool(CSOUND *csound, TYPE_TABLE* typeTable,
+				 const char *varBaseName) {
+     // we first check for local variables
+    CS_VARIABLE *var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                     varBaseName);
+    if(var) return typeTable->localPool; 
+    // then check for global variables in engine
+    var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                     varBaseName);
+    if(var) return csound->engineState.varPool;
+    // and finally newly defined global vars
+    var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                       varBaseName);
+    if(var) return typeTable->globalPool;
+
+    return NULL;
+}
+
 // on new-type UDOS type-annotations can
 // be used for optional types
 // this checks and converts it to i or k type names
@@ -1620,17 +1638,28 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 				 type, varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
-    //TODO - implement reference count increment
+    // for explicit non-array types, we'll allow variable redeclaration
     if (annotation != NULL) {
       // check for optional type 
       char *t = check_optional_type(csound, annotation);
       // check if a variable is declared with same name
       // and different type.
       type = csoundGetTypeWithVarTypeName(csound->typePool, t);
-      if(type && type != var->varType) 
-        synterr(csound, "%s:%s type mismatch for variable %s:%s",
-                varName, type->varTypeName, varName,
-                var->varType->varTypeName);
+      if(type && type != var->varType){
+	CS_VAR_POOL *var_pool = get_var_pool(csound, typeTable, varName);
+	pool = find_global_annotation(varName, typeTable);
+	// remove variable if it belongs to the same pool (local/global)
+	if(pool == var_pool ||
+	   (pool == csound->engineState.varPool
+	    && var_pool == typeTable->globalPool) ||
+	   (var_pool == csound->engineState.varPool
+	    && pool == typeTable->globalPool))
+	  cs_hash_table_remove(csound, var_pool->table, var->varName);
+	// create a new variable (local vars shadow globals)
+	var = csoundCreateVariable(csound, csound->typePool,
+				   type, varName, typeArg);
+	csoundAddVariable(csound, pool, var); 
+      }
       csound->Free(csound, t);
     }
   }
