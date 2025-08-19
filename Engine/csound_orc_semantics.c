@@ -1583,14 +1583,16 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 
   const CS_TYPE* type;
   CS_VARIABLE* var;
-  char *t;
+  char *t = cs_strdup(csound, varName);
   CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
-
+  // remove any global annotation
+  find_global_annotation(t, typeTable);
   // search on  all pools
-  var = find_var_from_pools(csound, varName, varName, typeTable);
+  var = find_var_from_pools(csound, t, t, typeTable);
+  csound->Free(csound, t);
   if (var == NULL) {
     if (annotation != NULL) {
       // check for global annotation in explicit-type rhs vars
@@ -1640,26 +1642,35 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   } else {
     // for explicit non-array types, we'll allow variable redeclaration
     if (annotation != NULL) {
+      pool = find_global_annotation(varName, typeTable);
+      CS_VAR_POOL *var_pool = get_var_pool(csound, typeTable, varName);
       // check for optional type 
-      char *t = check_optional_type(csound, annotation);
+      t = check_optional_type(csound, annotation);
       // check if a variable is declared with same name
       // and different type.
       type = csoundGetTypeWithVarTypeName(csound->typePool, t);
       if(type && type != var->varType){
-	CS_VAR_POOL *var_pool = get_var_pool(csound, typeTable, varName);
-	pool = find_global_annotation(varName, typeTable);
-	// remove variable if it belongs to the same pool (local/global)
+	 // remove variable if it belongs to the same pool (local/global)
 	if(pool == var_pool ||
-	   (pool == csound->engineState.varPool
-	    && var_pool == typeTable->globalPool) ||
 	   (var_pool == csound->engineState.varPool
 	    && pool == typeTable->globalPool))
 	  cs_hash_table_remove(csound, var_pool->table, var->varName);
-	// create a new variable (local vars shadow globals)
-	var = csoundCreateVariable(csound, csound->typePool,
-				   type, varName, typeArg);
-	csoundAddVariable(csound, pool, var); 
+	else if(pool == typeTable->globalPool)
+	  synterr(csound, "global variable %s:%s cannot shadow local variable %s:%s",
+		  varName, type->varTypeName, var->varName, var->varType->varTypeName);
+      } else {
+	// do nothing if it's the same type & pool
+	if(pool == var_pool) return;
+	// if it's a global var was requested, print warning, do nothing
+        if(pool == typeTable->globalPool) {
+	  csound->Warning(csound, "@global annotation ignored for variable %s", varName);
+	  return;
+	}
       }
+      // create a new variable (local vars shadow globals)
+      var = csoundCreateVariable(csound, csound->typePool,
+				   type, varName, typeArg);
+      csoundAddVariable(csound, pool, var); 	
       csound->Free(csound, t);
     }
   }
