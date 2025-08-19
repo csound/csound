@@ -209,7 +209,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
     /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
     csound->orcname_mode = 0;
     if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
-      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+      csound->Message(csound, "Reading CSD file:  %s\n", csound->orchname);
 
     /* Add directory of CSD file to search paths before orchname gets
      * replaced with temp orch name if default paths is enabled */
@@ -311,9 +311,12 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
   if (csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 
+  if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
+      csound->Message(csound, "Compiling Csound code...\n");
+
   if (UNLIKELY(csound_compile_orc(csound, NULL, 0) != 0)) {
     if (csound->oparms->daemon != 1 && csound->orchname != NULL)
-      csoundDie(csound, Str("cannot compile orchestra"));
+      csoundDie(csound, Str("\t ... failed to compile code."));
     else {
       /* VL -- 21-10-13 Csound does not need to die on
          failure to compile. It can carry on, because new
@@ -323,7 +326,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
          before it can start without an orchestra
         */
       if (csound->oparms->daemon == 1)
-        csound->Warning(csound, Str("cannot compile orchestra.\n"
+        csound->Warning(csound, Str("\t ... cannot compile code.\n"
                                     "Csound will start with no instruments"));
     }
   } else {
@@ -338,9 +341,10 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
     }
     csoundSetConfigurationVariable(csound, "rtmidi", "hostbased");
   }
+  if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
+   csound->Message(csound, "\t ...done\n");
+  print_benchmark_info(csound, Str("end of code compilation"));
 
-  /* IV - Jan 28 2005 */
-  print_benchmark_info(csound, Str("end of orchestra compile"));
   if (UNLIKELY(!csoundYield(csound)))
     return -1;
   /* IV - Oct 31 2002: now we can read and sort the score */
@@ -361,8 +365,10 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
       if (UNLIKELY(csound->scorestr == NULL))
         csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
     }
-    if (O->msglevel || O->odebug)
-      csound->Message(csound, Str("sorting score ...\n"));
+    
+    if (O->msglevel || O->odebug) {
+      csound->Message(csound, Str("Sorting score ...\n"));
+    }
     // printf("score:\n%s", corfile_current(csound->scorestr));
     scsortstr(csound, csound->scorestr);
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
@@ -386,8 +392,9 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
     fclose(xfile);
     csound->tempStatus &= ~csPlayScoMask;
   }
-  if (O->msglevel || O->odebug)
+  if (O->msglevel || O->odebug) {
     csound->Message(csound, Str("\t... done\n"));
+  }
   /* copy sorted score name */
   csound->playscore = csound->scstr;
   /* IV - Jan 28 2005 */
@@ -399,6 +406,8 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
       return CSOUND_EXITJMP_SUCCESS;
     return CSOUND_ERROR;
   }
+  if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
+   csound->Message(csound, "\n");
   return CSOUND_SUCCESS;
 }
 

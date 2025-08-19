@@ -1579,7 +1579,7 @@ char *check_optional_type(CSOUND *csound, char *name) {
    to make sure the argument type matches the existing variable
 */
 void add_arg(CSOUND* csound, char* varName, char* annotation,
-             TYPE_TABLE* typeTable) {
+             TYPE_TABLE* typeTable, TREE* tree) {
 
   const CS_TYPE* type;
   CS_VARIABLE* var;
@@ -1653,17 +1653,24 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	 // remove variable if it belongs to the same pool (local/global)
 	if(pool == var_pool ||
 	   (var_pool == csound->engineState.varPool
-	    && pool == typeTable->globalPool))
+	    && pool == typeTable->globalPool)) {
+	  if(tree)
+	   csound->Warning(csound, "Replacing previous definition %s:%s by %s:%s, line %d",
+                              var->varName, var->varType->varTypeName,
+			  varName, type->varTypeName, tree->line);
 	  cs_hash_table_remove(csound, var_pool->table, var->varName);
+	}
 	else if(pool == typeTable->globalPool)
-	  synterr(csound, "global variable %s:%s cannot shadow local variable %s:%s",
-		  varName, type->varTypeName, var->varName, var->varType->varTypeName);
+	  if(tree) // synterr should not happen tree is NULL, as arg is synthetic
+	  synterr(csound, "global variable %s:%s cannot shadow local variable %s:%s, line %d",
+		  varName, type->varTypeName, var->varName, var->varType->varTypeName, tree->line);
       } else {
 	// do nothing if it's the same type & pool
 	if(pool == var_pool) return;
 	// if it's a global var was requested, print warning, do nothing
         if(pool == typeTable->globalPool) {
-	  csound->Warning(csound, "@global annotation ignored for variable %s", varName);
+	  if(tree)
+	    csound->Warning(csound, "@global annotation ignored for variable %s, line %d", varName, tree->line);
 	  return;
 	}
       }
@@ -1776,7 +1783,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (*varName == 't' && current->value->optype == NULL) { /* Support legacy t-vars */
         add_array_arg(csound, varName, "k", 1, typeTable);
       } else {
-        add_arg(csound, varName, current->value->optype, typeTable);
+        add_arg(csound, varName, current->value->optype, typeTable, current);
       }
 
       break;
@@ -1784,7 +1791,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case T_ARRAY:
       varName = current->left->value->lexeme;
       // FIXME - this needs to work for array and a-names
-      add_arg(csound, varName, NULL, typeTable);
+      add_arg(csound, varName, NULL, typeTable, current);
       break;
 
     default:
@@ -2766,7 +2773,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
        typ = remove_type_quoting(csound, atype);
        // now create the arg based on the array type
        add_arg(csound, current->left->value->lexeme, typ,
-              typeTable);
+	       typeTable, current);
       } else {
         // now we need to check that the array matches the
         // var type - automatic conversion possible for i and k

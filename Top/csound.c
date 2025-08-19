@@ -2764,7 +2764,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
   va_list args;
   if (!(csound->oparms_.msglevel & CS_WARNMSG))
     return;
-  csoundMessageS(csound, CSOUNDMSG_WARNING, Str("WARNING: "));
+  csoundMessageS(csound, CSOUNDMSG_WARNING, Str("warning: "));
   va_start(args, msg);
   csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
   va_end(args);
