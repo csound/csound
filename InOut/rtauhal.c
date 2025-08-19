@@ -866,18 +866,13 @@ static void rtclose_(CSOUND *csound)
       csound->DestroyCircularBuffer(csound, cdata->incb);
       csound->DestroyCircularBuffer(csound, cdata->outcb);
       csound->Free(csound,cdata);
-     const OPARMS *O;
-      O = csound->GetOParms(csound) ;
-      if(O->msglevel || O->odebug)
-       csound->Message(csound, "%s", Str("AuHAL module: device closed\n"));
+      csound->DebugMsg(csound, "%s", Str("AuHAL module: device closed\n"));
     }
 }
 
 int32_t csoundModuleInit(CSOUND *csound)
 {
     char   *drv;
-    const OPARMS *O;
-    O = csound->GetOParms(csound) ;
     csound->ModuleListAdd(csound, "auhal", "audio");
     drv = (char *) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
@@ -887,8 +882,7 @@ int32_t csoundModuleInit(CSOUND *csound)
           strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
-   if(O->msglevel || O->odebug)
-    csound->Message(csound, "%s", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
+    csound->DebugMsg(csound, "%s", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);
