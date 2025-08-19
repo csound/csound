@@ -645,13 +645,21 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     varBaseName = s;
 
-    if (*s == '#')
+    if (*s == '#') {
+      // find synthetic vars
       s++;
-
-    // strip @global if it exists, it's a non-op here
-    find_global_annotation(s, typeTable); 
-    // find the variable in one of the variable pools 
-    var = find_var_from_pools(csound, s, tree->value->lexeme, typeTable);
+      var = find_var_from_pools(csound, s, tree->value->lexeme, typeTable);
+    }
+    else {
+      // other vars
+      // make a copy to preserve the lexeme
+      char *s_copy = cs_strdup(csound, s);
+      // strip @global if it exists, it's a non-op here
+      find_global_annotation(s_copy, typeTable); 
+      // find the variable in one of the variable pools 
+      var = find_var_from_pools(csound, s_copy, s_copy, typeTable);
+      csound->Free(csound, s_copy);
+    }
 
     
     if (UNLIKELY(var == NULL)) {   
@@ -1584,6 +1592,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   const CS_TYPE* type;
   CS_VARIABLE* var;
   char *t = cs_strdup(csound, varName);
+  char *lvarName = cs_strdup(csound, varName); // local copy
   CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
@@ -1596,7 +1605,8 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   if (var == NULL) {
     if (annotation != NULL) {
       // check for global annotation in explicit-type rhs vars
-      pool = find_global_annotation(varName, typeTable);
+      lvarName = cs_strdup(csound, varName);
+      pool = find_global_annotation(lvarName, typeTable);
       // check to see if annotation is optional type
       char *nm = check_optional_type(csound, annotation);
       type = csoundGetTypeWithVarTypeName(csound->typePool,nm);
@@ -1608,7 +1618,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       if(find_global_annotation(varName, typeTable) == typeTable->globalPool)
         csound->Warning(csound, "%s: @global annotation ignored", varName); 
           
-      t = varName;
+      t = lvarName;
       argLetter[1] = 0;
 
       if (*t == '#') t++;
@@ -1637,13 +1647,13 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
     var = csoundCreateVariable(csound, csound->typePool,
-				 type, varName, typeArg);
+				 type, lvarName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
     // for explicit non-array types, we'll allow variable redeclaration
     if (annotation != NULL) {
-      pool = find_global_annotation(varName, typeTable);
-      CS_VAR_POOL *var_pool = get_var_pool(csound, typeTable, varName);
+      pool = find_global_annotation(lvarName, typeTable);
+      CS_VAR_POOL *var_pool = get_var_pool(csound, typeTable, lvarName);
       // check for optional type 
       t = check_optional_type(csound, annotation);
       // check if a variable is declared with same name
@@ -1657,31 +1667,33 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	  if(tree)
 	   csound->Warning(csound, "Replacing previous definition %s:%s by %s:%s, line %d",
                               var->varName, var->varType->varTypeName,
-			  varName, type->varTypeName, tree->line);
+			  lvarName, type->varTypeName, tree->line);
 	  cs_hash_table_remove(csound, var_pool->table, var->varName);
 	}
 	else if(pool == typeTable->globalPool)
 	  if(tree) // synterr should not happen tree is NULL, as arg is synthetic
 	  synterr(csound, "global variable %s:%s cannot shadow local variable %s:%s, line %d",
-		  varName, type->varTypeName, var->varName, var->varType->varTypeName, tree->line);
+		  lvarName, type->varTypeName, var->varName, var->varType->varTypeName, tree->line);
       } else {
 	// do nothing if it's the same type & pool
-	if(pool == var_pool) return;
+	if(pool == var_pool) goto end;
 	// if it's a global var was requested, print warning, do nothing
         if(pool == typeTable->globalPool) {
 	  if(tree)
-	    csound->Warning(csound, "@global annotation ignored for variable %s, line %d", varName, tree->line);
-	  return;
+	    csound->Warning(csound, "@global annotation ignored for variable %s, line %d",
+			    lvarName, tree->line);
+	  goto end;
 	}
       }
       // create a new variable (local vars shadow globals)
       var = csoundCreateVariable(csound, csound->typePool,
-				   type, varName, typeArg);
+				   type, lvarName, typeArg);
       csoundAddVariable(csound, pool, var); 	
       csound->Free(csound, t);
     }
   }
-
+ end:
+  csound->Free(csound, lvarName);
 }
 
 /* This function creates a new array variable for a rhs argument
@@ -1693,22 +1705,25 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                    int32_t dimensions, TYPE_TABLE* typeTable) {
 
   CS_VARIABLE* var;
-  char *t;
+  char *t = cs_strdup(csound, varName);
+  char *lvarName = cs_strdup(csound, varName); // local copy
   CS_VAR_POOL* pool = typeTable->localPool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
   const CS_TYPE* varType;
-  
+  // remove any global annotation
+  find_global_annotation(t, typeTable);
   // search on  all pools
-  var = find_var_from_pools(csound, varName, varName, typeTable);
+  var = find_var_from_pools(csound, t, t, typeTable);
+  csound->Free(csound, t);
   if (var == NULL) {
     if (annotation != NULL) {
       // check for global annotation
-      pool = find_global_annotation(varName, typeTable);
+      pool = find_global_annotation(lvarName, typeTable);
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
-      t = varName;
+      t = lvarName;
       argLetter[1] = 0;
 
       if (*t == '#') t++;
@@ -1727,7 +1742,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     typeArg = &varInit;
     var = csoundCreateVariable(csound, csound->typePool,
 				 &CS_VAR_TYPE_ARRAY,
-				 varName, typeArg);
+				 lvarName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -1744,6 +1759,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                  var->subType ? "[]" : "");
     }
   }
+  csound->Free(csound, lvarName);
 }
 
 /* return 1 on succcess, 0 on failure */

@@ -2171,6 +2171,18 @@ static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
   }
 }
 
+static void remove_global_annotation(char *varName) {
+  // find global annotation
+  if(strchr(varName, '@') != NULL) {
+    char* th;
+    char* baseType = strtok_r(varName, "@", &th);
+    char* global = strtok_r(NULL, "@", &th);
+    if(!strcmp(global, "global")) {
+      varName = baseType;
+    }
+  }
+}
+
 static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
                                    CS_VAR_POOL* varPool, char* varName) {
   char* delimit = strchr(varName, '.');
@@ -2194,9 +2206,10 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   char c;
   char *temp;
   int32_t n;
+  // remove global annotation still present
+  remove_global_annotation(s);
 
   c = *s;
-
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
 
   if (UNLIKELY(csound->oparms->odebug))
