@@ -764,8 +764,27 @@ assignment : '='
               | S_DIVIN
                 { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##divin")); }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##mulin")); } 
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##mulin")); }	    
               ;
+/**
+              | S_ADDIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+"));
+                }
+              | S_SUBIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-"));
+                }
+              | S_DIVIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/"));
+                }
+              | S_MULIN
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*"));
+                }
+              ;
+*/
 
 in        : IN_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, IN_TOKEN, (ORCTOKEN *)$1); }
