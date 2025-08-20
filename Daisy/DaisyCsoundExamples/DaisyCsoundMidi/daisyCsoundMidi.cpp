@@ -215,9 +215,7 @@ int main(void)
     hw.Configure();
     hw.Init();
     // hw.StartLog();
-
-
-    System::Delay(5000);
+    
     CSOUND *cs = csoundCreate(NULL, NULL);
     //csoundSetMessageCallback(cs, DaisyCsoundMessageCallback);
     csoundSetHostData(cs, (void *)&hw);
