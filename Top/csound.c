@@ -2326,7 +2326,7 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
     if (UNLIKELY(done)) {
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
-      csoundMessage(csound, Str("End of Performance "));
+      csoundMessage(csound, Str("end of Performance\n"));
       return done;
     }
   } while (csound->kperf(csound));

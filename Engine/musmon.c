@@ -310,10 +310,6 @@ int32_t start_engine(CSOUND *csound)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       midi_open_out(csound);
 
-    if(O->msglevel) {
-      csound->ErrorMsg(csound, Str("orch now loaded\n"));
-    }
-
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
     STA(sormsg)  = O->msglevel & SORMSG;
