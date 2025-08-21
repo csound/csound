@@ -406,8 +406,6 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
       return CSOUND_EXITJMP_SUCCESS;
     return CSOUND_ERROR;
   }
-  if (!(O->msglevel == 16) && (O->msglevel || O->odebug))
-   csound->Message(csound, "\n");
   return CSOUND_SUCCESS;
 }
 

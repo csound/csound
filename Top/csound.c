@@ -191,9 +191,9 @@ void print_sndfile_version(CSOUND *csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
   csound->SndfileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
-  csoundErrorMsg(csound, "%s\n", buffer);
+  csoundErrorMsg(csound, "using %s\n", buffer);
 #else
-  csoundErrorMsg(csound, "%s\n", "No soundfile IO");
+  csoundErrorMsg(csound, "%s\n", "not using libsndfile");
 #endif
 }
 
@@ -1530,10 +1530,8 @@ PUBLIC CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   csoundReset(csound);
   csound->API_lock = csoundCreateMutex(1);
   allocate_message_queue(csound);
-  /* NB: as suggested by F Pinot, keep the
-     address of the pointer to CSOUND inside
-     the struct, so it can be cleared later */
-  // csound->self = &csound;
+  // version is always displayed
+  print_csound_version(csound);
   return csound;
 }
 
