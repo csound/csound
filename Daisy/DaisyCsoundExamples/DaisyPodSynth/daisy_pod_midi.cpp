@@ -65,7 +65,7 @@ void AudioCallback(AudioHandle::InterleavingInputBuffer in,
 
   csoundSetControlChannel(csound, "toggle1", synth->toggle1 ? 1.f : 0.f);
   csoundSetControlChannel(csound, "toggle2", synth->toggle2 ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "etoggle", synth->toggle2 ? 1.f : 0.f);
+  csoundSetControlChannel(csound, "etoggle", synth->encoder_toggle ? 1.f : 0.f);
   csoundSetControlChannel(csound, "pressed1",
 			  synth->hw.button1.Pressed() ? 1.f : 0.f);
   csoundSetControlChannel(csound, "pressed2",
@@ -82,9 +82,10 @@ void AudioCallback(AudioHandle::InterleavingInputBuffer in,
   if(res == 0) memcpy(out, spout, sizeof(MYFLT)*size);
   else memset(out, 0, sizeof(MYFLT)*size);
 
-  synth->hw.led1.Set(synth->toggle1 ? 1.f : 0.f, 0, 0);
-  synth->hw.led2.Set(synth->toggle2 ? 1.f : 0.f, 0, 0);
+  synth->hw.led1.Set(synth->toggle1 ? 1 : 0, 0, 0);
+  synth->hw.led2.Set(0, 0, synth->toggle2 ? 1 : 0);
   synth->hw.UpdateLeds();
+
 }
 
 int main() {
@@ -94,6 +95,8 @@ int main() {
   synth.hw.Init();
   synth.pot1.Init(synth.hw.knob1,0.f,1.f,Parameter::LINEAR);
   synth.pot2.Init(synth.hw.knob2,0.f,1.f,Parameter::LINEAR);
+  synth.toggle1 = synth.toggle2 = synth.encoder_toggle = false;
+  synth.encoder_value = 0;
   
   csound = csoundCreate(&synth, NULL);
   if(csound) {
@@ -108,13 +111,10 @@ int main() {
 	synth.hw.SetAudioBlockSize(csoundGetKsmps(csound));
 	synth.hw.SetAudioSampleRate((SaiHandle::Config::SampleRate)
 			      csoundGetSr(csound));
+
 	synth.hw.StartAdc();
 	synth.hw.StartAudio(AudioCallback);
 
-	synth.hw.led1.Set(0, 0, 0);
-        synth.hw.led2.Set(0, 0, 0);
-        synth.hw.UpdateLeds();
-	
 	while(1){
 	  synth.midi.Listen();
 	  while(synth.midi.HasEvents()) {
