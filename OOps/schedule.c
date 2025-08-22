@@ -357,9 +357,11 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   }
   else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_I ||
            GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_C ||
-           GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_P) 
+           GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_P ||
+	   GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_K) 
     return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
+  
   else return csound->InitError(csound, "invalid instrument argument\n");
 }
 
