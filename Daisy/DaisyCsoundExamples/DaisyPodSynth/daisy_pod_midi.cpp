@@ -36,96 +36,96 @@ static void set_audio_midi_io(CSOUND *csound);
 std::vector<uint8_t> ConvertMidiEventToBytes(const MidiEvent &event);
 
 static CSOUND *csound;
-struct PodSynth {
-  DaisyPod hw;
-  MidiUsbHandler midi;
-  MidiBuffer midi_buffer;
-  Parameter pot1, pot2;
-  bool toggle1, toggle2, encoder_toggle;
-  int encoder_value;
-};
-
 void AudioCallback(AudioHandle::InterleavingInputBuffer in,
 		   AudioHandle::InterleavingOutputBuffer out,
                    size_t size) {
-  const int max_encoder = 10000;
-  auto synth = static_cast<PodSynth *>(csoundGetHostData(csound));
   const MYFLT *spout = csoundGetSpout(csound);
-  int32_t res;
-
-  synth->hw.ProcessDigitalControls();
-
-  if(synth->hw.button1.RisingEdge())
-    synth->toggle1 = !synth->toggle1;
-  if(synth->hw.button2.RisingEdge())
-    synth->toggle2 = !synth->toggle2;
-  if(synth->hw.encoder.RisingEdge())
-    synth->encoder_toggle = !synth->encoder_toggle;
-  synth->encoder_value += synth->hw.encoder.Increment(); 
-
-  csoundSetControlChannel(csound, "toggle1", synth->toggle1 ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "toggle2", synth->toggle2 ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "etoggle", synth->encoder_toggle ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "pressed1",
-			  synth->hw.button1.Pressed() ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "pressed2",
-			  synth->hw.button2.Pressed() ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "epressed",
-			  synth->hw.encoder.Pressed() ? 1.f : 0.f);
-  csoundSetControlChannel(csound, "encoder", (MYFLT)
-			  DSY_CLAMP(synth->encoder_value, 0, max_encoder)
-			  /max_encoder);
-  csoundSetControlChannel(csound, "pot1", synth->pot1.Process());
-  csoundSetControlChannel(csound, "pot2", synth->pot2.Process());
-  
+  int32_t res;  
   res = csoundPerformKsmps(csound);
   if(res == 0) memcpy(out, spout, sizeof(MYFLT)*size);
   else memset(out, 0, sizeof(MYFLT)*size);
-
-  synth->hw.led1.Set(synth->toggle1 ? 1 : 0, 0, 0);
-  synth->hw.led2.Set(0, 0, synth->toggle2 ? 1 : 0);
-  synth->hw.UpdateLeds();
-
 }
 
 int main() {
   
-  PodSynth synth;
+  DaisyPod hw;
+  MidiUsbHandler midi_usb;
+  MidiUartHandler midi_uart;
+  MidiBuffer midi_buffer;
+  bool toggle1, toggle2, encoder_toggle;
+  int encoder_value;
+  const int max_encoder = 10000;
   
-  synth.hw.Init();
-  synth.pot1.Init(synth.hw.knob1,0.f,1.f,Parameter::LINEAR);
-  synth.pot2.Init(synth.hw.knob2,0.f,1.f,Parameter::LINEAR);
-  synth.toggle1 = synth.toggle2 = synth.encoder_toggle = false;
-  synth.encoder_value = 0;
+  hw.Init();
+  toggle1 = toggle2 = encoder_toggle = false;
+  encoder_value = 0;
   
-  csound = csoundCreate(&synth, NULL);
+  csound = csoundCreate(&midi_buffer, NULL);
   if(csound) {
     set_audio_midi_io(csound);
     csoundSetOption(csound, "-n -M0 -dm0");
     if(csoundCompileCSD(csound, csd_text.c_str(), 1, 0) == 0){
       if(csoundStart(csound) == 0) {
 	
-	MidiUsbHandler::Config midi_cfg;
-	midi_cfg.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
-	synth.midi.Init(midi_cfg);
-	synth.hw.SetAudioBlockSize(csoundGetKsmps(csound));
-	synth.hw.SetAudioSampleRate((SaiHandle::Config::SampleRate)
+	MidiUsbHandler::Config midi_usb_cfg;
+	MidiUartHandler::Config midi_uart_cfg;
+	midi_usb_cfg.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
+	midi_usb.Init(midi_usb_cfg);
+	midi_uart.Init(midi_uart_cfg);
+	hw.SetAudioBlockSize(csoundGetKsmps(csound));
+	hw.SetAudioSampleRate((SaiHandle::Config::SampleRate)
 			      csoundGetSr(csound));
-
-	synth.hw.StartAdc();
-	synth.hw.StartAudio(AudioCallback);
+	hw.StartAdc();
+	hw.StartAudio(AudioCallback);
 
 	while(1){
-	  synth.midi.Listen();
-	  while(synth.midi.HasEvents()) {
-	    auto msg = synth.midi.PopEvent();
+	  midi_usb.Listen();
+	  midi_uart.Listen();
+	  
+	  while(midi_usb.HasEvents()) {
+	    auto msg = midi_usb.PopEvent();
 	    auto rawBytes = ConvertMidiEventToBytes(msg);
-	    synth.midi_buffer.write(rawBytes);
+	    midi_buffer.write(rawBytes);
 	  }
+
+	 while(midi_uart.HasEvents()) {
+	    auto msg = midi_uart.PopEvent();
+	    auto rawBytes = ConvertMidiEventToBytes(msg);
+	    midi_buffer.write(rawBytes);
+	  }
+
+	  hw.ProcessDigitalControls();
+	  if(hw.button1.RisingEdge())
+	    toggle1 = !toggle1;
+	  if(hw.button2.RisingEdge())
+	    toggle2 = !toggle2;
+	  if(hw.encoder.RisingEdge())
+	    encoder_toggle = !encoder_toggle;
+	  encoder_value += hw.encoder.Increment();
+	  
+	  csoundSetControlChannel(csound, "toggle1", toggle1 ? 1.f : 0.f);
+	  csoundSetControlChannel(csound, "toggle2", toggle2 ? 1.f : 0.f);
+	  csoundSetControlChannel(csound, "etoggle", encoder_toggle ?
+				  1.f : 0.f);
+	  csoundSetControlChannel(csound, "pressed1",
+				  hw.button1.Pressed() ? 1.f : 0.f);
+	  csoundSetControlChannel(csound, "pressed2",
+				  hw.button2.Pressed() ? 1.f : 0.f);
+	  csoundSetControlChannel(csound, "epressed",
+				  hw.encoder.Pressed() ? 1.f : 0.f);
+	  csoundSetControlChannel(csound, "encoder", (MYFLT)
+				  DSY_CLAMP(encoder_value, 0, max_encoder)
+				  /max_encoder);
+	  csoundSetControlChannel(csound, "pot1", hw.knob1.GetRawFloat());
+	  csoundSetControlChannel(csound, "pot2", hw.knob2.GetRawFloat());
+
+	  hw.led1.Set(toggle1 ? 1 : 0, 0, 0);
+          hw.led2.Set(0, 0, toggle2 ? 1 : 0);
+	  hw.seed.SetLed(encoder_toggle);
+          hw.UpdateLeds(); 
 	}
       }
     }
-    csoundDestroy(csound);
   }   
   return 0;
 }
@@ -143,9 +143,9 @@ int32_t open_midi_device(CSOUND *csound, void **userData, const char *dev){
 
 int32_t read_midi_data(CSOUND *csound, void *userData, unsigned char *mbuf,
 		       int32_t nbytes) {
-  auto synth = static_cast<PodSynth *>(userData);
-  if(synth->midi_buffer.isAvailable){
-    return synth->midi_buffer.read(mbuf, nbytes);
+  auto midi_buffer = static_cast<MidiBuffer *>(userData);
+  if(midi_buffer->isAvailable){
+    return midi_buffer->read(mbuf, nbytes);
   }
   return 0;
 }

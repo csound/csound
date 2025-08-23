@@ -33,30 +33,29 @@ std::string csd_text = R"csd(
 
       sr = 44100
       0dbfs = 1
-      ksmps = 128
+      ksmps = 160
       nchnls = 2
       garev init 0
       prealloc 1,8
-      gkrel init 0.1
+      initc7 1,73,0.01 
  
-instr 1
-      kinit = 1
-      print i(kinit)
-      kcf chnget "pot1"
-      kres chnget "pot2"
-      iwave = chnget("toggle1")*10
-      kdet = chnget("encoder")
-      kcps cpsmidib 2
-      kvib midic7 1,0,kcps
-      if kvib > 0 then
-       kcps += oscil:k(kvib*0.05,7)
-      endif
-      iamp ampmidi 0.05
-      kenv madsr .05, .1, .6, i(gkrel)
-      ksig linenr iamp,0.01,i(gkrel),0.01
-      a1 vco2 ksig, kcps*(1-kdet), iwave, 0.5, rnd(1)
-      a2 vco2 ksig, kcps*(1+kdet), iwave, 0.5, rnd(1)
-      asig vclpf (a1+a2), kcps + kenv*port(kcf*13000, 0.01), kres
+      instr 1
+       iatt midic7 73,0.01,1
+       kcf chnget "pot1"
+       kres chnget "pot2"
+       iwave = chnget("toggle1")*10
+       kdet = chnget("encoder")
+       kcps cpsmidib 2
+       kvib midic7 1,0,kcps
+       if kvib > 0 then
+        kcps += oscil:k(kvib*0.05,7)
+       endif
+       iamp ampmidi 0.05
+       kenv madsr iatt, .1, .6, 0.1
+       a1 vco2 iamp, kcps*(1-kdet), iwave, 0.5, rnd(1)
+       a2 vco2 iamp, kcps*(1+kdet), iwave, 0.5, rnd(1)
+       asig vclpf (a1+a2), kcps + kenv*port(kcf*13000, 0.01), kres
+       asig linenr asig,iatt,0.1,0.01
          garev += asig
       endin
 
@@ -90,29 +89,25 @@ instr 1
        endif
 
        if kchr > 0 && kchr > 0 then
-          scoreline "i101 0 0 6", ktrig
+          scoreline "i101 0 0 7", ktrig
           ktrig = 0;
           ktrig1 = 1;
           ktrig2  = 1
-          gkrel = 0.01
        elseif krev > 0 then
+          scoreline "i101 0 0 7", ktrig1
+          ktrig = 1;
+          ktrig1 = 0;
+          ktrig2 = 1;
+       elseif kchr > 0 then
           scoreline "i101 0 0 6", ktrig1
           ktrig = 1;
           ktrig1 = 0;
           ktrig2 = 1;
-          gkrel = 0.01
-       elseif kchr > 0 then
-          scoreline "i101 0 0 5", ktrig1
-          ktrig = 1;
-          ktrig1 = 0;
-          ktrig2 = 1;
-          gkrel = 0.01
        else
          scoreline "i101 0 0 8", ktrig2
          ktrig = 1
          ktrig1 = 1
          ktrig2 = 0
-         gkrel = 0.1
        endif
 
        out al, ar
