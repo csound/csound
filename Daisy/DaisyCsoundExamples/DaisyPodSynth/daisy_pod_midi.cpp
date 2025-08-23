@@ -72,6 +72,7 @@ int main() {
 	midi_usb_cfg.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
 	midi_usb.Init(midi_usb_cfg);
 	midi_uart.Init(midi_uart_cfg);
+	midi_uart.StartReceive();
 	hw.SetAudioBlockSize(csoundGetKsmps(csound));
 	hw.SetAudioSampleRate((SaiHandle::Config::SampleRate)
 			      csoundGetSr(csound));
