@@ -31,51 +31,98 @@ std::string csd_text = R"csd(
       </CsOptions>
       <CsInstruments>
 
-      sr = 48000
+      sr = 44100
       0dbfs = 1
       ksmps = 128
       nchnls = 2
       garev init 0
+      prealloc 1,8
+      gkrel init 0.1
  
-      instr 1
+instr 1
+      kinit = 1
+      print i(kinit)
       kcf chnget "pot1"
       kres chnget "pot2"
       iwave = chnget("toggle1")*10
       kdet = chnget("encoder")
       kcps cpsmidib 2
+      kvib midic7 1,0,kcps
+      if kvib > 0 then
+       kcps += oscil:k(kvib*0.05,7)
+      endif
       iamp ampmidi 0.05
-      aenv mxadsr .02, .1, .8, .2
-      kenv madsr .05, .1, .6, .2
-      a1 vco2 iamp, kcps*(1-kdet), iwave
-      a2 vco2 iamp, kcps*(1+kdet), iwave
-      afilt vclpf (a1+a2)*aenv, kcps + port(kenv*kcf*13000, 0.01), kres
-      outs afilt, afilt
-         garev += afilt
+      kenv madsr .05, .1, .6, i(gkrel)
+      ksig linenr iamp,0.01,i(gkrel),0.01
+      a1 vco2 ksig, kcps*(1-kdet), iwave, 0.5, rnd(1)
+      a2 vco2 ksig, kcps*(1+kdet), iwave, 0.5, rnd(1)
+      asig vclpf (a1+a2), kcps + kenv*port(kcf*13000, 0.01), kres
+         garev += asig
       endin
 
+      
       instr 100
-       krev = chnget:k("etoggle")*0.5
-       kchr = chnget:k("toggle2")*0.5
+       al, ar init 0
+       ktrig,ktrig1,ktrig2 init 1,1,1
+       krev = chnget:k("etoggle")
+       kchr = chnget:k("toggle2")
        
       if kchr > 0 then 
         ad delayr 0.05
-        as oscili 1, 0.93
-        a1 deltapi 0.011+as*0.0011
-	a2 deltapi 0.017-as*0.0017
-	   delayw garev*port(kchr,0.1)
-	 out a1*0.2+a2*0.8, a1*0.8+a2*0.2
+        as1 oscili 0.0011, 1.03
+	as2 oscili 0.0017, 0.97
+        al deltapi as1+0.011
+	ar deltapi as2+0.017
+	   delayw garev
+	al += garev
+        ar += garev
+       else 
+        al = garev
+        ar = garev
        endif
 
        if krev > 0 then
-        garev *= port(krev,0.1)
-        asigl, asigr reverbsc2 garev, garev, 0.7, 5000
-          out asigl, asigr
+        arl, arr reverbsc2 al, ar, 0.7, 5000, sr, 0
+	arl *= 0.5
+	arr *= 0.5
+	al += arl
+	ar += arr
        endif
 
+       if kchr > 0 && kchr > 0 then
+          scoreline "i101 0 0 6", ktrig
+          ktrig = 0;
+          ktrig1 = 1;
+          ktrig2  = 1
+          gkrel = 0.01
+       elseif krev > 0 then
+          scoreline "i101 0 0 6", ktrig1
+          ktrig = 1;
+          ktrig1 = 0;
+          ktrig2 = 1;
+          gkrel = 0.01
+       elseif kchr > 0 then
+          scoreline "i101 0 0 5", ktrig1
+          ktrig = 1;
+          ktrig1 = 0;
+          ktrig2 = 1;
+          gkrel = 0.01
+       else
+         scoreline "i101 0 0 8", ktrig2
+         ktrig = 1
+         ktrig1 = 1
+         ktrig2 = 0
+         gkrel = 0.1
+       endif
+
+       out al, ar
        garev = 0
       endin
       schedule(100,0,-1)
 
+      instr 101
+        maxalloc 1,p4,2
+      endin
       </CsInstruments>
       <CsScore>
       </CsScore>
