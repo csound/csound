@@ -243,11 +243,11 @@ jobs:
 
       - name: Install
         run: |
-	cmake --build build --target install
-	mkdir arm-cortex-m7
-	cp -r Daisy/DaisyCsoundExamples arm-cortex-m7
-	cp -r Daisy/lib arm-cortex-m7
-	cp -r Daisy/include arm-cortex-m7
+	  cmake --build build --target install
+	  mkdir arm-cortex-m7
+	  cp -r Daisy/DaisyCsoundExamples arm-cortex-m7
+	  cp -r Daisy/lib arm-cortex-m7
+	  cp -r Daisy/include arm-cortex-m7
       
       - name: Upload zip
         uses: actions/upload-artifact@v4
