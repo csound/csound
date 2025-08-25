@@ -12,8 +12,8 @@ LIBDAISY_DIR = ../../libDaisy/
 DAISYSP_DIR = ../../DaisySP/
 
 # Csound Library and Include Locations
-CSOUND_INCLUDE_DIR = /usr/local/csound_baremetal/include/csound
-CSOUND_LIB_DIR     = /usr/local/csound_baremetal/lib
+CSOUND_INCLUDE_DIR = ../../include/csound
+CSOUND_LIB_DIR     = ../../lib
 
 # Full path to the Csound static library
 CSOUND_STATIC_LIB = $(CSOUND_LIB_DIR)/libcsound.a

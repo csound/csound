@@ -237,18 +237,23 @@ jobs:
           brew install bison flex 
 
       - name: Configure build
-        run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/arm-none-eabi" -DCUSTOM_CMAKE="$PWD/Daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/Daisy/crosscompile.cmake"
+        run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/Daisy" -DCUSTOM_CMAKE="$PWD/Daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/Daisy/crosscompile.cmake"
       - name: Build Csound
         run: cmake --build build --config Release
 
       - name: Install
-        run: cmake --build build --target install
+        run: |
+	cmake --build build --target install
+	mkdir arm-cortex-m7
+	cp -r Daisy/DaisyCsoundExamples arm-cortex-m7
+	cp -r Daisy/lib arm-cortex-m7
+	cp -r Daisy/include arm-cortex-m7
       
       - name: Upload zip
         uses: actions/upload-artifact@v4
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-none-eabi
-          path: arm-none-eabi
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-cortex-m7
+          path: arm-cortex-m7
 
   macos_build_installer:
     name: MacOS build (installer)
@@ -733,11 +738,11 @@ jobs:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: csound-macos-${{env.CSOUND_VERSION}}
 
-      - name: Download arm-none-eabi package
+      - name: Download arm-cortex-m7 package
         uses: actions/download-artifact@v4      
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-none-eabi
-          path: csound-arm-none-eabi-${{env.CSOUND_VERSION}}
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-cortex-m7
+          path: csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
 
       - name: Download iOS artifacts
         uses: actions/download-artifact@v4
@@ -758,7 +763,7 @@ jobs:
           zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
           zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
-          zip -r csound-arm-none-eabi-${{env.CSOUND_VERSION}}.zip csound-arm-none-eabi-${{env.CSOUND_VERSION}}
+          zip -r csound-arm-core-m7-${{env.CSOUND_VERSION}}.zip csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
 
       - name: List release artifacts
         run: ls -l
@@ -775,4 +780,4 @@ jobs:
             csound-macos-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip
-            csound-arm-none-eabi-${{env.CSOUND_VERSION}}.zip
+            csound-arm-cortex-m7-${{env.CSOUND_VERSION}}.zip
