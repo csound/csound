@@ -922,7 +922,7 @@ int32_t presetctrl_init(CSOUND *csound, PRESETCTRL *p)
                             Str("ctrlpreset: failed to allocate globals"));
       q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
       q->max_num = 10;
-      q->presets = (int**)csound->Calloc(csound, 10*sizeof(int*));
+      q->presets = (int32_t **)csound->Calloc(csound, 10*sizeof(int*));
     }
     p->q = q;
     return OK;
@@ -941,10 +941,10 @@ int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
       if (i>=q->max_num) tag = q->max_num;
     }
     if (tag >= q->max_num) {
-      int** tt = q->presets;
+      int32_t** tt = q->presets;
       int32_t size = tag-q->max_num;
       if (size<10) size = 10;
-      tt = (int**)csound->ReAlloc(csound,
+      tt = (int32_t **)csound->ReAlloc(csound,
                                     tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
@@ -955,7 +955,7 @@ int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     }
     slot = q->presets[tag];
     if (slot) csound->Free(csound, slot);
-    q->presets[tag] = (int*) csound->Malloc(csound, sizeof(int)*(p->INOCOUNT));
+    q->presets[tag] = (int32_t*) csound->Malloc(csound, sizeof(int)*(p->INOCOUNT));
     slot = q->presets[tag];
     slot[0] = p->INOCOUNT;
     slot[1] = (int)(*p->chnl);
@@ -979,7 +979,7 @@ int32_t presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
                             Str("ctrlpreset: failed to allocate globals"));
       q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
       q->max_num = 10;
-      q->presets = (int**)csound->Calloc(csound, 10*sizeof(int*));
+      q->presets = (int32_t**)csound->Calloc(csound, 10*sizeof(int*));
     }
     p->q = q;
     return OK;
@@ -998,10 +998,10 @@ int32_t presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
       if (i>=q->max_num) tag = q->max_num;
     }
     if (tag >= q->max_num) {
-      int** tt = q->presets;
+      int32_t** tt = q->presets;
       int32_t size = tag-q->max_num;
       if (size<10) size = 10;
-      tt = (int**)csound->ReAlloc(csound,
+      tt = (int32_t**)csound->ReAlloc(csound,
                                   tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
@@ -1012,7 +1012,7 @@ int32_t presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     }
     slot = q->presets[tag];
     if (slot) csound->Free(csound, slot);
-    q->presets[tag] = (int*) csound->Malloc(csound,
+    q->presets[tag] = (int32_t*) csound->Malloc(csound,
                                             sizeof(int)*(1+p->arr->sizes[0]));
     slot = q->presets[tag];
     slot[0] = p->arr->sizes[0];

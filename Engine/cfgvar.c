@@ -234,7 +234,7 @@ static int32_t cfg_alloc_structure(CSOUND* csound,
  * csoundCreateGlobalConfigurationVariable().
  */
 
-int csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
+int32_t csoundCreateConfigurationVariable(CSOUND *csound, const char *name,
                                     void *p, int32_t type, int32_t flags,
                                     void *min, void *max,
                                     const char *shortDesc,
@@ -424,7 +424,7 @@ csCfgVariable_t *csoundQueryConfigurationVariable(CSOUND *csound,
 
 /* compare function for qsort() */
 
-static int32_t compare_func(const void *p1, const void *p2)
+static int compare_func(const void *p1, const void *p2)
 {
     return (int32_t) strcmp((char*) ((*((csCfgVariable_t**) p1))->h.name),
                         (char*) ((*((csCfgVariable_t**) p2))->h.name));

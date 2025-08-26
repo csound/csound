@@ -36,7 +36,7 @@
 /*  4 april 02 -- ma++ */
 /*  restructure to retrieve externally  */
 /* And suppressing deprecated Oct 2015 -- JPff */
-static int32_t opcode_cmp_func(const void *a, const void *b) {
+static int opcode_cmp_func(const void *a, const void *b) {
   opcodeListEntry *ep1 = (opcodeListEntry *)a;
   opcodeListEntry *ep2 = (opcodeListEntry *)b;
   int32_t retval;

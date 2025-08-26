@@ -1066,7 +1066,7 @@ int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
   return OK;
 }
 
-static int32_t cmpfunc (const void * a, const void * b) {
+static int cmpfunc (const void * a, const void * b) {
   MYFLT v1 = (phsc(*((MYCMPLX *) a)));
   MYFLT v2 = (phsc(*((MYCMPLX *) b)));
   return (int)((v1 - v2)*100000);

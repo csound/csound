@@ -1,5 +1,5 @@
 /*
-  daisyCsoundMidi.cpp:
+  daisyCsoundProcess.cpp:
 
   Copyright (C) 2025 Aman Jagawni
 
@@ -25,44 +25,25 @@
 #include "daisysp.h"
 #include <array>
 #include <stdio.h>
-#include "daisyCsoundMidi.h"
-#include "midiBuffer.h"
-#include <csound.h>
-#include <plugin.h>
+#include "daisyCsoundProcess.h"
+#include "csound.h"
+#include "plugin.h"
+
 
 using namespace daisy;
 using namespace daisy::seed;
 
-
-static int32_t
-OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
-static int32_t CloseMidiInDevice(CSOUND *csound, void *userData);
-static int32_t ReadMidiData(CSOUND        *csound,
-                            void          *userData,
-                            unsigned char *mbuf,
-                            int32_t        nbytes);
-/*
-// MIDI output - needs to be implemented
-static int32_t
-OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
-static int32_t CloseMidiOutDevice(CSOUND *csound, void *userData);
-static int32_t WriteMidiData(CSOUND              *csound,
-                             void                *userData,
-                             const unsigned char *mbuf,
-                             int                  nbytes);
-*/
-/*
-// use this for Csound message callbacks
-static void    DaisyCsoundMessageCallback(CSOUND     *csound,
-                                          int         attr,
-                                          const char *format,
-                                          va_list     args);
+// this function can be used to provide a message callback
+// for csound
+/* static void DaisyCsoundMessageCallback(CSOUND     *csound,
+                                       int         attr,
+                                       const char *format,
+                                       va_list     args);
 */
 
-DaisySeed      hw;
-MidiUsbHandler midi;
-MidiBuffer     midiBuffer;
-int            cnt = 0;
+
+DaisySeed hw;
+int       cnt = 0;
 #define SR 48000
 const int numAdcChannels = 12;
 CSOUND   *csound;
@@ -82,7 +63,6 @@ const char *controlChannelNames[numAdcChannels] = {"AnalogIn0",
                                                    "AnalogIn10",
                                                    "AnalogIn11"};
 
-
 struct DigiInHandler
 {
     static const int numDigiChannels = 15;
@@ -96,7 +76,7 @@ struct DigiInHandler
 
     DigiInHandler()
     {
-        for(int i = 0; i < numDigiChannels; i++)
+        for(int i = 0; i < numDigiChannels; ++i)
         {
             digiPullModes[i] = GPIO::Pull::NOPULL;
         }
@@ -104,7 +84,7 @@ struct DigiInHandler
 
     void initDigiPins()
     {
-        for(int i = 0; i < numDigiChannels; i++)
+        for(int i = 0; i < numDigiChannels; ++i)
         {
             gpios[i].Init(digiPins[i], GPIO::Mode::INPUT, GPIO::Pull::PULLUP);
         }
@@ -112,7 +92,7 @@ struct DigiInHandler
 
     void readDigiPins()
     {
-        for(int i = 0; i < numDigiChannels; i++)
+        for(int i = 0; i < numDigiChannels; ++i)
         {
             if(digiPinActive[i])
             {
@@ -122,9 +102,7 @@ struct DigiInHandler
     }
 };
 
-
 static DigiInHandler digiHandler;
-
 
 std::vector<uint8_t> ConvertMidiEventToBytes(const MidiEvent &event)
 {
@@ -189,24 +167,16 @@ struct DigiIn : csnd::Plugin<1, 2>
     }
 };
 
-
-void AudioCallback(AudioHandle::InputBuffer  in,
-                   AudioHandle::OutputBuffer out,
-                   size_t                    size)
+void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
+                   AudioHandle::InterleavingOutputBuffer out,
+                   size_t                                size)
 {
     const MYFLT *spout = csoundGetSpout(csound);
-    int          end   = csoundGetKsmps(csound);
-    for(size_t i = 0; i < size; i++)
-    {
-        if(cnt == 0)
-        {
-            csoundPerformKsmps(csound);
-        }
-        out[0][i] = spout[cnt] * 0.5f;
-        out[1][i] = spout[cnt + 1] * 0.5f;
-        //cnt = cnt != end - 1 ? cnt + 1 : 0; // for mono out
-        cnt = (cnt + 2) % (end * 2); // for stereo out
-    }
+    MYFLT       *spin  = csoundGetSpin(csound);
+
+    memcpy(spin, in, size * sizeof(MYFLT));
+    csoundPerformKsmps(csound);
+    memcpy(out, spout, size * sizeof(MYFLT));
 }
 
 
@@ -215,15 +185,12 @@ int main(void)
     hw.Configure();
     hw.Init();
     // hw.StartLog();
-    
+
     CSOUND *cs = csoundCreate(NULL, NULL);
-    //csoundSetMessageCallback(cs, DaisyCsoundMessageCallback);
+    // csoundSetMessageCallback(cs, DaisyCsoundMessageCallback);
     csoundSetHostData(cs, (void *)&hw);
     csoundSetHostAudioIO(cs);
-    csoundSetHostMIDIIO(cs);
-    csoundSetExternalMidiInOpenCallback(cs, OpenMidiInDevice);
-    csoundSetExternalMidiReadCallback(cs, ReadMidiData);
-    csoundSetExternalMidiInCloseCallback(cs, CloseMidiInDevice);
+
     if(csnd::plugin<DigiIn>(
            (csnd::Csound *)cs, "digiInDaisy", "k", "ii", csnd::thread::ik)
        != 0)
@@ -239,8 +206,7 @@ int main(void)
     {
         csound = cs;
         csoundSetOption(cs, "-n");
-        csoundSetOption(cs, "--ksmps=128");
-        csoundSetOption(cs, "-M0");
+        csoundSetOption(cs, "--ksmps=256");
         csoundSetOption(cs, "-dm0");
 
         int ret = csoundCompileCSD(cs, csdText.c_str(), 1, 0);
@@ -251,25 +217,12 @@ int main(void)
             hw.adc.Init(adcConfig, numAdcChannels);
             hw.adc.Start();
 
-            MidiUsbHandler::Config midi_cfg;
-            midi_cfg.transport_config.periph
-                = MidiUsbTransport::Config::INTERNAL;
-            midi.Init(midi_cfg);
-
-            hw.SetAudioBlockSize(128);
+            hw.SetAudioBlockSize(256);
             hw.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
             hw.StartAudio(AudioCallback);
             digiHandler.initDigiPins();
             while(1)
             {
-                midi.Listen();
-                while(midi.HasEvents())
-                {
-                    auto msg      = midi.PopEvent();
-                    auto rawBytes = ConvertMidiEventToBytes(msg);
-                    midiBuffer.write(rawBytes);
-                }
-
                 for(int i = 0; i < numAdcChannels; i++)
                 {
                     adcVals[i] = hw.adc.GetFloat(i);
@@ -298,34 +251,9 @@ int main(void)
 }
 
 
-int32_t CloseMidiInDevice(CSOUND *csound, void *userData)
-{
-    return 0;
-}
-
-
-int32_t OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev)
-{
-    *userData = (void *)&midiBuffer;
-    return 0;
-}
-
-
-int32_t ReadMidiData(CSOUND        *csound,
-                     void          *userData,
-                     unsigned char *mbuf,
-                     int32_t        nbytes)
-{
-    auto buffer = static_cast<MidiBuffer *>(userData);
-    if(buffer->isAvailable)
-    {
-        return buffer->read(mbuf, nbytes);
-    }
-    return 0;
-}
-
 /*
-// use this for Csound message callbacks
+// message callback
+
 constexpr size_t kMessageBufferSize = 64;
 static void DaisyCsoundMessageCallback(CSOUND     *csound,
                                        int         attr,
