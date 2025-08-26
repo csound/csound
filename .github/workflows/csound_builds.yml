@@ -224,6 +224,8 @@ jobs:
     name: ARM baremetal build (brew)
     runs-on: macos-latest
     needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}    
     steps:
       - name: Checkout source code
         uses: actions/checkout@v1
