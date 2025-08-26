@@ -47,7 +47,7 @@ void handle_optional_args(CSOUND *, TREE *);
 char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast);
 void add_arg(CSOUND* csound, char* varName, char* annotation,
-                    TYPE_TABLE* typeTable);
+	     TYPE_TABLE* typeTable, TREE *tree);
 void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                           int32_t dimensions,
                           TYPE_TABLE* typeTable);

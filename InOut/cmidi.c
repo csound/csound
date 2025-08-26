@@ -293,12 +293,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
   if (!(strcmp(drv, "coremidi") == 0 || strcmp(drv, "CoreMidi") == 0 ||
         strcmp(drv, "CoreMIDI") == 0 || strcmp(drv, "cm") == 0))
     return 0;
-  {
-    const OPARMS *O;
-    O = csound->GetOParms(csound) ;
-    if(O->msglevel || O->odebug)
-      csound->Message(csound, "%s", Str("rtmidi: CoreMIDI module enabled\n"));
-  }
+  csound->DebugMsg(csound, "%s", Str("rtmidi: CoreMIDI module enabled\n"));
   csound->SetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
   csound->SetExternalMidiReadCallback(csound, MidiDataRead);
   csound->SetExternalMidiInCloseCallback(csound, MidiInDeviceClose);

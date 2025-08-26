@@ -38,6 +38,10 @@
 #include "namedins.h"
 #include "aops.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+# define strtok_r strtok_s
+#endif
+
 extern const char *SYNTHESIZED_ARG;
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
@@ -2171,6 +2175,18 @@ static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
   }
 }
 
+static void remove_global_annotation(char *varName) {
+  // find global annotation
+  if(strchr(varName, '@') != NULL) {
+    char* th;
+    char* baseType = strtok_r(varName, "@", &th);
+    char* global = strtok_r(NULL, "@", &th);
+    if(!strcmp(global, "global")) {
+      varName = baseType;
+    }
+  }
+}
+
 static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
                                    CS_VAR_POOL* varPool, char* varName) {
   char* delimit = strchr(varName, '.');
@@ -2194,9 +2210,10 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   char c;
   char *temp;
   int32_t n;
+  // remove global annotation still present
+  remove_global_annotation(s);
 
   c = *s;
-
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
 
   if (UNLIKELY(csound->oparms->odebug))
@@ -2243,7 +2260,16 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
             csoundFindVariableWithName(csound, ip->varPool, s))) {
     arg->type = ARG_LOCAL;
     arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
-  } 
+  }
+  /* now check for local vars shadowing global vars */
+  else if(csoundFindVariableWithName(csound, ip->varPool,
+	   s) != NULL) {
+    arg->type = ARG_LOCAL;
+    setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    if (arg->argPtr == NULL) {
+      csound->Message(csound, Str("Missing local arg: %s\n"), s);
+    }
+  }
   /* now global vars are searched for */
   else if(csoundFindVariableWithName(csound, engineState->varPool,
                                         s) != NULL) {
@@ -2251,12 +2277,12 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     setup_arg_for_var_name(csound, arg, engineState->varPool, s);
     }
     else if(csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                       s) != NULL) {
+	   s) != NULL) {
     arg->type = ARG_GLOBAL;
     setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s);  
     
   }
-  /* otherwise we have a local argument */
+  /* otherwise we have a local arg */
   else {
     arg->type = ARG_LOCAL;
     setup_arg_for_var_name(csound, arg, ip->varPool, s);

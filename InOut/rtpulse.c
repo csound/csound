@@ -283,7 +283,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "pulse") == 0) {
-      csound->Message(csound, Str("rtaudio: pulseaudio module enabled\n"));
+      csound->DebugMsg(csound, Str("rtaudio: pulseaudio module enabled\n"));
       csound->SetPlayopenCallback(csound, pulse_playopen);
       csound->SetRecopenCallback(csound, pulse_recopen);
       csound->SetRtplayCallback(csound, pulse_play);

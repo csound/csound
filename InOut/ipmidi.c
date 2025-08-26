@@ -172,16 +172,14 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-   const OPARMS *O;
-    O = csound->GetOParms(csound) ;
 
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
       return 0;
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
-    if (O->msglevel & 0x400)
-      csound->Message(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
+
+    csound->DebugMsg(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);

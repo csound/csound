@@ -236,8 +236,6 @@ void print_sndfile_version(CSOUND* csound);
 int32_t start_engine(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    /* VL - 08-07-21 messages moved here so we can switch them off */
-    print_csound_version(csound);
     print_sndfile_version(csound);
 
     /* initialise search path cache */
@@ -311,10 +309,6 @@ int32_t start_engine(CSOUND *csound)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       midi_open_out(csound);
-
-    if(O->msglevel) {
-      csound->ErrorMsg(csound, Str("orch now loaded\n"));
-    }
 
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
