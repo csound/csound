@@ -765,7 +765,7 @@ jobs:
           zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
           zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
-          zip -r csound-arm-core-m7-${{env.CSOUND_VERSION}}.zip csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
+          zip -r csound-arm-cortex-m7-${{env.CSOUND_VERSION}}.zip csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
 
       - name: List release artifacts
         run: ls -l
