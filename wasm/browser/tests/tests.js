@@ -250,7 +250,7 @@ e
 
       it("can play tone and get channel values", async function () {
         const cs = await Csound(test);
-        const compileReturn = await cs.compileCsdText(shortTone);
+        const compileReturn = await cs.compileCSD(shortTone);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
@@ -262,7 +262,7 @@ e
 
       it("can play tone and send channel values", async function () {
         const cs = await Csound(test);
-        const compileReturn = await cs.compileCsdText(shortTone2);
+        const compileReturn = await cs.compileCSD(shortTone2);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
@@ -274,7 +274,7 @@ e
 
       it("can send and receive string channel values", async function () {
         const cs = await Csound(test);
-        const compileReturn = await cs.compileCsdText(stringChannelTest);
+        const compileReturn = await cs.compileCSD(stringChannelTest);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
@@ -293,7 +293,7 @@ e
           test,
         );
         const cs = await Csound(testWithPlugin);
-        assert.equal(0, await cs.compileCsdText(pluginTest));
+        assert.equal(0, await cs.compileCSD(pluginTest));
         await cs.start();
         await cs.stop();
         await cs.terminateInstance();
@@ -309,7 +309,7 @@ e
     //     );
     //     const cs = await Csound(testWithPlugin);
 
-    //     assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+    //     assert.equal(0, await cs.compileCSD(cxxPluginTest));
     //     await cs.start();
     //     await cs.stop();
     //     await cs.terminateInstance();
@@ -330,7 +330,7 @@ e
           csoundObj.on("onAudioNodeCreated", eventOnAudioNodeCreatedSpy);
 
           await csoundObj.setOption("-odac");
-          await csoundObj.compileCsdText(shortTone);
+          await csoundObj.compileCSD(shortTone);
           await csoundObj.start();
           await csoundObj.pause();
           await csoundObj.resume();
@@ -354,7 +354,7 @@ e
       it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
         await csoundObj.setOption("-odac");
-        await csoundObj.compileCsdText(ftableTest);
+        await csoundObj.compileCSD(ftableTest);
         await csoundObj.start();
 
         // assert few indicies
@@ -377,7 +377,7 @@ e
       it("can read and write arraybuffers to/from ftables in realtime", async function () {
         const csoundObj = await Csound(test);
         await csoundObj.setOption("-odac");
-        await csoundObj.compileCsdText(ftableTest);
+        await csoundObj.compileCSD(ftableTest);
         await csoundObj.start();
 
         const tableLength = await csoundObj.tableLength(1);
@@ -437,11 +437,11 @@ e
 
       it("can start() -> stop() -> reset() and start again", async function () {
         const csoundObj = await Csound(test);
-        await csoundObj.compileCsdText(helloWorld);
+        await csoundObj.compileCSD(helloWorld);
         await csoundObj.start();
         await csoundObj.stop();
         await csoundObj.reset();
-        await csoundObj.compileCsdText(helloWorld);
+        await csoundObj.compileCSD(helloWorld);
         await csoundObj.start();
         await csoundObj.stop();
         await csoundObj.terminateInstance();
@@ -467,7 +467,7 @@ e
           "The sample was written into the root dir",
         );
 
-        assert.equal(0, await csoundObj.compileCsdText(samplesTest), "The test string is valid");
+        assert.equal(0, await csoundObj.compileCSD(samplesTest, 0), "The test string is valid");
         assert.equal(
           0,
           await csoundObj.start(),
@@ -508,7 +508,7 @@ e
           "The sample was written into the root dir",
         );
 
-        assert.equal(0, await csoundObj.compileCsd(csdPath), "The test Csd is valid");
+        assert.equal(0, await csoundObj.compileCSD(csdPath, 0), "The test Csd is valid");
         assert.equal(
           0,
           await csoundObj.start(),

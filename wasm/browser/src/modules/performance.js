@@ -78,37 +78,20 @@ csoundStart["toString"] = () => "start = async () => Number;";
 // TODO
 // csoundCompile (CSOUND *, int argc, const char **argv)
 
-/**
- * Compiles a Csound input file but does not perform it.
- * @function
- */
-export const csoundCompileCsd = (wasm) => (csound, path) => {
-  const stringPtr = string2ptr(wasm, path);
 
-  let result;
-  try {
-    result = wasm.exports["csoundCompileCsd"](csound, stringPtr);
-  } catch (error) {
-    console.error(error);
-  }
-  freeStringPtr(wasm, stringPtr);
-  return result;
-};
-
-csoundCompileCsd["toString"] = () => "compileCsd = async (path) => Number;";
 
 /**
  * Compiles a CSD string but does not perform it.
  * @function
  */
-export const csoundCompileCsdText = (wasm) => (csound, orc) => {
-  const stringPtr = string2ptr(wasm, orc);
-  const result = wasm.exports["csoundCompileCsdText"](csound, stringPtr);
+export const csoundCompileCSD = (wasm) => (csound, csd, mode = 1) => {
+  const stringPtr = string2ptr(wasm, csd);
+  const result = wasm.exports["csoundCompileCSD"](csound, stringPtr, mode, 0);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
 
-csoundCompileCsdText["toString"] = () => "compileCsdText = async (csoundDocument) => Number;";
+csoundCompileCSD["toString"] = () => "compileCSD = async (csoundDocument) => Number;";
 
 /**
  * Performs(plays) audio until end is reached

@@ -20,7 +20,7 @@
             console.log({csound})
           await csound.fs.writeFile(fileName, testSample);
           await csound.setOption("-odac");
-          await csound.compileCsdText(`
+          await csound.compileCSD(`
   <CsoundSynthesizer>
 <CsOptions>
     -odac
