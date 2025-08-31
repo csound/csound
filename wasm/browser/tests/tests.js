@@ -467,7 +467,7 @@ e
           "The sample was written into the root dir",
         );
 
-        assert.equal(0, await csoundObj.compileCSD(samplesTest, 0), "The test string is valid");
+        assert.equal(0, await csoundObj.compileCSD(samplesTest), "The test string is valid");
         assert.equal(
           0,
           await csoundObj.start(),
