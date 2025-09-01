@@ -40,7 +40,7 @@ otherwise undefined.</p>
 ## CsoundObj : <code>object</code>
 CsoundObj API.
 
-**Kind**: global namespace  
+**Kind**: global namespace
 
 * [CsoundObj](#CsoundObj) : <code>object</code>
     * _global_
@@ -87,8 +87,7 @@ CsoundObj API.
         * [.compileOrc(orc)](#CsoundObj.compileOrc) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.evalCode(orc)](#CsoundObj.evalCode) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.start()](#CsoundObj.start) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.compileCsd(path)](#CsoundObj.compileCsd) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.compileCsdText(orc)](#CsoundObj.compileCsdText) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.compileCSD(csdOrPath, mode)](#CsoundObj.compileCsd) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.perform()](#CsoundObj.perform) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.performKsmps()](#CsoundObj.performKsmps) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.performBuffer()](#CsoundObj.performBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -123,11 +122,11 @@ CsoundObj API.
 <a name="getTable"></a>
 
 ### CsoundObjgetTable(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
-**Kind**: global method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: global method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
+| tableNum | <code>string</code> |
 
 <a name="CsoundObj.fs"></a>
 
@@ -135,42 +134,42 @@ CsoundObj API.
 The in-browser filesystem based on nodejs's
 built-in module "fs"
 
-**Kind**: static property of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static property of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.eventNames"></a>
 
 ### CsoundObj.eventNames() ⇒ <code>Array.&lt;string&gt;</code>
 Returns an array listing the events for which the emitter has registered listeners.
 The values in the array are strings.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.listenerCount"></a>
 
 ### CsoundObj.listenerCount() ⇒ <code>number</code>
 Returns the number of listeners listening to the event named eventName.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.listeners"></a>
 
 ### CsoundObj.listeners(eventName) ⇒ <code>Array.&lt;function()&gt;</code>
 Returns a copy of the array of listeners for the event named eventName.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
 
 <a name="CsoundObj.off"></a>
 
 ### CsoundObj.off(eventName, listener) ⇒ <code>external:EventEmitter</code>
 Alias for removeListener()
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
+| listener | <code>function</code> |
 
 <a name="CsoundObj.on"></a>
 
@@ -180,24 +179,24 @@ No checks are made to see if the listener has already been added.
 Multiple calls passing the same combination of eventName and listener
 will result in the listener being added, and called, multiple times.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
+| listener | <code>function</code> |
 
 <a name="CsoundObj.addListener"></a>
 
 ### CsoundObj.addListener(eventName, listener) ⇒ <code>external:EventEmitter</code>
 Alias for "on"
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
+| listener | <code>function</code> |
 
 <a name="CsoundObj.once"></a>
 
@@ -205,12 +204,12 @@ Alias for "on"
 Adds a one-time listener function for the event named eventName.
 The next time eventName is triggered, this listener is removed and then invoked.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
+| listener | <code>function</code> |
 
 <a name="CsoundObj.removeAllListeners"></a>
 
@@ -221,11 +220,11 @@ particularly when the EventEmitter instance was created by some other
 component or module.
 Returns a reference to the EventEmitter, so that calls can be chained.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
 
 <a name="CsoundObj.removeListener"></a>
 
@@ -236,78 +235,78 @@ If any single listener has been added multiple times to the listener array for t
 then removeListener() must be called multiple times to remove each instance.
 Removes the specified listener from the listener array for the event named eventName.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
+| eventName | [<code>PublicEvents</code>](#PublicEvents) |
+| listener | <code>function</code> |
 
 <a name="CsoundObj.getSr"></a>
 
 ### CsoundObj.getSr() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the sample rate from Csound instance
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getKr"></a>
 
 ### CsoundObj.getKr() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the control rate from Csound instance
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getKsmps"></a>
 
 ### CsoundObj.getKsmps() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the ksmps value (kr/sr) from Csound instance
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getNchnls"></a>
 
 ### CsoundObj.getNchnls() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the number of output channels from Csound instance
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getNchnlsInput"></a>
 
 ### CsoundObj.getNchnlsInput() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the number of input channels from Csound instance
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.get0dBFS"></a>
 
 ### CsoundObj.get0dBFS() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the value of csoundGet0dBFS
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getA4"></a>
 
 ### CsoundObj.getA4() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the A4 frequency reference
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getCurrentTimeSamples"></a>
 
 ### CsoundObj.getCurrentTimeSamples() ⇒ <code>Promise.&lt;number&gt;</code>
 Return the current performance time in samples
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getSizeOfMYFLT"></a>
 
 ### CsoundObj.getSizeOfMYFLT() ⇒ <code>Promise.&lt;number&gt;</code>
 Return the size of MYFLT in number of bytes
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.setOption"></a>
 
 ### CsoundObj.setOption(option) ⇒ <code>Promise.&lt;number&gt;</code>
 Set a single csound option (flag),
 no spaces are allowed in the string.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| option | <code>string</code> | 
+| option | <code>string</code> |
 
 <a name="CsoundObj.setParams"></a>
 
@@ -321,7 +320,7 @@ csoundGetParams().
 These options should only be changed before
 performance has started.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -334,8 +333,8 @@ Get the current set of parameters
 from a Csound instance
 in a CSOUND_PARAMS structure.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
-**Returns**: [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS) - - CSOUND_PARAMS object  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
+**Returns**: [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS) - - CSOUND_PARAMS object
 <a name="CsoundObj.getDebug"></a>
 
 ### CsoundObj.getDebug() ⇒ <code>Promise.&lt;number&gt;</code>
@@ -343,17 +342,17 @@ Returns whether Csound is set to print debug messages
 sent through the DebugMsg() internal API function.
 Anything different to 0 means true.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.setDebug"></a>
 
 ### CsoundObj.setDebug(debug) ⇒ <code>Promise.&lt;undefined&gt;</code>
 Return the size of MYFLT in number of bytes
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| debug | <code>number</code> | 
+| debug | <code>number</code> |
 
 <a name="CsoundObj.inputMessage"></a>
 
@@ -361,11 +360,11 @@ Return the size of MYFLT in number of bytes
 Inputs an immediate score event
 without any pre-process parsing
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| scoreEvent | <code>string</code> | 
+| scoreEvent | <code>string</code> |
 
 <a name="CsoundObj.inputMessageAsync"></a>
 
@@ -373,11 +372,11 @@ without any pre-process parsing
 Inputs an immediate score event
 without any pre-process parsing
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| scoreEvent | <code>string</code> | 
+| scoreEvent | <code>string</code> |
 
 <a name="CsoundObj.getControlChannel"></a>
 
@@ -386,77 +385,77 @@ Retrieves the value of control channel identified by channelName.
 If the err argument is not NULL, the error (or success) code finding
 or accessing the channel is stored in it.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| channelName | <code>string</code> | 
+| channelName | <code>string</code> |
 
 <a name="CsoundObj.setControlChannel"></a>
 
 ### CsoundObj.setControlChannel(channelName, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
 Sets the value of control channel identified by channelName
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| channelName | <code>string</code> | 
-| value | <code>number</code> | 
+| channelName | <code>string</code> |
+| value | <code>number</code> |
 
 <a name="CsoundObj.getStringChannel"></a>
 
 ### CsoundObj.getStringChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
 Retrieves the string channel identified by channelName
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| channelName | <code>string</code> | 
+| channelName | <code>string</code> |
 
 <a name="CsoundObj.setStringChannel"></a>
 
 ### CsoundObj.setStringChannel(channelName, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
 Sets the string channel value identified by channelName
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| channelName | <code>string</code> | 
-| value | <code>string</code> | 
+| channelName | <code>string</code> |
+| value | <code>string</code> |
 
 <a name="CsoundObj.getOutputName"></a>
 
 ### CsoundObj.getOutputName() ⇒ <code>Promise.&lt;string&gt;</code>
 Returns the audio output name (-o)
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getInputName"></a>
 
 ### CsoundObj.getInputName() ⇒ <code>Promise.&lt;string&gt;</code>
 Returns the audio input name (-i)
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.destroy"></a>
 
 ### CsoundObj.destroy() ⇒ <code>Promise.&lt;undefined&gt;</code>
 Destroys an instance of Csound and frees memory
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getAPIVersion"></a>
 
 ### CsoundObj.getAPIVersion() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the API version as int
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getVersion"></a>
 
 ### CsoundObj.getVersion() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the Csound version as int
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.initialize"></a>
 
 ### CsoundObj.initialize() ⇒ <code>Promise.&lt;number&gt;</code>
@@ -466,157 +465,147 @@ so there is generally no need to use it explicitly
 unless you need to avoid default initilization that
 sets signal handlers and atexit() callbacks.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 **Returns**: <code>Promise.&lt;number&gt;</code> - - Return value is zero on success,
-    positive if initialisation was done already, and negative on error.  
+    positive if initialisation was done already, and negative on error.
 <a name="CsoundObj.parseOrc"></a>
 
 ### CsoundObj.parseOrc(orc) ⇒ <code>Promise.&lt;object&gt;</code>
 Parses a csound orchestra string
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| orc | <code>string</code> | 
+| orc | <code>string</code> |
 
 <a name="CsoundObj.compileTree"></a>
 
 ### CsoundObj.compileTree(tree) ⇒ <code>Promise.&lt;number&gt;</code>
 Compiles AST tree
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tree | <code>object</code> | 
+| tree | <code>object</code> |
 
 <a name="CsoundObj.compileOrc"></a>
 
 ### CsoundObj.compileOrc(orc) ⇒ <code>Promise.&lt;number&gt;</code>
 Compiles a csound orchestra string
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| orc | <code>string</code> | 
+| orc | <code>string</code> |
 
 <a name="CsoundObj.evalCode"></a>
 
 ### CsoundObj.evalCode(orc) ⇒ <code>Promise.&lt;number&gt;</code>
 Compiles a csound orchestra string
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| orc | <code>string</code> | 
+| orc | <code>string</code> |
 
 <a name="CsoundObj.start"></a>
 
 ### CsoundObj.start() ⇒ <code>Promise.&lt;number&gt;</code>
 Prepares Csound for performance
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.compileCsd"></a>
 
-### CsoundObj.compileCsd(path) ⇒ <code>Promise.&lt;number&gt;</code>
-Compiles a Csound input file but does not perform it.
+### CsoundObj.compileCSD(pathOrText, mode) ⇒ <code>Promise.&lt;number&gt;</code>
+Compiles a Csound input file but does not perform it. Mode = 0 for file, 1 for text.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
-
-| Param | Type |
-| --- | --- |
-| path | <code>string</code> | 
-
-<a name="CsoundObj.compileCsdText"></a>
-
-### CsoundObj.compileCsdText(orc) ⇒ <code>Promise.&lt;number&gt;</code>
-Compiles a CSD string but does not perform it.
-
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| orc | <code>string</code> | 
+| pathOrText | <code>string</code> |
+| mode | <code>number</code> |
 
 <a name="CsoundObj.perform"></a>
 
 ### CsoundObj.perform() ⇒ <code>Promise.&lt;number&gt;</code>
 Performs(plays) audio until end is reached
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.performKsmps"></a>
 
 ### CsoundObj.performKsmps() ⇒ <code>Promise.&lt;number&gt;</code>
 Performs(plays) 1 ksmps worth of sample(s)
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.performBuffer"></a>
 
 ### CsoundObj.performBuffer() ⇒ <code>Promise.&lt;number&gt;</code>
 Performs(plays) 1 buffer worth of audio
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.stop"></a>
 
 ### CsoundObj.stop() ⇒ <code>Promise.&lt;undefined&gt;</code>
 Stops a csoundPerform
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.cleanup"></a>
 
 ### CsoundObj.cleanup() ⇒ <code>Promise.&lt;number&gt;</code>
 Prints information about the end of a performance,
 and closes audio and MIDI devices.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.reset"></a>
 
 ### CsoundObj.reset() ⇒ <code>Promise.&lt;number&gt;</code>
 Prints information about the end of a performance,
 and closes audio and MIDI devices.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getInputBufferSize"></a>
 
 ### CsoundObj.getInputBufferSize() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the number of samples in Csound's input buffer.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getOutputBufferSize"></a>
 
 ### CsoundObj.getOutputBufferSize() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the number of samples in Csound's output buffer.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getInputBuffer"></a>
 
 ### CsoundObj.getInputBuffer() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the address of the Csound audio input buffer.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getOutputBuffer"></a>
 
 ### CsoundObj.getOutputBuffer() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the address of the Csound audio output buffer.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getSpin"></a>
 
 ### CsoundObj.getSpin() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the address of the Csound audio input working buffer (spin).
 Enables external software to write audio into Csound before calling csoundPerformKsmps.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getSpout"></a>
 
 ### CsoundObj.getSpout() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the address of the Csound audio output working buffer (spout).
 Enables external software to read audio from Csound after calling csoundPerformKsmps.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getMIDIDevList"></a>
 
 ### CsoundObj.getMIDIDevList(isOutput) ⇒ [<code>Promise.&lt;CS\_MIDIDEVICE&gt;</code>](#CS_MIDIDEVICE)
@@ -624,11 +613,11 @@ This function can be called to obtain a list of available input or output midi d
 If list is NULL, the function will only return the number of devices
 (isOutput=1 for out devices, 0 for in devices).
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| isOutput | <code>number</code> | 
+| isOutput | <code>number</code> |
 
 <a name="CsoundObj.getRtMidiName"></a>
 
@@ -637,14 +626,14 @@ This function can be called to obtain a list of available input or output midi d
 If list is NULL, the function will only return the number of devices
 (isOutput=1 for out devices, 0 for in devices).
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.midiMessage"></a>
 
 ### CsoundObj.midiMessage(midi, midi, midi) ⇒ <code>Promise.&lt;void&gt;</code>
 Emit a midi message with a given triplet of values
 in the range of 0 to 127.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -658,7 +647,7 @@ in the range of 0 to 127.
 Sees whether Csound score events are performed or not,
 independently of real-time MIDI events
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.setScorePending"></a>
 
 ### CsoundObj.setScorePending(pending) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -669,11 +658,11 @@ to turn off performance of score events (while continuing to perform real-time e
 for example to mute a Csound score while working on other tracks of a piece,
 or to play the Csound instruments live.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| pending | <code>number</code> | 
+| pending | <code>number</code> |
 
 <a name="CsoundObj.readScore"></a>
 
@@ -681,24 +670,24 @@ or to play the Csound instruments live.
 Read, preprocess, and load a score from an ASCII string It can be called repeatedly,
 with the new score events being added to the currently scheduled ones.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| score | <code>string</code> | 
+| score | <code>string</code> |
 
 <a name="CsoundObj.getScoreTime"></a>
 
 ### CsoundObj.getScoreTime() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the current score time in seconds since the beginning of performance.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.getScoreOffsetSeconds"></a>
 
 ### CsoundObj.getScoreOffsetSeconds() ⇒ <code>Promise.&lt;number&gt;</code>
 Returns the score time beginning at which score events will actually immediately be performed
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.setScoreOffsetSeconds"></a>
 
 ### CsoundObj.setScoreOffsetSeconds(time) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -710,18 +699,18 @@ score performance midway through a Csound score,
 for example to repeat a loop in a sequencer,
 or to synchronize other events with the Csound score.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| time | <code>number</code> | 
+| time | <code>number</code> |
 
 <a name="CsoundObj.rewindScore"></a>
 
 ### CsoundObj.rewindScore() ⇒ <code>Promise.&lt;number&gt;</code>
 Rewinds a compiled Csound score to the time specified with csoundObj.setScoreOffsetSeconds().
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 <a name="CsoundObj.tableLength"></a>
 
 ### CsoundObj.tableLength(tableNum) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -729,11 +718,11 @@ Returns the length of a function table
 (not including the guard point),
 or -1 if the table does not exist.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
+| tableNum | <code>string</code> |
 
 <a name="CsoundObj.tableGet"></a>
 
@@ -741,12 +730,12 @@ or -1 if the table does not exist.
 Returns the value of a slot in a function table.
 The table number and index are assumed to be valid.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
-| tableIndex | <code>string</code> | 
+| tableNum | <code>string</code> |
+| tableIndex | <code>string</code> |
 
 <a name="CsoundObj.tableSet"></a>
 
@@ -754,13 +743,13 @@ The table number and index are assumed to be valid.
 Sets the value of a slot in a function table.
 The table number and index are assumed to be valid.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
-| tableIndex | <code>string</code> | 
-| value | <code>string</code> | 
+| tableNum | <code>string</code> |
+| tableIndex | <code>string</code> |
+| value | <code>string</code> |
 
 <a name="CsoundObj.tableCopyIn"></a>
 
@@ -770,13 +759,13 @@ The table number is assumed to be valid, and the table needs to have sufficient 
 to receive all the array contents.
 The table number and index are assumed to be valid.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
-| tableIndex | <code>string</code> | 
-| array | <code>Array.&lt;number&gt;</code> \| <code>ArrayLike.&lt;number&gt;</code> | 
+| tableNum | <code>string</code> |
+| tableIndex | <code>string</code> |
+| array | <code>Array.&lt;number&gt;</code> \| <code>ArrayLike.&lt;number&gt;</code> |
 
 <a name="CsoundObj.tableCopyOut"></a>
 
@@ -785,11 +774,11 @@ Copies the contents of a function table from csound into Float64Array.
 The function returns a Float64Array if the table exists, otherwise
 it returns undefined.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
+| tableNum | <code>string</code> |
 
 <a name="CsoundObj.getTableArgs"></a>
 
@@ -798,11 +787,11 @@ Copies the contents of a function table from csound into Float64Array.
 The function returns a Float64Array if the table exists, otherwise
 it returns undefined.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
+| tableNum | <code>string</code> |
 
 <a name="CsoundObj.isNamedGEN"></a>
 
@@ -811,11 +800,11 @@ Checks if a given GEN number num is a named GEN if so,
 it returns the string length (excluding terminating NULL char).
 Otherwise it returns 0.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
+| tableNum | <code>string</code> |
 
 <a name="CsoundObj.getNamedGEN"></a>
 
@@ -824,17 +813,17 @@ Gets the GEN name from a number num, if this is a named GEN.
 If the table number doesn't represent a named GEN, it will
 return undefined.
 
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
 | --- | --- |
-| tableNum | <code>string</code> | 
+| tableNum | <code>string</code> |
 
 <a name="PublicEvents"></a>
 
 ## PublicEvents : <code>enum</code>
-**Kind**: global enum  
-**Read only**: true  
+**Kind**: global enum
+**Read only**: true
 **Properties**
 
 | Name | Type | Description |
@@ -858,7 +847,7 @@ The default entry for @csound/wasm/browser module.
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.
 
-**Kind**: global function  
+**Kind**: global function
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -875,42 +864,42 @@ otherwise undefined.
 <a name="CSOUND_PARAMS"></a>
 
 ## CSOUND\_PARAMS
-**Kind**: global typedef  
+**Kind**: global typedef
 **Properties**
 
 | Name | Type |
 | --- | --- |
-| debug_mode | <code>number</code> | 
-| buffer_frames | <code>number</code> | 
-| hardware_buffer_frames | <code>number</code> | 
-| displays | <code>number</code> | 
-| ascii_graphs | <code>number</code> | 
-| postscript_graphs | <code>number</code> | 
-| message_level | <code>number</code> | 
-| tempo | <code>number</code> | 
-| ring_bell | <code>number</code> | 
-| use_cscore | <code>number</code> | 
-| terminate_on_midi | <code>number</code> | 
-| heartbeat | <code>number</code> | 
-| defer_gen01_load | <code>number</code> | 
-| midi_key | <code>number</code> | 
-| midi_key_cps | <code>number</code> | 
-| midi_key_oct | <code>number</code> | 
-| midi_key_pch | <code>number</code> | 
-| midi_velocity | <code>number</code> | 
+| debug_mode | <code>number</code> |
+| buffer_frames | <code>number</code> |
+| hardware_buffer_frames | <code>number</code> |
+| displays | <code>number</code> |
+| ascii_graphs | <code>number</code> |
+| postscript_graphs | <code>number</code> |
+| message_level | <code>number</code> |
+| tempo | <code>number</code> |
+| ring_bell | <code>number</code> |
+| use_cscore | <code>number</code> |
+| terminate_on_midi | <code>number</code> |
+| heartbeat | <code>number</code> |
+| defer_gen01_load | <code>number</code> |
+| midi_key | <code>number</code> |
+| midi_key_cps | <code>number</code> |
+| midi_key_oct | <code>number</code> |
+| midi_key_pch | <code>number</code> |
+| midi_velocity | <code>number</code> |
 
 <a name="CS_MIDIDEVICE"></a>
 
 ## CS\_MIDIDEVICE
-**Kind**: global typedef  
+**Kind**: global typedef
 **Properties**
 
 | Name | Type |
 | --- | --- |
-| device_name | <code>string</code> | 
-| interface_name | <code>string</code> | 
-| device_id | <code>string</code> | 
-| midi_module | <code>string</code> | 
-| isOutput | <code>number</code> | 
+| device_name | <code>string</code> |
+| interface_name | <code>string</code> |
+| device_id | <code>string</code> |
+| midi_module | <code>string</code> |
+| isOutput | <code>number</code> |
 
 

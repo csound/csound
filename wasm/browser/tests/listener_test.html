@@ -65,7 +65,7 @@ nchnls = 1
             csoundObj.on("stop", () => appendEvent("stop"));
             csoundObj.on("onAudioNodeCreated", () => appendEvent("node created"));
 
-             const compileReturn = await csoundObj.compileCsdText(testMidi);
+             const compileReturn = await csoundObj.compileCSD(testMidi);
              const startReturn = await csoundObj.start();
 
          };

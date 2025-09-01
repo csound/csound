@@ -25,7 +25,7 @@
            const { Csound } = await import(url);
            const csoundObj = await Csound();
            console.log({ csoundObj });
-           const compileResult = await csoundObj.compileCsdText(helloWorld);
+           const compileResult = await csoundObj.compileCSD(helloWorld);
            const startResult = await csoundObj.start();
            const channelValue = await csoundObj.getControlChannel("test2")
            console.log({ compileResult, channelValue });

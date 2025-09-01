@@ -182,10 +182,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       --replace '#if defined(HAVE_GCC3) && !defined(SWIG)' \
     '#if defined(HAVE_GCC3) && !defined(WASM_BUILD)'
 
-    # don't open .csound6rc
-    substituteInPlace Top/main.c \
-      --replace 'checkOptions(csound);' ""
-
     # follow same preproc defs as emscripten
     # when it come to filesystem calls
     substituteInPlace OOps/diskin2.c \
@@ -258,7 +254,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                 '#define DFLT_KR    FL(2756.25)'
 
     substituteInPlace Top/main.c \
-      --replace 'csoundUDPServerStart(csound,csound->oparms->daemon);' "" \
+      --replace 'csoundUDPServerStart(csound, csound->oparms->daemon);' "" \
       --replace 'static void put_sorted_score' \
                 'extern void put_sorted_score'
 
@@ -393,6 +389,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../InOut/windin.c \
       ../InOut/window.c \
       ../OOps/aops.c \
+      ../OOps/assert_ops.c \
       ../OOps/array_ops.c \
       ../OOps/bus.c \
       ../OOps/cmath.c \
@@ -402,6 +399,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../OOps/disprep.c \
       ../OOps/dumpf.c \
       ../OOps/fftlib.c \
+      ../OOps/inst_ops.c \
       ../OOps/goto_ops.c \
       ../OOps/lpred.c \
       ../OOps/midiinterop.c \

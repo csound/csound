@@ -59,7 +59,7 @@ aSig *= expsegr(0.001, .02, 1, .5, 0.001)
                  useSAB: false
              });
 
-             const compileReturn = await csoundObj.compileCsdText(testMidi);
+             const compileReturn = await csoundObj.compileCSD(testMidi);
              const startReturn = await csoundObj.start();
 
          };

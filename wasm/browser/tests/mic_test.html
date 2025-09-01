@@ -40,7 +40,7 @@
           outputChannelCount: 2
         });
 
-        const compileReturn = await csoundObj.compileCsdText(test);
+        const compileReturn = await csoundObj.compileCSD(test);
         // console.log(csoundObj);
         await csoundObj.enableAudioInput();
         const startReturn = await csoundObj.start();

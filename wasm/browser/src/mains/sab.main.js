@@ -344,6 +344,8 @@ class SharedArrayBufferMainThread {
         `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
       );
 
+    this.exportApi["name"] = "Csound: Audio Worklet, Shared-Array Buffer";
+
     this.exportApi["getNode"] = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
       if (maybeNode) {

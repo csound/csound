@@ -84,7 +84,7 @@ int csoundStartWasi(CSOUND *csound) {
   return csoundStart(csound);
 }
 
-extern int sensevents(CSOUND *);
+extern int sense_events(CSOUND *);
 
 // The built-in performKsmps has mutex and setjmp
 // which we don't have in wasi based wasm
@@ -98,7 +98,7 @@ int csoundPerformKsmpsWasi(CSOUND *csound)
                         "has not been called\n"));
     return CSOUND_ERROR;
   }
-  done = sensevents(csound);
+  done = sense_events(csound);
   if (done || csound->performState == -1) {
     csoundMessage(csound, Str("Score finished in csoundPerformKsmps() with %d.\n"), done);
     return -1;

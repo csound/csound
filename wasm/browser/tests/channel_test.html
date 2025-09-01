@@ -55,7 +55,7 @@
           outputChannelCount: 2
         });
 
-        const compileReturn = await csoundObj.compileCsdText(testMono);
+        const compileReturn = await csoundObj.compileCSD(testMono, 1);
         const startReturn = await csoundObj.start();
         const n = await csoundObj.getNode();
         const ctx = await csoundObj.getAudioContext();

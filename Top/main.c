@@ -48,6 +48,7 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 
 void checkOptions(CSOUND *csound) {
+#if !defined(__wasi__)
   const char *csrcname;
   const char *home_dir;
   FILE *csrc = NULL;
@@ -97,6 +98,7 @@ void checkOptions(CSOUND *csound) {
     corfile_rm(csound, &cf);
     csound->FileClose(csound, fd);
   }
+#endif
 }
 
 static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
@@ -365,7 +367,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
       if (UNLIKELY(csound->scorestr == NULL))
         csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
     }
-    
+
     if (O->msglevel || O->odebug) {
       csound->Message(csound, Str("Sorting score ...\n"));
     }

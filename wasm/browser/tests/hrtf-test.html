@@ -25,7 +25,7 @@
           await csound.fs.writeFile(hrtfL, LBuf);
           await csound.fs.writeFile(hrtfR, RBuf);
           await csound.setOption("-odac");
-            await csound.compileCsdText(`
+            await csound.compileCSD(`
 <CsoundSynthesizer>
 <CsOptions>
 ; Select flags here

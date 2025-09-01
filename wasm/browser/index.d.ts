@@ -268,11 +268,7 @@ declare interface CsoundObj {
   /**
    * Compiles a Csound input file but does not perform it.
    */
-  compileCsd: (path: string) => Promise<number>;
-  /**
-   * Compiles a CSD string but does not perform it.
-   */
-  compileCsdText: (orc: string) => Promise<number>;
+  compileCsd: (path: string, mode:number) => Promise<number>;
   /**
    * Pauses a performance if it's running
    */
