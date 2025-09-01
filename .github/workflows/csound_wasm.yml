@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: ${{ env.nix_path }}
@@ -45,14 +45,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - uses: cachix/install-nix-action@v25
         with:
           nix_path: ${{ env.nix_path }}
       - uses: cachix/cachix-action@v15
         with:
           name: csound
-          authToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E"
+          authToken: ${{ secrets.CACHIX_TOKEN }}
       - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
