@@ -191,9 +191,9 @@ void print_sndfile_version(CSOUND *csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
   csound->SndfileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
-  csoundErrorMsg(csound, "%s\n", buffer);
+  csoundErrorMsg(csound, "using %s\n", buffer);
 #else
-  csoundErrorMsg(csound, "%s\n", "No soundfile IO");
+  csoundErrorMsg(csound, "%s\n", "not using libsndfile");
 #endif
 }
 
@@ -1530,10 +1530,8 @@ PUBLIC CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   csoundReset(csound);
   csound->API_lock = csoundCreateMutex(1);
   allocate_message_queue(csound);
-  /* NB: as suggested by F Pinot, keep the
-     address of the pointer to CSOUND inside
-     the struct, so it can be cleared later */
-  // csound->self = &csound;
+  // version is always displayed
+  print_csound_version(csound);
   return csound;
 }
 
@@ -2328,7 +2326,7 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
     if (UNLIKELY(done)) {
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
-      csoundMessage(csound, Str("End of Performance "));
+      csoundMessage(csound, Str("end of Performance\n"));
       return done;
     }
   } while (csound->kperf(csound));
@@ -2764,7 +2762,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
   va_list args;
   if (!(csound->oparms_.msglevel & CS_WARNMSG))
     return;
-  csoundMessageS(csound, CSOUNDMSG_WARNING, Str("WARNING: "));
+  csoundMessageS(csound, CSOUNDMSG_WARNING, Str("warning: "));
   va_start(args, msg);
   csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
   va_end(args);

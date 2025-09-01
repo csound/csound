@@ -758,7 +758,7 @@ static CS_NOINLINE int32_t check_name(const char *s)
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
-      csound->Message(csound, Str("rtaudio: WinMM module enabled\n"));
+      csound->DebugMsg(csound, Str("rtaudio: WinMM module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);
@@ -766,7 +766,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
       csound->SetRtcloseCallback(csound, rtclose_);
     }
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTMIDI"))) {
-      csound->Message(csound, Str("rtmidi: WinMM module enabled\n"));
+      csound->DebugMsg(csound, Str("rtmidi: WinMM module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);

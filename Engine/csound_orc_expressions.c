@@ -90,7 +90,7 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
       break;
     default:  snprintf(s, 16, "#i%d", argCount); break;
     }
-    add_arg(csound, s, NULL, typeTable);
+    add_arg(csound, s, NULL, typeTable, NULL);
   } else {
      // VL 15.10.24
      // at this point new types defined with string type names
@@ -106,7 +106,7 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
-      add_arg(csound, s, type, typeTable);
+      add_arg(csound, s, type, typeTable, NULL);
     }
     csound->Free(csound, type);
   }
@@ -883,7 +883,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                              *get_arg_type2(csound, root->left, typeTable) =='B' ||
                              *get_arg_type2(csound, root->right, typeTable) =='B');
   
-  add_arg(csound, outarg, NULL, typeTable);
+  add_arg(csound, outarg, NULL, typeTable, NULL);
   opTree = create_opcode_token(csound, op);
   opTree->right = root->type == T_IDENT ? root : root->left;
   opTree->right->next = root->right;
@@ -1656,7 +1656,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     CS_VARIABLE* var = find_var_from_pools(csound, current->left->next->value->lexeme,
                                         current->left->next->value->lexeme, typeTable);
     if(var == NULL) {
-      add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable);
+      add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
     }
     
     hasOptionalIndex = 1;

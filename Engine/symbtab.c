@@ -415,7 +415,7 @@ void synterr(CSOUND *csound, const char *s, ...)
 {
     va_list args;
     va_start(args, s);
-    csoundErrMsgV(csound, Str("error:  "), s, args);
+    csoundErrMsgV(csound, Str("error: "), s, args);
     va_end(args);
     /* FIXME - Removed temporarily for debugging
      * This function may not be necessary at all in the end if some of this is

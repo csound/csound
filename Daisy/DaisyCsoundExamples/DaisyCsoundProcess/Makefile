@@ -2,10 +2,10 @@ APP_TYPE = BOOT_QSPI
 LDFLAGS += -u _printf_float
 
 # Project Name
-TARGET = daisyCsoundMidi
+TARGET = daisyCsoundProcess
 
 # Sources
-CPP_SOURCES = daisyCsoundMidi.cpp
+CPP_SOURCES = daisyCsoundProcess.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy/

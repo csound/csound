@@ -1101,7 +1101,7 @@ struct CSOUND_ {
   void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
   void (*RewindScore)(CSOUND *);
   void (*InputMessage)(CSOUND *, const char *message__);
-  int (*ReadScore)(CSOUND *, const char *);
+  int32_t (*ReadScore)(CSOUND *, const char *);
   /**@}*/
 
   /** @name Message printout */

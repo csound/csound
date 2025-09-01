@@ -5,7 +5,7 @@ LDFLAGS += -u _printf_float
 TARGET = daisyCsoundMidi
 
 # Sources
-CPP_SOURCES = daisyCsoundMidi.cpp
+CPP_SOURCES = daisy_pod_midi.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy/

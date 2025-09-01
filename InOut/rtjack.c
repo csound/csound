@@ -1561,8 +1561,7 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
-   const OPARMS *O;
-    O = csound->GetOParms(csound) ;
+
     csound->ModuleListAdd(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
@@ -1570,8 +1569,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    if(O->msglevel || O->odebug)
-     csound->Message(csound, "%s", Str("rtaudio: JACK module enabled\n"));
+    csound->DebugMsg(csound, "%s", Str("rtaudio: JACK module enabled\n"));
     {
       /* register Csound interface functions */
       csound->SetPlayopenCallback(csound, playopen_);
@@ -1588,8 +1586,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    if(O->msglevel || O->odebug)
-     csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
+    csound->DebugMsg(csound, "%s", Str("rtmidi: JACK module enabled\n"));
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);

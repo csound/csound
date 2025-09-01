@@ -747,7 +747,7 @@ int32_t csoundLoadModules(CSOUND *csound)
 }
 
 
-static int32_t cmp_func(const void *p1, const void *p2)
+static int cmp_func(const void *p1, const void *p2)
 {
   return (strcmp(*((const char**) p1), *((const char**) p2)));
 }

@@ -138,7 +138,7 @@ PUBLIC int32_t csoundRunUtility(CSOUND *csound, const char *name,
     return n;
 }
 
-static int32_t cmp_func(const void *a, const void *b)
+static int cmp_func(const void *a, const void *b)
 {
     return strcmp(*((char**) a), *((char**) b));
 }
