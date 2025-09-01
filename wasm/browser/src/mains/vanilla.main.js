@@ -242,6 +242,8 @@ class VanillaWorkerMainThread {
         `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
       );
 
+    this.exportApi["name"] = "Csound: Audio Worklet, Worker";
+
     // the default message listener
     this.exportApi["addListener"]("message", console.log);
 
