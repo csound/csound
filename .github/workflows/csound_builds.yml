@@ -24,7 +24,7 @@ jobs:
       release: ${{ steps.check_pr.outputs.has_label }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -121,7 +121,7 @@ jobs:
         run: brew install bison flex
 
       - name: Checkout Source Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -130,7 +130,6 @@ jobs:
         run: |
           chmod +x build_libsndfile.sh
           ./build_libsndfile.sh
-
 
       - name: Build Csound iOS xcframework
         working-directory: iOs
@@ -150,7 +149,7 @@ jobs:
       VERSION: v1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -202,7 +201,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -225,10 +224,10 @@ jobs:
     runs-on: macos-latest
     needs: update_version
     env:
-      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}    
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -236,7 +235,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install --cask gcc-arm-embedded
-          brew install bison flex 
+          brew install bison flex
 
       - name: Configure build
         run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/Daisy" -DCUSTOM_CMAKE="$PWD/Daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/Daisy/crosscompile.cmake"
@@ -250,7 +249,7 @@ jobs:
           cp -r Daisy/DaisyCsoundExamples arm-cortex-m7
           cp -r Daisy/lib arm-cortex-m7
           cp -r Daisy/include arm-cortex-m7
-      
+
       - name: Upload zip
         uses: actions/upload-artifact@v4
         with:
@@ -265,83 +264,80 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
-          
-      
+
       - name: Checkout and build libsndfile, portmidi, portaudio and libsamplerate
         run: |
-           cd platform/osx
-           chmod +x build_libsndfile.sh
-           ./build_libsndfile.sh
-           cd ../..
+          cd platform/osx
+          chmod +x build_libsndfile.sh
+          ./build_libsndfile.sh
+          cd ../..
 
-           git clone https://github.com/PortMidi/portmidi.git
-           cd portmidi
-           cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portmidi_install
-           cmake --build build
-           cmake --build build --target install
-           cd ..
+          git clone https://github.com/PortMidi/portmidi.git
+          cd portmidi
+          cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portmidi_install
+          cmake --build build
+          cmake --build build --target install
+          cd ..
 
-           git clone https://github.com/PortAudio/portaudio.git
-           cd portaudio
-           cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portaudio_install
-           cmake --build build
-           cmake --build build --target install
-           cd ..
+          git clone https://github.com/PortAudio/portaudio.git
+          cd portaudio
+          cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portaudio_install
+          cmake --build build
+          cmake --build build --target install
+          cd ..
 
-           git clone https://github.com/libsndfile/libsamplerate
-           cd libsamplerate
-           cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../samplerate_install
-           cmake --build build
-           cmake --build build --target install
-           cd ..
+          git clone https://github.com/libsndfile/libsamplerate
+          cd libsamplerate
+          cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../samplerate_install
+          cmake --build build
+          cmake --build build --target install
+          cd ..
 
       - name: Brew install bison and flex
         run: brew install bison flex
 
       - name: Configure Csound
         run: |
-           cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0
-           
+          cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0
 
       - name: Build Csound
         run: |
           cmake --build build --config Release
           cmake --build build --target install
-    
+
       - name: Adjust link paths
         run: |
-           install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
-           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
-           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
-           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
-           
-           
+          install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
+          install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
+          install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
+          install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
+
       - name: Build installer
         run: |
-           mkdir csound_install/CsoundLib64.framework/libs
-           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
-           mkdir -p csound_install/PkgContents/Applications/Csound
-           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
-           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
-           pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+          mkdir csound_install/CsoundLib64.framework/libs
+          cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+          mkdir -p csound_install/PkgContents/Applications/Csound
+          mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
+          mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
+          pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
 
       - name: Upload zip
-        uses: actions/upload-artifact@v4      
+        uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
-          path: ./CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg        
-            
+          path: ./CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
     runs-on: macos-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -375,7 +371,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -412,7 +408,7 @@ jobs:
       VERSION: v1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -470,7 +466,7 @@ jobs:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -504,14 +500,14 @@ jobs:
         run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
-        if: github.ref == 'refs/heads/develop'      
+        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
 
       - name: Build installer
-        if: github.ref == 'refs/heads/develop'      
+        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
@@ -521,7 +517,7 @@ jobs:
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
-        if: github.ref == 'refs/heads/develop'      
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
@@ -529,7 +525,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip
-        if: github.ref == 'refs/heads/develop'        
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
@@ -549,7 +545,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -582,8 +578,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-     # - name: Run integration and unit tests
-         # run: cmake --build build --target test csdtests
+      # - name: Run integration and unit tests
+      # run: cmake --build build --target test csdtests
 
   android_build_vcpkg:
     name: Android build (vcpkg)
@@ -592,7 +588,7 @@ jobs:
       VERSION: v1
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -643,7 +639,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
           submodules: true
@@ -675,7 +671,7 @@ jobs:
         run: cmake --build build --target test csdtests
 
   android-release:
-    name: Csound for Android 
+    name: Csound for Android
     runs-on: macos-latest
     needs: update_version
     env:
@@ -685,7 +681,7 @@ jobs:
         run: brew install swig bison flex
 
       - name: Checkout Source Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 
@@ -715,7 +711,7 @@ jobs:
           sh release.sh
 
       - uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/develop'      
+        if: github.ref == 'refs/heads/develop'
         with:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
           path: Android/csound-android-${{env.CSOUND_VERSION}}
@@ -724,7 +720,15 @@ jobs:
     if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
-    needs: [update_version, windows_build, macos_build_installer, iOS_build, android-release, bare_arm_brew]
+    needs:
+      [
+        update_version,
+        windows_build,
+        macos_build_installer,
+        iOS_build,
+        android-release,
+        bare_arm_brew,
+      ]
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
@@ -735,13 +739,13 @@ jobs:
           path: csound-windows-${{env.CSOUND_VERSION}}
 
       - name: Download macOS installer
-        uses: actions/download-artifact@v4      
+        uses: actions/download-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: csound-macos-${{env.CSOUND_VERSION}}
 
       - name: Download arm-cortex-m7 package
-        uses: actions/download-artifact@v4      
+        uses: actions/download-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-cortex-m7
           path: csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
@@ -751,7 +755,6 @@ jobs:
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
           path: csound-ios-${{env.CSOUND_VERSION}}
-
 
       - name: Download Android artifacts
         uses: actions/download-artifact@v4
