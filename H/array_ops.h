@@ -203,6 +203,7 @@ int32_t tabaddinkk(CSOUND *csound, TABARITHIN *p);
 int32_t tabmulinkk(CSOUND *csound, TABARITHIN *p);
 int32_t tabaaddin(CSOUND *csound, TABARITHIN *p);
 int32_t tabamulin(CSOUND *csound, TABARITHIN *p);
+int32_t taba1mulin(CSOUND *csound, TABARITHIN1 *p);
 int32_t tabaasubin(CSOUND *csound, TABARITHIN *p);
 int32_t tabaadivin(CSOUND *csound, TABARITHIN *p);
 int32_t tabarkrddin(CSOUND *csound, TABARITHIN *p);
@@ -304,8 +305,8 @@ int32_t taninv2_A(CSOUND* csound, TABARITH* p);
 int32_t taninv2_Ai(CSOUND* csound, TABARITH* p);
 
 #define IIARRAY_(opcode,fn)                              \
-  int32_t opcode(CSOUND *csound, TABARITH *p);          
-  
+  int32_t opcode(CSOUND *csound, TABARITH *p);
+
 IIARRAY_(tabaddi,tabadd)
 IIARRAY_(tabsubi,tabsub)
 IIARRAY_(tabmulti,tabmult)
@@ -336,61 +337,3 @@ iIARRAY_(tabiapowi,tabiapow)
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
