@@ -264,3 +264,4 @@ dependencies
 iOS/include
 tmp
 *-g
+.zed
