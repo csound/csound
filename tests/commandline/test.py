@@ -118,7 +118,7 @@ def runTest():
 	["test44.csd", "expected failure with in-arg given to in opcode", 1],
 	["test45.csd", "if-goto with expression in boolean comparison"],
 	["test46.csd", "if-then with expression in boolean comparison"],
-	["test47.csd", "until loop and t-variables"],
+	["test47.csd", "until loop and k[]"],
 	["test48.csd", "expected failure with variable used before defined", 1],
     ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
     ["test_oversample.csd", "test oversampling in new-style UDO"],
