@@ -36,9 +36,11 @@ class PUBLIC iOSCsound : public Csound {
       }
     }
   }
- public:
-  iOSCsound() : Csound::Csound(){}
   void setAunitCallbacks();
+ public:
+  iOSCsound() : Csound::Csound(){
+    setAunitCallbacks();
+  }
   int SetGlobalEnv(const char* name, const char* variable);
   void Pause(bool pause);
   long GetKcount(){ return csoundGetKcounter(csound); }
