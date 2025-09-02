@@ -387,7 +387,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     // (1) local sr == parent sr
     p->h.perf = (SUBR) useropcd_local_ksmps;
   } else if (lcurip->esr < parent_ip->esr) {
-    // (2) local sr >= parent sr
+    // (2) local sr < parent sr
       int32_t xtratim = lcurip->xtratim;
       if(parent_ip->xtratim < xtratim)
         parent_ip->xtratim = xtratim; 
