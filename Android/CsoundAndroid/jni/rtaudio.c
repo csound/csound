@@ -2,7 +2,7 @@
    rtaudio.c
    AAudio module for Csound
 
-   Copyright (C) 2011 Victor Lazzarini.
+   Copyright (C) 2025 Victor Lazzarini.
 
    This file is part of Csound.
 

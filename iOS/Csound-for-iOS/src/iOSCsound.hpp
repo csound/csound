@@ -1,8 +1,8 @@
 /*
-   AndroidCsound.hpp
-   Android Csound class
+   iOSCsound.hpp
+   iOS Csound class
 
-   Copyright (C) 2011-2025 Steven Yi, Victor Lazzarini.
+   Copyright (C) 2025 Victor Lazzarini.
 
    This file is part of Csound.
 
@@ -23,14 +23,10 @@
 
 */
 
-#ifdef SWIG
-%module csnd
-#endif
 #include "csound.hpp"
 #include "csound_misc.h"
 extern "C" long csoundGetKcounter(CSOUND *csound);
-class PUBLIC AndroidCsound : public Csound {
-  int asyncProcess;
+class PUBLIC iOSCsound : public Csound {
   void initControls() {
     // set up pause controls
      if(csoundQueryGlobalVariable(csound,"::paused::") == NULL) {
@@ -41,13 +37,9 @@ class PUBLIC AndroidCsound : public Csound {
     }
   }
  public:
-  AndroidCsound(bool async=true) : Csound::Csound(){
-    asyncProcess = async;
-  }
-  void setOpenSlCallbacks();
-  void setAAudioCallbacks(); 
+  iOSCsound() : Csound::Csound(){}
+  void setAunitCallbacks();
   int SetGlobalEnv(const char* name, const char* variable);
-  unsigned long getStreamTime();
   void Pause(bool pause);
   long GetKcount(){ return csoundGetKcounter(csound); }
 };
