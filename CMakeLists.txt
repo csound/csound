@@ -846,7 +846,7 @@ set(libcsound_SRCS
     OOps/compile_ops.c
 )
 
-if(IOS)
+if(IOS AND NOT  OSXCROSS_TARGET)
 
 set(libcsound_SRCS ${libcsound_SRCS}
   iOS/Csound-for-iOS/src/rtaunit.c
