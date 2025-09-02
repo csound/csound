@@ -354,6 +354,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
+    
   if(err) return err; 
   csound->mode = 0;
   ATOMIC_SET(p->ip->init_done, 1);
@@ -375,22 +376,32 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
      (2) local ksmps; local sr < parent sr: select useropcd2
      (3) local sr >= parent sr: select useropcd2
   */
-
+  
   if(inm->passByRef) {
-    p->h.perf = (SUBR) useropcd_pass_by_ref;
-  } else if (lcurip->ksmps != parent_ip->ksmps) {
-    int32_t ksmps_scale = lcurip->ksmps / parent_ip->ksmps;
-    parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
-    if(lcurip->esr == parent_ip->esr) // (1) local sr == parent sr
-      p->h.perf = (SUBR) useropcd_local_ksmps;
-    else // (2) local sr < parent sr
-      p->h.perf = (SUBR) useropcd_pass_by_copy;
-  } else { // (3) local sr >= parent sr
     parent_ip->xtratim = lcurip->xtratim;
+    p->h.perf = (SUBR) useropcd_pass_by_ref;
+  } else if (lcurip->ksmps != parent_ip->ksmps &&
+	     lcurip->esr == parent_ip->esr) {
+    MYFLT ksmps_scale = (MYFLT) lcurip->ksmps / parent_ip->ksmps;
+    parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
+    // (1) local sr == parent sr
+    p->h.perf = (SUBR) useropcd_local_ksmps;
+  } else if (lcurip->esr < parent_ip->esr) {
+    // (2) local sr >= parent sr
+      int32_t xtratim = lcurip->xtratim;
+      if(parent_ip->xtratim < xtratim)
+        parent_ip->xtratim = xtratim; 
+      p->h.perf = (SUBR) useropcd_pass_by_copy;
+  } else {
+    // (3) local sr >= parent sr
+    MYFLT scal = (MYFLT) parent_ip->esr / lcurip->esr;
+    int32_t xtratim = lcurip->xtratim*scal;
+    if(parent_ip->xtratim < xtratim)
+	parent_ip->xtratim = xtratim;
     p->h.perf = (SUBR) useropcd_pass_by_copy;
   }
   // debug msg
-  if (UNLIKELY(csound->oparms->odebug))
+   if (UNLIKELY(csound->oparms->odebug))
     csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                     lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
   return OK;
@@ -1134,7 +1145,8 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
      factor of 1/os, and xtratim also needs to be scaled by
      that factor
   */
-  p->h.insdshead->xtratim *= onedos;
+  printf("EXTRATIME %d \n", p->h.insdshead->xtratim);
+  p->h.insdshead->xtratim *= os;
   CS_KCNT *= onedos;
   /* oversampling mode (s) */
   p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
@@ -1198,7 +1210,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
                              "illegal oversampling ratio: %d\n", os);
 
   /* set corrected ratio  */
-  onedos = lksmps/CS_KSMPS;
+  onedos = (MYFLT) lksmps/CS_KSMPS;
 
   /* and now local ksmps */
   CS_KSMPS = lksmps;
@@ -1212,7 +1224,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   CS_ONEDKR = 1./CS_EKR;
   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
 
-  p->h.insdshead->xtratim *= FL(1.0)/onedos;
+  p->h.insdshead->xtratim *= onedos;
   CS_KCNT *= FL(1.0)/onedos;
   /* undersampling mode (s) */
   p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
