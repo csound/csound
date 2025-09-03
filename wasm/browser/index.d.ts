@@ -266,9 +266,9 @@ declare interface CsoundObj {
    */
   start: () => Promise<number>;
   /**
-   * Compiles a Csound input file but does not perform it.
+   * Compiles a Csound input file but does not perform it. Mode = 0 for file, 1 for text.
    */
-  compileCsd: (path: string, mode:number) => Promise<number>;
+  compileCSD: (path: string, mode?: number) => Promise<number>;
   /**
    * Pauses a performance if it's running
    */
@@ -425,6 +425,34 @@ declare interface CsoundObj {
    * Terminates an instances and all its workers, making disabling any futher uses of a given instance.
    */
   terminateInstance: () => Promise<void>;
+  /**
+   * Enable audio input functionality
+   */
+  enableAudioInput: () => Promise<void>;
+  /**
+   * Get MIDI device list
+   */
+  getMIDIDevList: () => Promise<any>;
+  /**
+   * Get MIDI output filename
+   */
+  getMidiOutFileName: () => Promise<string>;
+  /**
+   * Get real-time MIDI name
+   */
+  getRtMidiName: () => Promise<string>;
+  /**
+   * Set MIDI callbacks
+   */
+  setMidiCallbacks: (callbacks: any) => Promise<void>;
+  /**
+   * Append environment variable
+   */
+  appendEnv: (name: string, value: string) => Promise<void>;
+  /**
+   * Instance name identifier
+   */
+  name: string;
 }
 
 /**
