@@ -202,7 +202,6 @@ tests/soak/Output
 Opcodes/stk/
 *-e
 installer/macosx/20*
-iOS/Csound-for-iOS*
 iOS/Csound-iOS
 iOS/share
 

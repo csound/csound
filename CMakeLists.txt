@@ -846,6 +846,14 @@ set(libcsound_SRCS
     OOps/compile_ops.c
 )
 
+if(IOS AND NOT  OSXCROSS_TARGET)
+
+set(libcsound_SRCS ${libcsound_SRCS}
+  iOS/Csound-for-iOS/src/rtaunit.c
+  iOS/Csound-for-iOS/src/iOSCsound.cpp
+)
+endif()
+
 set(vbap_ops
     Opcodes/vbap.c
 )

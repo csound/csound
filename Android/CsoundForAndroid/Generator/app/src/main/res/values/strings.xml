@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Generator</string>
+    <string name="button_name">play/stop</string>
+    <string name="logo">csound logo</string>
+</resources>
