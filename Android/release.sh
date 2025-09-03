@@ -10,8 +10,8 @@ cp -r CsoundAndroid/src/csnd7  CsoundForAndroid/CsoundAndroid/src/main/java/
 rm -rf CsoundForAndroid/CsoundAndroid/src/main/jniLibs
 cp -r CsoundAndroid/libs  CsoundForAndroid/CsoundAndroid/src/main/jniLibs
 
-rm -rf CsoundForAndroid/Generator/src/main/jniLibs
-cp -r CsoundAndroid/libs  CsoundForAndroid/Generator/src/main/jniLibs
+rm -rf CsoundForAndroid/Generator/app/src/main/jniLibs
+cp -r CsoundAndroid/libs  CsoundForAndroid/Generator/app/src/main/jniLibs
 
 rm -rf $RELEASE_DIR
 mkdir $RELEASE_DIR
