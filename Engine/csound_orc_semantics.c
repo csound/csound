@@ -725,10 +725,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     if (*s == '#') s++;
     if (*s == 'g') s++;
 
-    if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
-      return cs_strdup(csound, "[k]");
-    }
-
     t = s;
 
     int32_t len = 1;
@@ -1625,7 +1621,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       if (*t == 'g') pool = typeTable->globalPool;
       if (*t == 'g') t++;
       
-      if (*t == '[' || *t == 't') { /* Support legacy t-vars */
+      if (*t == '[') { 
         int32_t dimensions = 1;
         const CS_TYPE* varType;
         char* b = t + 1;
@@ -1634,7 +1630,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
           b++;
           dimensions++;
         }
-        argLetter[0] = (*b == 't') ? 'k' : *b; /* Support legacy t-vars */
+        argLetter[0] = *b;
 
         varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
 
@@ -1643,7 +1639,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         typeArg = &varInit;
       }
 
-      argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
+      argLetter[0] = *t; 
       type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
     }
     var = csoundCreateVariable(csound, csound->typePool,
@@ -1730,7 +1726,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
       if (*t == 'g') pool = typeTable->globalPool;
       if (*t == 'g') t++;
 
-      argLetter[0] = (*t == 't') ? 'k' : *t; /* Support legacy t-vars */
+      argLetter[0] = *t; 
 
       varType =
         csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
@@ -1795,13 +1791,8 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         // skip reserved vars, these are handled elsewhere
         break;
       }
-
-      if (*varName == 't' && current->value->optype == NULL) { /* Support legacy t-vars */
-        add_array_arg(csound, varName, "k", 1, typeTable);
-      } else {
-        add_arg(csound, varName, current->value->optype, typeTable, current);
-      }
-
+      add_arg(csound, varName, current->value->optype, typeTable, current);
+  
       break;
 
     case T_ARRAY:
