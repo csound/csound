@@ -1686,6 +1686,23 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 				   type, lvarName, typeArg);
       csoundAddVariable(csound, pool, var); 	
       csound->Free(csound, t);
+    } else {
+      // apply shadowing rule for implicit vars
+      var = csoundFindVariableWithName(csound, typeTable->globalPool, varName);
+      if(var == NULL)
+	var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+	                                  varName);
+      if(var) {
+        if(csoundFindVariableWithName(csound, typeTable->localPool, varName)
+	      == NULL){
+	   argLetter[0] = *varName;
+           type =
+	   csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+           var = csoundCreateVariable(csound, csound->typePool,
+   	              type, varName, typeArg);
+           csoundAddVariable(csound, typeTable->localPool, var);
+        }
+      }
     }
   }
  end:
@@ -2087,9 +2104,13 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   else {
     // if there is a discrepancy between out-types/annotation
     // print a warning and use out-types
-    if(leftArgString &&
+    // except for 'p' and 'i'
+    if(*leftArgString == 'p' && *root->value->optype == 'i')
+    oentry = resolve_opcode(csound, entries,
+                               root->value->optype, rightArgString);  
+    else if(leftArgString &&
        strcmp(leftArgString, root->value->optype)){
-      csound->Warning(csound, " output types %s "
+      csound->Warning(csound, " output type(s) %s "
                       "not matching annotation %s\n"
                       "ignoring annotation.",
                       leftArgString, root->value->optype) ;
