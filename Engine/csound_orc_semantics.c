@@ -2104,9 +2104,13 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   else {
     // if there is a discrepancy between out-types/annotation
     // print a warning and use out-types
-    if(leftArgString &&
+    // except for 'p' and 'i'
+    if(*leftArgString == 'p' && *root->value->optype == 'i')
+    oentry = resolve_opcode(csound, entries,
+                               root->value->optype, rightArgString);  
+    else if(leftArgString &&
        strcmp(leftArgString, root->value->optype)){
-      csound->Warning(csound, " output types %s "
+      csound->Warning(csound, " output type(s) %s "
                       "not matching annotation %s\n"
                       "ignoring annotation.",
                       leftArgString, root->value->optype) ;
