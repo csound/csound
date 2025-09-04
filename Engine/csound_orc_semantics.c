@@ -1686,6 +1686,23 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 				   type, lvarName, typeArg);
       csoundAddVariable(csound, pool, var); 	
       csound->Free(csound, t);
+    } else {
+      // apply shadowing rule for implicit vars
+      var = csoundFindVariableWithName(csound, typeTable->globalPool, varName);
+      if(var == NULL)
+	var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+	                                  varName);
+      if(var) {
+        if(csoundFindVariableWithName(csound, typeTable->localPool, varName)
+	      == NULL){
+	   argLetter[0] = *varName;
+           type =
+	   csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+           var = csoundCreateVariable(csound, csound->typePool,
+   	              type, varName, typeArg);
+           csoundAddVariable(csound, typeTable->localPool, var);
+        }
+      }
     }
   }
  end:
