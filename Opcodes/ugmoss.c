@@ -868,11 +868,14 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
     f = *p->kftndx - i;
     if (p->ftndx != *p->kftndx) {
       p->ftndx = *p->kftndx;
-      ftp1 = csound->FTFind(csound, p->ftfn->ftable + i++);
-      ftp2 = csound->FTFind(csound, p->ftfn->ftable + i--);
+      MYFLT tbl1 = *(p->ftfn->ftable + i++);
+      MYFLT tbl2 = *(p->ftfn->ftable + i--);
+      ftp1 = csound->FTFind(csound, &tbl1);
+      ftp2 = csound->FTFind(csound, &tbl2);
+     if(ftp2)
       do {
-        *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
-          (*(ftp2->ftable + j) * f);
+            *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
+              (*(ftp2->ftable + j) * f);
       } while (++j < p->len);
     }
     return OK;
