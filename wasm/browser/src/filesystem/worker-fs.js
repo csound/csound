@@ -54,6 +54,24 @@ function mkdir(wasm) {
 
 mkdir["toString"] = () => "async (path) => void";
 
+/** @export */
+function stat(wasm) {
+  return (_, path) => {
+    return wasm.wasi.stat(path);
+  };
+}
+
+stat["toString"] = () => "async (path) => ?object";
+
+/** @export */
+function pathExists(wasm) {
+  return (_, path) => {
+    return wasm.wasi.pathExists(path);
+  };
+}
+
+pathExists["toString"] = () => "async (path) => boolean";
+
 export const fs = {};
 
 fs["writeFile"] = writeFile;
@@ -62,5 +80,7 @@ fs["readFile"] = readFile;
 fs["unlink"] = unlink;
 fs["readdir"] = readdir;
 fs["mkdir"] = mkdir;
+fs["stat"] = stat;
+fs["pathExists"] = pathExists;
 
 export default fs;

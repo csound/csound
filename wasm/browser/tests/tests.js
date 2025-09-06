@@ -299,21 +299,21 @@ e
         await cs.terminateInstance();
       });
 
-    // DISABLED due to cxx plugin using source not updated for CS7
-    //   it("can load and run c++ plugins", async function () {
-    //     const testWithPlugin = Object.assign(
-    //       {
-    //         withPlugins: ["./plugin_example_cxx.wasm"],
-    //       },
-    //       test,
-    //     );
-    //     const cs = await Csound(testWithPlugin);
+      // DISABLED due to cxx plugin using source not updated for CS7
+      //   it("can load and run c++ plugins", async function () {
+      //     const testWithPlugin = Object.assign(
+      //       {
+      //         withPlugins: ["./plugin_example_cxx.wasm"],
+      //       },
+      //       test,
+      //     );
+      //     const cs = await Csound(testWithPlugin);
 
-    //     assert.equal(0, await cs.compileCSD(cxxPluginTest));
-    //     await cs.start();
-    //     await cs.stop();
-    //     await cs.terminateInstance();
-    //   });
+      //     assert.equal(0, await cs.compileCSD(cxxPluginTest));
+      //     await cs.start();
+      //     await cs.stop();
+      //     await cs.terminateInstance();
+      //   });
 
       it("emits public events in realtime performance", async function () {
         if (test.name !== "WORKER, AW, SAB") {
@@ -521,6 +521,109 @@ e
           "monitor_out.wav",
           "The sample which csound wrote with fout, is accessible after the end of performance",
         );
+        await csoundObj.terminateInstance();
+      });
+
+      it("can use fs.stat() to get file information", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("tiny_test_sample.wav");
+        const testSampleArrayBuffer = await response.arrayBuffer();
+        const testSample = new Uint8Array(testSampleArrayBuffer);
+
+        // Write a test file
+        await csoundObj.fs.writeFile("test_file.txt", new TextEncoder().encode("Hello World"));
+        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
+
+        // Test stat on existing file
+        const fileStat = await csoundObj.fs.stat("test_file.txt");
+        assert.isObject(fileStat, "stat returns an object for existing file");
+        assert.property(fileStat, "size", "stat object has size property");
+        assert.property(fileStat, "isFile", "stat object has isFile property");
+        assert.property(fileStat, "isDirectory", "stat object has isDirectory property");
+        assert.equal(fileStat.size, 11, "file size matches expected length");
+        assert.isTrue(fileStat.isFile, "isFile returns true for file");
+        assert.isFalse(fileStat.isDirectory, "isDirectory returns false for file");
+
+        // Test stat on binary file
+        const binaryStat = await csoundObj.fs.stat("tiny_test_sample.wav");
+        assert.isObject(binaryStat, "stat returns an object for binary file");
+        assert.equal(binaryStat.size, testSample.length, "binary file size matches");
+
+        // Test stat on non-existing file
+        const nonExistentStat = await csoundObj.fs.stat("non_existent_file.txt");
+        assert.isUndefined(nonExistentStat, "stat returns undefined for non-existent file");
+
+        await csoundObj.terminateInstance();
+      });
+
+      it("can use fs.pathExists() to check file existence", async function () {
+        const csoundObj = await Csound(test);
+
+        // Test non-existing file
+        const nonExistentExists = await csoundObj.fs.pathExists("non_existent_file.txt");
+        assert.isFalse(nonExistentExists, "pathExists returns false for non-existent file");
+
+        // Write a test file
+        await csoundObj.fs.writeFile("test_file.txt", new TextEncoder().encode("Hello World"));
+
+        // Test existing file
+        const existingFileExists = await csoundObj.fs.pathExists("test_file.txt");
+        assert.isTrue(existingFileExists, "pathExists returns true for existing file");
+
+        // Test with directory
+        await csoundObj.fs.mkdir("test_directory");
+        const directoryExists = await csoundObj.fs.pathExists("test_directory");
+        assert.isTrue(directoryExists, "pathExists returns true for existing directory");
+
+        // Test with nested path
+        await csoundObj.fs.writeFile(
+          "test_directory/nested_file.txt",
+          new TextEncoder().encode("Nested"),
+        );
+        const nestedFileExists = await csoundObj.fs.pathExists("test_directory/nested_file.txt");
+        assert.isTrue(nestedFileExists, "pathExists returns true for nested file");
+
+        await csoundObj.terminateInstance();
+      });
+
+      it("can use fs.stat() and fs.pathExists() together for file operations", async function () {
+        const csoundObj = await Csound(test);
+
+        const fileName = "combined_test_file.txt";
+        const fileContent = "This is a test file for combined operations";
+
+        // Initially file should not exist
+        assert.isFalse(await csoundObj.fs.pathExists(fileName), "File does not exist initially");
+        assert.isUndefined(
+          await csoundObj.fs.stat(fileName),
+          "stat returns undefined for non-existent file",
+        );
+
+        // Write file
+        await csoundObj.fs.writeFile(fileName, new TextEncoder().encode(fileContent));
+
+        // Now file should exist
+        assert.isTrue(await csoundObj.fs.pathExists(fileName), "File exists after writing");
+
+        const stat = await csoundObj.fs.stat(fileName);
+        assert.isObject(stat, "stat returns object after file creation");
+        assert.equal(stat.size, fileContent.length, "file size matches content length");
+        assert.isTrue(stat.isFile, "stat correctly identifies file");
+        assert.isFalse(stat.isDirectory, "stat correctly identifies not directory");
+
+        // Remove file
+        await csoundObj.fs.unlink(fileName);
+
+        // File should no longer exist
+        assert.isFalse(
+          await csoundObj.fs.pathExists(fileName),
+          "File does not exist after unlinking",
+        );
+        assert.isUndefined(
+          await csoundObj.fs.stat(fileName),
+          "stat returns undefined after unlinking",
+        );
+
         await csoundObj.terminateInstance();
       });
     });

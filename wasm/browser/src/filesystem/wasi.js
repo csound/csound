@@ -1054,7 +1054,7 @@ WASI.prototype.unlink = function (fname /* string */) {
   const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
 
   if (maybeFd) {
-    delete this.fd[maybeFd];
+    delete this.fd[maybeFd.fd];
   } else {
     console.error(`While trying to unlink ${filePath}, path not found`);
   }
@@ -1077,4 +1077,54 @@ WASI.prototype.mkdir = function (dirname /* string */) {
       path: cleanPath,
     };
   }
+};
+
+WASI.prototype.stat = function (fname /* string */) {
+  const filePath = assertLeadingSlash(normalizePath(fname));
+  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
+
+  if (!maybeFd) {
+    return undefined;
+  }
+
+  const buffers = maybeFd.buffers || [];
+  const size = buffers.reduce((accumulator, buffer) => {
+    return accumulator + (buffer?.byteLength || 0);
+  }, 0);
+
+  const isDirectory = buffers.length === 0 && maybeFd.path.endsWith("/");
+
+  return {
+    dev: 0,
+    ino: maybeFd.fd,
+    mode: isDirectory ? 16877 : 33188, // 0o40755 for dir, 0o100644 for file
+    nlink: 1,
+    uid: 0,
+    gid: 0,
+    rdev: 0,
+    size: size,
+    blksize: 4096,
+    blocks: Math.ceil(size / 512),
+    atimeMs: this.CPUTIME_START,
+    mtimeMs: this.CPUTIME_START,
+    ctimeMs: this.CPUTIME_START,
+    birthtimeMs: this.CPUTIME_START,
+    atime: new Date(this.CPUTIME_START),
+    mtime: new Date(this.CPUTIME_START),
+    ctime: new Date(this.CPUTIME_START),
+    birthtime: new Date(this.CPUTIME_START),
+    isFile: !isDirectory,
+    isDirectory: isDirectory,
+    isBlockDevice: false,
+    isCharacterDevice: false,
+    isSymbolicLink: false,
+    isFIFO: false,
+    isSocket: false,
+  };
+};
+
+WASI.prototype.pathExists = function (fname /* string */) {
+  const filePath = assertLeadingSlash(normalizePath(fname));
+  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
+  return !!maybeFd;
 };
