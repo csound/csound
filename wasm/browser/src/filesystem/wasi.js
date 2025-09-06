@@ -447,7 +447,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   // check for EOF
   if (read >= totalBuffersLength) {
     const buf = memory.getUint32(iovs, true);
-    memory.setUint8(buf, "\0");
+    memory.setUint8(buf, 0);
     memory.setUint32(nread, 0, true);
     return constants.WASI_ESUCCESS;
   }
