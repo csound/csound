@@ -1,5 +1,33 @@
 import EventEmitter from "eventemitter3";
 
+declare interface CsoundFsStat {
+  dev: number;
+  ino: number;
+  mode: number;
+  nlink: number;
+  uid: number;
+  gid: number;
+  rdev: number;
+  size: number;
+  blksize: number;
+  blocks: number;
+  atimeMs: number;
+  mtimeMs: number;
+  ctimeMs: number;
+  birthtimeMs: number;
+  atime: Date;
+  mtime: Date;
+  ctime: Date;
+  birthtime: Date;
+  isFile: boolean;
+  isDirectory: boolean;
+  isBlockDevice: boolean;
+  isCharacterDevice: boolean;
+  isSymbolicLink: boolean;
+  isFIFO: boolean;
+  isSocket: boolean;
+}
+
 declare interface CsoundFs {
   appendFile: (path: string, file: Uint8Array) => Promise<void>;
   writeFile: (path: string, file: Uint8Array) => Promise<void>;
@@ -7,6 +35,8 @@ declare interface CsoundFs {
   unlink: (path: string) => Promise<void>;
   readdir: (path: string) => Promise<string[]>;
   mkdir: (path: string) => Promise<void>;
+  stat: (path: string) => Promise<CsoundFsStat | undefined>;
+  pathExists: (path: string) => Promise<boolean>;
 }
 
 /**

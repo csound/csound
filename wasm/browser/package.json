@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta4",
+  "version": "7.0.0-beta5",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -71,7 +71,6 @@
     "eslint-plugin-n": "^15.5.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-ramda": "^2.5.1",
     "eslint-plugin-standard": "^5.0.0",
     "eslint-plugin-unicorn": "^45.0.0",
     "finalhandler": "^1.2.0",

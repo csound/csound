@@ -1,18 +1,18 @@
 {
   "env": { "es6": true, "node": true, "browser": true },
   "ignorePatterns": ["**/coverage", "**/dist", "**/node_modules", "**/*.config.js", "logger*.js"],
-  "extends": ["standard", "plugin:unicorn/recommended", "plugin:ramda/recommended", "prettier"],
+  "extends": ["standard", "plugin:unicorn/recommended", "prettier"],
   "parserOptions": {
     "ecmaVersion": 2020,
-    "sourceType": "module"
+    "sourceType": "module",
   },
-  "plugins": ["unicorn", "ramda"],
+  "plugins": ["unicorn"],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly",
     "__PROD__": "readonly",
     "goog": "readonly",
-    "Zlib": "writable"
+    "Zlib": "writable",
   },
   "rules": {
     "unicorn/no-abusive-eslint-disable": "off",
@@ -26,6 +26,6 @@
     "unicorn/no-array-for-each": "off",
     "unicorn/numeric-separators-style": "off",
     "unicorn/require-post-message-target-origin": "off",
-    "unicorn/no-useless-undefined": "off"
-  }
+    "unicorn/no-useless-undefined": "off",
+  },
 }
