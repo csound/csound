@@ -1688,11 +1688,15 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       csound->Free(csound, t);
     } else {
       // apply shadowing rule for implicit vars
+      // for backwards compatibility
       var = csoundFindVariableWithName(csound, typeTable->globalPool, varName);
       if(var == NULL)
 	var = csoundFindVariableWithName(csound, csound->engineState.varPool,
 	                                  varName);
-      if(var) {
+      // we are only concerned with opcoderef and instr vars
+      // added by the compiler as global read-only, internally
+      if(var && (var->varType == &CS_VAR_TYPE_OPCODEREF ||
+		 var->varType == &CS_VAR_TYPE_INSTR)) {
         if(csoundFindVariableWithName(csound, typeTable->localPool, varName)
 	      == NULL){
 	   argLetter[0] = *varName;

@@ -1145,7 +1145,6 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
      factor of 1/os, and xtratim also needs to be scaled by
      that factor
   */
-  printf("EXTRATIME %d \n", p->h.insdshead->xtratim);
   p->h.insdshead->xtratim *= os;
   CS_KCNT *= onedos;
   /* oversampling mode (s) */
