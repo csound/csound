@@ -30,5 +30,6 @@ Once the last step is complete, your Csound-based firmware should be running on 
 
 ## Additional Information
 
+- On Windows, you must use the Git Bash shell to build the examples.
 - A custom-modified linker script and the Daisy bootloader version 5.4 are included to ensure the Csound application uses SDRAM for its required heap allocation.
 - These examples can serve as templates or starting points for your own Daisy + Csound projects.
