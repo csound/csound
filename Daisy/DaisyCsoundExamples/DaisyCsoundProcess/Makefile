@@ -34,3 +34,4 @@ LDSCRIPT = ../STM32H750IB_qspi_custom.lds
 # Core location, and generic Makefile.
 SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
+
