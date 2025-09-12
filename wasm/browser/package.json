@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta5",
+  "version": "7.0.0-beta7",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -21,7 +21,7 @@
   "homepage": "https://github.com/csound/csound/tree/master/wasm/browser",
   "repository": {
     "type": "git",
-    "url": "https://github.com/csound/csound"
+    "url": "git+https://github.com/csound/csound.git"
   },
   "publishConfig": {
     "access": "public"

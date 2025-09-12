@@ -1,6 +1,6 @@
 name: csound_wasm
 env:
-  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/cb474e6c995aca315dd728d7c8f288cf8de8e2ae.tar.gz
+  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/4bed3c8ef7b2669d96ef6716bcf689176fdee60f.tar.gz
 on:
   pull_request:
     branches: ["**"]
