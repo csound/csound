@@ -3744,7 +3744,7 @@ void csoundTableCopyOutInternal(CSOUND *csound, int32_t table, MYFLT *ptable) {
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
-void csoundTableCopyInInternal(CSOUND *csound, int32_t table, MYFLT *ptable) {
+void csoundTableCopyInInternal(CSOUND *csound, int32_t table, const MYFLT *ptable) {
   int32_t len;
   MYFLT *ftab;
   /* in realtime mode init pass is executed in a separate thread, so
@@ -3754,7 +3754,7 @@ void csoundTableCopyInInternal(CSOUND *csound, int32_t table, MYFLT *ptable) {
   len = csoundGetTable(csound, &ftab, table);
   if (UNLIKELY(len > 0x00ffffff))
     len = 0x00ffffff; // As coverity is unhappy
-  memcpy(ftab, ptable, (size_t)(len * sizeof(MYFLT)));
+  memcpy(ftab, ptable, (size_t)((len+1) * sizeof(MYFLT))); // + guard point
   if (csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
 }

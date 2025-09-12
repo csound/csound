@@ -32,7 +32,7 @@ typedef struct  {
   CSOUND *csound;
   AudioUnit aunit;
   int32_t ret;
-  int32_t nsmps;
+  int32_t nsmps, insmps;
   bool audioin;
 } AUNIT_PARAMS;
 
@@ -51,10 +51,14 @@ OSStatus audio_callback(void *inRefCon,
   int32_t frame;
   int32_t ksmps = csoundGetKsmps(csound)*nchnls;
   int32_t nsmps = engine->nsmps;
-  int32_t insmps = nsmps;
+  int32_t insmps = engine->insmps;
   const MYFLT *spout = csoundGetSpout(csound);
   MYFLT *spin = csoundGetSpin(csound);
   int32_t *buffer;
+
+  if(engine->audioin)
+  AudioUnitRender(engine->aunit, ioActionFlags, inTimeStamp, 1,
+                    inNumberFrames, ioData);
   
   for(frame = 0; frame < inNumberFrames; frame++) {
 
@@ -77,6 +81,7 @@ OSStatus audio_callback(void *inRefCon,
     }
   }
   engine->nsmps = nsmps;
+  engine->insmps = insmps;
   engine->ret = ret;
   return 0;
 }
@@ -98,7 +103,8 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
   
   AudioStreamBasicDescription format;
   AudioComponentDescription cd = {kAudioUnitType_Output,
-				  kAudioUnitSubType_RemoteIO,kAudioUnitManufacturer_Apple, 0, 0};
+				  kAudioUnitSubType_RemoteIO,
+				  kAudioUnitManufacturer_Apple, 0, 0};
   AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
   err = AudioComponentInstanceNew(HALOutput, &cdata->aunit);
   if(!err){
@@ -142,7 +148,7 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
 static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
 
   int32_t bufframes = parm->bufSamp_SW;
-  OSStatus err;
+  OSStatus err = 0;
   int32_t nchnls = csoundGetChannels(csound, 1);
   void **data = csoundGetRtRecordUserData(csound);
   AUNIT_PARAMS *cdata;
@@ -157,10 +163,15 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
   *data = cdata;
 
   AudioStreamBasicDescription format;
-  AudioComponentDescription cd = {kAudioUnitType_Output,
-				  kAudioUnitSubType_RemoteIO,kAudioUnitManufacturer_Apple, 0, 0};
-  AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
-  err = AudioComponentInstanceNew(HALOutput, &cdata->aunit);
+
+  if(!cdata->audioin) {
+    AudioComponentDescription cd = {kAudioUnitType_Output,
+				    kAudioUnitSubType_RemoteIO,
+				    kAudioUnitManufacturer_Apple, 0, 0};
+    AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
+    err = AudioComponentInstanceNew(HALOutput, &cdata->aunit);
+
+  }
   if(!err){
     UInt32 enableIO = 1;
     AudioUnitSetProperty(cdata->aunit,
@@ -223,7 +234,8 @@ static void  audio_output(CSOUND *csound, const MYFLT *outbuff, int32_t nbytes) 
 }
 
 static int audio_input(CSOUND *csound, MYFLT *inbuff, int32_t nbytes) {
-  // nothing to do
+  // nothing to do but signal the caller not to fill spin
+  return -1;
 }
 
 void aunit_setup(CSOUND *csound) {

@@ -39,7 +39,7 @@ void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
 void csound_input_message(CSOUND *csound, const char *message);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *message);
 void csoundTableCopyOutInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
-void csoundTableCopyInInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
+void csoundTableCopyInInternal(CSOUND *csound, int32_t table, const MYFLT *ptable);
 void csoundTableSetInternal(CSOUND *csound, int32_t table, int32_t index, MYFLT value);
 int32_t csoundScoreEventInternal(CSOUND *csound, char type,
                              const MYFLT *pfields, long numFields);
@@ -269,7 +269,7 @@ static inline void csoundTableCopyOut_enqueue(CSOUND *csound, int32_t table,
 }
 
 static inline void csoundTableCopyIn_enqueue(CSOUND *csound, int32_t table,
-                                             MYFLT *ptable){
+                                             const MYFLT *ptable){
   const int32_t argsize = ARG_ALIGN*2;
   char args[ARG_ALIGN*2];
   memcpy(args, &table, sizeof(int32_t));
@@ -429,7 +429,8 @@ void csoundTableCopyOut(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t as
   csoundUnlockMutex(csound->API_lock);
 }
 
-void csoundTableCopyIn(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t async){
+void csoundTableCopyIn(CSOUND *csound, int32_t table, const
+		       MYFLT *ptable, int32_t async){
   if(async) {
     csoundTableCopyIn_enqueue(csound, table, ptable);
     return;

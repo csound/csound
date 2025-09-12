@@ -1218,6 +1218,7 @@ extern "C" {
    * and returns the table length (not including the guard point32_t).
    * If the table does not exist, *tablePtr is set to NULL and
    * -1 is returned.
+   * NB: this function and the tablePtr returned are not threadsafe 
    */
   PUBLIC int32_t csoundGetTable(CSOUND *, MYFLT **tablePtr, int32_t tableNum);
 
@@ -1229,8 +1230,31 @@ extern "C" {
    * -1 is returned.
    * NB: the argument list starts with the GEN number and is followed by
    * its parameters. eg. f 1 0 1024 10 1 0.5  yields the list {10.0,1.0,0.5}
+   * This function and the argsPtr returned are not threadsafe
    */
-  PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum);
+  PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr,
+				    int32_t tableNum);
+
+  /** 
+   * Copies an array stored in ptable to the function table
+   * number given by table, which should exist in the engine.
+   * The input array should be at least as long as the table
+   * size plus one (guard point required).
+   * This function is threadsafe and can also be run asynchronously
+   */
+  PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
+				 const MYFLT *ptable, int32_t async);
+
+
+   /** 
+   * Copies a function table number given by table, 
+   * which should exist in the engine, into the array ptable,
+   * and have enough space to accommodate the array size.
+   * This function is threadsafe and can also be run asynchronously
+   */
+  PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
+				MYFLT *ptable, int32_t async);
+  
 
   /** @}*/
   /** @defgroup SCOREHANDLING Score Handling
