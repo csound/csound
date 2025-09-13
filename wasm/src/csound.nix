@@ -1,4 +1,8 @@
-{ pkgs ? import <nixpkgs> { }, static ? false }:
+{
+  pkgs ? import <nixpkgs> { },
+  static ? false,
+  gitHash ? "HEAD",
+}:
 
 let
   lib = pkgs.lib;
@@ -11,9 +15,10 @@ let
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
       --entry=_start --import-memory \
       ${
-         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
-         (with builtins; fromJSON (readFile ./exports.json))
-       } \
+        pkgs.lib.concatMapStrings (x: " --export=" + x + " ") (
+          with builtins; fromJSON (readFile ./exports.json)
+        )
+      } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
       -L${liblame}/lib -L${libmpg123}/lib \
@@ -32,9 +37,10 @@ let
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
       ${
-         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
-         (with builtins; fromJSON (readFile ./exports.json))
-       } \
+        pkgs.lib.concatMapStrings (x: " --export=" + x + " ") (
+          with builtins; fromJSON (readFile ./exports.json)
+        )
+      } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
       -L${liblame}/lib -L${libmpg123}/lib \
@@ -87,28 +93,35 @@ let
 
   csoundSrc = builtins.path {
     path = ./. + "../../../";
-    filter = path: type:
-      ((builtins.match ".*/Engine.*" path != null ||
-        builtins.match ".*/H.*" path != null ||
-        builtins.match ".*/InOut.*" path != null ||
-        builtins.match ".*/OOps.*" path != null ||
-        builtins.match ".*/Opcodes.*" path != null ||
-        builtins.match ".*/Top.*" path != null ||
-        builtins.match ".*/include.*" path != null) &&
-      (lib.strings.hasSuffix ".c" path ||
-       lib.strings.hasSuffix ".cpp" path ||
-       lib.strings.hasSuffix ".h" path ||
-       lib.strings.hasSuffix ".h.in" path ||
-       lib.strings.hasSuffix ".hpp" path ||
-       lib.strings.hasSuffix ".hpp.in" path ||
-       lib.strings.hasSuffix ".y" path ||
-       lib.strings.hasSuffix ".lex" path ||
-       type == "directory"));
+    filter =
+      path: type:
+      (
+        (
+          builtins.match ".*/Engine.*" path != null
+          || builtins.match ".*/H.*" path != null
+          || builtins.match ".*/InOut.*" path != null
+          || builtins.match ".*/OOps.*" path != null
+          || builtins.match ".*/Opcodes.*" path != null
+          || builtins.match ".*/Top.*" path != null
+          || builtins.match ".*/include.*" path != null
+        )
+        && (
+          lib.strings.hasSuffix ".c" path
+          || lib.strings.hasSuffix ".cpp" path
+          || lib.strings.hasSuffix ".h" path
+          || lib.strings.hasSuffix ".h.in" path
+          || lib.strings.hasSuffix ".hpp" path
+          || lib.strings.hasSuffix ".hpp.in" path
+          || lib.strings.hasSuffix ".y" path
+          || lib.strings.hasSuffix ".lex" path
+          || type == "directory"
+        )
+      );
   };
 
   preprocFlags = ''
     -DUSE_LIBSNDFILE=1 \
-    -DGIT_HASH_VALUE=HEAD \
+    -DGIT_HASH_VALUE=${gitHash} \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
     -DO_NDELAY=O_NONBLOCK \
@@ -126,12 +139,16 @@ let
     -DO_CREAT='(__WASI_OFLAGS_CREAT << 12)' \
   '';
 
-in pkgs.stdenvNoCC.mkDerivation rec {
+in
+pkgs.stdenvNoCC.mkDerivation rec {
 
   name = "csound-wasm";
   src = csoundSrc;
 
-  buildInputs = [ pkgs.flex pkgs.bison ];
+  buildInputs = [
+    pkgs.flex
+    pkgs.bison
+  ];
 
   dontStrip = true;
   AR = "${wasi-sdk}/bin/ar";
@@ -285,18 +302,17 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
   # ../Opcodes/scansyn.c \
   #   ../Opcodes/scansynx.c \
-    # expose scansyn_init_ via extern
-    # also hardcode away graph console logs
-    # as they seem to freeze the browser environment
-    # substituteInPlace Opcodes/scansyn.c \
-    #   --replace 'static int32_t scansyn_init_' \
-    #             'extern int32_t scansyn_init_' \
-    #   --replace '*p->i_disp' '0'
-    # substituteInPlace Opcodes/scansyn.h \
-    #   --replace 'extern int32_t' \
-    #             'extern int32_t scansyn_init_(CSOUND *);
-    #              extern int32_t'
-
+  # expose scansyn_init_ via extern
+  # also hardcode away graph console logs
+  # as they seem to freeze the browser environment
+  # substituteInPlace Opcodes/scansyn.c \
+  #   --replace 'static int32_t scansyn_init_' \
+  #             'extern int32_t scansyn_init_' \
+  #   --replace '*p->i_disp' '0'
+  # substituteInPlace Opcodes/scansyn.h \
+  #   --replace 'extern int32_t' \
+  #             'extern int32_t scansyn_init_(CSOUND *);
+  #              extern int32_t'
 
   buildPhase = ''
     mkdir -p build && cd build
@@ -309,10 +325,10 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     echo "Compile libcsound.wasm"
 
     ${wasi-sdk}/bin/clang \
-      ${if (static == false) then "--target=wasm32-unknown-emscripten" else "--target=wasm32-wasi" } \
+      ${if (static == false) then "--target=wasm32-unknown-emscripten" else "--target=wasm32-wasi"} \
       -fno-force-enable-int128 -femulated-tls -fno-exceptions -fno-rtti -Oz \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      ${lib.optionalString (static == false) "-fPIC" } \
+      ${lib.optionalString (static == false) "-fPIC"} \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec -I../Opcodes/emugens \
       -I${libsndfile}/include \
@@ -329,7 +345,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -D_WASI_EMULATED_PROCESS_CLOCKS \
       -D__BUILDING_LIBCSOUND \
       -DWASM_BUILD=1 ${preprocFlags} -c \
-      ${lib.optionalString (static == true) "./staticfix.c" } \
+      ${lib.optionalString (static == true) "./staticfix.c"} \
       unsupported_opcodes.c \
       ../Engine/auxfd.c \
       ../Engine/cfgvar.c \
@@ -609,7 +625,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
     # # make a compressed version for the browser bundle
     ${pkgs.zopfli}/bin/zopfli --zlib -c \
-      $out/lib/csound${if (static == true) then ".static" else ".dylib" }.wasm \
-        > $out/lib/csound${if (static == true) then ".static" else ".dylib" }.wasm.z
+      $out/lib/csound${if (static == true) then ".static" else ".dylib"}.wasm \
+        > $out/lib/csound${if (static == true) then ".static" else ".dylib"}.wasm.z
   '';
 }

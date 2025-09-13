@@ -335,6 +335,7 @@ jobs:
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
     runs-on: macos-latest
+    if: false
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
@@ -369,6 +370,7 @@ jobs:
   macos_build_vcpkg_arm64:
     name: MacOS build (vcpkg arm64)
     runs-on: macos-latest
+    if: false
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5

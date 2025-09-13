@@ -866,7 +866,7 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
     if (*p->kftndx >= p->ftfn->flen) *p->kftndx = (MYFLT)(p->ftfn->flen - 1);
     i = (int32_t)*p->kftndx;
     f = *p->kftndx - i;
-    if (p->ftndx != *p->kftndx) {
+    if (p->ftndx != *p->kftndx && p->ftfn->ftable) {
       p->ftndx = *p->kftndx;
       MYFLT tbl1 = *(p->ftfn->ftable + i++);
       MYFLT tbl2 = *(p->ftfn->ftable + i--);
