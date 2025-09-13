@@ -872,6 +872,7 @@ int32_t check_in_arg(char* found, char* required) {
     return 1;
   }
 
+
   if (*required == '.' || *required == '?' || *required == '*') {
     return 1;
   }
@@ -1035,6 +1036,13 @@ int32_t check_out_arg(char* found, char* required) {
     return 1;
   }
 
+  // check for multichar types now
+  if(strlen(found) > 1 &&
+     strcmp(found, required)) {
+    return 0;
+  }
+    
+
   t = (char*)POLY_OUT_TYPES[0];
   for (i = 0; t != NULL; i += 2) {
     if (strcmp(required, t) == 0) {
@@ -1121,7 +1129,7 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
       csound->Free(csound, argsRequired[n]);
     }
     csound->Free(csound, argsRequired);
-
+    
     return returnVal;
   }
 }
@@ -1145,7 +1153,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
                 args_required(inArgTypes), temp->opname, VARGMAX);
-
       return temp;
     }
   }
@@ -1590,7 +1597,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   char *t = cs_strdup(csound, varName);
   char *lvarName = cs_strdup(csound, varName); // local copy
   CS_VAR_POOL* pool = typeTable->localPool;
-  char argLetter[2];
+  char argLetter[2] = {0};
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
   // remove any global annotation
@@ -1615,7 +1622,6 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         csound->Warning(csound, "%s: @global annotation ignored", varName); 
           
       t = lvarName;
-      argLetter[1] = 0;
 
       if (*t == '#') t++;
       if (*t == 'g') pool = typeTable->globalPool;
@@ -2087,7 +2093,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
- 
+  
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
@@ -2101,9 +2107,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRY* oentry;
   if (root->value->optype == NULL ||
-      leftArgString == NULL)
+      leftArgString == NULL) {
     oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
+  
+  }
   /* if there is type annotation, try to resolve it */
   else {
     // if there is a discrepancy between out-types/annotation
