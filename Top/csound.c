@@ -1531,7 +1531,8 @@ PUBLIC CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   csound->API_lock = csoundCreateMutex(1);
   allocate_message_queue(csound);
   // version is always displayed
-  print_csound_version(csound);
+  // print_csound_version(csound);
+  csound->print_version = 1;
   return csound;
 }
 
@@ -4434,5 +4435,3 @@ INSTRTXT *csoundGetInstrument(CSOUND *csound, int32_t insno, const char *name) {
     insno = named_instr_find(csound, (char *)name);
   return csound->engineState.instrtxtp[insno];
 }
-
-

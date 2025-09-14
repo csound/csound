@@ -884,8 +884,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
     O->sfwrite = 1;
     return 1;
-  } else if (!(strcmp(s, "print_version"))) {
-    csound->print_version = 1;
+  } else if (!(strcmp(s, "suppress_version"))) {
+    csound->print_version = 0;
     return 1;
   } else if (!(strncmp(s, "logfile=", 8))) {
     s += 8;
@@ -1059,7 +1059,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       strcat(csound->dl_opcodes_oplibs, s);
     }
     return 1;
-  } 
+  }
   else if (!(strcmp(s, "default-paths"))) {
     O->noDefaultPaths = 0;
     return 1;

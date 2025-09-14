@@ -433,6 +433,12 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
   OPARMS *O = csound->oparms;
   int32_t n;
 
+  // Always print version, unless this was supressed
+  // (print_version is set to 1 by default)
+  if(csound->print_version == 1) {
+    print_csound_version(csound);
+  }
+
   /* if a CSD was not used and options were not checked, check options */
   if (csound->csdname == NULL && !csound->options_checked) {
     checkOptions(csound);
