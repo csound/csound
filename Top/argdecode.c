@@ -126,7 +126,7 @@ static inline void set_stdout_assign(CSOUND *csound, int32_t type,
 /* IV - Feb 19 2005 */
 static const char *shortUsageList[] = {
     Str_noop("--help      print long usage options"),
-    Str_noop("--version   print version details"),
+    Str_noop("--version   print version details and exit"),
     Str_noop("-U unam     run utility program unam"),
     Str_noop("-C          use Cscore processing of scorefile"),
     Str_noop("-j N        use N threads in performance"),
@@ -342,6 +342,7 @@ static const char *longUsageList[] = {
         "--aft-zero              set aftertouch to zero, not 127 (default)"),
     Str_noop("--limiter[=num]         include clipping in audio output"),
     Str_noop("--vbr                   set MPEG encoding to variable bitrate"),
+    Str_noop("--suppress-version      do not print version details")
     Str_noop("--run-unit-tests         enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--help                  long help"),
@@ -884,7 +885,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
     O->sfwrite = 1;
     return 1;
-  } else if (!(strcmp(s, "suppress_version"))) {
+  } else if (!(strcmp(s, "suppress-version"))) {
     csound->print_version = 0;
     return 1;
   } else if (!(strncmp(s, "logfile=", 8))) {

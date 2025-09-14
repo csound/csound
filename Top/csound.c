@@ -1530,8 +1530,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   csoundReset(csound);
   csound->API_lock = csoundCreateMutex(1);
   allocate_message_queue(csound);
-  // version is always displayed
-  // print_csound_version(csound);
+  // version is displayed by default, can be suppressed via --suppress-version
   csound->print_version = 1;
   return csound;
 }
