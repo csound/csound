@@ -441,41 +441,45 @@ sprintf_opcode_(CSOUND *csound,
       case 'F':
       case 'g':
       case 'G':
+	{
 	//printf("%d %d \n", str->size, strlen(str->data));
-	if (strlen(strseg) + 24 > (uint32_t)maxChars) {
+	int32_t max_double_chars = 18;
+	if (strlen(strseg) + max_double_chars  > (uint32_t)maxChars) {
 	  size_t offs = outstring - str->data;
-	  str->data = csound->ReAlloc(csound, str->data, str->size  + 13);
+	  str->data = csound->ReAlloc(csound, str->data, str->size  + max_double_chars );
 	  if(str->data == NULL) {
 	    return StrOp_ErrMsg(p, Str("memory allocation failure"));
 	  }
-	  str->size += 24;
-	  maxChars += 24;
+	  str->size += max_double_chars;
+	  maxChars += max_double_chars;
 	  outstring = str->data + offs;
 	  //printf("maxchars = %d  %s\n", maxChars, strseg);
 	}
 	//printf("%d %d \n", str->size, strlen(str->data));
 	n = snprintf(outstring, maxChars, strseg, (double)*parm);
+	}
 	break;
       case 's':
 	if (LIKELY(IS_STR_ARG(parm))) {
-	  if (UNLIKELY(((STRINGDAT*)parm)->data == str->data)) {
+          STRINGDAT *sparm = (STRINGDAT*)parm;
+	  if (UNLIKELY(sparm->data == str->data)) {
 	    csound->Free(csound, strseg);
 	    return StrOp_ErrMsg(p, Str("output argument may not be "
 				       "the same as any of the input args"));
 	  }
-	  if (UNLIKELY(((STRINGDAT*)parm)->size+strlen(strseg) >= (uint32_t)maxChars)) {
+	  if (UNLIKELY(strlen(sparm->data)+strlen(strseg) >= (uint32_t)maxChars)) {
 	    size_t offs = outstring - str->data;
+	    size_t xtra = strlen(sparm->data) + strlen(strseg) + 1;
 	    str->data = csound->ReAlloc(csound, str->data,
-					str->size  + ((STRINGDAT*)parm)->size +
-					strlen(strseg));
+					str->size + xtra);
 	    if(str->data == NULL){
 	      return StrOp_ErrMsg(p, Str("memory allocation failure"));
 	    }
-	    str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
-	    maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
+	    str->size += xtra;
+	    maxChars += xtra;
 	    outstring = str->data + offs;
 	  }
-	  n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
+	  n = snprintf(outstring, maxChars, strseg, sparm->data);
 	}
 	else return StrOp_ErrMsg(p, Str("Not string type for %%s"));
 	break;
@@ -521,7 +525,7 @@ sprintf_opcode_(CSOUND *csound,
 
 int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-  size_t size = p->sfmt->size+ 18*((size_t) p->INOCOUNT);
+  size_t size = strlen(p->sfmt->data) + 13*((size_t) p->INOCOUNT);
   //printf("%d %d \n", p->r->size, strlen(p->r->data));
   if (p->r->data == NULL || p->r->size < size) {
     /* this 10 is 1n incorrect guess which is OK with numbers*/
