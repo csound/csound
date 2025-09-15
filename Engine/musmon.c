@@ -471,7 +471,7 @@ int32_t csoundCleanup(CSOUND *csound)
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
-    {
+    if(!csound->info_message_request){
       csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
