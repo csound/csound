@@ -342,8 +342,9 @@ static const char *longUsageList[] = {
         "--aft-zero              set aftertouch to zero, not 127 (default)"),
     Str_noop("--limiter[=num]         include clipping in audio output"),
     Str_noop("--vbr                   set MPEG encoding to variable bitrate"),
-    Str_noop("--suppress-version      do not print version details")
-    Str_noop("--run-unit-tests         enable assertion opcodes and report test failures"),
+    Str_noop("--suppress-version      do not print version details"),
+    Str_noop("--print-version         always print version details"),
+    Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--help                  long help"),
     NULL};
@@ -888,6 +889,10 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strcmp(s, "suppress-version"))) {
     csound->print_version = 0;
     return 1;
+  } else if (!(strcmp(s, "print-version"))) {
+     csound->print_version = 1;
+     csound->LongJmp(csound, 0);
+     return 1;
   } else if (!(strncmp(s, "logfile=", 8))) {
     s += 8;
     if (UNLIKELY(*s == '\0'))
@@ -1076,6 +1081,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strcmp(s, "version"))) {
     print_csound_version(csound);
+    csound->info_message_request = 1;
     csound->LongJmp(csound, 0);
   } else if (!(strcmp(s, "help"))) {
     longusage(csound);

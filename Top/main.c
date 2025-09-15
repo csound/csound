@@ -248,6 +248,10 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
   /* this assumes that argdecode is safe to run multiple times */
   csound->orcname_mode = 1;      /* ignore orc/sco name */
   argdecode(csound, argc, argv); /* should not fail this time */
+  if(csound->print_version == 1) {
+     print_csound_version(csound);
+  }
+  
   /* some error checking */
   if (UNLIKELY(csound->stdin_assign_flg &&
                (csound->stdin_assign_flg & (csound->stdin_assign_flg - 1)) !=
@@ -408,6 +412,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
       return CSOUND_EXITJMP_SUCCESS;
     return CSOUND_ERROR;
   }
+  csound->print_version = 0;
   return CSOUND_SUCCESS;
 }
 
@@ -434,9 +439,11 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
   int32_t n;
 
   // Always print version, unless this was supressed
+  // or already printed
   // (print_version is set to 1 by default)
   if(csound->print_version == 1) {
     print_csound_version(csound);
+    csound->print_version = 0;
   }
 
   /* if a CSD was not used and options were not checked, check options */
