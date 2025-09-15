@@ -343,7 +343,7 @@ static const char *longUsageList[] = {
     Str_noop("--limiter[=num]         include clipping in audio output"),
     Str_noop("--vbr                   set MPEG encoding to variable bitrate"),
     Str_noop("--suppress-version      do not print version details"),
-    Str_noop("--print-version         print version and exit"),
+    Str_noop("--print-version         always print version details"),
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--help                  long help"),
@@ -890,9 +890,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     csound->print_version = 0;
     return 1;
   } else if (!(strcmp(s, "print-version"))) {
-     print_csound_version(csound);
-     csound->print_version = 0;
-     csound->info_message_request = 1;
+     csound->print_version = 1;
      csound->LongJmp(csound, 0);
      return 1;
   } else if (!(strncmp(s, "logfile=", 8))) {
@@ -1083,6 +1081,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strcmp(s, "version"))) {
     print_csound_version(csound);
+    csound->info_message_request = 1;
     csound->LongJmp(csound, 0);
   } else if (!(strcmp(s, "help"))) {
     longusage(csound);
