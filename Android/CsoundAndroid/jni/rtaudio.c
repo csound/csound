@@ -144,8 +144,8 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
 
 
 static int32_t audio_input(CSOUND *csound, MYFLT *inbuff, int32_t nbytes){
-    // nothing to do
-    return nbytes;
+    // nothing to do but signal the caller not to fill spin
+    return -1;
 }
 
 static void close_io(CSOUND *csound) {

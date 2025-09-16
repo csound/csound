@@ -401,6 +401,16 @@ class PUBLIC Csound
     return csoundGetTableArgs(csound, argsPtr, tableNum);
   }
 
+  virtual void TableCopyIn(int32_t table,
+			   const MYFLT *ptable, int32_t async) {
+    csoundTableCopyIn(csound, table, ptable, async);
+  }
+
+  virtual void TableCopyOut(int32_t table,
+			   MYFLT *ptable, int32_t async) {
+    csoundTableCopyOut(csound, table, ptable, async);
+  }
+
   virtual int32_t GetChannelPtr(void* &p, const char *name, int32_t type)
   {
     MYFLT *tmp;

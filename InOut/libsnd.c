@@ -1017,6 +1017,7 @@ static inline void sndfilein_(CSOUND *csound, MYFLT scaleFac)
         do {
           n = ((int32_t) O->inbufsamps - (int32_t) STA(inbufrem)) * (int32_t) sizeof(MYFLT);
           n = csound->audrecv(csound, STA(inbuf) + (int32_t) STA(inbufrem), n);
+	  if(n < 0) return;
           STA(inbufrem) += (uint32_t) (n / (int32_t) sizeof(MYFLT));
         } while ((int32_t) STA(inbufrem) < (int32_t) O->inbufsamps);
         bufpos = 0;
