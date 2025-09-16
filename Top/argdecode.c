@@ -392,6 +392,7 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...) {
   /*   csound->LongJmp(csound, 1); */
   /* } */
   // Added longjump -- JPff
+  csound->print_version = 0;
   csound->LongJmp(csound, 1);
 }
 
@@ -891,7 +892,6 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strcmp(s, "print-version"))) {
      csound->print_version = 1;
-     csound->LongJmp(csound, 0);
      return 1;
   } else if (!(strncmp(s, "logfile=", 8))) {
     s += 8;
@@ -1259,8 +1259,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->runUnitTests = 1;
     return 1;
   }
-  csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
-  return 0;
+  csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored."), s);
+  return 1;
 }
 
 int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
