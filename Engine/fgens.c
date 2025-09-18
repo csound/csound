@@ -197,16 +197,14 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
       i = (*csound->gensub[genum])(&ff, NULL);
-      ftp = csound->flist[ff.fno];
-      if(!ftp)
-        return -1;
-
-      ftp->sr = csound->esr;
       if (i != 0) {
         csound->flist[ff.fno] = NULL;
         csound->Free(csound, ftp);
         return -1;
       }
+
+      ftp = csound->flist[ff.fno];
+      ftp->sr = csound->esr;
       *ftpp = ftp;
       goto end;
     }
