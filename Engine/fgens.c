@@ -199,6 +199,8 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       i = (*csound->gensub[genum])(&ff, NULL);
       ftp = csound->flist[ff.fno];
       ftp->sr = csound->esr;
+      if(!ftp)
+        return -1;
       if (i != 0) {
         csound->flist[ff.fno] = NULL;
         csound->Free(csound, ftp);
