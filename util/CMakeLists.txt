@@ -34,7 +34,7 @@ if(BUILD_UTILITIES)
     make_utility(srconv      srconv_main.c)
     make_utility(smf_conv    smf_conv_main.c)
 
-    if (BUILD_SRC_CONV)
+    if (BUILD_SRC_CONV AND USE_LIBSAMPLERATE)
         if (USE_VCPKG)
             find_package(SampleRate CONFIG REQUIRED)
             assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)

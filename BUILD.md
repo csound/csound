@@ -40,6 +40,10 @@ top-level installation directory.
 - `USE_LIBSNDFILE=`: in systems where libsndfile is not present, this
 option can disable this requirement for the build.
 
+- `USE_LIBSAMPLERATE=`: controls whether libsamplerate (Secret Rabbit Code) 
+is used for high-quality sample rate conversion. When disabled, Csound will
+use linear interpolation for sample rate conversion. Default is ON.
+
 - `BUILD_PLUGINS=`: build all external opcodes as plugin libraries.
 This option is disabled by default.
 
