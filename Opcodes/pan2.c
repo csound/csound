@@ -29,6 +29,7 @@
 #include "interlocks.h"
 
 #include <math.h>
+#include "arrays.h"
 
 typedef struct {
     OPDS h;
@@ -51,16 +52,13 @@ static int32_t pan2set(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
-static int32_t pan2run(CSOUND *csound, PAN2 *p)
-{
+static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t type, MYFLT *ain, MYFLT *al, MYFLT *ar) {
     IGN(csound);
-    int32_t type = p->type;
-    MYFLT *ain = p->asig;
-    MYFLT *al = p->aleft, *ar = p->aright;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t asgp = IS_ASIG_ARG(p->pan);
+
+    uint32_t offset = opds->insdshead->ksmps_offset; // insdshead->ksmps_offset;
+    uint32_t early  = opds->insdshead->ksmps_no_end;
+    uint32_t n, nsmps = opds->insdshead->ksmps;
+    int32_t asgp = IS_ASIG_ARG(pan);
     MYFLT s, c;
     if (UNLIKELY(offset)) {
       memset(ar, '\0', offset*sizeof(MYFLT));
@@ -76,19 +74,14 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
       {
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
-            MYFLT kangl = HALFPI_F * p->pan[n];
+            MYFLT kangl = HALFPI_F * pan[n];
             ar[n] = ain[n] * SIN(kangl);
             al[n] = ain[n] * COS(kangl);
           }
         }
         else {
-          if (*p->pan != p->lastpan) {
-            MYFLT kangl = HALFPI_F * (p->lastpan = *p->pan);
-            p->s = s = SIN(kangl); p->c = c = COS(kangl);
-          }
-          else {
-            s = p->s; c = p->c;
-          }
+          MYFLT kangl = HALFPI_F * *pan;
+          s = SIN(kangl); c = COS(kangl);
           for (n=offset; n<nsmps; n++) {
             ar[n] = ain[n] * s;
             al[n] = ain[n] * c;
@@ -100,21 +93,15 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
       {
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
-            MYFLT kangl = p->pan[n];
+            MYFLT kangl = pan[n];
             ar[n] = ain[n] * SQRT(kangl);
             al[n] = ain[n] * SQRT(FL(1.0)-kangl);
           }
         }
         else {
-          MYFLT kangl = *p->pan;
-          if (kangl != p->lastpan) {
-            p->s = s = SQRT(kangl);
-            p->c = c = SQRT(FL(1.0)-kangl);
-            p->lastpan = kangl;
-          }
-          else {
-            s = p->s; c = p->c;
-          }
+          MYFLT kangl = *pan;
+          s = SQRT(kangl);
+          c = SQRT(FL(1.0)-kangl);
           for (n=offset; n<nsmps; n++) {
             ar[n] = ain[n] * s;
             al[n] = ain[n] * c;
@@ -124,9 +111,9 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
       }
     case 2:
       {
-        MYFLT kangl = *p->pan;
+        MYFLT kangl = *pan;
         for (n=offset; n<nsmps; n++) {
-          if (asgp) kangl = p->pan[n];
+          if (asgp) kangl = pan[n];
           ar[n] = ain[n] * kangl;
           al[n] = ain[n] * (FL(1.0)-kangl);
         }
@@ -137,7 +124,7 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
         MYFLT kangl, l, r;
         if (asgp) {
           for (n=offset; n<nsmps; n++) {
-            kangl = p->pan[n];
+            kangl = pan[n];
             c = COS(HALFPI*kangl);
             s = SIN(HALFPI*kangl);
             l = ROOT2*(c+s)*0.5;
@@ -147,17 +134,11 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
           }
         }
         else {
-          kangl = *p->pan;
-          if (kangl != p->lastpan) {
-            MYFLT cc = COS(HALFPI*kangl);
-            MYFLT ss = SIN(HALFPI*kangl);
-            p->s = s = ROOT2*(cc+ss)*0.5;
-            p->c = c = ROOT2*(cc-ss)*0.5;
-            p->lastpan = kangl;
-          }
-          else {
-             s = p->s; c = p->c;
-          }
+          kangl = *pan;
+          MYFLT cc = COS(HALFPI*kangl);
+          MYFLT ss = SIN(HALFPI*kangl);
+          s = ROOT2*(cc+ss)*0.5;
+          c = ROOT2*(cc-ss)*0.5;
           for (n=offset; n<nsmps; n++) {
             al[n] = ain[n] * s;
             ar[n] = ain[n] * c;
@@ -169,10 +150,42 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
     return OK;
 }
 
+static int32_t pan2run(CSOUND *csound, PAN2 *p)
+{
+    return pan2run_common(csound, &(p->h), pan, p->type, p->asig, p->aleft, p->aright);
+}
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out;
+    MYFLT *asig;
+    MYFLT *pan;
+    MYFLT *itype;
+    int32_t type;
+    // MYFLT lastpan, s, c;
+} PAN2ARR;
+
+static int32_t pan2arr_set(CSOUND *csound, PAN2ARR *p) {
+    int32_t type = p->type = MYFLT2LRND(*p->itype);
+    if (UNLIKELY(type <0 || type > 3))
+      return csound->InitError(csound, "%s", Str("Unknown panning type"));
+    // p->lastpan = -FL(1.0);
+    tabinit(csound, p->out, 2, p->h.insdshead);
+    return OK;
+}
+
+static int32_t pan2arr_run(CSOUND *csound, PAN2ARR *p) {
+    MYFLT *al = p->out->data;
+    MYFLT *ar = p->out->data + CS_KSMPS;
+    return pan2run_common(csound, &(p->h), p->pan, p->type, p->asig, al, ar);
+}
+
 
 static OENTRY pan2_localops[] =
 {
  { "pan2", sizeof(PAN2), 0,  "aa", "axo", (SUBR) pan2set, (SUBR) pan2run },
+ { "pan2", sizeof(PAN2ARR), 0,  "a[]", "axo", (SUBR) pan2arr_set, (SUBR) pan2arr_run },
+
 };
 
 LINKAGE_BUILTIN(pan2_localops)
