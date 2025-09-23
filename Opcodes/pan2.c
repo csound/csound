@@ -55,7 +55,7 @@ static int32_t pan2set(CSOUND *csound, PAN2 *p)
 static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t type, MYFLT *ain, MYFLT *al, MYFLT *ar) {
     IGN(csound);
 
-    uint32_t offset = opds->insdshead->ksmps_offset; // insdshead->ksmps_offset;
+    uint32_t offset = opds->insdshead->ksmps_offset;
     uint32_t early  = opds->insdshead->ksmps_no_end;
     uint32_t n, nsmps = opds->insdshead->ksmps;
     int32_t asgp = IS_ASIG_ARG(pan);
@@ -152,7 +152,7 @@ static int32_t pan2run_common(CSOUND *csound, OPDS *opds, MYFLT *pan, int32_t ty
 
 static int32_t pan2run(CSOUND *csound, PAN2 *p)
 {
-    return pan2run_common(csound, &(p->h), pan, p->type, p->asig, p->aleft, p->aright);
+    return pan2run_common(csound, &(p->h), p->pan, p->type, p->asig, p->aleft, p->aright);
 }
 
 typedef struct {
@@ -162,7 +162,6 @@ typedef struct {
     MYFLT *pan;
     MYFLT *itype;
     int32_t type;
-    // MYFLT lastpan, s, c;
 } PAN2ARR;
 
 static int32_t pan2arr_set(CSOUND *csound, PAN2ARR *p) {
