@@ -1655,10 +1655,13 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   if (current->left->next != NULL) {
     CS_VARIABLE* var = find_var_from_pools(csound, current->left->next->value->lexeme,
                                         current->left->next->value->lexeme, typeTable);
-    if(var == NULL) {
-      add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
-    }
-    
+    // variable will replace any existing variable
+    if(var != NULL)
+    csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
+		            "\t - now using %s type, line %d",
+		              var->varName,  var->varType->varTypeName,
+		              isPerfRate ? "k" : "i", current->line); 
+    add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
     optionalUserIndexAssign->value = make_token(csound, "=");
