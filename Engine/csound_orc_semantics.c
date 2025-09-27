@@ -2808,32 +2808,38 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       char* atype = cs_strdup(csound, arrayArgType+1); // skip '['
       char* typ;
       atype[strlen(atype)-1] = '\0'; // remove ']'
+      typ = remove_type_quoting(csound, atype);
       if(var == NULL) {
-       typ = remove_type_quoting(csound, atype);
        // now create the arg based on the array type
        add_arg(csound, current->left->value->lexeme, typ,
 	       typeTable, current);
-      } else {
+       } else {
         // now we need to check that the array matches the
         // var type - automatic conversion possible for i and k
         const CS_TYPE *iType = &CS_VAR_TYPE_I;
         const CS_TYPE *kType = &CS_VAR_TYPE_K;
         const CS_TYPE *avartyp = csoundGetTypeWithVarTypeName(csound->typePool, atype);
         if(var->varType != avartyp) {
+	  char *otype = var->varType->varTypeName;
           if((avartyp == iType && var->varType == kType) ||
              (avartyp == kType && var->varType == iType)) {
-            if(csound->GetDebug(csound))
               csound->Message(csound, "%s-type loop with %s-type array\n",
                               var->varType->varTypeName, atype);
           }
           else {
-            synterr(csound,Str("line %d loop variable type mismatch in for statement,\n"
-                               "%s for array type %s"),
-                    current->line, var->varType->varTypeName, atype);
-            return 0;
+	    // otherwise we just shadow the var with a new one
+            add_arg(csound, current->left->value->lexeme, typ,
+	                        typeTable, current);
+	    var = find_var_from_pools(csound, current->left->value->lexeme,
+                                              current->left->value->lexeme,
+                                              typeTable);
+            csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
+			    "\t - now using %s type, line %d",
+			    var->varName, otype,
+			    var->varType->varTypeName, current->line); 
           }
-        }
-        typ = cs_strdup(csound, var->varType->varTypeName);
+	} 
+       typ = cs_strdup(csound, var->varType->varTypeName);
       }
       current = expand_for_statement(csound, current, typeTable, typ);
       csound->Free(csound, atype);
