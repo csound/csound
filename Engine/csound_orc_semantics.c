@@ -1152,12 +1152,13 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
-                args_required(inArgTypes), temp->opname, VARGMAX);
+                args_required(inArgTypes), temp->opname, VARGMAX);      
       return temp;
     }
   }
   return NULL;
 }
+
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                              char* outArgTypes, char* inArgTypes) {
@@ -2108,10 +2109,18 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   OENTRY* oentry;
   if (root->value->optype == NULL ||
       leftArgString == NULL) {
+    // we need to enforce annotations for
+    // opcodes with no outputs.
+    // we do that by replacing the first in arg type 
+    if(root->value->optype) {
+      // check type length
+      size_t n = strlen(root->value->optype);
+      // replace first type
+      memcpy(rightArgString, root->value->optype, n);
+    }
     oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
-  
-  }
+  } 
   /* if there is type annotation, try to resolve it */
   else {
     // if there is a discrepancy between out-types/annotation
