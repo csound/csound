@@ -2109,14 +2109,16 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   OENTRY* oentry;
   if (root->value->optype == NULL ||
       leftArgString == NULL) {
-    // we need to enforce annotations for
-    // opcodes with no outputs.
-    // we do that by replacing the first in arg type 
     if(root->value->optype) {
-      // check type length
-      size_t n = strlen(root->value->optype);
-      // replace first type
-      memcpy(rightArgString, root->value->optype, n);
+      // in the special case of 'k' for 'i'
+      // we enforce the annotation
+      if(!strcmp(root->value->optype, "k"))
+	*rightArgString = 'k';
+      else // otherwise ignore it
+	csound->Warning(csound, "ignoring annotation %s \n"
+			"\t for opcode %s with no outputs, line %d",
+			root->value->optype, opcodeName,
+			root->line);    
     }
     oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
@@ -2131,10 +2133,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);  
     else if(leftArgString &&
        strcmp(leftArgString, root->value->optype)){
-      csound->Warning(csound, " output type(s) %s "
-                      "not matching annotation %s\n"
-                      "ignoring annotation.",
-                      leftArgString, root->value->optype) ;
+      csound->Warning(csound, " output type(s) %s\n"
+                      "\t not matching annotation %s\n"
+                      "\t ignoring annotation for opcode %s, line %d",
+                      leftArgString, root->value->optype,
+		      opcodeName, root->line);
         oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
       } else 
