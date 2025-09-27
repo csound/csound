@@ -1390,7 +1390,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             ;
           break;
         case 'v':
-          O->odebug = 1; /* verbose otran  */
+          if (isdigit(*s)) {
+	    /* verbose level 1-99 */
+            sscanf(s, "%d%n", &(O->odebug), &n);
+            s += n;
+          } else
+          O->odebug = 100; /* full verbose  */
           break;
         case 'm':
           FIND(Str("no message level"));

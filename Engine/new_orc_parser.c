@@ -69,7 +69,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
     char buff[1024];
     if (dir) {
       DIR *udo = opendir(dir);
-      printf(Str("** found CS_UDO_DIR=%s\n"), dir);
+      //printf(Str("** found CS_UDO_DIR=%s\n"), dir);
       if (udo) {
         struct dirent *f;
         //printf("**and it opens\n");
@@ -184,11 +184,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
       corfile_rm(csound, &csound->expanded_orc);
 #ifdef PARCS
-      if (UNLIKELY(csound->oparms->odebug)) csp_orc_sa_print_list(csound);
+      if (UNLIKELY(csoundGetDebug(csound) > 99)) csp_orc_sa_print_list(csound);
 #endif
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
-        if (csound->oparms->odebug) csound->Message(csound,
+        if (csoundGetDebug(csound) > 99) csound->Message(csound,
                                                     Str("Parsing successful!\n"));
       }
       else {

@@ -810,7 +810,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   if (csound->ksmps != DFLT_KSMPS) {
     csoundReallocateVarPoolMemory(csound, engineState->varPool);
-    if(csound->GetDebug(csound))
+    if(csound->GetDebug(csound) > 99)
      csound->Message(csound, "recalculate varpool\n");
   }
   close_instrument(csound, engineState, ip);
@@ -873,7 +873,7 @@ static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
                         current->value->lexeme);
       if (UNLIKELY(current->type == T_ASSIGNMENT &&
                    strcmp(oentry->opname, "=.r") == 0)){
-        if (csoundGetDebug(csound))           
+        if (csoundGetDebug(csound) > 99)           
         csound->Warning(csound, Str("system constants can only be set once"));
                    }
       else {
@@ -1071,7 +1071,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
 
   csoundFreeVarPool(csound, ip->varPool);  
   csound->Free(csound, ip);
-  if (UNLIKELY(csound->oparms->odebug))
+  if (UNLIKELY(csoundGetDebug(csound) > 99))
     csound->Message(csound, Str("-- deleted instr from deadpool\n"));
 }
 
@@ -1095,7 +1095,7 @@ static void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
       }
       /* no active instances */
       if (active == NULL) {
-        if (UNLIKELY(csound->oparms->odebug))
+        if (UNLIKELY(csoundGetDebug(csound) > 99))
           csound->Message(csound, Str(" -- free instr def %p %p\n"),
                           csound->dead_instr_pool[i]->instance,
                           csound->dead_instr_pool[i]);
@@ -1109,7 +1109,7 @@ static void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
   for (i = 0; i < csound->dead_instr_no; i++) {
     if (csound->dead_instr_pool[i] == NULL) {
       csound->dead_instr_pool[i] = instrtxt;
-      if (UNLIKELY(csound->oparms->odebug))
+      if (UNLIKELY(csoundGetDebug(csound) > 99))
         csound->Message(csound, Str(" -- added to deadpool slot %d\n"), i);
       return;
     }
@@ -1119,7 +1119,7 @@ static void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
     csound->ReAlloc(csound, csound->dead_instr_pool,
                     ++csound->dead_instr_no * sizeof(INSTRTXT *));
   csound->dead_instr_pool[csound->dead_instr_no - 1] = instrtxt;
-  if (UNLIKELY(csound->oparms->odebug))
+  if (UNLIKELY(csoundGetDebug(csound) > 99))
     csound->Message(csound, Str(" -- added to deadpool slot %d\n"),
                     csound->dead_instr_no - 1);
 }
@@ -1158,7 +1158,7 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     } else {
     inm->ip->isNew = 1;
     /* redefinition does not raise an error now, just a warning */
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) > 99))
       csound->Warning(csound, Str("named instr %" PRIi32 " redefined, "
                                   "replacing previous definition"),
                       inm->instno);
@@ -1172,7 +1172,7 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
       /* check for duplicate numbers and do nothing */
       if (i != inm->instno &&
           engineState->instrtxtp[i] == engineState->instrtxtp[inm->instno]) {
-        if(csound->GetDebug(csound))
+        if(csound->GetDebug(csound) > 99)
          csound->Message(csound, "duplicate %d %d\n", i, inm->instno);
         // so fill this with the new instrument pointer
         engineState->instrtxtp[i] = ip;
@@ -1190,7 +1190,7 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     }
     /* no active instances */
     if (active == NULL) {
-      if (UNLIKELY(csound->oparms->odebug))
+      if (UNLIKELY(csoundGetDebug(csound) > 99))
         csound->Message(csound, Str("no active instances\n"));
       free_instrtxt(csound, engineState->instrtxtp[inm->instno]);
       engineState->instrtxtp[inm->instno] = NULL;
@@ -1237,7 +1237,7 @@ cont:
     }
   }
 
-  if (UNLIKELY(csound->oparms->odebug) && engineState == &csound->engineState)
+  if (UNLIKELY(csoundGetDebug(csound) > 99) && engineState == &csound->engineState)
     csound->Message(csound, "named instr name = \"%s\", txtp = %p,\n", s,
                     (void *)ip);
   return CSOUND_SUCCESS;
@@ -1320,7 +1320,7 @@ void named_instr_assign_numbers(CSOUND *csound,
 
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
+      if (UNLIKELY((csoundGetDebug(csound) > 99) || (csound->oparms->msglevel > 0)))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
     }
@@ -1434,7 +1434,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     /* no active instances */
     /* instr0 is freed elsewhere */
     if (active == NULL && instrNum != 0) {
-      if (UNLIKELY(csound->oparms->odebug))
+      if (UNLIKELY(csoundGetDebug(csound) > 99))
         csound->Message(csound, Str("no active instances of instr %d\n"),
                         instrNum);
       free_instrtxt(csound, engineState->instrtxtp[instrNum]);
@@ -1517,7 +1517,7 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
   CS_VARIABLE *gVar = varPool->head;
   while (gVar != NULL) {
     CS_VARIABLE *var;
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) > 99))
       csound->Message(csound, Str(" merging %p %d) %s:%s\n"), gVar, count,
                       gVar->varName, gVar->varType->varTypeName);
     var = csoundFindVariableWithName(csound, current_state->varPool,
@@ -1534,7 +1534,7 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
       /* when disposing of the engineState global vars, we do not
          delete the memBlock */
       var->memBlock = gVar->memBlock;
-       if (UNLIKELY(csound->oparms->odebug))
+       if (UNLIKELY(csoundGetDebug(csound) > 99))
         csound->Message(csound, Str(" adding %p %d) %s:%s\n"), var, count,
                         gVar->varName, gVar->varType->varTypeName);
       gVar = gVar->next;
@@ -1570,14 +1570,14 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     current = engineState->instrtxtp[i];
     if (current != NULL) {
       if (current->insname == NULL) {
-        if (csound->oparms->odebug)
+        if (UNLIKELY(csoundGetDebug(csound) > 99))
           csound->Message(csound, Str("merging instr %d\n"), i);
         /* a first attempt at this merge is to make it use
            insert_instrtxt again */
         /* insert instrument in current engine */
         insert_instrtxt(csound, current, i, current_state, 1);
       } else {
-        if (UNLIKELY(csound->oparms->odebug))
+        if (UNLIKELY(csoundGetDebug(csound) > 99))
           csound->Message(csound, Str("merging named instr %s\n"),
                           current->insname);
         /* allocate a named_instr string in the current engine */
@@ -1600,7 +1600,7 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
      in case of multiple instr numbers, so instr_prep() is called only once */
   current = (&(engineState->instxtanchor));
   while ((current = current->nxtinstxt) != NULL) {
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) > 99))
       csound->Message(csound, "instr_prep %p\n", current);
     /* run instr_prep() to connect ARGS */
     instr_prep(csound, current, current_state); 
@@ -1613,7 +1613,7 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     int32_t j;
     current = current_state->instrtxtp[i];
     if (current != NULL) {
-      if (UNLIKELY(csound->oparms->odebug))
+      if (UNLIKELY(csoundGetDebug(csound) > 99))
         csound->Message(csound, "instr %d:%p\n", i, current);
       current->nxtinstxt = NULL;
       j = i;
@@ -1767,11 +1767,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   while (current != NULL) {
     switch (current->type) {
     case T_ASSIGNMENT:
-      if(csound->GetDebug(csound))
+      if(csound->GetDebug(csound) > 99)
         csound->Message(csound, "Assignment found\n"); 
       break;
     case INSTR_TOKEN:
-      if(csound->GetDebug(csound))
+      if(csound->GetDebug(csound) > 99)
         print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current,engineState);
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
@@ -2007,7 +2007,7 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     return CSOUND_ERROR;
   }
 
-  if (UNLIKELY(csound->oparms->odebug))
+  if (UNLIKELY(csoundGetDebug(csound) > 99))
     debug_print(csound);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
   return retVal;
@@ -2216,7 +2216,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   c = *s;
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
 
-  if (UNLIKELY(csound->oparms->odebug))
+  if (UNLIKELY(csoundGetDebug(csound) > 99))
     csound->Message(csound, "\t%s", s); /* if arg is label,  */
 
   /* must trap 0dbfs as name starts with a digit! */

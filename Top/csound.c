@@ -2771,7 +2771,8 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
 
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
   va_list args;
-  if (!(csound->oparms_.odebug & (~CS_NOQQ)))
+  if (!(csound->oparms_.odebug & (~CS_NOQQ)) ||
+        csoundGetDebug(csound) < 99) 
     return;
   va_start(args, msg);
   csoundMessageV(csound, 0, msg, args);

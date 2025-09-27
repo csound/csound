@@ -372,7 +372,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     // Deal with odd case of i(expressions)
     if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
-      if(csound->GetDebug(csound))
+      if(csound->GetDebug(csound) > 99)
         print_tree(csound, "i()", tree);
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
@@ -3131,7 +3131,7 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   ans->line = line;
   ans->locn  = locn;
   ans->markup = NULL;
-  csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
+  csound->DebugMsg(csound, "...csound_orc_semantics(%d) line = %d\n",
                    __LINE__, line);
   return ans;
 }

@@ -1477,7 +1477,7 @@ static OENTRY oentries[] = {
 int32_t destroySignalflowgraph(CSOUND *csound, void *p) {
     IGN(p);
     
-  if (csound->GetDebug(csound)) {
+  if (csound->GetDebug(csound) > 99) {
     csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)...\n",
                     csound);
   }
@@ -1499,7 +1499,7 @@ int32_t destroySignalflowgraph(CSOUND *csound, void *p) {
     delete sfg_globals;
     sfg_globals = nullptr;
   }
-  if (csound->GetDebug(csound)) {
+  if (csound->GetDebug(csound) > 99) {
     csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p).\n",
                     csound);
   }
@@ -1508,7 +1508,7 @@ int32_t destroySignalflowgraph(CSOUND *csound, void *p) {
   
 
 PUBLIC int32_t csoundModuleCreate_signalflowgraph(CSOUND *csound) {
-  if (csound->GetDebug(csound)) {
+  if (csound->GetDebug(csound) > 99) {
     csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
                     csound);
   }
@@ -1520,7 +1520,7 @@ PUBLIC int32_t csoundModuleCreate_signalflowgraph(CSOUND *csound) {
 
 PUBLIC int32_t csoundModuleInit_signalflowgraph(CSOUND *csound) {
   csoundModuleCreate_signalflowgraph(csound); 
-  if (csound->GetDebug(csound)) {
+  if (csound->GetDebug(csound) > 99) {
     csound->Message(csound, "signalflowgraph: csoundModuleInit(%p)\n", csound);
   }
   OENTRY *ep = (OENTRY *)&(oentries[0]);

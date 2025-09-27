@@ -174,7 +174,7 @@ int32_t csoundSetEnv(CSOUND *csound, const char *name, const char *value)
                       (char*)name, cs_strdup(csound, (char*)value));
 
     /* print debugging info if requested */
-    if (UNLIKELY(csound->oparms->odebug)) {
+    if (UNLIKELY(csoundGetDebug(csound) > 99)) {
       csoundMessage(csound, Str("Environment variable '%s' has been set to "),
                               name);
       if (value == NULL)
@@ -457,7 +457,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     strcpy(p->name, envList);
     s += ((int32_t) strlen(envList) + 1);
     p->nxt = (searchPathCacheEntry_t*) csound->searchPathCache;
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) > 99))
       csound->DebugMsg(csound, Str("Creating search path cache for '%s':"),
                                p->name);
     for (i = 0; (i < pathCnt) && (path_lst != NULL); i++) {
@@ -467,7 +467,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
       nxt = path_lst->nxt;
       csound->Free(csound, path_lst);
       path_lst = nxt;
-      if (UNLIKELY(csound->oparms->odebug))
+      if (UNLIKELY(csoundGetDebug(csound) > 99))
         csound->DebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
     }
     p->lst[i] = NULL;

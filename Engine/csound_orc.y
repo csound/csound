@@ -199,7 +199,7 @@ orcfile : root_statement_list
               if ($1 != NULL)
                 *astTree = ((TREE *)$1);
               csound->synterrcnt = csound_orcnerrs;
-              if (csound->oparms->odebug)
+              if (csoundGetDebug(csound) > 99)
                 print_tree(csound, "ALL", $1);
           }
           ;
