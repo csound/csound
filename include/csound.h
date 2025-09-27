@@ -104,6 +104,18 @@ extern "C" {
       CSOUND_SIGNAL = -5
     } CSOUND_STATUS;
 
+   typedef enum {
+     DEBUG_NONE = 0,
+     DEBUG_RUNTIME = 0x01,
+     DEBUG_COMPILER = 0x02,
+     DEBUG_SEMANTICS = 0x04,
+     DEBUG_EXPRESSIONS = 0x08,
+     DEBUG_PARSER = 0x10,
+     DEBUG_OPCODES = 0x20,
+     DEBUG_FULL = 0x7FFFFFFF
+   } DEBUG_STATUS;
+  
+
   /* Compilation or performance aborted, but not as a result of an error
      (e.g. --help, or running an utility with -U). */
 #define CSOUND_EXITJMP_SUCCESS  (256)
