@@ -2637,7 +2637,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       break;
     case UDO_TOKEN:
       if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-
+      typeTable->localPool = csoundCreateVarPool(csound);
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
         top->left->markup = cs_strdup(csound, top->left->value->lexeme);
@@ -2679,7 +2679,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 0;
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
 
-      typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
 
       if (current->right != NULL) {
