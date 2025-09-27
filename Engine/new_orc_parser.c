@@ -145,21 +145,19 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         corfile_putc(csound, '\0', csound->orchstr);
         corfile_putc(csound, '\0', csound->orchstr);
       }
-
-      csound->DebugMsg(csound, "Calling preprocess on >>%s<<\n",
+      if(csoundGetDebug(csound) & DEBUG_PARSER) 
+	csoundMessage(csound, "Calling preprocess on:\n %s \n",
               corfile_body(csound->orchstr));
-      //csound->DebugMsg(csound,"FILE: %s\n", csound->orchstr->body);
-      //    csound_print_preextra(&qq);
       cs_init_math_constants_macros(csound);
       cs_init_omacros(csound, csound->omacros);
-      //    csound_print_preextra(&qq);
       csound_prelex(csound, qq.yyscanner);
       if (UNLIKELY(qq.ifdefStack != NULL)) {
         csound->Message(csound, Str("Unmatched #ifdef or #ifndef\n"));
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      csound->DebugMsg(csound, "yielding >>%s<<\n",
+      if(csoundGetDebug(csound) & DEBUG_PARSER) 
+	csoundMessage(csound, "preprocessing result: \n %s\n",		     
                        corfile_body(csound->expanded_orc));
       corfile_rm(csound, &csound->orchstr);
     }
@@ -188,8 +186,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 #endif
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
-        if (csoundGetDebug(csound) > 99) csound->Message(csound,
-                                                    Str("Parsing successful!\n"));
+        if (csoundGetDebug(csound) & DEBUG_PARSER)
+	  csound->Message(csound,Str("Parsing successful!\n"));
       }
       else {
         if (err == 1){
@@ -205,7 +203,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         goto ending;
       }
-      if (UNLIKELY(PARSER_DEBUG)) {
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_PARSER)) {
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
 
@@ -234,7 +232,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
       err = 0;
 
-      if (UNLIKELY(PARSER_DEBUG)) {
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_PARSER)) {
         print_tree(csound, "AST - AFTER VERIFICATION/EXPANSION\n", astTree);
       }
 
@@ -265,3 +263,4 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       return newRoot;
     }
 }
+ 
