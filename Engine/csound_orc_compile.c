@@ -1704,7 +1704,7 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 
  * ASSUMES: TREE has been validated prior to compilation
  */
-
+static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e);
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 {
   INSTRTXT    *instrtxt = NULL;
@@ -1957,7 +1957,10 @@ if (engineState != &csound->engineState) {
 
   ip = &(engineState->instxtanchor);
   while ((ip = ip->nxtinstxt) != NULL) { /* add all other entries */
+     
     instr_prep(csound, ip, engineState);    /*   as combined offsets */
+    if(csoundGetDebug(csound) & DEBUG_INSTR)
+      print_instr(csound, ip, engineState);
     csoundRecalculateVarPoolMemory(csound, ip->varPool);
   }
 
@@ -2023,6 +2026,63 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
   return retVal;
 }
 
+static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
+  OPTXT *optxt;
+  OENTRY *ep;
+  char **argp;
+  int32_t n;
+  ARGLST *outlist, *inlist;
+  
+  optxt = (OPTXT *)tp;
+  if(tp != e->instxtanchor.nxtinstxt)
+    csoundMessage(csound, "instr %s\n ", tp->insname ? tp->insname : "");
+  else if(optxt->nxtop != NULL)
+    csoundMessage(csound, "\n");
+  
+  while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
+    TEXT *ttp = &optxt->t;
+    ep = ttp->oentry;
+     if (strcmp(ep->opname, "endin") == 0 /*    (until ENDIN)     */
+        || strcmp(ep->opname, "endop") == 0) {
+      if(tp != e->instxtanchor.nxtinstxt) 
+       csound->Message(csound, "%s\n", ep->opname);
+      break;
+     }
+    
+    if (strcmp(ep->opname, "$label") == 0) {
+      csound->Message(csound, "%s: \n", ep->opname);
+      continue;
+    }
+    
+    if ((outlist = ttp->outlist) == NULL || !outlist->count)
+      ttp->outArgs = NULL;
+    else {
+      n = outlist->count;
+      argp = outlist->arg; /* get outarg indices */
+      while (n--) {
+	if(n > 0)
+	  csound->Message(csound, "%s,",*argp++);
+	else
+	 csound->Message(csound, "%s ",*argp++);
+      }
+    }
+    csound->Message(csound, " %s ", ep->opname);
+    inlist = ttp->inlist;
+    if (inlist != NULL && inlist->count) {
+      n = inlist->count;
+      argp = inlist->arg; /* get inarg indices */
+      while (n--)
+       	if(n > 0)
+	  csound->Message(csound, "%s,",*argp++);
+	else
+	 csound->Message(csound, "%s ",*argp++);
+    }
+    csound->Message(csound, "\n ");
+  }
+  csound->Message(csound, "\n");
+}
+
+
 /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
 static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
@@ -2036,7 +2096,6 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   ARGLST *outlist, *inlist;
 
   OENTRY *pset = find_opcode(csound, "pset");
-
   optxt = (OPTXT *)tp;
   while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
     TEXT *ttp = &optxt->t;
@@ -2050,7 +2109,8 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     }
 
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-      csound->Message(csound, "%s args:", ep->opname);
+      csound->Message(csound, "%s \targs:", ep->opname);
+ 
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {
@@ -2085,7 +2145,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           strcpy(arg->argPtr, *argp);
           if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
             csound->Message(csound, "\t%s:", *argp); /* if arg is label,  */
-        } else {
+        } else {	  
           char *s = *argp;
           arg = create_arg(csound, tp, s, engineState);
         }
@@ -2108,11 +2168,11 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         int32_t n;
         ARG *inArgs = ttp->inArgs;
         if (tp->insname) {
-          if(csound->oparms_.msglevel || csound->oparms_.odebug)
+          if(csound->oparms_.msglevel || csoundGetDebug(csound) & DEBUG_COMPILER)
               csound->Message(csound, "PSET: isname=\"%s\", pmax=%d\n",
                               tp->insname, tp->pmax);
         } else {
-          if(csound->oparms_.msglevel || csound->oparms_.odebug)
+          if(csound->oparms_.msglevel || csoundGetDebug(csound) & DEBUG_COMPILER)
             csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
         }
         if (UNLIKELY((n = ttp->inArgCount) != tp->pmax)) {
@@ -2226,7 +2286,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-    csound->Message(csound, "\t%s", s); /* if arg is label,  */
+    csound->Message(csound, "\t%s", s); 
 
   /* must trap 0dbfs as name starts with a digit! */
   if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
