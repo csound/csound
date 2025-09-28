@@ -1152,12 +1152,13 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
-                args_required(inArgTypes), temp->opname, VARGMAX);
+                args_required(inArgTypes), temp->opname, VARGMAX);      
       return temp;
     }
   }
   return NULL;
 }
+
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                              char* outArgTypes, char* inArgTypes) {
@@ -2108,10 +2109,20 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   OENTRY* oentry;
   if (root->value->optype == NULL ||
       leftArgString == NULL) {
+    if(root->value->optype) {
+      // in the special case of 'k' for 'i'
+      // we enforce the annotation
+      if(!strcmp(root->value->optype, "k"))
+	*rightArgString = 'k';
+      else // otherwise ignore it
+	csound->Warning(csound, "ignoring annotation %s \n"
+			"\t for opcode %s with no outputs, line %d",
+			root->value->optype, opcodeName,
+			root->line);    
+    }
     oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
-  
-  }
+  } 
   /* if there is type annotation, try to resolve it */
   else {
     // if there is a discrepancy between out-types/annotation
@@ -2122,10 +2133,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);  
     else if(leftArgString &&
        strcmp(leftArgString, root->value->optype)){
-      csound->Warning(csound, " output type(s) %s "
-                      "not matching annotation %s\n"
-                      "ignoring annotation.",
-                      leftArgString, root->value->optype) ;
+      csound->Warning(csound, " output type(s) %s\n"
+                      "\t not matching annotation %s\n"
+                      "\t ignoring annotation for opcode %s, line %d",
+                      leftArgString, root->value->optype,
+		      opcodeName, root->line);
         oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
       } else 
@@ -2640,7 +2652,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case UDO_TOKEN:
       if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
 	csound->Message(csound, "UDO found\n");
-
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
         top->left->markup = cs_strdup(csound, top->left->value->lexeme);
@@ -2682,7 +2693,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
       csound->inZero = 0;
 
-      typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
 
       if (current->right != NULL) {
@@ -2813,18 +2823,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       char* atype = cs_strdup(csound, arrayArgType+1); // skip '['
       char* typ;
       atype[strlen(atype)-1] = '\0'; // remove ']'
+      typ = remove_type_quoting(csound, atype);
       if(var == NULL) {
-       typ = remove_type_quoting(csound, atype);
        // now create the arg based on the array type
        add_arg(csound, current->left->value->lexeme, typ,
 	       typeTable, current);
-      } else {
+       } else {
         // now we need to check that the array matches the
         // var type - automatic conversion possible for i and k
         const CS_TYPE *iType = &CS_VAR_TYPE_I;
         const CS_TYPE *kType = &CS_VAR_TYPE_K;
         const CS_TYPE *avartyp = csoundGetTypeWithVarTypeName(csound->typePool, atype);
         if(var->varType != avartyp) {
+	  char *otype = var->varType->varTypeName;
           if((avartyp == iType && var->varType == kType) ||
              (avartyp == kType && var->varType == iType)) {
             if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
@@ -2832,13 +2843,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                               var->varType->varTypeName, atype);
           }
           else {
-            synterr(csound,Str("line %d loop variable type mismatch in for statement,\n"
-                               "%s for array type %s"),
-                    current->line, var->varType->varTypeName, atype);
-            return 0;
+	    // otherwise we just shadow the var with a new one
+            add_arg(csound, current->left->value->lexeme, typ,
+	                        typeTable, current);
+	    var = find_var_from_pools(csound, current->left->value->lexeme,
+                                              current->left->value->lexeme,
+                                              typeTable);
+            csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
+			    "\t - now using %s type, line %d",
+			    var->varName, otype,
+			    var->varType->varTypeName, current->line); 
           }
-        }
-        typ = cs_strdup(csound, var->varType->varTypeName);
+	} 
+       typ = cs_strdup(csound, var->varType->varTypeName);
       }
       current = expand_for_statement(csound, current, typeTable, typ);
       csound->Free(csound, atype);
