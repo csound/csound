@@ -1152,12 +1152,13 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
-                args_required(inArgTypes), temp->opname, VARGMAX);
+                args_required(inArgTypes), temp->opname, VARGMAX);      
       return temp;
     }
   }
   return NULL;
 }
+
 
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                              char* outArgTypes, char* inArgTypes) {
@@ -2108,10 +2109,20 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   OENTRY* oentry;
   if (root->value->optype == NULL ||
       leftArgString == NULL) {
+    if(root->value->optype) {
+      // in the special case of 'k' for 'i'
+      // we enforce the annotation
+      if(!strcmp(root->value->optype, "k"))
+	*rightArgString = 'k';
+      else // otherwise ignore it
+	csound->Warning(csound, "ignoring annotation %s \n"
+			"\t for opcode %s with no outputs, line %d",
+			root->value->optype, opcodeName,
+			root->line);    
+    }
     oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
-  
-  }
+  } 
   /* if there is type annotation, try to resolve it */
   else {
     // if there is a discrepancy between out-types/annotation
@@ -2122,10 +2133,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);  
     else if(leftArgString &&
        strcmp(leftArgString, root->value->optype)){
-      csound->Warning(csound, " output type(s) %s "
-                      "not matching annotation %s\n"
-                      "ignoring annotation.",
-                      leftArgString, root->value->optype) ;
+      csound->Warning(csound, " output type(s) %s\n"
+                      "\t not matching annotation %s\n"
+                      "\t ignoring annotation for opcode %s, line %d",
+                      leftArgString, root->value->optype,
+		      opcodeName, root->line);
         oentry = resolve_opcode(csound, entries,
                             leftArgString, rightArgString);
       } else 
