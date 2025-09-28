@@ -372,7 +372,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
         csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
     }
 
-    if (O->msglevel || O->odebug) {
+    if (O->odebug) {
       csound->Message(csound, Str("Sorting score ...\n"));
     }
     // printf("score:\n%s", corfile_current(csound->scorestr));
@@ -392,19 +392,19 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
       csoundDie(csound, Str("cannot open extract file %s"), csound->xfilename);
     csoundNotifyFileOpened(csound, csound->xfilename, CSFTYPE_EXTRACT_PARMS, 0,
                            0);
-    if (O->msglevel || O->odebug)
+    if (O->odebug)
       csound->Message(csound, Str("  ... extracting ...\n"));
     scxtract(csound, csound->scstr, xfile);
     fclose(xfile);
     csound->tempStatus &= ~csPlayScoMask;
   }
-  if (O->msglevel || O->odebug) {
+  if (O->odebug) {
     csound->Message(csound, Str("\t... done\n"));
   }
   /* copy sorted score name */
   csound->playscore = csound->scstr;
-  /* IV - Jan 28 2005 */
-  print_benchmark_info(csound, Str("end of score sort"));
+  if (O->odebug)
+    print_benchmark_info(csound, Str("end of score sort"));
   if (O->syntaxCheckOnly) {
     csound->Message(csound, Str("Syntax check completed.\n"));
     // return CSOUND_EXITJMP_SUCCESS;

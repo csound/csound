@@ -257,14 +257,25 @@ static int32_t  check_name(const char *name) {
   return OK;
 }
 
-/** check opcodes without any inputs
+/** check opcodes without any inputs or *only* optional inputs
  */
 static int32_t check_oentry(OENTRY *ep) {
   if(ep->intypes &&
-     *(ep->intypes) != '\0') return 1; 
-    else return 0;
+     *(ep->intypes) != 'o' &&
+     *(ep->intypes) != 'p' &&
+     *(ep->intypes) != 'q' &&
+     *(ep->intypes) != 'h' &&
+     *(ep->intypes) != 'j' &&
+     *(ep->intypes) != 'v' &&   
+     *(ep->intypes) != 'O' &&
+     *(ep->intypes) != 'J' &&
+     *(ep->intypes) != 'V' &&
+     *(ep->intypes) != 'P' && 
+     *(ep->intypes) != '\0'   
+     ) 
+    return 1; 
+  else  return 0;
 }
-
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
                                char *name, void *typeArg);
 
