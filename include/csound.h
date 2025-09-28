@@ -104,16 +104,28 @@ extern "C" {
       CSOUND_SIGNAL = -5
     } CSOUND_STATUS;
 
+   /**
+    Verbose levels
+   */
    typedef enum {
      DEBUG_NONE = 0,
+     /* runtime messages. */
      DEBUG_RUNTIME = 0x01,
+     /* compiler messages. */
      DEBUG_COMPILER = 0x02,
+     /* semantic analysis messages. */
      DEBUG_SEMANTICS = 0x04,
+     /* expressions messages. */
      DEBUG_EXPRESSIONS = 0x08,
+     /* parser messages. */
      DEBUG_PARSER = 0x10,
+     /* print AST. */
      DEBUG_TREE = 0x20,
+     /* print compiled instrs. */
      DEBUG_INSTR = 0X40,
+     /* opcode messages. */
      DEBUG_OPCODES = 0x80,
+     /* all messages. */
      DEBUG_FULL = 0x7FFFFFFF
    } DEBUG_STATUS;
   
