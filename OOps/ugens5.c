@@ -631,7 +631,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     if (LIKELY((magic==LP_MAGIC)||(magic==LP_MAGIC2))) {
       p->storePoles = (magic==LP_MAGIC2);
 
-      if(csound->oparms->odebug)
+      if(csound->GetDebug(csound) & DEBUG_OPCODES)
       csound->Message(csound, Str("Using %s type of file.\n"),
                       p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
@@ -673,7 +673,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     totvals = (mfp->length - p->headlen)/sizeof(MYFLT);
     /* Store the size of a frame in integer */
     p->lastfram16 = (((totvals - p->nvals) / p->nvals) << 16) - 1;
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csound->GetDebug(csound) & DEBUG_OPCODES))
       csound->Message(csound, Str(
                  "npoles %"PRIi32", nvals %"PRIi32", totvals %"PRIi32
                  ", lastfram16 = %"PRIi32"x\n"),
@@ -933,17 +933,6 @@ int32_t lpread(CSOUND *csound, LPREAD *p)
         cp[nn] = bp[nn] + (np[nn] - bp[nn]) * fract;
       }
     }
-/*  if (csound->oparms->odebug) {
-      csound->Message(csound,
-          "phase:%lx fract:%6.2f rmsr:%6.2f rmso:%6.2f kerr:%6.2f kcps:%6.2f\n",
-          framphase,fract,*p->krmr,*p->krmo,*p->kerr,*p->kcps);
-      cp = p->kcoefs;
-      nn = p->npoles;
-      do {
-        csound->Message(csound, " %6.2f",*cp++);
-      } while (--nn);
-      csound->Message(csound, "\n");
-    }  */
     return OK;
 }
 

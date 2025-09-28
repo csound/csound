@@ -39,7 +39,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
   uint32_t  nchanls;
   uint32_t  nsmps = CS_KSMPS;
   
-  if (UNLIKELY(csound->GetDebug(csound)))
+  if (UNLIKELY(csound->GetDebug(csound) & DEBUG_OPCODES))
     csound->Message(csound, CONVOLVE_VERSION_STRING);
 
   if (stringname==0){
@@ -417,7 +417,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     ainput_dur = (MYFLT) IRinfo.frames / IRinfo.samplerate;
   }
 
-  if(csound->GetDebug(csound))
+  if(csound->GetDebug(csound) & DEBUG_OPCODES)
   csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
                   (long) IRinfo.frames, ainput_dur);
 
