@@ -148,7 +148,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     if (mpainfo.layer == 1) strcat(temp, "Layer I");
     else if (mpainfo.layer == 2) strcat(temp, "Layer II");
     else strcat(temp, "Layer III");
-    if(csound->GetDebug(csound))
+    if(csound->GetDebug(csound) & DEBUG_OPCODES)
       csound->Warning(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
                     temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
                     mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
@@ -1001,7 +1001,8 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     if (mpainfo.layer == 1) strcat(temp, "Layer I");
     else if (mpainfo.layer == 2) strcat(temp, "Layer II");
     else strcat(temp, "Layer III");
-    csound->DebugMsg(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
+    if(csound->GetDebug(csound) & DEBUG_OPCODES)
+    csound->Message(csound, "Input:  %s, %s, %d kbps, %d Hz  (%d:%02d)\n",
                      temp, ((mpainfo.channels > 1) ? "stereo" : "mono"),
                      mpainfo.bitrate, mpainfo.frequency, mpainfo.duration/60,
                      mpainfo.duration%60);

@@ -20,7 +20,7 @@
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
-*/
+*/ 
 
 #include "csoundCore.h"
 #include "csound_orc.h"
@@ -150,7 +150,8 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
   TREE *ans;
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
-    csound->DebugMsg(csound, "Out of memory\n"); 
+   if(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)
+    csoundMessage(csound, "Out of memory\n"); 
     exit(1);
   }
   ans->type = INTEGER_TOKEN;
@@ -530,7 +531,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       char *outtype, *outtype_internal;
       int32_t len = (int32_t) strlen(root->value->lexeme);
       strNcpy(op, root->value->lexeme, len+1);
-      if (UNLIKELY(PARSER_DEBUG))
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
         csound->Message(csound, "Found OP: %s\n", op);
 
       opentries = find_opcode2(csound, root->value->lexeme);
@@ -570,7 +571,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     }
     break;
   case S_UMINUS:
-    if (UNLIKELY(PARSER_DEBUG))
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
       csound->Message(csound, "HANDLING UNARY MINUS!");
     root->left = create_unary_token(csound, "-1");
     strNcpy(op, "##mul", 80);
@@ -579,7 +580,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
     break;
    case S_UPLUS:
-    if (UNLIKELY(PARSER_DEBUG))
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
       csound->Message(csound, "HANDLING UNARY PLUS!");
     root->left = create_unary_token(csound, "1");
     strNcpy(op, "##mul", 80);
@@ -732,7 +733,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   TREE *anchor = NULL, *last;
   TREE * opTree;
 
-  if (UNLIKELY(PARSER_DEBUG))
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Creating boolean expression\n");
   /* HANDLE SUB EXPRESSIONS */
   if (is_boolean_expression_node(root->left)) {
@@ -859,7 +860,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     break;
   }
 
-  if (UNLIKELY(PARSER_DEBUG)) {
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)) {
     if (root->type == S_UNOT)
       csound->Message(csound, "Operator Found: %s (%s)\n", op,
                       get_arg_type2(csound, root->left, typeTable));
@@ -928,7 +929,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
   char *label = (char *)csound->Calloc(csound, 32);
   ORCTOKEN *token;
   snprintf(label, 32, "__synthetic_%"PRIi32, count);
-  if (UNLIKELY(PARSER_DEBUG))
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
   token = make_token(csound, label);
   token->type = T_IDENT;
@@ -941,10 +942,10 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
   char *label = (char *)csound->Calloc(csound, 32);
   ORCTOKEN *token;
   snprintf(label, 32, "__synthetic_%"PRIi32":", count);
-  if (UNLIKELY(PARSER_DEBUG))
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Creating Synthetic label: %s\n", label);
   token = make_label(csound, label);
-  if (UNLIKELY(PARSER_DEBUG))
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "**** label lexeme >>%s<<\n", token->lexeme);
   csound->Free(csound, label);
   return make_leaf(csound, -1, 0, LABEL_TOKEN, token);
@@ -1015,7 +1016,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
   current->next = NULL;
 
-  if (UNLIKELY(PARSER_DEBUG))
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Found Statement.\n");
   while (currentArg != NULL) {
     TREE* last;
@@ -1027,7 +1028,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     if (is_expression_node(currentArg) ||
         (is_bool = is_boolean_expression_node(currentArg))) {
       char * newArg;
-      if (UNLIKELY(PARSER_DEBUG))
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
         csound->Message(csound, "Found Expression.\n");
       if (is_bool == 0) {
         expressionNodes =
@@ -1051,7 +1052,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       last = tree_tail(expressionNodes);
       newArg = last->left->value->lexeme;
 
-      if (UNLIKELY(PARSER_DEBUG))
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
         csound->Message(csound, "New Arg: %s\n", newArg);
 
       /* handle arg replacement of currentArg here */
@@ -1167,7 +1168,7 @@ TREE* expand_if_statement(CSOUND* csound,
   if (right->type == IGOTO_TOKEN ||
       right->type == KGOTO_TOKEN ||
       right->type == GOTO_TOKEN) {
-    if (UNLIKELY(PARSER_DEBUG))
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
       csound->Message(csound, "Found if-goto\n");
     expressionNodes =
       create_boolean_expression(csound, left, right->line,
@@ -1197,7 +1198,7 @@ TREE* expand_if_statement(CSOUND* csound,
 
     TREE *ifBlockCurrent = current;
 
-    if (UNLIKELY(PARSER_DEBUG))
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
       csound->Message(csound, "Found if-then\n");
     if (right->next != NULL) {
       endLabelCounter = csound->genlabs++;
@@ -1264,7 +1265,7 @@ TREE* expand_if_statement(CSOUND* csound,
           int32_t type = (gotoType == 1) ? 0 : 2;
           TREE *gotoEndLabelToken =
             create_simple_goto_token(csound, endLabel, type);
-          if (UNLIKELY(PARSER_DEBUG))
+          if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
             csound->Message(csound, "Creating simple goto token\n");
 
           append_to_tree(csound, last, gotoEndLabelToken);

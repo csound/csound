@@ -981,8 +981,13 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   }
   /* -v */
-  else if (!(strcmp(s, "verbose"))) {
-    O->odebug = 1; /* verbose otran  */
+  else if (!strncmp(s, "verbose", 7)) {
+    O->odebug = DEBUG_FULL; 
+    if(strlen(s) > 7) {
+      s += 8;
+      if(sscanf(s, "0x%x", &(O->odebug)) == 0)
+        sscanf(s, "%d", &(O->odebug));
+    }   
     return 1;
   }
   /* -x fnam extract from score.srt using extract file 'fnam' */
@@ -1390,7 +1395,13 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             ;
           break;
         case 'v':
-          O->odebug = 1; /* verbose otran  */
+          if (isdigit(*s)) {
+	    /* verbose level try hex first*/
+            if(sscanf(s, "0x%x%n", &(O->odebug), &n) == 0)
+              sscanf(s, "%d%n", &(O->odebug), &n);
+            s += n;		
+          } else
+            O->odebug = 0xFFFFFFF; /* full verbose  */
           break;
         case 'm':
           FIND(Str("no message level"));

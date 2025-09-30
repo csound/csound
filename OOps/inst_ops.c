@@ -357,7 +357,7 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
         const OPARMS* O = csound->GetOParms(csound);
         if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
           char *name = csound->engineState.instrtxtp[ip->insno]->insname;
-          if(csound->GetDebug(csound)) {
+          if(csound->GetDebug(csound) & DEBUG_OPCODES) {
             if (UNLIKELY(name))
               csound->ErrorMsg(csound,
                                Str("instance %llu (instr %s): "

@@ -63,7 +63,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     int32_t type = T_IDENT;
     ORCTOKEN *ans;
 
-    if (UNLIKELY(PARSER_DEBUG))
+    if(UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
       csound->Message(csound, "Looking up token for: %s\n", s);
     ans = new_token(csound, T_IDENT);
     if (strchr(s, ':') != NULL) {
@@ -209,7 +209,7 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
   }
   return NULL;
 }
-
+ 
 static int32_t is_irate(TREE *t)
 { /* check that argument is an i-rate constant or variable */
   //print_tree(csound, "is_irate",  t);
@@ -372,7 +372,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     // Deal with odd case of i(expressions)
     if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
-      if(csound->GetDebug(csound))
+      if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
         print_tree(csound, "i()", tree);
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
@@ -2353,7 +2353,7 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   CS_TYPE* type = csoundGetTypeForArg(init->out);
   int32_t len = cs_cons_length(type->members);
   int32_t i;
-  if(csound->GetDebug(csound)) {
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
      csound->Message(csound, "Initializing Struct...\n");
      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
   }
@@ -2389,7 +2389,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   int32_t i;
   
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
-  if(csound->GetDebug(csound)) {
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
       csound->Message(csound, "Initializing Struct...\n");
       csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
   }
@@ -2609,13 +2609,14 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
-  if (UNLIKELY(PARSER_DEBUG))
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
           csound->Message(csound, "Verifying AST\n");
 
   while (current != NULL) {
     switch(current->type) {
     case STRUCT_TOKEN:
-      if (PARSER_DEBUG) csound->Message(csound, "Struct definition found\n");
+      if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
+	csound->Message(csound, "Struct definition found\n");
       if(!add_struct_definition(csound, current)) {
         csound->ErrorMsg(csound,
                          "Error: Unable to define new struct type: %s\n",
@@ -2625,7 +2626,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       break;
     case INSTR_TOKEN:
       csound->inZero = 0;
-      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Instrument found\n");
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
+	csound->Message(csound, "Instrument found\n");
       typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
 
@@ -2648,8 +2650,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       break;
     case UDO_TOKEN:
-      if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-      typeTable->localPool = csoundCreateVarPool(csound);
+      if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
+	csound->Message(csound, "UDO found\n");
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
         top->left->markup = cs_strdup(csound, top->left->value->lexeme);
@@ -2661,7 +2663,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            0x0000);
         udo_name = top->value->lexeme;
       } else {
-        //            printf(">>> NEW STYLE UDO FOUND <<<\n");
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
+	csound->Message(csound, "New-style UDO found\n");        
         if(current->left->right != NULL &&
            *current->left->right->value->lexeme != '0') {
           add_args(csound, current->left->right, typeTable);
@@ -2689,7 +2692,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         udo_name = current->left->value->lexeme;
       }
       csound->inZero = 0;
-      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
 
       current->markup = typeTable->localPool;
 
@@ -2728,7 +2730,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       add_udo_definition(csound, false, current->value->lexeme, inArgStringDecl,
                          outArgStringDecl, UNDEFINED);
       csound->inZero = 0;
-      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
+	csound->Message(csound, "UDO declared\n");
 
       typeTable->localPool = csoundCreateVarPool(csound);
       current->markup = typeTable->localPool;
@@ -2835,6 +2838,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 	  char *otype = var->varType->varTypeName;
           if((avartyp == iType && var->varType == kType) ||
              (avartyp == kType && var->varType == iType)) {
+            if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
               csound->Message(csound, "%s-type loop with %s-type array\n",
                               var->varType->varTypeName, atype);
           }
@@ -2948,7 +2952,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
   }
 
-  if (PARSER_DEBUG)
+  if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, "[End Verifying AST]\n");
 
   cs_cons_free(csound, typeTable->labelList);
@@ -3053,7 +3057,8 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
   if(tree != NULL) {
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
-      csound->DebugMsg(csound, "Out of memory\n"); 
+      if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
+       csoundMessage(csound, "Out of memory\n"); 
       exit(1);
     }
     ans->type = tree->type;
@@ -3113,8 +3118,9 @@ TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   TREE *ans;
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
-    csound->DebugMsg(csound, "Out of memory\n"); 
-    exit(1);
+   if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
+    csound->Message(csound, "Out of memory\n"); 
+   exit(1);
   }
   ans->type = type;
   ans->left = left;
@@ -3135,8 +3141,9 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   TREE *ans;
   ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
-    csound->DebugMsg(csound, "Out of memory\n"); 
-    exit(1);
+   if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
+    csoundMessage(csound, "Out of memory\n"); 
+   exit(1);
   }
   ans->type = type;
   ans->left = NULL;
@@ -3148,7 +3155,8 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
   ans->line = line;
   ans->locn  = locn;
   ans->markup = NULL;
-  csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
+   csoundMessage(csound, "...csound_orc_semantics(%d) line = %d\n",
                    __LINE__, line);
   return ans;
 }
@@ -3546,7 +3554,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       inArgParts = split_args(csound, ep->intypes);
     }
 
-    if (UNLIKELY(PARSER_DEBUG)) {
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS)) {
       csound->Message(csound, "Handling Optional Args for opcode %s, %d, %d",
                       ep->opname, incnt, nreqd);
       csound->Message(csound, "ep->intypes = >%s<\n", ep->intypes);

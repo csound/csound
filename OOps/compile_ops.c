@@ -92,7 +92,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   code = csound->Calloc(csound, siz);
   snprintf(code, siz,"instr %d\n%s%s", num, p->code->data, endin);
 
-  if(csound->GetDebug(csound)) csound->Message(csound, "%s \n", code);
+  if(csound->GetDebug(csound) & DEBUG_OPCODES) csound->Message(csound, "%s \n", code);
   // compile code
   if(csound_compile_orc(csound, code, 0) == CSOUND_SUCCESS) {
     // pass the instrument out

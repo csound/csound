@@ -523,7 +523,7 @@ int32_t csoundCleanup(CSOUND *csound)
       sf_close_in(csound);
       sf_close_out(csound);
       if (UNLIKELY(!csound->oparms->sfwrite)) {
-        if(csound->oparms->msglevel ||csound->oparms->odebug)
+        if(csound->oparms->msglevel ||csoundGetDebug(csound) & DEBUG_RUNTIME)
          csound->ErrorMsg(csound, Str("no sound written to disk\n"));
       }
     }
@@ -702,7 +702,7 @@ static void indef_off(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of i
                                           cannot be removed, as it breaks turning
                                           off extratime instances */
           && ip->p1.value == p1) {
-        if (UNLIKELY(csound->oparms->odebug))
+        if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
           csound->Message(csound, "turning off inf copy of instr %d\n",
                           insno);
         xturnoff(csound, ip);
@@ -1076,7 +1076,7 @@ int32_t sense_events(CSOUND *csound)
         csound->nxtim = (double) e->p[2] + csound->timeOffs;
         csound->nxtbt = (double) e->p2orig + csound->beatOffs;
         if (e->opcod=='i'||e->opcod=='d')
-          if (UNLIKELY(csound->oparms->odebug))
+          if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
             csound->ErrorMsg(csound, "new event: %16.13lf %16.13lf\n",
                             csound->nxtim, csound->nxtbt);
         break;
