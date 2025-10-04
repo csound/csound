@@ -1,8 +1,6 @@
 import { encoder, decoder } from "../utils/text-encoders.js";
 import * as constants from "./constants.js";
 
-const googPath = goog.require("goog.string.path");
-
 /** @define {boolean} */
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
@@ -888,7 +886,7 @@ WASI.prototype.path_open = function (
   const directoryPath = (this.fd[dirfd] || { path: this.cwd }).path;
   const pathOpenBytes = new Uint8Array(memory.buffer, pathPtr, pathLength);
   const pathOpenString = decoder.decode(pathOpenBytes);
-  
+
   let pathOpen;
   if (dirfd === 3) {
     // Opening relative to the preopen root (cwd)
