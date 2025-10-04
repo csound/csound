@@ -31,7 +31,7 @@ std::string csd_text = R"csd(
       </CsOptions>
       <CsInstruments>
 
-      sr = 44100
+      sr = 48000
       0dbfs = 1
       ksmps = 160
       nchnls = 2
