@@ -626,6 +626,53 @@ e
 
         await csoundObj.terminateInstance();
       });
+
+     it("can #include a file from parent directory", async function () {
+        const csoundObj = await Csound(test);
+        const csdPath = "/folder1/test.csd";
+
+        await csoundObj.fs.writeFile("/test.orc", "i1 0 .1");
+        await csoundObj.fs.mkdir("/folder1");
+        await csoundObj.fs.writeFile(csdPath, `
+<CsoundSynthesizer>
+<CsOptions>
+    -odac
+</CsOptions>
+<CsInstruments>
+    sr=44100
+    ksmps=64
+    nchnls=1
+    0dbfs=1
+
+    instr 1
+        out(oscili(0.25, 440))
+    endin
+
+</CsInstruments>
+<CsScore>
+    #include "../test.orc"
+</CsScore>
+</CsoundSynthesizer>
+        `);
+
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
+        assert.equal(0, await csoundObj.compileCSD(csdPath, 0), "The test Csd is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
+
+        await waitUntilEnd;
+        await csoundObj.terminateInstance();
+      });
+
     });
   });
 

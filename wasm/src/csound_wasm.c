@@ -11,6 +11,57 @@
 #include <string.h>
 #include <unistd.h>
 
+// WASI filesystem state
+static char __wasi_cwd[PATH_MAX] = "/";
+
+// Override getcwd to return our tracked cwd
+char* getcwd(char *buf, size_t size) {
+  if (buf == NULL) {
+    buf = malloc(size);
+    if (buf == NULL) {
+      errno = ENOMEM;
+      return NULL;
+    }
+  }
+  if (size < strlen(__wasi_cwd) + 1) {
+    errno = ERANGE;
+    return NULL;
+  }
+  strcpy(buf, __wasi_cwd);
+  return buf;
+}
+
+// Override chdir to update our tracked cwd
+int chdir(const char *path) {
+  if (path == NULL) {
+    errno = EINVAL;
+    return -1;
+  }
+  
+  // Normalize the path
+  char normalized[PATH_MAX];
+  if (path[0] == '/') {
+    // Absolute path
+    strncpy(normalized, path, PATH_MAX - 1);
+    normalized[PATH_MAX - 1] = '\0';
+  } else {
+    // Relative path - join with current cwd
+    snprintf(normalized, PATH_MAX, "%s/%s", __wasi_cwd, path);
+  }
+  
+  // Simple normalization: remove trailing slashes
+  size_t len = strlen(normalized);
+  while (len > 1 && normalized[len - 1] == '/') {
+    normalized[--len] = '\0';
+  }
+  
+  // Update the cwd
+  strncpy(__wasi_cwd, normalized, PATH_MAX - 1);
+  __wasi_cwd[PATH_MAX - 1] = '\0';
+  
+  return 0;
+}
+
 // returns the address of a string
 // pointer which is writable from js
 __attribute__((used))

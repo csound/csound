@@ -72,6 +72,24 @@ function pathExists(wasm) {
 
 pathExists["toString"] = () => "async (path) => boolean";
 
+/** @export */
+function chdir(wasm) {
+  return (_, path) => {
+    return wasm.wasi.chdir(path);
+  };
+}
+
+chdir["toString"] = () => "async (path) => number";
+
+/** @export */
+function getcwd(wasm) {
+  return (_) => {
+    return wasm.wasi.cwd;
+  };
+}
+
+getcwd["toString"] = () => "async () => string";
+
 export const fs = {};
 
 fs["writeFile"] = writeFile;
@@ -82,5 +100,7 @@ fs["readdir"] = readdir;
 fs["mkdir"] = mkdir;
 fs["stat"] = stat;
 fs["pathExists"] = pathExists;
+fs["chdir"] = chdir;
+fs["getcwd"] = getcwd;
 
 export default fs;
