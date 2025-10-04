@@ -38,7 +38,6 @@
 #  define getcwd(x,y) _getcwd(x,y)
 #endif
 
-
 #include "namedins.h"
 
 #if defined(MSVC)
