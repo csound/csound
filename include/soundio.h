@@ -28,8 +28,8 @@
 
 
 #ifdef WIN32
-#define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
-#define IODACSAMPS   16384  /* default samps in hardware buffer,  -B settable */
+#define IOBUFSAMPS   256   /* default sampframes in audio iobuf, -b settable */
+#define IODACSAMPS   1024  /* default samps in hardware buffer,  -B settable */
 #elif defined(__MACH__)
 #define IOBUFSAMPS   128   /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   512  /* default samps in hardware buffer,  -B settable */
