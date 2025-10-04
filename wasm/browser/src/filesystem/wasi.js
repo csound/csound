@@ -1,6 +1,8 @@
 import { encoder, decoder } from "../utils/text-encoders.js";
 import * as constants from "./constants.js";
 
+const googPath = goog.require("goog.string.path");
+
 /** @define {boolean} */
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
@@ -186,7 +188,7 @@ WASI.prototype.findEntry = function (filePath) {
       return entry;
     }
   }
-  return undefined;
+  return null;
 };
 
 /**
