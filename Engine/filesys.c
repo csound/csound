@@ -355,8 +355,10 @@ static FILE *csoundOpenFile_Std(CSOUND *csound, char **fullName,
         free(wmode);
       }
 #else
-      *fullName = (char*) filename;
       f = fopen(filename, (char*) mode);
+      if (LIKELY(f != NULL)) {
+        *fullName = (char*) filename;
+      }
 #endif
     }
 
