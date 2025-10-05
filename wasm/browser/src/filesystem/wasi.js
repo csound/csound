@@ -1,6 +1,8 @@
 import { encoder, decoder } from "../utils/text-encoders.js";
 import * as constants from "./constants.js";
 
+const googPath = goog.require("goog.string.path");
+
 /** @define {boolean} */
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
@@ -894,7 +896,7 @@ WASI.prototype.path_open = function (
     pathOpen = this.resolvePath(pathOpenString);
   } else {
     // Opening relative to a specific directory fd
-    const joined = goog.string.path.join(directoryPath, pathOpenString);
+    const joined = googPath.join(directoryPath, pathOpenString);
     pathOpen = normalizeAbsolutePath(joined);
   }
 
