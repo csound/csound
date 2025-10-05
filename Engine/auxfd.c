@@ -52,7 +52,7 @@ void auxalloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
     auxchp->size = nbytes;
     auxchp->auxp = csound->Calloc(csound, nbytes);
     auxchp->endp = (char*)auxchp->auxp + nbytes;
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) & 0x01))
       auxchprint(csound, csound->curip);
 }
 
@@ -110,7 +110,7 @@ void fdrecord(CSOUND *csound, FDCH *fdchp)
 {
     fdchp->nxtchp = csound->curip->fdchp;
     csound->curip->fdchp = fdchp;
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) & 0x01))
       fdchprint(csound, csound->curip);
 }
 
@@ -132,7 +132,7 @@ void csound_fd_close(CSOUND *csound, FDCH *fdchp)
           prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
         else
           csound->curip->fdchp = fdchp->nxtchp;
-        if (UNLIKELY(csound->oparms->odebug))
+        if (UNLIKELY(csoundGetDebug(csound) & 0x01))
           fdchprint(csound, csound->curip);
         return;
       }
@@ -148,7 +148,7 @@ void csound_fd_close(CSOUND *csound, FDCH *fdchp)
 
 void auxchfree(CSOUND *csound, INSDS *ip)
 {
-    if (UNLIKELY(csound->oparms->odebug))
+  if (UNLIKELY(csoundGetDebug(csound) & 0x01))
       auxchprint(csound, ip);
     while (LIKELY(ip->auxchp != NULL)) {        /* for all auxp's in chain: */
       void  *auxp = (void*) ip->auxchp->auxp;
@@ -167,7 +167,7 @@ void auxchfree(CSOUND *csound, INSDS *ip)
 
 void fdchclose(CSOUND *csound, INSDS *ip)
 {
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) & 0x01))
       fdchprint(csound, ip);
     /* for all fd's in chain: */
     for ( ; ip->fdchp != NULL; ip->fdchp = ip->fdchp->nxtchp) {
