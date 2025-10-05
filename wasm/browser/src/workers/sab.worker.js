@@ -67,7 +67,7 @@ const sabCreateRealtimeAudioThread =
       libraryCsound.csoundSetOption(csound, `--nchnls=${userProvidedNchnls}`);
     userProvidedNchnlsIn > -1 &&
       libraryCsound.csoundSetOption(csound, `--nchnls_i=${userProvidedNchnlsIn}`);
-    userProvidedSr > -1 && libraryCsound.csoundSetOption(csound, `--sr=${userProvidedSr}`);
+    userProvidedSr > -1 && libraryCsound.csoundSetOption(csound, `--sample-rate=${userProvidedSr}`);
 
     const nchnls = libraryCsound.csoundGetNchnls(csound);
 

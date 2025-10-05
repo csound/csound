@@ -214,6 +214,7 @@
   "csoundSpinUnLock",
   "csoundStart",
   "csoundStop",
+  "csoundSystemSr",
   "csoundTableCopyIn",
   "csoundTableCopyOut",
   "csoundTableGet",

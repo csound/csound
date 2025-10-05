@@ -26,7 +26,8 @@ class VanillaWorkerMainThread {
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
 
-    if (audioContextIsProvided) {
+    // Always extract sample rate from audioContext to ensure Csound matches it
+    if (audioContext) {
       this.sampleRate = audioContext.sampleRate;
     }
     if (inputChannelCount) {

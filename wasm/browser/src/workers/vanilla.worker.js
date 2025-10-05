@@ -45,10 +45,8 @@ const createRealtimeAudioThread =
     // Prompt for microphone only on demand!
     const isExpectingInput = libraryCsound.csoundGetInputName(csound).includes("adc");
 
-    // Store Csound AudioParams for upcoming performance
-    sampleRate && libraryCsound.csoundSetOption(csound, `--sr=${sampleRate}`);
-    outputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls=${outputChannelCount}`);
-    inputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls_i=${inputChannelCount}`);
+    // Audio params are now set immediately after csoundCreate() to ensure
+    // they take precedence over CSD file settings
     const nchnls = libraryCsound.csoundGetNchnls(csound);
     const nchnlsInput =
       inputChannelCount > 0
@@ -237,6 +235,7 @@ const initialize = async (payload) => {
   const outputChannelCount = payload["outputChannelCount"];
   const requestPort = payload["requestPort"];
   const rtmidiPort = payload["rtmidiPort"];
+  const sampleRate = payload["sampleRate"];
   const wasmDataURI = payload["wasmDataURI"];
   const wasmTransformerDataURI = payload["wasmTransformerDataURI"];
   const withPlugins = payload["withPlugins"] || [];
@@ -269,6 +268,7 @@ const initialize = async (payload) => {
         inputChannelCount,
         libraryCsound,
         outputChannelCount,
+        sampleRate,
         wasm,
         wasi,
         workerMessagePort,
@@ -287,6 +287,12 @@ const initialize = async (payload) => {
 
   libraryCsound.csoundInitialize(0);
   const csoundInstance = libraryCsound.csoundCreate();
+
+  // Set audio parameters immediately after creation, before any compilation
+  // This ensures AudioContext sample rate takes precedence over CSD file settings
+  sampleRate && libraryCsound.csoundSetOption(csoundInstance, `--sample-rate=${sampleRate}`);
+  outputChannelCount && libraryCsound.csoundSetOption(csoundInstance, `--nchnls=${outputChannelCount}`);
+  inputChannelCount && libraryCsound.csoundSetOption(csoundInstance, `--nchnls_i=${inputChannelCount}`);
 
   workerMessagePort.port.addEventListener("message", (event) => {
     if (event.data && event.data["newPlayState"]) {
