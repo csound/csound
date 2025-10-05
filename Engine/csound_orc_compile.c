@@ -2035,7 +2035,7 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
   
   optxt = (OPTXT *)tp;
   if(tp != e->instxtanchor.nxtinstxt)
-    csoundMessage(csound, "instr %s\n ", tp->insname ? tp->insname : "");
+    csoundMessage(csound, "instr %s\n", tp->insname ? tp->insname : "");
   else if(optxt->nxtop != NULL)
     csoundMessage(csound, "\n");
   
@@ -2048,17 +2048,18 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
        csound->Message(csound, "%s\n", ep->opname);
       break;
      }
-    
+
+    csound->Message(csound, " ");
     if (strcmp(ep->opname, "$label") == 0) {
       csound->Message(csound, "%s: \n", ep->opname);
       continue;
     }
-    
+
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {
       n = outlist->count;
-      argp = outlist->arg; /* get outarg indices */
+      argp = outlist->arg; /* get outarg indices */ 
       while (n--) {
 	if(n > 0)
 	  csound->Message(csound, "%s,",*argp++);
@@ -2077,7 +2078,7 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
 	else
 	 csound->Message(csound, "%s ",*argp++);
     }
-    csound->Message(csound, "\n ");
+    csound->Message(csound, "\n");
   }
   csound->Message(csound, "\n");
 }

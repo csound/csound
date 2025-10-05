@@ -157,7 +157,7 @@ void auxchfree(CSOUND *csound, INSDS *ip)
       csound->Free(csound, auxp);                   /*  & free the space    */
       ip->auxchp = nxt;
     }
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) & 0x01))
       auxchprint(csound, ip);
 }
 
@@ -177,7 +177,7 @@ void fdchclose(CSOUND *csound, INSDS *ip)
         csoundFileClose(csound, fd);    /*    & close the file  */
       }
     }
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(csoundGetDebug(csound) & 0x01))
       fdchprint(csound, ip);
 }
 
