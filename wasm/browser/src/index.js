@@ -128,7 +128,10 @@ const Csound = async function ({
         })
       : new VanillaWorkerMainThread({
           audioWorker,
+          audioContext,
           audioContextIsProvided,
+          inputChannelCount,
+          outputChannelCount,
         });
 
   if (worker) {
