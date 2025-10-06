@@ -63,11 +63,18 @@ const sabCreateRealtimeAudioThread =
     const userProvidedNchnlsIn = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
     const userProvidedSr = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
 
-    userProvidedNchnls > -1 &&
-      libraryCsound.csoundSetOption(csound, `--nchnls=${userProvidedNchnls}`);
-    userProvidedNchnlsIn > -1 &&
-      libraryCsound.csoundSetOption(csound, `--nchnls_i=${userProvidedNchnlsIn}`);
-    userProvidedSr > -1 && libraryCsound.csoundSetOption(csound, `--sample-rate=${userProvidedSr}`);
+    if (userProvidedNchnls > -1) {
+      const result = libraryCsound.csoundSetOption(csound, "--nchnls=" + userProvidedNchnls);
+      result !== 0 && console.error("csoundSetOption nchnls failed:", result);
+    }
+    if (userProvidedNchnlsIn > -1) {
+      const result = libraryCsound.csoundSetOption(csound, "--nchnls_i=" + userProvidedNchnlsIn);
+      result !== 0 && console.error("csoundSetOption nchnls_i failed:", result);
+    }
+    if (userProvidedSr > -1) {
+      const result = libraryCsound.csoundSetOption(csound, "--sample-rate=" + userProvidedSr);
+      result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
+    }
 
     const nchnls = libraryCsound.csoundGetNchnls(csound);
 

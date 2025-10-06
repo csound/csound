@@ -220,7 +220,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     }
 
     libraryCsound.csoundSetMidiCallbacks(cs);
-    this.sampleRate && libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+    if (this.sampleRate) {
+      const result = libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+      result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
+    }
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;

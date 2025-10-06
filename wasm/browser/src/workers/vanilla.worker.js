@@ -290,9 +290,18 @@ const initialize = async (payload) => {
 
   // Set audio parameters immediately after creation, before any compilation
   // This ensures AudioContext sample rate takes precedence over CSD file settings
-  sampleRate && libraryCsound.csoundSetOption(csoundInstance, `--sample-rate=${sampleRate}`);
-  outputChannelCount && libraryCsound.csoundSetOption(csoundInstance, `--nchnls=${outputChannelCount}`);
-  inputChannelCount && libraryCsound.csoundSetOption(csoundInstance, `--nchnls_i=${inputChannelCount}`);
+  if (sampleRate) {
+    const result = libraryCsound.csoundSetOption(csoundInstance, "--sample-rate=" + sampleRate);
+    result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
+  }
+  if (outputChannelCount) {
+    const result = libraryCsound.csoundSetOption(csoundInstance, "--nchnls=" + outputChannelCount);
+    result !== 0 && console.error("csoundSetOption nchnls failed:", result);
+  }
+  if (inputChannelCount) {
+    const result = libraryCsound.csoundSetOption(csoundInstance, "--nchnls_i=" + inputChannelCount);
+    result !== 0 && console.error("csoundSetOption nchnls_i failed:", result);
+  }
 
   workerMessagePort.port.addEventListener("message", (event) => {
     if (event.data && event.data["newPlayState"]) {
