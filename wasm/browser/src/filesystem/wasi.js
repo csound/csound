@@ -937,8 +937,6 @@ WASI.prototype.path_open = function (
     return constants.WASI_ENOENT;
   }
 
-  const needsRead = shouldOpenReader(fsRightsBase);
-  
   // Check if file doesn't exist and shouldn't be created
   if (!existingEntry && !allowCreate && !wantsDirectory) {
     // File doesn't exist - write invalid fd and return ENOENT
@@ -1276,7 +1274,7 @@ WASI.prototype.stat = function (fname /* string */) {
     uid: 0,
     gid: 0,
     rdev: 0,
-    size: size,
+    size,
     blksize: 4096,
     blocks: Math.ceil(size / 512),
     atimeMs: this.CPUTIME_START,
@@ -1288,7 +1286,7 @@ WASI.prototype.stat = function (fname /* string */) {
     ctime: new Date(this.CPUTIME_START),
     birthtime: new Date(this.CPUTIME_START),
     isFile: !isDirectory,
-    isDirectory: isDirectory,
+    isDirectory,
     isBlockDevice: false,
     isCharacterDevice: false,
     isSymbolicLink: false,
