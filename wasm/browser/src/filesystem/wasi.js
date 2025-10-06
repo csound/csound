@@ -554,7 +554,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
 
   if (!entry || !Array.isArray(entry.buffers)) {
     if (DEBUG_WASI) {
-      console.error("Reading non existent file", fd, entry);
+      console.error("fd_read: non-existent file descriptor", fd, entry);
     }
     memory.setUint32(nread, 0, true);
     return constants.WASI_EBADF;
@@ -913,10 +913,6 @@ WASI.prototype.path_open = function (
     pathOpen = normalizeAbsolutePath(joined);
   }
 
-  if (DEBUG_WASI) {
-    console.log(";; opening path", pathOpen, "from dirfd", dirfd, "withReader", shouldOpenReader(fsRightsBase));
-  }
-
   if (pathOpen.startsWith("/..") || pathOpen === "/._" || pathOpen === "/.AppleDouble") {
     return constants.WASI_EBADF;
   }
@@ -924,6 +920,14 @@ WASI.prototype.path_open = function (
   const wantsDirectory = (oflags & constants.WASI_O_DIRECTORY) !== 0;
   const allowCreate = (oflags & constants.WASI_O_CREAT) !== 0;
   const existingEntry = this.findEntry(pathOpen);
+
+  if (DEBUG_WASI) {
+    console.log(";; path_open:", pathOpen, "from dirfd", dirfd);
+    console.log("  withReader:", shouldOpenReader(fsRightsBase));
+    console.log("  oflags:", oflags.toString(16), "fsRightsBase:", fsRightsBase.toString());
+    console.log("  allowCreate:", allowCreate, "wantsDirectory:", wantsDirectory);
+    console.log("  existingEntry:", existingEntry ? "exists" : "does not exist");
+  }
 
   if (existingEntry && existingEntry.type === "dir" && !wantsDirectory) {
     return constants.WASI_EISDIR;
@@ -934,10 +938,15 @@ WASI.prototype.path_open = function (
   }
 
   const needsRead = shouldOpenReader(fsRightsBase);
-  if (!existingEntry && !allowCreate && needsRead && !wantsDirectory) {
+  
+  // Check if file doesn't exist and shouldn't be created
+  if (!existingEntry && !allowCreate && !wantsDirectory) {
+    // File doesn't exist - write invalid fd and return ENOENT
     if (DEBUG_WASI) {
-      console.warn("path_open: missing file", pathOpen);
+      console.warn(`path_open: file not found: ${pathOpen}`);
     }
+    // Write maximum unsigned 32-bit value (-1 as signed) to indicate bad fd
+    memory.setUint32(fd, 0xFFFFFFFF, true);
     return constants.WASI_ENOENT;
   }
 
