@@ -626,6 +626,97 @@ e
 
         await csoundObj.terminateInstance();
       });
+
+     it("can #include a file from parent directory", async function () {
+        const csoundObj = await Csound(test);
+        const csdPath = "/folder1/test.csd";
+
+        await csoundObj.fs.writeFile("/test.orc", "i1 0 .1");
+        await csoundObj.fs.mkdir("/folder1");
+        await csoundObj.fs.writeFile(csdPath, `
+<CsoundSynthesizer>
+<CsOptions>
+    -odac
+</CsOptions>
+<CsInstruments>
+    sr=44100
+    ksmps=64
+    nchnls=1
+    0dbfs=1
+
+    instr 1
+        out(oscili(0.25, 440))
+    endin
+
+</CsInstruments>
+<CsScore>
+    #include "../test.orc"
+</CsScore>
+</CsoundSynthesizer>
+        `);
+
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
+        assert.equal(0, await csoundObj.compileCSD(csdPath, 0), "The test Csd is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
+
+        await waitUntilEnd;
+        await csoundObj.terminateInstance();
+      });
+
+
+     it("it fails with error when #include references a non-existent file", async function () {
+        const csoundObj = await Csound(test);
+        await csoundObj.fs.writeFile('/test.csd', `
+<CsoundSynthesizer>
+<CsOptions>
+    -odac
+</CsOptions>
+<CsInstruments>
+    sr=44100
+    ksmps=64
+    nchnls=1
+    0dbfs=1
+
+    instr 1
+        out(oscili(0.25, 440))
+    endin
+
+</CsInstruments>
+<CsScore>
+    #include "../test.orc"
+    i1 0 0.01
+</CsScore>
+</CsoundSynthesizer>
+        `);
+
+        // Attempting to compile will fail due to missing include file
+        // Currently throws RuntimeError after reporting "Cannot open #include'd file"
+        // This is due to setjmp/longjmp cleanup issues in WASM after csoundDie()
+        let errorCaught = false;
+        try {
+          await csoundObj.compileCSD('/test.csd', 0);
+        } catch (e) {
+          errorCaught = true;
+          // The error should be a RuntimeError from the WASM crash after reporting the missing file
+          assert.ok(e.message.includes('memory access') || e.message.includes('RuntimeError'),
+            `Expected memory access error, got: ${e.message}`);
+        }
+
+        assert.ok(errorCaught, "compileCSD should throw error for missing #include file");
+        await csoundObj.terminateInstance();
+      });
+
+
     });
   });
 

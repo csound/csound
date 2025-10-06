@@ -17,6 +17,15 @@ export const csoundGetSr = (wasm) => (csound) => wasm.exports["csoundGetSr"](cso
 csoundGetSr["toString"] = () => "getSr = async () => Number;";
 
 /**
+ * Sets or gets the system (hardware) sample rate.
+ * If val > 0, sets the system sr. Returns the stored system sr.
+ * @function
+ */
+export const csoundSystemSr = (wasm) => (csound, val) => wasm.exports["csoundSystemSr"](csound, val);
+
+csoundSystemSr["toString"] = () => "systemSr = async (val) => Number;";
+
+/**
  * Returns the control rate from Csound instance
  * @function
  */

@@ -10,8 +10,10 @@ export const handleCsoundStart =
     const shouldDemonize = libraryCsound.csoundShouldDaemonize(csound) === 1;
 
     if (shouldDemonize) {
-      libraryCsound.csoundSetOption(csound, "--daemon");
-      libraryCsound.csoundSetOption(csound, "-odac");
+      let result = libraryCsound.csoundSetOption(csound, "--daemon");
+      result !== 0 && console.error("csoundSetOption daemon failed:", result);
+      result = libraryCsound.csoundSetOption(csound, "-odac");
+      result !== 0 && console.error("csoundSetOption odac failed:", result);
     }
     const startError = libraryCsound.csoundStart(csound);
 

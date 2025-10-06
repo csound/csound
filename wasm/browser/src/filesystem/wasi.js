@@ -1,17 +1,65 @@
 import { encoder, decoder } from "../utils/text-encoders.js";
 import * as constants from "./constants.js";
 
-const { normalizePath } = goog.require("goog.string.path");
+const googPath = goog.require("goog.string.path");
 
 /** @define {boolean} */
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
-function assertLeadingSlash(path) {
-  return /^\//g.test(path) ? path : `/${path}`;
-}
-
 function removeLeadingSlash(path) {
   return path.replace(/^\//g, "");
+}
+
+function splitPathSegments(path) {
+  if (!path) {
+    return [];
+  }
+  return path
+    .split("/")
+    .filter((segment) => segment.length > 0 && segment !== ".");
+}
+
+function normalizeAbsolutePath(path) {
+  if (!path) {
+    return "/";
+  }
+  const segments = splitPathSegments(path);
+  const resolved = [];
+  segments.forEach((segment) => {
+    if (segment === "..") {
+      if (resolved.length > 0) {
+        resolved.pop();
+      }
+    } else {
+      resolved.push(segment);
+    }
+  });
+  return resolved.length > 0 ? `/${resolved.join("/")}` : "/";
+}
+
+function ensureAbsolutePath(basePath, path) {
+  if (!path || path === ".") {
+    return normalizeAbsolutePath(basePath || "/");
+  }
+  if (/^\//.test(path)) {
+    return normalizeAbsolutePath(path);
+  }
+  const baseSegments = splitPathSegments(basePath || "/");
+  const relativeSegments = path.split("/");
+  const resolvedSegments = [...baseSegments];
+  relativeSegments.forEach((segment) => {
+    if (!segment || segment === ".") {
+      return;
+    }
+    if (segment === "..") {
+      if (resolvedSegments.length > 0) {
+        resolvedSegments.pop();
+      }
+      return;
+    }
+    resolvedSegments.push(segment);
+  });
+  return resolvedSegments.length > 0 ? `/${resolvedSegments.join("/")}` : "/";
 }
 
 function shouldOpenReader(rights) {
@@ -61,10 +109,12 @@ export const WASI = function ({ preopens }) {
   this.fd[0] = { fd: 0, path: "/dev/stdin", seekPos: goog.global.BigInt(0), buffers: [] };
   this.fd[1] = { fd: 1, path: "/dev/stdout", seekPos: goog.global.BigInt(0), buffers: [] };
   this.fd[2] = { fd: 2, path: "/dev/stderr", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[3] = { fd: 3, path: "/", seekPos: goog.global.BigInt(0), buffers: [] };
+  this.fd[3] = { fd: 3, path: "/", seekPos: goog.global.BigInt(0), buffers: [], type: "dir" };
 
   this.getMemory = this.getMemory.bind(this);
   this.CPUTIME_START = 0;
+  this.cwd = "/";
+  this.preopens = preopens || {};
 };
 
 /**
@@ -114,6 +164,74 @@ WASI.prototype.getMemory = function () {
     this.view = new DataView(this.memory.buffer);
   }
   return this.view;
+};
+
+/**
+ * @function
+ * @param {string} path
+ * @return {string}
+ */
+WASI.prototype.resolvePath = function (path) {
+  return ensureAbsolutePath(this.cwd, path);
+};
+
+/**
+ * @function
+ * @param {string} filePath
+ * @return {?Object}
+ */
+WASI.prototype.findEntry = function (filePath) {
+  const normalized = normalizeAbsolutePath(filePath);
+  const entries = Object.values(this.fd);
+  for (const entry of entries) {
+    if (entry && entry.path === normalized) {
+      return entry;
+    }
+  }
+  // eslint-disable-next-line unicorn/no-null
+  return null;
+};
+
+/**
+ * @function
+ * @param {string} path
+ * @return {number}
+ */
+WASI.prototype.chdir = function (path) {
+  const targetPath = normalizeAbsolutePath(ensureAbsolutePath(this.cwd, path));
+
+  if (targetPath === "/") {
+    this.cwd = "/";
+    if (this.fd[3]) {
+      this.fd[3].path = "/";
+      this.fd[3].type = "dir";
+    }
+    return constants.WASI_ESUCCESS;
+  }
+
+  const entry = this.findEntry(targetPath);
+
+  if (!entry) {
+    if (DEBUG_WASI) {
+      console.warn(`chdir: path ${targetPath} does not exist`);
+    }
+    return constants.WASI_ENOENT;
+  }
+
+  if (entry.type && entry.type !== "dir") {
+    if (DEBUG_WASI) {
+      console.warn(`chdir: path ${targetPath} not a directory`);
+    }
+    return constants.WASI_ENOTDIR;
+  }
+
+  this.cwd = targetPath;
+  if (this.fd[3]) {
+    this.fd[3].path = targetPath;
+    this.fd[3].type = "dir";
+  }
+
+  return constants.WASI_ESUCCESS;
 };
 
 WASI.prototype.msToNs = function (ms) {
@@ -430,16 +548,29 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   if (DEBUG_WASI) {
     console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
   }
-  const buffers = this.fd[fd] && this.fd[fd].buffers;
-  const totalBuffersLength = buffers.reduce((accumulator, b) => accumulator + b.length, 0);
-  const memory = this.getMemory();
 
-  if (!buffers || buffers.length === 0) {
-    console.error("Reading non existent file", fd, this.fd[fd]);
-    return;
+  const memory = this.getMemory();
+  const entry = this.fd[fd];
+
+  if (!entry || !Array.isArray(entry.buffers)) {
+    if (DEBUG_WASI) {
+      console.error("fd_read: non-existent file descriptor", fd, entry);
+    }
+    memory.setUint32(nread, 0, true);
+    return constants.WASI_EBADF;
   }
 
-  let read = Number(this.fd[fd].seekPos);
+  const buffers = entry.buffers;
+
+  if (buffers.length === 0) {
+    memory.setUint32(nread, 0, true);
+    entry.seekPos = goog.global.BigInt(0);
+    return constants.WASI_ESUCCESS;
+  }
+
+  const totalBuffersLength = buffers.reduce((accumulator, b) => accumulator + b.length, 0);
+
+  let read = Number(entry.seekPos);
 
   let thisRead = 0;
   let reduced = false;
@@ -518,7 +649,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
     }
   }
 
-  this.fd[fd].seekPos = goog.global.BigInt(read);
+  entry.seekPos = goog.global.BigInt(read);
   memory.setUint32(nread, thisRead, true);
 
   return constants.WASI_ESUCCESS;
@@ -768,45 +899,74 @@ WASI.prototype.path_open = function (
     );
   }
   const memory = this.getMemory();
-  const directoryPath = (this.fd[dirfd] || { path: "/" }).path;
+  const directoryPath = (this.fd[dirfd] || { path: this.cwd }).path;
   const pathOpenBytes = new Uint8Array(memory.buffer, pathPtr, pathLength);
   const pathOpenString = decoder.decode(pathOpenBytes);
-  const pathOpen = assertLeadingSlash(
-    normalizePath(goog.string.path.join(dirfd === 3 ? "" : directoryPath, pathOpenString)),
-  );
 
-  if (DEBUG_WASI) {
-    console.log(";; opening path", pathOpen, "withREader", shouldOpenReader(fsRightsBase));
+  let pathOpen;
+  if (dirfd === 3) {
+    // Opening relative to the preopen root (cwd)
+    pathOpen = this.resolvePath(pathOpenString);
+  } else {
+    // Opening relative to a specific directory fd
+    const joined = googPath.join(directoryPath, pathOpenString);
+    pathOpen = normalizeAbsolutePath(joined);
   }
 
   if (pathOpen.startsWith("/..") || pathOpen === "/._" || pathOpen === "/.AppleDouble") {
     return constants.WASI_EBADF;
   }
 
-  const alreadyExists = Object.values(this.fd).find(
-    (entry) => entry.path === pathOpen && Array.isArray(entry.buffers),
-  );
-  let actualFd;
+  const wantsDirectory = (oflags & constants.WASI_O_DIRECTORY) !== 0;
+  const allowCreate = (oflags & constants.WASI_O_CREAT) !== 0;
+  const existingEntry = this.findEntry(pathOpen);
 
-  if (alreadyExists) {
-    actualFd = alreadyExists.fd;
-  } else {
-    actualFd = this.fd.length;
+  if (DEBUG_WASI) {
+    console.log(";; path_open:", pathOpen, "from dirfd", dirfd);
+    console.log("  withReader:", shouldOpenReader(fsRightsBase));
+    console.log("  oflags:", oflags.toString(16), "fsRightsBase:", fsRightsBase.toString());
+    console.log("  allowCreate:", allowCreate, "wantsDirectory:", wantsDirectory);
+    console.log("  existingEntry:", existingEntry ? "exists" : "does not exist");
+  }
+
+  if (existingEntry && existingEntry.type === "dir" && !wantsDirectory) {
+    return constants.WASI_EISDIR;
+  }
+
+  if (!existingEntry && wantsDirectory) {
+    return constants.WASI_ENOENT;
+  }
+
+  // Check if file doesn't exist and shouldn't be created
+  if (!existingEntry && !allowCreate && !wantsDirectory) {
+    // File doesn't exist - write invalid fd and return ENOENT
+    if (DEBUG_WASI) {
+      console.warn(`path_open: file not found: ${pathOpen}`);
+    }
+    // Write maximum unsigned 32-bit value (-1 as signed) to indicate bad fd
+    memory.setUint32(fd, 0xFFFFFFFF, true);
+    return constants.WASI_ENOENT;
+  }
+
+  const actualFd = existingEntry ? existingEntry.fd : this.fd.length;
+
+  if (!existingEntry && this.fd[actualFd] === undefined) {
     this.fd[actualFd] = { fd: actualFd };
   }
 
-  let fileType = "file";
+  const entryTemplate = existingEntry || this.fd[actualFd] || { fd: actualFd };
 
   this.fd[actualFd] = {
-    ...this.fd[actualFd],
+    ...entryTemplate,
+    fd: actualFd,
     path: pathOpen,
-    type: fileType,
+    type: wantsDirectory ? "dir" : entryTemplate.type || "file",
     seekPos: goog.global.BigInt(0),
-    buffers: alreadyExists ? this.fd[actualFd].buffers : [],
+    buffers: Array.isArray(entryTemplate.buffers) ? entryTemplate.buffers : [],
   };
 
-  if ((oflags & constants.WASI_O_DIRECTORY) !== 0) {
-    fileType = "dir";
+  if ((oflags & constants.WASI_O_TRUNC) !== 0 && !wantsDirectory) {
+    this.fd[actualFd].buffers.length = 0;
   }
 
   if (shouldOpenReader(fsRightsBase) && DEBUG_WASI) {
@@ -989,22 +1149,32 @@ WASI.prototype.findBuffers = function (filePath /* string */) {
 // fs api
 
 WASI.prototype.readdir = function (dirname /* string */) {
-  const prefixPath = (assertLeadingSlash(normalizePath(dirname)) + "/").replace("//", "/");
+  const absoluteDir = this.resolvePath(dirname);
+  const prefixPath = absoluteDir === "/" ? "/" : `${absoluteDir}/`;
   const files = [];
-  Object.values(this.fd).forEach(({ path }) => {
-    // console.log({
-    //   path,
-    //   prefixPath,
-    //   replaced: path.replace(prefixPath, ""),
-    //   isTrue: !/\//g.test(path.replace(prefixPath, "")),
-    // });
-    return !/\//g.test(path.replace(prefixPath, "")) && files.push(path);
+  Object.values(this.fd).forEach((entry) => {
+    if (!entry || !entry.path) {
+      return;
+    }
+    const { path } = entry;
+    if (!path.startsWith(prefixPath)) {
+      return;
+    }
+    const rest = path.slice(prefixPath.length);
+    if (rest.length === 0) {
+      return;
+    }
+    if (!/\//g.test(rest)) {
+      files.push(path);
+    }
   });
-  return files.map((p) => removeLeadingSlash(p.replace(prefixPath, ""))).filter((p) => !!p);
+  return files
+    .map((p) => removeLeadingSlash(p.replace(prefixPath, "")))
+    .filter((p) => !!p);
 };
 
 WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {
-  const filePath = assertLeadingSlash(normalizePath(fname));
+  const filePath = this.resolvePath(fname);
 
   const nextFd = Object.keys(this.fd).length;
   const maybeOldFd = Object.values(this.fd).find(({ path }) => path === filePath);
@@ -1014,6 +1184,7 @@ WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) 
     path: filePath,
     seekPos: goog.global.BigInt(0),
     buffers: [data],
+    type: "file",
   };
 
   if (maybeOldFd) {
@@ -1022,7 +1193,7 @@ WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) 
 };
 
 WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */) {
-  const filePath = assertLeadingSlash(normalizePath(fname));
+  const filePath = this.resolvePath(fname);
 
   const buffers = this.findBuffers(filePath);
 
@@ -1034,7 +1205,7 @@ WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */)
 };
 
 WASI.prototype.readFile = function (fname /* string */) {
-  const filePath = assertLeadingSlash(normalizePath(fname));
+  const filePath = this.resolvePath(fname);
 
   const buffers = this.findBuffers(filePath);
 
@@ -1050,7 +1221,7 @@ WASI.prototype.readStdOut = function () {
 };
 
 WASI.prototype.unlink = function (fname /* string */) {
-  const filePath = assertLeadingSlash(normalizePath(fname));
+  const filePath = this.resolvePath(fname);
   const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
 
   if (maybeFd) {
@@ -1061,7 +1232,7 @@ WASI.prototype.unlink = function (fname /* string */) {
 };
 
 WASI.prototype.mkdir = function (dirname /* string */) {
-  const cleanPath = assertLeadingSlash(normalizePath(dirname));
+  const cleanPath = this.resolvePath(dirname);
   const files = [];
   Object.values(this.fd).forEach(({ path }) => {
     return path.startsWith(cleanPath) && files.push(path);
@@ -1075,12 +1246,13 @@ WASI.prototype.mkdir = function (dirname /* string */) {
     this.fd[nextFd] = {
       fd: nextFd,
       path: cleanPath,
+      type: "dir",
     };
   }
 };
 
 WASI.prototype.stat = function (fname /* string */) {
-  const filePath = assertLeadingSlash(normalizePath(fname));
+  const filePath = this.resolvePath(fname);
   const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
 
   if (!maybeFd) {
@@ -1092,7 +1264,7 @@ WASI.prototype.stat = function (fname /* string */) {
     return accumulator + (buffer?.byteLength || 0);
   }, 0);
 
-  const isDirectory = buffers.length === 0 && maybeFd.path.endsWith("/");
+  const isDirectory = maybeFd.type === "dir";
 
   return {
     dev: 0,
@@ -1102,7 +1274,7 @@ WASI.prototype.stat = function (fname /* string */) {
     uid: 0,
     gid: 0,
     rdev: 0,
-    size: size,
+    size,
     blksize: 4096,
     blocks: Math.ceil(size / 512),
     atimeMs: this.CPUTIME_START,
@@ -1114,7 +1286,7 @@ WASI.prototype.stat = function (fname /* string */) {
     ctime: new Date(this.CPUTIME_START),
     birthtime: new Date(this.CPUTIME_START),
     isFile: !isDirectory,
-    isDirectory: isDirectory,
+    isDirectory,
     isBlockDevice: false,
     isCharacterDevice: false,
     isSymbolicLink: false,
@@ -1124,7 +1296,7 @@ WASI.prototype.stat = function (fname /* string */) {
 };
 
 WASI.prototype.pathExists = function (fname /* string */) {
-  const filePath = assertLeadingSlash(normalizePath(fname));
+  const filePath = this.resolvePath(fname);
   const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
   return !!maybeFd;
 };
