@@ -673,6 +673,50 @@ e
         await csoundObj.terminateInstance();
       });
 
+
+     it("it fails gracefully when #include a non-existent file", async function () {
+        const csoundObj = await Csound(test);
+        await csoundObj.fs.writeFile('/test.csd', `
+<CsoundSynthesizer>
+<CsOptions>
+    -odac
+</CsOptions>
+<CsInstruments>
+    sr=44100
+    ksmps=64
+    nchnls=1
+    0dbfs=1
+
+    instr 1
+        out(oscili(0.25, 440))
+    endin
+
+</CsInstruments>
+<CsScore>
+    #include "../test.orc"
+    i1 0 0.01
+</CsScore>
+</CsoundSynthesizer>
+        `);
+
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
+        assert.equal(0, await csoundObj.compileCSD('/test.csd', 0), "The test Csd is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
+
+        await waitUntilEnd;
+        await csoundObj.terminateInstance();
+      });
+
     });
   });
 

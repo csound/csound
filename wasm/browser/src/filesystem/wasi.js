@@ -548,16 +548,29 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   if (DEBUG_WASI) {
     console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
   }
-  const buffers = this.fd[fd] && this.fd[fd].buffers;
-  const totalBuffersLength = buffers.reduce((accumulator, b) => accumulator + b.length, 0);
-  const memory = this.getMemory();
 
-  if (!buffers || buffers.length === 0) {
-    console.error("Reading non existent file", fd, this.fd[fd]);
-    return;
+  const memory = this.getMemory();
+  const entry = this.fd[fd];
+
+  if (!entry || !Array.isArray(entry.buffers)) {
+    if (DEBUG_WASI) {
+      console.error("Reading non existent file", fd, entry);
+    }
+    memory.setUint32(nread, 0, true);
+    return constants.WASI_EBADF;
   }
 
-  let read = Number(this.fd[fd].seekPos);
+  const buffers = entry.buffers;
+
+  if (buffers.length === 0) {
+    memory.setUint32(nread, 0, true);
+    entry.seekPos = goog.global.BigInt(0);
+    return constants.WASI_ESUCCESS;
+  }
+
+  const totalBuffersLength = buffers.reduce((accumulator, b) => accumulator + b.length, 0);
+
+  let read = Number(entry.seekPos);
 
   let thisRead = 0;
   let reduced = false;
@@ -636,7 +649,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
     }
   }
 
-  this.fd[fd].seekPos = goog.global.BigInt(read);
+  entry.seekPos = goog.global.BigInt(read);
   memory.setUint32(nread, thisRead, true);
 
   return constants.WASI_ESUCCESS;
@@ -908,30 +921,45 @@ WASI.prototype.path_open = function (
     return constants.WASI_EBADF;
   }
 
-  const alreadyExists = Object.values(this.fd).find(
-    (entry) => entry.path === pathOpen && Array.isArray(entry.buffers),
-  );
-  let actualFd;
+  const wantsDirectory = (oflags & constants.WASI_O_DIRECTORY) !== 0;
+  const allowCreate = (oflags & constants.WASI_O_CREAT) !== 0;
+  const existingEntry = this.findEntry(pathOpen);
 
-  if (alreadyExists) {
-    actualFd = alreadyExists.fd;
-  } else {
-    actualFd = this.fd.length;
+  if (existingEntry && existingEntry.type === "dir" && !wantsDirectory) {
+    return constants.WASI_EISDIR;
+  }
+
+  if (!existingEntry && wantsDirectory) {
+    return constants.WASI_ENOENT;
+  }
+
+  const needsRead = shouldOpenReader(fsRightsBase);
+  if (!existingEntry && !allowCreate && needsRead && !wantsDirectory) {
+    if (DEBUG_WASI) {
+      console.warn("path_open: missing file", pathOpen);
+    }
+    return constants.WASI_ENOENT;
+  }
+
+  const actualFd = existingEntry ? existingEntry.fd : this.fd.length;
+
+  if (!existingEntry && this.fd[actualFd] === undefined) {
     this.fd[actualFd] = { fd: actualFd };
   }
 
-  let fileType = "file";
+  const entryTemplate = existingEntry || this.fd[actualFd] || { fd: actualFd };
 
   this.fd[actualFd] = {
-    ...this.fd[actualFd],
+    ...entryTemplate,
+    fd: actualFd,
     path: pathOpen,
-    type: fileType,
+    type: wantsDirectory ? "dir" : entryTemplate.type || "file",
     seekPos: goog.global.BigInt(0),
-    buffers: alreadyExists ? this.fd[actualFd].buffers : [],
+    buffers: Array.isArray(entryTemplate.buffers) ? entryTemplate.buffers : [],
   };
 
-  if ((oflags & constants.WASI_O_DIRECTORY) !== 0) {
-    fileType = "dir";
+  if ((oflags & constants.WASI_O_TRUNC) !== 0 && !wantsDirectory) {
+    this.fd[actualFd].buffers.length = 0;
   }
 
   if (shouldOpenReader(fsRightsBase) && DEBUG_WASI) {
