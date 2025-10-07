@@ -21,12 +21,7 @@
     02110-1301 USA
 */
 
-#ifdef BUILD_PLUGINS
-#include "csdl.h"
-#else
 #include "csoundCore.h"
-#endif
-
 #include "interlocks.h"
 #include "csound_standard_types.h"
 #include "csound_orc_structs.h"  /* CS_STRUCT_VAR + free helper */

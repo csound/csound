@@ -436,6 +436,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../OOps/schedule.c \
       ../OOps/sndinfUG.c \
       ../OOps/str_ops.c \
+      ../OOps/structs.c \
       ../OOps/ugens1.c \
       ../OOps/ugens2.c \
       ../OOps/ugens3.c \
@@ -560,7 +561,6 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/squinewave.c \
       ../Opcodes/stdopcod.c \
       ../Opcodes/sterrain.c \
-      ../Opcodes/structs.c \
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \
       ../Opcodes/tabsum.c \

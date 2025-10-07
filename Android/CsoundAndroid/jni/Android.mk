@@ -91,6 +91,7 @@ $(CSOUND_SRC_ROOT)/OOps/remote.c \
 $(CSOUND_SRC_ROOT)/OOps/schedule.c \
 $(CSOUND_SRC_ROOT)/OOps/sndinfUG.c \
 $(CSOUND_SRC_ROOT)/OOps/str_ops.c \
+$(CSOUND_SRC_ROOT)/OOps/structs.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens1.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens2.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens3.c \
@@ -120,7 +121,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/minmax.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pan2.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/phisem.c \
 $(CSOUND_SRC_ROOT)/Opcodes/arrays.c \
-$(CSOUND_SRC_ROOT)/Opcodes/structs.c \
 $(CSOUND_SRC_ROOT)/Opcodes/hrtfopcodes.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vbap.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/vaops.c  \

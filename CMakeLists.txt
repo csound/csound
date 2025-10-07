@@ -837,6 +837,7 @@ set(libcsound_SRCS
     OOps/schedule.c
     OOps/sndinfUG.c
     OOps/str_ops.c
+    OOps/structs.c
     OOps/ugens1.c
     OOps/ugens2.c
     OOps/ugens3.c
@@ -936,7 +937,6 @@ set(externs_SRCS
     Opcodes/arrays.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
-    Opcodes/structs.c
     Opcodes/zak.c
     Opcodes/paulstretch.c
 )
