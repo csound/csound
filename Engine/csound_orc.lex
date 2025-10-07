@@ -38,7 +38,7 @@
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
 #include "corfile.h"
-#include "filesys.h"  
+#include "filesys.h"
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
@@ -250,7 +250,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 
 <forloop>{
    ","            { return ','; }
-   
+
   [ \t]*          /* eat the whitespace */
   {IDENT}/[ \t]*   { char *pp = yytext;
                     while (*pp==' ' || *pp=='\t') pp++;
@@ -258,14 +258,14 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                     if (strcmp(pp, "in") == 0) {
                       BEGIN(INITIAL);
                       return IN_TOKEN;
-                    } else {                 
+                    } else {
                       return T_IDENT;
                     }
                   }
 }
 
 <xstr>{
-  "\{\{" { 
+  "\{\{" {
              PARM->xsubstr += 1; // substr start
              if (PARM->xstrptr+3==PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
@@ -274,7 +274,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
              }
              PARM->xstrbuff[PARM->xstrptr++] = '{';
              PARM->xstrbuff[PARM->xstrptr++] = '{';
-             PARM->xstrbuff[PARM->xstrptr] = '\0';  
+             PARM->xstrbuff[PARM->xstrptr] = '\0';
          }
 
   "}}"   {
@@ -284,10 +284,10 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
-           }           
+           }
            PARM->xstrbuff[PARM->xstrptr++] = '}';
            PARM->xstrbuff[PARM->xstrptr++] = '}';
-           PARM->xstrbuff[PARM->xstrptr] = '\0';            
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
     } else {
            BEGIN(INITIAL);
            PARM->xstrbuff[PARM->xstrptr++] = '"';

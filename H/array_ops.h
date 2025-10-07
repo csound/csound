@@ -34,7 +34,7 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  MYFLT   *isizes[VARGMAX];
+  MYFLT   *iargs[VARGMAX];
 } ARRAYINIT;
 
 typedef struct {

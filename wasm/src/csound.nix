@@ -356,6 +356,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_orc_expressions.c \
       ../Engine/csound_orc_optimize.c \
       ../Engine/csound_orc_semantics.c \
+      ../Engine/csound_orc_structs.c \
       ../Engine/csound_orcparse.c \
       ../Engine/csound_prelex.c \
       ../Engine/csound_prslex.c \

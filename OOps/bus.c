@@ -2003,9 +2003,15 @@ int32_t kinval(CSOUND *csound, INVAL *p)
         csound->InputChannelCallback_(csound,
                                       (char*) p->channelName.auxp,
                                       p->value, p->channelType);
+        /* debug: log fetched value */
+        if (csound->GetDebug(csound))
+          csound->Message(csound, "kinval: fetched '%s' = %g\n", (char*)p->channelName.auxp, (double)*(p->value));
     }
-    else
+    else {
         *(p->value) = FL(0.0);
+        if (csound->GetDebug(csound))
+          csound->Message(csound, "kinval: no callback, default 0.0 for '%s'\n", (char*)p->channelName.auxp);
+    }
 
     return OK;
 }
@@ -2081,7 +2087,9 @@ int32_t invalset_S(CSOUND *csound, INVAL *p)
         return print_chn_err(p, err);
 
     /* grab input now for use during i-pass */
+    if (csound->GetDebug(csound)) csound->Message(csound, "invalset_S: channel='%s' before kinval\n", (char*)p->channelName.auxp);
     kinval(csound, p);
+    if (csound->GetDebug(csound)) csound->Message(csound, "invalset_S: channel='%s' after kinval value=%g\n", (char*)p->channelName.auxp, (double)*(p->value));
     if (!csound->InputChannelCallback_) {
         csound->Warning(csound,Str("InputChannelCallback not set."));
     }
@@ -2229,7 +2237,9 @@ int32_t outvalset_S(CSOUND *csound, OUTVAL *p)
         return print_chn_err(p, err);
 
     /* send output now for use during i-pass */
+    if (csound->GetDebug(csound)) csound->Message(csound, "outvalset_S: channel='%s' before koutval, val=%g\n", (char*)p->channelName.auxp, (double)*(p->value));
     koutval(csound, p);
+    if (csound->GetDebug(csound)) csound->Message(csound, "outvalset_S: channel='%s' after koutval\n", (char*)p->channelName.auxp);
     if (!csound->OutputChannelCallback_) {
         csound->Warning(csound,Str("OutputChannelCallback not set."));
     }

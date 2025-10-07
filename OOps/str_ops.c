@@ -50,6 +50,7 @@ int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
     p->r->data = (char *) csound->ReAlloc(csound, p->r->data, DEFAULT_STRING_SIZE);
     p->r->size = DEFAULT_STRING_SIZE;
   }
+  p->r->refcount = 0;  // Ensure unmanaged for direct operations
   snprintf(p->r->data, p->r->size, "%f", *p->indx);
   return OK;
 }
@@ -183,7 +184,7 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   if((uint64_t)p->str->timestamp == p->h.insdshead->kcounter) {
-  CS_TYPE *strType = GetTypeForArg(p->str);    
+  CS_TYPE *strType = GetTypeForArg(p->str);
   strType->copyValue(csound, strType, p->r, p->str, p->h.insdshead);
   //printf("copy \n");
   }
@@ -201,7 +202,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 
 
 /* this opcode is i-time only, so no need to make
-   any adjustments regarding update counts 
+   any adjustments regarding update counts
 */
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
@@ -273,10 +274,8 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   p->r->timestamp = kcnt;
   if(p->str1 != p->r && p->str2 != p->r) {
     // VL: simple case, inputs are not the output
-    if(size >= p->r->size) {
-      csound->Free(csound, p->r->data); 
-      p->r->data =
-	csound->Calloc(csound, 2*size);
+    if (size >= p->r->size) {
+      p->r->data = csound->ReAlloc(csound, p->r->data, 2*size);
       p->r->size = 2*size;
     }
     memcpy(p->r->data, p->str1->data, p->str1->size);
@@ -288,7 +287,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
        p->r->data =
  	csound->ReAlloc(csound, p->r->data, 2*size);
        p->r->size = 2*size;
-    }      
+    }
      strcat((char*) p->r->data, p->str2->data);
      return OK;
     }
@@ -308,11 +307,9 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   else {
     // the bad case where (str1 == str2) == r
    char *ostr = cs_strdup(csound, p->str2->data);
-   if(size >= p->r->size) {
-        p->r->data =
-	csound->Calloc(csound, 2*size);
+   if (size >= p->r->size) {
+        p->r->data = csound->ReAlloc(csound, p->r->data, 2*size);
         p->r->size = 2*size;
-       strcpy(p->r->data, ostr);
     }
    strcat(p->r->data, ostr);
    csound->Free(csound, ostr);
@@ -322,7 +319,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 
 /* strcmp */
 int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
-{  
+{
     int32_t     i;
     if (p->str1->data == NULL || p->str2->data == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
@@ -587,12 +584,12 @@ int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 {
     if (*p->ktrig > FL(0.0)) {
         if (!p->noNewLine)
-          csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);
+          csound->Message(csound, "%s\n", (char*) p->str->data);
         else
-          csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str->data);
+          csound->Message(csound, "%s", (char*) p->str->data);
     }
     p->prv_ktrig = *p->ktrig;
-    
+
     return OK;
 }
 
@@ -601,9 +598,9 @@ int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
   if (*p->ktrig != p->prv_ktrig && *p->ktrig > FL(0.0)) {
     p->prv_ktrig = *p->ktrig;
     if (!p->noNewLine)
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);
+      csound->Message(csound, "%s\n", (char*) p->str->data);
     else
-      csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", (char*) p->str->data);
+      csound->Message(csound, "%s", (char*) p->str->data);
   }
 
   return OK;
@@ -647,7 +644,7 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
   if (UNLIKELY(*tmp != '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
   *p->indx = (MYFLT) x;
- 
+
   return OK;
 }
 
@@ -699,7 +696,7 @@ int32_t strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
   if (UNLIKELY(*s != '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
   if (sgn) x = -x;
-  *p->indx = (MYFLT) x;     
+  *p->indx = (MYFLT) x;
 
   return OK;
 }
@@ -1049,7 +1046,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     }
     strcpy((char*) p->Sdst->data, s);
   }
- 
+
   return OK;
 }
 

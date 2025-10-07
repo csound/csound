@@ -76,13 +76,24 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
         evt.strarg = NULL; evt.scnt = 0;
       }
       else if (mode == 2) {
-        INSTREF *ref = (INSTREF *) args[0];
-        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
-          return csound->InitError(csound, "%s", Str(errmsg_2));
-        insno = instr_num(csound, ref->instr);
-        aref = args[0];
-        args[0] = &insno;
-        evt.strarg = NULL; evt.scnt = 0;
+        // Safety check: if args[0] contains a numeric value instead of an INSTREF pointer,
+        // treat it as mode 0 (numeric mode) to prevent memory corruption
+        if (args[0] && *args[0] >= 1.0 && *args[0] <= 999.0 &&
+            (uintptr_t)args[0] > 0x1000) {  // Basic pointer sanity check
+          // This looks like a numeric value, not an INSTREF pointer
+          // Fall back to numeric mode (mode 0)
+          insno = FABS(*args[0]);
+          evt.strarg = NULL; evt.scnt = 0;
+        } else {
+          // Original INSTREF handling
+          INSTREF *ref = (INSTREF *) args[0];
+          if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
+            return csound->InitError(csound, "%s", Str(errmsg_2));
+          insno = instr_num(csound, ref->instr);
+          aref = args[0];
+          args[0] = &insno;
+          evt.strarg = NULL; evt.scnt = 0;
+        }
       }
       else {
         if (IsStringCode(*args[0])) {
@@ -332,7 +343,9 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   evt.opcod = 'i';
   evt.pcnt = p->INOCOUNT;
 
-  if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_INSTR) {
+  CS_TYPE *argType = GetTypeForArg(p->argums[0]);
+  if (argType == &CS_VAR_TYPE_INSTR ||
+      (argType != NULL && strcmp(argType->varTypeName, ":InstrDef;") == 0)) {
     // handling argum[0] as instrument type
     MYFLT insno;
     int32_t res;

@@ -42,7 +42,8 @@ TREE* expand_switch_statement(CSOUND* csound, TREE* current,TYPE_TABLE* typeTabl
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType);
 char *remove_type_quoting(CSOUND *csound, const char *outype);
-TREE * create_opcode_token(CSOUND *csound, char* op);
+TREE * create_opcode_token(CSOUND *csound, const char* op);
+int32_t expand_struct_member_assignment(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, TREE** anchor);
 
 
 #endif

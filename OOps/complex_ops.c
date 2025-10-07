@@ -26,7 +26,7 @@
 #include <math.h>
 
 
-/* magnitude from complex number */ 
+/* magnitude from complex number */
 static inline MYFLT complex_to_mag(COMPLEXDAT *p) {
   return !p->isPolar ? SQRT(p->real * p->real + p->imag * p->imag) : p->real;
 }
@@ -49,7 +49,7 @@ static inline MYFLT polar_to_imag(COMPLEXDAT *p) {
 /* complex to polar */
 static inline COMPLEXDAT polar(COMPLEXDAT *p) {
   COMPLEXDAT ans;
-  ans.real =  complex_to_mag(p); 
+  ans.real =  complex_to_mag(p);
   ans.imag =  complex_to_arg(p);
   ans.isPolar = 1;
   return ans;
@@ -58,7 +58,7 @@ static inline COMPLEXDAT polar(COMPLEXDAT *p) {
 /* polar to complex */
 static inline COMPLEXDAT complex(COMPLEXDAT *p) {
   COMPLEXDAT ans;
-  ans.real =  polar_to_real(p); 
+  ans.real =  polar_to_real(p);
   ans.imag =  polar_to_imag(p);
   ans.isPolar = 0;
   return ans;
@@ -315,40 +315,40 @@ int32_t complex_imag(CSOUND *csound, CXOP2R *p) {
 int32_t complex_add_real(CSOUND *csound, AOP *p) {
   COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
   COMPLEXDAT cmpx = !((COMPLEXDAT *) p->a)->isPolar ?
-    *((COMPLEXDAT *)p->a) : complex((COMPLEXDAT *)p->a); 
+    *((COMPLEXDAT *)p->a) : complex((COMPLEXDAT *)p->a);
   cmpx.real += *p->b;
   *ans = !((COMPLEXDAT *)p->a)->isPolar ? cmpx :
-    polar(&cmpx); 
+    polar(&cmpx);
   return OK;
 }
 
 int32_t real_add_complex(CSOUND *csound, AOP *p) {
   COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
   COMPLEXDAT cmpx = !((COMPLEXDAT *) p->b)->isPolar ?
-    *((COMPLEXDAT *)p->b) : complex((COMPLEXDAT *)p->b); 
+    *((COMPLEXDAT *)p->b) : complex((COMPLEXDAT *)p->b);
   cmpx.real += *p->a;
   *ans = !((COMPLEXDAT *)p->b)->isPolar ? cmpx :
-    polar(&cmpx); 
+    polar(&cmpx);
   return OK;
 }
 
 int32_t complex_sub_real(CSOUND *csound, AOP *p) {
   COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
   COMPLEXDAT cmpx = !((COMPLEXDAT *) p->a)->isPolar ?
-    *((COMPLEXDAT *)p->a) : complex((COMPLEXDAT *)p->a); 
+    *((COMPLEXDAT *)p->a) : complex((COMPLEXDAT *)p->a);
   cmpx.real -= *p->b;
   *ans = !((COMPLEXDAT *)p->a)->isPolar ? cmpx :
-    polar(&cmpx); 
+    polar(&cmpx);
   return OK;
 }
 
 int32_t real_sub_complex(CSOUND *csound, AOP *p) {
   COMPLEXDAT *ans = (COMPLEXDAT *) p->r;
   COMPLEXDAT cmpx = !((COMPLEXDAT *) p->b)->isPolar ?
-    *((COMPLEXDAT *)p->b) : complex((COMPLEXDAT *)p->b); 
+    *((COMPLEXDAT *)p->b) : complex((COMPLEXDAT *)p->b);
   cmpx.real -= *p->a;
   *ans = !((COMPLEXDAT *)p->b)->isPolar ? cmpx :
-    polar(&cmpx); 
+    polar(&cmpx);
   return OK;
 }
 
@@ -385,7 +385,7 @@ int32_t real_div_complex(CSOUND *csound, AOP *p) {
   COMPLEXDAT *cmpx = (COMPLEXDAT *) p->b;
   if(!cmpx->isPolar) {
     MYFLT den = cmpx->real*cmpx->real + cmpx->imag*cmpx->imag;
-    ans->real =  (*p->a * cmpx->real)/den; 
+    ans->real =  (*p->a * cmpx->real)/den;
     ans->imag = - (*p->a  * cmpx->imag)/den;
     ans->isPolar = 0;
   } else {
@@ -436,20 +436,23 @@ int32_t complex_log(CSOUND *csond, CXOP *p) {
 /** Complex array operators
  */
 
-/** complex array op real scalar 
+/** complex array op real scalar
  */
 
 int32_t cops_init(CSOUND *csound, COPS1 *p) {
   int32_t size = 0;
+
   if(IS_ARRAY_ARG(p->a) &&
      IS_ARRAY_ARG(p->b)){
-    ARRAYDAT *aa = (ARRAYDAT *) p->a; 
+    ARRAYDAT *aa = (ARRAYDAT *) p->a;
     ARRAYDAT *ab = (ARRAYDAT *) p->b;
     if(aa->dimensions == 0)
       return csound->InitError(csound, "array1 unitialised\n");
     if(ab->dimensions == 0)
       return csound->InitError(csound, "array2 unitialised\n");
-    size = aa->sizes[0] < ab->sizes[0] ? aa->sizes[0] : ab->sizes[0]; 
+    // Use the maximum size, or CS_KSMPS if both are 0
+    size = aa->sizes[0] > ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
+    if (size == 0) size = CS_KSMPS;
   } else if (IS_ARRAY_ARG(p->a)) {
     if(((ARRAYDAT *)p->a)->sizes == NULL)
       return csound->InitError(csound, "array unitialised\n");
@@ -460,9 +463,10 @@ int32_t cops_init(CSOUND *csound, COPS1 *p) {
       return csound->InitError(csound, "array unitialised\n");
     size = ((ARRAYDAT *)p->b)->sizes[0];
   }
+
   tabinit(csound, p->out, size, p->h.insdshead);
   return OK;
-}  
+}
 
 static inline void
 cmplx_sc_prod(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
@@ -487,7 +491,7 @@ int32_t complex_x_scalar(CSOUND *csound, COPS1 *p) {
   } else {
     array = (ARRAYDAT *) p->a;
     num = *p->b;
-  } 
+  }
   int32_t len = p->out->sizes[0];
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -528,7 +532,7 @@ cmplx_sc_add(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
       out[i].imag = in[i].imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re += num;
       out[i].real = HYPOT(re,im);
@@ -546,7 +550,7 @@ int32_t complex_plus_scalar(CSOUND *csound, COPS1 *p) {
   } else {
     array = (ARRAYDAT *) p->a;
     num = *p->b;
-  } 
+  }
   int32_t len = p->out->sizes[0];
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -567,7 +571,7 @@ int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p) {
       out[i].imag = num;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re = num - re;
       out[i].real = HYPOT(re,im);
@@ -590,7 +594,7 @@ int32_t complex_minus_scalar(CSOUND *csound, COPS1 *p) {
       out[i].imag = in[i].imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re -= num;
       out[i].real = HYPOT(re,im);
@@ -599,7 +603,7 @@ int32_t complex_minus_scalar(CSOUND *csound, COPS1 *p) {
   }
   return OK;
 }
- 
+
 
 static inline void
 cmplx_cmplx_prod(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT num, int32_t n) {
@@ -624,7 +628,7 @@ int32_t complex_x_complex(CSOUND *csound, COPS1 *p) {
   } else {
     array = (ARRAYDAT *) p->a;
     num = *(COMPLEXDAT *)p->b;
-  } 
+  }
   int32_t len = p->out->sizes[0];
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -667,7 +671,7 @@ cmplx_cmplx_add(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT num, int32_t n) {
       out[i].imag = in[i].imag + num.imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re += num.real;
       im += num.imag;
@@ -686,7 +690,7 @@ int32_t complex_plus_complex(CSOUND *csound, COPS1 *p) {
   } else {
     array = (ARRAYDAT *) p->a;
     num = *(COMPLEXDAT *)p->b;
-  } 
+  }
   int32_t len = p->out->sizes[0];
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -707,12 +711,12 @@ int32_t complex_minus_complexa(CSOUND *csound, COPS1 *p) {
       out[i].imag = num.imag - in[i].imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re = num.real - re;
       im = num.imag - im;
       out[i].real = HYPOT(re,im);
-      out[i].imag = ATAN2(im,re);    
+      out[i].imag = ATAN2(im,re);
     }
   }
   return OK;
@@ -731,7 +735,7 @@ int32_t complexa_minus_complex(CSOUND *csound, COPS1 *p) {
       out[i].imag = in[i].imag - num.imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re -= num.real;
       im -= num.imag;
@@ -760,11 +764,40 @@ int32_t complexa_x_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
-  COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
-  COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
+
+  // Determine target length; fall back to ksmps if unset
+  int32_t len = (p->out && p->out->sizes && p->out->dimensions > 0)
+                  ? p->out->sizes[0] : CS_KSMPS;
+
+  // Defensive: lazily initialize missing input arrays to avoid NULL deref
+  if (UNLIKELY(array1 && array1->data == NULL)) {
+    if (array1->arrayType == NULL && p->out)
+      array1->arrayType = p->out->arrayType;
+    if (p->out)
+      tabinit_like(csound, array1, p->out);
+    else
+      tabinit(csound, array1, len, p->h.insdshead);
+  }
+  if (UNLIKELY(array2 && array2->data == NULL)) {
+    if (array2->arrayType == NULL && p->out)
+      array2->arrayType = p->out->arrayType;
+    if (p->out)
+      tabinit_like(csound, array2, p->out);
+    else
+      tabinit(csound, array2, len, p->h.insdshead);
+  }
+
+  COMPLEXDAT *in1 = (COMPLEXDAT *) (array1 ? array1->data : NULL);
+  COMPLEXDAT *in2 = (COMPLEXDAT *) (array2 ? array2->data : NULL);
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
-  cmplx_cmplx_proda(out,in1,in2,len);
+
+  // If still missing, zero output and return gracefully
+  if (UNLIKELY(in1 == NULL || in2 == NULL || out == NULL)) {
+    if (out != NULL) memset(out, 0, sizeof(COMPLEXDAT) * len);
+    return OK;
+  }
+
+  cmplx_cmplx_proda(out, in1, in2, len);
   return OK;
 }
 
@@ -806,7 +839,7 @@ cmplx_cmplx_adda(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
       out[i].imag = in[i].imag + num[i].imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re += num[i].real;
       im += num[i].imag;
@@ -837,7 +870,7 @@ cmplx_cmplx_suba(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
       out[i].imag = in[i].imag - num[i].imag;
     } else {
       MYFLT re, im;
-      re = COS(in[i].imag)*in[i].real;  
+      re = COS(in[i].imag)*in[i].real;
       im = SIN(in[i].imag)*in[i].real;
       re -= num[i].real;
       im -= num[i].imag;
@@ -861,16 +894,18 @@ int32_t complexa_sub_complexa(CSOUND *csound, COPS1 *p) {
 
 int32_t cops_init_r(CSOUND *csound, COPS1 *p) {
   if(((ARRAYDAT *)p->a)->dimensions) {
-    if(IS_ARRAY_ARG(p->out)) {  
-      int32_t size = ((ARRAYDAT *)p->a)->sizes[0];
+    if(IS_ARRAY_ARG(p->out)) {
+      int32_t size = ((ARRAYDAT *)p->a)->sizes ? ((ARRAYDAT *)p->a)->sizes[0] : 0;
+      if (size <= 0) size = CS_KSMPS; /* fallback to ksmps for audio-like arrays */
       tabinit(csound, p->out, size, p->h.insdshead);
     } else {
-      if(((ARRAYDAT *)p->a)->sizes[0] < CS_KSMPS)
+      int32_t inSize = ((ARRAYDAT *)p->a)->sizes ? ((ARRAYDAT *)p->a)->sizes[0] : 0;
+      if(inSize < CS_KSMPS)
         return csound->InitError(csound, "array length < ksmps\n");
     }
     return OK;
   } else return csound->InitError(csound, "array not initialised\n");
-} 
+}
 
 int32_t complex_array_real(CSOUND *csound, COPS1 *p) {
   int32_t n = CS_KSMPS;
@@ -952,7 +987,7 @@ int32_t complex_array_polar(CSOUND *csound, COPS1 *p) {
     out[i].isPolar = in[i].isPolar;
     if(in[i].isPolar) out[i] = in[i];
     else {
-      out[i].real = HYPOT(in[i].real, in[i].imag); 
+      out[i].real = HYPOT(in[i].real, in[i].imag);
       out[i].imag = ATAN2(in[i].imag, in[i].real);
     }
   }
@@ -977,17 +1012,19 @@ int32_t complex_array_complex(CSOUND *csound, COPS1 *p) {
 int32_t cops_init_a(CSOUND *csound, COPS1 *p) {
   int32_t size = CS_KSMPS;
   if(IS_ARRAY_ARG(p->a)) {
-    ARRAYDAT *aa = (ARRAYDAT *) p->a; 
+    ARRAYDAT *aa = (ARRAYDAT *) p->a;
     ARRAYDAT *ab = (ARRAYDAT *) p->b;
     if(aa->dimensions == 0)
       return csound->InitError(csound, "array1 unitialised\n");
     if(ab->dimensions == 0)
       return csound->InitError(csound, "array2 unitialised\n");
-    size = aa->sizes[0] < ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
+    // Use the maximum size, or CS_KSMPS if both are 0
+    size = aa->sizes[0] > ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
+    if (size == 0) size = CS_KSMPS;
   }
   tabinit(csound, p->out, size, p->h.insdshead);
   return OK;
-} 
+}
 
 
 int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
@@ -997,7 +1034,7 @@ int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
   if(IS_ARRAY_ARG(p->a)) {
     in1 = ((ARRAYDAT *) p->a)->data;
     in2 = ((ARRAYDAT *) p->b)->data;
-  } 
+  }
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
     out[i].isPolar = 0;
@@ -1030,7 +1067,7 @@ int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
   int32_t n = p->out->sizes[0];
   COMPLEXDAT *ans = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *cmpx = (COMPLEXDAT *) p->out->data;
-  for(int i = 0; i < n; i++) { 
+  for(int i = 0; i < n; i++) {
     if(!cmpx[i].isPolar) {
       ans[i].real = LOG(HYPOT(cmpx[i].real,cmpx[i].imag));
       ans[i].imag = ATAN2(cmpx[i].imag,cmpx[i].real);

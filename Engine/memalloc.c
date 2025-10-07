@@ -41,7 +41,7 @@ void *my_calloc(unsigned long items, unsigned long bytes) {
   unsigned long tmp = cur;
   cur += bytes*items;
   memset((void *) tmp, 0, bytes*items);
-  return (void *) tmp;  
+  return (void *) tmp;
 }
 
 void *my_realloc(void *old, unsigned long bytes) {
@@ -151,6 +151,8 @@ void *mcalloc(CSOUND *csound, size_t size)
     if (UNLIKELY(size == (size_t) 0)) {
       csound->DebugMsg(csound,
               " *** internal error: csound->Calloc() called with zero nbytes\n");
+      // Print some debug info to help identify the caller
+      csound->DebugMsg(csound, "DEBUG: Calloc(0) called - this should not happen\n");
       return NULL;
     }
 #endif
@@ -189,20 +191,26 @@ void mfree(CSOUND *csound, void *p)
 
     if (UNLIKELY(p == NULL))
       return;
-    pp = HDR_PTR(p);
- #ifdef MEMDEBUG
+#ifdef MEMDEBUG
+    /* In debug builds, avoid touching freed headers: search the live list first */
+    memAllocBlock_t *cur;
+    pp = NULL;
+    CSOUND_MEM_SPINLOCK
+    cur = (memAllocBlock_t*) MEMALLOC_DB;
+    while (cur != NULL) {
+      if (cur->ptr == p) { pp = cur; break; }
+      cur = cur->nxt;
+    }
+    CSOUND_MEM_SPINUNLOCK
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->Warning(csound, "csound->Free() called with invalid "
-                      "pointer (%p) %x %p %x",
+      csound->Warning(csound, "csound->Free() called with invalid pointer (%p) %x %p %x",
                       p, pp->magic, pp->ptr, MEMALLOC_MAGIC);
-      /* exit() is ugly, but this is a fatal error that can only occur */
-      /* as a result of a bug */
-      /*  exit(-1);  */
-      /*VL 28-12-12 - returning from here instead of exit() */
       return;
     }
     pp->magic = 0;
- #endif
+#else
+    pp = HDR_PTR(p);
+#endif
     CSOUND_MEM_SPINLOCK
     /* unlink from chain */
     {
@@ -214,7 +222,6 @@ void mfree(CSOUND *csound, void *p)
       else
         MEMALLOC_DB = (void*)nxt;
     }
-    //csound->Message(csound, "free\n");
     /* free memory */
     CS_FREE((void*) pp);
     CSOUND_MEM_SPINUNLOCK
@@ -261,7 +268,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
       pp->ptr = oldp;
       CSOUND_MEM_SPINUNLOCK
 #endif
-      csound->ErrorMsg(csound, "Realloc failed: ");  
+      csound->ErrorMsg(csound, "Realloc failed: ");
       memdie(csound, size);
       return NULL;
     }

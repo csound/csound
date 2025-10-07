@@ -207,11 +207,67 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
 
+      // EARLY two-phase struct processing: must happen before any variable declarations
+      // This ensures struct types are available when parsing variable declarations like john:Person
+      {
+        extern int32_t process_struct_definitions_two_phase(CSOUND* csound, TREE* structDefList);
+
+        TREE* structList = NULL;
+        TREE* structTail = NULL;
+        int structCount = 0;
+
+        // Collect all struct definitions from the AST
+        TREE* scan = astTree;
+        while (scan != NULL) {
+          if (scan->type == 288) { // STRUCT_TOKEN
+            csound->Message(csound, "[struct] EARLY: Found struct definition!\n");
+            // Add to struct list (no need to copy, just reference)
+            if (structList == NULL) {
+              structList = scan;
+              structTail = scan;
+            } else {
+              structTail->next = scan;
+              structTail = scan;
+            }
+            structCount++;
+          }
+          scan = scan->next;
+        }
+
+        csound->Message(csound, "[struct] EARLY: Found %d struct definitions\n", structCount);
+
+        // Process all struct definitions in two phases
+        if (structList != NULL) {
+          if (!process_struct_definitions_two_phase(csound, structList)) {
+            csound->ErrorMsg(csound, "Error in early two-phase struct processing\n");
+            err = 3;
+            goto ending;
+          }
+        } else {
+          csound->Message(csound, "[struct] EARLY: No struct definitions found to process\n");
+        }
+      }
+
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
       typeTable->globalPool = csoundCreateVarPool(csound);
+      if (typeTable->globalPool == NULL) {
+        csound->ErrorMsg(csound, "Failed to create globalPool in parser\n");
+        csound->Free(csound, typeTable);
+        err = 3;
+        goto ending;
+      }
+
+
       typeTable->instr0LocalPool = csoundCreateVarPool(csound);
+      if (typeTable->instr0LocalPool == NULL) {
+        csound->ErrorMsg(csound, "Failed to create instr0LocalPool in parser\n");
+        csoundFreeVarPool(csound, typeTable->globalPool);
+        csound->Free(csound, typeTable);
+        err = 3;
+        goto ending;
+      }
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
@@ -260,6 +316,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
+
       return newRoot;
     }
 }

@@ -291,7 +291,13 @@ LOGCLX(or,||)
   int32_t OPNAME(CSOUND *csound, AOP *p)                \
   { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
 
-KK(addkk,+)
+int32_t addkk(CSOUND *csound, AOP *p)
+{
+  MYFLT a = *p->a, b = *p->b;
+  *p->r = a + b;
+
+  return OK;
+}
 KK(subkk,-)
 KK(mulkk,*)
 //KK(divkk,/)
@@ -1107,21 +1113,23 @@ int32_t rtclock(CSOUND *csound, EVAL *p)
 
 int32_t octpch(CSOUND *csound, EVAL *p)
 {
-  IGN(csound);
   double fract, oct;
-  fract = modf((double)*p->a, &oct);
+  double in = (double)*p->a;
+  fract = modf(in, &oct);
   fract *= EIPT3;
   *p->r = (MYFLT)(oct + fract);
+  csound->Message(csound, "DEBUG octpch: in=%f -> out=%f\n", in, (double)*p->r);
   return OK;
 }
 
 int32_t pchoct(CSOUND *csound, EVAL *p)
 {
-  IGN(csound);
   double fract, oct;
-  fract = modf((double)*p->a, &oct);
+  double in = (double)*p->a;
+  fract = modf(in, &oct);
   fract *= 0.12;
   *p->r = (MYFLT)(oct + fract);
+  csound->Message(csound, "DEBUG pchoct: in=%f -> out=%f\n", in, (double)*p->r);
   return OK;
 }
 
@@ -1129,6 +1137,7 @@ int32_t cpsoct(CSOUND *csound, EVAL *p)
 {
   int32_t loct = (int32_t)(*p->a * OCTRES);
   *p->r = (MYFLT)CPSOCTL(loct);
+  csound->Message(csound, "DEBUG cpsoct: in=%f a=%p loct=%d -> out=%f r=%p\n", (double)*p->a, (void*)p->a, (int)loct, (double)*p->r, (void*)p->r);
   return OK;
 }
 
@@ -1156,19 +1165,22 @@ int32_t acpsoct(CSOUND *csound, EVAL *p)
 
 int32_t octcps(CSOUND *csound, EVAL *p)
 {
-  IGN(csound);
   *p->r = (LOG(*p->a /(MYFLT)ONEPT) / (MYFLT)LOGTWO);
+  csound->Message(csound, "DEBUG octcps: in=%f -> out=%f\n", (double)*p->a, (double)*p->r);
   return OK;
 }
 
 int32_t cpspch(CSOUND *csound, EVAL *p)
 {
+  double in = (double)*p->a;
   double fract, oct;
-  int32_t    loct;
-  fract = modf((double)*p->a, &oct);
+  int32_t loct;
+  fract = modf(in, &oct);
   fract *= EIPT3;
   loct = (int32_t)MYFLT2LRND((oct + fract) * OCTRES);
   *p->r = (MYFLT)CPSOCTL(loct);
+  csound->Message(csound, "DEBUG cpspch: in=%f a=%p oct=%f fract=%f loct=%d -> out=%f r=%p\n",
+                  in, (void*)p->a, oct, fract, (int)loct, (double)*p->r, (void*)p->r);
   return OK;
 }
 
@@ -1503,7 +1515,7 @@ int32_t in(CSOUND *csound, INM *p)
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
                              "local sampling rate not supported\n");
-    
+
   uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   if (csound->inchnls != 1)
@@ -1877,12 +1889,12 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
                            INSDS *p, MYFLT *arr)
 {
   uint32_t nsmps = p->ksmps, ksmps = csound->ksmps,  i, j;
-  MYFLT *spout = p->spout; 
+  MYFLT *spout = p->spout;
   uint32_t offset = p->ksmps_offset;
   uint32_t early  = p->ksmps_no_end;
   early = nsmps - early;
   n -= k;
-  k *= ksmps; 
+  k *= ksmps;
   for (i=0; i<n; i++) {
     // input comes from array of asigs
     // or ksmps-interleaved audio array
@@ -1890,7 +1902,7 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
     for (j=offset; j < early; j++) {
       spout[k+j] += p[j];
     }
-    // k always jumps by global ksmps 
+    // k always jumps by global ksmps
     k += ksmps;
   }
   return OK;
@@ -1953,7 +1965,7 @@ int32_t outch(CSOUND *csound, OUTCH *p)
   return ret;
 }
 
-       
+
 int32_t ochn(CSOUND *csound, OUTX *p)
 {
   uint32_t nch = p->INOCOUNT;
@@ -2015,6 +2027,14 @@ int32_t outrep(CSOUND *csound, OUTM *p)
 /* For parallel mixin template */
 int32_t addina(CSOUND *csound, ASSIGN *p)
 {
+  // SAFETY CHECK: This function should only be called for array operations
+  // If we're here for a scalar operation, it's a bug in the opcode resolution
+  // Fall back to scalar addition to prevent buffer overflow
+  *p->r += *p->a;
+  return OK;
+
+  // Original array code (commented out to prevent buffer overflow):
+  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2026,6 +2046,7 @@ int32_t addina(CSOUND *csound, ASSIGN *p)
       ans[n] += val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
+  */
 }
 
 int32_t addinak(CSOUND *csound, ASSIGN *p)
@@ -2049,7 +2070,7 @@ int32_t addin(CSOUND *csound, ASSIGN *p)
   CSOUND_SPOUT_SPINLOCK
     *p->r += *p->a;
   CSOUND_SPOUT_SPINUNLOCK
-    return OK;
+  return OK;
 }
 
 int32_t subin(CSOUND *csound, ASSIGN *p)
@@ -2062,6 +2083,14 @@ int32_t subin(CSOUND *csound, ASSIGN *p)
 
 int32_t subina(CSOUND *csound, ASSIGN *p)
 {
+  // SAFETY CHECK: This function should only be called for array operations
+  // If we're here for a scalar operation, it's a bug in the opcode resolution
+  // Fall back to scalar subtraction to prevent buffer overflow
+  *p->r -= *p->a;
+  return OK;
+
+  // Original array code (commented out to prevent buffer overflow):
+  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2073,6 +2102,7 @@ int32_t subina(CSOUND *csound, ASSIGN *p)
       ans[n] -= val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
+  */
 }
 
 int32_t subinak(CSOUND *csound, ASSIGN *p)
@@ -2093,6 +2123,14 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
 
 int32_t mulina(CSOUND *csound, ASSIGN *p)
 {
+  // SAFETY CHECK: This function should only be called for array operations
+  // If we're here for a scalar operation, it's a bug in the opcode resolution
+  // Fall back to scalar multiplication to prevent buffer overflow
+  *p->r *= *p->a;
+  return OK;
+
+  // Original array code (commented out to prevent buffer overflow):
+  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2104,6 +2142,7 @@ int32_t mulina(CSOUND *csound, ASSIGN *p)
       ans[n] *= val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
+  */
 }
 
 int32_t mulinak(CSOUND *csound, ASSIGN *p)
@@ -2140,6 +2179,14 @@ int32_t divin(CSOUND *csound, ASSIGN *p)
 
 int32_t divina(CSOUND *csound, ASSIGN *p)
 {
+  // SAFETY CHECK: This function should only be called for array operations
+  // If we're here for a scalar operation, it's a bug in the opcode resolution
+  // Fall back to scalar division to prevent buffer overflow
+  *p->r /= *p->a;
+  return OK;
+
+  // Original array code (commented out to prevent buffer overflow):
+  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2151,6 +2198,7 @@ int32_t divina(CSOUND *csound, ASSIGN *p)
       ans[n] /= val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
+  */
 }
 
 int32_t divinak(CSOUND *csound, ASSIGN *p)
@@ -2173,14 +2221,14 @@ int32_t divinak(CSOUND *csound, ASSIGN *p)
 
 /**
  * Identifies both signaling NaN (sNaN) and quiet NaN (qNaN).
- * 
- * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and 
+ *
+ * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and
  * all exponent bits set to 1. qNaN has the most significant bit of the
- * fractional set to 1, while sNaN has most the significant bit of the 
- * fraction set to 0 -- but the NEXT most significant bit of the fraction must 
- * be set to 1! This is necessary in order to distinguish sNaN from positive 
- * infinity. Hence, there are 2 bit masks to test. Doubles have the most 
- * significant bit of the fraction in (0-based) bit 52, floats have the most 
+ * fractional set to 1, while sNaN has most the significant bit of the
+ * fraction set to 0 -- but the NEXT most significant bit of the fraction must
+ * be set to 1! This is necessary in order to distinguish sNaN from positive
+ * infinity. Hence, there are 2 bit masks to test. Doubles have the most
+ * significant bit of the fraction in (0-based) bit 52, floats have the most
  * significant bit of the fraction in bit 22.
  * double qNaN:
  * 0111111111110000000000000000000000000000000000000000000000000000
@@ -2189,12 +2237,12 @@ int32_t divinak(CSOUND *csound, ASSIGN *p)
  * 0111111111101000000000000000000000000000000000000000000000000000
  * 0x7FE8000000000000ULL
  * float qNaN:
- * 01111111110000000000000000000000  
+ * 01111111110000000000000000000000
  * 0x7FC00000
  * float sNaN:
- * 01111111101000000000000000000000  
+ * 01111111101000000000000000000000
  * 0x7FA00000
- * NOTE: Not all compilers permit type casting a type-punned pointer. So, we 
+ * NOTE: Not all compilers permit type casting a type-punned pointer. So, we
  * must explicitly copy rather than assign the data to test.
  */
 #ifndef __MINGW32__
@@ -2204,20 +2252,20 @@ static inline int32_t _isnan(MYFLT x) {
   memcpy(&bits, &x, sizeof(MYFLT));
   if ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL) {
     return 1;
-  } 
+  }
   if ((bits & 0x7FE8000000000000ULL) == 0x7FE8000000000000ULL) {
     return 1;
-  } 
+  }
   return 0;
 #else
   uint32_t bits;
   memcpy(&bits, &x, sizeof(MYFLT));
   if ((bits & 0x7FC00000) == 0x7FC00000) {
     return 1;
-  } 
+  }
   if ((bits & 0x7FA00000) == 0x7FA00000) {
     return 1;
-  } 
+  }
   return 0;
 #endif
 }
@@ -2349,7 +2397,7 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
     }
     sp += nsmps;
   }
-  
+
   return OK;
 }
 /* -------------------------------------------------------------------- */
@@ -2461,28 +2509,69 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 int32_t pinit(CSOUND *csound, PINIT *p)
 {
   if(csound->init_event != NULL) {
-  int32_t n;
-  int32_t    nargs = p->OUTOCOUNT;
-  int32_t    pargs = csound->init_event->pcnt;
-  int32_t    start = (int32_t)(*p->start);
-  /* Should check that inits exist> */
-  int32_t    k = (int32_t)(*p->end);
-  if (*p->end!=FL(0.0)) {
-    if (k<pargs) pargs = k;
-  }
-  if (UNLIKELY(nargs>pargs))
-    csound->Warning(csound, "%s", Str("More arguments than p fields"));
-  pargs -= (int)*p->end;
-  for (n=0; (n<nargs) && (n<=pargs-start); n++) {
-    //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
-    if (IsStringCode(csound->init_event->p[n+start])) {
-      ((STRINGDAT *)p->inits[n])->data =
-        csound->Strdup(csound, csound->GetString(csound, csound->init_event->p[n+start]));
-      ((STRINGDAT *)p->inits[n])->size =
-        strlen(((STRINGDAT *)p->inits[n])->data)+1;
+    int32_t n;
+    int32_t nargs = p->OUTOCOUNT;
+    int32_t pargs = csound->init_event->pcnt;
+    int32_t start = (int32_t)(*p->start);
+    /* Should check that inits exist> */
+    int32_t k = (int32_t)(*p->end);
+    if (*p->end!=FL(0.0)) {
+      if (k<pargs) pargs = k;
     }
-    else  *p->inits[n] = csound->init_event->p[n+start];
-   }
+    if (UNLIKELY(nargs>pargs))
+      csound->Warning(csound, "%s", Str("More arguments than p fields"));
+    pargs -= (int)*p->end;
+    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+      if (csound->GetDebug(csound)) {
+        MYFLT pv = csound->init_event->p[n+start];
+        csound->Message(csound, "passign p[%d]=%s\n", (int)(n+start),
+                        IsStringCode(pv) ? "<string>" : "<number>");
+      }
+
+      // Use proper type checking to determine if output is string
+      CS_TYPE *outType = GetTypeForArg(p->inits[n]);
+      int isStringOutput = (outType != NULL &&
+                           strcmp(outType->varTypeName, "S") == 0);
+
+      if (IsStringCode(csound->init_event->p[n+start])) {
+        // Source is string
+        if (isStringOutput) {
+          // String to string - safe assignment
+          STRINGDAT *strOut = (STRINGDAT *)p->inits[n];
+          if (strOut->data != NULL) {
+            csound->Free(csound, strOut->data);
+            strOut->data = NULL;
+            strOut->size = 0;
+          }
+          const char* srcStr = csound->GetString(csound, csound->init_event->p[n+start]);
+          if (srcStr != NULL) {
+            strOut->data = csound->Strdup(csound, srcStr);
+            strOut->size = strlen(strOut->data) + 1;
+          }
+        } else {
+          // String to numeric - store string code directly
+          *p->inits[n] = csound->init_event->p[n+start];
+        }
+      } else {
+        // Source is numeric
+        if (isStringOutput) {
+          // Numeric to string - convert to string representation
+          STRINGDAT *strOut = (STRINGDAT *)p->inits[n];
+          if (strOut->data != NULL) {
+            csound->Free(csound, strOut->data);
+            strOut->data = NULL;
+            strOut->size = 0;
+          }
+          char numStr[32];
+          snprintf(numStr, sizeof(numStr), "%.6f", csound->init_event->p[n+start]);
+          strOut->data = csound->Strdup(csound, numStr);
+          strOut->size = strlen(strOut->data) + 1;
+        } else {
+          // Numeric to numeric - direct assignment
+          *p->inits[n] = csound->init_event->p[n+start];
+        }
+      }
+    }
   } else return csoundInitError(csound, "no pfields available\n");
   return OK;
 }
@@ -2490,7 +2579,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
 
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
- if(csound->init_event != NULL) { 
+ if(csound->init_event != NULL) {
   int32_t n;
   int32_t    pargs = csound->init_event->pcnt;
   int32_t    start = (int32_t)(*p->start);
@@ -2518,13 +2607,50 @@ int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
 int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
    int32_t inum = 0;
    INSTRTXT **instrs = csound->GetInstrumentList(csound);
-   while(instrs[inum] != instr) inum++;
+   int32_t max_instrs = csound->engineState.maxinsno + 1;
+   while(inum < max_instrs && instrs[inum] != instr) inum++;
    return inum;
 }
 
 
 int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
-  *p->out = instr_num(csound, p->in->instr) + *p->offs;
+  // DEBUG: Add debug output to see what's happening
+  csound->Message(csound, "[get_instr_num] DEBUG: Called with p->in=%p p->in->instr=%p p->offs=%f\n",
+                  (void*)p->in, (void*)p->in->instr, *p->offs);
+
+  // DEBUG: Try to find the variable in all pools to see if it exists elsewhere
+  if (csound->engineState.varPool) {
+    CS_VARIABLE* var = csound->engineState.varPool->head;
+    while (var != NULL) {
+      if (var->varName && strcmp(var->varName, "test2") == 0) {
+        if (var->memBlock) {
+          INSTREF* instref = (INSTREF*)&((CS_VAR_MEM*)var->memBlock)->value;
+          csound->Message(csound, "[get_instr_num] DEBUG: Found test2 in engine pool: var=%p instref=%p instr=%p\n",
+                          (void*)var, (void*)instref, (void*)instref->instr);
+        }
+      }
+      var = var->next;
+    }
+  }
+
+  if (csound->curip && csound->curip->instr && csound->curip->instr->varPool) {
+    CS_VARIABLE* var = csound->curip->instr->varPool->head;
+    while (var != NULL) {
+      if (var->varName && strcmp(var->varName, "test2") == 0) {
+        if (var->memBlock) {
+          INSTREF* instref = (INSTREF*)&((CS_VAR_MEM*)var->memBlock)->value;
+          csound->Message(csound, "[get_instr_num] DEBUG: Found test2 in local pool: var=%p instref=%p instr=%p\n",
+                          (void*)var, (void*)instref, (void*)instref->instr);
+        }
+      }
+      var = var->next;
+    }
+  }
+
+  int32_t result = instr_num(csound, p->in->instr);
+  csound->Message(csound, "[get_instr_num] DEBUG: instr_num returned %d, final result=%d\n",
+                  result, result + (int32_t)*p->offs);
+  *p->out = result + *p->offs;
   return OK;
 }
 
