@@ -1306,25 +1306,16 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 
 
 static int is_external(const char *s) {
-  int res = 0;
   if(*s != '[') {
-    s++;
-    while(*s != '\0') {
-      if(*s == '[') {
-	res = 1;
-	break;
-      }
-      s++;
-    }
+    if(strchr(s+1, '[') != NULL)
+        return 1;
   }
-  return res;
-
+  return 0;
 }
 
 
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable) {
-
   int32_t len = tree_arg_list_count(tree);
   int32_t i;
 
@@ -1344,15 +1335,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
       // if we failed to find argType, exit from parser
       csound->Die(csound, "Could not parse type for argument");
     } else {
-      if(is_external(argType)) {
-	// catch type[] in expressions to opcall - no conversion
-        argsLen += strlen(argType);
-        argTypes[index++] = argType;
-      } else {	
+      	// catch type[] in expressions to opcall - no conversion
+      if(!is_external(argType)) 
          argType = convert_internal_to_external(csound, argType);
-         argsLen += strlen(argType);
-         argTypes[index++] = argType;
-       }
+      argsLen += strlen(argType);
+      argTypes[index++] = argType;
+
     }
 
     current = current->next;
