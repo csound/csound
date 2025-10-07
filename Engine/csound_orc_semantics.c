@@ -1305,6 +1305,23 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 }
 
 
+static int is_external(const char *s) {
+  int res = 0;
+  if(*s != '[') {
+    s++;
+    while(*s != '\0') {
+      if(*s == '[') {
+	res = 1;
+	break;
+      }
+      s++;
+    }
+  }
+  return res;
+
+}
+
+
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable) {
 
@@ -1327,9 +1344,15 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
       // if we failed to find argType, exit from parser
       csound->Die(csound, "Could not parse type for argument");
     } else {
-      argType = convert_internal_to_external(csound, argType);
-      argsLen += strlen(argType);
-      argTypes[index++] = argType;
+      if(is_external(argType)) {
+	// catch type[] in expressions to opcall - no conversion
+        argsLen += strlen(argType);
+        argTypes[index++] = argType;
+      } else {	
+         argType = convert_internal_to_external(csound, argType);
+         argsLen += strlen(argType);
+         argTypes[index++] = argType;
+       }
     }
 
     current = current->next;
@@ -1350,6 +1373,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
   csound->Free(csound, argTypes);
   return argString;
 }
+
 
 
 /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
