@@ -560,6 +560,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/squinewave.c \
       ../Opcodes/stdopcod.c \
       ../Opcodes/sterrain.c \
+      ../Opcodes/structs.c \
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \
       ../Opcodes/tabsum.c \
