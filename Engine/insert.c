@@ -269,19 +269,23 @@ int32_t init0(CSOUND *csound)
 static void putop(CSOUND *csound, TEXT *tp)
 {
   int32_t n, nn;
-
+  char *name;
+  
   if ((n = tp->outlist->count) != 0) {
     nn = 0;
-    while (n--)
-      csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
+    while (n-- > 1)
+      csound->Message(csound, "%s,", tp->outlist->arg[nn++]);
+    csound->Message(csound, "%s ", tp->outlist->arg[nn++]);
   }
   else
-    csound->Message(csound, "\t");
-  csound->Message(csound, "%s\t", tp->opcod);
+    csound->Message(csound, " ");
+  name = strip_extension(csound, tp->opcod);
+  csound->Message(csound, "%s ", name);
   if ((n = tp->inlist->count) != 0) {
     nn = 0;
-    while (n--)
-      csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
+    while (n-- > 1)
+      csound->Message(csound, "%s,", tp->inlist->arg[nn++]);
+    csound->Message(csound, "%s", tp->inlist->arg[nn++]);
   }
   csound->Message(csound, "\n");
 }
@@ -1329,24 +1333,28 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
     csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
+    
     /* find top level instrument instance */
     do {
       ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
     } while (ip->opcod_iobufs);
-    if (op)
+    if (op) {
       snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
                ip->insno, op->name, t.linenum);
+    }
     else
       snprintf(buf, 512, Str("PERF ERROR in instr %d (subinstr %d) line %d: "),
                ip->insno, ip->insno, t.linenum);
   }
-  else
+  else{
+    char *name = strip_extension(csound, csound->op);
     snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
-             ip->insno, csound->op, t.linenum);
+             ip->insno, name, t.linenum);
+   csound->Free(csound, name);
+  }
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
-  do_baktrace(csound, t.locn);
   if (ip->pds)
     putop(csound, &(ip->pds->optext->t));
   csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));

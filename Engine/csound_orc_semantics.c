@@ -2080,6 +2080,14 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
   return NULL;
 }
 
+char *strip_extension(CSOUND *csound, const char *s) {
+  char *s1 = cs_strdup(csound, s);
+  char *dot = strchr(s1, '.');
+  if(dot != NULL)
+      *dot = '\0';
+  return s1;
+}
+
 /*
  * Verifies:
  *    -number of args correct
@@ -2161,18 +2169,22 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   if (UNLIKELY(oentry == NULL)) {
     int32_t i;
+    char *name = strip_extension(csound, opcodeName);
     synterr(csound, Str("Unable to find opcode entry for \'%s\' "
-                        "with matching argument types:\n"),
-            opcodeName);
+                        "with matching argument types:\n"), name);
+    csound->Free(csound, name);
+    name = strip_extension(csound, root->value->lexeme);
     csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
-                  leftArgString, root->value->lexeme, rightArgString);
-
+                  leftArgString, name, rightArgString);
+    csound->Free(csound, name);
     csoundMessage(csound, Str("\nCandidates:\n"));
 
     for (i = 0; i < entries->count; i++) {
       OENTRY *entry = entries->entries[i];
-      csoundMessage(csound, "  %s %s %s\n", entry->outypes, entry->opname,
+      name = strip_extension(csound, entry->opname);
+      csoundMessage(csound, "  %s %s %s\n", entry->outypes, name,
                     entry->intypes);
+      csound->Free(csound, name);
     }
 
     csoundMessage(csound, Str("\nLine: %d\n"),
@@ -3017,7 +3029,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
   while (files) {
     uint32_t ff = files&0xff;
     files = files >>8;
-    csound->ErrorMsg(csound, Str(" from file %s (%d)\n"),
+    csound->ErrorMsg(csound, Str("from file %s (%d)\n"),
                     csound->filedir[ff], ff);
   }
 
