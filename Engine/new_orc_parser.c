@@ -145,7 +145,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         corfile_putc(csound, '\0', csound->orchstr);
         corfile_putc(csound, '\0', csound->orchstr);
       }
-      if(csoundGetDebug(csound) & DEBUG_PARSER) 
+      if(csoundGetDebug(csound) & DEBUG_PARSER)
 	csoundMessage(csound, "Calling preprocess on:\n %s \n",
               corfile_body(csound->orchstr));
       cs_init_math_constants_macros(csound);
@@ -156,8 +156,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      if(csoundGetDebug(csound) & DEBUG_PARSER) 
-	csoundMessage(csound, "preprocessing result: \n %s\n",		     
+      if(csoundGetDebug(csound) & DEBUG_PARSER)
+	csoundMessage(csound, "preprocessing result: \n %s\n",
                        corfile_body(csound->expanded_orc));
       corfile_rm(csound, &csound->orchstr);
     }
@@ -214,13 +214,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
         TREE* structList = NULL;
         TREE* structTail = NULL;
-        int structCount = 0;
-
-        // Collect all struct definitions from the AST
         TREE* scan = astTree;
+
         while (scan != NULL) {
-          if (scan->type == 288) { // STRUCT_TOKEN
-            csound->Message(csound, "[struct] EARLY: Found struct definition!\n");
+          if (scan->type == STRUCT_TOKEN) {
             // Add to struct list (no need to copy, just reference)
             if (structList == NULL) {
               structList = scan;
@@ -229,12 +226,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
               structTail->next = scan;
               structTail = scan;
             }
-            structCount++;
           }
           scan = scan->next;
         }
-
-        csound->Message(csound, "[struct] EARLY: Found %d struct definitions\n", structCount);
 
         // Process all struct definitions in two phases
         if (structList != NULL) {
@@ -243,8 +237,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
             err = 3;
             goto ending;
           }
-        } else {
-          csound->Message(csound, "[struct] EARLY: No struct definitions found to process\n");
         }
       }
 
@@ -320,4 +312,4 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       return newRoot;
     }
 }
- 
+

@@ -97,9 +97,6 @@ static char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState,
 int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
                    INSTRTXT *ip, char *s)
 {
-  if (csound->GetDebug(csound))
-    csound->Message(csound, "DEBUG: get_pfield called with '%s'\n", s);
-
   CS_VARIABLE *var1 =
     csoundFindVariableWithName(csound,
                                engineState->varPool, s);
@@ -547,8 +544,7 @@ CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
   // Check for null or corrupted engineState and varPool to prevent segfault
   if (engineState == NULL || engineState->varPool == NULL ||
       (uintptr_t)engineState->varPool < 0x1000) {  // Detect corrupted small addresses
-    if (csound->GetDebug(csound))
-      csound->Message(csound, "add_global_variable: skipping due to null/corrupted varPool (engineState=%p, varPool=%p)\n",
+      csound->Warning(csound, "add_global_variable: skipping due to null/corrupted varPool (engineState=%p, varPool=%p)\n",
                       engineState, engineState ? engineState->varPool : NULL);
     return NULL;
   }
@@ -614,16 +610,11 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                                           &CS_VAR_TYPE_INSTR,
                                           "this_instr", NULL);
 
-  // DEBUG: Add timing debug output
-  csound->Message(csound, "[create_instrument0] DEBUG: Creating this_instr variable for instrument\n");
-
   // Check for null or corrupted varPool to prevent segfault
   if (varPool == NULL || (uintptr_t)varPool < 0x1000) {  // Detect corrupted small addresses
-    if (csound->GetDebug(csound))
-      csound->Message(csound, "create_instrument0: skipping csoundAddVariable due to null/corrupted varPool (varPool=%p)\n", varPool);
+    csound->Warning(csound, "create_instrument0: skipping csoundAddVariable due to null/corrupted varPool (varPool=%p)\n", varPool);
   } else {
     csoundAddVariable(csound, varPool, var);
-    csound->Message(csound, "[create_instrument0] DEBUG: this_instr variable added to pool %p\n", (void*)varPool);
   }
 
 
@@ -713,46 +704,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         }
 
       } else {
-        csound->Message(csound, "DEBUG: Creating opcode for: %s\n", current->value->lexeme);
-        // Debug the AST structure for init opcodes
-        if (current->value && strcmp(current->value->lexeme, "init") == 0) {
-          csound->Message(csound, "DEBUG: INIT opcode - left: %s right: %s\n",
-                          current->left && current->left->value ? current->left->value->lexeme : "(null)",
-                          current->right && current->right->value ? current->right->value->lexeme : "(null)");
-        }
-        // Debug the AST structure for in opcodes
-        if (current->value && strcmp(current->value->lexeme, "in") == 0) {
-          csound->Message(csound, "DEBUG: IN opcode - left: %s right: %s\n",
-                          current->left && current->left->value ? current->left->value->lexeme : "(null)",
-                          current->right && current->right->value ? current->right->value->lexeme : "(null)");
-        }
         op->nxtop = create_opcode(csound, current, ip, engineState);
-        if (current->value && strcmp(current->value->lexeme, "in") == 0) {
-          if (op->nxtop) {
-            if (op->nxtop->t.oentry) {
-              csound->Message(csound, "DEBUG: IN opcode resolved to: %s (init=%p, perf=%p)\n",
-                              op->nxtop->t.oentry->opname,
-                              (void*)op->nxtop->t.oentry->init,
-                              (void*)op->nxtop->t.oentry->perf);
-              csound->Message(csound, "DEBUG: IN opcode outypes: %s intypes: %s\n",
-                              op->nxtop->t.oentry->outypes ? op->nxtop->t.oentry->outypes : "(null)",
-                              op->nxtop->t.oentry->intypes ? op->nxtop->t.oentry->intypes : "(null)");
-            } else {
-              csound->Message(csound, "DEBUG: IN opcode create_opcode returned optxt but no oentry!\n");
-            }
-          } else {
-            csound->Message(csound, "DEBUG: IN opcode create_opcode returned NULL!\n");
-          }
-        }
-        if (op->nxtop && op->nxtop->t.oentry) {
-          csound->Message(csound, "DEBUG: Opcode resolved to: %s (init=%p, perf=%p)\n",
-                          op->nxtop->t.oentry->opname,
-                          (void*)op->nxtop->t.oentry->init,
-                          (void*)op->nxtop->t.oentry->perf);
-          csound->Message(csound, "DEBUG: Opcode outypes: %s intypes: %s\n",
-                          op->nxtop->t.oentry->outypes ? op->nxtop->t.oentry->outypes : "(null)",
-                          op->nxtop->t.oentry->intypes ? op->nxtop->t.oentry->intypes : "(null)");
-        }
         op = last_optxt(op);
       }
     }
@@ -981,10 +933,7 @@ static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
                                           &CS_VAR_TYPE_INSTR,
                                           "this_instr", NULL);
-  csound->Message(csound, "[create_global_instrument] DEBUG: Creating this_instr variable for global instrument\n");
   csoundAddVariable(csound, varPool, var);
-  csound->Message(csound, "[create_global_instrument] DEBUG: this_instr variable added to pool %p\n", (void*)varPool);
-
   find_or_add_constant(csound, engineState->constantsPool, "0", 0);
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
@@ -1079,15 +1028,10 @@ static INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
 
   op = (OPTXT *)ip;
   statements = root->right;
-
-
   // ip->mdepends = 0;
   ip->opdstot = 0;
   ip->nocheckpcnt = tree_contains_fn_p(csound, root->right);
   ip->pmax = 3L;
-  if (csound->GetDebug(csound))
-    csound->Message(csound, "DEBUG: instrument pmax initialized to %d\n", ip->pmax);
-
   /* Initialize */
   ip->t.oentry = find_opcode(csound, "instr");
   /*  to hold global assigns */
@@ -1688,8 +1632,7 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
   if (current_state == NULL || varPool == NULL ||
       current_state->varPool == NULL ||
       (uintptr_t)current_state->varPool < 0x1000) {  // Detect corrupted small addresses
-    if (csound->GetDebug(csound))
-      csound->Message(csound, "varpool_merge: skipping due to null/corrupted pointer (current_state=%p, varPool=%p, current_state->varPool=%p)\n",
+      csound->ErrorMsg(csound, "varpool_merge: skipping due to null/corrupted pointer (current_state=%p, varPool=%p, current_state->varPool=%p)\n",
                       current_state, varPool, current_state ? current_state->varPool : NULL);
     return;
   }
@@ -1902,13 +1845,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
     // Validate typeTable->globalPool before assignment
     if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-      csound->Message(csound, "ERROR: typeTable->globalPool is null/corrupted (%p), cannot proceed\n", typeTable->globalPool);
+      csound->ErrorMsg(csound, "ERROR: typeTable->globalPool is null/corrupted (%p), cannot proceed\n", typeTable->globalPool);
       return CSOUND_ERROR;
     }
 
     engineState->varPool = typeTable->globalPool;
-    csound->Message(csound, "DEBUG: Set engineState->varPool = %p\n", engineState->varPool);
-
     // now we merge existing global variables (i.e. created by the parser)
     varpool_merge(csound, engineState, globalPool);
     globalPool = engineState->varPool;
@@ -1923,19 +1864,17 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     insert_instrtxt(csound, csound->instr0, 0, engineState,0);
   }
   else {
-    csound->Message(csound, "DEBUG: Creating global instrument (subsequent compilation)\n");
     engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
     engineState->stringPool = csound->engineState.stringPool;
     engineState->constantsPool = cs_hash_table_create(csound);
 
     // Validate typeTable->globalPool before assignment
     if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-      csound->Message(csound, "ERROR: typeTable->globalPool is null/corrupted (%p), cannot proceed\n", typeTable->globalPool);
+      csound->ErrorMsg(csound, "ERROR: typeTable->globalPool is null/corrupted (%p), cannot proceed\n", typeTable->globalPool);
       return CSOUND_ERROR;
     }
 
     engineState->varPool = typeTable->globalPool;
-    csound->Message(csound, "DEBUG: Set engineState->varPool = %p\n", engineState->varPool);
     prvinstxt = &(engineState->instxtanchor);
     engineState->instrtxtp =
       (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno) *
@@ -1956,8 +1895,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
   // Check for null or corrupted globalPool to prevent segfault
   if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-    if (csound->GetDebug(csound))
-      csound->Message(csound, "csound_compile_tree: skipping global var allocation due to null/corrupted globalPool (globalPool=%p)\n",
+    csound->Warning(csound, "csound_compile_tree: skipping global var allocation due to null/corrupted globalPool (globalPool=%p)\n",
                       typeTable->globalPool);
     var = NULL;
   } else {
@@ -1966,13 +1904,10 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   while(var != NULL) {
     // check if variable memory has not yet been allocated
     if(var->memBlock == NULL) {
-    // BUGFIX: For audio variables, ensure we use the correct ksmps value
+    //  For audio variables, ensure we use the correct ksmps value
     // Global audio variables might have been created with wrong ksmps during compilation
     if (var->varType == &CS_VAR_TYPE_A && var->updateMemBlockSize != NULL) {
       var->updateMemBlockSize(csound, var);
-      if (csound->GetDebug(csound))
-        csound->Message(csound, "DEBUG: Updated memBlockSize for global audio var '%s' to %d\n",
-                        var->varName, var->memBlockSize);
     }
 
     size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
@@ -1982,24 +1917,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     if (var->initializeVariableMemory != NULL) {
       var->initializeVariableMemory(csound, var, &varMem->value);
     } else  memset(&varMem->value , 0, var->memBlockSize);
-    csound->Message(csound, "DEBUG: Allocated memory for global var: %s\n", var->varName);
 
-    // Special handling for global arrays: ensure they have proper ARRAYDAT structure
+    // Ensure global arrays have proper ARRAYDAT structure
     if (var->varType == &CS_VAR_TYPE_ARRAY) {
       ARRAYDAT *arrayDat = (ARRAYDAT*)&varMem->value;
-      csound->Message(csound, "DEBUG: Global array %s: dimensions=%d data=%p\n",
-                      var->varName, arrayDat->dimensions, (void*)arrayDat->data);
     }
-  if (csound->GetDebug(csound)) {
-    TREE* tprobe = current;
-    int count = 0;
-    csound->Message(csound, "DEBUG: Top-level AST nodes before instrument pass:\n");
-    while (tprobe && count < 20) {
-      const char* lex = (tprobe->value && tprobe->value->lexeme) ? tprobe->value->lexeme : "(null)";
-      csound->Message(csound, "  - node type=%d lex=%s\n", tprobe->type, lex);
-      tprobe = tprobe->next; count++;
-    }
-  }
 
     }
     var = var->next;
@@ -2015,11 +1937,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     case INSTR_TOKEN:
       if(csound->GetDebug(csound) > 99)
         print_tree(csound, "Instrument found\n", current);
-      if (csound->GetDebug(csound)) {
-        CS_VAR_POOL* lp_dbg = (CS_VAR_POOL*)current->markup;
-        csound->Message(csound, "csound_compile_tree: INSTR_TOKEN markup pool=%p (table=%p)\n",
-                        (void*)lp_dbg, lp_dbg ? (void*)lp_dbg->table : NULL);
-      }
       instrtxt = create_instrument(csound, current, engineState, typeTable);
       if (UNLIKELY(instrtxt == NULL)) {
         return CSOUND_ERROR;
@@ -2031,7 +1948,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
        */
       TREE *p =  current->left;
       while (p) {
-        if (PARSER_DEBUG) print_tree(csound, "Top of loop\n", p);
         if (p->left) {
           if (p->left->type == INTEGER_TOKEN) {
             int32 instrNum = (int32)p->left->value->value;
@@ -2107,8 +2023,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         }
         if (num > 0) {
           if (num >= engineState->maxinsno || engineState->instrtxtp[num] != instrtxt) {
-            if (csound->GetDebug(csound))
-              csound->Message(csound, "DEBUG: post-walk insert: instrument %d was not registered; inserting now\n", num);
             insert_instrtxt(csound, instrtxt, num, engineState, 0);
           }
         }
@@ -2145,7 +2059,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     break;
 
   default:
-    csound->Message(csound,
+    csound->Warning(csound,
                     Str("Unknown TREE node of type %d (%s) found in root.\n"),
                     current->type, node2string(current->type));
     if (PARSER_DEBUG)
@@ -2646,12 +2560,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->type = ARG_LOCAL;
     setup_arg_for_var_name(csound, arg, ip->varPool, s);
 
-  }
-  /* Temporary variables starting with '#':
-     - If the form is a bare numeric like "#2" or "#-3", treat it as a numeric constant
-       to avoid looking up a non-existent local temp.
-     - Otherwise, always treat '#...' as local temps. */
-  else if (s[0] == '#') {
+  } else if (s[0] == '#') {
     const char* t = s + 1; if (*t == '+' || *t == '-') t++;
     int allDigits = (*t != '\0');
     for (const char* p = t; *p; ++p) { if (*p < '0' || *p > '9') { allDigits = 0; break; } }
@@ -2662,8 +2571,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
         arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, (char*)t,
                                            cs_strtod((char*)t, NULL));
       }
-    }
-    else {
+    } else {
       arg->type = ARG_LOCAL;
       setup_arg_for_var_name(csound, arg, ip->varPool, s);
       if (arg->argPtr == NULL) {

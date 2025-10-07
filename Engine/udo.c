@@ -45,8 +45,6 @@
 static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   /* NEW CODE FOR SETTING REFERENCES */
 
-  // csound->Message(csound, "DEBUG handle_pass_by_ref: UDO %s\n", p->h.optext->t.oentry->opname);
-
   int32_t  i;
   CS_HASH_TABLE *xout_skip_names = cs_hash_table_create(csound);
 
@@ -177,7 +175,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) continue;
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
       if (argPtr != NULL) {
-        // printf("DEBUG pass_by_ref: rewiring input arg '%s' to ptr=%p value=%f\n", varName, (void*)argPtr, *argPtr);
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)pchain;
             udoData->ar[outlist->count + i] = argPtr;
@@ -524,7 +521,6 @@ int32_t set_inbufs(CSOUND *csound,
   current = inm->in_arg_pool->head;
 
   if(inm->passByRef) {
-    // printf("DEBUG set_inbufs: UDO '%s' using pass-by-ref, skipping...\n", inm->name);
     return OK;
   }
 
@@ -611,8 +607,6 @@ int32_t xout_perf_passByRef(CSOUND *csound, XOUT *p)
       } else {
         // Default scalar behaviour
         *((MYFLT*)dst) = *((MYFLT*)src);
-        if (csound->GetDebug(csound))
-          csound->Message(csound, "DEBUG: xout_passByRef: copying %g from %p to %p\n", *((MYFLT*)src), src, dst);
       }
     }
     if (cur) cur = cur->next;

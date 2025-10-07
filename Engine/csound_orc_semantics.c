@@ -100,9 +100,6 @@ char *cs_strdup(CSOUND *csound, const char *str) {
   if (str == NULL)
     return NULL;
 
-  // Removed noisy corruption debug: internal op names like '##mul.[]' are valid
-  // and should not be flagged here. Keep cs_strdup behavior simple and
-  // reliable.
   len = strlen(str);
 
   retVal = csound->Malloc(csound, len + 1);
@@ -121,24 +118,17 @@ char *cs_strndup(CSOUND *csound, const char *str, size_t size) {
 
   if (str == NULL || size == 0)
     return NULL;
-  
+
   // Find the actual length, but don't read past 'size' bytes
   // This avoids reading uninitialized memory in valgrind
   len = 0;
   while (len < size && str[len] != '\0') {
     len++;
   }
-  
-  // If we found a null terminator before 'size', use the shorter length
-  // Otherwise use 'size'
-  size_t copy_len = (len < size) ? len : size;
 
-  // Use Calloc to zero-initialize memory, avoiding valgrind warnings
-  // about uninitialized values when the source string buffer contains
-  // uninitialized bytes after the portion we're copying
+  size_t copy_len = (len < size) ? len : size;
   retVal = csound->Calloc(csound, copy_len + 1);
   memcpy(retVal, str, copy_len);
-  // retVal[copy_len] = '\0'; // Not needed since Calloc zeroes memory
 
   return retVal;
 }
@@ -311,37 +301,18 @@ CS_VARIABLE *find_var_from_pools(CSOUND *csound, const char *varName,
                                  TYPE_TABLE *typeTable) {
   CS_VARIABLE *var = NULL;
 
-  // DEBUG: Add debug output for InstrDef variable lookups
-  if (varBaseName && strstr(varBaseName, "test2")) {
-    csound->Message(csound, "[find_var_from_pools] DEBUG: Looking for variable '%s' (baseName='%s')\n",
-                    varName ? varName : "(null)", varBaseName ? varBaseName : "(null)");
-  }
-
   // we first check for local variables
   var = csoundFindVariableWithName(csound, typeTable->localPool, varBaseName);
-  if (varBaseName && strstr(varBaseName, "test2")) {
-    csound->Message(csound, "[find_var_from_pools] DEBUG: Local pool search result: %p\n", (void*)var);
-  }
 
   // then check for global variables in engine
   if (var == NULL) {
     var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                      varBaseName);
-    if (varBaseName && strstr(varBaseName, "test2")) {
-      csound->Message(csound, "[find_var_from_pools] DEBUG: Engine pool search result: %p\n", (void*)var);
-    }
   }
 
   // and finally newly defined global vars
   if (var == NULL) {
     var = csoundFindVariableWithName(csound, typeTable->globalPool, varBaseName);
-    if (varBaseName && strstr(varBaseName, "test2")) {
-      csound->Message(csound, "[find_var_from_pools] DEBUG: Global pool search result: %p\n", (void*)var);
-    }
-  }
-
-  if (varBaseName && strstr(varBaseName, "test2")) {
-    csound->Message(csound, "[find_var_from_pools] DEBUG: Final result for '%s': %p\n", varBaseName, (void*)var);
   }
 
   return var;
@@ -825,8 +796,6 @@ char *get_arg_type2(CSOUND *csound, TREE *tree, TYPE_TABLE *typeTable) {
 
   case T_TYPED_IDENT:
     {
-      // BUGFIX: If this is a variable, look up its actual type instead of trusting optype
-      // which may have been incorrectly set during struct array implementation
       if (tree->value && tree->value->lexeme) {
         CS_VARIABLE* var = find_var_from_pools(csound, tree->value->lexeme,
                                                tree->value->lexeme, typeTable);
@@ -848,7 +817,6 @@ char *get_arg_type2(CSOUND *csound, TREE *tree, TYPE_TABLE *typeTable) {
     // since the member name gets resolved to a constant integer index during expression processing
     return cs_strdup(csound, "c");
   case STRUCT_EXPR:
-    // DRY: delegate STRUCT_EXPR type resolution to helper
     return resolve_struct_expr_type(csound, tree, typeTable);
 
   case T_ARRAY:
@@ -1762,83 +1730,16 @@ OENTRY *resolve_opcode_exact(CSOUND *csound, OENTRIES *entries,
 char *resolve_opcode_get_outarg(CSOUND *csound, OENTRIES *entries,
                                 char *inArgTypes) {
   int32_t i;
-
-  // Heuristic repair: some builtins like lenarray expect an array argument
-  // (".[]"). If we see a single scalar type like 'S' due to use-before-def
-  // reordering,
-  if (entries && entries->count > 0) {
-    const char *__opn = entries->entries[0]->opname;
-    if (csound->GetDebug(csound))
-      csound->Message(csound, "RESOLVE_OUT pre opname=%s inArg=%s\n",
-                      __opn ? __opn : "(null)",
-                      inArgTypes ? inArgTypes : "(null)");
-  }
-
-  // promote it to 'S[]' to allow resolution to succeed.
-  if (entries && entries->count > 0 && inArgTypes &&
-      strchr(inArgTypes, '[') == NULL) {
-    const char *opname0 = entries->entries[0]->opname;
-    if (opname0 && strcmp(opname0, "lenarray") == 0) {
-      size_t n = strlen(inArgTypes);
-      char *patched = csound->Malloc(csound, n + 2 + 1);
-      memcpy(patched, inArgTypes, n);
-      patched[n] = '[';
-      patched[n + 1] = ']';
-      patched[n + 2] = '\0';
-      inArgTypes =
-          patched; // leaked on purpose; small and one-shot during resolve
-    }
-  }
-
   if (entries == NULL) {
-    csound->Message(csound,
+    csound->ErrorMsg(csound,
                     "ERROR: resolve_opcode_get_outarg called with NULL entries "
                     "for input types '%s'\n",
                     inArgTypes ? inArgTypes : "NULL");
     return NULL;
   }
 
-  // Debug for outarg selection in internal ops (array arithmetic or bitwise)
-  if (csound->GetDebug(csound) && entries->count > 0 && entries->entries[0] &&
-      entries->entries[0]->opname) {
-    const char *base0 = entries->entries[0]->opname;
-    if (!strncmp(base0, "##", 2)) {
-      csound->Message(
-          csound, "RESOLVE_OUT(op): base=%s inArg=%s candidates=%d\n", base0,
-          inArgTypes ? inArgTypes : "(null)", entries->count);
-    }
-  }
-
   for (i = 0; i < entries->count; i++) {
     OENTRY *temp = entries->entries[i];
-    if (csound->GetDebug(csound) && entries && entries->entries[0] &&
-        entries->entries[0]->opname) {
-      const char *base0 = entries->entries[0]->opname;
-      if (!strncmp(base0, "##or", 4) || !strncmp(base0, "##and", 5) ||
-          !strncmp(base0, "##xor", 5)) {
-        csound->Message(csound,
-                        "RESOLVE_OUT(try) base=%s cand[%d] inArg='%s' -> entry "
-                        "out='%s' in='%s'\n",
-                        base0, i, inArgTypes ? inArgTypes : "",
-                        temp && temp->outypes ? temp->outypes : "",
-                        temp && temp->intypes ? temp->intypes : "");
-      }
-    }
-
-    int inOk = check_in_args(csound, inArgTypes, temp->intypes);
-    if (entries && entries->entries[0] && entries->entries[0]->opname &&
-        csound->GetDebug(csound)) {
-      const char *base0 = entries->entries[0]->opname;
-      if (!strncmp(base0, "##", 2)) {
-        csound->Message(csound,
-                        "RESOLVE_OUT(check) base=%s cand[%d] inArg='%s' "
-                        "reqIn='%s' -> inOk=%d out='%s'\n",
-                        base0, i, inArgTypes ? inArgTypes : "",
-                        temp && temp->intypes ? temp->intypes : "", inOk,
-                        temp && temp->outypes ? temp->outypes : "");
-      }
-    }
-
     if (temp->intypes == NULL && temp->outypes == NULL) {
       continue;
     }
@@ -2117,99 +2018,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
   argString[argsLen] = '\0';
 
-  csound->Free(csound, argTypes);
-  return argString;
-}
-
-/* Version of get_arg_string_from_tree that allows undefined variables (for output args) */
-char *get_arg_string_from_tree_allow_undefined(CSOUND *csound, TREE *tree,
-                                               TYPE_TABLE *typeTable) {
-  // Count only the nodes that will actually be processed (skip certain token types)
-  int32_t len = 0;
-  TREE *countCurrent = tree;
-  while (countCurrent != NULL) {
-    // Skip tokens that will be skipped in the main loop
-    if (countCurrent->type != KGOTO_TOKEN &&
-        countCurrent->type != IGOTO_TOKEN && countCurrent->type != GOTO_TOKEN &&
-        countCurrent->type != T_MEMBER_IDENT && countCurrent->type != '[') {
-      len++;
-    }
-    countCurrent = countCurrent->next;
-  }
-
-  int32_t i;
-
-  if (len == 0) {
-    return NULL;
-  }
-
-  char *argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
-  int32_t argsLen = 0;
-  int32_t index = 0;
-  TREE *current = tree;
-
-  while (current != NULL) {
-    // Skip T_MEMBER_IDENT nodes - they should only be processed as part of STRUCT_EXPR
-    if (current->type == T_MEMBER_IDENT) {
-      current = current->next;
-      continue;
-    }
-
-    // Skip '[' tokens - they should only be processed as part of T_ARRAY_IDENT
-    if (current->type == '[') {
-      current = current->next;
-      continue;
-    }
-
-    char *argType = get_arg_type2(csound, current, typeTable);
-    if (argType == NULL) {
-      // Be tolerant in pre-pass contexts: use a heuristic fallback instead of aborting.
-      // This allows later phases (after LHS predeclarations) to establish the real type.
-      const char *nm = (current->value && current->value->lexeme)
-                           ? current->value->lexeme
-                           : NULL;
-      char fallbackBuf[8] = {0};
-      if (nm && *nm) {
-        char c0 = nm[0];
-        // Prefer implicit prefix typing when available, otherwise conservatively assume 'i'
-        if (c0 == 'a' || c0 == 'k' || c0 == 'i' || c0 == 'S' || c0 == 'B') {
-          fallbackBuf[0] = c0;
-          fallbackBuf[1] = '\0';
-        } else {
-          fallbackBuf[0] = 'i';
-          fallbackBuf[1] = '\0';
-        }
-      } else {
-        fallbackBuf[0] = 'i';
-        fallbackBuf[1] = '\0';
-      }
-      char *fallbackType = cs_strdup(csound, fallbackBuf);
-      argsLen += (int32_t)strlen(fallbackType);
-      strcpy(&argTypes[index * 256], fallbackType);
-      csound->Free(csound, fallbackType);
-      index++;
-      current = current->next;
-      continue;
-    } else {
-      argsLen += (int32_t)strlen(argType);
-      strcpy(&argTypes[index * 256], argType);
-      csound->Free(csound, argType);
-      index++;
-    }
-
-    current = current->next;
-  }
-
-  char *argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
-  char *curLoc = argString;
-
-  for (i = 0; i < len; i++) {
-    unsigned long argLen = strlen(&argTypes[i * 256]);
-    memcpy(curLoc, &argTypes[i * 256], argLen);
-    curLoc += argLen;
-  }
-
-  argString[argsLen] = '\0';
   csound->Free(csound, argTypes);
   return argString;
 }
@@ -2813,20 +2621,6 @@ void add_arg(CSOUND *csound, char *varName, char *annotation,
         }
       }
     }
-
-    if (csound->GetDebug(csound)) {
-      csound->Message(csound,
-                      "add_arg: added '%s' type='%s' to pool=%p (dims=%d) "
-                      "memBlockSize=%d userDefinedType=%d\n",
-                      var->varName,
-                      var->varType ? var->varType->varTypeName : "(null)",
-                      (void *)pool, var->dimensions, var->memBlockSize,
-                      var->varType ? var->varType->userDefinedType : -1);
-
-    if (var->varType && var->varType->userDefinedType) {
-      csound->Message(csound, "add_arg: struct variable '%s' created with userDefinedType=1\n", var->varName);
-    }
-    }
   } else {
     // for explicit non-array types, we'll allow variable redeclaration
     if (annotation != NULL) {
@@ -3149,19 +2943,7 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
                                   TYPE_TABLE *typeTable) {
   int32_t leftCount, rightCount;
 
-  // DEBUG: Add debug output to see what we're processing
-  csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Processing root->type=%d\n", root->type);
-  if (root->value && root->value->lexeme) {
-    csound->Message(csound, "[convert_statement_to_opcall] DEBUG: root lexeme='%s'\n", root->value->lexeme);
-  }
-
-
-
   if (root->type == T_ASSIGNMENT) {
-    csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Found T_ASSIGNMENT!\n");
-
-
-
     /* NEW: Check for InstrDef assignment with constant (var:InstrDef = 1) */
     if (root->left && root->left->type == T_IDENT &&
         root->right && (root->right->type == INTEGER_TOKEN || root->right->type == NUMBER_TOKEN) &&
@@ -3177,9 +2959,7 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
       }
     }
 
-
-
-    /* NEW: Check for struct-to-struct assignment (var2 = var1) */
+    /* Check for struct-to-struct assignment (var2 = var1) */
     if (root->left && root->left->type == T_IDENT &&
         root->right && root->right->type == T_IDENT &&
         root->left->value && root->left->value->lexeme &&
@@ -3188,38 +2968,18 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
       char* leftVarName = root->left->value->lexeme;
       char* rightVarName = root->right->value->lexeme;
 
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Checking struct-to-struct assignment: %s = %s\n", leftVarName, rightVarName);
-
       // Get the types of both variables
       CS_VARIABLE* leftVar = find_var_from_pools(csound, leftVarName, leftVarName, typeTable);
       CS_VARIABLE* rightVar = find_var_from_pools(csound, rightVarName, rightVarName, typeTable);
 
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Variable lookup: leftVar=%p, rightVar=%p\n", (void*)leftVar, (void*)rightVar);
-
-
-
-      if (leftVar && rightVar) {
-        csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Variable types: leftVar->varType=%p, rightVar->varType=%p\n", (void*)leftVar->varType, (void*)rightVar->varType);
-        if (leftVar->varType && rightVar->varType) {
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Type names: left='%s', right='%s'\n",
-                          leftVar->varType->varTypeName ? leftVar->varType->varTypeName : "(null)",
-                          rightVar->varType->varTypeName ? rightVar->varType->varTypeName : "(null)");
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: User defined types: left=%d, right=%d\n",
-                          leftVar->varType->userDefinedType, rightVar->varType->userDefinedType);
-        }
-      }
-
-      // NEW: Handle case where leftVar is not found but rightVar is a struct
+      // Handle case where leftVar is not found but rightVar is a struct
       // This happens when var2:MyType2 declaration hasn't been processed yet
       if (!leftVar && rightVar && rightVar->varType) {
         // Skip built-in UDT types like InstrDef, OpcodeDef, etc. - they have their own built-in opcodes
         const char* typeName = rightVar->varType->varTypeName;
-        csound->Message(csound, "[convert_statement_to_opcall] DEBUG: !leftVar && rightVar path - typeName='%s'\n",
-                        typeName ? typeName : "(null)");
         if (typeName && (strcmp(typeName, "InstrDef") == 0 ||
                          strcmp(typeName, ":InstrDef;") == 0)) {
           // Special handling for InstrDef assignments - convert to init.instr opcode
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Converting InstrDef assignment to init.instr opcode\n");
           root->value = make_token(csound, "init.instr");
           root->type = T_OPCALL;
           return root;
@@ -3227,21 +2987,10 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
 
         // Handle user-defined struct assignments (but not built-in types)
         if (rightVar->varType->userDefinedType) {
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Left variable '%s' not found, but right variable '%s' is struct type '%s'\n",
-                          leftVarName ? leftVarName : "(null)",
-                          rightVarName ? rightVarName : "(null)",
-                          typeName ? typeName : "(null)");
-
-          // Assume this is a struct-to-struct assignment and convert it
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Assuming struct-to-struct assignment, converting to init opcode\n");
-
           // Build the init opcode name for the struct type
           char initOpcodeName[256];
           snprintf(initOpcodeName, sizeof(initOpcodeName), "init.%s", typeName + 1); // Skip the ':' prefix
           initOpcodeName[strlen(initOpcodeName) - 1] = '\0'; // Remove the ';' suffix
-
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Using init opcode: '%s'\n", initOpcodeName);
-
           // Convert assignment to init opcode: var2 = var1 -> init.MyType2 var2, var1
           root->value = make_token(csound, initOpcodeName);
           root->type = T_OPCALL;
@@ -3256,22 +3005,15 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
 
           const char* leftType = root->left->value->optype;
           const char* rightVarName = root->right->value->lexeme;
-
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Both variables missing - leftType='%s' rightVarName='%s'\n",
-                          leftType ? leftType : "(null)", rightVarName ? rightVarName : "(null)");
-
           // Check if this is an InstrDef assignment from this_instr or other InstrDef variables
           if (leftType && (strcmp(leftType, "InstrDef") == 0) &&
               rightVarName && (strcmp(rightVarName, "this_instr") == 0 ||
                                strcmp(rightVarName, "Test") == 0)) {
-            csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Converting InstrDef assignment (timing fix) to init.instr opcode\n");
             root->value = make_token(csound, "init.instr");
             root->type = T_OPCALL;
             return root;
           }
         }
-
-        csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Converted to init opcode\n");
         return root;
       } else if (leftVar && rightVar && leftVar->varType && rightVar->varType &&
           leftVar->varType->userDefinedType && rightVar->varType->userDefinedType &&
@@ -3299,20 +3041,13 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
           return root; // Let the normal assignment processing handle this
         }
 
-        csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Found struct-to-struct assignment! Converting to init opcode\n");
-
         // Build the init opcode name for the struct type
         char initOpcodeName[256];
         snprintf(initOpcodeName, sizeof(initOpcodeName), "init.%s", leftVar->varType->varTypeName + 1); // Skip the ':' prefix
         initOpcodeName[strlen(initOpcodeName) - 1] = '\0'; // Remove the ';' suffix
-
-        csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Using init opcode: '%s'\n", initOpcodeName);
-
         // Convert assignment to init opcode: var2 = var1 -> init.MyType2 var2, var1
         root->value = make_token(csound, initOpcodeName);
         root->type = T_OPCALL;
-
-        csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Converted to init opcode\n");
         return root;
       } else if (leftVar && rightVar && leftVar->varType && rightVar->varType) {
         // Handle built-in type assignments (like InstrDef to InstrDef)
@@ -3322,15 +3057,6 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
         // Check if this is an InstrDef to InstrDef assignment
         if ((leftTypeName && (strcmp(leftTypeName, "InstrDef") == 0 || strcmp(leftTypeName, ":InstrDef;") == 0)) &&
             (rightTypeName && (strcmp(rightTypeName, "InstrDef") == 0 || strcmp(rightTypeName, ":InstrDef;") == 0))) {
-          csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Found InstrDef-to-InstrDef assignment, converting to init.instr opcode\n");
-
-          // Check if this is a typed variable declaration (left side is T_TYPED_IDENT)
-          if (root->left && root->left->type == 295) { // 295 is T_TYPED_IDENT
-            csound->Message(csound, "[convert_statement_to_opcall] DEBUG: This is a typed variable declaration, ensuring variable exists\n");
-            // The variable will be created during verify_opcode -> add_args
-            // We don't need to do anything special here, just convert to init.instr
-          }
-
           root->value = make_token(csound, "init.instr");
           root->type = T_OPCALL;
           return root;
@@ -3464,19 +3190,6 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
   if (leftCount == 1 && rightCount == 1) {
     TREE *newTop;
 
-    // DEBUG: Add debug output to see what we're processing
-    csound->Message(csound, "[convert_statement_to_opcall] DEBUG: leftCount=1 rightCount=1 - left->type=%d right->type=%d\n",
-                    root->left->type, root->right->type);
-    if (root->left->value && root->left->value->lexeme) {
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: left lexeme='%s'\n", root->left->value->lexeme);
-    }
-    if (root->left->value && root->left->value->optype) {
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: left optype='%s'\n", root->left->value->optype);
-    }
-    if (root->right->value && root->right->value->lexeme) {
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: right lexeme='%s'\n", root->right->value->lexeme);
-    }
-
     // Special handling for typed variable initialization: temp:MyType init -> init.MyType temp
     // Check if left side has type information (optype) and right side is 'init'
     if (root->left->value && root->left->value->optype &&
@@ -3484,8 +3197,6 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
         strcmp(root->right->value->lexeme, "init") == 0) {
 
       const char* typeName = root->left->value->optype;
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Found typed variable init: %s:%s init\n",
-                      root->left->value->lexeme ? root->left->value->lexeme : "(null)", typeName);
 
       // Build the init opcode name for the struct type
       char initOpcodeName[256];
@@ -3497,8 +3208,6 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
         // Type name is in simple format
         snprintf(initOpcodeName, sizeof(initOpcodeName), "init.%s", typeName);
       }
-
-      csound->Message(csound, "[convert_statement_to_opcall] DEBUG: Converting to init opcode: '%s'\n", initOpcodeName);
 
       // Convert to init.MyType opcode call
       newTop = root->right;
@@ -3571,11 +3280,6 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   opcodeName = root->value->lexeme;
 
-  // DEBUG: Add debug output for init.instr opcodes
-  if (opcodeName && strcmp(opcodeName, "init.instr") == 0) {
-    csound->Message(csound, "[verify_opcode] DEBUG: Processing init.instr opcode\n");
-  }
-
   if (!check_args_exist(csound, root->right, typeTable)) {
     return 0;
   }
@@ -3589,11 +3293,6 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
 
-  // DEBUG: Add debug output for init.instr opcodes
-  if (opcodeName && strcmp(opcodeName, "init.instr") == 0) {
-    csound->Message(csound, "[verify_opcode] DEBUG: init.instr opcode lookup - entries=%p count=%d\n",
-                    (void*)entries, entries ? entries->count : 0);
-  }
 
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
     synterr(csound, Str("Unable to find opcode with name: %s\n"),
@@ -3944,9 +3643,7 @@ int32_t initStructVar(CSOUND *csound, void *p) {
         if (mcount > 0) {
           CS_VAR_MEM *mem = structVar->members[0];
           if (mem && mem->varType != &CS_VAR_TYPE_ARRAY) {
-            csound->Message(csound, "[initStructVar] DEBUG: Single-arg scalar init: setting member 0 to %f\n", *init->inArgs[0]);
             mem->value = *init->inArgs[0];
-            csound->Message(csound, "[initStructVar] DEBUG: After single-arg init: mem->value = %f\n", mem->value);
           }
         }
         return CSOUND_SUCCESS;
@@ -3957,13 +3654,6 @@ int32_t initStructVar(CSOUND *csound, void *p) {
     CS_VAR_MEM *mem = structVar->members[i];
     const CS_TYPE *mtype = mem->varType;
     const CS_TYPE *atype = csoundGetTypeForArg(init->inArgs[i]);
-
-    csound->Message(csound, "[initStructVar] DEBUG: Processing member %d\n", i);
-    csound->Message(csound, "[initStructVar] DEBUG: mem=%p, mtype=%p, atype=%p\n", mem, mtype, atype);
-    if (mtype && mtype->varTypeName) {
-      csound->Message(csound, "[initStructVar] DEBUG: mtype->varTypeName='%s'\n", mtype->varTypeName);
-    }
-    csound->Message(csound, "[initStructVar] DEBUG: Input value = %f\n", *init->inArgs[i]);
 
     // Arrays: shallow references to preserve pointers
     if (mtype == &CS_VAR_TYPE_ARRAY) {
@@ -3995,13 +3685,12 @@ int32_t initStructVar(CSOUND *csound, void *p) {
         mtype->copyValue(csound, mtype, &mem->value, init->inArgs[i], NULL);
       }
     } else if (mem->varType == &CS_VAR_TYPE_ARRAY) {
-      // Special handling for array members - need to copy array metadata
+      // copy array metadata on struct array members
       ARRAYDAT* dst = (ARRAYDAT*)&mem->value;
       ARRAYDAT* src = (ARRAYDAT*)init->inArgs[i];
 
       if (src) {
-        // Copy all array metadata (similar to struct_array_member_assign)
-        dst->allocated = 0; // Shallow alias: destination does not own storage
+        dst->allocated = 0;
         dst->arrayMemberSize = src->arrayMemberSize;
         dst->data = src->data;
         dst->dimensions = src->dimensions;
@@ -4009,20 +3698,12 @@ int32_t initStructVar(CSOUND *csound, void *p) {
         dst->arrayType = src->arrayType;
       }
     } else {
-      csound->Message(csound, "[initStructVar] DEBUG: Copying scalar value using copyValue\n");
-      csound->Message(csound, "[initStructVar] DEBUG: Before copy: mem->value = %f\n", mem->value);
-      csound->Message(csound, "[initStructVar] DEBUG: Input value: %f\n", *init->inArgs[i]);
-      csound->Message(csound, "[initStructVar] DEBUG: mem=%p, mem->varType=%p\n", mem, mem->varType);
-
-      // Try direct assignment first for debugging
-      mem->value = *init->inArgs[i];
-      csound->Message(csound, "[initStructVar] DEBUG: After direct assignment: mem->value = %f\n", mem->value);
-
-      // Also try copyValue
       if (mem->varType && mem->varType->copyValue) {
         mem->varType->copyValue(csound, mem->varType, &mem->value,
                                 init->inArgs[i], NULL);
-        csound->Message(csound, "[initStructVar] DEBUG: After copyValue: mem->value = %f\n", mem->value);
+      } else if (mem->varType) {
+        // fallback to direct assignment if there's no copyValue function
+        mem->value = *init->inArgs[i];
       }
     }
   }
@@ -4048,12 +3729,6 @@ void initializeStructVar(CSOUND *csound, CS_VARIABLE *var, MYFLT *mem) {
   structVar->memberCount = len;
   structVar->ownsMembers = 1;
 
-
-
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "Initializing Struct...\n");
-    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
-  }
   for (i = 0; i < len; i++) {
     CS_VARIABLE *var = members->value;
     size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
@@ -4104,7 +3779,7 @@ CS_VARIABLE *createStructVar(void *cs, void *p, INSDS *ctx) {
   const CS_TYPE *type = (const CS_TYPE *)p;
 
   if (type == NULL) {
-    csound->Message(csound, "ERROR: no type given for struct creation\n");
+    csound->Warning(csound, "ERROR: no type given for struct creation\n");
     return NULL;
   }
 
@@ -4210,8 +3885,6 @@ int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
     return 0;
   }
 
-
-
   return 1;
 }
 
@@ -4258,7 +3931,6 @@ static int32_t flatten_struct_signature_internal(CSOUND *csound, const CS_TYPE *
     for (int32_t i = 0; i < visitedCount; i++) {
       if (visitedTypes[i] && strcmp(visitedTypes[i], type->varTypeName) == 0) {
         // Recursive reference detected - use the actual type name for struct-to-struct references
-        csound->Message(csound, "[struct] DEBUG: Recursive reference detected, preserving type '%s'\n", type->varTypeName);
         int32_t typeNameLen = (int32_t)strlen(type->varTypeName);
         if (*index + typeNameLen >= maxLen) return 0;
         strcpy(buffer + *index, type->varTypeName);
@@ -4269,76 +3941,11 @@ static int32_t flatten_struct_signature_internal(CSOUND *csound, const CS_TYPE *
 
     // For non-recursive struct types, preserve them as-is for struct-to-struct references
     // This allows Rectangle to have a Point member without flattening Point to ii
-    csound->Message(csound, "[struct] DEBUG: Preserving struct type '%s' in signature (non-recursive)\n", type->varTypeName);
     int32_t typeNameLen = (int32_t)strlen(type->varTypeName);
     if (*index + typeNameLen >= maxLen) return 0;
     strcpy(buffer + *index, type->varTypeName);
     *index += typeNameLen;
     return 1;
-
-    // OLD CODE: struct flattening path (disabled)
-    // This block used a variable-length array (VLA) which MSVC does not support,
-    // and the logic is now superseded by the early return above that preserves
-    // struct types in signatures. Keeping it disabled avoids Windows build errors.
-#if 0
-    if (visitedCount >= maxVisited) {
-      csound->Message(csound, "[struct] Warning: Too many nested types in struct flattening\n");
-      return 0;
-    }
-
-    const char *newVisitedTypes[maxVisited];
-    for (int32_t i = 0; i < visitedCount; i++) {
-      newVisitedTypes[i] = visitedTypes[i];
-    }
-    newVisitedTypes[visitedCount] = type->varTypeName;
-
-    // Look up the struct type to get its members
-    const CS_TYPE *structType = csoundGetTypeWithVarTypeName(csound->typePool, type->varTypeName);
-    if (!structType || !structType->members) {
-      csound->Message(csound, "[struct] Warning: Could not find struct type '%s' for flattening\n", type->varTypeName);
-      return 0;
-    }
-
-    // Recursively flatten each member (members is a CONS_CELL list)
-    CONS_CELL *member = structType->members;
-    while (member) {
-      CS_VARIABLE *memberVar = (CS_VARIABLE *)member->value;
-      if (!memberVar || !memberVar->varType) {
-        csound->Message(csound, "[struct] Warning: Invalid member in struct '%s'\n", type->varTypeName);
-        return 0;
-      }
-
-      // Handle array types
-      if (memberVar->varType == &CS_VAR_TYPE_ARRAY && memberVar->subType) {
-        // For array members, use a size parameter (integer) instead of the full array type
-        if (*index >= maxLen - 1) return 0;
-        buffer[(*index)++] = 'i';  // Size parameter for array initialization
-      } else {
-        // Handle regular types - preserve struct types instead of flattening them
-        csound->Message(csound, "[struct] DEBUG: Processing member type, varTypeName='%s'\n",
-                        memberVar->varType->varTypeName ? memberVar->varType->varTypeName : "NULL");
-        if (memberVar->varType->varTypeName &&
-            memberVar->varType->varTypeName[0] == ':' &&
-            memberVar->varType->varTypeName[strlen(memberVar->varType->varTypeName)-1] == ';') {
-          // This is a struct type - use it directly instead of flattening
-          csound->Message(csound, "[struct] DEBUG: Preserving struct type '%s' in signature\n", memberVar->varType->varTypeName);
-          int32_t typeNameLen = (int32_t)strlen(memberVar->varType->varTypeName);
-          if (*index + typeNameLen >= maxLen) return 0;
-          strcpy(buffer + *index, memberVar->varType->varTypeName);
-          *index += typeNameLen;
-        } else {
-          // Handle primitive types with flattening
-          if (!flatten_struct_signature_internal(csound, memberVar->varType, buffer, index, maxLen,
-                                                 newVisitedTypes, visitedCount + 1, maxVisited)) {
-            return 0;
-          }
-        }
-      }
-
-      member = member->next;
-    }
-    return 1;
-#endif
   }
 
   // For other types, treat as single character (fallback)
@@ -4365,10 +3972,8 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
   internalName[nameLen + 1] = ';';
   internalName[nameLen + 2] = '\0';
 
-  CS_TYPE *type =
-      (CS_TYPE *)csoundGetTypeWithVarTypeName(csound->typePool, internalName);
-  csound->Message(csound, "[struct] Phase 2: Looking up '%s' -> %p\n",
-                  internalName, (void *)type);
+  CS_TYPE *type = (CS_TYPE *)csoundGetTypeWithVarTypeName(csound->typePool, internalName);
+
 
   // Save a copy of internalName for later use in struct-to-struct opcode registration
   char *internalNameCopy = cs_strdup(csound, internalName);
@@ -4383,9 +3988,6 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
 
   // Skip if already resolved (members != NULL)
   if (type->members != NULL) {
-    csound->Message(csound,
-                    "[struct] Phase 2: '%s' already resolved, skipping\n",
-                    structName);
     csound->Free(csound, internalNameCopy);
     return 1;
   }
@@ -4394,19 +3996,9 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
   int32_t index = 0;
   char temp[256];
 
-  csound->Message(csound, "[struct] Phase 2: Resolving members for '%s'\n",
-                  structName);
-
-  // FIXME: Values are appended in reverse order of definition
   while (current != NULL) {
     char *memberName = current->value->lexeme;
     char *typedIdentArg = current->value->optype;
-    if (csound->GetDebug(csound)) {
-      csound->Message(
-          csound, "[struct] parsing member node: type=%d name=%s optype=%s\n",
-          current->type, memberName ? memberName : "(null)",
-          typedIdentArg ? typedIdentArg : "(null)");
-    }
 
     // Handle array_identifier nodes specially
     if (current->type == T_ARRAY_IDENT) {
@@ -4430,14 +4022,11 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
         typedIdentArg[strlen(typedIdentArg) - 2] == '[') {
       isArrayType = 1;
       memberType = &CS_VAR_TYPE_ARRAY;
-      csound->Message(csound, "[struct] DEBUG: Detected array member type '%s'\n", typedIdentArg);
     } else {
       // Regular type lookup - convert struct type names to internal format
       char *convertedTypeName = check_optional_type(csound, typedIdentArg);
-      csound->Message(csound, "[struct] DEBUG: Looking up member type '%s' -> '%s'\n", typedIdentArg, convertedTypeName);
       memberType = csoundGetTypeWithVarTypeName(csound->typePool, convertedTypeName);
-      csound->Message(csound, "[struct] DEBUG: Found member type: %p, varTypeName='%s'\n",
-                      memberType, memberType ? (memberType->varTypeName ? memberType->varTypeName : "NULL") : "NULL");
+
       if (convertedTypeName != typedIdentArg) {
         csound->Free(csound, convertedTypeName);
       }
@@ -4485,46 +4074,16 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
       varInit.dimensions = dims;
       var = csoundCreateVariable(csound, csound->typePool, &CS_VAR_TYPE_ARRAY,
                                  memberName, &varInit);
-      csound->Message(csound, "[struct] DEBUG: Created array variable '%s', base type='%s', var type='%s', subType='%s'\n",
-                      memberName,
-                      baseType ? (baseType->varTypeName ? baseType->varTypeName : "NULL") : "NULL",
-                      var && var->varType ? (var->varType->varTypeName ? var->varType->varTypeName : "NULL") : "NULL",
-                      var && var->subType ? (var->subType->varTypeName ? var->subType->varTypeName : "NULL") : "NULL");
     } else {
       // Non-array member: create simple variable
       var = csoundCreateVariable(csound, csound->typePool, memberType,
                                  memberName, NULL);
-      csound->Message(csound, "[struct] DEBUG: Created variable '%s', original type='%s', var type='%s'\n",
-                      memberName,
-                      memberType ? (memberType->varTypeName ? memberType->varTypeName : "NULL") : "NULL",
-                      var && var->varType ? (var->varType->varTypeName ? var->varType->varTypeName : "NULL") : "NULL");
     }
 
     CONS_CELL *member = csound->Calloc(csound, sizeof(CONS_CELL));
     member->value = var;
     type->members = cs_cons_append(type->members, member);
     current = current->next;
-  }
-
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "[struct] Registered type '%s' members:\n",
-                    type->varTypeName);
-    int mi = 0;
-    CONS_CELL *it = type->members;
-    while (it) {
-      CS_VARIABLE *mv = (CS_VARIABLE *)it->value;
-      csound->Message(csound, "  - %d: %s : %s%s\n", mi,
-                      mv && mv->varName ? mv->varName : "(null)",
-                      mv && mv->varType && mv->varType->varTypeName
-                          ? mv->varType->varTypeName
-                          : "(null)",
-                      (mv && mv->varType == &CS_VAR_TYPE_ARRAY && mv->subType &&
-                       mv->subType->varTypeName)
-                          ? "[]"
-                          : "");
-      it = it->next;
-      mi++;
-    }
   }
 
   OENTRY oentry;
@@ -4572,23 +4131,16 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
   while (member != NULL) {
     CS_VARIABLE *memberVar = (CS_VARIABLE *)member->value;
     const CS_TYPE *memberType = memberVar->varType;
-    csound->Message(csound, "[struct] DEBUG: Signature flattening member '%s', type='%s'\n",
-                    memberVar ? (memberVar->varName ? memberVar->varName : "NULL") : "NULL",
-                    memberType ? (memberType->varTypeName ? memberType->varTypeName : "NULL") : "NULL");
 
     // Handle array types specially - check by varTypeName since pointer equality may not work
     int isArrayCondition = (memberType == &CS_VAR_TYPE_ARRAY ||
                            (memberType && memberType->varTypeName && memberType->varTypeName[0] == '['));
     int hasSubType = (memberVar->subType != NULL);
-    csound->Message(csound, "[struct] DEBUG: Array check for '%s': isArrayCondition=%d, hasSubType=%d\n",
-                    memberVar->varName ? memberVar->varName : "NULL", isArrayCondition, hasSubType);
+
     if (isArrayCondition && hasSubType) {
-      csound->Message(csound, "[struct] DEBUG: Processing array member '%s', subType='%s'\n",
-                      memberVar->varName ? memberVar->varName : "NULL",
-                      memberVar->subType ? (memberVar->subType->varTypeName ? memberVar->subType->varTypeName : "NULL") : "NULL");
       // For arrays, flatten the base type and add array notation
       if (!flatten_struct_signature(csound, memberVar->subType, temp, &index, 256)) {
-        csound->Message(csound, "[struct] Error: Failed to flatten array member type\n");
+        csound->ErrorMsg(csound, "[struct] Error: Failed to flatten array member type\n");
         return 0;
       }
       // Add array notation
@@ -4599,7 +4151,7 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
     } else {
       // Handle regular types with flattening
       if (!flatten_struct_signature(csound, memberType, temp, &index, 256)) {
-        csound->Message(csound, "[struct] Error: Failed to flatten member type '%s'\n",
+        csound->ErrorMsg(csound, "[struct] Error: Failed to flatten member type '%s'\n",
                         memberType->varTypeName ? memberType->varTypeName : "(null)");
         return 0;
       }
@@ -4611,17 +4163,12 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
   temp[index] = '\0'; // Null-terminate the string
   oentry.intypes = cs_strdup(csound, temp);
 
-  csound->Message(csound, "[struct] Registering opcode '%s' with signature '%s' -> '%s'\n",
-                  oentry.opname, oentry.intypes, oentry.outypes);
-
   int result = csoundAppendOpcodes(csound, &oentry, 1);
   if (result != 0) {
-    csound->Message(csound, "[struct] ERROR: Failed to register opcode '%s'\n", oentry.opname);
+    csound->ErrorMsg(csound, "[struct] ERROR: Failed to register opcode '%s'\n", oentry.opname);
     csound->Free(csound, internalNameCopy);
     return 0;
   }
-
-  csound->Message(csound, "[struct] Successfully registered opcode '%s'\n", oentry.opname);
 
   /* Also register a struct-to-struct assignment version */
   OENTRY oentry2 = oentry;
@@ -4632,18 +4179,13 @@ int32_t add_struct_definition(CSOUND *csound, TREE *structDefTree) {
   cs_sprintf(temp, "%s", internalNameCopy);
   oentry2.intypes = cs_strdup(csound, temp);
 
-  csound->Message(csound, "[struct] Registering struct-to-struct opcode '%s' with signature '%s' -> '%s'\n",
-                  oentry2.opname, oentry2.intypes, oentry2.outypes);
-
   /* Register the struct-to-struct opcode */
   int result2 = csoundAppendOpcodes(csound, &oentry2, 1);
   if (result2 != 0) {
-    csound->Message(csound, "[struct] ERROR: Failed to register struct-to-struct opcode '%s'\n", oentry2.opname);
+    csound->ErrorMsg(csound, "[struct] ERROR: Failed to register struct-to-struct opcode '%s'\n", oentry2.opname);
     csound->Free(csound, internalNameCopy);
     return 0;
   }
-
-  csound->Message(csound, "[struct] Successfully registered struct-to-struct opcode '%s'\n", oentry2.opname);
 
   csound->Free(csound, internalNameCopy);
   return 1;
@@ -4659,8 +4201,6 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     return 1; // No struct definitions to process
   }
 
-  csound->Message(csound, "[struct] Starting two-phase struct resolution\n");
-
   // Phase 1: Register all struct names as placeholders
   TREE *current = structDefList;
   while (current != NULL) {
@@ -4672,31 +4212,20 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     current = current->next;
   }
 
-  csound->Message(csound, "[struct] Phase 1 complete, starting Phase 2\n");
-
   // Phase 2: Resolve all struct members and register opcodes
   current = structDefList;
   int structCount = 0;
   while (current != NULL) {
     structCount++;
-    csound->Message(csound, "[struct] Phase 2: Examining node %d, type=%d (STRUCT_TOKEN=%d)\n",
-                    structCount, current->type, STRUCT_TOKEN);
     if (current->type == STRUCT_TOKEN) {
       char* structName = current->left->value->lexeme;
-      csound->Message(csound, "[struct] Phase 2: Processing struct '%s'\n", structName ? structName : "(null)");
       if (!add_struct_definition(csound, current)) {
-        csound->Message(csound, "[struct] Phase 2: ERROR processing struct '%s'\n", structName ? structName : "(null)");
+        csound->ErrorMsg(csound, "[struct] Phase 2: ERROR processing struct '%s'\n", structName ? structName : "(null)");
         return 0; // Error in Phase 2
       }
-      csound->Message(csound, "[struct] Phase 2: Successfully processed struct '%s'\n", structName ? structName : "(null)");
-    } else {
-      csound->Message(csound, "[struct] Phase 2: Skipping node with type %d\n", current->type);
     }
     current = current->next;
   }
-  csound->Message(csound, "[struct] Phase 2: Processed %d nodes total\n", structCount);
-
-  csound->Message(csound, "[struct] Two-phase struct resolution complete\n");
 
   return 1;
 }
@@ -4794,16 +4323,7 @@ TREE *verify_tree(CSOUND *csound, TREE *root, TYPE_TABLE *typeTable) {
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
           csound->Message(csound, "Verifying AST\n");
 
-  // REMOVED: Pre-processing step that created variables in wrong scope
-  // Variables will be created on-demand during runtime by the assignment opcodes
-
   while (current != NULL) {
-    // NEW: Debug all statements being processed by verify_tree
-    csound->Message(csound, "[verify_tree] DEBUG: Processing statement type=%d\n", current->type);
-    if (current->value && current->value->lexeme) {
-      csound->Message(csound, "[verify_tree] DEBUG: Statement lexeme='%s'\n", current->value->lexeme);
-    }
-
     if (current->type == 0) {
       previous = current;
       current = current->next;
@@ -5115,12 +4635,9 @@ TREE *verify_tree(CSOUND *csound, TREE *root, TYPE_TABLE *typeTable) {
            current->type == S_SUBIN || current->type == S_MULIN || current->type == S_DIVIN) &&
           current->left && current->left->type == STRUCT_EXPR) {
 
-        csound->Message(csound, "[semantics] DEBUG: FOUND STRUCT_EXPR assignment BEFORE conversion!\n");
-
         // Handle struct member assignment directly here, bypassing normal statement processing
         TREE* anchor = NULL;
         if (expand_struct_member_assignment(csound, current, typeTable, &anchor)) {
-          csound->Message(csound, "[semantics] DEBUG: Successfully expanded struct member assignment\n");
           // Replace current with the expanded assignment
           if (previous != NULL) {
             previous->next = anchor;
@@ -5135,8 +4652,6 @@ TREE *verify_tree(CSOUND *csound, TREE *root, TYPE_TABLE *typeTable) {
           }
           current = anchor;
           continue;
-        } else {
-          csound->Message(csound, "[semantics] DEBUG: Failed to expand struct member assignment\n");
         }
       }
 

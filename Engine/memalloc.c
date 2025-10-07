@@ -151,8 +151,6 @@ void *mcalloc(CSOUND *csound, size_t size)
     if (UNLIKELY(size == (size_t) 0)) {
       csound->DebugMsg(csound,
               " *** internal error: csound->Calloc() called with zero nbytes\n");
-      // Print some debug info to help identify the caller
-      csound->DebugMsg(csound, "DEBUG: Calloc(0) called - this should not happen\n");
       return NULL;
     }
 #endif
