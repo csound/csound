@@ -51,7 +51,8 @@ class ScriptProcessorNodeMainThread {
 
     // never default these, get it from
     // csound-worker before starting
-    this.sampleRate = undefined;
+    // Always extract sample rate from audioContext to ensure Csound matches it
+    this.sampleRate = audioContext ? audioContext.sampleRate : undefined;
     this.inputsCount = undefined;
     this.outputsCount = undefined;
     this.hardwareBufferSize = undefined;

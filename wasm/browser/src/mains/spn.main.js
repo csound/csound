@@ -196,7 +196,8 @@ class ScriptProcessorNodeSingleThread {
 
     if (isExpectingRealtimeOutput && this.currentPlayState !== "realtimePerformanceStarted") {
       this.result = 0;
-      this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
+      const result = this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
+      result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
       this.nchnls = -1;
       this.nchnls_i = -1;
 
@@ -340,7 +341,8 @@ class ScriptProcessorNodeSingleThread {
       libraryCsound.csoundReset(cs);
     }
 
-    libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+    const result = libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+    result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;

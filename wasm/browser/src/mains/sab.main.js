@@ -55,7 +55,8 @@ class SharedArrayBufferMainThread {
 
     this.audioStatePointer = new Int32Array(this.audioStateBuffer);
 
-    if (audioContextIsProvided) {
+    // Always extract sample rate from audioContext to ensure Csound matches it
+    if (audioContext) {
       Atomics.store(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE, audioContext.sampleRate);
     }
 

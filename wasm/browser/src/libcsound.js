@@ -21,6 +21,7 @@ import {
 } from "./modules/performance";
 import {
   csoundGetSr,
+  csoundSystemSr,
   csoundGetKr,
   csoundGetKsmps,
   csoundGetNchnls,
@@ -117,6 +118,7 @@ export const api = {
   csoundReset,
   // @module/attributes
   csoundGetSr,
+  csoundSystemSr,
   csoundGetKr,
   csoundGetKsmps,
   csoundGetNchnls,

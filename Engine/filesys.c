@@ -38,11 +38,6 @@
 #  define getcwd(x,y) _getcwd(x,y)
 #endif
 
-#if defined(__wasi__)
-#  include <unistd.h>
-#  define getcwd(x,y) "/"
-#endif
-
 #include "namedins.h"
 
 #if defined(MSVC)
@@ -232,7 +227,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
   (void) csound;
   (void) path;
   return NULL;
-#else  
+#else
     char *partialPath, *tempPath, *lastIndex;
     char *retval;
     char *cwd;
@@ -310,7 +305,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     csound->Free(csound, tempPath);
 
     return retval;
-#endif  
+#endif
 }
 
 static SNDFILE *csoundOpenFile_Snd(CSOUND *csound, const char *path, int32_t mode, SFLIB_INFO *sfinfo){
@@ -360,8 +355,10 @@ static FILE *csoundOpenFile_Std(CSOUND *csound, char **fullName,
         free(wmode);
       }
 #else
-      *fullName = (char*) filename;
       f = fopen(filename, (char*) mode);
+      if (LIKELY(f != NULL)) {
+        *fullName = (char*) filename;
+      }
 #endif
     }
 
