@@ -3514,6 +3514,20 @@ PUBLIC void csoundReset(CSOUND *csound) {
   csound->engineStatus |= CS_STATE_PRE;
   csound_aops_init_tables(csound);
   create_opcode_table(csound);
+  
+  /* Initialize core struct opcodes (always built-in, regardless of BUILD_PLUGINS) */
+  {
+    extern int32_t structops_localops_init(CSOUND *, void *);
+    OENTRY *opcodlst_n;
+    int64_t length = structops_localops_init(csound, (void *)&opcodlst_n);
+    if (length > 0) {
+      length /= (int64_t) sizeof(OENTRY);
+      if (length && csoundAppendOpcodes(csound, opcodlst_n, (int32_t) length) != 0) {
+        csound->Die(csound, Str("Failed to initialize struct opcodes"));
+      }
+    }
+  }
+  
   /* now load and pre-initialise external modules for this instance */
   /* this function returns an error value that may be worth checking */
   {

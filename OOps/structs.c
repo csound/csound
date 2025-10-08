@@ -32,22 +32,22 @@ extern void csound_free_struct_members(CSOUND* cs, CS_STRUCT_VAR* v);
 typedef struct {
     OPDS          h;
     MYFLT*        out;
-    CS_STRUCT_VAR*   var;
-    MYFLT*        nths[1];
+    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
+    MYFLT*        nths[1];      // Member index (constant)
 } STRUCT_GET;
 
 typedef struct {
     OPDS          h;
-    CS_STRUCT_VAR*   var;
-    MYFLT*        nths[1];
-    MYFLT*        in;
+    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
+    MYFLT*        nths[1];      // Member index (constant)
+    MYFLT*        in;           // Value to set
 } STRUCT_SET;
 
 typedef struct {
     OPDS          h;
-    CS_STRUCT_VAR*   var;
-    MYFLT*        nths[1];
-    ARRAYDAT*     in;
+    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
+    MYFLT*        nths[1];      // Member index (constant)
+    ARRAYDAT*     in;           // Array to assign
 } STRUCT_MEMBER_ARRAY_ASSIGN;
 
 typedef struct {
@@ -109,26 +109,23 @@ static int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p)
 
 static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
-  CS_STRUCT_VAR* varIn = p->var;
+  CS_STRUCT_VAR* varIn = (CS_STRUCT_VAR*)p->var;
 
   // Check if the member index pointer is NULL before dereferencing
   if (UNLIKELY(p->nths[0] == NULL)) {
     return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
   }
 
-  int nthInt = (int) *p->nths[0];
-
-
+  // Read the member index - it's passed as an i-rate value
+  MYFLT memberIndexFloat = *p->nths[0];
+  int nthInt = (int) memberIndexFloat;
 
   // Enhanced debug information
   if (varIn == NULL) {
-    csound->Message(csound, "[struct_member_get] ERROR: varIn is NULL!\n");
     return csound->PerfError(csound, &(p->h), "Invalid struct for member_get: varIn is NULL");
   }
 
   if (varIn->members == NULL) {
-    csound->Message(csound, "[struct_member_get] ERROR: varIn->members is NULL! varIn=%p, memberCount=%d, ownsMembers=%d\n",
-                    (void*)varIn, varIn->memberCount, varIn->ownsMembers);
     return csound->PerfError(csound, &(p->h), "Invalid struct for member_get: members is NULL");
   }
 
@@ -249,7 +246,7 @@ static int32_t struct_member_set_init_and_perf(CSOUND *csound, STRUCT_SET *p)
 
 static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 {
-  CS_STRUCT_VAR* var = p->var;
+  CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
 
   // Check if the member index pointer is NULL before dereferencing
   if (UNLIKELY(p->nths[0] == NULL)) {
@@ -288,7 +285,7 @@ static int32_t struct_member_array_assign(
     }
 
     int nthInt = (int) *p->nths[0];
-    CS_STRUCT_VAR* var = p->var;
+    CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
 
     if (UNLIKELY(var == NULL || var->members == NULL))
       return csound->PerfError(csound, &(p->h), "Invalid struct for member_array_assign");
@@ -569,15 +566,15 @@ static int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
 static OENTRY structops_localops[] = {
   { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]m", (SUBR)struct_array_get, NULL, NULL },
 
-  { "##member_get", sizeof(STRUCT_GET), 0, ".", ".c", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
-  { "##member_get.i", sizeof(STRUCT_GET), 0, "i", ".c", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
-  { "##member_get.k", sizeof(STRUCT_GET), 0, "k", ".c", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_get.S", sizeof(STRUCT_GET), 0, "S", ".c", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_get.a", sizeof(STRUCT_GET), 0, "a", ".c", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_get.b", sizeof(STRUCT_GET), 0, "b", ".c", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_set", sizeof(STRUCT_SET), 0, "", ".c.", (SUBR)struct_member_set_init_and_perf, (SUBR)struct_member_set, NULL },
+  { "##member_get", sizeof(STRUCT_GET), 0, ".", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
+  { "##member_get.i", sizeof(STRUCT_GET), 0, "i", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
+  { "##member_get.k", sizeof(STRUCT_GET), 0, "k", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_get.S", sizeof(STRUCT_GET), 0, "S", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_get.a", sizeof(STRUCT_GET), 0, "a", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_get.b", sizeof(STRUCT_GET), 0, "b", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_set", sizeof(STRUCT_SET), 0, "", ".i.", (SUBR)struct_member_set_init_and_perf, (SUBR)struct_member_set, NULL },
   { "##member_array_assign", sizeof(STRUCT_MEMBER_ARRAY_ASSIGN),
-    0, "", ".c.[]", (SUBR)struct_member_array_assign, NULL, NULL },
+    0, "", ".i.[]", (SUBR)struct_member_array_assign, NULL, NULL },
   { "##struct_alias", sizeof(STRUCT_ALIAS), 0, "", "..", (SUBR)struct_alias, NULL, (SUBR)struct_alias_deinit },
 
   // Generic struct initialization opcodes - these will be registered dynamically for each struct type
