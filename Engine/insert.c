@@ -1496,7 +1496,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 {
   INSTRTXT  *tp;
   INSDS     *ip;
-  OPTXT     *optxt, *anchor;
+  OPTXT     *optxt;
   OPDS      *opds, *prvids, *prvpds, *prvpdd;
   const OENTRY  *ep;
   int32_t       i, n, pextent, pextra, pextrab;
@@ -1506,7 +1506,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   char*     opMemStart;
 
   OPARMS    *O = csound->oparms;
-  int32_t       odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
+  int32_t   odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
   ARG*      arg;
   int32_t       argStringCount;
   CS_VARIABLE* current;
@@ -1579,7 +1579,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
-  anchor = optxt;
+  
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
@@ -1745,7 +1745,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
      csoundGetDebug(csound) & DEBUG_INSTR) {
     csound->Message(csound, "instantiated instr %d\n", ip->insno);
-    optxt = anchor;
+    optxt = (OPTXT*) tp;
     while ((optxt = optxt->nxtop) != NULL) {
       csound->Message(csound, "  ");
       print_opcall(csound, &(optxt->t));
