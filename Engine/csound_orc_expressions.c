@@ -3182,7 +3182,6 @@ static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, in
         int printed = 0;
         while (cc) {
           CS_VARIABLE* mv = (CS_VARIABLE*)cc->value;
-          csound->Message(csound, "%s%s", printed ? ", " : "", mv && mv->varName ? mv->varName : "(null)");
           printed = 1;
           if (!strcmp(mv->varName, memberName)) {
             memberIndex = i;
@@ -3191,7 +3190,6 @@ static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, in
           i++;
           cc = cc->next;
         }
-        csound->Message(csound, "\n");
       }
 
       char indexBuf[32];

@@ -20,8 +20,13 @@
    02110-1301 USA
 */
 
+
+#include <ctype.h>
+#include <math.h>
 #include "array_ops.h"
-#include "csound_orc_semantics.h" /* CS_STRUCT_VAR for struct array aliasing */
+#include "csound_orc_semantics.h"
+#include "csound_standard_types.h"
+
 
 int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -29,13 +34,6 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   int32_t i, size;
 
   int32_t inArgCount = p->INOCOUNT;
-
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "TRACE array_init: arrayDat=%p inArgCount=%d outVarType=%s arrayType=%p\n",
-                    (void*)arrayDat, inArgCount,
-                    (arrayDat && arrayDat->arrayType && arrayDat->arrayType->varTypeName) ? arrayDat->arrayType->varTypeName : "(null)",
-                    (void*)(arrayDat ? arrayDat->arrayType : NULL));
-  }
 
   if (UNLIKELY(inArgCount == 0))
     return
@@ -77,7 +75,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   }
 
   {
-    // Safety: check for NULL arrayType and try to recover
+    // Safety: check for NULL arrayType
     if (arrayDat->arrayType == NULL) {
       // Try to recover by extracting struct type from opcode name
       const char* opname = p->h.optext && p->h.optext->t.oentry ? p->h.optext->t.oentry->opname : NULL;
@@ -86,10 +84,6 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
         CS_TYPE* structType = (CS_TYPE*)csoundGetTypeWithVarTypeName(csound->typePool, typeName);
         if (structType) {
           arrayDat->arrayType = structType;
-          if (csound->GetDebug(csound)) {
-            csound->Message(csound, "RECOVERED: set arrayType=%p for struct type '%s'\n",
-                            (void*)structType, typeName);
-          }
         }
       }
 
@@ -112,17 +106,9 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
   }
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "TRACE array_init: dimensions=%d size0=%d allocated=%zu memberSize=%d data=%p\n",
-                    arrayDat->dimensions,
-                    (arrayDat->sizes? arrayDat->sizes[0]: -1),
-                    arrayDat->allocated,
-                    arrayDat->arrayMemberSize,
-                    (void*)arrayDat->data);
-  }
   return OK;
 }
-#include "csound_standard_types.h"
+
 int32_t tabfill(CSOUND *csound, TABFILL *p)
 {
   int32_t    nargs = p->INOCOUNT;
@@ -166,8 +152,6 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   return OK;
 }
 
-#include <ctype.h>
-#include <math.h>
 
 static MYFLT nextval(FILE *f)
 {
@@ -402,10 +386,6 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     } else {
       /* No metadata: assume 1-D flat array and use the provided index */
       index = (i==0) ? end : (index * 0 + end);
-      if (csound->GetDebug(csound)) {
-        csound->Message(csound, "ARRAY_SET: final dst=%p firstValBefore=%f\n",
-                        (void*)mem, (mem? *((MYFLT*)mem) : 0.0));
-      }
     }
   }
   incr = (index * (dat->arrayMemberSize / (uint32_t)sizeof(MYFLT)));
@@ -449,7 +429,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
 
 
   if (dat == NULL) {
-    csound->Message(csound, "ERROR: array_get called with NULL arrayDat!\n");
+    csound->ErrorMsg(csound, "ERROR: array_get called with NULL arrayDat!\n");
     return NOTOK;
   }
 
@@ -474,8 +454,6 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     if (!(dat && dat->dimensions == 0)) {
       return csound->PerfError(csound, &(p->h),
                                Str("Array dimension %d out of range "
-
-
                                    "for dimensions %d"),
                                indefArgCount, dat ? dat->dimensions : -1);
     }
@@ -784,10 +762,7 @@ int32_t tabadd(CSOUND *csound, TABARITH *p)
 
   ARRAYDAT *l   = p->left;
   ARRAYDAT *r   = p->right;
-  /* Unconditional debug while diagnosing array arithmetic */
-  csound->Message(csound, "TABADD: entering ans=%p l=%p r=%p l0=%f r0=%f\n",
-                  (void*)ans, (void*)l, (void*)r,
-                  (l && l->data ? l->data[0] : 0.0), (r && r->data ? r->data[0] : 0.0));
+
   int32_t sizel    = l->sizes[0];
   int32_t sizer    = r->sizes[0];
   int32_t i;
@@ -796,19 +771,14 @@ int32_t tabadd(CSOUND *csound, TABARITH *p)
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("array-variable not initialised"));
 
-  csound->Message(csound, "TABADD: before loop l0=%f r0=%f\n",
-                  l->data ? l->data[0] : 0.0, r->data ? r->data[0] : 0.0);
-
   for (i=1; i<ans->dimensions; i++) {
     sizel*=l->sizes[i];
     sizer*=r->sizes[i];
   }
   if (sizer<sizel) sizel= sizer;
-  for (i=0; i<sizel; i++)
+  for (i=0; i<sizel; i++) {
     ans->data[i] = l->data[i] + r->data[i];
-  csound->Message(csound, "TABADD: after loop ans0=%f\n",
-                  ans->data ? ans->data[0] : 0.0);
-
+  }
   return OK;
 }
 

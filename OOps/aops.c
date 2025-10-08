@@ -1118,7 +1118,6 @@ int32_t octpch(CSOUND *csound, EVAL *p)
   fract = modf(in, &oct);
   fract *= EIPT3;
   *p->r = (MYFLT)(oct + fract);
-  csound->Message(csound, "DEBUG octpch: in=%f -> out=%f\n", in, (double)*p->r);
   return OK;
 }
 
@@ -1129,7 +1128,6 @@ int32_t pchoct(CSOUND *csound, EVAL *p)
   fract = modf(in, &oct);
   fract *= 0.12;
   *p->r = (MYFLT)(oct + fract);
-  csound->Message(csound, "DEBUG pchoct: in=%f -> out=%f\n", in, (double)*p->r);
   return OK;
 }
 
@@ -1137,7 +1135,6 @@ int32_t cpsoct(CSOUND *csound, EVAL *p)
 {
   int32_t loct = (int32_t)(*p->a * OCTRES);
   *p->r = (MYFLT)CPSOCTL(loct);
-  csound->Message(csound, "DEBUG cpsoct: in=%f a=%p loct=%d -> out=%f r=%p\n", (double)*p->a, (void*)p->a, (int)loct, (double)*p->r, (void*)p->r);
   return OK;
 }
 
@@ -1166,7 +1163,6 @@ int32_t acpsoct(CSOUND *csound, EVAL *p)
 int32_t octcps(CSOUND *csound, EVAL *p)
 {
   *p->r = (LOG(*p->a /(MYFLT)ONEPT) / (MYFLT)LOGTWO);
-  csound->Message(csound, "DEBUG octcps: in=%f -> out=%f\n", (double)*p->a, (double)*p->r);
   return OK;
 }
 
@@ -1179,8 +1175,6 @@ int32_t cpspch(CSOUND *csound, EVAL *p)
   fract *= EIPT3;
   loct = (int32_t)MYFLT2LRND((oct + fract) * OCTRES);
   *p->r = (MYFLT)CPSOCTL(loct);
-  csound->Message(csound, "DEBUG cpspch: in=%f a=%p oct=%f fract=%f loct=%d -> out=%f r=%p\n",
-                  in, (void*)p->a, oct, fract, (int)loct, (double)*p->r, (void*)p->r);
   return OK;
 }
 
@@ -2522,12 +2516,6 @@ int32_t pinit(CSOUND *csound, PINIT *p)
       csound->Warning(csound, "%s", Str("More arguments than p fields"));
     pargs -= (int)*p->end;
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
-      if (csound->GetDebug(csound)) {
-        MYFLT pv = csound->init_event->p[n+start];
-        csound->Message(csound, "passign p[%d]=%s\n", (int)(n+start),
-                        IsStringCode(pv) ? "<string>" : "<number>");
-      }
-
       // Use proper type checking to determine if output is string
       CS_TYPE *outType = GetTypeForArg(p->inits[n]);
       int isStringOutput = (outType != NULL &&
@@ -2614,42 +2602,7 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
 
 
 int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
-  // DEBUG: Add debug output to see what's happening
-  csound->Message(csound, "[get_instr_num] DEBUG: Called with p->in=%p p->in->instr=%p p->offs=%f\n",
-                  (void*)p->in, (void*)p->in->instr, *p->offs);
-
-  // DEBUG: Try to find the variable in all pools to see if it exists elsewhere
-  if (csound->engineState.varPool) {
-    CS_VARIABLE* var = csound->engineState.varPool->head;
-    while (var != NULL) {
-      if (var->varName && strcmp(var->varName, "test2") == 0) {
-        if (var->memBlock) {
-          INSTREF* instref = (INSTREF*)&((CS_VAR_MEM*)var->memBlock)->value;
-          csound->Message(csound, "[get_instr_num] DEBUG: Found test2 in engine pool: var=%p instref=%p instr=%p\n",
-                          (void*)var, (void*)instref, (void*)instref->instr);
-        }
-      }
-      var = var->next;
-    }
-  }
-
-  if (csound->curip && csound->curip->instr && csound->curip->instr->varPool) {
-    CS_VARIABLE* var = csound->curip->instr->varPool->head;
-    while (var != NULL) {
-      if (var->varName && strcmp(var->varName, "test2") == 0) {
-        if (var->memBlock) {
-          INSTREF* instref = (INSTREF*)&((CS_VAR_MEM*)var->memBlock)->value;
-          csound->Message(csound, "[get_instr_num] DEBUG: Found test2 in local pool: var=%p instref=%p instr=%p\n",
-                          (void*)var, (void*)instref, (void*)instref->instr);
-        }
-      }
-      var = var->next;
-    }
-  }
-
   int32_t result = instr_num(csound, p->in->instr);
-  csound->Message(csound, "[get_instr_num] DEBUG: instr_num returned %d, final result=%d\n",
-                  result, result + (int32_t)*p->offs);
   *p->out = result + *p->offs;
   return OK;
 }

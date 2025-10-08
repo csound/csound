@@ -132,10 +132,6 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
   INSDS     *active;
   INSTRTXT  *txtp;
 
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "DEBUG: delete_instr called at deinit time\n");
-  }
-
   if (IS_STR_ARG(p->insno))
     n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   else if (GetTypeForArg(p->insno) == &CS_VAR_TYPE_INSTR) {
@@ -199,15 +195,9 @@ int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p)
   INSDS     *active;
   INSTRTXT  *txtp;
 
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "DEBUG: delete_instrdef_opcode called at deinit time\n");
-  }
 
   n = instr_num(csound, p->instr->instr);
 
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound, "DEBUG: delete_instrdef_opcode: instrument number = %d\n", n);
-  }
 
   if (UNLIKELY(n == NOT_AN_INSTRUMENT ||
                n > csound->engineState.maxinsno ||

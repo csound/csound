@@ -629,7 +629,6 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
-  csound->Message(csound, "[xoutset] called: inm=%p outchns=%d passByRef=%d\n", (void*)inm, inm ? inm->outchns : -1, inm ? inm->passByRef : -1);
   udo = (UOPCODE*) buf->uopcode_struct;
   bufs = udo->ar;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
@@ -656,13 +655,9 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     if (outType == &CS_VAR_TYPE_ARRAY) {
       ARRAYDAT* aIn = (ARRAYDAT*) in;
       ARRAYDAT* aOutHdr = *((ARRAYDAT**) out);
-      csound->Message(csound, "[xoutset] ARRAY alias: in=%p in->data=%p dstCell=%p prevDstHdr=%p\n",
-                      (void*)aIn, aIn ? (void*)aIn->data : NULL, out, (void*)aOutHdr);
       // Alias: write the local array header pointer into the caller's variable cell
       *((void**)out) = in;
       aOutHdr = *((ARRAYDAT**) out);
-      csound->Message(csound, "[xoutset] ARRAY after alias: dstHdr=%p dstHdr->data=%p\n",
-                      (void*)aOutHdr, aOutHdr ? (void*)aOutHdr->data : NULL);
       // no copyValue; arrays are shared by pointer
       continue;
     }

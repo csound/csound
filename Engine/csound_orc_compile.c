@@ -2198,8 +2198,6 @@ if (engineState != &csound->engineState) {
    merge stage.
 */
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
-  if (csound->GetDebug(csound))
-    csound->Message(csound, "[orc] ENTER csound_compile_orc (pre-parse)\n");
   TREE *root;
   int32_t retVal = 1;
   volatile jmp_buf tmpExitJmp;
@@ -2212,10 +2210,7 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
 
   add_opcode_defs(csound);
   root = csoundParseOrc(csound, str);
-  if (csound->GetDebug(csound))
-    csound->Message(csound, "[orc] post-parse root=%p markup=%p\n", (void*)root, root ? root->markup : NULL);
   if (LIKELY(root != NULL)) {
-
     // Parser already ran verify_tree; do not re-verify here to avoid pool/markup reentrancy hazards
     TYPE_TABLE* typeTable = (TYPE_TABLE*)root->markup;
     if (typeTable == NULL) {
@@ -2223,14 +2218,6 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
       csoundDeleteTree(csound, root);
       memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
       return CSOUND_ERROR;
-    }
-    if (csound->GetDebug(csound)) {
-      csound->Message(csound,
-        "[orc] TYPE_TABLE=%p globalPool=%p(table=%p) instr0LocalPool=%p(table=%p) localPool=%p(table=%p)\n",
-        (void*)typeTable,
-        (void*)typeTable->globalPool, typeTable->globalPool ? (void*)typeTable->globalPool->table : NULL,
-        (void*)typeTable->instr0LocalPool, typeTable->instr0LocalPool ? (void*)typeTable->instr0LocalPool->table : NULL,
-        (void*)typeTable->localPool, typeTable->localPool ? (void*)typeTable->localPool->table : NULL);
     }
     retVal = csound_compile_tree(csound, root, async);
 #ifdef PARCS

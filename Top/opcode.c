@@ -825,11 +825,6 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     }
     else if(*types == 'p' || *types == 'P') {
       if(n < no + 1 + ni && args[n] != NULL) {
-        if (UNLIKELY(csound->GetDebug(csound))) {
-          csound->Message(csound,
-                          "setup_args: optional 'p' for %s using PASSED arg at in-index=%d/ni=%d\n",
-                          ep->opname ? ep->opname : "(null)", n, ni);
-        }
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P) {
@@ -842,11 +837,6 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         inargs[i++] = args[n++];
       }
       else {
-        if (UNLIKELY(csound->GetDebug(csound))) {
-          csound->Message(csound,
-                          "setup_args: optional 'p' for %s DEFAULTED to 1 (in-index=%d/ni=%d)\n",
-                          ep->opname ? ep->opname : "(null)", n, ni);
-        }
         inargs[i++] = set_constant(csound, "1", 1);
         opt++;
       }
