@@ -272,11 +272,11 @@ static void print_opcall(CSOUND *csound, TEXT *tp)
   char *name;
   ARG *arg;
   
-  if ((n = tp->outlist->count) != 0) {
+  if (tp->outlist && (n = tp->outlist->count) != 0) {
     nn = 0;
     arg = tp->outArgs;
     CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = var->varType->varTypeName; 
+    char *type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName; 
     char  arrtype[64]; 
     while (n-- > 1) {
       if(*type == '[') {
@@ -286,7 +286,7 @@ static void print_opcall(CSOUND *csound, TEXT *tp)
       csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
       arg = arg->next;
       var = (CS_VARIABLE *) arg->argPtr;
-      type = var->varType->varTypeName;
+      type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
     }
     if(*type == '[') {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
@@ -298,11 +298,15 @@ static void print_opcall(CSOUND *csound, TEXT *tp)
     csound->Message(csound, " ");
   name = strip_extension(csound, tp->opcod);
   csound->Message(csound, "%s ", name);
-  if ((n = tp->inlist->count) != 0) {
+  if (tp->inlist  && (n = tp->inlist->count) != 0) {
     nn = 0;
     arg = tp->inArgs;
     CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = var->varType->varTypeName;
+    char *type = arg->type == ARG_CONSTANT ? "c" :
+      (arg->type == ARG_STRING ? "S" :
+       (arg->type == ARG_PFIELD ? "p" :
+        (arg->type == ARG_LABEL ? "l" :
+         var->varType->varTypeName)));
     char  arrtype[64]; 
     while (n-- > 1) {
       if(*type == '[') {
@@ -312,7 +316,11 @@ static void print_opcall(CSOUND *csound, TEXT *tp)
       csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
       arg = arg->next;
       var = (CS_VARIABLE *) arg->argPtr;
-      type = var->varType->varTypeName;
+      type = arg->type == ARG_CONSTANT ? "c" :
+      (arg->type == ARG_STRING ? "S" :
+       (arg->type == ARG_PFIELD ? "p" :
+        (arg->type == ARG_LABEL ? "l" :
+         var->varType->varTypeName)));;
     }
     if(*type == '[') {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
@@ -1488,7 +1496,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 {
   INSTRTXT  *tp;
   INSDS     *ip;
-  OPTXT     *optxt;
+  OPTXT     *optxt, *anchor;
   OPDS      *opds, *prvids, *prvpds, *prvpdd;
   const OENTRY  *ep;
   int32_t       i, n, pextent, pextra, pextrab;
@@ -1571,7 +1579,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
-
+  anchor = optxt;
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
@@ -1731,6 +1739,18 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
                         arg->type);
       }
     }
+
+  }
+  /* display instantiated instrument */
+  if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
+     csoundGetDebug(csound) & DEBUG_INSTR) {
+    csound->Message(csound, "instantiated instr %d\n", ip->insno);
+    optxt = anchor;
+    while ((optxt = optxt->nxtop) != NULL) {
+      csound->Message(csound, "  ");
+      print_opcall(csound, &(optxt->t));
+    }
+    csound->Message(csound, "endin (instr %d)\n", ip->insno);
   }
   
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,
