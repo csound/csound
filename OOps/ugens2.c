@@ -1253,8 +1253,7 @@ int32_t koscli(CSOUND *csound, OSC   *p)
                            Str("oscili(krate): not initialised"));
 }
 
-int32_t osckki(CSOUND *csound, OSC   *p)
-{
+int32_t osckki(CSOUND *csound, OSC   *p){
   FUNC    *ftp;
   MYFLT   fract, v1, amp, *ar, *ft, *ftab;
   int32_t   phs, inc, lobits;
@@ -1262,31 +1261,27 @@ int32_t osckki(CSOUND *csound, OSC   *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
-  if(!IS_ASIG_ARG(p->sr))
-    return csound->PerfError(csound, &(p->h), "output is not asig\n") ;
-
-
-    if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
-    lobits = ftp->lobits;
-    phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
-    amp = *p->xamp;
-    ar = p->sr;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    ft = ftp->ftable;
-    for (n=offset; n<nsmps; n++) {
-      fract = PFRAC(phs);
-      ftab = ft + (phs >> lobits);
-      v1 = ftab[0];
-      ar[n] = (v1 + (ftab[1] - v1) * fract) * amp;
-      phs = (phs+inc) & PHMASK;
-    }
-    p->lphs = phs;
-    return OK;
+  if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
+  lobits = ftp->lobits;
+  phs = p->lphs;
+  inc = MYFLT2LONG(*p->xcps * CS_SICVT);
+  amp = *p->xamp;
+  ar = p->sr;
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+  }
+  ft = ftp->ftable;
+  for (n=offset; n<nsmps; n++) {
+    fract = PFRAC(phs);
+    ftab = ft + (phs >> lobits);
+    v1 = ftab[0];
+    ar[n] = (v1 + (ftab[1] - v1) * fract) * amp;
+    phs = (phs+inc) & PHMASK;
+  }
+  p->lphs = phs;
+  return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
                            Str("oscili: not initialised"));
