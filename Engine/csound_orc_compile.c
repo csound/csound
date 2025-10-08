@@ -667,7 +667,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
              strcmp(lhs, "ksmps") == 0 || strcmp(lhs, "nchnls") == 0 ||
              strcmp(lhs, "nchnls_i") == 0 || strcmp(lhs, "0dbfs") == 0 ||
              strcmp(lhs, "A4") == 0)) {
-          MYFLT val = (MYFLT) cs_strtod(rhs, NULL);
+          MYFLT val = (MYFLT) cs_strtod((char *) rhs, NULL);
           /* systems constants get set here and are not compiled into i-time code */
           find_or_add_constant(csound, csound->engineState.constantsPool, rhs, val);
           if (strcmp("sr", lhs) == 0) {
@@ -1919,9 +1919,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     } else  memset(&varMem->value , 0, var->memBlockSize);
 
     // Ensure global arrays have proper ARRAYDAT structure
-    if (var->varType == &CS_VAR_TYPE_ARRAY) {
-      ARRAYDAT *arrayDat = (ARRAYDAT*)&varMem->value;
-    }
+    //if (var->varType == &CS_VAR_TYPE_ARRAY) {
+    //  ARRAYDAT *arrayDat = (ARRAYDAT*)&varMem->value;
+    //}
 
     }
     var = var->next;

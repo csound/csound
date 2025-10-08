@@ -4214,9 +4214,9 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
 
   // Phase 2: Resolve all struct members and register opcodes
   current = structDefList;
-  int structCount = 0;
+  //int structCount = 0;
   while (current != NULL) {
-    structCount++;
+    //structCount++;
     if (current->type == STRUCT_TOKEN) {
       char* structName = current->left->value->lexeme;
       if (!add_struct_definition(csound, current)) {
