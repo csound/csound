@@ -266,16 +266,33 @@ int32_t init0(CSOUND *csound)
   return csound->inerrcnt;                        /*   return errcnt      */
 }
 
-static void putop(CSOUND *csound, TEXT *tp)
+static void print_opcall(CSOUND *csound, TEXT *tp)
 {
   int32_t n, nn;
   char *name;
+  ARG *arg;
   
   if ((n = tp->outlist->count) != 0) {
     nn = 0;
-    while (n-- > 1)
-      csound->Message(csound, "%s,", tp->outlist->arg[nn++]);
-    csound->Message(csound, "%s ", tp->outlist->arg[nn++]);
+    arg = tp->outArgs;
+    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
+    char *type = var->varType->varTypeName; 
+    char  arrtype[64]; 
+    while (n-- > 1) {
+      if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+      }  
+      csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
+      arg = arg->next;
+      var = (CS_VARIABLE *) arg->argPtr;
+      type = var->varType->varTypeName;
+    }
+    if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+    }    
+    csound->Message(csound, "%s:%s ", tp->outlist->arg[nn++], type);
   }
   else
     csound->Message(csound, " ");
@@ -283,9 +300,25 @@ static void putop(CSOUND *csound, TEXT *tp)
   csound->Message(csound, "%s ", name);
   if ((n = tp->inlist->count) != 0) {
     nn = 0;
-    while (n-- > 1)
-      csound->Message(csound, "%s,", tp->inlist->arg[nn++]);
-    csound->Message(csound, "%s", tp->inlist->arg[nn++]);
+    arg = tp->inArgs;
+    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
+    char *type = var->varType->varTypeName;
+    char  arrtype[64]; 
+    while (n-- > 1) {
+      if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+      }        
+      csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
+      arg = arg->next;
+      var = (CS_VARIABLE *) arg->argPtr;
+      type = var->varType->varTypeName;
+    }
+    if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+    }      
+    csound->Message(csound, "%s:%s", tp->inlist->arg[nn++], type);
   }
   csound->Message(csound, "\n");
 }
@@ -1319,7 +1352,7 @@ int32_t csoundInitError(CSOUND *csound, const char *s, ...)
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
   do_baktrace(csound, csound->ids->optext->t.locn);
-  putop(csound, &(csound->ids->optext->t));
+  print_opcall(csound, &(csound->ids->optext->t));
   return ++(csound->inerrcnt);
 }
 
@@ -1356,7 +1389,7 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
   if (ip->pds)
-    putop(csound, &(ip->pds->optext->t));
+    print_opcall(csound, &(ip->pds->optext->t));
   csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
