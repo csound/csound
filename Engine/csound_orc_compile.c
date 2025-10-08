@@ -2037,7 +2037,7 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
   if(tp != e->instxtanchor.nxtinstxt)
     csoundMessage(csound, "instr %s\n ", tp->insname ? tp->insname : "");
   else if(optxt->nxtop != NULL)
-    csoundMessage(csound, "\n");
+    csoundMessage(csound, "\n ");
   
   while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
     TEXT *ttp = &optxt->t;

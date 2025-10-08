@@ -266,11 +266,17 @@ int32_t init0(CSOUND *csound)
   return csound->inerrcnt;                        /*   return errcnt      */
 }
 
-static void print_opcall(CSOUND *csound, TEXT *tp)
+static int32_t print_opcall(CSOUND *csound, TEXT *tp)
 {
   int32_t n, nn;
   char *name;
   ARG *arg;
+
+  if(!strcmp(tp->opcod, "endin") ||
+     !strcmp(tp->opcod, "endop")) {
+    csound->Message(csound, "%sn", tp->opcod);
+    return 0;
+  }
   
   if (tp->outlist && (n = tp->outlist->count) != 0) {
     nn = 0;
@@ -294,8 +300,6 @@ static void print_opcall(CSOUND *csound, TEXT *tp)
     }    
     csound->Message(csound, "%s:%s ", tp->outlist->arg[nn++], type);
   }
-  else
-    csound->Message(csound, " ");
   name = strip_extension(csound, tp->opcod);
   csound->Message(csound, "%s ", name);
   if (tp->inlist  && (n = tp->inlist->count) != 0) {
@@ -328,7 +332,8 @@ static void print_opcall(CSOUND *csound, TEXT *tp)
     }      
     csound->Message(csound, "%s:%s", tp->inlist->arg[nn++], type);
   }
-  csound->Message(csound, "\n");
+  csound->Message(csound,"\n");
+  return 1;
 }
 
 static void set_xtratim(CSOUND *csound, INSDS *ip)
@@ -1396,9 +1401,10 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
-  if (ip->pds)
+  if (ip->pds) {
     print_opcall(csound, &(ip->pds->optext->t));
-  csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));
+  }
+  csoundErrorMsg(csound, "%s",  Str("...event aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
   return csound->perferrcnt;                /* contin from there */
@@ -1744,13 +1750,17 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   /* display instantiated instrument */
   if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
      csoundGetDebug(csound) & DEBUG_INSTR) {
-    csound->Message(csound, "instantiated instr %d\n", ip->insno);
+    csoundMessage(csound, "instantiated instr %d\n", ip->insno);
     optxt = (OPTXT*) tp;
     while ((optxt = optxt->nxtop) != NULL) {
-      csound->Message(csound, "  ");
-      print_opcall(csound, &(optxt->t));
+      if(strcmp(optxt->t.opcod, "endin") &&
+         strcmp(optxt->t.opcod, "endop")) {
+         csound->Message(csound, " ");
+         print_opcall(csound, &(optxt->t));
+      }
     }
-    csound->Message(csound, "endin (instr %d)\n", ip->insno);
+    
+    csoundMessage(csound, "endin (instr %d)\n", ip->insno);
   }
   
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,
