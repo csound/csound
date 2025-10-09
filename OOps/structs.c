@@ -25,6 +25,7 @@
 #include "interlocks.h"
 #include "csound_standard_types.h"
 #include "csound_orc_structs.h"  /* CS_STRUCT_VAR + free helper */
+#include <math.h>  /* for fabs */
 
 /* Free helper from semantics for deep-freeing member arrays safely */
 extern void csound_free_struct_members(CSOUND* cs, CS_STRUCT_VAR* v);
@@ -34,6 +35,8 @@ typedef struct {
     MYFLT*        out;
     MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
     MYFLT*        nths[1];      // Member index (constant)
+    int32_t       memberIndex;  // Cached member index value (initialized once)
+    int32_t       initialized;  // Flag to indicate if memberIndex is cached
 } STRUCT_GET;
 
 typedef struct {
@@ -41,6 +44,8 @@ typedef struct {
     MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
     MYFLT*        nths[1];      // Member index (constant)
     MYFLT*        in;           // Value to set
+    int32_t       memberIndex;  // Cached member index value (initialized once)
+    int32_t       initialized;  // Flag to indicate if memberIndex is cached
 } STRUCT_SET;
 
 typedef struct {
@@ -93,6 +98,31 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p);
 /* Built-in struct member get/set SUBRs (generic, any struct) */
 static int32_t struct_member_get_init(CSOUND *csound, STRUCT_GET *p)
 {
+  // The structure is zero-initialized by Calloc, so p->initialized == 0 and p->memberIndex == 0
+  // Try to read and cache the member index immediately during init if it's available
+
+  if (p->nths[0] != NULL && p->var != NULL) {
+    MYFLT memberIndexFloat = *p->nths[0];
+
+    // Convert to int and check if it's a reasonable member index
+    // Member indices are small non-negative integers
+    int nthInt = (int)memberIndexFloat;
+
+    // If the float value is close to the integer value and within reasonable range, cache it
+    if (nthInt >= 0 && nthInt < 1000 && fabs(memberIndexFloat - (MYFLT)nthInt) < 0.5) {
+      p->memberIndex = nthInt;
+      p->initialized = 1;
+    } else {
+      // Value looks uninitialized - this is a critical initialization bug
+      return csound->InitError(csound,
+        "Member index not properly initialized (value=%f). "
+        "This appears to be a UDO argument initialization bug in Csound.",
+        memberIndexFloat);
+    }
+  } else {
+    return csound->InitError(csound, "Member index or struct pointer is NULL during init");
+  }
+
   return OK;
 }
 
@@ -109,45 +139,65 @@ static int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p)
 
 static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
-  CS_STRUCT_VAR* varIn = (CS_STRUCT_VAR*)p->var;
-
-  // Check if the member index pointer is NULL before dereferencing
-  if (UNLIKELY(p->nths[0] == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
-  }
-
-  // Read the member index - it's passed as an i-rate value
-  MYFLT memberIndexFloat = *p->nths[0];
-  int nthInt = (int) memberIndexFloat;
-
-  // Enhanced debug information
-  if (varIn == NULL) {
-    return csound->PerfError(csound, &(p->h), "Invalid struct for member_get: varIn is NULL");
-  }
-
-  if (varIn->members == NULL) {
-    return csound->PerfError(csound, &(p->h), "Invalid struct for member_get: members is NULL");
-  }
-
-  if (UNLIKELY(varIn == NULL || varIn->members == NULL))
-    return csound->PerfError(csound, &(p->h), "Invalid struct for member_get");
-
-  // Safety: detect type confusion (ARRAYDAT being accessed as CS_STRUCT_VAR)
-  if (UNLIKELY(varIn->memberCount <= 0 || varIn->memberCount > 1000)) {
-    // This might be an ARRAYDAT being accessed as CS_STRUCT_VAR (type confusion)
-    ARRAYDAT* arrayDat = (ARRAYDAT*)varIn;
-    if (arrayDat->arrayType && arrayDat->arrayType->userDefinedType) {
-      return csound->PerfError(csound, &(p->h),
-        "Type confusion: trying to access array of structs as single struct. "
-        "Use array[index].member syntax instead of array.member");
+  // Lazy initialization: cache the member index on first access
+  // This ensures arguments are fully initialized before we read them
+  if (UNLIKELY(!p->initialized)) {
+    // Check if the member index pointer is NULL before dereferencing
+    if (UNLIKELY(p->nths[0] == NULL)) {
+      return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
     }
-    return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", varIn->memberCount);
-  }
-  if (UNLIKELY(nthInt < 0 || nthInt >= varIn->memberCount)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, varIn->memberCount);
+
+    // Check if p->var is NULL before casting
+    if (UNLIKELY(p->var == NULL)) {
+      return csound->PerfError(csound, &(p->h), "Invalid struct pointer (NULL)");
+    }
+
+    CS_STRUCT_VAR* varIn = (CS_STRUCT_VAR*)p->var;
+
+    // Enhanced debug information
+    if (UNLIKELY(varIn == NULL || varIn->members == NULL)) {
+      return csound->PerfError(csound, &(p->h), "Invalid struct for member_get");
+    }
+
+    // Safety: detect type confusion (ARRAYDAT being accessed as CS_STRUCT_VAR)
+    if (UNLIKELY(varIn->memberCount <= 0 || varIn->memberCount > 1000)) {
+      // This might be an ARRAYDAT being accessed as CS_STRUCT_VAR (type confusion)
+      ARRAYDAT* arrayDat = (ARRAYDAT*)varIn;
+      if (arrayDat->arrayType && arrayDat->arrayType->userDefinedType) {
+        return csound->PerfError(csound, &(p->h),
+          "Type confusion: trying to access array of structs as single struct. "
+          "Use array[index].member syntax instead of array.member");
+      }
+      return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", varIn->memberCount);
+    }
+
+    // Read and validate the member index - it should be an i-rate constant
+    // The value is written during opcode setup, but there can be a timing issue
+    // Check if the value looks initialized (reasonable range for a member index)
+    MYFLT memberIndexFloat = *p->nths[0];
+
+    // Sanity check: member indices are small integers, typically 0-100
+    // If the value looks uninitialized (e.g., very large or INT_MIN), it's likely not ready yet
+    if (UNLIKELY(memberIndexFloat < -100.0 || memberIndexFloat > 10000.0)) {
+      return csound->PerfError(csound, &(p->h),
+        "Member index appears uninitialized (value=%f). This is likely a compiler/initialization bug.",
+        memberIndexFloat);
+    }
+
+    int nthInt = (int) memberIndexFloat;
+
+    if (UNLIKELY(nthInt < 0 || nthInt >= varIn->memberCount)) {
+      return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, varIn->memberCount);
+    }
+
+    // Cache the validated member index
+    p->memberIndex = nthInt;
+    p->initialized = 1;
   }
 
-  CS_VAR_MEM* member = varIn->members[nthInt];
+  // Use the cached member index
+  CS_STRUCT_VAR* varIn = (CS_STRUCT_VAR*)p->var;
+  CS_VAR_MEM* member = varIn->members[p->memberIndex];
 
 
 
@@ -228,6 +278,19 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 
 static int32_t struct_member_set_init(CSOUND *csound, STRUCT_SET *p)
 {
+  // The structure is zero-initialized by Calloc, so p->initialized == 0 and p->memberIndex == 0
+  // Try to read and cache the member index immediately during init if it's available
+  if (p->nths[0] != NULL && p->var != NULL) {
+    MYFLT memberIndexFloat = *p->nths[0];
+    int nthInt = (int)memberIndexFloat;
+
+    // If the float value is close to the integer value and within reasonable range, cache it
+    if (nthInt >= 0 && nthInt < 100 && fabs(memberIndexFloat - (MYFLT)nthInt) < 0.5) {
+      p->memberIndex = nthInt;
+      p->initialized = 1;
+    }
+  }
+
   return OK;
 }
 
@@ -246,18 +309,52 @@ static int32_t struct_member_set_init_and_perf(CSOUND *csound, STRUCT_SET *p)
 
 static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 {
-  CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
+  // Lazy initialization: cache the member index on first access
+  // This ensures arguments are fully initialized before we read them
+  if (UNLIKELY(!p->initialized)) {
+    // Check if the member index pointer is NULL before dereferencing
+    if (UNLIKELY(p->nths[0] == NULL)) {
+      return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
+    }
 
-  // Check if the member index pointer is NULL before dereferencing
-  if (UNLIKELY(p->nths[0] == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
+    // Check if p->var is NULL before casting
+    if (UNLIKELY(p->var == NULL)) {
+      return csound->PerfError(csound, &(p->h), "Invalid struct pointer (NULL)");
+    }
+
+    CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
+
+    if (UNLIKELY(var == NULL || var->members == NULL))
+      return csound->PerfError(csound, &(p->h), "Invalid struct for member_set");
+
+    if (UNLIKELY(var->memberCount <= 0 || var->memberCount > 1000)) {
+      return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", var->memberCount);
+    }
+
+    // Read and validate the member index with sanity checking
+    MYFLT memberIndexFloat = *p->nths[0];
+
+    // Sanity check: if the value looks uninitialized, report it clearly
+    if (UNLIKELY(memberIndexFloat < -100.0 || memberIndexFloat > 10000.0)) {
+      return csound->PerfError(csound, &(p->h),
+        "Member index appears uninitialized (value=%f). This is likely a compiler/initialization bug.",
+        memberIndexFloat);
+    }
+
+    int nthInt = (int) memberIndexFloat;
+
+    if (UNLIKELY(nthInt < 0 || nthInt >= var->memberCount)) {
+      return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, var->memberCount);
+    }
+
+    // Cache the validated member index
+    p->memberIndex = nthInt;
+    p->initialized = 1;
   }
 
-  int nthInt = (int) *p->nths[0];
-
-  if (UNLIKELY(var == NULL || var->members == NULL))
-    return csound->PerfError(csound, &(p->h), "Invalid struct for member_set");
-  CS_VAR_MEM* member = var->members[nthInt];
+  // Use the cached member index
+  CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
+  CS_VAR_MEM* member = var->members[p->memberIndex];
 
 
 
@@ -284,13 +381,18 @@ static int32_t struct_member_array_assign(
       return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
     }
 
+    // Check if p->var is NULL before casting
+    if (UNLIKELY(p->var == NULL)) {
+      return csound->PerfError(csound, &(p->h), "Invalid struct pointer (NULL)");
+    }
+
     int nthInt = (int) *p->nths[0];
     CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
 
     if (UNLIKELY(var == NULL || var->members == NULL))
       return csound->PerfError(csound, &(p->h), "Invalid struct for member_array_assign");
 
-    if (nthInt >= var->memberCount) {
+    if (UNLIKELY(nthInt < 0 || nthInt >= var->memberCount)) {
       return csound->PerfError(csound, &(p->h),
         "Member index %d out of bounds (memberCount=%d)", nthInt, var->memberCount);
     }
