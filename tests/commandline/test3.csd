@@ -11,9 +11,9 @@ nchnls=2
 
 iamp,ifreq = 10000,440
 
-aout	vco2 iamp, ifreq
+aout1,aout2 = vco2(iamp, ifreq), vco2(iamp,ifreq)
 
-	outs aout, aout
+	outs aout1, aout2
 	endin
 
 

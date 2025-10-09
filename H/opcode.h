@@ -34,6 +34,7 @@ typedef struct _opinfo {
 typedef struct _oprun {
   OPDS h;
   MYFLT *args[VARGMAX];
+  AUXCH mem;
 } OPRUN;
 
 typedef struct _oparray {
