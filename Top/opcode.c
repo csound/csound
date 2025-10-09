@@ -1455,8 +1455,10 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       types[m] = (CS_TYPE *) array->arrayType;
       argmem->varType = types[m];
       args[m] = &argmem->value; 
-      // copy array args data in
-      memcpy(&argmem->value, data+i*size, size);  
+      // copy array args data in - but not k or a vars
+      if(types[m] != &CS_VAR_TYPE_K ||
+         types[m] != &CS_VAR_TYPE_A)
+         memcpy(&argmem->value, data+i*size, size);  
       } else // single var
         args[m] = p->args[m];
     }
@@ -1471,7 +1473,10 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
             array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
             size = array->arrayMemberSize;
             char *data = (char *) array->data; // copy loc pointer to args
-            argmem = (CS_VAR_MEM *) mem[i+j].auxp; 
+            argmem = (CS_VAR_MEM *) mem[i+j].auxp;
+            // copy array args data out - but not k or a vars
+           if(types[m] != &CS_VAR_TYPE_K ||
+             types[m] != &CS_VAR_TYPE_A)
             memcpy(data+i*size, &argmem->value, size); 
           }
         }  
@@ -1505,7 +1510,9 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
       size = array->arrayMemberSize;
       char *data = (char *) array->data; // copy loc pointer to args
       argmem = (CS_VAR_MEM *) mem[i+j].auxp;
-      memcpy(&argmem->value, data+i*size, size);
+      // only perf-time data
+      if(array->arrayType != &CS_VAR_TYPE_I)
+       memcpy(&argmem->value, data+i*size, size);
     }
   }
 
@@ -1519,8 +1526,10 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
        array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
        size = array->arrayMemberSize;
        char *data = (char *) array->data; // copy loc pointer to args
-       argmem = (CS_VAR_MEM *) mem[i+j].auxp; 
-       memcpy(data+i*size, &argmem->value, size);
+       argmem = (CS_VAR_MEM *) mem[i+j].auxp;
+       // only perf-time data
+       if(array->arrayType != &CS_VAR_TYPE_I)
+        memcpy(data+i*size, &argmem->value, size);
      }
   }
   }
