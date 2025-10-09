@@ -33,16 +33,6 @@
 #include <inttypes.h>
 
 
-
-// Return primary rate class from identifier token name after skipping '#' and 'g' prefixes
-static char rate_hint_from_ident(const TREE* t) {
-  if (!t || t->type != T_IDENT || !t->value || !t->value->lexeme) return 0;
-  const char* s = t->value->lexeme;
-  if (*s == '#') s++;
-  if (*s == 'g') s++;
-  return *s;
-}
-
 ORCTOKEN *make_token(CSOUND *, char *);
 ORCTOKEN *make_label(CSOUND *, char *);
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar);
@@ -1502,9 +1492,6 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           if (wantString && strcmp(e->intypes, "S[]m") == 0) { opTree->markup = e; break; }
           if (wantAK && strcmp(e->intypes, "ak") == 0) { opTree->markup = e; break; }
         }
-      }
-      if (opTree->markup && csound->GetDebug(csound)) {
-        OENTRY* pinned = (OENTRY*)opTree->markup;
       }
       csound->Free(csound, ents);
     }
@@ -3179,10 +3166,8 @@ static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, in
       if (structType) {
         CONS_CELL* cc = structType->members;
         int i = 0;
-        int printed = 0;
         while (cc) {
           CS_VARIABLE* mv = (CS_VARIABLE*)cc->value;
-          printed = 1;
           if (!strcmp(mv->varName, memberName)) {
             memberIndex = i;
 

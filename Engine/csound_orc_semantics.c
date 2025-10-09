@@ -1903,15 +1903,6 @@ static int is_external(const char *s) {
   return 0;
 }
 
-
-static int is_external(const char *s) {
-  if(*s != '[') {
-    if(strchr(s+1, '[') != NULL)
-        return 1;
-  }
-  return 0;
-}
-
 char *get_output_arg_string_from_tree(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable) {
   int32_t len = tree_arg_list_count(tree);
@@ -4246,9 +4237,7 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
 
   // Phase 2: Resolve all struct members and register opcodes
   current = structDefList;
-  int structCount = 0;
   while (current != NULL) {
-    structCount++;
     if (current->type == STRUCT_TOKEN) {
       char* structName = current->left->value->lexeme;
       if (!add_struct_definition(csound, current)) {
