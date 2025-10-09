@@ -886,13 +886,21 @@ assignment : '='
 assignment_array : '='
                 { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); }
               | S_ADDIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##addin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+"));
+                }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_SUBIN, make_token(csound, "##subin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-"));
+                }
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_DIVIN, make_token(csound, "##divin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/"));
+                }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_MULIN, make_token(csound, "##mulin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
+                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*"));
+                }
               ;
 
 in        : IN_TOKEN
