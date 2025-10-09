@@ -653,11 +653,11 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 
     // Arrays: alias pointer (no deep copy). Ensure external output points to local header.
     if (outType == &CS_VAR_TYPE_ARRAY) {
-      ARRAYDAT* aIn = (ARRAYDAT*) in;
-      ARRAYDAT* aOutHdr = *((ARRAYDAT**) out);
+      //ARRAYDAT* aIn = (ARRAYDAT*) in;
+      //ARRAYDAT* aOutHdr = *((ARRAYDAT**) out);
       // Alias: write the local array header pointer into the caller's variable cell
       *((void**)out) = in;
-      aOutHdr = *((ARRAYDAT**) out);
+      //aOutHdr = *((ARRAYDAT**) out);
       // no copyValue; arrays are shared by pointer
       continue;
     }

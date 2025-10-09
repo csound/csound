@@ -915,7 +915,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         }
         // Compute member index from struct type and member name
         char* structTypeName = get_arg_type2(csound, baseStructExpr->left, typeTable);
-        CS_TYPE* st = csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
+        CS_TYPE* st = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
         csound->Free(csound, structTypeName);
         int mIndex = 0; if (st) {
           const char* mname = baseStructExpr->right && baseStructExpr->right->value ? baseStructExpr->right->value->lexeme : "";
@@ -1122,7 +1122,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       //   (member_get array) -> (array_get_struct) [repeated] -> (member_get scalar)
 
       // Full chain flattener: parse entire struct+array access chain and emit contiguous operations
-      TREE* flattenResult = flatten_struct_array_chain(csound, root, line, locn, typeTable, &anchor);
+      TREE* flattenResult = flatten_struct_array_chain(csound, root, line, (int) locn, typeTable, &anchor);
       if (flattenResult) {
         return flattenResult;
       }
@@ -1167,7 +1167,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           char* t2 = get_arg_type2(csound, structInputNode, typeTable);
           if (t2) { csound->Free(csound, structTypeName); structTypeName = t2; }
         }
-        CS_TYPE* st = csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
+        CS_TYPE* st = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
         csound->Free(csound, structTypeName);
         int mIndex = 0; if (st) {
           const char* mname = baseStructExpr->right && baseStructExpr->right->value ? baseStructExpr->right->value->lexeme : "";
@@ -1204,7 +1204,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           op_member_get_array2->left = create_ans_token(csound, outArrName2);
           // Compute inner member index
           char* elemStructTypeName2 = get_arg_type2(csound, root->left, typeTable);
-          CS_TYPE* elemStructType2 = csoundGetTypeWithVarTypeName(csound->typePool, elemStructTypeName2);
+          CS_TYPE* elemStructType2 = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, elemStructTypeName2);
           csound->Free(csound, elemStructTypeName2);
           int mIndex2 = 0; if (elemStructType2) {
             const char* mname2 = (innerBase && innerBase->right && innerBase->right->value) ? innerBase->right->value->lexeme : "";
@@ -1279,7 +1279,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           op_member_get_scalar->right = structElemTemp;
           // Compute index of the scalar member from element struct type
           char* elemStructTypeName = get_arg_type2(csound, root->left, typeTable);
-          CS_TYPE* elemStructType = csoundGetTypeWithVarTypeName(csound->typePool, elemStructTypeName);
+          CS_TYPE* elemStructType = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, elemStructTypeName);
           csound->Free(csound, elemStructTypeName);
           int scalarIdx = 0; if (elemStructType) {
             const char* scalarName = (root->right && root->right->value) ? root->right->value->lexeme : "";
@@ -1331,7 +1331,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           op_member_get_array2->right = structVarNode2;
           // Compute member index on the current struct type
           char* typeName2 = get_arg_type2(csound, root->left, typeTable);
-          CS_TYPE* structType2 = csoundGetTypeWithVarTypeName(csound->typePool, typeName2);
+          CS_TYPE* structType2 = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, typeName2);
           csound->Free(csound, typeName2);
           int idx2 = 0; if (structType2) {
             const char* mname2 = innerBase && innerBase->right && innerBase->right->value ? innerBase->right->value->lexeme : "";
@@ -1365,7 +1365,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
             TREE* structElemTemp4 = create_ans_token(csound, outStructName2);
             op_member_get_scalar2->right = structElemTemp4;
             // Scalar index from inner element struct type
-            CS_TYPE* elemSt2 = csoundGetTypeWithVarTypeName(csound->typePool, innerElemType2);
+            CS_TYPE* elemSt2 = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, innerElemType2);
             int sIdx2 = 0; if (elemSt2) {
               const char* sname2 = inner->right && inner->right->value ? inner->right->value->lexeme : "";
               CONS_CELL* cc = elemSt2->members; int k = 0; while (cc) { CS_VARIABLE* mv=(CS_VARIABLE*)cc->value; if (!strcmp(mv->varName, sname2)) { sIdx2 = k; break; } k++; cc = cc->next; }
@@ -1432,7 +1432,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         memberGetOp->right = structVarNode2b;
         // Compute member index from struct type
         char* typeName2b = get_arg_type2(csound, root->left, typeTable);
-        CS_TYPE* structType2b = csoundGetTypeWithVarTypeName(csound->typePool, typeName2b);
+        CS_TYPE* structType2b = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, typeName2b);
         csound->Free(csound, typeName2b);
         int idx2b = 0; // Initialize to 0 (first member) as default
         if (structType2b) {
@@ -3160,7 +3160,7 @@ static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, in
           tname = tbufTrim;
         }
       }
-      CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, tname);
+      CS_TYPE* structType = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, tname);
       int memberIndex = 0;
 
       if (structType) {
@@ -3318,7 +3318,7 @@ static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, in
       finalMemberGet->left = create_ans_token(csound, outarg);
 
       // Find member index
-      CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, currentTypeName);
+      CS_TYPE* structType = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, currentTypeName);
       int memberIndex = 0;
       if (structType) {
         CONS_CELL* cc = structType->members;
