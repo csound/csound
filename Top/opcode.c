@@ -1497,7 +1497,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
   AUXCH *mem = (AUXCH *) p->mem.auxp;
   CS_VAR_MEM *argmem = NULL;
   for(i = 0; i < n; i++) {
-         size_t size;  
+   size_t size;  
   // copy array args data in
   for(j = p->OUTOCOUNT + 1; j < argn; j++) {
     if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
@@ -1513,10 +1513,9 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
   if(obj[i].dataspace->perf != NULL)
     obj[i].dataspace->perf(csound, obj[i].dataspace);
   
-        // copy array args data out
+   // copy array args data out
    for(j = 0; j < p->OUTOCOUNT; j++) {
      if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
-
        array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
        size = array->arrayMemberSize;
        char *data = (char *) array->data; // copy loc pointer to args

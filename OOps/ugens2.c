@@ -1261,6 +1261,9 @@ int32_t osckki(CSOUND *csound, OSC   *p){
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
+  if(!(IS_ASIG_ARG(p->sr)))
+     csound->PerfError(csound, &p->h, "output is not a-type\n");
+
   if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
   lobits = ftp->lobits;
   phs = p->lphs;
