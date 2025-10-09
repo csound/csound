@@ -30,8 +30,6 @@
 #include "csoundCore.h"
 #endif
 
-#if !(defined(__wasi__))
-
 typedef struct {
   OPDS  h;
   MYFLT *res;
@@ -71,7 +69,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 #else
 #include <unistd.h>
 
-#ifdef __APPLE__  
+#ifdef __APPLE__
 #include <TargetConditionals.h>
 #endif
 
@@ -150,8 +148,6 @@ call_system_k(CSOUND *csound, void *p)
     return OK;
 
 }
-
-#endif // !wasi
 
 #define S(x)    sizeof(x)
 

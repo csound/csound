@@ -244,7 +244,8 @@ PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
 }
 
 PUBLIC double cs_strtod(char* nptr, char** endptr) {
-#ifdef HAVE_STRTOD_L
+// strangely the HAVE_STRTOD_L macro definition isn't respected in wasi
+#if defined(HAVE_STRTOD_L) && !defined(__wasi__)
   return strtod_l(nptr, endptr, csound_c_locale);
 #else
     return strtod(nptr, endptr);
@@ -258,7 +259,7 @@ PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
     va_list args;
     int32_t retVal;
     va_start(args, format);
-    retVal = vsprintf_l(str,csound_c_locale,format,args);   
+    retVal = vsprintf_l(str,csound_c_locale,format,args);
     va_end(args);
     return retVal;
 }
@@ -268,9 +269,9 @@ PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
     // This is not thread-safe but no idea how to fix
     va_list args;
     int32_t retVal;
-    va_start(args, format);      
+    va_start(args, format);
     retVal = vsscanf_l(str,csound_c_locale,format,args);
-    retVal = vsscanf(str,format,args);       
+    retVal = vsscanf(str,format,args);
     va_end(args);
     return retVal;
 }

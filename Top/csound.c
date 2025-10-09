@@ -1431,11 +1431,13 @@ static void signal_handler(int sig) {
 #elif !defined(__wasm__)
   psignal(sig, "Csound tidy up");
 #endif
+#if !defined(__wasi__)
   if ((sig == (int32_t)SIGINT || sig == (int32_t)SIGTERM) && !exitNow_) {
     exitNow_ = -1;
     return;
   }
   exit(1);
+#endif
 }
 
 static const int32_t sigs[] = {
@@ -2772,7 +2774,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
   va_list args;
   if (!(csound->oparms_.odebug & (~CS_NOQQ)) ||
-        csoundGetDebug(csound) < 99) 
+        csoundGetDebug(csound) < 99)
     return;
   va_start(args, msg);
   csoundMessageV(csound, 0, msg, args);

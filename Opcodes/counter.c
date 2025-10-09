@@ -27,8 +27,6 @@
 #include "csoundCore.h"
 #endif
 
-#if !(defined(__wasi__))
-
 #include "interlocks.h"
 
 /* Structure of a counter */
@@ -283,8 +281,6 @@ static int32_t count_del(CSOUND *csound, void p)
   IGN(csound); IGN(p);
     return OK;
 }
-
-#endif // !wasi
 
 
 #define S(x)    sizeof(x)

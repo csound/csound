@@ -1,5 +1,6 @@
 {
-  stdenv,
+  cargo,
+  stdenvNoCC,
   fetchFromGitHub,
   fetchgit,
   fetchurl,
@@ -9,21 +10,24 @@
   perl,
   ninja,
   python3,
+  overrideCC,
+  llvmPackages_latest,
+  wrapCCWith
 }:
 
 let
   wasilibc = fetchFromGitHub {
     owner = "WebAssembly";
     repo = "wasi-libc";
-    rev = "ad5133410f66b93a2381db5b542aad5e0964db96";
-    sha256 = "sha256-gw6flqJv4x//V3FdqDx6yXhYVQjJ2S2xx0tZShFjmsQ=";
+    rev = "008d705c9d16dc9057bb6efc220fb539f1fb7fb5";
+    hash = "sha256-6ZKoruvxl50/aXuDGo4P0H12VnXFy/Pg8oGOHPXxrbI=";
   };
 
   llvm-project = fetchFromGitHub {
     owner = "llvm";
     repo = "llvm-project";
-    rev = "309f1e4ac8cca1ba1f0e28eeae8e2926dc387d04";
-    sha256 = "WwDcWRf7Gu7b2a17mHbke31xSHDYA7CHEi28gR+Zd90=";
+    rev = "d7eade1379606b984026ec06ea8d8eaa8a6e10ce";
+    hash = "sha256-cUT2WH4C0n+emc4s0Dh3w8AUzUq5DIS5JKXkLy4Mr1g=";
   };
 
   config = fetchgit {
@@ -32,76 +36,82 @@ let
     sha256 = "1sh410ncfs9fwxw03m1r4lcm10iv305g0jb2bb2yvgzlpb28lsz9";
   };
 
-  emscripten_new_cpp_patch = fetchurl {
-    url = "https://raw.githubusercontent.com/emscripten-core/emscripten/a153b417d34cb6f872310f5969e522d255d7294a/system/lib/libcxx/new.cpp";
-    sha256 = "0ghdfdjx71gxsxhkl6y7ri9x841h32y140m9n2qjhd27p013sphb";
+  llvm = llvmPackages_latest;
+  filteredClang = wrapCCWith {
+    cc = llvm.clang;
+    extraBuildCommands = ''
+      for f in $out/nix-support/cc-cflags $out/nix-support/libc-cflags; do
+        if [ -f "$f" ]; then
+          substituteInPlace "$f" --replace-fail "-fzero-call-used-regs=used-gpr" ""
+        fi
+      done
+    '';
   };
 
-  emscripten_new_delete_cppabi_patch = fetchurl {
-    url = "https://raw.githubusercontent.com/emscripten-core/emscripten/a153b417d34cb6f872310f5969e522d255d7294a/system/lib/libcxxabi/src/stdlib_new_delete.cpp";
-    sha256 = "099d5458xcbrcrhv3l1643ms529753q1yrr6m349rcwd33ad6g9r";
-  };
+  # Make a stdenv that uses our filtered Clang
+  clangStdenvFiltered = overrideCC llvm.stdenv filteredClang;
 
 in
-stdenv.mkDerivation {
+stdenvNoCC.mkDerivation {
   name = "wasi-sdk-0.0.0";
   src = fetchFromGitHub {
     owner = "WebAssembly";
     repo = "wasi-sdk";
-    rev = "77ba98a998cb9f2a63ab3a5f94bbabd069f65ff0";
-    sha256 = "sha256-IG0kxt6geu1Y7qHWSWjp0LrPevU8eC+kCS/yZD/j5YE=";
+    rev = "d90d7de10e2208905b1cdf29817f89c3ed68cbcd";
+    sha256 = "sha256-uXyk5ixJEPR3yaAJXzlIrxEdMWfYXmVwmn1wexe08Mc=";
     fetchSubmodules = false;
   };
+
+  hardeningDisable = [ "zerocallusedregs" ];
 
   dontUseCmakeConfigure = true;
   dontUseNinjaBuild = true;
   dontUseNinjaInstall = true;
   dontStrip = true;
-  WASM_CFLAGS = "-fPIC -D__wasi__=1 -D__wasm32__=1";
   PREFIX = "${placeholder "out"}";
+  WASI_SDK_VERSION = "27";
+  GIT_COMMIT = "000000000000";
+  GIT_COMMIT_SRC_WASI_LIBC = "aaaaaaaaaaaa";
+  GIT_COMMIT_SRC_LLVM_PROJECT = "bbbbbbbbbbbb";
+  GIT_COMMIT_SRC_CONFIG = "cccccccccccc";
 
   postPatch = ''
-        rm -rf src/*
-        cp -rf ${wasilibc} src/wasi-libc
-        cp -rf ${llvm-project} src/llvm-project
-        cp -rf ${config} src/config
-        chmod -R +rw src/
-        sed -i -e 's/diff -wur.*//g' src/wasi-libc/Makefile
-        cp ${emscripten_new_cpp_patch} src/llvm-project/libcxx/src/new.cpp
-        cp ${emscripten_new_delete_cppabi_patch} src/llvm-project/libcxxabi/src/stdlib_new_delete.cpp
+    rm -rf src/*
+    cp -rf ${wasilibc} src/wasi-libc
+    cp -rf ${llvm-project} src/llvm-project
+    cp -rf ${config} src/config
+    chmod -R +rw src/
 
-        substituteInPlace src/wasi-libc/Makefile \
-          --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
+  patchShebangs version.py
 
-        substituteInPlace Makefile \
-          --replace 'DESTDIR=$(abspath build/install)' \
-                    'DESTDIR=' \
-          --replace 'COMPILER_RT_HAS_FPIC_FLAG=OFF' \
-                    'COMPILER_RT_HAS_FPIC_FLAG=ON' \
-          --replace 'DLIBCXXABI_ENABLE_PIC:BOOL=OFF' \
-                    'DLIBCXXABI_ENABLE_PIC:BOOL=ON' \
-          --replace 'wasi-sysroot"' \
-                    'wasi-sysroot -fPIC -fno-exceptions -D__wasi__=1 -D__wasm32__=1 -D_LIBCXXABI_NO_EXCEPTIONS=1"' \
-          --replace 'wasm32-wasi' \
-                    'wasm32-unknown-emscripten'
+  substituteInPlace version.py \
+    --replace-fail "def git_version():" \
+'def git_version():
+    v = os.environ.get("WASI_SDK_VERSION")
+    if v:
+        return v'
 
-        substituteInPlace wasi-sdk.cmake \
-          --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
-        substituteInPlace src/llvm-project/libcxx/include/__locale \
-          --replace '<xlocale.h>' '<__support/musl/xlocale.h>'
-        substituteInPlace src/llvm-project/libcxxabi/src/stdlib_new_delete.cpp \
-          --replace '__EMSCRIPTEN__' '__wasi__' || exit 1
-        substituteInPlace src/llvm-project/libcxx/src/new.cpp \
-          --replace '__EMSCRIPTEN__' '__wasi__' || exit 1
+  substituteInPlace version.py \
+    --replace-fail "def git_commit(dir):" \
+'def git_commit(dir):
+    k = "GIT_COMMIT_" + dir.replace("/", "_").upper()
+    v = os.environ.get(k) or os.environ.get("GIT_COMMIT")
+    if v:
+        return v[:GIT_REF_LEN]'
 
-        # Fix GCC 14 build: ensure uintptr_t is declared in LLVM Signals headers
-        substituteInPlace src/llvm-project/llvm/include/llvm/Support/Signals.h \
-          --replace '#include <string>' '#include <string>
-    #include <cstdint>'
+  # we don't need rust support
+  substituteInPlace cmake/wasi-sdk-toolchain.cmake \
+    --replace-fail "cargo install" "echo cargo install"
+  '';
+
+  buildPhase = ''
+    cmake -G Ninja -B build/toolchain -S . -DWASI_SDK_BUILD_TOOLCHAIN=ON -DCMAKE_INSTALL_PREFIX=build/install
+    cmake --build build/toolchain --target install
   '';
 
   buildInputs = [
     cmake
+    llvmPackages_latest.clang
     git
     perl
     ninja

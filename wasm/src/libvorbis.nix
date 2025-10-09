@@ -1,41 +1,22 @@
-{ pkgs ? import <nixpkgs> { }, static ? false }:
+{ pkgs, pkgsWasm }:
 
 let lib = pkgs.lib;
-    wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
-    wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
-    wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
+    stdenvWasm = pkgsWasm.clang17Stdenv;
+    libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm; };
 
-in pkgs.stdenvNoCC.mkDerivation rec {
+in stdenvWasm.mkDerivation rec {
     name = "libvorbis";
     src = pkgs.libvorbis.src;
-    phases = [ "buildPhase" "installPhase" ];
+    nativeBuildInputs = [
+      pkgs.cmake
+      pkgs.pkg-config
+    ];
 
-    buildPhase = ''
-      tar -xf $src --strip 1
-      rm lib/psytune.c
-      rm lib/barkmel.c
-      rm lib/tone.c
-      ${wasi-sdk}/bin/clang \
-         -ffast-math -fsigned-char \
-         --sysroot=${wasi-sdk}/share/wasi-sysroot \
-         ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
-         ${lib.optionalString (static == false) "-fPIC" } \
-         -I${pkgs.libvorbis.dev}/include \
-         -I${pkgs.libogg.dev}/include \
-         -I./include \
-         -I./lib \
-         -Oz \
-         -D__wasi__=1 \
-         -D__wasm32__=1 \
-         -D__NO_MATH_INLINES=1 \
-         -D_REENTRANT=1 \
-         -c \
-         ./lib/*.c
-    '';
+    NIX_CFLAGS_COMPILE = [
+      "-I${pkgs.libogg.dev}/include"
+    ];
 
-    installPhase = ''
-      mkdir -p $out/lib
-      ${wasi-sdk}/bin/llvm-ar crS $out/lib/libvorbis.a ./*.o
-      ${wasi-sdk}/bin/llvm-ranlib -U $out/lib/libvorbis.a
-    '';
+    cmakeFlags = [
+      "-DOGG_LIBRARY=${libogg}/lib"
+    ];
 }

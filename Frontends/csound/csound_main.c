@@ -133,10 +133,10 @@ unsigned int i;
 #if defined(__MACH__) || defined(__LINUX__)
   struct sigaction sa;
   sa.sa_handler = &signal_handler;
-  for (i = 0; sigs[i] >= 0; i++) 
+  for (i = 0; sigs[i] >= 0; i++)
     sigaction(sigs[i], &sa, NULL);
-#else  
-    for (i = 0; sigs[i] >= 0; i++) 
+#else
+    for (i = 0; sigs[i] >= 0; i++)
       signal(sigs[i], signal_handler);
 #endif
 }
@@ -146,17 +146,17 @@ int main(int argc, char **argv)
     CSOUND  *csound;
     char    *fname = NULL;
     int32_t  i, result, errs, nomessages=0;
-    
+
     install_signal_handler();
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
 
     /* set stdout to non buffering if not outputing to console window */
-#if !defined(WIN32) && !defined(IOS)
+#if !defined(WIN32) && !defined(IOS) && !defined(__wasi__)
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
 #endif
-    
+
 #ifdef GNU_GETTEXT
     {
     /* We need to set the locale for the translations to work */
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
     if (set_rt_priority(argc, (const char **)argv) != 0)
       return -1;
 #endif
-    
+
     /* open log file if specified */
     for (i = 1; i < argc; i++) {
       if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
@@ -203,14 +203,14 @@ int main(int argc, char **argv)
       csoundSetDefaultMessageCallback(msg_callback);
     else if (nomessages)
       csoundSetDefaultMessageCallback(nomsg_callback);
-  
+
     /*  Create Csound. */
     csound = csoundCreate(NULL, NULL);
     _csound = csound;
     /*  One complete performance cycle. */
      result = csoundCompile(csound, argc, (const char **)argv);
      if(!result) {
-      result = csoundStart(csound); 
+      result = csoundStart(csound);
       while (!result && perf_flag)
         result = csoundPerformKsmps(csound);
      }
@@ -221,6 +221,6 @@ int main(int argc, char **argv)
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
-   
+
     return (result >= 0 ? errs : -result);
 }

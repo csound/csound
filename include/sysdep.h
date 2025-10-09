@@ -30,8 +30,16 @@
 typedef void *locale_t;
 #endif
 #endif
-
 #include <limits.h>
+#if defined(__wasm__) && !defined(__wasm64__)
+_Static_assert(sizeof(long) == 4, "expected 32-bit long on wasm32");
+#ifndef LONG_MAX
+#  define LONG_MAX 2147483647L
+#endif
+#ifndef LONG_MIN
+#  define LONG_MIN (-2147483647L - 1L)
+#endif
+#endif
 /* this checks for 64BIT builds */
 #if (defined(__WORDSIZE) && __WORDSIZE == 64) || defined(_WIN64) || defined(__x86_64__) || defined(_M_X64) || defined(__ppc64__) || defined(__aarch64__) || (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 8)
     #define B64BIT
@@ -419,7 +427,7 @@ static inline int64 MYFLT2LRND64(double fval)
 #ifdef HAVE_C99
 #define MYFLT2UINT64(x) ((uint64_t) llrint(x))
 #else
-#define MYFLT2UINT64(x) ((uint64_t) (tval + 0.5)) 
+#define MYFLT2UINT64(x) ((uint64_t) (tval + 0.5))
 #endif
 
 /* inline functions and macros for clamping denormals to zero */

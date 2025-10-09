@@ -365,7 +365,14 @@ int32_t csoundInitModules(CSOUND *csound) {
 // by the js-host.
 
 __attribute__((used))
-extern int32_t csoundLoadModules(CSOUND *csound);
+int32_t csoundLoadModules(CSOUND *csound) {
+  return 0;
+}
+
+__attribute__((used))
+int32_t csoundLoadExternals(CSOUND *csound) {
+  return 0;
+}
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;
