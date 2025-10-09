@@ -1894,6 +1894,24 @@ char *convert_external_to_internal(CSOUND *csound, char *arg) {
   return retVal;
 }
 
+
+static int is_external(const char *s) {
+  if(*s != '[') {
+    if(strchr(s+1, '[') != NULL)
+        return 1;
+  }
+  return 0;
+}
+
+
+static int is_external(const char *s) {
+  if(*s != '[') {
+    if(strchr(s+1, '[') != NULL)
+        return 1;
+  }
+  return 0;
+}
+
 char *get_output_arg_string_from_tree(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable) {
   int32_t len = tree_arg_list_count(tree);
@@ -1978,7 +1996,6 @@ char *get_output_arg_string_from_tree(CSOUND *csound, TREE *tree,
 
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable) {
-
   int32_t len = tree_arg_list_count(tree);
   int32_t i;
 
@@ -1998,9 +2015,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
       // if we failed to find argType, exit from parser
       csound->Die(csound, "Could not parse type for argument");
     } else {
-      argType = convert_internal_to_external(csound, argType);
+      	// catch type[] in expressions to opcall - no conversion
+      if(!is_external(argType))
+         argType = convert_internal_to_external(csound, argType);
       argsLen += strlen(argType);
       argTypes[index++] = argType;
+
     }
 
     current = current->next;
@@ -3262,6 +3282,14 @@ TREE *convert_statement_to_opcall(CSOUND *csound, TREE *root,
   return NULL;
 }
 
+char *strip_extension(CSOUND *csound, const char *s) {
+  char *s1 = cs_strdup(csound, s);
+  char *dot = strchr(s1, '.');
+  if(dot != NULL)
+      *dot = '\0';
+  return s1;
+}
+
 /*
  * Verifies:
  *    -number of args correct
@@ -3346,18 +3374,22 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   if (UNLIKELY(oentry == NULL)) {
     int32_t i;
+    char *name = strip_extension(csound, opcodeName);
     synterr(csound, Str("Unable to find opcode entry for \'%s\' "
-                        "with matching argument types:\n"),
-            opcodeName);
+                        "with matching argument types:\n"), name);
+    csound->Free(csound, name);
+    name = strip_extension(csound, root->value->lexeme);
     csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
-                  leftArgString, root->value->lexeme, rightArgString);
-
+                  leftArgString, name, rightArgString);
+    csound->Free(csound, name);
     csoundMessage(csound, Str("\nCandidates:\n"));
 
     for (i = 0; i < entries->count; i++) {
       OENTRY *entry = entries->entries[i];
-      csoundMessage(csound, "  %s %s %s\n", entry->outypes, entry->opname,
+      name = strip_extension(csound, entry->opname);
+      csoundMessage(csound, "  %s %s %s\n", entry->outypes, name,
                     entry->intypes);
+      csound->Free(csound, name);
     }
 
     csoundMessage(csound, Str("\nLine: %d\n"),
@@ -4743,10 +4775,10 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner, CSOUND *csound,
 
 void do_baktrace(CSOUND *csound, uint64_t files) {
   while (files) {
-    uint32_t ff = files & 0xff;
-    files = files >> 8;
-    csound->ErrorMsg(csound, Str(" from file %s (%d)\n"), csound->filedir[ff],
-                     ff);
+    uint32_t ff = files&0xff;
+    files = files >>8;
+    csound->ErrorMsg(csound, Str("from file %s (%d)\n"),
+                    csound->filedir[ff], ff);
   }
 }
 

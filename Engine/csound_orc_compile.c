@@ -2243,9 +2243,16 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
   int32_t n;
   ARGLST *outlist, *inlist;
 
+  // find number
+  for(n = 0; n < e->maxinsno; n++)
+    if(e->instrtxtp[n] == tp) break;
+
   optxt = (OPTXT *)tp;
-  if(tp != e->instxtanchor.nxtinstxt)
-    csoundMessage(csound, "instr %s\n ", tp->insname ? tp->insname : "");
+  if(tp != e->instxtanchor.nxtinstxt) {
+    tp->insname ?
+      csoundMessage(csound,"instr %s\n",tp->insname) :
+      csoundMessage(csound, "instr %d\n", n);
+  }
   else if(optxt->nxtop != NULL)
     csoundMessage(csound, "\n");
 
@@ -2264,6 +2271,7 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
       continue;
     }
 
+    csoundMessage(csound, " ");
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {
@@ -2287,7 +2295,7 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
 	else
 	 csound->Message(csound, "%s ",*argp++);
     }
-    csound->Message(csound, "\n ");
+    csound->Message(csound, "\n");
   }
   csound->Message(csound, "\n");
 }

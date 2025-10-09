@@ -34,6 +34,8 @@
  on returned value.  Caller should compare the returned value with the
  passed in opname to see if it is different and thus requires mfree'ing. */
 #include "find_opcode.h"
+
+char *strip_extension(CSOUND *csound, const char *s);
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
 
 void print_tree(CSOUND *, char *, TREE *);
@@ -63,6 +65,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions
 extern int32_t csound_orcget_lineno(void*);
 extern char *csound_orcget_current_pointer(void *);
+
 
 
 TREE* copy_node_shallow(CSOUND* csound, TREE* tree);

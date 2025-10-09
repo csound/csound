@@ -275,24 +275,74 @@ int32_t init0(CSOUND *csound)
   return csound->inerrcnt;                        /*   return errcnt      */
 }
 
-static void putop(CSOUND *csound, TEXT *tp)
+static int32_t print_opcall(CSOUND *csound, TEXT *tp)
 {
   int32_t n, nn;
+  char *name;
+  ARG *arg;
 
-  if ((n = tp->outlist->count) != 0) {
-    nn = 0;
-    while (n--)
-      csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
+  if(!strcmp(tp->opcod, "endin") ||
+     !strcmp(tp->opcod, "endop")) {
+    csound->Message(csound, "%sn", tp->opcod);
+    return 0;
   }
-  else
-    csound->Message(csound, "\t");
-  csound->Message(csound, "%s\t", tp->opcod);
-  if ((n = tp->inlist->count) != 0) {
+  
+  if (tp->outlist && (n = tp->outlist->count) != 0) {
     nn = 0;
-    while (n--)
-      csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
+    arg = tp->outArgs;
+    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
+    char *type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName; 
+    char  arrtype[64]; 
+    while (n-- > 1) {
+      if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+      }  
+      csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
+      arg = arg->next;
+      var = (CS_VARIABLE *) arg->argPtr;
+      type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
+    }
+    if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+    }    
+    csound->Message(csound, "%s:%s ", tp->outlist->arg[nn++], type);
   }
-  csound->Message(csound, "\n");
+  name = strip_extension(csound, tp->opcod);
+  csound->Message(csound, "%s ", name);
+  if (tp->inlist  && (n = tp->inlist->count) != 0) {
+    nn = 0;
+    arg = tp->inArgs;
+    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
+    char *type = arg->type == ARG_CONSTANT ? "c" :
+      (arg->type == ARG_STRING ? "S" :
+       (arg->type == ARG_PFIELD ? "p" :
+        (arg->type == ARG_LABEL ? "l" :
+         var->varType->varTypeName)));
+    char  arrtype[64]; 
+    while (n-- > 1) {
+      if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+      }        
+      csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
+      arg = arg->next;
+      var = (CS_VARIABLE *) arg->argPtr;
+      type = arg->type == ARG_CONSTANT ? "c" :
+      (arg->type == ARG_STRING ? "S" :
+       (arg->type == ARG_PFIELD ? "p" :
+        (arg->type == ARG_LABEL ? "l" :
+         var->varType->varTypeName)));;
+    }
+    if(*type == '[') {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+         type = arrtype;
+    }      
+    csound->Message(csound, "%s:%s", tp->inlist->arg[nn++], type);
+  }
+  csound->Message(csound,"\n");
+  return 1;
 }
 
 static void set_xtratim(CSOUND *csound, INSDS *ip)
@@ -1324,7 +1374,7 @@ int32_t csoundInitError(CSOUND *csound, const char *s, ...)
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
   do_baktrace(csound, csound->ids->optext->t.locn);
-  putop(csound, &(csound->ids->optext->t));
+  print_opcall(csound, &(csound->ids->optext->t));
   return ++(csound->inerrcnt);
 }
 
@@ -1338,27 +1388,32 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
     csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
+    
     /* find top level instrument instance */
     do {
       ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
     } while (ip->opcod_iobufs);
-    if (op)
+    if (op) {
       snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
                ip->insno, op->name, t.linenum);
+    }
     else
       snprintf(buf, 512, Str("PERF ERROR in instr %d (subinstr %d) line %d: "),
                ip->insno, ip->insno, t.linenum);
   }
-  else
+  else{
+    char *name = strip_extension(csound, csound->op);
     snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
-             ip->insno, csound->op, t.linenum);
+             ip->insno, name, t.linenum);
+   csound->Free(csound, name);
+  }
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
-  do_baktrace(csound, t.locn);
-  if (ip->pds)
-    putop(csound, &(ip->pds->optext->t));
-  csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));
+  if (ip->pds) {
+    print_opcall(csound, &(ip->pds->optext->t));
+  }
+  csoundErrorMsg(csound, "%s",  Str("...event aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
   return csound->perferrcnt;                /* contin from there */
@@ -1466,7 +1521,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   char*     opMemStart;
 
   OPARMS    *O = csound->oparms;
-  int32_t       odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
+  int32_t   odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
   ARG*      arg;
   int32_t       argStringCount;
   CS_VARIABLE* current;
@@ -1550,7 +1605,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
-
+  
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
@@ -1737,6 +1792,22 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
                         arg->type);
       }
     }
+
+  }
+  /* display instantiated instrument */
+  if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
+     csoundGetDebug(csound) & DEBUG_INSTR) {
+    csoundMessage(csound, "instantiated instr %d\n", ip->insno);
+    optxt = (OPTXT*) tp;
+    while ((optxt = optxt->nxtop) != NULL) {
+      if(strcmp(optxt->t.opcod, "endin") &&
+         strcmp(optxt->t.opcod, "endop")) {
+         csound->Message(csound, " ");
+         print_opcall(csound, &(optxt->t));
+      }
+    }
+    
+    csoundMessage(csound, "endin (instr %d)\n", ip->insno);
   }
 
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,
