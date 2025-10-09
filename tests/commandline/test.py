@@ -131,6 +131,7 @@ def runTest():
             "test local shadowing of global vars for implicit types",
         ],
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
+        ["test_asig_array_opassign.csd", "test asig[] index opassign"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
