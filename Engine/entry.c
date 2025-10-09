@@ -158,6 +158,7 @@ OENTRY opcodlst_1[] = {
   { "=.k",    S(ASSIGNM),0,        "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
     NULL, minit, NULL, NULL },
   { "=.a",    S(ASSIGN),0,         "a",    "a",    NULL, gaassign, NULL },
+  { "=.y",    S(ASSIGNM),0,         "mmmmmmmmmmmmmmmmmmmmmmmm",    "y",    NULL, (SUBR) mainit2, NULL },
   { "=.l",    S(ASSIGN),0,         "a",    "a",    NULL,   laassign, NULL },
   { "=.up",   S(UPSAMP),0,         "a",    "k",  NULL, (SUBR)upsamp, NULL },
   { "=.down",   S(DOWNSAMP),0,    "k",    "ao",   (SUBR)downset,(SUBR)downsamp },

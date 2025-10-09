@@ -231,6 +231,29 @@ int32_t mainit(CSOUND *csound, ASSIGNM *p)
   return OK;
 }
 
+int32_t mainit2(CSOUND *csound, ASSIGNM *p)
+{
+  uint32_t nargs = p->INOCOUNT;
+  uint32_t nouts = p->OUTOCOUNT;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, n, nsmps = CS_KSMPS;
+  MYFLT *aa;
+  early = nsmps - early;      /* Bit at end to ignore */
+  if (UNLIKELY(nargs != nouts))
+    return csound->InitError(csound,
+                             Str("Out and in numbers not matching in "
+                                 "assignment (%d,%d)"),nouts, nargs);
+  for (i=0; i<nargs; i++) {
+    aa = p->a[i];
+    MYFLT *r =p->r[i];
+    for (n = 0; n < nsmps; n++)
+      r[n] = (n < offset || n > early ? FL(0.0) : aa[n]);
+  }
+
+  return OK;
+}
+
 
 int32_t signum(CSOUND *csound, ASSIGN *p)
 {

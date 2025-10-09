@@ -246,3 +246,4 @@ int32_t bassign(CSOUND *csound, RELAT *p);
 int32_t b2s(CSOUND *csound, ASSIGN *p);
 int32_t b2b(CSOUND *csound, ASSIGN *p);
 int32_t binit(CSOUND *csound, ASSIGNM *p);
+int32_t mainit2(CSOUND *csound, ASSIGNM *p);
