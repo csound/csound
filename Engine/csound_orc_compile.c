@@ -2510,10 +2510,11 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
       (c == '0' && strcmp(s, "0dbfs") != 0)) {
     arg->type = ARG_CONSTANT;
-    /* Retrieve from global constants pool if present; otherwise create in current engine state's pool */
+    /* Always use the global constants pool to ensure constants persist
+     * across instrument compilations and UDO instantiations */
     arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, s);
     if (arg->argPtr == NULL) {
-      arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, s,
+      arg->argPtr = find_or_add_constant(csound, csound->engineState.constantsPool, s,
                                          cs_strtod(s, NULL));
     }
   } else if (c == '"') {

@@ -29,6 +29,9 @@
 #include "csound_standard_types.h"
 #include "namedins.h"
 
+/* Forward declaration from insert.c */
+extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
+
 /* Sets up pass-by-ref for input/output to/from UDO instance.
 * Will search for xin/xout opcodes in init chain to read variable to
 * setup VARPOOL, iterate init and perf chains to do arg lookup of each
@@ -52,6 +55,21 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   OPDS *pchain = lcurip->nxtp;
 
   CS_HASH_TABLE *arg_ptr_map = cs_hash_table_create(csound);
+
+  /* For new-style UDOs without explicit xin, add input parameters to arg_ptr_map.
+   * This ensures parameters declared in the UDO signature are properly wired
+   * to caller arguments even when there's no explicit xin statement. */
+  OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
+  if (udoinfo && udoinfo->in_arg_pool) {
+    CS_VARIABLE *param = udoinfo->in_arg_pool->head;
+    for (i = 0; i < udoinfo->inchns && param; i++) {
+      if (param->varName) {
+        MYFLT *argPtr = p->ar[p->OUTOCOUNT + i];
+        cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+      }
+      param = param->next;
+    }
+  }
 
   // Search xin/xout to setup arg_ptr_map
   while (ichain != NULL) {
@@ -350,6 +368,36 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   if(inm->passByRef) {
     handle_pass_by_ref(csound, p, lcurip);
+
+    /* For reference types (like InstrDef, strings, arrays), we need to initialize
+     * the UDO's local parameter memory with values from the caller, since pass-by-ref
+     * only wires up pointers for scalars. For these types, the local memory contains
+     * the actual structure/reference that opcodes will read. */
+    if (inm->in_arg_pool && lcurip->lclbas) {
+      CS_VARIABLE *param = inm->in_arg_pool->head;
+      for (i = 0; i < inm->inchns && param; i++) {
+        MYFLT *caller_arg = p->ar[inm->outchns + i];
+        void *param_mem = (void*)(lcurip->lclbas + param->memBlockIndex);
+
+        /* Only copy for reference types, not for i/k/a scalars which are handled by pass-by-ref */
+        if (param->varType && param->varType->copyValue &&
+            param->varType != &CS_VAR_TYPE_I &&
+            param->varType != &CS_VAR_TYPE_K &&
+            param->varType != &CS_VAR_TYPE_A) {
+          param->varType->copyValue(csound, param->varType, param_mem, caller_arg, lcurip);
+        }
+
+        param = param->next;
+      }
+    }
+  }
+
+  /* Reinitialize argument pointers for all opcodes in the UDO to ensure
+   * they point to the correct constant values and variable locations.
+   * Skip this for pass-by-ref UDOs, as handle_pass_by_ref has already
+   * set up the pointers correctly to reference caller's arguments. */
+  if (!inm->passByRef) {
+    csoundReinitInstrumentArgpp(csound, lcurip);
   }
 
   /* do init pass for this instr */

@@ -273,7 +273,7 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
   else csound->Warning(csound, "instr ref var %s is read-only: copy value bypassed",
-                       p->instr->insname);
+                       p->instr ? p->instr->insname : "(uninitialized)");
 }
 
 static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,

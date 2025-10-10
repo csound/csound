@@ -28,8 +28,6 @@
 #include "oload.h"
 #include "udo.h"
 #include "aops.h"       /* for cond's */
-
-
 #include "midiops.h"
 #include "namedins.h"
 #include "pstream.h"
@@ -286,27 +284,27 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
     csound->Message(csound, "%sn", tp->opcod);
     return 0;
   }
-  
+
   if (tp->outlist && (n = tp->outlist->count) != 0) {
     nn = 0;
     arg = tp->outArgs;
     CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName; 
-    char  arrtype[64]; 
+    char *type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
+    char  arrtype[64];
     while (n-- > 1) {
       if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
          type = arrtype;
-      }  
+      }
       csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
       arg = arg->next;
       var = (CS_VARIABLE *) arg->argPtr;
       type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
     }
     if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
          type = arrtype;
-    }    
+    }
     csound->Message(csound, "%s:%s ", tp->outlist->arg[nn++], type);
   }
   name = strip_extension(csound, tp->opcod);
@@ -320,12 +318,12 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
        (arg->type == ARG_PFIELD ? "p" :
         (arg->type == ARG_LABEL ? "l" :
          var->varType->varTypeName)));
-    char  arrtype[64]; 
+    char  arrtype[64];
     while (n-- > 1) {
       if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
          type = arrtype;
-      }        
+      }
       csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
       arg = arg->next;
       var = (CS_VARIABLE *) arg->argPtr;
@@ -336,9 +334,9 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
          var->varType->varTypeName)));;
     }
     if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
          type = arrtype;
-    }      
+    }
     csound->Message(csound, "%s:%s", tp->inlist->arg[nn++], type);
   }
   csound->Message(csound,"\n");
@@ -1388,7 +1386,7 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
     csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
-    
+
     /* find top level instrument instance */
     do {
       ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
@@ -1507,6 +1505,186 @@ static int32_t find_label_mem_offset(CSOUND* csound, INSTRTXT* ip, char* labelNa
 
 /* create instance of an instr template */
 /* allocates and sets up all pntrs      */
+/**
+ * Set up argument pointers (argpp) for a single opcode.
+ * This can be called during initial instantiation or to reinitialize
+ * argument pointers for reused instrument instances.
+ */
+static void setup_opcode_argpp(
+  CSOUND *csound, OPDS *opds, TEXT *ttp,
+  const OENTRY *ep, INSDS *ip, INSTRTXT *tp,
+  MYFLT *lclbas, CS_VAR_MEM *lcloffbas,
+  char *opMemStart
+) {
+    MYFLT **argpp;
+    ARG *arg;
+    int n;
+    int argStringCount;
+
+    if (ep->useropinfo == NULL)
+      argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
+    else          /* user defined opcodes are a special case */
+      argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
+
+    /* Set up output arguments */
+    arg = ttp->outArgs;
+    for (n = 0; arg != NULL; n++) {
+      MYFLT *fltp;
+      CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
+      if (arg->type == ARG_GLOBAL) {
+        fltp = &(var->memBlock->value);
+      }
+      else if (arg->type == ARG_LOCAL) {
+        if (UNLIKELY(var == NULL)) {
+          csound->Die(csound,
+                      Str("setup_opcode_argpp: NULL local variable pointer for out-arg of %s"),
+                      ep->opname ? ep->opname : "(null)");
+        } else {
+          fltp = lclbas + var->memBlockIndex;
+        }
+
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+
+          next = cs_strtok_r(path, ".", &th);
+          while (next != NULL) {
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+            CONS_CELL* members = type->members;
+            int32_t i = 0;
+            while(members != NULL) {
+              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+              if (!strcmp(member->varName, next)) {
+                fltp = &(structVar->members[i]->value);
+                break;
+              }
+              i++;
+              members = members->next;
+            }
+            next = cs_strtok_r(NULL, ".", &th);
+          }
+        }
+      }
+      else if (arg->type == ARG_PFIELD) {
+        CS_VAR_MEM* pfield = lcloffbas + arg->index;
+        fltp = &(pfield->value);
+      }
+      else {
+        fltp = &csound_null_var_i.value;
+      }
+      argpp[n] = fltp;
+      arg = arg->next;
+    }
+
+    for (argStringCount = args_required(ep->outypes); n < argStringCount; n++) {
+      argpp[n] = NULL;
+    }
+
+    /* Set up input arguments */
+    arg = ttp->inArgs;
+    ip->lclbas = lclbas;
+    int providedIn = 0;
+    for (; arg != NULL; n++, arg = arg->next, providedIn++) {
+      if (arg->type == ARG_CONSTANT) {
+        CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
+        argpp[n] = &varMem->value;
+      }
+      else if (arg->type == ARG_STRING) {
+        argpp[n] = (MYFLT*)(arg->argPtr);
+      }
+      else if (arg->type == ARG_PFIELD) {
+        CS_VAR_MEM* pfield = lcloffbas + arg->index;
+        argpp[n] = &(pfield->value);
+      }
+      else if (arg->type == ARG_GLOBAL) {
+        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+        argpp[n] =  &(var->memBlock->value);
+      }
+      else if (arg->type == ARG_LOCAL){
+        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+        argpp[n] = lclbas + var->memBlockIndex;
+
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+          MYFLT* fltp = argpp[n];
+          next = cs_strtok_r(path, ".", &th);
+          while (next != NULL) {
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+            if (type == NULL || structVar == NULL || structVar->members == NULL)
+              break;
+            CONS_CELL* members = type->members;
+            int32_t i = 0;
+            while(members != NULL) {
+              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+              if (!strcmp(member->varName, next)) {
+                fltp = &(structVar->members[i]->value);
+                break;
+              }
+              i++;
+              members = members->next;
+            }
+            next = cs_strtok_r(NULL, ".", &th);
+          }
+          argpp[n] = fltp;
+        }
+      }
+      else if (arg->type == ARG_LABEL) {
+        argpp[n] = (MYFLT*)(opMemStart +
+                            find_label_mem_offset(csound, tp, (char*)arg->argPtr));
+      }
+      else {
+        argpp[n] = (MYFLT*)(opMemStart +
+                    ((TEXT*)arg->argPtr)->inArgCount * sizeof(MYFLT *));
+      }
+    }
+}
+
+/**
+ * Reinitialize all argument pointers for opcodes in an instrument instance.
+ * This should be called when reusing a UDO instance to ensure argpp pointers
+ * are fresh and not stale from previous usage.
+ */
+void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
+{
+    INSTRTXT *tp = ip->instr;
+    OPTXT *optxt = (OPTXT*)tp;
+    OPDS *opds;
+    char *nxtopds;
+    MYFLT *lclbas = ip->lclbas;
+    CS_VAR_MEM *lcloffbas = (CS_VAR_MEM*)&ip->p0;
+
+    /* Calculate opcode memory start */
+    char *opMemStart = (char*) lclbas + tp->varPool->poolSize +
+        (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
+
+    nxtopds = opMemStart;
+
+    /* Iterate through all opcodes and reinit their argpp */
+    while ((optxt = optxt->nxtop) != NULL) {
+        TEXT *ttp = &optxt->t;
+        OENTRY *ep = ttp->oentry;
+
+        if (UNLIKELY(ep == NULL || ep->opname == NULL)) {
+            continue;
+        }
+
+        opds = (OPDS*) nxtopds;
+        nxtopds += ep->dsblksiz;
+
+        if (UNLIKELY(strcmp(ep->opname, "endin") == 0 || strcmp(ep->opname, "endop") == 0))
+            break;
+
+        if (UNLIKELY(strcmp(ep->opname, "pset") == 0 || strcmp(ep->opname, "$label") == 0))
+            continue;
+
+        /* Reinit argpp for this opcode */
+        setup_opcode_argpp(csound, opds, ttp, ep, ip, tp, lclbas, lcloffbas, opMemStart);
+    }
+}
+
 static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 {
   INSTRTXT  *tp;
@@ -1516,14 +1694,12 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   const OENTRY  *ep;
   int32_t       i, n, pextent, pextra, pextrab;
   char      *nxtopds, *opdslim;
-  MYFLT     **argpp, *lclbas;
+  MYFLT     *lclbas;
   CS_VAR_MEM *lcloffbas; // start of pfields
   char*     opMemStart;
 
   OPARMS    *O = csound->oparms;
   int32_t   odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
-  ARG*      arg;
-  int32_t       argStringCount;
   CS_VARIABLE* current;
 
   tp = csound->engineState.instrtxtp[insno];
@@ -1605,7 +1781,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
-  
+
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
@@ -1669,129 +1845,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
                         ep->opname,(void*) opds->deinit);
     }
 
-    if (ep->useropinfo == NULL)
-      argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
-    else          /* user defined opcodes are a special case */
-      argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
-
-    arg = ttp->outArgs;
-    for (n = 0; arg != NULL; n++) {
-      MYFLT *fltp;
-      CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
-      if (arg->type == ARG_GLOBAL) {
-        fltp = &(var->memBlock->value); /* gbloffbas + var->memBlockIndex; */
-      }
-      else if (arg->type == ARG_LOCAL) {
-        if (UNLIKELY(var == NULL)) {
-          int expOut = args_required(ep->outypes);
-          csound->Message(csound,
-                          "BIND: ERROR null local var for OUT arg (idx=%d) op=%s outCount(provided)=%d expOut=%d outypes=%s\n",
-                          (int)n, ep->opname ? ep->opname : "(null)", (int)n, expOut, ep->outypes ? ep->outypes : "");
-          csound->Die(csound,
-                      Str("instantiate: NULL local variable pointer for out-arg of %s"),
-                      ep->opname ? ep->opname : "(null)");
-        } else {
-          fltp = lclbas + var->memBlockIndex;
-        }
-
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
-            CONS_CELL* members = type->members;
-            int32_t i = 0;
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              if (!strcmp(member->varName, next)) {
-                fltp = &(structVar->members[i]->value);
-                break;
-              }
-
-              i++;
-              members = members->next;
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-        }
-      }
-      else if (arg->type == ARG_PFIELD) {
-        CS_VAR_MEM* pfield = lcloffbas + arg->index;
-        fltp = &(pfield->value);
-      }
-      else {
-        csound->Message(csound, Str("FIXME: Unhandled out-arg type: %d\n"),
-                        arg->type);
-        fltp = &csound_null_var_i.value;
-      }
-      argpp[n] = fltp;
-      arg = arg->next;
-    }
-
-    for (argStringCount = args_required(ep->outypes);
-         n < argStringCount;
-         n++)  /* if more outypes, pad */
-      argpp[n] = NULL;
-
-    arg = ttp->inArgs;
-    ip->lclbas = lclbas;
-    int providedIn = 0;
-    for (; arg != NULL; n++, arg = arg->next, providedIn++) {
-      if (arg->type == ARG_CONSTANT) {
-        CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
-        argpp[n] = &varMem->value;
-      }
-      else if (arg->type == ARG_STRING) {
-        argpp[n] = (MYFLT*)(arg->argPtr);
-      }
-      else if (arg->type == ARG_PFIELD) {
-        CS_VAR_MEM* pfield = lcloffbas + arg->index;
-        argpp[n] = &(pfield->value);
-      }
-      else if (arg->type == ARG_GLOBAL) {
-        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
-      }
-      else if (arg->type == ARG_LOCAL){
-        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        argpp[n] = lclbas + var->memBlockIndex;
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
-            CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
-            CONS_CELL* members = type->members;
-            int32_t i = 0;
-
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              if (!strcmp(member->varName, next)) {
-                argpp[n] = &(structVar->members[i]->value);
-                break;
-              }
-
-              i++;
-              members = members->next;
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-        }
-      }
-      else if (arg->type == ARG_LABEL) {
-        argpp[n] = (MYFLT*)(opMemStart +
-                            find_label_mem_offset(csound, tp, (char*)arg->argPtr));
-      }
-      else {
-        csound->Message(csound, Str("FIXME: instance unexpected arg: %d\n"),
-                        arg->type);
-      }
-    }
+    /* Set up argument pointers for this opcode */
+    setup_opcode_argpp(csound, opds, ttp, ep, ip, tp, lclbas, lcloffbas, opMemStart);
 
   }
   /* display instantiated instrument */
@@ -1806,7 +1861,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
          print_opcall(csound, &(optxt->t));
       }
     }
-    
+
     csoundMessage(csound, "endin (instr %d)\n", ip->insno);
   }
 

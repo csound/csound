@@ -2625,6 +2625,10 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
 
 
 int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
+  if (UNLIKELY(p->in->instr == NULL)) {
+    return csound->InitError(csound, 
+      Str("instrnum/nstrnum: instrument reference is not initialized"));
+  }
   int32_t result = instr_num(csound, p->in->instr);
   *p->out = result + *p->offs;
   return OK;
@@ -2632,6 +2636,10 @@ int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
 
 
 int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
+  if (UNLIKELY(p->in->instr == NULL)) {
+    return csound->InitError(csound, 
+      Str("str: instrument reference is not initialized"));
+  }
   char *name = cs_strdup(csound, p->in->instr->insname);
   STRINGDAT *out = (STRINGDAT *) p->out;
   if(strlen(name) >= out->size) {
