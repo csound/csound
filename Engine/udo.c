@@ -86,8 +86,8 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         // printf("ar index %d\n", p->OUTOCOUNT + i);
         MYFLT *argPtr = p->ar[p->OUTOCOUNT + i];
 
-        // printf("Storing arg %s to %p\n", varName, (void*)argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
+        csound->Message(csound, "[DEBUG handle_pass_by_ref] Adding xin output '%s' to map, argPtr=%p (*argPtr=%f)\n",
+                        varName, (void*)argPtr, *argPtr);
         cs_hash_table_put(csound, arg_ptr_map, varName, argPtr);
       }
     } else if (strcmp("xout", ichain->optext->t.opcod) == 0) {
@@ -127,10 +127,7 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ARGLST *outlist = optext->t.outlist;
     ARGLST *inlist = optext->t.inlist;
     bool isUdo = optext->t.oentry->useropinfo != NULL;
-    OENTRY *oentry = optext->t.oentry;
-    // actual pointer offset, the max number of out args
-    int32_t leno = (int32_t) strlen(oentry->outypes);
-    
+
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
       // Skip rewiring for xout array outputs preserved as local
@@ -152,13 +149,17 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       // Skip rewiring for xout array outputs preserved as local
       if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) continue;
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
+      csound->Message(csound, "[DEBUG handle_pass_by_ref] init chain: checking input '%s', found in map: %s\n",
+                      varName, argPtr ? "YES" : "NO");
       if (argPtr != NULL) {
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)ichain;
-            udoData->ar[leno + i] = argPtr;
+            udoData->ar[outlist->count + i] = argPtr;
         } else {
             MYFLT** argStart = (MYFLT**)(ichain + 1);
-            argStart[leno + i] = argPtr;
+            argStart[outlist->count + i] = argPtr;
+            csound->Message(csound, "[DEBUG handle_pass_by_ref] Updated init chain argpp[%d] to %p\n", 
+                            outlist->count + i, (void*)argPtr);
         }
       }
     }
@@ -173,9 +174,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ARGLST *outlist = optext->t.outlist;
     ARGLST *inlist = optext->t.inlist;
     bool isUdo = optext->t.oentry->useropinfo != NULL;
-    OENTRY *oentry = optext->t.oentry;
-    // actual pointer offset, the max number of out args
-    int32_t leno = (int32_t) strlen(oentry->outypes);    
 
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
@@ -198,13 +196,17 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       // Skip rewiring for xout array outputs preserved as local
       if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) continue;
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
+      csound->Message(csound, "[DEBUG handle_pass_by_ref] PERF chain opcode=%s: checking input '%s', found in map: %s\n",
+                      optext->t.opcod, varName, argPtr ? "YES" : "NO");
       if (argPtr != NULL) {
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)pchain;
-            udoData->ar[leno + i] = argPtr;
+            udoData->ar[outlist->count + i] = argPtr;
         } else {
             MYFLT** argStart = (MYFLT**)(pchain + 1);
-            argStart[leno + i] = argPtr;
+            argStart[outlist->count + i] = argPtr;
+            csound->Message(csound, "[DEBUG handle_pass_by_ref] Updated PERF chain argpp[%d] to %p (*argPtr=%f)\n", 
+                            outlist->count + i, (void*)argPtr, *argPtr);
         }
       }
     }
@@ -372,8 +374,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     parent_ip->esr == p->ip->esr;
 
 
+  /* Always use pass-by-ref logic to wire up xin/xout pointers,
+   * even for non-pass-by-ref UDOs. This ensures k-rate and a-rate
+   * parameters are read from caller's arguments at performance time. */
+  handle_pass_by_ref(csound, p, lcurip);
+
   if(inm->passByRef) {
-    handle_pass_by_ref(csound, p, lcurip);
 
     /* For reference types (like InstrDef, strings, arrays), we need to initialize
      * the UDO's local parameter memory with values from the caller, since pass-by-ref
@@ -396,14 +402,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
         param = param->next;
       }
     }
-  }
-
-  /* Reinitialize argument pointers for all opcodes in the UDO to ensure
-   * they point to the correct constant values and variable locations.
-   * Skip this for pass-by-ref UDOs, as handle_pass_by_ref has already
-   * set up the pointers correctly to reference caller's arguments. */
-  if (!inm->passByRef) {
-    csoundReinitInstrumentArgpp(csound, lcurip);
   }
 
   /* do init pass for this instr */
@@ -582,14 +580,29 @@ int32_t set_inbufs(CSOUND *csound,
     void* in = (void*)bufs[i];
     void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
-    // DO NOT COPY K or A vars
-    // Fsigs need to be copied for initialization purposes.
-    // check output kvars in case inputs are constants
-    if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
-      current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
+    
+    csound->Message(csound, "[DEBUG set_inbufs] i=%d, in=%p, out=%p\n", i, in, out);
+    if (csoundGetTypeForArg(in)) {
+      csound->Message(csound, "[DEBUG set_inbufs] *in=%f\n", *((MYFLT*)in));
     }
-    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
+    if (csoundGetTypeForArg(out)) {
+      csound->Message(csound, "[DEBUG set_inbufs] *out=%f\n", *((MYFLT*)out));
+    }
+    
+    // Copy values for initialization. For K-rate, copy the initial value.
+    // A-rate vars are not copied as they're performance-time only.
+    // Fsigs need to be copied for initialization purposes.
+    if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
+      // For k-rate, copy the initial value from caller's argument to UDO's local variable
+      *((MYFLT*)out) = *((MYFLT*)in);
+      csound->Message(csound, "[DEBUG set_inbufs] Copied K-rate init value: *out=%f\n", *((MYFLT*)out));
+    } else if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
+      // For other types (i, S, arrays, etc.), use the type's copy function
+      current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
+      csound->Message(csound, "[DEBUG set_inbufs] After copy: *out=%f\n", *((MYFLT*)out));
+    }
+    
+    if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(esr != parent_sr) {
         if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,

@@ -1520,6 +1520,11 @@ static void setup_opcode_argpp(
     ARG *arg;
     int n;
     int argStringCount;
+    
+    // Debug: log ALL opcodes being set up
+    if (ip->opcod_iobufs != NULL) {
+      csound->Message(csound, "[DEBUG setup_opcode_argpp] opcode=%s\n", ep->opname);
+    }
 
     if (ep->useropinfo == NULL)
       argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
@@ -1541,6 +1546,12 @@ static void setup_opcode_argpp(
                       ep->opname ? ep->opname : "(null)");
         } else {
           fltp = lclbas + var->memBlockIndex;
+        }
+        
+        // Debug: log when setting up xin outputs
+        if (ip->opcod_iobufs != NULL && strcmp(ep->opname, "xin") == 0) {
+          csound->Message(csound, "[DEBUG setup_opcode_argpp] UDO xin output: var=%s, memBlockIndex=%d, lclbas=%p, argpp[%d]=%p\n",
+                          var->varName ? var->varName : "(null)", var->memBlockIndex, (void*)lclbas, n, (void*)fltp);
         }
 
         if (arg->structPath != NULL) {
@@ -1586,6 +1597,11 @@ static void setup_opcode_argpp(
     ip->lclbas = lclbas;
     int providedIn = 0;
     for (; arg != NULL; n++, arg = arg->next, providedIn++) {
+      // Debug inputs for add operations in UDOs
+      if (ip->opcod_iobufs != NULL && strstr(ep->opname, "##add") != NULL) {
+        csound->Message(csound, "[DEBUG setup_opcode_argpp] UDO add input[%d]: type=%d\n", providedIn, arg->type);
+      }
+      
       if (arg->type == ARG_CONSTANT) {
         CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
         argpp[n] = &varMem->value;
@@ -1604,6 +1620,12 @@ static void setup_opcode_argpp(
       else if (arg->type == ARG_LOCAL){
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         argpp[n] = lclbas + var->memBlockIndex;
+        
+        // Debug: log when setting up argpp for local variables in UDOs  
+        if (ip->opcod_iobufs != NULL && strstr(ep->opname, "##add") != NULL) {
+          csound->Message(csound, "[DEBUG setup_opcode_argpp] UDO add input: var=%s, memBlockIndex=%d, lclbas=%p, argpp[%d]=%p, value=%f\n",
+                          var->varName ? var->varName : "(null)", var->memBlockIndex, (void*)lclbas, n, (void*)argpp[n], *argpp[n]);
+        }
 
         if (arg->structPath != NULL) {
           char* path = cs_strdup(csound, arg->structPath);

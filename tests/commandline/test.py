@@ -132,6 +132,7 @@ def runTest():
         ],
         ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
         ["test_asig_array_opassign.csd", "test asig[] index opassign"],
+        ["udo/test_udo_array_set.csd", "test UDO sets array elements"],
         ["test_oversample.csd", "test oversampling in new-style UDO"],
         ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
         ["test_instr_redefinition.csd", "allow instr redefinition"],
