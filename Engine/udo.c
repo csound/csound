@@ -129,7 +129,9 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     bool isUdo = optext->t.oentry->useropinfo != NULL;
     OENTRY *oentry = optext->t.oentry;
     // actual pointer offset, the max number of out args
-    int32_t leno = (int32_t) strlen(oentry->outypes);
+    // Use outlist->count as the actual number of output arguments
+    // (strlen of outypes can be misleading for arrays like "k[]" which is 1 arg)
+    int32_t leno = outlist->count;
 
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
@@ -152,8 +154,8 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       // Skip rewiring for xout array outputs preserved as local
       if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) continue;
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
-      csound->Message(csound, "[DEBUG handle_pass_by_ref] init chain: checking input '%s', found in map: %s\n",
-                      varName, argPtr ? "YES" : "NO");
+      csound->Message(csound, "[DEBUG handle_pass_by_ref] init chain opcode=%s, outypes='%s', leno=%d: checking input '%s', found in map: %s\n",
+                      optext->t.opcod, oentry->outypes ? oentry->outypes : "(null)", leno, varName, argPtr ? "YES" : "NO");
       if (argPtr != NULL) {
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)ichain;
@@ -179,7 +181,9 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     bool isUdo = optext->t.oentry->useropinfo != NULL;
     OENTRY *oentry = optext->t.oentry;
     // actual pointer offset, the max number of out args
-    int32_t leno = (int32_t) strlen(oentry->outypes);
+    // Use outlist->count as the actual number of output arguments
+    // (strlen of outypes can be misleading for arrays like "k[]" which is 1 arg)
+    int32_t leno = outlist->count;
 
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
