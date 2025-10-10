@@ -127,7 +127,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ARGLST *outlist = optext->t.outlist;
     ARGLST *inlist = optext->t.inlist;
     bool isUdo = optext->t.oentry->useropinfo != NULL;
-
+    OENTRY *oentry = optext->t.oentry;
+    // actual pointer offset, the max number of out args
+    int32_t leno = (int32_t) strlen(oentry->outypes);
+    
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
       // Skip rewiring for xout array outputs preserved as local
@@ -152,10 +155,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       if (argPtr != NULL) {
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)ichain;
-            udoData->ar[outlist->count + i] = argPtr;
+            udoData->ar[leno + i] = argPtr;
         } else {
             MYFLT** argStart = (MYFLT**)(ichain + 1);
-            argStart[outlist->count + i] = argPtr;
+            argStart[leno + i] = argPtr;
         }
       }
     }
@@ -170,6 +173,9 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ARGLST *outlist = optext->t.outlist;
     ARGLST *inlist = optext->t.inlist;
     bool isUdo = optext->t.oentry->useropinfo != NULL;
+    OENTRY *oentry = optext->t.oentry;
+    // actual pointer offset, the max number of out args
+    int32_t leno = (int32_t) strlen(oentry->outypes);    
 
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
@@ -195,10 +201,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       if (argPtr != NULL) {
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)pchain;
-            udoData->ar[outlist->count + i] = argPtr;
+            udoData->ar[leno + i] = argPtr;
         } else {
             MYFLT** argStart = (MYFLT**)(pchain + 1);
-            argStart[outlist->count + i] = argPtr;
+            argStart[leno + i] = argPtr;
         }
       }
     }
