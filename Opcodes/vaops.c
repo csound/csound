@@ -113,6 +113,7 @@ static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
       csound->Warning(csound, "index %d outside sample-accurate bounds (%d, %d]",
                       ndx, offset, CS_KSMPS-early);
+     csound->Message(csound, "[VAOPS DEBUG] vasigset: p->avar=%p, avar[%d]=%f, kval=%p, *kval=%f\n", p->avar, ndx, p->avar[ndx], p->kval, *p->kval);
      p->avar[ndx] = *p->kval;
      return OK;
     }

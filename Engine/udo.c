@@ -81,13 +81,36 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     //   printf("xin found\n");
 
       // MAP input args for this UDO to outputs of xin for the UDO
+      OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
       for (i = 0; i < outlist->count; i++) {
         char *varName = outlist->arg[i];
         // printf("ar index %d\n", p->OUTOCOUNT + i);
+        
+        // Determine input type at index i (prefer UDO signature; fall back to local var pool)
+        CS_VARIABLE *cv = udoinfo && udoinfo->in_arg_pool ? udoinfo->in_arg_pool->head : NULL;
+        for (int j = 0; j < i && cv; j++) cv = cv->next;
+        int isArrayIn = (cv && cv->varType == &CS_VAR_TYPE_ARRAY);
+        if (!isArrayIn) {
+          // Fallback: look up the local variable by name
+          if (lcurip && lcurip->instr && lcurip->instr->varPool) {
+            CS_VARIABLE* vv = lcurip->instr->varPool->head;
+            while (vv) {
+              if (vv->varName && varName && strcmp(vv->varName, varName)==0) {
+                isArrayIn = (vv->varType == &CS_VAR_TYPE_ARRAY);
+                break;
+              }
+              vv = vv->next;
+            }
+          }
+        }
+        
         MYFLT *argPtr = p->ar[p->OUTOCOUNT + i];
-
-        csound->Message(csound, "[DEBUG handle_pass_by_ref] Adding xin output '%s' to map, argPtr=%p (*argPtr=%f)\n",
-                        varName, (void*)argPtr, *argPtr);
+        
+        // For arrays, argPtr already points to the right location (ARRAYDAT* storage).
+        // Don't dereference - just use argPtr directly.
+        csound->Message(csound, "[DEBUG handle_pass_by_ref] Adding xin input '%s' (isArray=%d) to map, argPtr=%p\n",
+                        varName, isArrayIn, (void*)argPtr);
+        
         cs_hash_table_put(csound, arg_ptr_map, varName, argPtr);
       }
     } else if (strcmp("xout", ichain->optext->t.opcod) == 0) {
@@ -184,6 +207,31 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     // Use outlist->count as the actual number of output arguments
     // (strlen of outypes can be misleading for arrays like "k[]" which is 1 arg)
     int32_t leno = outlist->count;
+    
+    // Special handling for assignment opcodes (=.k, =.i, etc.)
+    // If input is pass-by-ref, make output also pass-by-ref (alias)
+    if (strcmp(optext->t.opcod, "=.k") == 0 || strcmp(optext->t.opcod, "=.i") == 0) {
+      if (inlist->count > 0 && outlist->count > 0) {
+        char *inVarName = inlist->arg[0];
+        char *outVarName = outlist->arg[0];
+        MYFLT *inArgPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, inVarName);
+        if (inArgPtr != NULL) {
+          // Input is pass-by-ref, so make output also point to same location
+          csound->Message(csound, "[DEBUG handle_pass_by_ref] Assignment %s = %s: adding output '%s' to map pointing to %p\n",
+                          outVarName, inVarName, outVarName, (void*)inArgPtr);
+          cs_hash_table_put(csound, arg_ptr_map, outVarName, inArgPtr);
+          
+          // Also update the output argpp to point there
+          if(isUdo) {
+              UOPCODE *udoData = (UOPCODE *)pchain;
+              udoData->ar[0] = inArgPtr;
+          } else {
+              MYFLT** argStart = (MYFLT**)(pchain + 1);
+              argStart[0] = inArgPtr;
+          }
+        }
+      }
+    }
 
     for (i = 0; i < outlist->count; i++) {
       char *varName = outlist->arg[i];
