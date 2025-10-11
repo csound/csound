@@ -889,6 +889,9 @@ OENTRY opcodlst_1[] = {
   { "ftcps.i",S(EVAL),0,          "i",    "i",    ftcps                   },
   { "i.i",   S(ASSIGN),0,         "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,         "i",    "k",    assign                  },
+  /* this one is stupid, but it's there *only* for backwards
+     compatibility */
+  { "i.kk",   S(ASSIGN),0,         "k",    "k",    NULL, assign                  },
   { "k.i",   S(ASSIGN),0,         "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0,       "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "cpsoct.i",S(EVAL),0,         "i",    "i",    cpsoct                  },
