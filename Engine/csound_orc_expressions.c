@@ -1490,7 +1490,8 @@ TREE* expand_switch_statement(
    5. add goto token that goes to top label
    6. end label */
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int32_t dowhile)
+                             TYPE_TABLE* typeTable, int32_t dowhile,
+                             LOOP_JUMP_TARGETS* targets)
 {
   TREE* anchor = NULL;
   TREE* expressionNodes = NULL;
@@ -1550,6 +1551,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
+  TREE *labelEndIdent = create_synthetic_ident(csound,
+                                               endLabelCounter);
   TREE *topLabel = create_synthetic_ident(csound,
                                           topLabelCounter);
   TREE *gotoTopLabelToken = create_simple_goto_token(csound,
@@ -1561,6 +1564,10 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd->next = current->next;
+  targets->continueTargetIdent = topLabel;
+  targets->breakTargetIdent = labelEndIdent;
+  targets->breakTargetLabel = labelEnd;
+  targets->gotoType = (gotoType==1 ? 0 : 1);
   return anchor;
 }
 
@@ -1748,3 +1755,10 @@ int32_t is_statement_expansion_required(TREE* root) {
   return 0;
 }
 
+TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets) {
+  return create_simple_goto_token(csound, copy_node(csound, targets->breakTargetIdent), targets->gotoType);
+}
+
+TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets) {
+  return create_simple_goto_token(csound, copy_node(csound, targets->continueTargetIdent), targets->gotoType);
+}

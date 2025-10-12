@@ -2630,6 +2630,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   TREE* transformed;
   TREE* top;
   char *udo_name = NULL;
+  CONS_CELL* activeLoopStack = NULL;
 
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
@@ -2795,7 +2796,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       continue;
 
     case UNTIL_TOKEN:
-    case WHILE_TOKEN:
+    case WHILE_TOKEN: {
+      LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
+
       if (!verify_until_statement(csound, current, typeTable)) {
         synterr(csound, "loop conditional expression not valid, line %d",
                 current->line - 2);
@@ -2803,13 +2806,16 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_until_statement(csound, current,
-                                       typeTable, current->type==WHILE_TOKEN);
+                                       typeTable, current->type==WHILE_TOKEN,
+                                       targets);
 
       if (previous != NULL) {
         previous->next = current;
       }
 
+      activeLoopStack = cs_cons(csound, targets, activeLoopStack);
       continue;
+    }
 
     case SWITCH_TOKEN: {
       char* switchArgType = get_arg_type2(csound, current->left, typeTable);
@@ -2890,8 +2896,55 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     }
     continue;
     
-    case LABEL_TOKEN:
+    case LABEL_TOKEN: {
+      if (activeLoopStack != NULL) {
+        LOOP_JUMP_TARGETS* currentTargets = (LOOP_JUMP_TARGETS*)activeLoopStack->value;
+        if (currentTargets->breakTargetLabel == current) {
+          CONS_CELL* temp = activeLoopStack;
+          activeLoopStack = activeLoopStack->next;
+          csound->Free(csound, temp->value);
+          csound->Free(csound, temp);
+        }
+      }
       break;
+    }
+
+    case BREAK_TOKEN: {
+      TREE* breakGoto;
+
+      if (activeLoopStack == NULL) {
+        synterr(csound,Str("line:%d found break statement outside of loop."),
+                current->line);
+        return NULL;
+      }
+
+      breakGoto = convert_break_to_goto(csound, (LOOP_JUMP_TARGETS*)activeLoopStack->value);
+      if (previous != NULL) {
+        previous->next = breakGoto;
+      }
+      breakGoto->next = current->next;
+      current = breakGoto;
+      continue;
+    }
+
+    case CONTINUE_TOKEN: {
+      TREE* continueGoto;
+
+      if (activeLoopStack == NULL) {
+        synterr(csound,Str("line:%d found continue statement outside of loop."),
+                current->line);
+        return NULL;
+      }
+
+      continueGoto = convert_continue_to_goto(csound,
+                        (LOOP_JUMP_TARGETS*)activeLoopStack->value);
+      if (previous != NULL) {
+        previous->next = continueGoto;
+      }
+      continueGoto->next = current->next;
+      current = continueGoto;
+      continue;
+    }
 
     case '+':
     case '-':
@@ -2979,6 +3032,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, "[End Verifying AST]\n");
 
+  cs_cons_free_complete(csound, activeLoopStack);
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;
 
