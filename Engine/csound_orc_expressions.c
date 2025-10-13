@@ -1490,7 +1490,8 @@ TREE* expand_switch_statement(
    5. add goto token that goes to top label
    6. end label */
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int32_t dowhile)
+                             TYPE_TABLE* typeTable, int32_t dowhile,
+                             LOOP_JUMP_TARGETS* targets)
 {
   TREE* anchor = NULL;
   TREE* expressionNodes = NULL;
@@ -1550,6 +1551,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
+  TREE *labelEndIdent = create_synthetic_ident(csound,
+                                               endLabelCounter);
   TREE *topLabel = create_synthetic_ident(csound,
                                           topLabelCounter);
   TREE *gotoTopLabelToken = create_simple_goto_token(csound,
@@ -1561,11 +1564,15 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd->next = current->next;
+  targets->continueTargetIdent = topLabel;
+  targets->breakTargetIdent = labelEndIdent;
+  targets->breakTargetLabel = labelEnd;
+  targets->gotoType = (gotoType==1 ? 0 : 1);
   return anchor;
 }
 
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
-                           char* arrayArgType) {
+                           char* arrayArgType, LOOP_JUMP_TARGETS* targets) {
 
   const CS_TYPE *iType = &CS_VAR_TYPE_I;
   const CS_TYPE *kType = &CS_VAR_TYPE_K;
@@ -1686,16 +1693,32 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   }
   arrayGetStatement->next = current->right->right;
 
-  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+  int32_t continueTargetCounter = csound->genlabs++;
+  TREE* continueTargetLabel = create_synthetic_label(csound, continueTargetCounter);
+  typeTable->labelList = cs_cons(csound,
+                                 cs_strdup(csound, continueTargetLabel->value->lexeme),
+                                 typeTable->labelList);
+  TREE* continueTargetIdent = create_synthetic_ident(csound, continueTargetCounter);
 
-  TREE* loopLtStatement = create_opcode_token(csound, op);
+  int32_t breakTargetCounter = csound->genlabs++;
+  TREE* breakTargetLabel = create_synthetic_label(csound, breakTargetCounter);
+  typeTable->labelList = cs_cons(csound,
+                                 cs_strdup(csound, breakTargetLabel->value->lexeme),
+                                 typeTable->labelList);
+  TREE* breakTargetIdent = create_synthetic_ident(csound, breakTargetCounter);
+
   TREE* tail = tree_tail(current->right->right);
-  tail->next = loopLtStatement;
+  tail->next = continueTargetLabel;
+
+  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+  TREE* loopLtStatement = create_opcode_token(csound, op);
+  continueTargetLabel->next = loopLtStatement;
 
   TREE* indexArgToken = copy_node(csound, indexIdent);
   loopLtStatement->right = indexArgToken;
   // VL: need to set the next statement after loop
-  loopLtStatement->next = current->next;
+  loopLtStatement->next = breakTargetLabel;
+  breakTargetLabel->next = current->next;
 
   // loop less-than arg1: increment by 1
   TREE *oneToken = create_empty_token(csound);
@@ -1723,6 +1746,11 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   csound->Free(csound, arrayLengthName);
   csound->Free(csound, op);
 
+  targets->continueTargetIdent = continueTargetIdent;
+  targets->breakTargetIdent = breakTargetIdent;
+  targets->breakTargetLabel = breakTargetLabel;
+  targets->gotoType = (isPerfRate == 1 ? 0 : 1);
+
   return indexAssign;
 }
 
@@ -1748,3 +1776,10 @@ int32_t is_statement_expansion_required(TREE* root) {
   return 0;
 }
 
+TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets) {
+  return create_simple_goto_token(csound, copy_node(csound, targets->breakTargetIdent), targets->gotoType);
+}
+
+TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets) {
+  return create_simple_goto_token(csound, copy_node(csound, targets->continueTargetIdent), targets->gotoType);
+}

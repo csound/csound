@@ -214,6 +214,9 @@ def runTest():
     ["test_midifile_ops.csd", "testing midifile opcodes"],
     ["test_csound_object.csd", "test Csound object opcodes"],
     ["test_true_false.csd", "testing true/false booleans"],
+    ["test_break_continue.csd", "testing break/continue statements in while/until/for loops"],
+    ["test_break_outside_loop_fails.csd", "testing break outside loop gives parser error", 1],
+    ["test_continue_outside_loop_fails.csd", "testing continue outside loop gives parser error", 1],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
