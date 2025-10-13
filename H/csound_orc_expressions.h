@@ -47,7 +47,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 TREE* expand_switch_statement(CSOUND* csound, TREE* current,TYPE_TABLE* typeTable,
   char* switchArgType);
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
-TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType);
+TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType,
+                           LOOP_JUMP_TARGETS* targets);
 char *remove_type_quoting(CSOUND *csound, const char *outype);
 TREE * create_opcode_token(CSOUND *csound, char* op);
 TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);

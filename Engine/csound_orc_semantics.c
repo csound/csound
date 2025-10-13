@@ -2887,12 +2887,14 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 	} 
        typ = cs_strdup(csound, var->varType->varTypeName);
       }
-      current = expand_for_statement(csound, current, typeTable, typ);
+      LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
+      current = expand_for_statement(csound, current, typeTable, typ, targets);
       csound->Free(csound, atype);
       csound->Free(csound, typ);
       if (previous != NULL) {
         previous->next = current;
       }
+      activeLoopStack = cs_cons(csound, targets, activeLoopStack);
     }
     continue;
     
