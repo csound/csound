@@ -310,6 +310,26 @@ int32_t b_not(CSOUND *csound, LOGCL *p)
 LOGCLX(and,&&)
 LOGCLX(or,||)
 
+// k-rate MYFLT logical operations - both k-rate MYFLT
+int32_t and_kk_bool(CSOUND *csound, LOGCL_KK *p)
+{
+  IGN(csound);
+  int32_t a_bool = (*p->a != FL(0.0)) ? 1 : 0;
+  int32_t b_bool = (*p->b != FL(0.0)) ? 1 : 0;
+  *p->rbool = (a_bool && b_bool) ? 1 : 0;
+  return OK;
+}
+
+int32_t or_kk_bool(CSOUND *csound, LOGCL_KK *p)
+{
+  IGN(csound);
+  int32_t a_bool = (*p->a != FL(0.0)) ? 1 : 0;
+  int32_t b_bool = (*p->b != FL(0.0)) ? 1 : 0;
+  *p->rbool = (a_bool || b_bool) ? 1 : 0;
+  return OK;
+}
+
+
 #define KK(OPNAME,OP)                                   \
   int32_t OPNAME(CSOUND *csound, AOP *p)                \
   { IGN(csound); *p->r = *p->a OP *p->b; return OK; }

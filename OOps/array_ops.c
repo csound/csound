@@ -279,13 +279,6 @@ int32_t array_err(CSOUND* csound, ARRAY_SET *p)
 int32_t array_set(CSOUND* csound, ARRAY_SET *p)
 {
   ARRAYDAT* dat = p->arrayDat;
-  csound->Message(csound, "[ARRAY_OPS DEBUG] array_set: p=%p, &(p->arrayDat)=%p, p->arrayDat=%p\n", p, &(p->arrayDat), (void*)dat);
-  if (dat) {
-    csound->Message(csound, "[ARRAY_OPS DEBUG] dat->data=%p, dat->sizes[0]=%d, dat->dimensions=%d\n", dat->data, dat->sizes ? dat->sizes[0] : -1, dat->dimensions);
-    if (dat->data && dat->sizes && dat->sizes[0] > 0) {
-      csound->Message(csound, "[ARRAY_OPS DEBUG] dat->data[0]=%f\n", ((MYFLT*)dat->data)[0]);
-    }
-  }
 
   if (UNLIKELY(dat == NULL)) {
     return csound->PerfError(csound, &(p->h), Str("array_set: NULL array"));
@@ -418,11 +411,7 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
         for (uint32_t n = nsmps - early; n < nsmps; n++) mem[n] = FL(0.0);
       }
     } else if (dat->arrayType->copyValue) {
-      csound->Message(csound, "[ARRAY_OPS DEBUG] Using copyValue: mem=%p, p->value=%p, *p->value=%f\n",
-                      mem, p->value, p->value ? *((MYFLT*)p->value) : 0.0);
       dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, p->value,  p->h.insdshead);
-      csound->Message(csound, "[ARRAY_OPS DEBUG] After copyValue: *mem=%f, p->value still points to=%p, value there=%f\n",
-                      *((MYFLT*)mem), p->value, p->value ? *((MYFLT*)p->value) : 0.0);
     } else {
       if (LIKELY(mem != NULL && p->value != NULL)) *((MYFLT*)mem) = *((MYFLT*)p->value);
     }

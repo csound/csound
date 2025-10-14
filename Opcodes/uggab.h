@@ -162,16 +162,16 @@ typedef struct {
 
 static inline MYFLT randGab(CSOUND *csound) {
   int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
-  return (MYFLT) ((double)    
-  (((*holdrand = *holdrand * 214013 + 2531011) >> 1) 
-   & 0x7fffffff) * oneUp31Bit);
-
+  uint32_t tmp = (uint32_t)*holdrand * 214013U + 2531011U;
+  *holdrand = (int32_t)tmp;
+  return (MYFLT) ((double)((tmp >> 1) & 0x7fffffff) * oneUp31Bit);
 }
 
 static inline MYFLT BiRandGab(CSOUND *csound) {
   int32_t *holdrand = (int32_t *) csound->QueryGlobalVariable(csound, "::HOLDRAND::");
-  return (MYFLT) ((double)                                       
-                  (*holdrand = *holdrand * -214013 + 2531011) * oneUp31Bit);
+  uint32_t tmp = (uint32_t)*holdrand * (uint32_t)(-214013) + 2531011U;
+  *holdrand = (int32_t)tmp;
+  return (MYFLT) ((double)(int32_t)tmp * oneUp31Bit);
 }
 
 

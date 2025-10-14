@@ -200,9 +200,9 @@ void mfree(CSOUND *csound, void *p)
       cur = cur->nxt;
     }
     CSOUND_MEM_SPINUNLOCK
-    if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->Warning(csound, "csound->Free() called with invalid pointer (%p) %x %p %x",
-                      p, pp->magic, pp->ptr, MEMALLOC_MAGIC);
+    if (UNLIKELY(pp == NULL || pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
+      csound->Warning(csound, "csound->Free() called with invalid pointer (%p) %s",
+                      p, pp == NULL ? "(not found)" : "(corrupted)");
       return;
     }
     pp->magic = 0;

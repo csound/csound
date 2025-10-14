@@ -224,10 +224,12 @@ OENTRY opcodlst_1[] = {
   { "&&.0",     S(LOGCL),0,   /* 0,*/       "B",    "BB",   NULL,    and             },
   { "&&.1",     S(LOGCL),0,   /* 0,*/       "B",    "kB",   NULL,    and             },
   { "&&.2",     S(LOGCL),0,   /* 0,*/       "B",    "Bk",   NULL,    and             },
+  { "&&.3",     S(LOGCL_KK),0,   /* 0,*/     "B",    "kk",   NULL,    (SUBR)and_kk_bool    },
   { "||",     S(LOGCL),0,  /* 0,*/     "b",    "bb",   or,     NULL             },
   { "||.0",     S(LOGCL),0,  /* 0,*/       "B",    "BB",   NULL,     or              },
   { "||.1",     S(LOGCL),0,  /* 0,*/       "B",    "kB",   NULL,     or              },
   { "||.2",     S(LOGCL),0,  /* 0,*/       "B",    "Bk",   NULL,     or              },
+  { "||.3",     S(LOGCL_KK),0,  /* 0,*/     "B",    "kk",   NULL,     (SUBR)or_kk_bool     },
   /* end boolean */
   { ":cond.i",     S(CONVAL),0,        "i",    "bii",  conval                  },
   { ":cond.k",     S(CONVAL),0,         "k",    "Bkk",  NULL,   conval          },

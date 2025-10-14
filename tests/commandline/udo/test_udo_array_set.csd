@@ -32,11 +32,10 @@ instr 1
   od
 
   if (kfail != 0) then
-    prints "error\n"
-    exitnow(-1)
-  else
-    prints "pass\n"
+    printks "error1\n", 0
+    turnoff
   endif
+  printks "pass1\n", 0
 endin
 
 ; Test arrset2: element 0 should become newval
@@ -46,11 +45,10 @@ instr 2
   arrset2(arr, newval)
 
   if (abs(arr[0] - newval) > 1e-6) then
-    prints "error\n"
-    exitnow(-1)
-  else
-    prints "pass\n"
+    printks "error2\n", 0
+    turnoff
   endif
+  printks "pass2\n", 0
 endin
 
 ; Control test without UDO: inline loop assignment should work
@@ -67,18 +65,17 @@ instr 3
   od
 
   if (kfail != 0) then
-    prints "error\n"
-    exitnow(-1)
-  else
-    prints "pass\n"
+    printks "error3\n", 0
+    turnoff
   endif
+  printks "pass3\n", 0
 endin
 
 </CsInstruments>
 <CsScore>
-i1 0 0
-i2 0.1 0
-i3 0.2 0
+i1 0 0.01
+i2 0.1 0.01
+i3 0.2 0.01
 </CsScore>
 </CsoundSynthesizer>
 

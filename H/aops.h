@@ -55,6 +55,12 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
+    int32_t     *rbool;
+    MYFLT       *a, *b;
+} LOGCL_KK;
+
+typedef struct {
+    OPDS    h;
     MYFLT   *r;
     int32_t     *cond;
     MYFLT   *a, *b;
@@ -243,6 +249,8 @@ int32_t inarray_set(CSOUND *csound, INA *p);
 int32_t monitora_perf(CSOUND *csound, MONITOR_A *p);
 int32_t monitora_init(CSOUND *csound, MONITOR_A *p);
 int32_t bassign(CSOUND *csound, RELAT *p);
+int32_t and_kk_bool(CSOUND *csound, LOGCL_KK *p);
+int32_t or_kk_bool(CSOUND *csound, LOGCL_KK *p);
 int32_t b2s(CSOUND *csound, ASSIGN *p);
 int32_t b2b(CSOUND *csound, ASSIGN *p);
 int32_t binit(CSOUND *csound, ASSIGNM *p);
