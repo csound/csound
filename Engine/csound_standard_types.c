@@ -65,28 +65,48 @@ static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
 }
 
-/* Safe string buffer management utilities */
-static void safe_string_free(CSOUND* csound, STRINGDAT* str) {
-    if (str && str->data) {
-        if (str->refcount > 0) {
-            str->refcount--;
-            if (str->refcount == 0) {
-                csound->Free(csound, str->data);
-                str->data = NULL;
-                str->size = 0;
-            }
-        } else {
+/* String buffer management utility */
+static void string_free_internal(CSOUND* csound, STRINGDAT* str) {
+    if (!str || !str->data) return;
+
+    // refcount == -1 means this is an alias (doesn't own the data)
+    if (str->refcount == -1) {
+        str->data = NULL;  // Just clear the pointer, don't free
+        str->size = 0;
+        return;
+    }
+
+    // refcount > 0 means shared buffer
+    if (str->refcount > 0) {
+        str->refcount--;
+        if (str->refcount == 0) {
             csound->Free(csound, str->data);
             str->data = NULL;
             str->size = 0;
         }
+        return;
     }
+
+    // refcount == 0: we own the buffer and should free it
+    csound->Free(csound, str->data);
+    str->data = NULL;
+    str->size = 0;
 }
 
-static void safe_string_resize(CSOUND* csound, STRINGDAT* str, size_t newSize) {
+static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSize) {
     if (!str) return;
 
-    if (str->refcount > 1) {
+    // If this is an alias (refcount == -1), we need to allocate our own buffer
+    if (str->refcount == -1) {
+        char* oldData = str->data;
+        str->data = csound->Calloc(csound, newSize);
+        str->size = newSize;
+        str->refcount = 0;  // Now we own it
+        if (oldData) {
+            strncpy(str->data, oldData, str->size - 1);
+            str->data[str->size - 1] = '\0';
+        }
+    } else if (str->refcount > 1) {
         // Can't resize shared buffer - make a private copy
         char* oldData = str->data;
         str->refcount--;  // Release our ref to shared buffer
@@ -121,13 +141,12 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     int64_t kcnt = csound->kcounter;
     if (sSrc->size > sDest->size) {
-      safe_string_resize(csound, sDest, sSrc->size);
+      string_resize_internal(csound, sDest, sSrc->size);
       memcpy(sDest->data, sSrc->data, sSrc->size);
     } else {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
     }
-    /* VL Feb 22 - update count for 7.0 */
-   sDest->timestamp = kcnt;
+    sDest->timestamp = kcnt;
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
@@ -301,7 +320,15 @@ static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 static void array_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
+
     dat->arrayType = var->subType;
+
+    // Always initialize all fields to prevent uninitialized memory issues
+    dat->data = NULL;
+    dat->allocated = 0;
+    dat->arrayMemberSize = 0;
+    dat->dimensions = 0;
+    dat->sizes = NULL;
 
     // Initialize array dimensions if they were set during variable creation
     if (var->dimensions > 0) {
@@ -314,10 +341,6 @@ static void array_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock)
         for (int32_t i = 0; i < var->dimensions; i++) {
             dat->sizes[i] = 0; // Will be set by init opcode
         }
-
-        dat->arrayMemberSize = 0; // Will be set when array is actually initialized
-        dat->data = NULL;
-        dat->allocated = 0;
     }
 }
 
@@ -327,7 +350,6 @@ static void var_init_memory_string(CSOUND *csound, CS_VARIABLE* var, MYFLT* memb
     str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
     str->refcount = 0;  // Initialize refcount (0 = unmanaged)
-    //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
 
 static void var_init_memory_fsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -473,10 +495,10 @@ static CS_VARIABLE* create_instr(void* csnd, void* p, INSDS *ctx) {
 
 
 /* FREE VAR MEM FUNCTIONS */
-static void string_free_var_mem(void* csnd, void* p ) {
+static void string_free_var_mem(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     STRINGDAT* dat = (STRINGDAT*)p;
-    safe_string_free(csound, dat);
+    string_free_internal(csound, dat);
 }
 
 static void array_free_var_mem(void* csnd, void* p) {

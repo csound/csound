@@ -144,14 +144,6 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 
   CS_VAR_MEM* member = varIn->members[nthInt];
 
-
-
-
-
-
-
-
-
   /* Use type-aware copy so array members and non-scalars are handled */
   if (member->varType && member->varType->copyValue) {
     if (member->varType == &CS_VAR_TYPE_ARRAY) {
@@ -252,6 +244,17 @@ static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
   }
 
   CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
+
+  // Check if this is actually an ARRAYDAT (array of structs) instead of a struct
+  // This happens when array[index].member syntax is used incorrectly
+  ARRAYDAT* arrayCheck = (ARRAYDAT*)p->var;
+  if (arrayCheck && arrayCheck->dimensions >= 0 && arrayCheck->dimensions < 100 &&
+      arrayCheck->arrayType && arrayCheck->arrayType->userDefinedType &&
+      arrayCheck->data != NULL) {
+    return csound->PerfError(csound, &(p->h),
+      "Cannot directly access array[index].member for struct arrays. "
+      "Use: temp = array[index]; temp.member = value; array[index] = temp");
+  }
 
   if (UNLIKELY(var == NULL || var->members == NULL))
     return csound->PerfError(csound, &(p->h), "Invalid struct for member_set");
@@ -511,10 +514,21 @@ static int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   }
 
   dstVar = (CS_STRUCT_VAR*)dat->out;
-  /* Make dstVar an alias to srcVar by copying the members pointer and metadata */
-  dstVar->members = srcVar->members;
-  dstVar->memberCount = srcVar->memberCount;
-  dstVar->ownsMembers = 0;  /* Non-owning to avoid double free */
+
+  /* For struct arrays, we copy values also when they are references, because the array
+     element's member storage is separate from the output struct's storage */
+  if (dstVar->members && srcVar->members && dstVar->memberCount == srcVar->memberCount) {
+    for (int i = 0; i < srcVar->memberCount; i++) {
+      if (dstVar->members[i] && srcVar->members[i]) {
+        dstVar->members[i]->value = srcVar->members[i]->value;
+      }
+    }
+    dstVar->ownsMembers = 0;
+  } else {
+    dstVar->members = srcVar->members;
+    dstVar->memberCount = srcVar->memberCount;
+    dstVar->ownsMembers = 0;
+  }
   return OK;
 }
 

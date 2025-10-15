@@ -2657,6 +2657,8 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   int32_t i;
 
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
+  structVar->memberCount = len;  // Set the member count
+  structVar->ownsMembers = 1;    // This struct owns its members
   if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
       csound->Message(csound, "Initializing Struct...\n");
       csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
@@ -2701,6 +2703,11 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int32_t i, count;
 
+  // Don't copy to itself
+  if (dest == src) {
+    return;
+  }
+
   if (varDest->members == NULL || varSrc->members == NULL) {
     return;  // Can't copy if members aren't initialized
   }
@@ -2710,6 +2717,11 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
     CS_VAR_MEM* d = varDest->members[i];
     CS_VAR_MEM* s = varSrc->members[i];
     if (d != NULL && s != NULL) {
+      // Check if d and s are the same (aliased)
+      if (d == s) {
+        // Already aliased, nothing to copy
+        continue;
+      }
       d->varType->copyValue(csound, d->varType, &d->value, &s->value, p);
     }
   }
@@ -3363,6 +3375,34 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 1;
       /* fall through */
     default:
+      // Check for struct array member assignments: array[index].member = value
+      if ((current->type == '=' || current->type == T_ASSIGNMENT) &&
+          current->left && current->left->type == STRUCT_EXPR &&
+          current->left->left && current->left->left->type == T_ARRAY) {
+
+        TREE* anchor_expansion = NULL;
+        if (expand_struct_array_member_assignment(csound, current, typeTable, &anchor_expansion)) {
+          // Successfully expanded, replace current with the expanded sequence
+          if (previous != NULL) {
+            previous->next = anchor_expansion;
+          } else if (anchor == NULL) {
+            anchor = anchor_expansion;
+          }
+
+          // Find the end of the expansion chain and link to current->next
+          TREE* last = anchor_expansion;
+          while (last && last->next) {
+            last = last->next;
+          }
+          if (last) {
+            last->next = current->next;
+          }
+
+          current = anchor_expansion;
+          continue;
+        }
+      }
+
       transformed = convert_statement_to_opcall(csound, current, typeTable);
 
       if (transformed != current) {

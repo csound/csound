@@ -107,6 +107,7 @@ void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var) {
         mem->varType->freeVariableMemory(csound, &mem->value);
       }
       csound->Free(csound, mem);
+      var->members[i] = NULL;  // Prevent double-free
     }
   }
   csound->Free(csound, var->members);

@@ -552,7 +552,7 @@ CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
   CS_VARIABLE *var =
     csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
   size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
-  CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
+  CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
   csoundAddVariable(csound, engineState->varPool, var);
 
   varMem->varType = var->varType;

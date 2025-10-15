@@ -452,10 +452,35 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     /* Allow arrays with no metadata (e.g., signal-as-array views) by treating
        them as flat 1-D arrays addressed with a single index. */
     if (!(dat && dat->dimensions == 0)) {
-      return csound->PerfError(csound, &(p->h),
-                               Str("Array dimension %d out of range "
-                                   "for dimensions %d"),
-                               indefArgCount, dat ? dat->dimensions : -1);
+      // Check if this looks like an uninitialized array (garbage dimensions value)
+      int32_t orig_dimensions = dat->dimensions;
+      if (dat->dimensions < 0 || dat->dimensions > 1000) {
+        // Try to recover: assume 1-D array if we have valid data
+        if (dat->data != NULL && dat->arrayMemberSize > 0 && indefArgCount == 1) {
+          dat->dimensions = 1;
+          if (dat->sizes == NULL) {
+            dat->sizes = csound->Calloc(csound, sizeof(int32_t));
+          }
+          // Infer size from allocated memory
+          if (dat->allocated > 0) {
+            dat->sizes[0] = (int32_t)(dat->allocated / (size_t)dat->arrayMemberSize);
+          } else {
+            dat->sizes[0] = 1; // Conservative default
+          }
+          csound->Warning(csound, "array_get: recovered from corrupted dimensions (was %d), set to %d with size %d\n",
+                          orig_dimensions, dat->dimensions, dat->sizes[0]);
+        } else {
+          return csound->PerfError(csound, &(p->h),
+                                   Str("Array dimension %d out of range "
+                                       "for dimensions %d"),
+                                   indefArgCount, orig_dimensions);
+        }
+      } else {
+        return csound->PerfError(csound, &(p->h),
+                                 Str("Array dimension %d out of range "
+                                     "for dimensions %d"),
+                                 indefArgCount, dat ? dat->dimensions : -1);
+      }
     }
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
@@ -747,7 +772,31 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
   }
 
   // Copy value into destination using type-aware copier
-  if (dat->arrayType && dat->arrayType->copyValue) {
+  // For struct arrays, we need to copy member by member since the array elements
+  // are raw struct data, not CS_STRUCT_VAR structures with members pointers
+  if (dat->arrayType && dat->arrayType->userDefinedType) {
+    CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)p->value;
+    CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*)dstPtr;
+
+    // Ensure both are initialized
+    if (srcVar && srcVar->members && dstVar && dstVar->members && dat->arrayType->members) {
+      // Get member count from the type definition, not the variable
+      int32_t memberCount = cs_cons_length(dat->arrayType->members);
+      for (int32_t i = 0; i < memberCount; i++) {
+        CS_VAR_MEM* srcMember = srcVar->members[i];
+        CS_VAR_MEM* dstMember = dstVar->members[i];
+        if (srcMember && dstMember && srcMember->varType) {
+          // Copy the member value
+          if (srcMember->varType->copyValue) {
+            srcMember->varType->copyValue(csound, srcMember->varType,
+                                         &dstMember->value, &srcMember->value, p->h.insdshead);
+          } else {
+            dstMember->value = srcMember->value;
+          }
+        }
+      }
+    }
+  } else if (dat->arrayType && dat->arrayType->copyValue) {
     dat->arrayType->copyValue(csound, dat->arrayType, (void*)dstPtr, p->value, p->h.insdshead);
   } else {
     // Fallback should not happen for struct, but keep parity with array_set

@@ -201,13 +201,37 @@ void mfree(CSOUND *csound, void *p)
     }
     CSOUND_MEM_SPINUNLOCK
     if (UNLIKELY(pp == NULL || pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
-      csound->Warning(csound, "csound->Free() called with invalid pointer (%p) %s",
-                      p, pp == NULL ? "(not found)" : "(corrupted)");
+      if (pp != NULL && pp->magic != MEMALLOC_MAGIC) {
+        csound->Warning(csound, "csound->Free() called with corrupted pointer (%p)",
+                        p);
+      }
       return;
     }
     pp->magic = 0;
 #else
     pp = HDR_PTR(p);
+
+    // In release builds, validate the pointer before accessing header by searching the list
+    // This is slower but prevents crashes from corrupted pointers
+    int found = 0;
+    CSOUND_MEM_SPINLOCK
+    memAllocBlock_t *cur = (memAllocBlock_t*) MEMALLOC_DB;
+    while (cur != NULL) {
+      // Calculate user pointer from header
+      void *cur_ptr = (void*)((unsigned char*)cur + HDR_SIZE);
+      if (cur_ptr == p) {
+        pp = cur;
+        found = 1;
+        break;
+      }
+      cur = cur->nxt;
+    }
+    CSOUND_MEM_SPINUNLOCK
+
+    if (!found) {
+      csound->Warning(csound, "csound->Free() called with invalid pointer (%p) (not found)", p);
+      return;
+    }
 #endif
     CSOUND_MEM_SPINLOCK
     /* unlink from chain */

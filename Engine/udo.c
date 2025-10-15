@@ -134,12 +134,14 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         if (ar_index >= 0 && ar_index < (udoinfo->outchns + udoinfo->inchns)) {
           MYFLT *argPtr = p->ar[ar_index];
 
-          // New-style UDOs pass arrays, k-rate, and a-rate scalars by reference
+          // New-style UDOs pass arrays, k-rate, a-rate, and i-rate (including strings) by reference
           int isArray = (param->varType == &CS_VAR_TYPE_ARRAY);
           int isKRate = (param->varType == &CS_VAR_TYPE_K);
           int isARate = (param->varType == &CS_VAR_TYPE_A);
+          int isString = (param->varType == &CS_VAR_TYPE_S);
+          int isIRate = (param->varType == &CS_VAR_TYPE_I);
 
-          if (isArray || isKRate || isARate) {
+          if (isArray || isKRate || isARate || isString || isIRate) {
             cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
 
             // Map actual parameter name if different from signature
@@ -154,6 +156,27 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
                 ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + actualParams[i]->memBlockIndex);
                 memcpy(localArray, callerArray, sizeof(ARRAYDAT));
                 localArray->allocated = 0;
+              }
+
+              // For strings, create alias to prevent double-free
+              // The local string will point to the caller's buffer but won't own it
+              if (isString && lcurip->lclbas) {
+                STRINGDAT *callerString = (STRINGDAT *)argPtr;
+                STRINGDAT *localString = (STRINGDAT *)(lcurip->lclbas + actualParams[i]->memBlockIndex);
+
+                // Free the local string's initially allocated buffer
+                if (localString->data != NULL && localString->data != callerString->data) {
+                  csound->Free(csound, localString->data);
+                }
+
+                // Alias to caller's string data
+                localString->data = callerString->data;
+                localString->size = callerString->size;
+                localString->timestamp = callerString->timestamp;
+
+                // Set local refcount to -1 to indicate this is an alias that should NOT be freed
+                // The caller retains ownership and will free the buffer
+                localString->refcount = -1;
               }
             }
           }
@@ -625,8 +648,7 @@ int32_t set_inbufs(CSOUND *csound,
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
   bufs = udo->ar + inm->outchns;
-  tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
-  // for copying at perf-time
+  tmp = buf->iobufp_ptrs;
   current = inm->in_arg_pool->head;
 
   if(inm->passByRef) {
@@ -638,14 +660,9 @@ int32_t set_inbufs(CSOUND *csound,
     void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
 
-    // Copy values for initialization. For K-rate, copy the initial value.
-    // A-rate vars are not copied as they're performance-time only.
-    // Fsigs need to be copied for initialization purposes.
     if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
-      // For k-rate, copy the initial value from caller's argument to UDO's local variable
       *((MYFLT*)out) = *((MYFLT*)in);
     } else if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
-      // For other types (i, S, arrays, etc.), use the type's copy function
       current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
     }
 
