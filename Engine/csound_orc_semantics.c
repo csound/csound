@@ -1332,6 +1332,10 @@ int32_t check_in_arg(char *found, char *required) {
   if (found[0] == 'p' && (required[0] == 'i' || required[0] == 'k')) {
     return 1;
   }
+  // k-rate scalar can be used as k-rate boolean (B)
+  if (found[0] == 'k' && required[0] == 'B') {
+    return 1;
+  }
 
   // If either side denotes an array (external k[], typed :Type;[], or internal
   // prefix '['), delegate to the array-aware matcher that also enforces

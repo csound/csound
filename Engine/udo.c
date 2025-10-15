@@ -86,12 +86,31 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         int32_t ar_index = udoinfo->outchns + i;
         if (ar_index >= 0 && ar_index < (udoinfo->outchns + udoinfo->inchns)) {
           MYFLT *argPtr = p->ar[ar_index];
-          cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+          // Only add arrays to the pass-by-ref map. Scalars are passed by value.
+          int isArray = (param->varType == &CS_VAR_TYPE_ARRAY);
+          csound->Message(csound, "[DEBUG] UDO param[%d] '%s' isArray=%d, ar_index=%d, argPtr=%p\n", 
+                          i, param->varName, isArray, ar_index, (void*)argPtr);
+          if (isArray) {
+            cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+          }
         } else {
           csound->Warning(csound, "Invalid ar_index %d for param '%s'\n", ar_index, param->varName);
         }
       }
       param = param->next;
+    }
+  }
+  
+  // Also check the local variable pool for variable names that might match parameter names
+  if (lcurip && lcurip->instr && lcurip->instr->varPool) {
+    CS_VARIABLE* vv = lcurip->instr->varPool->head;
+    csound->Message(csound, "[DEBUG] UDO local varPool:\n");
+    while (vv) {
+      csound->Message(csound, "[DEBUG]   var='%s' type=%s isArray=%d\n",
+                      vv->varName ? vv->varName : "(null)",
+                      vv->varType ? vv->varType->varTypeName : "(null)",
+                      vv->varType == &CS_VAR_TYPE_ARRAY);
+      vv = vv->next;
     }
   }
 
@@ -173,6 +192,8 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         }
         MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
         if (argPtr != NULL) {
+          csound->Message(csound, "[DEBUG] Rewiring init chain opcode=%s output[%d] varName=%s to argPtr=%p\n",
+                          optext->t.opcod, i, varName, (void*)argPtr);
           rewire_argpp(csound, ichain, i, argPtr);
         }
       }
@@ -189,6 +210,8 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         if (argPtr != NULL) {
           // Use actual outlist count for this opcode instance, not the oentry count
           int32_t actual_outcount = (outlist != NULL) ? outlist->count : 0;
+          csound->Message(csound, "[DEBUG] Rewiring init chain opcode=%s input[%d] varName=%s to argPtr=%p (offset=%d)\n",
+                          optext->t.opcod, i, varName, (void*)argPtr, actual_outcount + i);
           rewire_argpp(csound, ichain, actual_outcount + i, argPtr);
         }
       }
@@ -216,6 +239,8 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         }
         MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
         if (argPtr != NULL) {
+          csound->Message(csound, "[DEBUG] Rewiring perf chain opcode=%s output[%d] varName=%s to argPtr=%p\n",
+                          optext->t.opcod, i, varName, (void*)argPtr);
           rewire_argpp(csound, pchain, i, argPtr);
         }
       }
@@ -232,6 +257,8 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         if (argPtr != NULL) {
           // Use actual outlist count for this opcode instance, not the oentry count
           int32_t actual_outcount = (outlist != NULL) ? outlist->count : 0;
+          csound->Message(csound, "[DEBUG] Rewiring perf chain opcode=%s input[%d] varName=%s to argPtr=%p (offset=%d)\n",
+                          optext->t.opcod, i, varName, (void*)argPtr, actual_outcount + i);
           rewire_argpp(csound, pchain, actual_outcount + i, argPtr);
         }
       }
