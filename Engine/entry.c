@@ -902,6 +902,9 @@ OENTRY opcodlst_1[] = {
   { "=",     S(ASSIGN),0,         "k",    "i",    NULL,    assign         },
   { "i.i",   S(ASSIGN),0,         "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,         "i",    "k",    assign                  },
+  /* this one is stupid, but it's there *only* for backwards
+     compatibility */
+  { "i.kk",   S(STOREI),0,         "k",    "k",   (SUBR) storei, (SUBR) retrievek },
   { "k.i",   S(ASSIGN),0,         "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0,       "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "=",     S(ASSIGN),0,         "a",    "i",    NULL,    ainit         },

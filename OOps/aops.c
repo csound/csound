@@ -65,17 +65,17 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a)
   if (a > POW2MAX) a = POW2MAX;
   else if (a < -POW2MAX) a = -POW2MAX;
   return POWER(FL(2.0), a);
-  /* 4096 * 15 */
-  /* n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI; */
-  /* return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]); */
 }
 
+int32_t storei(CSOUND *csound, STOREI *p) {
+  p->mem = *p->a;
+  return OK;
+}
 
-/*static inline MYFLT pow2(MYFLT a)
-  {
-  int32_t n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;
-  return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
-  }*/
+int32_t retrievek(CSOUND *csound, STOREI *p) {
+  *p->r = p->mem;
+  return OK;
+}
 
 
 int32_t b2s(CSOUND *csound, ASSIGN *p){

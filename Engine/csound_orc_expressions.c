@@ -20,7 +20,7 @@
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
-*/
+*/ 
 
 #include "csoundCore.h"
 #include "csound_orc.h"
@@ -29,80 +29,21 @@
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 #include "csound_orc_compile.h"
-#include "csound_orc_structs.h"
 #include <inttypes.h>
 
 
 ORCTOKEN *make_token(CSOUND *, char *);
 ORCTOKEN *make_label(CSOUND *, char *);
-char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar);
 
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*);
-static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, int locn,
-                                        TYPE_TABLE* typeTable, TREE** anchor);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 
-
-static TREE* lower_expr_to_temp(CSOUND* csound, TREE* expr, int32_t line, uint64_t locn, TYPE_TABLE* typeTable, const char** outTempLexeme);
-
-static TREE* lower_expr_to_temp(
-  CSOUND* csound,
-  TREE* expr,
-  int32_t line,
-  uint64_t locn,
-  TYPE_TABLE* typeTable,
-  const char** outTempLexeme
-) {
-  if (outTempLexeme) *outTempLexeme = NULL;
-  if (!expr) return NULL;
-  TREE* chain = create_expression(csound, expr, line, locn, typeTable);
-  if (!chain) return NULL;
-  // Prefer the opcall for this function (by name) to get its real out temp
-  const char* outLex = NULL;
-  const char* fnName = (expr && expr->value) ? expr->value->lexeme : NULL;
-  for (TREE* t = chain; t != NULL; t = t->next) {
-    if (t->type == T_OPCALL && t->value && t->value->lexeme && fnName && strcmp(t->value->lexeme, fnName) == 0) {
-      if (t->left && t->left->value && t->left->value->lexeme) {
-        outLex = t->left->value->lexeme;
-      }
-    }
-  }
-  // Fallback: use tail with a concrete left
-  if (!outLex) {
-    TREE* tail = chain; while (tail && tail->next) tail = tail->next;
-    if (tail && tail->left && tail->left->value && tail->left->value->lexeme) {
-      outLex = tail->left->value->lexeme;
-    }
-  }
-  if (outTempLexeme) *outTempLexeme = outLex;
-  return chain;
-}
-
-
-// Simple structural equivalence for binary ops with identifier leaves
-static int trees_equiv_simple(TREE* a, TREE* b) {
-  if (!a || !b) return 0;
-  if ((a->type == '*' || a->type == '+') && (b->type == '*' || b->type == '+')) {
-    if (a->type != b->type) return 0;
-    if (!a->left || !a->right || !b->left || !b->right) return 0;
-    if (a->left->type != T_IDENT || a->right->type != T_IDENT ||
-        b->left->type != T_IDENT || b->right->type != T_IDENT) return 0;
-    const char* aL = (a->left->value && a->left->value->lexeme) ? a->left->value->lexeme : "";
-    const char* aR = (a->right->value && a->right->value->lexeme) ? a->right->value->lexeme : "";
-    const char* bL = (b->left->value && b->left->value->lexeme) ? b->left->value->lexeme : "";
-    const char* bR = (b->right->value && b->right->value->lexeme) ? b->right->value->lexeme : "";
-    if ((!strcmp(aL, bL) && !strcmp(aR, bR)) || (!strcmp(aL, bR) && !strcmp(aR, bL))) return 1;
-  }
-  return 0;
-}
-
 TREE* tree_tail(TREE* node) {
   TREE* t = node;
   if (t == NULL) {
-
     return NULL;
   }
   while (t->next != NULL) {
@@ -118,7 +59,7 @@ char *remove_type_quoting(CSOUND *csound, const char *outype) {
      // remove any : or ; leftover in typename
      do  {
          c = outype[n++];
-         if(c == ':' || c == ';') continue;
+         if(c == ':' || c == ';') continue;  
          type[i++] = c;
       } while (c);
      return type;
@@ -126,7 +67,6 @@ char *remove_type_quoting(CSOUND *csound, const char *outype) {
 
 int32_t find_brace(char *s) {
   while(*s != '\0') {
-
     if(*s++ == '[') return 1;
   }
   return 0;
@@ -161,8 +101,8 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
       snprintf(s, 16, "#%c%d[]", type[1], argCount);
       if(*type == '[') // [type]
       add_array_arg(csound, s,  NULL, 1, typeTable);
-      else // type[]
-      add_array_arg(csound, s,  type, 1, typeTable);
+      else // type[] 
+      add_array_arg(csound, s,  type, 1, typeTable);  
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
@@ -172,104 +112,6 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
   }
   return s;
 }
-
-#if 0
-char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
-                     TYPE_TABLE* typeTable)
-{
-
-
-  // Always allocate a sufficiently large buffer for user-defined names
-  char* s = (char *)csound->Calloc(csound, 256);
-
-  size_t L = strlen(outype);
-
-  // Single-letter scalar types (fast path)
-  if (L == 1 && outype[0] != '[') {
-    switch(*outype) {
-    case 'a': snprintf(s, 256, "#a%d", argCount); break;
-    case 'K':
-    case 'k': snprintf(s, 256, "#k%d", argCount); break;
-    case 'B': snprintf(s, 256, "#B%d", argCount); break;
-    case 'b': snprintf(s, 256, "#b%d", argCount); break;
-    case 'f': snprintf(s, 256, "#f%d", argCount); break;
-    case 't': snprintf(s, 256, "#k%d", argCount); break;
-    case 'S': snprintf(s, 256, "#S%d", argCount); break;
-    default:  snprintf(s, 256, "#i%d", argCount); break;
-    }
-    add_arg(csound, s, NULL, typeTable, NULL);
-    return s;
-  }
-
-  // Normalize new-type spellings by stripping optional : ; quoting
-  char *type = remove_type_quoting(csound, outype);
-
-  // Detect array forms in either internal ("[[k") or external ("Type[]")
-  int32_t dims = 0;
-  char *baseName = NULL;
-
-  if (type[0] == '[') {
-    // Internal representation: [[k (dims = leading '[' count), base = next char)
-    const char *p = type;
-    while (*p == '[') { dims++; p++; }
-    // base letter (k,i,a,S, etc.)
-    char baseLetter[2] = { *p ? *p : 'i', '\0' };
-    // Name result token as #[letter]N for variable storage; add_array_arg will handle the array type
-    snprintf(s, 256, "#%s%d", baseLetter, argCount);
-    add_array_arg(csound, s, baseLetter, dims, typeTable);
-  } else if (find_brace(type)) {
-    // External representation: e.g., Person[][], k[], Complex[]
-    size_t n = strlen(type);
-    // Count trailing [] pairs
-    const char *p = type + n;
-    while (p - type >= 2 && *(p-2) == '[' && *(p-1) == ']') { dims++; p -= 2; }
-    size_t nameLen = (size_t)(p - type);
-    baseName = (char*)csound->Calloc(csound, nameLen + 1);
-    memcpy(baseName, type, nameLen);
-
-    // Compose a descriptive temp var name like #Person3 for variable storage; add_array_arg will handle the array type
-    snprintf(s, 256, "#%s%d", baseName, argCount);
-    add_array_arg(csound, s, baseName, dims > 0 ? dims : 1, typeTable);
-  } else {
-    // Non-array or multi-char types
-    // If 'type' is a pure sequence of primitive single-letter types (e.g., "aa", "ak"),
-    // treat it as a multi-output. Create one temp per letter and return the first.
-    int isMultiPrim = 0;
-    if (type && type[0]) {
-      size_t nmp = strlen(type);
-      if (nmp > 1) {
-        isMultiPrim = 1;
-        for (size_t i = 0; i < nmp; ++i) {
-          char c = type[i];
-          if (!(c=='i'||c=='k'||c=='K'||c=='a'||c=='S'||c=='s'||c=='B'||c=='b'||c=='f'||c=='t')) {
-            isMultiPrim = 0; break;
-          }
-        }
-      }
-    }
-    if (isMultiPrim) {
-      size_t nout = strlen(type);
-      for (size_t i = 0; i < nout; ++i) {
-        char c = type[i];
-        char nameBuf[64];
-        snprintf(nameBuf, sizeof nameBuf, "#%c%d", c, (int)(argCount + i));
-        add_arg(csound, nameBuf, NULL, typeTable, NULL);
-      }
-      if (nout > 1) { typeTable->localPool->synthArgCount += (int)(nout - 1); }
-      snprintf(s, 256, "#%c%d", type[0], argCount);
-    } else {
-      // Non-array user-defined or multi-char built-ins (e.g., Complex)
-      snprintf(s, 256, "#%s%d", type, argCount);
-      add_arg(csound, s, type, typeTable, NULL);
-    }
-  }
-
-  if (baseName) csound->Free(csound, baseName);
-  csound->Free(csound, type);
-
-  return s;
-}
-#endif
 
 /**
  * Handles expression opcode type, appending to passed in opname
@@ -304,13 +146,12 @@ static TREE *create_empty_token(CSOUND *csound)
 }
 
 static TREE *create_unary_token(CSOUND *csound, char *sym)
-
 {
   TREE *ans;
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)
-    csoundMessage(csound, "Out of memory\n");
+    csoundMessage(csound, "Out of memory\n"); 
     exit(1);
   }
   ans->type = INTEGER_TOKEN;
@@ -325,11 +166,11 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
 }
 
 // also used in csound_orc_semantics.c
-TREE * create_opcode_token(CSOUND *csound, const char* op)
+TREE * create_opcode_token(CSOUND *csound, char* op)
 {
   TREE *ans = create_empty_token(csound);
   ans->type = T_OPCALL;
-  ans->value = make_token(csound, (char*)op);
+  ans->value = make_token(csound, op);
   ans->value->type = T_OPCALL;
   return ans;
 }
@@ -384,7 +225,7 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
   opTree = create_opcode_token(csound, op);
   bVar = create_empty_token(csound);
-  bVar->type = T_IDENT;
+  bVar->type = T_IDENT; 
   bVar->value = make_token(csound, booleanVar);
   bVar->value->type = bVar->type;
 
@@ -436,7 +277,6 @@ int32_t is_expression_node(TREE *node)
   case '~':
   case '?':
   case T_ARRAY:
-  case STRUCT_EXPR:
     return 1;
   }
   return 0;
@@ -549,7 +389,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   while (last->next != NULL) last = last->next;
   last->next = create_synthetic_label(csound,ln1);
   while (last->next != NULL) last = last->next;
-
+  
   last->next = c;
   while (last->next != NULL) last = last->next;
   while (last->next != NULL) last = last->next;
@@ -567,19 +407,13 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
   OENTRIES* opentries = find_opcode2(csound, op);
 
-  if (opentries == NULL || opentries->count == 0) {
-    csound->ErrorMsg(csound, "ERROR: Opcode '%s' not found\n", op);
-    return NULL;
-  }
-
-
   char* leftArgType = get_arg_string_from_tree(csound, left, typeTable);
   char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
   char* argString = csound->Calloc(csound, 80);
 
   strNcpy(argString, leftArgType, 80);
   strlcat(argString, rightArgType, 80);
-
+  
   outType = resolve_opcode_get_outarg(csound, opentries, argString);
 
   csound->Free(csound, argString);
@@ -607,12 +441,6 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   TREE * opTree, *current, *newArgList;
   OENTRIES* opentries;
   CS_VARIABLE* var;
-  int skipOpCreation = 0;
-  // Track multi-output primitive info for T_FUNCTION (e.g., outtype "aa")
-  int multiPrimCount = 0;
-  int multiPrimBaseIndex = -1;
-  char multiPrimTypes[16] = {0};
-
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -621,45 +449,14 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   current = root->left;
   newArgList = NULL;
   while (current != NULL) {
-    if (current->type == T_OPCALL || is_expression_node(current)) {
-      if (root->type == T_ARRAY && current == root->left && current->type == STRUCT_EXPR) {
-        newArgList = append_to_tree(csound, newArgList, current);
-        // Advance and continue without transforming this child
-        current = current->next;
-        continue;
-      }
-      // member_get(array) -> array_get_struct -> member_get(scalar).
-      if (root->type == STRUCT_EXPR && current == root->left && current->type == T_ARRAY) {
-        newArgList = append_to_tree(csound, newArgList, current);
-        current = current->next;
-        continue;
-      }
+    if (is_expression_node(current)) {
       TREE* newArg;
-      TREE* expr = create_expression(csound, current, line, locn, typeTable);
-      anchor = append_to_tree(csound, anchor, expr);
-      last = tree_tail(expr);
-      if (last == NULL) {
-        return NULL;
-      }
-      /* Prefer the last node in the expression chain that has a concrete LHS temp.
-         This is important for ternary lowering which ends with a label; the actual
-         result temp is on the last assignment before the label. */
-      TREE* pickWithLeft = NULL;
-      for (TREE* tscan = expr; tscan != NULL; tscan = tscan->next) {
-        if (tscan->left && tscan->left->value && tscan->left->value->lexeme) {
-          pickWithLeft = tscan;
-        }
-      }
-      const char* pickedLex = NULL;
-      if (pickWithLeft) {
-        pickedLex = pickWithLeft->left->value->lexeme;
-      } else if (last->value && last->value->lexeme) {
-        pickedLex = last->value->lexeme; /* fallback: direct value on tail node */
-      }
-      if (!pickedLex) {
-        return NULL;
-      }
-      newArg = create_ans_token(csound, (char*)pickedLex);
+
+      anchor = append_to_tree(csound, anchor,
+                            create_expression(csound, current, line, locn,
+                                              typeTable));
+      last = tree_tail(anchor);
+      newArg = create_ans_token(csound, last->left->value->lexeme);
       newArgList = append_to_tree(csound, newArgList, newArg);
       current = current->next;
     } else {
@@ -674,57 +471,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   root->left = newArgList;
 
   current = root->right;
-  // Normalize arglist anomalies: merge a leading unary '+' on a binary term
-  // with a following '+' that supplies the missing left operand.
-  // Pattern: [S_UPLUS(* x y)], [+(L, * x y)]  =>  [+(L, * x y)]
-  if (root && root->type == T_OPCALL && root->right) {
-    TREE* cur = root->right;
-    while (cur && cur->next) {
-      TREE* n = cur->next;
-
-      if (cur->type == S_UPLUS && cur->right && n->type == '+' && n->left && n->right && trees_equiv_simple(cur->right, n->right)) {
-        // transform cur into '+' with left operand taken from next
-        cur->type = '+';
-        if (!cur->value) cur->value = make_token(csound, "+");
-        else cur->value->lexeme = cs_strdup(csound, "+");
-        // make a separate copy of the missing left operand
-        cur->left = copy_node(csound, n->left);
-        // keep the next arg (n) intact so both args become identical sums
-        // continue without advancing to avoid skipping
-        continue;
-      }
-      cur = cur->next;
-    }
-  }
-
   newArgList = NULL;
   while (current != NULL) {
-    if (current->type == T_OPCALL || is_expression_node(current)) {
+    if (is_expression_node(current)) {
       TREE* newArg;
-      TREE* expr = create_expression(csound, current, line, locn, typeTable);
-      anchor = append_to_tree(csound, anchor, expr);
-      last = tree_tail(expr);
-      if (last == NULL) {
-        return NULL;
-      }
 
-      /* Prefer the last node with a concrete LHS temp; fallback to tail value */
-      TREE* pickWithLeft2 = NULL;
-      for (TREE* tscan2 = expr; tscan2 != NULL; tscan2 = tscan2->next) {
-        if (tscan2->left && tscan2->left->value && tscan2->left->value->lexeme) {
-          pickWithLeft2 = tscan2;
-        }
-      }
-      const char* pickedLex2 = NULL;
-      if (pickWithLeft2) {
-        pickedLex2 = pickWithLeft2->left->value->lexeme;
-      } else if (last->value && last->value->lexeme) {
-        pickedLex2 = last->value->lexeme;
-      }
-      if (!pickedLex2) {
-        return NULL;
-      }
-      newArg = create_ans_token(csound, (char*)pickedLex2);
+      anchor = append_to_tree(csound, anchor,
+                            create_expression(csound, current, line,
+                                              locn, typeTable));
+      last = tree_tail(anchor);
+
+      newArg = create_ans_token(csound, last->left->value->lexeme);
       newArgList = append_to_tree(csound, newArgList, newArg);
       current = current->next;
     }
@@ -883,641 +640,74 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     break;
   case T_ARRAY:
     {
-      char* outype = NULL;
+      char* outype;
       strNcpy(op, "##array_get", 80);
-      // Track if base started as a struct expression before rewriting
-      int leftWasStructExpr = (root->left && root->left->type == STRUCT_EXPR);
-      // If the base is a struct expression (e.g., users.names[2])
-      // emit member_get(array) followed by array_get/array_get_struct here.
-      if (leftWasStructExpr) {
-        // Determine array member type (e.g., S[] or :Person;[])
-        char* arrTypeName = get_arg_type2(csound, root->left, typeTable);
-        if (arrTypeName == NULL) return NULL;
-        // Determine element type for the array_get op (e.g., S or :Person;)
-        outype = get_arg_type2(csound, root, typeTable);
-        if (outype == NULL) { csound->Free(csound, arrTypeName); return NULL; }
-        // Build member_get to extract the array member from the struct
-        TREE* baseStructExpr = root->left; // STRUCT_EXPR for users.names
-        // Resolve struct input (could itself be complex)
-        TREE* structInputNode = NULL;
-        if (baseStructExpr->left && (baseStructExpr->left->type == T_ARRAY || baseStructExpr->left->type == STRUCT_EXPR)) {
-          TREE* pre = create_expression(csound, baseStructExpr->left, line, locn, typeTable);
-          if (pre == NULL) { csound->Free(csound, arrTypeName); csound->Free(csound, outype); return NULL; }
-          anchor = append_to_tree(csound, anchor, pre);
-          TREE* preLast = tree_tail(pre);
-          if (preLast && preLast->left && preLast->left->value && preLast->left->value->lexeme) {
-            structInputNode = create_ans_token(csound, preLast->left->value->lexeme);
-          } else {
-            structInputNode = copy_node(csound, baseStructExpr->left);
-          }
-        } else {
-          structInputNode = copy_node(csound, baseStructExpr->left);
-        }
-        // Compute member index from struct type and member name
-        char* structTypeName = get_arg_type2(csound, baseStructExpr->left, typeTable);
-        CS_TYPE* st = (CS_TYPE *) csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
-        csound->Free(csound, structTypeName);
-        int mIndex = 0; if (st) {
-          const char* mname = baseStructExpr->right && baseStructExpr->right->value ? baseStructExpr->right->value->lexeme : "";
-          CONS_CELL* cc = st->members; int ii = 0; while (cc) { CS_VARIABLE* mv=(CS_VARIABLE*)cc->value; if (!strcmp(mv->varName, mname)) { mIndex = ii; break; } ii++; cc = cc->next; }
-        }
-        TREE* op_member_get_array = create_opcode_token(csound, "##member_get");
-        char* outArrName = create_out_arg(csound, arrTypeName, typeTable->localPool->synthArgCount++, typeTable);
-        op_member_get_array->left = create_ans_token(csound, outArrName);
-        char ibufA[32];
-        snprintf(ibufA, sizeof ibufA, "%d", mIndex);
-        TREE* idxNodeA = make_leaf(csound, baseStructExpr->right ? baseStructExpr->right->line : line,
-                                   baseStructExpr->right ? baseStructExpr->right->locn : locn,
-                                   INTEGER_TOKEN, make_int(csound, ibufA));
-        op_member_get_array->right = structInputNode;
-        op_member_get_array->right->next = idxNodeA;
 
-        // Now emit array_get (or array_get_struct for UDT elements)
-        const CS_TYPE* elemT = csoundGetTypeWithVarTypeName(csound->typePool, outype);
-        int useStructGetLocal = (elemT && elemT->userDefinedType) ? 1 : 0;
-        TREE* op_array_get = create_opcode_token(csound, useStructGetLocal ? "##array_get_struct" : "##array_get");
-        char* outElemName = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
-        op_array_get->left = create_ans_token(csound, outElemName);
-        op_array_get->right = create_ans_token(csound, outArrName);
-        op_array_get->right->next = copy_node(csound, root->right);
-
-        // Chain and return the two-op sequence
-        op_member_get_array->next = op_array_get;
-        return op_member_get_array;
-      } else if (root->left && root->left->type != T_IDENT &&
-                 root->left->type != T_ARRAY_IDENT &&
-                 root->left->type != STRUCT_EXPR) {
-        // Case: array index applied to a non-ident expression (e.g., UDO call)
-        // Emit the left expression first to materialize the array temp with sizes set,
-        // then emit array_get using that temp as the base.
-        char* elemType = get_arg_type2(csound, root, typeTable);
-        if (elemType == NULL) return NULL;
-        // 1) Lower the left expression producing the array value and get its ANS temp
-        const char* baseOutName = NULL;
-        TREE* pre = lower_expr_to_temp(csound, root->left, line, locn, typeTable, &baseOutName);
-        if (pre == NULL) { return NULL; }
-        anchor = append_to_tree(csound, anchor, pre);
-        // Prefer the concrete last LHS temp from the emitted left chain as base array
-        {
-          TREE* preLast = tree_tail(pre);
-          if (preLast && preLast->left && preLast->left->value && preLast->left->value->lexeme) {
-            baseOutName = preLast->left->value->lexeme;
-          }
-        }
-
-        // Retarget the left-expression's final output to a fresh array temp so
-        // the UDO writes directly into an initialised base we can index safely.
-        char* arrTypeNameNI = get_arg_type2(csound, root->left, typeTable);
-        if (arrTypeNameNI) {
-          char* baseArrOutName = create_out_arg(csound, arrTypeNameNI, typeTable->localPool->synthArgCount++, typeTable);
-          // Find the last opcall/function node in 'pre' that actually produces the array
-          TREE* cursor = pre; TREE* lastWithLeft = NULL;
-          while (cursor) { if (cursor->left) lastWithLeft = cursor; cursor = cursor->next; }
-          if (!lastWithLeft) lastWithLeft = tree_tail(pre);
-          if (lastWithLeft) {
-            lastWithLeft->left = create_ans_token(csound, baseArrOutName);
-            baseOutName = baseArrOutName;
-          }
-          csound->Free(csound, arrTypeNameNI);
-        }
-
-        // 2) Select array_get variant based on element type
-        int useStructGetLocal = 0;
-        {
-          const CS_TYPE* et = csoundGetTypeWithVarTypeName(csound->typePool, elemType);
-          if (et && et->userDefinedType) useStructGetLocal = 1;
-        }
-        TREE* op_array_get = create_opcode_token(csound, useStructGetLocal ? "##array_get_struct" : "##array_get");
-        if (!useStructGetLocal && elemType && strlen(elemType) == 1) {
-          switch (elemType[0]) {
-            case 'S': strNcpy(op, "##array_get.S", 80); break;
-            case 'k': strNcpy(op, "##array_get.k", 80); break;
-            case 'a': strNcpy(op, "##array_get.a", 80); break;
-            case 'i': strNcpy(op, "##array_get.i", 80); break;
-            default: break;
-          }
-        }
-        char* outElemName = create_out_arg(csound, elemType, typeTable->localPool->synthArgCount++, typeTable);
-        op_array_get->left = create_ans_token(csound, outElemName);
-        // Use the function result temp deterministically; fall back to copying the base
-        if (baseOutName) {
-          // Use the concrete ANS temp name of the function result as the array base
-          op_array_get->right = create_ans_token(csound, (char*)baseOutName);
-        } else {
-          op_array_get->right = copy_node(csound, root->left);
-        }
-        op_array_get->right->next = copy_node(csound, root->right);
-        // 3) Emit as a distinct statement after the lowered left expression
-        anchor = append_to_tree(csound, anchor, op_array_get);
-        // Return the full statement chain
-        return anchor;
-
-
+      char *varBaseName = root->left->value->lexeme;
+      // search for the array variable in all pools
+      var = find_var_from_pools(csound, varBaseName,
+                                varBaseName, typeTable);
+      if (var == NULL) {
+        synterr(csound,
+                Str("create_expression: unable to find array sub-type "
+                    "for var %s line %d\n"),
+                varBaseName, current->line);
+        return NULL;
       } else {
-        // Regular array variable case: infer from variable subtype
-        char *varBaseName = root->left->value->lexeme;
-        var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
-        if (var == NULL) {
-          // Array base not yet declared in symbol table. Infer element type from
-          // identifier prefix so we can still materialize an array_get for uses like
-          // 'printks(..., kArr[0])'. Default to 'i' if unknown; treat 'a' bases as
-          // signal-as-array views yielding k-rate on indexing.
-          const char* nm = varBaseName;
-          char base = (nm && nm[0]) ? nm[0] : 'i';
-          if (!(base=='i' || base=='k' || base=='a' || base=='S' || base=='B')) base = 'i';
-          char inferred[2]; inferred[0] = (base=='a') ? 'k' : base; inferred[1] = '\0';
-          outype = cs_strdup(csound, inferred);
-        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outype = strdup(var->subType->varTypeName);
-          // Adjust i->k if any k-rate indices present
-          if (outype[0] == 'i') {
-            TREE* inds = root->right;
-            while (inds) {
-              char *xx = get_arg_string_from_tree(csound, inds, typeTable);
-              if (xx && xx[0] == 'k') { outype[0] = 'k'; }
-              if (xx) csound->Free(csound, xx);
-              inds = inds->next;
+	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
+             to provide the correct outype. Works with explicit types
+	  */
+         if (outype[0]== 'i') {
+          TREE* inds = root->right;
+          while (inds) {
+            char *xx = get_arg_string_from_tree(csound, inds, typeTable);
+            if (xx[0]=='k') {
+              outype[0] = 'k';
+              break;
             }
+            inds = inds->next;
           }
+        }
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outype = "k";
         } else {
-          // Fallback: try semantic type inference for array element type
-          outype = get_arg_type2(csound, root, typeTable);
-          if (outype == NULL) {
-            synterr(csound,
-                    Str("invalid array type %s line %d\n"),
-                    var->varType && var->varType->varTypeName ? var->varType->varTypeName : "(null)",
-                    line);
-            return NULL;
-          }
-        }
-      }
-
-      if (outype == NULL) return NULL;
-
-
-      // If the element is a user-defined struct, or the base WAS a STRUCT_EXPR,
-      int useStructGet = 0;
-      if (leftWasStructExpr) {
-        useStructGet = 1;
-      } else if (root->left && (root->left->type == T_IDENT || root->left->type == T_ARRAY_IDENT)) {
-        char *varBaseName = root->left->value->lexeme;
-        CS_VARIABLE* v = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
-        if (v && v->varType == &CS_VAR_TYPE_ARRAY && v->subType && v->subType->userDefinedType) {
-          useStructGet = 1;
-        }
-      } else {
-        // Fall back: parse outype to a base name and check the type pool
-        char *typ = remove_type_quoting(csound, outype);
-        // Strip trailing []
-        size_t n = strlen(typ);
-        while (n >= 2 && typ[n-2] == '[' && typ[n-1] == ']') { typ[n-2] = '\0'; n -= 2; }
-        const CS_TYPE* et = csoundGetTypeWithVarTypeName(csound->typePool, typ);
-        if (et && et->userDefinedType) useStructGet = 1;
-        csound->Free(csound, typ);
-      }
-      if (useStructGet) {
-        strNcpy(op, "##array_get_struct", 80);
-      } else {
-        // Special-case: signal-as-array view a[k] -> use vaops entry "##array_get" with intypes "ak"
-        int pinnedAK = 0;
-        if (root->left) {
-          char* baseType = get_arg_type2(csound, root->left, typeTable);
-          if (baseType && outype && strlen(baseType)==1 && baseType[0]=='a' && strlen(outype)==1 && outype[0]=='k') {
-            strNcpy(op, "##array_get", 80);
-            pinnedAK = 1;
-          }
-          if (baseType) csound->Free(csound, baseType);
-        }
-        // Otherwise, select type-specific array_get opcode based on outype
-        if (!pinnedAK && outype && strlen(outype) == 1) {
-          switch (outype[0]) {
-            case 'S':
-              strNcpy(op, "##array_get.S", 80);
-              break;
-            case 'k':
-              strNcpy(op, "##array_get.k", 80);
-              break;
-            case 'a':
-              strNcpy(op, "##array_get.a", 80);
-              break;
-            case 'i':
-              strNcpy(op, "##array_get.i", 80);
-              break;
-            default:
-              // Keep default "##array_get"
-              break;
-          }
-        }
-      }
-      outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
-    }
-
-    break;
-  case STRUCT_EXPR:
-    {
-      // For STRUCT_EXPR, handle nested struct+array chains robustly.
-      // We emit an explicit left-to-right chain:
-      //   (member_get array) -> (array_get_struct) [repeated] -> (member_get scalar)
-
-      // Full chain flattener: parse entire struct+array access chain and emit contiguous operations
-      TREE* flattenResult = flatten_struct_array_chain(csound, root, line, (int) locn, typeTable, &anchor);
-      if (flattenResult) {
-        return flattenResult;
-      }
-
-      // If left is an array, we might have deeper nesting (e.g., a.b[0].c[1].d).
-      if (root->left && root->left->type == T_ARRAY) {
-        // baseStructExpr is the STRUCT_EXPR for the member just before the index on the left
-        TREE* baseStructExpr = root->left->left; // e.g., john.relativeList
-        if (baseStructExpr == NULL || baseStructExpr->type != STRUCT_EXPR) {
+          synterr(csound,
+                  Str("invalid array type %s line %d\n"),
+                  var->varType->varTypeName, current->line);
           return NULL;
         }
-
-        // If baseStructExpr->left itself is complex (STRUCT_EXPR or T_ARRAY),
-        // recursively lower it first and use its ANS as the struct input.
-        TREE* structInputNode = NULL;
-        if (baseStructExpr->left && (baseStructExpr->left->type == T_ARRAY || baseStructExpr->left->type == STRUCT_EXPR)) {
-          TREE* pre = create_expression(csound, baseStructExpr->left, line, locn, typeTable);
-          if (pre == NULL) return NULL;
-          anchor = append_to_tree(csound, anchor, pre);
-          TREE* preLast = tree_tail(pre);
-          if (preLast && preLast->left && preLast->left->value && preLast->left->value->lexeme) {
-            structInputNode = create_ans_token(csound, preLast->left->value->lexeme);
-          } else {
-            // Fallback to a copy if we cannot find the ANS
-            structInputNode = copy_node(csound, baseStructExpr->left);
-          }
-        } else {
-          structInputNode = copy_node(csound, baseStructExpr->left); // simple ident
-        }
-
-        // 1) member_get array member from current struct input
-        char* arrayMemberType = get_arg_type2(csound, baseStructExpr, typeTable);
-        if (arrayMemberType == NULL) return NULL;
-        TREE* op_member_get_array = create_opcode_token(csound, "##member_get");
-
-        char* outArrName = create_out_arg(csound, arrayMemberType, typeTable->localPool->synthArgCount++, typeTable);
-        op_member_get_array->left = create_ans_token(csound, outArrName);
-        // Compute member index from struct type and member name
-        char* structTypeName = get_arg_type2(csound, baseStructExpr->left, typeTable);
-        if (structInputNode && structInputNode->value && structInputNode->value->lexeme) {
-          // Try to prefer the actual input's type when possible
-          char* t2 = get_arg_type2(csound, structInputNode, typeTable);
-          if (t2) { csound->Free(csound, structTypeName); structTypeName = t2; }
-        }
-        CS_TYPE* st = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
-        csound->Free(csound, structTypeName);
-        int mIndex = 0; if (st) {
-          const char* mname = baseStructExpr->right && baseStructExpr->right->value ? baseStructExpr->right->value->lexeme : "";
-          CONS_CELL* cc = st->members; int ii = 0;
-          while (cc) { CS_VARIABLE* mv=(CS_VARIABLE*)cc->value; if (!strcmp(mv->varName, mname)) { mIndex = ii; break; } ii++; cc = cc->next; }
-        }
-        char ibufA[32]; snprintf(ibufA, sizeof ibufA, "%d", mIndex);
-        TREE* idxNodeA = make_leaf(csound, baseStructExpr->right ? baseStructExpr->right->line : line,
-                                   baseStructExpr->right ? baseStructExpr->right->locn : locn,
-                                   INTEGER_TOKEN, make_int(csound, ibufA));
-        op_member_get_array->right = structInputNode;
-        op_member_get_array->right->next = idxNodeA;
-
-        // 2) array_get_struct for the index on the immediate left
-        char* arrayElemType = get_arg_type2(csound, root->left, typeTable); // element type (e.g., Person)
-        if (arrayElemType == NULL) return NULL;
-        TREE* op_array_get_struct = create_opcode_token(csound, "##array_get_struct");
-        char* outStructName = create_out_arg(csound, arrayElemType, typeTable->localPool->synthArgCount++, typeTable);
-        op_array_get_struct->left = create_ans_token(csound, outStructName);
-        op_array_get_struct->right = create_ans_token(csound, outArrName);
-        op_array_get_struct->right->next = copy_node(csound, root->left->right);
-
-        // 3) Nested array access on the right? Inline the next level to preserve chaining
-        if (root->right && root->right->type == STRUCT_EXPR && root->right->left && root->right->left->type == T_ARRAY) {
-          TREE* inner = root->right;               // STRUCT_EXPR for next member/index
-          TREE* innerArray = inner->left;          // T_ARRAY for next index
-          TREE* innerBase = innerArray->left;      // STRUCT_EXPR for inner member name
-
-          // 3a) member_get array from current struct element (outStructName)
-          char* innerArrayType = get_arg_type2(csound, innerBase, typeTable);
-          if (innerArrayType == NULL) return NULL;
-          TREE* op_member_get_array2 = create_opcode_token(csound, "##member_get");
-          char* outArrName2 = create_out_arg(csound, innerArrayType, typeTable->localPool->synthArgCount++, typeTable);
-          op_member_get_array2->left = create_ans_token(csound, outArrName2);
-          // Compute inner member index
-          char* elemStructTypeName2 = get_arg_type2(csound, root->left, typeTable);
-          CS_TYPE* elemStructType2 = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, elemStructTypeName2);
-          csound->Free(csound, elemStructTypeName2);
-          int mIndex2 = 0; if (elemStructType2) {
-            const char* mname2 = (innerBase && innerBase->right && innerBase->right->value) ? innerBase->right->value->lexeme : "";
-            CONS_CELL* cc2 = elemStructType2->members; int jj = 0; while (cc2) { CS_VARIABLE* mv=(CS_VARIABLE*)cc2->value; if (!strcmp(mv->varName, mname2)) { mIndex2 = jj; break; } jj++; cc2 = cc2->next; }
-          }
-          char ibufC[32]; snprintf(ibufC, sizeof ibufC, "%d", mIndex2);
-          TREE* idxNodeMember2 = make_leaf(csound, innerBase ? innerBase->line : line,
-                                           innerBase ? innerBase->locn : locn,
-                                           INTEGER_TOKEN, make_int(csound, ibufC));
-          TREE* structElemTemp2 = create_ans_token(csound, outStructName);
-          op_member_get_array2->right = structElemTemp2;
-          op_member_get_array2->right->next = idxNodeMember2;
-
-          // 3b) array_get_struct for the inner index
-          char* innerElemType = get_arg_type2(csound, innerArray, typeTable);
-          if (innerElemType == NULL) return NULL;
-          TREE* op_array_get_struct2 = create_opcode_token(csound, "##array_get_struct");
-          char* outStructName2 = create_out_arg(csound, innerElemType, typeTable->localPool->synthArgCount++, typeTable);
-          op_array_get_struct2->left = create_ans_token(csound, outStructName2);
-          op_array_get_struct2->right = create_ans_token(csound, outArrName2);
-          op_array_get_struct2->right->next = copy_node(csound, innerArray->right);
-
-          // 3c) Final scalar on the right? Emit last member_get now
-          if (inner->right && inner->right->value) {
-            char* finalOutType = get_arg_type2(csound, inner, typeTable);
-            if (finalOutType == NULL) return NULL;
-            outarg = create_out_arg(csound, finalOutType, typeTable->localPool->synthArgCount++, typeTable);
-            csound->Free(csound, finalOutType);
-
-            TREE* op_member_get_scalar = create_opcode_token(csound, "##member_get");
-            op_member_get_scalar->left = create_ans_token(csound, outarg);
-            TREE* structElemTemp3 = create_ans_token(csound, outStructName2);
-            op_member_get_scalar->right = structElemTemp3;
-            // Compute index of the scalar member from element struct type
-            int scalarIdx2 = 0; if (elemStructType2) {
-              const char* scalarName2 = inner->right && inner->right->value ? inner->right->value->lexeme : "";
-              CONS_CELL* cc3 = elemStructType2->members; int kk = 0; while (cc3) { CS_VARIABLE* mv=(CS_VARIABLE*)cc3->value; if (!strcmp(mv->varName, scalarName2)) { scalarIdx2 = kk; break; } kk++; cc3 = cc3->next; }
-            }
-            char ibufD[32]; snprintf(ibufD, sizeof ibufD, "%d", scalarIdx2);
-            TREE* scalarIdxNode2 = make_leaf(csound, inner->right ? inner->right->line : line,
-                                             inner->right ? inner->right->locn : locn,
-                                             INTEGER_TOKEN, make_int(csound, ibufD));
-            structElemTemp3->next = scalarIdxNode2;
-
-            // Chain and return head (five ops total)
-            op_member_get_array->next = op_array_get_struct;
-            op_array_get_struct->next = op_member_get_array2;
-            op_member_get_array2->next = op_array_get_struct2;
-            op_array_get_struct2->next = op_member_get_scalar;
-            return op_member_get_array;
-          }
-
-          // No final scalar; return four-op chain
-          op_member_get_array->next = op_array_get_struct;
-          op_array_get_struct->next = op_member_get_array2;
-          op_member_get_array2->next = op_array_get_struct2;
-          return op_member_get_array;
-        }
-
-        // 3) If the right side of the root is a scalar member, emit final member_get now.
-        // Otherwise, return the chain so outer STRUCT_EXPR levels can continue.
-        if (root->right && root->right->value) {
-          // Determine precise member type for correct typing
-          char* scalarOutType = get_arg_type2(csound, root, typeTable);
-          if (scalarOutType == NULL) return NULL;
-          outarg = create_out_arg(csound, scalarOutType, typeTable->localPool->synthArgCount++, typeTable);
-          csound->Free(csound, scalarOutType);
-
-          TREE* op_member_get_scalar = create_opcode_token(csound, "##member_get");
-          op_member_get_scalar->left = create_ans_token(csound, outarg);
-          TREE* structElemTemp = create_ans_token(csound, outStructName);
-          op_member_get_scalar->right = structElemTemp;
-          // Compute index of the scalar member from element struct type
-          char* elemStructTypeName = get_arg_type2(csound, root->left, typeTable);
-          CS_TYPE* elemStructType = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, elemStructTypeName);
-          csound->Free(csound, elemStructTypeName);
-          int scalarIdx = 0; if (elemStructType) {
-            const char* scalarName = (root->right && root->right->value) ? root->right->value->lexeme : "";
-            CONS_CELL* cell = elemStructType->members; int i = 0;
-            while (cell) { CS_VARIABLE* mv = (CS_VARIABLE*)cell->value; if (!strcmp(mv->varName, scalarName)) { scalarIdx = i; break; } i++; cell = cell->next; }
-          }
-          char ibufB[32]; snprintf(ibufB, sizeof ibufB, "%d", scalarIdx);
-          TREE* scalarIdxNode = make_leaf(csound, root->right->line, root->right->locn,
-                                          INTEGER_TOKEN, make_int(csound, ibufB));
-          structElemTemp->next = scalarIdxNode;
-
-          // Chain and return head
-          op_member_get_array->next = op_array_get_struct;
-          op_array_get_struct->next = op_member_get_scalar;
-          return op_member_get_array;
-        } else {
-          // Return the two-op chain; outer STRUCT_EXPR levels can continue
-          op_member_get_array->next = op_array_get_struct;
-          return op_member_get_array;
-        }
-      } else {
-        // Case: left is a struct temp/ident. If the right is a nested array access, inline it.
-        if (root->right && root->right->type == STRUCT_EXPR && root->right->left && root->right->left->type == T_ARRAY) {
-          TREE* inner = root->right;          // STRUCT_EXPR for c[1].d
-          TREE* innerArray = inner->left;     // T_ARRAY for c[1]
-          TREE* innerBase = innerArray->left; // STRUCT_EXPR for c
-
-          // 1) member_get array from current struct (root->left)
-          char* innerArrayType2 = get_arg_type2(csound, innerBase, typeTable);
-          if (innerArrayType2 == NULL) return NULL;
-          TREE* op_member_get_array2 = create_opcode_token(csound, "##member_get");
-          char* outArrName2 = create_out_arg(csound, innerArrayType2, typeTable->localPool->synthArgCount++, typeTable);
-          op_member_get_array2->left = create_ans_token(csound, outArrName2);
-          // Resolve struct input for the current left; if complex, lower it first and use its ANS
-          TREE* structVarNode2 = NULL;
-          if (root->left && (root->left->type == T_ARRAY || root->left->type == STRUCT_EXPR)) {
-            TREE* pre2 = create_expression(csound, root->left, line, locn, typeTable);
-            if (pre2 == NULL) return NULL;
-            anchor = append_to_tree(csound, anchor, pre2);
-            TREE* preLast2 = tree_tail(pre2);
-            if (preLast2 && preLast2->left && preLast2->left->value && preLast2->left->value->lexeme) {
-              structVarNode2 = create_ans_token(csound, preLast2->left->value->lexeme);
-            } else {
-              structVarNode2 = copy_node(csound, root->left);
-            }
-          } else {
-            structVarNode2 = copy_node(csound, root->left);
-          }
-          op_member_get_array2->right = structVarNode2;
-          // Compute member index on the current struct type
-          char* typeName2 = get_arg_type2(csound, root->left, typeTable);
-          CS_TYPE* structType2 = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, typeName2);
-          csound->Free(csound, typeName2);
-          int idx2 = 0; if (structType2) {
-            const char* mname2 = innerBase && innerBase->right && innerBase->right->value ? innerBase->right->value->lexeme : "";
-            CONS_CELL* cell2 = structType2->members; int i2 = 0;
-            while (cell2) { CS_VARIABLE* mv2 = (CS_VARIABLE*)cell2->value; if (!strcmp(mv2->varName, mname2)) { idx2 = i2; break; } i2++; cell2 = cell2->next; }
-          }
-          char ibuf2[32]; snprintf(ibuf2, sizeof ibuf2, "%d", idx2);
-          TREE* memberIdxNode2 = make_leaf(csound, innerBase ? innerBase->line : line,
-                                           innerBase ? innerBase->locn : locn,
-                                           INTEGER_TOKEN, make_int(csound, ibuf2));
-          structVarNode2->next = memberIdxNode2;
-
-          // 2) array_get_struct for the provided index
-          char* innerElemType2 = get_arg_type2(csound, innerArray, typeTable);
-          if (innerElemType2 == NULL) return NULL;
-          TREE* op_array_get_struct2 = create_opcode_token(csound, "##array_get_struct");
-          char* outStructName2 = create_out_arg(csound, innerElemType2, typeTable->localPool->synthArgCount++, typeTable);
-          op_array_get_struct2->left = create_ans_token(csound, outStructName2);
-          op_array_get_struct2->right = create_ans_token(csound, outArrName2);
-          op_array_get_struct2->right->next = copy_node(csound, innerArray->right);
-
-          // 3) Final scalar?
-          if (inner->right && inner->right->value) {
-            char* finalOutType2 = get_arg_type2(csound, inner, typeTable);
-            if (finalOutType2 == NULL) return NULL;
-            outarg = create_out_arg(csound, finalOutType2, typeTable->localPool->synthArgCount++, typeTable);
-            csound->Free(csound, finalOutType2);
-
-            TREE* op_member_get_scalar2 = create_opcode_token(csound, "##member_get");
-            op_member_get_scalar2->left = create_ans_token(csound, outarg);
-            TREE* structElemTemp4 = create_ans_token(csound, outStructName2);
-            op_member_get_scalar2->right = structElemTemp4;
-            // Scalar index from inner element struct type
-            CS_TYPE* elemSt2 = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, innerElemType2);
-            int sIdx2 = 0; if (elemSt2) {
-              const char* sname2 = inner->right && inner->right->value ? inner->right->value->lexeme : "";
-              CONS_CELL* cc = elemSt2->members; int k = 0; while (cc) { CS_VARIABLE* mv=(CS_VARIABLE*)cc->value; if (!strcmp(mv->varName, sname2)) { sIdx2 = k; break; } k++; cc = cc->next; }
-            }
-            char ibufS[32]; snprintf(ibufS, sizeof ibufS, "%d", sIdx2);
-            TREE* scalarIdxNode3 = make_leaf(csound, inner->right ? inner->right->line : line,
-                                             inner->right ? inner->right->locn : locn,
-                                             INTEGER_TOKEN, make_int(csound, ibufS));
-            structElemTemp4->next = scalarIdxNode3;
-
-            // Chain and return
-            op_member_get_array2->next = op_array_get_struct2;
-            op_array_get_struct2->next = op_member_get_scalar2;
-            return op_member_get_array2;
-          }
-
-          // Return chain without final scalar
-          op_member_get_array2->next = op_array_get_struct2;
-          return op_member_get_array2;
-        }
-
-        // Fallback: simple struct member
-        char* memberType = get_arg_type2(csound, root, typeTable);
-        if (memberType == NULL) return NULL;
-        outarg = create_out_arg(csound, memberType, typeTable->localPool->synthArgCount++, typeTable);
-        csound->Free(csound, memberType);
-
-        // Create type-specific ##member_get variant based on target variable rate
-        char memberGetOpName[32];
-        // Determine the rate of the target variable from the output argument
-        char targetRate = 'k'; // default to k-rate
-        if (outarg && strlen(outarg) > 1) {
-          // Extract rate from output argument name (e.g., "#i0" -> 'i', "#k1" -> 'k')
-          // The rate character is the second character in synthetic argument names
-          targetRate = outarg[1];
-        }
-
-        if (strchr("ikaSab", targetRate)) {
-          // Use rate-specific variant like ##member_get.i, ##member_get.k, etc.
-          snprintf(memberGetOpName, sizeof(memberGetOpName), "##member_get.%c", targetRate);
-        } else {
-          // For unknown rates, use generic variant
-          strcpy(memberGetOpName, "##member_get");
-        }
-
-        TREE* memberGetOp = create_opcode_token(csound, memberGetOpName);
-        memberGetOp->left = create_ans_token(csound, outarg);
-
-        // Normalize left input: if complex (array/struct expr), lower it and use its ANS
-        TREE* structVarNode2b = NULL;
-        if (root->left && (root->left->type == T_ARRAY || root->left->type == STRUCT_EXPR)) {
-          TREE* preL = create_expression(csound, root->left, line, locn, typeTable);
-          if (preL == NULL) return NULL;
-          anchor = append_to_tree(csound, anchor, preL);
-          TREE* preLastL = tree_tail(preL);
-          if (preLastL && preLastL->left && preLastL->left->value && preLastL->left->value->lexeme) {
-            structVarNode2b = create_ans_token(csound, preLastL->left->value->lexeme);
-          } else {
-            structVarNode2b = copy_node(csound, root->left);
-          }
-        } else {
-          structVarNode2b = copy_node(csound, root->left);
-        }
-        memberGetOp->right = structVarNode2b;
-        // Compute member index from struct type
-        char* typeName2b = get_arg_type2(csound, root->left, typeTable);
-        CS_TYPE* structType2b = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, typeName2b);
-        csound->Free(csound, typeName2b);
-        int idx2b = 0; // Initialize to 0 (first member) as default
-        if (structType2b) {
-          const char* mname2b = root->right && root->right->value ? root->right->value->lexeme : "";
-          CONS_CELL* cell2b = structType2b->members; int i2b = 0;
-          int found = 0;
-          while (cell2b) {
-            CS_VARIABLE* mv2b = (CS_VARIABLE*)cell2b->value;
-            if (!strcmp(mv2b->varName, mname2b)) {
-              idx2b = i2b;
-              found = 1;
-              break;
-            }
-            i2b++;
-            cell2b = cell2b->next;
-          }
-          if (!found) {
-            csound->Warning(csound, Str("Warning: member '%s' not found in struct type, using index 0\n"), mname2b);
-          }
-        }
-        char ibuf2b[32]; snprintf(ibuf2b, sizeof ibuf2b, "%d", idx2b);
-        ORCTOKEN* idxTok2b = make_int(csound, ibuf2b);
-        TREE* memberIdxNode2b = make_leaf(csound, root->right ? root->right->line : line, root->right ? root->right->locn : locn,
-                                        INTEGER_TOKEN, idxTok2b);
-        structVarNode2b->next = memberIdxNode2b;
-        return memberGetOp;
       }
+      if (outype == NULL) {
+        return NULL;
+      }
+
+      outarg = create_out_arg(csound, outype,
+                              typeTable->localPool->synthArgCount++, typeTable);
     }
+
     break;
-   default:
+   default: 
     /* it should not get here, but if it does, return NULL */
     return NULL;
   }
-  if (skipOpCreation) {
-    // Defer codegen to STRUCT_EXPR for struct-array access; just surface the outarg
-    return create_ans_token(csound, outarg);
-  }
-
   opTree = create_opcode_token(csound, op);
   if (root->value) opTree->value->optype = root->value->optype;
-  // Pin array_get exact entry to avoid fallback to wrong variant
-  if (!strncmp(op, "##array_get", 12)) {
-    int wantString = (outarg && outarg[0] == '#' && outarg[1] == 'S');
-    int wantAK = 0;
-    // Heuristic: if base is 'a' and out is 'k', prefer "ak" entry (signal-as-array view)
-    if (root->type == T_ARRAY && root->left) {
-      char* baseType = get_arg_type2(csound, root->left, typeTable);
-      if (baseType && outarg && strlen(baseType)==1 && baseType[0]=='a' && outarg[0]=='#' && outarg[1]=='k') wantAK = 1;
-      if (baseType) csound->Free(csound, baseType);
-    }
-    OENTRIES* ents = NULL;
-    if (wantString || wantAK) ents = find_opcode2(csound, "##array_get");
-    if (ents && ents->count > 0) {
-      for (int i = 0; i < ents->count; i++) {
-        OENTRY* e = ents->entries[i];
-        if (e && e->intypes) {
-          if (wantString && strcmp(e->intypes, "S[]m") == 0) { opTree->markup = e; break; }
-          if (wantAK && strcmp(e->intypes, "ak") == 0) { opTree->markup = e; break; }
-        }
-      }
-      csound->Free(csound, ents);
-    }
-  }
   if (root->left != NULL) {
     opTree->right = root->left;
     opTree->right->next = root->right;
-  } else {
-    opTree->right = root->right;
-  }
-  // Build left outputs: multi-primitive (e.g., "aa") -> multiple temps; else single temp
-  if (multiPrimCount > 0 && multiPrimBaseIndex >= 0) {
-    TREE* head = NULL; TREE* tail = NULL;
-    for (int i = 0; i < multiPrimCount; ++i) {
-      char nameBuf[64];
-      snprintf(nameBuf, sizeof nameBuf, "#%c%d", multiPrimTypes[i], multiPrimBaseIndex + i);
-      TREE* n = create_ans_token(csound, nameBuf);
-      if (!head) { head = tail = n; }
-      else { tail->next = n; tail = n; }
-    }
-    opTree->left = head;
-  } else {
     opTree->left = create_ans_token(csound, outarg);
+    opTree->line = line;
+    opTree->locn = locn;
   }
-  opTree->line = line;
-  opTree->locn = locn;
+  else {
+    opTree->right = root->right;
+    opTree->left = create_ans_token(csound, outarg);
+    opTree->line = line;
+    opTree->locn = locn;
+
+  }
   if (anchor == NULL) {
     anchor = opTree;
   }
@@ -1619,7 +809,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     root->locn = locn;
   }
 
-
+  
   if (root->type == T_IDENT) {
     return root;
   }
@@ -1646,7 +836,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     break;
   case S_EQT:
     strNcpy(op, "=t", 80);
-    break;
+    break;   
   case S_NEQ:
     strNcpy(op, "!=", 80);
     break;
@@ -1676,24 +866,24 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                       get_arg_type2(csound, root->left, typeTable));
     else
       csound->Message(csound, "Operator Found: %s (%s %s)\n", op,
-                      get_arg_type2(csound, root->left, typeTable),
+                      get_arg_type2(csound, root->left, typeTable), 
                       get_arg_type2(csound, root->right, typeTable));
   }
 
-
-  if (root->type == S_UNOT)
+ 
+  if (root->type == S_UNOT)     
     outarg = get_boolean_arg(csound,
                              typeTable,
                              *get_arg_type2(csound, root->left, typeTable) =='k' ||
                              *get_arg_type2(csound, root->left, typeTable) =='B');
-  else
+  else 
     outarg = get_boolean_arg(csound,
                              typeTable,
                              *get_arg_type2(csound, root->left, typeTable) =='k' ||
                              *get_arg_type2(csound, root->right, typeTable) == 'k' ||
                              *get_arg_type2(csound, root->left, typeTable) =='B' ||
                              *get_arg_type2(csound, root->right, typeTable) =='B');
-
+  
   add_arg(csound, outarg, NULL, typeTable, NULL);
   opTree = create_opcode_token(csound, op);
   opTree->right = root->type == T_IDENT ? root : root->left;
@@ -1725,12 +915,14 @@ static char* create_synthetic_var_name(CSOUND* csound, int32 count, int32_t pref
 
 static char* create_synthetic_array_var_name(CSOUND* csound, int32 count, int32_t prefix)
 {
-  // Return base variable name without brackets; array-ness is conveyed by token type (T_ARRAY_IDENT)
-  // and by explicit dimensions passed to add_array_arg(). Embedding "[]" confuses symbol registration.
   char *name = (char *)csound->Calloc(csound, 36);
-  snprintf(name, 36, "%c__synthetic_%"PRIi32, prefix, count);
+  snprintf(name, 36, "%c__synthetic_%"PRIi32"[]", prefix, count);
   return name;
 }
+
+
+
+
 
 static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
 {
@@ -1810,442 +1002,6 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
   csound->Free(csound, tmp2);
 }
 
-/* Expand struct (UDT) initialization:
-   - current must be an 'init' opcall
-   - LHS must be a single struct variable (NOT an array)
-   - emits ##member_set / ##member_array_assign into *anchor
-   Returns 1 if it performed any lowering, 0 otherwise. */
-static int expand_structs(CSOUND* csound,
-                          TREE* current,
-                          TYPE_TABLE* typeTable,
-                          TREE** anchor)
-{
-  if (!current || current->type != T_OPCALL || !current->value || !current->value->lexeme)
-    return 0;
-  if (strcmp(current->value->lexeme, "init") != 0)
-    return 0;
-
-  /* Accept legacy nested LHS form: left=T_OPCALL(decl, args...) */
-  TREE* effectiveLhs   = current->left;
-  TREE* effectiveArgs  = current->right;
-  if (effectiveLhs && effectiveLhs->type == T_OPCALL && effectiveLhs->left) {
-    TREE* inner    = effectiveLhs;
-    TREE* declNode = inner->left;          /* base decl: T_TYPED_IDENT/T_IDENT/T_ARRAY_IDENT */
-    TREE* argsHead = inner->right;         /* (may be NULL) */
-    TREE* argsTail = tree_tail(argsHead);
-    if (argsTail)  argsTail->next = inner->next;
-    else           argsHead       = inner->next;
-    effectiveLhs  = declNode;
-    if (!effectiveArgs) effectiveArgs = argsHead;
-  }
-
-  if (!effectiveLhs || !effectiveLhs->value || !effectiveLhs->value->lexeme)
-    return 0;
-
-  const char* structVarName = effectiveLhs->value->lexeme;
-
-  /* Skip if LHS is array-typed (we only handle scalar struct here) */
-  int lhsIsArrayTyped = 0;
-  if (effectiveLhs->value->optype) {
-    for (const char* p = effectiveLhs->value->optype; *p; ++p)
-      if (*p == '[') { lhsIsArrayTyped = 1; break; }
-  }
-  if (!lhsIsArrayTyped) {
-    char* lhsTypeProbe = get_arg_type2(csound, effectiveLhs, typeTable);
-    if (lhsTypeProbe) {
-      for (char* p = lhsTypeProbe; *p; ++p)
-        if (*p == '[') { lhsIsArrayTyped = 1; break; }
-      csound->Free(csound, lhsTypeProbe);
-    }
-  }
-  if (lhsIsArrayTyped) return 0;
-
-  /* Ensure destination variable exists in the current pool */
-  CS_VARIABLE* sVar = find_var_from_pools(csound, (char*)structVarName, (char*)structVarName, typeTable);
-  if (!sVar && effectiveLhs->value->optype)
-    add_arg(csound, (char*)structVarName, effectiveLhs->value->optype, typeTable, effectiveLhs);
-
-  /* Resolve struct type: prefer pool (typedef-aware), else annotation, else RHS inference */
-  const CS_TYPE* structType = NULL;
-  sVar = find_var_from_pools(csound, (char*)structVarName, (char*)structVarName, typeTable);
-  if (sVar && sVar->varType && sVar->varType->userDefinedType)
-    structType = sVar->varType;
-
-  if (!structType && effectiveLhs->value->optype) {
-    const char* ann = effectiveLhs->value->optype;
-    const char* lookup = ann;
-    char tmp[256];
-    if (ann[0] == ':') {
-      /* strip leading ':' and trailing ';' if present */
-      size_t L = strlen(ann);
-      if (L >= 2 && ann[L-1] == ';') {
-        size_t n = L - 2; if (n >= sizeof(tmp)) n = sizeof(tmp)-1;
-        memcpy(tmp, ann+1, n); tmp[n] = '\0';
-        lookup = tmp;
-      }
-    }
-    const CS_TYPE* st = csoundGetTypeWithVarTypeName(csound->typePool, lookup);
-    if (st && st->userDefinedType) structType = st;
-  }
-
-  if (!structType) {
-    /* Fallback: infer from first RHS arg (handles array-of-UDT → element type) */
-    for (TREE* probe = effectiveArgs; probe && !structType; probe = probe->next) {
-      char* at = get_arg_type2(csound, probe, typeTable);
-      if (at) {
-        size_t n = strlen(at);
-        int isArr = (n >= 2 && at[n-2] == '[' && at[n-1] == ']');
-        if (isArr) at[n-2] = '\0';
-        const CS_TYPE* st = csoundGetTypeWithVarTypeName(csound->typePool, at);
-        if (st && st->userDefinedType) structType = st;
-        csound->Free(csound, at);
-      }
-    }
-  }
-
-  if (!structType || !structType->userDefinedType)
-    return 0; /* not a struct init */
-
-  /* Emit per-member assignments */
-  TREE* argNode = effectiveArgs;
-  CONS_CELL* cell = structType->members;
-  int midx = 0;
-  while (cell && argNode) {
-    CS_VARIABLE* mvar = (CS_VARIABLE*)cell->value;
-
-    if (mvar && mvar->varType == &CS_VAR_TYPE_ARRAY) {
-      /* ##member_array_assign(struct, idx, arrayVar) */
-      TREE* op = create_opcode_token(csound, "##member_array_assign");
-      op->right = make_leaf(csound, effectiveLhs->line, effectiveLhs->locn,
-                            T_IDENT, make_token(csound, (char*)structVarName));
-      if (structType->varTypeName)
-        op->right->value->optype = cs_strdup(csound, structType->varTypeName);
-
-      char nbuf[32]; snprintf(nbuf, sizeof nbuf, "%d", midx);
-      TREE* midxNode = make_leaf(csound, argNode->line, argNode->locn,
-                                 INTEGER_TOKEN, make_int(csound, nbuf));
-      op->right->next = midxNode;
-
-      TREE* arrArg = copy_node(csound, argNode);     /* single node only */
-      if (arrArg) arrArg->next = NULL;
-      op->right->next->next = arrArg;
-
-      /* Pin exact variant if available */
-      OENTRIES* es = find_opcode2(csound, "##member_array_assign");
-      if (es && es->count > 0) {
-        for (int i = 0; i < es->count; i++) {
-          OENTRY* e = es->entries[i];
-          if (e && e->intypes && strcmp(e->intypes, ".c.[]") == 0) { op->markup = e; break; }
-        }
-        csound->Free(csound, es);
-      }
-      *anchor = append_to_tree(csound, *anchor, op);
-    } else {
-      /* ##member_set(struct, idx, value) */
-      TREE* op = create_opcode_token(csound, "##member_set");
-      op->right = make_leaf(csound, effectiveLhs->line, effectiveLhs->locn,
-                            T_IDENT, make_token(csound, (char*)structVarName));
-      if (structType->varTypeName)
-        op->right->value->optype = cs_strdup(csound, structType->varTypeName);
-
-      char nbuf[32]; snprintf(nbuf, sizeof nbuf, "%d", midx);
-      TREE* midxNode = make_leaf(csound, argNode->line, argNode->locn,
-                                 INTEGER_TOKEN, make_int(csound, nbuf));
-      op->right->next = midxNode;
-
-      TREE* valArg = copy_node(csound, argNode);     /* single node only */
-      if (valArg) valArg->next = NULL;
-      op->right->next->next = valArg;
-
-      OENTRIES* es = find_opcode2(csound, "##member_set");
-      if (es && es->count > 0) {
-        for (int i = 0; i < es->count; i++) {
-          OENTRY* e = es->entries[i];
-          if (e && e->intypes && strcmp(e->intypes, ".c.") == 0) { op->markup = e; break; }
-        }
-        csound->Free(csound, es);
-      }
-      *anchor = append_to_tree(csound, *anchor, op);
-    }
-
-    cell = cell->next; midx++;
-    argNode = argNode->next;
-  }
-
-  return 1;
-}
-
-
-/* Forward declarations */
-static int expand_nested_struct_member_assignment(CSOUND* csound,
-                                                 TREE* current,
-                                                 TYPE_TABLE* typeTable,
-                                                 TREE** anchor);
-
-/* Handle struct member assignment (e.g., struct.member = value) */
-int32_t expand_struct_member_assignment(CSOUND* csound,
-                                        TREE* current,
-                                        TYPE_TABLE* typeTable,
-                                          TREE** anchor)
-{
-  if (!current || !current->left || current->left->type != STRUCT_EXPR) {
-    return 0; // Not a struct member assignment
-  }
-
-  TREE* structExpr = current->left;
-  TREE* valueExpr = current->right;
-
-  // Check for nested struct member assignment (e.g., shape1.center.x = value)
-  if (structExpr->left && structExpr->left->type == STRUCT_EXPR) {
-    // This is a nested struct member assignment like shape1.center.x = 42
-    // We need to handle this by creating a chain of member accesses
-    return expand_nested_struct_member_assignment(csound, current, typeTable, anchor);
-  }
-
-  // Create ##member_set opcode for simple struct member assignment
-  TREE* op = create_opcode_token(csound, "##member_set");
-
-  // Set up arguments: ##member_set struct, memberIndex, value
-  op->right = copy_node(csound, structExpr->left);  // struct variable (point1)
-
-  // Get member index
-  if (structExpr->right && structExpr->right->value && structExpr->right->value->lexeme) {
-    const char* memberName = structExpr->right->value->lexeme;
-
-    // Look up member index in the struct type
-    char* structTypeName = get_arg_type2(csound, structExpr->left, typeTable);
-    if (!structTypeName) return 0;
-
-    const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
-    if (!structType || !structType->userDefinedType) {
-      csound->Free(csound, structTypeName);
-      return 0;
-    }
-
-    // Find member index by iterating through the struct members
-    int memberIndex = -1;
-    CONS_CELL* cell = structType->members;
-    int i = 0;
-    while (cell) {
-      CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
-      if (member && strcmp(member->varName, memberName) == 0) {
-        memberIndex = i;
-        break;
-      }
-      cell = cell->next;
-      i++;
-    }
-
-    if (memberIndex == -1) {
-      csound->Free(csound, structTypeName);
-      return 0; // Member not found
-    }
-
-    // Add member index as argument
-    char indexBuf[32];
-    snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
-    TREE* indexNode = make_leaf(csound, current->line, current->locn,
-                                INTEGER_TOKEN, make_int(csound, indexBuf));
-    op->right->next = indexNode;
-
-    // Add value as argument
-    indexNode->next = copy_node(csound, valueExpr);
-
-    csound->Free(csound, structTypeName);
-  } else {
-    return 0; // No member name
-  }
-
-  *anchor = append_to_tree(csound, *anchor, op);
-  return 1; // Success
-}
-
-/* Handle nested struct member assignment (e.g., shape1.center.x = value) */
-static int expand_nested_struct_member_assignment(CSOUND* csound,
-                                                 TREE* current,
-                                                 TYPE_TABLE* typeTable,
-                                                 TREE** anchor)
-{
-  if (!current || !current->left || current->left->type != STRUCT_EXPR) {
-    return 0; // Not a struct member assignment
-  }
-
-  TREE* structExpr = current->left;  // e.g., shape1.center.x
-  TREE* valueExpr = current->right;  // e.g., 42
-
-  // Create ##member_get to get the intermediate struct (shape1.center)
-  TREE* getOp = create_opcode_token(csound, "##member_get");
-  getOp->right = copy_node(csound, structExpr->left->left);  // shape1
-
-  // Get the intermediate member index (center)
-  if (structExpr->left->right && structExpr->left->right->value &&
-      structExpr->left->right->value->lexeme) {
-    const char* intermediateMemberName = structExpr->left->right->value->lexeme;
-
-    // Look up intermediate member index
-    char* structTypeName = get_arg_type2(csound, structExpr->left->left, typeTable);
-    if (!structTypeName) return 0;
-
-    const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
-    if (!structType || !structType->userDefinedType) {
-      csound->Free(csound, structTypeName);
-      return 0;
-    }
-
-    // Find intermediate member index
-    int intermediateMemberIndex = -1;
-    CONS_CELL* cell = structType->members;
-    int i = 0;
-    while (cell) {
-      CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
-      if (member && strcmp(member->varName, intermediateMemberName) == 0) {
-        intermediateMemberIndex = i;
-        break;
-      }
-      cell = cell->next;
-      i++;
-    }
-
-    if (intermediateMemberIndex == -1) {
-      csound->Free(csound, structTypeName);
-      return 0;
-    }
-
-    // Add intermediate member index
-    char indexBuf[32];
-    snprintf(indexBuf, sizeof(indexBuf), "%d", intermediateMemberIndex);
-    TREE* indexNode = make_leaf(csound, current->line, current->locn,
-                                INTEGER_TOKEN, make_int(csound, indexBuf));
-    getOp->right->next = indexNode;
-
-    csound->Free(csound, structTypeName);
-  } else {
-    return 0;
-  }
-
-  // Add the get operation to the tree
-  *anchor = append_to_tree(csound, *anchor, getOp);
-
-  // Now create ##member_set to set the final member (__temp_struct_N.x = 42)
-  TREE* setOp = create_opcode_token(csound, "##member_set");
-  // Determine the intermediate struct type and use a synthetic out arg
-  {
-    char* tmpTypeName = get_arg_type2(csound, structExpr->left, typeTable);
-    if (!tmpTypeName) return 0;
-    char* tmpOutLex = create_out_arg(csound, tmpTypeName,
-                                     typeTable->localPool->synthArgCount++, typeTable);
-    csound->Free(csound, tmpTypeName);
-    // LHS of member_get is the synthetic out arg
-    getOp->left = create_ans_token(csound, tmpOutLex);
-    // Pass the same temp to member_set as its struct input
-    setOp->right = create_ans_token(csound, tmpOutLex);
-  }
-
-  // Get the final member index (x)
-  if (structExpr->right && structExpr->right->value && structExpr->right->value->lexeme) {
-    char indexBuf[32];
-    snprintf(indexBuf, sizeof(indexBuf), "0");  // Simplified - assume first member
-    TREE* finalIndexNode = make_leaf(csound, current->line, current->locn,
-                                    INTEGER_TOKEN, make_int(csound, indexBuf));
-    setOp->right->next = finalIndexNode;
-
-    // Add value as argument
-    finalIndexNode->next = copy_node(csound, valueExpr);
-  } else {
-    return 0;
-  }
-
-  // Add the set operation to the tree
-  *anchor = append_to_tree(csound, *anchor, setOp);
-
-  return 1; // Success
-}
-
-/* Handle struct array member assignment (e.g., structArray[0].member = value) */
-static int expand_struct_array_member_assignment(CSOUND* csound,
-                                                TREE* current,
-                                                TYPE_TABLE* typeTable,
-                                                TREE** anchor)
-{
-  if (!current || !current->left || current->left->type != STRUCT_EXPR) {
-    return 0; // Not a struct member assignment
-  }
-
-  TREE* structExpr = current->left;  // e.g., structArray[0].member
-  TREE* valueExpr = current->right;  // e.g., 42
-
-  // Check if this is a struct array member (structArray[0].member)
-  if (!structExpr->left || structExpr->left->type != T_ARRAY) {
-    return 0; // Not a struct array member
-  }
-
-  TREE* arrayExpr = structExpr->left;  // e.g., structArray[0]
-
-  // Create ##member_array_assign opcode
-  TREE* op = create_opcode_token(csound, "##member_array_assign");
-
-  // Set up arguments: ##member_array_assign structArray, index, memberIndex, value
-  op->right = copy_node(csound, arrayExpr->left);  // struct array variable (structArray)
-
-  // Add array index as argument
-  op->right->next = copy_node(csound, arrayExpr->right);  // array index [0]
-
-  // Get member index
-  if (structExpr->right && structExpr->right->value && structExpr->right->value->lexeme) {
-    const char* memberName = structExpr->right->value->lexeme;
-
-    // Look up member index in the struct type
-    char* structTypeName = get_arg_type2(csound, arrayExpr->left, typeTable);
-    if (!structTypeName) return 0;
-
-    // Remove array suffix from type name (e.g., "Point[]" -> "Point")
-    char* bracketPos = strchr(structTypeName, '[');
-    if (bracketPos) *bracketPos = '\0';
-
-    const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, structTypeName);
-    if (!structType || !structType->userDefinedType) {
-      csound->Free(csound, structTypeName);
-      return 0;
-    }
-
-    // Find member index by iterating through the struct members
-    int memberIndex = -1;
-    CONS_CELL* cell = structType->members;
-    int i = 0;
-    while (cell) {
-      CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
-      if (member && strcmp(member->varName, memberName) == 0) {
-        memberIndex = i;
-        break;
-      }
-      cell = cell->next;
-      i++;
-    }
-
-    if (memberIndex == -1) {
-      csound->Free(csound, structTypeName);
-      return 0; // Member not found
-    }
-
-    // Add member index as argument
-    char indexBuf[32];
-    snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
-    TREE* memberIndexNode = make_leaf(csound, current->line, current->locn,
-                                     INTEGER_TOKEN, make_int(csound, indexBuf));
-    op->right->next->next = memberIndexNode;
-
-    // Add value as argument
-    memberIndexNode->next = copy_node(csound, valueExpr);
-
-    csound->Free(csound, structTypeName);
-  } else {
-    return 0; // No member name
-  }
-
-  *anchor = append_to_tree(csound, *anchor, op);
-  return 1; // Success
-}
-
 /* returns the head of a list of TREE* nodes, expanding all RHS
    expressions into statements prior to the original statement line,
    and LHS expressions (array sets) after the original statement
@@ -2259,54 +1015,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   TREE* currentArg = current->right;
 
   current->next = NULL;
-
-  // Check for struct member assignment BEFORE expression expansion
-  // We need to detect this early because expand_expression will flatten STRUCT_EXPR nodes
-  if (current->type == '=' || current->type == T_ASSIGNMENT || current->type == S_ADDIN ||
-      current->type == S_SUBIN || current->type == S_MULIN || current->type == S_DIVIN) {
-
-    // Check for STRUCT_EXPR before it gets flattened by expand_expression
-    if (current->left && current->left->type == STRUCT_EXPR) {
-      // Check if this is a struct array member assignment (structArray[0].member = value)
-      if (current->left->left && current->left->left->type == T_ARRAY) {
-        // This is a struct array member assignment like structArray[0].member = 42
-        if (expand_struct_array_member_assignment(csound, current, typeTable, &anchor)) {
-          append_to_tree(csound, anchor, originalNext);
-          return anchor;
-        }
-      } else {
-        // This is a simple struct member assignment like point1.x = 42
-        // Generate ##member_set opcode instead of using normal assignment processing
-        if (expand_struct_member_assignment(csound, current, typeTable, &anchor)) {
-          append_to_tree(csound, anchor, originalNext);
-          return anchor;
-        }
-      }
-    }
-
-    // NEW: Check for struct-to-struct assignment (var2:MyType2 = var1)
-    else if (current->left && current->right) {
-      if ((current->left->type == T_IDENT || current->left->type == T_TYPED_IDENT) &&
-          current->right->type == T_IDENT) {
-      // Check if both sides are struct types
-      char* leftVarName = current->left->value ? current->left->value->lexeme : NULL;
-      char* rightVarName = current->right->value ? current->right->value->lexeme : NULL;
-
-      if (leftVarName && rightVarName) {
-        // Get the types of both variables
-        CS_VARIABLE* leftVar = find_var_from_pools(csound, leftVarName, leftVarName, typeTable);
-        CS_VARIABLE* rightVar = find_var_from_pools(csound, rightVarName, rightVarName, typeTable);
-
-        if (leftVar && rightVar && leftVar->varType && rightVar->varType &&
-            leftVar->varType->userDefinedType && rightVar->varType->userDefinedType &&
-            leftVar->varType == rightVar->varType) {
-          // Convert assignment to ##struct_alias opcode: var2:MyType2 = var1 -> ##struct_alias var2, var1
-          current->value->lexeme = cs_strdup(csound, "##struct_alias");
-          current->type = T_OPCALL;
-        }
-      }
-    }}
-  }
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Found Statement.\n");
@@ -2342,10 +1050,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       /* reconnect into chain */
       last = tree_tail(expressionNodes);
-      if (last == NULL || last->left == NULL || last->left->value == NULL || last->left->value->lexeme == NULL) {
-        csound->ErrorMsg(csound, "[expand_statement] ERROR: Invalid tree structure\n");
-        return 0;
-      }
       newArg = last->left->value->lexeme;
 
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
@@ -2369,25 +1073,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
     previousArg = currentArg;
     currentArg = currentArg->next;
-  }
-
-  if (current->type == T_OPCALL &&
-      current->left && current->left->type == T_IDENT &&
-      current->value && current->value->lexeme &&
-      strcmp(current->value->lexeme, current->left->value->lexeme) == 0 &&
-      current->right) {
-    current->value = make_token(csound, "init");
-  }
-
-  // Run struct lowering before appending `current`
-  if (current->type == T_OPCALL &&
-      ((current->value && current->value->lexeme &&
-        strcmp(current->value->lexeme, "init") == 0) ||
-       (current->left && current->left->type == T_OPCALL))) { // legacy nested form
-    if (expand_structs(csound, current, typeTable, &anchor)) {
-      append_to_tree(csound, anchor, originalNext);
-      return anchor; // skip LHS array-set pass and the original node
-    }
   }
 
   anchor = append_to_tree(csound, anchor, current);
@@ -2489,7 +1174,7 @@ TREE* expand_if_statement(CSOUND* csound,
       create_boolean_expression(csound, left, right->line,
                                 right->locn, typeTable);
 
-
+   
     anchor = append_to_tree(csound, anchor, expressionNodes);
 
     /* reconnect into chain */
@@ -2532,7 +1217,7 @@ TREE* expand_if_statement(CSOUND* csound,
         create_boolean_expression(csound, tempLeft,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable);
-
+ 
       anchor = append_to_tree(csound, anchor, expressionNodes);
 
       last = tree_tail(expressionNodes);
@@ -2644,8 +1329,7 @@ static TREE* create_cgoto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  // Jump when condition is true: use cingoto (i-rate) and ckgoto (k-rate)
-  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cingoto");
+  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cigoto");
   cgotoOperator->type = T_OPCALL;
   cgotoOperator->value->type = T_OPCALL;
   return cgotoOperator;
@@ -2806,7 +1490,8 @@ TREE* expand_switch_statement(
    5. add goto token that goes to top label
    6. end label */
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int32_t dowhile)
+                             TYPE_TABLE* typeTable, int32_t dowhile,
+                             LOOP_JUMP_TARGETS* targets)
 {
   TREE* anchor = NULL;
   TREE* expressionNodes = NULL;
@@ -2866,6 +1551,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
+  TREE *labelEndIdent = create_synthetic_ident(csound,
+                                               endLabelCounter);
   TREE *topLabel = create_synthetic_ident(csound,
                                           topLabelCounter);
   TREE *gotoTopLabelToken = create_simple_goto_token(csound,
@@ -2877,17 +1564,21 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd->next = current->next;
+  targets->continueTargetIdent = topLabel;
+  targets->breakTargetIdent = labelEndIdent;
+  targets->breakTargetLabel = labelEnd;
+  targets->gotoType = (gotoType==1 ? 0 : 1);
   return anchor;
 }
 
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
-                           char* arrayArgType) {
+                           char* arrayArgType, LOOP_JUMP_TARGETS* targets) {
 
   const CS_TYPE *iType = &CS_VAR_TYPE_I;
   const CS_TYPE *kType = &CS_VAR_TYPE_K;
   const CS_TYPE *aType = &CS_VAR_TYPE_A;
   const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
-  const CS_TYPE *arrayType =
+  const CS_TYPE *arrayType = 
     csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
   int32_t isPerfRate = 0;
 
@@ -2954,7 +1645,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayLengthFn->right = arrayLengthArrayIdent;
   arrayLength->right = arrayLengthFn;
   arrayAssign->next = arrayLength;
-
+  
   TREE* loopLabel = create_synthetic_label(csound, csound->genlabs++);
   loopLabel->type = LABEL_TOKEN;
   loopLabel->value->type = LABEL_TOKEN;
@@ -2977,7 +1668,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
 		            "\t - now using %s type, line %d",
 		              var->varName,  var->varType->varTypeName,
-		              isPerfRate ? "k" : "i", current->line);
+		              isPerfRate ? "k" : "i", current->line); 
     add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
@@ -2992,7 +1683,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
   arrayGetStatement->left = current->left;
-
+  
   arrayGetStatement->right = copy_node(csound, arrayIdent);
   arrayGetStatement->right->next = copy_node(csound, indexIdent);
   if (hasOptionalIndex) {
@@ -3002,16 +1693,32 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   }
   arrayGetStatement->next = current->right->right;
 
-  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+  int32_t continueTargetCounter = csound->genlabs++;
+  TREE* continueTargetLabel = create_synthetic_label(csound, continueTargetCounter);
+  typeTable->labelList = cs_cons(csound,
+                                 cs_strdup(csound, continueTargetLabel->value->lexeme),
+                                 typeTable->labelList);
+  TREE* continueTargetIdent = create_synthetic_ident(csound, continueTargetCounter);
 
-  TREE* loopLtStatement = create_opcode_token(csound, op);
+  int32_t breakTargetCounter = csound->genlabs++;
+  TREE* breakTargetLabel = create_synthetic_label(csound, breakTargetCounter);
+  typeTable->labelList = cs_cons(csound,
+                                 cs_strdup(csound, breakTargetLabel->value->lexeme),
+                                 typeTable->labelList);
+  TREE* breakTargetIdent = create_synthetic_ident(csound, breakTargetCounter);
+
   TREE* tail = tree_tail(current->right->right);
-  tail->next = loopLtStatement;
+  tail->next = continueTargetLabel;
+
+  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+  TREE* loopLtStatement = create_opcode_token(csound, op);
+  continueTargetLabel->next = loopLtStatement;
 
   TREE* indexArgToken = copy_node(csound, indexIdent);
   loopLtStatement->right = indexArgToken;
   // VL: need to set the next statement after loop
-  loopLtStatement->next = current->next;
+  loopLtStatement->next = breakTargetLabel;
+  breakTargetLabel->next = current->next;
 
   // loop less-than arg1: increment by 1
   TREE *oneToken = create_empty_token(csound);
@@ -3033,11 +1740,16 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   labelGotoIdent->value->type = T_IDENT;
   arrayLengthArgToken->next = labelGotoIdent;
 
-
+  
   csound->Free(csound, indexName);
   csound->Free(csound, arrayName);
   csound->Free(csound, arrayLengthName);
   csound->Free(csound, op);
+
+  targets->continueTargetIdent = continueTargetIdent;
+  targets->breakTargetIdent = breakTargetIdent;
+  targets->breakTargetLabel = breakTargetLabel;
+  targets->gotoType = (isPerfRate == 1 ? 0 : 1);
 
   return indexAssign;
 }
@@ -3064,340 +1776,10 @@ int32_t is_statement_expansion_required(TREE* root) {
   return 0;
 }
 
+TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets) {
+  return create_simple_goto_token(csound, copy_node(csound, targets->breakTargetIdent), targets->gotoType);
+}
 
-// Full chain flattener for struct+array access chains
-static TREE* flatten_struct_array_chain(CSOUND* csound, TREE* root, int line, int locn,
-                                        TYPE_TABLE* typeTable, TREE** anchor) {
-
-  if (!root || root->type != STRUCT_EXPR) return NULL;
-
-  // Step 1: Normalize the base (leftmost) expression to a struct temp
-  TREE* baseInput = NULL;
-  char* baseTypeName = NULL;
-
-  if (root->left) {
-    // Avoid mutual recursion: do NOT lower the left subtree here.
-    // Determine the base input and type directly from the original subtree.
-    baseInput = copy_node(csound, root->left);
-    baseTypeName = get_arg_type2(csound, root->left, typeTable);
-    if (!baseTypeName) return NULL;
-  } else {
-    return NULL;
-  }
-
-  // Step 2: Parse the chain and emit operations
-  TREE* chainHead = NULL;
-  TREE* chainTail = NULL;
-  char* currentStructOut = NULL; // ANS name of current struct temp
-  char* currentTypeName = baseTypeName; // current struct type name
-  TREE* cursor = root;
-
-  while (cursor) {
-    if (cursor->type != STRUCT_EXPR) {
-      // If cursor is not STRUCT_EXPR, it might be the final member token
-      break;
-    }
-
-    // Check if this is an array member access.
-    if (cursor->left && cursor->left->type == T_ARRAY) {
-
-      TREE* arrayNode = cursor->left;
-
-      const char* memberName = NULL;
-      TREE* memberExprNode = NULL; // Optional STRUCT_EXPR describing the member
-
-      if (arrayNode->left && arrayNode->left->type == STRUCT_EXPR) {
-        // Shape A
-        memberExprNode = arrayNode->left;
-        memberName = (memberExprNode->right && memberExprNode->right->value) ?
-                     memberExprNode->right->value->lexeme : "";
-      } else if (cursor->right && cursor->right->value && cursor->right->value->lexeme) {
-        // Shape B
-        memberName = cursor->right->value->lexeme;
-      }
-
-      if (memberName == NULL) break;
-
-      // Emit member_get(array) to get the array member
-      char* arrayMemberType = NULL;
-      if (memberExprNode) {
-        arrayMemberType = get_arg_type2(csound, memberExprNode, typeTable);
-      } else {
-        // Directly query the struct type for the member type instead of creating fake tokens
-        const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, currentTypeName);
-        if (structType && structType->members) {
-          CONS_CELL* cell = structType->members;
-          while (cell) {
-            CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
-            if (member && member->varName && !strcmp(member->varName, memberName)) {
-              if (member->varType == &CS_VAR_TYPE_ARRAY) {
-                arrayMemberType = create_array_arg_type(csound, member);
-              } else {
-                arrayMemberType = cs_strdup(csound, member->varType->varTypeName);
-              }
-              break;
-            }
-            cell = cell->next;
-          }
-        }
-      }
-
-      if (!arrayMemberType) break;
-
-      TREE* memberGetOp = create_opcode_token(csound, "##member_get");
-      char* arrayOutName = create_out_arg(csound, arrayMemberType,
-                                         typeTable->localPool->synthArgCount++, typeTable);
-      memberGetOp->left = create_ans_token(csound, arrayOutName);
-
-      // Find member index in current struct type
-      const char* tname = currentTypeName;
-      char tbufTrim[256];
-      if (tname && tname[0] == ':') {
-        size_t len = strlen(tname);
-        if (len >= 2 && tname[len-1] == ';') {
-          size_t n = len - 2; if (n >= sizeof(tbufTrim)) n = sizeof(tbufTrim)-1;
-          memcpy(tbufTrim, tname+1, n); tbufTrim[n] = '\0';
-          tname = tbufTrim;
-        }
-      }
-      CS_TYPE* structType = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, tname);
-      int memberIndex = 0;
-
-      if (structType) {
-        CONS_CELL* cc = structType->members;
-        int i = 0;
-        while (cc) {
-          CS_VARIABLE* mv = (CS_VARIABLE*)cc->value;
-          if (!strcmp(mv->varName, memberName)) {
-            memberIndex = i;
-
-          }
-          i++;
-          cc = cc->next;
-        }
-      }
-
-      char indexBuf[32];
-      snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
-      TREE* indexNode = make_leaf(csound, line, locn, INTEGER_TOKEN, make_int(csound, indexBuf));
-
-      // Decide if the member itself is an array
-      int isArrayMember = (arrayMemberType && strstr(arrayMemberType, "[]") != NULL);
-      char* elemTypeName = get_arg_type2(csound, arrayNode, typeTable);
-
-      if (!elemTypeName) {
-        // Fallback: derive element type from the array variable itself
-        const char* arrName = (arrayNode->left && arrayNode->left->value) ? arrayNode->left->value->lexeme : NULL;
-        if (arrName) {
-          CS_VARIABLE* aVar = find_var_from_pools(csound, (char*)arrName, (char*)arrName, typeTable);
-          if (aVar && aVar->subType && aVar->subType->varTypeName) {
-            char tbuf[256];
-            cs_sprintf(tbuf, ":%s;", aVar->subType->varTypeName);
-            elemTypeName = csound->Strdup(csound, tbuf);
-          }
-        }
-      }
-      if (!elemTypeName) break;
-
-      if (isArrayMember) {
-        // Set up arguments: struct input, member index
-        TREE* structInTok = currentStructOut ? create_ans_token(csound, currentStructOut) :
-                           copy_node(csound, baseInput);
-        memberGetOp->right = structInTok;
-        structInTok->next = indexNode;
-
-        // Emit array_get_struct to get the struct element from the array member
-        TREE* arrayGetOp = create_opcode_token(csound, "##array_get_struct");
-        char* structOutName = create_out_arg(csound, elemTypeName,
-                                            typeTable->localPool->synthArgCount++, typeTable);
-        arrayGetOp->left = create_ans_token(csound, structOutName);
-        arrayGetOp->right = create_ans_token(csound, arrayOutName);
-        arrayGetOp->right->next = copy_node(csound, arrayNode->right); // array index
-
-
-
-        // Add to chain: member_get then array_get_struct
-        if (!chainHead) {
-          chainHead = memberGetOp;
-          chainTail = memberGetOp;
-        } else {
-          chainTail->next = memberGetOp;
-          chainTail = memberGetOp;
-        }
-        chainTail->next = arrayGetOp;
-        chainTail = arrayGetOp;
-
-        // Update state for next iteration
-        if (currentStructOut) csound->Free(csound, currentStructOut);
-        currentStructOut = csound->Strdup(csound, structOutName);
-        if (currentTypeName) csound->Free(csound, currentTypeName);
-        currentTypeName = elemTypeName; // struct element type name
-
-        // Move to the right side for next step
-        cursor = cursor->right;
-        continue;
-      } else {
-        // Scalar member: direct struct element fetch from the base array
-        TREE* arrayGetOp = create_opcode_token(csound, "##array_get_struct");
-        char* structOutName = create_out_arg(csound, elemTypeName,
-                                            typeTable->localPool->synthArgCount++, typeTable);
-        arrayGetOp->left = create_ans_token(csound, structOutName);
-        arrayGetOp->right = copy_node(csound, arrayNode->left); // the array variable (e.g., relatives)
-        arrayGetOp->right->next = copy_node(csound, arrayNode->right); // array index
-
-        // Add to chain: only array_get_struct now
-        if (!chainHead) {
-          chainHead = arrayGetOp;
-          chainTail = arrayGetOp;
-        } else {
-          chainTail->next = arrayGetOp;
-          chainTail = arrayGetOp;
-        }
-
-        // Update state for next iteration
-        if (currentStructOut) csound->Free(csound, currentStructOut);
-        currentStructOut = csound->Strdup(csound, structOutName);
-        if (currentTypeName) csound->Free(csound, currentTypeName);
-        currentTypeName = elemTypeName; // struct element type name
-
-        // Move to the right side for next step
-        cursor = cursor->right;
-        continue;
-      }
-    }
-
-    // Prefer descending into left STRUCT_EXPR first (handles cases like (a.b[0].c).d)
-    if (cursor->left && cursor->left->type == STRUCT_EXPR) {
-      cursor = cursor->left;
-      continue;
-    }
-
-    // If right is another STRUCT_EXPR, descend into it
-    if (cursor->right && cursor->right->type == STRUCT_EXPR) {
-      cursor = cursor->right;
-      continue;
-    }
-    break; // No more processing possible
-  }
-
-  // Check for final scalar member access after breaking out of the loop
-  const char* memberName = NULL;
-  if (cursor && cursor->right && cursor->right->value) {
-    memberName = cursor->right->value->lexeme;
-  } else if (cursor && cursor->value) {
-    // cursor itself is the final member name token
-    memberName = cursor->value->lexeme;
-  }
-
-  if (memberName) {
-    // Emit final member_get(scalar)
-    char* finalOutType = get_arg_type2(csound, root, typeTable);
-    if (finalOutType) {
-      char* outarg = create_out_arg(csound, finalOutType,
-                                   typeTable->localPool->synthArgCount++, typeTable);
-      csound->Free(csound, finalOutType);
-
-      // Create rate-specific ##member_get variant based on target variable rate
-      char memberGetOpName[32];
-      char targetRate = 'k'; // default to k-rate
-      if (outarg && strlen(outarg) > 1) {
-        // Extract rate from output argument name (e.g., "#i0" -> 'i', "#k1" -> 'k')
-        // The rate character is the second character in synthetic argument names
-        targetRate = outarg[1];
-      }
-
-      if (strchr("ikaSab", targetRate)) {
-        // Use rate-specific variant like ##member_get.i, ##member_get.k, etc.
-        snprintf(memberGetOpName, sizeof(memberGetOpName), "##member_get.%c", targetRate);
-      } else {
-        // For unknown rates, use generic variant
-        strcpy(memberGetOpName, "##member_get");
-      }
-
-      TREE* finalMemberGet = create_opcode_token(csound, memberGetOpName);
-      finalMemberGet->left = create_ans_token(csound, outarg);
-
-      // Find member index
-      CS_TYPE* structType = (CS_TYPE *)  csoundGetTypeWithVarTypeName(csound->typePool, currentTypeName);
-      int memberIndex = 0;
-      if (structType) {
-        CONS_CELL* cc = structType->members;
-        int i = 0;
-        while (cc) {
-          CS_VARIABLE* mv = (CS_VARIABLE*)cc->value;
-          if (!strcmp(mv->varName, memberName)) {
-            memberIndex = i;
-            break;
-          }
-          i++;
-          cc = cc->next;
-        }
-      }
-
-      char indexBuf[32];
-      snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
-      TREE* indexNode = make_leaf(csound,
-                                 (cursor && cursor->right) ? cursor->right->line : line,
-                                 (cursor && cursor->right) ? cursor->right->locn : locn,
-                                 INTEGER_TOKEN, make_int(csound, indexBuf));
-
-      // Ensure we have a struct value (not an array) as input to member_get
-      if (!currentStructOut) {
-        TREE* tryArray = NULL;
-        if (root->left) {
-          if (root->left->type == T_ARRAY) tryArray = root->left;
-          else if (root->left->type == STRUCT_EXPR && root->left->left && root->left->left->type == T_ARRAY)
-            tryArray = root->left->left;
-        }
-        if (tryArray) {
-          char* elemTypeName2 = get_arg_type2(csound, tryArray, typeTable);
-          if (!elemTypeName2) {
-            const char* arrName2 = (tryArray->left && tryArray->left->value) ? tryArray->left->value->lexeme : NULL;
-            if (arrName2) {
-              CS_VARIABLE* aVar2 = find_var_from_pools(csound, (char*)arrName2, (char*)arrName2, typeTable);
-              if (aVar2 && aVar2->subType && aVar2->subType->varTypeName) {
-                char tbuf2[256];
-                cs_sprintf(tbuf2, ":%s;", aVar2->subType->varTypeName);
-                elemTypeName2 = csound->Strdup(csound, tbuf2);
-              }
-            }
-          }
-          if (elemTypeName2) {
-            TREE* arrayGetOp2 = create_opcode_token(csound, "##array_get_struct");
-            char* structOutName2 = create_out_arg(csound, elemTypeName2,
-                                                  typeTable->localPool->synthArgCount++, typeTable);
-            arrayGetOp2->left = create_ans_token(csound, structOutName2);
-            arrayGetOp2->right = copy_node(csound, tryArray->left);
-            arrayGetOp2->right->next = copy_node(csound, tryArray->right);
-            if (!chainHead) { chainHead = arrayGetOp2; chainTail = arrayGetOp2; }
-            else { chainTail->next = arrayGetOp2; chainTail = arrayGetOp2; }
-            if (currentTypeName) csound->Free(csound, currentTypeName);
-            currentTypeName = elemTypeName2;
-            currentStructOut = csound->Strdup(csound, structOutName2);
-
-          }
-        }
-      }
-
-      TREE* structInTok = currentStructOut ? create_ans_token(csound, currentStructOut) :
-                         copy_node(csound, baseInput);
-      finalMemberGet->right = structInTok;
-      structInTok->next = indexNode;
-
-      // Add to chain and return
-      if (!chainHead) {
-
-        return finalMemberGet;
-      } else {
-        chainTail->next = finalMemberGet;
-        return chainHead;
-      }
-    }
-  }
-
-  // Cleanup on failure
-  if (currentStructOut) csound->Free(csound, currentStructOut);
-  if (currentTypeName != baseTypeName) csound->Free(csound, currentTypeName);
-  if (baseTypeName) csound->Free(csound, baseTypeName);
-  return NULL;
+TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets) {
+  return create_simple_goto_token(csound, copy_node(csound, targets->continueTargetIdent), targets->gotoType);
 }

@@ -198,6 +198,12 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "enduntil"      { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = OD_TOKEN;
                   return OD_TOKEN; }
+"break"         { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = BREAK_TOKEN;
+                  return BREAK_TOKEN; }
+"continue"      { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = CONTINUE_TOKEN;
+                  return CONTINUE_TOKEN; }
 "switch"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = SWITCH_TOKEN;
                   return SWITCH_TOKEN; }

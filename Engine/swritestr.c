@@ -147,6 +147,17 @@ void swritestr(CSOUND *csound, CORFIL *sco, int32_t first)
       corfile_putc(csound, '\n', sco);
       break;
     case 's':
+      if (bp->pcnt > 0) {
+        char buffer[80];
+        if(csound->engineStatus & CS_STATE_COMP) // realtime event
+        CS_SPRINTF(buffer, "e  %f %f\n", bp->p2val, bp->newp2);
+        else // score event
+        CS_SPRINTF(buffer, "f 0  %f %f\n", bp->p2val, bp->newp2);
+        corfile_puts(csound, buffer, sco);
+      }
+      corfile_putc(csound, c, sco);
+      corfile_putc(csound, LF, sco);
+      break;
     case 'e':
       if (bp->pcnt > 0) {
         char buffer[80];

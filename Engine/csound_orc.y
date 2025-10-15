@@ -89,6 +89,8 @@
 %token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
+%token BREAK_TOKEN
+%token CONTINUE_TOKEN
 %token SWITCH_TOKEN
 %token CASE_TOKEN
 %token DEFAULT_TOKEN
@@ -466,6 +468,10 @@ statement : out_arg_list assignment expr_list NEWLINE
           | while
           | switch
           | for_in
+          | BREAK_TOKEN
+            { $$ = make_leaf(csound, LINE, LOCN, BREAK_TOKEN, (ORCTOKEN *)$1); }
+          | CONTINUE_TOKEN
+            { $$ = make_leaf(csound, LINE, LOCN, CONTINUE_TOKEN, (ORCTOKEN *)$1); }
           | LABEL_TOKEN
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
