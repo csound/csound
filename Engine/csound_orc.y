@@ -228,6 +228,8 @@ struct_definition : STRUCT_TOKEN identifier struct_arg_list
 
 struct_arg_list : struct_arg_list ',' struct_arg
                 { $$ = append_to_tree(csound, $1, $3); }
+                | struct_arg_list ',' NEWLINE struct_arg
+                 { $$ = append_to_tree(csound, $1, $4); }
                 | struct_arg
                 ;
 
