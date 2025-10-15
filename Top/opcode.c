@@ -1391,6 +1391,37 @@ int32_t opcode_delete_array(CSOUND *csound, AOP *p) {
   return OK;
 }
 
+
+// check for array type in intypes
+static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
+      TEXT *t = &(obj->dataspace->optext->t);
+      OENTRY *ep = t->oentry;
+      char *types = isInput ? ep->intypes : ep->outypes;
+      int32_t i = 0;
+      while(*types) {
+        if(i == n) {
+          // arg n
+          if(*types != ':') {
+            return *(types+1) == '[' ? 1 : 0;
+          }
+          else {
+            while(*types != ';') {
+              types++;
+              if(*types == '[') return 1;
+            }
+            return 0;
+          }
+        }
+        if(*types == ':') {
+          while(*types != ';') types++;
+        }
+        else if(*types == '[') types+=2;
+        else types++;
+        i++;
+      }
+      return 0;
+}
+
 /** 
  *  Init function for run on Opcode array
  *  sets up dataspace and optionally runs init function
@@ -1427,8 +1458,11 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
                                "cannot initialise opcode obj for %s\n",
                                obj[i].dataspace->optext->t.oentry->opname);
     for(j = 0; j < (int32_t) p->OUTOCOUNT; j++) {
+      // if passed an array, check that the outype is not
+      // an array first and deal with it 
       if((types[j] = csoundGetTypeForArg(p->args[j]))
-          == &CS_VAR_TYPE_ARRAY) {
+          == &CS_VAR_TYPE_ARRAY &&
+         !isTypeArray(&obj[i],j, 0)) {
         // arrays need to be treated separately
         // data needs to be placed into typed variable memory
         // unfortunately we need to copy in order to have this correct
@@ -1446,8 +1480,11 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
     for(j = 0; j < (int32_t) p->INOCOUNT - 1; j++) {
       // skip the obj argument
       m = j + p->OUTOCOUNT + 1;
+      // if passed an array, check that the intype is not
+      // an array first and deal with it  
       if((types[m] = csoundGetTypeForArg(p->args[m]))
-         == &CS_VAR_TYPE_ARRAY) {
+         == &CS_VAR_TYPE_ARRAY &&
+         !isTypeArray(&obj[i],j, 1)) {
       array = (ARRAYDAT *)  p->args[m]; // each inarg is an array
       ndx = i + n*m;
       size = array->arrayMemberSize;
