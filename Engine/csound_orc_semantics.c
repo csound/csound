@@ -244,8 +244,8 @@ static int32_t is_irate(TREE *t)
 // then local vars, then any variables not found are
 // looked for in the global pools - so local names will always
 // hide global names
-CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
-                                 char* varBaseName, TYPE_TABLE* typeTable) {
+CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
+                                 const char* varBaseName, TYPE_TABLE* typeTable) {
   CS_VARIABLE* var = NULL;
 
     // we first check for local variables
@@ -2369,12 +2369,6 @@ int32_t verify_until_statement(CSOUND* csound, TREE* root,
   return 1;
 }
 
-typedef struct initstructvar {
-  OPDS h;
-  MYFLT* out;
-  MYFLT* inArgs[128];
-} INIT_STRUCT_VAR;
-
 int32_t initStructVar(CSOUND* csound, void* p) {
   INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
@@ -2470,6 +2464,53 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
 }
 
 
+// Phase 1: Register struct name as placeholder type (for recursive references)
+int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
+  if (!structDefTree || !structDefTree->left || !structDefTree->left->value) {
+    return 0;
+  }
+
+  char *structName = structDefTree->left->value->lexeme;
+
+  // Create internal name format for consistency with Phase 2 lookup
+  size_t nameLen = strlen(structName);
+  char *internalName = csound->Malloc(csound, nameLen + 3);
+  internalName[0] = ':';
+  strcpy(internalName + 1, structName);
+  internalName[nameLen + 1] = ';';
+  internalName[nameLen + 2] = '\0';
+
+  // Check if struct type already exists (using internal name format)
+  const CS_TYPE *existingType =
+      csoundGetTypeWithVarTypeName(csound->typePool, internalName);
+  if (existingType != NULL) {
+    csound->Free(csound, internalName);
+    // Struct already registered, return success
+    return 1;
+  }
+
+  // Create placeholder type with minimal information
+  CS_TYPE *type = csound->Calloc(csound, sizeof(CS_TYPE));
+  // Use the already-created internal name
+  type->varTypeName = internalName;
+  type->varDescription = "user-defined struct (placeholder)";
+  type->argtype = CS_ARG_TYPE_BOTH;
+  type->createVariable = createStructVar;
+  type->copyValue = copyStructVar;
+  type->freeVariableMemory = freeStructVarMemory;
+  type->userDefinedType = 1;
+  type->members = NULL; // Will be filled in Phase 2
+
+  // Register the placeholder type
+  if (!csoundAddVariableType(csound, csound->typePool, type)) {
+    csound->Free(csound, type->varTypeName);
+    csound->Free(csound, type);
+    return 0;
+  }
+
+  return 1;
+}
+
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
   TREE* current = structDefTree->right;
@@ -2544,6 +2585,41 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.intypes = cs_strdup(csound, temp);
 
   csoundAppendOpcodes(csound, &oentry, 1);
+  return 1;
+}
+
+int32_t process_struct_definitions_two_phase(CSOUND *csound,
+                                             TREE *structDefList) {
+  if (structDefList == NULL) {
+    return 1; // No struct definitions to process
+  }
+
+  // Phase 1: Register all struct names as placeholders
+  TREE *current = structDefList;
+  while (current != NULL) {
+    if (current->type == STRUCT_TOKEN) {
+      if (!register_struct_placeholder(csound, current)) {
+        return 0; // Error in Phase 1
+      }
+    }
+    current = current->next;
+  }
+
+  // Phase 2: Resolve all struct members and register opcodes
+  current = structDefList;
+  int structCount = 0;
+  while (current != NULL) {
+    structCount++;
+    if (current->type == STRUCT_TOKEN) {
+      char* structName = current->left->value->lexeme;
+      if (!add_struct_definition(csound, current)) {
+        csound->ErrorMsg(csound, "[struct] Phase 2: ERROR processing struct '%s'\n", structName ? structName : "(null)");
+        return 0; // Error in Phase 2
+      }
+    }
+    current = current->next;
+  }
+
   return 1;
 }
 
