@@ -301,7 +301,31 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
                 $2->right = $3;
                 $$->right = $7;
               }
+              | UDOSTART_DEFINITION identifier udo_arg_list ':' NEWLINE udo_out_arg_list NEWLINE
+                statement_list UDOEND_TOKEN NEWLINE
+              {
+                TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN,
+                                        (ORCTOKEN*)NULL);
+                $$ = udoTop;
+                udoTop->left = $2;
+                $2->left = $6;
+                $2->right = $3;
+                $$->right = $8;
+              }
             ;
+              | UDOSTART_DEFINITION identifier udo_arg_list NEWLINE ':' udo_out_arg_list NEWLINE
+                statement_list UDOEND_TOKEN NEWLINE
+              {
+                TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN,
+                                        (ORCTOKEN*)NULL);
+                $$ = udoTop;
+                udoTop->left = $2;
+                $2->left = $6;
+                $2->right = $3;
+                $$->right = $8;
+              }
+            ;
+
 
 udo_arg_list : '(' out_arg_list ')'
              { $$ = $2;  }
