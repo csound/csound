@@ -79,8 +79,9 @@ int32_t retrievek(CSOUND *csound, STOREI *p) {
 
 
 int32_t b2s(CSOUND *csound, ASSIGN *p){
-  int32_t *a = (int32_t *) p->a;
-  *p->r = (MYFLT) *a;
+  // B type can be either a boolean (int32_t) or a k-rate value (MYFLT).
+  // Since both are stored as MYFLT in memory, just copy the value directly.
+  *p->r = *p->a;
   return OK;
 }
 
