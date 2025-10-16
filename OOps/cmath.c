@@ -83,7 +83,8 @@ int32_t seedrand(CSOUND *csound, PRAND *p)
       seedVal = (uint32_t)xx;
     else if (xx==0) {
       seedVal = (uint32_t)csound->GetRandomSeedFromTime();
-      csound->Warning(csound, Str("Seeding from current time %u\n"),
+      if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+       csound->Message(csound, Str("Seeding from current time %u\n"),
                               (uint32_t)seedVal);
     }
     else

@@ -1435,14 +1435,15 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   OPCODEOBJ *obj;
   CS_VAR_MEM *argmem = NULL;
   AUXCH *mem;
-  int ndx;
+  int32_t ndx, argn;
   array = (ARRAYDAT *) p->args[p->OUTOCOUNT];
   obj = (OPCODEOBJ *) array->data;
   n = array->sizes[0];
-  csound->AuxAlloc(csound, sizeof(AUXCH)*n*VARGMAX, &p->mem);
+  argn = p->INOCOUNT + p->OUTOCOUNT;
+  csound->AuxAlloc(csound, sizeof(AUXCH)*n*argn, &p->mem);
   mem = (AUXCH *) p->mem.auxp;
   // check all array args are 1-dim arrays of at least same size as obj[]
-  for(i = 0; i < (int32_t) (p->INOCOUNT + p->OUTOCOUNT); i++)
+  for(i = 0; i < argn; i++)
     if(csoundGetTypeForArg(p->args[i]) == &CS_VAR_TYPE_ARRAY) {
       array = (ARRAYDAT *) p->args[i];
       if(array->dimensions > 1)
