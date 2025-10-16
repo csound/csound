@@ -2,7 +2,7 @@ vcpkg_download_distfile(
     ASIO_SDK
     URLS "https://www.steinberg.net/asiosdk"
     FILENAME asiosdk.zip
-    SHA512 d74c0bc09162640a377aaab2f2ce716f9ee7a6ef8d1aa1aa6bc223a4748c60fa900cc77b1cf6db66f8a4064a074b31a71d75cccc7de3634347865238d9c039af
+    SHA512 57de2c0cd0df0783275987e08255abfa49da12982f9d462ac40b7f57300c36e024dcb65d100b799fb3c96a9c7c5ee86e61ceb0e68d2839324206c1629d3905ed 
 )
 
 vcpkg_extract_source_archive_ex(
