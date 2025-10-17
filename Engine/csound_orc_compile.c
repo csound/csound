@@ -544,9 +544,9 @@ CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
   // Check for null or corrupted engineState and varPool to prevent segfault
   if (engineState == NULL || engineState->varPool == NULL ||
       (uintptr_t)engineState->varPool < 0x1000) {  // Detect corrupted small addresses
-      csound->Warning(csound, "add_global_variable: skipping due to null/corrupted varPool (engineState=%p, varPool=%p)\n",
+    csound->ErrorMsg(csound, "add_global_variable: pool corruption detected (engineState=%p, varPool=%p)\n",
                       engineState, engineState ? engineState->varPool : NULL);
-    return NULL;
+    longjmp(csound->exitjmp, CSOUND_ERROR);
   }
 
   CS_VARIABLE *var =
@@ -612,10 +612,10 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   // Check for null or corrupted varPool to prevent segfault
   if (varPool == NULL || (uintptr_t)varPool < 0x1000) {  // Detect corrupted small addresses
-    csound->Warning(csound, "create_instrument0: skipping csoundAddVariable due to null/corrupted varPool (varPool=%p)\n", varPool);
-  } else {
-    csoundAddVariable(csound, varPool, var);
+    csound->ErrorMsg(csound, "create_instrument0: pool corruption detected (varPool=%p)\n", varPool);
+    longjmp(csound->exitjmp, CSOUND_ERROR);
   }
+  csoundAddVariable(csound, varPool, var);
 
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
@@ -1014,9 +1014,8 @@ static INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   ip->varPool = (CS_VAR_POOL *)root->markup;
   // ensure semantics-provided pool is usable; never replace it to avoid losing vars
   if (ip->varPool == NULL || (uintptr_t)ip->varPool < 0x1000) {
-    // This indicates corruption; create a new pool but also log loudly
-    CS_VAR_POOL* fallback = csoundCreateVarPool(csound);
-    ip->varPool = fallback;
+    csound->ErrorMsg(csound, "create_instrument: pool corruption detected (varPool=%p)\n", ip->varPool);
+    longjmp(csound->exitjmp, CSOUND_ERROR);
   } else if (ip->varPool->table == NULL) {
     // Initialize missing hash table in-place so all vars added by semantics remain visible
     ip->varPool->table = cs_hash_table_create(csound);
@@ -1632,9 +1631,9 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
   if (current_state == NULL || varPool == NULL ||
       current_state->varPool == NULL ||
       (uintptr_t)current_state->varPool < 0x1000) {  // Detect corrupted small addresses
-      csound->ErrorMsg(csound, "varpool_merge: skipping due to null/corrupted pointer (current_state=%p, varPool=%p, current_state->varPool=%p)\n",
+    csound->ErrorMsg(csound, "varpool_merge: pool corruption detected (current_state=%p, varPool=%p, current_state->varPool=%p)\n",
                       current_state, varPool, current_state ? current_state->varPool : NULL);
-    return;
+    longjmp(csound->exitjmp, CSOUND_ERROR);
   }
 
   CS_VARIABLE *gVar = varPool->head;
@@ -1845,8 +1844,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
     // Validate typeTable->globalPool before assignment
     if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-      csound->ErrorMsg(csound, "ERROR: typeTable->globalPool is null/corrupted (%p), cannot proceed\n", typeTable->globalPool);
-      return CSOUND_ERROR;
+      csound->ErrorMsg(csound, "ERROR: typeTable->globalPool pool corruption detected (%p)\n", typeTable->globalPool);
+      longjmp(csound->exitjmp, CSOUND_ERROR);
     }
 
     engineState->varPool = typeTable->globalPool;
@@ -1870,8 +1869,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
     // Validate typeTable->globalPool before assignment
     if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-      csound->ErrorMsg(csound, "ERROR: typeTable->globalPool is null/corrupted (%p), cannot proceed\n", typeTable->globalPool);
-      return CSOUND_ERROR;
+      csound->ErrorMsg(csound, "ERROR: typeTable->globalPool pool corruption detected (%p)\n", typeTable->globalPool);
+      longjmp(csound->exitjmp, CSOUND_ERROR);
     }
 
     engineState->varPool = typeTable->globalPool;
@@ -1895,12 +1894,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
   // Check for null or corrupted globalPool to prevent segfault
   if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-    csound->Warning(csound, "csound_compile_tree: skipping global var allocation due to null/corrupted globalPool (globalPool=%p)\n",
+    csound->ErrorMsg(csound, "csound_compile_tree: pool corruption detected in globalPool (%p)\n",
                       typeTable->globalPool);
-    var = NULL;
-  } else {
-    var = typeTable->globalPool->head;
+    longjmp(csound->exitjmp, CSOUND_ERROR);
   }
+  var = typeTable->globalPool->head;
   while(var != NULL) {
     // check if variable memory has not yet been allocated
     if(var->memBlock == NULL) {
