@@ -1,14 +1,16 @@
-#vcpkg_download_distfile(
-#    ASIO_SDK
-#   URLS "https://www.steinberg.net/asiosdk"
-#   FILENAME ASIO-SDK_2.3.4_2025-10-15.zip
-#   SHA512 57de2c0cd0df0783275987e08255abfa49da12982f9d462ac40b7f57300c36e024dcb65d100b799fb3c96a9c7c5ee86e61ceb0e68d2839324206c1629d3905ed 
-#)
 
-#vcpkg_extract_source_archive_ex(
-# OUT_SOURCE_PATH SOURCE_PATH
-#   ARCHIVE ${ASIO_SDK}
-#)
+vcpkg_download_distfile(
+    ASIO_SDK
+    URLS "https://download.steinberg.net/sdk_downloads/ASIO-SDK_2.3.4_2025-10-15.zip"
+    FILENAME asiosdk.zip
+    SHA512 57de2c0cd0df0783275987e08255abfa49da12982f9d462ac40b7f57300c36e024dcb65d100b799fb3c96a9c7c5ee86e61ceb0e68d2839324206c1629d3905ed
+)
+
+
+vcpkg_extract_source_archive_ex(
+ OUT_SOURCE_PATH SOURCE_PATH
+ ARCHIVE ${ASIO_SDK}
+)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
