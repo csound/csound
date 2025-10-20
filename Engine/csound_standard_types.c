@@ -37,8 +37,7 @@ static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 static void asig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
   int32_t ksmps = ctx ? ctx->ksmps : csound->ksmps;
-  /* Use memmove to safely handle overlapping buffers (e.g., slice writes) */
-  memmove(dest, src, sizeof(MYFLT) * ksmps);
+  memcpy(dest, src, sizeof(MYFLT) * ksmps);
 }
 
 static void complex_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
