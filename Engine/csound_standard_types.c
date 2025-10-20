@@ -633,30 +633,6 @@ void add_standard_types(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR_INSTANCE);
 
-    // Register internal format aliases for UDO parsing
-    // These types need to be available in both formats for compatibility
-    static CS_TYPE CS_VAR_TYPE_OPCODEREF_INTERNAL = {
-        ":OpcodeDef;", "opcode definition reference", CS_ARG_TYPE_BOTH,
-        create_opcodedef, opcodedef_copy_value, NULL, NULL, 0
-    };
-    static CS_TYPE CS_VAR_TYPE_OPCODEOBJ_INTERNAL = {
-        ":Opcode;", "opcode instance reference", CS_ARG_TYPE_BOTH,
-        create_opcode, opcode_copy_value, NULL, NULL, 0
-    };
-    static CS_TYPE CS_VAR_TYPE_INSTR_INTERNAL = {
-        ":InstrDef;", "instrument definition reference", CS_ARG_TYPE_BOTH,
-        create_instrdef, instrdef_copy_value, NULL, NULL, 0
-    };
-    static CS_TYPE CS_VAR_TYPE_INSTR_INSTANCE_INTERNAL = {
-        ":Instr;", "instrument instance reference", CS_ARG_TYPE_BOTH,
-        create_instr, instr_copy_value, NULL, NULL, 0
-    };
-
-    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_OPCODEREF_INTERNAL);
-    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_OPCODEOBJ_INTERNAL);
-    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_INSTR_INTERNAL);
-    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_INSTR_INSTANCE_INTERNAL);
-
     // CS_OBJ_TYPE & OPS
     add_csobj(csound, pool);
 }

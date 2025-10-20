@@ -55,7 +55,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     if (typeName == NULL) return NULL;
     size_t namelen = strlen(typeName);
     if (namelen == 0) return NULL;
-    
+
     // First try direct match
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
@@ -63,7 +63,20 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       }
       current = current->next;
     }
-    
+
+    // If no direct match and typeName starts with ':', try stripping the quotes
+    if (typeName[0] == ':' && namelen > 2 && typeName[namelen-1] == ';') {
+      char unquotedName[256];
+      snprintf(unquotedName, 256, "%.*s", (int)(namelen - 2), typeName + 1);
+      current = pool->head;
+      while (current != NULL) {
+        if (strcmp(unquotedName, current->cstype->varTypeName) == 0) {
+          return current->cstype;
+        }
+        current = current->next;
+      }
+    }
+
     // If no direct match and typeName doesn't start with ':', try internal struct format
     if (typeName[0] != ':' && typeName[0] != '[') {
       char internalName[256];
@@ -76,7 +89,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
         current = current->next;
       }
     }
-    
+
     if(UNLIKELY(typeName[namelen-1] != ']')) return NULL;
     // now check again with braces
     char type[64];
