@@ -24,10 +24,6 @@
 #include "entry.h"
 #include "interlocks.h"
 
-
-// Forward declaration for struct array setter
-extern int32_t array_set_struct(CSOUND*, ARRAY_SET*);
-
 /* inarg types include the following:
    i       irate scalar
    k       krate scalar
@@ -801,6 +797,22 @@ OENTRY opcodlst_1[] = {
      (SUBR) complex_array_complex },
   { "complex", S(COPS1), 0, ":Complex;[]", "k[]k[]", (SUBR) cops_init_r,
      (SUBR) complex_array_assign },
+  // Builtin struct opcodes
+  { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]m", (SUBR)struct_array_get, NULL, NULL },
+  { "##member_get", sizeof(STRUCT_GET), 0, ".", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
+  { "##member_get.i", sizeof(STRUCT_GET), 0, "i", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
+  { "##member_get.k", sizeof(STRUCT_GET), 0, "k", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_get.S", sizeof(STRUCT_GET), 0, "S", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_get.a", sizeof(STRUCT_GET), 0, "a", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_get.b", sizeof(STRUCT_GET), 0, "b", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
+  { "##member_set", sizeof(STRUCT_SET), 0, "", ".i.", (SUBR)struct_member_set_init_and_perf, (SUBR)struct_member_set, NULL },
+  { "##member_array_assign", sizeof(STRUCT_MEMBER_ARRAY_ASSIGN), 0, "", ".i.[]", (SUBR)struct_member_array_assign, NULL, NULL },
+  // { "##struct_alias", sizeof(STRUCT_ALIAS), 0, "", "..", (SUBR)struct_alias, NULL, (SUBR)struct_alias_deinit },
+  // Generic struct initialization opcodes - these will be registered dynamically for each struct type
+  // For now, add some common patterns to test
+  // { "init", sizeof(STRUCT_INIT), 0, "", "m", (SUBR)struct_init, NULL, NULL },
+  // { "init.i", sizeof(STRUCT_INIT), 0, "", "m", (SUBR)struct_init, NULL, NULL },
+  // Arthimetic opcodes
   { "divz.ii", S(DIVZ),0,         "i",    "iii",  divzkk, NULL,   NULL    },
   { "divz.kk", S(DIVZ),0,          "k",    "kkk",  NULL,   divzkk, NULL    },
   { "divz.ak", S(DIVZ),0,          "a",    "akk",  NULL,   divzak  },

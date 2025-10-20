@@ -21,60 +21,92 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+#include <stdint.h>
+#include "array_ops.h"
 #include "csoundCore.h"
-#include "interlocks.h"
 #include "csound_standard_types.h"
-#include "csound_orc_structs.h"  /* CS_STRUCT_VAR + free helper */
-#include <math.h>  /* for fabs */
+#include "csound_orc_structs.h"
+#include "struct_ops.h"
 
-/* Free helper from semantics for deep-freeing member arrays safely */
-extern void csound_free_struct_members(CSOUND* cs, CS_STRUCT_VAR* v);
+int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
+{
+  ARRAYDAT* dat = p->arrayDat;
+  if (UNLIKELY(dat == NULL || dat->data == NULL)) {
+    return csound->PerfError(csound, &(p->h), Str("array_set_struct: NULL array"));
+  }
+  int32_t indefArgCount = p->INOCOUNT - 2; // value + at least one index
+  if (UNLIKELY(indefArgCount <= 0))
+    return csound->PerfError(csound, &(p->h), Str("array_set_struct: no indexes"));
+  if (UNLIKELY(dat->dimensions > 0 && indefArgCount != dat->dimensions)) {
+    // Allow flat arrays with no metadata
+    if (!(dat && dat->dimensions == 0)) {
+      return csound->PerfError(csound, &(p->h), Str("array_set_struct: dimension mismatch"));
+    }
+  }
+  // Compute flat index
+  int32_t index = 0;
+  for (int32_t i = 0; i < indefArgCount; i++) {
+    int32_t end = (int32_t)(*p->indexes[i]);
+    if (dat->dimensions > 0 && dat->sizes != NULL) {
+      if (UNLIKELY(end < 0 || end >= dat->sizes[i])) {
+        return csound->PerfError(csound, &(p->h), Str("array_set_struct: index %d out of range"), i+1);
+      }
+      index = (index * dat->sizes[i]) + end;
+    } else {
+      index = (i == 0) ? end : (index * 0 + end);
+    }
+  }
+  // Address element in bytes (safe for struct payloads)
+  char* base = (char*)dat->data;
+  char* dstPtr = base + (index * (int32_t)dat->arrayMemberSize);
 
-typedef struct {
-    OPDS          h;
-    MYFLT*        out;
-    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
-    MYFLT*        nths[1];      // Member index (constant) - MUST be last, variable length!
-} STRUCT_GET;
+  // Ensure destination struct is initialized (members allocated)
+  if (dat->arrayType && dat->arrayType->userDefinedType) {
+    CS_STRUCT_VAR* dst = (CS_STRUCT_VAR*)(void*)dstPtr;
+    if (dst && dst->members == NULL) {
+      CS_VARIABLE* var = dat->arrayType->createVariable(csound, (void*)dat->arrayType, p->h.insdshead);
+      if (var && var->initializeVariableMemory) {
+        var->initializeVariableMemory(csound, var, (MYFLT*)dst);
+      }
+    }
+  }
 
-typedef struct {
-    OPDS          h;
-    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
-    MYFLT*        nths[1];      // Member index (constant)
-    MYFLT*        in;           // Value to set
-} STRUCT_SET;
+  // Copy value into destination using type-aware copier
+  // For struct arrays, we need to copy member by member since the array elements
+  // are raw struct data, not CS_STRUCT_VAR structures with members pointers
+  if (dat->arrayType && dat->arrayType->userDefinedType) {
+    CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)p->value;
+    CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*)dstPtr;
 
-typedef struct {
-    OPDS          h;
-    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
-    MYFLT*        nths[1];      // Member index (constant)
-    ARRAYDAT*     in;           // Array to assign
-} STRUCT_MEMBER_ARRAY_ASSIGN;
+    // Ensure both are initialized
+    if (srcVar && srcVar->members && dstVar && dstVar->members && dat->arrayType->members) {
+      // Get member count from the type definition, not the variable
+      int32_t memberCount = cs_cons_length(dat->arrayType->members);
+      for (int32_t i = 0; i < memberCount; i++) {
+        CS_VAR_MEM* srcMember = srcVar->members[i];
+        CS_VAR_MEM* dstMember = dstVar->members[i];
+        if (srcMember && dstMember && srcMember->varType) {
+          // Copy the member value
+          if (srcMember->varType->copyValue) {
+            srcMember->varType->copyValue(csound, srcMember->varType,
+                                         &dstMember->value, &srcMember->value, p->h.insdshead);
+          } else {
+            dstMember->value = srcMember->value;
+          }
+        }
+      }
+    }
+  } else if (dat->arrayType && dat->arrayType->copyValue) {
+    dat->arrayType->copyValue(csound, dat->arrayType, (void*)dstPtr, p->value, p->h.insdshead);
+  } else {
+    // Fallback should not happen for struct, but keep parity with array_set
+    if (LIKELY(dstPtr != NULL && p->value != NULL)) *((MYFLT*)dstPtr) = *((MYFLT*)p->value);
+  }
+  return OK;
+}
 
-typedef struct {
-  OPDS      h;
-  CS_STRUCT_VAR* dst;
-  CS_STRUCT_VAR* src;
-  /* Deferred-free capture of pre-alias destination members */
-  CS_VAR_MEM** oldMembers;
-  int32_t      oldMemberCount;
-  int32_t      oldOwned;
-} STRUCT_ALIAS;
-
-typedef struct {
-    OPDS          h;
-    CS_STRUCT_VAR*   out;
-    MYFLT*        args[VARGMAX];
-} STRUCT_INIT;
-
-typedef struct {
-  OPDS      h;
-  MYFLT*    out;
-  ARRAYDAT* arrayDat;
-  MYFLT*    indicies[VARGMAX];
-} STRUCT_ARRAY_GET;
-
-static void struct_array_member_assign(
+void struct_array_member_assign(
     ARRAYDAT* arraySrc,
     ARRAYDAT* arrayDst,
     const CS_TYPE* memberVarType
@@ -88,17 +120,13 @@ static void struct_array_member_assign(
     arrayDst->arrayType = arraySrc->arrayType;
 }
 
-/* Forward declarations */
-static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p);
-
-/* Built-in struct member get/set SUBRs (generic, any struct) */
-static int32_t struct_member_get_init(CSOUND *csound, STRUCT_GET *p)
+// /* Built-in struct member get/set SUBRs (generic, any struct) */
+int32_t struct_member_get_init(CSOUND *csound, STRUCT_GET *p)
 {
   return OK;
 }
 
-/* Combined init+perf function for i-rate opcodes */
-static int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p)
+int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p)
 {
   int32_t result = struct_member_get_init(csound, p);
   if (result != OK) return result;
@@ -108,7 +136,7 @@ static int32_t struct_member_get_init_and_perf(CSOUND *csound, STRUCT_GET *p)
   return struct_member_get(csound, p);
 }
 
-static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
+int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
   if (UNLIKELY(p->nths[0] == NULL)) {
     return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
@@ -213,15 +241,12 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 }
 
 
-static int32_t struct_member_set_init(CSOUND *csound, STRUCT_SET *p)
+int32_t struct_member_set_init(CSOUND *csound, STRUCT_SET *p)
 {
   return OK;
 }
 
-// Forward declaration
-static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p);
-
-static int32_t struct_member_set_init_and_perf(CSOUND *csound, STRUCT_SET *p)
+int32_t struct_member_set_init_and_perf(CSOUND *csound, STRUCT_SET *p)
 {
   int32_t result = struct_member_set_init(csound, p);
   if (result != OK) return result;
@@ -231,7 +256,7 @@ static int32_t struct_member_set_init_and_perf(CSOUND *csound, STRUCT_SET *p)
   return struct_member_set(csound, p);
 }
 
-static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
+int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 {
   // Check if the member index pointer is NULL before dereferencing
   if (UNLIKELY(p->nths[0] == NULL)) {
@@ -290,7 +315,7 @@ static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 }
 
 
-static int32_t struct_member_array_assign(
+int32_t struct_member_array_assign(
     CSOUND *csound, STRUCT_MEMBER_ARRAY_ASSIGN *p
 ) {
     // Check if the member index pointer is NULL before dereferencing
@@ -354,7 +379,7 @@ static int32_t struct_member_array_assign(
 
 }
 
-static int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
+int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
 {
   CS_STRUCT_VAR* dst = p->dst;
   CS_STRUCT_VAR* src = p->src;
@@ -400,7 +425,7 @@ static int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
 }
 
 
-static int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
+int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
 {
   ARRAYDAT* arrayDat = dat->arrayDat;
 
@@ -533,7 +558,7 @@ static int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
 }
 
 
-static int32_t struct_alias_deinit(CSOUND *csound, STRUCT_ALIAS *p)
+int32_t struct_alias_deinit(CSOUND *csound, STRUCT_ALIAS *p)
 {
   if (p->oldOwned && p->oldMembers) {
     CS_STRUCT_VAR tmp;
@@ -550,7 +575,7 @@ static int32_t struct_alias_deinit(CSOUND *csound, STRUCT_ALIAS *p)
 }
 
 /* Generic struct initialization function */
-static int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
+int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
 {
   CS_STRUCT_VAR* structVar = p->out;
 
@@ -591,27 +616,3 @@ static int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
 
   return OK;
 }
-
-
-static OENTRY structops_localops[] = {
-  { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]m", (SUBR)struct_array_get, NULL, NULL },
-
-  { "##member_get", sizeof(STRUCT_GET), 0, ".", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
-  { "##member_get.i", sizeof(STRUCT_GET), 0, "i", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
-  { "##member_get.k", sizeof(STRUCT_GET), 0, "k", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_get.S", sizeof(STRUCT_GET), 0, "S", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_get.a", sizeof(STRUCT_GET), 0, "a", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_get.b", sizeof(STRUCT_GET), 0, "b", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
-  { "##member_set", sizeof(STRUCT_SET), 0, "", ".i.", (SUBR)struct_member_set_init_and_perf, (SUBR)struct_member_set, NULL },
-  { "##member_array_assign", sizeof(STRUCT_MEMBER_ARRAY_ASSIGN),
-    0, "", ".i.[]", (SUBR)struct_member_array_assign, NULL, NULL },
-  { "##struct_alias", sizeof(STRUCT_ALIAS), 0, "", "..", (SUBR)struct_alias, NULL, (SUBR)struct_alias_deinit },
-
-  // Generic struct initialization opcodes - these will be registered dynamically for each struct type
-  // For now, add some common patterns to test
-  { "init", sizeof(STRUCT_INIT), 0, "", "m", (SUBR)struct_init, NULL, NULL },
-  { "init.i", sizeof(STRUCT_INIT), 0, "", "m", (SUBR)struct_init, NULL, NULL },
-};
-
-
-LINKAGE_BUILTIN(structops_localops)

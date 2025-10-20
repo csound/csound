@@ -28,22 +28,8 @@
 #include "csound.h"
 #include "csound_type_system.h"
 
-/* Public struct layout for plugins and engine */
-typedef struct csstructvar {
-  CS_VAR_MEM** members;      /* Pointer array of member memory blocks (owned or aliased) */
-  int32_t      memberCount;  /* Number of members; needed for deallocation without type */
-  int32_t      ownsMembers;  /* 1 if this instance owns members storage and should free */
-} CS_STRUCT_VAR;
-
-void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
-
-/* Engine-only declarations: visible when building the core library,
-   hidden for external plugins. Core builds define __BUILDING_LIBCSOUND.
-   Some core targets also define BUILD_PLUGINS, so include when either
-   building core or when BUILD_PLUGINS is not defined. */
 #if defined(__BUILDING_LIBCSOUND) || !defined(BUILD_PLUGINS)
 #include "csoundCore.h"
-#include "csound_orc.h"
 #define MAX_STRUCT_ARG_SIZE 1024
 
 typedef struct initstructvar {
@@ -51,6 +37,18 @@ typedef struct initstructvar {
   MYFLT* out;
   MYFLT* inArgs[VARGMAX];
 } INIT_STRUCT_VAR;
+
+typedef struct csstructvar {
+  CS_VAR_MEM** members;      /* Pointer array of member memory blocks (owned or aliased) */
+  int32_t      memberCount;  /* Number of members; needed for deallocation without type */
+  int32_t      ownsMembers;  /* 1 if this instance owns members storage and should free */
+} CS_STRUCT_VAR;
+
+typedef struct {
+    OPDS          h;
+    CS_STRUCT_VAR*   out;
+    MYFLT*        args[VARGMAX];
+} STRUCT_INIT;
 
 char* getStructPathFromTree(CSOUND* csound, TREE* structValueTree);
 int findStructMemberIndex(CONS_CELL* members, char* memberName);
@@ -64,6 +62,7 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
 OENTRY* new_struct_init_oentry(CSOUND* csound, CS_TYPE* type);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
 void freeStructVarMemory(void *csnd, void *p);
+void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
 #endif
 
 #endif /* CSOUND_ORC_STRUCTS_H */
