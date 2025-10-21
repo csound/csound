@@ -222,7 +222,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         err = 3;
         if (astTree)
           csound->Message(csound,
-                          Str("Parsing failed due to %d semantic error%s!, line %d\n\n"),
+                          Str("Parsing failed due to %d semantic error%s!, line %d\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s", astTree->line);
         else if (csound->synterrcnt)
           csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
