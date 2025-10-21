@@ -2118,8 +2118,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("Unable to find opcode with name: %s\n"),
-            root->value->lexeme);
+    synterr(csound, Str("unable to find opcode with name: %s, line %d\n"),
+            root->value->lexeme, root->line);
     if (entries != NULL) {
       csound->Free(csound, entries);
     }
