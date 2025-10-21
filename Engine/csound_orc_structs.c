@@ -1,8 +1,8 @@
 /*
-  csound_orc_semantics.c:
+  csound_orc_structs.c:
 
-  Copyright (C) 2023
-  John ffitch, Steven Yi
+  Copyright (C) 2025
+  John ffitch, Steven Yi, Hlöðver Sigurðsson
 
   This file is part of Csound.
 

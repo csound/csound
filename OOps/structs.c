@@ -1,7 +1,8 @@
 /*
     structs.c:
 
-    Copyright (C) 2023
+    Copyright (C) 2025
+    Hlöðver Sigurðsson
 
     This file is part of Csound.
 

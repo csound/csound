@@ -1,5 +1,5 @@
 /*
-    tok.h:
+    struct_ops:
 
     Copyright (C) 2025 by Hlöðver Sigurðsson
 

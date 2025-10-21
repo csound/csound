@@ -2065,14 +2065,6 @@ int32_t outrep(CSOUND *csound, OUTM *p)
 /* For parallel mixin template */
 int32_t addina(CSOUND *csound, ASSIGN *p)
 {
-  // SAFETY CHECK: This function should only be called for array operations
-  // If we're here for a scalar operation, it's a bug in the opcode resolution
-  // Fall back to scalar addition to prevent buffer overflow
-  *p->r += *p->a;
-  return OK;
-
-  // Original array code (commented out to prevent buffer overflow):
-  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2084,7 +2076,6 @@ int32_t addina(CSOUND *csound, ASSIGN *p)
       ans[n] += val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
-  */
 }
 
 int32_t addinak(CSOUND *csound, ASSIGN *p)
@@ -2647,7 +2638,7 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
 
 int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
   if (UNLIKELY(p->in->instr == NULL)) {
-    return csound->InitError(csound, 
+    return csound->InitError(csound,
       Str("instrnum/nstrnum: instrument reference is not initialized"));
   }
   int32_t result = instr_num(csound, p->in->instr);
@@ -2658,7 +2649,7 @@ int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
 
 int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
   if (UNLIKELY(p->in->instr == NULL)) {
-    return csound->InitError(csound, 
+    return csound->InitError(csound,
       Str("str: instrument reference is not initialized"));
   }
   char *name = cs_strdup(csound, p->in->instr->insname);
