@@ -50,7 +50,7 @@ typedef struct {
     MYFLT*        args[VARGMAX];
 } STRUCT_INIT;
 
-char* getStructPathFromTree(CSOUND* csound, TREE* structValueTree);
+/* Returns a dynamically allocated string; caller must free using csound->Free() */
 int findStructMemberIndex(CONS_CELL* members, char* memberName);
 CS_VARIABLE* getStructMember(CONS_CELL* members, char* memberName);
 int32_t initStructVar(CSOUND* csound, void* p);

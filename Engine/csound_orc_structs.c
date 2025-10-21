@@ -35,37 +35,6 @@ typedef struct {
   MYFLT*    indicies[VARGMAX];
 } STRUCT_ARRAY_GET;
 
-
-char* getStructPathFromTree(
-  CSOUND* csound,
-  TREE* structValueTree
-) {
-    char tmp[1024];
-    char* path = tmp;
-    TREE* current = structValueTree->right;
-    {
-      size_t remaining = sizeof(tmp);
-      int n = snprintf(path, remaining, "%s.", structValueTree->left->value->lexeme);
-      if (n < 0) n = 0; if ((size_t)n >= remaining) n = (int)remaining - 1;
-      path += n; remaining -= n;
-
-      while(current != NULL) {
-        int hasNext = current->next != NULL;
-        n = snprintf(path, remaining, hasNext ? "%s." : "%s", current->value->lexeme);
-        if (n < 0) n = 0; if ((size_t)n >= remaining) n = (int)remaining - 1;
-        path += n; remaining -= n;
-        current = current->next;
-      }
-    }
-
-
-    size_t len = (size_t)(path - tmp);
-    char* result = csound->Calloc(csound, len + 1);
-    memcpy(result, tmp, len);
-    result[len] = '\0';
-    return result;
-}
-
 int findStructMemberIndex(CONS_CELL* members, char* memberName) {
     int i = 0;
     while(members != NULL) {
