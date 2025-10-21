@@ -516,8 +516,8 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
           if (strOut->data != NULL) {
             csound->Free(csound, strOut->data);
           }
-          char numStr[32];
-          snprintf(numStr, sizeof(numStr), "%.6f", pval);
+          char numStr[64];
+          snprintf(numStr, sizeof(numStr), "%.17g", pval);
           strOut->data = csound->Strdup(csound, numStr);
           strOut->size = strlen(numStr) + 1;
         }
