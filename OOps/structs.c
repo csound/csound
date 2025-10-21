@@ -189,41 +189,21 @@ int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
         dst->allocated       = 0;
         /* Ensure dimension metadata exists for destination alias (Option A, UDT arrays) */
         if ((dst->sizes == NULL || dst->dimensions <= 0) && src && src->arrayMemberSize > 0) {
-          // First try to copy dimensions from source if they exist
+          // Copy dimensions from source if they exist
+          // For aliases (allocated=0), only use shallow copy - never allocate new metadata
           if (src->dimensions > 0 && src->sizes != NULL) {
-            // Copy dimensions from source
             dst->dimensions = src->dimensions;
-            dst->sizes = src->sizes;  // Shallow copy is fine for aliases
-          } else {
-            // Fallback: try to infer 1D length from allocation
-            int len = 0;
-            if (src->allocated > 0) {
-              len = (int)(src->allocated / (size_t)src->arrayMemberSize);
-            }
-            if (len > 0) {
-              int32_t* sz = (int32_t*) csound->Calloc(csound, sizeof(int32_t) * 1);
-              sz[0] = len;
-              dst->dimensions = 1;
-              dst->sizes = sz;
-            }
+            dst->sizes = src->sizes;
           }
         }
 
       } else {
           /* Ensure dimension metadata exists for destination alias (Option A) */
           if ((dst->sizes == NULL || dst->dimensions <= 0) && src && src->data && src->arrayMemberSize > 0) {
-            int dims = (src->dimensions > 0 ? src->dimensions : 1);
-            if (dims == 1) {
-              int len = 0;
-              if (src->allocated > 0) {
-                len = (int)(src->allocated / (size_t)src->arrayMemberSize);
-              }
-              if (len > 0) {
-                int32_t* sz = (int32_t*) csound->Calloc(csound, sizeof(int32_t) * 1);
-                sz[0] = len;
-                dst->dimensions = 1;
-                dst->sizes = sz;
-              }
+            // For aliases (allocated=0), only use shallow copy - never allocate new metadata
+            if (src->dimensions > 0 && src->sizes != NULL) {
+              dst->dimensions = src->dimensions;
+              dst->sizes = src->sizes;
             }
           }
 
@@ -353,25 +333,12 @@ int32_t struct_member_array_assign(
     struct_array_member_assign(src, dst, member->varType);
 
     /* Option A: ensure dimension metadata is present for destination view.
-       If sizes are missing but we can infer 1-D length from source allocation, populate it. */
+       For aliases, only use shallow copy - never allocate new metadata. */
     if ((dst->sizes == NULL || dst->dimensions <= 0) && src && src->arrayMemberSize > 0) {
-      // First try to copy dimensions from source if they exist
+      // Copy dimensions from source if they exist
       if (src->dimensions > 0 && src->sizes != NULL) {
-        // Copy dimensions from source
         dst->dimensions = src->dimensions;
-        dst->sizes = src->sizes;  // Shallow copy is fine for aliases
-      } else {
-        // Fallback: try to infer 1D length from allocation
-        int len = 0;
-        if (src->allocated > 0) {
-          len = (int)(src->allocated / (size_t)src->arrayMemberSize);
-        }
-        if (len > 0) {
-          int32_t* sz = (int32_t*) csound->Calloc(csound, sizeof(int32_t) * 1);
-          sz[0] = len;
-          dst->dimensions = 1;
-          dst->sizes = sz;
-        }
+        dst->sizes = src->sizes;
       }
     }
 
