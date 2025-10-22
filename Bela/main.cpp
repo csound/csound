@@ -26,9 +26,15 @@
 #include <libraries/Midi/Midi.h>
 #include <libraries/Scope/Scope.h>
 #include <libraries/Trill/Trill.h>
+#if __has_include(<csound.hpp>)
 #include <csound.hpp>
 #include <csound.h>
 #include <plugin.h>
+#else
+#include <csound/csound.hpp>
+#include <csound/csound.h>
+#include <csound/plugin.h>
+#endif
 #include <vector>
 #include <sstream>
 #include <iostream>
