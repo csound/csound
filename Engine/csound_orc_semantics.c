@@ -377,7 +377,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
           is_irate(tree->right->right)) {
-        synterr(csound, Str("Use of i() with array element ill formed\n"));
+        synterr(csound, Str("Use of i() with array element ill formed on line %d\n"), tree->line);
       }
       else
         if (UNLIKELY(is_expression_node(tree->right)))
@@ -689,7 +689,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     var = find_var_from_pools(csound, s, s, typeTable);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"), s);
+      synterr(csound, Str("Variable '%s' used before defined, line %d\n"), s, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -708,7 +708,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         cell = cell->next;
       }
       if (nextVar == NULL) {
-        synterr(csound, Str("No member '%s' found for variable 'xxx'\n"), s);
+        synterr(csound, Str("No member '%s' found for variable 'xxx', line %d\n"), s, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -1492,8 +1492,8 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         argType = get_arg_type2(csound, current, typeTable);
         if (UNLIKELY(argType==NULL)) {
           synterr(csound,
-                  Str("Variable type for %s could not be determined."),
-                  varName);
+                  Str("Variable type for %s could not be determined, line %d"),
+                  varName, tree->line);
           do_baktrace(csound, tree->locn);
           return 0;
         }
@@ -2118,8 +2118,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("Unable to find opcode with name: %s\n"),
-            root->value->lexeme);
+    synterr(csound, Str("unable to find opcode with name: %s, line %d\n"),
+            root->value->lexeme, root->line);
     if (entries != NULL) {
       csound->Free(csound, entries);
     }
@@ -2171,7 +2171,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     int32_t i;
     char *name = strip_extension(csound, opcodeName);
     synterr(csound, Str("Unable to find opcode entry for \'%s\' "
-                        "with matching argument types:\n"), name);
+                        "with matching argument types:\n, line %d"), name, root->line);
     csound->Free(csound, name);
     name = strip_extension(csound, root->value->lexeme);
     csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
