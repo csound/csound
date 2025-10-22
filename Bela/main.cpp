@@ -26,8 +26,9 @@
 #include <libraries/Midi/Midi.h>
 #include <libraries/Scope/Scope.h>
 #include <libraries/Trill/Trill.h>
-#include <csound/csound.hpp>
-#include <csound/plugin.h>
+#include <csound.hpp>
+#include <csound.h>
+#include <plugin.h>
 #include <vector>
 #include <sstream>
 #include <iostream>
@@ -231,7 +232,7 @@ struct DigiIO : csnd::InPlug<3> {
 */
 struct TrillIn : csnd::Plugin<4, 2> {
     unsigned int activeTouches;
-    unsigned int numTouches;
+    size_t numTouches;
     unsigned int trillID;
     float* touchSize;
     float* touchVertLocation;
@@ -338,8 +339,8 @@ bool csound_setup(BelaContext* context, void* p) {
     csound = new Csound();
     csData->csound = csound;
     csound->SetHostData((void*)context);
-    csound->SetHostImplementedAudioIO(1, 0);
-    csound->SetHostImplementedMIDIIO(1);
+    csound->SetHostAudioIO();
+    csound->SetHostMIDIIO();
     csound->SetExternalMidiInOpenCallback(OpenMidiInDevice);
     csound->SetExternalMidiReadCallback(ReadMidiData);
     csound->SetExternalMidiInCloseCallback(CloseMidiInDevice);
@@ -411,6 +412,8 @@ bool csound_setup(BelaContext* context, void* p) {
     // so it doesn't slow down loading.
     if (gTouchSensors.size())
         Bela_runAuxiliaryTask(trillReadLoop);
+
+    csound->Start();
     return true;
 }
 
@@ -423,9 +426,9 @@ void csound_render(BelaContext* context, void* p) {
         Csound* csound = csData->csound;
         MYFLT scal = csound->Get0dBFS();
         MYFLT* audioIn = csound->GetSpin();
-        MYFLT* audioOut = csound->GetSpout();
-        int nchnls = csound->GetNchnls();
-        int nchnls_i = csound->GetNchnlsInput();
+        const MYFLT* audioOut = csound->GetSpout();
+        int nchnls = csound->GetChannels(0);
+        int nchnls_i = csound->GetChannels(1);
         unsigned int chns = (unsigned int)nchnls < context->audioOutChannels ? nchnls : context->audioOutChannels;
         unsigned int ichns = (unsigned int)nchnls_i < context->audioInChannels ? nchnls_i : context->audioInChannels;
 
@@ -498,6 +501,7 @@ void csound_render(BelaContext* context, void* p) {
 
 void csound_cleanup(BelaContext* context, void* p) {
     CsData* csData = (CsData*)p;
+    csData->csound->Reset();
     delete csData->csound;
     for (auto t : gTouchSensors)
         delete t;
