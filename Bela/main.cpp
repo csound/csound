@@ -33,7 +33,7 @@
 #include <sstream>
 #include <iostream>
 #include <atomic>
-
+#include <signal.h>
 
 static int OpenMidiInDevice(CSOUND* csound, void** userData, const char* dev);
 static int CloseMidiInDevice(CSOUND* csound, void* userData);
@@ -336,6 +336,7 @@ bool csound_setup(BelaContext* context, void* p) {
     csData->ochannel.resize(context->analogOutChannels);
 
     /* set up Csound */
+    csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER); // prevent csound from installing a signal handler
     csound = new Csound();
     csData->csound = csound;
     csound->SetHostData((void*)context);
@@ -570,12 +571,16 @@ void usage(const char* prg) {
    Main program: takes Bela options and a --csd=<csdfile>
    option for Csound
 */
-int main(int argc, const char* argv[]) {
+// Handle Ctrl-C by requesting that the audio rendering stop
+void interrupt_handler(int var)
+{
+    Bela_requestStop();
+}
+
+int main(int argc, char* argv[]) {
     CsData csData;
     int c;
-    bool res = false;
-    BelaInitSettings* settings;
-    settings = Bela_InitSettings_alloc();
+    BelaInitSettings* settings = Bela_InitSettings_alloc();
     const option opt[] = { { "csd", required_argument, NULL, 'f' }, { "help", 0, NULL, 'h' }, { NULL, 0, NULL, 0 } };
 
     Bela_defaultSettings(settings);
@@ -585,7 +590,13 @@ int main(int argc, const char* argv[]) {
     settings->highPerformanceMode = 1;
     settings->interleave = 1;
     settings->analogOutputsPersist = 0;
+    if(argc > 0 && argv[0])
+    {
+        char* nameWithSlash = strrchr(argv[0], '/');
+        settings->projectName = nameWithSlash ? nameWithSlash + 1 : argv[0];
+    }
 
+    bool res = false;
     while ((c = Bela_getopt_long(argc, (char**)argv, "hf", opt, settings)) >= 0) {
         if (c == 'h') {
             usage(argv[0]);
@@ -606,20 +617,40 @@ int main(int argc, const char* argv[]) {
         Bela_InitSettings_free(settings);
         return 1;
     }
-    res = Bela_initAudio(settings, &csData);
+
+    // Initialise the PRU audio device
+    if(Bela_initAudio(settings, &csData) != 0) {
+        Bela_InitSettings_free(settings);
+        fprintf(stderr,"Error: unable to initialise audio\n");
+        return 1;
+    }
     Bela_InitSettings_free(settings);
-    if (res) {
-        std::cerr << "error initialising Bela \n";
+
+    // Set up interrupt handler to catch Control-C and SIGTERM
+    signal(SIGINT, interrupt_handler);
+    signal(SIGTERM, interrupt_handler);
+
+    // Start the audio device running
+    if(Bela_startAudio()) {
+        fprintf(stderr,"Error: unable to start real-time audio\n");
+        // Stop the audio device
+        Bela_stopAudio();
+        // Clean up any resources allocated for audio
         Bela_cleanupAudio();
         return 1;
     }
-    if (Bela_startAudio() == 0) {
-        while (csData.res == 0)
-            usleep(100000);
-    } else {
-        std::cerr << "error starting audio \n";
+
+    // Run until told to stop
+    while (0 == csData.res && !Bela_stopRequested()) {
+        usleep(100000);
     }
+
+    // Stop the audio device
     Bela_stopAudio();
+
+    // Clean up any resources allocated for audio
     Bela_cleanupAudio();
+
+    // All done!
     return 0;
 }
