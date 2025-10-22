@@ -16,9 +16,10 @@ To build Csound on the board (as root), just do, from the
 top-level sources
 
 ```
-$ cp Bela/Custom.cmake.bela Custom.cmake
+$ cp Bela/Custom.cmake.bela-<pick your version> Custom.cmake
 $ mkdir build && cd build
-$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/
+$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/ -DCMAKE_CXX_FLAGS="-Werror=unused-command-line-argument" -DCMAKE_C_FLAGS="-Werror=unused-command-line-argument"
+# if the above fails with not finding some system headers, re-run it with --debug-trycompile
 $ make && make install
 $ sudo ldconfig
 ```
