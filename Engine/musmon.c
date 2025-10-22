@@ -1296,7 +1296,7 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
      e->evt.pcnt = ep->pcnt;
      if(e->evt.p != NULL) csound->Free(csound, e->evt.p);
      e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
-  }
+  } else e->evt.pcnt = ep->pcnt;
   return e;
 }
 

@@ -500,7 +500,8 @@ int32_t rndset(CSOUND *csound, RAND *p)
       if (*p->iseed > FL(1.0)) {    /* As manual suggest seed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+         csound->Message(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32_t) (seed & 0xFFFFUL);
         }
@@ -613,7 +614,8 @@ int32_t rhset(CSOUND *csound, RANDH *p)
       if (*p->iseed > FL(1.0)) {    /* As manual suggest sseed in range [0,1] */
         uint32 seed;         /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+         csound->Message(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           p->rand = (int32_t) (seed & 0xFFFFUL);
           p->num1 = (MYFLT) ((int16) p->rand) * DV32768;
@@ -719,7 +721,8 @@ int32_t riset(CSOUND *csound, RANDI *p)
       if (*p->iseed > FL(1.0)) { /* As manual suggest seed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+         csound->Message(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */
@@ -852,7 +855,8 @@ int32_t rcset(CSOUND *csound, RANDC *p)
       if (*p->iseed > FL(1.0)) { /* As manual suggest sseed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
-        csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
+        if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+         csound->Message(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
         if (!p->new) {
           int16 rand = (int16)seed;
 /*           int16 ss = rand; */

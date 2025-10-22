@@ -1955,7 +1955,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             char *c;
             c = p->left->value->lexeme;
             if (UNLIKELY(!check_instr_name(c))) {
-              synterr(csound, Str("invalid name for instrument"));
+              synterr(csound, Str("invalid name for instrument: %s"), c);
             }
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
@@ -1983,7 +1983,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             insno_priority--;
           }
           if (UNLIKELY(!check_instr_name(c))) {
-            synterr(csound, Str("invalid name for instrument"));
+              synterr(csound, Str("invalid name for instrument: %s"), c);
           }
 
           if(named_instr_alloc(csound, c, instrtxt, insno_priority,
@@ -2038,8 +2038,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
     if (UNLIKELY(opinfo == NULL)) {
       csound->Message(csound,
-                      Str("ERROR: Could not find OPCODINFO for opname: %s\n"),
-                      opname);
+                      Str("ERROR: Could not find OPCODINFO for opname: %s, line %d"),
+                      opname, current->line);
     } else {
       opinfo->ip = instrtxt;
       instrtxt->insname = cs_strdup(csound, opname);
@@ -2070,8 +2070,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 if (UNLIKELY(csound->synterrcnt)) {
   print_opcodedir_warning(csound);
   csound->Warning(csound, Str("%d syntax errors in orchestra.  "
-                              "compilation invalid\n"),
-                  csound->synterrcnt);
+                              "compilation invalid, line %d\n"),
+                  csound->synterrcnt, current->line);
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
  }

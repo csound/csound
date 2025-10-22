@@ -1,3 +1,4 @@
+
 vcpkg_download_distfile(
     ASIO_SDK
     URLS "https://download.steinberg.net/sdk_downloads/ASIO-SDK_2.3.4_2025-10-15.zip"
@@ -5,9 +6,10 @@ vcpkg_download_distfile(
     SHA512 57de2c0cd0df0783275987e08255abfa49da12982f9d462ac40b7f57300c36e024dcb65d100b799fb3c96a9c7c5ee86e61ceb0e68d2839324206c1629d3905ed
 )
 
+
 vcpkg_extract_source_archive_ex(
-    OUT_SOURCE_PATH SOURCE_PATH
-    ARCHIVE ${ASIO_SDK}
+ OUT_SOURCE_PATH SOURCE_PATH
+ ARCHIVE ${ASIO_SDK}
 )
 
 vcpkg_from_github(
@@ -28,10 +30,10 @@ string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" PA_BUILD_STATIC)
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        -DPA_USE_DS=ON
+        -DPA_USE_DS=OFF
         -DPA_USE_WASAPI=ON
         -DPA_USE_WDMKS=ON
-        -DPA_USE_WMME=ON
+        -DPA_USE_WMME=OFF
         -DPA_LIBNAME_ADD_SUFFIX=OFF
         -DPA_BUILD_SHARED=${PA_BUILD_SHARED}
         -DPA_BUILD_STATIC=${PA_BUILD_STATIC}
