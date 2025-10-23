@@ -276,14 +276,14 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     // VL: simple case, inputs are not the output
     if (size >= p->r->size) {
       size_t alloc_size;
-      if (size > SIZE_MAX / 2) {
+      if (size > (SIZE_MAX - 1) / 2) {
         if(is_perf_thread(&p->h))
           return csound->PerfError(csound, &p->h,
                          "strcatk: allocation size overflow");
         else
           return csound->InitError(csound, "strcat: allocation size overflow");
       }
-      alloc_size = 2 * size;
+      alloc_size = 2 * size + 1; // +1 for null terminator
       p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
       p->r->size = alloc_size;
     }
