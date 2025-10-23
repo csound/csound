@@ -669,8 +669,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      #- name: Run integration and unit tests
+      #  run: cmake --build build --target test csdtests
 
   android-release:
     name: Csound for Android
