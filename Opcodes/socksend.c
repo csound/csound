@@ -502,11 +502,17 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
 #if defined(WIN32) && !defined(__CYGWIN__)
-    p->server_addr.sin_addr.S_un.S_addr =
-      inet_addr((const char *) p->ipaddress->data);
+    if(strcmp(p->ipaddress->data, "localhost"))
+      p->server_addr.sin_addr.S_un.S_addr =
+        inet_addr((const char *) p->ipaddress->data);
+    else
+      p->server_addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 #else
-    inet_aton((const char *) p->ipaddress->data,
+     if(strcmp(p->ipaddress->data, "localhost"))
+       inet_aton((const char *) p->ipaddress->data,
               &p->server_addr.sin_addr);    /* the server IP address */
+      else inet_aton("127.0.0.1",
+            &p->server_addr.sin_addr);
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
 
@@ -841,7 +847,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
         }
         p->err_state = 1;
         return OK;
-      }
+      } 
       p->last = *p->kwhen;
     }
     p->err_state = 0;
