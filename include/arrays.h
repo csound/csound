@@ -57,6 +57,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 2) * blockSize));
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + (i + 3) * blockSize));
           }
+          // The second loop only handles the remainder elements (0-3 elements at most)
           for (; i < size; i++) {
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
           }
