@@ -392,9 +392,9 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
   mem += incr;
 
   /* Type-aware copy with audio-scalar broadcasting support */
-  if (dat->arrayType) {
+  if (dat->arrayType && dat->arrayType->varTypeName) {
     /* Audio element: allow scalar (i/k/const) broadcast into the ksmps frame */
-    if (dat->arrayType->varTypeName && dat->arrayType->varTypeName[0] == 'a') {
+    if (dat->arrayType->varTypeName[0] == 'a') {
       if (IS_ASIG_ARG(p->value)) {
         dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, p->value, p->h.insdshead);
       } else {

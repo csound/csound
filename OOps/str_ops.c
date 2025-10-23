@@ -275,8 +275,17 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   if(p->str1 != p->r && p->str2 != p->r) {
     // VL: simple case, inputs are not the output
     if (size >= p->r->size) {
-      p->r->data = csound->ReAlloc(csound, p->r->data, 2*size);
-      p->r->size = 2*size;
+      size_t alloc_size;
+      if (size > SIZE_MAX / 2) {
+        if(is_perf_thread(&p->h))
+          return csound->PerfError(csound, &p->h,
+                         "strcatk: allocation size overflow");
+        else
+          return csound->InitError(csound, "strcat: allocation size overflow");
+      }
+      alloc_size = 2 * size;
+      p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+      p->r->size = alloc_size;
     }
     memcpy(p->r->data, p->str1->data, p->str1->size);
     strcat(p->r->data, p->str2->data);
@@ -284,9 +293,17 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   }
   else if(p->str1 == p->r && p->str2 != p->r) {
      if(size >= p->r->size) {
-       p->r->data =
- 	csound->ReAlloc(csound, p->r->data, 2*size);
-       p->r->size = 2*size;
+       size_t alloc_size;
+       if (size > SIZE_MAX / 2) {
+         if(is_perf_thread(&p->h))
+           return csound->PerfError(csound, &p->h,
+                          "strcatk: allocation size overflow");
+         else
+           return csound->InitError(csound, "strcat: allocation size overflow");
+       }
+       alloc_size = 2 * size;
+       p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+       p->r->size = alloc_size;
     }
      strcat((char*) p->r->data, p->str2->data);
      return OK;
@@ -295,9 +312,17 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     // the bad case where str2 == r
     char *ostr = cs_strdup(csound, p->str2->data);
    if(size >= p->r->size) {
-       p->r->data =
-	csound->ReAlloc(csound, p->r->data, 2*size);
-       p->r->size = 2*size;
+       size_t alloc_size;
+       if (size > SIZE_MAX / 2) {
+         if(is_perf_thread(&p->h))
+           return csound->PerfError(csound, &p->h,
+                          "strcatk: allocation size overflow");
+         else
+           return csound->InitError(csound, "strcat: allocation size overflow");
+       }
+       alloc_size = 2 * size;
+       p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+       p->r->size = alloc_size;
     }
      memcpy(p->r->data, p->str1->data, p->r->size - 1);
      strcat(p->r->data,ostr);
@@ -308,8 +333,17 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     // the bad case where (str1 == str2) == r
    char *ostr = cs_strdup(csound, p->str2->data);
    if (size >= p->r->size) {
-        p->r->data = csound->ReAlloc(csound, p->r->data, 2*size);
-        p->r->size = 2*size;
+        size_t alloc_size;
+        if (size > SIZE_MAX / 2) {
+          if(is_perf_thread(&p->h))
+            return csound->PerfError(csound, &p->h,
+                           "strcatk: allocation size overflow");
+          else
+            return csound->InitError(csound, "strcat: allocation size overflow");
+        }
+        alloc_size = 2 * size;
+        p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+        p->r->size = alloc_size;
     }
    strcat(p->r->data, ostr);
    csound->Free(csound, ostr);

@@ -1570,6 +1570,10 @@ static void setup_opcode_argpp(
         fltp = &(pfield->value);
       }
       else {
+        csound->Warning(csound,
+          Str("setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s, using csound_null_var_i as fallback."),
+          arg->type,
+          ep->opname ? ep->opname : "(null)");
         fltp = &csound_null_var_i.value;
       }
       argpp[n] = fltp;
