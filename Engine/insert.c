@@ -38,10 +38,6 @@
 #include "csound_orc_compile.h"
 #include <inttypes.h>
 
-// Fallback CS_VAR_MEM for missing variable mappings to avoid NULL dereferences
-// Provides a valid header so csoundGetTypeForArg() is safe
-static CS_VAR_MEM csound_null_var_i = { &CS_VAR_TYPE_I, FL(0.0) };
-
 static void show_allocs(CSOUND *);
 static void deact(CSOUND *, INSDS *);
 static void sched_off_time(CSOUND *, INSDS *);
@@ -1570,11 +1566,10 @@ static void setup_opcode_argpp(
         fltp = &(pfield->value);
       }
       else {
-        csound->Warning(csound,
-          Str("setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s, using csound_null_var_i as fallback."),
+        csound->Die(csound,
+          Str("setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s"),
           arg->type,
           ep->opname ? ep->opname : "(null)");
-        fltp = &csound_null_var_i.value;
       }
       argpp[n] = fltp;
       arg = arg->next;

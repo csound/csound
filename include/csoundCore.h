@@ -1779,6 +1779,7 @@ struct CSOUND_ {
   int32_t midi_start;
   int32_t midi_continue;
   int32_t midi_stop;
+  int32_t struct_array_temp_counter;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

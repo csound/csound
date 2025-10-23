@@ -1081,10 +1081,9 @@ int expand_struct_array_member_assignment(CSOUND* csound,
     return 0;
   }
 
-  // Generate unique temp variable name (thread-safe)
-  int unique_id = (int)(uintptr_t)&unique_id;
+  // Generate unique temp variable name
   char tempVarName[64];
-  snprintf(tempVarName, sizeof(tempVarName), "#structArrayTemp%x#", unique_id);
+  snprintf(tempVarName, sizeof(tempVarName), "#structArrayTemp%d#", csound->struct_array_temp_counter++);
 
   // Step 1: temp:Type = array[index]
   ORCTOKEN* tempToken = make_token(csound, tempVarName);
