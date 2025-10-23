@@ -54,6 +54,9 @@ instr 5
  host:S = "localhost"
  port:i = 7000
  test:k = chnget("test")
+ if test != 1 then
+  schedulek(Exit,0,0)
+ endif
  printk2(test)
  OSCsend(0, host, port, "/csound/compile", "s",
  	{{ event_i "e", 0, 0}})
