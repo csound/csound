@@ -217,7 +217,7 @@ def runTest():
     ["test_break_continue.csd", "testing break/continue statements in while/until/for loops"],
     ["test_break_outside_loop_fails.csd", "testing break outside loop gives parser error", 1],
     ["test_continue_outside_loop_fails.csd", "testing continue outside loop gives parser error", 1],
-    ["test_osc_server.csd", "test OSC in udp server"],
+    ["test_osc_server.csd", "test OSC in udp server", 0, "-odac -d -+rtaudio=dummy"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -294,20 +294,25 @@ def runTest():
     for t in tests:
         filename = t[0]
         desc = t[1]
-        expectedResult = (len(t) == 3) and 1 or 0
+        args = runArgs
+        expectedResult = 0
+        if len(t) > 2:
+          expectedResult = t[2]
+        if len(t) > 3:
+          args = t[3]
 
         if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and os.path.join("..", "csound.exe") or csoundExecutable
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, args, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "csound" or csoundExecutable
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, args, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
 
