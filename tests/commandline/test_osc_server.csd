@@ -5,8 +5,6 @@
 <CsInstruments>
 0dbfs=1
 
-gih OSCinit 7000
-
 instr 1
 OSCsend 0, "localhost", 7001, "/csound/compile", "s",
 {{
