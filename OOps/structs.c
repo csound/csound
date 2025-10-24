@@ -70,6 +70,9 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
       if (var && var->initializeVariableMemory) {
         var->initializeVariableMemory(csound, var, (MYFLT*)dst);
       }
+      if (var) {
+        csound->Free(csound, var);
+      }
     }
   }
 
@@ -426,6 +429,7 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
         var->initializeVariableMemory(csound, var, (MYFLT*)(mem + i * var->memBlockSize));
       }
     }
+    csound->Free(csound, var);
   }
 
   if (UNLIKELY(arrayDat->data == NULL)) {
@@ -498,6 +502,9 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
       CS_VARIABLE* helper = arrayDat->arrayType->createVariable(csound, (void*)arrayDat->arrayType, dat->h.insdshead);
       if (helper && helper->initializeVariableMemory) {
         helper->initializeVariableMemory(csound, helper, (MYFLT*)srcVar);
+      }
+      if (helper) {
+        csound->Free(csound, helper);
       }
     }
     if (srcVar->members == NULL) {

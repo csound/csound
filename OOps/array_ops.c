@@ -104,6 +104,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
       var->initializeVariableMemory(csound, var,
                                     (MYFLT*)(mem+i*var->memBlockSize));
     }
+    csound->Free(csound, var);
 
   }
   return OK;
@@ -614,6 +615,7 @@ int32_t array_get(CSOUND* csound, ARRAY_GET *p)
             var->initializeVariableMemory(csound, var, (MYFLT*)(arrayMem + i * var->memBlockSize));
           }
         }
+        csound->Free(csound, var);
 
         // Recalculate mem pointer after initialization
         mem = dat->data;
