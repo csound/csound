@@ -21,7 +21,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-%pure-parser
+%define api.pure
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
@@ -129,7 +129,8 @@
 %token S_GOTO
 %token T_HIGHEST
 
-%error-verbose
+ //%error-verbose
+%define parse.error verbose
 %parse-param { CSOUND * csound }
 %parse-param { TREE ** astTree }
 

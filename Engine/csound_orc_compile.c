@@ -65,8 +65,6 @@ void add_opcode_defs(CSOUND *csound);
 
 
 
-// Diagnostic: track current opcode name during argument creation
-// Forward declaration for helper used in late correction
 static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
                                    CS_VAR_POOL* varPool, char* varName);
 
