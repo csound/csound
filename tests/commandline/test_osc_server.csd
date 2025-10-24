@@ -1,76 +1,35 @@
 <CsoundSynthesizer>
 <CsOptions>
--n --port=7000
+-odac --port=7001
 </CsOptions>
 <CsInstruments>
 0dbfs=1
 
-chn_k "test",3
-
-instr Exit
-exitnow(-1)
-endin
+gih OSCinit 7000
 
 instr 1
- status:k,f:k,mess:S,n:k = OSClisten("/in", "fsi")
- if status:k > 0 then
-  test1:k strcmpk mess, "hello"
-  if test1 != 0 || f != 1 || n != 2 then
-   printks2("exiting %f\n", -1)
-   schedulek(Exit,0,0)
-   else
-    printk2 f
-  endif
- endif
-endin
-
-
+OSCsend 0, "localhost", 7001, "/csound/compile", "s",
+{{
 instr 2
- host:S = "localhost"
- port:i = 7000
- OSCsend(2,  host, port, "/in", 
- 	"fsi", p4, "hello", p5)
- OSCsend(3,  host, port, "/ina", 
- 	"fi", 3, 4)
- OSCsend(1, host, port, "/csound/channel/test", 
- 	"f", 1)
+kans, k1 OSClisten "/test", "f"
+if kans > 0 then
+ printk2 k1
+endif
 endin
 
 instr 3
- host:S = "localhost"
- port:i = 7000
- OSCsend(0, host, port, "/csound/event/instr", 
- 	"fffff", 2, 0, 1, 1, 2)
+ exitnow(0)
 endin
+}}
 
-instr 4
- host:S = "localhost"
- port:i = 7000
- OSCsend(0, host, port, "/csound/event", "s",
- 	{{ i2 0 1 1 2}})
+OSCsend 0, "localhost", 7001, "/csound/channel/test", "f", 1
+if timeinsts:k() > 0.5 then
+ OSCsend 0,"localhost", 7001, "/csound/event/instr", "fff",2,0,2
+ OSCsend 0,"localhost", 7001, "/test", "f", chnget:k("test")
+ OSCsend 0,"localhost", 7001, "/csound/event", "s", {{i 3 1 0 }}
+endif
 endin
-
-instr 5
- host:S = "localhost"
- port:i = 7000
- test:k = chnget("test")
- if test != 1 then
-  schedulek(Exit,0,0)
- endif
- printk2(test)
- OSCsend(0, host, port, "/csound/compile", "s",
- 	{{ event_i "e", 0, 0}})
-endin
-
-instr 6
- event_i "e", 0, 0
-endin
-
-schedule(1,0,4)
-schedule(3,1,1)
-schedule(4,2,1)
-schedule(5,3,1)
-//schedule(6,4,1)
+schedule(1,0,1)
 
 </CsInstruments>
 <CsScore>
