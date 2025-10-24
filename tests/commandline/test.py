@@ -312,7 +312,7 @@ def runTest():
             executable = (csoundExecutable == "") and "csound" or csoundExecutable
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s "%(executable, parserType, args, sourceDirectory, filename)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, args, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
 
@@ -336,9 +336,7 @@ def runTest():
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
-        f = open(tempfile, "w")
-        f.write(" ")
-        f.close()
+
         f = open(tempfile, "r")
 
         csOutput = ""
@@ -347,6 +345,7 @@ def runTest():
            csOutput += line
 
         output += csOutput
+        # print(output)
 
         f.close()
 
