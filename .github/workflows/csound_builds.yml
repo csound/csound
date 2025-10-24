@@ -300,9 +300,6 @@ jobs:
       - name: Brew install bison and flex
         run: brew install bison flex
 
-      - name: Run csd tests
-        run: cmake --build build --target csdtests
-
       - name: Configure Csound
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0
@@ -311,6 +308,9 @@ jobs:
         run: |
           cmake --build build --config Release
           cmake --build build --target install
+
+      - name: Run csd tests
+        run: cmake --build build --target csdtests
 
       - name: Adjust link paths
         run: |
