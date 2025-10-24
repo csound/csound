@@ -216,8 +216,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: cmake --build build --target test
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -299,6 +299,9 @@ jobs:
 
       - name: Brew install bison and flex
         run: brew install bison flex
+
+      - name: Run csd tests
+        run: cmake --build build --target csdtests
 
       - name: Configure Csound
         run: |
