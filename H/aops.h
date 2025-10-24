@@ -35,6 +35,14 @@ typedef struct {
     MYFLT   *r, *a;
 } ASSIGN;
 
+typedef struct {
+  OPDS    h;
+  MYFLT   *r, *a;
+  MYFLT   mem;
+} STOREI;
+
+
+
 #define ASSIGNM_MAX (24)
 typedef struct {
     OPDS    h;
@@ -246,3 +254,6 @@ int32_t bassign(CSOUND *csound, RELAT *p);
 int32_t b2s(CSOUND *csound, ASSIGN *p);
 int32_t b2b(CSOUND *csound, ASSIGN *p);
 int32_t binit(CSOUND *csound, ASSIGNM *p);
+int32_t mainit2(CSOUND *csound, ASSIGNM *p);
+int32_t storei(CSOUND *csound, STOREI *p);
+int32_t retrievek(CSOUND *csound, STOREI *p);

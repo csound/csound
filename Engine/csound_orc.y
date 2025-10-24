@@ -89,6 +89,8 @@
 %token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
+%token BREAK_TOKEN
+%token CONTINUE_TOKEN
 %token SWITCH_TOKEN
 %token CASE_TOKEN
 %token DEFAULT_TOKEN
@@ -226,6 +228,8 @@ struct_definition : STRUCT_TOKEN identifier struct_arg_list
 
 struct_arg_list : struct_arg_list ',' struct_arg
                 { $$ = append_to_tree(csound, $1, $3); }
+                | struct_arg_list ',' NEWLINE struct_arg
+                 { $$ = append_to_tree(csound, $1, $4); }
                 | struct_arg
                 ;
 
@@ -297,7 +301,31 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
                 $2->right = $3;
                 $$->right = $7;
               }
+              | UDOSTART_DEFINITION identifier udo_arg_list ':' NEWLINE udo_out_arg_list NEWLINE
+                statement_list UDOEND_TOKEN NEWLINE
+              {
+                TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN,
+                                        (ORCTOKEN*)NULL);
+                $$ = udoTop;
+                udoTop->left = $2;
+                $2->left = $6;
+                $2->right = $3;
+                $$->right = $8;
+              }
             ;
+              | UDOSTART_DEFINITION identifier udo_arg_list NEWLINE ':' udo_out_arg_list NEWLINE
+                statement_list UDOEND_TOKEN NEWLINE
+              {
+                TREE *udoTop = make_leaf(csound, LINE, LOCN, UDO_TOKEN,
+                                        (ORCTOKEN*)NULL);
+                $$ = udoTop;
+                udoTop->left = $2;
+                $2->left = $6;
+                $2->right = $3;
+                $$->right = $8;
+              }
+            ;
+
 
 udo_arg_list : '(' out_arg_list ')'
              { $$ = $2;  }
@@ -465,6 +493,10 @@ statement : out_arg_list assignment expr_list NEWLINE
           | while
           | switch
           | for_in
+          | BREAK_TOKEN
+            { $$ = make_leaf(csound, LINE, LOCN, BREAK_TOKEN, (ORCTOKEN *)$1); }
+          | CONTINUE_TOKEN
+            { $$ = make_leaf(csound, LINE, LOCN, CONTINUE_TOKEN, (ORCTOKEN *)$1); }
           | LABEL_TOKEN
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE

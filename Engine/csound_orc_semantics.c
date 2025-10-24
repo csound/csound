@@ -377,7 +377,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (tree->right->type == T_ARRAY &&
           tree->right->left->type == T_IDENT &&
           is_irate(tree->right->right)) {
-        synterr(csound, Str("Use of i() with array element ill formed\n"));
+        synterr(csound, Str("Use of i() with array element ill formed on line %d\n"), tree->line);
       }
       else
         if (UNLIKELY(is_expression_node(tree->right)))
@@ -689,7 +689,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     var = find_var_from_pools(csound, s, s, typeTable);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"), s);
+      synterr(csound, Str("Variable '%s' used before defined, line %d\n"), s, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -708,7 +708,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         cell = cell->next;
       }
       if (nextVar == NULL) {
-        synterr(csound, Str("No member '%s' found for variable 'xxx'\n"), s);
+        synterr(csound, Str("No member '%s' found for variable 'xxx', line %d\n"), s, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -1305,9 +1305,17 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 }
 
 
+static int is_external(const char *s) {
+  if(*s != '[') {
+    if(strchr(s+1, '[') != NULL)
+        return 1;
+  }
+  return 0;
+}
+
+
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable) {
-
   int32_t len = tree_arg_list_count(tree);
   int32_t i;
 
@@ -1327,9 +1335,12 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
       // if we failed to find argType, exit from parser
       csound->Die(csound, "Could not parse type for argument");
     } else {
-      argType = convert_internal_to_external(csound, argType);
+      	// catch type[] in expressions to opcall - no conversion
+      if(!is_external(argType)) 
+         argType = convert_internal_to_external(csound, argType);
       argsLen += strlen(argType);
       argTypes[index++] = argType;
+
     }
 
     current = current->next;
@@ -1350,6 +1361,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
   csound->Free(csound, argTypes);
   return argString;
 }
+
 
 
 /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
@@ -1480,8 +1492,8 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         argType = get_arg_type2(csound, current, typeTable);
         if (UNLIKELY(argType==NULL)) {
           synterr(csound,
-                  Str("Variable type for %s could not be determined."),
-                  varName);
+                  Str("Variable type for %s could not be determined, line %d"),
+                  varName, tree->line);
           do_baktrace(csound, tree->locn);
           return 0;
         }
@@ -2068,6 +2080,14 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
   return NULL;
 }
 
+char *strip_extension(CSOUND *csound, const char *s) {
+  char *s1 = cs_strdup(csound, s);
+  char *dot = strchr(s1, '.');
+  if(dot != NULL)
+      *dot = '\0';
+  return s1;
+}
+
 /*
  * Verifies:
  *    -number of args correct
@@ -2098,8 +2118,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("Unable to find opcode with name: %s\n"),
-            root->value->lexeme);
+    synterr(csound, Str("unable to find opcode with name: %s, line %d\n"),
+            root->value->lexeme, root->line);
     if (entries != NULL) {
       csound->Free(csound, entries);
     }
@@ -2149,18 +2169,22 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   if (UNLIKELY(oentry == NULL)) {
     int32_t i;
+    char *name = strip_extension(csound, opcodeName);
     synterr(csound, Str("Unable to find opcode entry for \'%s\' "
-                        "with matching argument types:\n"),
-            opcodeName);
+                        "with matching argument types:\n, line %d"), name, root->line);
+    csound->Free(csound, name);
+    name = strip_extension(csound, root->value->lexeme);
     csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
-                  leftArgString, root->value->lexeme, rightArgString);
-
+                  leftArgString, name, rightArgString);
+    csound->Free(csound, name);
     csoundMessage(csound, Str("\nCandidates:\n"));
 
     for (i = 0; i < entries->count; i++) {
       OENTRY *entry = entries->entries[i];
-      csoundMessage(csound, "  %s %s %s\n", entry->outypes, entry->opname,
+      name = strip_extension(csound, entry->opname);
+      csoundMessage(csound, "  %s %s %s\n", entry->outypes, name,
                     entry->intypes);
+      csound->Free(csound, name);
     }
 
     csoundMessage(csound, Str("\nLine: %d\n"),
@@ -2606,6 +2630,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   TREE* transformed;
   TREE* top;
   char *udo_name = NULL;
+  CONS_CELL* activeLoopStack = NULL;
 
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
@@ -2771,7 +2796,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       continue;
 
     case UNTIL_TOKEN:
-    case WHILE_TOKEN:
+    case WHILE_TOKEN: {
+      LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
+
       if (!verify_until_statement(csound, current, typeTable)) {
         synterr(csound, "loop conditional expression not valid, line %d",
                 current->line - 2);
@@ -2779,13 +2806,16 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       current = expand_until_statement(csound, current,
-                                       typeTable, current->type==WHILE_TOKEN);
+                                       typeTable, current->type==WHILE_TOKEN,
+                                       targets);
 
       if (previous != NULL) {
         previous->next = current;
       }
 
+      activeLoopStack = cs_cons(csound, targets, activeLoopStack);
       continue;
+    }
 
     case SWITCH_TOKEN: {
       char* switchArgType = get_arg_type2(csound, current->left, typeTable);
@@ -2857,17 +2887,66 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 	} 
        typ = cs_strdup(csound, var->varType->varTypeName);
       }
-      current = expand_for_statement(csound, current, typeTable, typ);
+      LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
+      current = expand_for_statement(csound, current, typeTable, typ, targets);
       csound->Free(csound, atype);
       csound->Free(csound, typ);
       if (previous != NULL) {
         previous->next = current;
       }
+      activeLoopStack = cs_cons(csound, targets, activeLoopStack);
     }
     continue;
     
-    case LABEL_TOKEN:
+    case LABEL_TOKEN: {
+      if (activeLoopStack != NULL) {
+        LOOP_JUMP_TARGETS* currentTargets = (LOOP_JUMP_TARGETS*)activeLoopStack->value;
+        if (currentTargets->breakTargetLabel == current) {
+          CONS_CELL* temp = activeLoopStack;
+          activeLoopStack = activeLoopStack->next;
+          csound->Free(csound, temp->value);
+          csound->Free(csound, temp);
+        }
+      }
       break;
+    }
+
+    case BREAK_TOKEN: {
+      TREE* breakGoto;
+
+      if (activeLoopStack == NULL) {
+        synterr(csound,Str("line:%d found break statement outside of loop."),
+                current->line);
+        return NULL;
+      }
+
+      breakGoto = convert_break_to_goto(csound, (LOOP_JUMP_TARGETS*)activeLoopStack->value);
+      if (previous != NULL) {
+        previous->next = breakGoto;
+      }
+      breakGoto->next = current->next;
+      current = breakGoto;
+      continue;
+    }
+
+    case CONTINUE_TOKEN: {
+      TREE* continueGoto;
+
+      if (activeLoopStack == NULL) {
+        synterr(csound,Str("line:%d found continue statement outside of loop."),
+                current->line);
+        return NULL;
+      }
+
+      continueGoto = convert_continue_to_goto(csound,
+                        (LOOP_JUMP_TARGETS*)activeLoopStack->value);
+      if (previous != NULL) {
+        previous->next = continueGoto;
+      }
+      continueGoto->next = current->next;
+      current = continueGoto;
+      continue;
+    }
 
     case '+':
     case '-':
@@ -2955,6 +3034,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, "[End Verifying AST]\n");
 
+  cs_cons_free_complete(csound, activeLoopStack);
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;
 
@@ -3005,7 +3085,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
   while (files) {
     uint32_t ff = files&0xff;
     files = files >>8;
-    csound->ErrorMsg(csound, Str(" from file %s (%d)\n"),
+    csound->ErrorMsg(csound, Str("from file %s (%d)\n"),
                     csound->filedir[ff], ff);
   }
 

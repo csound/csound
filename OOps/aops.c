@@ -65,17 +65,17 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a)
   if (a > POW2MAX) a = POW2MAX;
   else if (a < -POW2MAX) a = -POW2MAX;
   return POWER(FL(2.0), a);
-  /* 4096 * 15 */
-  /* n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI; */
-  /* return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]); */
 }
 
+int32_t storei(CSOUND *csound, STOREI *p) {
+  p->mem = *p->a;
+  return OK;
+}
 
-/*static inline MYFLT pow2(MYFLT a)
-  {
-  int32_t n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;
-  return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
-  }*/
+int32_t retrievek(CSOUND *csound, STOREI *p) {
+  *p->r = p->mem;
+  return OK;
+}
 
 
 int32_t b2s(CSOUND *csound, ASSIGN *p){
@@ -226,6 +226,29 @@ int32_t mainit(CSOUND *csound, ASSIGNM *p)
     memset(r, '\0', nsmps*sizeof(MYFLT));
     for (n = 0; n < nsmps; n++)
       r[n] = (n < offset || n > early ? FL(0.0) : aa);
+  }
+
+  return OK;
+}
+
+int32_t mainit2(CSOUND *csound, ASSIGNM *p)
+{
+  uint32_t nargs = p->INOCOUNT;
+  uint32_t nouts = p->OUTOCOUNT;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, n, nsmps = CS_KSMPS;
+  MYFLT *aa;
+  early = nsmps - early;      /* Bit at end to ignore */
+  if (UNLIKELY(nargs != nouts))
+    return csound->InitError(csound,
+                             Str("Out and in numbers not matching in "
+                                 "assignment (%d,%d)"),nouts, nargs);
+  for (i=0; i<nargs; i++) {
+    aa = p->a[i];
+    MYFLT *r =p->r[i];
+    for (n = 0; n < nsmps; n++)
+      r[n] = (n < offset || n > early ? FL(0.0) : aa[n]);
   }
 
   return OK;

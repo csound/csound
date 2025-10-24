@@ -120,6 +120,7 @@ def runTest():
 	["test46.csd", "if-then with expression in boolean comparison"],
 	["test47.csd", "until loop and k[]"],
 	["test48.csd", "expected failure with variable used before defined", 1],
+    ["test_array_expr_opcall.csd", "test array expr in opcall"],
     ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],   
     ["test_shadowing_implicit.csd", "test local shadowing of global vars for implicit types"],
     ["test_opcode_with_opt_ins.csd", "test opcode with opt ins only"],
@@ -213,6 +214,9 @@ def runTest():
     ["test_midifile_ops.csd", "testing midifile opcodes"],
     ["test_csound_object.csd", "test Csound object opcodes"],
     ["test_true_false.csd", "testing true/false booleans"],
+    ["test_break_continue.csd", "testing break/continue statements in while/until/for loops"],
+    ["test_break_outside_loop_fails.csd", "testing break outside loop gives parser error", 1],
+    ["test_continue_outside_loop_fails.csd", "testing continue outside loop gives parser error", 1],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -249,6 +253,7 @@ def runTest():
         ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
+        ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
     ]
 
     maxallocTests = [

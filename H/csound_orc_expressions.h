@@ -27,6 +27,13 @@
 
 #include "csound_orc.h"
 
+typedef struct {
+    TREE* continueTargetIdent;
+    TREE* breakTargetIdent;
+    TREE* breakTargetLabel;
+    int32_t gotoType;
+} LOOP_JUMP_TARGETS;
+
 CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
@@ -36,13 +43,16 @@ int32_t is_statement_expansion_required(TREE* root);
 void handle_optional_args(CSOUND *csound, TREE *l);
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
-                             TYPE_TABLE* typeTable, int32_t);
+                             TYPE_TABLE* typeTable, int32_t, LOOP_JUMP_TARGETS* targets);
 TREE* expand_switch_statement(CSOUND* csound, TREE* current,TYPE_TABLE* typeTable,
   char* switchArgType);
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
-TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType);
+TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType,
+                           LOOP_JUMP_TARGETS* targets);
 char *remove_type_quoting(CSOUND *csound, const char *outype);
 TREE * create_opcode_token(CSOUND *csound, char* op);
+TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
+TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 
 
 #endif

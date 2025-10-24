@@ -152,6 +152,7 @@ OENTRY opcodlst_1[] = {
   { "=.k",    S(ASSIGNM),0,        "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
     NULL, minit, NULL, NULL },
   { "=.a",    S(ASSIGN),0,         "a",    "a",    NULL, gaassign, NULL },
+  { "=.y",    S(ASSIGNM),0,         "mmmmmmmmmmmmmmmmmmmmmmmm",    "y",    NULL, (SUBR) mainit2, NULL },
   { "=.l",    S(ASSIGN),0,         "a",    "a",    NULL,   laassign, NULL },
   { "=.up",   S(UPSAMP),0,         "a",    "k",  NULL, (SUBR)upsamp, NULL },
   { "=.down",   S(DOWNSAMP),0,    "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
@@ -888,6 +889,9 @@ OENTRY opcodlst_1[] = {
   { "ftcps.i",S(EVAL),0,          "i",    "i",    ftcps                   },
   { "i.i",   S(ASSIGN),0,         "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,         "i",    "k",    assign                  },
+  /* this one is stupid, but it's there *only* for backwards
+     compatibility */
+  { "i.kk",   S(STOREI),0,         "k",    "k",   (SUBR) storei, (SUBR) retrievek },
   { "k.i",   S(ASSIGN),0,         "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0,       "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "cpsoct.i",S(EVAL),0,         "i",    "i",    cpsoct                  },

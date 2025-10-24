@@ -325,13 +325,15 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
     if(typeR != typeA) {
       if(assign->h.perf != copy_var_no_op)
         return csound->PerfError(csound,&(assign->h),
-        Str("Opcode given variables "
-            "with two different types: %s : %s"), 
-        typeR->varTypeName, typeA->varTypeName);
+        Str("\ncannot handle "
+            "different types (%s, %s)"),
+         *typeR->varTypeName == '[' ? "array" : typeR->varTypeName,
+	 *typeA->varTypeName == '[' ? "array" : typeA->varTypeName);
        else return csound->InitError(csound,
-        Str("Opcode given variables "
-            "with two different types: %s : %s"),
-        typeR->varTypeName, typeA->varTypeName);
+        Str("\ncannot handle "
+            "different types (%s, %s)"),
+         *typeR->varTypeName == '[' ? "array" : typeR->varTypeName,
+	 *typeA->varTypeName == '[' ? "array" : typeA->varTypeName);
     }
 
     typeR->copyValue(csound, typeR, assign->r, assign->a, assign->h.insdshead);
