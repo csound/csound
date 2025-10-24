@@ -127,28 +127,6 @@ call_system_k(CSOUND *csound, SYSTEM *p)
     return OK;
 }
 
-#else
-
-int32_t call_system_i(CSOUND *csound, void *p)
-{
-  IGN(csound); IGN(p);
-    return OK;
-}
-
-int32_t call_system_set(CSOUND *csound, void *p)
-{
-  IGN(csound); IGN(p);
-    return OK;
-}
-
-int32_t
-call_system_k(CSOUND *csound, void *p)
-{
-  IGN(csound); IGN(p);
-    return OK;
-
-}
-
 #define S(x)    sizeof(x)
 
 static OENTRY system_localops[] = {
