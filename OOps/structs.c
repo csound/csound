@@ -112,8 +112,7 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
 
 void struct_array_member_assign(
     ARRAYDAT* arraySrc,
-    ARRAYDAT* arrayDst,
-    const CS_TYPE* memberVarType
+    ARRAYDAT* arrayDst
 ) {
     /* Shallow alias: destination does not own storage */
     arrayDst->allocated = 0;
@@ -333,7 +332,7 @@ int32_t struct_member_array_assign(
     ARRAYDAT* src = p->in;
 
 
-    struct_array_member_assign(src, dst, member->varType);
+    struct_array_member_assign(src, dst);
 
     /* Option A: ensure dimension metadata is present for destination view.
        For aliases, only use shallow copy - never allocate new metadata. */
