@@ -21,7 +21,8 @@ csoundGetSr["toString"] = () => "getSr = async () => Number;";
  * If val > 0, sets the system sr. Returns the stored system sr.
  * @function
  */
-export const csoundSystemSr = (wasm) => (csound, val) => wasm.exports["csoundSystemSr"](csound, val);
+export const csoundSystemSr = (wasm) => (csound, val) =>
+  wasm.exports["csoundSystemSr"](csound, val);
 
 csoundSystemSr["toString"] = () => "systemSr = async (val) => Number;";
 

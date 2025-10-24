@@ -10,6 +10,32 @@ const { assert } = goog.require("goog.asserts");
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 
+// shared state
+const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
+let currentJmpBuf = null;
+
+function saveSetjmp(jmpbuf, label) {
+  jumpTable.set(jmpbuf, label);
+  currentJmpBuf = jmpbuf;
+  return 0;
+}
+
+function testSetjmp(jmpbuf) {
+  return jumpTable.has(jmpbuf) ? 1 : 0;
+}
+
+function longjmp(jmpbuf, value) {
+  const label = jumpTable.get(jmpbuf);
+  if (!label) {
+    throw new Error(`Invalid longjmp target ${jmpbuf}`);
+  }
+  throw { __longjmp__: true, jmpbuf, value: value || 1 };
+}
+
+function __wasm_longjmp(jmpbuf, value) {
+  throw { __longjmp__: true, jmpbuf, value };
+}
+
 export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer, wasi }) => {
   return function (csound_, attribute, length_, offset) {
     if (!memory) {
@@ -151,6 +177,17 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
     streamBuffer,
     messagePort,
   });
+  options.env.saveSetjmp = saveSetjmp;
+  options.env.testSetjmp = testSetjmp;
+  options.env.longjmp = longjmp;
+  options.env.__wasm_longjmp = __wasm_longjmp;
+
+  // weird glue needed because wasi-libc emulators target emscripten
+  let tempRet0 = 0;
+  options.env.getTempRet0 = () => tempRet0;
+  options.env.setTempRet0 = (value) => {
+    tempRet0 = value || 0;
+  };
 
   /**
    * @suppress {checkTypes}

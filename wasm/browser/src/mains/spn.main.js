@@ -196,7 +196,10 @@ class ScriptProcessorNodeSingleThread {
 
     if (isExpectingRealtimeOutput && this.currentPlayState !== "realtimePerformanceStarted") {
       this.result = 0;
-      const result = this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
+      const result = this.csoundApi.csoundSetOption(
+        this.csoundInstance,
+        "--sample-rate=" + this.sampleRate,
+      );
       result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
       this.nchnls = -1;
       this.nchnls_i = -1;

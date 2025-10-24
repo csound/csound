@@ -31,13 +31,12 @@ stdenvWasm.mkDerivation rec {
   version = "0.0.0";
   src = gitignoreSource ../..;
 
-  # postUnpack = "ls source; ls source/Frontends; ls source/Frontends/csound; exit 1";
-
   # Tools needed at build time
-  nativeBuildInputs = [
-    pkgs.flex
-    pkgs.bison
-    pkgs.cmake
+  nativeBuildInputs = with pkgs; [
+    flex
+    bison
+    cmake
+    zopfli
   ];
 
   buildInputs = [
@@ -66,4 +65,9 @@ stdenvWasm.mkDerivation rec {
     "-L${libvorbis}/lib/libvorbis.a"
   ];
 
+  postInstall = ''
+    # make a compressed version for the browser bundle
+    zopfli --zlib -c $out/bin/csound > $out/lib/csound.wasm.z
+    cp $out/bin/csound $out/lib/csound.wasm
+  '';
 }

@@ -31,8 +31,6 @@ in stdenvWasm.mkDerivation rec {
       pkgs.pkg-config
     ];
 
-    patches = [ ./libsndfile_disable_oggopus.patch ];
-
     dontStrip = true;
 
     NIX_CFLAGS_COMPILE = [

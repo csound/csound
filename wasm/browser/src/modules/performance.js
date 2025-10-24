@@ -78,18 +78,18 @@ csoundStart["toString"] = () => "start = async () => Number;";
 // TODO
 // csoundCompile (CSOUND *, int argc, const char **argv)
 
-
-
 /**
  * Compiles a CSD string but does not perform it.
  * @function
  */
-export const csoundCompileCSD = (wasm) => (csound, csd, mode = 1) => {
-  const stringPtr = string2ptr(wasm, csd);
-  const result = wasm.exports["csoundCompileCSD"](csound, stringPtr, mode, 0);
-  freeStringPtr(wasm, stringPtr);
-  return result;
-};
+export const csoundCompileCSD =
+  (wasm) =>
+  (csound, csd, mode = 1) => {
+    const stringPtr = string2ptr(wasm, csd);
+    const result = wasm.exports["csoundCompileCSD"](csound, stringPtr, mode, 0);
+    freeStringPtr(wasm, stringPtr);
+    return result;
+  };
 
 csoundCompileCSD["toString"] = () => "compileCSD = async (csoundDocument) => Number;";
 

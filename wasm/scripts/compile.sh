@@ -1,17 +1,13 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/nixpkgs-pin.sh"
 GIT_HASH=$(git rev-parse HEAD 2>/dev/null || echo "HEAD")
-nix-build -E "(with import <nixpkgs> {}; callPackage ./src/csound.nix { gitHash = \"$GIT_HASH\"; })" -o result --show-trace &&
+nix-build -E "(with import <nixpkgs> {}; callPackage ./src/csound.nix { static = false; gitHash = \"$GIT_HASH\"; })" -o result -j1 --show-trace &&
     if [ -d "./lib" ]; then
         printf '%s\n' "Cleaning directory lib"
         rm -rf "./lib"
     fi &&
     mkdir lib &&
-    cp ./result/lib/* lib &&
-    chmod 0600 lib/* &&
-    nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example.nix {})' -o result &&
-    cp ./result/lib/* lib &&
-    # chmod 0600 lib/* &&
-    # nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_cxx.nix {})' -o result &&
-    # cp ./result/lib/* lib &&
-    printf '%s\n' "wasm binary ready in ./lib"
+    cp ./result/lib/csound.wasm lib &&
+    cp ./result/lib/csound.wasm.z lib &&
+    chown `whoami` lib/* &&
+    chmod 0655 lib/*
