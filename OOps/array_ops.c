@@ -62,8 +62,9 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   arrayDat->dimensions = inArgCount;
   arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
   for (i = 0; i < inArgCount; i++) {
-    int v = MYFLT2LRND(*p->isizes[i]);
-    if (isAudioArray && i == 0 && v <= 0) v = CS_KSMPS;
+    int v = (isAudioArray && i == 0 && MYFLT2LRND(*p->isizes[i]) <= 0)
+            ? CS_KSMPS
+            : MYFLT2LRND(*p->isizes[i]);
     arrayDat->sizes[i] = v;
   }
 
