@@ -28,6 +28,7 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "namedins.h"
+#include "cs_internal.h"
 
 /* Forward declaration from insert.c */
 extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
@@ -47,6 +48,19 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index, MYFL
   } else {
     // UDO - use the ar array
     UOPCODE *uop = (UOPCODE*)chain;
+    OPCODINFO *useropinfo = (OPCODINFO*)ep->useropinfo;
+
+    // Bounds check: compute max = outchns + inchns
+    int32_t max = useropinfo->outchns + useropinfo->inchns;
+
+    // Validate index is within bounds and non-negative
+    if (index < 0 || index >= max) {
+      csound->Message(csound, Str("Error: UDO argument index %d out of bounds "
+                      "(max: %d, outchns: %d, inchns: %d)\n"),
+                      index, max, useropinfo->outchns, useropinfo->inchns);
+      return; // Bail out instead of writing to prevent overflow
+    }
+
     uop->ar[index] = argPtr;
   }
 }
