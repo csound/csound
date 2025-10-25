@@ -110,11 +110,21 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
-    // Check for self-assignment (same memory address)
+    /* Check for buffer aliasing: if both STRINGDATs point to the same data buffer,
+       they are either the same variable or share the same underlying memory.
+       In either case, no copy is needed - just update the timestamp. */
     if (UNLIKELY(sDest->data == sSrc->data)) {
-        // Self-assignment, no need to copy
         sDest->timestamp = csound->kcounter;
         return;
+    }
+
+    /* Guard against NULL data pointers */
+    if (UNLIKELY(sSrc->data == NULL)) return;
+    if (UNLIKELY(sDest->data == NULL)) {
+        /* Destination has no buffer; allocate one to match source size */
+        sDest->data = csound->Calloc(csound, sSrc->size);
+        sDest->size = sSrc->size;
+        sDest->refcount = 0;
     }
 
     int64_t kcnt = csound->kcounter;
