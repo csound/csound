@@ -153,6 +153,23 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
+/*
+ * array_copy_value - Copy array data with optimized handling for user-defined types
+ *
+ * Memory Ownership Semantics:
+ * - For UDT arrays (user-defined structs): Creates non-owning aliases (allocated=0)
+ *   where aDest->sizes and aDest->data point to aSrc's buffers
+ * - For regular arrays: Performs deep copy with owned memory allocation
+ * - Pre-existing destination memory is always freed before reallocation
+ * - Early alias check prevents unnecessary allocations and potential leaks
+ *
+ * Parameters:
+ *   csound - Csound instance
+ *   cstype - Type information for validation
+ *   dest - Destination ARRAYDAT (may be uninitialized)
+ *   src - Source ARRAYDAT (must be valid)
+ *   ctx - Instrument context for variable creation
+ */
 static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
@@ -163,13 +180,38 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     int32_t memMyfltSize;
     size_t arrayNumMembers;
 
-
-
-    /* If destination is NULL, nothing to do. If it's an uninitialised array shell
-       (arrayType == NULL), initialise it from the source so we can perform a copy. */
+    /* If destination is NULL, nothing to do. */
     if (UNLIKELY(aDest == NULL)) {
         return;
     }
+
+    /* Optimization and safety: for arrays of user-defined structs, perform a
+       shallow alias instead of deep-copying elements. This avoids heavy copy
+       and shared-ownership bugs; alias is non-owning (allocated=0).
+       This check is done BEFORE any allocations to prevent memory leaks. */
+    if (aSrc && aSrc->arrayType && aSrc->arrayType->userDefinedType) {
+        /* Free any existing destination storage before creating alias */
+        if (aDest->sizes != NULL) {
+            cs->Free(cs, aDest->sizes);
+            aDest->sizes = NULL;
+        }
+        if (aDest->data != NULL) {
+            cs->Free(cs, aDest->data);
+            aDest->data = NULL;
+        }
+
+        /* Shallow alias for arrays of structs - non-owning reference */
+        aDest->arrayMemberSize = aSrc->arrayMemberSize;
+        aDest->dimensions      = aSrc->dimensions;
+        aDest->sizes           = aSrc->sizes;
+        aDest->arrayType       = aSrc->arrayType;
+        aDest->data            = aSrc->data;
+        aDest->allocated       = 0; /* Non-owning alias */
+        return;
+    }
+
+    /* If destination is an uninitialised array shell (arrayType == NULL),
+       initialise it from the source so we can perform a copy. */
     if (UNLIKELY(aDest->arrayType == NULL) && aSrc && aSrc->arrayType != NULL) {
         /* Bootstrap destination metadata and storage from source */
         aDest->arrayType = aSrc->arrayType;
@@ -182,29 +224,6 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         if (aDest->data != NULL) { cs->Free(cs, aDest->data); }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * nm);
         aDest->allocated = aSrc->arrayMemberSize * nm;
-    }
-
-    /* Validate that 'dest' really points to an ARRAYDAT for this cstype. */
-    {
-        CS_VAR_MEM* header = (CS_VAR_MEM*)((char*)dest - CS_VAR_TYPE_OFFSET);
-        if (UNLIKELY(header == NULL || header->varType != cstype)) {
-            return; /* Mismatched or placeholder sink: skip copy */
-        }
-    }
-
-    /* Optimization and safety: for arrays of user-defined structs, perform a
-       shallow alias instead of deep-copying elements. This avoids heavy copy
-       and shared-ownership bugs; alias is non-owning (allocated=0). */
-    if (aSrc && aSrc->arrayType && aSrc->arrayType->userDefinedType) {
-        /* Shallow alias for arrays of structs. Do not attempt to free any
-           pre-existing destination storage here, as aDest may be uninitialized. */
-        aDest->arrayMemberSize = aSrc->arrayMemberSize;
-        aDest->dimensions      = aSrc->dimensions;
-        aDest->sizes           = aSrc->sizes;
-        aDest->arrayType       = aSrc->arrayType;
-        aDest->data            = aSrc->data;
-        aDest->allocated       = 0; /* Non-owning alias */
-        return;
     }
 
     arrayNumMembers = array_get_num_members(aSrc);
@@ -262,8 +281,10 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   OPCODEOBJ *p = (OPCODEOBJ *) dest;
   OPCODEOBJ *psrc = (OPCODEOBJ *) src;
-  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0)
+  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) {
     csound->Warning(csound, "mismatching context: copy value bypassed");
+    return;
+  }
   if(!p->readonly) {
    memcpy(dest, src, sizeof(OPCODEOBJ));
    p->readonly = 0; // clear readonly flag (which is not copied)
@@ -500,19 +521,32 @@ static void array_free_var_mem(void* csnd, void* p) {
 
         if (arrayType->freeVariableMemory != NULL) {
             MYFLT* mem = dat->data;
-            size_t memMyfltSize = dat->arrayMemberSize / sizeof(MYFLT);
+            size_t memMyfltSize = 0;
             // Compute element count without trusting dat->sizes pointer, which may be shared/aliased
-            int32_t i;
-            int32_t elemCount = 0;
-            if (dat->arrayMemberSize > 0 && dat->allocated > 0) {
-                elemCount = (int32_t)(dat->allocated / (size_t)dat->arrayMemberSize);
+            size_t i;
+            size_t elemCount = 0;
+
+            // Safe division with checks for arrayMemberSize and sizeof(MYFLT)
+            if (dat->arrayMemberSize > 0 && sizeof(MYFLT) > 0) {
+                memMyfltSize = (size_t)dat->arrayMemberSize / sizeof(MYFLT);
+
+                if (dat->allocated > 0) {
+                    elemCount = (size_t)dat->allocated / (size_t)dat->arrayMemberSize;
+                }
             } else if (dat->sizes) {
                 // Fallback to sizes if available
-                elemCount = dat->sizes[0];
-                for (i = 1; i < dat->dimensions; i++) {
-                    elemCount *= dat->sizes[i];
+                elemCount = (dat->dimensions > 0) ? (size_t)dat->sizes[0] : 0;
+                for (i = 1; i < (size_t)dat->dimensions; i++) {
+                    // Check for multiplication overflow
+                    if (elemCount > 0 && (size_t)dat->sizes[i] > SIZE_MAX / elemCount) {
+                        // Overflow would occur, cap at SIZE_MAX
+                        elemCount = SIZE_MAX;
+                        break;
+                    }
+                    elemCount *= (size_t)dat->sizes[i];
                 }
             }
+
             for (i = 0; i < elemCount; i++) {
                 arrayType->freeVariableMemory(csound,
                                               mem + (i * memMyfltSize));
@@ -654,7 +688,7 @@ const char* VAR_ARG_IN_TYPES[] = {
     "m", "icrpb",
     "M", "icrpkabB",
     "N", "icrpkaSbB",
-    "n", "icrpb.",   /* this one requires odd number of args... */
+    "n", "icrpb",   /* this one requires odd number of args... */
     "W", "S",
     "y", "a",
     "z", "kicrpbB",
