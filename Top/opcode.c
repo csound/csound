@@ -1520,7 +1520,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
             char *data = (char *) array->data; // copy loc pointer to args
             argmem = (CS_VAR_MEM *) mem[ndx].auxp;
             // copy array args data out - but not k or a vars
-           if(array->arrayType != &CS_VAR_TYPE_K ||
+           if(array->arrayType != &CS_VAR_TYPE_K &&
              array->arrayType != &CS_VAR_TYPE_A) 
              memcpy(data+i*size, &argmem->value, size); 
              }
