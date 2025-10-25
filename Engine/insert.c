@@ -46,6 +46,26 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
 
+/* Helper function to get type string from argument without unsafe casting */
+static char* get_arg_type_from_arg(ARG *arg, CS_VARIABLE **var) {
+    if (arg->type == ARG_CONSTANT) {
+      *var = NULL;
+      return "c";
+    } else if (arg->type == ARG_STRING) {
+      *var = NULL;
+      return "S";
+    } else if (arg->type == ARG_PFIELD) {
+      *var = NULL;
+      return "p";
+    } else if (arg->type == ARG_LABEL) {
+      *var = NULL;
+      return "l";
+    } else {
+      *var = (CS_VARIABLE *) arg->argPtr;
+      return (*var)->varType->varTypeName;
+    }
+}
+
 static void print_messages(CSOUND *csound, int32_t attr, const char *str){
 #if defined(WIN32)
   switch (attr & CSOUNDMSG_TYPE_MASK) {
@@ -284,9 +304,10 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
   if (tp->outlist && (n = tp->outlist->count) != 0) {
     nn = 0;
     arg = tp->outArgs;
-    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
+    CS_VARIABLE *var = NULL;
+    char *type = get_arg_type_from_arg(arg, &var);
     char  arrtype[64];
+
     while (n-- > 1) {
       if(*type == '[') {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
@@ -294,8 +315,7 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
       }
       csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
       arg = arg->next;
-      var = (CS_VARIABLE *) arg->argPtr;
-      type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
+      type = get_arg_type_from_arg(arg, &var);
     }
     if(*type == '[') {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
@@ -308,13 +328,10 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
   if (tp->inlist  && (n = tp->inlist->count) != 0) {
     nn = 0;
     arg = tp->inArgs;
-    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = arg->type == ARG_CONSTANT ? "c" :
-      (arg->type == ARG_STRING ? "S" :
-       (arg->type == ARG_PFIELD ? "p" :
-        (arg->type == ARG_LABEL ? "l" :
-         var->varType->varTypeName)));
+    CS_VARIABLE *var = NULL;
+    char *type = get_arg_type_from_arg(arg, &var);
     char  arrtype[64];
+
     while (n-- > 1) {
       if(*type == '[') {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
@@ -322,12 +339,7 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
       }
       csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
       arg = arg->next;
-      var = (CS_VARIABLE *) arg->argPtr;
-      type = arg->type == ARG_CONSTANT ? "c" :
-      (arg->type == ARG_STRING ? "S" :
-       (arg->type == ARG_PFIELD ? "p" :
-        (arg->type == ARG_LABEL ? "l" :
-         var->varType->varTypeName)));;
+      type = get_arg_type_from_arg(arg, &var);
     }
     if(*type == '[') {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
