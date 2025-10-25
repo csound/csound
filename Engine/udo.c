@@ -796,8 +796,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     else if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
     }
-
-    if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
+    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
@@ -1273,10 +1272,11 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   {
   int error = 0;
   CS_PDS->insdshead->pds = NULL;
-  do {    if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
+  do {
+    if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
     if (CS_PDS->perf) {
       error = (*CS_PDS->perf)(csound, CS_PDS);
-    } else {    }
+    }
     if (CS_PDS->insdshead->pds != NULL &&
         CS_PDS->insdshead->pds->insdshead) {
       CS_PDS = CS_PDS->insdshead->pds;

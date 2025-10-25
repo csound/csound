@@ -1153,7 +1153,7 @@ static MYFLT nextval(FILE *f)
  top:
     c = getc(f);
  top1:
-    if (UNLIKELY(feof(f))) return SSTRCOD; /* Hope value is ignored */
+    if (UNLIKELY(feof(f))) return NAN; /* Hope value is ignored */
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') {
       double d;                           /* A number starts */
       char buff[128];

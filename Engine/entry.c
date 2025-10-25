@@ -807,7 +807,6 @@ OENTRY opcodlst_1[] = {
   { "##member_get.b", sizeof(STRUCT_GET), 0, "b", ".i", (SUBR)struct_member_get_init, (SUBR)struct_member_get, NULL },
   { "##member_set", sizeof(STRUCT_SET), 0, "", ".i.", (SUBR)struct_member_set_init_and_perf, (SUBR)struct_member_set, NULL },
   { "##member_array_assign", sizeof(STRUCT_MEMBER_ARRAY_ASSIGN), 0, "", ".i.[]", (SUBR)struct_member_array_assign, NULL, NULL },
-  // { "##struct_alias", sizeof(STRUCT_ALIAS), 0, "", "..", (SUBR)struct_alias, NULL, (SUBR)struct_alias_deinit },
   // Generic struct initialization opcodes - these will be registered dynamically for each struct type
   // For now, add some common patterns to test
   // { "init", sizeof(STRUCT_INIT), 0, "", "m", (SUBR)struct_init, NULL, NULL },

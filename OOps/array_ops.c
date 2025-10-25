@@ -45,11 +45,11 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   int isAudioArray = (atype && atype[0] == 'a');
 
   for (i = 0; i < inArgCount; i++) {
-    if (UNLIKELY(p->iargs[i] == NULL)) {
+    if (UNLIKELY(p->isizes[i] == NULL)) {
       return csound->InitError(csound, "%s",
                                Str("Error: NULL size pointer for array initialization"));
     }
-    int v = MYFLT2LRND(*p->iargs[i]);
+    int v = MYFLT2LRND(*p->isizes[i]);
     if (UNLIKELY(v <= 0)) {
       // Special-case for audio arrays: size 0 means use ksmps (first dimension only)
       if (!(isAudioArray && i == 0)) {
@@ -62,7 +62,7 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   arrayDat->dimensions = inArgCount;
   arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
   for (i = 0; i < inArgCount; i++) {
-    int v = MYFLT2LRND(*p->iargs[i]);
+    int v = MYFLT2LRND(*p->isizes[i]);
     if (isAudioArray && i == 0 && v <= 0) v = CS_KSMPS;
     arrayDat->sizes[i] = v;
   }

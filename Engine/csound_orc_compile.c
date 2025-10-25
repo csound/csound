@@ -1914,11 +1914,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       var->initializeVariableMemory(csound, var, &varMem->value);
     } else  memset(&varMem->value , 0, var->memBlockSize);
 
-    // Ensure global arrays have proper ARRAYDAT structure
-    //if (var->varType == &CS_VAR_TYPE_ARRAY) {
-    //  ARRAYDAT *arrayDat = (ARRAYDAT*)&varMem->value;
-    //}
-
     }
     var = var->next;
   }
