@@ -30,11 +30,13 @@ csoundExecutable = ""
 sourceDirectory = "."
 runtimeEnvironment = None
 
+
 class Test:
     def __init__(self, fileName, description, expected=True):
         self.fileName = fileName
         self.description = ""
         self.expected = expected
+
 
 # def showUI(results):
 #     if test_ui is True:
@@ -63,10 +65,11 @@ def showHelp():
 
     print(message)
 
-def runTest():
-    runArgs = "-nd"# "-Wdo test.wav"
 
-    if (parserType == "--old-parser"):
+def runTest():
+    runArgs = "-nd"  # "-Wdo test.wav"
+
+    if parserType == "--old-parser":
         print("Testing with old parser")
     else:
         print("Testing with new parser")
@@ -95,7 +98,7 @@ def runTest():
         ["test21.csd", "if-elseif-else with multiple elseif blocks"],
         ["test22.csd", "simple UDO"],
         ["test23.csd", "named instrument"],
-##        ["test24.csd", "la_i opcodes"],
+        ##        ["test24.csd", "la_i opcodes"],
         ["test43.csd", "mixed numbered and named instruments"],
         ["test25.csd", "polymorphic test, 0xfffd (peak)"],
         ["test26.csd", "polymorphic test, 0xfffc (divz)"],
@@ -115,111 +118,193 @@ def runTest():
         ["test40.csd", "Testing i^j"],
         ["test41.csd", "if statement with = instead of =="],
         ["test42.csd", "extended string"],
-	["test44.csd", "expected failure with in-arg given to in opcode", 1],
-	["test45.csd", "if-goto with expression in boolean comparison"],
-	["test46.csd", "if-then with expression in boolean comparison"],
-	["test47.csd", "until loop and k[]"],
-	["test48.csd", "expected failure with variable used before defined", 1],
-    ["test_array_expr_opcall.csd", "test array expr in opcall"],
-    ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],   
-    ["test_shadowing_implicit.csd", "test local shadowing of global vars for implicit types"],
-    ["test_opcode_with_opt_ins.csd", "test opcode with opt ins only"],
-    ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
-    ["test_oversample.csd", "test oversampling in new-style UDO"],
-    ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
-    ["test_instr_redefinition.csd", "allow instr redefinition"],
-	["test_instr0_labels.csd", "test labels in instr0 space"],
-	["test_string.csd", "test string assignment and printing"],
-	["test_sprintf.csd", "test string assignment and printing"],
-	["test_sprintf2.csd", "test string assignment and printing that causes reallocation"],
-    ["test_switch_statement.csd", "tests the new switch statement operator"],
-	["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
-	["test_label_within_if_block.csd", "test label within if block"],
-    ["test_newstyle_udo_optargs.csd", "test newstyle UDO optional args"],
-	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
-	["test_arrays2.csd", "test gk-array with single dimension, assignment to expression value"],
-	["test_arrays3.csd", "test k-array with single dimension, assignment with number"],
-	["test_arrays_multi.csd", "test multi-dimensionsl k-array, assigment to number and expression"],
-	["test_arrays_string.csd", "test string-array"],
-	["test_arrays_string2.csd", "test simple string-array assignment"],
-	["test_arrays_static_init.csd", "test arrays initialized with static initializer (i.e. kvals = [0,1,2])"],
-	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
-	["test_arrays_negative_dimension_fail.csd",
-             "test expected failure with negative dimension size and array", 1],
-    ["test_iarr_operators.csd", "test i[] operators"],
-	["test_booleans.csd", "tests using boolean data-types"],
-	["test_boolean_function.csd", "test boolean function in conditionals"],    
-    ["test_type_eq.csd", "test type equality operator"],
-	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
-
-	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
-	["test_empty_instr.csd", "tests that empty instruments do not cause compiler issues"],
-	["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
-
-	["test_semantics_undefined_var.csd", "test undefined var", 1],
- 	["test_opcall_expr.csd", "test expression in opcall"],   
-	["test_invalid_expression.csd", "test expression", 1],
-	["test_invalid_ternary.csd", "test expression", 1],
-	["test_for_in.csd", "for in loop"],
-    ["test_for_in2.csd", "for in loop (2nd form)"],
-	["test_opcode_as_function.csd", "test expression"],
-	["test_fsig_udo.csd", "UDO with f-sig arg"],
-	["test_karrays_udo.csd", "UDO with k[] arg"],
-	["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
-	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
-	["test_polymorphic_udo.csd", "test polymorphic udo"],
-	["test_udo_a_array.csd", "test udo with a-array"],
-	["test_udo_2d_array.csd", "test udo with 2d-array"],
-    ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
-    ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
-    ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
-    ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
-    ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
-    ["test_new_udo_syntax_explicit_types.csd", "test new-style UDO syntax with explicit types"],
-    ["test_multiple_return.csd", "test multiple return from express (i.. a1,a2 = xx())"],
-    ["test_array_operations.csd", "test multiple operations on multiple array types"],
-    ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
-    ["test_newlines_within_function_calls.csd", "test newlines allowed within function calls"],
-    ["test_comma_newline.csd", "test commas followed by newlines"],
-    ["test_bool_with_explicit_type.csd", "test use of explicit type in bool expression"],
-    ["test_explicit_globals.csd", "test global declaration of explicit types"],
-    ["test_fail_mismatched_types.csd", "syntax error on mismatched type declaration", 1],
-    ["test_fail_redefine.csd", "syntax error on redefinition of local var by global var in same context", 1],
-    ["test_var_redefine.csd", "test variable redefinition"],
-    ["test_declare.csd", "test declare keyword (CS7)"],
-    ["test_sub_str.csd", "test raw string embedded in raw string"],
-    ["test_plusname.csd", "test +Name for instr name"],
-    ["test_isactive.csd", "test isactive and isperforming"],
-    ["test_unary_expressions.csd", "various unary operators in various expressions"],
-    ["test_opassign.csd", "test +=, ==, *= and /="],
-    ["testnewline.csd", "test newline in statements"],
-    ["test_string_in_event.csd", "test multiple strings in realtime event"],
-    ["testmidichannels.csd", "test use of mapped multiport channels"],
-    ["test_instr_type.csd", "test instr type and variables"],
-    ["test_delete_instr.csd", "test creating and deleting instr"],
-    ["test_create_instr.csd", "testing creating and scheduling instr"],
-    ["test_instance_type.csd", "testing instance type"],
-    ["test_play_opcode.csd", "testing play opcode"],
-    ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
-    ["test_complex_numbers.csd", "testing complex number operations"],
-    ["test_schedule_named_instance.csd", "testing schedule with named instr instance"],
-    ["test_instr_type_var_new_compilation.csd", "testing schedule of named instr in new compilations"],
-    ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
-    ["test_opcode_type.csd", "tests opcode type"],
-    ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
-    ["test_sa.csd", "test sample accurate mode"],
-    ["test_overload_selection.csd", "test wrong annotation case"],
-    ["test_unschedule.csd", "test unscheduling events"],
-    ["diskin_excess_channels.csd", "test sample accurate mode"],
-    ["test_midifile_ops.csd", "testing midifile opcodes"],
-    ["test_csound_object.csd", "test Csound object opcodes"],
-    ["test_true_false.csd", "testing true/false booleans"],
-    ["test_break_continue.csd", "testing break/continue statements in while/until/for loops"],
-    ["test_break_outside_loop_fails.csd", "testing break outside loop gives parser error", 1],
-    ["test_continue_outside_loop_fails.csd", "testing continue outside loop gives parser error", 1],
+        ["test44.csd", "expected failure with in-arg given to in opcode", 1],
+        ["test45.csd", "if-goto with expression in boolean comparison"],
+        ["test46.csd", "if-then with expression in boolean comparison"],
+        ["test47.csd", "until loop and k[]"],
+        ["test48.csd", "expected failure with variable used before defined", 1],
+        ["test_array_expr_opcall.csd", "test array expr in opcall"],
+        ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],
+        [
+            "test_shadowing_implicit.csd",
+            "test local shadowing of global vars for implicit types",
+        ],
+        ["test_opcode_with_opt_ins.csd", "test opcode with opt ins only"],
+        ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
+        ["test_oversample.csd", "test oversampling in new-style UDO"],
+        ["test_pvs_np2.csd", "test pvsanal/synth with np2 size"],
+        ["test_instr_redefinition.csd", "allow instr redefinition"],
+        ["test_instr0_labels.csd", "test labels in instr0 space"],
+        ["test_string.csd", "test string assignment and printing"],
+        ["test_sprintf.csd", "test string assignment and printing"],
+        [
+            "test_sprintf2.csd",
+            "test string assignment and printing that causes reallocation",
+        ],
+        ["test_switch_statement.csd", "tests the new switch statement operator"],
+        ["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
+        ["test_label_within_if_block.csd", "test label within if block"],
+        ["test_newstyle_udo_optargs.csd", "test newstyle UDO optional args"],
+        [
+            "test_arrays.csd",
+            "test k-array with single dimension, assignment to expression value",
+        ],
+        [
+            "test_arrays2.csd",
+            "test gk-array with single dimension, assignment to expression value",
+        ],
+        [
+            "test_arrays3.csd",
+            "test k-array with single dimension, assignment with number",
+        ],
+        [
+            "test_arrays_multi.csd",
+            "test multi-dimensionsl k-array, assigment to number and expression",
+        ],
+        ["test_arrays_string.csd", "test string-array"],
+        ["test_arrays_string2.csd", "test simple string-array assignment"],
+        [
+            "test_arrays_static_init.csd",
+            "test arrays initialized with static initializer (i.e. kvals = [0,1,2])",
+        ],
+        ["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
+        [
+            "test_arrays_negative_dimension_fail.csd",
+            "test expected failure with negative dimension size and array",
+            1,
+        ],
+        ["test_iarr_operators.csd", "test i[] operators"],
+        ["test_booleans.csd", "tests using boolean data-types"],
+        ["test_boolean_function.csd", "test boolean function in conditionals"],
+        ["test_type_eq.csd", "test type equality operator"],
+        ["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
+        [
+            "test_empty_conditional_branches.csd",
+            "tests that empty branches do not cause compiler issues",
+        ],
+        [
+            "test_empty_instr.csd",
+            "tests that empty instruments do not cause compiler issues",
+        ],
+        ["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
+        ["test_semantics_undefined_var.csd", "test undefined var", 1],
+        ["test_opcall_expr.csd", "test expression in opcall"],
+        ["test_invalid_expression.csd", "test expression", 1],
+        ["test_invalid_ternary.csd", "test expression", 1],
+        ["test_for_in.csd", "for in loop"],
+        ["test_for_in2.csd", "for in loop (2nd form)"],
+        ["test_opcode_as_function.csd", "test expression"],
+        ["test_fsig_udo.csd", "UDO with f-sig arg"],
+        ["test_karrays_udo.csd", "UDO with k[] arg"],
+        ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
+        ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
+        ["test_polymorphic_udo.csd", "test polymorphic udo"],
+        ["test_udo_a_array.csd", "test udo with a-array"],
+        ["test_udo_2d_array.csd", "test udo with 2d-array"],
+        ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
+        [
+            "test_array_function_call.csd",
+            "test synthesizing an array arg from a function-call",
+        ],
+        [
+            "test_explicit_types.csd",
+            "test typed identifiers (i.e. signals:a[], sigLeft:a)",
+        ],
+        ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
+        ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
+        [
+            "test_new_udo_syntax_explicit_types.csd",
+            "test new-style UDO syntax with explicit types",
+        ],
+        [
+            "test_multiple_return.csd",
+            "test multiple return from express (i.. a1,a2 = xx())",
+        ],
+        [
+            "test_array_operations.csd",
+            "test multiple operations on multiple array types",
+        ],
+        [
+            "prints_number_no_crash.csd",
+            "test prints does not crash when given a number arguments",
+            1,
+        ],
+        [
+            "test_newlines_within_function_calls.csd",
+            "test newlines allowed within function calls",
+        ],
+        ["test_comma_newline.csd", "test commas followed by newlines"],
+        [
+            "test_bool_with_explicit_type.csd",
+            "test use of explicit type in bool expression",
+        ],
+        ["test_explicit_globals.csd", "test global declaration of explicit types"],
+        [
+            "test_fail_mismatched_types.csd",
+            "syntax error on mismatched type declaration",
+            1,
+        ],
+        [
+            "test_fail_redefine.csd",
+            "syntax error on redefinition of local var by global var in same context",
+            1,
+        ],
+        ["test_var_redefine.csd", "test variable redefinition"],
+        ["test_declare.csd", "test declare keyword (CS7)"],
+        ["test_sub_str.csd", "test raw string embedded in raw string"],
+        ["test_plusname.csd", "test +Name for instr name"],
+        ["test_isactive.csd", "test isactive and isperforming"],
+        [
+            "test_unary_expressions.csd",
+            "various unary operators in various expressions",
+        ],
+        ["test_opassign.csd", "test +=, ==, *= and /="],
+        ["testnewline.csd", "test newline in statements"],
+        ["test_string_in_event.csd", "test multiple strings in realtime event"],
+        ["testmidichannels.csd", "test use of mapped multiport channels"],
+        ["test_instr_type.csd", "test instr type and variables"],
+        ["test_delete_instr.csd", "test creating and deleting instr"],
+        ["test_create_instr.csd", "testing creating and scheduling instr"],
+        ["test_instance_type.csd", "testing instance type"],
+        ["test_play_opcode.csd", "testing play opcode"],
+        ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
+        ["test_complex_numbers.csd", "testing complex number operations"],
+        [
+            "test_schedule_named_instance.csd",
+            "testing schedule with named instr instance",
+        ],
+        [
+            "test_instr_type_var_new_compilation.csd",
+            "testing schedule of named instr in new compilations",
+        ],
+        ["test_ambiguous_opcall.csd", "test ambiguous opcall examples"],
+        ["test_opcode_type.csd", "tests opcode type"],
+        ["test_opcode_obj_loop.csd", "tests array of opcode objects in loops"],
+        ["test_sa.csd", "test sample accurate mode"],
+        ["test_overload_selection.csd", "test wrong annotation case"],
+        ["test_unschedule.csd", "test unscheduling events"],
+        ["diskin_excess_channels.csd", "test sample accurate mode"],
+        ["test_midifile_ops.csd", "testing midifile opcodes"],
+        ["test_csound_object.csd", "test Csound object opcodes"],
+        ["test_true_false.csd", "testing true/false booleans"],
+        [
+            "test_break_continue.csd",
+            "testing break/continue statements in while/until/for loops",
+        ],
+        [
+            "test_break_outside_loop_fails.csd",
+            "testing break outside loop gives parser error",
+            1,
+        ],
+        [
+            "test_continue_outside_loop_fails.csd",
+            "testing continue outside loop gives parser error",
+            1,
+        ],
     ]
 
-    arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
+    arrayTests = [
+        ["arrays/arrays_i_local.csd", "local i[]"],
         ["arrays/arrays_i_global.csd", "global i[]"],
         ["arrays/arrays_k_local.csd", "local k[]"],
         ["arrays/arrays_k_global.csd", "global k[]"],
@@ -227,7 +312,10 @@ def runTest():
         ["arrays/arrays_a_global.csd", "global a[]"],
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
-        ["arrays/array_get_inline.csd", "tests parsing and eval of inline array[getters]"],
+        [
+            "arrays/array_get_inline.csd",
+            "tests parsing and eval of inline array[getters]",
+        ],
         ["arrays/arrays_for_loop.csd", "tests for loops over array types"],
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
@@ -238,22 +326,51 @@ def runTest():
         ["test_gen_array.csd", "testing genarray shorthand"],
         ["test_array_annotation.csd", "testing array type annotation for opcodes"],
         ["test_slice_array.csd", "testing slice shorthand"],
+        ["arrays/array_a_arithm.csd", "test audio array arithmetic operations"],
+        ["arrays/test_array_copy.csd", "test array copy operations"],
+        ["test_arrays_constant_index.csd", "test arrays with constant index"],
+        ["test_arrays_in_udo.csd", "test arrays in UDO"],
     ]
-
 
     structTests = [
         ["structs/test_structs.csd", "basic struct test"],
         ["structs/test_sub_structs.csd", "read/write to struct member of struct"],
         ["structs/test_struct_arrays.csd", "arrays of structs"],
+        [
+            "structs/test_current_limitations.csd",
+            "test current struct implementation limitations",
+        ],
+        ["structs/test_nested_structs.csd", "test nested struct types"],
+        ["structs/test_nested_types.csd", "test nested type definitions"],
+        [
+            "structs/test_simple_struct_assignment.csd",
+            "test struct-to-struct assignment",
+        ],
+        [
+            "structs/test_single_member_init.csd",
+            "test single member struct initialization",
+        ],
+        ["structs/test_struct_arrays_2.csd", "test struct-to-struct references"],
+        ["structs/test_struct_arrays_recursive.csd", "test recursive struct arrays"],
+        ["structs/test_struct_assign.csd", "test struct assignment"],
+        ["structs/test_struct_debug.csd", "test struct debugging"],
+        ["structs/test_struct_member_access.csd", "test struct member access"],
+        ["structs/test_struct_print_simple.csd", "test simple struct printing"],
+        ["structs/test_struct_print_simple2.csd", "test simple struct printing 2"],
+        ["structs/test_structs_2.csd", "test structs 2"],
+        ["structs/test_what_breaks.csd", "test what breaks with structs"],
     ]
 
-    udoTests = [["udo/fail_no_xin.csd", "fail due to no xin", 1],
+    udoTests = [
+        ["udo/fail_no_xin.csd", "fail due to no xin", 1],
         ["udo/fail_no_xout.csd", "fail due to no xout", 1],
         ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
         ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
+        ["udo/crashing_test.csd", "test for UDO crashing"],
+        ["udo/test_udo_array_set.csd", "test UDO array setting"],
     ]
 
     maxallocTests = [
@@ -265,14 +382,21 @@ def runTest():
         ["test_maxalloc_turnoff_eq_2.csd", "Test maxalloc opcode value of 2"],
     ]
 
-    pfieldTests = [["test_pfields_array.csd", "Test dynamic allocation of pfields, schedule and ftgen"],
-                   ["test_schedule.csd", "Test pfields on all forms of schedule"],
-                   ["test_schedule_instr.csd", "Test pfields on all forms of schedule with instance"],  
-                   ["test_event_pfields.csd", "Test pfields on all forms of event"],
-                   ["test_recursive_schedule.csd", "Test recursive events"],
-                   ["test_file_table.csd", "Test ftgen gen01 file input"],
-                   ["test_midifile.csd", "Test midi file input (-F)"],
-                       ]     
+    pfieldTests = [
+        [
+            "test_pfields_array.csd",
+            "Test dynamic allocation of pfields, schedule and ftgen",
+        ],
+        ["test_schedule.csd", "Test pfields on all forms of schedule"],
+        [
+            "test_schedule_instr.csd",
+            "Test pfields on all forms of schedule with instance",
+        ],
+        ["test_event_pfields.csd", "Test pfields on all forms of event"],
+        ["test_recursive_schedule.csd", "Test recursive events"],
+        ["test_file_table.csd", "Test ftgen gen01 file input"],
+        ["test_midifile.csd", "Test midi file input (-F)"],
+    ]
 
     tests += arrayTests
     tests += structTests
@@ -281,7 +405,7 @@ def runTest():
     tests += pfieldTests
 
     output = ""
-    tempfile = 'csound_test_output.txt'
+    tempfile = "csound_test_output.txt"
     counter = 1
 
     retVals = []
@@ -295,23 +419,40 @@ def runTest():
         desc = t[1]
         expectedResult = (len(t) == 3) and 1 or 0
 
-        if(os.sep == '\\' or os.name == 'nt'):
-            executable = (csoundExecutable == "") and os.path.join("..", "csound.exe") or csoundExecutable
+        if os.sep == "\\" or os.name == "nt":
+            executable = (
+                (csoundExecutable == "")
+                and os.path.join("..", "csound.exe")
+                or csoundExecutable
+            )
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s" % (
+                executable,
+                parserType,
+                runArgs,
+                sourceDirectory,
+                filename,
+                tempfile,
+            )
             print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "csound" or csoundExecutable
             if runtimeEnvironment:
                 executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s" % (
+                executable,
+                parserType,
+                runArgs,
+                sourceDirectory,
+                filename,
+                tempfile,
+            )
             print(command)
             retVal = os.system(command)
 
-
-        if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
+        if hasattr(os, "WIFEXITED") and os.WIFEXITED(retVal):
             retVal = os.WEXITSTATUS(retVal)
 
         out = ""
@@ -322,14 +463,24 @@ def runTest():
             testFail += 1
             out = "[FAIL] - "
 
-        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
-)
+        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n" % (
+            counter,
+            desc,
+            filename,
+            retVal,
+            expectedResult,
+        )
         print(out)
-        if (out.startswith("[FAIL]")):
+        if out.startswith("[FAIL]"):
             testFailMessages += out
-        output += "%s\n"%("=" * 80)
-        output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
-        output += "%s\n\n"%("=" * 80)
+        output += "%s\n" % ("=" * 80)
+        output += "Test %i: %s (%s)\nReturn Code: %i\n" % (
+            counter,
+            desc,
+            filename,
+            retVal,
+        )
+        output += "%s\n\n" % ("=" * 80)
         f = open(tempfile, "r")
 
         csOutput = ""
@@ -346,12 +497,12 @@ def runTest():
         output += "\n\n"
         counter += 1
 
-#    print output
-    print("%s\n\n"%("=" * 80))
-    print("Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail))
+    #    print output
+    print("%s\n\n" % ("=" * 80))
+    print("Tests Passed: %i\nTests Failed: %i\n" % (testPass, testFail))
 
-    if (testFail > 0):
-        print("[FAILED TESTS]\n\n%s"%testFailMessages)
+    if testFail > 0:
+        print("[FAILED TESTS]\n\n%s" % testFailMessages)
 
     f = open("results.txt", "w")
     f.write(output)
@@ -360,10 +511,11 @@ def runTest():
 
     return testFail
 
+
 if __name__ == "__main__":
-    if(len(sys.argv) > 1):
+    if len(sys.argv) > 1:
         for arg in sys.argv:
-            if (arg == "--help"):
+            if arg == "--help":
                 showHelp()
                 sys.exit(0)
             # elif arg == "--show-ui":
@@ -374,8 +526,8 @@ if __name__ == "__main__":
                 csoundExecutable = arg[20:]
                 print(csoundExecutable)
             elif arg.startswith("--opcode7dir64="):
-                os.environ['OPCODE7DIR64'] = arg[15:]
-                print(os.environ['OPCODE7DIR64'])
+                os.environ["OPCODE7DIR64"] = arg[15:]
+                print(os.environ["OPCODE7DIR64"])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
             elif arg.startswith("--runtime-environment="):

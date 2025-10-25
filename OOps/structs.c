@@ -49,18 +49,42 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
   int32_t index = 0;
   for (int32_t i = 0; i < indefArgCount; i++) {
     int32_t end = (int32_t)(*p->indexes[i]);
+
+    // Enforce non-negative index check for all cases
+    if (UNLIKELY(end < 0)) {
+      return csound->PerfError(csound, &(p->h), Str("array_set_struct: index %d out of range (negative)"), i+1);
+    }
+
     if (dat->dimensions > 0 && dat->sizes != NULL) {
-      if (UNLIKELY(end < 0 || end >= dat->sizes[i])) {
+      if (UNLIKELY(end >= dat->sizes[i])) {
         return csound->PerfError(csound, &(p->h), Str("array_set_struct: index %d out of range"), i+1);
       }
       index = (index * dat->sizes[i]) + end;
     } else {
+      // For flat arrays (dat->dimensions == 0), we need to validate bounds differently
+      // We'll check the final computed index against the array size after the loop
       index = (i == 0) ? end : (index * 0 + end);
+    }
+  }
+
+  // For flat arrays (dimensions == 0), validate that the index is within bounds
+  if (dat->dimensions == 0 && dat->allocated > 0) {
+    int64_t maxElements = (int64_t)(dat->allocated / dat->arrayMemberSize);
+    if (UNLIKELY(index < 0 || index >= maxElements)) {
+      return csound->PerfError(csound, &(p->h), Str("array_set_struct: flat array index %d out of bounds (0-%lld)"), index, maxElements - 1);
     }
   }
   // Address element in bytes (safe for struct payloads)
   char* base = (char*)dat->data;
-  char* dstPtr = base + (index * (int32_t)dat->arrayMemberSize);
+
+  // Validate byte offset is within allocated buffer
+  size_t offset = index * dat->arrayMemberSize;
+  if (UNLIKELY(offset < 0 || offset + dat->arrayMemberSize > dat->allocated)) {
+    return csound->PerfError(csound, &(p->h), Str("array_set_struct: computed offset %zu out of bounds (max: %zu)"),
+                            offset, dat->allocated - dat->arrayMemberSize);
+  }
+
+  char* dstPtr = base + offset;
 
   // Ensure destination struct is initialized (members allocated)
   if (dat->arrayType && dat->arrayType->userDefinedType) {
@@ -82,6 +106,11 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
   if (dat->arrayType && dat->arrayType->userDefinedType) {
     CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)p->value;
     CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*)dstPtr;
+
+    // Validate that dstVar is within bounds before accessing
+    if (UNLIKELY(dstVar == NULL)) {
+      return csound->PerfError(csound, &(p->h), Str("array_set_struct: destination pointer is NULL"));
+    }
 
     // Ensure both are initialized
     if (srcVar && srcVar->members && dstVar && dstVar->members && dat->arrayType->members) {
@@ -444,7 +473,13 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
         "Struct array has invalid dimensions or sizes");
   }
 
-  if (index < 0 || index >= arrayDat->sizes[0]) {
+  // Enforce non-negative index check
+  if (index < 0) {
+    return csound->PerfError(csound, &(dat->h),
+        "Struct array index %d is negative", index);
+  }
+
+  if (index >= arrayDat->sizes[0]) {
     return csound->PerfError(csound, &(dat->h),
         "Struct array index %d out of bounds (0-%d)", index, arrayDat->sizes[0]-1);
   }
