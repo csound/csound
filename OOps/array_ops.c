@@ -408,9 +408,24 @@ int32_t array_set(CSOUND* csound, ARRAY_SET *p)
         /* Ensure element span matches nsmps (defensive) */
         uint32_t span = (uint32_t)(dat->arrayMemberSize / (uint32_t)sizeof(MYFLT));
         if (span < nsmps) nsmps = span;
-        for (uint32_t n = 0; n < offset && n < nsmps; n++) mem[n] = FL(0.0);
-        for (uint32_t n = offset; n < nsmps - early; n++) mem[n] = val;
-        for (uint32_t n = nsmps - early; n < nsmps; n++) mem[n] = FL(0.0);
+        /* First fill pre-offset zeros */
+        if (UNLIKELY(offset)) memset(mem, '\0', offset * sizeof(MYFLT));
+        /* Handle early by clamping to 0 if early >= nsmps */
+        if (UNLIKELY(early)) {
+            if (early >= nsmps) {
+                /* If early >= nsmps, everything should be zero */
+                memset(mem, '\0', nsmps * sizeof(MYFLT));
+            } else {
+                /* Subtract early from nsmps and fill tail zeros */
+                nsmps -= early;
+                memset(&mem[nsmps], '\0', early * sizeof(MYFLT));
+                /* Fill valid range with val */
+                for (uint32_t n = offset; n < nsmps; n++) mem[n] = val;
+            }
+        } else {
+            /* No early, just fill valid range with val */
+            for (uint32_t n = offset; n < nsmps; n++) mem[n] = val;
+        }
       }
     } else if (dat->arrayType->copyValue) {
       dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, p->value,  p->h.insdshead);
@@ -3734,6 +3749,9 @@ int32_t tabgen(CSOUND *csound, TABGEN *p)
   MYFLT incr  = *p->incr;
 
   int32_t i;
+  if (UNLIKELY(incr == FL(0.0))) {
+    return csound->InitError(csound, "genarray_i: incr must be non-zero");
+  }
   int64_t sz64 = (int64_t)((end - start)/incr + 1.0);
   if (UNLIKELY(sz64 <= 0 || sz64 > (1<<24)))
     return csound->InitError(csound, "genarray_i: computed size (%lld) invalid",

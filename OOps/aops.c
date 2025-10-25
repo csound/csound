@@ -2542,15 +2542,21 @@ int32_t pinit(CSOUND *csound, PINIT *p)
     int32_t nargs = p->OUTOCOUNT;
     int32_t pargs = csound->init_event->pcnt;
     int32_t start = (int32_t)(*p->start);
+    /* Check for out-of-range start values */
+    if (UNLIKELY(start < 1 || start > pargs)) {
+      return csound->InitError(csound, "%s", Str("start value out of range"));
+    }
     /* Should check that inits exist> */
     int32_t k = (int32_t)(*p->end);
-    if (*p->end!=FL(0.0)) {
-      if (k<pargs) pargs = k;
+    if (*p->end!=FL(0.0) && k < pargs) {
+      pargs = k;
     }
-    if (UNLIKELY(nargs>pargs))
+    if (UNLIKELY(nargs > (pargs - start + 1)))
       csound->Warning(csound, "%s", Str("More arguments than p fields"));
-    pargs -= (int)*p->end;
-    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+    const int32_t last = (*p->end!=FL(0.0) ? pargs : pargs);
+    const int32_t limit = last - start + 1;
+    const int32_t upto = (nargs < limit ? nargs : limit);
+    for (n=0; n<upto; n++) {
       // Use proper type checking to determine if output is string
       CS_TYPE *outType = GetTypeForArg(p->inits[n]);
       int isStringOutput = (outType != NULL &&

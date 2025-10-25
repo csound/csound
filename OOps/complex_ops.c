@@ -1018,9 +1018,16 @@ int32_t cops_init_a(CSOUND *csound, COPS1 *p) {
       return csound->InitError(csound, "array1 unitialised\n");
     if(ab->dimensions == 0)
       return csound->InitError(csound, "array2 unitialised\n");
-    // Use the maximum size, or CS_KSMPS if both are 0
-    size = aa->sizes[0] > ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
-    if (size == 0) size = CS_KSMPS;
+    // Use the minimum non-zero array size, or CS_KSMPS if both are 0
+    if (aa->sizes[0] == 0 && ab->sizes[0] == 0) {
+      size = CS_KSMPS;
+    } else if (aa->sizes[0] == 0) {
+      size = ab->sizes[0];
+    } else if (ab->sizes[0] == 0) {
+      size = aa->sizes[0];
+    } else {
+      size = aa->sizes[0] < ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
+    }
   }
   tabinit(csound, p->out, size, p->h.insdshead);
   return OK;

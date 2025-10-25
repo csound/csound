@@ -40,6 +40,10 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
         p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
+        if (UNLIKELY(p->arrayType == NULL)) {
+          csound->Die(csound, "tabinit: arrayType is NULL");
+          return;
+        }
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, ctx);
         p->arrayMemberSize = var->memBlockSize;
         ss = (size_t)p->arrayMemberSize * (size_t)size;
@@ -61,6 +65,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
           for (; i < size; i++) {
             var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
           }
+          csound->Free(csound, var);
         }
     } else if( (ss = (size_t)p->arrayMemberSize * (size_t)size) > p->allocated) {
         size_t prevAllocated = p->allocated;
@@ -85,6 +90,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
             for (; i < size; i++) {
               var2->initializeVariableMemory(csound, var2, (MYFLT*)(base + i * blockSize));
             }
+            csound->Free(csound, var2);
           }
         }
     }
@@ -137,6 +143,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
         for (; i < elemCount; i++) {
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
         }
+        csound->Free(csound, var);
       }
     } else {
       size_t bytes = (size_t)p->arrayMemberSize * (size_t)elemCount;
@@ -162,6 +169,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
             for (; (uint32_t)i < elemCount; i++) {
               var2->initializeVariableMemory(csound, var2, (MYFLT*)(base + i * blockSize));
             }
+            csound->Free(csound, var2);
           }
         }
       }

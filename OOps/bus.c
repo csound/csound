@@ -1344,7 +1344,6 @@ int32_t chnget_opcode_init_a(CSOUND* csound, CHNGET* p)
 int32_t chnget_opcode_init_S(CSOUND* csound, CHNGET* p)
 {
     int32_t err;
-    char* s = ((STRINGDAT*) p->arg)->data;
     err = csoundGetChannelPtr(csound, (void **)&(p->fp), (char*) p->iname->data,
                               CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL);
     p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);

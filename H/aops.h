@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "csoundCore.h"
+
 #define CSOUND_SPIN_SPINLOCK csoundSpinLock(&csound->spinlock);
 #define CSOUND_SPIN_SPINUNLOCK csoundSpinUnLock(&csound->spinlock);
 #define CSOUND_SPOUT_SPINLOCK csoundSpinLock(&csound->spoutlock);
