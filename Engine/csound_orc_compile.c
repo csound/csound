@@ -1659,11 +1659,8 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                         gVar->varName, gVar->varType->varTypeName);
       gVar = gVar->next;
     } else {
-      // if variable exists
-      // free variable mem block
-      // the CS_VARIABLE itself will be freed on engine_free()
-      csound->Free(csound, gVar->memBlock);
-      csound->Free(csound, gVar->varName);
+      /* Variable already present; do not free here.
+         Let csoundFreeVarPool clean up when disposing engineState. */
       gVar = gVar->next;
     }
   }
