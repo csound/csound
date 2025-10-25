@@ -83,7 +83,7 @@ static void string_free_internal(CSOUND* csound, STRINGDAT* str) {
 
 static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSize) {
     if (!str) return;
-
+    if (newSize == 0) newSize = 1;  // always room for '\0'
     // If this is an alias (refcount == -1), we need to allocate our own buffer
     if (str->refcount == -1) {
         char* oldData = str->data;
@@ -91,8 +91,8 @@ static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSiz
         str->size = newSize;
         str->refcount = 0;  // Now we own it
         if (oldData) {
-            strncpy(str->data, oldData, str->size - 1);
-            str->data[str->size - 1] = '\0';
+            strncpy(str->data, oldData, newSize - 1);
+            str->data[newSize - 1] = '\0';
         }
     } else {
         // Safe to resize - we own the buffer
