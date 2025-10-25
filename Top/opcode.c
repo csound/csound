@@ -173,7 +173,7 @@ void list_opcodes(CSOUND *csound, int32_t level) {
   int32_t count = 0;
 
   cnt = csoundNewOpcodeList(csound, &lst);
-l  if (UNLIKELY(cnt <= 0)) {
+  if (UNLIKELY(cnt <= 0)) {
     csound->ErrorMsg(csound, Str("Error creating opcode list"));
     csoundDisposeOpcodeList(csound, lst);
     return;
@@ -1497,7 +1497,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       argmem->varType = types[m];
       args[m] = &argmem->value;
       // copy array args data in - but not k or a vars
-      if(types[m] != &CS_VAR_TYPE_K ||
+      if(types[m] != &CS_VAR_TYPE_K &&
          types[m] != &CS_VAR_TYPE_A)
          memcpy(&argmem->value, data+i*size, size);
       //printf("arg[%d] %f %d \n", i, argmem->value, j);
