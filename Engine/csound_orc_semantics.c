@@ -1775,7 +1775,9 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   // search on  all pools
   var = find_var_from_pools(csound, t, t, typeTable);
   csound->Free(csound, t);
-  if (var == NULL) {
+  if (var == NULL ||
+      // treat the case of global opcode ref vars
+      (var && var->varType == &CS_VAR_TYPE_OPCODEREF)) {    
     if (annotation != NULL) {
       // check for global annotation
       pool = find_global_annotation(lvarName, typeTable);
@@ -1809,7 +1811,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
        // and different type array subtype
        varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
        if(varType != var->subType)
-         synterr(csound, "%s:%s[] - type mismatch for existing "
+         synterr(csound, "%s:%s[] -- type mismatch for existing "
                           "array variable %s:%s%s",
                  varName, varType->varTypeName, varName,
                  var->subType ? var->subType->varTypeName :
