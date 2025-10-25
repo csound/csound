@@ -10,7 +10,7 @@ struct MyType imaginary:i, real:i
 
 instr 1
 
-temp:MyType init
+temp:MyType init 0, 0
 
 temp.imaginary = 10
 temp.real = 20

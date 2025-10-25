@@ -562,6 +562,13 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
             tabinit_like(csound, dstArr, (ARRAYDAT *)srcArr);
         }
 
+        // Check if source is also an array before accessing array-specific fields
+        CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
+        if (srcType != &CS_VAR_TYPE_ARRAY) {
+            // Source is a scalar (e.g., assigning to array element), not array-to-array
+            return copy_var_generic(csound, p);
+        }
+
         // Special-case: complex arrays copy immediately (no perf hook, no flag).
         if (srcArr->arrayType == &CS_VAR_TYPE_COMPLEX) {
             copy_var_generic(csound, p);

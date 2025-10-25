@@ -642,6 +642,27 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     {
       char* outype;
 
+      // Handle struct member access or other complex left expressions
+      if (root->left == NULL || root->left->value == NULL ||
+          root->left->value->lexeme == NULL) {
+        // This could be a struct member access - delegate to get_arg_string_from_tree
+        // Note: get_arg_string_from_tree returns the element type for T_ARRAY nodes
+        char* elementType = get_arg_string_from_tree(csound, root, typeTable);
+        if (elementType == NULL) {
+          return NULL;
+        }
+
+        // Use the element type directly (it's already the type of array[index])
+        outype = elementType;
+
+        // Set the operation to array_get (struct members are always plain arrays)
+        strNcpy(op, "##array_get", 80);
+
+        outarg = create_out_arg(csound, outype,
+                               typeTable->localPool->synthArgCount++, typeTable);
+        break;
+      }
+
       char *varBaseName = root->left->value->lexeme;
       // search for the array variable in all pools
       var = find_var_from_pools(csound, varBaseName,
@@ -653,9 +674,12 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                 varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
-          // Check if this is a struct array
-          if (var->subType && var->subType->userDefinedType) {
+        // Check if it's an array
+        // For typed arrays like k[], i[], S[], the varType is the element type
+        // and subType is NULL. For generic arrays, subType contains the element type.
+        if (var->subType) {
+          // Generic array or struct array
+          if (var->subType->userDefinedType) {
             strNcpy(op, "##array_get_struct", 80);
           } else {
             strNcpy(op, "##array_get", 80);
@@ -675,14 +699,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
             inds = inds->next;
           }
         }
+        } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
+          // Generic array with dimensions (but no subType set yet)
+          strNcpy(op, "##array_get", 80);
+          outype = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           strNcpy(op, "##array_get", 80);
           outype = "k";
         } else {
-          synterr(csound,
-                  Str("invalid array type %s line %d\n"),
-                  var->varType->varTypeName, current->line);
-          return NULL;
+          // Typed array like k[], varType is the element type
+          strNcpy(op, "##array_get", 80);
+          outype = strdup(var->varType->varTypeName);
         }
       }
       if (outype == NULL) {
@@ -1174,6 +1201,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       nextArg = currentArg->next;
       csound->Free(csound, currentArg);
 
+      if (expressionNodes == NULL) {
+        csound->Message(csound, "Error: create_expression returned NULL\n");
+        return NULL;
+      }
+
       /* Set as anchor if necessary */
       anchor = append_to_tree(csound, anchor, expressionNodes);
 
@@ -1232,15 +1264,29 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                 varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
-          outType = strdup(var->subType->varTypeName);
+        // Check if it's an array
+        // For LHS array assignment, we need to return the array type (e.g., "k[]")
+        // not the element type (e.g., "k")
+        if (var->subType) {
+          // Generic array, use subType + []
+          size_t len = strlen(var->subType->varTypeName);
+          outType = csound->Malloc(csound, len + 3); // +3 for "[]" and null terminator
+          strcpy(outType, var->subType->varTypeName);
+          strcat(outType, "[]");
+        } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
+          // Generic array with dimensions
+          size_t len = strlen(var->subType->varTypeName);
+          outType = csound->Malloc(csound, len + 3);
+          strcpy(outType, var->subType->varTypeName);
+          strcat(outType, "[]");
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outType = "k";
         } else {
-          synterr(csound,
-                  Str("invalid array type %s line %d\n"),
-                  var->varType->varTypeName, current->line);
-          return NULL;
+          // Typed array like k[], varType is the element type, append []
+          size_t len = strlen(var->varType->varTypeName);
+          outType = csound->Malloc(csound, len + 3);
+          strcpy(outType, var->varType->varTypeName);
+          strcat(outType, "[]");
         }
       }
 

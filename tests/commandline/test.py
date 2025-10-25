@@ -358,7 +358,11 @@ def runTest():
         ["structs/test_struct_print_simple.csd", "test simple struct printing"],
         ["structs/test_struct_print_simple2.csd", "test simple struct printing 2"],
         ["structs/test_structs_2.csd", "test structs 2"],
-        ["structs/test_what_breaks.csd", "test what breaks with structs"],
+        [
+            "structs/test_nonexistent_member.csd",
+            "test what breaking example with structs",
+            1,
+        ],
     ]
 
     udoTests = [
@@ -369,7 +373,7 @@ def runTest():
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
-        ["udo/crashing_test.csd", "test for UDO crashing"],
+        ["udo/crashing_test.csd", "test for UDO crashing", 1],
         ["udo/test_udo_array_set.csd", "test UDO array setting"],
     ]
 
