@@ -50,7 +50,6 @@ int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
     p->r->data = (char *) csound->ReAlloc(csound, p->r->data, DEFAULT_STRING_SIZE);
     p->r->size = DEFAULT_STRING_SIZE;
   }
-  p->r->refcount = 0;  // Ensure unmanaged for direct operations
   snprintf(p->r->data, p->r->size, "%f", *p->indx);
   return OK;
 }
@@ -135,20 +134,14 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     if (ss == NULL)
       return OK;
     ss = get_arg_string(csound, *p->indx);
-    if (p->r->data == NULL) {
-      p->r->data = cs_strdup(csound, ss);
-      p->r->size = strlen(ss)+1;
+    size_t len = strlen(ss);
+    if (len >= p->r->size) {
+      p->r->data = csound->ReAlloc(csound, p->r->data, len + 1);
+      p->r->size = len + 1;
     }
-    else if (strlen(ss) >= p->r->size) {
-      csound->Free(csound, p->r->data);
-      p->r->data = cs_strdup(csound, ss);
-      p->r->size = strlen(ss) + 1;
-    }
-    else {
-      size_t n = strlen(ss)+1;
-      p->r->size = n;
-      strNcpy(p->r->data, ss, n);
-      //p->r->data[p->r->size - 1] = '\0';
+    if (p->r->data != NULL) {
+      strNcpy(p->r->data, ss, p->r->size);
+      p->r->data[p->r->size - 1] = '\0';
     }
     return OK;
   }
@@ -217,19 +210,16 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
       else
         return csoundInitError(csound, Str("NULL string\n"));
     }
-   if (strlen(ss) >= p->r->size) {
-      csound->Free(csound, p->r->data);
-      p->r->data = cs_strdup(csound, ss);
-      p->r->size = (int32_t) strlen(ss) + 1;
+    size_t len = strlen(ss);
+    if (len >= (size_t) p->r->size) {
+      p->r->data = csound->ReAlloc(csound, p->r->data, len + 1);
+      p->r->size = (int32_t) (len + 1);
     }
-    else {
-      strcpy(p->r->data,ss);
-      p->r->size = (int32_t) strlen(ss) + 1;
-    }
+    if (p->r->data != NULL)
+      strcpy(p->r->data, ss);
   }
   else {
-    csound->Free(csound, p->r->data);
-    p->r->data = csound->StringArg2Name(csound, NULL, p->indx, "soundin.", 0);
+    p->r->data = csound->StringArg2Name(csound, p->r->data, p->indx, "soundin.", 0);
     p->r->size = (int32_t) strlen(p->r->data) + 1;
   }
   return OK;
@@ -816,10 +806,9 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     size_t       len, i;
 
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
+    if (p->Sdst->size < p->Ssrc->size) {
       size_t size = p->Ssrc->size;
-      if (p->Sdst->data != NULL) csound->Free(csound, p->Sdst->data);
-      p->Sdst->data = csound->Calloc(csound, size);
+      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, size);
       p->Sdst->size = size;
     }
 
@@ -948,10 +937,9 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     char        *dst;
     int32_t         i;
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
+    if (p->Sdst->size < p->Ssrc->size) {
       size_t size = p->Ssrc->size;
-      if (p->Sdst->data != NULL) csound->Free(csound, p->Sdst->data);
-      p->Sdst->data = csound->Calloc(csound, size);
+      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, size);
       p->Sdst->size = size;
     }
 
@@ -977,10 +965,9 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     char        *dst;
     int32_t         i;
     if (p->Ssrc->data == NULL) return NOTOK;
-    if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
+    if (p->Sdst->size < p->Ssrc->size) {
       size_t size = p->Ssrc->size;
-      if (p->Sdst->data != NULL) csound->Free(csound,p->Sdst->data);
-      p->Sdst->data = csound->Calloc(csound, size);
+      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, size);
       p->Sdst->size = size;
     }
 
@@ -1015,8 +1002,7 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
   char        buf[32];
 
   if (p->Sdst->size < 32){
-    csound->Free(csound, p->Sdst->data);
-    p->Sdst->data = csound->Calloc(csound,32);
+    p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, 32);
     p->Sdst->size = 32;
   }
   //((char*) p->Sdst->data)[0] = '\0';
@@ -1158,20 +1144,14 @@ int32_t str_from_url(CSOUND *csound, STRCPY_OP *p)
   {
     CORFIL *mm = copy_url_corefile(csound, newVal,0);
     size_t len = corfile_length(mm);
-    if (p->r->data == NULL) {
-      p->r->data =  cs_strdup(csound, corfile_body(mm));
-      p->r->size =  len + 1;
-      goto cleanup;
-    }
-    if (UNLIKELY(len >= p->r->size)) {
-      csound->Free(csound, p->r->data);
-      p->r->data = cs_strdup(csound, corfile_body(mm));
+
+    if (len >= p->r->size) {
+      p->r->data = csound->ReAlloc(csound, p->r->data, len + 1);
       p->r->size = len + 1;
     }
-    else strcpy((char*) p->r->data, corfile_body(mm));
-  cleanup:
-    corfile_rm(csound, &mm);
-    p->r->timestamp = 0;
+    if (p->r->data != NULL)
+      strcpy((char*) p->r->data, corfile_body(mm));
+
     return OK;
   }
 }

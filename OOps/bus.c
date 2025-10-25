@@ -941,11 +941,15 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
                 if(channelType == (CSOUND_STRING_CHANNEL |
                                    CSOUND_INPUT_CHANNEL)){
                     csoundSpinLock(p->lock);
-                    strings[index].data =
-                      cs_strdup(csound,
-                                ((STRINGDAT *)p->channelPtrs[index])->data);
-                    strings[index].size =
-                      strlen(((STRINGDAT *)p->channelPtrs[index])->data + 1);
+                    STRINGDAT* src = (STRINGDAT*) p->channelPtrs[index];
+                    STRINGDAT* dest = &strings[index];
+                    size_t len = strlen(src->data);
+                    if (len >= (uint32_t) dest->size) {
+                        dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+                        dest->size = len + 1;
+                    }
+                    if (dest->data != NULL)
+                        strcpy(dest->data, src->data);
                     csoundSpinUnLock(p->lock);
                 }
             }
@@ -1059,10 +1063,17 @@ int32_t chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
                                                        (char *)
                                                        p->channels[index].data);
         csoundSpinLock(p->lock);
-        strings[index].data = cs_strdup(csound, ((STRINGDAT *)
-                                                 p->channelPtrs[index])->data);
-        strings[index].size = strlen(((STRINGDAT *)
-                                      p->channelPtrs[index])->data + 1);
+
+        STRINGDAT* src = (STRINGDAT*) p->channelPtrs[index];
+        STRINGDAT* dest = &strings[index];
+        size_t len = strlen(src->data);
+        if (len >= (uint32_t) dest->size) {
+            dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+            dest->size = len + 1;
+        }
+        if (dest->data != NULL)
+            strcpy(dest->data, src->data);
+
         csoundSpinUnLock(p->lock);
     }
 
@@ -1268,10 +1279,17 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
             p->lock = (spin_lock_t *)
               csoundGetChannelLock(csound, (char *) p->channels[index].data);
             csoundSpinLock(p->lock);
-            ((STRINGDAT *)p->channelPtrs[index])->data =
-              cs_strdup(csound, strings[index].data);
-            ((STRINGDAT *)p->channelPtrs[index])->size =
-              strlen(strings[index].data + 1);
+
+            STRINGDAT* src = &strings[index];
+            STRINGDAT* dest = (STRINGDAT*) p->channelPtrs[index];
+            size_t len = strlen(src->data);
+            if (len >= (uint32_t) dest->size) {
+                dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+                dest->size = len + 1;
+            }
+            if (dest->data != NULL)
+                strcpy(dest->data, src->data);
+
             csoundSpinUnLock(p->lock);
         }
     }
@@ -1336,13 +1354,15 @@ int32_t chnget_opcode_init_S(CSOUND* csound, CHNGET* p)
         csoundSpinLock(p->lock);
         if (((STRINGDAT*) p->fp)->data!=NULL)
         {
-            if (((STRINGDAT*) p->fp)->size>((STRINGDAT*) p->arg)->size){
-                if (s!=NULL) csound->Free(csound, s);
-                s = cs_strdup(csound, ((STRINGDAT*) p->fp)->data);
-                ((STRINGDAT*) p->arg)->data = s;
-                ((STRINGDAT*) p->arg)->size = strlen(s)+1;
+            STRINGDAT* src = (STRINGDAT*) p->fp;
+            STRINGDAT* dest = (STRINGDAT*) p->arg;
+            size_t len = strlen(src->data);
+            if (len >= (uint32_t) dest->size) {
+                dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+                dest->size = len + 1;
             }
-            else strcpy(((STRINGDAT*) p->arg)->data, ((STRINGDAT*) p->fp)->data);
+            if (dest->data != NULL)
+                strcpy(dest->data, src->data);
         }
         csoundSpinUnLock(p->lock);
     }
@@ -1369,14 +1389,16 @@ int32_t chnget_opcode_perf_S(CSOUND* csound, CHNGET* p)
 
     if (((STRINGDAT*) p->fp)->data!=NULL)
     {
-        if (((STRINGDAT*) p->arg)->size<=((STRINGDAT*) p->fp)->size)
+        STRINGDAT* src = (STRINGDAT*) p->fp;
+        STRINGDAT* dest = (STRINGDAT*) p->arg;
+        size_t len = strlen(src->data);
+        if (len >= (uint32_t) dest->size)
         {
-            if (s!=NULL) csound->Free(csound, s);
-            s = cs_strdup(csound, ((STRINGDAT*) p->fp)->data);
-            ((STRINGDAT*) p->arg)->data = s;
-            ((STRINGDAT*) p->arg)->size = strlen(s)+1;
+            dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+            dest->size = len + 1;
         }
-        else strcpy(((STRINGDAT*) p->arg)->data, ((STRINGDAT*) p->fp)->data);
+        if (dest->data != NULL)
+            strcpy(dest->data, src->data);
     }
     csoundSpinUnLock(p->lock);
     return OK;
@@ -1613,17 +1635,17 @@ int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
         p->lock = lock = (spin_lock_t*)
                 csoundGetChannelLock(csound, (char*) p->iname->data);
         csoundSpinLock(lock);
-        if (strlen(s)>=(uint32_t) ((STRINGDAT*) p->fp)->size)
-        {
-            if (((STRINGDAT*) p->fp)->data!=NULL)
-                csound->Free(csound, ((STRINGDAT*) p->fp)->data);
-            ((STRINGDAT*) p->fp)->data = cs_strdup(csound, s);
-            ((STRINGDAT*) p->fp)->size = strlen(s)+1;
 
-            //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
+        STRINGDAT* dest = (STRINGDAT*) p->fp;
+        size_t len = strlen(s);
+        if (len >= (uint32_t) dest->size)
+        {
+            dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+            dest->size = len + 1;
         }
-        else if (((STRINGDAT*) p->fp)->data!=NULL)
-            strcpy(((STRINGDAT*) p->fp)->data, s);
+        if (dest->data != NULL)
+            strcpy(dest->data, s);
+
         csoundSpinUnLock(lock);
     } else return print_chn_err(p, err);
 
@@ -1649,17 +1671,17 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
     p->lock = lock = (spin_lock_t*)
             csoundGetChannelLock(csound, (char*) p->iname->data);
     csoundSpinLock(lock);
-    if (strlen(s)>=(uint32_t) ((STRINGDAT*) p->fp)->size)
+
+    STRINGDAT* dest = (STRINGDAT*) p->fp;
+    size_t len = strlen(s);
+    if (len >= (uint32_t) dest->size)
     {
-        if (((STRINGDAT*) p->fp)->data!=NULL)
-            csound->Free(csound, ((STRINGDAT*) p->fp)->data);
-        ((STRINGDAT*) p->fp)->data = cs_strdup(csound, s);
-        ((STRINGDAT*) p->fp)->size = strlen(s)+1;
-        //set_channel_data_ptr(csound, p->iname->data,p->fp, strlen(s)+1);
-        //printf("p: %s: %s \n", p->iname->data, ((STRINGDAT *)p->fp)->data);
+        dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+        dest->size = len + 1;
     }
-    else if (((STRINGDAT*) p->fp)->data!=NULL)
-        strcpy(((STRINGDAT*) p->fp)->data, s);
+    if (dest->data != NULL)
+        strcpy(dest->data, s);
+
     csoundSpinUnLock(lock);
     //printf("%s \n", (char *)p->fp);
     return OK;
@@ -2048,10 +2070,8 @@ int32_t invalset_string_S(CSOUND *csound, INVAL *p)
     if (UNLIKELY(err))
         return print_chn_err(p, err);
 
-    if (out->data == NULL || out->size < 256) {
-        if(out->data != NULL)
-            csound->Free(csound, out->data);
-        out->data = csound->Calloc(csound, 256);
+    if (out->size < 256) {
+        out->data = csound->ReAlloc(csound, out->data, 256);
         out->size = 256;
     }
 
@@ -2588,14 +2608,13 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
       csoundSpinLock(lock);
     }
 
-    if (strlen(string) + 1 > (uint32_t) size) {
-      if (stringdat->data != NULL) csound->Free(csound,stringdat->data);
-      stringdat->data = cs_strdup(csound, string);
-      stringdat->size = strlen(string) + 1;
-      //set_channel_data_ptr(csound,name,(void*)pstring, strlen(string)+1);
-    } else {
-      strcpy((char *) stringdat->data, string);
+    size_t len = strlen(string);
+    if (len >= (uint32_t) size) {
+      stringdat->data = csound->ReAlloc(csound, stringdat->data, len + 1);
+      stringdat->size = len + 1;
     }
+    if (stringdat->data != NULL)
+      strcpy((char *) stringdat->data, string);
 
     if (lock != NULL) {
       csoundSpinUnLock(lock);

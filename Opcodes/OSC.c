@@ -209,7 +209,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     int32_t cmpr = 0;
 
     if(p->INOCOUNT > 4) {
-      if(strcmp(GetTypeForArg(p->type)->varTypeName, "S")) 
+      if(strcmp(GetTypeForArg(p->type)->varTypeName, "S"))
         return csound->InitError(csound,"%s",
                              Str("Message type is not given as a string\n"));
     }
@@ -255,8 +255,8 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
 #endif
 #else
           return csound->PerfError(csound, &(p->h), "multicast not supported\n");
-#endif          
-          
+#endif
+
         }
         csound->Free(csound, p->lhost);
         if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
@@ -819,16 +819,15 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
         //printf("%d: type %c\n", i, p->c.saved_types[i]);
         if (p->c.saved_types[i] == 's') {
           char *src = m->args[i].string.data;
-          char *dst = ((STRINGDAT*) p->args[i])->data;
+          STRINGDAT* dest = (STRINGDAT*) p->args[i];
           if (src != NULL) {
-            if (((STRINGDAT*) p->args[i])->size <= strlen(src)){
-              if (dst != NULL) csound->Free(csound, dst);
-              dst = csound->Strdup(csound, src);
-              ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
-              ((STRINGDAT*) p->args[i])->data = dst;
-           }
-          else
-            strcpy(dst, src);
+            size_t len = strlen(src);
+            if (dest->size <= len) {
+              dest->data = csound->ReAlloc(csound, dest->data, len + 1);
+              dest->size = len + 1;
+            }
+            if (dest->data != NULL)
+              strcpy(dest->data, src);
           }
         }
         else if (p->c.saved_types[i]=='b') {
