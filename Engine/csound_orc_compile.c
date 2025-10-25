@@ -2583,19 +2583,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       if (s[0] == '#') {
         csoundDie(csound, Str("Missing temporary variable %s in local pool"), s);
       } else {
-        /* Soft-fix: if a local variable is referenced before declaration, synthesize it
-           into the local var pool based on its leading rate letter. This keeps compile
-           robust when semantic ordering lags (e.g., k-rate vars like 'kLim'). */
-        const char ch = s[0];
-        char letter[2] = { ch, '\0' };
-        CS_TYPE *t = (CS_TYPE*) csoundGetTypeWithVarTypeName(csound->typePool, letter);
-        if (t != NULL && (ch=='k'||ch=='i'||ch=='a'||ch=='S'||ch=='B')) {
-          CS_VARIABLE *nv = csoundCreateVariable(csound, csound->typePool, t, cs_strdup(csound, s), NULL);
-          if (nv) {
-            csoundAddVariable(csound, ip->varPool, nv);
-            arg->argPtr = nv;
-          }
-        }
+        csoundDie(csound, Str("Undeclared local variable '%s' used before declaration"), s);
       }
     }
   }
