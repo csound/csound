@@ -564,7 +564,7 @@ int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
       out[i].real = num - in[i].real;
-      out[i].imag = num;
+      out[i].imag = -in[i].imag;
     } else {
       MYFLT re, im;
       re = COS(in[i].imag)*in[i].real;  

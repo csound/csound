@@ -173,7 +173,7 @@ void list_opcodes(CSOUND *csound, int32_t level) {
   int32_t count = 0;
 
   cnt = csoundNewOpcodeList(csound, &lst);
-  if (UNLIKELY(cnt <= 0)) {
+l  if (UNLIKELY(cnt <= 0)) {
     csound->ErrorMsg(csound, Str("Error creating opcode list"));
     csoundDisposeOpcodeList(csound, lst);
     return;
@@ -541,7 +541,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     if(*types == ':') {
       types++;
       char typeName[64] = {0};
-      size_t end = types - strchr(types, ';');
+      size_t end = strchr(types, ';') - types;
       memcpy(typeName, types, end);
       argtype = check_arg_type(args[n], cstypes, n);
       if(*(types+end+1) != '[' && strncmp(argtype->varTypeName,
@@ -1014,7 +1014,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(*types == ':') {
         types++;
         char typeName[64] = {0};
-        size_t end = types - strchr(types, ';');
+        size_t end = strchr(types, ';') - types;
         memcpy(typeName, types, end);
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
@@ -1149,7 +1149,7 @@ int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
  */
 void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
   obj->dataspace->optext->t.linenum = p->h.optext->t.linenum;
-  obj->dataspace->optext->t.linenum = p->h.optext->t.locn;
+  obj->dataspace->optext->t.locn = p->h.optext->t.locn;
 }
 
 /**
