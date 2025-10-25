@@ -75,17 +75,6 @@ static void string_free_internal(CSOUND* csound, STRINGDAT* str) {
         return;
     }
 
-    // refcount > 0 means shared buffer
-    if (str->refcount > 0) {
-        str->refcount--;
-        if (str->refcount == 0) {
-            csound->Free(csound, str->data);
-            str->data = NULL;
-            str->size = 0;
-        }
-        return;
-    }
-
     // refcount == 0: we own the buffer and should free it
     csound->Free(csound, str->data);
     str->data = NULL;
@@ -105,21 +94,11 @@ static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSiz
             strncpy(str->data, oldData, str->size - 1);
             str->data[str->size - 1] = '\0';
         }
-    } else if (str->refcount > 1) {
-        // Can't resize shared buffer - make a private copy
-        char* oldData = str->data;
-        str->refcount--;  // Release our ref to shared buffer
-        str->data = csound->Calloc(csound, newSize);
-        str->size = newSize;
-        str->refcount = 0;  // Private buffer
-        if (oldData) {
-            strncpy(str->data, oldData, str->size - 1);
-            str->data[str->size - 1] = '\0';
-        }
     } else {
         // Safe to resize - we own the buffer
         str->data = csound->ReAlloc(csound, str->data, newSize);
         str->size = newSize;
+        str->data[newSize - 1] = '\0';
     }
 }
 
@@ -144,6 +123,7 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
       memcpy(sDest->data, sSrc->data, sSrc->size);
     } else {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
+        sDest->data[sDest->size-1] = '\0';
     }
     sDest->timestamp = kcnt;
 }
