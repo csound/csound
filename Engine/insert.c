@@ -537,7 +537,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       // splice at the top of chaing
       ip->nxtact = nxtp->nxtact;
       nxtp->nxtact->prvact = ip;
-      nxtp->nxtact = ip;
+      if (nxtp->nxtact) nxtp->nxtact->prvact = ip;
       ip->prvact = nxtp;
     }
     else {  // default order
@@ -1571,6 +1571,7 @@ static void setup_opcode_argpp(
             }
             next = cs_strtok_r(NULL, ".", &th);
           }
+          csound->Free(csound, path);
         }
       }
       else if (arg->type == ARG_PFIELD) {
@@ -1639,6 +1640,7 @@ static void setup_opcode_argpp(
             next = cs_strtok_r(NULL, ".", &th);
           }
           argpp[n] = fltp;
+          csound->Free(csound, path);
         }
       }
       else if (arg->type == ARG_LABEL) {
