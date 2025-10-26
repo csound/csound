@@ -1560,14 +1560,22 @@ static void setup_opcode_argpp(
             CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
             CONS_CELL* members = type->members;
             int32_t i = 0;
+            int32_t found = 0;
             while(members != NULL) {
               CS_VARIABLE* member = (CS_VARIABLE*)members->value;
               if (!strcmp(member->varName, next)) {
                 fltp = &(structVar->members[i]->value);
+                found = 1;
                 break;
               }
               i++;
               members = members->next;
+            }
+            if (!found) {
+              csound->Free(csound, path);
+              csound->Die(csound,
+                Str("setup_opcode_argpp: struct member '%s' not found in structPath '%s' for %s"),
+                next, arg->structPath, ep->opname ? ep->opname : "(null)");
             }
             next = cs_strtok_r(NULL, ".", &th);
           }
@@ -1734,7 +1742,12 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     varPoolSize = tp->varPool->poolSize;
     varPoolCount = tp->varPool->varCount;
   } else {
-    csound->Message(csound, "Warning: instantiate: tp->varPool is null/corrupted, using default sizes\n");
+    // Treat this as a fatal initialization error
+    csound->InitError(csound,
+                      "Fatal initialization error in instantiate: tp->varPool is null or corrupted (tp=%p). "
+                      "This indicates a serious problem with instrument initialization.",
+                      (void*)tp);
+    return NULL;  // Abort the instantiation path
   }
 
   ip =
