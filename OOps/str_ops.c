@@ -826,7 +826,12 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->size < p->Ssrc->size) {
       size_t size = p->Ssrc->size;
-      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, size);
+      char *temp = csound->ReAlloc(csound, p->Sdst->data, size);
+      if (UNLIKELY(temp == NULL)) {
+        /* ReAlloc failed, keep the original buffer and return error */
+        return StrOp_ErrMsg(p, Str("strsub: memory allocation failure"));
+      }
+      p->Sdst->data = temp;
       p->Sdst->size = size;
     }
 
@@ -860,7 +865,12 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     src += strt;
     len = end - strt;
     if (UNLIKELY(len >=  p->Sdst->size)) {
-      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, len+1);
+      char *temp = csound->ReAlloc(csound, p->Sdst->data, len+1);
+      if (UNLIKELY(temp == NULL)) {
+        /* ReAlloc failed, keep the original buffer and return error */
+        return StrOp_ErrMsg(p, Str("memory allocation failure"));
+      }
+      p->Sdst->data = temp;
       p->Sdst->size = len+1;
       dst = (char*) p->Sdst->data;
     }
@@ -957,7 +967,12 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->size < p->Ssrc->size) {
       size_t size = p->Ssrc->size;
-      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, size);
+      char *temp = csound->ReAlloc(csound, p->Sdst->data, size);
+      if (UNLIKELY(temp == NULL)) {
+        /* ReAlloc failed, keep the original buffer and return error */
+        return csound->InitError(csound, Str("strupper: memory allocation failure"));
+      }
+      p->Sdst->data = temp;
       p->Sdst->size = size;
     }
 
@@ -985,7 +1000,12 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->size < p->Ssrc->size) {
       size_t size = p->Ssrc->size;
-      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, size);
+      char *temp = csound->ReAlloc(csound, p->Sdst->data, size);
+      if (UNLIKELY(temp == NULL)) {
+        /* ReAlloc failed, keep the original buffer and return error */
+        return csound->InitError(csound, Str("strlower: memory allocation failure"));
+      }
+      p->Sdst->data = temp;
       p->Sdst->size = size;
     }
 
@@ -1020,7 +1040,12 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
   char        buf[32];
 
   if (p->Sdst->size < 32){
-    p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, 32);
+    char *temp = csound->ReAlloc(csound, p->Sdst->data, 32);
+    if (UNLIKELY(temp == NULL)) {
+      /* ReAlloc failed, keep the original buffer and return error */
+      return csound->InitError(csound, Str("getcfg: memory allocation failure"));
+    }
+    p->Sdst->data = temp;
     p->Sdst->size = 32;
   }
   //((char*) p->Sdst->data)[0] = '\0';
@@ -1079,8 +1104,14 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
       p->Sdst->size = size;
     }
     else if (UNLIKELY(strlen(s) >=  p->Sdst->size)) {
-      p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, strlen(s) + 1);
-      p->Sdst->size = strlen(s) + 1;
+      size_t len = strlen(s) + 1;
+      char *temp = csound->ReAlloc(csound, p->Sdst->data, len);
+      if (UNLIKELY(temp == NULL)) {
+        /* ReAlloc failed, keep the original buffer and return error */
+        return csound->InitError(csound, Str("getcfg: memory allocation failure"));
+      }
+      p->Sdst->data = temp;
+      p->Sdst->size = len;
     }
     strcpy((char*) p->Sdst->data, s);
   }

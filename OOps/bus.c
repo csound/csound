@@ -2609,6 +2609,8 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
 {
   STRINGDAT* stringdat;
 
+  if (string == NULL) return;
+
   if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
                           CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS){
