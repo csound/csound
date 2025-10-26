@@ -744,14 +744,14 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
               str[n].size  = len+1;
             }
             MYFLT *s = ((MYFLT *) (((uint32_t *) buf) + 12));
-            snprintf(str[n].data, 2, "%d:", dim);
+            snprintf(str[n].data, 32, "%d:", dim);
             char *data = str[n].data + 2;
             snprintf(data, 32, "%d:[",size);
             data += 32;
             for(int i = 0; i < asize; i++) {
                 snprintf(data+15*i,15,"%f,", s[i]);
             }
-            snprintf(data+15*asize, 1, "%c", ']');
+            snprintf(data+15*asize, 2, "%c", ']');
             buf += len;
           }
           n++;

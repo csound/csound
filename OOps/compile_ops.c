@@ -140,8 +140,9 @@ OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
   if(p->address == NULL) return NULL;
   csoundSpinLock(lock);
   do {
-    if(!strcmp(p->address, address) && !strcmp(p->type, type) &&
-       p->flag) break;
+    if(p->flag &&
+      !strcmp(p->address, address)
+       && !strcmp(p->type, type)) break;
   } while((p = p->nxt) != NULL);
   csoundSpinUnLock(lock);
   return p;

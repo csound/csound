@@ -820,6 +820,13 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   if(root->type == FALSE_TOKEN)
     return create_ans_token(csound, "false");
 
+  if(root->type == TRUEK_TOKEN)
+    return create_ans_token(csound, "truek");
+
+  if(root->type == FALSEK_TOKEN)
+    return create_ans_token(csound, "falsek");
+  
+
   if(root->type == T_FUNCTION) {
     return create_expression(csound, root, line,
                              locn, typeTable);

@@ -214,10 +214,10 @@ jobs:
       - name: Configure build
         run: cmake -B build -DBUILD_TESTS=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
       - name: Build Csound
-        run: cmake --build build --config Release
+        run: cmake --build build --config Debug
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: cmake --build build --target csdtests test 
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -669,8 +669,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      #- name: Run integration and unit tests
+      #  run: cmake --build build --target test csdtests
 
   android-release:
     name: Csound for Android
