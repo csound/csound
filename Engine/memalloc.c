@@ -216,6 +216,7 @@ void mfree(CSOUND *csound, void *p)
     int found = 0;
     CSOUND_MEM_SPINLOCK
     memAllocBlock_t *cur = (memAllocBlock_t*) MEMALLOC_DB;
+    pp = NULL;
     while (cur != NULL) {
       // Calculate user pointer from header
       void *cur_ptr = (void*)((unsigned char*)cur + HDR_SIZE);
@@ -226,12 +227,15 @@ void mfree(CSOUND *csound, void *p)
       }
       cur = cur->nxt;
     }
-    CSOUND_MEM_SPINUNLOCK
 
     if (!found) {
+      CSOUND_MEM_SPINUNLOCK
       csound->Warning(csound, "csound->Free() called with invalid pointer (%p) (not found)", p);
       return;
     }
+
+    // Release the lock here since the actual free operation will acquire it again
+    CSOUND_MEM_SPINUNLOCK
 #endif
     CSOUND_MEM_SPINLOCK
     /* unlink from chain */
