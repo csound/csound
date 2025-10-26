@@ -406,13 +406,6 @@ int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
   dst->memberCount = sharedMemberCount;
   dst->ownsMembers = 0;
 
-  /* CRITICAL: Also make src point to the same shared memory (bidirectional) */
-  src->members     = sharedMembers;
-  src->memberCount = sharedMemberCount;
-  src->ownsMembers = 0;
-
-
-
   /* Safety: if destination was already aliased to the same source, skip deferred free */
   if (p->oldMembers == src->members) {
     p->oldMembers = NULL;
@@ -511,12 +504,6 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)(mem + offset);
   CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*) dat->out;
 
-  if (csound->GetDebug(csound)) {
-    csound->Message(csound,
-      "ARRAY_GET_STRUCT: srcVar=%p members=%p dstVar(out)=%p\n",
-      (void*)srcVar, (void*)(srcVar ? srcVar->members : NULL), (void*)dstVar);
-  }
-
   /* Add safety checks before accessing srcVar */
   if (UNLIKELY(srcVar == NULL)) {
 
@@ -553,8 +540,12 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
      element's member storage is separate from the output struct's storage */
   if (dstVar->members && srcVar->members && dstVar->memberCount == srcVar->memberCount) {
     for (int i = 0; i < srcVar->memberCount; i++) {
-      if (dstVar->members[i] && srcVar->members[i]) {
-        dstVar->members[i]->value = srcVar->members[i]->value;
+      CS_VAR_MEM *d = dstVar->members[i], *s = srcVar->members[i];
+      if (!d || !s) continue;
+      if (d->varType && d->varType->copyValue) {
+        d->varType->copyValue(csound, d->varType, &d->value, &s->value, dat->h.insdshead);
+      } else {
+        d->value = s->value;
       }
     }
     dstVar->ownsMembers = 0;
