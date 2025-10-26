@@ -98,11 +98,13 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
      // we need to remove these for the type system to recognise the type
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
-      snprintf(s, 16, "#%c%d[]", type[1], argCount);
-      if(*type == '[') // [type]
-      add_array_arg(csound, s,  NULL, 1, typeTable);
-      else // type[]
-      add_array_arg(csound, s,  type, 1, typeTable);
+      if(*type == '[') { // [type]
+        snprintf(s, 16, "#%c%d[]", type[1], argCount);
+        add_array_arg(csound, s,  NULL, 1, typeTable);
+      } else { // type[]
+        snprintf(s, 16, "#%c%d[]", type[0], argCount);
+        add_array_arg(csound, s,  type, 1, typeTable);
+      }
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
@@ -1265,28 +1267,19 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         return NULL;
       } else {
         // Check if it's an array
-        // For LHS array assignment, we need to return the array type (e.g., "k[]")
-        // not the element type (e.g., "k")
+        // For LHS array assignment, the temporary variable should have the element type
+        // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
         if (var->subType) {
-          // Generic array, use subType + []
-          size_t len = strlen(var->subType->varTypeName);
-          outType = csound->Malloc(csound, len + 3); // +3 for "[]" and null terminator
-          strcpy(outType, var->subType->varTypeName);
-          strcat(outType, "[]");
+          // Generic array, use subType (element type)
+          outType = strdup(var->subType->varTypeName);
         } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
           // Generic array with dimensions
-          size_t len = strlen(var->subType->varTypeName);
-          outType = csound->Malloc(csound, len + 3);
-          strcpy(outType, var->subType->varTypeName);
-          strcat(outType, "[]");
+          outType = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outType = "k";
         } else {
-          // Typed array like k[], varType is the element type, append []
-          size_t len = strlen(var->varType->varTypeName);
-          outType = csound->Malloc(csound, len + 3);
-          strcpy(outType, var->varType->varTypeName);
-          strcat(outType, "[]");
+          // Typed array like k[], varType is the element type
+          outType = strdup(var->varType->varTypeName);
         }
       }
 

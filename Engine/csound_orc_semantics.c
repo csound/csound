@@ -1131,6 +1131,23 @@ int32_t check_array_arg_in(char* found, char* required) {
 
 
 
+/* Helper function to normalize type names for comparison */
+static char* normalize_type_for_comparison(char* typeName) {
+  if (!typeName) return NULL;
+
+  // If it's in internal format (:TypeName;), extract the core name
+  if (typeName[0] == ':' && typeName[strlen(typeName) - 1] == ';') {
+    size_t len = strlen(typeName) - 2; // Remove : and ;
+    char* result = malloc(len + 1);
+    memcpy(result, typeName + 1, len);
+    result[len] = '\0';
+    return result;
+  }
+
+  // Otherwise, return a copy of the original name
+  return strdup(typeName);
+}
+
 int32_t check_in_arg(char* found, char* required) {
   char* t;
   int32_t i;
@@ -1141,6 +1158,19 @@ int32_t check_in_arg(char* found, char* required) {
   if (strcmp(found, required) == 0) {
     return 1;
   }
+
+  // For user-defined types, normalize both sides and compare
+  if (strlen(found) > 1 || strlen(required) > 1) {
+    char* found_normalized = normalize_type_for_comparison(found);
+    char* required_normalized = normalize_type_for_comparison(required);
+    int32_t result = (found_normalized && required_normalized &&
+                      strcmp(found_normalized, required_normalized) == 0);
+    if (found_normalized) free(found_normalized);
+    if (required_normalized) free(required_normalized);
+    if (result) return 1;
+  }
+
+
 
   // k-rate scalar can be used as k-rate boolean (B)
   if (found[0] == 'k' && required[0] == 'B') {
@@ -1308,6 +1338,17 @@ int32_t check_out_arg(char* found, char* required) {
 
   if (strcmp(found, required) == 0) {
     return 1;
+  }
+
+  // For user-defined types, normalize both sides and compare
+  if (strlen(found) > 1 || strlen(required) > 1) {
+    char* found_normalized = normalize_type_for_comparison(found);
+    char* required_normalized = normalize_type_for_comparison(required);
+    int32_t result = (found_normalized && required_normalized &&
+                      strcmp(found_normalized, required_normalized) == 0);
+    if (found_normalized) free(found_normalized);
+    if (required_normalized) free(required_normalized);
+    if (result) return 1;
   }
 
   // check for multichar types now
@@ -1654,7 +1695,74 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
     return cs_strdup(csound, "0");
   }
-  return get_arg_string_from_tree(csound, tree, typeTable);
+
+  // Use the same logic as get_out_types_from_tree to ensure consistent formatting
+  char* argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
+  int32_t i;
+  int32_t argsLen = 0;
+  i = 0;
+
+  TREE* current = tree;
+
+  while (current != NULL) {
+    // Use get_arg_type2 to extract the actual type from the tree node
+    char* argType = get_arg_type2(csound, current, typeTable);
+    if (argType == NULL) {
+      csound->Die(csound, "Could not parse type for argument");
+    }
+
+    int32_t argLen = (int32_t) strlen(argType);
+    int32_t offset = i * 256;
+
+    // Check if this is already in internal format or needs conversion
+    if (argType[0] == ':' && argType[argLen - 1] == ';') {
+      // Already in internal format, use as-is
+      strcpy(&argTypes[offset], argType);
+      argsLen += argLen;
+    } else if (argLen <= 3 && (argType[argLen-1] == ']' || argLen == 1)) {
+      // Built-in types (single char like 'i' or array like 'i[]')
+      strcpy(&argTypes[offset], argType);
+      argsLen += argLen;
+    } else {
+      // User-defined types (length > 1 and not built-in array) - convert to :TypeName; format
+      // Check if it's an array type
+      if (argLen > 2 && argType[argLen-2] == '[' && argType[argLen-1] == ']') {
+        // User-defined array type like "MyType[]" -> ":MyType;[]"
+        int32_t baseLen = argLen - 2; // Length without []
+        argTypes[offset] = ':';
+        memcpy(argTypes + offset + 1, argType, baseLen);
+        argTypes[offset + baseLen + 1] = ';';
+        argTypes[offset + baseLen + 2] = '[';
+        argTypes[offset + baseLen + 3] = ']';
+        argTypes[offset + baseLen + 4] = '\0';
+        argsLen += baseLen + 4;
+      } else {
+        // User-defined non-array type like "MyType" -> ":MyType;"
+        argTypes[offset] = ':';
+        memcpy(argTypes + offset + 1, argType, argLen);
+        argTypes[offset + argLen + 1] = ';';
+        argTypes[offset + argLen + 2] = '\0';
+        argsLen += argLen + 2;
+      }
+    }
+
+    csound->Free(csound, argType);
+    current = current->next;
+    i += 1;
+  }
+
+  char* argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  char* temp = argString;
+
+  for (i = 0; i < len; i++) {
+    int32_t size = (int32_t) strlen(&argTypes[i * 256]);
+    memcpy(temp, &argTypes[i * 256], size);
+    temp += size;
+  }
+
+  argString[argsLen] = '\0';
+  csound->Free(csound, argTypes);
+  return argString;
 }
 
 /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
@@ -1679,22 +1787,33 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
     int32_t offset = i * 256;
     argsLen += len;
 
-    // relying on the fact that built-in array types have
-    // arrays in different tree nodes from user defined structs
-    if (current->right != NULL && *current->right->value->lexeme == '[') {
+    // Check if this is an array type (has brackets in next node)
+    int32_t isArray = (current->right != NULL && *current->right->value->lexeme == '[');
+
+    if (len == 1) {
+      // Built-in single-character types (i, k, a, S, etc.)
       strcpy(&argTypes[offset], argType);
-      argTypes[offset + len] = '[';
-      argTypes[offset + len + 1] = ']';
-      argTypes[offset + len + 2] = '\0';
-      argsLen += 2;
-    } else if (len > 1) {
+      if (isArray) {
+        argTypes[offset + len] = '[';
+        argTypes[offset + len + 1] = ']';
+        argTypes[offset + len + 2] = '\0';
+        argsLen += 2;
+      }
+    } else {
+      // User-defined types (length > 1) - use :TypeName; format
       argTypes[offset] = ':';
       memcpy(argTypes + offset + 1, argType, len);
       argTypes[offset + len + 1] = ';';
-      argTypes[offset + len + 2] = '\0';
-      argsLen += 2;
-    } else {
-      strcpy(&argTypes[offset], argType);
+      if (isArray) {
+        // For user-defined array types, use :TypeName;[] format
+        argTypes[offset + len + 2] = '[';
+        argTypes[offset + len + 3] = ']';
+        argTypes[offset + len + 4] = '\0';
+        argsLen += 4;
+      } else {
+        argTypes[offset + len + 2] = '\0';
+        argsLen += 2;
+      }
     }
 
     current = current->next;

@@ -62,19 +62,6 @@ static char* map_udo_out_arg_type(char* in) {
     return in;
 }
 
-static void map_args(char* args) {
-    while (*args != '\0') {
-      if (*args == ':') {
-        while(*args != 0 && *args != ';') {
-          args++;
-        }
-      } else if (*args == 'K'){
-        *args = 'k';
-      }
-      args++;
-    }
-}
-
 /**
  *
   This function takes in the arguments from useropinfo in OENTRY and
@@ -281,8 +268,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
                                                                  inm->intypes);
     opc->outypes = cs_strdup(csound, (inm->outtypes[0] == '0') ? "" :
                                                                  inm->outtypes);
-    map_args(opc->intypes);
-    map_args(opc->outypes);
+    // Keep the internal format for type matching - do NOT apply map_args here
 
 early_exit:
     if(in_args != NULL) {
