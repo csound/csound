@@ -19,7 +19,7 @@ in stdenvWasm.mkDerivation rec {
 
   cmakeFlags = [
     "-DCMAKE_BUILD_TYPE=RELEASE"
-    "-DBUILD_SHARED_LIBS=ON"
+    "-DBUILD_SHARED_LIBS=OFF"
     "-DBUILD_PROGRAMS=OFF"
     "-DOPUS_BUILD_TESTING_HELP_STR=OFF"
   ];

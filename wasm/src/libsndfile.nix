@@ -43,7 +43,7 @@ in stdenvWasm.mkDerivation rec {
 
     cmakeFlags = [
       "-DCMAKE_BUILD_TYPE=RELEASE"
-      "-DBUILD_SHARED_LIBS=ON"
+      "-DBUILD_SHARED_LIBS=OFF"
       "-DBUILD_PROGRAMS=OFF"
       "-DBUILD_EXAMPLES=OFF"
       "-DBUILD_TESTING=OFF"

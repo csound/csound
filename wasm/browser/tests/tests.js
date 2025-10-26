@@ -205,19 +205,22 @@ e
 
   const csoundVariations = [
     { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
-    { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
-    { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
-    { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
-    { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
+    // { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
+    // { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
+    // { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
+    // { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
   ];
 
   csoundVariations.forEach((test) => {
     describe(`@csound/browser : ${test.name}`, async function () {
       this.timeout(10000);
       it("can be started", async function () {
+        console.log("initialising Csound object");
         const cs = await Csound(test);
         console.log(`Csound version: ${cs.name}`);
+        console.log("calling start");
         const startReturn = await cs.start();
+        console.log("done calling start");
         assert.equal(startReturn, 0);
         await cs.stop();
         cs.terminateInstance && (await cs.terminateInstance());

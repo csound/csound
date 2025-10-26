@@ -2,8 +2,12 @@ option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
 
 ## Csound Commandline Executable ##
-if(BUILD_CSOUND_COMMAND) 
-  set(CS_MAIN_SRCS csound/csound_main.c)
+if(BUILD_CSOUND_COMMAND)
+  if(CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+    set(CS_MAIN_SRCS ${CMAKE_SOURCE_DIR}/wasm/src/csound_wasm.c)
+  else()
+    set(CS_MAIN_SRCS csound/csound_main.c)
+  endif()
   if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(Threads)
     list(APPEND CS_MAIN_SRCS csound/sched.c)
@@ -17,7 +21,9 @@ if(BUILD_CSOUND_COMMAND)
   endif()
 
   # debugger command line app
-  make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+    make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+  endif()
 endif()
 
 # CsBeats

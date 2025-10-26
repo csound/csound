@@ -4,7 +4,7 @@ import * as constants from "./constants.js";
 const googPath = goog.require("goog.string.path");
 
 /** @define {boolean} */
-const DEBUG_WASI = goog.define("DEBUG_WASI", false);
+const DEBUG_WASI = goog.define("DEBUG_WASI", true);
 
 function removeLeadingSlash(path) {
   return path.replace(/^\//g, "");
@@ -767,6 +767,7 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     const bufLength = memory.getUint32(ptr + 4, true);
     written += bufLength;
     const chunk = new Uint8Array(memory.buffer, buf, bufLength);
+    console.log(decoder.decode(chunk));
     if (append) {
       this.fd[fd].buffers.unshift(chunk.slice(0, bufLength));
     } else {

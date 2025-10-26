@@ -538,8 +538,8 @@ static int32_t csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   while (deny) {
     /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
     if (strcmp(deny, buff)==0) {
-      csound->Free(csound, p); 
-      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); 
+      csound->Free(csound, p);
+      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__);
       return 1;
     }
     deny = cs_strtok_r(NULL, ",", &th);
@@ -1234,18 +1234,20 @@ extern int32_t pvsopc_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
+#ifndef __wasi__
 extern int32_t csoundModuleInit_ampmidid(CSOUND *csound);
 extern int32_t csoundModuleCreate_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_mixer(CSOUND *csound);
 extern int32_t csoundModuleInit_doppler(CSOUND *csound);
-#ifndef BARE_METAL
-extern int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
-#endif
 extern int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
 extern int32_t arrayops_init_modules(CSOUND *csound);
 extern int32_t lfsr_init_modules(CSOUND *csound);
 extern int32_t pvsops_init_modules(CSOUND *csound);
 extern int32_t trigEnv_init_modules(CSOUND *csound);
+#endif
+#ifndef BARE_METAL
+extern int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
+#endif
 extern int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
 extern int32_t scansyn_init_(CSOUND *csound);
 extern int32_t scansynx_init_(CSOUND *csound);
@@ -1329,19 +1331,21 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
     pvsopc_ModuleInit,
     sfont_ModuleCreate,
     sfont_ModuleInit,
+#if !defined(__wasi__)
     csoundModuleInit_ampmidid,
     csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
-#if !defined(BARE_METAL) && !defined(__wasi__)
-    csoundModuleInit_ftsamplebank,
-#endif
     csoundModuleInit_signalflowgraph,
     arrayops_init_modules,
     lfsr_init_modules,
     pvsops_init_modules,
     trigEnv_init_modules,
     csoundModuleInit_fractalnoise,
+#endif
+#if !defined(BARE_METAL) && !defined(__wasi__)
+    csoundModuleInit_ftsamplebank,
+#endif
     scansyn_init_,
     scansynx_init_,
     NULL

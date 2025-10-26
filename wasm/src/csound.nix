@@ -16,6 +16,8 @@ let
   libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm; };
   libvorbis = pkgs.callPackage ./libvorbis.nix { inherit pkgs pkgsWasm; };
   liblame = pkgs.callPackage ./liblame.nix { inherit pkgs pkgsWasm; };
+  libFLAC = pkgs.callPackage ./libflac.nix { inherit pkgs pkgsWasm; };
+  libopus = pkgs.callPackage ./libopus.nix { inherit pkgs pkgsWasm; };
 
   gitignoreSrc = pkgs.fetchFromGitHub {
     owner = "hercules-ci";
@@ -37,6 +39,7 @@ stdenvWasm.mkDerivation rec {
     bison
     cmake
     zopfli
+    pkg-config
   ];
 
   buildInputs = [
@@ -45,12 +48,18 @@ stdenvWasm.mkDerivation rec {
     libvorbis
   ];
 
+  # enableParallelBuilding = false;
+
   cmakeFlags = [
     "-DBUILD_DIR=build"
     "-DUSE_IPMIDI=OFF"
-    "-DUSE_STATIC_DEPS=ON"
-    "-DLAME_LIBRARY=${liblame}/lib/libmp3lame.a"
-    "-DVorbiss_INCLUDE_DIR=${libvorbis}/include"
+    "-DBUILD_SHARED_LIBS=OFF"
+    "-DBUILD_STATIC_LIBRARY=ON"
+    "-DCUSTOM_MALLOC=ON"
+    # Skip util libraries that try to build .so
+    "-DBUILD_UTILITIES=OFF"
+    # Skip deprecated opcodes that try to build .so
+    "-DBUILD_DEPRECATED_OPCODES=OFF"
   ];
 
   NIX_CFLAGS_COMPILE = [
@@ -62,8 +71,19 @@ stdenvWasm.mkDerivation rec {
   NIX_LDFLAGS = [
     "-lwasi-emulated-signal"
     "-lwasi-emulated-process-clocks"
-    "-L${libvorbis}/lib/libvorbis.a"
-  ];
+    "--lto-O2"
+    "--no-entry"
+    "--gc-sections"
+    "-z,stack-size=131072"
+    "${libogg}/lib/libogg.a"
+    "${libFLAC}/lib/libFLAC.a"
+    "${libvorbis}/lib/libvorbis.a"
+    "${libvorbis}/lib/libvorbisenc.a"
+    "${libogg}/lib/libogg.a"
+    "${libopus}/lib/libopus.a"
+  ] ++ (
+    builtins.map (name: "--export-if-defined=" + name)
+    (builtins.fromJSON (builtins.readFile ./exports.json)));
 
   postInstall = ''
     # make a compressed version for the browser bundle

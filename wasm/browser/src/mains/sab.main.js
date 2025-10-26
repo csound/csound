@@ -385,6 +385,7 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
+            console.log("STARTING SAB?");
             if (this.eventPromises.isWaiting("start")) {
               return -1;
             } else {

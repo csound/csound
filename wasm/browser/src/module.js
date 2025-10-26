@@ -13,6 +13,7 @@ const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 // shared state
 const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
 let currentJmpBuf = null;
+let tempRet0 = 0; // for 64-bit return value handling
 
 function saveSetjmp(jmpbuf, label) {
   jumpTable.set(jmpbuf, label);
@@ -34,6 +35,14 @@ function longjmp(jmpbuf, value) {
 
 function __wasm_longjmp(jmpbuf, value) {
   throw { __longjmp__: true, jmpbuf, value };
+}
+
+function getTempRet0() {
+  return tempRet0;
+}
+
+function setTempRet0(value) {
+  tempRet0 = value;
 }
 
 export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer, wasi }) => {
@@ -110,95 +119,118 @@ const assertPluginExports = (pluginInstance) => {
   }
 };
 
-const getBinaryHeaderData = (wasmBytes) => {
-  const magicBytes = new Uint32Array(new Uint8Array(wasmBytes.subarray(0, 24)).buffer);
-  // eslint-disable-next-line unicorn/number-literal-case
-  if (magicBytes[0] !== 0x6d736100) {
+// Accepts ArrayBuffer or Uint8Array
+export function getBinaryHeaderData(input) {
+  const wasmBytes = input instanceof Uint8Array ? input : new Uint8Array(input);
+
+  // Check magic \0asm (little-endian 0x6d736100)
+  if (wasmBytes.length < 8) {
+    return { hasDylink: false, sectionSize: 0, memorySize: 0, memoryAlign: 0, tableSize: 0, tableAlign: 0, neededDynlibsCount: 0, neededDynlibs: [] };
+  }
+  const magic =
+    wasmBytes[0] |
+    (wasmBytes[1] << 8) |
+    (wasmBytes[2] << 16) |
+    (wasmBytes[3] << 24);
+
+  if (magic !== 0x6d736100) {
     console.error("Wasm magic number is missing!");
-  }
-  if (wasmBytes[8] !== 0) {
-    log("Dylink section wasn't found in wasm binary, assuming static wasm.");
-    return "static";
+    return { hasDylink: false, sectionSize: 0, memorySize: 0, memoryAlign: 0, tableSize: 0, tableAlign: 0, neededDynlibsCount: 0, neededDynlibs: [] };
   }
 
-  let next = 9;
-  function getLEB() {
-    let returnValue = 0;
-    let mul = 1;
-    while (1) {
-      const byte = wasmBytes[next++];
-      // eslint-disable-next-line unicorn/number-literal-case
-      returnValue += (byte & 0x7f) * mul;
-      mul *= 0x80;
-      if (!(byte & 0x80)) break;
+  // Cursor after magic(4) + version(4)
+  let pos = 8;
+
+  // helpers
+  function readULEB() {
+    let result = 0;
+    let shift = 0;
+    for (;;) {
+      if (pos >= wasmBytes.length) throw new Error("Unexpected EOF reading ULEB");
+      const byte = wasmBytes[pos++];
+      result |= (byte & 0x7f) << shift;
+      if ((byte & 0x80) === 0) break;
+      shift += 7;
     }
-    return returnValue;
+    return result;
   }
 
-  const sectionSize = getLEB();
-  next++; // size of "dylink" string
-  assert(wasmBytes[next] === "d".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === "y".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === "l".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === "i".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === "n".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === "k".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === ".".codePointAt(0));
-  next++;
-  assert(wasmBytes[next] === "0".codePointAt(0));
-  next += 3;
+  function readBytes(n) {
+    if (pos + n > wasmBytes.length) throw new Error("Unexpected EOF reading bytes");
+    const sub = wasmBytes.subarray(pos, pos + n);
+    pos += n;
+    return sub;
+  }
 
-  const memorySize = getLEB();
-  const memoryAlign = getLEB();
-  const tableSize = getLEB();
-  const tableAlign = getLEB();
-  const neededDynlibsCount = getLEB();
+  function readName() {
+    const len = readULEB();
+    const bytes = readBytes(len);
+    // ASCII for section names
+    let s = "";
+    for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+    return s;
+  }
 
-  return { sectionSize, memorySize, memoryAlign, neededDynlibsCount, tableSize, tableAlign };
-};
+  // Defaults for static WASM (no dylink)
+  const defaults = { hasDylink: false, sectionSize: 0, memorySize: 0, memoryAlign: 0, tableSize: 0, tableAlign: 0, neededDynlibsCount: 0, neededDynlibs: [] };
 
-// currently dl is default, static is good for low level debugging
-const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
-  const module = await WebAssembly.compile(wasmBytes);
-  const memory = new WebAssembly.Memory({ initial: 65536 / 4 });
-  const streamBuffer = [];
-  const options = wasi.getImports(module);
-  options.env = options.env || {};
-  options.env.csoundLoadModules = () => 0;
-  options.env.memory = memory;
-  options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
-    memory: options.env.memory,
-    streamBuffer,
-    messagePort,
-  });
-  options.env.saveSetjmp = saveSetjmp;
-  options.env.testSetjmp = testSetjmp;
-  options.env.longjmp = longjmp;
-  options.env.__wasm_longjmp = __wasm_longjmp;
+  // Iterate sections
+  while (pos < wasmBytes.length) {
+    const id = wasmBytes[pos++];                 // section id (0 = custom)
+    const size = readULEB();                      // section size (bytes)
+    const sectionStart = pos;
 
-  // weird glue needed because wasi-libc emulators target emscripten
-  let tempRet0 = 0;
-  options.env.getTempRet0 = () => tempRet0;
-  options.env.setTempRet0 = (value) => {
-    tempRet0 = value || 0;
-  };
+    if (id === 0 /* custom */) {
+      const namePos = pos;                        // remember to compute name+payload size
+      const name = readName();                    // custom section name
+      if (name === "dylink" || name === "dylink.0") {
+        // Parse dylink(.0) payload
+        // Spec (Emscripten): ULEB memorySize, ULEB memoryAlign, ULEB tableSize, ULEB tableAlign, ULEB neededDynlibsCount, then that many length-prefixed names
+        const memorySize = readULEB();
+        const memoryAlign = readULEB();
+        const tableSize = readULEB();
+        const tableAlign = readULEB();
+        const neededDynlibsCount = readULEB();
 
-  /**
-   * @suppress {checkTypes}
-   * @type {WasmInst} */
-  const instance = await WebAssembly.instantiate(module, options);
+        const neededDynlibs = [];
+        for (let i = 0; i < neededDynlibsCount; i++) {
+          neededDynlibs.push(readName());
+        }
 
-  wasi.setMemory(memory);
-  wasi.start(instance);
-  instance.exports.__wasi_js_csoundSetMessageStringCallback();
-  return [instance, wasi];
-};
+        const sectionSize = size; // raw size field for the custom section
+
+        // Done — return immediately
+        return {
+          hasDylink: true,
+          sectionSize,
+          memorySize,
+          memoryAlign,
+          tableSize,
+          tableAlign,
+          neededDynlibsCount,
+          neededDynlibs,
+        };
+      } else {
+        // Not the dylink section; skip remainder of this custom section payload
+        const consumed = pos - namePos; // bytes after we started inside payload
+        const remaining = size - consumed;
+        pos += Math.max(0, remaining);
+      }
+    } else {
+      // Non-custom: just skip the payload
+      pos += size;
+    }
+
+    // Safety: ensure we don't desync
+    if (pos !== sectionStart + size) {
+      pos = sectionStart + size;
+    }
+  }
+
+  // No dylink section found => static binary
+  return defaults;
+}
+
 
 export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasmFs = {};
@@ -211,11 +243,11 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasmBytes = wasmZlib.decompress();
 
   const magicData = getBinaryHeaderData(wasmBytes);
-  if (magicData === "static") {
-    return await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi });
-  }
+  // if (magicData === "static") {
+  //   return await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi });
+  // }
   const { memorySize, memoryAlign, tableSize } = magicData;
-
+  console.log({magicData});
   // get the header data from plugins which we need before
   // initializing the main module
   withPlugins = await withPlugins.reduce(async (accumulator, wasmPlugin) => {
@@ -248,7 +280,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData }) =>
-        headerData === "static" ? 0 : accumulator + (headerData.memorySize + memoryAlign),
+        accumulator + (headerData.memorySize + memoryAlign),
       0,
     ) / PAGE_SIZE,
   );
@@ -304,6 +336,14 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
   options["env"]["csoundLoadExternals"] = () => {};
+
+  // Add setjmp/longjmp functions to the environment
+  options["env"]["saveSetjmp"] = saveSetjmp;
+  options["env"]["testSetjmp"] = testSetjmp;
+  options["env"]["longjmp"] = longjmp;
+  options["env"]["__wasm_longjmp"] = __wasm_longjmp;
+  options["env"]["getTempRet0"] = getTempRet0;
+  options["env"]["setTempRet0"] = setTempRet0;
 
   // TODO find out what's leaking this thread-local errno (cpp?)
   options["env"]["_ZTH5errno"] = function () {};
@@ -388,7 +428,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   }, []);
 
   wasi.start(instance_);
-
+  console.log({instance: instance_});
   instance_["exports"]["__wasi_js_csoundSetMessageStringCallback"]();
   return [instance_, wasi];
 }

@@ -941,9 +941,14 @@ set(externs_SRCS
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+    # Disable shared libraries for WASI to avoid -shared flag warning
+    set(BUILD_SHARED_LIBS OFF)
     list(REMOVE_ITEM externs_SRCS Opcodes/counter.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/serial.c)
     list(REMOVE_ITEM externs_SRCS Opcodes/system_call.c)
+    # Add WASI-specific source file
+    list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
+    list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
 endif()
 
 set(newgabops_SRCS
@@ -1067,20 +1072,28 @@ set(mp3in_SRCS
     InOut/libmpadec/mp3dec.c)
 
 
-set(cppops_SRCS
-   Opcodes/ampmidid.cpp
-   Opcodes/mixer.cpp
-   Opcodes/bformdec2.cpp
-   Opcodes/doppler.cpp
-   Opcodes/ftsamplebank.cpp
-   Opcodes/padsynth_gen.cpp
-   Opcodes/signalflowgraph.cpp
-   Opcodes/arrayops.cpp
-   Opcodes/lfsr.cpp
-   Opcodes/pvsops.cpp
-   Opcodes/trigEnvSegs.cpp
-   Opcodes/tl/fractalnoise.cpp
-)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+    # Only include C++ opcodes for non-WASI builds
+    set(cppops_SRCS
+       Opcodes/ampmidid.cpp
+       Opcodes/mixer.cpp
+       Opcodes/bformdec2.cpp
+       Opcodes/doppler.cpp
+       Opcodes/ftsamplebank.cpp
+       Opcodes/padsynth_gen.cpp
+       Opcodes/signalflowgraph.cpp
+       Opcodes/arrayops.cpp
+       Opcodes/lfsr.cpp
+       Opcodes/pvsops.cpp
+       Opcodes/trigEnvSegs.cpp
+       Opcodes/tl/fractalnoise.cpp
+    )
+else()
+    # Limited C++ opcodes for WASI builds
+    set(cppops_SRCS
+        Opcodes/bformdec2.cpp
+        Opcodes/padsynth_gen.cpp)
+endif()
 
 list(APPEND libcsound_SRCS)
 
@@ -1106,7 +1119,7 @@ endif()
  list(APPEND libcsound_static_SRCS ${unixops_SRCS})
 endif()
 
-if(BUILD_PERFTHREAD_CLASS)
+if(BUILD_PERFTHREAD_CLASS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
     list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
     list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
