@@ -624,7 +624,7 @@ static int32_t osc_listener_init(CSOUND *csound, OSCINIT *p)
     } else {
       csound->Message(csound, CSOUNDMSG_ERROR,
                      "OSC: Failed to allocate memory for ports\n");
-      return;
+      return NOTOK;
     }
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int32_t) *(p->port));
