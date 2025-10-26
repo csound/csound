@@ -83,6 +83,7 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
     if (outlist != NULL) {
       for (int i = 0; i < outlist->count; i++) {
         char *varName = outlist->arg[i];
+        if (!varName) continue;
         if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
           continue;
         }
@@ -97,6 +98,7 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
     if (inlist != NULL) {
       for (int i = 0; i < inlist->count; i++) {
         char *varName = inlist->arg[i];
+        if (!varName) continue;
         if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
           continue;
         }
@@ -780,12 +782,6 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   // for copying at perf-time
   current = inm->out_arg_pool->head;
 
-  if(inm->passByRef) {
-    // In pass-by-ref mode, we still need xout to work normally
-    // for local variables that are not direct parameter references
-    // Don't return early - let xout work normally
-  }
-
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
     void* out = (void*) bufs[i];
@@ -798,12 +794,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 
     // Arrays: alias pointer (no deep copy). Ensure external output points to local header.
     if (outType == &CS_VAR_TYPE_ARRAY) {
-      //ARRAYDAT* aIn = (ARRAYDAT*) in;
-      //ARRAYDAT* aOutHdr = *((ARRAYDAT**) out);
-      // Alias: write the local array header pointer into the caller's variable cell
       *((void**)out) = in;
-      //aOutHdr = *((ARRAYDAT**) out);
-      // no copyValue; arrays are shared by pointer
       continue;
     }
     // Scalars and strings: copy by value; strings deep copy
