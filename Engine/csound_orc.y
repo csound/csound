@@ -99,6 +99,8 @@
 %token IN_TOKEN
 %token TRUE_TOKEN
 %token FALSE_TOKEN
+%token TRUEK_TOKEN
+%token FALSEK_TOKEN
 
 
 %token S_ELIPSIS
@@ -966,11 +968,18 @@ string : STRING_TOKEN
 false_const: FALSE_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, FALSE_TOKEN,
                         make_token(csound,"false")); }
+       | FALSEK_TOKEN
+       { $$ = make_leaf(csound, LINE,LOCN, FALSEK_TOKEN,
+                        make_token(csound,"falsek")); }
+       
        ;
 
 true_const: TRUE_TOKEN
            { $$ = make_leaf(csound, LINE,LOCN, TRUE_TOKEN,
                             make_token(csound,"true")); }
+       | TRUEK_TOKEN
+       { $$ = make_leaf(csound, LINE,LOCN, TRUEK_TOKEN,
+                        make_token(csound,"truek")); }
        ;
 
 

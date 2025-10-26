@@ -147,6 +147,8 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "@k"            { return T_MAPK; }
 "false"         { return FALSE_TOKEN; }
 "true"          { return TRUE_TOKEN; }
+"falsek"        { return FALSEK_TOKEN; }
+"truek"         { return TRUEK_TOKEN; }
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }

@@ -2651,6 +2651,7 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     vfprintf(stdout, format, args);
   }
 #else
+  int flag  = 0;
   FILE *fp = stderr;
   if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
     fp = stdout;
@@ -2658,19 +2659,25 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     vfprintf(fp, format, args);
     return;
   }
-  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
-    if (attr & CSOUNDMSG_BG_COLOR_MASK)
+  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH) 
+    if (attr & CSOUNDMSG_BG_COLOR_MASK) {
+      flag = 1;
       fprintf(fp, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
+    }
+      
   if (attr & CSOUNDMSG_FG_ATTR_MASK) {
+    flag = 1;
     if (attr & CSOUNDMSG_FG_BOLD)
       fprintf(fp, "\033[1m");
     if (attr & CSOUNDMSG_FG_UNDERLINE)
       fprintf(fp, "\033[4m");
   }
-  if (attr & CSOUNDMSG_FG_COLOR_MASK)
+  if (attr & CSOUNDMSG_FG_COLOR_MASK) {
     fprintf(fp, "\033[3%cm", (attr & 7) + '0');
+    flag = 1;
+  }
   vfprintf(fp, format, args);
-  fprintf(fp, "\033[m");
+  if(flag) fprintf(fp, "\033[m");
 #endif
 }
 

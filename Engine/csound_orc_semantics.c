@@ -874,7 +874,29 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     *p = 1;
     }
   }
-   return cs_strdup(csound, "b");     /* boolean */
+  return cs_strdup(csound, "b");     /* boolean */
+  case FALSEK_TOKEN: {  // trap false expr here
+    CS_VARIABLE *var = find_var_from_pools(csound, "falsek",
+                                           "falsek", typeTable);
+    if(var == NULL) {
+    var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "falsek", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 0;
+    }
+  }
+  return cs_strdup(csound, "B");  /* Boolean */
+  case TRUEK_TOKEN: { // trap true expr here
+     CS_VARIABLE *var = find_var_from_pools(csound, "truek",
+                                           "truek", typeTable);
+    if(var == NULL) {   
+     var = add_global_variable(csound, &csound->engineState,
+                        (CS_TYPE*)&CS_VAR_TYPE_b, "truek", NULL);
+    int32_t *p = (int32_t *) &(var->memBlock->value);
+    *p = 1;
+    }
+  }
+  return cs_strdup(csound, "B");     /* Boolean */ 
   case STRING_TOKEN:
     return cs_strdup(csound, "S");   /* quoted String */
   case LABEL_TOKEN:
