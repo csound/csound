@@ -3526,10 +3526,10 @@ int32_t array2asig_perf(CSOUND *csound, ARR2A *p) {
 
 int32_t scalarset(CSOUND *csound, TABCOPY *p) {
   IGN(csound);
-  uint32_t siz = 0 , dim = p->tab->dimensions, i;
+  uint32_t siz = p->tab->sizes[0], dim = p->tab->dimensions, i;
   MYFLT val = *p->kfn;
-  for (i=0; i < dim; i++)
-    siz += p->tab->sizes[i];
+  for (i=1; i < dim; i++)
+    siz *= p->tab->sizes[i];
   for (i=0; i < siz; i++)
     p->tab->data[i] = val;
   return OK;
@@ -3538,15 +3538,15 @@ int32_t scalarset(CSOUND *csound, TABCOPY *p) {
 int32_t arrayass(CSOUND *csound, TABCOPY *p)
 {
   IGN(csound);
-  uint32_t siz = 0 , dim = p->tab->dimensions, i;
+  uint32_t siz  = p->tab->sizes[0], dim = p->tab->dimensions, i;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   int32_t span = (p->tab->arrayMemberSize)/sizeof(MYFLT);
   MYFLT *val = p->kfn;
 
-  for (i=0; i < dim; i++)
-    siz += p->tab->sizes[i];
+  for (i=1; i < dim; i++)
+    siz *= p->tab->sizes[i];
   for (i=0; i < siz; i++) {
     int32_t pp = i*span;
     for (n=0; n<offset; n++)
