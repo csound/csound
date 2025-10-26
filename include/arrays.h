@@ -90,8 +90,8 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
             for (; i < size; i++) {
               var2->initializeVariableMemory(csound, var2, (MYFLT*)(base + i * blockSize));
             }
-            csound->Free(csound, var2);
           }
+          csound->Free(csound, var2);
         }
     }
     if (p->dimensions==1) p->sizes[0] = size;
@@ -143,8 +143,8 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
         for (; i < elemCount; i++) {
           var->initializeVariableMemory(csound, var, (MYFLT*)(base + i * blockSize));
         }
-        csound->Free(csound, var);
       }
+      csound->Free(csound, var);
     } else {
       size_t bytes = (size_t)p->arrayMemberSize * (size_t)elemCount;
       if (bytes > p->allocated) {
