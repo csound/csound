@@ -224,6 +224,16 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
             if (UNLIKELY(wrapper == NULL)) {
               csound->ErrorMsg(csound, "Memory allocation failed for struct wrapper node\n");
               err = 3;
+
+              // Clean up any already allocated wrapper nodes before jumping to ending
+              TREE* current = structList;
+              while (current != NULL) {
+                TREE* next = current->next;
+                csound->Free(csound, current);
+                current = next;
+              }
+              structList = NULL;
+
               goto ending;
             }
 
