@@ -2772,13 +2772,13 @@ int32_t tabqset1(CSOUND *csound, TABQUERY1 *p)
 int32_t tabmax(CSOUND *csound, TABQUERY *p)
 {
   ARRAYDAT *t = p->tab;
-  int32_t i, size = 0, pos = 0;;
+  int32_t i, size = t->sizes[0], pos = 0;;
   MYFLT ans;
 
   if (UNLIKELY(t->data == NULL))
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("array-variable not initialised"));
-  for (i=0; i<t->dimensions; i++) size += t->sizes[i];
+  for (i=1; i<t->dimensions; i++) size *= t->sizes[i];
   ans = t->data[0];
   for (i=1; i<size; i++)
     if (t->data[i]>ans) {
@@ -2799,13 +2799,13 @@ int32_t tabmax1(CSOUND *csound, TABQUERY *p)
 int32_t tabmin(CSOUND *csound, TABQUERY *p)
 {
   ARRAYDAT *t = p->tab;
-  int32_t i, size = 0, pos = 0;
+  int32_t i, size = t->sizes[0], pos = 0;
   MYFLT ans;
 
   if (UNLIKELY(t->data == NULL))
     return csound->PerfError(csound, &(p->h),
                              "%s", Str("array-variable not initialised"));
-  for (i=0; i<t->dimensions; i++) size += t->sizes[i];
+  for (i=1; i<t->dimensions; i++) size *= t->sizes[i];
   ans = t->data[0];
   for (i=1; i<size; i++)
     if (t->data[i]<ans) {
@@ -2827,7 +2827,7 @@ int32_t tabmin1(CSOUND *csound, TABQUERY *p)
 int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
 {
   ARRAYDAT *t = p->tab;
-  int32_t i, numarrays = 0;
+  int32_t i, numarrays = t->sizes[0];
   MYFLT *ans = p->ans, *in0, *in1, *in2, *in3;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2848,7 +2848,7 @@ int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
     memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for (i=0; i<t->dimensions; i++) numarrays += t->sizes[i];
+  for (i=1; i<t->dimensions; i++) numarrays *= t->sizes[i];
 
   memset(&ans[offset], '\0', nsmps*sizeof(MYFLT));
 
