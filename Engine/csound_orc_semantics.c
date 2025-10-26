@@ -3083,7 +3083,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
-  csound->ErrorMsg(csound, Str("\nerror: %s  (token \"%s\")"),
+  csound->ErrorMsg(csound, Str("\nerror: %s (token \"%s\")\n"),
                   str, csound_orcget_text(yyscanner));
   do_baktrace(csound, files);
   csound->ErrorMsg(csound, Str(" line %d:\n>>>"), line);
