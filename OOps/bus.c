@@ -943,6 +943,10 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
                     csoundSpinLock(p->lock);
                     STRINGDAT* src = (STRINGDAT*) p->channelPtrs[index];
                     STRINGDAT* dest = &strings[index];
+                    if (src->data == NULL) {
+                      csoundSpinUnLock(p->lock);
+                      continue;
+                    }
                     size_t len = strlen(src->data);
                     if (len >= (uint32_t) dest->size) {
                         dest->data = csound->ReAlloc(csound, dest->data, len + 1);
@@ -1066,6 +1070,10 @@ int32_t chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
 
         STRINGDAT* src = (STRINGDAT*) p->channelPtrs[index];
         STRINGDAT* dest = &strings[index];
+        if (src->data == NULL) {
+            csoundSpinUnLock(p->lock);
+            return print_chn_err(p, CSOUND_ERROR);
+        }
         size_t len = strlen(src->data);
         if (len >= (uint32_t) dest->size) {
             dest->data = csound->ReAlloc(csound, dest->data, len + 1);
@@ -1282,6 +1290,10 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
 
             STRINGDAT* src = &strings[index];
             STRINGDAT* dest = (STRINGDAT*) p->channelPtrs[index];
+            if (src->data == NULL) {
+              csoundSpinUnLock(p->lock);
+              continue;
+            }
             size_t len = strlen(src->data);
             if (len >= (uint32_t) dest->size) {
                 dest->data = csound->ReAlloc(csound, dest->data, len + 1);

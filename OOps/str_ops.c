@@ -136,7 +136,12 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     ss = get_arg_string(csound, *p->indx);
     size_t len = strlen(ss);
     if (len >= p->r->size) {
-      p->r->data = csound->ReAlloc(csound, p->r->data, len + 1);
+      char *temp = csound->ReAlloc(csound, p->r->data, len + 1);
+      if (UNLIKELY(temp == NULL)) {
+        return csoundInitError(csound, "strget_init: allocation failure");
+      }
+      /* Only update the structure after successful reallocation */
+      p->r->data = temp;
       p->r->size = len + 1;
     }
     if (p->r->data != NULL) {
@@ -212,11 +217,24 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
     }
     size_t len = strlen(ss);
     if (len >= (size_t) p->r->size) {
-      p->r->data = csound->ReAlloc(csound, p->r->data, len + 1);
-      p->r->size = (int32_t) (len + 1);
+      void *newp = csound->ReAlloc(csound, p->r->data, len + 1);
+      if (newp == NULL) {
+        /* ReAlloc failed, keep the original buffer and return error */
+        if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL)) {
+          return csoundPerfError(csound, (OPDS*)p,
+                                 Str("strcpy_opcode_p: Memory allocation failed\n"));
+        } else {
+          return csoundInitError(csound, "strcpy_opcode_p: allocation failure");
+        }
+      }
+      /* Only update the structure after successful reallocation */
+      p->r->data = newp;
+      p->r->size = (int32_t)(len + 1);
     }
-    if (p->r->data != NULL)
-      strcpy(p->r->data, ss);
+
+    strNcpy(p->r->data, ss, p->r->size);
+    p->r->data[p->r->size - 1] = '\0';
+
   }
   else {
     p->r->data = csound->StringArg2Name(csound, p->r->data, p->indx, "soundin.", 0);
