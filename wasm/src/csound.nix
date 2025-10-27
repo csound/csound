@@ -9,15 +9,15 @@ let
   llvm  = pkgs.llvmPackages_latest;
 
   pkgsWasm = pkgs.pkgsCross.wasi32;
-  stdenvWasm = pkgsWasm.clang17Stdenv;
+  stdenvWasm = pkgsWasm.clangStdenv;
 
   exports = with builtins; (fromJSON (readFile ./exports.json));
-  libsndfile = pkgs.callPackage ./libsndfile.nix { inherit pkgs pkgsWasm; };
-  libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm; };
-  libvorbis = pkgs.callPackage ./libvorbis.nix { inherit pkgs pkgsWasm; };
-  liblame = pkgs.callPackage ./liblame.nix { inherit pkgs pkgsWasm; };
-  libFLAC = pkgs.callPackage ./libflac.nix { inherit pkgs pkgsWasm; };
-  libopus = pkgs.callPackage ./libopus.nix { inherit pkgs pkgsWasm; };
+  libsndfile = pkgs.callPackage ./libsndfile.nix { inherit pkgs pkgsWasm stdenvWasm; };
+  libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm stdenvWasm; };
+  libvorbis = pkgs.callPackage ./libvorbis.nix { inherit pkgs pkgsWasm stdenvWasm; };
+  liblame = pkgs.callPackage ./liblame.nix { inherit pkgs pkgsWasm stdenvWasm; };
+  libFLAC = pkgs.callPackage ./libflac.nix { inherit pkgs pkgsWasm stdenvWasm; };
+  libopus = pkgs.callPackage ./libopus.nix { inherit pkgs pkgsWasm stdenvWasm; };
 
   gitignoreSrc = pkgs.fetchFromGitHub {
     owner = "hercules-ci";
@@ -68,12 +68,16 @@ stdenvWasm.mkDerivation rec {
     "-mllvm -wasm-enable-sjlj"
   ];
 
+  # NIX_CFLAGS_LINK = [ "-nostartfiles" ];
+
   NIX_LDFLAGS = [
     "-lwasi-emulated-signal"
     "-lwasi-emulated-process-clocks"
     "--lto-O2"
     "--no-entry"
     "--gc-sections"
+    "--export-table" # plugins do the reverse and import
+    "--import-memory"
     "-z,stack-size=131072"
     "${libogg}/lib/libogg.a"
     "${libFLAC}/lib/libFLAC.a"
@@ -81,6 +85,8 @@ stdenvWasm.mkDerivation rec {
     "${libvorbis}/lib/libvorbisenc.a"
     "${libogg}/lib/libogg.a"
     "${libopus}/lib/libopus.a"
+    "--export=__heap_base"
+    "--export=__data_end"
   ] ++ (
     builtins.map (name: "--export-if-defined=" + name)
     (builtins.fromJSON (builtins.readFile ./exports.json)));

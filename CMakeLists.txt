@@ -714,7 +714,7 @@ list(APPEND libcsound_private_include_dirs
 )
 
 #checking pthread functions
-if(REQUIRE_PTHREADS)
+if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
   if (NOT VCPKG_TARGET_TRIPLET STREQUAL "x64-mingw-static")
@@ -941,6 +941,7 @@ set(externs_SRCS
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+    set(HAVE_PTHREAD 0)
     # Disable shared libraries for WASI to avoid -shared flag warning
     set(BUILD_SHARED_LIBS OFF)
     list(REMOVE_ITEM externs_SRCS Opcodes/counter.c)
@@ -1349,7 +1350,7 @@ endif()
 
 set(libcsound_LIBS "")
 
-if(REQUIRE_PTHREADS)
+if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
     list(APPEND libcsound_LIBS Threads::Threads)
 endif()
 

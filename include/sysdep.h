@@ -564,6 +564,10 @@ typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
 
+#elif defined(__wasi__)
+/* WASI doesn't support pthread spinlocks */
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
 typedef pthread_spinlock_t spin_lock_t;
 #define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER

@@ -1,8 +1,7 @@
-{ pkgs, pkgsWasm }:
+{ pkgs, pkgsWasm, stdenvWasm }:
 
 let lib = pkgs.lib;
-    stdenvWasm = pkgsWasm.clang17Stdenv;
-    libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm; };
+    libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm stdenvWasm; };
 
 in stdenvWasm.mkDerivation rec {
     name = "libvorbis";
@@ -17,6 +16,7 @@ in stdenvWasm.mkDerivation rec {
     ];
 
     cmakeFlags = [
+      "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
       "-DOGG_LIBRARY=${libogg}/lib"
     ];
 }

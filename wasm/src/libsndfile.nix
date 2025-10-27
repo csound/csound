@@ -1,12 +1,11 @@
-{ pkgs, pkgsWasm }:
+{ pkgs, pkgsWasm, stdenvWasm }:
 
 let lib = pkgs.lib;
-    stdenvWasm = pkgsWasm.clang17Stdenv;
-    libmpg123 = pkgs.callPackage ./libmpg123.nix { inherit pkgs pkgsWasm; };
-    libflac = pkgs.callPackage ./libflac.nix { inherit pkgs pkgsWasm; };
-    libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm; };
-    libvorbis = pkgs.callPackage ./libvorbis.nix { inherit pkgs pkgsWasm; };
-    libopus = pkgs.callPackage ./libopus.nix { inherit pkgs pkgsWasm; };
+    libmpg123 = pkgs.callPackage ./libmpg123.nix { inherit pkgs pkgsWasm stdenvWasm; };
+    libflac = pkgs.callPackage ./libflac.nix { inherit pkgs pkgsWasm stdenvWasm; };
+    libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm stdenvWasm; };
+    libvorbis = pkgs.callPackage ./libvorbis.nix { inherit pkgs pkgsWasm stdenvWasm; };
+    libopus = pkgs.callPackage ./libopus.nix { inherit pkgs pkgsWasm stdenvWasm; };
 
 
 in stdenvWasm.mkDerivation rec {

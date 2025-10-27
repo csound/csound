@@ -358,3 +358,26 @@ void printDebug(const char *log) {
     (* printDebugCallback)(log, strlen(log));
   }
 }
+
+
+// WASI setjmp/longjmp stubs for the linker
+// These are weak symbols to allow the linker to resolve them
+// Function signatures match what's expected by the linker
+__attribute__((weak))
+void __wasm_setjmp(int a, int b, void *env) {
+  // WASI doesn't support setjmp, return failure
+  (void)a; (void)b; // Suppress unused parameter warnings
+}
+
+__attribute__((weak))
+int __wasm_setjmp_test(int a, void *env) {
+  // WASI doesn't support setjmp, return failure
+  (void)a; // Suppress unused parameter warning
+  return -1;
+}
+
+__attribute__((weak))
+void __wasm_longjmp(void *env, int val) {
+  // WASI doesn't support longjmp, just exit
+  exit(val);
+}

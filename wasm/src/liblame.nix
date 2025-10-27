@@ -1,7 +1,6 @@
-{ pkgs, pkgsWasm }:
+{ pkgs, pkgsWasm, stdenvWasm }:
 
 let lib = pkgs.lib;
-    stdenvWasm = pkgsWasm.clang17Stdenv;
 
 in stdenvWasm.mkDerivation rec {
     name = "liblame";

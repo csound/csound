@@ -30,11 +30,11 @@ function longjmp(jmpbuf, value) {
   if (!label) {
     throw new Error(`Invalid longjmp target ${jmpbuf}`);
   }
-  throw { __longjmp__: true, jmpbuf, value: value || 1 };
+  throw `csound exit with code: ${value}`;
 }
 
-function __wasm_longjmp(jmpbuf, value) {
-  throw { __longjmp__: true, jmpbuf, value };
+function __wasm_longjmp(_, value) {
+  throw `csound exit with code: ${value}`;
 }
 
 function getTempRet0() {
@@ -45,13 +45,16 @@ function setTempRet0(value) {
   tempRet0 = value;
 }
 
-export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer, wasi }) => {
+export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
+  console.log(111, { memory, messagePort, streamBuffer })
   return function (csound_, attribute, length_, offset) {
+    console.log(222, {csound_, attribute, length_, offset});
     if (!memory) {
       return;
     }
     const buf = new Uint8Array(memory.buffer, offset, length_);
     const string = uint2String(buf);
+    console.log({ buf, string });
     const endsWithNewline = /\n$/g.test(string);
     const startsWithNewline = /^\n/g.test(string);
     const chunks = string.split("\n").filter((item) => item.length > 0);
@@ -247,7 +250,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   //   return await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi });
   // }
   const { memorySize, memoryAlign, tableSize } = magicData;
-  console.log({magicData});
+
   // get the header data from plugins which we need before
   // initializing the main module
   withPlugins = await withPlugins.reduce(async (accumulator, wasmPlugin) => {
@@ -294,7 +297,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     maximum: 1024 * PAGES_PER_MB,
   });
 
-  const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
+  // const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
 
   wasi.setMemory(memory);
 
@@ -330,8 +333,9 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   options["env"] = options["env"] || {};
   options["env"]["memory"] = memory;
-  options["env"]["__indirect_function_table"] = table;
-  options["env"]["__stack_pointer"] = stackPointer;
+  // options["env"]["table"] = table;
+  // options["env"]["__indirect_function_table"] = table;
+  // options["env"]["__stack_pointer"] = stackPointer;
   options["env"]["__memory_base"] = memoryBase;
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
@@ -344,9 +348,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options["env"]["__wasm_longjmp"] = __wasm_longjmp;
   options["env"]["getTempRet0"] = getTempRet0;
   options["env"]["setTempRet0"] = setTempRet0;
-
-  // TODO find out what's leaking this thread-local errno (cpp?)
-  options["env"]["_ZTH5errno"] = function () {};
 
   const streamBuffer = [];
   options["env"]["csoundWasiJsMessageCallback"] = csoundWasiJsMessageCallback({
@@ -361,10 +362,9 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     console.log(string);
   };
 
-  options["GOT.mem"] = options["GOT.mem"] || {};
-  options["GOT.mem"]["__heap_base"] = heapBase;
-
-  options["GOT.func"] = options["GOT.func"] || {};
+  // options["GOT.mem"] = options["GOT.mem"] || {};
+  // options["GOT.mem"]["__heap_base"] = heapBase;
+  // options["GOT.func"] = options["GOT.func"] || {};
 
   /**
    * @suppress {checkTypes}
@@ -380,6 +380,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   /** @suppress {checkTypes} */
   instance_["exports"] = moduleExports;
+
+  const table = instance_["__indirect_function_table"];
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
@@ -404,10 +406,10 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
       pluginOptions["env"]["__indirect_function_table"] = table;
-      pluginOptions["env"]["__memory_base"] = pluginMemoryBase;
-      pluginOptions["env"]["__stack_pointer"] = stackPointer;
-      pluginOptions["env"]["__table_base"] = tableBase;
-      pluginOptions["env"]["csoundLoadModules"] = __dummy;
+      // pluginOptions["env"]["__memory_base"] = pluginMemoryBase;
+      // pluginOptions["env"]["__stack_pointer"] = stackPointer;
+      // pluginOptions["env"]["__table_base"] = tableBase;
+      // pluginOptions["env"]["csoundLoadModules"] = __dummy;
       delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
 
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
@@ -429,6 +431,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   wasi.start(instance_);
   console.log({instance: instance_});
+
   instance_["exports"]["__wasi_js_csoundSetMessageStringCallback"]();
+  console.log("message callback done");
   return [instance_, wasi];
 }
