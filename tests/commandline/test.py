@@ -120,6 +120,7 @@ def runTest():
 	["test46.csd", "if-then with expression in boolean comparison"],
 	["test47.csd", "until loop and k[]"],
 	["test48.csd", "expected failure with variable used before defined", 1],
+    ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
     ["test_array_expr_opcall.csd", "test array expr in opcall"],
     ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],   
     ["test_shadowing_implicit.csd", "test local shadowing of global vars for implicit types"],
