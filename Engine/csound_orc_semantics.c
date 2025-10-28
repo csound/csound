@@ -890,7 +890,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "falsek", typeTable);
     if(var == NULL) {
     var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_b, "falsek", NULL);
+                        (CS_TYPE*)&CS_VAR_TYPE_B, "falsek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 0;
     }
@@ -901,7 +901,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                            "truek", typeTable);
     if(var == NULL) {
      var = add_global_variable(csound, &csound->engineState,
-                        (CS_TYPE*)&CS_VAR_TYPE_b, "truek", NULL);
+                        (CS_TYPE*)&CS_VAR_TYPE_B, "truek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 1;
     }

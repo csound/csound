@@ -330,7 +330,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
             }
 }
 
-{IDENT}:/[ \t\n]  { char *pp = yytext;
+^[ ]*{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
