@@ -704,14 +704,6 @@ struct_expr : struct_expr '.' identifier
 ternary_expr : expr '?' expr ':' expr %prec '?'
             { $$ = make_node(csound,LINE,LOCN, '?', $1,
                              make_node(csound, LINE,LOCN, ':', $3, $5)); }
-           /* VL: backwards compatibility, ident read as label */
-           | expr '?' LABEL_TOKEN expr %prec '?'
-            {
-              $$ = make_node(csound,LINE,LOCN, '?', $1,
-                             make_node(csound, LINE,LOCN, ':',
-                             make_leaf(csound, LINE, LOCN, T_IDENT,
-                                       (ORCTOKEN *)$3), $4));
-            }   
           | expr '?' expr ':' error
           | expr '?' expr error
           | expr '?' error
