@@ -663,7 +663,12 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
              strcmp(lhs, "ksmps") == 0 || strcmp(lhs, "nchnls") == 0 ||
              strcmp(lhs, "nchnls_i") == 0 || strcmp(lhs, "0dbfs") == 0 ||
              strcmp(lhs, "A4") == 0)) {
-          MYFLT val = (MYFLT) cs_strtod((char *) rhs, NULL);
+          /* Validate rhs is numeric */
+          char* endptr = NULL;
+          MYFLT val = (MYFLT) cs_strtod((char *) rhs, &endptr);
+          if (endptr == rhs || *endptr != '\0') {
+             csoundDie(csound, Str("System constant %s must be assigned a numeric value, got: %s"), lhs, rhs);
+          }
           /* systems constants get set here and are not compiled into i-time code */
           find_or_add_constant(csound, csound->engineState.constantsPool, rhs, val);
           if (strcmp("sr", lhs) == 0) {
@@ -2334,6 +2339,9 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     else {
       inreqd = args_required(ep->intypes);
       argStringParts = split_args(csound, ep->intypes);
+      if (argStringParts == NULL) {
+        csoundDie(csound, Str("Malformed opcode type string for %s"), ep->opname);
+      }
       argp = inlist->arg; /* get inarg indices */
       for (n = 0; n < inlist->count; n++, argp++) {
         ARG *arg = NULL;

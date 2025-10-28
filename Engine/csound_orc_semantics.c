@@ -369,11 +369,18 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
           elementType[len - 2] = '\0';
         }
         if (elementType != NULL) {
-          // Convert external format to internal format for struct types
-          char *internalElementType = check_optional_type(csound, elementType);
-          if (!internalElementType) {
-            internalElementType =
-                cs_strdup(csound, elementType); // fallback to original
+          // Ensure user-defined names are in internal format :Type;
+          char *internalElementType = NULL;
+          if (strlen(elementType) > 1 && elementType[0] != ':' && elementType[0] != '[') {
+            size_t bl = strlen(elementType);
+            internalElementType = csound->Malloc(csound, bl + 3);
+            internalElementType[0] = ':';
+            memcpy(internalElementType + 1, elementType, bl);
+            internalElementType[bl + 1] = ';';
+            internalElementType[bl + 2] = '\0';
+          } else {
+            internalElementType = check_optional_type(csound, elementType);
+            if (!internalElementType) internalElementType = cs_strdup(csound, elementType);
           }
           const CS_TYPE *structType = csoundGetTypeWithVarTypeName(
               csound->typePool, internalElementType);
@@ -612,10 +619,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
             return cs_strdup(csound, var->subType->varTypeName);
           }
 
-          // Check if it's a typed array or generic array
-          if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
-            // Generic array with dimensions or CS_VAR_TYPE_ARRAY
+          // Generic array (CS_VAR_TYPE_ARRAY) vs typed arrays (dimensions>0 with element varType)
+          if (var->varType == &CS_VAR_TYPE_ARRAY) {
+            // Generic array: element type in subType
             return cs_strdup(csound, var->subType->varTypeName);
+          } else if (var->dimensions > 0) {
+            // Typed array (e.g., k[], i[], S[]): element type is varType itself
+            return cs_strdup(csound, var->varType->varTypeName);
           } else if (var->varType == &CS_VAR_TYPE_A) {
             return cs_strdup(csound, "k");
           } else if (tree->type == T_ARRAY) {
@@ -889,14 +899,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   case TRUEK_TOKEN: { // trap true expr here
      CS_VARIABLE *var = find_var_from_pools(csound, "truek",
                                            "truek", typeTable);
-    if(var == NULL) {   
+    if(var == NULL) {
      var = add_global_variable(csound, &csound->engineState,
                         (CS_TYPE*)&CS_VAR_TYPE_b, "truek", NULL);
     int32_t *p = (int32_t *) &(var->memBlock->value);
     *p = 1;
     }
   }
-  return cs_strdup(csound, "B");     /* Boolean */ 
+  return cs_strdup(csound, "B");     /* Boolean */
   case STRING_TOKEN:
     return cs_strdup(csound, "S");   /* quoted String */
   case LABEL_TOKEN:

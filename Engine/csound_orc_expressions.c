@@ -662,6 +662,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
         outarg = create_out_arg(csound, outype,
                                typeTable->localPool->synthArgCount++, typeTable);
+        csound->Free(csound, elementType);
         break;
       }
 
@@ -860,7 +861,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if(root->type == FALSEK_TOKEN)
     return create_ans_token(csound, "falsek");
-  
+
 
   if(root->type == T_FUNCTION) {
     return create_expression(csound, root, line,
