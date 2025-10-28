@@ -386,6 +386,10 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                         yyscanner);
                   return NEWLINE; }
+  {IDENT} {
+    csound->Message(csound, "unsupported UDO arg type: %s", yytext);
+    return ERROR_TOKEN;
+  }  
 }
 
 
