@@ -1741,6 +1741,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         if(csoundFindVariableWithName(csound, typeTable->localPool, varName)
 	      == NULL){
 	   argLetter[0] = *varName;
+           if(argLetter[0] == 'g') argLetter[0] = varName[1];
            type =
 	   csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
            var = csoundCreateVariable(csound, csound->typePool,
@@ -1775,17 +1776,37 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   // search on  all pools
   var = find_var_from_pools(csound, t, t, typeTable);
   csound->Free(csound, t);
-  if (var == NULL) {
+  if (var == NULL ||
+      // treat the case of global opcode ref vars
+      (var && var->varType == &CS_VAR_TYPE_OPCODEREF)) {    
     if (annotation != NULL) {
       // check for global annotation
-      pool = find_global_annotation(lvarName, typeTable);
+      pool = find_global_annotation(lvarName, typeTable);     
+      if(pool == csound->engineState.varPool
+         || pool == typeTable->globalPool) {
+        // remove var from pool
+        if(var)
+          cs_hash_table_remove(csound, get_var_pool(csound,
+                                                    typeTable,
+                                                    var->varName)->table,
+                               var->varName);
+      }
       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
     } else {
       t = lvarName;
       argLetter[1] = 0;
 
       if (*t == '#') t++;
-      if (*t == 'g') pool = typeTable->globalPool;
+      if (*t == 'g') {
+           pool = typeTable->globalPool;
+       // remove var from pool    
+       if(var) 
+         cs_hash_table_remove(csound,
+                              get_var_pool(csound,
+                                           typeTable,
+                                           var->varName)->table,
+                              var->varName);
+      }
       if (*t == 'g') t++;
 
       argLetter[0] = *t; 
@@ -1809,7 +1830,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
        // and different type array subtype
        varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
        if(varType != var->subType)
-         synterr(csound, "%s:%s[] - type mismatch for existing "
+         synterr(csound, "%s:%s[] -- type mismatch for existing "
                           "array variable %s:%s%s",
                  varName, varType->varTypeName, varName,
                  var->subType ? var->subType->varTypeName :

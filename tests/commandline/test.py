@@ -241,6 +241,7 @@ def runTest():
         ["test_array_scalar_set.csd", "testing array scalar setting"],
         ["test_array_annotation.csd", "testing array type annotation for opcodes"],
         ["test_slice_array.csd", "testing slice shorthand"],
+        ["test_array_name.csd", "test arrays using opcode ref var names"]
     ]
 
 
