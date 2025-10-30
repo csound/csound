@@ -125,6 +125,8 @@ extern "C" {
      DEBUG_INSTR = 0X40,
      /* opcode messages. */
      DEBUG_OPCODES = 0x80,
+     /* parcs messages. */
+     DEBUG_PARCS = 0x100,
      /* all messages. */
      DEBUG_FULL = 0x7FFFFFFF
    } DEBUG_STATUS;

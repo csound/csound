@@ -552,6 +552,8 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
   if (O->numThreads > 1) {
     int32_t i;
     THREADINFO *current = NULL;
+    csound->Message(csound, "multicore performance "
+                    "with %d threads\n", O->numThreads); 
 #ifdef PARCS_USE_THREAD_BARRIER
     csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
 #else
@@ -559,7 +561,6 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
                                                  sizeof(int32_t)
                                                   *O->numThreads);
 #endif
-
     csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
     csound->multiThreadedComplete = 0;
 
@@ -576,7 +577,6 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
       }
       current = t;
     }
-
     csound->WaitBarrier(csound->barrier2);
   }
 #endif
