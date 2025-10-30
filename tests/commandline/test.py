@@ -122,7 +122,7 @@ def runTest():
 	["test48.csd", "expected failure with variable used before defined", 1],
     ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
     ["test_array_expr_opcall.csd", "test array expr in opcall"],
-    ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],   
+    ["test_shadowing_for_loop.csd", "test local shadowing of vars in for loop"],
     ["test_shadowing_implicit.csd", "test local shadowing of global vars for implicit types"],
     ["test_opcode_with_opt_ins.csd", "test opcode with opt ins only"],
     ["test_fillarray_audio.csd", "test Arr:a[] = [sig:a]"],
@@ -149,7 +149,7 @@ def runTest():
              "test expected failure with negative dimension size and array", 1],
     ["test_iarr_operators.csd", "test i[] operators"],
 	["test_booleans.csd", "tests using boolean data-types"],
-	["test_boolean_function.csd", "test boolean function in conditionals"],    
+	["test_boolean_function.csd", "test boolean function in conditionals"],
     ["test_type_eq.csd", "test type equality operator"],
 	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
 
@@ -158,7 +158,7 @@ def runTest():
 	["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
 
 	["test_semantics_undefined_var.csd", "test undefined var", 1],
- 	["test_opcall_expr.csd", "test expression in opcall"],   
+ 	["test_opcall_expr.csd", "test expression in opcall"],
 	["test_invalid_expression.csd", "test expression", 1],
 	["test_invalid_ternary.csd", "test expression", 1],
 	["test_for_in.csd", "for in loop"],
@@ -219,6 +219,7 @@ def runTest():
     ["test_break_outside_loop_fails.csd", "testing break outside loop gives parser error", 1],
     ["test_continue_outside_loop_fails.csd", "testing continue outside loop gives parser error", 1],
     ["test_osc_server.csd", "test OSC in udp server", 0, "-odac -d -+rtaudio=dummy"],
+    ["test_named_instr_ramps.csd", "test named instrument ramps"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -271,12 +272,12 @@ def runTest():
 
     pfieldTests = [["test_pfields_array.csd", "Test dynamic allocation of pfields, schedule and ftgen"],
                    ["test_schedule.csd", "Test pfields on all forms of schedule"],
-                   ["test_schedule_instr.csd", "Test pfields on all forms of schedule with instance"],  
+                   ["test_schedule_instr.csd", "Test pfields on all forms of schedule with instance"],
                    ["test_event_pfields.csd", "Test pfields on all forms of event"],
                    ["test_recursive_schedule.csd", "Test recursive events"],
                    ["test_file_table.csd", "Test ftgen gen01 file input"],
                    ["test_midifile.csd", "Test midi file input (-F)"],
-                       ]     
+                       ]
 
     tests += arrayTests
     tests += structTests
