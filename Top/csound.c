@@ -1825,7 +1825,7 @@ unsigned long kperfThread(void *cs) {
     taskflag = parflag;
 #endif
 
-    if (csound->multiThreadedComplete == 1) {
+    if (ATOMIC_GET(csound->multiThreadedComplete) == 1) {
       free(threadId);
       return 0UL;
     }
@@ -2158,26 +2158,37 @@ int32_t kperf_debug(CSOUND *csound) {
        2nd by inso count / thread count. */
     if (csound->multiThreadedThreadInfo != NULL) {
 #ifdef PARCS
+      int32_t k;
+      int32_t n = csound->oparms->numThreads;
       if (csound->dag_changed)
         dag_build(csound, ip);
       else
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-      csound->WaitBarrier(csound->barrier1);
-
-      (void)nodePerf(csound, 0, 1);
-
+#ifdef PARCS_USE_LOCK_BARRIER 
+      csound->WaitBarrier(csound->barrier1)
+#else        
+      ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+      nodePerf(csound, 0, n);
       /* wait until partition is complete */
-      csound->WaitBarrier(csound->barrier2);
-      // do the mixing of thread buffers
+#ifdef PARCS_USE_LOCK_BARRIER 
+      csound->WaitBarrier(csound->barrier2);   
+#else
       {
-        int32_t k;
-        for (k = 1; k < csound->oparms->numThreads; k++)
-          mix_out(csound->spout_tmp, csound->spout_tmp + k * csound->nspout,
-                  csound->nspout);
+        int32_t i, sum;
+        do {
+          for(i = 1, sum = 1; i < n; i++)
+            sum += csound->taskflag[i];
+        } while(sum < n);
       }
 #endif
+      /* do the mixing of thread buffers */
+      for (k = 1; k < csound->oparms->numThreads; k++)
+          mix_out(csound->spout_tmp, csound->spout_tmp +
+                  k * csound->nspout, csound->nspout);
+#endif /* PARCS */
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
@@ -2338,6 +2349,14 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
     if (UNLIKELY(done)) {
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
+        if (csound->oparms->numThreads > 1) {
+        ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+      } 
       csoundMessage(csound, Str("end of Performance\n"));
       return done;
     }
@@ -2374,6 +2393,14 @@ PUBLIC int32_t csoundPerformBuffer(CSOUND *csound) {
       if (UNLIKELY((done = sense_events(csound)))) {
         if (!csound->oparms->realtime) // no API lock in realtime mode
           csoundUnlockMutex(csound->API_lock);
+        if (csound->oparms->numThreads > 1) {
+        ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+        }        
         return done;
       }
     } while (csound->kperf(csound));
@@ -2416,8 +2443,12 @@ PUBLIC int32_t csoundPerform(CSOUND *csound) {
         if (!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
         if (csound->oparms->numThreads > 1) {
-          csound->multiThreadedComplete = 1;
-          csound->WaitBarrier(csound->barrier1);
+        ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
         }
         return done;
       }
@@ -3349,8 +3380,16 @@ static void reset(CSOUND *csound) {
   uintptr_t end, start;
   int32_t n = 0;
 
+  // stop multicore threads if still running
+  if (csound->oparms->numThreads > 1) {
+    ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+    csound->WaitBarrier(csound->barrier1);
+#else
+    ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+  } 
   csoundCleanup(csound);
-
   /* call registered reset callbacks */
   while (csound->reset_list != NULL) {
     resetCallback_t *p = (resetCallback_t *)csound->reset_list;
@@ -3367,9 +3406,6 @@ static void reset(CSOUND *csound) {
   csoundDeleteAllConfigurationVariables(csound);
   csoundDeleteAllGlobalVariables(csound);
 
-#ifdef CSCORE
-  cscoreRESET(csound);
-#endif
   if (csound->opcodes != NULL) {
     free_opcode_table(csound);
     csound->opcodes = NULL;
