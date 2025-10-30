@@ -35,14 +35,9 @@ extern void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void dieu(CSOUND *, char *, ...);
 int32_t argdecode(CSOUND *, int32_t, const char **);
 int32_t init_pvsys(CSOUND *);
-//  char    *get_sconame(CSOUND *);
 void print_benchmark_info(CSOUND *, const char *);
-//  int32_t     read_unified_file(CSOUND *, char **, char **);
-//  int32_t     read_unified_file2(CSOUND *csound, char *csd);
 int32_t read_unified_file4(CSOUND *csound, CORFIL *csd);
-uintptr_t kperfThread(void *cs);
-// void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
-// void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+uintptr_t kperf_thread(void *cs);
 void csound_input_message(CSOUND *csound, const char *message);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
@@ -571,7 +566,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
     for (i = 1; i < O->numThreads; i++) {
       THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
 
-      t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
+      t->threadId = csound->CreateThread(&kperf_thread, (void *)csound);
       t->next = NULL;
 
       if (current == NULL) {

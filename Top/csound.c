@@ -1690,7 +1690,7 @@ void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 
 #ifdef PARCS
-inline static int32_t nodePerf(CSOUND *csound, int32_t index,
+inline static int32_t node_perf(CSOUND *csound, int32_t index,
                                int32_t numThreads) {
   INSDS *insds = NULL;
   OPDS *opstart = NULL;
@@ -1791,7 +1791,7 @@ inline static int32_t nodePerf(CSOUND *csound, int32_t index,
 #endif // PARCS
 
 #ifdef PARCS
-unsigned long kperfThread(void *cs) {
+unsigned long kperf_thread(void *cs) {
   // INSDS *start;
   CSOUND *csound = (CSOUND *)cs;
   void *threadId;
@@ -1830,7 +1830,7 @@ unsigned long kperfThread(void *cs) {
       return 0UL;
     }
     csound->taskflag[index] = 0;
-    nodePerf(csound, index, numThreads);
+    node_perf(csound, index, numThreads);
     csound->taskflag[index] = 1;
 #ifdef PARCS_USE_LOCK_BARRIER    
     csound->WaitBarrier(csound->barrier2);
@@ -1893,7 +1893,7 @@ int32_t kperf_nodebug(CSOUND *csound) {
 #else        
       ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
-      nodePerf(csound, 0, n);
+      node_perf(csound, 0, n);
       /* wait until partition is complete */
 #ifdef PARCS_USE_LOCK_BARRIER 
       csound->WaitBarrier(csound->barrier2);   
@@ -2171,7 +2171,7 @@ int32_t kperf_debug(CSOUND *csound) {
 #else        
       ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
-      nodePerf(csound, 0, n);
+      node_perf(csound, 0, n);
       /* wait until partition is complete */
 #ifdef PARCS_USE_LOCK_BARRIER 
       csound->WaitBarrier(csound->barrier2);   
