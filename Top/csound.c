@@ -1201,7 +1201,8 @@ static const CSOUND cenviron_ = {
   },
     0, /* instance count */
     300, /* genLabs */
-    0, 0, 0, 0 /* midi RT messages */
+    0, 0, 0, 0, /* midi RT messages */
+    0, NULL  /* PARCS thread sync */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1814,25 +1815,26 @@ unsigned long kperfThread(void *cs) {
     return ULONG_MAX;
   }
   index++;
-
+  int32_t parflag, taskflag = 0;
   while (1) {
-
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
+#else    
+    do parflag = ATOMIC_GET(csound->parflag);
+    while(parflag == taskflag);
+    taskflag = parflag;
+#endif
 
-    // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so,
-    // use some other kind of locking mechanism as it isn't clear why a
-    // global mutex would be necessary versus a per-CSOUND instance mutex
-    /*csound_global_mutex_lock();*/
     if (csound->multiThreadedComplete == 1) {
-      /*csound_global_mutex_unlock();*/
       free(threadId);
       return 0UL;
     }
-    /*csound_global_mutex_unlock();*/
-
+    csound->taskflag[index] = 0;
     nodePerf(csound, index, numThreads);
-
+    csound->taskflag[index] = 1;
+#ifdef PARCS_USE_LOCK_BARRIER    
     csound->WaitBarrier(csound->barrier2);
+#endif    
   }
 }
 #endif
@@ -1878,27 +1880,37 @@ int32_t kperf_nodebug(CSOUND *csound) {
        2nd by inso count / thread count. */
     if (csound->multiThreadedThreadInfo != NULL) {
 #ifdef PARCS
+      int32_t k;
+      int32_t n = csound->oparms->numThreads;
       if (csound->dag_changed)
         dag_build(csound, ip);
       else
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-      csound->WaitBarrier(csound->barrier1);
-
-      (void)nodePerf(csound, 0, 1);
-
+#ifdef PARCS_USE_LOCK_BARRIER 
+      csound->WaitBarrier(csound->barrier1)
+#else        
+      ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+      nodePerf(csound, 0, n);
       /* wait until partition is complete */
-      csound->WaitBarrier(csound->barrier2);
-
-      // do the mixing of thread buffers
+#ifdef PARCS_USE_LOCK_BARRIER 
+      csound->WaitBarrier(csound->barrier2);   
+#else
       {
-        int32_t k;
-        for (k = 1; k < csound->oparms->numThreads; k++)
-          mix_out(csound->spout_tmp, csound->spout_tmp + k * csound->nspout,
-                  csound->nspout);
+        int32_t i, sum;
+        do {
+          for(i = 1, sum = 1; i < n; i++)
+            sum += csound->taskflag[i];
+        } while(sum < n);
       }
 #endif
+      /* do the mixing of thread buffers */
+      for (k = 1; k < csound->oparms->numThreads; k++)
+          mix_out(csound->spout_tmp, csound->spout_tmp +
+                  k * csound->nspout, csound->nspout);
+#endif /* PARCS */
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;

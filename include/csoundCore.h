@@ -1777,7 +1777,9 @@ struct CSOUND_ {
   int32_t midi_clock_pulse;
   int32_t midi_start;
   int32_t midi_continue;
-  int32_t midi_stop;  
+  int32_t midi_stop;
+  int32_t parflag;
+  int32_t *taskflag;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

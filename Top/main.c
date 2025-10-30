@@ -46,6 +46,9 @@ uintptr_t kperfThread(void *cs);
 void csound_input_message(CSOUND *csound, const char *message);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
+#ifdef PARCS
+void csp_barrier_alloc(CSOUND *, void **, int32_t);
+#endif
 
 void checkOptions(CSOUND *csound) {
 #if !defined(__wasi__)
@@ -552,13 +555,17 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
 
 #ifdef PARCS
   if (O->numThreads > 1) {
-    void csp_barrier_alloc(CSOUND *, void **, int32_t);
     int32_t i;
     THREADINFO *current = NULL;
-
+#ifdef PARCS_USE_THREAD_BARRIER
     csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
-    csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
+#else
+    csound->taskflag = (int32_t *) csound->Calloc(csound,
+                                                 sizeof(int32_t)
+                                                  *O->numThreads);
+#endif
 
+    csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
     csound->multiThreadedComplete = 0;
 
     for (i = 1; i < O->numThreads; i++) {
