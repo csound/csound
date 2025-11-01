@@ -17,7 +17,6 @@ Engine: internal engine operation
 * csound_pre.lex: csound language preprocessor lexer
 * csound_prs.lex: score preprocessor lexer
 * csound_sco.lex: score lexer
-* csound_sco.y: score parser (not used)
 * csound_standard_types.c : csound language internal types
 * csound_type_system.c : type system functions
 * entry.c: opcode database
@@ -33,9 +32,7 @@ Engine: internal engine operation
 * new_orc_parser.c: csound language parser control
 * parse_param.h: macro parameters orchestra parsing structures and
   prototypes
-* pools.c: myflt pool utilities (not used)
 * rdscor.c: score reading interface and string argument handling
-* scope.c: score parser (not used)
 * scsort.c: score sorting
 * scxtract.c: score extraction
 * sort.c: sorting functions

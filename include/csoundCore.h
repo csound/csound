@@ -52,7 +52,6 @@
 #include "csound_misc.h"
 #include "csound_server.h"
 #include "csound_data_structures.h"
-#include "pools.h"
 #include "coreDefs.h"
 #include "soundfile.h"
 
