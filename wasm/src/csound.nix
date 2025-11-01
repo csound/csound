@@ -375,7 +375,6 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/musmon.c \
       ../Engine/namedins.c \
       ../Engine/new_orc_parser.c \
-      ../Engine/pools.c \
       ../Engine/rdscor.c \
       ../Engine/scope.c \
       ../Engine/scsort.c \
