@@ -261,7 +261,6 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = GetTypeForArg(p->iplugin);
-    DSSIPlugin->ksmps = Ksmps;
 
 
     if (strcmp("S", argType->varTypeName) == 0)
@@ -305,6 +304,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       DSSIPlugin_->PluginCount = DSSIPlugin->PluginCount;
       *DSSIPlugin_->PluginCount = (*DSSIPlugin_->PluginCount) + 1;
     }
+    DSSIPlugin->ksmps = Ksmps;
     *p->iDSSIHandle = DSSIPlugin_->PluginNumber;
     if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: About to load descriptor function "
