@@ -829,6 +829,12 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     }
     current = current->next;
   }
+
+  // Assign performance function for pass-by-reference mode
+  if (inm->passByRef) {
+    p->h.perf = (SUBR) xout_perf_passByRef;
+  }
+
   return OK;
 }
 
@@ -898,7 +904,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           int32_t j;
           if (src->dimensions > 1) {
             for (j = 0; j < src->dimensions; j++) {
-              count *= src->sizes[j];
+              count *= src ->sizes[j];
             }
           }
 
