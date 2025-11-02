@@ -292,7 +292,15 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
           return csound->InitError(csound, "strcat: allocation size overflow");
       }
       alloc_size = 2 * size + 1; // +1 for null terminator
-      p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+      char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
+      if (UNLIKELY(temp == NULL)) {
+        if(is_perf_thread(&p->h))
+          return csound->PerfError(csound, &p->h,
+                         "strcatk: allocation failure");
+        else
+          return csound->InitError(csound, "strcat: allocation failure");
+      }
+      p->r->data = temp;
       p->r->size = alloc_size;
     }
     memcpy(p->r->data, p->str1->data, p->str1->size);
@@ -310,7 +318,15 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
            return csound->InitError(csound, "strcat: allocation size overflow");
        }
        alloc_size = 2 * size;
-       p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+       char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
+       if (UNLIKELY(temp == NULL)) {
+         if(is_perf_thread(&p->h))
+           return csound->PerfError(csound, &p->h,
+                          "strcatk: allocation failure");
+         else
+           return csound->InitError(csound, "strcat: allocation failure");
+       }
+       p->r->data = temp;
        p->r->size = alloc_size;
     }
      strcat((char*) p->r->data, p->str2->data);
@@ -329,7 +345,15 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
            return csound->InitError(csound, "strcat: allocation size overflow");
        }
        alloc_size = 2 * size;
-       p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+       char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
+       if (UNLIKELY(temp == NULL)) {
+         if(is_perf_thread(&p->h))
+           return csound->PerfError(csound, &p->h,
+                          "strcatk: allocation failure");
+         else
+           return csound->InitError(csound, "strcat: allocation failure");
+       }
+       p->r->data = temp;
        p->r->size = alloc_size;
     }
      memcpy(p->r->data, p->str1->data, p->r->size - 1);
@@ -350,7 +374,15 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
             return csound->InitError(csound, "strcat: allocation size overflow");
         }
         alloc_size = 2 * size;
-        p->r->data = csound->ReAlloc(csound, p->r->data, alloc_size);
+        char *temp = csound->ReAlloc(csound, p->r->data, alloc_size);
+        if (UNLIKELY(temp == NULL)) {
+          if(is_perf_thread(&p->h))
+            return csound->PerfError(csound, &p->h,
+                           "strcatk: allocation failure");
+          else
+            return csound->InitError(csound, "strcat: allocation failure");
+        }
+        p->r->data = temp;
         p->r->size = alloc_size;
     }
    strcat(p->r->data, ostr);
