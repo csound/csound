@@ -46,7 +46,7 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
     }
   }
   // Compute flat index
-  int32_t index = 0;
+  size_t index = 0;
   for (int32_t i = 0; i < indefArgCount; i++) {
     int32_t end = (int32_t)(*p->indexes[i]);
 
@@ -56,32 +56,41 @@ int32_t array_set_struct(CSOUND* csound, ARRAY_SET *p)
     }
 
     if (dat->dimensions > 0 && dat->sizes != NULL) {
-      if (UNLIKELY(end >= dat->sizes[i])) {
+      size_t dim = (size_t)dat->sizes[i];
+      if (UNLIKELY((size_t)end >= dim)) {
         return csound->PerfError(csound, &(p->h), Str("array_set_struct: index %d out of range"), i+1);
       }
-      index = (index * dat->sizes[i]) + end;
+      if (UNLIKELY(index > (SIZE_MAX - (size_t)end) / dim)) {
+        return csound->PerfError(csound, &(p->h), Str("array_set_struct: index overflow"));
+      }
+      index = (index * dim) + (size_t)end;
     } else {
       // For flat arrays (dat->dimensions == 0), we need to validate bounds differently
       // We'll check the final computed index against the array size after the loop
-      index = (i == 0) ? end : (index * 0 + end);
+      index = (size_t)end; // flat arrays: last index wins
     }
   }
 
-  // For flat arrays (dimensions == 0), validate that the index is within bounds
-  if (dat->dimensions == 0 && dat->allocated > 0) {
-    int64_t maxElements = (int64_t)(dat->allocated / dat->arrayMemberSize);
-    if (UNLIKELY(index < 0 || index >= maxElements)) {
-      return csound->PerfError(csound, &(p->h), Str("array_set_struct: flat array index %d out of bounds (0-%lld)"), index, maxElements - 1);
-    }
+  // Validate capacity if known
+  if (UNLIKELY(dat->arrayMemberSize <= 0)) {
+    return csound->PerfError(csound, &(p->h), Str("array_set_struct: invalid element size"));
   }
+
   // Address element in bytes (safe for struct payloads)
   char* base = (char*)dat->data;
 
   // Validate byte offset is within allocated buffer
-  size_t offset = index * dat->arrayMemberSize;
-  if (UNLIKELY(offset < 0 || offset + dat->arrayMemberSize > dat->allocated)) {
-    return csound->PerfError(csound, &(p->h), Str("array_set_struct: computed offset %zu out of bounds (max: %zu)"),
-                            offset, dat->allocated - dat->arrayMemberSize);
+  size_t elemSize = (size_t)dat->arrayMemberSize;
+  if (UNLIKELY(index > (SIZE_MAX - (elemSize - 1)) / elemSize)) {
+    return csound->PerfError(csound, &(p->h), Str("array_set_struct: offset overflow"));
+  }
+  size_t allocatedBytes = (size_t)dat->allocated;
+  if (allocatedBytes == 0 && dat->sizes && dat->dimensions > 0) {
+    allocatedBytes = (size_t)dat->sizes[0] * elemSize;
+  }
+  size_t offset = (size_t)index * elemSize;
+  if (allocatedBytes > 0 && UNLIKELY(offset + elemSize > allocatedBytes)) {
+    return csound->PerfError(csound, &(p->h), Str("array_set_struct: computed offset %zu out of bounds"), offset);
   }
 
   char* dstPtr = base + offset;
@@ -548,8 +557,15 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
         d->value = s->value;
       }
     }
-    dstVar->ownsMembers = 0;
+    /* keep existing ownership as-is after deep copy */
   } else {
+    /* free previously owned members before aliasing to avoid leaks */
+    if (dstVar->members && dstVar->ownsMembers) {
+      csound_free_struct_members(csound, dstVar);
+      dstVar->members = NULL;
+      dstVar->memberCount = 0;
+      dstVar->ownsMembers = 0;
+    }
     dstVar->members = srcVar->members;
     dstVar->memberCount = srcVar->memberCount;
     dstVar->ownsMembers = 0;
