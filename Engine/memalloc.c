@@ -234,10 +234,8 @@ void mfree(CSOUND *csound, void *p)
       return;
     }
 
-    // Release the lock here since the actual free operation will acquire it again
-    CSOUND_MEM_SPINUNLOCK
+    // Keep the lock held through unlink and free to prevent race condition
 #endif
-    CSOUND_MEM_SPINLOCK
     /* unlink from chain */
     {
       memAllocBlock_t *prv = pp->prv, *nxt = pp->nxt;
