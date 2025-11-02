@@ -612,13 +612,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           do_baktrace(csound, tree->locn);
           return NULL;
         } else {
-          // Check if it's an array
-          // For typed arrays like k[], i[], S[], the varType is the element type
-          // and subType is NULL. For generic arrays, subType contains the element type.
-          if (var->subType) {
-            return cs_strdup(csound, var->subType->varTypeName);
-          }
-
           // Generic array (CS_VAR_TYPE_ARRAY) vs typed arrays (dimensions>0 with element varType)
           if (var->varType == &CS_VAR_TYPE_ARRAY) {
             // Generic array: element type in subType
