@@ -146,9 +146,12 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
             i++;
             continue;
           }
-          memcpy(typeSpecifier, in_arg, (size_t)(end - in_arg));
-
-          typeSpecifier[(end - in_arg)] = '\0';
+          size_t length = (size_t)(end - in_arg);
+          if (length >= sizeof(typeSpecifier)) {
+            length = sizeof(typeSpecifier) - 1;
+          }
+          memcpy(typeSpecifier, in_arg, length);
+          typeSpecifier[length] = '\0';
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
@@ -219,9 +222,12 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
             i++;
             continue;
           }
-          memcpy(typeSpecifier, out_arg, (size_t)(end - out_arg));
-
-          typeSpecifier[(end - out_arg)] = '\0';
+          size_t length = (size_t)(end - out_arg);
+          if (length >= sizeof(typeSpecifier)) {
+            length = sizeof(typeSpecifier) - 1;
+          }
+          memcpy(typeSpecifier, out_arg, length);
+          typeSpecifier[length] = '\0';
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
