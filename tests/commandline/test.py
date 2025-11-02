@@ -302,6 +302,13 @@ def runTest():
             "testing continue outside loop gives parser error",
             1,
         ],
+        [
+            "test_osc_server.csd",
+            "test OSC in udp server",
+            0,
+            "-odac -d -+rtaudio=dummy",
+        ],
+        ["test_named_instr_ramps.csd", "test named instrument ramps"],
     ]
 
     arrayTests = [
