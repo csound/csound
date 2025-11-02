@@ -725,9 +725,7 @@ struct_expr : struct_expr '.' identifier
             }
             | array_expr '.' identifier
             {
-              char* structName = $1->value == NULL ? $1->left->value->lexeme : $1->value->lexeme;
               $3->type = T_MEMBER_IDENT;
-              $3->value->optype = structName;
               $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3);
             }
             | identifier '.' array_expr
@@ -741,7 +739,6 @@ struct_expr : struct_expr '.' identifier
                 make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
                 make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
               );
-              $$->right->value->optype = structName;
               $3->left = $$;
               $$ = $3;
             }
@@ -759,7 +756,6 @@ struct_expr : struct_expr '.' identifier
                      make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
                      make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
                    );
-              $$->right->value->optype = structName;
             }
             ;
 
