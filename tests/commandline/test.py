@@ -32,9 +32,9 @@ runtimeEnvironment = None
 
 
 class Test:
-    def __init__(self, fileName, description, expected=True):
+    def __init__(self, fileName, description="", expected=True):
         self.fileName = fileName
-        self.description = ""
+        self.description = description
         self.expected = expected
 
 
