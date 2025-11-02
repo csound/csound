@@ -310,16 +310,24 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
 
     while (n-- > 1) {
       if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
-         type = arrtype;
+        if (var != NULL && var->subType != NULL) {
+          snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
+        } else {
+          snprintf(arrtype, 64, "unknown[]");
+        }
+        type = arrtype;
       }
       csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
       arg = arg->next;
       type = get_arg_type_from_arg(arg, &var);
     }
     if(*type == '[') {
+      if (var != NULL && var->subType != NULL) {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
-         type = arrtype;
+      } else {
+        snprintf(arrtype, 64, "unknown[]");
+      }
+      type = arrtype;
     }
     csound->Message(csound, "%s:%s ", tp->outlist->arg[nn++], type);
   }
@@ -334,16 +342,24 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
 
     while (n-- > 1) {
       if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
-         type = arrtype;
+        if (var != NULL && var->subType != NULL) {
+          snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
+        } else {
+          snprintf(arrtype, 64, "unknown[]");
+        }
+        type = arrtype;
       }
       csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
       arg = arg->next;
       type = get_arg_type_from_arg(arg, &var);
     }
     if(*type == '[') {
+      if (var != NULL && var->subType != NULL) {
         snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
-         type = arrtype;
+      } else {
+        snprintf(arrtype, 64, "unknown[]");
+      }
+      type = arrtype;
     }
     csound->Message(csound, "%s:%s", tp->inlist->arg[nn++], type);
   }
