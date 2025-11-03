@@ -459,6 +459,14 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
                                               int32_t type)
 {
     CHNENTRY      *pp;
+
+    if(strlen(name) > MAX_CHAN_NAME) {
+      csound->Message(csound, "channel name %s\n"
+                      " exceeds max channel name length %d.\n",
+                      name, MAX_CHAN_NAME);
+      return CSOUND_ERROR;
+    }
+    
     /* check for valid parameters and calculate hash value */
     if (UNLIKELY(!(type & 48)))
         return CSOUND_ERROR;
@@ -2688,7 +2696,7 @@ PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
   adat->sizes = (int32_t *) csound->Calloc(csound,
                                            dimensions*sizeof(int32_t));
   siz = (adat->sizes[0] = sizes[0]);
-  for(i = 0; i < adat->dimensions; i++)
+  for(i = 1; i < adat->dimensions; i++)
     siz *= (adat->sizes[i] = sizes[i]);
   
   adat->arrayType = (CS_TYPE *)
@@ -2712,10 +2720,10 @@ PUBLIC const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){
 
 PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
                                const void* data) {
-  size_t siz = 0;
+  size_t siz = adat->sizes[0];
   int32_t i;
-  for(i = 0; i < adat->dimensions; i++)
-    siz += adat->sizes[i];
+  for(i = 1; i < adat->dimensions; i++)
+    siz *= adat->sizes[i];
   memcpy(adat->data, data, siz*adat->arrayMemberSize);
 }
   
