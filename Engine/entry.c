@@ -1105,10 +1105,9 @@ OENTRY opcodlst_1[] = {
   { "in.s",   S(INS),0,            "aa",    "",     NULL,   ins      },
   { "in.q",   S(INQ),0,            "aaaa",    "",     NULL,   inq      },
   { "in.A",   S(INA),0,            "a[]",  "",     (SUBR)inarray_set,   inarray },
+   /* start deprecated */
   { "ins",    S(INS),0,            "aa",   "",     NULL,   ins  , NULL, NULL, 1},
   { "inq",    S(INQ),0,            "aaaa", "",     NULL,   inq  , NULL, NULL, 1},
-  { "out.a",  S(OUTX),IR,           "",     "y",    ochn,   outall },
-  { "out.A",  S(OUTARRAY),IR,       "",     "a[]",  outarr_init,  outarr },
   { "outs",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
   { "outq",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
   { "outh",   S(OUTX),IR,           "",     "y",    ochn,   outall , NULL, NULL, 1},
@@ -1121,6 +1120,9 @@ OENTRY opcodlst_1[] = {
   { "outq2",  S(OUTM),IR,          "",     "a",    och2,   outs2   , NULL, NULL, 1},
   { "outq3",  S(OUTM),IR,          "",     "a",    och3,   outq3   , NULL, NULL, 1},
   { "outq4",  S(OUTM),IR,          "",     "a",    och2,   outq4   , NULL, NULL, 1},
+  /* end deprecated */
+  { "out.a",  S(OUTX),IR,           "",     "y",    ochn,   outall },
+  { "out.A",  S(OUTARRAY),IR,       "",     "a[]",  outarr_init,  outarr },
   { "outall", S(OUTM),IR,           "",     "a",    NULL,   outrep  },
   { "igoto",  S(GOTO),0,          "",     "l",    igoto                   },
   { "kgoto",  S(GOTO),0,           "",     "l",    NULL,   kgoto           },
