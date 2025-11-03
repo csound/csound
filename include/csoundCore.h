@@ -86,6 +86,7 @@ extern "C" {
     SUBR    perf;
     SUBR    deinit;
     void    *useropinfo; /* user opcode parameters */
+    int32_t deprecated;  /* deprecation flag */
   } OENTRY;
 
 
