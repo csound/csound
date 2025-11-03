@@ -1170,11 +1170,13 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
     OENTRY* temp = entries->entries[i];
     if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
         check_out_args(csound, outArgTypes, temp->outypes)) {
-      if (check == -1)
+      if (check == -1) {
         synterr(csound,
                 Str("Found %d inputs for %s which is more than "
                     "the %d allowed\n"),
-                args_required(inArgTypes), temp->opname, VARGMAX);      
+                args_required(inArgTypes), temp->opname, VARGMAX);
+        return NULL;
+      }
       return temp;
     }
   }
@@ -2208,17 +2210,32 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);
   }
 
+  /* check for deprecation */
+  if(oentry && oentry->deprecated) {
+    if(csound->oparms->error_deprecated) {
+      synterr(csound, "opcode %s is deprecated, line %d", oentry->opname,
+              root->line);
+      csoundMessage(csound, Str(" %s %s %s\n"),
+                      leftArgString ? leftArgString : "",
+                      oentry->opname, rightArgString ? rightArgString : "");
+      return 0;
+     }
+    else csoundWarning(csound, "opcode %s is deprecated, line %d",
+                       oentry->opname, root->line);
+   }
+
 
 
   if (UNLIKELY(oentry == NULL)) {
     int32_t i;
     char *name = strip_extension(csound, opcodeName);
-    synterr(csound, Str("Unable to find opcode entry for \'%s\' "
-                        "with matching argument types:\n, line %d"), name, root->line);
+    synterr(csound, Str("Unable to find opcode entry for \'%s\'\n"
+                        "  with matching argument types, line %d"), name, root->line);
     csound->Free(csound, name);
     name = strip_extension(csound, root->value->lexeme);
     csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
-                  leftArgString, name, rightArgString);
+                  leftArgString ? leftArgString : "", name,
+                  rightArgString ? rightArgString : "");
     csound->Free(csound, name);
     csoundMessage(csound, Str("\nCandidates:\n"));
 

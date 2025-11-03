@@ -280,6 +280,8 @@ extern "C" {
     int32_t     mp3_mode;
     /* instr redefinition flag */
     int32_t     redef;
+    /* error on deprecated opcodes */
+    int32_t     error_deprecated;
   } OPARMS;
 
   /**
