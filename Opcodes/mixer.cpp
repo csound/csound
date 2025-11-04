@@ -318,7 +318,7 @@ static OENTRY localops[] = {
     {(char *)"mixersetlevel", sizeof(MixerSetLevel), _CW,  (char *)"",
      (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
      0},
-    {(char *)"mixersetlevel_i", sizeof(MixerSetLevel), _CW,  (char *)"",
+    {(char *)"mixersetleveli", sizeof(MixerSetLevel), _CW,  (char *)"",
      (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0},
     {(char *)"mixergetlevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
      (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
