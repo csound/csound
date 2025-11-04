@@ -314,7 +314,7 @@ static OENTRY localops[] = {
      (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_},
     {(char *)"MixerClear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
      (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_},
-      /*Aliases*/
+    /* aliases */
     {(char *)"mixersetlevel", sizeof(MixerSetLevel), _CW,  (char *)"",
      (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
      0},
