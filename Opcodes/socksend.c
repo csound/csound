@@ -1049,6 +1049,11 @@ static OENTRY socksend_localops[] =
      (SUBR)osc_send2, (SUBR) oscsend_deinit },
    { "OSCbundle", S(OSCBUNDLE), 0, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf, (SUBR) oscbundle_deinit},
+  /* aliases */
+   { "oscsend", S(OSCSEND2), 0, "", "kSkSN", (SUBR)osc_send2_init,
+     (SUBR)osc_send2, (SUBR) oscsend_deinit },
+   { "oscbundle", S(OSCBUNDLE), 0, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
+     (SUBR)oscbundle_perf, (SUBR) oscbundle_deinit},
 };
 
 LINKAGE_BUILTIN(socksend_localops)

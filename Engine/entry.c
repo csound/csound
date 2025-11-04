@@ -649,6 +649,7 @@ OENTRY opcodlst_1[] = {
   { "=.L", sizeof(TABCPY), 0, ".[]", ".[]", (SUBR)tabcopy2, (SUBR)tabcopy2 },
   { "tabgen", sizeof(TABGEN), _QQ, "k[]", "iip", (SUBR) tabgen, NULL    },
   { "tabmap_i", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set   },
+  { "tabmapi", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set   }, /* Alias */
   { "tabmap", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set,
     (SUBR) tabmap_perf},
   { "tabmap", sizeof(TABMAP), _QQ, "k[]", "k[]S", (SUBR) tabmap_set,
@@ -657,8 +658,9 @@ OENTRY opcodlst_1[] = {
   { "genarray.ki", sizeof(TABGEN),0, "k[]", "iip", (SUBR)tabgen, NULL, NULL},
   { "genarray.k", sizeof(TABGEN),0, "k[]", "kkp", NULL, (SUBR)tabgen    },
   { "genarray_i", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL},
-  { "maparray.i", sizeof(TABMAP), 0, "i[]", "i[]S", (SUBR) tabmap_set },
-  { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },
+  { "genarray", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
+  { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },  
+  { "maparrayi", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },  /* Alias */
   { "maparray.k", sizeof(TABMAP), 0, "k[]", "k[]S", (SUBR) tabmap_set,
     (SUBR) tabmap_perf          },
   { "tabslice", sizeof(TABSLICE), _QQ, "k[]", "k[]iip",
@@ -673,13 +675,20 @@ OENTRY opcodlst_1[] = {
     (SUBR) tabslice, (SUBR) tabslice, NULL },
   { "slicearray_i.i", sizeof(TABSLICE), 0, "i[]", "i[]iip",
     (SUBR) tabslice, NULL },
+  { "slicearrayi.i", sizeof(TABSLICE), 0, "i[]", "i[]iip",
+    (SUBR) tabslice, NULL }, /* Alias */
   { "slicearray_i.k", sizeof(TABSLICE), 0, "k[]", "k[]iip",
     (SUBR) tabslice, NULL },
+  { "slicearrayi.k", sizeof(TABSLICE), 0, "k[]", "k[]iip",
+    (SUBR) tabslice, NULL }, /* Alias */
   { "slicearray_i.S", sizeof(TABSLICE), 0, "S[]", "S[]iip",
     (SUBR) tabslice, NULL },
+  { "slicearrayi.S", sizeof(TABSLICE), 0, "S[]", "S[]iip",
+    (SUBR) tabslice, NULL }, /* Alias */
   { "trim.i", sizeof(TRIM), WI, "", "i[]i", (SUBR)trim_i, NULL },
   { "trim.k", sizeof(TRIM), WI, "", ".[]k", NULL, (SUBR)trim },
   { "trim_i", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL },
+  { "trimi", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL },  /* alias */
   { "copy2ftab", sizeof(TABCOPY), TW|_QQ, "", "k[]k", NULL, (SUBR) tab2ftab },
   { "copy2ttab", sizeof(TABCOPY), TR|_QQ, "", "k[]k", NULL, (SUBR) ftab2tab },
   { "copya2ftab.ii", sizeof(TABCOPY2), TW, "", "i[]io",
@@ -1265,6 +1274,7 @@ OENTRY opcodlst_1[] = {
   { "mrtmsg", S(XTRADUR),0,       "",     "i",    mrtmsg,     NULL,     NULL },
   { "midiout",S(MIDIOUT),0,        "",     "kkkk", NULL, midiout,   NULL      },
   { "midiout_i",S(MIDIOUT), 0,       "",     "iiii", midiout,   NULL, NULL     },
+  { "midiouti",S(MIDIOUT), 0,       "",     "iiii", midiout,   NULL, NULL     }, /* Alias */
   { "midion2", S(KON2),0,         "",     "kkkk", kon2_set, kon2,   NULL     },
   { "nrpn",   S(NRPN),0,           "",     "kkk",  NULL,  nrpn ,NULL          },
   { "mdelay", S(MDELAY),0,        "",     "kkkkk",mdelay_set, mdelay,   NULL },
@@ -1459,10 +1469,14 @@ OENTRY opcodlst_1[] = {
   { "trigseq", S(TRIGSEQ),0,      "",     "kkkkkz", trigseq_set, trigseq, NULL },
   { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, event_opcode_Instr, NULL   },
   { "event", S(LINEVENT),0,        "",     "Skz",  NULL, event_opcode, NULL   },
+  { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
   { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL  },
   { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL  },
-  { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
   { "event_i.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL  },
+  /* aliases */
+  { "eventi.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL  },
+  { "eventi", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL  },
+  { "eventi.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL  },
   { "play", S(LINEVENT2), 0,  ":Instr;", ":InstrDef;m", (SUBR) play_instr, NULL, NULL },
   { "pause", S(PAUSE_INSTR), 0,  "", ":Instr;k", NULL, (SUBR) pause_instance_opcode,  NULL },
   { "create", S(CREATE_INSTANCE), 0,  ":Instr;", ":InstrDef;", (SUBR) create_instance_opcode, NULL, NULL },
@@ -1606,8 +1620,11 @@ OENTRY opcodlst_1[] = {
   { "nstrstr", S(NSTRSTR),0,        "S",    "i",    nstrstr, NULL, NULL      },
   { "nstrstr.k", S(NSTRSTR),0,       "S",    "k",    NULL, nstrstr, NULL      },
   { "turnoff2_i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL     },
+  { "turnoff2i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL     }, /* alias */
   { "turnoff2_i.S",S(TURNOFF2),_CW,     "",     "Soo",  turnoff2S, NULL     },
+  { "turnoff2i.S",S(TURNOFF2),_CW,     "",     "Soo",  turnoff2S, NULL     }, /* alias */
   { "turnoff2_i.i",S(TURNOFF2),_CW,     "",     "ioo",  turnoff2k, NULL     },
+  { "turnoff2i.i",S(TURNOFF2),_CW,     "",     "ioo",  turnoff2k, NULL     }, /* alias */
   { "turnoff2.Instr",S(TURNOFF2),_CW,      "",     ":InstrDef;kk",  NULL, turnoff2Instr, NULL     },
   { "turnoff2.S",S(TURNOFF2),_CW,      "",     "SOO",  NULL, turnoff2S, NULL     },
   { "turnoff2.c",S(TURNOFF2),_CW,      "",     "iOO",  NULL, turnoff2k, NULL     },
@@ -1698,6 +1715,8 @@ OENTRY opcodlst_1[] = {
      (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, NULL           },
   {  "printf_i", S(PRINTF_OP),0,     "",     "SiN", /* SiTN */
      (SUBR) printf_opcode_init, NULL, NULL                 },
+  {  "printfi", S(PRINTF_OP),0,     "",     "SiN", /* SiTN */
+     (SUBR) printf_opcode_init, NULL, NULL                 }, /* alias */
   {  "printf",   S(PRINTF_OP),WR,     "",     "SkN", /* SkUN */
      (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, NULL    },
   {  "puts",     S(PUTS_OP),WR,       "",     "Sko",
@@ -1746,6 +1765,8 @@ OENTRY opcodlst_1[] = {
      (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, NULL       },
   {  "print_type", S(PRINT_TYPE_OP),0,  "",   ".",
      (SUBR) print_type_opcode, NULL, NULL       },
+  {  "printtype", S(PRINT_TYPE_OP),0,  "",   ".",
+     (SUBR) print_type_opcode, NULL, NULL       }, /* alias */
   {  "assert_true.i", S(ASSERT_OP),0, "", "b",
      (SUBR) assert_true_opcode, NULL, NULL },
   {  "assert_true.k", S(ASSERT_OP),0, "", "B",
@@ -1770,6 +1791,32 @@ OENTRY opcodlst_1[] = {
      (SUBR) assert_false_opcode_numeric, NULL, NULL },
   {  "assert_false", S(ASSERT_OP_NUMERIC),0, "", "p",
      (SUBR) assert_false_opcode_numeric, NULL, NULL },
+     /* alises */
+  {  "asserttrue.i", S(ASSERT_OP),0, "", "b",
+     (SUBR) assert_true_opcode, NULL, NULL },
+  {  "asserttrue.k", S(ASSERT_OP),0, "", "B",
+     (SUBR) assert_true_opcode, NULL, NULL },
+  {  "asserttrue", S(ASSERT_OP_NUMERIC),0, "", "c",
+     (SUBR) assert_true_opcode_numeric, NULL, NULL },
+  {  "asserttrue", S(ASSERT_OP_NUMERIC),0, "", "i",
+     (SUBR) assert_true_opcode_numeric, NULL, NULL },
+  {  "asserttrue", S(ASSERT_OP_NUMERIC),0, "", "k",
+     (SUBR) assert_true_opcode_numeric, NULL, NULL },
+  {  "asserttrue", S(ASSERT_OP_NUMERIC),0, "", "p",
+     (SUBR) assert_true_opcode_numeric, NULL, NULL },
+  {  "assertfalse.i", S(ASSERT_OP),0, "", "b",
+     (SUBR) assert_false_opcode, NULL, NULL },
+  {  "assertfalse.k", S(ASSERT_OP),0, "", "B",
+     (SUBR) assert_false_opcode, NULL, NULL },
+  {  "assertfalse", S(ASSERT_OP_NUMERIC),0, "", "c",
+     (SUBR) assert_false_opcode_numeric, NULL, NULL },
+  {  "assertfalse", S(ASSERT_OP_NUMERIC),0, "", "i",
+     (SUBR) assert_false_opcode_numeric, NULL, NULL },
+  {  "assertfalse", S(ASSERT_OP_NUMERIC),0, "", "k",
+     (SUBR) assert_false_opcode_numeric, NULL, NULL },
+  {  "assertfalse", S(ASSERT_OP_NUMERIC),0, "", "p",
+     (SUBR) assert_false_opcode_numeric, NULL, NULL },
+
   {  "assert.i", S(ASSERT_OP),0, "", "b",
      (SUBR) assert_true_opcode, NULL, NULL },
   {  "assert.k", S(ASSERT_OP),0, "", "B",
@@ -1797,6 +1844,15 @@ OENTRY opcodlst_1[] = {
   { "loop_le.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_le_p, NULL  },
   { "loop_gt.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_g_p, NULL   },
   { "loop_ge.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
+  /* aliases */
+  { "looplt.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
+  { "loople.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
+  { "loopgt.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_g_i, NULL, NULL   },
+  { "loopge.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_ge_i, NULL, NULL  },
+  { "looplt.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_l_p, NULL   },
+  { "loople.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_le_p, NULL  },
+  { "loopgt.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_g_p, NULL   },
+  { "loopge.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
   { "chnget",      0xFFFF,    _CR                                             },
   { "chnget.i",    S(CHNGET),_CR,                 "i",            "S",
     (SUBR) chnget_opcode_init_i, NULL, NULL               },
@@ -1865,6 +1921,19 @@ OENTRY opcodlst_1[] = {
   { "chn_S",       S(CHN_OPCODE),      _CW,       "",             "Si",
     (SUBR) chn_S_opcode_init, NULL, NULL                  },
   { "chn_array",    S(CHN_OPCODE_ARRAY),        _CW,       "",             "SiSi[]",
+    (SUBR) chn_opcode_init_ARRAY, NULL, NULL },
+  /* Aliases */
+  { "chncleararray",    S(CHNCLEAR),        _CW,       "",             "W",
+    (SUBR) chnclear_opcode_init_ARRAY, (SUBR) notinit_opcode_stub },
+  { "chnk",       S(CHN_OPCODE_K),    _CW,       "",             "SiooooooooN",
+    (SUBR) chn_k_opcode_init, NULL, NULL                  },
+  { "chnk",       S(CHN_OPCODE_K),    _CW,       "",             "SSooooooooN",
+    (SUBR) chn_k_opcode_init_S, NULL, NULL},
+  { "chna",       S(CHN_OPCODE),      _CW,       "",             "Si",
+    (SUBR) chn_a_opcode_init, NULL, NULL                  },
+  { "chnS",       S(CHN_OPCODE),      _CW,       "",             "Si",
+    (SUBR) chn_S_opcode_init, NULL, NULL                  },
+  { "chnarray",    S(CHN_OPCODE_ARRAY),        _CW,       "",             "SiSi[]",
     (SUBR) chn_opcode_init_ARRAY, NULL, NULL },
   { "chnexport.i", S(CHNEXPORT_OPCODE),0,       "i",            "Sioooo",
     (SUBR) chnexport_opcode_init, NULL, NULL              },
@@ -1945,8 +2014,8 @@ OENTRY opcodlst_1[] = {
     (SUBR)monitora_init, (SUBR)monitora_perf},
   { "outrg", S(OUTRANGE), IR, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
-  { "nchnls_hw", S(ASSIGN), 0, "ii", "",
-    (SUBR)hw_channels},
+  { "nchnls_hw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels},
+  { "nchnlshw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels}, /* alias */
   { "midic7.i",S(MIDICTL2),0,   "i", "iiio", (SUBR)imidic7, NULL, NULL  },
   { "midic7.k", S(MIDICTL2),0, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
   { "midic14.i", S(MIDICTL3), 0, "i", "iiiio",(SUBR)imidic14, NULL, NULL },
@@ -2131,6 +2200,10 @@ OENTRY opcodlst_1[] = {
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
     (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
+  { "sliderkawai", S(SLIDERKAWAI),  0, "kkkkkkkkkkkkkkkk",
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+    (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL }, /* alias */
   { "ctrl7.a", S(CTRL7a),  0, "a",    "iikkoo",
     (SUBR) ctrl7a_set,    (SUBR) ctrl7a },
   { "cpuprc", S(CPU_PERC),0,      "",     "Si",   (SUBR)cpuperc_S, NULL, NULL   },

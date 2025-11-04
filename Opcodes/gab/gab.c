@@ -874,11 +874,13 @@ OENTRY gab_localops[] = {
   {"resonxk", S(KRESONX),    0,    "k",    "kkkooo",
                             (SUBR) krsnsetx, (SUBR) kresonx, NULL },
   { "tab_i",S(FASTAB),       TR,    "i",    "iio", (SUBR) fastabi, NULL, NULL },
+  { "tabi",S(FASTAB),       TR,    "i",    "iio", (SUBR) fastabi, NULL, NULL }, /* alias*/
   { "tab",S(FASTAB),         TR,    "a",    "xio",
                             (SUBR) fastab_set, (SUBR) fastab },
   { "tab.k",S(FASTAB),       TR,    "k",    "kio",
                             (SUBR) fastab_set, (SUBR)fastabk, NULL },
   { "tabw_i",S(FASTAB),      TW,    "",    "iiio", (SUBR) fastabiw, NULL, NULL },
+  { "tabwi",S(FASTAB),      TW,    "",    "iiio", (SUBR) fastabiw, NULL, NULL }, /* alias*/
   { "tabw",S(FASTAB),        TW,    "",    "kkio",
                             (SUBR)fastab_set, (SUBR)fastabkw          },
   { "tabw",S(FASTAB),        TW,    "",    "aaio",
@@ -899,6 +901,23 @@ OENTRY gab_localops[] = {
   { "tb13_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab13_init},
   { "tb14_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab14_init},
   { "tb15_init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab15_init},
+  /* aliases */
+  { "tb0init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab0_init},
+  { "tb1init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab1_init},
+  { "tb2init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab2_init},
+  { "tb3init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab3_init},
+  { "tb4init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab4_init},
+  { "tb5init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab5_init},
+  { "tb6init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab6_init},
+  { "tb7init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab7_init},
+  { "tb8init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab8_init},
+  { "tb9init", S(TB_INIT),  _QQ,    "",      "i",    (SUBR)tab9_init},
+  { "tb10init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab10_init},
+  { "tb11init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab11_init},
+  { "tb12init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab12_init},
+  { "tb13init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab13_init},
+  { "tb14init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab14_init},
+  { "tb15init", S(TB_INIT), _QQ,    "",      "i",    (SUBR)tab15_init},
   /* tbx_t (t-rate version removed here) */
   { "tb0.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab0_i_tmp    },
   { "tb1.i",      S(FASTB), _QQ|TR,     "i",     "i", (SUBR) tab1_i_tmp    },
@@ -949,6 +968,8 @@ OENTRY gab_localops[] = {
                             (SUBR) isAChanged_set, (SUBR)isAChanged, NULL },
   { "max_k",  S(P_MAXIMUM), 0,       "k",    "aki",
             (SUBR) partial_maximum_set, (SUBR) partial_maximum },
+  { "maxk",  S(P_MAXIMUM), 0,       "k",    "aki",
+            (SUBR) partial_maximum_set, (SUBR) partial_maximum }, /* alias */
   { "mandel",S(MANDEL),     0,       "kk",    "kkkk",
                             (SUBR) mandel_set, (SUBR) mandel, NULL }
 };

@@ -299,6 +299,15 @@ static OENTRY counter_localops[] = {
   { "cntState", S(CNTSTATE), SK,  "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
   { "cntDelete", S(COUNTER), SK,  "k", "k", NULL, (SUBR)count_del, NULL },
   { "cntDelete_i", S(COUNTER), SK,  "i", "i", (SUBR)count_del, NULL, NULL },
+  /* aliases */
+  { "cntcreate", S(CNTSET), 0,  "i", "pop", (SUBR)setcnt, NULL, NULL   },
+  { "counti", S(COUNTER), SK,  "i", "o", (SUBR)count_init_perf, NULL },
+  { "cntcycles", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_cycles },
+  { "cntread", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_read },
+  { "cntreset", S(COUNTER), SK,  "", "o", (SUBR)count_init0, (SUBR)count_reset },
+  { "cntstate", S(CNTSTATE), SK,  "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
+  { "cntdelete", S(COUNTER), SK,  "k", "k", NULL, (SUBR)count_del, NULL },
+  { "cntdeletei", S(COUNTER), SK,  "i", "i", (SUBR)count_del, NULL, NULL },
  };
 
 LINKAGE_BUILTIN(counter_localops)

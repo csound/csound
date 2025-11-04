@@ -620,68 +620,94 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 static OENTRY scugens_localops[] = {
     {"sc_lag",    S(LAG0),   0,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+    {"sclag",    S(LAG0),   0,  "k", "kk",
+     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next}, /* alias */
     {"lag",    S(LAG0),   0,  "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
 
     {"sc_lag",    S(LAG0),   0,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
+    {"sclag",    S(LAG0),   0,  "k", "kki",
+     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next}, /* alias */
     {"lag",    S(LAG0),   0,  "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
 
     {"sc_lag",    S(LAG0),    0,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next},
+    {"sclag",    S(LAG0),    0,  "a", "aki",
+     (SUBR)laga_init_initial_value, (SUBR)laga_next}, /* alias*/
     {"lag",    S(LAG0),    0,  "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next},
 
     {"sc_lag",    S(LAG0),    0,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
+    {"sclag",    S(LAG0),    0,  "a", "ak",
+     (SUBR)laga_init_no_initial_value, (SUBR)laga_next}, /* alias */
     {"lag",    S(LAG0),    0,  "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
 
     {"sc_lagud",  S(LagUD),  0,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+    {"sclagud",  S(LagUD),  0,  "k", "kkki",
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_k }, /* alias */
     {"lagud",  S(LagUD),  0,  "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
 
     {"sc_lagud",  S(LagUD),  0,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+    {"sclagud",  S(LagUD),  0,  "a", "akki",
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_a }, /* alias */
     {"lagud",  S(LagUD),  0,  "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
 
     {"sc_lagud",  S(LagUD),  0,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+    {"sclagud",  S(LagUD),  0,  "k", "kkk",
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k }, /* alias */
     {"lagud",  S(LagUD),  0,  "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
 
     {"sc_lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
+    {"sc_lagud",  S(LagUD),  0,  "a", "akk",
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a }, /* alias */
     {"lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
 
 
     {"sc_trig",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
+    {"sctrig",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k }, /* alias */
     {"trighold",   S(Trig),   0,  "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
 
     {"sc_trig",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+    {"sctrig",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a }, /* alias */
     {"trighold",   S(Trig),   0,  "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
 
     {"sc_phasor", S(Phasor), 0,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk },
+    {"scphasor", S(Phasor), 0,  "k", "kkkkO",
+     (SUBR)phasor_init, (SUBR)phasor_k_kk }, /* alias */
     {"trigphasor", S(Phasor), 0,  "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk },
 
     {"sc_phasor", S(Phasor), 0,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak },
+    {"scphasor", S(Phasor), 0,  "a", "akkkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_ak }, /* alias */
     {"trigphasor", S(Phasor), 0,  "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak },
 
     {"sc_phasor", S(Phasor), 0,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
+    {"scphasor", S(Phasor), 0,  "a", "aakkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_aa }, /* alias */
     {"trigphasor", S(Phasor), 0,  "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
 
     {"sc_phasor", S(Phasor), 0,  "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk },
+    {"scphasor", S(Phasor), 0,  "a", "kkkkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_kk }, /* alias */
 
     {"trigphasor", S(Phasor), 0,  "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk }

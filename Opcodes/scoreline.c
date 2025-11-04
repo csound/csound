@@ -67,6 +67,7 @@ rewindscore(CSOUND *csound, SCOREPOS *p){
 
 static OENTRY scoreline_localops[] = {
   {"scoreline_i", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL},
+  {"scorelinei", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL}, /* alias */
   {"scoreline", sizeof(INMESS), 0,  "", "Sk", NULL, (SUBR)messk, NULL},
   {"setscorepos", sizeof(SCOREPOS), 0,  "", "i", (SUBR)setscorepos, NULL, NULL},
   {"rewindscore", sizeof(SCOREPOS), 0,  "", "", (SUBR)rewindscore, NULL, NULL}

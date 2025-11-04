@@ -3003,6 +3003,8 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     {
    { "oscbnk",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
      (SUBR) oscbnkset, (SUBR) oscbnk                },
+   { "oscilbank",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
+     (SUBR) oscbnkset, (SUBR) oscbnk                }, /* alias */
    { "grain2",     sizeof(GRAIN2),     TR,      "a",    "kkkikiooo",
             (SUBR) grain2set, (SUBR) grain2                },
    { "grain3",     sizeof(GRAIN3),     TR,      "a",    "kkkkkkikikkoo",

@@ -1129,6 +1129,21 @@ static OENTRY localops[] = {
   { "OSClisten", S(OSCLISTENA),0,  "kk[]", "iSS",
     (SUBR)OSC_alist_init, (SUBR)OSC_alist, (SUBR) OSC_listadeinit, NULL },
   { "OSCcount", S(OSCcount), 0,  "k", "",
+    (SUBR)OSCcounter, (SUBR)OSCcounter, NULL },
+  /* aliases */
+  { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
+    (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL },
+  { "oscinit", S(OSCINIT), 0, "i", "i",
+    (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL },
+  { "oscinitm", S(OSCINITM), 0,  "i", "Si",
+    (SUBR)osc_listener_initMulti, NULL, (SUBR) OSC_deinit , NULL },
+  { "osclisten", S(OSCLISTEN),0,  "k", "iSSN",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL },
+  { "osclisten", S(OSCLISTEN),0,  "k", "iSS",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL },
+  { "osclisten", S(OSCLISTENA),0,  "kk[]", "iSS",
+    (SUBR)OSC_alist_init, (SUBR)OSC_alist, (SUBR) OSC_listadeinit, NULL },
+  { "osccount", S(OSCcount), 0,  "k", "",
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
 };
 
