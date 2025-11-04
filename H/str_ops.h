@@ -144,8 +144,14 @@ typedef struct {
     MYFLT   *inVar;
 } PRINT_TYPE_OP;
 
-#ifndef CSOUND_STR_OPS_C
+typedef struct {
+  OPDS h;
+  int32_t *r;
+  STRINGDAT *a, *b;
+} EQS_OP;
 
+#ifndef CSOUND_STR_OPS_C
+int32_t     eqs(CSOUND *, void *);
 int32_t     strset_init(CSOUND *, void *);
 int32_t     strget_init(CSOUND *, void *);
 int32_t     strcpy_opcode_p(CSOUND *, void *);

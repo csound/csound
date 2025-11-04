@@ -291,7 +291,6 @@ int32_t is_boolean_expression_node(TREE *node)
 
   switch(node->type) {
   case S_EQ:
-  case S_EQT:
   case S_NEQ:
   case S_GE:
   case S_LE:
@@ -840,9 +839,6 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     break;
   case S_EQ:
     strNcpy(op, "==", 80);
-    break;
-  case S_EQT:
-    strNcpy(op, "=t", 80);
     break;   
   case S_NEQ:
     strNcpy(op, "!=", 80);
