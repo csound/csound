@@ -3256,7 +3256,7 @@ PUBLIC int32_t csoundAppendOpcode(CSOUND *csound,
                               int32_t (*perf)(CSOUND *, void *),
                               int32_t (*deinit)(CSOUND *, void *))
 {
-  OENTRY  tmpEntry;
+  OENTRY  tmpEntry = {0};
   int32_t     err;
   tmpEntry.opname     = (char*) opname;
   tmpEntry.dsblksiz   =  dsblksiz;

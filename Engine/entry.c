@@ -687,7 +687,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) tabslice, NULL }, /* Alias */
   { "trim.i", sizeof(TRIM), WI, "", "i[]i", (SUBR)trim_i, NULL },
   { "trim.k", sizeof(TRIM), WI, "", ".[]k", NULL, (SUBR)trim },
-  { "trim_i", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL },
+  { "trim_i", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL, NULL, NULL, 2 },
   { "trimi", sizeof(TRIM), WI, "", ".[]i", (SUBR)trim_i, NULL },  /* alias */
   { "copy2ftab", sizeof(TABCOPY), TW|_QQ, "", "k[]k", NULL, (SUBR) tab2ftab },
   { "copy2ttab", sizeof(TABCOPY), TR|_QQ, "", "k[]k", NULL, (SUBR) ftab2tab },
@@ -1470,9 +1470,9 @@ OENTRY opcodlst_1[] = {
   { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, event_opcode_Instr, NULL   },
   { "event", S(LINEVENT),0,        "",     "Skz",  NULL, event_opcode, NULL   },
   { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
-  { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL  },
-  { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL  },
-  { "event_i.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL  },
+  { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL, NULL, 2  },
+  { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL, NULL, 2  },
+  { "event_i.S", S(LINEVENT),0,     "",    "SSm",  event_opcode_i_S, NULL, NULL, NULL, 2  },
   /* aliases */
   { "eventi.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL  },
   { "eventi", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL  },
@@ -1619,11 +1619,11 @@ OENTRY opcodlst_1[] = {
   { "instrstr.k", S(NSTRSTR),0,       "S",    "k",    NULL, nstrstr, NULL      },
   { "nstrstr", S(NSTRSTR),0,        "S",    "i",    nstrstr, NULL, NULL      },
   { "nstrstr.k", S(NSTRSTR),0,       "S",    "k",    NULL, nstrstr, NULL      },
-  { "turnoff2_i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL     },
+  { "turnoff2_i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL, NULL, NULL, 2 },
   { "turnoff2i.instr",S(TURNOFF2),_CW,     "",  ":InstrDef;oo",  turnoff2Instr, NULL     }, /* alias */
-  { "turnoff2_i.S",S(TURNOFF2),_CW,     "",     "Soo",  turnoff2S, NULL     },
+  { "turnoff2_i.S",S(TURNOFF2),_CW,     "",     "Soo",  turnoff2S, NULL, NULL, NULL, 2     },
   { "turnoff2i.S",S(TURNOFF2),_CW,     "",     "Soo",  turnoff2S, NULL     }, /* alias */
-  { "turnoff2_i.i",S(TURNOFF2),_CW,     "",     "ioo",  turnoff2k, NULL     },
+  { "turnoff2_i.i",S(TURNOFF2),_CW,     "",     "ioo",  turnoff2k, NULL, NULL, NULL, 2     },
   { "turnoff2i.i",S(TURNOFF2),_CW,     "",     "ioo",  turnoff2k, NULL     }, /* alias */
   { "turnoff2.Instr",S(TURNOFF2),_CW,      "",     ":InstrDef;kk",  NULL, turnoff2Instr, NULL     },
   { "turnoff2.S",S(TURNOFF2),_CW,      "",     "SOO",  NULL, turnoff2S, NULL     },
@@ -1714,7 +1714,7 @@ OENTRY opcodlst_1[] = {
   {  "sprintfk", S(SPRINTF_OP),WR,    "S",    "SUN",
      (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, NULL           },
   {  "printf_i", S(PRINTF_OP),0,     "",     "SiN", /* SiTN */
-     (SUBR) printf_opcode_init, NULL, NULL                 },
+     (SUBR) printf_opcode_init, NULL, NULL, NULL, 2                 },
   {  "printfi", S(PRINTF_OP),0,     "",     "SiN", /* SiTN */
      (SUBR) printf_opcode_init, NULL, NULL                 }, /* alias */
   {  "printf",   S(PRINTF_OP),WR,     "",     "SkN", /* SkUN */
@@ -1764,7 +1764,7 @@ OENTRY opcodlst_1[] = {
   {  "strrindexk", S(STRINDEX_OP),0,  "k",   "SS",
      (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, NULL       },
   {  "print_type", S(PRINT_TYPE_OP),0,  "",   ".",
-     (SUBR) print_type_opcode, NULL, NULL       },
+     (SUBR) print_type_opcode, NULL, NULL, NULL, 2       },
   {  "printtype", S(PRINT_TYPE_OP),0,  "",   ".",
      (SUBR) print_type_opcode, NULL, NULL       }, /* alias */
   {  "assert_true.i", S(ASSERT_OP),0, "", "b",
@@ -1836,14 +1836,14 @@ OENTRY opcodlst_1[] = {
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   {  "changed2.S", S(STRCHGD),0,  "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
-  { "loop_lt.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
-  { "loop_le.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
-  { "loop_gt.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_g_i, NULL, NULL   },
-  { "loop_ge.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_ge_i, NULL, NULL  },
-  { "loop_lt.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_l_p, NULL   },
-  { "loop_le.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_le_p, NULL  },
-  { "loop_gt.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_g_p, NULL   },
-  { "loop_ge.k", S(LOOP_OPS),0,     "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
+  { "loop_lt.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_l_i, NULL, NULL, NULL, 2 },
+  { "loop_le.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_le_i, NULL, NULL, NULL, 2 },
+  { "loop_gt.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_g_i, NULL, NULL, NULL, 2 },
+  { "loop_ge.i", S(LOOP_OPS), 0, "", "iiil", (SUBR) loop_ge_i, NULL, NULL, NULL, 2 },
+  { "loop_lt.k", S(LOOP_OPS), 0, "", "kkkl", NULL, (SUBR) loop_l_p, NULL, NULL, 2 },
+  { "loop_le.k", S(LOOP_OPS), 0, "", "kkkl", NULL, (SUBR) loop_le_p, NULL, NULL, 2 },
+  { "loop_gt.k", S(LOOP_OPS), 0, "", "kkkl", NULL, (SUBR) loop_g_p, NULL, NULL, 2 },
+  { "loop_ge.k", S(LOOP_OPS), 0, "", "kkkl", NULL, (SUBR) loop_ge_p, NULL, NULL, 2 },
   /* aliases */
   { "looplt.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
   { "loople.i", S(LOOP_OPS),0,    "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
@@ -2014,7 +2014,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)monitora_init, (SUBR)monitora_perf},
   { "outrg", S(OUTRANGE), IR, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
-  { "nchnls_hw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels},
+  { "nchnls_hw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels, NULL, NULL, NULL, 2 },
   { "nchnlshw", S(ASSIGN), 0, "ii", "", (SUBR)hw_channels}, /* alias */
   { "midic7.i",S(MIDICTL2),0,   "i", "iiio", (SUBR)imidic7, NULL, NULL  },
   { "midic7.k", S(MIDICTL2),0, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
@@ -2199,7 +2199,7 @@ OENTRY opcodlst_1[] = {
   { "sliderKawai", S(SLIDERKAWAI),  0, "kkkkkkkkkkkkkkkk",
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-    (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL },
+    (SUBR)sliderKawai_i, (SUBR)sliderKawai, NULL, NULL, 2 },
   { "sliderkawai", S(SLIDERKAWAI),  0, "kkkkkkkkkkkkkkkk",
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",

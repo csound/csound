@@ -2588,49 +2588,49 @@ OENTRY vectorial_localops[] = {
 
   { "vadd",   S(VECTOROP),   TB,  "",  "ikkOO",
                                            (SUBR)vectorOp_set, (SUBR) vaddk },
-  { "vadd_i", S(VECTOROPI),  TB,  "",  "iiio",  (SUBR) vadd_i, NULL, NULL },
+  { "vadd_i", S(VECTOROPI),  TB,  "",  "iiio",  (SUBR) vadd_i, NULL, NULL, NULL, 2 },
   { "vaddi", S(VECTOROPI),  TB,  "",  "iiio",  (SUBR) vadd_i, NULL, NULL }, /* alias */
   { "vmult",  S(VECTOROP),   TB,  "",  "ikkOO",
                                     (SUBR)vectorOp_set, (SUBR) vmultk},
-  { "vmult_i", S(VECTOROPI), TB,  "",  "iiio", (SUBR) vmult_i, NULL, NULL },
+  { "vmult_i", S(VECTOROPI), TB,  "",  "iiio", (SUBR) vmult_i, NULL, NULL, NULL, 2 },
   { "vmulti", S(VECTOROPI), TB,  "",  "iiio", (SUBR) vmult_i, NULL, NULL }, /* alias */
   { "vpow",   S(VECTOROP),   TB,  "",  "ikkOO",
                                            (SUBR)vectorOp_set, (SUBR) vpowk },
-  { "vpow_i", S(VECTOROPI),  TB,  "",  "iiio", (SUBR) vpow_i, NULL, NULL  },
+  { "vpow_i", S(VECTOROPI),  TB,  "",  "iiio", (SUBR) vpow_i, NULL, NULL, NULL, 2  },
   { "vpowi", S(VECTOROPI),  TB,  "",  "iiio", (SUBR) vpow_i, NULL, NULL  }, /* alias */
   { "vexp",   S(VECTOROP),   TB,  "",  "ikkOO",
                                            (SUBR)vectorOp_set, (SUBR) vexpk },
-  { "vexp_i", S(VECTOROPI),  TB,  "",  "iiio", (SUBR) vexp_i, NULL, NULL  },
+  { "vexp_i", S(VECTOROPI),  TB,  "",  "iiio", (SUBR) vexp_i, NULL, NULL, NULL, 2 },
   { "vexpi", S(VECTOROPI),  TB,  "",  "iiio", (SUBR) vexp_i, NULL, NULL  }, /* alias */
   { "vaddv",  S(VECTORSOP),  TB,  "",  "iikOOO",
                                          (SUBR)vectorsOp_set, (SUBR) vaddvk },
-  { "vaddv_i",  S(VECTORSOPI), TB,  "",  "iiioo", (SUBR)vaddv_i, NULL, NULL },
+  { "vaddv_i",  S(VECTORSOPI), TB,  "",  "iiioo", (SUBR)vaddv_i, NULL, NULL, NULL, 2 },
   { "vaddvi",  S(VECTORSOPI), TB,  "",  "iiioo", (SUBR)vaddv_i, NULL, NULL }, /* alias */
   { "vsubv",  S(VECTORSOP),  TB,  "",  "iikOOO",
                                          (SUBR)vectorsOp_set, (SUBR) vsubvk },
   { "vsubv_i",  S(VECTORSOPI),  TB,  "",  "iiioo",
-                                           (SUBR)vsubv_i, NULL, NULL        },
+                                           (SUBR)vsubv_i, NULL, NULL, NULL, 2        },
   { "vsubvi",  S(VECTORSOPI),  TB,  "",  "iiioo",
                                            (SUBR)vsubv_i, NULL, NULL        }, /* alias */
   { "vmultv", S(VECTORSOP),  TB,  "",  "iikOOO",
                                          (SUBR)vectorsOp_set, (SUBR) vmultvk},
-  { "vmultv_i", S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vmultv_i, NULL, NULL },
+  { "vmultv_i", S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vmultv_i, NULL, NULL, NULL, 2 },
   { "vmultvi", S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vmultv_i, NULL, NULL }, /* alias */
   { "vdivv",  S(VECTORSOP), TB,   "",  "iikOOO",
                                          (SUBR)vectorsOp_set, (SUBR) vdivvk },
-  { "vdivv_i",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vdivv_i, NULL, NULL },
+  { "vdivv_i",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vdivv_i, NULL, NULL, NULL, 2 },
   { "vdivvi",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vdivv_i, NULL, NULL }, /* alias */
   { "vpowv",  S(VECTORSOP),  TB,  "",  "iikOOO",
                                          (SUBR)vectorsOp_set, (SUBR) vpowvk },
-  { "vpowv_i",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vpowv_i, NULL, NULL },
+  { "vpowv_i",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vpowv_i, NULL, NULL, NULL, 2 },
   { "vpowvi",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vpowv_i, NULL, NULL }, /* alias */
   { "vexpv",  S(VECTORSOP),  TB,  "",  "iikOOO",
                                          (SUBR)vectorsOp_set, (SUBR) vexpvk },
-  { "vexpv_i",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vexpv_i, NULL, NULL },
+  { "vexpv_i",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vexpv_i, NULL, NULL, NULL, 2 },
   { "vexpvi",  S(VECTORSOPI),  TB,  "",  "iiioo", (SUBR)vexpv_i, NULL, NULL }, /* alias */
   { "vcopy",  S(VECTORSOP),  TB,  "",  "iikOOO",
                                           (SUBR)vectorsOp_set, (SUBR) vcopy },
-  { "vcopy_i", S(VECTORSOP), TB,  "",  "iiioo", (SUBR) vcopy_i, NULL, NULL},
+  { "vcopy_i", S(VECTORSOP), TB,  "",  "iiioo", (SUBR) vcopy_i, NULL, NULL, NULL, 2},
   { "vcopyi", S(VECTORSOP), TB,  "",  "iiioo", (SUBR) vcopy_i, NULL, NULL}, /* alias */
   { "vmap",   S(VECTORSOPI), TB,  "",  "iiioo", (SUBR)vmap_i, NULL, NULL  },
   { "vlimit", S(VLIMIT),  TR,  "",  "ikki",(SUBR)vlimit_set, (SUBR)vlimit },
