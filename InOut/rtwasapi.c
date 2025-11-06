@@ -84,8 +84,6 @@ typedef struct csdata_ {
   HANDLE hOutThread;
   WAVEFORMATEX *pwfxIn;
   WAVEFORMATEX *pwfxOut;
-  int32_t         inBufSamples;
-  int32_t         outBufSamples;
   MYFLT       *inputBuffer;
   MYFLT       *outputBuffer;
   csRtAudioParams *inParm;
@@ -93,9 +91,6 @@ typedef struct csdata_ {
   int32_t onchnls, inchnls;
   CSOUND *csound;
   int32_t disp;
-  int32_t devnos;
-  int32_t devin;
-  int32_t devout;
   void *incb;
   void *outcb;
   MYFLT sr;
