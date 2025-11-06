@@ -609,6 +609,7 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
         cdata->hInThread = CreateThread(NULL, 0, InputThread, cdata, 0, NULL);
         if (cdata->hInThread == NULL) {
             cdata->inRunning = 0;
+            cdata->pInAudioClient->lpVtbl->Stop(cdata->pInAudioClient);
             return csound->InitError(csound,
                                      Str("WASAPI: Failed to create input thread"));
         }
@@ -645,6 +646,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         cdata->hOutThread = CreateThread(NULL, 0, OutputThread, cdata, 0, NULL);
         if (cdata->hOutThread == NULL) {
             cdata->outRunning = 0;
+            cdata->pOutAudioClient->lpVtbl->Stop(cdata->pOutAudioClient);
             return csound->InitError(csound,
                                      Str("WASAPI: Failed to create output thread"));
         }
