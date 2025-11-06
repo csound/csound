@@ -24,6 +24,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <initguid.h>
 #include <mmdeviceapi.h>
 #include <audioclient.h>
 #include <functiondiscoverykeys_devpkey.h>
