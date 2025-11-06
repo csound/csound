@@ -71,15 +71,6 @@ strNcpy(char *dst, const char *src, size_t siz)
     return dst;        /* count does not include NUL */
 }
 
-typedef struct {
-  WCHAR id[256];
-  char name[128];
-  int32_t outchannels;
-  int32_t inchannels;
-  int32_t indevnum;
-  int32_t outdevnum;
-} Device_Info;
-
 typedef struct csdata_ {
   IMMDevice *pInDevice;
   IMMDevice *pOutDevice;
@@ -230,6 +221,12 @@ static DWORD WINAPI OutputThread(LPVOID lpParam)
         n = csound->ReadCircularBuffer(csound, cdata->outcb, outputBuffer,
                                        numFramesAvailable * onchnls);
 
+        if (n < (int32_t)(numFramesAvailable * onchnls)) {
+            /* Not enough data in buffer, fill remainder with silence */
+            memset(&outputBuffer[n], 0,
+                   ((numFramesAvailable * onchnls) - n) * sizeof(MYFLT));
+        }
+
         float *pFloatData = (float *)pData;
         for (i = 0; i < (int32_t)numFramesAvailable; i++) {
             for (j = 0; j < onchnls; j++) {
@@ -260,7 +257,11 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     const OPARMS *O = csound->GetOParms(csound);
     DWORD devnum = 0;
 
-    CoInitialize(NULL);
+    hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
+        return csound->InitError(csound,
+                                 Str("WASAPI: Failed to initialize COM"));
+    }
 
     hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL,
                           &IID_IMMDeviceEnumerator, (void **)&pEnumerator);
@@ -483,7 +484,10 @@ static int32_t listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutpu
     char tmp[64];
     char *s;
 
-    CoInitialize(NULL);
+    hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+    if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
+        return 0;
+    }
 
     hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL,
                           &IID_IMMDeviceEnumerator, (void **)&pEnumerator);
@@ -748,8 +752,12 @@ static void rtclose_(CSOUND *csound)
         *(csound->GetRtRecordUserData(csound)) = NULL;
         *(csound->GetRtPlayUserData(csound)) = NULL;
 
-        csound->DestroyCircularBuffer(csound, cdata->incb);
-        csound->DestroyCircularBuffer(csound, cdata->outcb);
+        if (cdata->incb != NULL) {
+            csound->DestroyCircularBuffer(csound, cdata->incb);
+        }
+        if (cdata->outcb != NULL) {
+            csound->DestroyCircularBuffer(csound, cdata->outcb);
+        }
         csound->Free(csound, cdata);
         csound->DebugMsg(csound, "%s", Str("WASAPI module: device closed\n"));
     }
