@@ -3585,7 +3585,11 @@ PUBLIC void csoundReset(CSOUND *csound) {
 #ifdef __MACH__
   strcpy(s, "auhal");
 #else
+#ifdef _WIN32
+  strcpy(s, "wasapi");
+#else
   strcpy(s, "PortAudio");
+#endif
 #endif
 #endif
 #else
