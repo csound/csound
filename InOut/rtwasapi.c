@@ -22,6 +22,8 @@
 */
 
 #ifdef _WIN32
+
+/* Must include initguid.h before windows.h to define GUIDs */
 #include <initguid.h>
 #include <windows.h>
 #include <mmdeviceapi.h>
@@ -32,14 +34,7 @@
 #include "csdl.h"
 #include "soundio.h"
 
-/* Define the GUIDs we need for WASAPI */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __IID_DEFINED__
-#define __IID_DEFINED__
-
+/* Define the COM GUIDs we need for WASAPI */
 /* MMDevice API GUIDs */
 DEFINE_GUID(CLSID_MMDeviceEnumerator, 0xBCDE0395, 0xE52F, 0x467C,
             0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E);
@@ -51,12 +46,6 @@ DEFINE_GUID(IID_IAudioRenderClient, 0xF294ACFC, 0x3146, 0x4483,
             0xA7, 0xBF, 0xAD, 0xDC, 0xA7, 0xC2, 0x60, 0xE2);
 DEFINE_GUID(IID_IAudioCaptureClient, 0xC8ADBD64, 0xE71E, 0x48a0,
             0xA4, 0xDE, 0x18, 0x5C, 0x39, 0x5C, 0xD3, 0x17);
-
-#endif /* __IID_DEFINED__ */
-
-#ifdef __cplusplus
-}
-#endif
 
 #define SAFE_RELEASE(punk)  \
               if ((punk) != NULL)  \
