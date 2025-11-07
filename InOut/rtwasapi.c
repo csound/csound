@@ -329,24 +329,32 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     hr = pAudioClient->lpVtbl->IsFormatSupported(pAudioClient, AUDCLNT_SHAREMODE_SHARED,
                                                    &desiredFormat, &pClosestMatch);
     
-    /* Use the desired format if supported, otherwise use the device's mix format */
-    WAVEFORMATEX *pFormatToUse = pwfx;
+    /* Determine which format to use */
+    WAVEFORMATEX *pFormatToUse = NULL;
     if (hr == S_OK) {
-        /* Exact match - use our desired format */
-        memcpy(pwfx, &desiredFormat, sizeof(WAVEFORMATEX));
+        /* Exact match - use our desired format (allocate new structure) */
+        pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX));
+        if (pFormatToUse != NULL) {
+            memcpy(pFormatToUse, &desiredFormat, sizeof(WAVEFORMATEX));
+            CoTaskMemFree(pwfx);
+        } else {
+            /* Allocation failed, fall back to device format */
+            pFormatToUse = pwfx;
+        }
     } else if (hr == S_FALSE && pClosestMatch != NULL) {
         /* Close match suggested - use it */
         CoTaskMemFree(pwfx);
-        pwfx = pClosestMatch;
+        pFormatToUse = pClosestMatch;
+    } else {
+        /* Use the original mix format from GetMixFormat */
         pFormatToUse = pwfx;
     }
-    /* else use the original mix format from GetMixFormat */
 
     hr = pAudioClient->lpVtbl->Initialize(pAudioClient, AUDCLNT_SHAREMODE_SHARED,
                                            AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
                                            hnsRequestedDuration, 0, pFormatToUse, NULL);
     if (FAILED(hr)) {
-        CoTaskMemFree(pwfx);
+        CoTaskMemFree(pFormatToUse);
         SAFE_RELEASE(pAudioClient);
         SAFE_RELEASE(pDevice);
         SAFE_RELEASE(pEnumerator);
@@ -356,7 +364,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
 
     hr = pAudioClient->lpVtbl->GetBufferSize(pAudioClient, &bufferFrameCount);
     if (FAILED(hr)) {
-        CoTaskMemFree(pwfx);
+        CoTaskMemFree(pFormatToUse);
         SAFE_RELEASE(pAudioClient);
         SAFE_RELEASE(pDevice);
         SAFE_RELEASE(pEnumerator);
@@ -371,7 +379,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         hr = pAudioClient->lpVtbl->GetService(pAudioClient, &IID_IAudioCaptureClient,
                                                (void **)&pCaptureClient);
         if (FAILED(hr)) {
-            CoTaskMemFree(pwfx);
+            CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
@@ -382,7 +390,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         cdata->hInEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
         if (cdata->hInEvent == NULL) {
             SAFE_RELEASE(pCaptureClient);
-            CoTaskMemFree(pwfx);
+            CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
@@ -394,7 +402,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         if (FAILED(hr)) {
             CloseHandle(cdata->hInEvent);
             SAFE_RELEASE(pCaptureClient);
-            CoTaskMemFree(pwfx);
+            CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
@@ -405,7 +413,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         cdata->pInDevice = pDevice;
         cdata->pInAudioClient = pAudioClient;
         cdata->pCaptureClient = pCaptureClient;
-        cdata->pwfxIn = pwfx;
+        cdata->pwfxIn = pFormatToUse;
         cdata->inchnls = nchnls;
         cdata->inBufferFrames = bufferFrameCount;
 
@@ -421,7 +429,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         hr = pAudioClient->lpVtbl->GetService(pAudioClient, &IID_IAudioRenderClient,
                                                (void **)&pRenderClient);
         if (FAILED(hr)) {
-            CoTaskMemFree(pwfx);
+            CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
@@ -432,7 +440,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         cdata->hOutEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
         if (cdata->hOutEvent == NULL) {
             SAFE_RELEASE(pRenderClient);
-            CoTaskMemFree(pwfx);
+            CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
@@ -444,7 +452,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         if (FAILED(hr)) {
             CloseHandle(cdata->hOutEvent);
             SAFE_RELEASE(pRenderClient);
-            CoTaskMemFree(pwfx);
+            CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
@@ -455,7 +463,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         cdata->pOutDevice = pDevice;
         cdata->pOutAudioClient = pAudioClient;
         cdata->pRenderClient = pRenderClient;
-        cdata->pwfxOut = pwfx;
+        cdata->pwfxOut = pFormatToUse;
         cdata->onchnls = nchnls;
         cdata->outBufferFrames = bufferFrameCount;
 
