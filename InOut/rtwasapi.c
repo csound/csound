@@ -508,8 +508,10 @@ static int32_t listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutpu
                                 list[n].device_name, 64, NULL, NULL);
 
             snprintf(tmp, 64, "%s%d", isOutput ? "dac" : "adc", i + 1);
-            strNcpy(list[n].device_id, tmp, 63);
-            strNcpy(list[n].rt_module, s, 63);
+            strncpy(list[n].device_id, tmp, 63);
+            list[n].device_id[63] = '\0';
+            strncpy(list[n].rt_module, s, 63);
+            list[n].rt_module[63] = '\0';
 
             IAudioClient *pAudioClient = NULL;
             hr = pDevice->lpVtbl->Activate(pDevice, &IID_IAudioClient, CLSCTX_ALL,
