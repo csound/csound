@@ -39,6 +39,7 @@ extern "C" {
 
 #ifndef __IID_DEFINED__
 #define __IID_DEFINED__
+#define INITGUID
 #include <initguid.h>
 
 /* MMDevice API GUIDs */
