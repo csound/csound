@@ -100,6 +100,8 @@ static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 uint64_t csoundGetKcounter(CSOUND *csound);
 static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int32_t nchnls);
+static int32_t csoundDeprecate(CSOUND *csound, char *name,
+                               char *o, char *i, int32_t deprec);
 
 extern void cscoreRESET(CSOUND *);
 extern void memreset(CSOUND *);
@@ -695,11 +697,12 @@ static const CSOUND cenviron_ = {
     cs_strtod,
     cs_sprintf,
     cs_sscanf,
+    csoundDeprecate,
     /* space for API expansion */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
  /* callback function pointers */
@@ -3299,6 +3302,16 @@ int32_t csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList,
     n--, ep++;
   }
   return retval;
+}
+
+static int32_t csoundDeprecate(CSOUND *csound, char *name,
+                        char *o, char *i, int32_t deprec) {
+  OENTRY *e = (OENTRY *)
+    csound->FindOpcode(csound, 1, name, o, i);
+  if(e) {
+    e->deprecated = deprec;
+    return CSOUND_SUCCESS;
+  } else return CSOUND_ERROR;
 }
 
 /*

@@ -1429,12 +1429,14 @@ struct CSOUND_ {
   double (*Strtod)(char *nptr, char **);
   int32_t (*Sprintf)(char *str, const char *format, ...);
   int32_t (*Sscanf)(char *str, const char *format, ...);
+  int32_t (*Deprecate)(CSOUND *csound, char *name,
+                       char *o, char *i, int32_t deprec);
   /**@}*/
   /** @name Placeholders
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[40];
+  SUBR dummyfn_2[39];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
