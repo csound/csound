@@ -76,7 +76,7 @@
    for arate vectors, and "opcode.A" is for arrays of arate vectors.
 */
 
-OENTRY opcodlst_1[] = {
+const OENTRY opcodlst_1[] = {
   /* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
   { "",     0,      0,          "",     "",     NULL, NULL, NULL, NULL },
   { "instr",  0,    0,            "",     "",   NULL, NULL, NULL, NULL },

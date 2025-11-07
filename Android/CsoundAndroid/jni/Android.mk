@@ -52,7 +52,6 @@ $(CSOUND_SRC_ROOT)/Engine/twarp.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_type_system.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_standard_types.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_data_structures.c \
-$(CSOUND_SRC_ROOT)/Engine/pools.c \
 $(CSOUND_SRC_ROOT)/InOut/soundfile.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd_u.c \
