@@ -22,7 +22,7 @@
 */
 
 #ifdef _WIN32
-
+#include <initguid.h>
 #include <windows.h>
 #include <mmdeviceapi.h>
 #include <audioclient.h>
@@ -39,8 +39,6 @@ extern "C" {
 
 #ifndef __IID_DEFINED__
 #define __IID_DEFINED__
-#define INITGUID
-#include <initguid.h>
 
 /* MMDevice API GUIDs */
 DEFINE_GUID(CLSID_MMDeviceEnumerator, 0xBCDE0395, 0xE52F, 0x467C,
