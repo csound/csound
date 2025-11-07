@@ -31,6 +31,7 @@
 #include <functiondiscoverykeys_devpkey.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include "csdl.h"
 #include "soundio.h"
 
@@ -313,17 +314,37 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
                                  Str("WASAPI: Failed to get mix format"));
     }
 
-    pwfx->wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
-    pwfx->nChannels = (WORD)parm->nChannels;
-    pwfx->nSamplesPerSec = (DWORD)parm->sampleRate;
-    pwfx->wBitsPerSample = 32;
-    pwfx->nBlockAlign = (pwfx->nChannels * pwfx->wBitsPerSample) / 8;
-    pwfx->nAvgBytesPerSec = pwfx->nSamplesPerSec * pwfx->nBlockAlign;
-    pwfx->cbSize = 0;
+    /* Set up our desired format */
+    WAVEFORMATEX desiredFormat;
+    desiredFormat.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+    desiredFormat.nChannels = (WORD)parm->nChannels;
+    desiredFormat.nSamplesPerSec = (DWORD)parm->sampleRate;
+    desiredFormat.wBitsPerSample = 32;
+    desiredFormat.nBlockAlign = (desiredFormat.nChannels * desiredFormat.wBitsPerSample) / 8;
+    desiredFormat.nAvgBytesPerSec = desiredFormat.nSamplesPerSec * desiredFormat.nBlockAlign;
+    desiredFormat.cbSize = 0;
+
+    /* Check if our desired format is supported */
+    WAVEFORMATEX *pClosestMatch = NULL;
+    hr = pAudioClient->lpVtbl->IsFormatSupported(pAudioClient, AUDCLNT_SHAREMODE_SHARED,
+                                                   &desiredFormat, &pClosestMatch);
+    
+    /* Use the desired format if supported, otherwise use the device's mix format */
+    WAVEFORMATEX *pFormatToUse = pwfx;
+    if (hr == S_OK) {
+        /* Exact match - use our desired format */
+        memcpy(pwfx, &desiredFormat, sizeof(WAVEFORMATEX));
+    } else if (hr == S_FALSE && pClosestMatch != NULL) {
+        /* Close match suggested - use it */
+        CoTaskMemFree(pwfx);
+        pwfx = pClosestMatch;
+        pFormatToUse = pwfx;
+    }
+    /* else use the original mix format from GetMixFormat */
 
     hr = pAudioClient->lpVtbl->Initialize(pAudioClient, AUDCLNT_SHAREMODE_SHARED,
                                            AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                                           hnsRequestedDuration, 0, pwfx, NULL);
+                                           hnsRequestedDuration, 0, pFormatToUse, NULL);
     if (FAILED(hr)) {
         CoTaskMemFree(pwfx);
         SAFE_RELEASE(pAudioClient);
