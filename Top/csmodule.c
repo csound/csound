@@ -531,8 +531,8 @@ static int32_t csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   while (deny) {
     /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
     if (strcmp(deny, buff)==0) {
-      csound->Free(csound, p); 
-      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); 
+      csound->Free(csound, p);
+      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__);
       return 1;
     }
     deny = cs_strtok_r(NULL, ",", &th);

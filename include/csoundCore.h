@@ -286,6 +286,7 @@ typedef struct {
     char *data;         // null-terminated string
     size_t size;        // total allocated size
     int64_t timestamp;  // used internally for updates
+    int32_t refcount;   // reference count for shared buffers (0 = unmanaged)
   };
 
   /**
@@ -1778,6 +1779,7 @@ struct CSOUND_ {
   int32_t midi_start;
   int32_t midi_continue;
   int32_t midi_stop;
+  int32_t struct_array_temp_counter;
   int32_t parflag;
   int32_t *taskflag;
   /*struct CSOUND_ **self;*/

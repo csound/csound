@@ -602,6 +602,9 @@ static int32_t csoundCompileCSDText(CSOUND *csound, const char *csd_text, int32_
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
     csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
+    /* Ensure any stale orchname from a previous compile is not used */
+    csound->orchname = NULL;
+
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
       if ((csound->engineStatus & CS_STATE_COMP) != 0) {

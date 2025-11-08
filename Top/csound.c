@@ -1207,6 +1207,7 @@ static const CSOUND cenviron_ = {
     0, /* instance count */
     300, /* genLabs */
     0, 0, 0, 0, /* midi RT messages */
+    0, /* struct_array_temp_counter */
     0, NULL  /* PARCS thread sync */
 };
 
@@ -1652,10 +1653,10 @@ static int32_t get_thread_index(CSOUND *csound, void *threadId) {
 
 #define INVALID (-1)
 #define WAIT (-2)
-/** 
+/**
    Perform one partition of multicore execution
-   essentially containing similar code as 
-   in kperf() single thread, with the extra 
+   essentially containing similar code as
+   in kperf() single thread, with the extra
    PARCS dispatching
 */
 inline static int32_t node_perf(CSOUND *csound, int32_t index,
@@ -1667,7 +1668,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
   INSDS **task_map = (INSDS **)csound->dag_task_map;
   double time_end;
   int32_t next_task = INVALID;
-  
+
   while (1) {
     int32_t done;
     which_task = dag_get_task(csound, index, numThreads, next_task);
@@ -1754,7 +1755,7 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
   return played_count;
 }
 
-/** 
+/**
     Thread function for multicore performance
     for N-1 threads in parallel with the
     master thread.
@@ -1784,7 +1785,7 @@ unsigned long kperf_thread(void *cs) {
   while (1) {
 #ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
-#else    
+#else
     do parflag = ATOMIC_GET(csound->parflag);
     while(parflag == taskflag);
     taskflag = parflag;
@@ -1797,15 +1798,15 @@ unsigned long kperf_thread(void *cs) {
     csound->taskflag[index] = 0;
     node_perf(csound, index, numThreads);
     csound->taskflag[index] = 1;
-#ifdef PARCS_USE_LOCK_BARRIER    
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier2);
-#endif    
+#endif
   }
 }
 #endif // PARCS
 
-/** 
-   Perform one k-cycle 
+/**
+   Perform one k-cycle
    either in a single thread
    or as the master thread for multicore
 */
@@ -1828,7 +1829,7 @@ int32_t kperf(CSOUND *csound) {
   /* if i-time only, return now */
   if (UNLIKELY(csound->initonly))
     return 1;
-  
+
   /* PC GUI needs attention, but avoid excessively frequent */
   /* calls of csoundYield() */
   if (UNLIKELY(--(csound->evt_poll_cnt) < 0)) {
@@ -1860,15 +1861,15 @@ int32_t kperf(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-#ifdef PARCS_USE_LOCK_BARRIER 
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier1)
-#else        
+#else
       ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
       node_perf(csound, 0, n);
       /* wait until partition is complete */
-#ifdef PARCS_USE_LOCK_BARRIER 
-      csound->WaitBarrier(csound->barrier2);   
+#ifdef PARCS_USE_LOCK_BARRIER
+      csound->WaitBarrier(csound->barrier2);
 #else
       {
         int32_t i, sum;
@@ -2140,15 +2141,15 @@ int32_t kperf_debug(CSOUND *csound) {
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-#ifdef PARCS_USE_LOCK_BARRIER 
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier1)
-#else        
+#else
       ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
       node_perf(csound, 0, n);
       /* wait until partition is complete */
-#ifdef PARCS_USE_LOCK_BARRIER 
-      csound->WaitBarrier(csound->barrier2);   
+#ifdef PARCS_USE_LOCK_BARRIER
+      csound->WaitBarrier(csound->barrier2);
 #else
       {
         int32_t i, sum;
@@ -2330,7 +2331,7 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
 #else
         ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
-      } 
+      }
       csoundMessage(csound, Str("end of Performance\n"));
       return done;
     }
@@ -2374,7 +2375,7 @@ PUBLIC int32_t csoundPerformBuffer(CSOUND *csound) {
 #else
         ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
-        }        
+        }
         return done;
       }
     } while (csound->kperf(csound));
@@ -2676,12 +2677,12 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     vfprintf(fp, format, args);
     return;
   }
-  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH) 
+  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
     if (attr & CSOUNDMSG_BG_COLOR_MASK) {
       flag = 1;
       fprintf(fp, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
     }
-      
+
   if (attr & CSOUNDMSG_FG_ATTR_MASK) {
     flag = 1;
     if (attr & CSOUNDMSG_FG_BOLD)
@@ -2796,7 +2797,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
   va_list args;
   if (!(csound->oparms_.odebug & (~CS_NOQQ)) ||
-        csoundGetDebug(csound) < 99) 
+        csoundGetDebug(csound) < 99)
     return;
   va_start(args, msg);
   csoundMessageV(csound, 0, msg, args);
@@ -3362,7 +3363,7 @@ static void reset(CSOUND *csound) {
 #else
     ATOMIC_SET(csound->parflag,!csound->parflag);
 #endif
-  } 
+  }
   csoundCleanup(csound);
   /* call registered reset callbacks */
   while (csound->reset_list != NULL) {
@@ -3543,6 +3544,7 @@ PUBLIC void csoundReset(CSOUND *csound) {
   csound->engineStatus |= CS_STATE_PRE;
   csound_aops_init_tables(csound);
   create_opcode_table(csound);
+
   /* now load and pre-initialise external modules for this instance */
   /* this function returns an error value that may be worth checking */
   {

@@ -20,7 +20,7 @@
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
-*/ 
+*/
 
 #include "csoundCore.h"
 #include "csound_orc.h"
@@ -59,7 +59,7 @@ char *remove_type_quoting(CSOUND *csound, const char *outype) {
      // remove any : or ; leftover in typename
      do  {
          c = outype[n++];
-         if(c == ':' || c == ';') continue;  
+         if(c == ':' || c == ';') continue;
          type[i++] = c;
       } while (c);
      return type;
@@ -98,11 +98,13 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
      // we need to remove these for the type system to recognise the type
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
-      snprintf(s, 16, "#%c%d[]", type[1], argCount);
-      if(*type == '[') // [type]
-      add_array_arg(csound, s,  NULL, 1, typeTable);
-      else // type[] 
-      add_array_arg(csound, s,  type, 1, typeTable);  
+      if(*type == '[') { // [type]
+        snprintf(s, 16, "#%c%d[]", type[1], argCount);
+        add_array_arg(csound, s,  NULL, 1, typeTable);
+      } else { // type[]
+        snprintf(s, 16, "#%c%d[]", type[0], argCount);
+        add_array_arg(csound, s,  type, 1, typeTable);
+      }
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
@@ -151,7 +153,7 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
   ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)
-    csoundMessage(csound, "Out of memory\n"); 
+    csoundMessage(csound, "Out of memory\n");
     exit(1);
   }
   ans->type = INTEGER_TOKEN;
@@ -225,7 +227,7 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
   opTree = create_opcode_token(csound, op);
   bVar = create_empty_token(csound);
-  bVar->type = T_IDENT; 
+  bVar->type = T_IDENT;
   bVar->value = make_token(csound, booleanVar);
   bVar->value->type = bVar->type;
 
@@ -389,7 +391,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   while (last->next != NULL) last = last->next;
   last->next = create_synthetic_label(csound,ln1);
   while (last->next != NULL) last = last->next;
-  
+
   last->next = c;
   while (last->next != NULL) last = last->next;
   while (last->next != NULL) last = last->next;
@@ -413,7 +415,7 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
   strNcpy(argString, leftArgType, 80);
   strlcat(argString, rightArgType, 80);
-  
+
   outType = resolve_opcode_get_outarg(csound, opentries, argString);
 
   csound->Free(csound, argString);
@@ -641,7 +643,28 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   case T_ARRAY:
     {
       char* outype;
-      strNcpy(op, "##array_get", 80);
+
+      // Handle struct member access or other complex left expressions
+      if (root->left == NULL || root->left->value == NULL ||
+          root->left->value->lexeme == NULL) {
+        // This could be a struct member access - delegate to get_arg_string_from_tree
+        // Note: get_arg_string_from_tree returns the element type for T_ARRAY nodes
+        char* elementType = get_arg_string_from_tree(csound, root, typeTable);
+        if (elementType == NULL) {
+          return NULL;
+        }
+
+        // Use the element type directly (it's already the type of array[index])
+        outype = elementType;
+
+        // Set the operation to array_get (struct members are always plain arrays)
+        strNcpy(op, "##array_get", 80);
+
+        outarg = create_out_arg(csound, outype,
+                               typeTable->localPool->synthArgCount++, typeTable);
+        csound->Free(csound, elementType);
+        break;
+      }
 
       char *varBaseName = root->left->value->lexeme;
       // search for the array variable in all pools
@@ -654,7 +677,16 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                 varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        // Check if it's an array
+        // For typed arrays like k[], i[], S[], the varType is the element type
+        // and subType is NULL. For generic arrays, subType contains the element type.
+        if (var->subType) {
+          // Generic array or struct array
+          if (var->subType->userDefinedType) {
+            strNcpy(op, "##array_get_struct", 80);
+          } else {
+            strNcpy(op, "##array_get", 80);
+          }
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicit types
@@ -670,13 +702,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
             inds = inds->next;
           }
         }
+        } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
+          // Generic array with dimensions (but no subType set yet)
+          strNcpy(op, "##array_get", 80);
+          outype = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
+          strNcpy(op, "##array_get", 80);
           outype = "k";
         } else {
-          synterr(csound,
-                  Str("invalid array type %s line %d\n"),
-                  var->varType->varTypeName, current->line);
-          return NULL;
+          // Typed array like k[], varType is the element type
+          strNcpy(op, "##array_get", 80);
+          outype = strdup(var->varType->varTypeName);
         }
       }
       if (outype == NULL) {
@@ -688,7 +724,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     }
 
     break;
-   default: 
+   default:
     /* it should not get here, but if it does, return NULL */
     return NULL;
   }
@@ -809,7 +845,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     root->locn = locn;
   }
 
-  
+
   if (root->type == T_IDENT) {
     return root;
   }
@@ -825,7 +861,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if(root->type == FALSEK_TOKEN)
     return create_ans_token(csound, "falsek");
-  
+
 
   if(root->type == T_FUNCTION) {
     return create_expression(csound, root, line,
@@ -843,7 +879,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     break;
   case S_EQT:
     strNcpy(op, "=t", 80);
-    break;   
+    break;
   case S_NEQ:
     strNcpy(op, "!=", 80);
     break;
@@ -873,24 +909,24 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                       get_arg_type2(csound, root->left, typeTable));
     else
       csound->Message(csound, "Operator Found: %s (%s %s)\n", op,
-                      get_arg_type2(csound, root->left, typeTable), 
+                      get_arg_type2(csound, root->left, typeTable),
                       get_arg_type2(csound, root->right, typeTable));
   }
 
- 
-  if (root->type == S_UNOT)     
+
+  if (root->type == S_UNOT)
     outarg = get_boolean_arg(csound,
                              typeTable,
                              *get_arg_type2(csound, root->left, typeTable) =='k' ||
                              *get_arg_type2(csound, root->left, typeTable) =='B');
-  else 
+  else
     outarg = get_boolean_arg(csound,
                              typeTable,
                              *get_arg_type2(csound, root->left, typeTable) =='k' ||
                              *get_arg_type2(csound, root->right, typeTable) == 'k' ||
                              *get_arg_type2(csound, root->left, typeTable) =='B' ||
                              *get_arg_type2(csound, root->right, typeTable) =='B');
-  
+
   add_arg(csound, outarg, NULL, typeTable, NULL);
   opTree = create_opcode_token(csound, op);
   opTree->right = root->type == T_IDENT ? root : root->left;
@@ -1009,6 +1045,129 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
   csound->Free(csound, tmp2);
 }
 
+/* Expand struct array member assignment: array[index].member = value
+ * Transforms into:
+ *   1. temp = ##array_get_struct(array, index)
+ *   2. ##member_set(temp, memberIndex, value)
+ *   3. array[index] = temp (standard assignment, becomes ##array_set_struct)
+ */
+int expand_struct_array_member_assignment(CSOUND* csound,
+                                         TREE* current,
+                                         TYPE_TABLE* typeTable,
+                                         TREE** anchor)
+{
+  if (!current || !current->left || current->left->type != STRUCT_EXPR) {
+    return 0;
+  }
+
+  TREE* structExpr = current->left;
+  TREE* valueExpr = current->right;
+
+  if (!structExpr->left || structExpr->left->type != T_ARRAY) {
+    return 0;
+  }
+
+  TREE* arrayExpr = structExpr->left;
+  TREE* memberExpr = structExpr->right;
+
+  if (!memberExpr || !memberExpr->value || !memberExpr->value->lexeme) {
+    return 0;
+  }
+
+  const char* memberName = memberExpr->value->lexeme;
+
+  char* structTypeName = get_arg_type2(csound, arrayExpr->left, typeTable);
+  if (!structTypeName) {
+    return 0;
+  }
+
+  // Handle both ":MyType;[]" format and "[:MyType;]" format
+  char* bracketPos = strchr(structTypeName, '[');
+  if (bracketPos) *bracketPos = '\0';
+
+  char* cleanTypeName = structTypeName;
+  if (cleanTypeName[0] == '\0' && bracketPos) {
+    // Format was "[:MyType;]", extract from inside brackets
+    cleanTypeName = bracketPos + 1;
+    char* endBracket = strchr(cleanTypeName, ']');
+    if (endBracket) *endBracket = '\0';
+  }
+
+  const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, cleanTypeName);
+  if (!structType || !structType->userDefinedType) {
+    csound->Free(csound, structTypeName);
+    return 0;
+  }
+
+  // Find member index
+  int memberIndex = -1;
+  CONS_CELL* cell = structType->members;
+  int i = 0;
+  while (cell) {
+    CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
+    if (member && strcmp(member->varName, memberName) == 0) {
+      memberIndex = i;
+      break;
+    }
+    cell = cell->next;
+    i++;
+  }
+
+  if (memberIndex == -1) {
+    csound->Free(csound, structTypeName);
+    return 0;
+  }
+
+  // Generate unique temp variable name
+  char tempVarName[64];
+  snprintf(tempVarName, sizeof(tempVarName), "#structArrayTemp%d#", csound->struct_array_temp_counter++);
+
+  // Step 1: temp:Type = array[index]
+  ORCTOKEN* tempToken = make_token(csound, tempVarName);
+  tempToken->type = T_TYPED_IDENT;
+  tempToken->optype = cs_strdup(csound, cleanTypeName);
+
+  TREE* tempVar = make_leaf(csound, current->line, current->locn, T_TYPED_IDENT, tempToken);
+
+  TREE* getOp = create_opcode_token(csound, "##array_get_struct");
+  getOp->type = T_OPCALL;
+  getOp->left = tempVar;
+  getOp->right = copy_node(csound, arrayExpr->left);  // array variable
+  getOp->right->next = copy_node(csound, arrayExpr->right); // index
+
+  // Step 2: ##member_set(temp, memberIndex, value)
+  TREE* setMemberOp = create_opcode_token(csound, "##member_set");
+  setMemberOp->type = T_OPCALL;
+  setMemberOp->right = make_leaf(csound, current->line, current->locn, T_IDENT,
+                                 make_token(csound, tempVarName));
+
+  char indexBuf[32];
+  snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
+  TREE* memberIndexNode = make_leaf(csound, current->line, current->locn,
+                                   INTEGER_TOKEN, make_int(csound, indexBuf));
+  setMemberOp->right->next = memberIndexNode;
+  memberIndexNode->next = copy_node(csound, valueExpr);
+
+  // Step 3: array[index] = temp (will be processed as standard assignment)
+  TREE* arraySetAssignment = make_node(csound, current->line, current->locn, T_ASSIGNMENT,
+                                      copy_node(csound, arrayExpr),
+                                      make_leaf(csound, current->line, current->locn, T_IDENT,
+                                               make_token(csound, tempVarName)));
+
+  // T_ASSIGNMENT needs a value token for verify_opcode
+  arraySetAssignment->value = make_token(csound, "=");
+  arraySetAssignment->value->type = T_ASSIGNMENT;
+
+  // Chain the operations
+  getOp->next = setMemberOp;
+  setMemberOp->next = arraySetAssignment;
+
+  *anchor = append_to_tree(csound, *anchor, getOp);
+
+  csound->Free(csound, structTypeName);
+  return 1;
+}
+
 /* returns the head of a list of TREE* nodes, expanding all RHS
    expressions into statements prior to the original statement line,
    and LHS expressions (array sets) after the original statement
@@ -1051,6 +1210,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       }
       nextArg = currentArg->next;
       csound->Free(csound, currentArg);
+
+      if (expressionNodes == NULL) {
+        csound->Message(csound, "Error: create_expression returned NULL\n");
+        return NULL;
+      }
 
       /* Set as anchor if necessary */
       anchor = append_to_tree(csound, anchor, expressionNodes);
@@ -1110,15 +1274,20 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                 varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        // Check if it's an array
+        // For LHS array assignment, the temporary variable should have the element type
+        // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
+        if (var->subType) {
+          // Generic array, use subType (element type)
+          outType = strdup(var->subType->varTypeName);
+        } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
+          // Generic array with dimensions
           outType = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outType = "k";
         } else {
-          synterr(csound,
-                  Str("invalid array type %s line %d\n"),
-                  var->varType->varTypeName, current->line);
-          return NULL;
+          // Typed array like k[], varType is the element type
+          outType = strdup(var->varType->varTypeName);
         }
       }
 
@@ -1135,9 +1304,18 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         previousArg->next = temp;
       }
       temp->next = currentArg->next;
-      TREE* arraySet = create_opcode_token(csound,
-                                           (init ? "##array_init":
-                                            "##array_set"));
+
+      // Choose the appropriate array set opcode based on element type
+      char* opcodeNameBase;
+      if (init) {
+        opcodeNameBase = "##array_init";
+      } else if (var->subType && var->subType->userDefinedType) {
+        opcodeNameBase = "##array_set_struct";
+      } else {
+        opcodeNameBase = "##array_set";
+      }
+
+      TREE* arraySet = create_opcode_token(csound, opcodeNameBase);
       arraySet->right = currentArg->left;
       arraySet->right->next =
         make_leaf(csound, temp->line, temp->locn,
@@ -1181,7 +1359,7 @@ TREE* expand_if_statement(CSOUND* csound,
       create_boolean_expression(csound, left, right->line,
                                 right->locn, typeTable);
 
-   
+
     anchor = append_to_tree(csound, anchor, expressionNodes);
 
     /* reconnect into chain */
@@ -1224,7 +1402,7 @@ TREE* expand_if_statement(CSOUND* csound,
         create_boolean_expression(csound, tempLeft,
                                   tempLeft->line, tempLeft->locn,
                                   typeTable);
- 
+
       anchor = append_to_tree(csound, anchor, expressionNodes);
 
       last = tree_tail(expressionNodes);
@@ -1585,7 +1763,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   const CS_TYPE *kType = &CS_VAR_TYPE_K;
   const CS_TYPE *aType = &CS_VAR_TYPE_A;
   const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
-  const CS_TYPE *arrayType = 
+  const CS_TYPE *arrayType =
     csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
   int32_t isPerfRate = 0;
 
@@ -1652,7 +1830,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayLengthFn->right = arrayLengthArrayIdent;
   arrayLength->right = arrayLengthFn;
   arrayAssign->next = arrayLength;
-  
+
   TREE* loopLabel = create_synthetic_label(csound, csound->genlabs++);
   loopLabel->type = LABEL_TOKEN;
   loopLabel->value->type = LABEL_TOKEN;
@@ -1675,7 +1853,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     csound->Warning(csound, "redefining variable %s in loop (type: %s)\n"
 		            "\t - now using %s type, line %d",
 		              var->varName,  var->varType->varTypeName,
-		              isPerfRate ? "k" : "i", current->line); 
+		              isPerfRate ? "k" : "i", current->line);
     add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
@@ -1690,7 +1868,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
   arrayGetStatement->left = current->left;
-  
+
   arrayGetStatement->right = copy_node(csound, arrayIdent);
   arrayGetStatement->right->next = copy_node(csound, indexIdent);
   if (hasOptionalIndex) {
@@ -1747,7 +1925,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   labelGotoIdent->value->type = T_IDENT;
   arrayLengthArgToken->next = labelGotoIdent;
 
-  
+
   csound->Free(csound, indexName);
   csound->Free(csound, arrayName);
   csound->Free(csound, arrayLengthName);
