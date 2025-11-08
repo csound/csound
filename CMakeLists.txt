@@ -1666,6 +1666,16 @@ install(EXPORT CsoundExports
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
 )
 
+# configure and install pkg-config file
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/csound.pc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"
+    @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"
+    DESTINATION "${LIBRARY_INSTALL_DIR}/pkgconfig"
+)
+
 # install samples
 if(APPLE)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples

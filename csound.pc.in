@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@LIBRARY_INSTALL_DIR@
+includedir=${prefix}/@HEADER_INSTALL_DIR@
+
+Name: Csound
+Description: A sound and music computing system
+Version: @CS_VERSION@.@CS_SUBVER@.@CS_PATCHLEVEL@
+Libs: -L${libdir} -l@CSOUNDLIB@
+Cflags: -I${includedir}
