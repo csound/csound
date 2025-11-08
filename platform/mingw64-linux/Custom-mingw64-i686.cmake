@@ -17,8 +17,9 @@ list(APPEND CMAKE_SYSTEM_LIBRARY_PATH "$MINGW_DEPS_DIR/usr/local/lib")
 set(CMAKE_SYSTEM_INCLUDE_PATH "$CMAKE_SYSTEM_INCLUDE_PATH};$MINGW_DEPS_DIR/usr/local/include")
 
 #### NOTE the processor type needs setting
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -O3 -mtune=core2 -I${MINGW_DEPS_DIR}/usr/local/include --sysroot=/usr/i686-w64-mingw32")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -O3 -mtune=core2 -fpermissive")
+# Set minimum Windows version to Windows Vista (0x0600) for InitOnceExecuteOnce and other APIs
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -O3 -mtune=core2 -I${MINGW_DEPS_DIR}/usr/local/include --sysroot=/usr/i686-w64-mingw32 -D_WIN32_WINNT=0x0600")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -O3 -mtune=core2 -fpermissive -D_WIN32_WINNT=0x0600")
 ## also to test multicore
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -W -Wno-missing-field-initializers -Wno-unused-parameter -O3 -mtune=core2 -DJPFF")
 
