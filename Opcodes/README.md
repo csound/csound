@@ -1,17 +1,17 @@
 Opcodes: internal and plugin opcodes
 ==========================
 
-- LuaCsound.cpp: lua-language opcodes
-- OSC.c: open sound control
+- OSC.c: open sound control opcodes (lliblo-based)
 - Vosim.c: VOSIM opcode
 - afilters.c: miscellaneous filters
 - ambicode.c: original ambisonics opcodes 
 - ambicode1.c: ambisonics (new decoding algorithms)
 - ampmidid.cpp: ampmidi opcodes
 - arrayops.cpp: array operators/functions
-- arrays.c: array manipulations
+- arrays.c: specialised array opcodes
 - babo.c: ball in a box model
 - bbcut.c: bbcut opcodes
+- bformdec2.cpp: ambisonics (alt decoding algorithms)
 - bilbar.c: physical models (bars)
 - biquad.c: biquadratic filters
 - bowedbar.c: physical models (bowed bars)
@@ -27,6 +27,7 @@ Opcodes: internal and plugin opcodes
 - dam.c: compressor
 - date.c: date utilities
 - dcblockr.c: DC block filter
+- deprecated.c: deprecated opcodes
 - doppler.cpp: doppler effect
 - dsputil.c: DSP utility code for spectral processing
 - eqfil.c: equaliser
@@ -38,11 +39,13 @@ Opcodes: internal and plugin opcodes
 - fm4op.c: 4-op FM synthesis
 - follow.c: enveloper follower
 - fout.c: file output
+- framebuffer.c: data buffering
 - freeverb.c: freeverb reverb
 - ftconv.c: ftconv opcode
 - ftest.c: miscelaneous GEN routines 
 - ftgen.c: ftgen opcode
 - ftsamplebank.cpp: sample bank loading opcode
+- gammatone.c: gamma tone filter
 - gendy.c: GENDY GEN routines
 - grain.c: granular synthesis
 - grain4.c: granular synthesis
@@ -52,9 +55,6 @@ Opcodes: internal and plugin opcodes
 - hrtfopcodes.c: HRTF opcodes (new algorithms)
 - hrtfreverb.c: binaural reverb
 - ifd.c: instantaneous frequency distribution
-- jackTransport.c: jack transport control
-- jacko.cpp: jack output opcodes
-- linear_algebra.cpp: linear algebra opcodes
 - linuxjoystick.c: joystick controls
 - liveconv.c: live convolution 
 - locsig.c: locsig and locsend
@@ -62,8 +62,6 @@ Opcodes: internal and plugin opcodes
 - lowpassr.c: low-pass filters
 - mandolin.c: mandolin physical model
 - metro.c: metronome trigger opcode
-- midiops2.c: midi opcodes
-- midiops3.c: midi opcodes
 - minmax.c: min-max opcodes
 - mixer.cpp: mixer opcodes
 - modal4.c: modal synthesis
@@ -110,6 +108,7 @@ Opcodes: internal and plugin opcodes
 - scoreline.c: event triggering
 - select.c: select opcode
 - seqtime.c: sequencing
+- sequencer.c: step sequencer
 - serial.c: serial IO
 - sfont.c: soundfont opcodes
 - shaker.c: shaker model
@@ -118,17 +117,19 @@ Opcodes: internal and plugin opcodes
 - singwave.c: singing wave model
 - sndloop.c: sound loop and sample looper
 - sndwarp.c: sound time warping
-- sockrecv.c: socket input opcodes
-- socksend.c: socket output opcodes
+- sockrecv.c: net socket input opcodes
+- socksend.c: net socket output opcodes
 - space.c: spatialisation opcode
 - spat3d.c: spatialisation in 3d
 - spectra.c: non-standard spectral analysis
 - squinewave.c: squinewave synthesis
-- stackops.c: stack opcodes
 - stdopcod.c: opcode library entry point
+- sterrain.c: wave terrain synthesis
 - syncgrain.c: granular synthesis
 - system_call.c: system opcodes
+- tabaudio.c: audio tables
 - tabsum.c: summing tables
+- trigEnvSegs.cpp: trigger envelopes
 - ugakbari.c: curve generators
 - ugens7.c: FOF opcodes
 - ugens8.c: phase vocoder opcodes
@@ -141,9 +142,8 @@ Opcodes: internal and plugin opcodes
 - urandom.c: random number generators
 - vaops.c: vector access 
 - vbap.c: vbap opcodes
-- vbap1.c: vbap opcodes
-- vbap_n.c: vbap opcodes
-- vbap_zak.c: vbap opcodes with zak output
 - vpvoc.c: phase vocoder opcodes
 - wave-terrain.c: wave terrain synthesis
-- wpfilters.c: zero-delay filters
+- wave-terrain2.c: wave terrain synthesis
+- wpfilters.c: delay-free loop filters
+- zak.c: zak patching system

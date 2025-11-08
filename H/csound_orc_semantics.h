@@ -26,6 +26,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "csound_orc_structs.h"  /* CS_STRUCT_VAR public layout */
 
 /** Gets short version of opcode name, trimming off anything after '.'.
  If opname has no '.' in name, simply returns the opname pointer.
@@ -36,6 +37,7 @@
 
 char *strip_extension(CSOUND *csound, const char *s);
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
+
 void print_tree(CSOUND *, char *, TREE *);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
@@ -55,19 +57,16 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                           TYPE_TABLE* typeTable);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
-CS_VARIABLE* find_var_from_pools(CSOUND* csound, char* varName,
-                                 char* varBaseName, TYPE_TABLE* typeTable);
+CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
+                                 const char* varBaseName, TYPE_TABLE* typeTable);
 void delete_tree(CSOUND *csound, TREE *l);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
+int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions
 extern int32_t csound_orcget_lineno(void*);
 extern char *csound_orcget_current_pointer(void *);
 
 
-
-typedef struct csstructvar {
-  CS_VAR_MEM** members;
-} CS_STRUCT_VAR;
 
 TREE* copy_node_shallow(CSOUND* csound, TREE* tree);
 #endif

@@ -225,23 +225,36 @@ static char *pfout(CSOUND *csound, SRTBLK *bp, char *p,
 static SRTBLK *nxtins(SRTBLK *bp) /* find nxt note with same p1 */
 {
     MYFLT p1;
-
     p1 = bp->p1val;
+    if(!IsStringCode(p1)) {
     while ((bp = bp->nxtblk) != NULL
            && (bp->p1val != p1 || bp->text[0] != 'i'))
       ;
+    } else  { // if str use insno as p1val is nan
+           int insno = bp->insno;
+           while ((bp = bp->nxtblk) != NULL
+             && (bp->insno != insno || bp->text[0] != 'i'))
+      ;   
+    }
     return(bp);
 }
-
 static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
 {
-    MYFLT p1;
-
-    p1 = bp->p1val;
+{
+  MYFLT p1;
+  p1 = bp->p1val;
+  if(!IsStringCode(p1)) {
     while ((bp = bp->prvblk) != NULL
            && (bp->p1val != p1 || bp->text[0] != 'i'))
       ;
+   } else { // if str use insno as p1val is nan
+    int insno = bp->insno;
+    while ((bp = bp->prvblk) != NULL
+           && (bp->insno != insno || bp->text[0] != 'i'))
+      ;
+   }
     return(bp);
+}
 }
 
 static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,

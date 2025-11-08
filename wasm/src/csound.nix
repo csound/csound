@@ -356,6 +356,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_orc_expressions.c \
       ../Engine/csound_orc_optimize.c \
       ../Engine/csound_orc_semantics.c \
+      ../Engine/csound_orc_structs.c \
       ../Engine/csound_orcparse.c \
       ../Engine/csound_prelex.c \
       ../Engine/csound_prslex.c \
@@ -375,9 +376,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/musmon.c \
       ../Engine/namedins.c \
       ../Engine/new_orc_parser.c \
-      ../Engine/pools.c \
       ../Engine/rdscor.c \
-      ../Engine/scope.c \
       ../Engine/scsort.c \
       ../Engine/scxtract.c \
       ../Engine/sort.c \
@@ -435,6 +434,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../OOps/schedule.c \
       ../OOps/sndinfUG.c \
       ../OOps/str_ops.c \
+      ../OOps/structs.c \
       ../OOps/ugens1.c \
       ../OOps/ugens2.c \
       ../OOps/ugens3.c \

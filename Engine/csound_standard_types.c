@@ -64,27 +64,78 @@ static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
 }
 
+/* String buffer management utility */
+static void string_free_internal(CSOUND* csound, STRINGDAT* str) {
+    if (!str || !str->data) return;
+
+    // refcount == -1 means this is an alias (doesn't own the data)
+    if (str->refcount == -1) {
+        str->data = NULL;  // Just clear the pointer, don't free
+        str->size = 0;
+        return;
+    }
+
+    // refcount == 0: we own the buffer and should free it
+    csound->Free(csound, str->data);
+    str->data = NULL;
+    str->size = 0;
+}
+
+static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSize) {
+    if (!str) return;
+    if (newSize == 0) newSize = 1;  // always room for '\0'
+    // If this is an alias (refcount == -1), we need to allocate our own buffer
+    if (str->refcount == -1) {
+        char* oldData = str->data;
+        str->data = csound->Calloc(csound, newSize);
+        str->size = newSize;
+        str->refcount = 0;  // Now we own it
+        if (oldData) {
+            strncpy(str->data, oldData, newSize - 1);
+            str->data[newSize - 1] = '\0';
+        }
+    } else {
+        // Safe to resize - we own the buffer
+        str->data = csound->ReAlloc(csound, str->data, newSize);
+        str->size = newSize;
+        str->data[newSize - 1] = '\0';
+    }
+}
 
 static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                        const void* src, INSDS *p) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
-    CSOUND* cs = (CSOUND*)csound;
-    
+
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
+    /* Check for buffer aliasing: if both STRINGDATs point to the same data buffer,
+       they are either the same variable or share the same underlying memory.
+       In either case, no copy is needed - just update the timestamp. */
+    if (UNLIKELY(sDest->data == sSrc->data)) {
+        sDest->timestamp = csound->kcounter;
+        return;
+    }
+
+    /* Guard against NULL data pointers */
+    if (UNLIKELY(sSrc->data == NULL)) return;
+    if (UNLIKELY(sDest->data == NULL)) {
+        /* Destination has no buffer; allocate one to match source size */
+        sDest->data = csound->Calloc(csound, sSrc->size);
+        sDest->size = sSrc->size;
+        sDest->refcount = 0;
+    }
+
     int64_t kcnt = csound->kcounter;
     if (sSrc->size > sDest->size) {
-      cs->Free(cs, sDest->data);
-      sDest->data = csound->Calloc(csound, sSrc->size); 
-      memcpy(sDest->data, sSrc->data, sSrc->size); 
-      sDest->size = sSrc->size;
+      string_resize_internal(csound, sDest, sSrc->size);
+      memcpy(sDest->data, sSrc->data, sSrc->size);
     } else {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
+        sDest->data[sDest->size-1] = '\0';
     }
-    /* VL Feb 22 - update count for 7.0 */
-   sDest->timestamp = kcnt;
+    sDest->timestamp = kcnt;
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
@@ -102,6 +153,23 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
     return (size_t)retVal;
 }
 
+/*
+ * array_copy_value - Copy array data with optimized handling for user-defined types
+ *
+ * Memory Ownership Semantics:
+ * - For UDT arrays (user-defined structs): Creates non-owning aliases (allocated=0)
+ *   where aDest->sizes and aDest->data point to aSrc's buffers
+ * - For regular arrays: Performs deep copy with owned memory allocation
+ * - Pre-existing destination memory is always freed before reallocation
+ * - Early alias check prevents unnecessary allocations and potential leaks
+ *
+ * Parameters:
+ *   csound - Csound instance
+ *   cstype - Type information for validation
+ *   dest - Destination ARRAYDAT (may be uninitialized)
+ *   src - Source ARRAYDAT (must be valid)
+ *   ctx - Instrument context for variable creation
+ */
 static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
@@ -111,6 +179,52 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     size_t j;
     int32_t memMyfltSize;
     size_t arrayNumMembers;
+
+    /* If destination is NULL, nothing to do. */
+    if (UNLIKELY(aDest == NULL)) {
+        return;
+    }
+
+    /* Optimization and safety: for arrays of user-defined structs, perform a
+       shallow alias instead of deep-copying elements. This avoids heavy copy
+       and shared-ownership bugs; alias is non-owning (allocated=0).
+       This check is done BEFORE any allocations to prevent memory leaks. */
+    if (aSrc && aSrc->arrayType && aSrc->arrayType->userDefinedType) {
+        /* Free any existing destination storage before creating alias */
+        if (aDest->sizes != NULL) {
+            cs->Free(cs, aDest->sizes);
+            aDest->sizes = NULL;
+        }
+        if (aDest->data != NULL) {
+            cs->Free(cs, aDest->data);
+            aDest->data = NULL;
+        }
+
+        /* Shallow alias for arrays of structs - non-owning reference */
+        aDest->arrayMemberSize = aSrc->arrayMemberSize;
+        aDest->dimensions      = aSrc->dimensions;
+        aDest->sizes           = aSrc->sizes;
+        aDest->arrayType       = aSrc->arrayType;
+        aDest->data            = aSrc->data;
+        aDest->allocated       = 0; /* Non-owning alias */
+        return;
+    }
+
+    /* If destination is an uninitialised array shell (arrayType == NULL),
+       initialise it from the source so we can perform a copy. */
+    if (UNLIKELY(aDest->arrayType == NULL) && aSrc && aSrc->arrayType != NULL) {
+        /* Bootstrap destination metadata and storage from source */
+        aDest->arrayType = aSrc->arrayType;
+        aDest->dimensions = aSrc->dimensions;
+        if (aDest->sizes != NULL) { cs->Free(cs, aDest->sizes); }
+        aDest->sizes = cs->Malloc(cs, sizeof(int32_t) * aSrc->dimensions);
+        memcpy(aDest->sizes, aSrc->sizes, sizeof(int32_t) * aSrc->dimensions);
+        aDest->arrayMemberSize = aSrc->arrayMemberSize;
+        size_t nm = array_get_num_members(aSrc);
+        if (aDest->data != NULL) { cs->Free(cs, aDest->data); }
+        aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * nm);
+        aDest->allocated = aSrc->arrayMemberSize * nm;
+    }
 
     arrayNumMembers = array_get_num_members(aSrc);
     memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
@@ -133,6 +247,7 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
             cs->Free(cs, aDest->data);
         }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
+        aDest->allocated = aSrc->arrayMemberSize * arrayNumMembers;
     }
 
     var = aDest->arrayType->createVariable(cs, (void *)aDest->arrayType, ctx);
@@ -155,7 +270,7 @@ static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* de
    memcpy(dest, src, sizeof(OPCODEREF));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
-  else csound->Warning(csound, "%s (:OpcodeDef) is read-only: " 
+  else csound->Warning(csound, "%s (:OpcodeDef) is read-only: "
                                 "cannot be redefined, ignoring assignment",
                        get_opcode_short_name(csound, p->entries->entries[0]->opname));
 }
@@ -166,8 +281,10 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
   OPCODEOBJ *p = (OPCODEOBJ *) dest;
   OPCODEOBJ *psrc = (OPCODEOBJ *) src;
-  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) 
+  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) {
     csound->Warning(csound, "mismatching context: copy value bypassed");
+    return;
+  }
   if(!p->readonly) {
    memcpy(dest, src, sizeof(OPCODEOBJ));
    p->readonly = 0; // clear readonly flag (which is not copied)
@@ -185,7 +302,7 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
   else csound->Warning(csound, "instr ref var %s is read-only: copy value bypassed",
-                       p->instr->insname);
+                       p->instr ? p->instr->insname : "(uninitialized)");
 }
 
 static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -212,9 +329,29 @@ static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 
 static void array_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
-    IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
+
     dat->arrayType = var->subType;
+
+    // Always initialize all fields to prevent uninitialized memory issues
+    dat->data = NULL;
+    dat->allocated = 0;
+    dat->arrayMemberSize = 0;
+    dat->dimensions = 0;
+    dat->sizes = NULL;
+
+    // Initialize array dimensions if they were set during variable creation
+    if (var->dimensions > 0) {
+        dat->dimensions = var->dimensions;
+        dat->sizes = csound->Calloc(csound, sizeof(int32_t) * var->dimensions);
+
+        // For struct arrays declared with init (e.g., "relatives:Person[] init 2"),
+        // we need to set default sizes. The actual sizing will happen during
+        // the init opcode execution, but we need the metadata in place.
+        for (int32_t i = 0; i < var->dimensions; i++) {
+            dat->sizes[i] = 0; // Will be set by init opcode
+        }
+    }
 }
 
 static void var_init_memory_string(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -222,7 +359,7 @@ static void var_init_memory_string(CSOUND *csound, CS_VARIABLE* var, MYFLT* memb
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
     str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
-    //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
+    str->refcount = 0;  // Initialize refcount (0 = unmanaged)
 }
 
 static void var_init_memory_fsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -368,40 +505,58 @@ static CS_VARIABLE* create_instr(void* csnd, void* p, INSDS *ctx) {
 
 
 /* FREE VAR MEM FUNCTIONS */
-static void string_free_var_mem(void* csnd, void* p ) {
+static void string_free_var_mem(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     STRINGDAT* dat = (STRINGDAT*)p;
-
-    if(dat->data != NULL) {
-        csound->Free(csound, dat->data);
-    }
+    string_free_internal(csound, dat);
 }
 
 static void array_free_var_mem(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAYDAT* dat = (ARRAYDAT*)p;
 
-    if(dat->data != NULL) {
+    /* Only free backing storage if this ARRAYDAT owns it. Aliases set allocated=0. */
+    if (dat->allocated > 0 && dat->data != NULL) {
         const CS_TYPE* arrayType = dat->arrayType;
 
         if (arrayType->freeVariableMemory != NULL) {
             MYFLT* mem = dat->data;
-            size_t memMyfltSize = dat->arrayMemberSize / sizeof(MYFLT);
-            int32_t i, size = dat->sizes[0];
-            for (i = 1; i < dat->dimensions; i++) {
-                size *= dat->sizes[i];
+            size_t memMyfltSize = 0;
+            // Compute element count without trusting dat->sizes pointer, which may be shared/aliased
+            size_t i;
+            size_t elemCount = 0;
+
+            // Safe division with checks for arrayMemberSize and sizeof(MYFLT)
+            if (dat->arrayMemberSize > 0 && sizeof(MYFLT) > 0) {
+                memMyfltSize = (size_t)dat->arrayMemberSize / sizeof(MYFLT);
+
+                if (dat->allocated > 0) {
+                    elemCount = (size_t)dat->allocated / (size_t)dat->arrayMemberSize;
+                }
+            } else if (dat->sizes) {
+                // Fallback to sizes if available
+                elemCount = (dat->dimensions > 0) ? (size_t)dat->sizes[0] : 0;
+                for (i = 1; i < (size_t)dat->dimensions; i++) {
+                    // Check for multiplication overflow
+                    if (elemCount > 0 && (size_t)dat->sizes[i] > SIZE_MAX / elemCount) {
+                        // Overflow would occur, cap at SIZE_MAX
+                        elemCount = SIZE_MAX;
+                        break;
+                    }
+                    elemCount *= (size_t)dat->sizes[i];
+                }
             }
-            //size = MYFLT2LRND(size); // size is not a float  but int
-            for (i = 0; i < size; i++) {
+
+            for (i = 0; i < elemCount; i++) {
                 arrayType->freeVariableMemory(csound,
-                                              mem+ (i * memMyfltSize));
+                                              mem + (i * memMyfltSize));
             }
         }
 
         csound->Free(csound, dat->data);
     }
 
-    if (dat->sizes != NULL) {
+    if (dat->allocated > 0 && dat->sizes != NULL) {
         csound->Free(csound, dat->sizes);
     }
 }
@@ -501,6 +656,7 @@ void add_standard_types(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_INSTR_INSTANCE);
+
     // CS_OBJ_TYPE & OPS
     add_csobj(csound, pool);
 }

@@ -219,6 +219,8 @@ option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
+option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
+
 
 # secret rabbit code
 if (USE_LIBSAMPLERATE)
@@ -794,7 +796,6 @@ set(libcsound_SRCS
     Engine/csound_type_system.c
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
-    Engine/pools.c
     Engine/ugen.c
     InOut/soundfile.c
     InOut/libsnd.c
@@ -837,6 +838,7 @@ set(libcsound_SRCS
     OOps/schedule.c
     OOps/sndinfUG.c
     OOps/str_ops.c
+    OOps/structs.c
     OOps/ugens1.c
     OOps/ugens2.c
     OOps/ugens3.c
@@ -1105,7 +1107,6 @@ if(BUILD_PERFTHREAD_CLASS)
     list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
 
-
 # Handling New Parser
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
@@ -1156,6 +1157,7 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
+    Engine/csound_orc_structs.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1165,6 +1167,7 @@ list(APPEND libcsound_static_SRCS
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
+    Engine/csound_orc_structs.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1252,8 +1255,14 @@ if(BUILD_MULTI_CORE)
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c)
 
-
     list(APPEND libcsound_CFLAGS -DPARCS)
+
+   if(USE_LOCK_BARRIER)
+     message(STATUS "Using thread-lock barrier.")
+     list(APPEND libcsound_CFLAGS -DPARCS_USE_THREAD_BARRIER)
+   else()
+    message(STATUS "Using lock-free barrier.")
+   endif()
 
 else()
     message(STATUS "Not building with multicore support.")
@@ -1500,35 +1509,35 @@ if(USE_LIBSNDFILE)
            message(STATUS "Found vorbisenc:${Vorbisencs_LIBRARY}")
           else()
            message(STATUS "Vorbisenc not found")
-          endif()          
+          endif()
           Find_Package(Opuss)
           if(Opuss_FOUND)
            message(STATUS "Found opus:${Opuss_LIBRARY}")
           else()
            message(STATUS "Opus not found")
-          endif()          
+          endif()
           Find_Package(FLACS)
           if(FLACS_FOUND)
            message(STATUS "Found flac:${FLACS_LIBRARY}")
           else()
            message(STATUS "FLAC not found")
-          endif()          
+          endif()
           Find_Package(LAME)
            if(LAME_FOUND)
            message(STATUS "Found lame:${LAME_LIBRARY}")
           else()
            message(STATUS "LAME not found")
-          endif()         
+          endif()
           Find_Package(Mpg123s)
           if(Mpg123s_FOUND)
            message(STATUS "Found mpg123:${Mpg123s_LIBRARY}")
           else()
            message(STATUS "Mpg123 not found")
-          endif()          
-          target_link_libraries(${CSOUNDLIB} PUBLIC Oggs::oggs)   
+          endif()
+          target_link_libraries(${CSOUNDLIB} PUBLIC Oggs::oggs)
           target_link_libraries(${CSOUNDLIB} PUBLIC Vorbiss::vorbiss)
           target_link_libraries(${CSOUNDLIB} PUBLIC Vorbisencs::vorbisencs)
-          target_link_libraries(${CSOUNDLIB} PUBLIC FLACS::flacs)   
+          target_link_libraries(${CSOUNDLIB} PUBLIC FLACS::flacs)
           target_link_libraries(${CSOUNDLIB} PUBLIC Opuss::opuss)
           target_link_libraries(${CSOUNDLIB} PUBLIC "${LAME_LIBRARY}")
           target_link_libraries(${CSOUNDLIB} PUBLIC Mpg123s::mpg123s)

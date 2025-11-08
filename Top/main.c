@@ -35,17 +35,15 @@ extern void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void dieu(CSOUND *, char *, ...);
 int32_t argdecode(CSOUND *, int32_t, const char **);
 int32_t init_pvsys(CSOUND *);
-//  char    *get_sconame(CSOUND *);
 void print_benchmark_info(CSOUND *, const char *);
-//  int32_t     read_unified_file(CSOUND *, char **, char **);
-//  int32_t     read_unified_file2(CSOUND *csound, char *csd);
 int32_t read_unified_file4(CSOUND *csound, CORFIL *csd);
-uintptr_t kperfThread(void *cs);
-// void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
-// void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+uintptr_t kperf_thread(void *cs);
 void csound_input_message(CSOUND *csound, const char *message);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
+#ifdef PARCS
+void csp_barrier_alloc(CSOUND *, void **, int32_t);
+#endif
 
 void checkOptions(CSOUND *csound) {
 #if !defined(__wasi__)
@@ -552,19 +550,24 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
 
 #ifdef PARCS
   if (O->numThreads > 1) {
-    void csp_barrier_alloc(CSOUND *, void **, int32_t);
     int32_t i;
     THREADINFO *current = NULL;
-
+    csound->Message(csound, "multicore performance "
+                    "with %d threads\n", O->numThreads); 
+#ifdef PARCS_USE_THREAD_BARRIER
     csp_barrier_alloc(csound, &(csound->barrier1), O->numThreads);
+#else
+    csound->taskflag = (int32_t *) csound->Calloc(csound,
+                                                 sizeof(int32_t)
+                                                  *O->numThreads);
+#endif
     csp_barrier_alloc(csound, &(csound->barrier2), O->numThreads);
-
     csound->multiThreadedComplete = 0;
 
     for (i = 1; i < O->numThreads; i++) {
       THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
 
-      t->threadId = csound->CreateThread(&kperfThread, (void *)csound);
+      t->threadId = csound->CreateThread(&kperf_thread, (void *)csound);
       t->next = NULL;
 
       if (current == NULL) {
@@ -574,7 +577,6 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
       }
       current = t;
     }
-
     csound->WaitBarrier(csound->barrier2);
   }
 #endif
@@ -600,6 +602,9 @@ static int32_t csoundCompileCSDText(CSOUND *csound, const char *csd_text, int32_
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
     csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
+    /* Ensure any stale orchname from a previous compile is not used */
+    csound->orchname = NULL;
+
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
       if ((csound->engineStatus & CS_STATE_COMP) != 0) {
