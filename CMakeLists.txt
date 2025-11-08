@@ -1683,11 +1683,22 @@ endif()
 
 # install mingw libraries
 if(MINGW)
-    file(GLOB LIBSTDC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libstdc++-6.dll ")
-    file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
-    file(GLOB LIBGCC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libgcc_s_seh-1.dll ")
-    file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
-    file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+    # Detect 32-bit vs 64-bit MinGW for runtime DLL paths
+    if (CMAKE_C_COMPILER MATCHES "i686-w64-mingw32")
+        # 32-bit MinGW
+        file(GLOB LIBSTDC_DLL "/usr/lib/gcc/i686-w64-mingw32/*-posix/libstdc++-6.dll ")
+        file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
+        file(GLOB LIBGCC_DLL "/usr/lib/gcc/i686-w64-mingw32/*-posix/libgcc_s_dw2-1.dll ")
+        file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
+        file(COPY /usr/i686-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+    else()
+        # 64-bit MinGW
+        file(GLOB LIBSTDC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libstdc++-6.dll ")
+        file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
+        file(GLOB LIBGCC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libgcc_s_seh-1.dll ")
+        file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
+        file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+    endif()
 endif()
 
 add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c
