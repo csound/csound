@@ -219,6 +219,8 @@ option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
+option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
+
 
 # secret rabbit code
 if (USE_LIBSAMPLERATE)
@@ -794,7 +796,6 @@ set(libcsound_SRCS
     Engine/csound_type_system.c
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
-    Engine/pools.c
     Engine/ugen.c
     InOut/soundfile.c
     InOut/libsnd.c
@@ -1106,7 +1107,6 @@ if(BUILD_PERFTHREAD_CLASS)
     list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
 
-
 # Handling New Parser
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
@@ -1255,8 +1255,14 @@ if(BUILD_MULTI_CORE)
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c)
 
-
     list(APPEND libcsound_CFLAGS -DPARCS)
+
+   if(USE_LOCK_BARRIER)
+     message(STATUS "Using thread-lock barrier.")
+     list(APPEND libcsound_CFLAGS -DPARCS_USE_THREAD_BARRIER)
+   else()
+    message(STATUS "Using lock-free barrier.")
+   endif()
 
 else()
     message(STATUS "Not building with multicore support.")

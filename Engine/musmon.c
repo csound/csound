@@ -293,6 +293,9 @@ int32_t start_engine(CSOUND *csound)
       midi_open(csound);                 /*   alloc bufs & open files    */
     }
 
+    if (O->Linein)
+      linevent_open(csound);  /* if realtime input expected   */
+
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
@@ -313,9 +316,6 @@ int32_t start_engine(CSOUND *csound)
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
     STA(sormsg)  = O->msglevel & SORMSG;
-
-    if (O->Linein)
-      linevent_open(csound);  /* if realtime input expected   */
 
     // VL 01-05-2019
     // if --use-system-sr, this gets called earlier to override

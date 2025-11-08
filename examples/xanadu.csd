@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m35 -R -W -f -d -o dac
+csound  -R -W -f -d -o dac
 </CsOptions>
 <CsInstruments>
 sr          =           48000

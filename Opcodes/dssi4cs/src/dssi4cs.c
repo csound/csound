@@ -261,7 +261,6 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = GetTypeForArg(p->iplugin);
-    DSSIPlugin->ksmps = Ksmps;
 
 
     if (strcmp("S", argType->varTypeName) == 0)
@@ -305,6 +304,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       DSSIPlugin_->PluginCount = DSSIPlugin->PluginCount;
       *DSSIPlugin_->PluginCount = (*DSSIPlugin_->PluginCount) + 1;
     }
+    DSSIPlugin->ksmps = Ksmps;
     *p->iDSSIHandle = DSSIPlugin_->PluginNumber;
     if (verbose != 0) {
       csound->Message(csound, "DSSI4CS: About to load descriptor function "
@@ -683,8 +683,8 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     icnt = GetInputArgCnt(p) - 1;
-    int32_t     ocnt = GetOutputArgCnt(p);
+    int32_t     icnt = GetInputArgCnt(&p->h) - 1;
+    int32_t     ocnt = GetOutputArgCnt(&p->h);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
       csound->Die(csound,
@@ -701,7 +701,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 #ifdef DEBUG
     csound->Message(csound,
                     "DSSI4CS: dssiaudio- %i input args, %i output args.\n",
-                    GetInputArgCnt(p), GetOutputArgCnt(p));
+                    GetInputArgCnt(&p->h), GetOutputArgCnt(&p->h));
     csound->Message(csound, "DSSI4CS: dssiaudio LocatePlugin # %i\n", Number);
 #endif
 
@@ -810,8 +810,8 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     uint32_t i, j;
 
 
-    uint32_t icnt = GetInputArgCnt(p) - 1;
-    uint32_t ocnt = GetOutputArgCnt(p);
+    uint32_t icnt = GetInputArgCnt(&p->h) - 1;
+    uint32_t ocnt = GetOutputArgCnt(&p->h);
     uint64_t Ksmps = (uint64_t) CS_KSMPS;
 
 
