@@ -346,6 +346,7 @@ static const char *longUsageList[] = {
     Str_noop("--print-version         always print version details"),
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
+    Str_noop("--error-deprecated      trigger compilation error on deprecated opcodes"),
     Str_noop("--help                  long help"),
     NULL};
 
@@ -1262,6 +1263,10 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "run-unit-tests", 14))) {
     O->runUnitTests = 1;
+    return 1;
+  }
+  else if (!(strncmp(s, "error-deprecated", 16))) {
+    O->error_deprecated = 1;
     return 1;
   }
   csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored."), s);

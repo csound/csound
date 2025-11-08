@@ -154,7 +154,9 @@ void auxchfree(CSOUND *csound, INSDS *ip)
     void  *auxp = (void*) ip->auxchp->auxp;
     AUXCH *nxt = ip->auxchp->nxtchp;
     memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-    csound->Free(csound, auxp);                   /*  & free the space    */
+    if (auxp != NULL) {                           /*  only free if not NULL */
+      csound->Free(csound, auxp);                 /*  & free the space    */
+    }
     ip->auxchp = nxt;
   }
   if (UNLIKELY(csoundGetDebug(csound) & 0x01))

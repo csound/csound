@@ -1172,15 +1172,20 @@ template <typename T>
 int32_t plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a) {
+  SUBR initf = NULL, perf = NULL;
+  if(thr == thread::i ||
+     thr == thread::ik ||
+     thr == thread::ia) initf = (SUBR) init<T>;
+  
+  if(thr == thread::k ||
+     thr == thread::ik) perf = (SUBR) kperf<T>;
+  else if(thr == thread::a ||
+     thr == thread::ia) perf = (SUBR) aperf<T>;
+  
+
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
-                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)aperf<T>, (SUBR)deinit<T>);
-  }
-  else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
-                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)deinit<T>);
+                          (char *)oargs, (char *)iargs, initf,
+                          perf, (SUBR)deinit<T>);
 }
 
 /** plugin registration function template
@@ -1189,18 +1194,7 @@ int32_t plugin(Csound *csound, const char *name, const char *oargs,
 template <typename T>
 int32_t plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
-  CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a) {
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
-                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)aperf<T>, (SUBR)deinit<T>);
-
-  }
-  else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
-                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)deinit<T>);
-
+  return plugin<T>(csound, name, T::otypes, T::itypes, thr, flags);
 }
 
 /** utility constructor function template for member classes: \n

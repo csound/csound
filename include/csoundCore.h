@@ -52,7 +52,6 @@
 #include "csound_misc.h"
 #include "csound_server.h"
 #include "csound_data_structures.h"
-#include "pools.h"
 #include "coreDefs.h"
 #include "soundfile.h"
 
@@ -86,6 +85,7 @@ extern "C" {
     SUBR    perf;
     SUBR    deinit;
     void    *useropinfo; /* user opcode parameters */
+    int32_t deprecated;  /* deprecation flag */
   } OENTRY;
 
 
@@ -286,6 +286,7 @@ typedef struct {
     char *data;         // null-terminated string
     size_t size;        // total allocated size
     int64_t timestamp;  // used internally for updates
+    int32_t refcount;   // reference count for shared buffers (0 = unmanaged)
   };
 
   /**
@@ -1777,7 +1778,10 @@ struct CSOUND_ {
   int32_t midi_clock_pulse;
   int32_t midi_start;
   int32_t midi_continue;
-  int32_t midi_stop;  
+  int32_t midi_stop;
+  int32_t struct_array_temp_counter;
+  int32_t parflag;
+  int32_t *taskflag;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

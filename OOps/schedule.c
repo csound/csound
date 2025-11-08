@@ -76,13 +76,24 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
         evt.strarg = NULL; evt.scnt = 0;
       }
       else if (mode == 2) {
-        INSTREF *ref = (INSTREF *) args[0];
-        if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
-          return csound->InitError(csound, "%s", Str(errmsg_2));
-        insno = instr_num(csound, ref->instr);
-        aref = args[0];
-        args[0] = &insno;
-        evt.strarg = NULL; evt.scnt = 0;
+        // Safety check: if args[0] contains a numeric value instead of an INSTREF pointer,
+        // treat it as mode 0 (numeric mode) to prevent memory corruption
+        if (args[0] && (uintptr_t)args[0] > 0x1000 &&
++           *args[0] >= 1.0 && *args[0] <= 999.0) {
+          // This looks like a numeric value, not an INSTREF pointer
+          // Fall back to numeric mode (mode 0)
+          insno = FABS(*args[0]);
+          evt.strarg = NULL; evt.scnt = 0;
+        } else {
+          // Original INSTREF handling
+          INSTREF *ref = (INSTREF *) args[0];
+          if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
+            return csound->InitError(csound, "%s", Str(errmsg_2));
+          insno = instr_num(csound, ref->instr);
+          aref = args[0];
+          args[0] = &insno;
+          evt.strarg = NULL; evt.scnt = 0;
+        }
       }
       else {
         if (IsStringCode(*args[0])) {
@@ -158,7 +169,7 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     MYFLT *ref = NULL;
     MYFLT **args = p->args;
     evt.pcnt = pcnt;
-   
+
     if (UNLIKELY((opcod != 'a' && opcod != 'i' && opcod != 'q' && opcod != 'f' &&
                   opcod != 'e' && opcod != 'd')))
       return csound->InitError(csound, "%s", Str(errmsg_1));
@@ -225,7 +236,7 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
       csound->InitError(csound, Str("event_i: error creating '%c' event"),
                                 opcod);
     if(ref != NULL) args[0] = ref;
-      
+
     return (err == 0 ? OK : NOTOK);
 }
 
@@ -256,11 +267,11 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
     MYFLT *aref = NULL;
     MYFLT insno;
     MYFLT **args = p->args;
-    
+
      /* pass in the memory to hold the instance after insertion */
     evt.pinstance = (void *) p->inst;
     *((MYFLT **)evt.pinstance) = NULL;
-    
+
     /* IV - Oct 31 2002: allow string argument */
     if (evt.pcnt > 0) {
       if (mode == 2) {
@@ -285,7 +296,7 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
          if (UNLIKELY(insno == 0)) return NOTOK;
          aref = args[0];
           args[0] = &insno;
-        } 
+        }
         evt.strarg = NULL; evt.scnt = 0;
       }
     }
@@ -332,7 +343,9 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   evt.opcod = 'i';
   evt.pcnt = p->INOCOUNT;
 
-  if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_INSTR) {
+  CS_TYPE *argType = GetTypeForArg(p->argums[0]);
+  if (argType == &CS_VAR_TYPE_INSTR ||
+      (argType != NULL && strcmp(argType->varTypeName, "InstrDef") == 0)) {
     // handling argum[0] as instrument type
     MYFLT insno;
     int32_t res;
@@ -348,7 +361,7 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     int32_t res;
     MYFLT *ref = p->argums[0];
     insno = named_instr_find(csound, ((STRINGDAT *) p->argums[0])->data);
-    if (UNLIKELY(insno == FL(0.0))) return NOTOK;  
+    if (UNLIKELY(insno == FL(0.0))) return NOTOK;
     p->argums[0] = &insno;
     res = insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
@@ -358,10 +371,10 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_I ||
            GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_C ||
            GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_P ||
-	   GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_K) 
+	   GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_K)
     return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
-  
+
   else return csound->InitError(csound, "invalid instrument argument\n");
 }
 
@@ -403,7 +416,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
            GetTypeForArg(p->which) != &CS_VAR_TYPE_C &&
            GetTypeForArg(p->which) != &CS_VAR_TYPE_P)
       return csound->InitError(csound, "instrument argument invalid\n");
-    
+
     snprintf(s, 16384, "i %f %f %f", insno, *p->when, *p->dur);
     for (i=4; i < argno ; i++) {
        MYFLT *arg = p->argums[i-4];
@@ -428,7 +441,7 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
     int32_t argno = p->INOCOUNT+1;
     // compensate for sensline happening at the end of kcycle
     MYFLT when = *p->when < 1/csound->ekr ?
-      *p->when : *p->when - 1/csound->ekr; 
+      *p->when : *p->when - 1/csound->ekr;
     char s[16384], sf[64];
     snprintf(s, 16384, "i \"%s\" %f %f", ((STRINGDAT *)p->which)->data, when, *p->dur);
     for (i=4; i < argno ; i++) {
@@ -793,7 +806,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     }
     else if (GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->args[0];
-      evt.p[1] = (MYFLT) instr_num(csound, ref->instr); 
+      evt.p[1] = (MYFLT) instr_num(csound, ref->instr);
     }
     else {
       evt.strarg = NULL; evt.scnt = 0;
@@ -909,7 +922,7 @@ static int32_t events_match(CSOUND *csound,
       // TODO: encode string in evt1
       // for now we just ignore any string arg
       if(IsStringCode(evt2->p[i])) {
-        char *str1 = get_arg_string_from_evt(csound, evt1->p[i],evt1); 
+        char *str1 = get_arg_string_from_evt(csound, evt1->p[i],evt1);
         char *str2 = get_arg_string_from_evt(csound, evt2->p[i],evt2);
         if(strcmp(str1, str2)) return 0;
       }
@@ -929,7 +942,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
   while(e != NULL && e != csound->freeEvtNodes) {
     if(events_match(csound, evt, evtn)) {
       int i;
-      csound->OrcTrigEvts = e->nxt;       
+      csound->OrcTrigEvts = e->nxt;
       e->nxt = csound->freeEvtNodes;
       csound->freeEvtNodes = e;
       if(csound->oparms->msglevel > 0) {
@@ -961,7 +974,7 @@ int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
   evt.pcnt = pcnt;
   evt.opcod = 'i';
   evt.p = pfields;
- 
+
   // named instruments
   if(IS_STR_ARG(p->arg[0])) {
      evt.p[1] = named_instr_find(csound,
@@ -971,7 +984,7 @@ int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
     evt.p[1] =  instr_num(csound, ref->instr);
   }
   else evt.p[1] = *p->arg[0];
-  
+
   for(i = 2; i < pcnt+1; i++) {
     // TODO: encode string args, ignored for now
     if(IS_STR_ARG(p->arg[i-1])) {
@@ -980,7 +993,7 @@ int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
       }
     else evt.p[i] = *p->arg[i-1];
   }
-    
+
   remove_rt_event(csound, &evt, cont);
   if(evt.strarg != NULL) csound->Free(csound, evt.strarg);
   return OK;

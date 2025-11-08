@@ -92,5 +92,6 @@ int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
+int32_t xout_perf_passByRef(CSOUND *, XOUT *);
 
 #endif

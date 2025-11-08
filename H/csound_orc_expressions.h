@@ -53,6 +53,7 @@ char *remove_type_quoting(CSOUND *csound, const char *outype);
 TREE * create_opcode_token(CSOUND *csound, char* op);
 TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
+int expand_struct_array_member_assignment(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, TREE** anchor);
 
 
 #endif

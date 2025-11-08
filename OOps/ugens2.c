@@ -193,7 +193,7 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return NOTOK;
-  if(IS_POW_TWO(ftp->flen)) { 
+  if(IS_POW_TWO(ftp->flen)) {
   if (UNLIKELY(*p->idur <= FL(0.0))) {
     p->phs = MAXLEN-1;
   }
@@ -220,11 +220,11 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
   MYFLT fphs = p->fphs;
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
-  if(p->kinc != 0) 
+  if(p->kinc != 0)
     *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
   else
     *p->rslt = *(ftp->ftable + (size_t) (fphs*ftp->flen)) * *p->kamp;
-  
+
   if ((dcnt = p->dcnt) > 0)
     dcnt--;
   else if (dcnt == 0) {
@@ -297,7 +297,7 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
     }
     p->phs = phs;
     } else {
-    fphs += p->inc;      
+    fphs += p->inc;
     if (UNLIKELY(fphs >= 1.)){
       fphs = 1.;
       dcnt--;
@@ -396,7 +396,7 @@ int32_t posckkt(CSOUND *csound, OSC *p)
   FUNC        *ftp = p->ftp;
   MYFLT       *out = p->sr, *ft;
   double      phs = p->phs;
-  double      si = *p->xcps * p->tablenUPsr; 
+  double      si = *p->xcps * p->tablenUPsr;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -428,7 +428,7 @@ int32_t poscaat(CSOUND *csound, OSC *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       *amp = p->xamp; 
+  MYFLT       *amp = p->xamp;
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
@@ -495,7 +495,7 @@ int32_t poscakt(CSOUND *csound, OSC *p)
   uint32_t    offset = p->h.insdshead->ksmps_offset;
   uint32_t    early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       *amp = p->xamp; 
+  MYFLT       *amp = p->xamp;
 
   if (UNLIKELY(ftp==NULL))
     return csound->PerfError(csound, &(p->h),
@@ -966,10 +966,10 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
     else if(IS_ASIG_ARG(p->xamp)) // ak
       p->h.perf = (SUBR) poscakt;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.perf = (SUBR) posckat; 
+      p->h.perf = (SUBR) posckat;
     else // kk
       p->h.perf = (SUBR) posckkt;
-    } else // kosc 
+    } else // kosc
     p->h.perf = (SUBR) kposct;
   }
   else if(!strcmp(name, "oscili")) {
@@ -979,10 +979,10 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
     else if(IS_ASIG_ARG(p->xamp)) // ak
       p->h.perf = (SUBR) poscak;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.perf = (SUBR) poscka; 
+      p->h.perf = (SUBR) poscka;
     else // kk
       p->h.perf = (SUBR) posckk;
-  } else // kosc 
+  } else // kosc
     p->h.perf = (SUBR) kposc;
   } else {  // oscil3
    if(IS_ASIG_ARG(p->sr)) {
@@ -991,10 +991,10 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
     else if(IS_ASIG_ARG(p->xamp)) // ak
       p->h.perf = (SUBR) poscak;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.perf = (SUBR) poscka; 
+      p->h.perf = (SUBR) poscka;
     else // kk
       p->h.perf = (SUBR) posckk;
-  } else // kosc 
+  } else // kosc
     p->h.perf = (SUBR) kposc;
   }
 }
@@ -1003,7 +1003,7 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
 int32_t oscset(CSOUND *csound, OSC *p)
 {
   FUNC *ftp;
-  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))  
+  if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
     return csound->InitError(csound, Str("table not found"));
   p->ftp = ftp;
   if(IS_POW_TWO(ftp->flen)) {
@@ -1051,7 +1051,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
   p->ftp = ftp;
   fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
   if(IS_POW_TWO(ftp->flen)) {
-  if (*p->iphs >= 0) 
+  if (*p->iphs >= 0)
     p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
   return OK; // Indentation not logical always onbeyed NEEDS FIX JPff May 10 2024
   }
@@ -1061,7 +1061,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
     p->phs      = *p->iphs * p->tablen;
   while (UNLIKELY(p->phs >= p->tablen))
     p->phs     -= p->tablen;
-  reassign_perf(csound, p);  
+  reassign_perf(csound, p);
   return OK;
 }
 
@@ -1096,7 +1096,10 @@ int32_t osckk(CSOUND *csound, OSC *p)
   uint32_t n, nsmps = CS_KSMPS;
 
     ftp = p->ftp;
-    if (UNLIKELY(ftp==NULL)) goto err1;
+    if (UNLIKELY(ftp==NULL)) {
+      if (UNLIKELY(oscset(csound, p) != OK)) goto err1;
+      ftp = p->ftp;
+    }
     ftbl = ftp->ftable;
     phs = p->lphs;
     inc = MYFLT2LONG(*p->xcps * CS_SICVT);
@@ -1168,9 +1171,12 @@ int32_t oscak(CSOUND *csound, OSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
 
- 
+
     ftp = p->ftp;
-    if (UNLIKELY(ftp==NULL)) goto err1;
+    if (UNLIKELY(ftp==NULL)) {
+      if (UNLIKELY(oscset(csound, p) != OK)) goto err1;
+      ftp = p->ftp;
+    }
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
@@ -1206,7 +1212,10 @@ int32_t oscaa(CSOUND *csound, OSC *p)
     MYFLT   sicvt = CS_SICVT;
 
   ftp = p->ftp;
-  if (UNLIKELY(ftp==NULL)) goto err1;
+  if (UNLIKELY(ftp==NULL)) {
+    if (UNLIKELY(oscset(csound, p) != OK)) goto err1;
+    ftp = p->ftp;
+  }
   ftbl = ftp->ftable;
   lobits = ftp->lobits;
   phs = p->lphs;

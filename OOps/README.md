@@ -2,16 +2,22 @@ OOps: internal opcodes
 ===================
 
 - aops.c: audio input and output
+- array_ops.c: array manipulation
+- assert_ops.c: asserting opcodes
 - bus.c: software bus opcodes
 - cmath.c: mathematical functions
-- compile_ops.c: compilation and score reading opcodes
+- compile_ops.c: compilation and score access opcodes
+- complex_ops.c: complex number functions
 - diskin2.c: disk files playback opcodes
 - disprep.c: display and plotting opcodes
 - dumpf.c:  file dumping opcodes
 - fftlib.c: radix-2 FFT routines 
 - goto_ops.c: control-of-flow opcodes
+- inst_ops.c: instrument instantiation, initialisation, and performance opcodes.
 - midiinterop.c: midi-score interoperation opcodes
 - midiops.c: midi input opcodes 
+- midiops2.c: midi input opcodes
+- midiops3.c: midi input opcodes
 - midiout.c: midi output opcodes
 - mxfft.c: non-radix-2 FFT routines
 - oscils.c: specialist periodic signal generators, table lookup
