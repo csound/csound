@@ -67,7 +67,7 @@ echo "Downloading flac..."
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
 echo "Downloading lame..."
 curl -sL -o "${LAME_TARBALL}" "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" 
-tar -xz "${LAME_TARBALL}"
+tar -xzf "${LAME_TARBALL}"
 git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
 # Download mpg123 official release tarball
 echo "Downloading mpg123..."
