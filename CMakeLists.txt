@@ -1667,6 +1667,27 @@ install(EXPORT CsoundExports
 )
 
 # configure and install pkg-config file
+# Set appropriate link flags for different platforms
+if(APPLE AND NOT IOS)
+    # On macOS, use framework flags when building as framework
+    set(CSOUND_LINK_FLAGS "-F${CS_FRAMEWORK_DEST} -framework ${CSOUNDLIB}")
+else()
+    # Standard library flags for other platforms
+    set(CSOUND_LINK_FLAGS "-L\${libdir} -l${CSOUNDLIB}")
+endif()
+
+# Collect private libraries for static linking
+set(CSOUND_PRIVATE_LIBS "")
+if(USE_LIBSNDFILE)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsndfile")
+endif()
+if(SampleRate_FOUND)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsamplerate")
+endif()
+if(UNIX AND NOT APPLE)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lm -ldl -lpthread")
+endif()
+
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/csound.pc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"

@@ -6,5 +6,6 @@ includedir=${prefix}/@HEADER_INSTALL_DIR@
 Name: Csound
 Description: A sound and music computing system
 Version: @CS_VERSION@.@CS_SUBVER@.@CS_PATCHLEVEL@
-Libs: -L${libdir} -l@CSOUNDLIB@
+Libs: @CSOUND_LINK_FLAGS@
+Libs.private: @CSOUND_PRIVATE_LIBS@
 Cflags: -I${includedir}
