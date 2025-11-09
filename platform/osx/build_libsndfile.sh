@@ -12,6 +12,7 @@ MPG123_DIR="mpg123-${MPG123_VERSION}"
 OPUSVERSION="1.4"
 FLACVERSION="1.4.3"
 LAMEVERSION="3.100"
+LAME_TARBALL="lame-${LAMEVERSION}.tar.gz"
 LIBSNDFILEVERSION="1.2.2"
 MINOSVERSION="11.0"
 
@@ -65,7 +66,8 @@ rm -rf "flac-${FLACVERSION}"
 echo "Downloading flac..."
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
 echo "Downloading lame..."
-curl -sL "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" | tar -xz -C "${SRCDIR}"
+curl -sL -o "${LAME_TARBALL}" "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" 
+tar -xz "${LAME_TARBALL}"
 git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
 # Download mpg123 official release tarball
 echo "Downloading mpg123..."
