@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -x
 
 # Configuration
 TARGET_PLATFORM="${1:-macos}"  # default to macOS if nothing is passed
@@ -56,14 +56,19 @@ fi
 echo "Downloading source code..."
 cd "$SRCDIR"
 curl -sL "http://downloads.xiph.org/releases/ogg/libogg-${LIBOGGVERSION}.tar.xz" | tar -xJ
+echo "Downloading vorbis..."
 curl -sL "http://downloads.xiph.org/releases/vorbis/libvorbis-${LIBVORBISVERSION}.tar.xz" | tar -xJ
+echo "Downloading opus..."
 curl -sL "https://downloads.xiph.org/releases/opus/opus-${OPUSVERSION}.tar.gz" | tar -xz
 # Always delete and re-extract FLAC source to avoid cross-arch contamination
 rm -rf "flac-${FLACVERSION}"
+echo "Downloading flac..."
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
+echo "Downloading lame..."
 curl -sL "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" | tar xz -C "${SRCDIR}"
 git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
 # Download mpg123 official release tarball
+echo "Downloading mpg123..."
 curl -sL -o "${MPG123_TARBALL}" "https://www.mpg123.de/download/mpg123-1.33.0.tar.bz2"
 tar -xjf "${MPG123_TARBALL}"
 
