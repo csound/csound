@@ -638,7 +638,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Copy libsndfile DLLs to build directory
-        run: cp $HOME/libsndfile-i686/bin/*.dll ./build/Release/
+        run: cp $HOME/libsndfile-i686/bin/*.dll ./build/
 
       - name: Upload zip
         # Temporarily commented out for PR testing
@@ -647,10 +647,10 @@ jobs:
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
           path: |
-            ./build/Release/*.exe
-            ./build/Release/*.dll
-            ./build/Release/*.pyd
-            ./build/Release/*.lib
+            ./build/*.exe
+            ./build/*.dll
+            ./build/*.pyd
+            ./build/*.lib
             ./build/*.jar
             ./build/*.py
             ./include/
