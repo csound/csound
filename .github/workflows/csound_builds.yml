@@ -641,7 +641,8 @@ jobs:
         run: cp $HOME/libsndfile-i686/bin/*.dll ./build/Release/
 
       - name: Upload zip
-        if: github.ref == 'refs/heads/develop'
+        # Temporarily commented out for PR testing
+        # if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
@@ -791,7 +792,8 @@ jobs:
           path: Android/csound-android-${{env.CSOUND_VERSION}}
 
   publish_artifacts:
-    if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
+    # Temporarily commented out for PR testing
+    # if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
     needs:
