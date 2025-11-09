@@ -31,12 +31,6 @@
             "platform": "windows"
         },
         {
-            "name": "libsndfile",
-            "features": [
-                "external-libs"
-            ]
-        },
-        {
             "name": "gettext",
             "platform": "linux|osx"
         }
