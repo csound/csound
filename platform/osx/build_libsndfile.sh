@@ -66,7 +66,7 @@ rm -rf "flac-${FLACVERSION}"
 echo "Downloading flac..."
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
 echo "Downloading lame..."
-wget -O "${LAME_TARBALL}" "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" 
+wget -O "${LAME_TARBALL}" "https://github.com/rbrito/lame/releases/download/v3.100/{LAME_TARBALL}" 
 if ! file "${LAME_TARBALL}" | grep -q 'gzip compressed data'; then
   echo "Error: Downloaded lame-3.100.tar.gz is not a valid tar.gz archive"
   exit 1
