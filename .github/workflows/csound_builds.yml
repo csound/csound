@@ -632,7 +632,7 @@ jobs:
           sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
       - name: Configure Build
-        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DUSE_DOUBLE=0 -DUSE_MP3=0 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom-mingw64-i686.cmake" -DCMAKE_SYSTEM_NAME=MinGW -DCMAKE_C_COMPILER=/usr/bin/i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-w64-mingw32-g++ -DCMAKE_PREFIX_PATH=$HOME/libsndfile-i686/cmake
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_DOUBLE=0 -DUSE_MP3=0 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom-mingw64-i686.cmake" -DCMAKE_SYSTEM_NAME=MinGW -DCMAKE_C_COMPILER=/usr/bin/i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-w64-mingw32-g++ -DCMAKE_PREFIX_PATH=$HOME/libsndfile-i686/cmake
 
       - name: Build Csound
         run: cmake --build build --config Release
