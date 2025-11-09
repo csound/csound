@@ -619,6 +619,7 @@ jobs:
           cp -r libsndfile-win32/libsndfile-1.2.2-win32/bin $HOME/libsndfile-i686/
           cp -r libsndfile-win32/libsndfile-1.2.2-win32/lib $HOME/libsndfile-i686/
           cp -r libsndfile-win32/libsndfile-1.2.2-win32/include $HOME/libsndfile-i686/
+          cp -r libsndfile-win32/libsndfile-1.2.2-win32/cmake $HOME/libsndfile-i686/
 
       - name: Install dependencies
         run: |
@@ -631,7 +632,7 @@ jobs:
           sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
 
       - name: Configure Build
-        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DUSE_DOUBLE=0 -DUSE_MP3=0 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom-mingw64-i686.cmake" -DCMAKE_SYSTEM_NAME=MinGW -DCMAKE_C_COMPILER=/usr/bin/i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-w64-mingw32-g++ -DLIBSNDFILE_LIBRARY=$HOME/libsndfile-i686/lib/sndfile.lib -DSNDFILE_H_PATH=$HOME/libsndfile-i686/include
+        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DUSE_DOUBLE=0 -DUSE_MP3=0 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom-mingw64-i686.cmake" -DCMAKE_SYSTEM_NAME=MinGW -DCMAKE_C_COMPILER=/usr/bin/i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-w64-mingw32-g++ -DCMAKE_PREFIX_PATH=$HOME/libsndfile-i686/cmake
 
       - name: Build Csound
         run: cmake --build build --config Release
