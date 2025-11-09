@@ -67,6 +67,10 @@ echo "Downloading flac..."
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
 echo "Downloading lame..."
 curl -sL -o "${LAME_TARBALL}" "https://downloads.sourceforge.net/project/lame/lame/${LAMEVERSION}/lame-${LAMEVERSION}.tar.gz" 
+if ! file "${LAME_TARBALL}" | grep -q 'gzip compressed data'; then
+  echo "Error: Downloaded lame-3.100.tar.gz is not a valid tar.gz archive"
+  exit 1
+fi
 tar -xzf "${LAME_TARBALL}"
 git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
 # Download mpg123 official release tarball
