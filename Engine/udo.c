@@ -430,9 +430,23 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
+  // Check if UDO has a-rate outputs
+  int has_arate_output = 0;
+  if (buf->opcode_info->out_arg_pool) {
+    CS_VARIABLE *out_param = buf->opcode_info->out_arg_pool->head;
+    while (out_param) {
+      if (out_param->varType == &CS_VAR_TYPE_A) {
+        has_arate_output = 1;
+        break;
+      }
+      out_param = out_param->next;
+    }
+  }
+  
   inm->passByRef = buf->opcode_info->newStyle &&
     parent_ip->ksmps == p->ip->ksmps &&
-    parent_ip->esr == p->ip->esr;
+    parent_ip->esr == p->ip->esr &&
+    !has_arate_output;  // Disable pass-by-ref for UDOs with a-rate outputs
 
   /* For pass-by-ref UDOs with arrays, copy the caller's ARRAYDAT structure
    * into the UDO's local variables (the xin outputs, not the parameters).
