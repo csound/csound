@@ -128,24 +128,27 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   CS_HASH_TABLE *xout_skip_names = cs_hash_table_create(csound);
   OPDS *ichain = lcurip->nxti;
 
+  // Process init chain to find xin and extract parameter names for new-style UDOs
+  // For new-style UDOs, Csound generates an implicit xin with the signature parameter names
+  OPDS *xin_opcode = NULL;
+  OPDS *scan_chain = lcurip->nxti;
+  while (scan_chain != NULL) {
+    if (strcmp("xin", scan_chain->optext->t.opcod) == 0) {
+      xin_opcode = scan_chain;
+      break;
+    }
+    scan_chain = scan_chain->nxti;
+  }
+
   // For new-style UDOs, wire input parameters from signature to caller arguments
   OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
-  if (udoinfo && udoinfo->in_arg_pool) {
+  if (udoinfo && udoinfo->in_arg_pool && xin_opcode) {
     CS_VARIABLE *param = udoinfo->in_arg_pool->head;
+    ARGLST *xin_outlist = xin_opcode->optext->t.outlist;
 
-    // Get actual parameter names from local varpool for new-style UDOs
-    CS_VARIABLE **actualParams = NULL;
-    if (udoinfo->newStyle && lcurip->instr && lcurip->instr->varPool) {
-      actualParams = (CS_VARIABLE**)csound->Calloc(csound, udoinfo->inchns * sizeof(CS_VARIABLE*));
-      CS_VARIABLE *local = lcurip->instr->varPool->head;
-      for (int j = 0; j < udoinfo->inchns && local; j++) {
-        actualParams[j] = local;
-        local = local->next;
-      }
-    }
-
-    for (i = 0; i < udoinfo->inchns && param; i++) {
-      if (param->varName) {
+    for (i = 0; i < udoinfo->inchns && i < xin_outlist->count && param; i++) {
+      char *xin_varname = xin_outlist->arg[i];
+      if (xin_varname) {
         int32_t ar_index = udoinfo->outchns + i;
         if (ar_index >= 0 && ar_index < (udoinfo->outchns + udoinfo->inchns)) {
           MYFLT *argPtr = p->ar[ar_index];
@@ -158,51 +161,56 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
           int isIRate = (param->varType == &CS_VAR_TYPE_I);
 
           if (isArray || isKRate || isARate || isString || isIRate) {
-            cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+            // Map using the signature name (from xin output)
+            cs_hash_table_put(csound, arg_ptr_map, xin_varname, argPtr);
 
-            // Map actual parameter name if different from signature
-            if (actualParams && actualParams[i] && actualParams[i]->varName) {
-              if (strcmp(actualParams[i]->varName, param->varName) != 0) {
-                cs_hash_table_put(csound, arg_ptr_map, actualParams[i]->varName, argPtr);
+            // Also map the internal name if different
+            if (param->varName && strcmp(param->varName, xin_varname) != 0) {
+              cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+            }
+
+            // Handle arrays and strings to prevent double-free
+            if (lcurip->lclbas) {
+              // Find the variable in varPool
+              CS_VARIABLE *local_var = NULL;
+              if (lcurip->instr && lcurip->instr->varPool) {
+                CS_VARIABLE *v = lcurip->instr->varPool->head;
+                while (v) {
+                  if (v->varName && strcmp(v->varName, xin_varname) == 0) {
+                    local_var = v;
+                    break;
+                  }
+                  v = v->next;
+                }
               }
 
-              // For arrays, create alias to prevent double-free
-              if (isArray && lcurip->lclbas) {
-                ARRAYDAT *callerArray = (ARRAYDAT *)argPtr;
-                ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + actualParams[i]->memBlockIndex);
-                memcpy(localArray, callerArray, sizeof(ARRAYDAT));
-                localArray->allocated = 0;
-              }
-
-              // For strings, create alias to prevent double-free
-              // The local string will point to the caller's buffer but won't own it
-              if (isString && lcurip->lclbas) {
-                STRINGDAT *callerString = (STRINGDAT *)argPtr;
-                STRINGDAT *localString = (STRINGDAT *)(lcurip->lclbas + actualParams[i]->memBlockIndex);
-
-                // Free the local string's initially allocated buffer
-                if (localString->data != NULL && localString->data != callerString->data) {
-                  csound->Free(csound, localString->data);
+              if (local_var) {
+                if (isArray) {
+                  ARRAYDAT *callerArray = (ARRAYDAT *)argPtr;
+                  ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + local_var->memBlockIndex);
+                  memcpy(localArray, callerArray, sizeof(ARRAYDAT));
+                  localArray->allocated = 0;
                 }
 
-                // Alias to caller's string data
-                localString->data = callerString->data;
-                localString->size = callerString->size;
-                localString->timestamp = callerString->timestamp;
+                if (isString) {
+                  STRINGDAT *callerString = (STRINGDAT *)argPtr;
+                  STRINGDAT *localString = (STRINGDAT *)(lcurip->lclbas + local_var->memBlockIndex);
 
-                // Set local refcount to -1 to indicate this is an alias that should NOT be freed
-                // The caller retains ownership and will free the buffer
-                localString->refcount = -1;
+                  if (localString->data != NULL && localString->data != callerString->data) {
+                    csound->Free(csound, localString->data);
+                  }
+
+                  localString->data = callerString->data;
+                  localString->size = callerString->size;
+                  localString->timestamp = callerString->timestamp;
+                  localString->refcount = -1;
+                }
               }
             }
           }
         }
       }
       param = param->next;
-    }
-
-    if (actualParams) {
-      csound->Free(csound, actualParams);
     }
   }
 
@@ -476,22 +484,14 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
         void *caller_arg = (void*)p->ar[inm->outchns + i];
         void *param_mem = (void*)(lcurip->lclbas + param->memBlockIndex);
 
-        /* Copy i-rate scalars - they're passed by value in new-style UDOs.
-         * K-rate and a-rate scalars are NOT copied here - they will be passed
-         * through the UDO's performance function. */
-        if (param->varType == &CS_VAR_TYPE_I) {
-          // Copy the i-rate scalar value from caller to UDO's parameter memory
-          *(MYFLT*)param_mem = *(MYFLT*)caller_arg;
-        }
-        else if (param->varType == &CS_VAR_TYPE_K ||
-                 param->varType == &CS_VAR_TYPE_A) {
-          // K-rate and a-rate: do not copy at init time
-        }
         /* For arrays in pass-by-ref mode: NO COPY NEEDED.
          * The xin/xout opcodes are already rewired to point directly to the caller's
          * ARRAYDAT via the arg_ptr_map. The UDO's local parameter memory is not used.
          * The caller's array is modified directly by opcodes inside the UDO. */
-        else if (param->varType == &CS_VAR_TYPE_ARRAY) {
+        if (param->varType == &CS_VAR_TYPE_I ||
+            param->varType == &CS_VAR_TYPE_K ||
+            param->varType == &CS_VAR_TYPE_A ||
+            param->varType == &CS_VAR_TYPE_ARRAY) {
           // No action needed - arrays use copy from above or direct pass-by-ref
         }
         /* For other reference types (strings, etc.): copy the structure */
