@@ -189,8 +189,18 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
                 if (isArray) {
                   ARRAYDAT *callerArray = (ARRAYDAT *)argPtr;
                   ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + local_var->memBlockIndex);
+                  
+                  // Free any existing local allocations before aliasing
+                  if (localArray->data != NULL && localArray->data != callerArray->data) {
+                    csound->Free(csound, localArray->data);
+                  }
+                  if (localArray->sizes != NULL && localArray->sizes != callerArray->sizes) {
+                    csound->Free(csound, localArray->sizes);
+                  }
+                  
+                  // Now alias the caller's array
                   memcpy(localArray, callerArray, sizeof(ARRAYDAT));
-                  localArray->allocated = 0;
+                  localArray->allocated = 0;  // Mark as non-owning alias
                 }
 
                 if (isString) {
@@ -450,6 +460,14 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
                 // Get the UDO's local variable
                 ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + v->memBlockIndex);
+
+                // Free any existing local allocations before aliasing
+                if (localArray->data != NULL && localArray->data != callerArray->data) {
+                  csound->Free(csound, localArray->data);
+                }
+                if (localArray->sizes != NULL && localArray->sizes != callerArray->sizes) {
+                  csound->Free(csound, localArray->sizes);
+                }
 
                 // Copy the ARRAYDAT structure to make an alias
                 memcpy(localArray, callerArray, sizeof(ARRAYDAT));
