@@ -49,9 +49,23 @@ instr 1
     iv3 = incr2(iv2)
     print iv2, iv3
 
-    assertEquals(iv, 34)
-    assertEquals(iv2, 79)
-    assertEquals(iv3, 22)
+    ; Test pass-by-reference: iv should be modified from 33 to 34
+    if(iv != 34) then
+        prints("ERROR: Pass-by-reference failed for incr(). iv was %g, expected 34\n", iv)
+        exitnow(-1)
+    endif
+
+    ; Test pass-by-reference: iv2 should be modified from 77 to 79
+    if(iv2 != 79) then
+        prints("ERROR: Pass-by-reference failed for incr2(). iv2 was %g, expected 79\n", iv2)
+        exitnow(-1)
+    endif
+
+    ; Test return value: iv3 should be 22
+    if(iv3 != 22) then
+        prints("ERROR: Return value failed for incr2(). iv3 was %g, expected 22\n", iv3)
+        exitnow(-1)
+    endif
 
     print(factorial(4))
     assertEquals(1, factorial(1))
