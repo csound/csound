@@ -137,7 +137,7 @@ jobs:
           ./build.sh
 
       - uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/develop'
+        # if: github.ref == 'refs/heads/develop'
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
           path: iOS/Csound-For-iOS
@@ -527,7 +527,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip
-        if: github.ref == 'refs/heads/develop'
+        #if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
@@ -786,7 +786,7 @@ jobs:
           sh release.sh
 
       - uses: actions/upload-artifact@v4
-        if: github.ref == 'refs/heads/develop'
+        # if: github.ref == 'refs/heads/develop'
         with:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
           path: Android/csound-android-${{env.CSOUND_VERSION}}
