@@ -502,14 +502,14 @@ jobs:
         run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
-        if: github.ref == 'refs/heads/develop'
+        #if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
 
       - name: Build installer
-        if: github.ref == 'refs/heads/develop'
+        #if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
@@ -519,7 +519,7 @@ jobs:
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
-        if: github.ref == 'refs/heads/develop'
+        #if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
