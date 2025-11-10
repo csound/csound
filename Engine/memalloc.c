@@ -208,6 +208,7 @@ void mfree(CSOUND *csound, void *p)
       return;
     }
     pp->magic = 0;
+    CSOUND_MEM_SPINLOCK
 #else
     pp = HDR_PTR(p);
 
