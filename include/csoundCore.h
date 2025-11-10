@@ -48,6 +48,20 @@
 #include "csound_graph_display.h"
 #include "csound_circular_buffer.h"
 #include "csound_threads.h"
+
+/* Forward declarations for module system */
+typedef struct cs_module CS_MODULE;
+typedef struct {
+    CS_HASH_TABLE *modules;        /* Loaded modules cache */
+    CS_MODULE *current_module;     /* Currently compiling module */
+    CS_MODULE *root_module;        /* Root module (main CSD) */
+    CS_MODULE *global_module;      /* Global module for backward compatibility */
+    CS_HASH_TABLE *module_search_paths; /* Search path directories */
+    CS_HASH_TABLE *import_aliases; /* Import alias mappings */
+    CS_MODULE **module_stack;      /* Stack for circular dependency detection */
+    int32_t module_stack_size;     /* Current stack size */
+    int32_t module_stack_capacity; /* Stack capacity */
+} MODULE_STATE;
 #include "csound_compiler.h"
 #include "csound_misc.h"
 #include "csound_server.h"
@@ -1531,6 +1545,8 @@ struct CSOUND_ {
   int32_t keep_tmp;
   CS_HASH_TABLE *opcodes;
   int32 nrecs;
+  /* Module system state */
+  MODULE_STATE *module_state;       /* Encapsulated module system state */
   FILE *Linepipe;
   int32_t Linefd;
   void *csoundCallbacks_;
@@ -1779,6 +1795,10 @@ struct CSOUND_ {
   int32_t midi_continue;
   int32_t midi_stop;  
   /*struct CSOUND_ **self;*/
+  
+  /* Module system compilation tracking */
+  int32_t compilation_depth;     /* Tracks recursive compilation depth for modules */
+  
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
 };

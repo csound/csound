@@ -25,6 +25,7 @@
 
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "csound_module.h"
 #include "parse_param.h"
 #include <ctype.h>
 #include <inttypes.h>
@@ -35,6 +36,7 @@
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 #include "csound_orc_compile.h"
+#include <string.h>
 #include "namedins.h"
 #include "aops.h"
 
@@ -48,18 +50,20 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState);
 static void instr_prep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
 static void build_const_pool(CSOUND *, INSTRTXT *, char *, int32_t inarg,
-                    ENGINE_STATE *engineState);
+                             ENGINE_STATE *engineState);
 static void close_instrument(CSOUND *csound, ENGINE_STATE *engineState, INSTRTXT *ip);
 static void debug_print(CSOUND *csound);
 static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
                       ENGINE_STATE *engineState, int32_t merge);
+static void dump_arg_list(CSOUND *csound, const char *label,
+                          const char *udo_name, ARG *args);
 
 MYFLT initialise_io(CSOUND *csound);
 void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
-void add_opcode_defs(CSOUND *csound); 
+void add_opcode_defs(CSOUND *csound);
 
 
 #ifdef FLOAT_COMPARE
@@ -70,6 +74,46 @@ void add_opcode_defs(CSOUND *csound);
 #else
 #define FLOAT_COMPARE(x, y) (fabs((double)(x) / (double)(y)-1.0) > 5.0e-7)
 #endif
+
+static const char *arg_type_to_string(int type) {
+  switch (type) {
+  case ARG_CONSTANT: return "CONST";
+  case ARG_STRING:   return "STRING";
+  case ARG_PFIELD:   return "PFIELD";
+  case ARG_GLOBAL:   return "GLOBAL";
+  case ARG_LOCAL:    return "LOCAL";
+  case ARG_LABEL:    return "LABEL";
+  default:           return "UNKNOWN";
+  }
+}
+
+static void dump_arg_list(CSOUND *csound, const char *label,
+                          const char *udo_name, ARG *args) {
+  int idx = 0;
+  if (args == NULL) {
+    csound->Message(csound,
+                    "DEBUG %s args list for UDO %s is NULL\n",
+                    label, udo_name ? udo_name : "(null)");
+    return;
+  }
+  for (ARG *arg = args; arg != NULL; arg = arg->next, idx++) {
+    const char *typeStr = arg_type_to_string(arg->type);
+    void *ptr = arg->argPtr;
+    const char *varName = "<n/a>";
+    void *memBlock = NULL;
+    if ((arg->type == ARG_LOCAL || arg->type == ARG_GLOBAL) && ptr != NULL) {
+      CS_VARIABLE *var = (CS_VARIABLE *) ptr;
+      if (var->varName != NULL) {
+        varName = var->varName;
+      }
+      memBlock = var->memBlock;
+    }
+    csound->Message(csound,
+                    "DEBUG %s args[%d] for UDO %s: arg=%p type=%s(%d) ptr=%p var=%s memBlock=%p\n",
+                    label, idx, udo_name ? udo_name : "(null)", (void*)arg,
+                    typeStr, arg->type, ptr, varName, memBlock);
+  }
+}
 
 static char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState,
                           char *key) {
@@ -83,11 +127,11 @@ static char *strsav_string(CSOUND *csound, ENGINE_STATE *engineState,
 
 /*
   Check a symbol for pfield format (pN, PN)
-  and return the p-field num ( >= 0 ) 
-  else return -1  
+  and return the p-field num ( >= 0 )
+  else return -1
 */
 int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
-                   INSTRTXT *ip, char *s) 
+                   INSTRTXT *ip, char *s)
 {
   CS_VARIABLE *var1 =
     csoundFindVariableWithName(csound,
@@ -102,7 +146,7 @@ int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
   // and if it exists, that it has a pfield type
   if((var1 == NULL || var1->varType == &CS_VAR_TYPE_P) &&
      (var2 == NULL || var2->varType == &CS_VAR_TYPE_P) &&
-     (var1 == NULL || var3->varType == &CS_VAR_TYPE_P)) {  
+     (var1 == NULL || var3->varType == &CS_VAR_TYPE_P)) {
   int32_t n;
   if (*s == 'p' || *s == 'P')
     if (sscanf(++s, "%d", &n))
@@ -144,7 +188,7 @@ static void unquote_string(char *dst, const char *src) {
         dst[j++] = '"';
         break;
       case '\\':
-        dst[j++] = '\\'; 
+        dst[j++] = '\\';
         break;
       default:
         if (src[i] >= '0' && src[i] <= '7') {
@@ -190,13 +234,36 @@ int32_t args_required(char* argString)
 {
   int32_t retVal = 0;
   char* t = argString;
+
   if (t != NULL) {
+    /* Check if pointer looks valid (not in low memory addresses) */
+    if ((uintptr_t)t < 0x1000) {
+      printf("DEBUG: args_required detected invalid pointer (low address): %p\n", (void*)t);
+      return 0;
+    }
+
+    /* Debug only for suspicious content */
+    if (strlen(t) > 50 || strchr(t, 0x61) != NULL) {
+      printf("DEBUG: args_required suspicious string: '%s'\n", t);
+    }
+
     while (*t != '\0') {
       retVal++;
 
+      /* Safety check: prevent infinite loops if pointer is corrupted */
+      if (retVal > 100) {
+        printf("DEBUG: args_required safety limit exceeded, pointer may be corrupted\n");
+        return 0;
+      }
+
       if (*t == ':') {
-        while (*t != ';') {
+        while (*t != ';' && *t != '\0') {
           t++;
+          /* Safety check for while loop */
+          if ((uintptr_t)t - (uintptr_t)argString > 1000) {
+            printf("DEBUG: args_required loop safety limit exceeded\n");
+            return 0;
+          }
         }
       }
       t++;
@@ -204,6 +271,7 @@ int32_t args_required(char* argString)
         t++;
         if (*t != ']') {
           // ERROR HERE, unmatched array identifier, perhaps should report...
+          printf("DEBUG: args_required unmatched array identifier\n");
           return -1;
         }
         t++;
@@ -216,6 +284,14 @@ int32_t args_required(char* argString)
 /** Splits args in argString into char**, taking into account array identifiers */
 char** split_args(CSOUND* csound, char* argString)
 {
+  /* Add defensive check for corrupted pointers */
+  if (argString != NULL && (uintptr_t)argString < 0x1000) {
+    printf("DEBUG: split_args detected invalid pointer: %p\n", (void*)argString);
+    char** args = csound->Malloc(csound, sizeof(char*) * 1);
+    args[0] = NULL;
+    return args;
+  }
+
   int32_t argCount = args_required(argString);
   char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
   char* start = argString;
@@ -366,7 +442,7 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   case S_ADDIN:
   case S_SUBIN:
   case S_DIVIN:
-  case S_MULIN:    
+  case S_MULIN:
   case T_ASSIGNMENT:
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "create_opcode: Found node for opcode %s\n",
@@ -406,7 +482,7 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
            if (n > ip->pmax)
               ip->pmax = n;
         }
-        /* VL 14/12/11 : calling build_const_pool 
+        /* VL 14/12/11 : calling build_const_pool
            here seems to be problematic for
            undef arg checks */
         else {
@@ -453,6 +529,22 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       }
     }
     break;
+  case IMPORT_TOKEN:
+  case FROM_TOKEN:
+    /* IMPORT_TOKEN and FROM_TOKEN represent import statements
+       These are handled elsewhere in the compilation process,
+       but we need to create a no-op opcode entry to avoid errors */
+    if (PARSER_DEBUG) {
+      csound->Message(csound, "create_opcode: Handling import statement (type %d)\n", root->type);
+    }
+    /* Create a no-op entry - import processing happens in semantic analysis */
+    tp->oentry = NULL;
+    tp->opcod = NULL;
+    tp->outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->outlist->count = 0;
+    tp->inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->inlist->count = 0;
+    break;
   default:
     csound->Message(csound, Str("create_opcode: No rule to handle statement of "
                                 "type %d\n"),
@@ -466,16 +558,24 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 
 /**
  * Add a global variable and allocate memory
- * Globals, unlike locals, keep their memory space
- * in separate blocks, pointed by var->memBlock
+ *
+ * This function adds a variable to the specified variable pool and allocates
+ * memory for it. Variables added via this function keep their memory space
+ * in separate blocks, pointed to by var->memBlock.
+ *
+ * Used for:
+ * - System globals (sr, kr, ksmps, etc.) → engineState->varPool
+ * - Module-level g-variables and @global → module->varPool
+ *
+ * The caller determines which pool to use based on the variable's scope.
  */
-CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
+CS_VARIABLE *add_global_variable(CSOUND *csound, CS_VAR_POOL *varPool,
                                  CS_TYPE *type, char *name, void *typeArg) {
   CS_VARIABLE *var =
     csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
   size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
   CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
-  csoundAddVariable(csound, engineState->varPool, var);
+  csoundAddVariable(csound, varPool, var);
 
   varMem->varType = var->varType;
   var->memBlock = varMem;
@@ -516,16 +616,16 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   OPARMS *O = csound->oparms;
 
-  add_global_variable(csound, engineState, rType, "sr", NULL);
-  add_global_variable(csound, engineState, rType, "kr", NULL);
-  add_global_variable(csound, engineState, rType, "ksmps", NULL);
-  add_global_variable(csound, engineState, rType, "nchnls", NULL);
-  add_global_variable(csound, engineState, rType, "nchnls_i", NULL);
-  add_global_variable(csound, engineState, rType, "0dbfs", NULL);
-  add_global_variable(csound, engineState, rType, "A4", NULL);
-  add_global_variable(csound, engineState, rType, "$sr", NULL);
-  add_global_variable(csound, engineState, rType, "$kr", NULL);
-  add_global_variable(csound, engineState, rType, "$ksmps", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "sr", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "kr", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "ksmps", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "nchnls", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "nchnls_i", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "0dbfs", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "A4", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "$sr", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "$kr", NULL);
+  add_global_variable(csound, engineState->varPool, rType, "$ksmps", NULL);
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
 
   CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
@@ -858,7 +958,7 @@ static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   ip->t.opcod = strsav_string(csound, engineState, "instr");
 
   /* The following differs from otran and needs review.  otran keeps a
-   * nulllist to point to for empty lists, while this is creating a new list    
+   * nulllist to point to for empty lists, while this is creating a new list
    * regardless
    */
   ip->t.outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
@@ -877,7 +977,7 @@ static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
                         current->value->lexeme);
       if (UNLIKELY(current->type == T_ASSIGNMENT &&
                    strcmp(oentry->opname, "=.r") == 0)){
-        if (csoundGetDebug(csound) & DEBUG_COMPILER)           
+        if (csoundGetDebug(csound) & DEBUG_COMPILER)
         csound->Warning(csound, Str("system constants can only be set once"));
                    }
       else {
@@ -959,7 +1059,7 @@ static INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
                              "this", NULL);
   csoundAddVariable(csound, ip->varPool, var);
 
-  
+
 
   /* Maybe should do this assignment at end when instr is setup?
    * Note: look into how "instr 4,5,6,8" is handled, i.e. if copies
@@ -1073,7 +1173,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
     csound->Free(csound, tmp->varName);
   }
 
-  csoundFreeVarPool(csound, ip->varPool);  
+  csoundFreeVarPool(csound, ip->varPool);
   csound->Free(csound, ip);
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
     csound->Message(csound, Str("-- deleted instr from deadpool\n"));
@@ -1149,7 +1249,7 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
     int32_t i;
     if (!csound->oparms->redef && !merge) {
       synterr(csound, "named instr %s redefined",
-                      ip->insname);                
+                      ip->insname);
       return CSOUND_ERROR;
     }
     if(!merge) {
@@ -1217,7 +1317,7 @@ cont:
   // VL 26.05.2018 copy existing number
   if(no > 0)
     inm->instno = no;
-  
+
   /* link into chain */
   cs_hash_table_put(csound, engineState->instrumentNames, s, inm);
 
@@ -1295,7 +1395,7 @@ void named_instr_assign_numbers(CSOUND *csound,
         continue;
       no = named_instr_find(csound, temp->name);
 
-      if (no == 0) { 
+      if (no == 0) {
         /* find an unused number and use it */
         /* VL, start from instr 1 */
         num = 1;
@@ -1376,6 +1476,12 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
   if (UNLIKELY(instrNum >= engineState->maxinsno)) {
     int32_t i;
     int32_t old_maxinsno = engineState->maxinsno;
+    INSTRTXT **old_ptr = engineState->instrtxtp;
+    INSTRTXT *check_201_before = (old_maxinsno >= 201) ? old_ptr[201] : NULL;
+    
+    csound->Message(csound, "DEBUG insert_instrtxt: Expanding array for instrNum=%d, old_maxinsno=%d, [201]=%p\n",
+                    instrNum, old_maxinsno, check_201_before);
+    
     /* expand */
     while (instrNum >= engineState->maxinsno) {
       engineState->maxinsno += MAXINSNO;
@@ -1383,10 +1489,21 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     engineState->instrtxtp = (INSTRTXT **)
       csound->ReAlloc(csound, engineState->instrtxtp,
                       (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
-    /* Array expected to be nulled so.... */
-    for (i = old_maxinsno + 1; i <= engineState->maxinsno; i++) {
+    
+    csound->Message(csound, "DEBUG insert_instrtxt: After ReAlloc, new_maxinsno=%d, old_ptr=%p, new_ptr=%p, [201]=%p\n",
+                    engineState->maxinsno, old_ptr, engineState->instrtxtp,
+                    engineState->instrtxtp[201]);
+    
+    /* Array expected to be nulled so.... 
+     * But we must not null out UDO entries! UDOs are stored up to maxopcno.
+     * So start nulling from max(old_maxinsno, old_maxopcno) + 1 */
+    int32_t start_null = (old_maxinsno > engineState->maxopcno) ? old_maxinsno : engineState->maxopcno;
+    for (i = start_null + 1; i <= engineState->maxinsno; i++) {
       engineState->instrtxtp[i] = NULL;
     }
+    
+    csound->Message(csound, "DEBUG insert_instrtxt: After nulling new entries, [201]=%p\n",
+                    engineState->instrtxtp[201]);
   }
 
   if (!csound->oparms->redef && !merge &&
@@ -1417,7 +1534,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     /* inherit active & maxalloc flags */
     instrtxt->active = engineState->instrtxtp[instrNum]->active;
     instrtxt->maxalloc = engineState->instrtxtp[instrNum]->maxalloc;
-    
+
     /* here we should move the old instrument definition into a deadpool
        which will be checked for active instances and freed when there are no
        further ones
@@ -1437,7 +1554,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       if (active->actflg) {
         add_to_deadpool(csound, engineState->instrtxtp[instrNum]);
         break;
-      } 
+      }
       active = active->nxtinstance;
     }
     /* no active instances */
@@ -1481,6 +1598,29 @@ static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
       if(csound->GetDebug(csound) & DEBUG_COMPILER)
         csound->Message(csound, Str("UDO INSTR NUM: %d\n"), num);
       engineState->instrtxtp[num] = inm->ip;
+
+      /* CRITICAL: Add UDO instrument to the instrument chain so it gets prepped
+       * But only if it's not already in the chain (to avoid duplicates) */
+      INSTRTXT *check_instr = &(engineState->instxtanchor);
+      int already_in_chain = 0;
+      while (check_instr->nxtinstxt != NULL) {
+        if (check_instr->nxtinstxt == inm->ip) {
+          already_in_chain = 1;
+          break;
+        }
+        check_instr = check_instr->nxtinstxt;
+      }
+
+      if (!already_in_chain) {
+        /* Add to end of chain */
+        INSTRTXT *last_instr = &(engineState->instxtanchor);
+        while (last_instr->nxtinstxt != NULL) {
+          last_instr = last_instr->nxtinstxt;
+        }
+        last_instr->nxtinstxt = inm->ip;
+        inm->ip->nxtinstxt = NULL;
+      }
+
       inm = inm->prv;
     }
   }
@@ -1493,7 +1633,7 @@ static int32_t inargs_check(OPCODINFO *opinfo, char *inargs) {
   for(i = 0; c[i] != 0; i++) {
     if(c[i] != inargs[i]) {
        if(c[i] == 'k' && inargs[i] == 'K') continue;
-       else return 1;                                              
+       else return 1;
      }
   }
   }
@@ -1539,25 +1679,27 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                                  (void *) gVar->varType,
                                  gVar->varName, &varInit);
       csoundAddVariable(csound, current_state->varPool, var);
-      /* memory has already been allocated, so we just point to it */
-      /* when disposing of the engineState global vars, we do not
-         delete the memBlock */
+      /* Share the memBlock pointer - the source pool must not free memBlocks */
       var->memBlock = gVar->memBlock;
+      var->memBlockSize = gVar->memBlockSize;
        if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound, Str(" adding %p %d) %s:%s\n"), var, count,
-                        gVar->varName, gVar->varType->varTypeName);
+        csound->Message(csound,
+                        "DEBUG varpool_merge: added %s:%s srcVar=%p tgtVar=%p memBlock=%p\n",
+                        gVar->varName, gVar->varType->varTypeName,
+                        (void*)gVar, (void*)var, (void*)var->memBlock);
       gVar = gVar->next;
     } else {
-      // if variable exists
-      // free variable mem block
-      // the CS_VARIABLE itself will be freed on engine_free()
-      csound->Free(csound, gVar->memBlock);
-      csound->Free(csound, gVar->varName);
+      // if variable already exists in target pool, skip it
+      // The source pool will be disposed later, which will free gVar
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER)) {
+        csound->Message(csound,
+                        "DEBUG varpool_merge: skipping existing %s (src=%p dst=%p)\n",
+                        gVar->varName, (void*)gVar, (void*)var);
+      }
       gVar = gVar->next;
     }
   }
 }
-
 /**
    Merge a new engineState into csound->engineState
    1) Add to stringPool, constantsPool and varPool (globals)
@@ -1601,7 +1743,7 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
       }
     }
   }
-  
+
   /* inserts after all instruments are merged so
      that we get the correct number */
   insert_opcodes(csound, csound->opcodeInfo, current_state);
@@ -1612,8 +1754,38 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
       csound->Message(csound, "instr_prep %p\n", current);
     /* run instr_prep() to connect ARGS */
-    instr_prep(csound, current, current_state); 
-    csoundRecalculateVarPoolMemory(csound, current->varPool); 
+    instr_prep(csound, current, current_state);
+    if (current->opcode_info != NULL) {
+      const char *udo_name = current->opcode_info->name;
+      const char *udo_insname = current->insname ? current->insname : "(null)";
+      csound->Message(csound,
+                      "DEBUG instr_prep: UDO %s (insname=%s) after prep, outArgs=%p inArgs=%p\n",
+                      udo_name, udo_insname,
+                      (void *)((OPTXT *) current)->t.outArgs,
+                      (void *)((OPTXT *) current)->t.inArgs);
+
+      /* INSTRTXT shares layout with OPTXT, so cast to reach the TEXT fields. */
+      OPTXT *op_header = (OPTXT *) current;
+      dump_arg_list(csound, "  OUT", udo_name, op_header->t.outArgs);
+      dump_arg_list(csound, "  IN ", udo_name, op_header->t.inArgs);
+
+      /* Also log the first real opcode node, if present, for completeness. */
+      if (current->nxtop != NULL) {
+        OPTXT *first_op = current->nxtop;
+        dump_arg_list(csound, "  OUT(first op)", udo_name,
+                      first_op->t.outArgs);
+        dump_arg_list(csound, "  IN (first op)", udo_name,
+                      first_op->t.inArgs);
+      }
+    }
+    csoundRecalculateVarPoolMemory(csound, current->varPool);
+    if (current->opcode_info != NULL) {
+      const char *udo_name = current->opcode_info->name;
+      dump_arg_list(csound, "  OUT(after recalc)", udo_name,
+                    ((OPTXT *) current)->t.outArgs);
+      dump_arg_list(csound, "  IN (after recalc)", udo_name,
+                    ((OPTXT *) current)->t.inArgs);
+    }
   }
   /* now we need to patch up instr order */
   end = current_state->maxinsno;
@@ -1635,8 +1807,8 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     }
   }
   (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
-  
-  // VL 23-09-2022 
+
+  // VL 23-09-2022
   // At the moment, instr0 can't be freed anywhere because it may hold state
   // that is referred to elsewhere by instrument instances.
   // something to consider in 7.*
@@ -1682,6 +1854,224 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 }
 
 /**
+ * Merge module UDO entries into root instrtxtp array.
+ * This is a temporary fix until we implement module-scoped UDO tables.
+ * See INSTRTXTP_ARCHITECTURE_ANALYSIS.md for long-term solution.
+ */
+static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
+  if (module == NULL || module->engineState == NULL) {
+    return;
+  }
+
+  ENGINE_STATE *module_state = module->engineState;
+  ENGINE_STATE *root_state = &csound->engineState;
+  
+  csound->Message(csound, "DEBUG merge: module_state=%p, root_state=%p, same=%d\n",
+                  module_state, root_state, (module_state == root_state));
+
+  /* UDOs are typically in the range from some base number up to maxopcno.
+   * However, maxinsno may have been inflated by module instr0 registration.
+   * So we scan the entire array up to maxopcno looking for UDO entries.
+   * UDOs have opcode_info set (they're "fake" instruments for UDO execution). */
+  int32_t udo_end = module_state->maxopcno;
+
+  csound->Message(csound, "DEBUG merge: module %s maxinsno=%d, maxopcno=%d\n",
+                  module->name ? module->name : "unknown",
+                  module_state->maxinsno, module_state->maxopcno);
+
+  if (udo_end <= 0) {
+    /* No UDOs in this module */
+    csound->Message(csound, "DEBUG merge: No UDOs to merge (maxopcno=%d)\n", udo_end);
+    return;
+  }
+
+  csound->Message(csound, "Scanning for UDOs in module %s (instno 1 to %d)\n",
+                  module->name ? module->name : "unknown", udo_end);
+
+  /* Expand root instrtxtp array if needed */
+  if (udo_end > root_state->maxopcno) {
+    int32_t old_max = root_state->maxopcno;
+    root_state->maxopcno = udo_end;
+
+    /* Ensure maxinsno is also large enough */
+    if (root_state->maxopcno > root_state->maxinsno) {
+      root_state->maxinsno = root_state->maxopcno;
+    }
+
+    /* Expand the array */
+    root_state->instrtxtp = (INSTRTXT **)
+      csound->ReAlloc(csound, root_state->instrtxtp,
+                      (1 + root_state->maxinsno) * sizeof(INSTRTXT *));
+
+    /* Null out new entries */
+    for (int32_t i = old_max + 1; i <= root_state->maxinsno; i++) {
+      root_state->instrtxtp[i] = NULL;
+    }
+  }
+
+  /* Scan entire array for UDO entries (they have opcode_info set) */
+  int udo_count = 0;
+  for (int32_t i = 1; i <= udo_end; i++) {
+    if (module_state->instrtxtp[i] != NULL) {
+      INSTRTXT *instr = module_state->instrtxtp[i];
+      csound->Message(csound, "  Found instr at %d: ptr=%p, opcode_info=%p, insname=%s\n",
+                      i, instr, instr->opcode_info, 
+                      instr->insname ? instr->insname : "(null)");
+      
+      /* Check if this is a UDO (has opcode_info set) */
+      if (instr->opcode_info != NULL) {
+        udo_count++;
+        /* Check if this slot is already occupied in root */
+        if (root_state->instrtxtp[i] != NULL && root_state->instrtxtp[i] != instr) {
+          csound->Message(csound, 
+                          "WARNING: UDO slot %d already occupied in root instrtxtp, "
+                          "overwriting with module UDO\n", i);
+        }
+
+        /* Copy the INSTRTXT pointer */
+        root_state->instrtxtp[i] = instr;
+        
+        const char *udo_name = instr->insname ? instr->insname : "unknown";
+        csound->Message(csound, "  Merged UDO %s at instno %d (ptr=%p)\n", udo_name, i, instr);
+        csound->Message(csound, "  Verify: root_state->instrtxtp[%d] = %p\n", i, root_state->instrtxtp[i]);
+      }
+    }
+  }
+  
+  csound->Message(csound, "Merge complete: found %d UDOs in module %s\n", 
+                  udo_count, module->name ? module->name : "unknown");
+}
+
+/**
+ * Initialize module globals by executing module instr0s depth-first.
+ * This ensures dependencies are initialized before dependents.
+ *
+ * This is called after all modules are compiled but before the main instr0
+ * is executed, ensuring module globals (like giTestValue = 42) are properly
+ * initialized.
+ *
+ * TODO: Consider adding an instance() variant that takes INSTRTXT* directly
+ * instead of requiring instrument numbers, which would be cleaner than using
+ * reserved high instrument numbers for module instr0s.
+ */
+static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
+                                          ENGINE_STATE *engineState) {
+  if (module == NULL || module->instr0 == NULL) {
+    return CSOUND_SUCCESS;
+  }
+
+  /* First, recursively initialize all imported modules (depth-first) */
+  for (int32_t i = 0; i < module->import_count; i++) {
+    int32_t result = initialize_module_globals(csound, module->imports[i], engineState);
+    if (result != CSOUND_SUCCESS) {
+      return result;
+    }
+  }
+
+  /* Now initialize this module's globals */
+  INSTRTXT *module_instr0 = module->instr0;
+
+  csound->Message(csound, "Initializing module globals for %s\n", module->name);
+
+  /* Ensure module instr0 is registered in instrtxtp array so instance() can find it.
+   * We use high instrument numbers (starting at 1000000) for module instr0s to avoid
+   * conflicts with user instruments. */
+  static int32_t next_module_insno = 1000000;
+  int32_t module_insno = next_module_insno++;
+
+  /* Check if this module instr0 is already registered (shouldn't be, but check anyway) */
+  int32_t already_registered = 0;
+  for (int32_t i = 0; i < engineState->maxinsno; i++) {
+    if (engineState->instrtxtp[i] == module_instr0) {
+      module_insno = i;
+      already_registered = 1;
+      break;
+    }
+  }
+
+  if (!already_registered) {
+    csound->Message(csound, "Registering module instr0 as instrument %d\n", module_insno);
+    csound->Message(csound, "DEBUG: Before insert_instrtxt, instrtxtp ptr=%p, [201]=%p\n",
+                    engineState->instrtxtp, engineState->instrtxtp[201]);
+    /* DO NOT re-prep the module instr0 with engineState!
+     * It was already prepped during module compilation with the correct module varPool.
+     * The opcodes and their arguments are already correctly set up. */
+    insert_instrtxt(csound, module_instr0, module_insno, engineState, 0);
+    csound->Message(csound, "DEBUG: After insert_instrtxt, instrtxtp ptr=%p, [201]=%p\n",
+                    engineState->instrtxtp, engineState->instrtxtp[201]);
+  }
+
+  /* Create an instance using Csound's standard machinery */
+  INSDS *ip = instance(csound, module_insno);
+  if (ip == NULL) {
+    csound->Message(csound, "ERROR: Failed to create instance for module instr0\n");
+    return CSOUND_ERROR;
+  }
+
+  csound->Message(csound, "Created instance %p for module %s\n", ip, module->name);
+
+  /* NOW merge module variables into root varPool with shared memBlock pointers.
+   * This must happen AFTER memBlocks are allocated but BEFORE module instr0 executes.
+   * This implements "from module import *" semantics - making module globals
+   * accessible in the importing module's namespace with SHARED memory. */
+  if (module->varPool != NULL) {
+    varpool_merge(csound, engineState, module->varPool);
+    /* The module instr0 was prepped before merge, so refresh argument pointers
+     * now that memBlocks are shared with the root varPool. */
+    csoundRecalculateVarPoolMemory(csound, module->varPool);
+    if (module_instr0->varPool != module->varPool) {
+      csoundRecalculateVarPoolMemory(csound, module_instr0->varPool);
+    }
+  }
+
+  /* Initialize the instance the same way init0() does */
+  csound->curip = ip;
+  module_instr0->act_instance = ip->nxtact;
+  csound->ids = (OPDS*) ip;
+  module_instr0->active++;
+  ip->actflg++;
+  ip->esr = csound->esr;
+  ip->pidsr = csound->pidsr;
+  ip->sicvt = csound->sicvt;
+  ip->onedsr = csound->onedsr;
+  ip->ksmps = csound->ksmps;
+  ip->ekr = csound->ekr;
+  ip->kcounter = csound->kcounter;
+  ip->onedksmps = csound->onedksmps;
+  ip->onedkr = csound->onedkr;
+  ip->kicvt = csound->kicvt;
+  csound->inerrcnt = 0;
+  csound->mode = 1;
+
+  /* Execute all i-time opcodes in the module's instr0 */
+  while ((csound->ids = csound->ids->nxti) != NULL) {
+    (*csound->ids->init)(csound, csound->ids);
+  }
+
+  /* Initialize string variables in this module's varPool
+   * String variables need their STRINGDAT structures properly initialized */
+  if (module->varPool != NULL) {
+    CS_VARIABLE *var = module->varPool->head;
+    while (var != NULL) {
+      if (var->varType == &CS_VAR_TYPE_S && var->memBlock != NULL) {
+        STRINGDAT *str = (STRINGDAT *)&var->memBlock->value;
+        /* Initialize empty string if not already set */
+        if (str->data == NULL) {
+          str->data = cs_hash_table_get_key(csound, engineState->stringPool, "");
+          str->size = 1;
+        }
+      }
+      var = var->next;
+    }
+  }
+
+  csound->mode = 0;
+  int32_t error = csound->inerrcnt;
+
+  return error == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+/**
  * Compile the given TREE node into structs
 
  In the the first compilation run, it:
@@ -1714,17 +2104,43 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   char        *opname;
   TREE * current = root;
   ENGINE_STATE *engineState;
-  CS_VARIABLE* var;  
+  CS_VARIABLE* var;
   TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
-  CS_VAR_POOL *globalPool = csound->engineState.varPool;
+  /* globalPool now points to the current module's varPool (root_module for main CSD)
+   * This is where user g-variables are stored */
+  CS_VAR_POOL *globalPool = typeTable->globalPool;
+
+  /* Track the last instrument before this compilation starts
+   * This allows us to only prep NEW instruments at depth=0 */
+  INSTRTXT *last_instr_before_compilation = NULL;
+  if (csound->compilation_depth == 0 && csound->instr0 != NULL) {
+    last_instr_before_compilation = &(csound->engineState.instxtanchor);
+    while (last_instr_before_compilation->nxtinstxt != NULL) {
+      last_instr_before_compilation = last_instr_before_compilation->nxtinstxt;
+    }
+  }
 
   current = current->next;
-  if (csound->instr0 == NULL) {
+  int firstCompilation = (csound->instr0 == NULL);
+  if (firstCompilation) {
+    /* First compilation - initialize global engine state */
     engineState = &csound->engineState;
-    engineState->varPool = typeTable->globalPool;
-    // now we merge existing global variables (i.e. created by the parser)
-    varpool_merge(csound, engineState, globalPool);
-    globalPool = engineState->varPool;
+
+    /* Note: engineState->varPool and root_module already created in csound_compile_orc */
+
+    /* Initialize other engineState fields if needed */
+    if (engineState->stringPool == NULL) {
+      engineState->stringPool = cs_hash_table_create(csound);
+    }
+    if (engineState->constantsPool == NULL) {
+      engineState->constantsPool = cs_hash_table_create(csound);
+    }
+
+    /* Set instr0LocalPool parent to root_module->varPool so global lookups work */
+    MODULE_STATE *module_state = csoundGetModuleState(csound);
+    if (module_state && module_state->root_module && module_state->root_module->varPool) {
+      typeTable->instr0LocalPool->parent = module_state->root_module->varPool;
+    }
     csound->instr0 = create_instrument0(csound, current, engineState,
                                         typeTable->instr0LocalPool);
     cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
@@ -1734,8 +2150,52 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                                    * sizeof(INSTRTXT*));
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     insert_instrtxt(csound, csound->instr0, 0, engineState,0);
+
+    /* For first compilation, globalPool points to root module's varPool
+     * We'll merge it into engineState->varPool after tree processing */
+    globalPool = typeTable->globalPool;
+  }
+  else if (csound->compilation_depth > 0) {
+    /* Recursive module compilation - create a temporary instr0 for the module
+     * The module's instr0 will be executed later (in initialize_module_globals)
+     * to initialize module globals. */
+    engineState = &csound->engineState;
+
+    /* DO NOT merge module variables here!
+     * Variable merging (varpool_merge) must happen AFTER memBlocks are allocated
+     * but BEFORE module instr0 executes. This happens in initialize_module_globals(). */
+
+    globalPool = typeTable->globalPool;
+
+    /* Set parent to allow fallback to system globals */
+    if (globalPool->parent == NULL) {
+      globalPool->parent = engineState->varPool;
+    }
+
+    /* Update the module's varPool and engineState to point to the compiled pools
+     * This connects the module structure to its populated variable pool and
+     * constant pool needed for instr_prep */
+    MODULE_STATE *module_state = csoundGetModuleState(csound);
+    if (module_state->current_module != NULL) {
+      module_state->current_module->varPool = globalPool;
+      module_state->current_module->engineState = engineState;
+    }
+
+    /* Create a temporary instr0 for this module using the MODULE's globalPool
+     * This is critical: the instr0's opcodes will reference globals from the module pool,
+     * and system globals will be found via the parent chain to engineState->varPool */
+    csound->instr0 = create_instrument0(csound, current, engineState,
+                                        globalPool);
+
+    prvinstxt = &(engineState->instxtanchor);
+    /* Find the last instrument in the chain */
+    while (prvinstxt->nxtinstxt != NULL) {
+      prvinstxt = prvinstxt->nxtinstxt;
+    }
   }
   else {
+    /* Live coding - create separate engine state for merging
+     * This is used when compiling additional code while the engine is running */
     engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
     engineState->stringPool = csound->engineState.stringPool;
     engineState->constantsPool = cs_hash_table_create(csound);
@@ -1757,10 +2217,26 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   // allocate memory for global vars
   // if this variable already exists,
   // memory will be freed on merge.
+
+  /* For module compilation, reset memBlock pointers from cached modules
+   * to prevent state contamination between compilations */
+  if (csound->compilation_depth > 0) {
+    // Reset all global variable memBlocks to ensure clean state
+    CS_VARIABLE *global_var = typeTable->globalPool->head;
+    while (global_var != NULL) {
+      global_var->memBlock = NULL;
+      global_var = global_var->next;
+    }
+  }
+
   var = typeTable->globalPool->head;
   while(var != NULL) {
     // check if variable memory has not yet been allocated
     if(var->memBlock == NULL) {
+      // Update memBlockSize before allocation to ensure correct size for audio vars
+      if(var->updateMemBlockSize != NULL) {
+        var->updateMemBlockSize(csound, var);
+      }
     size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
     CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
     varMem->varType = var->varType;
@@ -1772,18 +2248,34 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     var = var->next;
   }
 
+  /* Prep instrument 0 now that memBlocks are allocated, since the main loop will skip it */
+  if (firstCompilation && csound->instr0 != NULL) {
+    instr_prep(csound, csound->instr0, engineState);
+  }
+  /* For module compilation, prep the module instr0 with the module's varPool.
+   * Later, after varpool_merge shares memBlock pointers, we'll need to fixup
+   * opcode arguments to point to the shared memBlocks. */
+  else if (csound->compilation_depth > 0 && csound->instr0 != NULL) {
+    instr_prep(csound, csound->instr0, engineState);
+  }
 
   while (current != NULL) {
     switch (current->type) {
     case T_ASSIGNMENT:
       if(csound->GetDebug(csound) > 99)
-        csound->Message(csound, "Assignment found\n"); 
+        csound->Message(csound, "Assignment found\n");
       break;
     case INSTR_TOKEN:
       if(csound->GetDebug(csound) > 99)
         print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current,engineState);
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
+
+      /* For recursive module compilation, prep instruments immediately
+       * to avoid double-prep issues later */
+      if (csound->compilation_depth > 0) {
+        /* Instruments will be prepped in UDO_TOKEN case */
+      }
 
       /* Handle Inserting into CSOUND here by checking ids (name or
        * numbered) and using new insert_instrtxt?
@@ -1803,7 +2295,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
               synterr(csound, Str("invalid name for instrument: %s"), c);
             }
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
-          strcpy(instrtxt->insname, c);      
+          strcpy(instrtxt->insname, c);
           // the parser has created a variable with the instrument name
           CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
                                                          csound->engineState.varPool, c);
@@ -1814,7 +2306,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                                      dest, &src, NULL);
             // mark it as read-only
             dest->readonly = 1;
-           }                            
+           }
         }
       } else {
         if (p->type == INTEGER_TOKEN) {
@@ -1835,7 +2327,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                                engineState, 0) == 0) {
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
-          
+
           // the parser has created a variable with the instrument name in globalPool
           CS_VARIABLE *ivar = csoundFindVariableWithName(csound, globalPool, c);
           // set it
@@ -1873,6 +2365,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       instrtxt->opcode_info = opinfo;
     }
 
+    /* Note: UDO instruments will be prepped later during insert_opcodes
+     * We don't prep them here during recursive compilation to avoid double-prep */
+
     /* Handle Inserting into CSOUND here by checking id's (name or
      * numbered) and using new insert_instrtxt?
      */
@@ -1881,6 +2376,78 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   case LABEL_TOKEN:
   case STRUCT_TOKEN:
   case T_DECLARE:
+    break;
+
+  case IMPORT_TOKEN:
+  case FROM_TOKEN:
+    /* Handle import statements - trigger module loading */
+    /* Extract module path from the left child node */
+    if (current->left && current->left->value && current->left->value->lexeme) {
+      char *module_path = current->left->value->lexeme;
+
+      CS_MODULE *module = csoundGetOrLoadModule(csound, module_path);
+
+      if (module) {
+        /* If module has an AST and hasn't been compiled yet, compile it recursively */
+        if (module->ast && !module->is_compiled) {
+          /* Increment compilation depth to signal we're in a recursive module compilation
+           * This tells csound_compile_tree to reuse the global ENGINE_STATE instead of
+           * creating a new one that would need to be merged */
+          csound->compilation_depth++;
+
+          /* CRITICAL: Save csound->instr0 before module compilation
+           * The module's parser may create its own instr0 which would overwrite
+           * csound->instr0, corrupting the main file's instr0 */
+          INSTRTXT *saved_instr0 = csound->instr0;
+
+          /* Set current_module so that g-variables go to module->varPool */
+          MODULE_STATE *module_state = csoundGetModuleState(csound);
+          CS_MODULE *saved_current_module = module_state->current_module;
+          module_state->current_module = module;
+
+          /* Compile the module's AST in the current compilation context
+           * This will recursively handle any imports in the module */
+          int32_t compile_result = csoundCompileTree(csound, module->ast, 0);
+
+          /* Store the module's instr0 for later execution
+           * The module's instr0 contains initialization opcodes (like giTestValue = 42)
+           * that need to be executed after all compilation completes, in dependency order */
+          INSTRTXT *module_instr0 = csound->instr0;
+          if (compile_result == CSOUND_SUCCESS && module_instr0 != NULL &&
+              module_instr0 != saved_instr0) {
+            module->instr0 = module_instr0;
+            csound->Message(csound, "Stored module instr0 at %p for %s\n",
+                            module_instr0, module->name);
+          }
+
+          /* Restore csound->instr0 to point to main instr0 */
+          csound->instr0 = saved_instr0;
+
+          /* Restore current_module */
+          module_state->current_module = saved_current_module;
+
+          /* Decrement depth after compilation */
+          csound->compilation_depth--;
+
+          if (compile_result == CSOUND_SUCCESS) {
+            module->is_compiled = true;
+          } else {
+            csound->Message(csound, "Error: Failed to compile module: %s (code: %d)\n",
+                           module_path, compile_result);
+            synterr(csound, Str("Failed to compile module: %s"), module_path);
+          }
+        }
+
+        /* Process the import statement to register items from the loaded module */
+        csoundProcessImportStatements(csound, module, current);
+
+        if(csound->GetDebug(csound) > 99) {
+          csound->Message(csound, "Successfully loaded and processed module: %s\n", module_path);
+        }
+      } else {
+        synterr(csound, Str("Failed to load module: %s"), module_path);
+      }
+    }
     break;
 
   default:
@@ -1893,7 +2460,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   current = current->next;
 }
 
-
 if (UNLIKELY(csound->synterrcnt)) {
   print_opcodedir_warning(csound);
   csound->Warning(csound, Str("%d syntax errors in orchestra.  "
@@ -1902,8 +2468,6 @@ if (UNLIKELY(csound->synterrcnt)) {
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
  }
-
-
 
 if (engineState != &csound->engineState) {
   OPDS *ids = csound->ids;
@@ -1928,9 +2492,20 @@ if (engineState != &csound->engineState) {
  } else {
   /* now add the instruments with names, assigning them fake instr numbers */
   named_instr_assign_numbers(csound, engineState);
-  /* first compilation */
-  insert_opcodes(csound, csound->opcodeInfo, engineState);
-  ip = engineState->instxtanchor.nxtinstxt;
+
+  /* Only do full instrument prep and UDO numbering on first compilation (depth == 0)
+   * For recursive module compilation (depth > 0), instruments are added to the
+   * existing engineState but don't need separate prep since they're part of the
+   * same compilation context. UDO numbering must happen only once after all
+   * compilation is complete to avoid processing the same UDOs multiple times. */
+  if (csound->compilation_depth == 0) {
+    /* Assign instrument numbers to UDOs - must be done only once after all compilation */
+    csound->Message(csound, "DEBUG: Before insert_opcodes, instrtxtp ptr = %p\n",
+                    engineState->instrtxtp);
+    insert_opcodes(csound, csound->opcodeInfo, engineState);
+    csound->Message(csound, "DEBUG: After insert_opcodes, instrtxtp ptr = %p, maxinsno=%d\n",
+                    engineState->instrtxtp, engineState->maxinsno);
+    ip = engineState->instxtanchor.nxtinstxt;
   /* check for perf opcode in instr0 */
   if(csoundGetDebug(csound)) {
     bp = (OPTXT *)ip;
@@ -1943,7 +2518,7 @@ if (engineState != &csound->engineState) {
       if(csoundGetDebug(csound) & DEBUG_COMPILER)
         csoundMessage(csound, "Instr 0 check on opcode=%s\n", bp->t.opcod);
       /* VL: now the check is simply for oentry->perf, which is the
-         only condition possible for perf-time code 
+         only condition possible for perf-time code
       */
       if (UNLIKELY(oentry->perf  != NULL)) {
 	if(csoundGetDebug(csound) & DEBUG_COMPILER)
@@ -1955,9 +2530,21 @@ if (engineState != &csound->engineState) {
     }
   }
 
-  ip = &(engineState->instxtanchor);
+  /* Start from the last instrument before this compilation, or from the beginning if first time */
+  if (last_instr_before_compilation != NULL) {
+    ip = last_instr_before_compilation;
+  } else {
+    ip = &(engineState->instxtanchor);
+  }
+
   while ((ip = ip->nxtinstxt) != NULL) { /* add all other entries */
-     
+    /* Skip instr0 - it's already been prepped */
+    if (ip == csound->instr0) {
+      continue;
+    }
+
+    csound->Message(csound, "DEBUG: Prepping instrument: insname=%s, opcode_info=%p\n",
+                    ip->insname ? ip->insname : "(null)", ip->opcode_info);
     instr_prep(csound, ip, engineState);    /*   as combined offsets */
     if(csoundGetDebug(csound) & DEBUG_INSTR)
       print_instr(csound, ip, engineState);
@@ -1981,7 +2568,49 @@ if (engineState != &csound->engineState) {
   var->memBlock->value = csound->e0dbfs;
   var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
   var->memBlock->value = csound->A4;
- }
+
+  /* Initialize all module global variables depth-first after AST processing.
+   * This ensures all modules are compiled and their instr0s are stored
+   * before we execute any of them. Module variables like giTestValue = 42
+   * are initialized here. */
+  if (firstCompilation) {
+    MODULE_STATE *module_state = csoundGetModuleState(csound);
+    if (module_state != NULL && module_state->root_module != NULL) {
+      csound->Message(csound, "root_module has %d imports\n", module_state->root_module->import_count);
+      /* Walk imports of root module to initialize all modules depth-first */
+      for (int32_t i = 0; i < module_state->root_module->import_count; i++) {
+        csound->Message(csound, "Initializing import #%d\n", i);
+        int32_t init_result = initialize_module_globals(csound,
+                                                        module_state->root_module->imports[i],
+                                                        engineState);
+        if (init_result != CSOUND_SUCCESS) {
+          return init_result;
+        }
+      }
+    }
+  }
+
+  /* After all module initialization, merge module UDOs into root instrtxtp.
+   * This must happen AFTER insert_opcodes() which may reallocate the array. */
+  csound->Message(csound, "DEBUG: Checking if we should merge UDOs (firstCompilation=%d)\n", firstCompilation);
+  csound->Message(csound, "DEBUG: Before merge, engineState->instrtxtp ptr = %p, maxinsno=%d\n",
+                  engineState->instrtxtp, engineState->maxinsno);
+  if (firstCompilation) {
+    MODULE_STATE *module_state = csoundGetModuleState(csound);
+    csound->Message(csound, "DEBUG: module_state=%p\n", module_state);
+    if (module_state != NULL && module_state->root_module != NULL) {
+      csound->Message(csound, "DEBUG: About to merge UDOs from %d imports\n", 
+                      module_state->root_module->import_count);
+      for (int32_t i = 0; i < module_state->root_module->import_count; i++) {
+        merge_module_udos_to_root(csound, module_state->root_module->imports[i]);
+      }
+    }
+  }
+  csound->Message(csound, "DEBUG: After merge, engineState->instrtxtp ptr = %p, maxinsno=%d\n",
+                  engineState->instrtxtp, engineState->maxinsno);
+
+  } /* end if (csound->compilation_depth == 0) */
+ } /* end else (engineState == &csound->engineState) */
 
   return CSOUND_SUCCESS;
 }
@@ -2006,15 +2635,44 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     return retVal;
   }
 
-  add_opcode_defs(csound); 
+  add_opcode_defs(csound);
+
+  /* Create root module BEFORE parsing so typeTable->globalPool points to root_module->varPool */
+  if (csound->instr0 == NULL) {
+    csoundCreateRootModule(csound);
+
+    /* Initialize engineState->varPool for system globals */
+    if (csound->engineState.varPool == NULL) {
+      csound->engineState.varPool = csoundCreateVarPool(csound);
+    }
+
+    /* Set up parent chain and current_module */
+    MODULE_STATE *module_state = csoundGetModuleState(csound);
+    if (module_state->root_module) {
+      /* Root module's varPool should have engineState->varPool as parent
+       * This allows root module globals to shadow system globals */
+      module_state->root_module->varPool->parent = csound->engineState.varPool;
+
+      /* Set current_module to root_module so parser creates globals in root_module->varPool */
+      module_state->current_module = module_state->root_module;
+    }
+  }
+
   root = csoundParseOrc(csound, str);
+
   if (LIKELY(root != NULL)) {
     retVal = csound_compile_tree(csound, root, async);
 #ifdef PARCS
     // Sanitise semantic sets here
     sanitize(csound);
 #endif
-    csoundDeleteTree(csound, root);
+    /* Only delete the AST if this is NOT a module compilation
+     * Module ASTs are cached in module->ast and must not be freed */
+    if (csound->compilation_depth == 0) {
+      csoundDeleteTree(csound, root);
+    }
+    /* For module compilations (depth > 0), the AST is already stored in
+     * module->ast and will be freed when the module is cleaned up */
   } else {
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return CSOUND_ERROR;
@@ -2036,7 +2694,7 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
   // find number
   for(n = 0; n < e->maxinsno; n++)
     if(e->instrtxtp[n] == tp) break;
-  
+
   optxt = (OPTXT *)tp;
   if(tp != e->instxtanchor.nxtinstxt) {
     tp->insname ?
@@ -2045,17 +2703,17 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
   }
   else if(optxt->nxtop != NULL)
     csoundMessage(csound, "\n");
-  
+
   while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
      if (strcmp(ep->opname, "endin") == 0 /*    (until ENDIN)     */
         || strcmp(ep->opname, "endop") == 0) {
-      if(tp != e->instxtanchor.nxtinstxt) 
+      if(tp != e->instxtanchor.nxtinstxt)
        csound->Message(csound, "%s\n", ep->opname);
       break;
      }
-    
+
     if (strcmp(ep->opname, "$label") == 0) {
       csound->Message(csound, "%s: \n", ep->opname);
       continue;
@@ -2103,11 +2761,27 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   char **argStringParts;
   ARGLST *outlist, *inlist;
 
+  /* Log prep entry for all instruments */
+  csound->Message(csound,
+                  "DEBUG instr_prep ENTRY: tp=%p insname=%s opcode_info=%p varPool=%p\n",
+                  (void*)tp, tp->insname ? tp->insname : "(null)",
+                  (void*)tp->opcode_info, (void*)tp->varPool);
+  if (tp->opcode_info != NULL) {
+    const char *udo_name = tp->opcode_info->name;
+    csound->Message(csound,
+                    "DEBUG instr_prep ENTRY: UDO %s\n", udo_name);
+  }
+
   OENTRY *pset = find_opcode(csound, "pset");
   optxt = (OPTXT *)tp;
   while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
+
+    /* Skip opcodes with NULL oentry (e.g., import statements) */
+    if (ep == NULL) {
+      continue;
+    }
 
     if (strcmp(ep->opname, "endin") == 0 /*    (until ENDIN)     */
         || strcmp(ep->opname, "endop") == 0)
@@ -2118,7 +2792,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
       csound->Message(csound, "%s \targs:", ep->opname);
- 
+
     if ((outlist = ttp->outlist) == NULL || !outlist->count)
       ttp->outArgs = NULL;
     else {
@@ -2153,7 +2827,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           strcpy(arg->argPtr, *argp);
           if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
             csound->Message(csound, "\t%s:", *argp); /* if arg is label,  */
-        } else {	  
+        } else {
           char *s = *argp;
           arg = create_arg(csound, tp, s, engineState);
         }
@@ -2221,6 +2895,37 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
       csound->Message(csound, "\n");
   }
+
+  /* Log UDO prep exit */
+  if (tp->opcode_info != NULL) {
+    const char *udo_name = tp->opcode_info->name;
+    csound->Message(csound,
+                    "DEBUG instr_prep EXIT: UDO %s tp=%p\n",
+                    udo_name, (void*)tp);
+    OPTXT *op_header = (OPTXT *) tp;
+    dump_arg_list(csound, "  OUT(exit)", udo_name, op_header->t.outArgs);
+    dump_arg_list(csound, "  IN (exit)", udo_name, op_header->t.inArgs);
+  }
+  
+  /* Also log all opcodes in this instrument to see their arg lists */
+  /* Log for UDOs and for any numbered instrument (insname will be NULL for numbered instrs) */
+  if (tp->opcode_info != NULL || tp->insname == NULL) {
+    const char *instr_name = tp->opcode_info ? tp->opcode_info->name : 
+                             (tp->insname ? tp->insname : "(numbered)");
+    csound->Message(csound,
+                    "DEBUG instr_prep EXIT: Instrument %s - dumping all opcode args\n",
+                    instr_name);
+    OPTXT *op = (OPTXT *)tp;
+    int op_idx = 0;
+    while ((op = op->nxtop) != NULL) {
+      if (op->t.oentry && strcmp(op->t.oentry->opname, "endin") != 0 &&
+          strcmp(op->t.oentry->opname, "endop") != 0) {
+        csound->Message(csound, "  Opcode %d: %s\n", op_idx++, op->t.oentry->opname);
+        dump_arg_list(csound, "    OUT", op->t.oentry->opname, op->t.outArgs);
+        dump_arg_list(csound, "    IN ", op->t.oentry->opname, op->t.inArgs);
+      }
+    }
+  }
 }
 
 /* build pool of floating const values  */
@@ -2275,6 +2980,7 @@ static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
   } else {
     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
     arg->structPath = NULL;
+    // Variable found and assigned
   }
 }
 
@@ -2294,18 +3000,14 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-    csound->Message(csound, "\t%s", s); 
+    csound->Message(csound, "\t%s", s);
 
   /* must trap 0dbfs as name starts with a digit! */
   if ((c >= '1' && c <= '9') || c == '.' || c == '-' || c == '+' ||
       (c == '0' && strcmp(s, "0dbfs") != 0)) {
     arg->type = ARG_CONSTANT;
-    if ((arg->argPtr = cs_hash_table_get(csound,
-                                         csound->engineState.constantsPool, s))
-        != NULL) {
-      arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, s,
-                                         cs_strtod(s, NULL));
-    }
+    arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, s,
+                                       cs_strtod(s, NULL));
   } else if (c == '"') {
     size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
     CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
@@ -2314,14 +3016,16 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->type = ARG_STRING;
     temp = csound->Calloc(csound, strlen(s) + 1);
     unquote_string(temp, s);
-    str->data =
+    char *interned =
       cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
-    str->size = strlen(temp) + 1;
-    csound->Free(csound, temp);
-    arg->argPtr = str;
-    if (str->data == NULL) {
-      str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
+    if (interned == NULL) {
+      interned = cs_hash_table_put_key(csound, engineState->stringPool, temp);
+    } else {
+      csound->Free(csound, temp);
     }
+    str->data = interned;
+    str->size = (uint32_t)(interned ? strlen(interned) + 1 : 0);
+    arg->argPtr = str;
   }
   else if ((n = get_pfield(csound, engineState, ip, s)) >= 0) {
     arg->type = ARG_PFIELD;
@@ -2339,34 +3043,94 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->type = ARG_LOCAL;
     arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
   }
-  /* now check for local vars shadowing global vars */
-  else if(csoundFindVariableWithName(csound, ip->varPool,
-	   s) != NULL) {
-    arg->type = ARG_LOCAL;
-    setup_arg_for_var_name(csound, arg, ip->varPool, s);
-    if (arg->argPtr == NULL) {
-      csound->Message(csound, Str("Missing local arg: %s\n"), s);
+  /* Check for local variables - search ONLY immediate pool, not parents */
+  else if (cs_hash_table_get(csound, ip->varPool->table, s) != NULL) {
+    /* For instr0, variables in ip->varPool are actually GLOBALS!
+     * instr0's varPool IS the global varPool, so treat them as ARG_GLOBAL.
+     * Check if this is actually instr0 by comparing the varPool to the engine's global varPool. */
+    if (ip == csound->instr0 ||
+        (ip->insname && strcmp(ip->insname, "instr0") == 0) ||
+        ip->varPool == engineState->varPool) {
+      arg->type = ARG_GLOBAL;
+      setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    } else {
+      arg->type = ARG_LOCAL;
+      setup_arg_for_var_name(csound, arg, ip->varPool, s);
+      if (arg->argPtr == NULL) {
+        csound->Message(csound, Str("Missing local arg: %s\n"), s);
+      }
     }
   }
-  /* now global vars are searched for */
-  else if(csoundFindVariableWithName(csound, engineState->varPool,
-                                        s) != NULL) {
+  /* For UDOs: check if the UDO has a module_var_pool (namespace isolation)
+   * If so, search there first for module-specific globals */
+  else if (ip->opcode_info != NULL && ip->opcode_info->module_var_pool != NULL &&
+           csoundFindVariableWithName(csound, ip->opcode_info->module_var_pool, s) != NULL) {
     arg->type = ARG_GLOBAL;
-    setup_arg_for_var_name(csound, arg, engineState->varPool, s);
-    }
-    else if(csoundFindVariableWithName(csound, csound->engineState.varPool,
-	   s) != NULL) {
-    arg->type = ARG_GLOBAL;
-    setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s);  
-    
+    setup_arg_for_var_name(csound, arg, ip->opcode_info->module_var_pool, s);
   }
-  /* otherwise we have a local arg */
+  /* Prefer imported modules' globals; then parent chain; then root module */
   else {
-    arg->type = ARG_LOCAL;
-    setup_arg_for_var_name(csound, arg, ip->varPool, s);
-    if (arg->argPtr == NULL) {
-      csound->Message(csound, Str("Missing local arg: %s\n"), s);
+    MODULE_STATE *module_state = csoundGetModuleState(csound);
+    CS_VARIABLE *found_var = NULL;
+    CS_VAR_POOL *found_pool = NULL;
+    
+    /* First search imported modules' varPools */
+    if (module_state && module_state->root_module) {
+      CS_MODULE *root = module_state->root_module;
+      for (int32_t i = 0; i < root->import_count; i++) {
+        CS_MODULE *imported = root->imports[i];
+        if (imported && imported->varPool) {
+          found_var = csoundFindVariableWithName(csound, imported->varPool, s);
+          if (found_var != NULL) {
+            found_pool = imported->varPool;
+            break;
+          }
+        }
+      }
     }
+    /* If not found, check parent of instrument's varPool */
+    if (found_var == NULL && ip->varPool->parent != NULL) {
+      found_var = csoundFindVariableWithName(csound, ip->varPool->parent, s);
+      if (found_var != NULL) {
+        found_pool = ip->varPool->parent;
+      }
+    }
+    
+    /* If still not found, check root module's varPool */
+    if (found_var == NULL && module_state && module_state->root_module && module_state->root_module->varPool) {
+      found_var = csoundFindVariableWithName(csound, module_state->root_module->varPool, s);
+      if (found_var != NULL) {
+        found_pool = module_state->root_module->varPool;
+      }
+    }
+    
+    if (found_var != NULL && found_pool != NULL) {
+      arg->type = ARG_GLOBAL;
+      setup_arg_for_var_name(csound, arg, found_pool, s);
+    } else {
+      /* otherwise we have a local arg */
+      arg->type = ARG_LOCAL;
+      setup_arg_for_var_name(csound, arg, ip->varPool, s);
+      if (arg->argPtr == NULL) {
+        csound->Message(csound, Str("Missing local arg: %s\n"), s);
+      }
+    }
+  }
+
+  if (ip != NULL && ip->opcode_info != NULL) {
+    const char *udo_name = ip->opcode_info->name ? ip->opcode_info->name :
+      (ip->insname ? ip->insname : "(null)");
+    CS_VARIABLE *var = NULL;
+    void *memBlock = NULL;
+    if ((arg->type == ARG_LOCAL || arg->type == ARG_GLOBAL) && arg->argPtr != NULL) {
+      var = (CS_VARIABLE*) arg->argPtr;
+      memBlock = var->memBlock;
+    }
+    csound->Message(csound,
+                    "DEBUG create_arg: UDO %s symbol '%s' classified type=%d var=%p memBlock=%p varPool=%p parent=%p module_var_pool=%p\n",
+                    udo_name, s, arg->type, (void*)var, memBlock,
+                    (void*)ip->varPool, ip->varPool ? (void*)ip->varPool->parent : NULL,
+                    (void*)ip->opcode_info->module_var_pool);
   }
   return arg;
 }

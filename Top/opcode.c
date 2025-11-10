@@ -298,8 +298,11 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
                                           varName)) == NULL) {
       // printf("var: %s \n", varName);
       // create new variable
-      var = add_global_variable(csound, &csound->engineState, (CS_TYPE *) type, varName,
-                              NULL);
+      if (csound->engineState.varPool == NULL) {
+        csound->engineState.varPool = csoundCreateVarPool(csound);
+      }
+      var = add_global_variable(csound, csound->engineState.varPool,
+                                (CS_TYPE *) type, varName, NULL);
     } else csound->Free(csound, varName);
     if(var != NULL) {
       dest = (OPCODEREF *) &(var->memBlock->value);      

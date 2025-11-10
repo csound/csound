@@ -29,6 +29,9 @@
 #include "score_param.h"
 #include "csound_orc_semantics.h"
 #include "new_orc_parser.h"
+#include "csound_module.h"
+#include "csound_type_system.h"
+#include "csound_standard_types.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -145,7 +148,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         corfile_putc(csound, '\0', csound->orchstr);
         corfile_putc(csound, '\0', csound->orchstr);
       }
-      if(csoundGetDebug(csound) & DEBUG_PARSER) 
+      if(csoundGetDebug(csound) & DEBUG_PARSER)
 	csoundMessage(csound, "Calling preprocess on:\n %s \n",
               corfile_body(csound->orchstr));
       cs_init_math_constants_macros(csound);
@@ -156,8 +159,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);
-      if(csoundGetDebug(csound) & DEBUG_PARSER) 
-	csoundMessage(csound, "preprocessing result: \n %s\n",		     
+      if(csoundGetDebug(csound) & DEBUG_PARSER)
+	csoundMessage(csound, "preprocessing result: \n %s\n",
                        corfile_body(csound->expanded_orc));
       corfile_rm(csound, &csound->orchstr);
     }
@@ -210,11 +213,79 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
-      typeTable->globalPool = csoundCreateVarPool(csound);
+      /* Get current module's varPool for g-variables and @global variables
+       * For main CSD, this will be root_module->varPool
+       * For imported modules, this will be the module's varPool */
+      MODULE_STATE *module_state = csoundGetModuleState(csound);
+      if (module_state->current_module && module_state->current_module->varPool) {
+        typeTable->globalPool = module_state->current_module->varPool;
+      } else {
+        /* Fallback: create a new pool if no current module (shouldn't happen) */
+        typeTable->globalPool = csoundCreateVarPool(csound);
+      }
+      
       typeTable->instr0LocalPool = csoundCreateVarPool(csound);
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
+
+      /* Process import statements before semantic analysis
+       * In module files, the root node (astTree) might be an import statement.
+       * In main files, imports are in astTree->next chain.
+       * We need to check both. */
+      TREE *current;
+      if (astTree && (astTree->type == IMPORT_TOKEN || astTree->type == FROM_TOKEN)) {
+        // Root is an import - start from root
+        current = astTree;
+      } else {
+        // Root is not an import - start from next
+        current = astTree ? astTree->next : NULL;
+      }
+      while (current != NULL) {
+        if (current->type == IMPORT_TOKEN || current->type == FROM_TOKEN) {
+          /* Extract module path from the left child node */
+          if (current->left && current->left->value && current->left->value->lexeme) {
+            char *module_path = current->left->value->lexeme;
+
+            CS_MODULE *module = csoundGetOrLoadModule(csound, module_path);
+
+            if (module) {
+              /* Process the import statement to register items from the loaded module */
+              csoundProcessImportStatements(csound, module, current);
+
+              /* Register placeholder globals from imported module so semantic
+               * analysis of this file can resolve names (e.g., giTestValue) */
+              {
+                /* Walk imported module AST and add placeholders for g* identifiers */
+                TREE *it = module->ast;
+                while (it != NULL) {
+                  if (it->type == T_ASSIGNMENT && it->left && it->left->value && it->left->value->lexeme) {
+                    char *name = it->left->value->lexeme;
+                    if (name && name[0] == 'g' && name[1] != '\0') {
+                      if (csoundFindVariableWithName(csound, typeTable->globalPool, name) == NULL) {
+                        const CS_TYPE *tp = NULL;
+                        switch (name[1]) {
+                          case 'i': tp = &CS_VAR_TYPE_I; break;
+                          case 'k': tp = &CS_VAR_TYPE_K; break;
+                          case 'a': tp = &CS_VAR_TYPE_A; break;
+                          case 'S': tp = &CS_VAR_TYPE_S; break;
+                          default:  tp = &CS_VAR_TYPE_I; break;
+                        }
+                        CS_VARIABLE *v = csoundCreateVariable(csound, csound->typePool, tp, name, NULL);
+                        csoundAddVariable(csound, typeTable->globalPool, v);
+                      }
+                    }
+                  }
+                  it = it->next;
+                }
+              }
+            } else {
+              synterr(csound, Str("Failed to load module: %s"), module_path);
+            }
+          }
+        }
+        current = current->next;
+      }
 
       astTree = verify_tree(csound, astTree, typeTable);
 
@@ -242,7 +313,13 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound->ErrorMsg(csound, "%s", Str("Stopping on parser failure\n"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
-          csoundFreeVarPool(csound, typeTable->globalPool);
+          /* Only free globalPool if it was created as a fallback
+           * (not pointing to a module's varPool) */
+          MODULE_STATE *module_state = csoundGetModuleState(csound);
+          if (module_state->current_module == NULL || 
+              typeTable->globalPool != module_state->current_module->varPool) {
+            csoundFreeVarPool(csound, typeTable->globalPool);
+          }
           if (typeTable->instr0LocalPool != NULL) {
             csoundFreeVarPool(csound, typeTable->instr0LocalPool);
           }
@@ -263,4 +340,4 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       return newRoot;
     }
 }
- 
+

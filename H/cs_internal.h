@@ -192,6 +192,7 @@ extern "C" {
     bool passByRef;
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
+    CS_VAR_POOL* module_var_pool;  /* Module's global varPool for namespace isolation */
     struct instr *ip;
     struct opcodinfo *prv;
   } OPCODINFO;

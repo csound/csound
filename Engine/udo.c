@@ -230,7 +230,17 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
-  instno = inm->instno;
+  if (inm == NULL) {
+    return csound->InitError(csound, Str("UDO OPCODINFO is NULL\n"));
+  }
+  instno = inm->instno;  /* Get the UDO's assigned instrument number */
+  csound->Message(csound, "DEBUG: useropcdset looking for UDO %s at instno %d\n", inm->name, instno);
+  csound->Message(csound, "DEBUG: csound->engineState ptr = %p\n", &csound->engineState);
+  csound->Message(csound, "DEBUG: csound->engineState.instrtxtp ptr = %p\n", csound->engineState.instrtxtp);
+  csound->Message(csound, "DEBUG: csound->engineState.instrtxtp[%d] = %p\n", instno, 
+                  csound->engineState.instrtxtp[instno]);
+  csound->Message(csound, "DEBUG: csound->engineState.maxinsno = %d, maxopcno = %d\n",
+                  csound->engineState.maxinsno, csound->engineState.maxopcno);
   tp = csound->engineState.instrtxtp[instno];
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
@@ -524,10 +534,12 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
+  csound->Message(csound, "DEBUG xoutset: udo=%p, udo->ar=%p\n", udo, udo->ar);
   bufs = udo->ar;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->out_arg_pool->head;
+  csound->Message(csound, "DEBUG xoutset: bufs=%p, outchns=%d\n", bufs, inm->outchns);
 
   if(inm->passByRef) {
     // printf("New-style UDO using pass-by-ref, skipping...\n");
@@ -537,6 +549,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
     void* out = (void*) bufs[i];
+    csound->Message(csound, "DEBUG xoutset: i=%d, in=%p, out=%p\n", i, in, out);
     tmp[i] = in;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.

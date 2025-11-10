@@ -1526,7 +1526,7 @@ int32_t in(CSOUND *csound, INM *p)
   if(CS_ESR != csound->esr)
     return csound->InitError(csound,
                              "local sampling rate not supported\n");
-    
+
   uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   if (csound->inchnls != 1)
@@ -1900,12 +1900,12 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
                            INSDS *p, MYFLT *arr)
 {
   uint32_t nsmps = p->ksmps, ksmps = csound->ksmps,  i, j;
-  MYFLT *spout = p->spout; 
+  MYFLT *spout = p->spout;
   uint32_t offset = p->ksmps_offset;
   uint32_t early  = p->ksmps_no_end;
   early = nsmps - early;
   n -= k;
-  k *= ksmps; 
+  k *= ksmps;
   for (i=0; i<n; i++) {
     // input comes from array of asigs
     // or ksmps-interleaved audio array
@@ -1913,7 +1913,7 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
     for (j=offset; j < early; j++) {
       spout[k+j] += p[j];
     }
-    // k always jumps by global ksmps 
+    // k always jumps by global ksmps
     k += ksmps;
   }
   return OK;
@@ -1976,7 +1976,7 @@ int32_t outch(CSOUND *csound, OUTCH *p)
   return ret;
 }
 
-       
+
 int32_t ochn(CSOUND *csound, OUTX *p)
 {
   uint32_t nch = p->INOCOUNT;
@@ -2196,14 +2196,14 @@ int32_t divinak(CSOUND *csound, ASSIGN *p)
 
 /**
  * Identifies both signaling NaN (sNaN) and quiet NaN (qNaN).
- * 
- * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and 
+ *
+ * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and
  * all exponent bits set to 1. qNaN has the most significant bit of the
- * fractional set to 1, while sNaN has most the significant bit of the 
- * fraction set to 0 -- but the NEXT most significant bit of the fraction must 
- * be set to 1! This is necessary in order to distinguish sNaN from positive 
- * infinity. Hence, there are 2 bit masks to test. Doubles have the most 
- * significant bit of the fraction in (0-based) bit 52, floats have the most 
+ * fractional set to 1, while sNaN has most the significant bit of the
+ * fraction set to 0 -- but the NEXT most significant bit of the fraction must
+ * be set to 1! This is necessary in order to distinguish sNaN from positive
+ * infinity. Hence, there are 2 bit masks to test. Doubles have the most
+ * significant bit of the fraction in (0-based) bit 52, floats have the most
  * significant bit of the fraction in bit 22.
  * double qNaN:
  * 0111111111110000000000000000000000000000000000000000000000000000
@@ -2212,12 +2212,12 @@ int32_t divinak(CSOUND *csound, ASSIGN *p)
  * 0111111111101000000000000000000000000000000000000000000000000000
  * 0x7FE8000000000000ULL
  * float qNaN:
- * 01111111110000000000000000000000  
+ * 01111111110000000000000000000000
  * 0x7FC00000
  * float sNaN:
- * 01111111101000000000000000000000  
+ * 01111111101000000000000000000000
  * 0x7FA00000
- * NOTE: Not all compilers permit type casting a type-punned pointer. So, we 
+ * NOTE: Not all compilers permit type casting a type-punned pointer. So, we
  * must explicitly copy rather than assign the data to test.
  */
 #ifndef __MINGW32__
@@ -2227,20 +2227,20 @@ static inline int32_t _isnan(MYFLT x) {
   memcpy(&bits, &x, sizeof(MYFLT));
   if ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL) {
     return 1;
-  } 
+  }
   if ((bits & 0x7FE8000000000000ULL) == 0x7FE8000000000000ULL) {
     return 1;
-  } 
+  }
   return 0;
 #else
   uint32_t bits;
   memcpy(&bits, &x, sizeof(MYFLT));
   if ((bits & 0x7FC00000) == 0x7FC00000) {
     return 1;
-  } 
+  }
   if ((bits & 0x7FA00000) == 0x7FA00000) {
     return 1;
-  } 
+  }
   return 0;
 #endif
 }
@@ -2372,7 +2372,7 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
     }
     sp += nsmps;
   }
-  
+
   return OK;
 }
 /* -------------------------------------------------------------------- */
@@ -2513,7 +2513,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
 
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
- if(csound->init_event != NULL) { 
+ if(csound->init_event != NULL) {
   int32_t n;
   int32_t    pargs = csound->init_event->pcnt;
   int32_t    start = (int32_t)(*p->start);

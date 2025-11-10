@@ -799,6 +799,8 @@ static const CSOUND cenviron_ = {
   0,              /*  keep_tmp            */
   (CS_HASH_TABLE*)NULL, /* Opcode hash table */
   0,              /*  nrecs               */
+  /* Module system state */
+  (MODULE_STATE*)NULL,     /* module_state */
   NULL,           /*  Linepipe            */
   0,              /*  Linefd              */
   NULL,           /*  csoundCallbacks_    */
@@ -3518,6 +3520,9 @@ PUBLIC void csoundReset(CSOUND *csound) {
   csound_init_rand(csound);
   csound->engineState.stringPool = cs_hash_table_create(csound);
   csound->engineState.constantsPool = cs_hash_table_create(csound);
+  /* Initialize module system */
+  csound->module_state = NULL;
+  csound->compilation_depth = 0;  /* Initialize compilation depth for recursive module compilation */
   csound->engineStatus |= CS_STATE_PRE;
   csound_aops_init_tables(csound);
   create_opcode_table(csound);

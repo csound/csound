@@ -794,6 +794,7 @@ set(libcsound_SRCS
     Engine/csound_type_system.c
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
+    Engine/csound_module.c
     Engine/pools.c
     Engine/ugen.c
     InOut/soundfile.c

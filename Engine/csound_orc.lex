@@ -105,6 +105,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 %x udodef
 %x udoarg
 %x forloop
+%x importmode
 
 %%
 <*>"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
@@ -228,6 +229,43 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "kgoto"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = KGOTO_TOKEN;
                   return KGOTO_TOKEN; };
+
+^[ \t]*"import"[ \t]    { *lvalp = make_token(csound, "import");
+                        (*lvalp)->type = IMPORT_TOKEN;
+                        BEGIN(importmode);
+                        return IMPORT_TOKEN; };
+^[ \t]*"from"[ \t]      { *lvalp = make_token(csound, "from");
+                        (*lvalp)->type = FROM_TOKEN;
+                        BEGIN(importmode);
+                        return FROM_TOKEN; };
+
+<importmode>{
+  "import"[ \t]         { *lvalp = make_token(csound, "import");
+                          (*lvalp)->type = IMPORT_TOKEN;
+                          return IMPORT_TOKEN; }
+
+  "as"[ \t]            { *lvalp = make_token(csound, "as");
+                          (*lvalp)->type = AS_TOKEN;
+                          return AS_TOKEN; }
+
+  {IDENT}              { *lvalp = lookup_token(csound, yytext, yyscanner);
+                          return (*lvalp)->type; }
+
+  "."                  { return '.'; }
+
+  "*"                  { *lvalp = make_token(csound, "*");
+                          (*lvalp)->type = T_IDENT;
+                          return T_IDENT; }
+
+  ","                  { return ','; }
+
+  [ \t]+                { /* eat whitespace */ }
+
+  \n                   { BEGIN(INITIAL);
+                          csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                               yyscanner);
+                          return NEWLINE; }
+}
 "struct"        {
                   return STRUCT_TOKEN;
                 }

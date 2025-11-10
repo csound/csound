@@ -97,6 +97,9 @@
 %token ENDSW_TOKEN
 %token FOR_TOKEN
 %token IN_TOKEN
+%token IMPORT_TOKEN
+%token FROM_TOKEN
+%token AS_TOKEN
 %token TRUE_TOKEN
 %token FALSE_TOKEN
 %token TRUEK_TOKEN
@@ -213,6 +216,7 @@ orcfile : root_statement_list
 root_statement_list : root_statement_list root_statement
                       { $$ = append_to_tree(csound, $1, $2); }
                     | root_statement
+                      { $$ = $1; }
                     ;
 
 root_statement : statement
@@ -220,6 +224,7 @@ root_statement : statement
                | udo_definition
                | struct_definition
                | declare_definition
+               | import_definition
                ;
 
 /* Data declarations */
@@ -625,6 +630,41 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
    $$->left->left = $5;
    $$->left->right = $3;
  }
+
+/* Import statements */
+import_definition : IMPORT_TOKEN dotted_identifier NEWLINE
+                  {
+                    $$ = make_node(csound, LINE, LOCN, IMPORT_TOKEN, $2, NULL);
+                  }
+                | IMPORT_TOKEN dotted_identifier AS_TOKEN identifier NEWLINE
+                  {
+                    $$ = make_node(csound, LINE, LOCN, IMPORT_TOKEN, $2, $4);
+                  }
+                | FROM_TOKEN dotted_identifier IMPORT_TOKEN import_list NEWLINE
+                  {
+                    $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, $2, $4);
+                  }
+                | FROM_TOKEN dotted_identifier IMPORT_TOKEN '*' NEWLINE
+                  {
+                    TREE *wildcard = make_leaf(csound, LINE, LOCN, T_IDENT,
+                                              make_token(csound, "*"));
+                    $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, $2, wildcard);
+                  }
+                ;
+
+dotted_identifier : identifier
+                  | dotted_identifier '.' identifier
+                  {
+                    $$ = make_node(csound, LINE, LOCN, '.', $1, $3);
+                  }
+                  ;
+
+import_list : import_list ',' identifier
+            {
+              $$ = append_to_tree(csound, $1, $3);
+            }
+           | identifier
+           ;
 
 /* Expressions */
 expr_list : expr_list ',' expr

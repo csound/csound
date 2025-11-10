@@ -1518,6 +1518,9 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   CS_VARIABLE* current;
 
   tp = csound->engineState.instrtxtp[insno];
+  if (tp == NULL) {
+    csound->Die(csound, "instantiate: tp is NULL for insno %d\n", insno);
+  }
   n = 3;
   if (O->midiKey>n) n = O->midiKey;
   if (O->midiKeyCps>n) n = O->midiKeyCps;
@@ -1556,7 +1559,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
                    tp->act_instance);
   }
 
-  if (insno > csound->engineState.maxinsno) {
+  /* Allocate I/O buffers for UDOs (instruments with opcode_info set) */
+  if (tp->opcode_info != NULL) {
     OPCODINFO* info = tp->opcode_info;
     size_t pcnt = sizeof(OPCOD_IOBUFS) +
       sizeof(MYFLT*) * (info->inchns + info->outchns);
@@ -1589,6 +1593,11 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
+    if (ep == NULL) {
+      /* Skip opcodes with NULL oentry - these are compile-time only constructs
+       * like import statements that don't have runtime behavior */
+      continue;
+    }
     opds = (OPDS*) nxtopds;                   /*   take reqd opds */
     nxtopds += ep->dsblksiz;
     if (UNLIKELY(strcmp(ep->opname, "endin") == 0         /*  (until ENDIN)  */
@@ -1600,9 +1609,6 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
       continue;
     }
 
-    if (UNLIKELY(odebug))
-      csound->Message(csound, Str("op (%s) allocated at %p for instr %d nxt %p\n"),
-                      ep->opname, opds, insno, nxtopds);
     opds->optext = optxt;                     /* set common headata */
     opds->insdshead = ip;
     if (strcmp(ep->opname, "$label") == 0) {     /* LABEL:       */
@@ -1616,29 +1622,30 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     if (ep->init != NULL) {  /* init */
       prvids = prvids->nxti = opds; /* link into ichain */
       opds->init = ep->init; /*   & set exec adr */
-      if (UNLIKELY(odebug))
-        csound->Message(csound, "%s init = %p\n",
-                        ep->opname,(void*) opds->init);
     }
     if (ep->perf != NULL) {  /* perf */
       prvpds = prvpds->nxtp = opds; /* link into pchain */
       opds->perf = ep->perf;  /*     perf   */
-      if (UNLIKELY(odebug))
-        csound->Message(csound, "%s perf = %p\n",
-                        ep->opname,(void*) opds->perf);
     }
     if(ep->deinit != NULL) {  /* deinit */
       prvpdd = prvpdd->nxtd = opds; /* link into dchain */
       opds->deinit = ep->deinit;  /*   deinit   */
-      if (UNLIKELY(odebug))
-        csound->Message(csound, "%s deinit = %p\n",
-                        ep->opname,(void*) opds->deinit);
     }
 
+    const OPCODINFO *userop_info = NULL;
     if (ep->useropinfo == NULL)
       argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
-    else          /* user defined opcodes are a special case */
+    else {         /* user defined opcodes are a special case */
       argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
+      userop_info = (const OPCODINFO *) ep->useropinfo;
+    }
+
+    if (userop_info != NULL) {
+      csound->Message(csound,
+                      "DEBUG instantiate: UDO %s optxt=%p ttp=%p outArgs=%p inArgs=%p\n",
+                      userop_info->name, (void*)optxt, (void*)ttp,
+                      (void*)ttp->outArgs, (void*)ttp->inArgs);
+    }
 
     arg = ttp->outArgs;
     for (n = 0; arg != NULL; n++) {
@@ -1684,6 +1691,13 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
         fltp = NULL;
       }
       argpp[n] = fltp;
+      if (userop_info != NULL) {
+        const char *varName = (arg && ((CS_VARIABLE*)arg->argPtr)) ?
+          ((CS_VARIABLE*)arg->argPtr)->varName : "<null>";
+        csound->Message(csound,
+                        "DEBUG UDO instantiate: %s out arg %d ptr=%p var=%s type=%d\n",
+                        userop_info->name, n, (void*)fltp, varName, arg ? arg->type : -1);
+      }
       arg = arg->next;
     }
 
@@ -1708,6 +1722,11 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
         argpp[n] = &(pfield->value);
       }
       else if (arg->type == ARG_GLOBAL) {
+        if (UNLIKELY(var == NULL || var->memBlock == NULL)) {
+          csound->Message(csound, "DEBUG: insert.c global in-arg %s missing memBlock (var=%p, memBlock=%p)\n",
+                          (var && var->varName) ? var->varName : "<null>",
+                          (void*)var, var ? (void*)var->memBlock : NULL);
+        }
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }
       else if (arg->type == ARG_LOCAL){
@@ -1744,8 +1763,12 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
         csound->Message(csound, Str("FIXME: instance unexpected arg: %d\n"),
                         arg->type);
       }
+      if (userop_info != NULL) {
+        csound->Message(csound,
+                        "DEBUG UDO instantiate: %s in arg %d ptr=%p type=%d\n",
+                        userop_info->name, n, (void*)argpp[n], arg ? arg->type : -1);
+      }
     }
-
   }
   /* display instantiated instrument */
   if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
@@ -1764,26 +1787,30 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   }
   
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,
-     and initialise them */
-  CS_VARIABLE* var = csoundFindVariableWithName(csound,
-                                                ip->instr->varPool, "ksmps");
-  if (var) {
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    var->memBlock->value = csound->ksmps;
-  }
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "kr");
-  if (var) {
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    var->memBlock->value = csound->ekr;
-  }
+     and initialise them.
+     Skip this for instr0 (including module instr0s) since they use global sr/kr/ksmps. */
+  CS_VARIABLE* var;
+  if (ip->instr->insname != NULL) {
+    var = csoundFindVariableWithName(csound,
+                                     ip->instr->varPool, "ksmps");
+    if (var) {
+      char* temp = (char*)(lclbas + var->memBlockIndex);
+      var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
+      var->memBlock->value = csound->ksmps;
+    }
+    var = csoundFindVariableWithName(csound, ip->instr->varPool, "kr");
+    if (var) {
+      char* temp = (char*)(lclbas + var->memBlockIndex);
+      var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
+      var->memBlock->value = csound->ekr;
+    }
 
-  var = csoundFindVariableWithName(csound, ip->instr->varPool, "sr");
-  if (var) {
-    char* temp = (char*)(lclbas + var->memBlockIndex);
-    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
-    var->memBlock->value = csound->esr;
+    var = csoundFindVariableWithName(csound, ip->instr->varPool, "sr");
+    if (var) {
+      char* temp = (char*)(lclbas + var->memBlockIndex);
+      var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
+      var->memBlock->value = csound->esr;
+    }
   }
 
   var = csoundFindVariableWithName(csound, ip->instr->varPool, "this_instr");
