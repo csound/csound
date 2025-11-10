@@ -170,17 +170,18 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
             }
 
             // Handle arrays and strings to prevent double-free
-            if (lcurip->lclbas) {
-              // Find the variable in varPool
+            // Only do this for new-style UDOs (udoinfo->newStyle)
+            if (udoinfo->newStyle && lcurip->lclbas) {
+              // Use positional lookup (i-th variable in varPool)
+              // We can't use name lookup because varPool is shared across UDOs
               CS_VARIABLE *local_var = NULL;
               if (lcurip->instr && lcurip->instr->varPool) {
                 CS_VARIABLE *v = lcurip->instr->varPool->head;
-                while (v) {
-                  if (v->varName && strcmp(v->varName, xin_varname) == 0) {
-                    local_var = v;
-                    break;
-                  }
+                for (int j = 0; j < i && v; j++) {
                   v = v->next;
+                }
+                if (v) {
+                  local_var = v;
                 }
               }
 
