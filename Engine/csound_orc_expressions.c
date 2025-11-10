@@ -40,6 +40,31 @@ static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*);
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
+static TREE *create_ans_token(CSOUND *csound, char* var);
+
+static TREE* expand_multi_output_args(CSOUND* csound, TREE* last) {
+  if (!last || !last->left || !last->left->value) {
+    return NULL;
+  }
+
+  TREE* newArgList = NULL;
+  char* lexeme = last->left->value->lexeme;
+
+  if (lexeme && strchr(lexeme, ',')) {
+    char *saveptr;
+    char *outputs = cs_strdup(csound, lexeme);
+    char *token = cs_strtok_r(outputs, ",", &saveptr);
+    while (token) {
+      TREE* newArg = create_ans_token(csound, token);
+      newArgList = append_to_tree(csound, newArgList, newArg);
+      token = cs_strtok_r(NULL, ",", &saveptr);
+    }
+    csound->Free(csound, outputs);
+  } else {
+    newArgList = create_ans_token(csound, lexeme);
+  }
+  return newArgList;
+}
 
 TREE* tree_tail(TREE* node) {
   TREE* t = node;
@@ -458,8 +483,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                             create_expression(csound, current, line, locn,
                                               typeTable));
       last = tree_tail(anchor);
-      newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = append_to_tree(csound, newArgList, newArg);
+      newArgList = append_to_tree(csound, newArgList,
+                                  expand_multi_output_args(csound, last));
       current = current->next;
     } else {
       TREE* temp;
@@ -482,9 +507,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                             create_expression(csound, current, line,
                                               locn, typeTable));
       last = tree_tail(anchor);
-
-      newArg = create_ans_token(csound, last->left->value->lexeme);
-      newArgList = append_to_tree(csound, newArgList, newArg);
+      newArgList = append_to_tree(csound, newArgList,
+                                  expand_multi_output_args(csound, last));
       current = current->next;
     }
     else {
@@ -567,8 +591,65 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       }
 
       outtype_internal = convert_external_to_internal(csound, outtype);
-      outarg = create_out_arg(csound, outtype_internal,
-                              typeTable->localPool->synthArgCount++, typeTable);
+
+      // Check if this is a primitive multi-output (e.g., "aa", "ak")
+      int is_primitive_multi = 0;
+      int num_outputs = strlen(outtype_internal);
+      if (num_outputs > 1 && outtype_internal[0] != '[') {
+        is_primitive_multi = 1;
+        for (int i = 0; i < num_outputs; i++) {
+          char c = outtype_internal[i];
+          if (!((c >= 'a' && c <= 'z') || c == 'S' || c == 'B')) {
+            is_primitive_multi = 0;
+            break;
+          }
+        }
+      }
+
+      if (is_primitive_multi) {
+        size_t buffer_size = (num_outputs * MAXNAME) + (num_outputs - 1) + 1;
+        char *multi_outarg = (char *)csound->Malloc(csound, buffer_size);
+
+        if (UNLIKELY(multi_outarg == NULL)) {
+          csound->Die(csound, "Memory allocation failed for multi-output arguments");
+          return NULL;
+        }
+
+        multi_outarg[0] = '\0';
+        size_t current_len = 0;
+
+        for (int i = 0; i < num_outputs; i++) {
+          char single_type[2] = {outtype_internal[i], '\0'};
+          char *temp_var = create_out_arg(csound, single_type,
+                                         typeTable->localPool->synthArgCount++, typeTable);
+
+          // Add comma separator if not the first variable
+          if (i > 0) {
+            if (UNLIKELY(current_len + 1 >= buffer_size)) {
+              csound->Die(csound, "Buffer overflow in multi-output argument construction");
+              csound->Free(csound, multi_outarg);
+              return NULL;
+            }
+            strcat(multi_outarg, ",");
+            current_len += 1;
+          }
+
+          // Check if adding this variable would overflow the buffer
+          size_t temp_var_len = strlen(temp_var);
+          if (UNLIKELY(current_len + temp_var_len >= buffer_size)) {
+            csound->Die(csound, "Buffer overflow in multi-output argument construction");
+            csound->Free(csound, multi_outarg);
+            return NULL;
+          }
+
+          strcat(multi_outarg, temp_var);
+          current_len += temp_var_len;
+        }
+        outarg = multi_outarg;
+      } else {
+        outarg = create_out_arg(csound, outtype_internal,
+                                typeTable->localPool->synthArgCount++, typeTable);
+      }
 
     }
     break;
@@ -730,16 +811,41 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   }
   opTree = create_opcode_token(csound, op);
   if (root->value) opTree->value->optype = root->value->optype;
+
+  // Check if outarg contains multiple outputs (separated by commas)
+  TREE *outputList = NULL;
+  if (outarg && strchr(outarg, ',')) {
+    // Multi-output case
+    char *saveptr;
+    char *outarg_copy = cs_strdup(csound, outarg);
+    char *token = cs_strtok_r(outarg_copy, ",", &saveptr);
+    while (token) {
+      TREE *outputToken = create_ans_token(csound, token);
+      if (outputList == NULL) {
+        outputList = outputToken;
+      } else {
+        TREE *last = outputList;
+        while (last->next) last = last->next;
+        last->next = outputToken;
+      }
+      token = cs_strtok_r(NULL, ",", &saveptr);
+    }
+    csound->Free(csound, outarg_copy);
+  } else {
+    // Single output case
+    outputList = create_ans_token(csound, outarg);
+  }
+
   if (root->left != NULL) {
     opTree->right = root->left;
     opTree->right->next = root->right;
-    opTree->left = create_ans_token(csound, outarg);
+    opTree->left = outputList;
     opTree->line = line;
     opTree->locn = locn;
   }
   else {
     opTree->right = root->right;
-    opTree->left = create_ans_token(csound, outarg);
+    opTree->left = outputList;
     opTree->line = line;
     opTree->locn = locn;
 

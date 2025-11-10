@@ -384,6 +384,7 @@ def runTest():
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
         ["udo/crashing_test.csd", "test for UDO crashing", 1],
         ["udo/test_udo_array_set.csd", "test UDO array setting"],
+        ["udo/test_udo_out_styles.csd", "UDO with xout returning multiple args"],
     ]
 
     maxallocTests = [

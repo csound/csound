@@ -720,14 +720,23 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return ret;
       }
 
-      synterr(csound, Str("opcode '%s' for expression with arg "
-                          "types %s returns out-args != 1, line %d\n"),
-              opname, argTypeRight, tree->line);
-      do_baktrace(csound, tree->locn);
+      // Multi-output case: check if UDT or array, otherwise assume old-style primitives
+      int hasUDTorArray = 0;
+      if (strchr(out, ':') != NULL || strchr(out, '[') != NULL) {
+        hasUDTorArray = 1;
+      }
+
+      char *ret;
+      if (hasUDTorArray) {
+        ret = convert_internal_to_external(csound, out);
+      } else {
+        // Old-style single char rate identifiers (e.g., "aa", "ak")
+        ret = cs_strdup(csound, out);
+      }
 
       csound->Free(csound, argTypeRight);
       csound->Free(csound, entries);
-      return NULL;
+      return ret;
 
     }
 
@@ -1587,6 +1596,20 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   start = arg;
 
   if (strchr(type, '[') == NULL) {
+    // Check if this is a sequence of primitive types (e.g., "aa", "ak", etc.)
+    int isPrimitiveSeq = 1;
+    for (char *c = type; *c != '\0'; c++) {
+      if (!(*c >= 'a' && *c <= 'z') && *c != 'S' && *c != 'B') {
+        isPrimitiveSeq = 0;
+        break;
+      }
+    }
+
+    if (isPrimitiveSeq) {
+      // Primitive type sequences are already in external format
+      return arg;
+    }
+
     /* User-Defined Struct - use single-escaping for type strings */
     retVal = csound->Malloc(csound, sizeof(char) * (len + 3));
     current = retVal;
