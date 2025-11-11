@@ -6,6 +6,9 @@
 import os
 import sys
 
+# Import module system tests
+from imports.test import import_tests
+
 
 # test_ui = False
 
@@ -284,6 +287,7 @@ def runTest():
     tests += udoTests
     tests += maxallocTests
     tests += pfieldTests
+    tests += import_tests
 
     output = ""
     tempfile = 'csound_test_output.txt'
