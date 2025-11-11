@@ -1402,11 +1402,6 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
   if (UNLIKELY(instrNum >= engineState->maxinsno)) {
     int32_t i;
     int32_t old_maxinsno = engineState->maxinsno;
-    INSTRTXT **old_ptr = engineState->instrtxtp;
-    INSTRTXT *check_201_before = (old_maxinsno >= 201) ? old_ptr[201] : NULL;
-    
-    csound->Message(csound, "DEBUG insert_instrtxt: Expanding array for instrNum=%d, old_maxinsno=%d, [201]=%p\n",
-                    instrNum, old_maxinsno, check_201_before);
     
     /* expand */
     while (instrNum >= engineState->maxinsno) {
@@ -1416,10 +1411,6 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
       csound->ReAlloc(csound, engineState->instrtxtp,
                       (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
     
-    csound->Message(csound, "DEBUG insert_instrtxt: After ReAlloc, new_maxinsno=%d, old_ptr=%p, new_ptr=%p, [201]=%p\n",
-                    engineState->maxinsno, old_ptr, engineState->instrtxtp,
-                    engineState->instrtxtp[201]);
-    
     /* Array expected to be nulled so.... 
      * But we must not null out UDO entries! UDOs are stored up to maxopcno.
      * So start nulling from max(old_maxinsno, old_maxopcno) + 1 */
@@ -1427,9 +1418,6 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     for (i = start_null + 1; i <= engineState->maxinsno; i++) {
       engineState->instrtxtp[i] = NULL;
     }
-    
-    csound->Message(csound, "DEBUG insert_instrtxt: After nulling new entries, [201]=%p\n",
-                    engineState->instrtxtp[201]);
   }
 
   if (!csound->oparms->redef && !merge &&
@@ -1762,8 +1750,6 @@ static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
   ENGINE_STATE *module_state = module->engineState;
   ENGINE_STATE *root_state = &csound->engineState;
   
-  csound->Message(csound, "DEBUG merge: module_state=%p, root_state=%p, same=%d\n",
-                  module_state, root_state, (module_state == root_state));
 
   /* UDOs are typically in the range from some base number up to maxopcno.
    * However, maxinsno may have been inflated by module instr0 registration.
@@ -1771,13 +1757,9 @@ static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
    * UDOs have opcode_info set (they're "fake" instruments for UDO execution). */
   int32_t udo_end = module_state->maxopcno;
 
-  csound->Message(csound, "DEBUG merge: module %s maxinsno=%d, maxopcno=%d\n",
-                  module->name ? module->name : "unknown",
-                  module_state->maxinsno, module_state->maxopcno);
 
   if (udo_end <= 0) {
     /* No UDOs in this module */
-    csound->Message(csound, "DEBUG merge: No UDOs to merge (maxopcno=%d)\n", udo_end);
     return;
   }
 
@@ -1887,14 +1869,10 @@ static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
 
   if (!already_registered) {
     csound->Message(csound, "Registering module instr0 as instrument %d\n", module_insno);
-    csound->Message(csound, "DEBUG: Before insert_instrtxt, instrtxtp ptr=%p, [201]=%p\n",
-                    engineState->instrtxtp, engineState->instrtxtp[201]);
     /* DO NOT re-prep the module instr0 with engineState!
      * It was already prepped during module compilation with the correct module varPool.
      * The opcodes and their arguments are already correctly set up. */
     insert_instrtxt(csound, module_instr0, module_insno, engineState, 0);
-    csound->Message(csound, "DEBUG: After insert_instrtxt, instrtxtp ptr=%p, [201]=%p\n",
-                    engineState->instrtxtp, engineState->instrtxtp[201]);
   }
 
   /* Create an instance using Csound's standard machinery */
@@ -2157,11 +2135,18 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
   while (current != NULL) {
     switch (current->type) {
-    case T_ASSIGNMENT:
-      if(csound->GetDebug(csound) > 99)
-        csound->Message(csound, "Assignment found\n");
-      break;
-    case INSTR_TOKEN:
+  case T_ASSIGNMENT:
+    if(csound->GetDebug(csound) > 99)
+      csound->Message(csound, "Assignment found\n");
+    break;
+  case S_ADDIN:
+  case S_SUBIN:
+  case S_MULIN:
+  case S_DIVIN:
+    if(csound->GetDebug(csound) > 99)
+      csound->Message(csound, "Compound assignment found\n");
+    break;
+  case INSTR_TOKEN:
       if(csound->GetDebug(csound) > 99)
         print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current,engineState);
@@ -2396,11 +2381,7 @@ if (engineState != &csound->engineState) {
    * compilation is complete to avoid processing the same UDOs multiple times. */
   if (csound->compilation_depth == 0) {
     /* Assign instrument numbers to UDOs - must be done only once after all compilation */
-    csound->Message(csound, "DEBUG: Before insert_opcodes, instrtxtp ptr = %p\n",
-                    engineState->instrtxtp);
     insert_opcodes(csound, csound->opcodeInfo, engineState);
-    csound->Message(csound, "DEBUG: After insert_opcodes, instrtxtp ptr = %p, maxinsno=%d\n",
-                    engineState->instrtxtp, engineState->maxinsno);
     ip = engineState->instxtanchor.nxtinstxt;
   /* check for perf opcode in instr0 */
   if(csoundGetDebug(csound)) {
@@ -2439,8 +2420,6 @@ if (engineState != &csound->engineState) {
       continue;
     }
 
-    csound->Message(csound, "DEBUG: Prepping instrument: insname=%s, opcode_info=%p\n",
-                    ip->insname ? ip->insname : "(null)", ip->opcode_info);
     instr_prep(csound, ip, engineState);    /*   as combined offsets */
     if(csoundGetDebug(csound) & DEBUG_INSTR)
       print_instr(csound, ip, engineState);
@@ -2488,22 +2467,14 @@ if (engineState != &csound->engineState) {
 
   /* After all module initialization, merge module UDOs into root instrtxtp.
    * This must happen AFTER insert_opcodes() which may reallocate the array. */
-  csound->Message(csound, "DEBUG: Checking if we should merge UDOs (firstCompilation=%d)\n", firstCompilation);
-  csound->Message(csound, "DEBUG: Before merge, engineState->instrtxtp ptr = %p, maxinsno=%d\n",
-                  engineState->instrtxtp, engineState->maxinsno);
   if (firstCompilation) {
     MODULE_STATE *module_state = csoundGetModuleState(csound);
-    csound->Message(csound, "DEBUG: module_state=%p\n", module_state);
     if (module_state != NULL && module_state->root_module != NULL) {
-      csound->Message(csound, "DEBUG: About to merge UDOs from %d imports\n", 
-                      module_state->root_module->import_count);
       for (int32_t i = 0; i < module_state->root_module->import_count; i++) {
         merge_module_udos_to_root(csound, module_state->root_module->imports[i]);
       }
     }
   }
-  csound->Message(csound, "DEBUG: After merge, engineState->instrtxtp ptr = %p, maxinsno=%d\n",
-                  engineState->instrtxtp, engineState->maxinsno);
 
   } /* end if (csound->compilation_depth == 0) */
  } /* end else (engineState == &csound->engineState) */
@@ -2658,14 +2629,16 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   ARGLST *outlist, *inlist;
 
   /* Log prep entry for all instruments */
-  csound->Message(csound,
-                  "DEBUG instr_prep ENTRY: tp=%p insname=%s opcode_info=%p varPool=%p\n",
-                  (void*)tp, tp->insname ? tp->insname : "(null)",
-                  (void*)tp->opcode_info, (void*)tp->varPool);
-  if (tp->opcode_info != NULL) {
-    const char *udo_name = tp->opcode_info->name;
+  if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER)) {
     csound->Message(csound,
-                    "DEBUG instr_prep ENTRY: UDO %s\n", udo_name);
+                    "instr_prep ENTRY: tp=%p insname=%s opcode_info=%p varPool=%p\n",
+                    (void*)tp, tp->insname ? tp->insname : "(null)",
+                    (void*)tp->opcode_info, (void*)tp->varPool);
+    if (tp->opcode_info != NULL) {
+      const char *udo_name = tp->opcode_info->name;
+      csound->Message(csound,
+                      "instr_prep ENTRY: UDO %s\n", udo_name);
+    }
   }
 
   OENTRY *pset = find_opcode(csound, "pset");
