@@ -258,7 +258,8 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         devnum = parm->devNum;
     }
 
-    if (devnum == 0) {
+    /* Use default device if devnum is 0 or out of valid range (>= 1024) */
+    if (devnum == 0 || devnum >= 1024) {
         hr = pEnumerator->lpVtbl->GetDefaultAudioEndpoint(
             pEnumerator, isInput ? eCapture : eRender, eConsole, &pDevice);
         if (FAILED(hr)) {
@@ -279,20 +280,36 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         }
 
         hr = pCollection->lpVtbl->GetCount(pCollection, &count);
-        if (FAILED(hr) || devnum > count) {
+        if (FAILED(hr)) {
             SAFE_RELEASE(pCollection);
             SAFE_RELEASE(pEnumerator);
             return csound->InitError(csound,
-                                     Str("WASAPI: Device number out of range"));
+                                     Str("WASAPI: Failed to enumerate devices"));
         }
+        
+        if (devnum > count) {
+            SAFE_RELEASE(pCollection);
+            if (O->msglevel || O->odebug)
+                csound->Warning(csound,
+                                Str("WASAPI: Requested device %d out of range, using default"),
+                                devnum);
+            /* Fall back to default device */
+            hr = pEnumerator->lpVtbl->GetDefaultAudioEndpoint(
+                pEnumerator, isInput ? eCapture : eRender, eConsole, &pDevice);
+            if (FAILED(hr)) {
+                SAFE_RELEASE(pEnumerator);
+                return csound->InitError(csound,
+                                         Str("WASAPI: Failed to get default device"));
+            }
+        } else {
+            hr = pCollection->lpVtbl->Item(pCollection, devnum - 1, &pDevice);
+            SAFE_RELEASE(pCollection);
 
-        hr = pCollection->lpVtbl->Item(pCollection, devnum - 1, &pDevice);
-        SAFE_RELEASE(pCollection);
-
-        if (FAILED(hr)) {
-            SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
-                                     Str("WASAPI: Failed to get device"));
+            if (FAILED(hr)) {
+                SAFE_RELEASE(pEnumerator);
+                return csound->InitError(csound,
+                                         Str("WASAPI: Failed to get device"));
+            }
         }
     }
 
