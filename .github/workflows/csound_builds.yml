@@ -583,6 +583,79 @@ jobs:
       # - name: Run integration and unit tests
       # run: cmake --build build --target test csdtests
 
+  windows_build_32bit:
+    name: Windows 32-bit build (mingw/vcpkg)
+    runs-on: ubuntu-22.04
+    needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Use custom vcpkg manifest for 32-bit (without libsndfile)
+        run: cp vcpkg-x86.json vcpkg.json
+
+      - name: Download libsndfile pre-built binaries for Win32
+        run: |
+          wget https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2-win32.zip
+          unzip libsndfile-1.2.2-win32.zip -d libsndfile-win32
+          mkdir -p $HOME/libsndfile-i686
+          cp -r libsndfile-win32/libsndfile-1.2.2-win32/bin $HOME/libsndfile-i686/
+          cp -r libsndfile-win32/libsndfile-1.2.2-win32/lib $HOME/libsndfile-i686/
+          cp -r libsndfile-win32/libsndfile-1.2.2-win32/include $HOME/libsndfile-i686/
+          cp -r libsndfile-win32/libsndfile-1.2.2-win32/cmake $HOME/libsndfile-i686/
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install mingw-w64-i686-dev gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64-tools
+
+      - name: Use posix mingw for 32-bit
+        run: |
+          sudo update-alternatives --set i686-w64-mingw32-gcc /usr/bin/i686-w64-mingw32-gcc-posix
+          sudo update-alternatives --set i686-w64-mingw32-g++ /usr/bin/i686-w64-mingw32-g++-posix
+
+      - name: Configure Build
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_DOUBLE=0 -DUSE_MP3=0 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom-mingw64-i686.cmake" -DCMAKE_SYSTEM_NAME=MinGW -DCMAKE_C_COMPILER=/usr/bin/i686-w64-mingw32-gcc -DCMAKE_CXX_COMPILER=/usr/bin/i686-w64-mingw32-g++ -DCMAKE_PREFIX_PATH=$HOME/libsndfile-i686/cmake
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Copy libsndfile DLLs to build directory
+        run: cp $HOME/libsndfile-i686/bin/*.dll ./build/
+
+      - name: Upload zip
+        # 
+        if: github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
+          path: |
+            ./build/*.exe
+            ./build/*.dll
+            ./build/*.pyd
+            ./build/*.lib
+            ./build/*.jar
+            ./build/*.py
+            ./include/
+          if-no-files-found: warn
+
   android_build_vcpkg:
     name: Android build (vcpkg)
     runs-on: ubuntu-latest
@@ -719,6 +792,7 @@ jobs:
           path: Android/csound-android-${{env.CSOUND_VERSION}}
 
   publish_artifacts:
+    # 
     if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
@@ -726,6 +800,7 @@ jobs:
       [
         update_version,
         windows_build,
+        windows_build_32bit,
         macos_build_installer,
         iOS_build,
         android-release,
@@ -739,6 +814,12 @@ jobs:
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: csound-windows-${{env.CSOUND_VERSION}}
+
+      - name: Download Windows 32-bit binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
+          path: csound-windows-x86-${{env.CSOUND_VERSION}}
 
       - name: Download macOS installer
         uses: actions/download-artifact@v4
@@ -767,6 +848,7 @@ jobs:
       - name: Zip release directories
         run: |
           zip -r csound-windows-${{env.CSOUND_VERSION}}.zip csound-windows-${{env.CSOUND_VERSION}}
+          zip -r csound-windows-x86-${{env.CSOUND_VERSION}}.zip csound-windows-x86-${{env.CSOUND_VERSION}}
           zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
           zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
@@ -784,6 +866,7 @@ jobs:
           make_latest: true
           files: |
             csound-windows-${{env.CSOUND_VERSION}}.zip
+            csound-windows-x86-${{env.CSOUND_VERSION}}.zip
             csound-macos-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip
