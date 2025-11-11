@@ -249,11 +249,9 @@ static int32_t is_irate(TREE *t)
 { /* check that argument is an i-rate constant or variable */
   //print_tree(csound, "is_irate",  t);
   if (t->type == INTEGER_TOKEN) {
-    //printf("integer case\n");
     return 1;
   }
   else if (t->type == T_IDENT) {
-    //printf("identifier case\n");
     if (t->value->lexeme[0] != 'p' &&
         t->value->lexeme[0] != 'i' &&
         (t->value->lexeme[0] != 'g' ||
@@ -1274,41 +1272,15 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                                 char* inArgTypes) {
   int32_t i;
 
-  /* Debug: Check if we're resolving our test opcode */
-  if (entries->count > 0 && entries->entries[0] &&
-      entries->entries[0]->opname &&
-      strcmp(entries->entries[0]->opname, "SimpleOsc") == 0) {
-    csound->Message(csound, "DEBUG: resolve_opcode_get_outarg for SimpleOsc, inArgTypes: %s\n", inArgTypes);
-  }
-
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
     if (temp->intypes == NULL && temp->outypes == NULL) {
       continue;
     }
 
-    /* Debug: Show what we're comparing - add safety checks */
-    if (temp->opname && strcmp(temp->opname, "SimpleOsc") == 0) {
-      csound->Message(csound, "DEBUG: SimpleOsc - Checking inArgTypes: %s vs temp->intypes: %s\n",
-                      inArgTypes, temp->intypes ? temp->intypes : "NULL");
-    }
-
     if (check_in_args(csound, inArgTypes, temp->intypes)) {
-      // FIXME this is only returning the first match, we need to check
-      // if there are multiple matches and if so, return NULL to signify
-      // ambiguity
-      if (temp->opname && strcmp(temp->opname, "SimpleOsc") == 0) {
-        csound->Message(csound, "DEBUG: SimpleOsc - Match found! Returning outypes: %s\n",
-                        temp->outypes ? temp->outypes : "NULL");
-      }
       return temp->outypes;
     }
-  }
-
-  if (entries->count > 0 && entries->entries[0] &&
-      entries->entries[0]->opname &&
-      strcmp(entries->entries[0]->opname, "SimpleOsc") == 0) {
-    csound->Message(csound, "DEBUG: SimpleOsc - No matches found, returning NULL\n");
   }
 
   return NULL;

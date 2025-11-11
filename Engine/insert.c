@@ -1723,9 +1723,6 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
       }
       else if (arg->type == ARG_GLOBAL) {
         if (UNLIKELY(var == NULL || var->memBlock == NULL)) {
-          csound->Message(csound, "DEBUG: insert.c global in-arg %s missing memBlock (var=%p, memBlock=%p)\n",
-                          (var && var->varName) ? var->varName : "<null>",
-                          (void*)var, var ? (void*)var->memBlock : NULL);
         }
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }

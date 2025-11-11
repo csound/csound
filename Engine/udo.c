@@ -56,34 +56,22 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   // Search xin/xout to setup arg_ptr_map
   while (ichain != NULL) {
     OPTXT *optext = ichain->optext;
-    // printf("ichain: %s\n", optext->t.opcod);
 
     if (strcmp("xin", optext->t.opcod) == 0) {
       ARGLST *outlist = optext->t.outlist;
-    //   printf("xin found\n");
 
       // MAP input args for this UDO to outputs of xin for the UDO
       for (i = 0; i < outlist->count; i++) {
         char *varName = outlist->arg[i];
-        // printf("ar index %d\n", p->OUTOCOUNT + i);
         MYFLT *argPtr = p->ar[p->OUTOCOUNT + i];
-
-        // printf("Storing arg %s to %p\n", varName, (void*)argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
         cs_hash_table_put(csound, arg_ptr_map, varName, argPtr);
       }
     } else if (strcmp("xout", ichain->optext->t.opcod) == 0) {
       ARGLST *inlist = optext->t.inlist;
-    //   printf("xout found\n");
       // MAP output args for this UDO to inputs of xout for the UDO
       for (i = 0; i < inlist->count; i++) {
         char *varName = inlist->arg[i];
-
-        // printf("ar index %d\n", i);
         MYFLT *argPtr = p->ar[i];
-
-        // printf("Storing arg %s to %p\n", varName, (void*)argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
         cs_hash_table_put(csound, arg_ptr_map, varName, argPtr);
       }
     }
@@ -106,8 +94,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       char *varName = outlist->arg[i];
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
       if (argPtr != NULL) {
-        // printf("Setting arg %s to %p\n", varName, argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)ichain;
             udoData->ar[i] = argPtr;
@@ -122,9 +108,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       char *varName = inlist->arg[i];
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
       if (argPtr != NULL) {
-        // printf("Setting arg %s to %p\n", varName, argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
-
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)ichain;
             udoData->ar[leno + i] = argPtr;
@@ -139,7 +122,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   }
 
   while (pchain != NULL) {
-    // printf("pchain: %s\n", pchain->optext->t.opcod);
 
     OPTXT *optext = pchain->optext;
     ARGLST *outlist = optext->t.outlist;
@@ -153,8 +135,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       char *varName = outlist->arg[i];
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
       if (argPtr != NULL) {
-        // printf("Setting arg %s to %p\n", varName, argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)pchain;
             udoData->ar[i] = argPtr;
@@ -169,8 +149,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       char *varName = inlist->arg[i];
       MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
       if (argPtr != NULL) {
-        // printf("Setting arg %s to %p\n", varName, argPtr);
-        // printf("Cur value: %g\n", *(MYFLT*)argPtr);
         if(isUdo) {
             UOPCODE *udoData = (UOPCODE *)pchain;
             udoData->ar[leno + i] = argPtr;
@@ -234,13 +212,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     return csound->InitError(csound, Str("UDO OPCODINFO is NULL\n"));
   }
   instno = inm->instno;  /* Get the UDO's assigned instrument number */
-  csound->Message(csound, "DEBUG: useropcdset looking for UDO %s at instno %d\n", inm->name, instno);
-  csound->Message(csound, "DEBUG: csound->engineState ptr = %p\n", &csound->engineState);
-  csound->Message(csound, "DEBUG: csound->engineState.instrtxtp ptr = %p\n", csound->engineState.instrtxtp);
-  csound->Message(csound, "DEBUG: csound->engineState.instrtxtp[%d] = %p\n", instno, 
-                  csound->engineState.instrtxtp[instno]);
-  csound->Message(csound, "DEBUG: csound->engineState.maxinsno = %d, maxopcno = %d\n",
-                  csound->engineState.maxinsno, csound->engineState.maxopcno);
   tp = csound->engineState.instrtxtp[instno];
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
@@ -462,7 +433,6 @@ int32_t set_inbufs(CSOUND *csound,
   current = inm->in_arg_pool->head;
 
   if(inm->passByRef) {
-    // printf("New-style UDO using pass-by-ref, skipping...\n");
     return OK;
   }
 
@@ -534,22 +504,18 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
-  csound->Message(csound, "DEBUG xoutset: udo=%p, udo->ar=%p\n", udo, udo->ar);
   bufs = udo->ar;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->out_arg_pool->head;
-  csound->Message(csound, "DEBUG xoutset: bufs=%p, outchns=%d\n", bufs, inm->outchns);
 
   if(inm->passByRef) {
-    // printf("New-style UDO using pass-by-ref, skipping...\n");
     return OK;
   }
 
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
     void* out = (void*) bufs[i];
-    csound->Message(csound, "DEBUG xoutset: i=%d, in=%p, out=%p\n", i, in, out);
     tmp[i] = in;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
