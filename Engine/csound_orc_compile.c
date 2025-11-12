@@ -2892,15 +2892,22 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     if(csoundGetDebug(csound) & DEBUG_COMPILER)
      csoundMessage(csound, "pfield found: %s %d\n", s, n);
   }
-  /* trap local ksmps and kr and sr */
-  else if ((strcmp(s, "ksmps") == 0 &&
-            csoundFindVariableWithName(csound, ip->varPool, s)) ||
-           (strcmp(s, "kr") == 0 &&
-            csoundFindVariableWithName(csound, ip->varPool, s)) ||
-           (strcmp(s, "sr") == 0 &&
-            csoundFindVariableWithName(csound, ip->varPool, s))) {
-    arg->type = ARG_LOCAL;
-    arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
+  /* trap local ksmps and kr and sr 
+   * Check if they exist in the immediate pool (local) or parent chain (global) */
+  else if (strcmp(s, "ksmps") == 0 || strcmp(s, "kr") == 0 || strcmp(s, "sr") == 0) {
+    CS_VARIABLE *var = cs_hash_table_get(csound, ip->varPool->table, s);
+    if (var != NULL) {
+      /* Found in immediate pool - it's a local variable */
+      arg->type = ARG_LOCAL;
+      arg->argPtr = var;
+    } else if (ip->varPool->parent != NULL) {
+      /* Not in immediate pool, check parent chain - it's a global */
+      var = csoundFindVariableWithName(csound, ip->varPool->parent, s);
+      if (var != NULL) {
+        arg->type = ARG_GLOBAL;
+        arg->argPtr = var;
+      }
+    }
   }
   /* Check for local variables - search ONLY immediate pool, not parents */
   else if (cs_hash_table_get(csound, ip->varPool->table, s) != NULL) {
