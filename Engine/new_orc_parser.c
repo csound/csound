@@ -126,7 +126,13 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
         add_include_udo_dir(csound, csound->orchstr);
         if (csound->orchname==NULL ||
-            csound->orchname[0]=='\0') csound->orchname = csound->csdname;
+            csound->orchname[0]=='\0') {
+          /* Duplicate csdname instead of just pointing to it, to avoid
+           * dangling pointer if csdname gets freed during recompilation */
+          if (csound->csdname != NULL) {
+            csound->orchname = cs_strdup(csound, csound->csdname);
+          }
+        }
         /* We know this is the start so stack is empty so far */
         snprintf(bb, 80, "#source %d\n",
                 qq.lstack[0] = file_to_int(csound, csound->orchname));
