@@ -562,6 +562,12 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
   ip->varPool = varPool;
+  /* Ensure instr0 carries a stable internal name so downstream logic can
+   * identify it. Use "#instr0" (invalid user syntax) for backwards compatibility
+   * in case someone named their instrument "instr0". */
+  if (ip->insname == NULL) {
+    ip->insname = cs_strdup(csound, "#instr0");
+  }
   op = (OPTXT *)ip;
 
   current = root;
@@ -1728,7 +1734,11 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
   enginestate_merge(csound, engineState);
-  enginestate_free(csound, engineState);
+  /* Only free temporary engineStates created for live coding or subcompilations.
+   * Never free the main csound->engineState here. */
+  if (engineState != &csound->engineState) {
+    enginestate_free(csound, engineState);
+  }
   free_typetable(csound, typetable);
   /* run global i-time code */
   init0(csound);
@@ -2010,10 +2020,12 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       engineState->constantsPool = cs_hash_table_create(csound);
     }
 
-    /* Set instr0LocalPool parent to root_module->varPool so global lookups work */
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    if (module_state && module_state->root_module && module_state->root_module->varPool) {
-      typeTable->instr0LocalPool->parent = module_state->root_module->varPool;
+    /* For first compilation, instr0 uses instr0LocalPool for its variables.
+     * Set parent to typeTable->globalPool (user globals) which itself has parent
+     * csound->engineState.varPool (system globals). This creates the correct lookup chain:
+     * instr0 locals -> user globals -> system globals */
+    if (typeTable->instr0LocalPool && typeTable->instr0LocalPool->parent == NULL) {
+      typeTable->instr0LocalPool->parent = typeTable->globalPool;
     }
     csound->instr0 = create_instrument0(csound, current, engineState,
                                         typeTable->instr0LocalPool);
@@ -2041,9 +2053,15 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
     globalPool = typeTable->globalPool;
 
-    /* Set parent to allow fallback to system globals */
+    /* Set up parent chain: globalPool -> engineState->varPool (system globals) */
     if (globalPool->parent == NULL) {
       globalPool->parent = engineState->varPool;
+    }
+
+    /* Set up parent chain: instr0LocalPool -> globalPool -> engineState->varPool
+     * This allows module instr0 to access: locals -> module globals -> system globals */
+    if (typeTable->instr0LocalPool && typeTable->instr0LocalPool->parent == NULL) {
+      typeTable->instr0LocalPool->parent = globalPool;
     }
 
     /* Update the module's varPool and engineState to point to the compiled pools
@@ -2055,11 +2073,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       module_state->current_module->engineState = engineState;
     }
 
-    /* Create a temporary instr0 for this module using the MODULE's globalPool
-     * This is critical: the instr0's opcodes will reference globals from the module pool,
-     * and system globals will be found via the parent chain to engineState->varPool */
+    /* Create module instr0 using instr0LocalPool (just like root module)
+     * Module instr0 variables are local to the module's instr0, with parent chain
+     * to module globals and system globals */
     csound->instr0 = create_instrument0(csound, current, engineState,
-                                        globalPool);
+                                        typeTable->instr0LocalPool);
 
     prvinstxt = &(engineState->instxtanchor);
     /* Find the last instrument in the chain */
@@ -2079,9 +2097,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno) *
                                    sizeof(INSTRTXT*));
     /* VL: allowing global code to be evaluated in
-       subsequent compilations */
+       subsequent compilations 
+       IMPORTANT: Use csound->engineState.varPool (long-lived) not engineState->varPool (temporary)
+       so instr0 doesn't reference freed memory after enginestate_free() */
     csound->instr0 = create_global_instrument(csound, current, engineState,
-                                              typeTable->instr0LocalPool);
+                                              csound->engineState.varPool);
     insert_instrtxt(csound, csound->instr0, 0, engineState,1);
 
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
@@ -2884,20 +2904,10 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   }
   /* Check for local variables - search ONLY immediate pool, not parents */
   else if (cs_hash_table_get(csound, ip->varPool->table, s) != NULL) {
-    /* For instr0, variables in ip->varPool are actually GLOBALS!
-     * instr0's varPool IS the global varPool, so treat them as ARG_GLOBAL.
-     * Check if this is actually instr0 by comparing the varPool to the engine's global varPool. */
-    if (ip == csound->instr0 ||
-        (ip->insname && strcmp(ip->insname, "instr0") == 0) ||
-        ip->varPool == engineState->varPool) {
-      arg->type = ARG_GLOBAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-    } else {
-      arg->type = ARG_LOCAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-      if (arg->argPtr == NULL) {
-        csound->Message(csound, Str("Missing local arg: %s\n"), s);
-      }
+    arg->type = ARG_LOCAL;
+    setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    if (arg->argPtr == NULL) {
+      csound->Message(csound, Str("Missing local arg: %s\n"), s);
     }
   }
   /* For UDOs: check if the UDO has a module_var_pool (namespace isolation)

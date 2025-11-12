@@ -1787,7 +1787,9 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
      and initialise them.
      Skip this for instr0 (including module instr0s) since they use global sr/kr/ksmps. */
   CS_VARIABLE* var;
-  if (ip->instr->insname != NULL) {
+  int is_instr0 = (ip->insno == 0) || 
+                  (tp->insname && strcmp(tp->insname, "#instr0") == 0);
+  if (!is_instr0) {
     var = csoundFindVariableWithName(csound,
                                      ip->instr->varPool, "ksmps");
     if (var) {
