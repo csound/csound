@@ -100,6 +100,9 @@ project(Csound)
 
 enable_testing()
 
+# Collect private libraries for static linking (for pkg-config --static)
+set(CSOUND_PRIVATE_LIBS "")
+
 set(libcsound_private_include_dirs "")
 set(libcsound_public_include_dirs "")
 
@@ -560,6 +563,7 @@ list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
     add_compile_definitions("USE_LIBSNDFILE")
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsndfile")
 
     if(NOT USE_VCPKG AND EMSCRIPTEN)
         list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
@@ -1346,6 +1350,7 @@ endif()
 
 if (HAVE_ATOMIC_BUILTIN)
     list(APPEND libcsound_LIBS ${ATOMIC_LIB})
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${ATOMIC_LIB}")
 endif()
 
 if(WIN32)
@@ -1354,6 +1359,7 @@ endif()
 
 if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+  set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${CURL_LIBRARIES}")
 endif()
 
 check_deps(USE_GETTEXT Intl_FOUND GETTEXT_FOUND)
@@ -1361,6 +1367,7 @@ if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
     list(APPEND libcsound_LIBS Intl::Intl)
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lintl")
     if(NOT DEFINED CSOUND_TEXTDOMAIN AND BUILD_RELEASE AND (LINUX))
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
     endif()
@@ -1380,11 +1387,13 @@ if(LINUX)
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE
     -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lm -ldl -lpthread")
 
     find_library(LIBRT_LIBRARY rt)
 
     if(LIBRT_LIBRARY)
         list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
+        set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBRT_LIBRARY}")
         message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
 
@@ -1392,6 +1401,7 @@ if(LINUX)
 
     if(LIBEXECINFO_LIBRARY)
        list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
+       set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBEXECINFO_LIBRARY}")
        message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
     endif()
 endif()
@@ -1403,6 +1413,9 @@ if((APPLE AND NOT IOS) OR (OSXCROSS_TARGET))
     find_path(VECLIB_PATH "Accelerate/Accelerate.h")
     list(APPEND libcsound_private_include_dirs ${VECLIB_PATH})
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
+    if(APPLE AND NOT IOS)
+        set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lm -ldl ${ACCELERATE_LIBRARY}")
+    endif()
 endif()
 
 if(WIN32)
@@ -1555,6 +1568,7 @@ if(SampleRate_FOUND)
     if(NOT IOS OR OSXCROSS_TARGET)
         target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
     endif()
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsamplerate")
 endif()
 
 if(NOT IOS OR OSXCROSS_TARGET)
@@ -1670,6 +1684,26 @@ install(EXPORT CsoundExports
     FILE "CsoundConfig.cmake"
     NAMESPACE "Csound::"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
+
+# configure and install pkg-config file
+# Set appropriate link flags for different platforms
+if(APPLE AND NOT IOS)
+    # On macOS, use framework flags when building as framework
+    set(CSOUND_LINK_FLAGS "-F${CS_FRAMEWORK_DEST} -framework ${CSOUNDLIB}")
+else()
+    # Standard library flags for other platforms
+    set(CSOUND_LINK_FLAGS "-L\${libdir} -l${CSOUNDLIB}")
+endif()
+
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/csound.pc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"
+    @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"
+    DESTINATION "${LIBRARY_INSTALL_DIR}/pkgconfig"
 )
 
 # install samples
