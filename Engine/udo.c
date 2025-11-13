@@ -114,13 +114,11 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
   }
 }
 
-/* Sets up pass-by-reference for UDO parameters.
- *
- * This function wires UDO parameter references throughout init and perf chains:
- * 1. For new-style UDOs, maps input parameters from UDO signature to caller arguments
- * 2. For xin/xout-style UDOs, maps array parameters passed through xin
- * 3. Marks xout arguments to prevent incorrect rewiring
- * 4. Rewires all references to pass-by-ref parameters in both chains
+/* Wire UDO arguments to caller locations for pass-by-reference.
+ * 
+ * Input parameters are mapped to caller argument locations. Arrays and strings
+ * share the caller's data structures. For outputs, a-rate variables use buffer
+ * pointer aliasing, while i-rate and k-rate values are transferred after init.
  */
 static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   int32_t i;
@@ -128,8 +126,7 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   CS_HASH_TABLE *xout_skip_names = cs_hash_table_create(csound);
   OPDS *ichain = lcurip->nxti;
 
-  // Process init chain to find xin and extract parameter names for new-style UDOs
-  // For new-style UDOs, Csound generates an implicit xin with the signature parameter names
+  // Locate xin opcode for parameter name mapping
   OPDS *xin_opcode = NULL;
   OPDS *scan_chain = lcurip->nxti;
   while (scan_chain != NULL) {
@@ -140,7 +137,7 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     scan_chain = scan_chain->nxti;
   }
 
-  // For new-style UDOs, wire input parameters from signature to caller arguments
+  // Map input parameters to caller arguments
   OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   if (udoinfo && udoinfo->in_arg_pool && xin_opcode) {
     CS_VARIABLE *param = udoinfo->in_arg_pool->head;
@@ -153,69 +150,58 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         if (ar_index >= 0 && ar_index < (udoinfo->outchns + udoinfo->inchns)) {
           MYFLT *argPtr = p->ar[ar_index];
 
-          // New-style UDOs pass arrays, k-rate, a-rate, and i-rate (including strings) by reference
-          int isArray = (param->varType == &CS_VAR_TYPE_ARRAY);
-          int isKRate = (param->varType == &CS_VAR_TYPE_K);
-          int isARate = (param->varType == &CS_VAR_TYPE_A);
-          int isString = (param->varType == &CS_VAR_TYPE_S);
-          int isIRate = (param->varType == &CS_VAR_TYPE_I);
+          cs_hash_table_put(csound, arg_ptr_map, xin_varname, argPtr);
 
-          if (isArray || isKRate || isARate || isString || isIRate) {
-            // Map using the signature name (from xin output)
-            cs_hash_table_put(csound, arg_ptr_map, xin_varname, argPtr);
+          // Map internal name if different
+          if (param->varName && strcmp(param->varName, xin_varname) != 0) {
+            cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+          }
 
-            // Also map the internal name if different
-            if (param->varName && strcmp(param->varName, xin_varname) != 0) {
-              cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
+          // For arrays and strings, alias the caller's data structures
+          if (lcurip->lclbas) {
+            // Positional lookup in varPool
+            CS_VARIABLE *local_var = NULL;
+            if (lcurip->instr && lcurip->instr->varPool) {
+              CS_VARIABLE *v = lcurip->instr->varPool->head;
+              for (int j = 0; j < i && v; j++) {
+                v = v->next;
+              }
+              if (v) {
+                local_var = v;
+              }
             }
 
-            // Handle arrays and strings to prevent double-free
-            // Only do this for new-style UDOs (udoinfo->newStyle)
-            if (udoinfo->newStyle && lcurip->lclbas) {
-              // Use positional lookup (i-th variable in varPool)
-              // We can't use name lookup because varPool is shared across UDOs
-              CS_VARIABLE *local_var = NULL;
-              if (lcurip->instr && lcurip->instr->varPool) {
-                CS_VARIABLE *v = lcurip->instr->varPool->head;
-                for (int j = 0; j < i && v; j++) {
-                  v = v->next;
+            if (local_var) {
+              int isArray = (param->varType == &CS_VAR_TYPE_ARRAY);
+              int isString = (param->varType == &CS_VAR_TYPE_S);
+
+              if (isArray) {
+                ARRAYDAT *callerArray = (ARRAYDAT *)argPtr;
+                ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + local_var->memBlockIndex);
+
+                if (localArray->data != NULL && localArray->data != callerArray->data) {
+                  csound->Free(csound, localArray->data);
                 }
-                if (v) {
-                  local_var = v;
+                if (localArray->sizes != NULL && localArray->sizes != callerArray->sizes) {
+                  csound->Free(csound, localArray->sizes);
                 }
+
+                memcpy(localArray, callerArray, sizeof(ARRAYDAT));
+                localArray->allocated = 0;
               }
 
-              if (local_var) {
-                if (isArray) {
-                  ARRAYDAT *callerArray = (ARRAYDAT *)argPtr;
-                  ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + local_var->memBlockIndex);
-                  
-                  // Free any existing local allocations before aliasing
-                  if (localArray->data != NULL && localArray->data != callerArray->data) {
-                    csound->Free(csound, localArray->data);
-                  }
-                  if (localArray->sizes != NULL && localArray->sizes != callerArray->sizes) {
-                    csound->Free(csound, localArray->sizes);
-                  }
-                  
-                  // Now alias the caller's array
-                  memcpy(localArray, callerArray, sizeof(ARRAYDAT));
-                  localArray->allocated = 0;  // Mark as non-owning alias
+              if (isString) {
+                STRINGDAT *callerString = (STRINGDAT *)argPtr;
+                STRINGDAT *localString = (STRINGDAT *)(lcurip->lclbas + local_var->memBlockIndex);
+
+                if (localString->data != NULL && localString->data != callerString->data) {
+                  csound->Free(csound, localString->data);
                 }
 
-                if (isString) {
-                  STRINGDAT *callerString = (STRINGDAT *)argPtr;
-                  STRINGDAT *localString = (STRINGDAT *)(lcurip->lclbas + local_var->memBlockIndex);
-
-                  if (localString->data != NULL && localString->data != callerString->data) {
-                    csound->Free(csound, localString->data);
-                  }
-
-                  localString->data = callerString->data;
-                  localString->size = callerString->size;
-                  localString->timestamp = callerString->timestamp;
-                  localString->refcount = -1;
-                }
+                localString->data = callerString->data;
+                localString->size = callerString->size;
+                localString->timestamp = callerString->timestamp;
+                localString->refcount = -1;
               }
             }
           }
@@ -225,25 +211,22 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     }
   }
 
-  // Process xin/xout opcodes to map array parameters and mark xout variables
+  // Process xin/xout opcodes
   while (ichain != NULL) {
     OPTXT *optext = ichain->optext;
 
     if (strcmp("xin", optext->t.opcod) == 0) {
       ARGLST *outlist = optext->t.outlist;
 
-      // Map xin outputs (UDO inputs) - only arrays need pass-by-reference
       for (i = 0; i < outlist->count; i++) {
         char *varName = outlist->arg[i];
         if (!varName) continue;
 
-        // Determine if this xin output is an array
         CS_VARIABLE *cv = udoinfo && udoinfo->in_arg_pool ? udoinfo->in_arg_pool->head : NULL;
         for (int j = 0; j < i && cv; j++) cv = cv->next;
         int isArrayIn = (cv && cv->varType == &CS_VAR_TYPE_ARRAY);
 
         if (!isArrayIn && lcurip && lcurip->instr && lcurip->instr->varPool) {
-          // Fallback: check local variable pool
           CS_VARIABLE* vv = lcurip->instr->varPool->head;
           while (vv) {
             if (vv->varName && strcmp(vv->varName, varName) == 0) {
@@ -254,7 +237,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
           }
         }
 
-        // Only arrays need rewiring (scalars are passed by value through xin)
         if (isArrayIn && udoinfo && i < udoinfo->inchns) {
           MYFLT *callerArgPtr = p->ar[udoinfo->outchns + i];
           cs_hash_table_put(csound, arg_ptr_map, varName, callerArgPtr);
@@ -262,10 +244,19 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       }
     } else if (strcmp("xout", ichain->optext->t.opcod) == 0) {
       ARGLST *inlist = optext->t.inlist;
-      // Mark xout arguments to prevent rewiring (they're local variables)
       for (i = 0; i < inlist->count; i++) {
         char *varName = inlist->arg[i];
-        if (varName) {
+        if (!varName) continue;
+        
+        CS_VARIABLE *out_param = udoinfo && udoinfo->out_arg_pool ? udoinfo->out_arg_pool->head : NULL;
+        for (int j = 0; j < i && out_param; j++) out_param = out_param->next;
+        
+        // A-rate outputs use buffer pointers that can be aliased.
+        // I-rate and k-rate outputs are values transferred after init.
+        if (out_param && out_param->varType == &CS_VAR_TYPE_A && i < udoinfo->outchns) {
+          MYFLT *outputPtr = p->ar[i];
+          cs_hash_table_put(csound, arg_ptr_map, varName, outputPtr);
+        } else {
           cs_hash_table_put(csound, xout_skip_names, varName, (void*)1);
         }
       }
@@ -274,7 +265,6 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ichain = ichain->nxti;
   }
 
-  // Rewire references in both init and perf chains
   rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map, xout_skip_names);
   rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map, xout_skip_names);
 
@@ -430,114 +420,34 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-  // Check if UDO has a-rate outputs
-  int has_arate_output = 0;
-  if (buf->opcode_info->out_arg_pool) {
-    CS_VARIABLE *out_param = buf->opcode_info->out_arg_pool->head;
-    while (out_param) {
-      if (out_param->varType == &CS_VAR_TYPE_A) {
-        has_arate_output = 1;
-        break;
-      }
-      out_param = out_param->next;
-    }
-  }
-  
   inm->passByRef = buf->opcode_info->newStyle &&
     parent_ip->ksmps == p->ip->ksmps &&
-    parent_ip->esr == p->ip->esr &&
-    !has_arate_output;  // Disable pass-by-ref for UDOs with a-rate outputs
-
-  /* For pass-by-ref UDOs with arrays, copy the caller's ARRAYDAT structure
-   * into the UDO's local variables (the xin outputs, not the parameters).
-   * This makes all opcodes in the UDO see the caller's array data. */
-  if (inm->passByRef && lcurip->lclbas && lcurip->instr && lcurip->instr->varPool) {
-    // Find xin opcode to get the output variable names
-    for (OPDS* op = (OPDS*) lcurip->nxti; op != NULL; op = op->nxti) {
-      const char* oname = op->optext ? op->optext->t.oentry->opname : NULL;
-      if (oname && strcmp(oname, "xin") == 0) {
-        ARGLST *outlist = op->optext->t.outlist;
-        CS_VARIABLE *param = inm->in_arg_pool ? inm->in_arg_pool->head : NULL;
-
-        for (i = 0; i < outlist->count && i < inm->inchns && param; i++, param = param->next) {
-          char *varName = outlist->arg[i];
-          if (!varName) continue;
-
-          // Find this variable in the varpool
-          CS_VARIABLE* v = lcurip->instr->varPool->head;
-          while (v) {
-            if (v->varName && strcmp(v->varName, varName) == 0) {
-              if (v->varType == &CS_VAR_TYPE_ARRAY) {
-                // Get the caller's array
-                MYFLT *callerArgPtr = p->ar[inm->outchns + i];
-                ARRAYDAT *callerArray = (ARRAYDAT *)callerArgPtr;
-
-                // Get the UDO's local variable
-                ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + v->memBlockIndex);
-
-                // Free any existing local allocations before aliasing
-                if (localArray->data != NULL && localArray->data != callerArray->data) {
-                  csound->Free(csound, localArray->data);
-                }
-                if (localArray->sizes != NULL && localArray->sizes != callerArray->sizes) {
-                  csound->Free(csound, localArray->sizes);
-                }
-
-                // Copy the ARRAYDAT structure to make an alias
-                memcpy(localArray, callerArray, sizeof(ARRAYDAT));
-                // Mark as alias (doesn't own the data) to prevent double-free
-                localArray->allocated = 0;
-              }
-              break;
-            }
-            v = v->next;
-          }
-        }
-        break; // Found xin, no need to continue
-      }
-    }
-  }
-
-  /* Use pass-by-ref logic to rewire xin/xout pointers for scalars and arrays. */
-  handle_pass_by_ref(csound, p, lcurip);
-
-  /* NOTE: We do NOT call csoundReinitInstrumentArgpp here, because it would undo
-   * the argpp rewiring done by handle_pass_by_ref. The argpp values set by
-   * handle_pass_by_ref will be used directly by opcodes in the UDO. */
+    parent_ip->esr == p->ip->esr;
 
   if(inm->passByRef) {
+    handle_pass_by_ref(csound, p, lcurip);
 
-    /* For reference types (like InstrDef, strings, arrays), we need to initialize
-     * the UDO's local parameter memory with values from the caller, since pass-by-ref
-     * only wires up pointers for scalars. For arrays in pass-by-ref mode, we need to
-     * ensure the UDO's array variable points to the same ARRAYDAT as the caller. */
+    // Types with internal structure (structs, InstrDef) require initialization
+    // via their copyValue function to set up nested pointers and members.
     if (inm->in_arg_pool && lcurip->lclbas) {
       CS_VARIABLE *param = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns && param; i++) {
-        void *caller_arg = (void*)p->ar[inm->outchns + i];
-        void *param_mem = (void*)(lcurip->lclbas + param->memBlockIndex);
-
-        /* For arrays in pass-by-ref mode: NO COPY NEEDED.
-         * The xin/xout opcodes are already rewired to point directly to the caller's
-         * ARRAYDAT via the arg_ptr_map. The UDO's local parameter memory is not used.
-         * The caller's array is modified directly by opcodes inside the UDO. */
-        if (param->varType == &CS_VAR_TYPE_I ||
-            param->varType == &CS_VAR_TYPE_K ||
-            param->varType == &CS_VAR_TYPE_A ||
-            param->varType == &CS_VAR_TYPE_ARRAY) {
-          // No action needed - arrays use copy from above or direct pass-by-ref
-        }
-        /* For other reference types (strings, etc.): copy the structure */
-        else if (param->varType && param->varType->copyValue) {
+        if (param->varType && param->varType->copyValue &&
+            param->varType != &CS_VAR_TYPE_I &&
+            param->varType != &CS_VAR_TYPE_K &&
+            param->varType != &CS_VAR_TYPE_A &&
+            param->varType != &CS_VAR_TYPE_S &&
+            param->varType != &CS_VAR_TYPE_ARRAY) {
+          void *caller_arg = (void*)p->ar[inm->outchns + i];
+          void *param_mem = (void*)(lcurip->lclbas + param->memBlockIndex);
           param->varType->copyValue(csound, param->varType, param_mem, caller_arg, lcurip);
         }
-
         param = param->next;
       }
     }
   }
 
-  /* do init pass for this instr */
+  /* Initialize the UDO */
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   ATOMIC_SET(p->ip->init_done, 0);
@@ -757,43 +667,6 @@ int32_t xinset(CSOUND *csound, XIN *p)
                     buf);
 }
 
-// Performance routine for xout in pass-by-reference mode
-int32_t xout_perf_passByRef(CSOUND *csound, XOUT *p)
-{
-  OPCOD_IOBUFS  *buf;
-  OPCODINFO   *inm;
-  UOPCODE  *udo;
-  int32_t i;
-  CS_VARIABLE* cur = NULL;
-
-  buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
-  inm = buf->opcode_info;
-  udo = (UOPCODE*) buf->uopcode_struct;
-  cur = inm->out_arg_pool ? inm->out_arg_pool->head : NULL;
-
-  // Copy values from xout arguments to UDO output arguments
-  for (i = 0; i < inm->outchns; i++) {
-    void *src = (void*)p->args[i];  // xout argument
-    void *dst = (void*)udo->ar[i];  // UDO output argument
-    const CS_TYPE* vtype = cur ? cur->varType : NULL;
-
-    if (src && dst) {
-      if (vtype == &CS_VAR_TYPE_ARRAY) {
-        // Type-aware array copy (also initialises uninitialised dest arrays)
-        CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY, dst, src, p->h.insdshead);
-      } else if (vtype == &CS_VAR_TYPE_S) {
-        // String value copy
-        CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, dst, src, p->h.insdshead);
-      } else {
-        // Default scalar behaviour
-        *((MYFLT*)dst) = *((MYFLT*)src);
-      }
-    }
-    if (cur) cur = cur->next;
-  }
-  return OK;
-}
-
 int32_t xoutset(CSOUND *csound, XOUT *p)
 {
   OPCOD_IOBUFS  *buf;
@@ -811,31 +684,29 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
   bufs = udo->ar;
-  tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
-  // for copying at perf-time
+  tmp = buf->iobufp_ptrs;
   current = inm->out_arg_pool->head;
+
+  if(inm->passByRef) {
+    return OK;
+  }
 
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
     void* out = (void*) bufs[i];
 
-    // Record original source for potential later use in useropcdset
     tmp[i] = in;
 
-    // Decide how to transfer values/pointers
     const CS_TYPE* outType = csoundGetTypeForArg(out);
 
-    // Arrays: alias pointer (no deep copy). Ensure external output points to local header.
     if (outType == &CS_VAR_TYPE_ARRAY) {
       *((void**)out) = in;
       continue;
     }
-    // Scalars and strings: copy by value; strings deep copy
     else if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
-      // initialise the converter
       if(CS_ESR != parent_sr) {
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, CS_KSMPS)) == 0)
@@ -844,7 +715,6 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
       }
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
-      // initialise the converter
       if(CS_ESR != parent_sr) {
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, 1)) == 0)
@@ -861,11 +731,6 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
                                  "as UDO arguments when using under/oversampling\n");
     }
     current = current->next;
-  }
-
-  // Assign performance function for pass-by-reference mode
-  if (inm->passByRef) {
-    p->h.perf = (SUBR) xout_perf_passByRef;
   }
 
   return OK;
