@@ -38,12 +38,12 @@ int32_t sflib_command(void *handle, int32_t cmd, void *data, int32_t datasize)  
 
 void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc) {
       SNDFILE *handle;
-      SF_INFO info;
-      if(mode == SFM_WRITE) {
-        info.samplerate = sfinfo->samplerate;
-        info.channels = sfinfo->channels;
-        info.format = sfinfo->format;
-      }
+      SF_INFO info = {
+        .samplerate = sfinfo->samplerate,
+        .channels = sfinfo->channels,
+        .format = sfinfo->format,
+        .frames = sfinfo->frames,
+      };
       handle = sf_open_fd(fd, mode, &info, close_desc);
       if(mode == SFM_READ) {
         sfinfo->samplerate = info.samplerate;
