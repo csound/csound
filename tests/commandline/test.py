@@ -309,6 +309,7 @@ def runTest():
             "-odac -d -+rtaudio=dummy",
         ],
         ["test_named_instr_ramps.csd", "test named instrument ramps"],
+        ["test_gen01.csd", "testing GEN01 importing files"],
     ]
 
     arrayTests = [
