@@ -11,6 +11,8 @@ nchnls	= 2
 
 #include "../libassert.orc"
 
+struct TestStruct member1:i
+
 // increments the value in the passed-in pointer
 opcode incr(ival):void
     print ival
@@ -34,6 +36,16 @@ endop
 opcode factorial(icount):i
     iout = (icount <= 1) ? 1 : icount * factorial(icount - 1)
     xout iout
+endop
+
+opcode incrArray(iArr[]):void
+    iArr[0] += 10
+    iArr[1] += 20
+endop
+
+
+opcode incrK(kval):void
+    kval += 3
 endop
 
 
@@ -76,6 +88,32 @@ instr 1
 endin
 
 
+instr 2
+    iArr[] init 2
+    iArr[0] = 1
+    iArr[1] = 2
+
+    incrArray(iArr)
+
+    if (iArr[0] != 11 || iArr[1] != 22) then
+        prints("ERROR: Pass-by-reference failed for incrArray(). iArr[0]=%g, iArr[1]=%g\n", iArr[0], iArr[1])
+        exitnow(-1)
+    endif
+endin
+
+
+instr 3
+    ts:TestStruct init 10
+
+    incr(ts.member1)
+
+    if (ts.member1 != 11) then
+        prints("ERROR: Pass-by-reference failed for TestStruct. member1=%g\n", ts.member1)
+        exitnow(-1)
+    endif
+endin
+
+
 opcode sound(iamp, ifreq):a
     aout = oscili(iamp, ifreq)
     if(ifreq < sr/2) then
@@ -96,6 +134,8 @@ endin
 </CsInstruments>
 <CsScore>
 i1 0 1
+i2 0 1
+i3 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25

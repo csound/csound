@@ -239,54 +239,11 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
             cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
           }
 
-          // For arrays and strings, alias the caller's data structures
-          if (lcurip->lclbas) {
-            // Positional lookup in varPool
-            CS_VARIABLE *local_var = NULL;
-            if (lcurip->instr && lcurip->instr->varPool) {
-              CS_VARIABLE *v = lcurip->instr->varPool->head;
-              for (int j = 0; j < i && v; j++) {
-                v = v->next;
-              }
-              if (v) {
-                local_var = v;
-              }
-            }
-
-            if (local_var) {
-              int isArray = (param->varType == &CS_VAR_TYPE_ARRAY);
-              int isString = (param->varType == &CS_VAR_TYPE_S);
-
-              if (isArray) {
-                ARRAYDAT *callerArray = (ARRAYDAT *)argPtr;
-                ARRAYDAT *localArray = (ARRAYDAT *)(lcurip->lclbas + local_var->memBlockIndex);
-
-                if (localArray->data != NULL && localArray->data != callerArray->data) {
-                  csound->Free(csound, localArray->data);
-                }
-                if (localArray->sizes != NULL && localArray->sizes != callerArray->sizes) {
-                  csound->Free(csound, localArray->sizes);
-                }
-
-                memcpy(localArray, callerArray, sizeof(ARRAYDAT));
-                localArray->allocated = 0;
-              }
-
-              if (isString) {
-                STRINGDAT *callerString = (STRINGDAT *)argPtr;
-                STRINGDAT *localString = (STRINGDAT *)(lcurip->lclbas + local_var->memBlockIndex);
-
-                if (localString->data != NULL && localString->data != callerString->data) {
-                  csound->Free(csound, localString->data);
-                }
-
-                localString->data = callerString->data;
-                localString->size = callerString->size;
-                localString->timestamp = callerString->timestamp;
-                localString->refcount = -1;
-              }
-            }
-          }
+          // Note: We don't need to do any special aliasing for arrays/strings here.
+          // The rewire_chain_arguments() function will rewire all opcodes that use
+          // these variables to point directly to the caller's memory.
+          // Any descriptor copying is unnecessary since opcodes get their pointers
+          // updated by rewire_argpp().
         }
       }
       param = param->next;
