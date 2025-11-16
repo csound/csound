@@ -49,6 +49,11 @@ opcode incrK(kval):void
 endop
 
 
+opcode incrExpr(ival):(i,i)
+    xout ival + 1, ival + 2
+endop
+
+
 instr 1
     iv = 33
     iv2 = 77
@@ -60,6 +65,8 @@ instr 1
     print iv2
     iv3 = incr2(iv2)
     print iv2, iv3
+
+    iExpr1, iExpr2 = incrExpr(iv)
 
     ; Test pass-by-reference: iv should be modified from 33 to 34
     if(iv != 34) then
@@ -76,6 +83,11 @@ instr 1
     ; Test return value: iv3 should be 22
     if(iv3 != 22) then
         prints("ERROR: Return value failed for incr2(). iv3 was %g, expected 22\n", iv3)
+        exitnow(-1)
+    endif
+
+    if(iExpr1 != 35 || iExpr2 != 36) then
+        prints("ERROR: xout expression failed for incrExpr(). iExpr1=%g, iExpr2=%g\n", iExpr1, iExpr2)
         exitnow(-1)
     endif
 
