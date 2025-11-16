@@ -10,26 +10,7 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from queue import Queue
-import argparse
 
-
-# test_ui = False
-
-# try:
-#     # Python 3
-#     from tkinter import *
-#     from testUI import TestApplication
-#     test_ui = True
-# except:
-#     try:
-#     # Python 2
-#      from Tkinter import *
-#      from testUI import TestApplication
-#      test_ui = True
-#     except:
-#      pass
-
-# showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable = ""
 sourceDirectory = "."
@@ -317,15 +298,6 @@ def run_tests_sequential(tests, run_args, result_callback=None):
     return results
 
 
-# def showUI(results):
-#     if test_ui is True:
-#      root = Tk()
-#      app = TestApplication(master=root)
-#      app.setResults(results)
-#      app.mainloop()
-#      root.destroy()
-
-
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
 
@@ -355,13 +327,18 @@ EXAMPLES:
     print(message)
 
 
+def get_actual_workers():
+    """Helper function to get actual worker count."""
+    import multiprocessing
+    return max_workers if max_workers else multiprocessing.cpu_count()
+
+
 def runTest():
     runArgs = "-nd"  # "-Wdo test.wav"
 
     print("Testing with Csound")
 
-    import multiprocessing
-    actual_workers = max_workers if max_workers else multiprocessing.cpu_count()
+    actual_workers = get_actual_workers()
 
     if actual_workers == 1:
         print("Running tests in SEQUENTIAL mode (workers=1)")
@@ -717,7 +694,6 @@ def runTest():
     tests += pfieldTests
 
     output = ""
-    tempfile = "csound_test_output.txt"
 
     retVals = []
 
@@ -803,8 +779,7 @@ def runTest():
         print("[FAILED TESTS]\n\n%s" % testFailMessages)
 
     # Log execution summary
-    import multiprocessing
-    actual_workers = max_workers if max_workers else multiprocessing.cpu_count()
+    actual_workers = get_actual_workers()
     avg_time_per_test = total_execution_time / len(tests) if tests else 0
 
     if actual_workers == 1:
@@ -827,8 +802,6 @@ if __name__ == "__main__":
             if arg == "--help":
                 showHelp()
                 sys.exit(0)
-            # elif arg == "--show-ui":
-            #     showUIatClose = True
             elif arg == "--verbose":
                 verbose_logging = True
                 # Reconfigure logging with verbose level
@@ -866,5 +839,3 @@ if __name__ == "__main__":
 
     results = runTest()
     sys.exit(results)
-    # if (showUIatClose):
-    #     showUI(results)
