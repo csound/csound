@@ -27,6 +27,7 @@
 #include "csound_data_structures.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "csound_orc_structs.h"
 #include "namedins.h"
 #include "cs_internal.h"
 
@@ -34,9 +35,64 @@
 extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
 
 /* Helper to rewire an opcode argument pointer to pass-by-ref location */
-static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index, MYFLT *argPtr) {
+static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
+                                MYFLT *argPtr, const char *structPath) {
   OENTRY *ep = chain->optext->t.oentry;
-  // The opcode structure consists of OPDS header followed by argument pointer fields.
+  MYFLT *target_ptr = argPtr;
+
+  // If there's a struct path, navigate from base pointer to member
+  if (structPath != NULL && *structPath != '\0') {
+    // Use stack buffer for path parsing (max 256 chars for struct paths)
+    char pathBuf[256];
+    size_t pathLen = strlen(structPath);
+    if (pathLen >= sizeof(pathBuf)) {
+      pathLen = sizeof(pathBuf) - 1;
+    }
+    memcpy(pathBuf, structPath, pathLen);
+    pathBuf[pathLen] = '\0';
+
+    // Parse path manually without strtok (to avoid strtok state issues)
+    const char *p = pathBuf;
+    char memberName[64];
+
+    while (*p != '\0' && target_ptr != NULL) {
+      // Extract next member name (up to '.' or end)
+      size_t nameLen = 0;
+      while (*p != '\0' && *p != '.' && nameLen < sizeof(memberName) - 1) {
+        memberName[nameLen++] = *p++;
+      }
+      memberName[nameLen] = '\0';
+
+      if (nameLen == 0) break;
+
+      // Navigate to this member
+      CS_TYPE *type = csoundGetTypeForArg(target_ptr);
+      CS_STRUCT_VAR *structVar = (CS_STRUCT_VAR*)target_ptr;
+
+      if (type == NULL || structVar == NULL || structVar->members == NULL) {
+        break;
+      }
+
+      CONS_CELL *members = type->members;
+      int i = 0;
+      int found = 0;
+      while (members != NULL) {
+        CS_VARIABLE *member = (CS_VARIABLE*)members->value;
+        if (!strcmp(member->varName, memberName)) {
+          target_ptr = &(structVar->members[i]->value);
+          found = 1;
+          break;
+        }
+        i++;
+        members = members->next;
+      }
+
+      if (!found) break;
+
+      // Skip the '.' if present
+      if (*p == '.') p++;
+    }
+  }  // The opcode structure consists of OPDS header followed by argument pointer fields.
   // We need to update the structure field at the given index.
   // Structure layout: OPDS | ptr0 | ptr1 | ptr2 | ...
   // So field at index i is at offset: sizeof(OPDS) + i * sizeof(void*)
@@ -44,7 +100,7 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index, MYFL
   if (ep->useropinfo == NULL) {
     // Regular opcode - update the structure field directly
     void **fieldPtr = (void**)((char*)chain + sizeof(OPDS) + index * sizeof(void*));
-    *fieldPtr = (void*)argPtr;
+    *fieldPtr = (void*)target_ptr;
   } else {
     // UDO - use the ar array
     UOPCODE *uop = (UOPCODE*)chain;
@@ -61,7 +117,7 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index, MYFL
       return; // Bail out instead of writing to prevent overflow
     }
 
-    uop->ar[index] = argPtr;
+    uop->ar[index] = target_ptr;
   }
 }
 
@@ -81,31 +137,56 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
 
     // Rewire output arguments
     if (outlist != NULL) {
-      for (int i = 0; i < outlist->count; i++) {
+      ARG *arg = optext->t.outArgs;
+      for (int i = 0; i < outlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = outlist->arg[i];
         if (!varName) continue;
         if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
           continue;
         }
-        MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
+
+        // Get base variable name (without struct path)
+        char *baseName = varName;
+        char *dot = strchr(varName, '.');
+        if (dot != NULL) {
+          int len = dot - varName;
+          baseName = (char*)alloca(len + 1);
+          strncpy(baseName, varName, len);
+          baseName[len] = '\0';
+        }
+
+        MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, baseName);
         if (argPtr != NULL) {
-          rewire_argpp(csound, chain, i, argPtr);
+          rewire_argpp(csound, chain, i, argPtr, arg ? arg->structPath : NULL);
         }
       }
     }
 
     // Rewire input arguments
     if (inlist != NULL) {
-      for (int i = 0; i < inlist->count; i++) {
+      ARG *arg = optext->t.inArgs;
+      for (int i = 0; i < inlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = inlist->arg[i];
         if (!varName) continue;
         if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
           continue;
         }
-        MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, varName);
+
+        // Get base variable name (without struct path)
+        char *baseName = varName;
+        char *dot = strchr(varName, '.');
+        if (dot != NULL) {
+          int len = dot - varName;
+          baseName = (char*)alloca(len + 1);
+          strncpy(baseName, varName, len);
+          baseName[len] = '\0';
+        }
+
+        MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, baseName);
         if (argPtr != NULL) {
           int32_t actual_outcount = (outlist != NULL) ? outlist->count : 0;
-          rewire_argpp(csound, chain, actual_outcount + i, argPtr);
+          rewire_argpp(csound, chain, actual_outcount + i, argPtr,
+                       arg ? arg->structPath : NULL);
         }
       }
     }
@@ -115,7 +196,7 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
 }
 
 /* Wire UDO arguments to caller locations for pass-by-reference.
- * 
+ *
  * Input parameters are mapped to caller argument locations. Arrays and strings
  * share the caller's data structures. For outputs, a-rate variables use buffer
  * pointer aliasing, while i-rate and k-rate values are transferred after init.
@@ -247,10 +328,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
       for (i = 0; i < inlist->count; i++) {
         char *varName = inlist->arg[i];
         if (!varName) continue;
-        
+
         CS_VARIABLE *out_param = udoinfo && udoinfo->out_arg_pool ? udoinfo->out_arg_pool->head : NULL;
         for (int j = 0; j < i && out_param; j++) out_param = out_param->next;
-        
+
         // A-rate outputs use buffer pointers that can be aliased.
         // I-rate and k-rate outputs are values transferred after init.
         if (out_param && out_param->varType == &CS_VAR_TYPE_A && i < udoinfo->outchns) {
@@ -426,25 +507,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   if(inm->passByRef) {
     handle_pass_by_ref(csound, p, lcurip);
-
-    // Types with internal structure (structs, InstrDef) require initialization
-    // via their copyValue function to set up nested pointers and members.
-    if (inm->in_arg_pool && lcurip->lclbas) {
-      CS_VARIABLE *param = inm->in_arg_pool->head;
-      for (i = 0; i < inm->inchns && param; i++) {
-        if (param->varType && param->varType->copyValue &&
-            param->varType != &CS_VAR_TYPE_I &&
-            param->varType != &CS_VAR_TYPE_K &&
-            param->varType != &CS_VAR_TYPE_A &&
-            param->varType != &CS_VAR_TYPE_S &&
-            param->varType != &CS_VAR_TYPE_ARRAY) {
-          void *caller_arg = (void*)p->ar[inm->outchns + i];
-          void *param_mem = (void*)(lcurip->lclbas + param->memBlockIndex);
-          param->varType->copyValue(csound, param->varType, param_mem, caller_arg, lcurip);
-        }
-        param = param->next;
-      }
-    }
+    // No copyValue needed - rewiring with struct path navigation handles everything
   }
 
   /* Initialize the UDO */
