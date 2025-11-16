@@ -546,7 +546,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     if(*types == ':') {
       types++;
       char typeName[64] = {0};
-      size_t end = types - strchr(types, ';');
+      size_t end = strchr(types, ';') - types;
       memcpy(typeName, types, end);
       argtype = check_arg_type(args[n], cstypes, n);
       if(*(types+end+1) != '[' && strncmp(argtype->varTypeName,
@@ -1019,7 +1019,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(*types == ':') {
         types++;
         char typeName[64] = {0};
-        size_t end = types - strchr(types, ';');
+        size_t end = strchr(types, ';') - types;
         memcpy(typeName, types, end);
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
@@ -1162,7 +1162,7 @@ int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
  */
 void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
   obj->dataspace->optext->t.linenum = p->h.optext->t.linenum;
-  obj->dataspace->optext->t.linenum = p->h.optext->t.locn;
+  obj->dataspace->optext->t.locn = p->h.optext->t.locn;
 }
 
 /**
@@ -1509,7 +1509,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       argmem->varType = types[m];
       args[m] = &argmem->value;
       // copy array args data in - but not k or a vars
-      if(types[m] != &CS_VAR_TYPE_K ||
+      if(types[m] != &CS_VAR_TYPE_K &&
          types[m] != &CS_VAR_TYPE_A)
          memcpy(&argmem->value, data+i*size, size);
       //printf("arg[%d] %f %d \n", i, argmem->value, j);
@@ -1532,7 +1532,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
             char *data = (char *) array->data; // copy loc pointer to args
             argmem = (CS_VAR_MEM *) mem[ndx].auxp;
             // copy array args data out - but not k or a vars
-           if(array->arrayType != &CS_VAR_TYPE_K ||
+           if(array->arrayType != &CS_VAR_TYPE_K &&
              array->arrayType != &CS_VAR_TYPE_A) 
              memcpy(data+i*size, &argmem->value, size); 
              }

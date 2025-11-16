@@ -987,15 +987,15 @@ static void reassign_perf(CSOUND *csound, OSC *p) {
   } else {  // oscil3
    if(IS_ASIG_ARG(p->sr)) {
     if(IS_ASIG_ARG(p->xamp) && IS_ASIG_ARG(p->xcps)) // aa
-      p->h.perf = (SUBR) poscaa;
+      p->h.perf = (SUBR) posc3aa;
     else if(IS_ASIG_ARG(p->xamp)) // ak
-      p->h.perf = (SUBR) poscak;
+      p->h.perf = (SUBR) posc3ak;
     else if(IS_ASIG_ARG(p->xcps)) // ka
-      p->h.perf = (SUBR) poscka;
+      p->h.perf = (SUBR) posc3ka; 
     else // kk
-      p->h.perf = (SUBR) posckk;
-  } else // kosc
-    p->h.perf = (SUBR) kposc;
+      p->h.perf = (SUBR) posc3kk;
+  } else // kosc 
+    p->h.perf = (SUBR) kposc3;
   }
 }
 

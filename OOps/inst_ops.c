@@ -348,7 +348,7 @@ static int32_t splice_before_instance(CSOUND *csound,
 static int32_t splice_after_instance(CSOUND *csound,
                                   INSDS *ip, INSDS *ipprev){
   INSDS *nxtp;
-  if(ip != NULL) return CSOUND_ERROR;
+  if(ip == NULL) return CSOUND_ERROR;
   if(ip->prvact != NULL) {
     // unlink first
     ip->prvact->nxtact = ip->nxtact;
