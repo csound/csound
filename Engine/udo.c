@@ -31,6 +31,30 @@
 #include "namedins.h"
 #include "cs_internal.h"
 
+// count args in string types arg
+static int32_t count_args(const char *args) {
+  int32_t count = 0;
+  while(*args != '\0') {
+    if(*args != ':') {
+      if(*args == '[') args+=2;
+      else {
+      args++;
+      count++;
+      }
+    }
+    else {
+      while(*args != ';') {
+        if(*args == '[') args+=2;
+        else args++;
+      }
+      count++;
+      args++;
+    }
+  }
+  return count;
+}
+
+
 /* Forward declaration from insert.c */
 extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
 
@@ -185,7 +209,9 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
 
         MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, baseName);
         if (argPtr != NULL) {
-          int32_t actual_outcount = (outlist != NULL) ? outlist->count : 0;
+          // number of arguments needs to be counted - to accommodate
+          // opcodes with variable number of outputs from outypes
+          int32_t actual_outcount = count_args(optext->t.oentry->outypes);
           rewire_argpp(csound, chain, actual_outcount + i, argPtr,
                        arg ? arg->structPath : NULL);
         }
