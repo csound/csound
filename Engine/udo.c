@@ -150,7 +150,7 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
         char *baseName = varName;
         char *dot = strchr(varName, '.');
         if (dot != NULL) {
-          int len = dot - varName;
+          int len = (int) (dot - varName);
           baseName = (char*)alloca(len + 1);
           strncpy(baseName, varName, len);
           baseName[len] = '\0';
@@ -177,7 +177,7 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
         char *baseName = varName;
         char *dot = strchr(varName, '.');
         if (dot != NULL) {
-          int len = dot - varName;
+          int len = (int) (dot - varName);
           baseName = (char*)alloca(len + 1);
           strncpy(baseName, varName, len);
           baseName[len] = '\0';
