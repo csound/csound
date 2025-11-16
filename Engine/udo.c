@@ -129,7 +129,8 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
     ARGLST *outlist = optext->t.outlist;
     ARGLST *inlist = optext->t.inlist;
 
-    // Skip xin and xout opcodes
+    // Skip xin and xout opcodes - they're no-ops in pass-by-ref mode
+    // (xout variables are already mapped to caller outputs in handle_pass_by_ref)
     if (strcmp(optext->t.opcod, "xin") == 0 || strcmp(optext->t.opcod, "xout") == 0) {
       chain = is_perf_chain ? chain->nxtp : chain->nxti;
       continue;
@@ -324,22 +325,16 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
         }
       }
     } else if (strcmp("xout", ichain->optext->t.opcod) == 0) {
+      // For xout, map the output variables to caller's output locations
+      // so that all uses/assignments of these variables write to caller's memory
       ARGLST *inlist = optext->t.inlist;
-      for (i = 0; i < inlist->count; i++) {
+      for (i = 0; i < inlist->count && i < udoinfo->outchns; i++) {
         char *varName = inlist->arg[i];
         if (!varName) continue;
 
-        CS_VARIABLE *out_param = udoinfo && udoinfo->out_arg_pool ? udoinfo->out_arg_pool->head : NULL;
-        for (int j = 0; j < i && out_param; j++) out_param = out_param->next;
-
-        // A-rate outputs use buffer pointers that can be aliased.
-        // I-rate and k-rate outputs are values transferred after init.
-        if (out_param && out_param->varType == &CS_VAR_TYPE_A && i < udoinfo->outchns) {
-          MYFLT *outputPtr = p->ar[i];
-          cs_hash_table_put(csound, arg_ptr_map, varName, outputPtr);
-        } else {
-          cs_hash_table_put(csound, xout_skip_names, varName, (void*)1);
-        }
+        // Map this variable to caller's output location
+        MYFLT *outputPtr = p->ar[i];
+        cs_hash_table_put(csound, arg_ptr_map, varName, outputPtr);
       }
     }
 
@@ -527,10 +522,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
 
   /* After init chain completes, ensure UDO outputs are materialised into caller vars.
-     - For pass-by-copy: use the internal_ptrs recorded by xoutset
-     - For pass-by-ref: as a safety net, locate the xout opcode inside the UDO and copy
-       its argument values into the caller outputs now (init-time). */
-  {
+     This is only needed for pass-by-copy mode. In pass-by-ref mode, xout is rewired
+     to write directly to caller's output locations, so no post-init copying is needed. */
+  if (!inm->passByRef) {
     OPCOD_IOBUFS *buf_local = p->buf;
     OPCODINFO *inm_local = buf_local->opcode_info;
     CS_VARIABLE* cur = inm_local->out_arg_pool ? inm_local->out_arg_pool->head : NULL;
@@ -551,18 +545,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     for (i = 0; i < inm_local->outchns && cur; i++) {
       void* src = NULL;
       void* dst = (void*)external_ptrs[i];
-      if (!inm->passByRef) {
-        src = (void*)internal_ptrs[i];
-        if (src == NULL && xout_node)
-          src = (void*)xout_node->args[i]; // prefer xout arg (local var)
-        if (src == NULL && udo_out_ptrs)
-          src = (void*)udo_out_ptrs[i]; // fallback: UDO's declared OUT var memory
-      } else {
-        if (xout_node)
-          src = (void*)xout_node->args[i];
-        if (src == NULL && udo_out_ptrs)
-          src = (void*)udo_out_ptrs[i]; // safety net
-      }
+      src = (void*)internal_ptrs[i];
+      if (src == NULL && xout_node)
+        src = (void*)xout_node->args[i]; // prefer xout arg (local var)
+      if (src == NULL && udo_out_ptrs)
+        src = (void*)udo_out_ptrs[i]; // fallback: UDO's declared OUT var memory
+
       // If array out still unresolved or aliased to dst, try to locate a concrete local array to copy from
       if ((src == NULL || src == dst) && dst && cur->varType == &CS_VAR_TYPE_ARRAY && lcurip && lcurip->instr && lcurip->instr->varPool && lcurip->lclbas) {
         const CS_TYPE* wantedSubType = cur ? cur->subType : NULL;
