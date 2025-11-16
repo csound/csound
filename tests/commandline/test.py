@@ -5,6 +5,12 @@
 
 import os
 import sys
+import threading
+import logging
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from queue import Queue
+import argparse
 
 
 # test_ui = False
@@ -23,12 +29,31 @@ import sys
 #     except:
 #      pass
 
-parserType = ""
 # showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable = ""
 sourceDirectory = "."
 runtimeEnvironment = None
+
+# Parallel execution configuration
+enable_parallel = True  # Default to parallel execution
+max_workers = None  # None = auto-detect based on CPU count
+test_timeout = 300  # 5 minutes timeout per test
+verbose_logging = False
+
+# Setup logging for parallel execution
+def setup_logging():
+    """Setup logging configuration for parallel test execution."""
+    level = logging.DEBUG if verbose_logging else logging.INFO
+
+    logging.basicConfig(
+        level=level,
+        format='%(asctime)s - %(threadName)s - %(levelname)s - %(message)s',
+        datefmt='%H:%M:%S'
+    )
+    return logging.getLogger('csound_tests')
+
+logger = setup_logging()
 
 
 class Test:
@@ -36,6 +61,260 @@ class Test:
         self.fileName = fileName
         self.description = description
         self.expected = expected
+
+
+class TestResult:
+    """Container for test execution results with ordering information."""
+    def __init__(self, test_index, test_data, return_code, cs_output, execution_time, error=None):
+        self.test_index = test_index
+        self.test_data = test_data
+        self.return_code = return_code
+        self.cs_output = cs_output
+        self.execution_time = execution_time
+        self.error = error
+        self.filename = test_data[0]
+        self.description = test_data[1]
+        self.expected_result = (len(test_data) == 3) and 1 or 0
+
+    @property
+    def passed(self):
+        """Check if test passed based on return code and expected result."""
+        return (self.return_code == 0) == (self.expected_result == 0)
+
+    @property
+    def status_line(self):
+        """Generate status line for test output."""
+        if self.passed:
+            return "[pass] - "
+        else:
+            return "[FAIL] - "
+
+    def get_formatted_output(self, counter, verbose=False):
+        """Get formatted output for this test result."""
+        status = self.status_line
+        output = f"{status}Test {counter}: {self.description} ({self.filename})\n"
+        output += f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
+        if self.error:
+            output += f"\tError: {self.error}\n"
+        if verbose and self.execution_time:
+            output += f"\tExecution Time: {self.execution_time:.2f}s\n"
+        return output
+
+
+def execute_single_test(test_index, test_data, run_args, temp_file):
+    """
+    Execute a single Csound test and return the result.
+
+    Args:
+        test_index: Index of the test in the original test list
+        test_data: Test data tuple [filename, description, optional_expected_result]
+        run_args: Arguments to pass to csound
+        temp_file: Temporary file for csound output
+
+    Returns:
+        TestResult object containing execution results
+    """
+    filename = test_data[0]
+    desc = test_data[1]
+
+    logger.debug(f"Starting test {test_index + 1}: {filename} - {desc}")
+    start_time = time.time()
+
+    try:
+        # Prepare command based on OS
+        if os.sep == "\\" or os.name == "nt":
+            executable = (
+                (csoundExecutable == "")
+                and os.path.join("..", "csound.exe")
+                or csoundExecutable
+            )
+        else:
+            executable = (csoundExecutable == "") and "csound" or csoundExecutable
+
+        if runtimeEnvironment:
+            executable = f"{runtimeEnvironment} {executable}"
+
+        # Use temp file for stderr capture (like the original implementation)
+        command = f"{executable} {run_args} {sourceDirectory}/{filename} 2> {temp_file}"
+
+        logger.debug(f"Executing command: {command}")
+
+        # Execute the command with timeout using subprocess.run
+        # (subprocess.run already handles WIFEXITED properly, unlike os.system)
+        import subprocess
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                timeout=test_timeout,
+                capture_output=True,
+                text=True
+            )
+            return_code = result.returncode
+
+            # For backward compatibility with os.system behavior,
+            # if we were using os.system we would need WIFEXITED:
+            # if hasattr(os, 'WIFEXITED') and os.WIFEXITED(return_code):
+            #     return_code = os.WEXITSTATUS(return_code)
+            # But subprocess.run already gives us the proper exit status
+
+        except subprocess.TimeoutExpired:
+            logger.error(f"Test {filename} timed out after {test_timeout} seconds")
+            return TestResult(
+                test_index, test_data, -1, "", test_timeout,
+                error=f"Test timed out after {test_timeout} seconds"
+            )
+
+        # Read csound output from temp file (stderr)
+        cs_output = ""
+        try:
+            with open(temp_file, "r") as f:
+                cs_output = f.read()
+        except IOError as e:
+            logger.warning(f"Could not read temp file {temp_file}: {e}")
+
+        # Also capture stdout if available (for complete test output like CI/CD systems)
+        if result.stdout:
+            cs_output += "\n[STDOUT CAPTURED]:\n" + result.stdout
+
+        execution_time = time.time() - start_time
+
+        logger.debug(f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s")
+
+        return TestResult(test_index, test_data, return_code, cs_output, execution_time)
+
+    except Exception as e:
+        execution_time = time.time() - start_time
+        logger.error(f"Exception in test {filename}: {e}")
+        return TestResult(
+            test_index, test_data, -1, "", execution_time,
+            error=f"Exception: {str(e)}"
+        )
+
+
+def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
+    """
+    Run tests in parallel using ThreadPoolExecutor.
+
+    Args:
+        tests: List of test data tuples
+        run_args: Arguments to pass to csound
+        max_workers: Maximum number of worker threads (None for auto-detect)
+        result_callback: Function to call when each test completes (for collecting results)
+
+    Returns:
+        List of TestResult objects ordered by original test index
+    """
+    if max_workers is None:
+        import multiprocessing
+        max_workers = min(multiprocessing.cpu_count(), len(tests))
+
+    # Check if workers=1 for sequential execution
+    if max_workers == 1:
+        logger.info(f"Running {len(tests)} tests sequentially (workers=1)")
+        return run_tests_sequential(tests, run_args, result_callback)
+
+    logger.info(f"Running {len(tests)} tests in parallel with {max_workers} workers")
+
+    # Create unique temp files for each worker to avoid conflicts
+    temp_files = [f"csound_test_output_{threading.get_ident()}_{i}.txt" for i in range(max_workers)]
+    temp_file_queue = Queue()
+    for temp_file in temp_files:
+        temp_file_queue.put(temp_file)
+
+    results = [None] * len(tests)
+
+    def worker_with_temp_file(test_index_and_data):
+        """Worker function that manages temp file allocation."""
+        test_index, test_data = test_index_and_data
+        temp_file = temp_file_queue.get()
+        try:
+            return execute_single_test(test_index, test_data, run_args, temp_file)
+        finally:
+            temp_file_queue.put(temp_file)
+
+    # Execute tests in parallel
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tests
+        future_to_index = {
+            executor.submit(worker_with_temp_file, (i, test)): i
+            for i, test in enumerate(tests)
+        }
+
+        # Collect results as they complete
+        completed_count = 0
+        for future in as_completed(future_to_index):
+            original_index = future_to_index[future]
+            try:
+                result = future.result()
+                results[original_index] = result
+                completed_count += 1
+
+                # Call result callback if provided (for collecting data, not immediate printing)
+                if result_callback:
+                    result_callback(result, completed_count)
+
+                # Show simple progress indicator
+                if completed_count % 10 == 0 or completed_count == len(tests):
+                    logger.info(f"Completed {completed_count}/{len(tests)} tests")
+
+            except Exception as e:
+                logger.error(f"Test {original_index} generated an exception: {e}")
+                # Create a failure result for this test
+                test_data = tests[original_index]
+                result = TestResult(
+                    original_index, test_data, -1, "", 0,
+                    error=f"Execution exception: {str(e)}"
+                )
+                results[original_index] = result
+                completed_count += 1
+
+                # Call result callback for failed tests as well
+                if result_callback:
+                    result_callback(result, completed_count)
+
+    # Clean up temp files
+    for temp_file in temp_files:
+        try:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+        except OSError:
+            pass
+
+    return results
+
+
+def run_tests_sequential(tests, run_args, result_callback=None):
+    """
+    Run tests sequentially (original behavior).
+
+    Args:
+        tests: List of test data tuples
+        run_args: Arguments to pass to csound
+        result_callback: Function to call when each test completes (for collecting results)
+
+    Returns:
+        List of TestResult objects ordered by original test index
+    """
+    results = []
+    tempfile = "csound_test_output.txt"
+
+    for test_index, test_data in enumerate(tests):
+        result = execute_single_test(test_index, test_data, run_args, tempfile)
+        results.append(result)
+
+        # Call result callback if provided
+        if result_callback:
+            result_callback(result, test_index + 1)
+
+    # Clean up the temp file
+    try:
+        if os.path.exists(tempfile):
+            os.remove(tempfile)
+    except OSError:
+        pass
+
+    return results
 
 
 # def showUI(results):
@@ -50,16 +329,26 @@ class Test:
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
 
-    Runs tests using new parser and shows return values of tests. Results
-    are written to results.txt file.  To show the results using a UI, pass
-    in the command "--show-ui" like so:
+    Runs tests and shows return values of tests. Results are written to
+    results.txt file.
 
-    ./test.py --show-ui
+EXECUTION OPTIONS:
+    --workers=<N>                  Number of worker threads (default: CPU count, 1 for sequential)
+    --timeout=<seconds>            Timeout per test in seconds (default: 300)
+    --verbose                      Enable verbose logging for execution
 
-    The test suite defaults to using the new parser.  To use the old parser for
-    the tests, use "--old-parser" in the command like so:
+STANDARD OPTIONS:
+    --csound-executable=<path>     Path to csound executable
+    --opcode7dir64=<path>          Set OPCODE7DIR64 environment variable
+    --source-dir=<path>            Source directory for tests (default: .)
+    --runtime-environment=<env>    Runtime environment setup command
+    --help                         Show this help message
 
-    ./test.py --show-ui --old-parser
+EXAMPLES:
+    ./test.py                                              # Parallel execution (default)
+    ./test.py --workers=1                                  # Sequential execution
+    ./test.py --workers=8                                  # Parallel with 8 workers
+    ./test.py --timeout=60 --verbose                       # Custom timeout and logging
 
     """
 
@@ -69,10 +358,19 @@ def showHelp():
 def runTest():
     runArgs = "-nd"  # "-Wdo test.wav"
 
-    if parserType == "--old-parser":
-        print("Testing with old parser")
+    print("Testing with Csound")
+
+    import multiprocessing
+    actual_workers = max_workers if max_workers else multiprocessing.cpu_count()
+
+    if actual_workers == 1:
+        print("Running tests in SEQUENTIAL mode (workers=1)")
     else:
-        print("Testing with new parser")
+        print(f"Running tests in PARALLEL mode with {actual_workers} workers")
+
+    print(f"Test timeout: {test_timeout} seconds per test")
+    if verbose_logging:
+        print("Verbose logging enabled")
 
     tests = [
         ["test1.csd", "Simple Test, Single Channel"],
@@ -420,7 +718,6 @@ def runTest():
 
     output = ""
     tempfile = "csound_test_output.txt"
-    counter = 1
 
     retVals = []
 
@@ -428,95 +725,93 @@ def runTest():
     testFail = 0
     testFailMessages = ""
 
-    for t in tests:
-        filename = t[0]
-        desc = t[1]
-        expectedResult = (len(t) == 3) and 1 or 0
+    # Function to collect results without immediate printing
+    def collect_result(result, completed_count):
+        """Collect test results without immediate printing."""
+        counter = result.test_index + 1
+        retVal = result.return_code
+        csOutput = result.cs_output
 
-        if os.sep == "\\" or os.name == "nt":
-            executable = (
-                (csoundExecutable == "")
-                and os.path.join("..", "csound.exe")
-                or csoundExecutable
-            )
-            if runtimeEnvironment:
-                executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s" % (
-                executable,
-                parserType,
-                runArgs,
-                sourceDirectory,
-                filename,
-                tempfile,
-            )
-            print(command)
-            retVal = os.system(command)
-        else:
-            executable = (csoundExecutable == "") and "csound" or csoundExecutable
-            if runtimeEnvironment:
-                executable = "%s %s" % (runtimeEnvironment, executable)
-            command = "%s %s %s %s/%s 2> %s" % (
-                executable,
-                parserType,
-                runArgs,
-                sourceDirectory,
-                filename,
-                tempfile,
-            )
-            print(command)
-            retVal = os.system(command)
-
-        if hasattr(os, "WIFEXITED") and os.WIFEXITED(retVal):
-            retVal = os.WEXITSTATUS(retVal)
-
-        out = ""
-        if (retVal == 0) == (expectedResult == 0):
+        # Count pass/fail
+        nonlocal testPass, testFail, testFailMessages, output, retVals
+        if result.passed:
             testPass += 1
-            out = "[pass] - "
         else:
             testFail += 1
-            out = "[FAIL] - "
 
-        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n" % (
-            counter,
-            desc,
-            filename,
-            retVal,
-            expectedResult,
-        )
-        print(out)
-        if out.startswith("[FAIL]"):
-            testFailMessages += out
+        # Generate formatted output for later display (using verbose flag)
+        formatted_output = result.get_formatted_output(counter, verbose_logging)
+
+        # Show test output on failure immediately (like CI/CD systems)
+        if not result.passed and csOutput:
+            print(f"[FAILED] Test {counter}: {result.description} ({result.filename})")
+            print(f"[TEST OUTPUT for {result.filename}]:")
+            print("-" * 60)
+            print(csOutput.strip())
+            print("-" * 60)
+            print()  # Add spacing
+
+        # Add to failure messages if needed
+        if not result.passed:
+            testFailMessages += formatted_output
+            if csOutput:
+                testFailMessages += f"[TEST OUTPUT]:\n{csOutput}\n"
+
+        # Generate detailed output for results file
         output += "%s\n" % ("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n" % (
             counter,
-            desc,
-            filename,
+            result.description,
+            result.filename,
             retVal,
         )
+        if result.error:
+            output += f"Error: {result.error}\n"
+        if result.execution_time:
+            output += f"Execution Time: {result.execution_time:.2f}s\n"
         output += "%s\n\n" % ("=" * 80)
-        f = open(tempfile, "r")
-
-        csOutput = ""
-
-        for line in f:
-            csOutput += line
-
         output += csOutput
-
-        f.close()
-
-        retVals.append(t + [retVal, csOutput])
-
         output += "\n\n"
-        counter += 1
 
-    #    print output
+        # Maintain backward compatibility for retVals
+        retVals.append(result.test_data + [retVal, csOutput])
+
+        # Return formatted output for later display
+        return formatted_output
+
+    # Execute tests and collect results
+    start_time = time.time()
+    results = run_tests_parallel(tests, runArgs, max_workers, collect_result)
+    total_execution_time = time.time() - start_time
+
+    logger.info(f"All tests completed in {total_execution_time:.2f} seconds")
+
+    # Display results in ORIGINAL ORDER (this is the key fix!)
+    print("\n%s\n" % ("=" * 80))
+    print("TEST RESULTS (in original order):\n")
+
+    for i, result in enumerate(results):
+        if result:  # Check if result exists (should always be true)
+            counter = i + 1
+            formatted_output = result.get_formatted_output(counter, verbose_logging)
+            print(formatted_output)
+
     print("%s\n\n" % ("=" * 80))
     print("Tests Passed: %i\nTests Failed: %i\n" % (testPass, testFail))
 
     if testFail > 0:
         print("[FAILED TESTS]\n\n%s" % testFailMessages)
+
+    # Log execution summary
+    import multiprocessing
+    actual_workers = max_workers if max_workers else multiprocessing.cpu_count()
+    avg_time_per_test = total_execution_time / len(tests) if tests else 0
+
+    if actual_workers == 1:
+        logger.info(f"Sequential execution completed in {total_execution_time:.2f}s")
+    else:
+        logger.info(f"Parallel execution with {actual_workers} workers")
+        logger.info(f"Average time per test: {avg_time_per_test:.2f}s")
 
     f = open("results.txt", "w")
     f.write(output)
@@ -534,8 +829,12 @@ if __name__ == "__main__":
                 sys.exit(0)
             # elif arg == "--show-ui":
             #     showUIatClose = True
-            elif arg == "--old-parser":
-                parserType = "--old-parser"
+            elif arg == "--verbose":
+                verbose_logging = True
+                # Reconfigure logging with verbose level
+                logger.setLevel(logging.DEBUG)
+                for handler in logger.handlers:
+                    handler.setLevel(logging.DEBUG)
             elif arg.startswith("--csound-executable="):
                 csoundExecutable = arg[20:]
                 print(csoundExecutable)
@@ -546,6 +845,25 @@ if __name__ == "__main__":
                 sourceDirectory = arg[13:]
             elif arg.startswith("--runtime-environment="):
                 runtimeEnvironment = arg[22:]
+            elif arg.startswith("--workers="):
+                try:
+                    max_workers = int(arg[10:])
+                    if max_workers <= 0:
+                        print("Error: Worker count must be greater than 0")
+                        sys.exit(1)
+                except ValueError:
+                    print("Error: Invalid worker count. Use --workers=<N> where N is a positive integer.")
+                    sys.exit(1)
+            elif arg.startswith("--timeout="):
+                try:
+                    test_timeout = int(arg[10:])
+                    if test_timeout <= 0:
+                        print("Error: Timeout must be greater than 0 seconds")
+                        sys.exit(1)
+                except ValueError:
+                    print("Error: Invalid timeout. Use --timeout=<N> where N is a positive integer.")
+                    sys.exit(1)
+
     results = runTest()
     sys.exit(results)
     # if (showUIatClose):
