@@ -27,8 +27,6 @@
 
 #include "csound.h"
 #include "csound_type_system.h"
-
-#if defined(__BUILDING_LIBCSOUND) || !defined(BUILD_PLUGINS)
 #include "csoundCore.h"
 #define MAX_STRUCT_ARG_SIZE 1024
 
@@ -63,6 +61,5 @@ OENTRY* new_struct_init_oentry(CSOUND* csound, CS_TYPE* type);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
-#endif
 
 #endif /* CSOUND_ORC_STRUCTS_H */

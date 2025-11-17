@@ -211,31 +211,7 @@ void mfree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINLOCK
 #else
     pp = HDR_PTR(p);
-
-    // In release builds, validate the pointer before accessing header by searching the list
-    // This is slower but prevents crashes from corrupted pointers
-    int found = 0;
     CSOUND_MEM_SPINLOCK
-    memAllocBlock_t *cur = (memAllocBlock_t*) MEMALLOC_DB;
-    pp = NULL;
-    while (cur != NULL) {
-      // Calculate user pointer from header
-      void *cur_ptr = (void*)((unsigned char*)cur + HDR_SIZE);
-      if (cur_ptr == p) {
-        pp = cur;
-        found = 1;
-        break;
-      }
-      cur = cur->nxt;
-    }
-
-    if (!found) {
-      CSOUND_MEM_SPINUNLOCK
-      csound->Warning(csound, "csound->Free() called with invalid pointer (%p) (not found)", p);
-      return;
-    }
-
-    // Keep the lock held through unlink and free to prevent race condition
 #endif
     /* unlink from chain */
     {

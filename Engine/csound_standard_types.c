@@ -229,6 +229,11 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     arrayNumMembers = array_get_num_members(aSrc);
     memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
 
+    /* If source and destination are the same array object, skip copy */
+    if (aDest == aSrc) {
+        return;
+    }
+
     if(aDest->data == NULL ||
        aSrc->arrayMemberSize != aDest->arrayMemberSize ||
        aSrc->dimensions != aDest->dimensions ||
