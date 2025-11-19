@@ -504,11 +504,9 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->ErrorMsg(csound, Str("new alloc (instance %llu) for instr %s:\n"),
-                           csound->instance_count, name);
+          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->ErrorMsg(csound, Str("new alloc (instance %llu) for instr %d:\n"),
-                           csound->instance_count, insno);
+          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
@@ -2022,12 +2020,10 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
       char *name = csound->engineState.instrtxtp[ip->insno]->insname;
       if (UNLIKELY(name))
         csound->ErrorMsg(csound,
-                         Str("new free alloc (instance %llu) for instr %s:\n"),
-                         ip->instance_id, name);
+                         Str("new free alloc for instr %s:\n"), name);
       else
         csound->ErrorMsg(csound,
-                         Str("new free alloc (instance %llu) for instr %d:\n"),
-                         ip->instance_id, ip->insno);
+                         Str("new free alloc for instr %d:\n"), ip->insno);
     }
   }
   return ip;
