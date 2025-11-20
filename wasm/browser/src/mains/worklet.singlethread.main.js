@@ -43,6 +43,9 @@ const initializeModule = async (audioContext) => {
   return true;
 };
 
+/**
+ * @unrestricted
+ */
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
     /** @type {(WorkletSinglethreadProxy | undefined)} */
@@ -63,6 +66,7 @@ class SingleThreadAudioWorkletMainThread {
 
     /** @export */
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
+    this["handleMidiInput"] = this.handleMidiInput.bind(this);
     this.currentPlayState = undefined;
     this.midiPortStarted = false;
   }
@@ -264,7 +268,7 @@ class SingleThreadAudioWorkletMainThread {
 
               if (isRequestingMidi) {
                 requestMidi({
-                  onMidiMessage: this.handleMidiInput.bind(this),
+                  onMidiMessage: this["handleMidiInput"],
                 });
               }
 

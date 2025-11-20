@@ -7,6 +7,9 @@ import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
 let UID = 0;
 
+/**
+ * @unrestricted
+ */
 class AudioWorkletMainThread {
   constructor({ audioContext, audioContextIsProvided, autoConnect }) {
     this.autoConnect = autoConnect;
@@ -20,7 +23,7 @@ class AudioWorkletMainThread {
     this.csoundWorkerMain = undefined;
     this.workletWorkerUrl = undefined;
     this.workletProxy = undefined;
-    this.isRequestingMidi = false;
+    this["isRequestingMidi"] = false;
     this.isRequestingInput = false;
 
     // never default these, get it from
@@ -203,10 +206,10 @@ class AudioWorkletMainThread {
     const contextUid = `audioWorklet${UID}`;
     UID += 1;
 
-    if (this.isRequestingMidi) {
+    if (this["isRequestingMidi"]) {
       log("requesting for web-midi connection");
       requestMidi({
-        onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
+        onMidiMessage: this.csoundWorkerMain["handleMidiInput"].bind(this.csoundWorkerMain),
       });
     }
 
