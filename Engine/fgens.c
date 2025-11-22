@@ -2194,14 +2194,14 @@ FUNC *find_function_table(CSOUND *csound, MYFLT *argp)
     if (UNLIKELY(fno < 0 ||
                  fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
-      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+      csound->InitError(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
     if (ftp->flen == 0) {
      if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
        else {
-        csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+        csound->InitError(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
     }
       if (UNLIKELY(ftp == NULL))
