@@ -187,7 +187,6 @@ class VanillaWorkerMainThread {
     log(`vanilla.main: initialize`)();
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
     const proxyPort = Comlink.wrap(this.csoundWorker, undefined);

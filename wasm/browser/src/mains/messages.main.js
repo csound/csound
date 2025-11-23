@@ -61,11 +61,6 @@ export class IPCMessagePorts {
     this.sabWorkerCallbackReply = sabWorkerCallbackReply;
     this.sabMainCallbackReply = sabMainCallbackReply;
 
-    // vanilla worker message ports
-    const { port1: mainMessagePort2, port2: workerMessagePort2 } = new MessageChannel();
-    this.mainMessagePort2 = mainMessagePort2;
-    this.workerMessagePort2 = workerMessagePort2;
-
     this.restartAudioWorkerPorts = this.restartAudioWorkerPorts.bind(this);
   }
 
@@ -79,8 +74,5 @@ export class IPCMessagePorts {
     safelyClosePorts([this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort]);
     [this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort] =
       iterableMessageChannel();
-
-    safelyClosePorts([this.mainMessagePort2, this.workerMessagePort2]);
-    [this.mainMessagePort2, this.workerMessagePort2] = iterableMessageChannel();
   }
 }
