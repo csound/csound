@@ -61,7 +61,7 @@ export class IPCMessagePorts {
     this.sabWorkerCallbackReply = sabWorkerCallbackReply;
     this.sabMainCallbackReply = sabMainCallbackReply;
 
-    // old-spn worker-port
+    // vanilla worker message ports
     const { port1: mainMessagePort2, port2: workerMessagePort2 } = new MessageChannel();
     this.mainMessagePort2 = mainMessagePort2;
     this.workerMessagePort2 = workerMessagePort2;

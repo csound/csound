@@ -499,7 +499,7 @@ declare interface CsoundObj {
  * @param [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
  * @param [params.useWorker = false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.
  * @param [params.useSAB = true] - Configure to use SharedArrayBuffers for WebWorker communications if platform supports it.
- * @param [params.useSPN = false] - Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes.
+
  */
 declare function Csound(params?: {
   audioContext?: AudioContext | OfflineAudioContext;
@@ -509,7 +509,7 @@ declare function Csound(params?: {
   withPlugins?: object[];
   useWorker?: boolean;
   useSAB?: boolean;
-  useSPN?: boolean;
+
 }): Promise<CsoundObj | undefined>;
 
 declare type Csound = typeof Csound;
