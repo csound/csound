@@ -490,16 +490,16 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+        run: cmake --preset windows-release
 
       - name: Build Csound
-        run: cmake --build build --config Release
+        run: cmake --build --preset windows-release-build
 
       - name: Run tests
-        run: cmake --build build --target csdtests
-
+        run: cmake --build --preset windows-release-csd-tests
+        
       - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS --config Release
+        run: ctest --preset windows-release-test
 
       - name: Acquire Csound manual
         if: github.ref == 'refs/heads/develop'

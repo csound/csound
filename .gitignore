@@ -264,3 +264,4 @@ iOS/include
 tmp
 *-g
 .zed
+.vs
