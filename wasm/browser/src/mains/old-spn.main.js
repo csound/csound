@@ -13,9 +13,12 @@ let proxyPort;
 
 let UID = 0;
 
+/**
+ * @unrestricted
+ */
 class ScriptProcessorNodeMainThread {
   constructor({ audioContext, audioContextIsProvided, autoConnect }) {
-    this.isRequestingMidi = false;
+    this["isRequestingMidi"] = false;
     this.isRequestingInput = false;
     this.contextUid = undefined;
     this.iFrameElement = undefined;
@@ -274,10 +277,10 @@ class ScriptProcessorNodeMainThread {
 
     this.publicEvents.triggerOnAudioNodeCreated(audioNode);
 
-    if (this.isRequestingMidi && this.csoundWorkerMain && this.csoundWorkerMain.handleMidiInput) {
+    if (this["isRequestingMidi"] && this.csoundWorkerMain && this.csoundWorkerMain["handleMidiInput"]) {
       log("requesting for web-midi connection")();
       requestMidi({
-        onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
+        onMidiMessage: this.csoundWorkerMain["handleMidiInput"].bind(this.csoundWorkerMain),
       });
     }
   }

@@ -84,7 +84,7 @@ const createRealtimeAudioThread =
 
       if (rtmidiQueue.length > 0) {
         rtmidiQueue.forEach((event) => {
-          libraryCsound.csoundPushMidiMessage(csound, event[0], event[1], event[2]);
+          libraryCsound["csoundPushMidiMessage"](csound, event[0], event[1], event[2]);
         });
         clearArray(rtmidiQueue);
       }

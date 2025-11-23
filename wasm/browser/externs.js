@@ -185,6 +185,8 @@ var WasmInst;
  * getNchnls: function(CsoundInst): Promise.<number>,
  * getInputName: function(CsoundInst): Promise.<string>,
  * getSr: function(CsoundInst): Promise.<number>,
+ * _isRequestingRtMidiInput: function(CsoundInst): Promise.<number>,
+ * csoundPushMidiMessage: function(CsoundInst, number, number, number): void,
  * }}
  */
 var CsoundObj;
@@ -232,3 +234,14 @@ var InitializeMessagePortPayload;
  * initializeMessagePort: function(Object): Promise<void>,
  * }}  */
 var SABMainProxy;
+
+/** @typedef {{
+ * handleMidiInput: function(Object): void,
+ * eventPromises: Object,
+ * publicEvents: Object,
+ * hasSharedArrayBuffer: boolean,
+ * audioStatePointer: Int32Array,
+ * audioStreamIn: SharedArrayBuffer,
+ * audioStreamOut: SharedArrayBuffer,
+ * }}  */
+var CsoundWorkerMain;

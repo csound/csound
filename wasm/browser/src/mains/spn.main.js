@@ -227,10 +227,10 @@ class ScriptProcessorNodeSingleThread {
       this.eventPromises.createStartPromise();
 
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
-      if (this.csoundApi._isRequestingRtMidiInput(this.csoundInstance)) {
+      if (this.csoundApi["_isRequestingRtMidiInput"](this.csoundInstance)) {
         requestMidi({
           onMidiMessage: ({ data: event }) =>
-            this.csoundApi.csoundPushMidiMessage(this.csoundInstance, event[0], event[1], event[2]),
+            this.csoundApi["csoundPushMidiMessage"](this.csoundInstance, event[0], event[1], event[2]),
         });
       }
       this.running = true;
