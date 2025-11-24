@@ -92,14 +92,20 @@ int32_t midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int32_t);
 void csoundTableSetInternal(CSOUND *csound, int32_t table, int32_t index,
                             MYFLT value);
 uint64_t csoundGetKcounter(CSOUND *csound);
+
+static void set_util_sr(CSOUND *csound, MYFLT sr);
+static void set_util_nchnls(CSOUND *csound, int32_t nchnls);
+static int32_t csoundDeprecate(CSOUND *csound, char *name,
+                               char *o, char *i, int32_t deprec);
+extern void memreset(CSOUND *);
+extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
+extern int32_t csoundInitStaticModules(CSOUND *);
+extern void close_all_files(CSOUND *);
+extern void csound_input_message(CSOUND *csound, const char *message);
+extern int32_t isstrcod(MYFLT);
+extern int32_t fterror(const FGDATA *ff, const char *s, ...);
+
 int32_t sense_events(CSOUND *);
-void memreset(CSOUND *);
-MYFLT csoundPow2(CSOUND *csound, MYFLT a);
-int32_t csoundInitStaticModules(CSOUND *);
-void close_all_files(CSOUND *);
-void csound_input_message(CSOUND *csound, const char *message);
-int32_t isstrcod(MYFLT);
-int32_t fterror(const FGDATA *ff, const char *s, ...);
 PUBLIC int32_t csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list) = NULL;
 INSTRTXT *csoundGetInstrument(CSOUND *csound, int32_t insno, const char *name);
@@ -700,11 +706,12 @@ static const CSOUND cenviron_ = {
     cs_strtod,
     cs_sprintf,
     cs_sscanf,
+    csoundDeprecate,
     /* space for API expansion */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
  /* callback function pointers */
@@ -3274,7 +3281,7 @@ PUBLIC int32_t csoundAppendOpcode(CSOUND *csound,
                               int32_t (*perf)(CSOUND *, void *),
                               int32_t (*deinit)(CSOUND *, void *))
 {
-  OENTRY  tmpEntry;
+  OENTRY  tmpEntry = {0};
   int32_t     err;
   tmpEntry.opname     = (char*) opname;
   tmpEntry.dsblksiz   =  dsblksiz;
@@ -3317,6 +3324,16 @@ int32_t csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList,
     n--, ep++;
   }
   return retval;
+}
+
+static int32_t csoundDeprecate(CSOUND *csound, char *name,
+                        char *o, char *i, int32_t deprec) {
+  OENTRY *e = (OENTRY *)
+    csound->FindOpcode(csound, 1, name, o, i);
+  if(e) {
+    e->deprecated = deprec;
+    return CSOUND_SUCCESS;
+  } else return CSOUND_ERROR;
 }
 
 /*

@@ -2678,16 +2678,30 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   /* check for deprecation */
   if(oentry && oentry->deprecated) {
-    if(csound->oparms->error_deprecated) {
-      synterr(csound, "opcode %s is deprecated, line %d", oentry->opname,
-              root->line);
-      csoundMessage(csound, Str(" %s %s %s\n"),
-                      leftArgString ? leftArgString : "",
-                      oentry->opname, rightArgString ? rightArgString : "");
-      return 0;
-     }
-    else csoundWarning(csound, "opcode %s is deprecated, line %d",
-                       oentry->opname, root->line);
+    if(oentry->deprecated == 1) {
+      if(csound->oparms->error_deprecated) {
+        synterr(csound, "opcode %s is deprecated, line %d", oentry->opname,
+                root->line);
+        csoundMessage(csound, Str(" %s %s %s\n"),
+                        leftArgString ? leftArgString : "",
+                        oentry->opname, rightArgString ? rightArgString : "");
+        return 0;
+       }
+      else csoundWarning(csound, "opcode %s is deprecated, line %d",
+                         oentry->opname, root->line);
+    }
+    else if(oentry->deprecated == 2) {
+      if(csound->oparms->error_deprecated) {
+        synterr(csound, "opcode %s has been renamed (uppercase to lowercase / underscores removed), line %d", 
+                oentry->opname, root->line);
+        csoundMessage(csound, Str(" %s %s %s\n"),
+                        leftArgString ? leftArgString : "",
+                        oentry->opname, rightArgString ? rightArgString : "");
+        return 0;
+       }
+      else csoundWarning(csound, "opcode %s has been renamed (uppercase to lowercase / underscores removed), line %d",
+                         oentry->opname, root->line);
+    }
    }
 
 

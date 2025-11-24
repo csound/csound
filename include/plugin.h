@@ -1170,9 +1170,12 @@ template <typename T> int32_t aperf(CSOUND *csound, T *p) {
  */
 template <typename T>
 int32_t plugin(Csound *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thr, uint32_t flags = 0) {
+               const char *iargs, uint32_t thr, uint32_t flags = 0,
+               int32_t deprec = 0) {
   CSOUND *cs = (CSOUND *)csound;
   SUBR initf = NULL, perf = NULL;
+  int32_t ret;
+  
   if(thr == thread::i ||
      thr == thread::ik ||
      thr == thread::ia) initf = (SUBR) init<T>;
@@ -1183,9 +1186,14 @@ int32_t plugin(Csound *csound, const char *name, const char *oargs,
      thr == thread::ia) perf = (SUBR) aperf<T>;
   
 
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
-                          (char *)oargs, (char *)iargs, initf,
+  ret = cs->AppendOpcode(cs, (char*) name, sizeof(T), flags, 
+                          (char*) oargs, (char*) iargs, initf,
                           perf, (SUBR)deinit<T>);
+  if(ret == CSOUND_SUCCESS)
+   ret = cs->Deprecate(cs, (char*) name, (char*) oargs, (char*) iargs,
+                deprec);
+  
+  return ret;
 }
 
 /** plugin registration function template
@@ -1193,8 +1201,9 @@ int32_t plugin(Csound *csound, const char *name, const char *oargs,
  */
 template <typename T>
 int32_t plugin(Csound *csound, const char *name, uint32_t thr,
-           uint32_t flags = 0) {
-  return plugin<T>(csound, name, T::otypes, T::itypes, thr, flags);
+               uint32_t flags = 0, int32_t deprec = 0) {
+  return plugin<T>(csound, name, T::otypes, T::itypes, thr, flags,
+                   deprec);
 }
 
 /** utility constructor function template for member classes: \n

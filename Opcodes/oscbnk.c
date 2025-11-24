@@ -3001,8 +3001,10 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
 
   static const OENTRY localops[] =
     {
-   { "oscbnk",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
-     (SUBR) oscbnkset, (SUBR) oscbnk                },
+  { "oscbnk", sizeof(OSCBNK), TR, "a", "kkkkiikkkkikkkkkkikooooooo",
+    (SUBR) oscbnkset, NULL, (SUBR) oscbnk, NULL, 2 },
+   { "oscilbank",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
+     (SUBR) oscbnkset, (SUBR) oscbnk                }, /* alias */
    { "grain2",     sizeof(GRAIN2),     TR,      "a",    "kkkikiooo",
             (SUBR) grain2set, (SUBR) grain2                },
    { "grain3",     sizeof(GRAIN3),     TR,      "a",    "kkkkkkikikkoo",

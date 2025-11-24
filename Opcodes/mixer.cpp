@@ -300,21 +300,38 @@ struct MixerClear : public OpcodeBase<MixerClear> {
 extern "C" {
 
 static OENTRY localops[] = {
-    {(char *)"MixerSetLevel", sizeof(MixerSetLevel), _CW,  (char *)"",
-     (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
-     0},
-    {(char *)"MixerSetLevel_i", sizeof(MixerSetLevel), _CW,  (char *)"",
-     (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0},
-    {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
-     (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
-     0},
-    {(char *)"MixerSend", sizeof(MixerSend), _CW,  (char *)"", (char *)"aiii",
-     (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_},
-    {(char *)"MixerReceive", sizeof(MixerReceive), _CR,  (char *)"a",
-     (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_},
-    {(char *)"MixerClear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
-     (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_},
-    {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL}};
+  {(char *)"MixerSetLevel", sizeof(MixerSetLevel), _CW,  (char *)"",
+   (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
+   0, NULL, 2},
+  {(char *)"MixerSetLevel_i", sizeof(MixerSetLevel), _CW,  (char *)"",
+   (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0, NULL, 2},
+  {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
+   (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
+   0, NULL, 2},
+  {(char *)"MixerSend", sizeof(MixerSend), _CW,  (char *)"", (char *)"aiii",
+   (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL, 2},
+  {(char *)"MixerReceive", sizeof(MixerReceive), _CR,  (char *)"a",
+   (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_,
+   0, NULL, 2},
+  {(char *)"MixerClear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
+   (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL, 2},
+  /* aliases */
+  {(char *)"mixersetlevel", sizeof(MixerSetLevel), _CW,  (char *)"",
+   (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
+   0, NULL, 2},
+  {(char *)"mixersetleveli", sizeof(MixerSetLevel), _CW,  (char *)"",
+   (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0, NULL, 2},
+  {(char *)"mixergetlevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
+   (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
+   0, NULL, 2},
+  {(char *)"mixersend", sizeof(MixerSend), _CW,  (char *)"", (char *)"aiii",
+   (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL, 2},
+  {(char *)"mixerreceive", sizeof(MixerReceive), _CR,  (char *)"a",
+   (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_,
+   0, NULL, 2},
+  {(char *)"mixerclear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
+   (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL, 2},
+  {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, NULL, 2}};
 
 PUBLIC int32_t csoundModuleCreate_mixer(CSOUND *csound) {
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>>
