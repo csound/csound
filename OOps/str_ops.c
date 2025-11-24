@@ -45,6 +45,13 @@ int32_t is_perf_thread(OPDS *p){
   return p->insdshead->init_done;
 }
 
+
+int32_t eqs(CSOUND *csound, EQS_OP *p) {
+  *p->r = strcmp(p->a->data, p->b->data) ? 0 : 1;
+  return OK;
+}
+
+
 int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
   if (p->r->size < DEFAULT_STRING_SIZE){
     p->r->data = (char *) csound->ReAlloc(csound, p->r->data, DEFAULT_STRING_SIZE);

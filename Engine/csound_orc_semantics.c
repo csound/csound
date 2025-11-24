@@ -163,8 +163,6 @@ char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
   switch(tree->type) {
   case S_EQ:
     return "==";
-  case S_EQT:
-    return "=t";
   case S_NEQ:
     return "!=";
   case S_GE:

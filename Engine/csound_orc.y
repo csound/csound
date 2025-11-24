@@ -34,7 +34,6 @@
 %token S_LT
 %token S_LE
 %token S_EQ
-%token S_EQT
 %token S_ADDIN
 %token S_SUBIN
 %token S_MULIN
@@ -119,7 +118,7 @@
 %left S_AND S_OR
 %left '|'
 %left '&'
-%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ '=' // VL 6.8.25 for backwards compat
+%left S_LT S_GT S_LE S_GE S_EQ S_NEQ '=' // VL 6.8.25 for backwards compat
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -818,8 +817,6 @@ binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+'
           | expr '=' error
           | expr S_EQ optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr S_EQ error
-          | expr S_EQT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQT, $1, $4); }
-          | expr S_EQT error
           | expr S_GT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $4); }
           | expr S_GT error
           | expr S_LT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $4); }
