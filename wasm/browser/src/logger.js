@@ -6,10 +6,7 @@ let logWorkletMain,
   logSABWorker,
   logVANMain,
   logVANWorker,
-  logOldSpnMain,
-  logOldSpnWorker,
   logIndex,
-  logSPNMainSingle,
   logSinglethreadWorkletMain,
   logSinglethreadWorkletWorker,
   logCommonUtils,
@@ -47,19 +44,11 @@ if (isProd) {
   /**
    * @suppress {checkTypes}
    */
-  logOldSpnMain = (ignore1) => (ignore2) => {};
-  /**
-   * @suppress {checkTypes}
-   */
-  logOldSpnWorker = (ignore1) => (ignore2) => {};
-  /**
-   * @suppress {checkTypes}
-   */
   logIndex = (ignore1) => (ignore2) => {};
   /**
    * @suppress {checkTypes}
    */
-  logSPNMainSingle = (ignore1) => (ignore2) => {};
+
   /**
    * @suppress {checkTypes}
    */
@@ -92,8 +81,6 @@ if (isProd) {
   const sabWorkerLogger = loggerFactory.getLoggerColor("Sab_Worker", "#222222");
   const vanMainLogger = loggerFactory.getLoggerColor("Van_Main", "#F4511E");
   const vanWorkerLogger = loggerFactory.getLoggerColor("Van_Worker", "#FFAB91");
-  const oldSpnMainLogger = loggerFactory.getLoggerColor("OldSpn_Main", "#8E24AA");
-  const oldSpnWorkerLogger = loggerFactory.getLoggerColor("OldSpn_Worker", "#E1BEE7");
   const singleWorkletMainLogger = loggerFactory.getLoggerColor(
     "WorkletSinglethread_Main",
     "#1E88E5",
@@ -112,13 +99,7 @@ if (isProd) {
   logSABWorker = sabWorkerLogger.log;
   logVANMain = vanMainLogger.log;
   logVANWorker = vanWorkerLogger.log;
-  logOldSpnMain = oldSpnMainLogger.log;
-  logOldSpnWorker = oldSpnWorkerLogger.log;
   logIndex = indexLogger.log;
-  logSPNMainSingle =
-    (...argz) =>
-    () =>
-      console.log(...argz); // TODO
   logSinglethreadWorkletMain = singleWorkletMainLogger.log;
   logSinglethreadWorkletWorker = singleWorkletWorkerLogger.log;
   logCommonUtils = commonUtilsLogger.log;
@@ -138,10 +119,7 @@ export {
   logSABWorker,
   logVANMain,
   logVANWorker,
-  logOldSpnMain,
-  logOldSpnWorker,
   logIndex,
-  logSPNMainSingle,
   logSinglethreadWorkletMain,
   logSinglethreadWorkletWorker,
   logCommonUtils,

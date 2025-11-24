@@ -132,16 +132,7 @@ const compilationSequence = [
     postbuild: () =>
       inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []),
   },
-  {
-    entry_point: "./src/workers/old-spn.worker.js",
-    js_output_file: path.join(rootDir, "dist", "__compiled.old-spn.worker.js"),
-    create_source_map: path.join(rootDir, "dist", "__compiled.old-spn.worker.js.map"),
-    source_map_location_mapping: "./src|/dist/src",
-    output_wrapper: trimString(`(function(){%output%}).call(this);
-                    //# sourceMappingURL=__compiled.old-spn.worker.js.map`),
-    postbuild: () => inlineWebworker("old-spn.worker.js", "worker.old_spn", false, []),
-    define: DEV ? [] : ["PRODUCTION=1"],
-  },
+
   {
     entry_point: "./src/index.js",
     js_output_file: path.join(rootDir, "dist", "csound.js"),

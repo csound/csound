@@ -3,6 +3,14 @@
 [![GitHub Workflow Status](https://shields.shivering-isles.com/github/workflow/status/csound/csound/csound_wasm)](https://github.com/csound/csound/actions?query=workflow%3Acsound_wasm)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
+## Breaking Changes
+
+### ScriptProcessorNode Support Removed (v7.0.0+)
+
+ScriptProcessorNode support has been removed from the library. ScriptProcessorNode was deprecated in 2014 and provides inferior performance compared to AudioWorklet. All modern browsers (Chrome 64+, Firefox 76+, Safari 14.1+) support AudioWorklet.
+
+**Migration:** If you were using `useSPN: true`, simply remove this parameter. The library will automatically use the superior AudioWorklet API.
+
 
 ## Api Documentation
 
@@ -859,7 +867,7 @@ otherwise undefined.
 | [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | Array of WebAssembly Csound plugin libraries to use with Csound. |
 | [params.useWorker] | <code>Boolean</code> | <code>false</code> | Configure to use backend using Web Workers to run Csound in a thread separate from audio callback. |
 | [params.useSAB] | <code>Boolean</code> | <code>true</code> | Configure to use SharedArrayBuffers for WebWorker communications if platform supports it. |
-| [params.useSPN] | <code>Boolean</code> | <code>false</code> | Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes. |
+
 
 <a name="CSOUND_PARAMS"></a>
 

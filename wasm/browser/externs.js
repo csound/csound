@@ -199,7 +199,6 @@ var CsoundObj;
  * withPlugins: Array<string>,
  * useWorker: boolean,
  * useSAB: boolean,
- * useSPN : boolean,
  * }}  */
 var CsoundExportArguments;
 
