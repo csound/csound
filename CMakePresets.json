@@ -17,7 +17,6 @@
             "name": "windows-debug",
             "inherits": "base",
             "displayName": "Windows Debug",
-            "generator": "Visual Studio 17 2022",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CUSTOM_CMAKE": "./platform/windows/Custom-vs.cmake"
@@ -32,7 +31,6 @@
             "name": "windows-release",
             "inherits": "base",
             "displayName": "Windows Release",
-            "generator": "Visual Studio 17 2022",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CUSTOM_CMAKE": "./platform/windows/Custom-vs.cmake"
@@ -103,7 +101,6 @@
                     "type": "test",
                     "name": "windows-debug-test"
                 }
-
             ]
         },
         {
@@ -112,7 +109,7 @@
             "steps": [
                 {
                     "type": "configure",
-                    "name": "windows-release"                    
+                    "name": "windows-release"
                 },
                 {
                     "type": "build",
