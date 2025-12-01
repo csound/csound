@@ -12,7 +12,7 @@
 
      You should have received a copy of the GNU Lesser General Public
      License along with the gab library; if not, write to the Free Software
-     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA, 02110-1301, USA
+     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA, 02110-1335, USA
 
     Ported to csound5 by:Andres Cabrera andres@geminiflux.com
     This file includes the vectorial table opcodes from newopcodes.c
