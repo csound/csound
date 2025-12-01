@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA, 02110-1335, USA
+ *  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
  */
 
 /* $Id: mpadec.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
