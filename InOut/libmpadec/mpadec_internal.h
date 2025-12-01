@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA, 02110-1301, USA
  */
 
 /* $Id: mpadec_internal.h,v 1.1.1.1 2004/07/27 02:57:55 metal_man Exp $ */
