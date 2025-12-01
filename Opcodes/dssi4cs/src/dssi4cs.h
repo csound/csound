@@ -12,7 +12,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with The dssi4cs library; if not, write to the Free Software
-  *  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
+ *  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
  */
 
 #ifndef DSSI4CS_H

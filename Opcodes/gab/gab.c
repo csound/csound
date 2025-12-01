@@ -13,7 +13,7 @@
 
 /*  You should have received a copy of the GNU Lesser General Public */
 /*  License along with the gab library; if not, write to the Free Software */
- *  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
+/*  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA */
 
 /* Ported to csound5 by: Andres Cabrera */
 /* This file includes the opcodes from newopcodes.c */
