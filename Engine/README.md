@@ -40,6 +40,6 @@ Engine: internal engine operation
 * sread.c: score access functions
 * swritestr.c: score corefile writing
 * symbtab.c: compiler symbol table, user-defined opcode parameter setting.
-* twarp.c: score time warping.
+* twarp.c: score time warping
 * udo.c: user-defined opcodes
 * ugen.c: opcode API

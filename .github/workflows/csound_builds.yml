@@ -234,6 +234,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          brew update  
           brew install --cask gcc-arm-embedded
           brew install bison flex
 

@@ -18,8 +18,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include <stdio.h>
@@ -322,7 +321,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
       cell = cell->next;
     }
     if (memberVar == NULL) {
-      synterr(csound, Str("No member '%s' found for variable\n"), s);
+      synterr(csound, Str("No member '%s' found for variable at line %d\n"), s, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -330,7 +329,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
     if (memberVar->varType == &CS_VAR_TYPE_ARRAY) {
       char *result = create_array_arg_type(csound, memberVar);
       if (result == NULL) {
-        synterr(csound, Str("Array member has unknown type\n"));
+        synterr(csound, Str("Array member has unknown type at line %d\n"), tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -386,7 +385,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
           csound->Free(csound, internalElementType);
           csound->Free(csound, structArrayType);
           if (structType == NULL) {
-            synterr(csound, Str("Cannot find struct type for array element\n"));
+            synterr(csound, Str("Cannot find struct type for array element at line %d\n"), tree->line);
             do_baktrace(csound, tree->locn);
             return NULL;
           }
@@ -402,7 +401,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
             cell = cell->next;
           }
           if (memberVar == NULL) {
-            synterr(csound, Str("No member '%s' found in struct\n"), s);
+            synterr(csound, Str("No member '%s' found in struct at line %d\n"), s, tree->line);
             do_baktrace(csound, tree->locn);
             return NULL;
           }
@@ -410,7 +409,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
           if (memberVar->varType == &CS_VAR_TYPE_ARRAY) {
             result = create_array_arg_type(csound, memberVar);
             if (result == NULL) {
-              synterr(csound, Str("Array member has unknown type\n"));
+              synterr(csound, Str("Array member has unknown type at line %d\n"), tree->line);
               do_baktrace(csound, tree->locn);
               return NULL;
             }
@@ -419,8 +418,8 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
           }
           return result;
         } else {
-          synterr(csound, Str("Expected array type but got '%s'\n"),
-                  structArrayType);
+          synterr(csound, Str("Expected array type but got '%s' at line %d\n"),
+                  structArrayType, tree->line);
           csound->Free(csound, structArrayType);
           do_baktrace(csound, tree->locn);
           return NULL;
@@ -431,16 +430,14 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
         s = tree->left->left->value->lexeme;
       } else {
         synterr(csound,
-                Str("STRUCT_EXPR: Cannot find struct name for array access at "
-                    "line %d\n"),
+                Str("STRUCT_EXPR: Cannot find struct name for array access at line %d\n"),
                 tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
     } else {
       synterr(csound,
-              Str("STRUCT_EXPR: Unexpected structure for array access at line "
-                  "%d\n"),
+              Str("STRUCT_EXPR: Unexpected structure for array access at line %d\n"),
               tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
@@ -465,7 +462,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   }
 
   if (UNLIKELY(var == NULL)) {
-    synterr(csound, Str("Variable '%s' used before defined\n"), s);
+    synterr(csound, Str("Variable '%s' used before defined at line %d\n"), s, tree->line);
     do_baktrace(csound, tree->locn);
     return NULL;
   }
@@ -475,12 +472,12 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   const CS_TYPE *structType = var->varType;
   if (tree->left->value == NULL && tree->left->type == T_ARRAY) {
     if (var->varType != &CS_VAR_TYPE_ARRAY) {
-      synterr(csound, Str("Variable '%s' is not an array\n"), s);
+      synterr(csound, Str("Variable '%s' is not an array at line %d\n"), s, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
     if (var->subType == NULL) {
-      synterr(csound, Str("Array '%s' has no element type defined\n"), s);
+      synterr(csound, Str("Array '%s' has no element type defined at line %d\n"), s, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -501,7 +498,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
       cell = cell->next;
     }
     if (nextVar == NULL) {
-      synterr(csound, Str("No member '%s' found for variable\n"), s);
+      synterr(csound, Str("No member '%s' found for variable at line %d\n"), s, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -514,7 +511,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   if (var->varType == &CS_VAR_TYPE_ARRAY) {
     result = create_array_arg_type(csound, var);
     if (result == NULL) {
-      synterr(csound, Str("Array member has unknown type\n"));
+      synterr(csound, Str("Array member has unknown type at line %d\n"), tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -742,8 +739,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (UNLIKELY(argTypeLeft == NULL || argTypeRight == NULL)) {
         synterr(csound,
-                Str("Unable to verify arg types for expression '%s'\n"
-                    "Line %d\n"),
+                Str("Unable to verify arg types for expression '%s' at line %d\n"),
                 opname, tree->line);
         do_baktrace(csound, tree->locn);
         return NULL;
@@ -909,7 +905,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                          tree->value->lexeme)) != NULL) {
       if(var->varType != &CS_VAR_TYPE_ARRAY) {
       synterr(csound, Str("Array variable name '%s' used before as a different "
-                          "type\n Line %d"),
+                          "type at line %d\n"),
               tree->value->lexeme, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
@@ -996,8 +992,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
      if (var->varType == &CS_VAR_TYPE_ARRAY) {
         char *res = create_array_arg_type(csound, var);
         if (res==NULL) {        /* **REVIEW** this double syntax error */
-          synterr(csound, Str("Array of unknown type\n"));
-          csoundMessage(csound, Str("Line: %d\n"), tree->line);
+          synterr(csound, Str("Array of unknown type at line %d\n"), tree->line);
           do_baktrace(csound, tree->locn);
         }
         return res;
@@ -1033,7 +1028,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     return retVal;
 
   default:
-    csoundWarning(csound, Str("Unknown arg type: %d\n"), tree->type);
+    csoundWarning(csound, Str("Unknown arg type: %d at line %d\n"), tree->type, tree->line);
     print_tree(csound, "Arg Tree\n", tree);
     return NULL;
   }
@@ -1950,8 +1945,7 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           var = find_var_from_pools(csound, varName, varName, typeTable);
           if (UNLIKELY(var == NULL)) {
               synterr(csound,
-                      Str("ArgCheck: variable '%s' used before defined\n"
-                          "Line %d\n"),
+                      Str("ArgCheck: variable '%s' used before defined at line %d\n"),
                       varName, current->left->line);
               do_baktrace(csound, current->left->locn);
               return 0;
