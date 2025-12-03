@@ -658,6 +658,7 @@ def runTest():
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
+        ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
         ["udo/crashing_test.csd", "test for UDO crashing", 1],
         ["udo/test_udo_array_set.csd", "test UDO array setting"],
     ]
