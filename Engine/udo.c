@@ -652,9 +652,11 @@ int32_t set_inbufs(CSOUND *csound,
     void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
 
-    if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
+    /*if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       *((MYFLT*)out) = *((MYFLT*)in);
-    } else if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
+      } else*/
+    if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
+        csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
     }
 
