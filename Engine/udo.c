@@ -732,11 +732,12 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 
     const CS_TYPE* outType = csoundGetTypeForArg(out);
 
-    if (outType == &CS_VAR_TYPE_ARRAY) {
+ /*   if (outType == &CS_VAR_TYPE_ARRAY) {
       *((void**)out) = in;
       continue;
     }
-    else if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
+    else */
+    if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
