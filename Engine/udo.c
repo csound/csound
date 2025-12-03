@@ -652,9 +652,6 @@ int32_t set_inbufs(CSOUND *csound,
     void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
 
-    /*if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
-      *((MYFLT*)out) = *((MYFLT*)in);
-      } else*/
     if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
@@ -729,16 +726,9 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) p->args[i];
     void* out = (void*) bufs[i];
-
+    CS_TYPE* outType = csoundGetTypeForArg(out);
     tmp[i] = in;
 
-    const CS_TYPE* outType = csoundGetTypeForArg(out);
-
- /*   if (outType == &CS_VAR_TYPE_ARRAY) {
-      *((void**)out) = in;
-      continue;
-    }
-    else */
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
     }
