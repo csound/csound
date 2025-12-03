@@ -19,7 +19,7 @@
             "displayName": "Windows Debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CUSTOM_CMAKE": "./platform/windows/Custom-vs.cmake"
+                "CUSTOM_CMAKE": "${sourceDir}/platform/windows/Custom-vs.cmake"
             },
             "condition": {
                 "type": "equals",
@@ -33,7 +33,7 @@
             "displayName": "Windows Release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
-                "CUSTOM_CMAKE": "./platform/windows/Custom-vs.cmake"
+                "CUSTOM_CMAKE": "${sourceDir}/platform/windows/Custom-vs.cmake"
             },
             "condition": {
                 "type": "equals",
