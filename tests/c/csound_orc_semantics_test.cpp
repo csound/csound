@@ -135,6 +135,15 @@ TEST_F (OrcSemanticsTest, CheckInArgsTest)
     ASSERT_TRUE (check_in_arg("r", "k"));
     ASSERT_TRUE (check_in_arg("p", "k"));
 
+    // K type (k-rate with initialization) - accepts k, i, c, p, r
+    ASSERT_TRUE (check_in_arg("k", "K"));
+    ASSERT_TRUE (check_in_arg("i", "K"));
+    ASSERT_TRUE (check_in_arg("c", "K"));
+    ASSERT_TRUE (check_in_arg("p", "K"));
+    ASSERT_TRUE (check_in_arg("r", "K"));
+    ASSERT_FALSE (check_in_arg("a", "K"));
+    ASSERT_FALSE (check_in_arg("S", "K"));
+
     // checking var-arg types
     ASSERT_FALSE (check_in_arg("a", "m"));
     ASSERT_TRUE (check_in_arg("i", "m"));
