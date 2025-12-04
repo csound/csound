@@ -346,6 +346,7 @@ const OENTRY opcodlst_1[] = {
   { "##array_get.k", sizeof(ARRAY_GET), 0, "k", "k[]m", (SUBR)array_get, (SUBR)array_get },
   { "##array_get.a", sizeof(ARRAY_GET), 0, "a", "a[]m", (SUBR)array_get, (SUBR)array_get },
   { "##array_get.S", sizeof(ARRAY_GET), 0, "S", "S[]m", (SUBR)array_get, (SUBR)array_get },
+  { "##array_geti.S", sizeof(ARRAY_GET), 0, "S", "S[]m", (SUBR)array_get},
   { "##array_get.C", sizeof(ARRAY_GET), 0, ":Complex;", ":Complex;[]m", (SUBR)array_get,
     (SUBR)array_get},
   { "##array_get.b", sizeof(ARRAY_GET), 0, "b", "b[]m",(SUBR)array_get },

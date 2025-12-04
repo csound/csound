@@ -1757,6 +1757,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   const CS_TYPE *iType = &CS_VAR_TYPE_I;
   const CS_TYPE *kType = &CS_VAR_TYPE_K;
   const CS_TYPE *aType = &CS_VAR_TYPE_A;
+  const CS_TYPE *sType = &CS_VAR_TYPE_S;
   const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
   const CS_TYPE *arrayType =
     csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
@@ -1861,7 +1862,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
-  TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
+  char* array_get = arrayType != sType ? "##array_get" : "##array_geti";
+  TREE* arrayGetStatement = create_opcode_token(csound, array_get); 
   arrayGetStatement->left = current->left;
 
   arrayGetStatement->right = copy_node(csound, arrayIdent);
