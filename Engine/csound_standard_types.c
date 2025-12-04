@@ -237,7 +237,7 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
        aSrc->arrayMemberSize != aDest->arrayMemberSize ||
        aSrc->dimensions != aDest->dimensions ||
        aSrc->arrayType != aDest->arrayType ||
-       arrayNumMembers > array_get_num_members(aDest)) {
+       arrayNumMembers != array_get_num_members(aDest)) {
 
         aDest->arrayMemberSize = aSrc->arrayMemberSize;
         aDest->dimensions = aSrc->dimensions;
@@ -252,8 +252,8 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
         aDest->allocated = aSrc->arrayMemberSize * arrayNumMembers;
-    } else if(arrayNumMembers <= array_get_num_members(aDest)) // set sizes, don't reallocate
-      for(j = 0; j < aDest->dimensions; j++) aDest->sizes[j] = aSrc->sizes[j];
+    } /* else if(arrayNumMembers <= array_get_num_members(aDest)) // set sizes, don't reallocate
+      for(j = 0; j < aDest->dimensions; j++) aDest->sizes[j] = aSrc->sizes[j];*/
     
 
     var = aDest->arrayType->createVariable(cs, (void *)aDest->arrayType, ctx);
