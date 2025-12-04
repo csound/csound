@@ -252,7 +252,7 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
         }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
         aDest->allocated = aSrc->arrayMemberSize * arrayNumMembers;
-    } else if(arrayNumMembers < array_get_num_members(aDest)) // set sizes, don't reallocate
+    } else if(arrayNumMembers <= array_get_num_members(aDest)) // set sizes, don't reallocate
       for(j = 0; j < aDest->dimensions; j++) aDest->sizes[j] = aSrc->sizes[j];
     
 
