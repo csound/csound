@@ -56,11 +56,17 @@ if (USE_VCPKG)
             endif()
         endif()
     elseif (CMAKE_SYSTEM_NAME STREQUAL "MinGW" AND UNIX)
-        set(VCPKG_TARGET_TRIPLET "x64-mingw-static")
+        # Detect 32-bit vs 64-bit MinGW based on compiler
+        if (CMAKE_C_COMPILER MATCHES "i686-w64-mingw32")
+            set(VCPKG_TARGET_TRIPLET "x86-mingw-static")
+            set(VCPKG_TARGET_ARCHITECTURE x86)
+        else()
+            set(VCPKG_TARGET_TRIPLET "x64-mingw-static")
+            set(VCPKG_TARGET_ARCHITECTURE x64)
+        endif()
         set(VCPKG_INSTALL_OPTIONS "--allow-unsupported")
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/toolchains/mingw.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
-        set(VCPKG_TARGET_ARCHITECTURE x64)
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         set(VCPKG_TARGET_TRIPLET "wasm32-emscripten")
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm32.cmake)
@@ -93,6 +99,9 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 project(Csound)
 
 enable_testing()
+
+# Collect private libraries for static linking (for pkg-config --static)
+set(CSOUND_PRIVATE_LIBS "")
 
 set(libcsound_private_include_dirs "")
 set(libcsound_public_include_dirs "")
@@ -219,6 +228,8 @@ option(USE_SHORT_TABLE_LENGTH  "Build with original max table length 2^24" OFF)
 option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
+option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
+
 
 # secret rabbit code
 if (USE_LIBSAMPLERATE)
@@ -552,6 +563,7 @@ list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
     add_compile_definitions("USE_LIBSNDFILE")
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsndfile")
 
     if(NOT USE_VCPKG AND EMSCRIPTEN)
         list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
@@ -794,7 +806,6 @@ set(libcsound_SRCS
     Engine/csound_type_system.c
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
-    Engine/pools.c
     Engine/ugen.c
     InOut/soundfile.c
     InOut/libsnd.c
@@ -837,6 +848,7 @@ set(libcsound_SRCS
     OOps/schedule.c
     OOps/sndinfUG.c
     OOps/str_ops.c
+    OOps/structs.c
     OOps/ugens1.c
     OOps/ugens2.c
     OOps/ugens3.c
@@ -1125,7 +1137,6 @@ if(BUILD_PERFTHREAD_CLASS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
     list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
 
-
 # Handling New Parser
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
 set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
@@ -1176,6 +1187,7 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
+    Engine/csound_orc_structs.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1185,6 +1197,7 @@ list(APPEND libcsound_static_SRCS
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
+    Engine/csound_orc_structs.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1272,8 +1285,14 @@ if(BUILD_MULTI_CORE)
         Engine/cs_par_base.c
         Engine/cs_par_orc_semantic_analysis.c)
 
-
     list(APPEND libcsound_CFLAGS -DPARCS)
+
+   if(USE_LOCK_BARRIER)
+     message(STATUS "Using thread-lock barrier.")
+     list(APPEND libcsound_CFLAGS -DPARCS_USE_THREAD_BARRIER)
+   else()
+    message(STATUS "Using lock-free barrier.")
+   endif()
 
 else()
     message(STATUS "Not building with multicore support.")
@@ -1356,6 +1375,7 @@ endif()
 
 if (HAVE_ATOMIC_BUILTIN)
     list(APPEND libcsound_LIBS ${ATOMIC_LIB})
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${ATOMIC_LIB}")
 endif()
 
 if(WIN32)
@@ -1364,6 +1384,7 @@ endif()
 
 if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
+  set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${CURL_LIBRARIES}")
 endif()
 
 check_deps(USE_GETTEXT Intl_FOUND GETTEXT_FOUND)
@@ -1371,6 +1392,7 @@ if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
     list(APPEND libcsound_LIBS Intl::Intl)
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lintl")
     if(NOT DEFINED CSOUND_TEXTDOMAIN AND BUILD_RELEASE AND (LINUX))
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
     endif()
@@ -1390,11 +1412,13 @@ if(LINUX)
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE
     -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lm -ldl -lpthread")
 
     find_library(LIBRT_LIBRARY rt)
 
     if(LIBRT_LIBRARY)
         list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
+        set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBRT_LIBRARY}")
         message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
 
@@ -1402,6 +1426,7 @@ if(LINUX)
 
     if(LIBEXECINFO_LIBRARY)
        list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
+       set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBEXECINFO_LIBRARY}")
        message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
     endif()
 endif()
@@ -1413,6 +1438,9 @@ if((APPLE AND NOT IOS) OR (OSXCROSS_TARGET))
     find_path(VECLIB_PATH "Accelerate/Accelerate.h")
     list(APPEND libcsound_private_include_dirs ${VECLIB_PATH})
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
+    if(APPLE AND NOT IOS)
+        set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lm -ldl ${ACCELERATE_LIBRARY}")
+    endif()
 endif()
 
 if(WIN32)
@@ -1565,6 +1593,7 @@ if(SampleRate_FOUND)
     if(NOT IOS OR OSXCROSS_TARGET)
         target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
     endif()
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsamplerate")
 endif()
 
 if(NOT IOS OR OSXCROSS_TARGET)
@@ -1682,6 +1711,26 @@ install(EXPORT CsoundExports
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
 )
 
+# configure and install pkg-config file
+# Set appropriate link flags for different platforms
+if(APPLE AND NOT IOS)
+    # On macOS, use framework flags when building as framework
+    set(CSOUND_LINK_FLAGS "-F${CS_FRAMEWORK_DEST} -framework ${CSOUNDLIB}")
+else()
+    # Standard library flags for other platforms
+    set(CSOUND_LINK_FLAGS "-L\${libdir} -l${CSOUNDLIB}")
+endif()
+
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/csound.pc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"
+    @ONLY
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/csound.pc"
+    DESTINATION "${LIBRARY_INSTALL_DIR}/pkgconfig"
+)
+
 # install samples
 if(APPLE)
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
@@ -1693,11 +1742,22 @@ endif()
 
 # install mingw libraries
 if(MINGW)
-    file(GLOB LIBSTDC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libstdc++-6.dll ")
-    file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
-    file(GLOB LIBGCC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libgcc_s_seh-1.dll ")
-    file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
-    file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+    # Detect 32-bit vs 64-bit MinGW for runtime DLL paths
+    if (CMAKE_C_COMPILER MATCHES "i686-w64-mingw32")
+        # 32-bit MinGW
+        file(GLOB LIBSTDC_DLL "/usr/lib/gcc/i686-w64-mingw32/*-posix/libstdc++-6.dll ")
+        file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
+        file(GLOB LIBGCC_DLL "/usr/lib/gcc/i686-w64-mingw32/*-posix/libgcc_s_dw2-1.dll ")
+        file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
+        file(COPY /usr/i686-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+    else()
+        # 64-bit MinGW
+        file(GLOB LIBSTDC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libstdc++-6.dll ")
+        file(COPY ${LIBSTDC_DLL} DESTINATION "${BUILD_DIR}")
+        file(GLOB LIBGCC_DLL "/usr/lib/gcc/x86_64-w64-mingw32/*-posix/libgcc_s_seh-1.dll ")
+        file(COPY ${LIBGCC_DLL} DESTINATION "${BUILD_DIR}")
+        file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
+    endif()
 endif()
 
 add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c

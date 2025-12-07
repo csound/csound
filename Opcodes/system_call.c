@@ -17,8 +17,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 
@@ -132,7 +131,8 @@ call_system_k(CSOUND *csound, SYSTEM *p)
 static OENTRY system_localops[] = {
   { "system", S(SYSTEM), 0,  "k", "kSO",
                        (SUBR)call_system_set,(SUBR)call_system_k},
-  { "system_i", S(SYSTEM), 0,  "i", "iSo", (SUBR)call_system_i}
+  { "system_i", S(SYSTEM), 0, "i", "iSo", (SUBR)call_system_i, NULL, NULL, NULL, 2},
+  { "systemi", S(SYSTEM), 0,  "i", "iSo", (SUBR)call_system_i} /* alias */
 };
 
 LINKAGE_BUILTIN(system_localops)

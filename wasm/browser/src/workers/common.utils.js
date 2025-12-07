@@ -28,7 +28,7 @@ export const handleCsoundStart =
     }
 
     setTimeout(() => {
-      const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
+      const isRequestingRtMidiInput = libraryCsound["_isRequestingRtMidiInput"](csound);
       const isExpectingRealtimeOutput =
         shouldDemonize || isRequestingRtMidiInput || outputName.includes("dac");
 

@@ -20,8 +20,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h" /*  INSERT.C */
@@ -29,7 +28,7 @@
 #include "udo.h"
 #include "aops.h"       /* for cond's */
 #include "midiops.h"
-#include "namedins.h"   
+#include "namedins.h"
 #include "pstream.h"
 #include "interlocks.h"
 #include "csound_type_system.h"
@@ -45,6 +44,26 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                            MEVENT *mep);
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
+
+/* Helper function to get type string from argument without unsafe casting */
+static char* get_arg_type_from_arg(ARG *arg, CS_VARIABLE **var) {
+    if (arg->type == ARG_CONSTANT) {
+      *var = NULL;
+      return "c";
+    } else if (arg->type == ARG_STRING) {
+      *var = NULL;
+      return "S";
+    } else if (arg->type == ARG_PFIELD) {
+      *var = NULL;
+      return "p";
+    } else if (arg->type == ARG_LABEL) {
+      *var = NULL;
+      return "l";
+    } else {
+      *var = (CS_VARIABLE *) arg->argPtr;
+      return (*var)->varType->varTypeName;
+    }
+}
 
 static void print_messages(CSOUND *csound, int32_t attr, const char *str){
 #if defined(WIN32)
@@ -113,7 +132,7 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
     csound->mode = 1;
     csound->op = csound->ids->optext->t.oentry->opname;
-    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {  
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
       csound->Message(csound, "init %s (%p):\n", csound->op, csound->ids);
      }
     error = (*csound->ids->init)(csound, csound->ids);
@@ -121,12 +140,15 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   }
   csound->ids = ids;
   csound->curip = curip;
+
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
+
   return error;
 }
 
 int32_t rireturn(CSOUND *csound, void *p);
+
 /* do reinit pass */
 static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   int32_t error = 0;
@@ -238,8 +260,8 @@ int32_t init0(CSOUND *csound)
 {
   INSTRTXT  *tp = csound->engineState.instrtxtp[0];
   INSDS     *ip;
-  
-  instance(csound, 0);                            /* allocate instr 0     */  
+
+  instance(csound, 0);                            /* allocate instr 0     */
   csound->curip = ip = tp->act_instance;
   tp->act_instance = ip->nxtact;
   csound->ids = (OPDS*) ip;
@@ -277,27 +299,35 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
     csound->Message(csound, "%sn", tp->opcod);
     return 0;
   }
-  
+
   if (tp->outlist && (n = tp->outlist->count) != 0) {
     nn = 0;
     arg = tp->outArgs;
-    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName; 
-    char  arrtype[64]; 
+    CS_VARIABLE *var = NULL;
+    char *type = get_arg_type_from_arg(arg, &var);
+    char  arrtype[64];
+
     while (n-- > 1) {
       if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
-         type = arrtype;
-      }  
+        if (var != NULL && var->subType != NULL) {
+          snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
+        } else {
+          snprintf(arrtype, 64, "unknown[]");
+        }
+        type = arrtype;
+      }
       csound->Message(csound, "%s:%s,", tp->outlist->arg[nn++], type);
       arg = arg->next;
-      var = (CS_VARIABLE *) arg->argPtr;
-      type = arg->type == ARG_PFIELD ? "p" : var->varType->varTypeName;
+      type = get_arg_type_from_arg(arg, &var);
     }
     if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
-         type = arrtype;
-    }    
+      if (var != NULL && var->subType != NULL) {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
+      } else {
+        snprintf(arrtype, 64, "unknown[]");
+      }
+      type = arrtype;
+    }
     csound->Message(csound, "%s:%s ", tp->outlist->arg[nn++], type);
   }
   name = strip_extension(csound, tp->opcod);
@@ -305,31 +335,31 @@ static int32_t print_opcall(CSOUND *csound, TEXT *tp)
   if (tp->inlist  && (n = tp->inlist->count) != 0) {
     nn = 0;
     arg = tp->inArgs;
-    CS_VARIABLE *var = (CS_VARIABLE *) arg->argPtr;
-    char *type = arg->type == ARG_CONSTANT ? "c" :
-      (arg->type == ARG_STRING ? "S" :
-       (arg->type == ARG_PFIELD ? "p" :
-        (arg->type == ARG_LABEL ? "l" :
-         var->varType->varTypeName)));
-    char  arrtype[64]; 
+    CS_VARIABLE *var = NULL;
+    char *type = get_arg_type_from_arg(arg, &var);
+    char  arrtype[64];
+
     while (n-- > 1) {
       if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
-         type = arrtype;
-      }        
+        if (var != NULL && var->subType != NULL) {
+          snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
+        } else {
+          snprintf(arrtype, 64, "unknown[]");
+        }
+        type = arrtype;
+      }
       csound->Message(csound, "%s:%s,", tp->inlist->arg[nn++], type);
       arg = arg->next;
-      var = (CS_VARIABLE *) arg->argPtr;
-      type = arg->type == ARG_CONSTANT ? "c" :
-      (arg->type == ARG_STRING ? "S" :
-       (arg->type == ARG_PFIELD ? "p" :
-        (arg->type == ARG_LABEL ? "l" :
-         var->varType->varTypeName)));;
+      type = get_arg_type_from_arg(arg, &var);
     }
     if(*type == '[') {
-        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName); 
-         type = arrtype;
-    }      
+      if (var != NULL && var->subType != NULL) {
+        snprintf(arrtype, 64, "%s[]", var->subType->varTypeName);
+      } else {
+        snprintf(arrtype, 64, "unknown[]");
+      }
+      type = arrtype;
+    }
     csound->Message(csound, "%s:%s", tp->inlist->arg[nn++], type);
   }
   csound->Message(csound,"\n");
@@ -454,10 +484,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     newp1 = named_instr_find(csound, newevtp->strarg);
 
   newevtp->p[1] = newp1 != 0 ? newp1 : newevtp->p[1];
-  /* if find this insno, active, with indef (tie) & matching p1 
+  /* if find this insno, active, with indef (tie) & matching p1
      and tie was not suppressed */
   for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
-    if (ip->actflg && ip->offtim < 0.0 
+    if (ip->actflg && ip->offtim < 0.0
         && ip->p1.value == newevtp->p[1]) {
       csound->tieflag++;
       ip->tieflag = 1;
@@ -473,11 +503,9 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->ErrorMsg(csound, Str("new alloc (instance %llu) for instr %s:\n"),
-                           csound->instance_count, name);
+          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->ErrorMsg(csound, Str("new alloc (instance %llu) for instr %d:\n"),
-                           csound->instance_count, insno);
+          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
@@ -507,7 +535,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     csound->dag_changed++;      /* Need to remake DAG */
     if(order == 1) { // MODE 1 = add to end
       INSDS *prvp, *nxtp;
-      nxtp = &(csound->actanchor);   
+      nxtp = &(csound->actanchor);
       // splice at end of chain
       while ((prvp = nxtp) &&
              (nxtp = prvp->nxtact) != NULL)
@@ -518,16 +546,16 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     }
     if(order == 2) { // MODE 2 = add to start
       INSDS *nxtp;
-      nxtp = &(csound->actanchor);   
+      nxtp = &(csound->actanchor);
       // splice at the top of chaing
       ip->nxtact = nxtp->nxtact;
       nxtp->nxtact->prvact = ip;
-      nxtp->nxtact = ip;
+      if (nxtp->nxtact) nxtp->nxtact->prvact = ip;
       ip->prvact = nxtp;
-    } 
+    }
     else {  // default order
       INSDS *prvp, *nxtp;
-      nxtp = &(csound->actanchor);   
+      nxtp = &(csound->actanchor);
       // standard splice: instrument number and p1 ascending order
       while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
         if (nxtp->insno > insno ||
@@ -535,19 +563,19 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
           nxtp->prvact = ip;
           break;
         }
-      } 
+      }
       ip->nxtact = nxtp;
       ip->prvact = prvp;
       prvp->nxtact = ip;
     }
-     
+
     ip->tieflag = 0;
     ip->actflg++;                   /*    and mark the instr active */
     if(ip->instance_id == 0)
       ip->instance_id = csound->instance_count;
   }
 
-  
+
   /* init: */
   pfields = (CS_VAR_MEM*)&ip->p0;
   if (tp->psetdata) {
@@ -633,7 +661,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     ip->ksmps_no_end = 0;
     ip->no_end = 0;
   }
-  
+
   // current event needs to be reset here
   csound->init_event = newevtp;
   error = init_pass(csound, ip);
@@ -674,14 +702,13 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
         double p2 = (double) ip->p2.value + csound->timeOffs;
         ip->offtim += (csound->icurTimeSamples/csound->esr - p2);
       }
-    //printf("%lf\n",   );
     sched_off_time(csound, ip);                  /*   put in turnoff list */
   }
   else {
     ip->offbet = -1.0;
     ip->offtim = -1.0;                        /*   else mark indef     */
   }
-  
+
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
@@ -690,9 +717,9 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       csound->Message(csound, Str("instr %d now active:\n"), insno);
     show_allocs(csound);
   }
-  if (newevtp->pinstance != NULL) {       
+  if (newevtp->pinstance != NULL) {
     /* place instance on output var memory */
-    memcpy(newevtp->pinstance, &ip, sizeof(INSDS *));    
+    memcpy(newevtp->pinstance, &ip, sizeof(INSDS *));
   }
   return 0;
 }
@@ -850,8 +877,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     }
     pmax = tp->pmax;
   }
-  
-  
+
+
   /* MIDI channel message note on routing overrides pset: */
   if (O->midiKey) {
     int32_t pfield_index = O->midiKey;
@@ -1057,8 +1084,8 @@ void deinit_pass(CSOUND *csound, INSDS *ip) {
 /* unlink single instr from activ chain */
 /*      and mark it inactive            */
 static void deact(CSOUND *csound, INSDS *ip)
-{                              
-  INSDS  *nxtp;               
+{
+  INSDS  *nxtp;
 
   /* do deinit pass */
   deinit_pass(csound, ip);
@@ -1111,7 +1138,7 @@ static void deact(CSOUND *csound, INSDS *ip)
    if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL) {
     nxtp->prvact = ip->prvact;
     }
-    /*  prevent a loop in kperf() in case deact() is called on 
+    /*  prevent a loop in kperf() in case deact() is called on
         an inactive instance */
     ip->actflg = 0;
     if(ip->linked) {
@@ -1121,8 +1148,8 @@ static void deact(CSOUND *csound, INSDS *ip)
         csound->engineState.instrtxtp[ip->insno]->act_instance = ip;
       }
     }
-  } 
-  
+  }
+
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   csound->dag_changed++;
@@ -1255,7 +1282,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
 }
 
 /* free all inactive instr spaces */
-void free_inactive_instances(CSOUND *csound)          
+void free_inactive_instances(CSOUND *csound)
 {
   INSTRTXT  *txtp;
   INSDS     *ip, *nxtip, *prvip, **prvnxtloc;
@@ -1263,14 +1290,14 @@ void free_inactive_instances(CSOUND *csound)
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;  txtp = txtp->nxtinstxt) {
     if ((ip = txtp->instance) != NULL) {        /* if instance exists */
-     
+
       prvip = NULL;
       prvnxtloc = &txtp->instance;
       do {
         if (!ip->actflg) {
           cnt++;
           if (ip->opcod_iobufs && ip->insno > csound->engineState.maxinsno)
-            csound->Free(csound, ip->opcod_iobufs);   
+            csound->Free(csound, ip->opcod_iobufs);
           if (ip->fdchp != NULL)
             fdchclose(csound, ip);
           if (ip->auxchp != NULL)
@@ -1379,7 +1406,7 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
     csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
-    
+
     /* find top level instrument instance */
     do {
       ip = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->parent_ip;
@@ -1498,6 +1525,199 @@ static int32_t find_label_mem_offset(CSOUND* csound, INSTRTXT* ip, char* labelNa
 
 /* create instance of an instr template */
 /* allocates and sets up all pntrs      */
+/**
+ * Set up argument pointers (argpp) for a single opcode.
+ * This can be called during initial instantiation or to reinitialize
+ * argument pointers for reused instrument instances.
+ */
+static void setup_opcode_argpp(
+  CSOUND *csound, OPDS *opds, TEXT *ttp,
+  const OENTRY *ep, INSDS *ip, INSTRTXT *tp,
+  MYFLT *lclbas, CS_VAR_MEM *lcloffbas,
+  char *opMemStart
+) {
+    MYFLT **argpp;
+    ARG *arg;
+    int n;
+    int argStringCount;
+
+    if (ep->useropinfo == NULL)
+      argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
+    else          /* user defined opcodes are a special case */
+      argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
+
+    /* Set up output arguments */
+    arg = ttp->outArgs;
+    for (n = 0; arg != NULL; n++) {
+      MYFLT *fltp;
+      CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
+      if (arg->type == ARG_GLOBAL) {
+        fltp = &(var->memBlock->value);
+      }
+      else if (arg->type == ARG_LOCAL) {
+        if (UNLIKELY(var == NULL)) {
+          csound->Die(csound,
+                      Str("setup_opcode_argpp: NULL local variable pointer for out-arg of %s"),
+                      ep->opname ? ep->opname : "(null)");
+        } else {
+          fltp = lclbas + var->memBlockIndex;
+        }
+
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+
+          next = cs_strtok_r(path, ".", &th);
+          while (next != NULL) {
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+            CONS_CELL* members = type->members;
+            int32_t i = 0;
+            int32_t found = 0;
+            while(members != NULL) {
+              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+              if (!strcmp(member->varName, next)) {
+                fltp = &(structVar->members[i]->value);
+                found = 1;
+                break;
+              }
+              i++;
+              members = members->next;
+            }
+            if (!found) {
+              csound->Free(csound, path);
+              csound->Die(csound,
+                Str("setup_opcode_argpp: struct member '%s' not found in structPath '%s' for %s"),
+                next, arg->structPath, ep->opname ? ep->opname : "(null)");
+            }
+            next = cs_strtok_r(NULL, ".", &th);
+          }
+          csound->Free(csound, path);
+        }
+      }
+      else if (arg->type == ARG_PFIELD) {
+        CS_VAR_MEM* pfield = lcloffbas + arg->index;
+        fltp = &(pfield->value);
+      }
+      else {
+        csound->Die(csound,
+          Str("setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s"),
+          arg->type,
+          ep->opname ? ep->opname : "(null)");
+      }
+      argpp[n] = fltp;
+      arg = arg->next;
+    }
+
+    for (argStringCount = args_required(ep->outypes); n < argStringCount; n++) {
+      argpp[n] = NULL;
+    }
+
+    /* Set up input arguments */
+    arg = ttp->inArgs;
+    ip->lclbas = lclbas;
+    int providedIn = 0;
+    for (; arg != NULL; n++, arg = arg->next, providedIn++) {
+      if (arg->type == ARG_CONSTANT) {
+        CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
+        argpp[n] = &varMem->value;
+      }
+      else if (arg->type == ARG_STRING) {
+        argpp[n] = (MYFLT*)(arg->argPtr);
+      }
+      else if (arg->type == ARG_PFIELD) {
+        CS_VAR_MEM* pfield = lcloffbas + arg->index;
+        argpp[n] = &(pfield->value);
+      }
+      else if (arg->type == ARG_GLOBAL) {
+        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+        argpp[n] =  &(var->memBlock->value);
+      }
+      else if (arg->type == ARG_LOCAL){
+        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+        argpp[n] = lclbas + var->memBlockIndex;
+
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+          MYFLT* fltp = argpp[n];
+          next = cs_strtok_r(path, ".", &th);
+          while (next != NULL) {
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+            if (type == NULL || structVar == NULL || structVar->members == NULL)
+              break;
+            CONS_CELL* members = type->members;
+            int32_t i = 0;
+            while(members != NULL) {
+              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+              if (!strcmp(member->varName, next)) {
+                fltp = &(structVar->members[i]->value);
+                break;
+              }
+              i++;
+              members = members->next;
+            }
+            next = cs_strtok_r(NULL, ".", &th);
+          }
+          argpp[n] = fltp;
+          csound->Free(csound, path);
+        }
+      }
+      else if (arg->type == ARG_LABEL) {
+        argpp[n] = (MYFLT*)(opMemStart +
+                            find_label_mem_offset(csound, tp, (char*)arg->argPtr));
+      }
+      else {
+        argpp[n] = (MYFLT*)(opMemStart +
+                    ((TEXT*)arg->argPtr)->inArgCount * sizeof(MYFLT *));
+      }
+    }
+}
+
+/**
+ * Reinitialize all argument pointers for opcodes in an instrument instance.
+ * This should be called when reusing a UDO instance to ensure argpp pointers
+ * are fresh and not stale from previous usage.
+ */
+void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip)
+{
+    INSTRTXT *tp = ip->instr;
+    OPTXT *optxt = (OPTXT*)tp;
+    OPDS *opds;
+    char *nxtopds;
+    MYFLT *lclbas = ip->lclbas;
+    CS_VAR_MEM *lcloffbas = (CS_VAR_MEM*)&ip->p0;
+
+    /* Calculate opcode memory start */
+    char *opMemStart = (char*) lclbas + tp->varPool->poolSize +
+        (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
+
+    nxtopds = opMemStart;
+
+    /* Iterate through all opcodes and reinit their argpp */
+    while ((optxt = optxt->nxtop) != NULL) {
+        TEXT *ttp = &optxt->t;
+        OENTRY *ep = ttp->oentry;
+
+        if (UNLIKELY(ep == NULL || ep->opname == NULL)) {
+            continue;
+        }
+
+        opds = (OPDS*) nxtopds;
+        nxtopds += ep->dsblksiz;
+
+        if (UNLIKELY(strcmp(ep->opname, "endin") == 0 || strcmp(ep->opname, "endop") == 0))
+            break;
+
+        if (UNLIKELY(strcmp(ep->opname, "pset") == 0 || strcmp(ep->opname, "$label") == 0))
+            continue;
+
+        /* Reinit argpp for this opcode */
+        setup_opcode_argpp(csound, opds, ttp, ep, ip, tp, lclbas, lcloffbas, opMemStart);
+    }
+}
+
 static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 {
   INSTRTXT  *tp;
@@ -1507,14 +1727,12 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   const OENTRY  *ep;
   int32_t       i, n, pextent, pextra, pextrab;
   char      *nxtopds, *opdslim;
-  MYFLT     **argpp, *lclbas;
+  MYFLT     *lclbas;
   CS_VAR_MEM *lcloffbas; // start of pfields
   char*     opMemStart;
 
   OPARMS    *O = csound->oparms;
   int32_t   odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
-  ARG*      arg;
-  int32_t       argStringCount;
   CS_VARIABLE* current;
 
   tp = csound->engineState.instrtxtp[insno];
@@ -1529,12 +1747,28 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   pextrab = ((i = tp->pmax - 3L) > 0 ? (int32_t) (i * sizeof(CS_VAR_MEM)) : 0);
   /* alloc new space,  */
   pextent = sizeof(INSDS) + pextrab + pextra*sizeof(CS_VAR_MEM);
+
+  // Check for null or corrupted varPool to prevent segfault
+  size_t varPoolSize = 0;
+  size_t varPoolCount = 0;
+  if (tp->varPool != NULL && (uintptr_t)tp->varPool >= 0x1000) {
+    varPoolSize = tp->varPool->poolSize;
+    varPoolCount = tp->varPool->varCount;
+  } else {
+    // Treat this as a fatal initialization error
+    csound->InitError(csound,
+                      "Fatal initialization error in instantiate: tp->varPool is null or corrupted (tp=%p). "
+                      "This indicates a serious problem with instrument initialization.",
+                      (void*)tp);
+    return NULL;  // Abort the instantiation path
+  }
+
   ip =
     (INSDS*) csound->Calloc(csound,
-                            (size_t) pextent + tp->varPool->poolSize +
-                            (tp->varPool->varCount *
+                            (size_t) pextent + varPoolSize +
+                            (varPoolCount *
                              CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET)) +
-                            (tp->varPool->varCount * sizeof(CS_VARIABLE*)) +
+                            (varPoolCount * sizeof(CS_VARIABLE*)) +
                             tp->opdstot);
   ip->csound = csound;
   ip->m_chnbp = (MCHNBLK*) NULL;
@@ -1585,10 +1819,16 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     const CS_TYPE** typePtr = (const CS_TYPE**)(ptr - CS_VAR_TYPE_OFFSET);
     *typePtr = current->varType;
   }
-  
+
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
+    /* Robustness: skip unresolved nodes (no opcode entry) */
+    if (UNLIKELY(ep == NULL || ep->opname == NULL)) {
+      if (UNLIKELY(odebug))
+        csound->Message(csound, "instantiate: skipping node with NULL oentry (line=%d)\n", ttp->linenum);
+      continue;
+    }
     opds = (OPDS*) nxtopds;                   /*   take reqd opds */
     nxtopds += ep->dsblksiz;
     if (UNLIKELY(strcmp(ep->opname, "endin") == 0         /*  (until ENDIN)  */
@@ -1603,6 +1843,14 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     if (UNLIKELY(odebug))
       csound->Message(csound, Str("op (%s) allocated at %p for instr %d nxt %p\n"),
                       ep->opname, opds, insno, nxtopds);
+    /* Initialize OPDS linkage and function pointers to safe defaults */
+    opds->nxti = NULL;
+    opds->nxtp = NULL;
+    opds->nxtd = NULL;
+    opds->init = NULL;
+    opds->perf = NULL;
+    opds->deinit = NULL;
+
     opds->optext = optxt;                     /* set common headata */
     opds->insdshead = ip;
     if (strcmp(ep->opname, "$label") == 0) {     /* LABEL:       */
@@ -1635,116 +1883,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
                         ep->opname,(void*) opds->deinit);
     }
 
-    if (ep->useropinfo == NULL)
-      argpp = (MYFLT **) ((char *) opds + sizeof(OPDS));
-    else          /* user defined opcodes are a special case */
-      argpp = &(((UOPCODE *) ((char *) opds))->ar[0]);
-
-    arg = ttp->outArgs;
-    for (n = 0; arg != NULL; n++) {
-      MYFLT *fltp;
-      CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
-      if (arg->type == ARG_GLOBAL) {
-        fltp = &(var->memBlock->value); /* gbloffbas + var->memBlockIndex; */
-      }
-      else if (arg->type == ARG_LOCAL) {
-        fltp = lclbas + var->memBlockIndex;
-
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
-            CONS_CELL* members = type->members;
-            int32_t i = 0;
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              if (!strcmp(member->varName, next)) {
-                fltp = &(structVar->members[i]->value);
-                break;
-              }
-
-              i++;
-              members = members->next;
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-        }
-      }
-      else if (arg->type == ARG_PFIELD) {
-        CS_VAR_MEM* pfield = lcloffbas + arg->index;
-        fltp = &(pfield->value);
-      }
-      else {
-        csound->Message(csound, Str("FIXME: Unhandled out-arg type: %d\n"),
-                        arg->type);
-        fltp = NULL;
-      }
-      argpp[n] = fltp;
-      arg = arg->next;
-    }
-
-    for (argStringCount = args_required(ep->outypes);
-         n < argStringCount;
-         n++)  /* if more outypes, pad */
-      argpp[n] = NULL;
-
-    arg = ttp->inArgs;
-    ip->lclbas = lclbas;
-    for (; arg != NULL; n++, arg = arg->next) {
-      CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-      if (arg->type == ARG_CONSTANT) {
-        CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
-        argpp[n] = &varMem->value;
-      }
-      else if (arg->type == ARG_STRING) {
-        argpp[n] = (MYFLT*)(arg->argPtr);
-      }
-      else if (arg->type == ARG_PFIELD) {
-        CS_VAR_MEM* pfield = lcloffbas + arg->index;
-        argpp[n] = &(pfield->value);
-      }
-      else if (arg->type == ARG_GLOBAL) {
-        argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
-      }
-      else if (arg->type == ARG_LOCAL){
-        argpp[n] = lclbas + var->memBlockIndex;
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
-            CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
-            CONS_CELL* members = type->members;
-            int32_t i = 0;
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              if (!strcmp(member->varName, next)) {
-                argpp[n] = &(structVar->members[i]->value);
-                break;
-              }
-
-              i++;
-              members = members->next;
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-        }
-      }
-      else if (arg->type == ARG_LABEL) {
-        argpp[n] = (MYFLT*)(opMemStart +
-                            find_label_mem_offset(csound, tp, (char*)arg->argPtr));
-      }
-      else {
-        csound->Message(csound, Str("FIXME: instance unexpected arg: %d\n"),
-                        arg->type);
-      }
-    }
+    /* Set up argument pointers for this opcode */
+    setup_opcode_argpp(csound, opds, ttp, ep, ip, tp, lclbas, lcloffbas, opMemStart);
 
   }
   /* display instantiated instrument */
@@ -1759,10 +1899,10 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
          print_opcall(csound, &(optxt->t));
       }
     }
-    
+
     csoundMessage(csound, "endin (instr %d)\n", ip->insno);
   }
-  
+
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,
      and initialise them */
   CS_VARIABLE* var = csoundFindVariableWithName(csound,
@@ -1788,7 +1928,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 
   var = csoundFindVariableWithName(csound, ip->instr->varPool, "this_instr");
   if(var) {
-    INSTREF src = { ip->instr, 0 }, *dest; 
+    INSTREF src = { ip->instr, 0 }, *dest;
     char* temp = (char*)(lclbas + var->memBlockIndex);
     var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
     dest = (INSTREF *) &(var->memBlock->value);
@@ -1798,7 +1938,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   }
   var = csoundFindVariableWithName(csound, ip->instr->varPool, "this");
   if(var) {
-    INSTANCEREF src = { ip, 0 }, *dest; 
+    INSTANCEREF src = { ip, 0 }, *dest;
     char* temp = (char*)(lclbas + var->memBlockIndex);
     var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
     dest = (INSTANCEREF *) &(var->memBlock->value);
@@ -1807,7 +1947,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     dest->readonly = 1;
   }
 
-  
+
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
 
@@ -1828,17 +1968,17 @@ int32_t instr_context_check(CSOUND *csound, INSDS *ip, INSDS *insdshead) {
   return OK;
 }
 
-/** create instance 
-    - allocates a new instance 
+/** create instance
+    - allocates a new instance
     - does not add instance to activ chain or instr act_instance
-   
+
     Returns the instance pointer, uninitialised
     NB: should only be called at i-time
 */
 INSDS *create_instance(CSOUND *csound, int32_t insno)
 {
   INSDS     *ip;
- 
+
   // create instance but don't link into act_instance chain
   ip = instantiate(csound, insno, 0);
   if(ip != NULL) {
@@ -1858,7 +1998,7 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
     ip->tieflag = 0;
     ip->actflg = 0;
     ip->offbet = -1.0;
-    ip->offtim = -1.0;                        
+    ip->offtim = -1.0;
     ip->m_chnbp = (MCHNBLK*) NULL;
     ip->xtratim = 0;
     ip->relesing = 0;
@@ -1870,7 +2010,7 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
     ip->no_end = 0;
     ip->linked = 0;
     ip->nxtoff = ip->nxtact = ip->prvact = NULL; /* NOT in act chain */
- 
+
 
     csound->instance_count++;
     ip->instance_id = csound->instance_count;
@@ -1879,40 +2019,38 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
       char *name = csound->engineState.instrtxtp[ip->insno]->insname;
       if (UNLIKELY(name))
         csound->ErrorMsg(csound,
-                         Str("new free alloc (instance %llu) for instr %s:\n"),
-                         ip->instance_id, name);
+                         Str("new free alloc for instr %s:\n"), name);
       else
         csound->ErrorMsg(csound,
-                         Str("new free alloc (instance %llu) for instr %d:\n"),
-                         ip->instance_id, ip->insno);
+                         Str("new free alloc for instr %d:\n"), ip->insno);
     }
   }
   return ip;
 }
 
 /** Free instance memory
-    - Instances linked to the instr act_instance chain 
-    are not freed, since these instances are freed by 
+    - Instances linked to the instr act_instance chain
+    are not freed, since these instances are freed by
     free_inactive_instances()
     - Unlinked instances are freed.
     All active instances are turned off.
 */
 void free_instance(CSOUND *csound, INSDS *ip) {
   // unpause
-  if(ip->actflg == 0) ip->actflg = 1;  
+  if(ip->actflg == 0) ip->actflg = 1;
   // turnoff immediately
   ip->xtratim = 0;
   xturnoff(csound, ip);
-  
+
   // don't touch any instances that are in the act_instance chain
   if(ip->linked) return;
-     
+
   // deactivate any opcodes
   // NB: memory for these is freed elsewhere (free_inactive_instances)
   // as opcodes exist in the instr act_instance chain
   if (ip->opcod_deact) {
     int32_t k;
-    UOPCODE *p = (UOPCODE*) ip->opcod_deact;  
+    UOPCODE *p = (UOPCODE*) ip->opcod_deact;
     // free converter if it has already been created (maybe we could reuse?)
     for(k=0; k<OPCODENUMOUTS_MAX; k++)
       if(p->cvt_in[k] != NULL) {
@@ -1933,16 +2071,16 @@ void free_instance(CSOUND *csound, INSDS *ip) {
   }
   // same for any subinstrs - these behave like UDOS
   if (ip->subins_deact) {
-    deact(csound, ((SUBINST*) ip->subins_deact)->ip); 
+    deact(csound, ((SUBINST*) ip->subins_deact)->ip);
     ((SUBINST*) ip->subins_deact)->ip = NULL;
     ip->subins_deact = NULL;
   }
-  // now we deal with memory created for this ip 
+  // now we deal with memory created for this ip
   if (ip->fdchp != NULL)
     fdchclose(csound, ip);
   if (ip->auxchp != NULL)
     auxchfree(csound, ip);
-  free_instr_var_memory(csound, ip); 
+  free_instr_var_memory(csound, ip);
   const OPARMS* O = csound->GetOParms(csound);
   if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
     char *name = csound->engineState.instrtxtp[ip->insno]->insname;
@@ -1956,7 +2094,7 @@ void free_instance(CSOUND *csound, INSDS *ip) {
   csound->Free(csound, ip);
 }
 
-/** Initialise an instance 
+/** Initialise an instance
     - copy data from evt pfields
     - run init pass
     returns CSOUND_SUCCESS or an error code
@@ -1965,7 +2103,7 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
                       EVTBLK *newevtp){
   EVTBLK *initevt = csound->init_event;
   INSTRTXT *tp = csound->engineState.instrtxtp[ip->insno];
-  CS_VAR_MEM *pfields = NULL;       
+  CS_VAR_MEM *pfields = NULL;
   int32_t   i, n, error = CSOUND_SUCCESS;
   MYFLT  *fep;
   pfields = (CS_VAR_MEM*) &ip->p0;
@@ -2008,5 +2146,3 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
   csound->init_event = initevt;
   return error;
 }
-
-

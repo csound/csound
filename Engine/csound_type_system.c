@@ -17,15 +17,19 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- 02110-1301 USA
+ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
  */
 
-#include "csound_type_system.h"
 #include <string.h>
 #include <stdio.h>
+#include "csound_type_system.h"
+#include "csound_standard_types.h"
 #include "csoundCore.h"
 #include "aops.h"
+#include "arrays.h"
+
+/* Forward declaration for p-field string extraction */
+extern char* get_arg_string(CSOUND *csound, MYFLT p);
 
 static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
@@ -46,16 +50,48 @@ static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance
 
 const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* typeName) {
 
-    CS_TYPE_ITEM* current = pool->head;    
+    CS_TYPE_ITEM* current = pool->head;
+    if (typeName == NULL) return NULL;
+    size_t namelen = strlen(typeName);
+    if (namelen == 0) return NULL;
+
+    // First try direct match
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
         return current->cstype;
       }
       current = current->next;
     }
-    if(UNLIKELY(typeName[strlen(typeName)-1] != ']')) return NULL;
+
+    // If no direct match and typeName starts with ':', try stripping the quotes
+    if (typeName[0] == ':' && namelen > 2 && typeName[namelen-1] == ';') {
+      char unquotedName[256];
+      snprintf(unquotedName, 256, "%.*s", (int)(namelen - 2), typeName + 1);
+      current = pool->head;
+      while (current != NULL) {
+        if (strcmp(unquotedName, current->cstype->varTypeName) == 0) {
+          return current->cstype;
+        }
+        current = current->next;
+      }
+    }
+
+    // If no direct match and typeName doesn't start with ':', try internal struct format
+    if (typeName[0] != ':' && typeName[0] != '[') {
+      char internalName[256];
+      snprintf(internalName, 256, ":%s;", typeName);
+      current = pool->head;
+      while (current != NULL) {
+        if (strcmp(internalName, current->cstype->varTypeName) == 0) {
+          return current->cstype;
+        }
+        current = current->next;
+      }
+    }
+
+    if(UNLIKELY(typeName[namelen-1] != ']')) return NULL;
     // now check again with braces
-    char type[64]; 
+    char type[64];
     current = pool->head;
     while (current != NULL) {
       snprintf(type, 64, "%s[]", current->cstype->varTypeName);
@@ -103,7 +139,17 @@ TYPE_POOL *csoundGetTypePool(CSOUND* csound) {
 
 CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
     CS_VAR_POOL* varPool = csound->Calloc(csound, sizeof(CS_VAR_POOL));
+    if (varPool == NULL || (uintptr_t)varPool < 0x1000) {
+        csound->Message(csound, "ERROR: csoundCreateVarPool failed to allocate memory, got %p\n", varPool);
+        return NULL;
+    }
     varPool->table = cs_hash_table_create(csound);
+    if (varPool->table == NULL) {
+        csound->Message(csound, "ERROR: cs_hash_table_create failed in csoundCreateVarPool\n");
+        csound->Free(csound, varPool);
+        return NULL;
+    }
+
     return varPool;
 }
 
@@ -160,22 +206,35 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
     if (LIKELY(type != NULL))
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg, NULL);
+          void *pArg = (typeArg != NULL) ? typeArg : (void*)type;
+          CS_VARIABLE* var = current->cstype->createVariable(csound, pArg, NULL);
+          if (UNLIKELY(var == NULL)) {
+            ((CSOUND *)csound)->ErrorMsg(csound,
+              Str("cannot create variable %s: type '%s' createVariable returned NULL\n"),
+              name ? name : "(null)", type ? type->varTypeName : "(null)");
+            return NULL;
+          }
           var->varType = type;
           var->varName = cs_strdup(csound, name);
           return var;
         }
         current = current->next;
       }
-    else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type\n"),
-                                      name);
+    else {
+      // Always print debug info for NULL type errors
+      ((CSOUND *)csound)->ErrorMsg(csound, Str("cannot create variable %s: NULL type\n"), name);
+    }
     return NULL;
 }
 
 CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
                                         const char* name)
 {
+    // Check for null or corrupted pool to prevent segfault
+    if (pool == NULL || (uintptr_t)pool < 0x1000) {
+      csound->ErrorMsg(csound, "csoundFindVariableWithName: skipping due to null/corrupted pool (pool=%p, name=%s)\n", pool, name ? name : "(null)");
+      return NULL;
+    }
 
     CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
 
@@ -200,6 +259,21 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int32_t index) {
 }
 
 int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
+  // Check for null or corrupted pool to prevent segfault
+  if (pool == NULL || (uintptr_t)pool < 0x1000) {  // Detect corrupted small addresses
+    csound->ErrorMsg(csound, "csoundAddVariable: skipping due to null/corrupted pool (pool=%p)\n", pool);
+    return 0;
+  }
+
+  // Pool must have been created with csoundCreateVarPool (which always sets table)
+  // If table is NULL, treat this as an invalid/mis-cast pool and bail out safely.
+  if (pool->table == NULL) {
+    csound->ErrorMsg(csound,
+                     "csoundAddVariable: invalid pool (table==NULL) at %p; refusing to add var '%s'\n",
+                     (void*)pool, var ? var->varName : "(null)");
+    return -1;
+  }
+
   if(var != NULL) {
     if(pool->head == NULL) {
       pool->head = var;
@@ -222,6 +296,16 @@ int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
 
 void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
 {
+    // Check for null or corrupted pool to prevent segfault
+    if (pool == NULL) {
+        csound->ErrorMsg(csound, "csoundRecalculateVarPoolMemory: pool is NULL, skipping\n");
+        return;
+    }
+    if ((uintptr_t)pool < 0x1000) {
+        csound->ErrorMsg(csound, "csoundRecalculateVarPoolMemory: pool address %p is corrupted, skipping\n", pool);
+        return;
+    }
+
     CS_VARIABLE* current = pool->head;
     int32_t varCount = 1;
     pool->poolSize = 0;
@@ -243,6 +327,12 @@ void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
 }
 
 void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
+    // Check for null or corrupted pool to prevent segfault
+    if (pool == NULL || (uintptr_t)pool < 0x1000) {  // Detect corrupted small addresses
+      csound->Message(csound, "csoundReallocateVarPoolMemory: skipping due to null/corrupted pool (pool=%p)\n", pool);
+      return;
+    }
+
     CS_VARIABLE* current = pool->head;
     CS_VAR_MEM* varMem = NULL;
     size_t memSize;
@@ -287,6 +377,10 @@ void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 
 void csoundInitializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
+    if (pool == NULL) {
+        csound->ErrorMsg(csound, "Warning: csoundInitializeVarPool called with NULL pool\n");
+        return;
+    }
     CS_VARIABLE* current = pool->head;
     //int varNum = 1;
 
@@ -295,12 +389,15 @@ void csoundInitializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool)
         current->initializeVariableMemory(csound, current,
                                           memBlock + current->memBlockIndex);
       }
-      //varNum++;
       current = current->next;
     }
 }
 
 void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
+    if (pool == NULL) {
+        csound->Warning(csound, "Warning: debug_print_varpool called with NULL pool\n");
+        return;
+    }
     CS_VARIABLE* gVar = pool->head;
     int32_t count = 0;
     while(gVar != NULL) {
@@ -314,57 +411,184 @@ static int32_t copy_var_no_op(CSOUND *csound, void *p) {
   return OK;
 }
 
-#include "csound_standard_types.h"
-#include "arrays.h"
+/**
+ * Helper function to normalize type names for comparison.
+ * Converts both ":TypeName;" and "TypeName" to the same format for comparison.
+ * Returns a newly allocated string that must be freed by the caller.
+ */
+static char* normalize_type_name_for_comparison(CSOUND *csound, const char* typeName) {
+  if (!typeName) return NULL;
+
+  // If it's already in internal format (:TypeName;), extract the core name
+  if (typeName[0] == ':' && typeName[strlen(typeName) - 1] == ';') {
+    size_t len = strlen(typeName) - 2; // Remove : and ;
+    char* result = csound->Malloc(csound, len + 1);
+    memcpy(result, typeName + 1, len);
+    result[len] = '\0';
+    return result;
+  }
+
+  // Otherwise, return a copy of the original name
+  return cs_strdup(csound, typeName);
+}
+
+/**
+ * Check if two type names represent the same type, handling both
+ * internal format (:TypeName;) and external format (TypeName).
+ */
+static int types_are_equivalent(CSOUND *csound, const char* type1, const char* type2) {
+  if (!type1 || !type2) return 0;
+
+  // Quick check for exact match
+  if (strcmp(type1, type2) == 0) return 1;
+
+  // Normalize both type names and compare
+  char* norm1 = normalize_type_name_for_comparison(csound, type1);
+  char* norm2 = normalize_type_name_for_comparison(csound, type2);
+
+  int result = (norm1 && norm2) ? (strcmp(norm1, norm2) == 0) : 0;
+
+  if (norm1) csound->Free(csound, norm1);
+  if (norm2) csound->Free(csound, norm2);
+
+  return result;
+}
+
+
+
 /* GENERIC VARIABLE COPYING */
 int32_t copy_var_generic(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
 
-    if(typeR != typeA) {
-      if(assign->h.perf != copy_var_no_op)
-        return csound->PerfError(csound,&(assign->h),
-        Str("\ncannot handle "
-            "different types (%s, %s)"),
-         *typeR->varTypeName == '[' ? "array" : typeR->varTypeName,
-	 *typeA->varTypeName == '[' ? "array" : typeA->varTypeName);
-       else return csound->InitError(csound,
-        Str("\ncannot handle "
-            "different types (%s, %s)"),
-         *typeR->varTypeName == '[' ? "array" : typeR->varTypeName,
-	 *typeA->varTypeName == '[' ? "array" : typeA->varTypeName);
+    // Check for type equivalence, handling both internal (:Type;) and external (Type) formats
+    int types_different = (typeR != typeA) && !types_are_equivalent(csound, typeR->varTypeName, typeA->varTypeName);
+
+    if(types_different) {
+      /* Allow numeric constant 'c' and p-field 'p' to be assigned to numeric variables (i/k).
+         Underlying storage is MYFLT-compatible, so a direct copy is valid. */
+      int allow_num_to_num = ((typeR == &CS_VAR_TYPE_I || typeR == &CS_VAR_TYPE_K) && (typeA == &CS_VAR_TYPE_C || typeA == &CS_VAR_TYPE_P));
+      /* Allow scalar-to-audio by broadcasting the scalar across the audio block. */
+      int allow_scalar_to_audio = (typeR == &CS_VAR_TYPE_A && (typeA == &CS_VAR_TYPE_C || typeA == &CS_VAR_TYPE_I || typeA == &CS_VAR_TYPE_K));
+      /* Allow p-field to string assignment when p-field contains string data. */
+      int allow_pfield_to_string = (typeR == &CS_VAR_TYPE_S && typeA == &CS_VAR_TYPE_P);
+
+      if (!allow_num_to_num && !allow_scalar_to_audio && !allow_pfield_to_string) {
+        if(assign->h.perf != copy_var_no_op)
+          return csound->PerfError(csound,&(assign->h),
+            Str("Opcode given variables "
+                "with two different types: %s : %s"),
+            typeR->varTypeName, typeA->varTypeName);
+        else
+          return csound->InitError(csound,
+            Str("Opcode given variables "
+                "with two different types: %s : %s"),
+            typeR->varTypeName, typeA->varTypeName);
+      }
+      if (allow_pfield_to_string) {
+        /* P-field to string assignment - perform the actual conversion */
+        /* This is called at runtime when the instrument is executing */
+        MYFLT pval = *assign->a;
+        STRINGDAT *strOut = (STRINGDAT *)assign->r;
+
+        if (IsStringCode(pval)) {
+          /* P-field contains string data - extract it using get_arg_string */
+          const char *pstr = get_arg_string(csound, pval);
+
+          if (pstr != NULL && strlen(pstr) > 0) {
+            if (strOut->data != NULL) {
+              csound->Free(csound, strOut->data);
+            }
+            strOut->data = csound->Strdup(csound, pstr);
+            strOut->size = strlen(pstr) + 1;
+          } else {
+            /* String code but no string data - set empty string */
+            if (strOut->data != NULL) {
+              csound->Free(csound, strOut->data);
+            }
+            strOut->data = csound->Strdup(csound, "");
+            strOut->size = 1;
+          }
+        } else {
+          /* P-field contains numeric data - convert to string representation */
+          if (strOut->data != NULL) {
+            csound->Free(csound, strOut->data);
+          }
+          char numStr[64];
+          snprintf(numStr, sizeof(numStr), "%.17g", pval);
+          strOut->data = csound->Strdup(csound, numStr);
+          strOut->size = strlen(numStr) + 1;
+        }
+        return OK;
+      }
+      if (allow_scalar_to_audio) {
+        /* Broadcast scalar 'a' to audio 'r' (equivalent to ainit/upsamp behavior). */
+        MYFLT val = *assign->a;
+        uint32_t nsmps = assign->h.insdshead->ksmps;
+        uint32_t offset = assign->h.insdshead->ksmps_offset;
+        uint32_t early  = assign->h.insdshead->ksmps_no_end;
+        if (UNLIKELY(offset)) memset(assign->r, '\0', offset*sizeof(MYFLT));
+        if (UNLIKELY(early)) {
+          nsmps -= early;
+          memset(&assign->r[nsmps], '\0', early*sizeof(MYFLT));
+        }
+        for (uint32_t n = offset; n < nsmps; n++) assign->r[n] = val;
+        return OK;
+      }
     }
+
+
 
     typeR->copyValue(csound, typeR, assign->r, assign->a, assign->h.insdshead);
     return OK;
 }
 
-int32_t copy_var_generic_init(CSOUND *csound, void *p) {
-    ASSIGN* assign = (ASSIGN*)p;
-    int32_t flag = 0;
-    CS_TYPE* type = csoundGetTypeForArg(assign->a);
-    if(type == &CS_VAR_TYPE_ARRAY) {
-      ARRAYDAT* adat = (ARRAYDAT*) assign->a;
-      ARRAYDAT* rdat = (ARRAYDAT*) assign->r;
-      if(csoundGetTypeForArg(rdat) == &CS_VAR_TYPE_ARRAY) {
-        tabinit_like(csound, rdat, (ARRAYDAT *) adat);
-      } 
-      if(adat->arrayType == &CS_VAR_TYPE_I ||
-         adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;
-      // complex arrays need to be copied at i-time  
-      if(adat->arrayType == &CS_VAR_TYPE_COMPLEX)
-        copy_var_generic(csound, p);
-    } else if(type == &CS_VAR_TYPE_I ||
-              type == &CS_VAR_TYPE_b ||
-              type == &CS_VAR_TYPE_INSTR 
-              ) flag = 1;
-    if (flag) {
-      assign->h.perf = copy_var_no_op;
-      copy_var_generic(csound, p);
+int32_t copy_var_generic_init(CSOUND *csound, void *p)
+{
+    ASSIGN *assign = (ASSIGN *)p;
+
+    // Determine destination (right-hand?) type once.
+    CS_TYPE *destType = csoundGetTypeForArg(assign->r); // Check destination type, not source type
+
+    // If destination is an array, handle array-specific init/copy paths.
+    if (destType == &CS_VAR_TYPE_ARRAY) {
+        ARRAYDAT *dstArr = (ARRAYDAT *)assign->r;
+
+        // Check if source is also an array before accessing array-specific fields
+        CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
+        if (srcType != &CS_VAR_TYPE_ARRAY) {
+            // Source is a scalar (e.g., assigning to array element), not array-to-array
+            return copy_var_generic(csound, p);
+        }
+        ARRAYDAT *srcArr = (ARRAYDAT *)assign->a;
+        // If the destination really is an array, make it like the source.
+        if (csoundGetTypeForArg(dstArr) == &CS_VAR_TYPE_ARRAY) {
+            tabinit_like(csound, dstArr, (ARRAYDAT *)srcArr);
+        }
+
+        // Special-case: complex arrays copy immediately (no perf hook, no flag).
+        if (srcArr->arrayType == &CS_VAR_TYPE_COMPLEX) {
+            copy_var_generic(csound, p);
+            return OK;
+        }
+
+        // For integer or instrument arrays, fall through to the "flag" path below.
+        if (srcArr->arrayType == &CS_VAR_TYPE_I ||
+            srcArr->arrayType == &CS_VAR_TYPE_INSTR) {
+            assign->h.perf = copy_var_no_op;
+            copy_var_generic(csound, p);
+            return OK;
+        }
+
+        // Other array element types: nothing more to do here.
+        return OK;
     }
-    return OK;
+
+    return copy_var_generic(csound, p);
 }
+
+
 
 
 int32_t type_of(CSOUND *csound, ASSIGN *p) {
@@ -378,4 +602,3 @@ int32_t check_type(CSOUND *csound, RELAT *p) {
   *p->rbool = (GetTypeForArg(p->a) == GetTypeForArg(p->b)) ? 1 : 0;
   return OK;
 }
-

@@ -17,8 +17,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h"                         /*      AUXFD.C         */
@@ -154,7 +153,9 @@ void auxchfree(CSOUND *csound, INSDS *ip)
     void  *auxp = (void*) ip->auxchp->auxp;
     AUXCH *nxt = ip->auxchp->nxtchp;
     memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-    csound->Free(csound, auxp);                   /*  & free the space    */
+    if (auxp != NULL) {                           /*  only free if not NULL */
+      csound->Free(csound, auxp);                 /*  & free the space    */
+    }
     ip->auxchp = nxt;
   }
   if (UNLIKELY(csoundGetDebug(csound) & 0x01))

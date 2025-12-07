@@ -11,6 +11,7 @@
 ./Engine/csound_orc_expressions.c
 ./Engine/csound_orc_optimize.c
 ./Engine/csound_orc_semantics.c
+./Engine/csound_orc_structs.c
 ./Engine/csound_pre.lex
 ./Engine/csound_prs.lex
 ./Engine/csound_standard_types.c

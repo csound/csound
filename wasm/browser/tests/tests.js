@@ -204,11 +204,9 @@ e
   }
 
   const csoundVariations = [
-    { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
-    // { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
-    // { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
-    // { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
-    // { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
+    { useWorker: false, name: "SINGLE THREAD, AW" },
+    { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
+    { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
   ];
 
   csoundVariations.forEach((test) => {
@@ -630,13 +628,15 @@ e
         await csoundObj.terminateInstance();
       });
 
-     it("can #include a file from parent directory", async function () {
+      it("can #include a file from parent directory", async function () {
         const csoundObj = await Csound(test);
         const csdPath = "/folder1/test.csd";
 
         await csoundObj.fs.writeFile("/test.orc", "i1 0 .1");
         await csoundObj.fs.mkdir("/folder1");
-        await csoundObj.fs.writeFile(csdPath, `
+        await csoundObj.fs.writeFile(
+          csdPath,
+          `
 <CsoundSynthesizer>
 <CsOptions>
     -odac
@@ -656,7 +656,8 @@ e
     #include "../test.orc"
 </CsScore>
 </CsoundSynthesizer>
-        `);
+        `,
+        );
 
         // allow the example to play until the end
         let endResolver;
@@ -676,10 +677,11 @@ e
         await csoundObj.terminateInstance();
       });
 
-
-     it("it fails with error when #include references a non-existent file", async function () {
+      it("it fails with error when #include references a non-existent file", async function () {
         const csoundObj = await Csound(test);
-        await csoundObj.fs.writeFile('/test.csd', `
+        await csoundObj.fs.writeFile(
+          "/test.csd",
+          `
 <CsoundSynthesizer>
 <CsOptions>
     -odac
@@ -700,33 +702,34 @@ e
     i1 0 0.01
 </CsScore>
 </CsoundSynthesizer>
-        `);
+        `,
+        );
 
         // Attempting to compile will fail due to missing include file
         // Currently throws RuntimeError after reporting "Cannot open #include'd file"
         // This is due to setjmp/longjmp cleanup issues in WASM after csoundDie()
         let errorCaught = false;
         try {
-          await csoundObj.compileCSD('/test.csd', 0);
+          await csoundObj.compileCSD("/test.csd", 0);
         } catch (e) {
           errorCaught = true;
           // The error should be a RuntimeError from the WASM crash after reporting the missing file
-          assert.ok(e.message.includes('memory access') || e.message.includes('RuntimeError'),
-            `Expected memory access error, got: ${e.message}`);
+          assert.ok(
+            e.message.includes("memory access") || e.message.includes("RuntimeError"),
+            `Expected memory access error, got: ${e.message}`,
+          );
         }
 
         assert.ok(errorCaught, "compileCSD should throw error for missing #include file");
         await csoundObj.terminateInstance();
       });
-
-
     });
   });
 
   const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
   document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
     mocha.fullTrace(true);
-    mocha.checkLeaks(false); // worker + spn defenitely leaks
+    mocha.checkLeaks(false); // worker definitely leaks
     mocha.cleanReferencesAfterRun(true);
     mocha.run();
   });

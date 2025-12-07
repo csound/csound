@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h"
@@ -613,7 +612,8 @@ char *csoundFindInputFile(CSOUND *csound,
  * value, by calling csound->Free().
  */
 char *csoundFindOutputFile(CSOUND *csound,
-                           const char *filename, const char *envList)
+                           const char *filename,
+                           const char *envList)
 {
     char  *name_found;
     int32_t   fd;
@@ -623,7 +623,10 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
-      csound->Warning(csound, Str("Output file already exists: Will be overwritten.\n"));
+      csound->Warning(csound,
+                      Str("output file %s already exists...\n"
+                                  "\t...will be overwritten"),
+                      filename);
     }
     return name_found;
 }

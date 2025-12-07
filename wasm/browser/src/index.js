@@ -5,15 +5,14 @@ import VanillaWorkerMainThread from "./mains/vanilla.main";
 import unmuteIosAudio from "unmute-ios-audio/index.js";
 import SharedArrayBufferMainThread from "./mains/sab.main";
 import AudioWorkletMainThread from "./mains/worklet.main";
-import ScriptProcessorNodeMainThread from "./mains/old-spn.main";
-import ScriptProcessorNodeSingleThread from "./mains/spn.main";
+
 import SingleThreadAudioWorkletMainThread from "./mains/worklet.singlethread.main";
 import { logIndex as log } from "./logger";
 import {
   areWorkletsSupported,
   isSafari,
   isSabSupported,
-  isScriptProcessorNodeSupported,
+
   WebkitAudioContext,
 } from "./utils";
 
@@ -36,7 +35,7 @@ const Csound = async function ({
   withPlugins = [],
   useWorker = false,
   useSAB = true,
-  useSPN = false,
+
 } = {}) {
   const audioContextIsProvided =
     audioContext && WebkitAudioContext() && audioContext instanceof WebkitAudioContext();
@@ -51,11 +50,10 @@ const Csound = async function ({
   }
 
   const workletSupport = areWorkletsSupported();
-  const spnSupport = isScriptProcessorNodeSupported();
 
   // SingleThread implementations
   if (!useWorker) {
-    if (workletSupport && !useSPN) {
+    if (workletSupport) {
       log("Single Thread AudioWorklet")();
       const instance = new SingleThreadAudioWorkletMainThread({
         audioContext,
@@ -63,18 +61,6 @@ const Csound = async function ({
         outputChannelCount: outputChannelCount || 2,
       });
       return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
-    } else if (spnSupport) {
-      log("Single Thread ScriptProcessorNode")();
-      const instance = new ScriptProcessorNodeSingleThread({
-        audioContext,
-        inputChannelCount: inputChannelCount || 2,
-        outputChannelCount: outputChannelCount || 2,
-      });
-      return await instance.initialize({
-        wasmDataURI,
-        withPlugins,
-        autoConnect,
-      });
     } else {
       console.error("No detectable WebAudioAPI in current environment");
       return;
@@ -84,9 +70,6 @@ const Csound = async function ({
   if (workletSupport) {
     // closure-compiler keepme
     log(`worklet support detected`)();
-  } else if (spnSupport) {
-    // closure-compiler keepme
-    log(`scriptProcessorNode support detected`)();
   } else {
     console.error(`No WebAudio Support detected`);
   }
@@ -94,14 +77,8 @@ const Csound = async function ({
   let audioWorker;
   let csoundWasmApi;
 
-  if (!useSPN && workletSupport) {
+  if (workletSupport) {
     audioWorker = new AudioWorkletMainThread({ audioContext, audioContextIsProvided, autoConnect });
-  } else if (spnSupport) {
-    audioWorker = new ScriptProcessorNodeMainThread({
-      audioContext,
-      audioContextIsProvided,
-      autoConnect,
-    });
   }
 
   if (!audioWorker) {

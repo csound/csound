@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #ifndef INSTOPS_H
@@ -33,7 +32,7 @@ typedef struct {
     INSTANCEREF *inst;
     MYFLT  *ktrig;
 } KILLOP;
-  
+
 typedef struct {                        /* IV - Oct 20 2002 */
     OPDS    h;
     MYFLT   *i_insno, *iname;
@@ -49,6 +48,13 @@ typedef struct {
     OPDS    h;
     MYFLT   *insno;
 } DELETEIN;
+
+typedef struct {
+    OPDS    h;
+    INSTREF *instr;
+} DELETE_INSTRDEF;
+
+
 
 typedef struct {
   OPDS h;
@@ -119,6 +125,8 @@ int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p);
 int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p);
 int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p);
 int32_t delete_instance_opcode(CSOUND *csound, DEL_INSTR *p);
+int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p);
+
 int32_t pause_instance_opcode(CSOUND *csound, PAUSE_INSTR *p);
 int32_t set_instance_parameter(CSOUND *csound, PARM_INSTR *p);
 int32_t get_instance(CSOUND *csound, DEL_INSTR *p);

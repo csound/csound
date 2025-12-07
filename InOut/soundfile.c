@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 #include "csoundCore.h"
 #include "soundfile.h"
@@ -38,12 +37,12 @@ int32_t sflib_command(void *handle, int32_t cmd, void *data, int32_t datasize)  
 
 void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc) {
       SNDFILE *handle;
-      SF_INFO info;
-      if(mode == SFM_WRITE) {
-        info.samplerate = sfinfo->samplerate;
-        info.channels = sfinfo->channels;
-        info.format = sfinfo->format;
-      }
+      SF_INFO info = {
+        .samplerate = sfinfo->samplerate,
+        .channels = sfinfo->channels,
+        .format = sfinfo->format,
+        .frames = sfinfo->frames,
+      };
       handle = sf_open_fd(fd, mode, &info, close_desc);
       if(mode == SFM_READ) {
         sfinfo->samplerate = info.samplerate;

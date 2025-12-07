@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
@@ -127,7 +126,6 @@ void linevent_open(CSOUND *csound)
     }
 
 
-    
     set_sense_event_callback(csound, sense_line, NULL);
 }
 
@@ -392,13 +390,19 @@ void sense_line(CSOUND *csound, void *userData)
             }
             sstrp[n] = '\0';
             {
-#ifdef USE_DOUBLE              
+#ifdef USE_DOUBLE
               int32_t sel = (byte_order()+1)&1;
               union {
                 MYFLT d;
                 int32 i[2];
               } ch;
               ch.d = SSTRCOD; ch.i[sel] += scnt++;
+              /* ensure capacity before writing */
+              if (pcnt >= STA(msize)) {
+                STA(msize) += PMAX;
+                STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
+                                  sizeof(MYFLT) * (STA(msize) + 1));
+              }
               e.p[pcnt] = ch.d;           /* set as string with count */
 #else
               union {
@@ -406,11 +410,17 @@ void sense_line(CSOUND *csound, void *userData)
                 int32 i;
               } ch;
               ch.d = SSTRCOD; ch.i += scnt++;
+              /* ensure capacity before writing */
+              if (pcnt >= STA(msize)) {
+                STA(msize) += PMAX;
+                STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
+                                  sizeof(MYFLT) * (STA(msize) + 1));
+              }
               e.p[pcnt] = ch.d;           /* set as string with count */
 #endif
             }
             e.scnt = scnt;
-            
+
             // printf("string: %s\n", sstrp);
             continue;
           }
@@ -430,16 +440,20 @@ void sense_line(CSOUND *csound, void *userData)
             }
             continue;
           }
-          e.p[pcnt] = (MYFLT) cs_strtod(cp, &newcp);
-          cp = newcp - 1;
-
-          if(pcnt >= STA(msize)) {
-            STA(msize) += PMAX;
-            STA(pfields) = e.p = csound->ReAlloc(csound, e.p, sizeof(MYFLT)*STA(msize));
+          {
+            MYFLT tmpv = (MYFLT) cs_strtod(cp, &newcp);
+            cp = newcp - 1;
+            /* ensure capacity before writing */
+            if (pcnt >= STA(msize)) {
+              STA(msize) += PMAX;
+              STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
+                                sizeof(MYFLT) * (STA(msize) + 1));
+            }
+            e.p[pcnt] = tmpv;
           }
-          
+
         } while (1);
-        
+
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
         else  /* Check for sufficient pfields (0-based, opcode counted already). */
           if (UNLIKELY(pcnt < 2 && e.opcod != 'e')) {
@@ -459,7 +473,7 @@ void sense_line(CSOUND *csound, void *userData)
           // allocate and copy new carry p-fields
           STA(prve).p = csound->Calloc(csound, sizeof(MYFLT)*(e.pcnt+1));
           memcpy(STA(prve).p, e.p, sizeof(MYFLT)*(e.pcnt+1));
-          
+
           /* FIXME: how to carry string args ? */
           STA(prve).strarg = NULL;
         }
@@ -497,7 +511,7 @@ void sense_line(CSOUND *csound, void *userData)
         break;
       STA(Linep) = Linend;                       /* accum the chars          */
     }
-    
+
 }
 
 

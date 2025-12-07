@@ -18,8 +18,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
@@ -209,7 +208,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     int32_t cmpr = 0;
 
     if(p->INOCOUNT > 4) {
-      if(strcmp(GetTypeForArg(p->type)->varTypeName, "S")) 
+      if(strcmp(GetTypeForArg(p->type)->varTypeName, "S"))
         return csound->InitError(csound,"%s",
                              Str("Message type is not given as a string\n"));
     }
@@ -255,8 +254,8 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
 #endif
 #else
           return csound->PerfError(csound, &(p->h), "multicast not supported\n");
-#endif          
-          
+#endif
+
         }
         csound->Free(csound, p->lhost);
         if (hh) p->lhost = csound->Strdup(csound, hh); else p->lhost = NULL;
@@ -614,10 +613,18 @@ static int32_t osc_listener_init(CSOUND *csound, OSCINIT *p)
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
     n = pp->nPorts;
-    ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
-                                        sizeof(OSC_PORT) * (n + 1));
-    ports[n].csound = csound;
-    ports[n].mutex_ = csound->Create_Mutex(0);
+    OSC_PORT *temp_ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
+                                                       sizeof(OSC_PORT) * (n + 1));
+    if (temp_ports != NULL) {
+      ports = temp_ports;
+      pp->ports = ports;
+      ports[n].csound = csound;
+      ports[n].mutex_ = csound->Create_Mutex(0);
+    } else {
+      csound->ErrorMsg(csound, "%s",
+                       "OSC: Failed to allocate memory for ports\n");
+      return NOTOK;
+    }
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int32_t) *(p->port));
     ports[n].thread = lo_server_thread_new(buff, OSC_error);
@@ -649,10 +656,18 @@ static int32_t osc_listener_initMulti(CSOUND *csound, OSCINITM *p)
     /* allocate and initialise the globals structure */
     pp = alloc_globals(csound);
     n = pp->nPorts;
-    ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
-                                        sizeof(OSC_PORT) * (n + 1));
-    ports[n].csound = csound;
-    ports[n].mutex_ = csound->Create_Mutex(0);
+    OSC_PORT *temp_ports = (OSC_PORT*) csound->ReAlloc(csound, pp->ports,
+                                                       sizeof(OSC_PORT) * (n + 1));
+    if (temp_ports != NULL) {
+      ports = temp_ports;
+      pp->ports = ports;
+      ports[n].csound = csound;
+      ports[n].mutex_ = csound->Create_Mutex(0);
+    } else {
+      csound->ErrorMsg(csound, "%s",
+                       "OSC: Failed to allocate memory for ports\n");
+      return NOTOK;
+    }
     ports[n].oplst = NULL;
     snprintf(buff, 32, "%d", (int32_t) *(p->port));
     ports[n].thread = lo_server_thread_new_multicast(p->group->data,
@@ -819,16 +834,23 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
         //printf("%d: type %c\n", i, p->c.saved_types[i]);
         if (p->c.saved_types[i] == 's') {
           char *src = m->args[i].string.data;
-          char *dst = ((STRINGDAT*) p->args[i])->data;
+          STRINGDAT* dest = (STRINGDAT*) p->args[i];
           if (src != NULL) {
-            if (((STRINGDAT*) p->args[i])->size <= strlen(src)){
-              if (dst != NULL) csound->Free(csound, dst);
-              dst = csound->Strdup(csound, src);
-              ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
-              ((STRINGDAT*) p->args[i])->data = dst;
-           }
-          else
-            strcpy(dst, src);
+            size_t len = strlen(src);
+            if (dest->size <= len) {
+              char *temp = csound->ReAlloc(csound, dest->data, len + 1);
+              if (temp != NULL) {
+                dest->data = temp;
+                dest->size = len + 1;
+              } else {
+                /* Allocation failed, preserve original dest->data/size */
+                csound->ErrorMsg(csound, "%s",
+                                 "OSC: Failed to allocate memory for string\n");
+                continue; /* Skip this argument */
+              }
+            }
+            if (dest->data != NULL)
+              strcpy(dest->data, src);
           }
         }
         else if (p->c.saved_types[i]=='b') {
@@ -847,9 +869,16 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
             }
             len /= sizeof(MYFLT);
             if (asize < len) {
-              arr->data = (MYFLT *)
+              MYFLT *temp_data = (MYFLT *)
                 csound->ReAlloc(csound, arr->data, len*sizeof(MYFLT));
-              asize = len;
+              if (temp_data != NULL) {
+                arr->data = temp_data;
+                asize = len;
+              } else {
+                csound->ErrorMsg(csound, "%s",
+                                 "OSC: Failed to allocate memory for array\n");
+                continue;
+              }
              for (j = 0; j < arr->dimensions-1; j++)
               asize /= arr->sizes[j];
              arr->sizes[arr->dimensions-1] = asize;
@@ -905,9 +934,18 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
               return csound->PerfError(csound, &(p->h),
                                        "%s", Str("OSC internal error"));
             }
-            if (len > (int32_t)  (ftp->flen*sizeof(MYFLT)))
-              ftp->ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
-                                                    len*sizeof(MYFLT));
+            if (len > (int32_t)  (ftp->flen*sizeof(MYFLT))) {
+              MYFLT *temp_ftable = (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
+                                                          len*sizeof(MYFLT));
+              if (temp_ftable != NULL) {
+                ftp->ftable = temp_ftable;
+                ftp->flen = len/sizeof(MYFLT);
+              } else {
+                csound->ErrorMsg(csound, "%s",
+                                 "OSC: Failed to allocate memory for ftable\n");
+                continue;
+              }
+            }
             memcpy(ftp->ftable,data,len);
 
 #if 0
@@ -921,10 +959,19 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 #ifdef OSC_DEBUG
             printf("%d\n", len);
 #endif
-            if (len > ftp->flen*sizeof(MYFLT))
-              ftp->ftable =
+            if (len > ftp->flen*sizeof(MYFLT)) {
+              MYFLT *temp_ftable =
                 (MYFLT*)csound->ReAlloc(csound, ftp->ftable,
                                         len-sizeof(FUNC)+sizeof(MYFLT*));
+              if (temp_ftable != NULL) {
+                ftp->ftable = temp_ftable;
+                ftp->flen = (len-sizeof(FUNC)+sizeof(MYFLT*))/sizeof(MYFLT);
+              } else {
+                csound->ErrorMsg(csound, "%s",
+                                 "OSC: Failed to allocate memory for ftable\n");
+                continue;
+              }
+            }
 #endif
             {
 #ifdef OSC_DEBUG
@@ -1117,18 +1164,33 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
 
 static OENTRY localops[] = {
   { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
+    (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL, 2 },
+    { "OSCinit", S(OSCINIT), 0, "i", "i",
+    (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL, 2 },
+    { "OSCinitM", S(OSCINITM), 0,  "i", "Si",
+    (SUBR)osc_listener_initMulti, NULL, (SUBR) OSC_deinit , NULL, 2 },
+    { "OSClisten", S(OSCLISTEN),0,  "k", "iSSN",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL, 2 },
+    { "OSClisten", S(OSCLISTEN),0,  "k", "iSS",
+    (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL, 2 },
+    { "OSClisten", S(OSCLISTENA),0,  "kk[]", "iSS",
+    (SUBR)OSC_alist_init, (SUBR)OSC_alist, (SUBR) OSC_listadeinit, NULL, 2 },
+    { "OSCcount", S(OSCcount), 0,  "k", "",
+    (SUBR)OSCcounter, (SUBR)OSCcounter, NULL, NULL, 2 },
+  /* aliases */
+  { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
     (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL },
-  { "OSCinit", S(OSCINIT), 0, "i", "i",
+  { "oscinit", S(OSCINIT), 0, "i", "i",
     (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL },
-  { "OSCinitM", S(OSCINITM), 0,  "i", "Si",
+  { "oscinitm", S(OSCINITM), 0,  "i", "Si",
     (SUBR)osc_listener_initMulti, NULL, (SUBR) OSC_deinit , NULL },
-  { "OSClisten", S(OSCLISTEN),0,  "k", "iSSN",
+  { "osclisten", S(OSCLISTEN),0,  "k", "iSSN",
     (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL },
-  { "OSClisten", S(OSCLISTEN),0,  "k", "iSS",
+  { "osclisten", S(OSCLISTEN),0,  "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, (SUBR) OSC_listdeinit, NULL },
-  { "OSClisten", S(OSCLISTENA),0,  "kk[]", "iSS",
+  { "osclisten", S(OSCLISTENA),0,  "kk[]", "iSS",
     (SUBR)OSC_alist_init, (SUBR)OSC_alist, (SUBR) OSC_listadeinit, NULL },
-  { "OSCcount", S(OSCcount), 0,  "k", "",
+  { "osccount", S(OSCcount), 0,  "k", "",
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
 };
 

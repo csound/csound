@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h"                                  /*    SWRITESTR.C  */
@@ -225,23 +224,36 @@ static char *pfout(CSOUND *csound, SRTBLK *bp, char *p,
 static SRTBLK *nxtins(SRTBLK *bp) /* find nxt note with same p1 */
 {
     MYFLT p1;
-
     p1 = bp->p1val;
+    if(!IsStringCode(p1)) {
     while ((bp = bp->nxtblk) != NULL
            && (bp->p1val != p1 || bp->text[0] != 'i'))
       ;
+    } else  { // if str use insno as p1val is nan
+           int insno = bp->insno;
+           while ((bp = bp->nxtblk) != NULL
+             && (bp->insno != insno || bp->text[0] != 'i'))
+      ;   
+    }
     return(bp);
 }
-
 static SRTBLK *prvins(SRTBLK *bp) /* find prv note with same p1 */
 {
-    MYFLT p1;
-
-    p1 = bp->p1val;
+{
+  MYFLT p1;
+  p1 = bp->p1val;
+  if(!IsStringCode(p1)) {
     while ((bp = bp->prvblk) != NULL
            && (bp->p1val != p1 || bp->text[0] != 'i'))
       ;
+   } else { // if str use insno as p1val is nan
+    int insno = bp->insno;
+    while ((bp = bp->prvblk) != NULL
+           && (bp->insno != insno || bp->text[0] != 'i'))
+      ;
+   }
     return(bp);
+}
 }
 
 static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,

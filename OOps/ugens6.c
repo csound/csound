@@ -18,8 +18,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h" /*                              UGENS6.C        */
@@ -1068,8 +1067,8 @@ int32_t alpass(CSOUND *csound, COMB *p)
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
                                     FL(0.0437), FL(0.0050), FL(0.0017)};
 
-void reverbinit(CSOUND *csound, REVERB *p)       
-{                                     
+void reverbinit(CSOUND *csound, REVERB *p)
+{
     const MYFLT *lptimp = revlptimes;
     int32_t     *lpsizp = p->revlpsiza;
     int32_t n = 6;

@@ -222,7 +222,7 @@ class SharedArrayBufferMainThread {
       this.audioStatePointer,
       AUDIO_STATE.IS_REQUESTING_MIC,
     );
-    this.audioWorker.isRequestingMidi = Atomics.load(
+    this.audioWorker["isRequestingMidi"] = Atomics.load(
       this.audioStatePointer,
       AUDIO_STATE.IS_REQUESTING_RTMIDI,
     );

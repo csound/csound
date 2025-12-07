@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
-csound -m35 -R -W -f -d -o dac
+csound  -R -W -f -d -o dac
 </CsOptions>
 <CsInstruments>
 sr          =           48000
@@ -28,7 +28,7 @@ atap2       deltapi     af2                     ;tap delay line with kf2 func.
 ad1         deltap      2.0                     ;delay 2 sec.
 ad2         deltap      1.1                     ;delay 1.1 sec.
             delayw      ag                      ;put ag signal into delay line.
-            outs        agleft+atap1+ad1, agright+atap2+ad2
+            out        agleft+atap1+ad1, agright+atap2+ad2
             endin
 ;-------------------------------------------------------------
 ;Instrument 2 : plucked strings chorused left/right and
@@ -47,7 +47,7 @@ adump       delayr      0.3                     ;set delay line of 0.3 sec
 ad1         deltap      0.1                     ;delay 100 msec.
 ad2         deltap      0.2                     ;delay 200 msec.
             delayw      ag                      ;put ag sign into del line.
-            outs        agleft+ad1, agright+ad2
+            out        agleft+ad1, agright+ad2
             endin
 ;-----------------------------------------------------------
 ;Instrument 3 : New FM algorithm, modified to produce large timbre
@@ -69,7 +69,7 @@ a4          =           exp(-0.5*a3+ao1)
 ao2         oscili      a2*ipch, ipch, 2        ;cosine
 aoutl       oscili      1000*aadsr*a4, ao2+cpsoct(ioct+ishift), 1 ;fnl outleft
 aoutr       oscili      1000*aadsr*a4, ao2+cpsoct(ioct-ishift), 1 ;fnl outright
-            outs        aoutl, aoutr
+            out        aoutl, aoutr
             endin
 
 </CsInstruments>

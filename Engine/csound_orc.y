@@ -18,11 +18,9 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 %define api.pure
-//define api.pure full
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }
@@ -35,7 +33,6 @@
 %token S_LT
 %token S_LE
 %token S_EQ
-%token S_EQT
 %token S_ADDIN
 %token S_SUBIN
 %token S_MULIN
@@ -75,6 +72,7 @@
 %token T_IDENTB
 %token T_TYPED_IDENT
 %token T_TYPED_IDENTB
+%token T_MEMBER_IDENT
 %token T_PLUS_IDENT
 
 %token INTEGER_TOKEN
@@ -119,7 +117,7 @@
 %left S_AND S_OR
 %left '|'
 %left '&'
-%left S_LT S_GT S_LE S_GE S_EQ S_EQT S_NEQ '=' // VL 6.8.25 for backwards compat
+%left S_LT S_GT S_LE S_GE S_EQ S_NEQ '=' // VL 6.8.25 for backwards compat
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
@@ -357,18 +355,19 @@ out_type : identifier
 
 /* Opcode and Function calls */
 
-/* opcall is an ambiguous rule.  We use it to catch no out-arg function calls, 
+/* opcall is an ambiguous rule.  We use it to catch no out-arg function calls,
   as well as old-style opcode line calls. While ambiguous, it *should* only match valid code.
-  The ambiguity is resolved by the semantic analyzer.  
+  The ambiguity is resolved by the semantic analyzer.
 */
 opcall  : identifier NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1;
           }
+
         | out_arg_list expr_list NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1;
-            $$->right = $2;          
+            $$->right = $2;
           }
         | out_arg_list '(' ')' NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
@@ -385,7 +384,7 @@ opcall  : identifier NEWLINE
         | out_arg_list_array expr_list NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
             $$->left = $1;
-            $$->right = $2;          
+            $$->right = $2;
           }
         | out_arg_list_array '(' ')' NEWLINE
           { $$ = make_leaf(csound, LINE,LOCN, T_OPCALL, NULL);
@@ -400,6 +399,7 @@ opcall  : identifier NEWLINE
             $2->right = $3;
           }
         | function_call NEWLINE
+          { $$ = $1; }
         | function_call '+' expr_list NEWLINE
         { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '+', $1, $3);  }
         | function_call '-' expr_list NEWLINE
@@ -635,14 +635,14 @@ expr_list : expr_list ',' expr
          ;
 
 expr    : function_call
-        | '(' expr ')' 
+        | '(' expr ')'
           { $$ = $2 ; }
         | '(' expr error    { $$ = NULL;  }
         | '(' error         { $$ = NULL; }
         | ternary_expr
         | unary_expr
-        | binary_expr 
-        | identifier 
+        | binary_expr
+        | identifier
         | integer
         | number
         | string
@@ -652,7 +652,7 @@ expr    : function_call
         | slice_array
         | struct_expr
         | true_const
-        | false_const     
+        | false_const
         ;
 
 
@@ -695,10 +695,66 @@ array_expr :  array_expr '[' expr ']'
           ;
 
 struct_expr : struct_expr '.' identifier
-            {  $$ = $1;
-               append_to_tree(csound, $1->right, $3); }
+            {
+              char* memberName = $3->value->lexeme;
+              // Important: Clear the next pointer of $3 to prevent it from being processed separately
+              $3->next = NULL;
+              $$ = make_node(
+                csound, LINE, LOCN, STRUCT_EXPR,
+                $1,
+                make_leaf(
+                  csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName)
+                )
+              );
+            }
+            | struct_expr '.' array_expr
+            {
+              /* Build a struct member node from array_expr's base identifier, then
+                 attach the array indexing so nested chains like a.b[0] work. */
+              char* memberName = $3->value == NULL ?
+                                  $3->left->value->lexeme :
+                                  $3->value->lexeme;
+              TREE* memberLeaf = make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT,
+                                           make_token(csound, memberName));
+              TREE* structMember = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, memberLeaf);
+              /* Now make the array_expr index the struct member */
+              $3->left = structMember;
+              $$ = $3;
+            }
+            | array_expr '.' identifier
+            {
+              $3->type = T_MEMBER_IDENT;
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3);
+            }
+            | identifier '.' array_expr
+            {
+              char* structName = $1->value->lexeme;
+              char* memberName = $3->value == NULL ?
+                $3->left->value->lexeme :
+                $3->value->lexeme;
+
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
+                make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
+                make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
+              );
+              $3->left = $$;
+              $$ = $3;
+            }
+            | struct_expr '[' expr ']'
+            {
+              $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3);
+            }
             | identifier '.' identifier
-            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            {
+              char* structName = $1->value->lexeme;
+              char* memberName = $3->value->lexeme;
+              // Important: Clear the next pointer of $3 to prevent it from being processed separately
+              $3->next = NULL;
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
+                     make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
+                     make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
+                   );
+            }
             ;
 
 ternary_expr : expr '?' expr ':' expr %prec '?'
@@ -742,7 +798,7 @@ unary_expr : '~' expr %prec S_UMINUS
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
           }
 
-        | '+' error           { $$ = NULL; }        
+        | '+' error           { $$ = NULL; }
         ;
 
 binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $4); }
@@ -760,8 +816,6 @@ binary_expr : expr '+' optnewline expr   { $$ = make_node(csound, LINE,LOCN, '+'
           | expr '=' error
           | expr S_EQ optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $4); }
           | expr S_EQ error
-          | expr S_EQT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_EQT, $1, $4); }
-          | expr S_EQT error
           | expr S_GT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $4); }
           | expr S_GT error
           | expr S_LT optnewline expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $4); }
@@ -798,10 +852,10 @@ out_arg_list : out_arg_list ',' out_arg
              | out_arg
              ;
 
-out_arg : identifier 
-        | typed_identifier 
+out_arg : identifier
+        | typed_identifier
         | array_identifier
-        | struct_expr   
+        | struct_expr
         ;
 
 out_arg_list_array : out_arg_list_array ',' array_expr
@@ -821,8 +875,24 @@ array_identifier: array_identifier '[' ']' {
           }
           | typed_identifier '[' ']' {
             $$ = $1;
-            $1->type = T_ARRAY_IDENT;
-	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+            // Check if this is a type annotation (e.g., "var:Type[]") vs array access
+            // If the typed_identifier already has a type annotation ending with "[]",
+            // keep it as T_TYPED_IDENT rather than converting to T_ARRAY_IDENT
+            if ($1->value && $1->value->optype) {
+              size_t len = strlen($1->value->optype);
+              if (len >= 2 && $1->value->optype[len-2] == '[' && $1->value->optype[len-1] == ']') {
+                // This is a type annotation like "Person[]", keep as T_TYPED_IDENT
+                // Don't attach the '[' token or change the type
+              } else {
+                // This is array access syntax, convert to T_ARRAY_IDENT
+                $1->type = T_ARRAY_IDENT;
+                $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+              }
+            } else {
+              // No type annotation, treat as array access
+              $1->type = T_ARRAY_IDENT;
+              $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+            }
           }
           ;
 
@@ -832,11 +902,11 @@ assignment : '='
               | S_ADDIN
                 { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##addin")); }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##subin")); }               
+                { $$ = make_leaf(csound,LINE,LOCN, S_SUBIN, make_token(csound, "##subin")); }
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##divin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, S_DIVIN, make_token(csound, "##divin")); }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##mulin")); }	    
+                { $$ = make_leaf(csound,LINE,LOCN, S_MULIN, make_token(csound, "##mulin")); }
               ;
 
 /* special case for array expressions */
@@ -904,7 +974,7 @@ true_const: TRUE_TOKEN
                         make_token(csound,"truek")); }
        ;
 
-         
+
 number : NUMBER_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, NUMBER_TOKEN, (ORCTOKEN *)$1); }
        ;

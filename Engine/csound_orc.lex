@@ -20,8 +20,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include <stdio.h>
@@ -38,7 +37,7 @@
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
 #include "corfile.h"
-#include "filesys.h"  
+#include "filesys.h"
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
@@ -78,7 +77,7 @@ int get_next_char(char *, int32_t, struct yyguts_t*);
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*(@global)?
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
-TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*(\[\])?
 TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\[?\]?\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
@@ -123,7 +122,6 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "<"             { return S_LT; }
 "<="            { return S_LE; }
 "=="            { return S_EQ; }
-"=t"            { return S_EQT; }
 "+="            { return S_ADDIN; }
 "-="            { return S_SUBIN; }
 "*="            { return S_MULIN; }
@@ -258,7 +256,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 
 <forloop>{
    ","            { return ','; }
-   
+
   [ \t]*          /* eat the whitespace */
   {IDENT}/[ \t]*   { char *pp = yytext;
                     while (*pp==' ' || *pp=='\t') pp++;
@@ -266,14 +264,14 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                     if (strcmp(pp, "in") == 0) {
                       BEGIN(INITIAL);
                       return IN_TOKEN;
-                    } else {                 
+                    } else {
                       return T_IDENT;
                     }
                   }
 }
 
 <xstr>{
-  "\{\{" { 
+  "\{\{" {
              PARM->xsubstr += 1; // substr start
              if (PARM->xstrptr+3==PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
@@ -282,7 +280,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
              }
              PARM->xstrbuff[PARM->xstrptr++] = '{';
              PARM->xstrbuff[PARM->xstrptr++] = '{';
-             PARM->xstrbuff[PARM->xstrptr] = '\0';  
+             PARM->xstrbuff[PARM->xstrptr] = '\0';
          }
 
   "}}"   {
@@ -292,10 +290,10 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
-           }           
+           }
            PARM->xstrbuff[PARM->xstrptr++] = '}';
            PARM->xstrbuff[PARM->xstrptr++] = '}';
-           PARM->xstrbuff[PARM->xstrptr] = '\0';            
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
     } else {
            BEGIN(INITIAL);
            PARM->xstrbuff[PARM->xstrptr++] = '"';
@@ -330,7 +328,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
             }
 }
 
-{IDENT}:/[ \t\n]  { char *pp = yytext;
+^[ ]*{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
@@ -386,6 +384,10 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                         yyscanner);
                   return NEWLINE; }
+  {IDENT} {
+    csound->Message(csound, "unsupported UDO arg type: %s", yytext);
+    return ERROR_TOKEN;
+  }  
 }
 
 

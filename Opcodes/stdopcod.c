@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "stdopcod.h"
@@ -98,6 +97,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
     err |= wter2_init_(csound);
+    
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
