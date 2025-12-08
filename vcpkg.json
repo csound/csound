@@ -32,6 +32,7 @@
         },
         {
             "name": "libsndfile",
+            "platform": "x64",
             "features": [
                 "external-libs",
                 "mpeg"

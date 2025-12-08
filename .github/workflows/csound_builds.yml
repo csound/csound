@@ -217,7 +217,7 @@ jobs:
         run: cmake --build build --config Debug
 
       - name: Run unit tests
-        run: cmake --build build --target csdtests test 
+        run: cmake --build build --target csdtests test
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -497,7 +497,7 @@ jobs:
 
       - name: Run tests
         run: cmake --build --preset windows-release-csd-tests
-        
+
       - name: Run unit test framework
         run: ctest --preset windows-release-test
 
@@ -608,9 +608,6 @@ jobs:
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
-      - name: Use custom vcpkg manifest for 32-bit (without libsndfile)
-        run: cp vcpkg-x86.json vcpkg.json
-
       - name: Download libsndfile pre-built binaries for Win32
         run: |
           wget https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2-win32.zip
@@ -641,7 +638,7 @@ jobs:
         run: cp $HOME/libsndfile-i686/bin/*.dll ./build/
 
       - name: Upload zip
-        # 
+        #
         if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
@@ -792,7 +789,7 @@ jobs:
           path: Android/csound-android-${{env.CSOUND_VERSION}}
 
   publish_artifacts:
-    # 
+    #
     if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
