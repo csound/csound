@@ -36,6 +36,7 @@
         },
         {
             "name": "libsndfile",
+            "platform": "!(mingw & x86)",
             "features": [
                 "external-libs",
                 "mpeg"
