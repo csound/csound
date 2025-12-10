@@ -61,6 +61,7 @@ const uint32_t csPlayScoMask = 16;
 
 #define STA(x)   (csound->onefileStatics.x)
 
+
 CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
     enum { nBytes = 256 };
@@ -92,13 +93,33 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
     else
         snprintf(lbuf, nBytes, "%s/csound-%08x%08x",   tmpdir, r1, r2);
 
-    /* Optionally, you could loop/stat() to avoid collisions, but for WASI it’s usually enough
+    /* Optionally, you could loop/stat() to avoid collisions, but for WASI it's usually enough
        to just return a unique-looking name; the caller will open/create it later. */
     return cs_strdup(csound, lbuf);
 
-#else /* !__wasi__ */
+#elif defined(WIN32) && !defined(__CYGWIN__)
 
-    /* Non-WASI: preserve original mkstemp-based flow, but tidy it up. */
+    /* Windows: use _tempnam() since mkstemp() is not available. */
+    struct _stat tmp;
+    do {
+        char *s = (char*) csoundGetEnv(csound, "SFDIR");
+        if (s == NULL)
+            s = (char*) csoundGetEnv(csound, "HOME");
+        s = _tempnam(s, "cs");
+        if (UNLIKELY(s == NULL))
+            csound->Die(csound, Str(" *** cannot create temporary file"));
+        strNcpy(lbuf, s, nBytes);
+        free(s);
+
+        if (ext && ext[0] != '\0')
+            strlcat(lbuf, ext, nBytes);
+    } while (_stat(lbuf, &tmp) == 0);
+
+    return cs_strdup(csound, lbuf);
+
+#else /* Unix/POSIX */
+
+    /* Non-WASI, non-Windows: preserve original mkstemp-based flow. */
     struct stat tmp;
     int32_t fd;
 
@@ -111,19 +132,17 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 
         /* Restrictive perms for the temp file (when supported). */
         #ifndef BARE_METAL
-        #  if defined(HAVE_UMASK) || !(defined(__MINGW32__) || defined(_WIN32))
             umask(0077);
-        #  endif
         #endif
 
-        /* Ensure exclusive creation (workaround “buggy mkstemp” comment kept). */
+        /* Ensure exclusive creation (workaround "buggy mkstemp" comment kept). */
         fd = mkstemp(lbuf);
         if (UNLIKELY(fd < 0))
             csound->Die(csound, Str(" *** cannot create temporary file"));
         close(fd);
 
         if (ext && ext[0] != '\0') {
-            #if !defined(LINUX) && !defined(__MACH__) && !defined(WIN32)
+            #if !defined(LINUX) && !defined(__MACH__)
             char *p = strrchr(lbuf, '.');
             if (p) *p = '\0';
             #endif
@@ -144,7 +163,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 
     return cs_strdup(csound, lbuf);
 
-#endif /* __wasi__ */
+#endif /* platform checks */
 }
 
 static inline void alloc_globals(CSOUND *csound)
