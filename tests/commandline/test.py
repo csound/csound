@@ -421,6 +421,7 @@ def runTest():
         ["test_switch_statement.csd", "tests the new switch statement operator"],
         ["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
         ["test_label_within_if_block.csd", "test label within if block"],
+        ["test_labels.csd", "test labels with tab and space indentation"],
         ["test_newstyle_udo_optargs.csd", "test newstyle UDO optional args"],
         [
             "test_arrays.csd",
