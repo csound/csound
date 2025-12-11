@@ -2047,11 +2047,23 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   // search on  all pools
   var = find_var_from_pools(csound, t, t, typeTable);
   csound->Free(csound, t);
-  if (var == NULL) {
+  // VL: since arrays are now also created here now, we
+  // need to apply similar checks to add_array_arg()
+  if (var == NULL ||
+      (var && var->varType == &CS_VAR_TYPE_OPCODEREF)) {
     if (annotation != NULL) {
       // check for global annotation in explicit-type rhs vars
       lvarName = cs_strdup(csound, varName);
       pool = find_global_annotation(lvarName, typeTable);
+      if(pool == csound->engineState.varPool
+         || pool == typeTable->globalPool) {
+        // remove var from pool
+        if(var)
+          cs_hash_table_remove(csound,
+                               get_var_pool(csound,typeTable,
+                                            var->varName)->table,
+                               var->varName);
+      }  
       // check to see if annotation is optional type
       char *nm = check_optional_type(csound, annotation);
 

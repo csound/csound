@@ -1892,7 +1892,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   TREE* tail = tree_tail(current->right->right);
   tail->next = continueTargetLabel;
 
-  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+  strNcpy(op, isPerfRate ? "looplt.k" : "looplt.i", 10);
   TREE* loopLtStatement = create_opcode_token(csound, op);
   continueTargetLabel->next = loopLtStatement;
 
