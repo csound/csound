@@ -328,7 +328,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
             }
 }
 
-^[ ]*{IDENT}:/[ \t\n]  { char *pp = yytext;
+^[ \t]*{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
@@ -387,7 +387,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   {IDENT} {
     csound->Message(csound, "unsupported UDO arg type: %s", yytext);
     return ERROR_TOKEN;
-  }  
+  }
 }
 
 
