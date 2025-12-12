@@ -42,6 +42,7 @@ extern "C" {
     char        *outypes;
     char        *intypes;
     int32_t     flags;
+    int32_t     deprecated;
   } opcodeListEntry;
 
   
