@@ -109,8 +109,10 @@ PUBLIC void csoundEventString(CSOUND *csound, const char *message,
 
 PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
                         int32_t nparams, int32_t async) {
-  char c = 'i';
-  if (type == CS_TABLE_EVENT)
+  char c;
+  if (type == CS_INSTR_EVENT)
+    c = 'i';
+  else if (type == CS_TABLE_EVENT)
     c = 'f';
   else if (type == CS_END_EVENT)
     c = 'e';

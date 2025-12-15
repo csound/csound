@@ -184,7 +184,7 @@ TEST_F (ChannelTests, ChannelOpcodes)
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     csoundGetControlChannel(csound, "1", &err);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    csoundSetControlChannel(csound, "2", 5.0);
+    csoundSetControlChannel(csound, "1", 5.0);
     MYFLT pFields[] = {1.0, 0.0, 1.0};
     csoundEvent(csound, 0, pFields, 3, 0);
     err = csoundPerformKsmps(csound);
@@ -195,12 +195,10 @@ TEST_F (ChannelTests, ChannelOpcodes)
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    csoundSetControlChannel(csound, "3", 6.0);
     ASSERT_EQ(6.0, csoundGetControlChannel(csound, "3", NULL));
     MYFLT pFields3[] = {3.0, 0.0, 1.0};
     csoundEvent(csound, 0, pFields3, 3, 0);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    csoundSetControlChannel(csound, "4", 7.0);
     err = csoundPerformKsmps(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     ASSERT_EQ(7.0, csoundGetControlChannel(csound, "4", NULL));
