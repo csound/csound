@@ -413,7 +413,7 @@ static inline void cs_beep(CSOUND *csound)
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-int32_t csoundCleanup(CSOUND *csound)
+int32_t csound_cleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
@@ -1194,8 +1194,6 @@ int32_t sense_events(CSOUND *csound)
                 csound->MTrkend = 1;                     /* catch a Trkend    */
                 csound->ErrorMsg(csound, "SERVER%c: ", remoteID(csound));
                 csound->ErrorMsg(csound, "caught a Trkend\n");
-                /*csoundCleanup(csound);
-                  exit(0);*/
                 return 2;  /* end of performance */
               }
               else m_chanmsg(csound, mep);               /* or a chan msg     */

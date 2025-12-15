@@ -386,7 +386,8 @@ extern "C" {
   enum {
     CS_INSTR_EVENT = 0,
     CS_TABLE_EVENT,
-    CS_END_EVENT
+    CS_END_EVENT,
+    CS_ADV_EVENT
   };
 
 #ifndef CSOUND_CSDL_H

@@ -37,19 +37,18 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
                   int32_t mode, int32_t allow_release);
 void csound_input_message(CSOUND *csound, const char *message);
-int32_t csoundReadScoreInternal(CSOUND *csound, const char *message);
-void csoundTableCopyOutInternal(CSOUND *csound, int32_t table, MYFLT *ptable);
-void csoundTableCopyInInternal(CSOUND *csound, int32_t table, const MYFLT *ptable);
-void csoundTableSetInternal(CSOUND *csound, int32_t table, int32_t index, MYFLT value);
-int32_t csoundScoreEventInternal(CSOUND *csound, char type,
+int32_t csound_read_score(CSOUND *csound, const char *message);
+int32_t csound_score_event(CSOUND *csound, char type,
                              const MYFLT *pfields, long numFields);
-int32_t csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
+int32_t csound_score_event_absolute(CSOUND *csound, char type,
                                      const MYFLT *pfields, long numFields,
                                      double time_ofs);
 void set_channel_data_ptr(CSOUND *csound, const char *name,
                           void *ptr, int32_t newSize);
-
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
+static void csound_table_copy_out(CSOUND *csound, int32_t table, MYFLT *ptable);
+static void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable);
+static void csound_table_set(CSOUND *csound, int32_t table, int32_t index, MYFLT value);
 
 enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, MERGE_STATE, KILL_INSTANCE};
@@ -147,7 +146,7 @@ void message_dequeue(CSOUND *csound) {
       case READ_SCORE:
         {
           const char *str = msg->args;
-          csoundReadScoreInternal(csound, str);
+          csound_read_score(csound, str);
         }
         break;
       case SCORE_EVENT:
@@ -155,7 +154,7 @@ void message_dequeue(CSOUND *csound) {
           char type;
           MYFLT *fargs = (MYFLT *) msg->args;
           type = (char) fargs[0];
-          csoundScoreEventInternal(csound, type, &fargs[2], (int32_t)
+          csound_score_event(csound, type, &fargs[2], (int32_t)
                                    (int32_t) fargs[1]);
         }
         break;
@@ -173,7 +172,7 @@ void message_dequeue(CSOUND *csound) {
           memcpy(&ofs, msg->args + ARG_ALIGN*3,
                  sizeof(double));
 
-          csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields,
+          csound_score_event_absolute(csound, type, pfields, numFields,
                                              ofs);
         }
         break;
@@ -184,7 +183,7 @@ void message_dequeue(CSOUND *csound) {
           memcpy(&table, msg->args, sizeof(int32_t));
           memcpy(&ptable, msg->args + ARG_ALIGN,
                  sizeof(MYFLT *));
-          csoundTableCopyOutInternal(csound, table, ptable);
+          csound_table_copy_out(csound, table, ptable);
         }
         break;
       case TABLE_COPY_IN:
@@ -194,7 +193,7 @@ void message_dequeue(CSOUND *csound) {
           memcpy(&table, msg->args, sizeof(int32_t));
           memcpy(&ptable, msg->args + ARG_ALIGN,
                  sizeof(MYFLT *));
-          csoundTableCopyInInternal(csound, table, ptable);
+          csound_table_copy_in(csound, table, ptable);
         }
         break;
       case TABLE_SET:
@@ -206,7 +205,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(int32_t));
           memcpy(&value, msg->args + 2*ARG_ALIGN,
                  sizeof(MYFLT));
-          csoundTableSetInternal(csound, table, index, value);
+          csound_table_set(csound, table, index, value);
         }
         break;
       case MERGE_STATE:
@@ -303,19 +302,6 @@ static inline int64_t *csoundScoreEvent_enqueue(CSOUND *csound, char type,
 }
 
 
-static inline int64_t *csoundScoreEventAbsolute_enqueue(CSOUND *csound, char type,
-                                                        const MYFLT *pfields,
-                                                        long numFields,
-                                                        double time_ofs)
-{
-  const int32_t argsize = ARG_ALIGN*4;
-  char args[ARG_ALIGN*4];
-  args[0] = type;
-  memcpy(args+ARG_ALIGN, &pfields, sizeof(MYFLT *));
-  memcpy(args+2*ARG_ALIGN, &numFields, sizeof(long));
-  memcpy(args+3*ARG_ALIGN, &time_ofs, sizeof(double));
-  return message_enqueue(csound,SCORE_EVENT_ABS, args, argsize);
-}
 
 void kill_instance_enqueue(CSOUND *csound, MYFLT instr, int32_t insno,
                           INSDS *ip, int32_t mode,
@@ -355,7 +341,7 @@ void csoundInputMessage(CSOUND *csound, const char *message){
 int32_t csoundReadScore(CSOUND *csound, const char *message){
   int32_t res;
   csoundLockMutex(csound->API_lock);
-  res = csoundReadScoreInternal(csound, message);
+  res = csound_read_score(csound, message);
   csoundUnlockMutex(csound->API_lock);
   return res;
 }
@@ -363,7 +349,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *message){
 void csoundTableSet(CSOUND *csound, int32_t table, int32_t index, MYFLT value)
 {
   csoundLockMutex(csound->API_lock);
-  csoundTableSetInternal(csound, table, index, value);
+  csound_table_set(csound, table, index, value);
   csoundUnlockMutex(csound->API_lock);
 }
 
@@ -372,20 +358,10 @@ int32_t csoundScoreEvent(CSOUND *csound, char type,
 {
 
   csoundLockMutex(csound->API_lock);
-  csoundScoreEventInternal(csound, type, pfields, numFields);
+  csound_score_event(csound, type, pfields, numFields);
   csoundUnlockMutex(csound->API_lock);
   return OK;
 
-}
-
-int32_t csoundScoreEventAbsolute(CSOUND *csound, char type,
-                             const MYFLT *pfields, long numFields,
-                             double time_ofs)
-{
-  csoundLockMutex(csound->API_lock);
-  csoundScoreEventAbsoluteInternal(csound, type, pfields, numFields, time_ofs);
-  csoundUnlockMutex(csound->API_lock);
-  return OK;
 }
 
 
@@ -425,7 +401,7 @@ void csoundTableCopyOut(CSOUND *csound, int32_t table, MYFLT *ptable, int32_t as
     return;
   }
   csoundLockMutex(csound->API_lock);
-  csoundTableCopyOutInternal(csound, table, ptable);
+  csound_table_copy_out(csound, table, ptable);
   csoundUnlockMutex(csound->API_lock);
 }
 
@@ -436,7 +412,7 @@ void csoundTableCopyIn(CSOUND *csound, int32_t table, const
     return;
   }
   csoundLockMutex(csound->API_lock);
-  csoundTableCopyInInternal(csound, table, ptable);
+  csound_table_copy_in(csound, table, ptable);
   csoundUnlockMutex(csound->API_lock);
 }
 
@@ -449,13 +425,6 @@ void csoundScoreEventAsync(CSOUND *csound, char type,
                            const MYFLT *pfields, long numFields)
 {
   csoundScoreEvent_enqueue(csound, type, pfields, numFields);
-}
-
-void csoundScoreEventAbsoluteAsync(CSOUND *csound, char type,
-                                   const MYFLT *pfields, long numFields,
-                                   double time_ofs)
-{
-  csoundScoreEventAbsolute_enqueue(csound, type, pfields, numFields, time_ofs);
 }
 
 int32_t csoundCompileTreeAsync(CSOUND *csound, TREE *root) {
@@ -504,5 +473,45 @@ int32_t csoundKillInstance(CSOUND *csound, MYFLT instr, char *instrName,
     kill_instance_enqueue(csound, instr, insno, ip, mode, allow_release);
   return CSOUND_SUCCESS;
 }
+
+void csound_table_set(CSOUND *csound, int32_t table, int32_t index,
+                            MYFLT value) {
+  if (csound->oparms->realtime)
+    csoundLockMutex(csound->init_pass_threadlock);
+  csound->flist[table]->ftable[index] = value;
+  if (csound->oparms->realtime)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+void csound_table_copy_out(CSOUND *csound, int32_t table, MYFLT *ptable) {
+  int32_t len;
+  MYFLT *ftab;
+  /* in realtime mode init pass is executed in a separate thread, so
+     we need to protect it */
+  if (csound->oparms->realtime)
+    csoundLockMutex(csound->init_pass_threadlock);
+  len = csoundGetTable(csound, &ftab, table);
+  if (UNLIKELY(len > 0x00ffffff))
+    len = 0x00ffffff; // As coverity is unhappy
+  memcpy(ptable, ftab, (size_t)(len * sizeof(MYFLT)));
+  if (csound->oparms->realtime)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
+void csound_table_copy_in(CSOUND *csound, int32_t table, const MYFLT *ptable) {
+  int32_t len;
+  MYFLT *ftab;
+  /* in realtime mode init pass is executed in a separate thread, so
+     we need to protect it */
+  if (csound->oparms->realtime)
+    csoundLockMutex(csound->init_pass_threadlock);
+  len = csoundGetTable(csound, &ftab, table);
+  if (UNLIKELY(len > 0x00ffffff))
+    len = 0x00ffffff; // As coverity is unhappy
+  memcpy(ftab, ptable, (size_t)((len+1) * sizeof(MYFLT))); // + guard point
+  if (csound->oparms->realtime)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+}
+
 
 

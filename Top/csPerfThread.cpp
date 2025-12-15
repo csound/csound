@@ -31,14 +31,7 @@
 #include "csoundCore.h"
 
 extern "C" {
-  uint32_t csoundGetNchnls(CSOUND *);
-  uint32_t csoundGetNchnlsInput(CSOUND *csound);
-  long csoundGetInputBufferSize(CSOUND *);
-  long csoundGetOutputBufferSize(CSOUND *);
-  int32_t csoundCleanup(CSOUND *);
-  void csoundInputMessage(CSOUND *csound, const char * sc);
-  int32_t csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
-                        long numFields);
+  int32_t csound_cleanup(CSOUND *);
 }
 
 class CsoundThreadLock {
@@ -259,8 +252,8 @@ public:
             return;
         }
         recordData->csound = csound;
-        int32_t bufsize = (int32_t) (csoundGetOutputBufferSize(csound)
-                                 * csoundGetNchnls(csound) * numbufs);
+        int32_t bufsize = (int32_t) (csound->GetOutputBufferSize(csound)
+                                     * csoundGetChannels(csound,0) * numbufs);
         recordData->cbuf = csoundCreateCircularBuffer(csound,
                                                  bufsize,
                                                  sizeof(MYFLT));
@@ -272,7 +265,7 @@ public:
 
         SFLIB_INFO sflib_info;
         sflib_info.samplerate = csoundGetSr(csound);
-        sflib_info.channels = csoundGetNchnls(csound);
+        sflib_info.channels = csoundGetChannels(csound, 0);
         switch (samplebits) {
         case 32:
             sflib_info.format = AE_FLOAT;
@@ -414,9 +407,24 @@ class CsPerfThreadMsg_ScoreEvent : public CsoundPerformanceThreadMessage {
         }
         pp[1] = (MYFLT) p2;
       }
-      if (csoundScoreEvent(csound, opcod, pp, (long) pcnt) != 0)
-        csoundMessageS(csound, CSOUNDMSG_WARNING,
-                       "WARNING: could not create score event\n");
+      int32_t type;
+      switch(opcod) {
+        case 'i':
+        type = CS_INSTR_EVENT;
+        break;
+      case 'f':
+        type = CS_TABLE_EVENT;
+        break;
+      case 'e':
+        type = CS_END_EVENT;
+        break;
+      case 'a':
+        type = CS_ADV_EVENT;
+        break;
+      default:
+        return 0;
+      }
+      csoundEvent(csound, type, pp, pcnt, 0);
       return 0;
     }
     ~CsPerfThreadMsg_ScoreEvent()
@@ -448,7 +456,7 @@ class CsPerfThreadMsg_InputMessage : public CsoundPerformanceThreadMessage {
     }
     int run()
     {
-      csoundInputMessage(pt_->GetCsound(), sp);
+      csoundEventString(pt_->GetCsound(), sp, 0);
       return 0;
     }
     ~CsPerfThreadMsg_InputMessage()
@@ -624,7 +632,7 @@ int32_t CsoundPerformanceThread::Perform()
       retval = csoundPerformKsmps(csound);
       if (recordData.running) {
           const MYFLT *spout = csoundGetSpout(csound);
-          int len = csoundGetKsmps(csound) * csoundGetNchnls(csound);
+          int len = csoundGetKsmps(csound) * csoundGetChannels(csound,0);
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
                                                   spout, len);
           if (written != len) {
@@ -638,7 +646,7 @@ int32_t CsoundPerformanceThread::Perform()
     } while (!retval);
  endOfPerf:
     status = retval;
-    csoundCleanup(csound);
+    csound_cleanup(csound);
     // delete any pending messages
     csoundLockMutex(queueLock);
     {

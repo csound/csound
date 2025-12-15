@@ -22,7 +22,7 @@
 #include "compile_ops.h"
 #include <stdio.h>
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
-int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
+int32_t csound_read_score(CSOUND *csound, const char *str);
 
 int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
   FILE *fp;
@@ -105,8 +105,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
 
 
 int32_t read_score_i(CSOUND *csound, COMPILE *p){
-  *p->res = (MYFLT)(csoundReadScoreInternal(csound,
-                                            ((STRINGDAT *)p->str)->data));
+  *p->res = (MYFLT)(csound_read_score(csound,((STRINGDAT *)p->str)->data));
   return OK;
 }
 

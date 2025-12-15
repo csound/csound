@@ -768,8 +768,13 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/csound_perf.c
+    Top/csound_events.c
+    Top/csound_rtio.c
+    Top/csound_messages.c
+    Top/csound_time.c
     Top/argdecode.c
-    Top/csdebug.c
+    Top/csound_debug.c
     Top/csmodule.c
     Top/getstring.c
     Top/main.c
