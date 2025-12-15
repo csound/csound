@@ -1075,11 +1075,11 @@ static OENTRY wpfilters_localops[] =
    /* aliases */
    { "zdf1pole", sizeof(ZDF_1POLE), 0,"a","axOo",
       (SUBR)zdf_1pole_init,(SUBR)zdf_1pole_perf},
-   { "zdf1pole_mode", sizeof(ZDF_1POLE_MODE), 0,"aa","axo",
+   { "zdf1polemode", sizeof(ZDF_1POLE_MODE), 0,"aa","axo",
       (SUBR)zdf_1pole_mode_init,(SUBR)zdf_1pole_mode_perf},
    { "zdf2pole", sizeof(ZDF_2POLE), 0,"a","axxOo",
       (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf},
-   { "zdf2pole_mode", sizeof(ZDF_2POLE_MODE), 0,"aaa","axxo",
+   { "zdf2polemode", sizeof(ZDF_2POLE_MODE), 0,"aaa","axxo",
       (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf},
    { "zdfladder", sizeof(ZDF_LADDER), 0,"a","axxo",
       (SUBR)zdf_ladder_init,(SUBR)zdf_ladder_perf},

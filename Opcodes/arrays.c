@@ -1371,7 +1371,7 @@ static OENTRY arrayvars_localops[] =
     {"shiftout", sizeof(FFT), 0, "a","k[]o",
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
     {"unwrap", sizeof(FFT), 0, "k[]","k[]o",
-     (SUBR) init_recttopol, (SUBR) unwrap},
+     (SUBR) unwrap_set, (SUBR) unwrap},
     {"dct", sizeof(FFT), 0, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
     {"dct", sizeof(FFT), 0, "i[]","i[]",

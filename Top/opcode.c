@@ -138,6 +138,7 @@ PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
         ((opcodeListEntry *)lst)[cnt].intypes = s;
         s += ((int32_t)strlen(ep->intypes) + 1);
         ((opcodeListEntry *)lst)[cnt].flags = ep->flags;
+        ((opcodeListEntry *)lst)[cnt].deprecated = ep->deprecated;
         // if (ep->flags&_QQ) printf("DEPRICATED: %s\n", ep->opname);
         // if (ep->flags&_QQ) *deprec++;
         cnt++;
@@ -150,6 +151,7 @@ PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
   ((opcodeListEntry *)lst)[cnt].outypes = NULL;
   ((opcodeListEntry *)lst)[cnt].intypes = NULL;
   ((opcodeListEntry *)lst)[cnt].flags = 0;
+  ((opcodeListEntry *)lst)[cnt].deprecated = 0;
 
   cs_cons_free(csound, head);
 
@@ -179,10 +181,12 @@ void list_opcodes(CSOUND *csound, int32_t level) {
   }
 
   for (j = 0, k = -1; j < cnt; j++) {
+
+    //continue;
     if ((level & 1) == 0) { /* Print in 4 columns */
       if (j > 0 && strcmp(lst[j - 1].opname, lst[j].opname) == 0)
         continue;
-      if ((level & 2) == 0 && ((lst[j].flags & _QQ) != 0)) {
+      if ((level & 2) == 0 && ((lst[j].flags & _QQ) != 0 || lst[j].deprecated)) {
         // printf("dropping %s\n", lst[j].opname);
         continue;
       }
@@ -201,7 +205,7 @@ void list_opcodes(CSOUND *csound, int32_t level) {
       len = (int32_t)strlen(lst[j].opname) + xlen;
     } else {
       char *ans = lst[j].outypes, *arg = lst[j].intypes;
-      if ((level & 2) == 0 && ((lst[j].flags & _QQ) != 0)) {
+      if ((level & 2) == 0 &&  ((lst[j].flags & _QQ) != 0 || lst[j].deprecated)) {
         // printf("dropping %s\n", lst[j].opname);
         continue;
       }
