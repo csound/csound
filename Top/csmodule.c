@@ -91,10 +91,10 @@
 #endif
 
 #if !(defined (__wasi__))
-#if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
-#include <dlfcn.h>
-#elif defined(WIN32)
+#if defined(WIN32)
 #include <windows.h>
+#elif defined(HAVE_DLFCN_H)
+#include <dlfcn.h>
 #endif
 #endif
 
@@ -1049,7 +1049,7 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
   return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif  !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif  !(defined(__wasi__)) && defined(HAVE_DLFCN_H)
 
 int32_t csoundOpenLibrary(void **library, const char *libraryPath)
 {

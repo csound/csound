@@ -658,7 +658,7 @@ set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
-    dirent.h inttypes.h execinfo.h)
+    dirent.h inttypes.h execinfo.h dlfcn.h)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
