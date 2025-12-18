@@ -4206,12 +4206,13 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int32_t n, int32_t which)
   case '^':
   case '(':
   case ')':
-  case T_ASSIGNMENT:
   case '|':
   case '&':
   case '#':
   case '~':
     csound->Message(csound,"name=\"%c\"", l->type); break;
+  case T_ASSIGNMENT:
+    csound->Message(csound,"name=\"T_ASSIGNMENT\""); break;
   case NEWLINE:
     csound->Message(csound,"name=\"NEWLINE\""); break;
   case S_NEQ:
