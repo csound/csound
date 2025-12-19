@@ -91,10 +91,10 @@
 #endif
 
 #if !(defined (__wasi__))
-#if defined(WIN32)
-#include <windows.h>
-#elif defined(HAVE_DLFCN_H)
+#if defined(HAVE_DLFCN_H)
 #include <dlfcn.h>
+#elif defined(WIN32)
+#include <windows.h>
 #endif
 #endif
 
@@ -1031,25 +1031,7 @@ int32_t csoundDestroyModules(CSOUND *csound)
 
 /* ------------------------------------------------------------------------ */
 
-#if defined(WIN32)
-
-int32_t csoundOpenLibrary(void **library, const char *libraryPath)
-{
-  *library = (void*) LoadLibrary(libraryPath);
-  return (*library != NULL ? 0 : -1);
-}
-
-int32_t csoundCloseLibrary(void *library)
-{
-  return (int32_t) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
-}
-
-void *csoundGetLibrarySymbol(void *library, const char *procedureName)
-{
-  return (void*) GetProcAddress((HMODULE) library, procedureName);
-}
-
-#elif  !(defined(__wasi__)) && defined(HAVE_DLFCN_H)
+#if !(defined(__wasi__)) && defined(HAVE_DLFCN_H)
 
 int32_t csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -1074,6 +1056,24 @@ int32_t csoundCloseLibrary(void *library)
 void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 {
   return (void*) dlsym(library, procedureName);
+}
+
+#elif defined(WIN32)
+
+int32_t csoundOpenLibrary(void **library, const char *libraryPath)
+{
+  *library = (void*) LoadLibrary(libraryPath);
+  return (*library != NULL ? 0 : -1);
+}
+
+int32_t csoundCloseLibrary(void *library)
+{
+  return (int32_t) (FreeLibrary((HMODULE) library) == FALSE ? -1 : 0);
+}
+
+void *csoundGetLibrarySymbol(void *library, const char *procedureName)
+{
+  return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
 #else /* case for platforms without shared libraries -- added 062404, akozar */
