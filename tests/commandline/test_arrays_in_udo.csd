@@ -6,12 +6,11 @@ nchnls=1
 0dbfs=1
 
 opcode OscBank,a,kki
-
 setksmps 1
+kfr,kamp,inum xin
 au init 0
 kph[] init inum
 kcnt init 0
-kfr,kamp,inum xin
 
 until kcnt == inum do
 au += sin(kph[kcnt])       ; this line segfaults

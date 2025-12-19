@@ -17,8 +17,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "stdopcod.h"
@@ -3001,8 +3000,10 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
 
   static const OENTRY localops[] =
     {
-   { "oscbnk",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
-     (SUBR) oscbnkset, (SUBR) oscbnk                },
+  { "oscbnk", sizeof(OSCBNK), TR, "a", "kkkkiikkkkikkkkkkikooooooo",
+    (SUBR) oscbnkset, NULL, (SUBR) oscbnk, NULL, 2 },
+   { "oscilbank",     sizeof(OSCBNK),     TR,  "a",  "kkkkiikkkkikkkkkkikooooooo",
+     (SUBR) oscbnkset, (SUBR) oscbnk                }, /* alias */
    { "grain2",     sizeof(GRAIN2),     TR,      "a",    "kkkikiooo",
             (SUBR) grain2set, (SUBR) grain2                },
    { "grain3",     sizeof(GRAIN3),     TR,      "a",    "kkkkkkikikkoo",

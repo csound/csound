@@ -18,8 +18,7 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- 02110-1301 USA
+ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
  */
 
 #ifndef CSOUND_ORC_EXPRESSION_H
@@ -53,6 +52,7 @@ char *remove_type_quoting(CSOUND *csound, const char *outype);
 TREE * create_opcode_token(CSOUND *csound, char* op);
 TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
+int expand_struct_array_member_assignment(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, TREE** anchor);
 
 
 #endif

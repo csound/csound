@@ -19,8 +19,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 
 */
 
@@ -1170,17 +1169,30 @@ template <typename T> int32_t aperf(CSOUND *csound, T *p) {
  */
 template <typename T>
 int32_t plugin(Csound *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thr, uint32_t flags = 0) {
+               const char *iargs, uint32_t thr, uint32_t flags = 0,
+               int32_t deprec = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a) {
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
-                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)aperf<T>, (SUBR)deinit<T>);
-  }
-  else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
-                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)deinit<T>);
+  SUBR initf = NULL, perf = NULL;
+  int32_t ret;
+  
+  if(thr == thread::i ||
+     thr == thread::ik ||
+     thr == thread::ia) initf = (SUBR) init<T>;
+  
+  if(thr == thread::k ||
+     thr == thread::ik) perf = (SUBR) kperf<T>;
+  else if(thr == thread::a ||
+     thr == thread::ia) perf = (SUBR) aperf<T>;
+  
+
+  ret = cs->AppendOpcode(cs, (char*) name, sizeof(T), flags, 
+                          (char*) oargs, (char*) iargs, initf,
+                          perf, (SUBR)deinit<T>);
+  if(ret == CSOUND_SUCCESS)
+   ret = cs->Deprecate(cs, (char*) name, (char*) oargs, (char*) iargs,
+                deprec);
+  
+  return ret;
 }
 
 /** plugin registration function template
@@ -1188,19 +1200,9 @@ int32_t plugin(Csound *csound, const char *name, const char *oargs,
  */
 template <typename T>
 int32_t plugin(Csound *csound, const char *name, uint32_t thr,
-           uint32_t flags = 0) {
-  CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a) {
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags,
-                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)aperf<T>, (SUBR)deinit<T>);
-
-  }
-  else
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, 
-                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)deinit<T>);
-
+               uint32_t flags = 0, int32_t deprec = 0) {
+  return plugin<T>(csound, name, T::otypes, T::itypes, thr, flags,
+                   deprec);
 }
 
 /** utility constructor function template for member classes: \n

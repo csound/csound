@@ -51,7 +51,7 @@ const sabCreateRealtimeAudioThread =
     });
 
     // Prompt for midi-input on demand
-    const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
+    const isRequestingRtMidiInput = libraryCsound["_isRequestingRtMidiInput"](csound);
 
     // Prompt for microphone only on demand!
     const isExpectingInput =
@@ -195,7 +195,7 @@ const sabCreateRealtimeAudioThread =
             const status = Atomics.load(midiBuffer, absIndex);
             const data1 = Atomics.load(midiBuffer, absIndex + 1);
             const data2 = Atomics.load(midiBuffer, absIndex + 2);
-            libraryCsound.csoundPushMidiMessage(csound, status, data1, data2);
+            libraryCsound["csoundPushMidiMessage"](csound, status, data1, data2);
           }
 
           Atomics.store(

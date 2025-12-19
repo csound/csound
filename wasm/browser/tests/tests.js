@@ -204,11 +204,9 @@ e
   }
 
   const csoundVariations = [
-    { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
-    { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
+    { useWorker: false, name: "SINGLE THREAD, AW" },
     { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
     { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
-    { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
   ];
 
   csoundVariations.forEach((test) => {
@@ -723,7 +721,7 @@ e
   const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
   document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
     mocha.fullTrace(true);
-    mocha.checkLeaks(false); // worker + spn defenitely leaks
+    mocha.checkLeaks(false); // worker definitely leaks
     mocha.cleanReferencesAfterRun(true);
     mocha.run();
   });

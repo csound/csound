@@ -8,7 +8,7 @@
 instr 1
 k:i init 0
 j:i init 0
-prints k =t j ? "types match\n" : "types do not match\n" 
+prints typeof(k) == typeof(j) ? "types match\n" : "types do not match\n" 
 endin
 
 

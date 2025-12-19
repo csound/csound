@@ -18,8 +18,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #ifndef CSOUND_STR_OPS_H
@@ -144,8 +143,14 @@ typedef struct {
     MYFLT   *inVar;
 } PRINT_TYPE_OP;
 
-#ifndef CSOUND_STR_OPS_C
+typedef struct {
+  OPDS h;
+  int32_t *r;
+  STRINGDAT *a, *b;
+} EQS_OP;
 
+#ifndef CSOUND_STR_OPS_C
+int32_t     eqs(CSOUND *, void *);
 int32_t     strset_init(CSOUND *, void *);
 int32_t     strget_init(CSOUND *, void *);
 int32_t     strcpy_opcode_p(CSOUND *, void *);

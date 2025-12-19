@@ -96,7 +96,7 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
 
     csound->Free(csound, entries);
 }
- 
+
 TEST_F (OrcSemanticsTest, FindOpcodeNewTest)
 {
   ASSERT_TRUE (find_opcode_new(csound, (char *) "##error", (char *)  "i", (char *)  "i") != NULL);
@@ -134,6 +134,15 @@ TEST_F (OrcSemanticsTest, CheckInArgsTest)
     ASSERT_TRUE (check_in_arg("c", "i"));
     ASSERT_TRUE (check_in_arg("r", "k"));
     ASSERT_TRUE (check_in_arg("p", "k"));
+
+    // K type (k-rate with initialization) - accepts k, i, c, p, r
+    ASSERT_TRUE (check_in_arg("k", "K"));
+    ASSERT_TRUE (check_in_arg("i", "K"));
+    ASSERT_TRUE (check_in_arg("c", "K"));
+    ASSERT_TRUE (check_in_arg("p", "K"));
+    ASSERT_TRUE (check_in_arg("r", "K"));
+    ASSERT_FALSE (check_in_arg("a", "K"));
+    ASSERT_FALSE (check_in_arg("S", "K"));
 
     // checking var-arg types
     ASSERT_FALSE (check_in_arg("a", "m"));
@@ -239,4 +248,47 @@ TEST_F (OrcSemanticsTest, CheckOutArgs2Test)
     ASSERT_FALSE (check_out_args(csound, "akiSakiS", "akiSakiSa"));
 
     ASSERT_TRUE (check_out_args(csound, "a", "aX"));
+}
+
+TEST_F (OrcSemanticsTest, NDescriptorOddArgumentCountTest)
+{
+    // Test 'n' descriptor with various argument counts
+    ASSERT_TRUE (check_in_args(csound, "i", "n"));           // 1 arg (odd)
+    ASSERT_TRUE (check_in_args(csound, "ic", "n"));          // 2 args (even)
+    ASSERT_TRUE (check_in_args(csound, "ici", "n"));         // 3 args (odd)
+    ASSERT_TRUE (check_in_args(csound, "icic", "n"));        // 4 args (even)
+    ASSERT_TRUE (check_in_args(csound, "icici", "n"));       // 5 args (odd)
+
+    // Test with different valid types for 'n' descriptor (i, c, r, p, b)
+    ASSERT_TRUE (check_in_args(csound, "cr", "n"));          // 2 args (even)
+    ASSERT_TRUE (check_in_args(csound, "crp", "n"));         // 3 args (odd)
+    ASSERT_TRUE (check_in_args(csound, "pb", "n"));          // 2 args (even)
+    ASSERT_TRUE (check_in_args(csound, "pbr", "n"));         // 3 args (odd)
+}
+
+TEST_F (OrcSemanticsTest, DotMarkerConstraintTest)
+{
+    // Test that '.' markers are treated as constraints, not selectable types
+    // The '.' in "icrpb." should be ignored when checking for valid types
+
+    // These should all pass because 'i', 'c', 'r', 'p', 'b' are valid types for 'n'
+    ASSERT_TRUE (check_in_arg("i", "n"));
+    ASSERT_TRUE (check_in_arg("c", "n"));
+    ASSERT_TRUE (check_in_arg("r", "n"));
+    ASSERT_TRUE (check_in_arg("p", "n"));
+    ASSERT_TRUE (check_in_arg("b", "n"));
+
+    // These should all fail because 'a', 'k', 'S' are not in the "icrpb." type string
+    ASSERT_FALSE (check_in_arg("a", "n"));
+    ASSERT_FALSE (check_in_arg("k", "n"));
+    ASSERT_FALSE (check_in_arg("S", "n"));
+
+    // Test that '.' itself is not a selectable type
+    ASSERT_FALSE (check_in_arg(".", "n"));
+
+    // Test other var-arg types to ensure '.' markers are properly stripped
+    // Note: Currently only 'n' has '.' marker, but test framework should handle others
+    ASSERT_TRUE (check_in_arg("i", "m"));  // m: "icrpb" - no dot
+    ASSERT_TRUE (check_in_arg("a", "M"));  // M: "icrpkabB" - no dot
+    ASSERT_TRUE (check_in_arg("S", "N"));  // N: "icrpkaSbB" - no dot
 }

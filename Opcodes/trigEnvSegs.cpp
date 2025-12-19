@@ -16,8 +16,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include <plugin.h>
@@ -221,10 +220,10 @@ static void onload (csnd::Csound* csound)
     csnd::plugin<TrigExpseg> (csound, "trigExpseg.kk", "k", "km", csnd::thread::ik);
     csnd::plugin<TrigLinseg> (csound, "trigLinseg.aa", "a", "km", csnd::thread::ia);
     csnd::plugin<TrigLinseg> (csound, "trigLinseg.kk", "k", "km", csnd::thread::ik);
-    csnd::plugin<TrigExpseg> (csound, "trigexpseg.aa", "a", "km", csnd::thread::ia);
-    csnd::plugin<TrigExpseg> (csound, "trigexpseg.kk", "k", "km", csnd::thread::ik);
-    csnd::plugin<TrigLinseg> (csound, "triglinseg.aa", "a", "km", csnd::thread::ia);
-    csnd::plugin<TrigLinseg> (csound, "triglinseg.kk", "k", "km", csnd::thread::ik);
+    csnd::plugin<TrigExpseg> (csound, "trigexpseg.aa", "a", "km", csnd::thread::ia); /* alias */
+    csnd::plugin<TrigExpseg> (csound, "trigexpseg.kk", "k", "km", csnd::thread::ik); /* alias */
+    csnd::plugin<TrigLinseg> (csound, "triglinseg.aa", "a", "km", csnd::thread::ia); /* alias */
+    csnd::plugin<TrigLinseg> (csound, "triglinseg.kk", "k", "km", csnd::thread::ik); /* alias */
 }
 
 #ifdef BUILD_PLUGINS

@@ -19,7 +19,7 @@ LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a | arm64-v8a ))
 LOCAL_ARM_NEON  := true
 LOCAL_CFLAGS += -DHAVE_NEON #-mfpu=neon -mfloat-abi=softfp
-endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a 
+endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a
 
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), x86 | x86_64))
 LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
@@ -52,7 +52,6 @@ $(CSOUND_SRC_ROOT)/Engine/twarp.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_type_system.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_standard_types.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_data_structures.c \
-$(CSOUND_SRC_ROOT)/Engine/pools.c \
 $(CSOUND_SRC_ROOT)/InOut/soundfile.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd_u.c \
@@ -91,6 +90,7 @@ $(CSOUND_SRC_ROOT)/OOps/remote.c \
 $(CSOUND_SRC_ROOT)/OOps/schedule.c \
 $(CSOUND_SRC_ROOT)/OOps/sndinfUG.c \
 $(CSOUND_SRC_ROOT)/OOps/str_ops.c \
+$(CSOUND_SRC_ROOT)/OOps/structs.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens1.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens2.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens3.c \
@@ -271,6 +271,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/tl/fractalnoise.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/emugens.c \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/scugens.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
+$(CSOUND_SRC_ROOT)/Engine/csound_orc_structs.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_compile.c \
@@ -302,7 +303,7 @@ $(CSOUND_SRC_ROOT)/Top/init_static_modules.c \
 $(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -lamidi -ldl -lm -lc 
+LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -lamidi -ldl -lm -lc
 
 
 # For building with all plugins use:
@@ -311,7 +312,7 @@ LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -lamidi -ldl -lm -lc
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += c++_shared sndfile 
+LOCAL_SHARED_LIBRARIES += c++_shared sndfile
 #LOCAL_STATIC_LIBRARIES += sndfile
 
 # Prevents stripping needed exports from the shared library.
@@ -324,5 +325,4 @@ $(call import-module,libsndfile-android/jni)
 #$(call import-module,libfluidsynth/jni)
 #$(call import-module,signalflowgraph/jni)
 #$(call import-module,LuaCsound/jni)
-
 

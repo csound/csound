@@ -17,8 +17,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 /* ats-csound version 0.1
@@ -2987,40 +2986,62 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 
 static OENTRY localops[] = {
     { "ATSread",        S(ATSREAD),       0,   "kk",   "kSi",
-        (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL      },
+      (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL, NULL, 2 },
     { "ATSread.i",        S(ATSREAD),       0,    "kk",   "kii",
-        (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL      },
+      (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL, NULL, 2 },
     { "ATSreadnz",      S(ATSREADNZ),      0,   "k",    "kSi",
-        (SUBR) atsreadnzset_S,        (SUBR) atsreadnz,       (SUBR) NULL      },
+      (SUBR) atsreadnzset_S,        (SUBR) atsreadnz,       (SUBR) NULL, NULL, 2 },
     { "ATSreadnz.i",      S(ATSREADNZ),      0,   "k",    "kii",
-        (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
+      (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL, NULL, 2 },
     { "ATSadd",         S(ATSADD),          TR,   "a",    "kkSiiopo",
-        (SUBR) atsaddset_S,            (SUBR) atsadd    },
+      (SUBR) atsaddset_S,            (SUBR) atsadd,         (SUBR) NULL, NULL, 2 },
     { "ATSadd.i",         S(ATSADD),          TR,   "a",    "kkiiiopo",
-        (SUBR) atsaddset,            (SUBR) atsadd    },
+      (SUBR) atsaddset,            (SUBR) atsadd,         (SUBR) NULL, NULL, 2 },
     { "ATSaddnz",       S(ATSADDNZ),       0,   "a",    "kSiop",
-        (SUBR) atsaddnzset_S,            (SUBR) atsaddnz  },
+      (SUBR) atsaddnzset_S,            (SUBR) atsaddnz,      (SUBR) NULL, NULL, 2 },
     { "ATSaddnz.i",       S(ATSADDNZ),       0,   "a",    "kiiop",
-        (SUBR) atsaddnzset,            (SUBR) atsaddnz  },
+      (SUBR) atsaddnzset,            (SUBR) atsaddnz,      (SUBR) NULL, NULL, 2 },
     { "ATSsinnoi",      S(ATSSINNOI),       0,  "a",    "kkkkSiop",
-        (SUBR) atssinnoiset_S,            (SUBR) atssinnoi },
+      (SUBR) atssinnoiset_S,            (SUBR) atssinnoi,    (SUBR) NULL, NULL, 2 },
     { "ATSsinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
+      (SUBR) atssinnoiset,            (SUBR) atssinnoi,     (SUBR) NULL, NULL, 2 },
+
+    /* aliases */
+    { "atsread",        S(ATSREAD),       0,   "kk",   "kSi",
+        (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL      },
+    { "atsread.i",        S(ATSREAD),       0,    "kk",   "kii",
+        (SUBR) atsreadset,          (SUBR) atsread,         (SUBR) NULL      },
+    { "atsreadnz",      S(ATSREADNZ),      0,   "k",    "kSi",
+        (SUBR) atsreadnzset_S,        (SUBR) atsreadnz,       (SUBR) NULL      },
+    { "atsreadnz.i",      S(ATSREADNZ),      0,   "k",    "kii",
+        (SUBR) atsreadnzset,        (SUBR) atsreadnz,       (SUBR) NULL      },
+    { "atsadd",         S(ATSADD),          TR,   "a",    "kkSiiopo",
+        (SUBR) atsaddset_S,            (SUBR) atsadd    },
+    { "atsadd.i",         S(ATSADD),          TR,   "a",    "kkiiiopo",
+        (SUBR) atsaddset,            (SUBR) atsadd    },
+    { "atsaddnz",       S(ATSADDNZ),       0,   "a",    "kSiop",
+        (SUBR) atsaddnzset_S,            (SUBR) atsaddnz  },
+    { "atsaddnz.i",       S(ATSADDNZ),       0,   "a",    "kiiop",
+        (SUBR) atsaddnzset,            (SUBR) atsaddnz  },
+    { "atsinnoi",      S(ATSSINNOI),       0,  "a",    "kkkkSiop",
+        (SUBR) atssinnoiset_S,            (SUBR) atssinnoi },
+    { "atsinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
         (SUBR) atssinnoiset,            (SUBR) atssinnoi },
-    { "ATSbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
+    { "atsbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
         (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL      },
-    { "ATSbufread.i",     S(ATSBUFREAD),    TW,  "",     "kkiiop",
+    { "atsbufread.i",     S(ATSBUFREAD),    TW,  "",     "kkiiop",
         (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL      },
-    { "ATSpartialtap",  S(ATSPARTIALTAP),   0,  "kk",   "i",
+    { "atspartialtap",  S(ATSPARTIALTAP),   0,  "kk",   "i",
         (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL      },
-    { "ATSinterpread",  S(ATSINTERPREAD),   0,  "k",    "k",
+    { "atsinterpread",  S(ATSINTERPREAD),   0,  "k",    "k",
         (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL      },
-    { "ATScross",       S(ATSCROSS),        TR,   "a",    "kkSikkiopoo",
+    { "atscross",       S(ATSCROSS),        TR,   "a",    "kkSikkiopoo",
         (SUBR) atscrossset_S,            (SUBR) atscross  },
-    { "ATSinfo",        S(ATSINFO),         0, "i",    "Si",
+    { "atsinfo",        S(ATSINFO),         0, "i",    "Si",
       (SUBR) atsinfo_S,             (SUBR) NULL,            (SUBR) NULL      },
-    { "ATScross.i",       S(ATSCROSS),        TR,   "a",    "kkiikkiopoo",
+    { "atscross.i",       S(ATSCROSS),        TR,   "a",    "kkiikkiopoo",
         (SUBR) atscrossset,            (SUBR) atscross  },
-    { "ATSinfo.i",        S(ATSINFO),         0,  "i",    "ii",
+    { "atsinfo.i",        S(ATSINFO),         0,  "i",    "ii",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
 };
 

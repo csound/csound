@@ -31,11 +31,9 @@ nchnls = 1
          `;
 
         const csoundVariations = [
-            { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
-            { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
+            { useWorker: false, name: "SINGLE THREAD, AW" },
             { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
             { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
-            { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
         ];
 
          let Csound;
@@ -95,12 +93,10 @@ nchnls = 1
         <select id="version">
             <optgroup label="Single-Thread">
                 <option value="0">Audio Worklet</option>
-                <option value="1">SPN</option>
             </optgroup>
             <optgroup label="Worker">
                 <option value="2">Audio Worklet | SAB</option>
                 <option value="3">Audio Worklet | MessagePort</option>
-                <option value="4">SPN | MessagePort</option>
             </optgroup>
         </select>
         <div id="listener_text"></div>

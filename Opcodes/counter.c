@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #ifdef BUILD_PLUGINS
@@ -290,15 +289,24 @@ static int32_t count_del(CSOUND *csound, void p)
 #define S(x)    sizeof(x)
 
 static OENTRY counter_localops[] = {
-  { "cntCreate", S(CNTSET), 0,  "i", "pop", (SUBR)setcnt, NULL, NULL   },
+  { "cntCreate", S(CNTSET), 0,  "i", "pop", (SUBR)setcnt, NULL, NULL, NULL, 2   },
   { "count", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_perf },
-  { "count_i", S(COUNTER), SK,  "i", "o", (SUBR)count_init_perf, NULL },
-  { "cntCycles", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_cycles },
-  { "cntRead", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_read },
-  { "cntReset", S(COUNTER), SK,  "", "o", (SUBR)count_init0, (SUBR)count_reset },
-  { "cntState", S(CNTSTATE), SK,  "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
-  { "cntDelete", S(COUNTER), SK,  "k", "k", NULL, (SUBR)count_del, NULL },
-  { "cntDelete_i", S(COUNTER), SK,  "i", "i", (SUBR)count_del, NULL, NULL },
+  { "count_i", S(COUNTER), SK,  "i", "o", (SUBR)count_init_perf, NULL, NULL, NULL, 2 },
+  { "cntCycles", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_cycles, NULL, NULL, 2 },
+  { "cntRead", S(COUNTER), 0,  "k", "o", (SUBR)count_init, (SUBR)count_read, NULL, NULL, 2 },
+  { "cntReset", S(COUNTER), 0,  "", "o", (SUBR)count_init0, (SUBR)count_reset, NULL, NULL, 2 },
+  { "cntState", S(CNTSTATE), 0,  "kkk", "o", (SUBR)count_init3, (SUBR)count_state, NULL, NULL, 2 },
+  { "cntDelete", S(COUNTER), 0,  "k", "k", NULL, (SUBR)count_del, NULL, NULL, 2 },
+  { "cntDelete_i", S(COUNTER), 0,  "i", "i", (SUBR)count_del, NULL, NULL, NULL, 2 },
+  /* aliases */
+  { "cntcreate", S(CNTSET), 0,  "i", "pop", (SUBR)setcnt, NULL, NULL   },
+  { "counti", S(COUNTER), SK,  "i", "o", (SUBR)count_init_perf, NULL },
+  { "cntcycles", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_cycles },
+  { "cntread", S(COUNTER), SK,  "k", "o", (SUBR)count_init, (SUBR)count_read },
+  { "cntreset", S(COUNTER), SK,  "", "o", (SUBR)count_init0, (SUBR)count_reset },
+  { "cntstate", S(CNTSTATE), SK,  "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
+  { "cntdelete", S(COUNTER), SK,  "k", "k", NULL, (SUBR)count_del, NULL },
+  { "cntdeletei", S(COUNTER), SK,  "i", "i", (SUBR)count_del, NULL, NULL },
  };
 
 LINKAGE_BUILTIN(counter_localops)

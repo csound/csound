@@ -87,16 +87,13 @@ class VanillaWorkerMainThread {
     this.audioWorker.sampleRate = await this.exportApi.getSr(this.csoundInstance);
     const inputName = await this.exportApi.getInputName(this.csoundInstance);
     this.audioWorker.isRequestingInput = inputName.includes("adc");
-    this.audioWorker.isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(
+    this.audioWorker["isRequestingMidi"] = await this.exportApi["_isRequestingRtMidiInput"](
       this.csoundInstance,
     );
     this.audioWorker.outputsCount = await this.exportApi.getNchnls(this.csoundInstance);
     // TODO fix upstream: await this.exportApi.csoundGetNchnlsInput(this.csound);
 
     this.audioWorker.inputsCount = this.audioWorker.isRequestingInput ? 1 : 0;
-    // if (this.audioWorker.scriptProcessorNode) {
-    //   this.audioWorker.softwareBufferSize *= 2;
-    // }
 
     log(`vars for rtPerf set`)();
   }
@@ -190,7 +187,6 @@ class VanillaWorkerMainThread {
     log(`vanilla.main: initialize`)();
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
     const proxyPort = Comlink.wrap(this.csoundWorker, undefined);

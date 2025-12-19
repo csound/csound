@@ -19,8 +19,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h"
@@ -216,6 +215,86 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
 
+      // EARLY two-phase struct processing: must happen before any variable declarations
+      // This ensures struct types are available when parsing variable declarations like john:Person
+      {
+        extern int32_t process_struct_definitions_two_phase(CSOUND* csound, TREE* structDefList);
+
+        // Create a separate list of wrapper nodes to avoid mutating the original AST
+        TREE* structList = NULL;
+        TREE* structTail = NULL;
+        TREE* scan = astTree;
+
+        while (scan != NULL) {
+          if (scan->type == STRUCT_TOKEN) {
+            // Create a wrapper node that references the struct node without modifying its next pointer
+            TREE* wrapper = (TREE*)csound->Malloc(csound, sizeof(TREE));
+            if (UNLIKELY(wrapper == NULL)) {
+              csound->ErrorMsg(csound, "Memory allocation failed for struct wrapper node\n");
+              err = 3;
+
+              // Clean up any already allocated wrapper nodes before jumping to ending
+              TREE* current = structList;
+              while (current != NULL) {
+                TREE* next = current->next;
+                csound->Free(csound, current);
+                current = next;
+              }
+              structList = NULL;
+
+              goto ending;
+            }
+
+            // Initialize wrapper with minimal information needed for processing
+            wrapper->type = scan->type;
+            wrapper->value = scan->value;
+            wrapper->rate = scan->rate;
+            wrapper->len = scan->len;
+            wrapper->line = scan->line;
+            wrapper->locn = scan->locn;
+            wrapper->left = scan->left;
+            wrapper->right = scan->right;
+            wrapper->markup = scan->markup;
+            wrapper->next = NULL;  // Initialize next to NULL
+
+            // Add wrapper to struct list
+            if (structList == NULL) {
+              structList = wrapper;
+              structTail = wrapper;
+            } else {
+              structTail->next = wrapper;
+              structTail = wrapper;
+            }
+          }
+          scan = scan->next;
+        }
+
+        // Process all struct definitions in two phases
+        if (structList != NULL) {
+          if (!process_struct_definitions_two_phase(csound, structList)) {
+            csound->ErrorMsg(csound, "Error in early two-phase struct processing\n");
+            err = 3;
+
+            // Clean up wrapper nodes before exiting
+            TREE* current = structList;
+            while (current != NULL) {
+              TREE* next = current->next;
+              csound->Free(csound, current);
+              current = next;
+            }
+            goto ending;
+          }
+
+          // Clean up wrapper nodes after successful processing
+          TREE* current = structList;
+          while (current != NULL) {
+            TREE* next = current->next;
+            csound->Free(csound, current);
+            current = next;
+          }
+        }
+      }
+
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
 
@@ -229,8 +308,22 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         /* Fallback: create a new pool if no current module (shouldn't happen) */
         typeTable->globalPool = csoundCreateVarPool(csound);
       }
-      
+
+      if (typeTable->globalPool == NULL) {
+        csound->ErrorMsg(csound, "Failed to create globalPool in parser\n");
+        csound->Free(csound, typeTable);
+        err = 3;
+        goto ending;
+      }
+
       typeTable->instr0LocalPool = csoundCreateVarPool(csound);
+      if (typeTable->instr0LocalPool == NULL) {
+        csound->ErrorMsg(csound, "Failed to create instr0LocalPool in parser\n");
+        csoundFreeVarPool(csound, typeTable->globalPool);
+        csound->Free(csound, typeTable);
+        err = 3;
+        goto ending;
+      }
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
@@ -322,7 +415,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
           /* Only free globalPool if it was created as a fallback
            * (not pointing to a module's varPool) */
           MODULE_STATE *module_state = csoundGetModuleState(csound);
-          if (module_state->current_module == NULL || 
+          if (module_state->current_module == NULL ||
               typeTable->globalPool != module_state->current_module->varPool) {
             csoundFreeVarPool(csound, typeTable->globalPool);
           }
@@ -343,6 +436,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
+
       return newRoot;
     }
 }

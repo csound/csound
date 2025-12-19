@@ -35,7 +35,6 @@
         const { Csound } = await import(url);
         const csoundObj = await Csound({
           useWorker: true,
-          useSPN: false,
           useSAB: true,
           outputChannelCount: 2
         });

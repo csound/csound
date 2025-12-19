@@ -20,7 +20,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ * Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
  *
  */
 
@@ -69,7 +69,7 @@
 #include "csdebug.h"
 #include <time.h>
 
-int32_t kperf_nodebug(CSOUND *csound);
+int32_t kperf(CSOUND *csound);
 uint32_t csoundGetNchnls(CSOUND *);
 uint32_t csoundGetNchnlsInput(CSOUND *csound);
 long csoundGetInputBufferSize(CSOUND *);
@@ -81,7 +81,7 @@ void csoundInputMessage(CSOUND *csound, const char *sc);
 int32_t csoundScoreEvent(CSOUND *, char type, const MYFLT *pFields,
                          long numFields);
 
-extern void allocate_message_queue(CSOUND *csound);
+void allocate_message_queue(CSOUND *csound);
 int32_t playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int32_t nbytes);
 int32_t recopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -89,19 +89,14 @@ int32_t rtrecord_dummy(CSOUND *, MYFLT *inBuf, int32_t nbytes);
 void rtclose_dummy(CSOUND *);
 int32_t audio_dev_list_dummy(CSOUND *, CS_AUDIODEVICE *, int32_t);
 int32_t midi_dev_list_dummy(CSOUND *, CS_MIDIDEVICE *, int32_t);
-static void csoundDefaultMessageCallback(CSOUND *, int32_t, const char *,
-                                         va_list);
-static int32_t defaultCsoundYield(CSOUND *);
-static int32_t csoundDoCallback_(CSOUND *, void *, uint32_t);
-static void reset(CSOUND *);
 void csoundTableSetInternal(CSOUND *csound, int32_t table, int32_t index,
                             MYFLT value);
-static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
 uint64_t csoundGetKcounter(CSOUND *csound);
+
 static void set_util_sr(CSOUND *csound, MYFLT sr);
 static void set_util_nchnls(CSOUND *csound, int32_t nchnls);
-
-extern void cscoreRESET(CSOUND *);
+static int32_t csoundDeprecate(CSOUND *csound, char *name,
+                               char *o, char *i, int32_t deprec);
 extern void memreset(CSOUND *);
 extern MYFLT csoundPow2(CSOUND *csound, MYFLT a);
 extern int32_t csoundInitStaticModules(CSOUND *);
@@ -109,6 +104,8 @@ extern void close_all_files(CSOUND *);
 extern void csound_input_message(CSOUND *csound, const char *message);
 extern int32_t isstrcod(MYFLT);
 extern int32_t fterror(const FGDATA *ff, const char *s, ...);
+
+int32_t sense_events(CSOUND *);
 PUBLIC int32_t csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list) = NULL;
 INSTRTXT *csoundGetInstrument(CSOUND *csound, int32_t insno, const char *name);
@@ -116,7 +113,6 @@ void *csoundDCTSetup(CSOUND *csound, int32_t FFTsize, int32_t d);
 void csoundDCT(CSOUND *csound, void *p, MYFLT *sig);
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
-
 int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
@@ -126,8 +122,23 @@ int32_t csoundScoreEventInternal(CSOUND *csound, char type,
 void csoundScoreEventAsync(CSOUND *csound, char type, const MYFLT *pfields,
                            long numFields);
 void csoundReadScoreAsync(CSOUND *csound, const char *message);
+int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
+                     int32_t next_task);
+int32_t dag_end_task(CSOUND *csound, int32_t task);
+void dag_build(CSOUND *csound, INSDS *chain);
+void dag_reinit(CSOUND *csound);
 
-extern OENTRY opcodlst_1[];
+static void csoundDefaultMessageCallback(CSOUND *, int32_t, const char *,
+                                         va_list);
+static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
+static int32_t defaultCsoundYield(CSOUND *);
+static int32_t csoundDoCallback_(CSOUND *, void *, uint32_t);
+static void reset(CSOUND *);
+static void set_util_sr(CSOUND *csound, MYFLT sr);
+static void set_util_nchnls(CSOUND *csound, int32_t nchnls);
+
+
+extern const OENTRY opcodlst_1[];
 
 #define STRING_HASH(arg) STRSH(arg)
 #define STRSH(arg) #arg
@@ -695,11 +706,12 @@ static const CSOUND cenviron_ = {
     cs_strtod,
     cs_sprintf,
     cs_sscanf,
+    csoundDeprecate,
     /* space for API expansion */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
  /* callback function pointers */
@@ -727,7 +739,7 @@ static const CSOUND cenviron_ = {
   midi_dev_list_dummy,
   csoundDoCallback_,  /*  doCsoundCallback    */
   defaultCsoundYield, /* csoundInternalYieldCallback_*/
-  kperf_nodebug,  /* current kperf function - nodebug by default */
+  kperf,    /* current kperf function - not debug by default */
   (void (*)(CSOUND *csound, int32_t attr, const char *str)) NULL,/* message string callback */
   (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
   (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
@@ -1203,7 +1215,9 @@ static const CSOUND cenviron_ = {
   },
     0, /* instance count */
     300, /* genLabs */
-    0, 0, 0, 0 /* midi RT messages */
+    0, 0, 0, 0, /* midi RT messages */
+    0, /* struct_array_temp_counter */
+    0, NULL  /* PARCS thread sync */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1613,16 +1627,14 @@ PUBLIC void csoundSetHostData(CSOUND *csound, void *hostData) {
 /*
  * PERFORMANCE
  */
-
-extern int32_t sense_events(CSOUND *);
+inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps) {
+  uint32_t i;
+  for (i = 0; i < smps; i++)
+    out[i] += in[i];
+}
 
 #ifdef PARCS
-/**
- * perform currently active instrs for one kperiod
- *      & send audio result to output buffer
- * returns non-zero if this kperiod was skipped
- */
-static int32_t getThreadIndex(CSOUND *csound, void *threadId) {
+static int32_t get_thread_index(CSOUND *csound, void *threadId) {
   int32_t index = 0;
   THREADINFO *current = csound->multiThreadedThreadInfo;
 
@@ -1632,7 +1644,8 @@ static int32_t getThreadIndex(CSOUND *csound, void *threadId) {
 
   while (current != NULL) {
 #ifdef HAVE_PTHREAD
-    if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
+    if (pthread_equal(*(pthread_t *)threadId,
+                      *(pthread_t *)current->threadId))
 #elif defined(WIN32)
     DWORD *d = (DWORD *)threadId;
     if (*d == GetThreadId((HANDLE)current->threadId))
@@ -1641,57 +1654,21 @@ static int32_t getThreadIndex(CSOUND *csound, void *threadId) {
     if (threadId == current->threadId)
 #endif
       return index;
-
     index++;
     current = current->next;
   }
   return -1;
 }
-#endif
 
-#if 0
-static int32_t getNumActive(INSDS *start, INSDS *end)
-{
-  INSDS *current = start;
-  int32_t counter = 1;
-  while (((current = current->nxtact) != NULL) && current != end) {
-    counter++;
-  }
-  return counter;
-}
-#endif
-
-inline void advanceINSDSPointer(INSDS ***start, int32_t num) {
-  int32_t i;
-  INSDS *s = **start;
-
-  if (s == NULL)
-    return;
-  for (i = 0; i < num; i++) {
-    s = s->nxtact;
-
-    if (s == NULL) {
-      **start = NULL;
-      return;
-    }
-  }
-  **start = s;
-}
-
-inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps) {
-  uint32_t i;
-  for (i = 0; i < smps; i++)
-    out[i] += in[i];
-}
-
-int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
-                     int32_t next_task);
-int32_t dag_end_task(CSOUND *csound, int32_t task);
-void dag_build(CSOUND *csound, INSDS *chain);
-void dag_reinit(CSOUND *csound);
-
-#ifdef PARCS
-inline static int32_t nodePerf(CSOUND *csound, int32_t index,
+#define INVALID (-1)
+#define WAIT (-2)
+/**
+   Perform one partition of multicore execution
+   essentially containing similar code as
+   in kperf() single thread, with the extra
+   PARCS dispatching
+*/
+inline static int32_t node_perf(CSOUND *csound, int32_t index,
                                int32_t numThreads) {
   INSDS *insds = NULL;
   OPDS *opstart = NULL;
@@ -1699,15 +1676,13 @@ inline static int32_t nodePerf(CSOUND *csound, int32_t index,
   int32_t which_task;
   INSDS **task_map = (INSDS **)csound->dag_task_map;
   double time_end;
-#define INVALID (-1)
-#define WAIT (-2)
   int32_t next_task = INVALID;
-  IGN(index);
 
   while (1) {
     int32_t done;
     which_task = dag_get_task(csound, index, numThreads, next_task);
-    // printf("******** Select task %d %d\n", which_task, index);
+    if(csoundGetDebug(csound) & DEBUG_PARCS)
+      csound->Message(csound, "Select task %d %d\n", which_task, index);
     if (which_task == WAIT)
       continue;
     if (which_task == INVALID)
@@ -1726,7 +1701,6 @@ inline static int32_t nodePerf(CSOUND *csound, int32_t index,
 #else
     done = insds->init_done;
 #endif
-
     if (done) {
       opstart = (OPDS *)task_map[which_task];
       if (insds->ksmps == csound->ksmps) {
@@ -1752,7 +1726,6 @@ inline static int32_t nodePerf(CSOUND *csound, int32_t index,
         insds->spin = csound->spin;
         insds->spout = csound->spout_tmp + index * csound->nspout;
         insds->kcounter = csound->kcounter * csound->ksmps;
-
         /* we have to deal with sample-accurate code
            whole CS_KSMPS blocks are offset here, the
            remainder is left to each opcode to deal with.
@@ -1784,16 +1757,19 @@ inline static int32_t nodePerf(CSOUND *csound, int32_t index,
       insds->ksmps_no_end = 0; /* reset end of loop samples */
       played_count++;
     }
-    // printf("******** finished task %d\n", which_task);
+    if(csoundGetDebug(csound) & DEBUG_PARCS)
+      csound->Message(csound, "Finished task %d\n", which_task);
     next_task = dag_end_task(csound, which_task);
   }
   return played_count;
 }
-#endif // PARCS
 
-#ifdef PARCS
-unsigned long kperfThread(void *cs) {
-  // INSDS *start;
+/**
+    Thread function for multicore performance
+    for N-1 threads in parallel with the
+    master thread.
+*/
+unsigned long kperf_thread(void *cs) {
   CSOUND *csound = (CSOUND *)cs;
   void *threadId;
   int32_t index;
@@ -1801,45 +1777,49 @@ unsigned long kperfThread(void *cs) {
   _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
   csound->WaitBarrier(csound->barrier2);
-
   threadId = csound->GetCurrentThreadID();
-  index = getThreadIndex(csound, threadId);
+  index = get_thread_index(csound, threadId);
   numThreads = csound->oparms->numThreads;
-  // start = NULL;
-  csound->Message(csound,
+  if(csoundGetDebug(csound) & DEBUG_PARCS)
+    csound->Message(csound,
                   Str("Multithread performance:thread %d of "
                       "%d starting.\n"),
-                  /* start ? start->insno : */
                   index + 1, numThreads);
   if (UNLIKELY(index < 0)) {
     csound->Die(csound, Str("Bad ThreadId"));
     return ULONG_MAX;
   }
   index++;
-
+  int32_t parflag, taskflag = 0;
   while (1) {
-
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier1);
-
-    // FIXME:PTHREAD_WORK - need to check if this is necessary and, if so,
-    // use some other kind of locking mechanism as it isn't clear why a
-    // global mutex would be necessary versus a per-CSOUND instance mutex
-    /*csound_global_mutex_lock();*/
-    if (csound->multiThreadedComplete == 1) {
-      /*csound_global_mutex_unlock();*/
+#else
+    do parflag = ATOMIC_GET(csound->parflag);
+    while(parflag == taskflag);
+    taskflag = parflag;
+#endif
+    if (ATOMIC_GET(csound->multiThreadedComplete) == 1) {
+      // exit thread on performance end
       free(threadId);
       return 0UL;
     }
-    /*csound_global_mutex_unlock();*/
-
-    nodePerf(csound, index, numThreads);
-
+    csound->taskflag[index] = 0;
+    node_perf(csound, index, numThreads);
+    csound->taskflag[index] = 1;
+#ifdef PARCS_USE_LOCK_BARRIER
     csound->WaitBarrier(csound->barrier2);
+#endif
   }
 }
-#endif
+#endif // PARCS
 
-int32_t kperf_nodebug(CSOUND *csound) {
+/**
+   Perform one k-cycle
+   either in a single thread
+   or as the master thread for multicore
+*/
+int32_t kperf(CSOUND *csound) {
   INSDS *ip;
   int32_t lksmps = csound->ksmps;
   /* update orchestra time */
@@ -1858,6 +1838,7 @@ int32_t kperf_nodebug(CSOUND *csound) {
   /* if i-time only, return now */
   if (UNLIKELY(csound->initonly))
     return 1;
+
   /* PC GUI needs attention, but avoid excessively frequent */
   /* calls of csoundYield() */
   if (UNLIKELY(--(csound->evt_poll_cnt) < 0)) {
@@ -1876,33 +1857,46 @@ int32_t kperf_nodebug(CSOUND *csound) {
   ip = csound->actanchor.nxtact;
 
   if (ip != NULL) {
+    // multicore performance
+    if (csound->multiThreadedThreadInfo != NULL) {
     /* There are 2 partitions of work: 1st by inso,
        2nd by inso count / thread count. */
-    if (csound->multiThreadedThreadInfo != NULL) {
 #ifdef PARCS
+      int32_t k;
+      int32_t n = csound->oparms->numThreads;
       if (csound->dag_changed)
         dag_build(csound, ip);
       else
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-      csound->WaitBarrier(csound->barrier1);
-
-      (void)nodePerf(csound, 0, 1);
-
+#ifdef PARCS_USE_LOCK_BARRIER
+      csound->WaitBarrier(csound->barrier1)
+#else
+      ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+      node_perf(csound, 0, n);
       /* wait until partition is complete */
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
-
-      // do the mixing of thread buffers
+#else
       {
-        int32_t k;
-        for (k = 1; k < csound->oparms->numThreads; k++)
-          mix_out(csound->spout_tmp, csound->spout_tmp + k * csound->nspout,
-                  csound->nspout);
+        int32_t i, sum;
+        do {
+          for(i = 1, sum = 1; i < n; i++)
+            sum += csound->taskflag[i];
+        } while(sum < n);
       }
 #endif
+      /* do the mixing of thread buffers */
+      for (k = 1; k < csound->oparms->numThreads; k++)
+          mix_out(csound->spout_tmp, csound->spout_tmp +
+                  k * csound->nspout, csound->nspout);
+#endif /* PARCS */
       csound->multiThreadedDag = NULL;
-    } else {
+    }
+    // single-thread performance
+    else {
       int32_t done;
       double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
@@ -1911,9 +1905,10 @@ int32_t kperf_nodebug(CSOUND *csound) {
         if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
                      time_end > ip->offtim)) {
           /* this is the last cycle of performance */
-          //   csound->Message(csound, "last cycle %d: %f %f %d\n",
-          //       ip->insno, csound->icurTimeSamples/csound->esr,
-          //          ip->offtim, ip->no_end);
+          if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+             csound->Message(csound, "last cycle %d: %f %f %d\n",
+                 ip->insno, csound->icurTimeSamples/csound->esr,
+                 ip->offtim, ip->no_end);
           ip->ksmps_no_end = ip->no_end;
         }
         done = ATOMIC_GET(ip->init_done);
@@ -1965,7 +1960,6 @@ int32_t kperf_nodebug(CSOUND *csound) {
                      ip->actflg) {
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
-                // csound->ids->optext->t.oentry->opname;
                 error = (*opstart->perf)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
@@ -2148,26 +2142,37 @@ int32_t kperf_debug(CSOUND *csound) {
        2nd by inso count / thread count. */
     if (csound->multiThreadedThreadInfo != NULL) {
 #ifdef PARCS
+      int32_t k;
+      int32_t n = csound->oparms->numThreads;
       if (csound->dag_changed)
         dag_build(csound, ip);
       else
         dag_reinit(csound); /* set to initial state */
 
       /* process this partition */
-      csound->WaitBarrier(csound->barrier1);
-
-      (void)nodePerf(csound, 0, 1);
-
+#ifdef PARCS_USE_LOCK_BARRIER
+      csound->WaitBarrier(csound->barrier1)
+#else
+      ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+      node_perf(csound, 0, n);
       /* wait until partition is complete */
+#ifdef PARCS_USE_LOCK_BARRIER
       csound->WaitBarrier(csound->barrier2);
-      // do the mixing of thread buffers
+#else
       {
-        int32_t k;
-        for (k = 1; k < csound->oparms->numThreads; k++)
-          mix_out(csound->spout_tmp, csound->spout_tmp + k * csound->nspout,
-                  csound->nspout);
+        int32_t i, sum;
+        do {
+          for(i = 1, sum = 1; i < n; i++)
+            sum += csound->taskflag[i];
+        } while(sum < n);
       }
 #endif
+      /* do the mixing of thread buffers */
+      for (k = 1; k < csound->oparms->numThreads; k++)
+          mix_out(csound->spout_tmp, csound->spout_tmp +
+                  k * csound->nspout, csound->nspout);
+#endif /* PARCS */
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
@@ -2328,6 +2333,14 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
     if (UNLIKELY(done)) {
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
+        if (csound->oparms->numThreads > 1) {
+        ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+      }
       csoundMessage(csound, Str("end of Performance\n"));
       return done;
     }
@@ -2364,6 +2377,14 @@ PUBLIC int32_t csoundPerformBuffer(CSOUND *csound) {
       if (UNLIKELY((done = sense_events(csound)))) {
         if (!csound->oparms->realtime) // no API lock in realtime mode
           csoundUnlockMutex(csound->API_lock);
+        if (csound->oparms->numThreads > 1) {
+        ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+        }
         return done;
       }
     } while (csound->kperf(csound));
@@ -2406,8 +2427,12 @@ PUBLIC int32_t csoundPerform(CSOUND *csound) {
         if (!csound->oparms->realtime)
           csoundUnlockMutex(csound->API_lock);
         if (csound->oparms->numThreads > 1) {
-          csound->multiThreadedComplete = 1;
-          csound->WaitBarrier(csound->barrier1);
+        ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
         }
         return done;
       }
@@ -2661,12 +2686,12 @@ static void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     vfprintf(fp, format, args);
     return;
   }
-  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH) 
+  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
     if (attr & CSOUNDMSG_BG_COLOR_MASK) {
       flag = 1;
       fprintf(fp, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
     }
-      
+
   if (attr & CSOUNDMSG_FG_ATTR_MASK) {
     flag = 1;
     if (attr & CSOUNDMSG_FG_BOLD)
@@ -2781,7 +2806,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
   va_list args;
   if (!(csound->oparms_.odebug & (~CS_NOQQ)) ||
-        csoundGetDebug(csound) < 99) 
+        csoundGetDebug(csound) < 99)
     return;
   va_start(args, msg);
   csoundMessageV(csound, 0, msg, args);
@@ -3258,7 +3283,7 @@ PUBLIC int32_t csoundAppendOpcode(CSOUND *csound,
                               int32_t (*perf)(CSOUND *, void *),
                               int32_t (*deinit)(CSOUND *, void *))
 {
-  OENTRY  tmpEntry;
+  OENTRY  tmpEntry = {0};
   int32_t     err;
   tmpEntry.opname     = (char*) opname;
   tmpEntry.dsblksiz   =  dsblksiz;
@@ -3303,6 +3328,16 @@ int32_t csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList,
   return retval;
 }
 
+static int32_t csoundDeprecate(CSOUND *csound, char *name,
+                        char *o, char *i, int32_t deprec) {
+  OENTRY *e = (OENTRY *)
+    csound->FindOpcode(csound, 1, name, o, i);
+  if(e) {
+    e->deprecated = deprec;
+    return CSOUND_SUCCESS;
+  } else return CSOUND_ERROR;
+}
+
 /*
  * MISC FUNCTIONS
  */
@@ -3339,8 +3374,16 @@ static void reset(CSOUND *csound) {
   uintptr_t end, start;
   int32_t n = 0;
 
+  // stop multicore threads if still running
+  if (csound->oparms->numThreads > 1) {
+    ATOMIC_SET(csound->multiThreadedComplete, 1);
+#ifdef PARCS_USE_LOCK_BARRIER
+    csound->WaitBarrier(csound->barrier1);
+#else
+    ATOMIC_SET(csound->parflag,!csound->parflag);
+#endif
+  }
   csoundCleanup(csound);
-
   /* call registered reset callbacks */
   while (csound->reset_list != NULL) {
     resetCallback_t *p = (resetCallback_t *)csound->reset_list;
@@ -3357,9 +3400,6 @@ static void reset(CSOUND *csound) {
   csoundDeleteAllConfigurationVariables(csound);
   csoundDeleteAllGlobalVariables(csound);
 
-#ifdef CSCORE
-  cscoreRESET(csound);
-#endif
   if (csound->opcodes != NULL) {
     free_opcode_table(csound);
     csound->opcodes = NULL;
@@ -3526,6 +3566,7 @@ PUBLIC void csoundReset(CSOUND *csound) {
   csound->engineStatus |= CS_STATE_PRE;
   csound_aops_init_tables(csound);
   create_opcode_table(csound);
+
   /* now load and pre-initialise external modules for this instance */
   /* this function returns an error value that may be worth checking */
   {

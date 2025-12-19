@@ -18,8 +18,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 /******************************************************************************
@@ -531,8 +530,8 @@ static int32_t csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
   while (deny) {
     /* printf("DEBUG %s(%d): deny=%s\n", __FILE__, __LINE__, deny); */
     if (strcmp(deny, buff)==0) {
-      csound->Free(csound, p); 
-      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__); 
+      csound->Free(csound, p);
+      //printf("DEBUG %s(%d): found\n", __FILE__, __LINE__);
       return 1;
     }
     deny = cs_strtok_r(NULL, ",", &th);

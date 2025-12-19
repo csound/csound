@@ -17,8 +17,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #ifndef CSOUND_H
@@ -125,6 +124,8 @@ extern "C" {
      DEBUG_INSTR = 0X40,
      /* opcode messages. */
      DEBUG_OPCODES = 0x80,
+     /* parcs messages. */
+     DEBUG_PARCS = 0x100,
      /* all messages. */
      DEBUG_FULL = 0x7FFFFFFF
    } DEBUG_STATUS;
@@ -280,6 +281,8 @@ extern "C" {
     int32_t     mp3_mode;
     /* instr redefinition flag */
     int32_t     redef;
+    /* error on deprecated opcodes */
+    int32_t     error_deprecated;
   } OPARMS;
 
   /**

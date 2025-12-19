@@ -17,8 +17,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 
@@ -66,7 +65,8 @@ rewindscore(CSOUND *csound, SCOREPOS *p){
 
 
 static OENTRY scoreline_localops[] = {
-  {"scoreline_i", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL},
+  {"scoreline_i", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL, NULL, 2},
+  {"scorelinei", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL}, /* alias */
   {"scoreline", sizeof(INMESS), 0,  "", "Sk", NULL, (SUBR)messk, NULL},
   {"setscorepos", sizeof(SCOREPOS), 0,  "", "i", (SUBR)setscorepos, NULL, NULL},
   {"rewindscore", sizeof(SCOREPOS), 0,  "", "", (SUBR)rewindscore, NULL, NULL}

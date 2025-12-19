@@ -19,8 +19,7 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-    02110-1301 USA
+    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include <stdio.h>
@@ -61,19 +60,6 @@ static char* map_udo_out_arg_type(char* in) {
         return "k";
     }
     return in;
-}
-
-static void map_args(char* args) {
-    while (*args != '\0') {
-      if (*args == ':') {
-        while(*args != 0 && *args != ';') {
-          args++;
-        }
-      } else if (*args == 'K'){
-        *args = 'k';
-      }
-      args++;
-    }
 }
 
 /**
@@ -118,6 +104,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     typeSpecifier[1] = '\0';
 
+
     in_args = split_args(csound, inm->intypes);
     out_args = split_args(csound, inm->outtypes);
 
@@ -150,12 +137,21 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           end = in_arg;
-          while(*end != ']') {
+          while (*end != '\0' && *end != ']') {
             end++;
           }
-          memcpy(typeSpecifier, in_arg, end - in_arg);
-
-          typeSpecifier[(end - in_arg)] = 0;
+          if (*end != ']') {
+            synterr(csound, Str("invalid input array type for opcode %s: missing ']' in '%s'\n"), inm->name, in_args[i]);
+            err++;
+            i++;
+            continue;
+          }
+          size_t length = (size_t)(end - in_arg);
+          if (length >= sizeof(typeSpecifier)) {
+            length = sizeof(typeSpecifier) - 1;
+          }
+          memcpy(typeSpecifier, in_arg, length);
+          typeSpecifier[length] = '\0';
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
@@ -174,7 +170,14 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
-          char *c = map_udo_in_arg_type(in_arg);
+          char *c;
+          // Skip map_udo_in_arg_type for UDT (User Defined Type) entries
+          // UDT entries are in the format :TypeName; and should be used directly
+          if (in_arg[0] == ':' && strchr(in_arg, ';') != NULL) {
+            c = in_arg;  // Use UDT type string directly
+          } else {
+            c = map_udo_in_arg_type(in_arg);  // Map single-char types
+          }
 
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, c);
@@ -193,8 +196,8 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i++;
       }
     }
-   
-    inm->inchns = i;  
+
+    inm->inchns = i;
     i = 0;
     if (*out_args[0] != '0') {
       while(out_args[i] != NULL) {
@@ -210,12 +213,21 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           end = out_arg;
-          while(*end != ']') {
+          while (*end != '\0' && *end != ']') {
             end++;
           }
-          memcpy(typeSpecifier, out_arg, end - out_arg);
-
-          typeSpecifier[(end - out_arg) + 1] = 0;
+          if (*end != ']') {
+            synterr(csound, Str("invalid output array type for opcode %s: missing ']' in '%s'\n"), inm->name, out_args[i]);
+            err++;
+            i++;
+            continue;
+          }
+          size_t length = (size_t)(end - out_arg);
+          if (length >= sizeof(typeSpecifier)) {
+            length = sizeof(typeSpecifier) - 1;
+          }
+          memcpy(typeSpecifier, out_arg, length);
+          typeSpecifier[length] = '\0';
           CS_TYPE* type = (CS_TYPE *)
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
@@ -262,8 +274,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
                                                                  inm->intypes);
     opc->outypes = cs_strdup(csound, (inm->outtypes[0] == '0') ? "" :
                                                                  inm->outtypes);
-    map_args(opc->intypes);
-    map_args(opc->outypes);
+    // Keep the internal format for type matching - do NOT apply map_args here
 
 early_exit:
     if(in_args != NULL) {
@@ -424,11 +435,18 @@ void synterr(CSOUND *csound, const char *s, ...)
 {
     va_list args;
     va_start(args, s);
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+    va_list args_copy;
+    va_copy(args_copy, args);
+#endif
     csoundErrMsgV(csound, Str("error: "), s, args);
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+    // Also echo semantic errors to the normal message channel to make them visible in verbose runs
+    char buf[1024];
+    vsnprintf(buf, sizeof(buf), s, args_copy);
+    va_end(args_copy);
+    csound->Message(csound, "SEMERR: %s\n", buf);
+#endif
     va_end(args);
-    /* FIXME - Removed temporarily for debugging
-     * This function may not be necessary at all in the end if some of this is
-     * done in the parser
-     */
     csound->synterrcnt++;
 }

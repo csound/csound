@@ -18,8 +18,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -66,7 +65,6 @@ typedef struct {
 #include "csound_misc.h"
 #include "csound_server.h"
 #include "csound_data_structures.h"
-#include "pools.h"
 #include "coreDefs.h"
 #include "soundfile.h"
 
@@ -100,6 +98,7 @@ extern "C" {
     SUBR    perf;
     SUBR    deinit;
     void    *useropinfo; /* user opcode parameters */
+    int32_t deprecated;  /* deprecation flag */
   } OENTRY;
 
 
@@ -300,6 +299,7 @@ typedef struct {
     char *data;         // null-terminated string
     size_t size;        // total allocated size
     int64_t timestamp;  // used internally for updates
+    int32_t refcount;   // reference count for shared buffers (0 = unmanaged)
   };
 
   /**
@@ -1442,12 +1442,14 @@ struct CSOUND_ {
   double (*Strtod)(char *nptr, char **);
   int32_t (*Sprintf)(char *str, const char *format, ...);
   int32_t (*Sscanf)(char *str, const char *format, ...);
+  int32_t (*Deprecate)(CSOUND *csound, char *name,
+                       char *o, char *i, int32_t deprec);
   /**@}*/
   /** @name Placeholders
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[40];
+  SUBR dummyfn_2[39];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1793,7 +1795,10 @@ struct CSOUND_ {
   int32_t midi_clock_pulse;
   int32_t midi_start;
   int32_t midi_continue;
-  int32_t midi_stop;  
+  int32_t midi_stop;
+  int32_t struct_array_temp_counter;
+  int32_t parflag;
+  int32_t *taskflag;
   /*struct CSOUND_ **self;*/
   
   /* Module system compilation tracking */

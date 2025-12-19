@@ -1,5 +1,5 @@
 /*
-  arrays.c: various array operations 
+  arrays.c: various array operations
 
   Copyright (C) 2013-2025 Victor Lazzarini
   This file is part of Csound.
@@ -16,8 +16,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #ifdef BUILD_PLUGINS
@@ -28,6 +27,7 @@
 
 #include "interlocks.h"
 #include "arrays.h"
+#include "array_ops.h"  // for ARRAYINIT and array_init
 
 /*
   transform operations
@@ -81,8 +81,30 @@ static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("fft: only one-dimensional arrays allowed"));
-  tabinit(csound,p->out, N, p->h.insdshead);
-  csound->AuxAlloc(csound, sizeof(MYFLT)*N*2, &p->mem);
+  /* Sanity checks: prevent pathological sizes and integer overflows */
+  if (UNLIKELY(N <= 0))
+    return csound->InitError(csound, "%s", Str("fft: input array size must be > 0"));
+  /* Cap to a conservative upper bound to avoid overflow in allocations */
+  const int32_t MAX_REASONABLE_N = (1 << 24); /* ~16M elements */
+  if (UNLIKELY(N > MAX_REASONABLE_N)) {
+    /* Try to repair from backing allocation metadata if sizes[] is corrupted */
+    if (p->in->allocated > 0 && p->in->arrayMemberSize > 0) {
+      int64_t n2 = (int64_t)(p->in->allocated / (size_t)p->in->arrayMemberSize);
+      if (n2 > 0 && n2 <= MAX_REASONABLE_N) {
+        N = (int32_t)n2;
+        if (p->in->sizes && p->in->dimensions == 1)
+          p->in->sizes[0] = N;
+      } else {
+        return csound->InitError(csound, "fft: input array size (%d) is unreasonable", N);
+      }
+    } else {
+      return csound->InitError(csound, "fft: input array size (%d) is unreasonable", N);
+    }
+  }
+
+  tabinit(csound, p->out, N, p->h.insdshead);
+  size_t bytes = (size_t)N * 2u * sizeof(MYFLT);
+  csound->AuxAlloc(csound, bytes, &p->mem);
   if(p->out->arrayType == csound->GetType(csound, "Complex")
      && p->in->arrayType == csound->GetType(csound, "Complex"))
     p->b = *((MYFLT *)p->in2);
@@ -98,7 +120,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
   if(p->in->arrayType == csound->GetType(csound, "Complex")) {
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
-      tmp[i] = c[j].real; 
+      tmp[i] = c[j].real;
       tmp[i+1] = c[j].imag;
     }
   } else {
@@ -106,7 +128,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       tmp[i] = re[j];
       tmp[i+1] = 0;
-    } 
+    }
   }
   if(!p->b)
     csound->ComplexFFT(csound,tmp,N);
@@ -121,7 +143,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
     MYFLT *re = p->out->data;
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       re[j] = tmp[i];
-    } 
+    }
   }
   return OK;
 }
@@ -151,7 +173,7 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
     else c[j].imag = 0.;
   }
   c[N].real = tmp[1];
-  c[N].imag =  0.;  
+  c[N].imag =  0.;
   return OK;
 }
 
@@ -246,7 +268,7 @@ static int32_t init_rfftmult(CSOUND *csound, FFT *p) {
 }
 
 static int32_t perf_rfftmult(CSOUND *csound, FFT *p) {
-  
+
   int32_t N = p->out->sizes[0];
   csound->RealFFTMult(csound,p->out->data,p->in->data,p->in2->data,N,1);
   return OK;
@@ -277,7 +299,7 @@ static int32_t fft_i(CSOUND *csound, FFT *p) {
 
 static int32_t init_ifft(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
-    return csound->InitError(csound, "array not initialised\n"); 
+    return csound->InitError(csound, "array not initialised\n");
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -903,7 +925,7 @@ static int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
     return OK;
   }
   else return csound->PerfError(csound,  &(p->h),
-                                "%s", Str("requested col is out of range\n"));    
+                                "%s", Str("requested col is out of range\n"));
 }
 
 static int32_t set_cols_init_S(CSOUND *csound, FFT *p) {
@@ -919,7 +941,7 @@ static int32_t cols_init_S(CSOUND *csound, FFT *p) {
 }
 
 static int32_t shiftin_init(CSOUND *csound, FFT *p) {
-  
+
   int32_t sizs = CS_KSMPS;
   if(p->out->sizes[0] < sizs)
     tabinit(csound, p->out, sizs, p->h.insdshead);
@@ -972,14 +994,37 @@ static int32_t shiftout_perf(CSOUND *csound, FFT *p) {
 }
 
 
+static int32_t unwrap_set(CSOUND *csound, FFT *p) {
+  if(p->in->sizes == NULL)
+    return csound->InitError(csound, "array not initialised\n");
+  int32_t N = p->in->sizes[0];
+  tabinit(csound, p->out, N, p->h.insdshead);
+  if(*((MYFLT *)p->in2) != FL(0)) {
+    csound->AuxAlloc(csound, N*sizeof(float), &p->mem);
+    memset(p->mem.auxp, 0, N*sizeof(float));
+  }
+  return OK;
+}
+
+
 static int32_t unwrap(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");;
   int32_t i,siz = p->in->sizes[0];
+  int32_t mode = (int32_t) *((MYFLT *)p->in2);
   MYFLT *phs = p->out->data;
+  if(mode == 0) { // wrap
   for (i=0; i < siz; i++) {
     while (phs[i] >= PI) phs[i] -= TWOPI;
     while (phs[i] < -PI) phs[i] += TWOPI;
+  }
+  } else {  // unwrap
+    MYFLT *ophs = (MYFLT *) p->mem.auxp;
+    for (i=0; i < siz; i++) {
+      while (ophs[i] - phs[i] >= PI) phs[i] -= 2*PI;
+      while (ophs[i] - phs[i] < -PI) phs[i] += 2*PI;
+      ophs[i] = phs[i];
+    }
   }
   return OK;
 }
@@ -1244,7 +1289,7 @@ static OENTRY arrayvars_localops[] =
     { "fft", sizeof(FFT), 0, ":Complex;[]","k[]",
       (SUBR) init_fft_complex, (SUBR) perf_fft_complex, NULL},
     { "fft", sizeof(FFT), 0, "k[]",":Complex;[]",
-      (SUBR) init_fft_complex, (SUBR) perf_fft_complex, NULL},      
+      (SUBR) init_fft_complex, (SUBR) perf_fft_complex, NULL},
     { "rfft", sizeof(FFT), 0, ":Complex;[]","k[]",
       (SUBR) init_rfft_r2c, (SUBR) perf_rfft_r2c, NULL},
     { "rifft", sizeof(FFT), 0, "k[]", ":Complex;[]",
@@ -1325,7 +1370,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
     {"shiftout", sizeof(FFT), 0, "a","k[]o",
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
-    {"unwrap", sizeof(FFT), 0, "k[]","k[]",
+    {"unwrap", sizeof(FFT), 0, "k[]","k[]o",
      (SUBR) init_recttopol, (SUBR) unwrap},
     {"dct", sizeof(FFT), 0, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
@@ -1353,7 +1398,6 @@ static OENTRY arrayvars_localops[] =
      (SUBR)deinterleave_i, (SUBR)deinterleave_perf},
     { "autocorr", sizeof(AUTOCORR), 0, "k[]", "k[]",
       (SUBR) init_autocorr, (SUBR) perf_autocorr },
-
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

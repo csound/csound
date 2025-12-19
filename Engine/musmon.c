@@ -18,8 +18,7 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-  02110-1301 USA
+  Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
 #include "csoundCore.h"         /*                         MUSMON.C     */
@@ -293,6 +292,9 @@ int32_t start_engine(CSOUND *csound)
       midi_open(csound);                 /*   alloc bufs & open files    */
     }
 
+    if (O->Linein)
+      linevent_open(csound);  /* if realtime input expected   */
+
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
@@ -313,9 +315,6 @@ int32_t start_engine(CSOUND *csound)
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
     STA(sormsg)  = O->msglevel & SORMSG;
-
-    if (O->Linein)
-      linevent_open(csound);  /* if realtime input expected   */
 
     // VL 01-05-2019
     // if --use-system-sr, this gets called earlier to override
@@ -629,19 +628,28 @@ static void print_amp_values(CSOUND *csound, int32_t score_evt)
     p->rngflg = 0;
     STA(srngflg)++;
   }
-  for (n = p->nchnls,
-         maxp = p->maxamp - 1, smaxp = p->smaxamp - 1,
-         maxps = p->maxpos - 1, smaxps = p->smaxpos - 1,
-         rngp = p->rngcnt, srngp = STA(srngcnt); n--; ) {
-    ++maxps; ++smaxps;
-    if (*++maxp > *++smaxp) {
+  /* Avoid pointer-underflow by starting at base and post-incrementing */
+  maxp = p->maxamp;
+  smaxp = p->smaxamp;
+  maxps = p->maxpos;
+  smaxps = p->smaxpos;
+  rngp = p->rngcnt;
+  srngp = STA(srngcnt);
+  for (n = p->nchnls; n--; ) {
+    if (*maxp > *smaxp) {
       *smaxp = *maxp;
       *smaxps = *maxps;
     }
     *maxp = FL(0.0);
     *maxps = 0;
-    *srngp++ += *rngp;
-    *rngp++ = 0;
+    *srngp += *rngp;
+    srngp++;
+    *rngp = 0;
+    rngp++;
+    maxp++;
+    smaxp++;
+    maxps++;
+    smaxps++;
   }
 }
 
@@ -672,19 +680,28 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
     }
   }
   STA(srngflg) = 0;
-  for (n = p->nchnls,
-         smaxp = p->smaxamp - 1, maxp = p->omaxamp - 1,
-         smaxps = p->smaxpos - 1, maxps = p->omaxpos - 1,
-         srngp = STA(srngcnt), rngp = STA(orngcnt); n--; ) {
-    ++maxps; ++smaxps;
-    if (UNLIKELY(*++smaxp > *++maxp)) {
+  /* Avoid pointer-underflow by starting at base and post-incrementing */
+  smaxp = p->smaxamp;
+  maxp = p->omaxamp;
+  smaxps = p->smaxpos;
+  maxps = p->omaxpos;
+  srngp = STA(srngcnt);
+  rngp = STA(orngcnt);
+  for (n = p->nchnls; n--; ) {
+    if (UNLIKELY(*smaxp > *maxp)) {
       *maxp = *smaxp;                 /* keep ovrl maxamps */
       *maxps = *smaxps;               /* And where */
     }
     *smaxp = FL(0.0);
     *smaxps = 0;
-    *rngp++ += *srngp;                /*   and orng counts */
-    *srngp++ = 0;
+    *rngp += *srngp;                  /*   and orng counts */
+    *srngp = 0;
+    smaxp++;
+    maxp++;
+    smaxps++;
+    maxps++;
+    srngp++;
+    rngp++;
   }
 }
 
@@ -810,8 +827,9 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
+        /* Use a consistent INIT ERROR prefix so frontends can parse it */
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted.  i%d (%s) had %d init errors"),
+                        Str("INIT ERROR in instr %d (%s): note deleted (%d init errors)"),
                         insno, evt->strarg, n);
       }
     }
@@ -841,8 +859,9 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
         if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
           /* else alloc, init, activate */
+          /* Use a consistent INIT ERROR prefix so frontends can parse it */
           print_score_error(csound, rtEvt,
-                          Str(" - note deleted.  i%d had %d init errors"),
+                          Str("INIT ERROR in instr %d: note deleted (%d init errors)"),
                           insno, n);
         }
       }
@@ -885,10 +904,10 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
       {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (name)
-          csound->ErrorMsg(csound, Str("instr %s had %d init errors\n"),
+          csound->ErrorMsg(csound, Str("INIT ERROR in instr %s: note deleted (%d init errors)\n"),
                           name, n);
         else
-          csound->ErrorMsg(csound, Str("instr %d had %d init errors\n"),
+          csound->ErrorMsg(csound, Str("INIT ERROR in instr %d: note deleted (%d init errors)\n"),
                           insno, n);
       }
       csound->perferrcnt++;

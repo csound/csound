@@ -29,10 +29,7 @@ export const WebkitAudioContext = () => {
   }
 };
 
-export const isScriptProcessorNodeSupported = () => {
-  const audioContext = WebkitAudioContext();
-  return audioContext !== undefined && audioContext.prototype.createScriptProcessor !== undefined;
-};
+
 
 export const csoundApiRename = (apiName) => {
   let minusCsound = apiName.replace(/^csound/i, "");
