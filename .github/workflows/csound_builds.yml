@@ -542,6 +542,87 @@ jobs:
             ./include/
           if-no-files-found: error
 
+  windows_build_x86:
+    name: Windows 32-bit build (vcpkg)
+    runs-on: windows-latest
+    needs: update_version
+    env:
+      CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - uses: lukka/get-cmake@v3.29.0
+
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Install system dependencies
+        run: |
+          choco install -y winflexbison3 innosetup
+
+      - name: Bootstrap VCPKG
+        run: .\vcpkg\bootstrap-vcpkg.bat
+
+      - name: Configure build
+        run: cmake -B build -S . -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Run tests
+        run: cmake --build build --target csdtests
+
+      - name: Run unit test framework
+        run: cmake --build build --target RUN_TESTS --config Release
+
+      - name: Acquire Csound manual
+        if: github.ref == 'refs/heads/develop'
+        shell: powershell
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
+          7z x manual.zip
+
+      - name: Build installer
+        if: github.ref == 'refs/heads/develop'
+        shell: powershell
+        run: |
+          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.OpenMP"
+          iscc /o. installer\\windows\\csound7_x86_github.iss
+
+      - name: Upload installer
+        if: github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Csound_x86-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x86-installer
+          path: ./Csound7-windows_x86-*.exe
+          if-no-files-found: error
+
+      - name: Upload zip
+        if: github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
+          path: |
+            ./build/Release/*.exe
+            ./build/Release/*.dll
+            ./build/Release/*.pyd
+            ./build/Release/csound64.lib
+            ./build/*.jar
+            ./build/*.py
+            ./include/
+          if-no-files-found: error
+
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
     #if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
@@ -801,6 +882,7 @@ jobs:
       [
         update_version,
         windows_build,
+        windows_build_x86,
         windows_build_32bit,
         macos_build_installer,
         iOS_build,
@@ -815,6 +897,12 @@ jobs:
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: csound-windows-${{env.CSOUND_VERSION}}
+
+      - name: Download Windows 32-bit installer
+        uses: actions/download-artifact@v4
+        with:
+          name: Csound_x86-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x86-installer
+          path: csound-windows-x86-installer-${{env.CSOUND_VERSION}}
 
       - name: Download Windows 32-bit binaries
         uses: actions/download-artifact@v4
@@ -849,6 +937,7 @@ jobs:
       - name: Zip release directories
         run: |
           zip -r csound-windows-${{env.CSOUND_VERSION}}.zip csound-windows-${{env.CSOUND_VERSION}}
+          zip -r csound-windows-x86-installer-${{env.CSOUND_VERSION}}.zip csound-windows-x86-installer-${{env.CSOUND_VERSION}}
           zip -r csound-windows-x86-${{env.CSOUND_VERSION}}.zip csound-windows-x86-${{env.CSOUND_VERSION}}
           zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
@@ -867,6 +956,7 @@ jobs:
           make_latest: true
           files: |
             csound-windows-${{env.CSOUND_VERSION}}.zip
+            csound-windows-x86-installer-${{env.CSOUND_VERSION}}.zip
             csound-windows-x86-${{env.CSOUND_VERSION}}.zip
             csound-macos-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
