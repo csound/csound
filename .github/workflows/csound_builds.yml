@@ -573,9 +573,13 @@ jobs:
 
       - name: Configure build
         run: cmake -B build -S . -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+        env:
+          VCPKG_DEFAULT_TRIPLET: x86-windows-static
 
       - name: Build Csound
         run: cmake --build build --config Release
+        env:
+          VCPKG_DEFAULT_TRIPLET: x86-windows-static
 
       - name: Run tests
         run: cmake --build build --target csdtests
