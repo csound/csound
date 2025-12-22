@@ -1389,7 +1389,7 @@ static void psignal_(int sig, char *str) {
   fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
 #else
-#if !defined(__CYGWIN__)
+#if !defined(__CYGWIN__) && !defined(BSD)
 void psignal(int sig, const char *str) {
   fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
