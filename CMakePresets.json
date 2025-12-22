@@ -1,0 +1,125 @@
+{
+    "version": 8,
+    "$schema": "https://cmake.org/cmake/help/latest/_downloads/3e2d73bff478d88a7de0de736ba5e361/schema.json",
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "USE_VCPKG": "ON",
+                "BUILD_TESTS": "ON"
+            }
+        },
+        {
+            "name": "windows-debug",
+            "inherits": "base",
+            "displayName": "Windows Debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CUSTOM_CMAKE": "${sourceDir}/platform/windows/Custom-vs.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "windows-release",
+            "inherits": "base",
+            "displayName": "Windows Release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CUSTOM_CMAKE": "${sourceDir}/platform/windows/Custom-vs.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "windows-debug-build",
+            "displayName": "Windows Debug Build",
+            "configurePreset": "windows-debug"
+        },
+        {
+            "name": "windows-release-build",
+            "displayName": "Windows Release Build",
+            "configurePreset": "windows-release"
+        },
+        {
+            "name": "windows-debug-csd-tests",
+            "displayName": "Windows Debug CSD Tests Build",
+            "configurePreset": "windows-debug",
+            "targets": "csdtests"
+        },
+        {
+            "name": "windows-release-csd-tests",
+            "displayName": "Windows Release CSD Tests Build",
+            "configurePreset": "windows-release",
+            "targets": "csdtests"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "windows-debug-test",
+            "displayName": "Windows Debug Test",
+            "configurePreset": "windows-debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "windows-release-test",
+            "displayName": "Windows Release Test",
+            "configurePreset": "windows-release",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "windows-debug-dist",
+            "displayName": "Windows Debug Distribution Workflow",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "windows-debug"
+                },
+                {
+                    "type": "build",
+                    "name": "windows-debug-build"
+                },
+                {
+                    "type": "test",
+                    "name": "windows-debug-test"
+                }
+            ]
+        },
+        {
+            "name": "windows-release-dist",
+            "displayName": "Windows Release Distribution Workflow",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "windows-release"
+                },
+                {
+                    "type": "build",
+                    "name": "windows-release-build"
+                },
+                {
+                    "type": "test",
+                    "name": "windows-release-test"
+                }
+            ]
+        }
+    ]
+}
