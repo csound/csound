@@ -1406,6 +1406,11 @@ if(LINUX)
     endif()
 endif()
 
+if(BSD)
+    message(STATUS "Building on BSD.")
+    add_definitions(-DBSD)
+endif()
+
 if((APPLE AND NOT IOS) OR (OSXCROSS_TARGET))
     message(STATUS "Building on OSX")
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
