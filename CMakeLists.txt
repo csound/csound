@@ -676,6 +676,10 @@ if (HAVE_EXECINFO_H)
     add_definitions("-DHAVE_EXECINFO")
 endif()
 
+if (HAVE_DLFCN_H)
+    add_definitions("-DHAVE_DLFCN_H")
+endif()
+
 check_deps(USE_LRINT FOUND_LRINT)
 if(USE_LRINT)
     add_definitions("-DUSE_LRINT")
