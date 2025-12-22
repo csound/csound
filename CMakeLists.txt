@@ -676,7 +676,7 @@ if (HAVE_EXECINFO_H)
     add_definitions("-DHAVE_EXECINFO")
 endif()
 
-if (HAVE_DLFCN_H)
+if (HAVE_DLFCN_H OR ANDROID)
     add_definitions("-DHAVE_DLFCN_H")
 endif()
 
