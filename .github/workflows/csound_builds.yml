@@ -591,7 +591,7 @@ jobs:
           7z x manual.zip
 
       - name: Build installer
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"

@@ -126,9 +126,9 @@ Source: "{#ReleaseDir}\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversio
 Source: "{#ReleaseDir}\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\libcsound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\csound.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\csound.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libcsound.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\envext.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
