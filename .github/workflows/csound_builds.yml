@@ -503,7 +503,7 @@ jobs:
         run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
