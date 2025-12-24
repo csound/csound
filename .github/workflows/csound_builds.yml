@@ -503,14 +503,14 @@ jobs:
         run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
 
       - name: Build installer
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
@@ -520,18 +520,18 @@ jobs:
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
+          name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: ./Csound7-windows_x86_64-*.exe
           if-no-files-found: error
 
       - name: Upload zip
-        if: github.ref == 'refs/heads/develop'
+#        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
+          name: Csound_x64-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-binaries
           path: |
             ./build/Release/*.exe
             ./build/Release/*.dll
@@ -542,7 +542,7 @@ jobs:
             ./include/
           if-no-files-found: error
 
-  windows_build_x86:
+  windows_build_i386:
     name: Windows 32-bit build (vcpkg)
     runs-on: windows-latest
     needs: update_version
@@ -604,7 +604,7 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: Csound_x86-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x86-installer
+          name: Csound_i386-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: ./Csound7-windows_x86-*.exe
           if-no-files-found: error
 
@@ -612,12 +612,12 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
+          name: Csound_i386-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-i386-binaries
           path: |
             ./build/Release/*.exe
             ./build/Release/*.dll
             ./build/Release/*.pyd
-            ./build/Release/csound64.lib
+            ./build/Release/csound.lib
             ./build/*.jar
             ./build/*.py
             ./include/
@@ -723,11 +723,10 @@ jobs:
         run: cp $HOME/libsndfile-i686/bin/*.dll ./build/
 
       - name: Upload zip
-        # 
-        if: github.ref == 'refs/heads/develop'
+#       if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
+          name: Csound_i386-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-mingw-binaries
           path: |
             ./build/*.exe
             ./build/*.dll
@@ -882,8 +881,7 @@ jobs:
       [
         update_version,
         windows_build,
-        windows_build_x86,
-        windows_build_32bit,
+        windows_build_i386,
         macos_build_installer,
         iOS_build,
         android-release,
@@ -895,20 +893,26 @@ jobs:
       - name: Download Windows installer
         uses: actions/download-artifact@v4
         with:
-          name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
+          name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
           path: csound-windows-${{env.CSOUND_VERSION}}
+
+      - name: Download Windows binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: Csound_x64-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-binaries
+          path: csound-windows-i386-${{env.CSOUND_VERSION}}
 
       - name: Download Windows 32-bit installer
         uses: actions/download-artifact@v4
         with:
-          name: Csound_x86-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x86-installer
-          path: csound-windows-x86-installer-${{env.CSOUND_VERSION}}
+          name: Csound_i386-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-installer
+          path: csound-windows-i386-installer-${{env.CSOUND_VERSION}}
 
       - name: Download Windows 32-bit binaries
         uses: actions/download-artifact@v4
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x86-binaries
-          path: csound-windows-x86-${{env.CSOUND_VERSION}}
+          name: Csound_i386-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-i386-binaries
+          path: csound-windows-i386-${{env.CSOUND_VERSION}}
 
       - name: Download macOS installer
         uses: actions/download-artifact@v4
