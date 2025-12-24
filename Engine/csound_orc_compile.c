@@ -1812,7 +1812,19 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
 static int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
   cs_hash_table_free(csound, engineState->constantsPool);
-  csoundFreeVarPool(csound, engineState->varPool);
+
+  /* Don't free the varPool if it belongs to the root module or main engineState,
+   * as those are long-lived structures that may be reused in subsequent compilations.
+   * Only free varPools that were specifically created for this temporary engineState. */
+  MODULE_STATE *module_state = csoundGetModuleState(csound);
+  int is_root_pool = (module_state && module_state->root_module &&
+                      engineState->varPool == module_state->root_module->varPool);
+  int is_main_pool = (engineState->varPool == csound->engineState.varPool);
+
+  if (!is_root_pool && !is_main_pool && engineState->varPool != NULL) {
+    csoundFreeVarPool(csound, engineState->varPool);
+  }
+
   csound->Free(csound, engineState->instrtxtp);
   csound->Free(csound, engineState);
   return 0;
@@ -3103,8 +3115,15 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   }
   /* Check for local variables - search ONLY immediate pool, not parents */
   else if (cs_hash_table_get(csound, ip->varPool->table, s) != NULL) {
-    arg->type = ARG_LOCAL;
-    setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    /* But if ip->varPool IS the engineState.varPool, treat as global, not local.
+     * This happens when instr0 (live coding) uses engineState.varPool as its pool. */
+    if (ip->varPool == csound->engineState.varPool || ip->varPool == engineState->varPool) {
+      arg->type = ARG_GLOBAL;
+      setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    } else {
+      arg->type = ARG_LOCAL;
+      setup_arg_for_var_name(csound, arg, ip->varPool, s);
+    }
 
   } else if (s[0] == '#') {
     const char* t = s + 1; if (*t == '+' || *t == '-') t++;

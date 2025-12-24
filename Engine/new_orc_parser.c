@@ -302,6 +302,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
        * For main CSD, this will be root_module->varPool
        * For imported modules, this will be the module's varPool */
       MODULE_STATE *module_state = csoundGetModuleState(csound);
+      
       if (module_state->current_module && module_state->current_module->varPool) {
         typeTable->globalPool = module_state->current_module->varPool;
       } else {

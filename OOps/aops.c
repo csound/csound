@@ -2636,7 +2636,9 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
    int32_t inum = 0;
    INSTRTXT **instrs = csound->GetInstrumentList(csound);
    int32_t max_instrs = csound->engineState.maxinsno + 1;
-   while(inum < max_instrs && instrs[inum] != instr) inum++;
+   while(inum < max_instrs && instrs[inum] != instr) {
+     inum++;
+   }
    return inum;
 }
 
