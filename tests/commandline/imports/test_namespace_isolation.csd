@@ -9,8 +9,8 @@ ksmps = 32
 nchnls = 2
 0dbfs = 1
 
-import module_a
-import module_b
+import "module_a.orc"
+import "module_b.orc"
 
 instr 1
     ; Test that each module's UDO sees its own variable values

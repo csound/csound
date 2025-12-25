@@ -10,7 +10,7 @@ nchnls = 2
 0dbfs = 1
 
 /* Import the simple test module */
-import test_simple
+import "test_simple.orc"
 
 /* Test instrument that uses the imported functionality */
 instr 1

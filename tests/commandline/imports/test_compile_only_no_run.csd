@@ -10,7 +10,7 @@ nchnls = 2
 0dbfs = 1
 
 /* Test basic module import - compilation only */
-import oscillators
+import "oscillators.orc"
 
 /* Test that we can compile after import */
 instr 1

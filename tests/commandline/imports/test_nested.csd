@@ -9,7 +9,7 @@ ksmps = 32
 nchnls = 2
 0dbfs = 1
 
-import nested_module
+import "nested_module.orc"
 
 instr 1
     aout = NestedOsc(440)

@@ -9,7 +9,7 @@ ksmps = 32
 nchnls = 2
 0dbfs = 1
 
-import simple_test
+import "simple_test.orc"
 
 /* Define another UDO locally */
 opcode LocalOsc, a, k

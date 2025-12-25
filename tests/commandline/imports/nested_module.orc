@@ -1,6 +1,6 @@
 /* nested_module.orc: Module that imports another module */
 
-import simple_test
+import "simple_test.orc"
 
 opcode NestedOsc, a, k
     kfreq xin

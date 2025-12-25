@@ -11,7 +11,7 @@ nchnls = 2
 0dbfs = 1
 
 /* Test import statement */
-import oscillators
+import "oscillators.orc"
 
 /* Empty instrument - just testing that import doesn't crash compilation */
 instr 1

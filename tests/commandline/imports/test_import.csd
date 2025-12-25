@@ -11,7 +11,7 @@ nchnls = 2
 0dbfs = 1
 
 /* Import the oscillators module */
-import oscillators
+import "oscillators.orc"
 
 /* Test instrument that uses imported functionality */
 instr 1

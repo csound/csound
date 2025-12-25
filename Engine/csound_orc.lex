@@ -47,6 +47,7 @@ ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
+static ORCTOKEN* parse_string_token(CSOUND *csound, yyscan_t yyscanner);
 #define namedInstrFlag csound->parserNamedInstrFlag
 #include "parse_param.h"
 
@@ -246,10 +247,11 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                           (*lvalp)->type = AS_TOKEN;
                           return AS_TOKEN; }
 
+  \"                   { *lvalp = parse_string_token(csound, yyscanner);
+                          return (STRING_TOKEN); }
+
   {IDENT}              { *lvalp = lookup_token(csound, yytext, yyscanner);
                           return (*lvalp)->type; }
-
-  "."                  { return '.'; }
 
   "*"                  { *lvalp = make_token(csound, "*");
                           (*lvalp)->type = T_IDENT;
@@ -429,58 +431,8 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 }
 
 
-\"              { /* String decode by c-code not rexp */
-                  int cnt = 80;
-                  char *buff = malloc(cnt);
-                  int n = 1;
-                  int ch;
-                  buff[0] = '"';
-                  for (;;) {
-                    ch = input(yyscanner);
-                    if (ch=='"') {
-                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
-                      buff[n++] = ch;
-                      buff[n] = '\0';
-                      break;
-                    }
-                    else if (ch=='\\') {
-                      ch = input(yyscanner);
-                      switch (ch) {
-                      case 'a': case 'b': case 'n': case 'r':
-                      case 't': case '\\':
-                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
-                        buff[n++] = '\\'; buff[n++]= ch;
-                        break;
-                        /* VL - 21-1-17 fix for octals in strings */
-                      case '0':case '1':case '2':case '3':
-                      case '4':case '5':case '6':case '7':
-                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
-                        buff[n++] = '\\'; buff[n++]= ch;
-                        break;
-                      default:
-                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
-                        buff[n++] = ch;
-                        break;
-                      }
-                    }
-                    else if (UNLIKELY(ch=='\n')) {
-                      if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
-                      buff[n++] = '"';
-                      buff[n] = '\0';
-                      csound->Message(csound,
-                              Str("unterminated string found on line %d >>%s<<\n"),
-                                      csound_orcget_lineno(yyscanner), buff);
-                      break;
-                    }
-                    else {
-                      if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
-                      buff[n++] = ch;
-                    }
-                  }
-                  *lvalp = make_string(csound, buff);
-                  free(buff);
-                  return (STRING_TOKEN);
-                }
+\"              { *lvalp = parse_string_token(csound, yyscanner);
+                  return (STRING_TOKEN); }
 
 "0dbfs"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = T_IDENT;
@@ -572,6 +524,61 @@ static inline int isNameChar(int c, int pos)
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
   */
+
+/* Helper function to parse string tokens - used by both importmode and INITIAL state */
+static ORCTOKEN* parse_string_token(CSOUND *csound, yyscan_t yyscanner)
+{
+    int cnt = 80;
+    char *buff = malloc(cnt);
+    int n = 1;
+    int ch;
+    buff[0] = '"';
+    for (;;) {
+      ch = input(yyscanner);
+      if (ch == '"') {
+        if (n >= cnt-2) buff = realloc(buff, cnt += 20);
+        buff[n++] = ch;
+        buff[n] = '\0';
+        break;
+      }
+      else if (ch == '\\') {
+        ch = input(yyscanner);
+        switch (ch) {
+        case 'a': case 'b': case 'n': case 'r':
+        case 't': case '\\':
+          if (n >= cnt-2) buff = realloc(buff, cnt += 20);
+          buff[n++] = '\\'; buff[n++] = ch;
+          break;
+        /* VL - 21-1-17 fix for octals in strings */
+        case '0': case '1': case '2': case '3':
+        case '4': case '5': case '6': case '7':
+          if (n >= cnt-2) buff = realloc(buff, cnt += 20);
+          buff[n++] = '\\'; buff[n++] = ch;
+          break;
+        default:
+          if (n >= cnt-2) buff = realloc(buff, cnt += 20);
+          buff[n++] = ch;
+          break;
+        }
+      }
+      else if (UNLIKELY(ch == '\n')) {
+        if (UNLIKELY(n >= cnt-2)) buff = realloc(buff, cnt += 20);
+        buff[n++] = '"';
+        buff[n] = '\0';
+        csound->Message(csound,
+                Str("unterminated string found on line %d >>%s<<\n"),
+                        csound_orcget_lineno(yyscanner), buff);
+        break;
+      }
+      else {
+        if (UNLIKELY(n >= cnt-2)) buff = realloc(buff, cnt += 20);
+        buff[n++] = ch;
+      }
+    }
+    ORCTOKEN *tok = make_string(csound, buff);
+    free(buff);
+    return tok;
+}
 
 ORCTOKEN *new_token(CSOUND *csound, int32_t type)
 {

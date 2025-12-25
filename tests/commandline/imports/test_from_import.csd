@@ -10,8 +10,8 @@ nchnls = 2
 0dbfs = 1
 
 /* Test from module import syntax */
-from oscillators import SimpleOsc
-from test_simple import TestConst
+from "oscillators.orc" import SimpleOsc
+from "test_simple.orc" import TestConst
 
 /* Test instrument that uses selectively imported functionality */
 instr 1

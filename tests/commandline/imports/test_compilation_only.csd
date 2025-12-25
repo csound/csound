@@ -10,7 +10,7 @@ nchnls = 2
 0dbfs = 1
 
 /* Test basic module import - this should work without segfaults */
-import oscillators
+import "oscillators.orc"
 
 /* Test that we can compile after import - instrument should exist but won't actually run */
 instr 1

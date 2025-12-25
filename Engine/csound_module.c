@@ -158,12 +158,32 @@ PUBLIC void csoundCleanupModuleSystem(CSOUND *csound)
     csound->module_state = NULL;
 }
 
+/* Helper function to strip quotes from string paths */
+static char* strip_quotes(CSOUND *csound, const char *str)
+{
+    if (str == NULL) return NULL;
+
+    size_t len = strlen(str);
+
+    /* Check if string is quoted */
+    if (len >= 2 && str[0] == '"' && str[len - 1] == '"') {
+        char *result = csound->Malloc(csound, len - 1);
+        strncpy(result, str + 1, len - 2);
+        result[len - 2] = '\0';
+        return result;
+    }
+
+    /* Not quoted, return a copy */
+    return csound->Strdup(csound, str);
+}
+
 PUBLIC char* csoundResolveModulePath(CSOUND *csound, const char *import_path)
 {
     char *result = NULL;
     char current_dir[PATH_MAX];
     char test_path[PATH_MAX];
     const char *extension = ".orc";
+    char *path_to_use;
 
     if (import_path == NULL) {
         return NULL;
@@ -171,8 +191,14 @@ PUBLIC char* csoundResolveModulePath(CSOUND *csound, const char *import_path)
 
     MODULE_STATE *state = csoundGetModuleState(csound);
 
+    /* Strip quotes from string paths if present */
+    path_to_use = strip_quotes(csound, import_path);
+    if (path_to_use == NULL) {
+        return NULL;
+    }
+
     /* 1. Check if import_path already has an extension */
-    const char *last_dot = strrchr(import_path, '.');
+    const char *last_dot = strrchr(path_to_use, '.');
     if (last_dot && strcmp(last_dot, ".orc") == 0) {
         extension = "";
     }
@@ -185,9 +211,10 @@ PUBLIC char* csoundResolveModulePath(CSOUND *csound, const char *import_path)
             strncpy(current_dir, csound->oparms->infilename, dir_len);
             current_dir[dir_len] = '\0';
 
-            snprintf(test_path, PATH_MAX, "%s%s%s", current_dir, import_path, extension);
+            snprintf(test_path, PATH_MAX, "%s%s%s", current_dir, path_to_use, extension);
             if (access(test_path, R_OK) == 0) {
                 result = csound->Strdup(csound, test_path);
+                csound->Free(csound, path_to_use);
                 return result;
             }
         }
@@ -201,9 +228,10 @@ PUBLIC char* csoundResolveModulePath(CSOUND *csound, const char *import_path)
             strncpy(current_dir, csound->csdname, dir_len);
             current_dir[dir_len] = '\0';
 
-            snprintf(test_path, PATH_MAX, "%s%s%s", current_dir, import_path, extension);
+            snprintf(test_path, PATH_MAX, "%s%s%s", current_dir, path_to_use, extension);
             if (access(test_path, R_OK) == 0) {
                 result = csound->Strdup(csound, test_path);
+                csound->Free(csound, path_to_use);
                 return result;
             }
         }
@@ -212,30 +240,34 @@ PUBLIC char* csoundResolveModulePath(CSOUND *csound, const char *import_path)
     /* 4. Try search paths from csoundAddModuleSearchPath */
     if (state->module_search_paths != NULL) {
         /* This would need hash table iteration - for now, check common paths */
-        snprintf(test_path, PATH_MAX, "%s%s%s", "./", import_path, extension);
+        snprintf(test_path, PATH_MAX, "%s%s%s", "./", path_to_use, extension);
         if (access(test_path, R_OK) == 0) {
             result = csound->Strdup(csound, test_path);
+            csound->Free(csound, path_to_use);
             return result;
         }
 
-        snprintf(test_path, PATH_MAX, "%s%s%s", "./lib/", import_path, extension);
+        snprintf(test_path, PATH_MAX, "%s%s%s", "./lib/", path_to_use, extension);
         if (access(test_path, R_OK) == 0) {
             result = csound->Strdup(csound, test_path);
+            csound->Free(csound, path_to_use);
             return result;
         }
 
-        snprintf(test_path, PATH_MAX, "%s%s%s", "./modules/", import_path, extension);
+        snprintf(test_path, PATH_MAX, "%s%s%s", "./modules/", path_to_use, extension);
         if (access(test_path, R_OK) == 0) {
             result = csound->Strdup(csound, test_path);
+            csound->Free(csound, path_to_use);
             return result;
         }
     }
 
     /* 5. As a fallback, just append extension to the original path */
-    size_t len = strlen(import_path) + strlen(extension) + 1;
+    size_t len = strlen(path_to_use) + strlen(extension) + 1;
     result = (char*)csound->Malloc(csound, len);
-    snprintf(result, len, "%s%s", import_path, extension);
+    snprintf(result, len, "%s%s", path_to_use, extension);
 
+    csound->Free(csound, path_to_use);
     return result;
 }
 
@@ -522,7 +554,8 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
     if (ast->type == IMPORT_TOKEN) {
         /* Handle "import module" or "import module as alias" */
         if (ast->left && ast->left->value && ast->left->value->lexeme) {
-            char *module_name = ast->left->value->lexeme;
+            char *raw_path = ast->left->value->lexeme;
+            char *module_path = strip_quotes(csound, raw_path);
 
             /* For "import module as alias", use the alias from right child */
             char *alias = NULL;
@@ -535,15 +568,18 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
 
             if (csound->GetDebug(csound) > 99) {
                 csound->Message(csound, "Processed import: %s%s%s\n",
-                               module_name,
+                               module_path,
                                alias ? " as " : "",
                                alias ? alias : "");
             }
+
+            csound->Free(csound, module_path);
         }
     } else if (ast->type == FROM_TOKEN) {
         /* Handle "from module import item1, item2" or "from module import *" */
         if (ast->left && ast->left->value && ast->left->value->lexeme) {
-            char *module_name = ast->left->value->lexeme;
+            char *raw_path = ast->left->value->lexeme;
+            char *module_path = strip_quotes(csound, raw_path);
 
             /* Process the import list from the right child */
             if (ast->right) {
@@ -555,7 +591,7 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
                     csoundRegisterModuleItems(csound, module);
 
                     if (csound->GetDebug(csound) > 99) {
-                        csound->Message(csound, "Processed wildcard import: from %s import *\n", module_name);
+                        csound->Message(csound, "Processed wildcard import: from %s import *\n", module_path);
                     }
                 } else {
                     /* Process specific item imports */
@@ -580,13 +616,15 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
                                                item_name,
                                                alias ? " as " : "",
                                                alias ? alias : "",
-                                               module_name);
+                                               module_path);
                             }
                         }
                         current_item = current_item->next;
                     }
                 }
             }
+
+            csound->Free(csound, module_path);
         }
     }
 }

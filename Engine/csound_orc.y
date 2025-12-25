@@ -632,32 +632,29 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
  }
 
 /* Import statements */
-import_definition : IMPORT_TOKEN dotted_identifier NEWLINE
+import_definition : IMPORT_TOKEN STRING_TOKEN NEWLINE
                   {
-                    $$ = make_node(csound, LINE, LOCN, IMPORT_TOKEN, $2, NULL);
+                    TREE *path = make_leaf(csound, LINE, LOCN, STRING_TOKEN, (ORCTOKEN *)$2);
+                    $$ = make_node(csound, LINE, LOCN, IMPORT_TOKEN, path, NULL);
                   }
-                | IMPORT_TOKEN dotted_identifier AS_TOKEN identifier NEWLINE
+                | IMPORT_TOKEN STRING_TOKEN AS_TOKEN identifier NEWLINE
                   {
-                    $$ = make_node(csound, LINE, LOCN, IMPORT_TOKEN, $2, $4);
+                    TREE *path = make_leaf(csound, LINE, LOCN, STRING_TOKEN, (ORCTOKEN *)$2);
+                    $$ = make_node(csound, LINE, LOCN, IMPORT_TOKEN, path, $4);
                   }
-                | FROM_TOKEN dotted_identifier IMPORT_TOKEN import_list NEWLINE
+                | FROM_TOKEN STRING_TOKEN IMPORT_TOKEN import_list NEWLINE
                   {
-                    $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, $2, $4);
+                    TREE *path = make_leaf(csound, LINE, LOCN, STRING_TOKEN, (ORCTOKEN *)$2);
+                    $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, path, $4);
                   }
-                | FROM_TOKEN dotted_identifier IMPORT_TOKEN '*' NEWLINE
+                | FROM_TOKEN STRING_TOKEN IMPORT_TOKEN '*' NEWLINE
                   {
                     TREE *wildcard = make_leaf(csound, LINE, LOCN, T_IDENT,
                                               make_token(csound, "*"));
-                    $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, $2, wildcard);
+                    TREE *path = make_leaf(csound, LINE, LOCN, STRING_TOKEN, (ORCTOKEN *)$2);
+                    $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, path, wildcard);
                   }
                 ;
-
-dotted_identifier : identifier
-                  | dotted_identifier '.' identifier
-                  {
-                    $$ = make_node(csound, LINE, LOCN, '.', $1, $3);
-                  }
-                  ;
 
 import_list : import_list ',' identifier
             {
@@ -1003,7 +1000,7 @@ false_const: FALSE_TOKEN
        | FALSEK_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, FALSEK_TOKEN,
                         make_token(csound,"falsek")); }
-       
+
        ;
 
 true_const: TRUE_TOKEN
