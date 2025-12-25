@@ -649,12 +649,39 @@ PUBLIC void csoundRegisterModuleItems(CSOUND *csound, CS_MODULE *module)
     (void)state; /* Suppress unused warning */
 }
 
+PUBLIC CS_MODULE* csoundFindModuleByAlias(CSOUND *csound, const char *alias)
+{
+    MODULE_STATE *state = csoundGetModuleState(csound);
+    if (state == NULL || state->import_aliases == NULL || alias == NULL) {
+        return NULL;
+    }
+    return (CS_MODULE*)cs_hash_table_get(csound, state->import_aliases, (char*)alias);
+}
+
 PUBLIC CS_MODULE* csoundFindImportedModule(CSOUND *csound,
                                           CS_MODULE *current,
                                           const char *name)
 {
-    /* TODO: Search imported modules by name or alias */
-    (void)csound; (void)current; (void)name;
+    if (current == NULL || name == NULL) {
+        return NULL;
+    }
+
+    /* First, check global import_aliases for "import X as alias" syntax */
+    CS_MODULE *aliased = csoundFindModuleByAlias(csound, name);
+    if (aliased != NULL) {
+        return aliased;
+    }
+
+    /* Search current module's imports by module name */
+    for (int32_t i = 0; i < current->import_count; i++) {
+        CS_MODULE *imported = current->imports[i];
+        if (imported != NULL && imported->name != NULL) {
+            if (strcmp(imported->name, name) == 0) {
+                return imported;
+            }
+        }
+    }
+
     return NULL;
 }
 
@@ -683,12 +710,24 @@ PUBLIC int csoundAddModuleImport(CSOUND *csound,
     module->imports[module->import_count] = imported;
     module->import_count++;
 
-    csound->Message(csound, "Added module import: %s imports %s (count=%d)\n",
-                    module->name ? module->name : "(root)",
-                    imported->name ? imported->name : "(unnamed)",
-                    module->import_count);
+    /* Store alias→module mapping if alias is provided */
+    if (alias != NULL && strlen(alias) > 0) {
+        MODULE_STATE *state = csoundGetModuleState(csound);
+        if (state->import_aliases != NULL) {
+            cs_hash_table_put(csound, state->import_aliases, (char*)alias, imported);
+            csound->Message(csound, "Added module import: %s imports %s as '%s' (count=%d)\n",
+                           module->name ? module->name : "(root)",
+                           imported->name ? imported->name : "(unnamed)",
+                           alias,
+                           module->import_count);
+        }
+    } else {
+        csound->Message(csound, "Added module import: %s imports %s (count=%d)\n",
+                       module->name ? module->name : "(root)",
+                       imported->name ? imported->name : "(unnamed)",
+                       module->import_count);
+    }
 
-    (void)alias; /* TODO: Store alias for module-level namespace resolution */
     return CSOUND_SUCCESS;
 }
 

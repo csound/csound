@@ -40,6 +40,12 @@ import_tests = [
     # Import syntax variants
     ["imports/test_from_import.csd", "From import syntax"],
 
+    # Import with alias (import "x.orc" as name) tests
+    ["imports/test_import_as_qualified.csd", "Import with alias - qualified variable access"],
+    ["imports/test_same_module_different_aliases.csd", "Same module imported with different aliases"],
+    ["imports/test_different_modules_same_alias.csd", "Different modules with same alias (shadowing)"],
+    ["imports/test_nested_module_aliases.csd", "Nested module imports with aliases"],
+
     # Complex tests
     ["imports/test_nested.csd", "Nested module imports"]
 ]

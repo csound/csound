@@ -522,6 +522,38 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
       return NULL;
     }
     s = tree->left->value->lexeme;
+
+    // Check if this is a module alias access (e.g., modX.giVar)
+    CS_MODULE *aliased_module = csoundFindModuleByAlias(csound, s);
+    if (aliased_module != NULL) {
+      // This is module member access, look up the member in the module's varPool
+      if (tree->right == NULL || tree->right->value == NULL ||
+          tree->right->value->lexeme == NULL) {
+        synterr(csound, Str("Module member access requires a member name at line %d\n"),
+                tree->line);
+        do_baktrace(csound, tree->locn);
+        return NULL;
+      }
+      char *memberName = tree->right->value->lexeme;
+      CS_VARIABLE *moduleVar = csoundFindVariableWithName(csound, aliased_module->varPool, memberName);
+      if (moduleVar == NULL) {
+        synterr(csound, Str("No member '%s' found in module '%s' at line %d\n"),
+                memberName, aliased_module->name ? aliased_module->name : s, tree->line);
+        do_baktrace(csound, tree->locn);
+        return NULL;
+      }
+      // Return the type of the module variable
+      if (moduleVar->varType == &CS_VAR_TYPE_ARRAY) {
+        char *result = create_array_arg_type(csound, moduleVar);
+        if (result == NULL) {
+          synterr(csound, Str("Array member has unknown type at line %d\n"), tree->line);
+          do_baktrace(csound, tree->locn);
+          return NULL;
+        }
+        return result;
+      }
+      return cs_strdup(csound, moduleVar->varType->varTypeName);
+    }
   }
 
   // Only look up the variable if we have a simple identifier (not nested struct

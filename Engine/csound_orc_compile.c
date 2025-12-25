@@ -3035,6 +3035,7 @@ static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
     char *structPath = cs_strdup(csound, delimit + 1);
     arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
     arg->structPath = structPath;
+    csound->Free(csound, baseName);
   } else {
     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
     arg->structPath = NULL;
@@ -3096,9 +3097,32 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     if(csoundGetDebug(csound) & DEBUG_COMPILER)
      csoundMessage(csound, "pfield found: %s %d\n", s, n);
   }
+  /* Check for module alias access (e.g., modAlias.variable) */
+  else if (strchr(s, '.') != NULL) {
+    char *dot = strchr(s, '.');
+    char *aliasName = cs_strndup(csound, s, dot - s);
+    CS_MODULE *aliasedModule = csoundFindModuleByAlias(csound, aliasName);
+    if (aliasedModule != NULL && aliasedModule->varPool != NULL) {
+      char *memberName = dot + 1;
+      CS_VARIABLE *moduleVar = csoundFindVariableWithName(csound, aliasedModule->varPool, memberName);
+      if (moduleVar != NULL) {
+        arg->type = ARG_GLOBAL;
+        arg->argPtr = moduleVar;
+        arg->structPath = NULL;
+        csound->Free(csound, aliasName);
+      } else {
+        csound->Free(csound, aliasName);
+        csoundDie(csound, Str("No variable '%s' found in module alias '%s'"), memberName, aliasName);
+      }
+    } else {
+      /* Not a module alias - fall through to struct access handling below */
+      csound->Free(csound, aliasName);
+      goto handle_struct_or_variable;
+    }
+  }
   /* trap local ksmps and kr and sr
    * Check if they exist in the immediate pool (local) or parent chain (global) */
-  else if (strcmp(s, "ksmps") == 0 || strcmp(s, "kr") == 0 || strcmp(s, "sr") == 0) {
+  else handle_struct_or_variable: if (strcmp(s, "ksmps") == 0 || strcmp(s, "kr") == 0 || strcmp(s, "sr") == 0) {
     CS_VARIABLE *var = cs_hash_table_get(csound, ip->varPool->table, s);
     if (var != NULL) {
       /* Found in immediate pool - it's a local variable */

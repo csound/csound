@@ -174,6 +174,12 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
 PUBLIC void csoundRegisterModuleItems(CSOUND *csound, CS_MODULE *module);
 
 /**
+ * Find a module by its import alias
+ * Returns the module if found, NULL otherwise
+ */
+PUBLIC CS_MODULE* csoundFindModuleByAlias(CSOUND *csound, const char *alias);
+
+/**
  * Find an imported module by name or alias
  */
 PUBLIC CS_MODULE* csoundFindImportedModule(CSOUND *csound,
