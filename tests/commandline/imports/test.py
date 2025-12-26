@@ -48,6 +48,7 @@ import_tests = [
 
     # Selective import tests (from X import a,b,c)
     ["imports/test_selective_import.csd", "Selective import - only listed items available"],
+    ["imports/test_shadow_variable.csd", "Local variable shadows non-imported module variable"],
 
     # Complex tests
     ["imports/test_nested.csd", "Nested module imports"]

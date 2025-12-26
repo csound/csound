@@ -300,7 +300,12 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
     // globals from imported modules are visible during semantic analysis.
     /* As a last resort, search imported modules' ASTs for a matching global
      * assignment and, if found, synthesize a placeholder variable in the
-     * current module's global pool so semantic analysis can proceed. */
+     * current module's global pool so semantic analysis can proceed.
+     *
+     * IMPORTANT: For selective imports (from X import a,b,c), we should only
+     * synthesize placeholders for items that are in the import list. This
+     * allows the user to define their own variable with the same name as a
+     * non-imported module variable. */
     if (var == NULL) {
       MODULE_STATE *module_state = csoundGetModuleState(csound);
       if (module_state && module_state->current_module) {
@@ -308,6 +313,12 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
         for (int32_t i = 0; i < current->import_count && var == NULL; i++) {
           CS_MODULE *imported = current->imports[i];
           if (imported && imported->ast && ast_defines_global(imported->ast, varBaseName)) {
+            /* Check if this variable is allowed by selective import */
+            if (!csoundIsItemImportAllowed(csound, current, imported, varBaseName)) {
+              /* Variable exists in module but is not in the import list - skip it.
+               * This allows the user to define their own variable with this name. */
+              continue;
+            }
             /* Deduce type from name: expect global form g<i/k/a/S>... */
             const char *n = varBaseName;
             const char *typeLetter = NULL;
