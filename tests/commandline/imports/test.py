@@ -46,6 +46,9 @@ import_tests = [
     ["imports/test_different_modules_same_alias.csd", "Different modules with same alias (shadowing)"],
     ["imports/test_nested_module_aliases.csd", "Nested module imports with aliases"],
 
+    # Selective import tests (from X import a,b,c)
+    ["imports/test_selective_import.csd", "Selective import - only listed items available"],
+
     # Complex tests
     ["imports/test_nested.csd", "Nested module imports"]
 ]

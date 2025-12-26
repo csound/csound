@@ -2,7 +2,7 @@
 
 giInnerValue = 500
 
-opcode InnerDouble, i, i
-    ival xin
-    xout ival * 2
+opcode InnerDouble(ival):i
+    iout = ival * 2
+    xout iout
 endop

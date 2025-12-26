@@ -4,14 +4,12 @@
  */
 
 /* Define some useful oscillators as UDOs */
-opcode SimpleOsc, a, kkk
-    kamp, kfreq, kphase xin
+opcode SimpleOsc(kamp, kfreq, kphase):a
     aout = kamp * oscili:a(kfreq, kphase)
     xout aout
 endop
 
-opcode SineOsc, a, kk
-    kamp, kfreq xin
+opcode SineOsc(kamp, kfreq):a
     aout = kamp * sin(kfreq * (2 * $M_PI) / sr)
     xout aout
 endop

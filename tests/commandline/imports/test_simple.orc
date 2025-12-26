@@ -4,8 +4,7 @@
  */
 
 /* Simple test UDO that returns a constant value */
-opcode TestConst, i, i
-    iVal xin
+opcode TestConst(iVal):i
     xout iVal
 endop
 

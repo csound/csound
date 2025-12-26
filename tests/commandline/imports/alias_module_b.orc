@@ -2,7 +2,7 @@
 
 giModuleB_Value = 200
 
-opcode ModuleB_Triple, i, i
-    ival xin
-    xout ival * 3
+opcode ModuleB_Triple(ival):i
+    iout = ival * 3
+    xout iout
 endop

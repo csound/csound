@@ -5,23 +5,24 @@ import "nested_alias_inner.orc" as inner
 giOuterValue = 1000
 
 /* UDO that uses the inner module's variable via alias */
-opcode OuterGetInnerValue, i, 0
-    xout inner.giInnerValue
+opcode OuterGetInnerValue():i
+    iout = inner.giInnerValue
+    xout iout
 endop
 
 /* UDO that uses inner module's UDO */
-opcode OuterTriple, i, i
-    ival xin
+opcode OuterTriple(ival):i
     /* Call inner's double, then add ival for triple effect */
-    iDoubled InnerDouble ival
-    xout iDoubled + ival
+    iDoubled = InnerDouble(ival)
+    iout = iDoubled + ival
+    xout iout
 endop
 
 /* UDO that modifies and returns inner value */
-opcode OuterModifyInner, i, i
-    inewVal xin
+opcode OuterModifyInner(inewVal):i
     /* Note: Direct assignment to module alias var not yet supported,
        so we just read and return a computed value */
     iCurrent = inner.giInnerValue
-    xout iCurrent + inewVal
+    iout = iCurrent + inewVal
+    xout iout
 endop

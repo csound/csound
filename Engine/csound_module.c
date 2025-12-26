@@ -540,6 +540,22 @@ PUBLIC CS_MODULE* csoundLoadModuleFromFile(CSOUND *csound, const char *path)
     return mod;
 }
 
+/**
+ * Find the index of an imported module in a module's imports array.
+ * Returns -1 if not found.
+ */
+static int find_import_index(CS_MODULE *module, CS_MODULE *imported) {
+    if (module == NULL || imported == NULL) {
+        return -1;
+    }
+    for (int32_t i = 0; i < module->import_count; i++) {
+        if (module->imports[i] == imported) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 PUBLIC void csoundProcessImportStatements(CSOUND *csound,
                                          CS_MODULE *module,
                                          TREE *ast)
@@ -563,8 +579,18 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
                 alias = ast->right->value->lexeme;
             }
 
-            /* Register the entire module as available */
+            /* Register the entire module as available (wildcard-like) */
             csoundAddModuleImport(csound, state->current_module, module, alias);
+
+            /* Find the import index (may be existing or newly added) */
+            int import_idx = find_import_index(state->current_module, module);
+            if (import_idx >= 0) {
+                /* Create import info with wildcard semantics (all items allowed) */
+                CS_IMPORT *import_info = csoundCreateImport(csound,
+                    alias ? IMPORT_MODULE_AS : IMPORT_MODULE,
+                    module_path, alias, 1);
+                state->current_module->import_info[import_idx] = import_info;
+            }
 
             if (csound->GetDebug(csound) > 99) {
                 csound->Message(csound, "Processed import: %s%s%s\n",
@@ -587,13 +613,33 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
 
                 /* Check if this is a wildcard import */
                 if (import_list->type == '*') {
-                    /* Register all items from module */
+                    /* Register the module with wildcard semantics */
+                    csoundAddModuleImport(csound, state->current_module, module, NULL);
+
+                    /* Find the import index and create import info with wildcard */
+                    int import_idx = find_import_index(state->current_module, module);
+                    if (import_idx >= 0) {
+                        CS_IMPORT *import_info = csoundCreateImport(csound, IMPORT_FROM_ALL, module_path, NULL, 1);
+                        state->current_module->import_info[import_idx] = import_info;
+                    }
+
                     csoundRegisterModuleItems(csound, module);
 
                     if (csound->GetDebug(csound) > 99) {
                         csound->Message(csound, "Processed wildcard import: from %s import *\n", module_path);
                     }
                 } else {
+                    /* Add the module to imports first */
+                    csoundAddModuleImport(csound, state->current_module, module, NULL);
+
+                    /* Find the import index and create import info with selective items */
+                    int import_idx = find_import_index(state->current_module, module);
+                    CS_IMPORT *import_info = NULL;
+                    if (import_idx >= 0) {
+                        import_info = csoundCreateImport(csound, IMPORT_FROM, module_path, NULL, 0);
+                        state->current_module->import_info[import_idx] = import_info;
+                    }
+
                     /* Process specific item imports */
                     TREE *current_item = import_list;
                     while (current_item) {
@@ -605,6 +651,11 @@ PUBLIC void csoundProcessImportStatements(CSOUND *csound,
                             if (current_item->right && current_item->right->value &&
                                 current_item->right->value->lexeme) {
                                 alias = current_item->right->value->lexeme;
+                            }
+
+                            /* Add to import info's item list */
+                            if (import_info != NULL) {
+                                csoundAddImportItem(csound, import_info, item_name, alias);
                             }
 
                             /* Register this specific item from the module */
@@ -694,20 +745,37 @@ PUBLIC int csoundAddModuleImport(CSOUND *csound,
         return CSOUND_ERROR;
     }
 
+    /* Check if this module is already imported (avoid duplicates) */
+    int existing_idx = find_import_index(module, imported);
+    if (existing_idx >= 0) {
+        /* Already imported - just update alias if provided */
+        if (alias != NULL && strlen(alias) > 0) {
+            MODULE_STATE *state = csoundGetModuleState(csound);
+            if (state->import_aliases != NULL) {
+                cs_hash_table_put(csound, state->import_aliases, (char*)alias, imported);
+            }
+        }
+        return CSOUND_SUCCESS;  /* Already imported, no need to add again */
+    }
+
     /* Check if we need to expand the imports array */
     if (module->import_count >= module->import_capacity) {
         int32_t new_capacity = module->import_capacity == 0 ? 4 : module->import_capacity * 2;
         CS_MODULE **new_imports = csound->ReAlloc(csound, module->imports,
                                                   new_capacity * sizeof(CS_MODULE*));
-        if (new_imports == NULL) {
+        CS_IMPORT **new_import_info = csound->ReAlloc(csound, module->import_info,
+                                                       new_capacity * sizeof(CS_IMPORT*));
+        if (new_imports == NULL || new_import_info == NULL) {
             return CSOUND_ERROR;
         }
         module->imports = new_imports;
+        module->import_info = new_import_info;
         module->import_capacity = new_capacity;
     }
 
     /* Add the imported module to the imports array */
     module->imports[module->import_count] = imported;
+    module->import_info[module->import_count] = NULL;  /* Will be set by caller if needed */
     module->import_count++;
 
     /* Store alias→module mapping if alias is provided */
@@ -715,17 +783,7 @@ PUBLIC int csoundAddModuleImport(CSOUND *csound,
         MODULE_STATE *state = csoundGetModuleState(csound);
         if (state->import_aliases != NULL) {
             cs_hash_table_put(csound, state->import_aliases, (char*)alias, imported);
-            csound->Message(csound, "Added module import: %s imports %s as '%s' (count=%d)\n",
-                           module->name ? module->name : "(root)",
-                           imported->name ? imported->name : "(unnamed)",
-                           alias,
-                           module->import_count);
         }
-    } else {
-        csound->Message(csound, "Added module import: %s imports %s (count=%d)\n",
-                       module->name ? module->name : "(root)",
-                       imported->name ? imported->name : "(unnamed)",
-                       module->import_count);
     }
 
     return CSOUND_SUCCESS;
@@ -781,3 +839,85 @@ PUBLIC void csoundRegisterModuleItem(CSOUND *csound,
     (void)target_module; /* Suppress unused warning */
 }
 
+PUBLIC CS_IMPORT* csoundCreateImport(CSOUND *csound,
+                                     IMPORT_TYPE type,
+                                     const char *module_path,
+                                     const char *alias,
+                                     int is_wildcard)
+{
+    CS_IMPORT *import = csound->Calloc(csound, sizeof(CS_IMPORT));
+    import->type = type;
+    import->module_path = module_path ? cs_strdup(csound, module_path) : NULL;
+    import->module_alias = alias ? cs_strdup(csound, alias) : NULL;
+    import->is_wildcard = is_wildcard;
+    import->items = NULL;
+    import->item_count = 0;
+    return import;
+}
+
+PUBLIC void csoundAddImportItem(CSOUND *csound,
+                                CS_IMPORT *import_info,
+                                const char *original_name,
+                                const char *local_name)
+{
+    if (import_info == NULL || original_name == NULL) {
+        return;
+    }
+
+    /* Expand items array */
+    int new_count = import_info->item_count + 1;
+    CS_IMPORT_ITEM *new_items = csound->ReAlloc(csound, import_info->items,
+                                                 new_count * sizeof(CS_IMPORT_ITEM));
+    if (new_items == NULL) {
+        return;
+    }
+    import_info->items = new_items;
+
+    /* Add new item */
+    CS_IMPORT_ITEM *item = &import_info->items[import_info->item_count];
+    item->original_name = cs_strdup(csound, original_name);
+    item->local_name = local_name ? cs_strdup(csound, local_name) : cs_strdup(csound, original_name);
+    item->is_wildcard = false;
+
+    import_info->item_count = new_count;
+}
+
+PUBLIC int csoundIsItemImportAllowed(CSOUND *csound,
+                                     CS_MODULE *importing_module,
+                                     CS_MODULE *source_module,
+                                     const char *item_name)
+{
+    if (importing_module == NULL || source_module == NULL || item_name == NULL) {
+        return 1;  /* Default to allow if no info available */
+    }
+
+    /* Search for the import info for this source module */
+    for (int i = 0; i < importing_module->import_count; i++) {
+        if (importing_module->imports[i] == source_module) {
+            CS_IMPORT *info = importing_module->import_info ? importing_module->import_info[i] : NULL;
+
+            /* If no import info, this was a plain "import" - all items allowed */
+            if (info == NULL) {
+                return 1;
+            }
+
+            /* Wildcard import allows everything */
+            if (info->is_wildcard) {
+                return 1;
+            }
+
+            /* Check if item is in the explicit list */
+            for (int j = 0; j < info->item_count; j++) {
+                if (strcmp(info->items[j].original_name, item_name) == 0) {
+                    return 1;
+                }
+            }
+
+            /* Item not in explicit list */
+            return 0;
+        }
+    }
+
+    /* Module not found in imports - shouldn't happen, but allow */
+    return 1;
+}

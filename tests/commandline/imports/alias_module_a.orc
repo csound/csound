@@ -2,7 +2,7 @@
 
 giModuleA_Value = 100
 
-opcode ModuleA_Double, i, i
-    ival xin
-    xout ival * 2
+opcode ModuleA_Double(ival):i
+    iout = ival * 2
+    xout iout
 endop

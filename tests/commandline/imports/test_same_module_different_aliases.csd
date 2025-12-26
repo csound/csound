@@ -20,10 +20,10 @@ instr 1
     /* Access the same module variable through different aliases */
     iVal1 = modA.giModuleA_Value
     iVal2 = altA.giModuleA_Value
-    
+
     prints "modA.giModuleA_Value = %d\n", iVal1
     prints "altA.giModuleA_Value = %d\n", iVal2
-    
+
     /* Both should have the same value (100) */
     if (iVal1 == 100 && iVal2 == 100) then
         prints "PASS: Same module accessible via different aliases\n"
@@ -31,11 +31,11 @@ instr 1
         prints "FAIL: Expected both to be 100, got %d and %d\n", iVal1, iVal2
         exitnow 1
     endif
-    
+
     /* Use UDOs from the module */
     iDouble1 ModuleA_Double 5
     prints "ModuleA_Double(5) = %d\n", iDouble1
-    
+
     if (iDouble1 == 10) then
         prints "PASS: UDO works correctly\n"
     else

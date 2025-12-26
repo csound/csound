@@ -2,23 +2,20 @@
  * Copyright (C) 2025 Csound Developers
  */
 
-opcode LowPass, a, ak
-    asig, kfreq xin
-    aout tone(asig, kfreq)
+opcode LowPass(asig, kfreq):a
+    aout = tone(asig, kfreq)
     xout aout
 endop
 
-opcode HighPass, a, ak
-    asig, kfreq xin
-    aout atone(asig, kfreq)
+opcode HighPass(asig, kfreq):a
+    aout = atone(asig, kfreq)
     xout aout
 endop
 
-opcode BandPass, a, akk
-    asig, klow, khigh xin
-    a1 tone(asig, klow)
-    a2 atone(a1, khigh)
-    xout a2
+opcode BandPass(asig, klow, khigh):a
+    a1 = tone(asig, klow)
+    aout = atone(a1, khigh)
+    xout aout
 endop
 
 /* Module variables */

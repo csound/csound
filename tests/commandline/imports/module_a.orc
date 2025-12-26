@@ -3,6 +3,6 @@
 giSharedName = 100
 sharedValue@global:i = 150
 
-opcode ModuleATest, ii, 0
+opcode ModuleATest():(i,i)
     xout giSharedName, sharedValue
 endop

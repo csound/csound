@@ -302,7 +302,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
        * For main CSD, this will be root_module->varPool
        * For imported modules, this will be the module's varPool */
       MODULE_STATE *module_state = csoundGetModuleState(csound);
-      
+
       if (module_state->current_module && module_state->current_module->varPool) {
         typeTable->globalPool = module_state->current_module->varPool;
       } else {
@@ -354,15 +354,42 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
               csoundProcessImportStatements(csound, module, current);
 
               /* Register placeholder globals from imported module so semantic
-               * analysis of this file can resolve names (e.g., giTestValue) */
+               * analysis of this file can resolve names (e.g., giTestValue).
+               *
+               * For selective imports (from X import a,b,c), only add the
+               * explicitly listed items. For wildcard or plain imports, add all. */
               {
+                int is_selective = 0;
+                CS_HASH_TABLE *allowed_names = NULL;
+
+                /* Check if this is a selective import (FROM_TOKEN with non-wildcard list) */
+                if (current->type == FROM_TOKEN && current->right && current->right->type != '*') {
+                  is_selective = 1;
+                  allowed_names = cs_hash_table_create(csound);
+
+                  /* Build a hash set of allowed names */
+                  TREE *item = current->right;
+                  while (item != NULL) {
+                    if (item->value && item->value->lexeme) {
+                      cs_hash_table_put(csound, allowed_names, item->value->lexeme, (void*)1);
+                    }
+                    item = item->next;
+                  }
+                }
+
                 /* Walk imported module AST and add placeholders for g* identifiers */
                 TREE *it = module->ast;
                 while (it != NULL) {
                   if (it->type == T_ASSIGNMENT && it->left && it->left->value && it->left->value->lexeme) {
                     char *name = it->left->value->lexeme;
                     if (name && name[0] == 'g' && name[1] != '\0') {
-                      if (csoundFindVariableWithName(csound, typeTable->globalPool, name) == NULL) {
+                      /* For selective imports, only add if name is in allowed list */
+                      int should_add = 1;
+                      if (is_selective && allowed_names != NULL) {
+                        should_add = (cs_hash_table_get(csound, allowed_names, name) != NULL);
+                      }
+
+                      if (should_add && csoundFindVariableWithName(csound, typeTable->globalPool, name) == NULL) {
                         const CS_TYPE *tp = NULL;
                         switch (name[1]) {
                           case 'i': tp = &CS_VAR_TYPE_I; break;
@@ -377,6 +404,11 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                     }
                   }
                   it = it->next;
+                }
+
+                /* Free the allowed_names hash table if created */
+                if (allowed_names != NULL) {
+                  cs_hash_table_free(csound, allowed_names);
                 }
               }
             } else {

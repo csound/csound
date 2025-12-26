@@ -1725,6 +1725,71 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
     }
   }
 }
+
+/**
+ * Selective variable pool merge that respects import restrictions.
+ * Only merges variables that are allowed by the CS_IMPORT info.
+ * For "from module import x,y,z" only x,y,z are merged.
+ * For "from module import *" or plain "import", all are merged.
+ */
+static void varpool_merge_selective(CSOUND *csound, ENGINE_STATE *current_state,
+                                    CS_VAR_POOL *varPool, CS_IMPORT *import_info) {
+  int32_t count = 0;
+
+  // Check for null or corrupted pointers to prevent segfault
+  if (current_state == NULL || varPool == NULL ||
+      current_state->varPool == NULL ||
+      (uintptr_t)current_state->varPool < 0x1000) {
+    csoundDie(csound, Str("varpool_merge_selective: pool corruption detected"));
+    return;
+  }
+
+  /* If no import_info or wildcard, merge everything */
+  if (import_info == NULL || import_info->is_wildcard) {
+    varpool_merge(csound, current_state, varPool);
+    return;
+  }
+
+  /* Selective merge: only variables in the explicit list */
+  CS_VARIABLE *gVar = varPool->head;
+  while (gVar != NULL) {
+    /* Check if this variable is in the import list */
+    int allowed = 0;
+    for (int32_t i = 0; i < import_info->item_count; i++) {
+      if (strcmp(import_info->items[i].original_name, gVar->varName) == 0) {
+        allowed = 1;
+        break;
+      }
+    }
+
+    if (allowed) {
+      CS_VARIABLE *var = csoundFindVariableWithName(csound, current_state->varPool,
+                                                     gVar->varName);
+      if (var == NULL) {
+        ARRAY_VAR_INIT varInit;
+        varInit.dimensions = gVar->dimensions;
+        varInit.type = gVar->subType;
+        var = csoundCreateVariable(csound, csound->typePool,
+                                   (void *) gVar->varType,
+                                   gVar->varName, &varInit);
+        csoundAddVariable(csound, current_state->varPool, var);
+        var->memBlock = gVar->memBlock;
+        var->memBlockSize = gVar->memBlockSize;
+        if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+          csound->Message(csound,
+                          "DEBUG varpool_merge_selective: added %s:%s\n",
+                          gVar->varName, gVar->varType->varTypeName);
+        count++;
+      }
+    } else {
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound,
+                        "DEBUG varpool_merge_selective: skipping %s (not in import list)\n",
+                        gVar->varName);
+    }
+    gVar = gVar->next;
+  }
+}
 /**
    Merge a new engineState into csound->engineState
    1) Add to stringPool, constantsPool and varPool (globals)
@@ -1890,9 +1955,6 @@ static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
     return;
   }
 
-  csound->Message(csound, "Scanning for UDOs in module %s (instno 1 to %d)\n",
-                  module->name ? module->name : "unknown", udo_end);
-
   /* Expand root instrtxtp array if needed */
   if (udo_end > root_state->maxopcno) {
     int32_t old_max = root_state->maxopcno;
@@ -1919,32 +1981,22 @@ static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
   for (int32_t i = 1; i <= udo_end; i++) {
     if (module_state->instrtxtp[i] != NULL) {
       INSTRTXT *instr = module_state->instrtxtp[i];
-      csound->Message(csound, "  Found instr at %d: ptr=%p, opcode_info=%p, insname=%s\n",
-                      i, instr, instr->opcode_info,
-                      instr->insname ? instr->insname : "(null)");
 
       /* Check if this is a UDO (has opcode_info set) */
       if (instr->opcode_info != NULL) {
         udo_count++;
         /* Check if this slot is already occupied in root */
         if (root_state->instrtxtp[i] != NULL && root_state->instrtxtp[i] != instr) {
-          csound->Message(csound,
-                          "WARNING: UDO slot %d already occupied in root instrtxtp, "
+          csound->Warning(csound,
+                          "UDO slot %d already occupied in root instrtxtp, "
                           "overwriting with module UDO\n", i);
         }
 
         /* Copy the INSTRTXT pointer */
         root_state->instrtxtp[i] = instr;
-
-        const char *udo_name = instr->insname ? instr->insname : "unknown";
-        csound->Message(csound, "  Merged UDO %s at instno %d (ptr=%p)\n", udo_name, i, instr);
-        csound->Message(csound, "  Verify: root_state->instrtxtp[%d] = %p\n", i, root_state->instrtxtp[i]);
       }
     }
   }
-
-  csound->Message(csound, "Merge complete: found %d UDOs in module %s\n",
-                  udo_count, module->name ? module->name : "unknown");
 }
 
 /**
@@ -1955,19 +2007,27 @@ static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
  * is executed, ensuring module globals (like giTestValue = 42) are properly
  * initialized.
  *
+ * @param import_info Optional import metadata for selective imports.
+ *        If non-NULL and not wildcard, only the listed items will be merged.
+ *
  * TODO: Consider adding an instance() variant that takes INSTRTXT* directly
  * instead of requiring instrument numbers, which would be cleaner than using
  * reserved high instrument numbers for module instr0s.
  */
-static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
-                                          ENGINE_STATE *engineState) {
+static int32_t initialize_module_globals_internal(CSOUND *csound, CS_MODULE *module,
+                                                  ENGINE_STATE *engineState,
+                                                  CS_IMPORT *import_info) {
   if (module == NULL || module->instr0 == NULL) {
     return CSOUND_SUCCESS;
   }
 
-  /* First, recursively initialize all imported modules (depth-first) */
+  /* First, recursively initialize all imported modules (depth-first).
+   * For nested imports, we pass THEIR import_info (from this module's perspective). */
   for (int32_t i = 0; i < module->import_count; i++) {
-    int32_t result = initialize_module_globals(csound, module->imports[i], engineState);
+    CS_IMPORT *nested_info = (module->import_info && i < module->import_count)
+                              ? module->import_info[i] : NULL;
+    int32_t result = initialize_module_globals_internal(csound, module->imports[i],
+                                                        engineState, nested_info);
     if (result != CSOUND_SUCCESS) {
       return result;
     }
@@ -1975,8 +2035,6 @@ static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
 
   /* Now initialize this module's globals */
   INSTRTXT *module_instr0 = module->instr0;
-
-  csound->Message(csound, "Initializing module globals for %s\n", module->name);
 
   /* Ensure module instr0 is registered in instrtxtp array so instance() can find it.
    * We use high instrument numbers (starting at 1000000) for module instr0s to avoid
@@ -1995,7 +2053,6 @@ static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
   }
 
   if (!already_registered) {
-    csound->Message(csound, "Registering module instr0 as instrument %d\n", module_insno);
     /* DO NOT re-prep the module instr0 with engineState!
      * It was already prepped during module compilation with the correct module varPool.
      * The opcodes and their arguments are already correctly set up. */
@@ -2009,14 +2066,13 @@ static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
     return CSOUND_ERROR;
   }
 
-  csound->Message(csound, "Created instance %p for module %s\n", ip, module->name);
-
   /* NOW merge module variables into root varPool with shared memBlock pointers.
    * This must happen AFTER memBlocks are allocated but BEFORE module instr0 executes.
-   * This implements "from module import *" semantics - making module globals
-   * accessible in the importing module's namespace with SHARED memory. */
+   * Use selective merge if import_info restricts which items should be imported.
+   * - For "from module import x,y,z" only x,y,z are merged
+   * - For "from module import *" or plain "import", all are merged */
   if (module->varPool != NULL) {
-    varpool_merge(csound, engineState, module->varPool);
+    varpool_merge_selective(csound, engineState, module->varPool, import_info);
     /* The module instr0 was prepped before merge, so refresh argument pointers
      * now that memBlocks are shared with the root varPool. */
     csoundRecalculateVarPoolMemory(csound, module->varPool);
@@ -2070,6 +2126,16 @@ static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
   int32_t error = csound->inerrcnt;
 
   return error == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
+}
+
+/**
+ * Initialize module globals (public wrapper).
+ * This calls the internal function with NULL import_info,
+ * which means all variables will be merged (import * semantics).
+ */
+static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
+                                          ENGINE_STATE *engineState) {
+  return initialize_module_globals_internal(csound, module, engineState, NULL);
 }
 
 /**
@@ -2477,8 +2543,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
           if (compile_result == CSOUND_SUCCESS && module_instr0 != NULL &&
               module_instr0 != saved_instr0) {
             module->instr0 = module_instr0;
-            csound->Message(csound, "Stored module instr0 at %p for %s\n",
-                            module_instr0, module->name);
           }
 
           /* Restore csound->instr0 to point to main instr0 */
@@ -2659,13 +2723,15 @@ if (engineState != &csound->engineState) {
   if (firstCompilation) {
     MODULE_STATE *module_state = csoundGetModuleState(csound);
     if (module_state != NULL && module_state->root_module != NULL) {
-      csound->Message(csound, "root_module has %d imports\n", module_state->root_module->import_count);
       /* Walk imports of root module to initialize all modules depth-first */
       for (int32_t i = 0; i < module_state->root_module->import_count; i++) {
-        csound->Message(csound, "Initializing import #%d\n", i);
-        int32_t init_result = initialize_module_globals(csound,
+        /* Get the import_info for this import to support selective imports */
+        CS_IMPORT *import_info = (module_state->root_module->import_info)
+                                  ? module_state->root_module->import_info[i] : NULL;
+        int32_t init_result = initialize_module_globals_internal(csound,
                                                         module_state->root_module->imports[i],
-                                                        engineState);
+                                                        engineState,
+                                                        import_info);
         if (init_result != CSOUND_SUCCESS) {
           return init_result;
         }
@@ -3193,7 +3259,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     CS_VARIABLE *found_var = NULL;
     CS_VAR_POOL *found_pool = NULL;
 
-    /* First search imported modules' varPools */
+    /* First search imported modules' varPools, respecting selective imports */
     if (module_state && module_state->root_module) {
       CS_MODULE *root = module_state->root_module;
       for (int32_t i = 0; i < root->import_count; i++) {
@@ -3201,8 +3267,14 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
         if (imported && imported->varPool) {
           found_var = csoundFindVariableWithName(csound, imported->varPool, s);
           if (found_var != NULL) {
-            found_pool = imported->varPool;
-            break;
+            /* Check if this variable is allowed by the import info */
+            if (csoundIsItemImportAllowed(csound, root, imported, s)) {
+              found_pool = imported->varPool;
+              break;
+            } else {
+              /* Variable exists but is not allowed by selective import */
+              found_var = NULL;
+            }
           }
         }
       }
@@ -3238,22 +3310,6 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
         }
       }
     }
-  }
-
-  if (ip != NULL && ip->opcode_info != NULL) {
-    const char *udo_name = ip->opcode_info->name ? ip->opcode_info->name :
-      (ip->insname ? ip->insname : "(null)");
-    CS_VARIABLE *var = NULL;
-    void *memBlock = NULL;
-    if ((arg->type == ARG_LOCAL || arg->type == ARG_GLOBAL) && arg->argPtr != NULL) {
-      var = (CS_VARIABLE*) arg->argPtr;
-      memBlock = var->memBlock;
-    }
-    csound->Message(csound,
-                    "DEBUG create_arg: UDO %s symbol '%s' classified type=%d var=%p memBlock=%p varPool=%p parent=%p module_var_pool=%p\n",
-                    udo_name, s, arg->type, (void*)var, memBlock,
-                    (void*)ip->varPool, ip->varPool ? (void*)ip->varPool->parent : NULL,
-                    (void*)ip->opcode_info->module_var_pool);
   }
 
   return arg;

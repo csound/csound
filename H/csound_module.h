@@ -75,6 +75,7 @@ struct cs_module {
     bool is_virtual;               /* C opcode module flag */
     int32_t ref_count;             /* Reference counting for imports */
     CS_MODULE **imports;           /* Imported modules */
+    CS_IMPORT **import_info;       /* Import metadata (selective imports, aliases) */
     int32_t import_count;
     int32_t import_capacity;       /* Capacity of imports array */
 };
@@ -202,6 +203,32 @@ PUBLIC void csoundRegisterModuleItem(CSOUND *csound,
                                     CS_MODULE *source_module,
                                     const char *item_name,
                                     const char *alias);
+
+/**
+ * Check if a named item is allowed to be imported from a module
+ * Returns 1 if allowed (wildcard or in explicit list), 0 if not
+ */
+PUBLIC int csoundIsItemImportAllowed(CSOUND *csound,
+                                     CS_MODULE *importing_module,
+                                     CS_MODULE *source_module,
+                                     const char *item_name);
+
+/**
+ * Create a CS_IMPORT structure for tracking import metadata
+ */
+PUBLIC CS_IMPORT* csoundCreateImport(CSOUND *csound,
+                                     IMPORT_TYPE type,
+                                     const char *module_path,
+                                     const char *alias,
+                                     int is_wildcard);
+
+/**
+ * Add an item to a CS_IMPORT's item list
+ */
+PUBLIC void csoundAddImportItem(CSOUND *csound,
+                                CS_IMPORT *import_info,
+                                const char *original_name,
+                                const char *local_name);
 
 #ifdef __cplusplus
 }

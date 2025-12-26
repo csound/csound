@@ -10,9 +10,8 @@ nchnls = 2
 0dbfs = 1
 
 /* This is a baseline test - no imports, just a local UDO */
-opcode MyOsc, a, k
-    kfreq xin
-    aout oscili 0.5, kfreq, -1, 0
+opcode MyOsc(kfreq):a
+    aout = oscili(0.5, kfreq, -1, 0)
     xout aout
 endop
 

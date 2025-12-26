@@ -1,8 +1,7 @@
 /* simple_test.orc: Minimal test module with working UDO */
 
-opcode TestOsc, a, k
-    kfreq xin
-    aout oscili 0.5, kfreq, -1, 0
+opcode TestOsc(kfreq):a
+    aout = oscili(0.5, kfreq, -1, 0)
     xout aout
 endop
 

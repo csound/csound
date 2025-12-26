@@ -2,8 +2,7 @@
 
 import "simple_test.orc"
 
-opcode NestedOsc, a, k
-    kfreq xin
+opcode NestedOsc(kfreq):a
     /* Use the UDO from simple_test */
     aout = TestOsc(kfreq * 2)
     xout aout

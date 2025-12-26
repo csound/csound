@@ -10,9 +10,8 @@ nchnls = 2
 0dbfs = 1
 
 /* Define a UDO locally without any imports */
-opcode LocalOsc, a, k
-    kfreq xin
-    aout oscili 0.3, kfreq, -1, 0
+opcode LocalOsc(kfreq):a
+    aout = oscili(0.3, kfreq, -1, 0)
     xout aout
 endop
 

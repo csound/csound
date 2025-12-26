@@ -12,9 +12,8 @@ nchnls = 2
 import "simple_test.orc"
 
 /* Define another UDO locally */
-opcode LocalOsc, a, k
-    kfreq xin
-    aout oscili 0.3, kfreq, -1, 0
+opcode LocalOsc(kfreq):a
+    aout = oscili(0.3, kfreq, -1, 0)
     xout aout
 endop
 
