@@ -763,7 +763,8 @@ static const CSOUND cenviron_ = {
         0},
       0,0,0,
       //0,
-      NULL,
+      NULL,   /* varPool */
+      NULL,   /* module_var_pool */
       0,
       0,
       NULL,

@@ -31,12 +31,27 @@ instr 1
     prints "DoubleIt(50) = %d\\n", iDoubled
 
     ; Verify all values
-    if (giVar1 == 100 && giVar3 == 300 && giMyLocalVar == 999 && iVal1 == 1000 && iDoubled == 100) then
-        prints "=== Selective Import Test PASSED ===\\n"
-    else
-        prints "=== Selective Import Test FAILED ===\\n"
+    if (giVar1 != 100) then
+        prints "FAIL: Expected giVar1 = 100, got %d\\n", giVar1
+        exitnow 1
     endif
-
+    if (giVar3 != 300) then
+        prints "FAIL: Expected giVar3 = 300, got %d\\n", giVar3
+        exitnow 1
+    endif
+    if (giMyLocalVar != 999) then
+        prints "FAIL: Expected giMyLocalVar = 999, got %d\\n", giMyLocalVar
+        exitnow 1
+    endif
+    if (iVal1 != 1000) then
+        prints "FAIL: Expected GetValue1() = 1000, got %d\\n", iVal1
+        exitnow 1
+    endif
+    if (iDoubled != 100) then
+        prints "FAIL: Expected DoubleIt(50) = 100, got %d\\n", iDoubled
+        exitnow 1
+    endif
+    prints "PASS: Selective import - only listed items available\\n"
     turnoff
 endin
 

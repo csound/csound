@@ -17,18 +17,28 @@ giArray[] fillarray 1, 2, 3, 4, 5
 
 instr 1
   ; Test i-rate global
-  print giInt
-  
-  ; Test k-rate global
-  printk 0.1, gkRate
-  
+  if (giInt != 42) then
+    prints "FAIL: Expected giInt = 42, got %d\\n", giInt
+    exitnow 1
+  endif
+
   ; Test string global
-  puts gSString, 1
-  
+  if (strcmp(gSString, "hello") != 0) then
+    prints "FAIL: Expected gSString = 'hello'\\n"
+    exitnow 1
+  endif
+
   ; Test array global
-  print giArray[0]
-  print giArray[4]
-  
+  if (giArray[0] != 1) then
+    prints "FAIL: Expected giArray[0] = 1, got %d\\n", giArray[0]
+    exitnow 1
+  endif
+  if (giArray[4] != 5) then
+    prints "FAIL: Expected giArray[4] = 5, got %d\\n", giArray[4]
+    exitnow 1
+  endif
+
+  prints "PASS: Comprehensive global variable tests\\n"
   turnoff
 endin
 

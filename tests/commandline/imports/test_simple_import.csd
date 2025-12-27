@@ -15,7 +15,11 @@ import "test_simple.orc"
 /* Test instrument that uses the imported functionality */
 instr 1
     iResult = TestConst(123)
-    print iResult
+    if (iResult != 123) then
+        prints "FAIL: Expected TestConst(123) = 123, got %d\n", iResult
+        exitnow 1
+    endif
+    prints "PASS: Simple import test\n"
 endin
 </CsInstruments>
 

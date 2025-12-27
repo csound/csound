@@ -20,11 +20,15 @@ instr 1
     prints "giVar2 (local) = %d\n", giVar2
 
     ; giVar1 should be 100 from module, giVar2 should be 999 (our local)
-    if (giVar1 == 100 && giVar2 == 999) then
-        prints "=== Shadow Test PASSED ===\n"
-    else
-        prints "=== Shadow Test FAILED ===\n"
+    if (giVar1 != 100) then
+        prints "FAIL: Expected giVar1 = 100, got %d\n", giVar1
+        exitnow 1
     endif
+    if (giVar2 != 999) then
+        prints "FAIL: Expected giVar2 = 999, got %d\n", giVar2
+        exitnow 1
+    endif
+    prints "PASS: Local variable shadows non-imported module variable\n"
     turnoff
 endin
 </CsInstruments>

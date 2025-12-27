@@ -15,7 +15,12 @@ import "simple_test.orc" as stm
 instr 1
     /* Access module variable via alias and assign to local */
     iVal = stm.giTestValue
-    print iVal
+
+    if (iVal != 42) then
+        prints "FAIL: Expected stm.giTestValue = 42, got %d\n", iVal
+        exitnow 1
+    endif
+    prints "PASS: Import as simple - qualified variable access\n"
 endin
 </CsInstruments>
 

@@ -22,13 +22,23 @@ instr 1
     prints "Module B - giSharedName: %d, sharedValue: %d\n", iValB_g, iValB_at
 
     ; Verify they're different (namespace isolation working)
-    if (iValA_g == 100 && iValA_at == 150 && iValB_g == 200 && iValB_at == 250) then
-        prints "SUCCESS: Namespace isolation working for both g-prefix and @global!\n"
-    else
-        prints "FAIL: Namespace isolation broken!\n"
-        prints "  Expected: A(100,150) B(200,250)\n"
-        prints "  Got: A(%d,%d) B(%d,%d)\n", iValA_g, iValA_at, iValB_g, iValB_at
+    if (iValA_g != 100) then
+        prints "FAIL: Expected iValA_g = 100, got %d\n", iValA_g
+        exitnow 1
     endif
+    if (iValA_at != 150) then
+        prints "FAIL: Expected iValA_at = 150, got %d\n", iValA_at
+        exitnow 1
+    endif
+    if (iValB_g != 200) then
+        prints "FAIL: Expected iValB_g = 200, got %d\n", iValB_g
+        exitnow 1
+    endif
+    if (iValB_at != 250) then
+        prints "FAIL: Expected iValB_at = 250, got %d\n", iValB_at
+        exitnow 1
+    endif
+    prints "PASS: Namespace isolation working for both g-prefix and @global\n"
 endin
 </CsInstruments>
 

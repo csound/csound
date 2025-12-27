@@ -389,7 +389,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     inm->outtypes = outtypes;
     inm->in_arg_pool = csoundCreateVarPool(csound);
     inm->out_arg_pool = csoundCreateVarPool(csound);
-    
+
     /* Store the module's varPool for namespace isolation */
     MODULE_STATE *module_state = csoundGetModuleState(csound);
     if (module_state && module_state->current_module) {

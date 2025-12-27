@@ -15,8 +15,12 @@ import "simple_test.orc" as stm
 giLocal = 123
 
 instr 1
-    /* Does stm parse as identifier? */
-    print giLocal
+    /* Verify the local variable is working */
+    if (giLocal != 123) then
+        prints "FAIL: Expected giLocal = 123, got %d\\n", giLocal
+        exitnow 1
+    endif
+    prints "PASS: Debug test - local variable works\\n"
 endin
 </CsInstruments>
 

@@ -5,7 +5,8 @@
 
 /* Simple test UDO that returns a constant value */
 opcode TestConst(iVal):i
-    xout iVal
+    iout = iVal
+    xout iout
 endop
 
 /* Module-level variable for testing */

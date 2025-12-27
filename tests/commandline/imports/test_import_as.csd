@@ -14,7 +14,14 @@ import "simple_test.orc" as stm
 
 instr 1
     /* Access module variable via alias */
-    print stm.giTestValue
+    iVal = stm.giTestValue
+
+    /* Verify the value is correct */
+    if (iVal != 42) then
+        prints "FAIL: Expected stm.giTestValue = 42, got %d\n", iVal
+        exitnow 1
+    endif
+    prints "PASS: Import with alias syntax works\n"
 
     /* Use UDO from the aliased module */
     aout = TestOsc(440)

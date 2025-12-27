@@ -12,7 +12,11 @@ nchnls = 2
 giValue = 42
 
 instr 1
-  print giValue
+  if (giValue != 42) then
+    prints "FAIL: Expected giValue = 42, got %d\\n", giValue
+    exitnow 1
+  endif
+  prints "PASS: Simple global variables\\n"
   turnoff
 endin
 

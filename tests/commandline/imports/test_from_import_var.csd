@@ -13,8 +13,12 @@ nchnls = 2
 from "simple_test.orc" import giTestValue
 
 instr 1
-    /* Try to access the imported variable directly */
-    print giTestValue
+    /* Access the imported variable directly */
+    if (giTestValue != 42) then
+        prints "FAIL: Expected giTestValue = 42, got %d\n", giTestValue
+        exitnow 1
+    endif
+    prints "PASS: From import with variable works\n"
 endin
 </CsInstruments>
 

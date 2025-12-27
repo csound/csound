@@ -137,6 +137,8 @@ typedef struct instr {
   int32_t pmax, vmax, pextrab; /* Arg count, size of data for all
                                   opcodes in instr */
   CS_VAR_POOL *varPool;
+  CS_VAR_POOL *module_var_pool; /* Module's varPool for namespace isolation
+                                   (used by module instr0 and UDOs) */
   int16 muted;
   int32 opdstot;              /* Total size of opds structs in instr */
   MYFLT *psetdata;            /* Used for pset opcode */
@@ -1800,10 +1802,10 @@ struct CSOUND_ {
   int32_t parflag;
   int32_t *taskflag;
   /*struct CSOUND_ **self;*/
-  
+
   /* Module system compilation tracking */
   int32_t compilation_depth;     /* Tracks recursive compilation depth for modules */
-  
+
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
 };

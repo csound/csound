@@ -12,12 +12,20 @@ nchnls = 2
 import "simple_test.orc"
 
 instr 1
-    /* Try to access the imported module variable */
-    print giTestValue
-    
-    /* Try to access the @global annotated variable */
-    print myGlobalVar
-    
+    /* Access the imported module variable (g-prefix) */
+    if (giTestValue != 42) then
+        prints "FAIL: Expected giTestValue = 42, got %d\n", giTestValue
+        exitnow 1
+    endif
+
+    /* Access the @global annotated variable */
+    if (myGlobalVar != 100) then
+        prints "FAIL: Expected myGlobalVar = 100, got %d\n", myGlobalVar
+        exitnow 1
+    endif
+
+    prints "PASS: Module variable access (g-prefix AND @global)\n"
+
     /* Also use the UDO to verify imports work */
     aout = TestOsc(440)
     outs aout, aout

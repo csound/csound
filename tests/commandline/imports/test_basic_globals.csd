@@ -13,8 +13,11 @@ giValue = 42
 gkValue init 100
 
 instr 1
-  print giValue
-  printk2 gkValue
+  if (giValue != 42) then
+    prints "FAIL: Expected giValue = 42, got %d\\n", giValue
+    exitnow 1
+  endif
+  prints "PASS: Basic global variables\\n"
   turnoff
 endin
 

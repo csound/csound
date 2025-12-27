@@ -1712,11 +1712,6 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
       /* Share the memBlock pointer - the source pool must not free memBlocks */
       var->memBlock = gVar->memBlock;
       var->memBlockSize = gVar->memBlockSize;
-       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound,
-                        "DEBUG varpool_merge: added %s:%s srcVar=%p tgtVar=%p memBlock=%p\n",
-                        gVar->varName, gVar->varType->varTypeName,
-                        (void*)gVar, (void*)var, (void*)var->memBlock);
       gVar = gVar->next;
     } else {
       /* Variable already present; do not free here.
@@ -2269,6 +2264,12 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
      * to module globals and system globals */
     csound->instr0 = create_instrument0(csound, current, engineState,
                                         typeTable->instr0LocalPool);
+
+    /* Set module_var_pool BEFORE instr_prep is called so module instr0 can
+     * resolve its own module's globals during compilation, not from merged pools */
+    if (csound->instr0 != NULL && module_state->current_module != NULL) {
+      csound->instr0->module_var_pool = module_state->current_module->varPool;
+    }
 
     prvinstxt = &(engineState->instxtanchor);
     /* Find the last instrument in the chain */
@@ -2910,6 +2911,11 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   char **argStringParts;
   ARGLST *outlist, *inlist;
 
+  csound->Message(csound,
+                  "DEBUG instr_prep: tp=%p insname='%s' opcode_info=%p\n",
+                  (void*)tp, tp->insname ? tp->insname : "(null)",
+                  (void*)tp->opcode_info);
+
   /* Log prep entry for all instruments */
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER)) {
     csound->Message(csound,
@@ -3105,7 +3111,6 @@ static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
   } else {
     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
     arg->structPath = NULL;
-    // Variable found and assigned
   }
 }
 
@@ -3234,6 +3239,12 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       }
     }
   }
+  /* Check instrument's module_var_pool (for module instr0 and instruments) */
+  else if (ip->module_var_pool != NULL &&
+           csoundFindVariableWithName(csound, ip->module_var_pool, s) != NULL) {
+    arg->type = ARG_GLOBAL;
+    setup_arg_for_var_name(csound, arg, ip->module_var_pool, s);
+  }
   /* For UDOs: check if the UDO has a module_var_pool (namespace isolation)
    * If so, search there first for module-specific globals */
   else if (ip->opcode_info != NULL && ip->opcode_info->module_var_pool != NULL &&
@@ -3246,7 +3257,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
           csoundFindVariableWithName(csound, engineState->varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
     setup_arg_for_var_name(csound, arg, engineState->varPool, s);
-    }
+  }
     else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
             csoundFindVariableWithName(csound, csound->engineState.varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
