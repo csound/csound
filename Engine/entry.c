@@ -1494,7 +1494,7 @@ const OENTRY opcodlst_1[] = {
     "kkkSkz",triginset_S, ktriginstr_S, NULL },
   { "trigseq", S(TRIGSEQ),0,      "",     "kkkkkz", trigseq_set, trigseq, NULL },
   { "event", S(LINEVENT),0,        "",     "S:InstrDef;z",  NULL, event_opcode_Instr, NULL   },
-  { "event", S(LINEVENT),0,        "",     "Skz",  NULL, event_opcode, NULL   },
+  { "event", S(LINEVENT),0,        "",     "Sz",  NULL, event_opcode, NULL   },
   { "event.S", S(LINEVENT),0,        "",    "SSz",  NULL, event_opcode_S, NULL   },
   { "event_i.instr", S(LINEVENT),0,     "",     "S:InstrDef;m",  event_opcode_i_Instr, NULL, NULL, NULL, 2  },
   { "event_i", S(LINEVENT),0,     "",     "Sim",  event_opcode_i, NULL, NULL, NULL, 2  },
