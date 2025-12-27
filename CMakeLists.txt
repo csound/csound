@@ -677,10 +677,6 @@ if (NOT HAVE_INTTYPES_H)
     message(FATAL_ERROR "Csound requires inttypes.h")
 endif()
 
-if (HAVE_EXECINFO_H)
-    add_definitions("-DHAVE_EXECINFO")
-endif()
-
 check_deps(USE_LRINT FOUND_LRINT)
 if(USE_LRINT)
     add_definitions("-DUSE_LRINT")
@@ -1387,6 +1383,18 @@ else()
     message(STATUS "Not using localization.")
 endif()
 
+if (HAVE_EXECINFO_H)
+    add_definitions("-DHAVE_EXECINFO")
+
+    find_library(LIBEXECINFO_LIBRARY execinfo)
+
+    if(LIBEXECINFO_LIBRARY)
+       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
+       set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBEXECINFO_LIBRARY}")
+       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
+    endif()
+endif()
+
 if(LINUX)
     message(STATUS "Building on Linux.")
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE
@@ -1400,14 +1408,6 @@ if(LINUX)
         list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
         set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBRT_LIBRARY}")
         message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
-    endif()
-
-    find_library(LIBEXECINFO_LIBRARY execinfo)
-
-    if(LIBEXECINFO_LIBRARY)
-       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
-       set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBEXECINFO_LIBRARY}")
-       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
     endif()
 endif()
 
