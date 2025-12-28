@@ -2111,14 +2111,6 @@ int32_t subin(CSOUND *csound, ASSIGN *p)
 
 int32_t subina(CSOUND *csound, ASSIGN *p)
 {
-  // SAFETY CHECK: This function should only be called for array operations
-  // If we're here for a scalar operation, it's a bug in the opcode resolution
-  // Fall back to scalar subtraction to prevent buffer overflow
-  *p->r -= *p->a;
-  return OK;
-
-  // Original array code (commented out to prevent buffer overflow):
-  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2130,7 +2122,6 @@ int32_t subina(CSOUND *csound, ASSIGN *p)
       ans[n] -= val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
-  */
 }
 
 int32_t subinak(CSOUND *csound, ASSIGN *p)
@@ -2151,14 +2142,6 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
 
 int32_t mulina(CSOUND *csound, ASSIGN *p)
 {
-  // SAFETY CHECK: This function should only be called for array operations
-  // If we're here for a scalar operation, it's a bug in the opcode resolution
-  // Fall back to scalar multiplication to prevent buffer overflow
-  *p->r *= *p->a;
-  return OK;
-
-  // Original array code (commented out to prevent buffer overflow):
-  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2170,7 +2153,6 @@ int32_t mulina(CSOUND *csound, ASSIGN *p)
       ans[n] *= val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
-  */
 }
 
 int32_t mulinak(CSOUND *csound, ASSIGN *p)
@@ -2207,14 +2189,6 @@ int32_t divin(CSOUND *csound, ASSIGN *p)
 
 int32_t divina(CSOUND *csound, ASSIGN *p)
 {
-  // SAFETY CHECK: This function should only be called for array operations
-  // If we're here for a scalar operation, it's a bug in the opcode resolution
-  // Fall back to scalar division to prevent buffer overflow
-  *p->r /= *p->a;
-  return OK;
-
-  // Original array code (commented out to prevent buffer overflow):
-  /*
   MYFLT* val = p->a;
   MYFLT* ans = p->r;
   uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -2226,7 +2200,6 @@ int32_t divina(CSOUND *csound, ASSIGN *p)
       ans[n] /= val[n];
   CSOUND_SPOUT_SPINUNLOCK
     return OK;
-  */
 }
 
 int32_t divinak(CSOUND *csound, ASSIGN *p)
