@@ -2911,11 +2911,6 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   char **argStringParts;
   ARGLST *outlist, *inlist;
 
-  csound->Message(csound,
-                  "DEBUG instr_prep: tp=%p insname='%s' opcode_info=%p\n",
-                  (void*)tp, tp->insname ? tp->insname : "(null)",
-                  (void*)tp->opcode_info);
-
   /* Log prep entry for all instruments */
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER)) {
     csound->Message(csound,

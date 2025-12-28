@@ -426,6 +426,13 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 
+    /* Also register the UDO in the current module's opcodes table for qualified access */
+    if (module_state && module_state->current_module &&
+        module_state->current_module->opcodes != NULL) {
+      cs_hash_table_put(csound, module_state->current_module->opcodes,
+                        (char*)opname, newopc);
+    }
+
     // add opcodeDef for this UDO
     add_opcode_def(csound, newopc);
     return 0;

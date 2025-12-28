@@ -403,6 +403,50 @@ opcall  : identifier NEWLINE
             $2->left = $1;
             $2->right = $3;
           }
+        /* Qualified UDO calls: out_args module.UDO args
+         * For qualified opcodes, we store the full qualified name (e.g., "mod.UDO")
+         * directly in the lexeme. The opcode lookup code will parse this to
+         * resolve the module alias and find the opcode. */
+        | out_arg_list struct_expr expr_list NEWLINE
+          {
+            /* Build "module.opcode" qualified name string */
+            char* qualifiedName = NULL;
+            if ($2->left && $2->left->value && $2->right && $2->right->value) {
+              size_t len = strlen($2->left->value->lexeme) + 1 +
+                           strlen($2->right->value->lexeme) + 1;
+              qualifiedName = csound->Malloc(csound, len);
+              snprintf(qualifiedName, len, "%s.%s",
+                       $2->left->value->lexeme, $2->right->value->lexeme);
+            } else {
+              qualifiedName = csound->Malloc(csound, strlen("unknown") + 1);
+              strcpy(qualifiedName, "unknown");
+            }
+            /* Use the full qualified name as the opcode name - find_opcode2 will resolve it */
+            $$ = make_leaf(csound, LINE, LOCN, T_OPCALL, make_token(csound, qualifiedName));
+            $$->left = $1;   /* output args */
+            $$->right = $3;  /* input args */
+          }
+        | out_arg_list_array struct_expr expr_list NEWLINE
+          {
+            char* qualifiedName = NULL;
+            if ($2->left && $2->left->value && $2->right && $2->right->value) {
+              size_t len = strlen($2->left->value->lexeme) + 1 +
+                           strlen($2->right->value->lexeme) + 1;
+              qualifiedName = csound->Malloc(csound, len);
+              snprintf(qualifiedName, len, "%s.%s",
+                       $2->left->value->lexeme, $2->right->value->lexeme);
+            } else {
+              qualifiedName = csound->Malloc(csound, strlen("unknown") + 1);
+              strcpy(qualifiedName, "unknown");
+            }
+            $$ = make_leaf(csound, LINE, LOCN, T_OPCALL, make_token(csound, qualifiedName));
+            $$->left = $1;
+            $$->right = $3;
+          }
+        /* NOTE: Qualified UDO calls without arguments (e.g., "aout stm.UDO")
+         * are NOT supported via grammar rules because they conflict with
+         * struct member access patterns like "prints var.member".
+         * Use "aout stm.UDO()" function call syntax for no-argument qualified UDOs. */
         | function_call NEWLINE
           { $$ = $1; }
         | function_call '+' expr_list NEWLINE

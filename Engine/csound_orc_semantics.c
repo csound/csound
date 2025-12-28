@@ -1189,6 +1189,7 @@ static OENTRIES* get_entries(CSOUND* csound, int32_t count)
 
 /* Finds OENTRIES that match the given opcode name.  May return multiple
  * OENTRY*'s for each entry in a polyMorphic opcode.
+ * Supports qualified names like "module.opcode" for module-scoped UDO access.
  */
 OENTRIES* find_opcode2(CSOUND* csound, char* opname)
 {
@@ -1199,6 +1200,37 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
 
   if (UNLIKELY(opname == NULL)) {
     return NULL;
+  }
+
+  /* Check for qualified opcode name (e.g., "mod.UDO") */
+  char *dot = strchr(opname, '.');
+  if (dot != NULL && dot != opname && *(dot + 1) != '\0') {
+    /* This is a qualified opcode name - look up via module alias */
+    size_t aliasLen = dot - opname;
+    char *aliasName = csound->Malloc(csound, aliasLen + 1);
+    strncpy(aliasName, opname, aliasLen);
+    aliasName[aliasLen] = '\0';
+    char *localOpname = dot + 1;
+
+    CS_MODULE *module = csoundFindModuleByAlias(csound, aliasName);
+    if (module != NULL) {
+      /* Found the module - look up the opcode in the module's opcode table */
+      OENTRY *modOp = csoundFindModuleOpcode(csound, module, localOpname);
+      csound->Free(csound, aliasName);
+
+      if (modOp != NULL) {
+        /* Found the opcode in the module */
+        retVal = get_entries(csound, 1);
+        retVal->entries[0] = modOp;
+        return retVal;
+      }
+      /* Opcode not in module's table, fall through to global lookup with local name */
+      /* This handles cases where UDO was registered globally but defined in a module */
+      opname = localOpname;
+    } else {
+      csound->Free(csound, aliasName);
+      /* Not a valid module alias - try the full name as-is (might be a struct type) */
+    }
   }
 
   shortName = get_opcode_short_name(csound, opname);
