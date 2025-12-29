@@ -902,7 +902,7 @@ PUBLIC int32_t csoundWaitBarrier(void *barrier)
 
 /* ------------------------------------------------------------------------ */
 
-#elif defined(__STDC_NO_THREADS__)
+#elif defined(__STDC_NO_THREADS__) || defined(BAREMETAL)
 
 PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
                                 void *userdata)
@@ -1033,15 +1033,15 @@ PUBLIC void csoundSleep(size_t milliseconds) {
 
 #else // C THREADS
 #include <threads.h>
-#error
+
 PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
                                 void *userdata)
 {
-  thrd_t *thread = (thrd_t *) malloc(csound, sizeof(thrd_t));
-  if(thrd_create(thread, (thread_start_t) threadRoutine, userdata) == thr_success){
+  thrd_t *thread = (thrd_t *) malloc(sizeof(thrd_t));
+  if(thrd_create(thread, (thrd_start_t) threadRoutine, userdata) == thrd_success){
     return thread;
   }
-  free(csound, thread);
+  free(thread);
   return NULL;
 }
 
@@ -1049,24 +1049,24 @@ PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t st
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
-  thrd_t *thread = (thrd_t *) malloc(csound, sizeof(thrd_t));
-  if(thrd_create(thread, (thread_start_t) threadRoutine, userdata) == thr_success){
+  thrd_t *thread = (thrd_t *) malloc(sizeof(thrd_t));
+  if(thrd_create(thread, (thrd_start_t) threadRoutine, userdata) == thrd_success){
     return thread;
   }
-  free(csound, thread);
+  free(thread);
   return NULL;
 }
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return &(thrd_current();
+  return &thrd_current();
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
 {
     int threadRoutineReturnValue;
     int32_t threadReturnValue;
-    thrd_t *thred = (thred_t *)thread;
+    thrd_t *thred = (thrd_t *)thread;
     if(thred == NULL) return 0;
     threadReturnValue = thrd_join(*thred,
                                    &threadRoutineReturnValue);
@@ -1090,6 +1090,8 @@ PUBLIC void *csoundCreateThreadLock(void)
     }
     return (void*) thread_mutex;
 }
+
+#include <sys/time.h>
 
 PUBLIC int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
@@ -1170,6 +1172,8 @@ PUBLIC void csoundDestroyMutex(void *mutex_)
     }
 }
 
+#define BARRIER_SERIAL_THREAD (-1)
+
 typedef struct barrier {
     mtx_t mut;
     cnd_t cond;
@@ -1181,8 +1185,8 @@ PUBLIC void *csoundCreateBarrier(uint32_t max)
   barrier_t *b;
   if (max == 0) return (void*) EINVAL;
   b = (barrier_t *)malloc(sizeof(barrier_t));
-  mtx_init(&b->mut, NULL);
-  cnd_init(&b->cond, NULL);
+  mtx_init(&b->mut, MTX_PLAIN);
+  cnd_init(&b->cond);
   b->count = 0;
   b->iteration = 0;
   b->max = max;
@@ -1242,35 +1246,8 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
   }
 }
 
-#include <sys/wait>
 PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait) {
-    long    retval;
-
-    if (argv == NULL || argv[0] == NULL)
-      return -1L;
-    retval = (long) fork();
-    if (retval == 0L) {
-      /* child process */
-      if (execvp(argv[0], (char**) argv) != 0)
-        exit(-1);
-      /* this is not actually reached */
-      exit(0);
-    }
-    else if (retval > 0L && noWait == 0) {
-      int32_t   status = 0;
-      while (waitpid((pid_t) retval, &status, 0) != (pid_t) ECHILD) {
-        if (WIFEXITED(status) != 0) {
-          retval = (long) (WEXITSTATUS(status)) & 255L;
-          return retval;
-        }
-        if (WIFSIGNALED(status) != 0) {
-          retval = 255L;
-          return retval;
-        }
-      }
-      retval = 255L;
-    }
-    return retval;
+  return 0
 }
 
 PUBLIC void csoundSleep(size_t milliseconds) {
