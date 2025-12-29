@@ -1258,7 +1258,7 @@ PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait) {
   }
   system(command);
   free(command);
-  return 0
+  return 0;
 }
 
 PUBLIC void csoundSleep(size_t milliseconds) {
