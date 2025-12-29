@@ -902,7 +902,7 @@ PUBLIC int32_t csoundWaitBarrier(void *barrier)
 
 /* ------------------------------------------------------------------------ */
 
-#elif defined(__STDC_NO_THREADS__) || defined(BAREMETAL)
+#elif defined(__STDC_NO_THREADS__) || defined(BARE_METAL)
 
 PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
                                 void *userdata)
@@ -1059,7 +1059,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 
 PUBLIC void *csoundGetCurrentThreadId(void)
 {
-  return &thrd_current();
+  return (void *) thrd_current();
 }
 
 PUBLIC uintptr_t csoundJoinThread(void *thread)
@@ -1247,6 +1247,17 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
 }
 
 PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait) {
+  char *command = malloc(1024);
+  int cnt = 0, max = 1024;
+  while(argv != NULL) {
+    cnt += snprintf("%s \n", 1024-cnt, *argv);
+    if(cnt > max/2) {
+      command = realloc(command, max*2);
+      max *= 2;
+    }
+  }
+  system(command);
+  free(command);
   return 0
 }
 
