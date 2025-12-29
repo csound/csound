@@ -902,7 +902,7 @@ PUBLIC int32_t csoundWaitBarrier(void *barrier)
 
 /* ------------------------------------------------------------------------ */
 
-#elif defined(__STDC_NO_THREADS__) || defined(BARE_METAL)
+#elif defined(__STDC_NO_THREADS__) || defined(BARE_METAL) || defined(__wasi__)
 
 PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
                                 void *userdata)
