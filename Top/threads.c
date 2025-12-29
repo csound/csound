@@ -1185,7 +1185,7 @@ PUBLIC void *csoundCreateBarrier(uint32_t max)
   barrier_t *b;
   if (max == 0) return (void*) EINVAL;
   b = (barrier_t *)malloc(sizeof(barrier_t));
-  mtx_init(&b->mut, MTX_PLAIN);
+  mtx_init(&b->mut, mtx_plain);
   cnd_init(&b->cond);
   b->count = 0;
   b->iteration = 0;
@@ -1250,7 +1250,7 @@ PUBLIC long csoundRunCommand(const char * const *argv, int32_t noWait) {
   char *command = malloc(1024);
   int cnt = 0, max = 1024;
   while(argv != NULL) {
-    cnt += snprintf("%s \n", 1024-cnt, *argv);
+    cnt += snprintf(command, 1024-cnt, "%s \n", *argv);
     if(cnt > max/2) {
       command = realloc(command, max*2);
       max *= 2;
