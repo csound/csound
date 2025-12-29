@@ -94,12 +94,16 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 LPAREN          "("
 RPAREN          ")"
 SYMBOL          [\[\]+\-*/%\^\?:.,!]
+RSTR            "```"
+ERSTR           "'''"
 
+   
 %s ignorenewline
 %x line
 %x sline
 %x src
 %x xstr
+%x rstr   
 %x declare
 %x udodef
 %x udoarg
@@ -240,14 +244,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   (*lvalp)->type = ENDIN_TOKEN;
                   return ENDIN_TOKEN; }
 "void"          { return VOID_TOKEN; }
-"\{\{"          {
-                  PARM->xstrbuff = (char *)malloc(128);
-                  PARM->xstrptr = 0; PARM->xstrmax = 128;
-                  PARM->xstrbuff[PARM->xstrptr++] = '"';
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
-                  PARM->xsubstr = 0;
-                  BEGIN(xstr);
-                }
+
 
 "for"           {  *lvalp = make_token(csound, yytext);
                    (*lvalp)->type = FOR_TOKEN;
@@ -270,10 +267,18 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   }
 }
 
+"\{\{"          {
+                  PARM->xstrbuff = (char *)malloc(128);
+                  PARM->xstrptr = 0; PARM->xstrmax = 128;
+                  PARM->xstrbuff[PARM->xstrptr++] = '"';
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xsubstr = 0;
+                  BEGIN(xstr);
+                }
 <xstr>{
   "\{\{" {
              PARM->xsubstr += 1; // substr start
-             if (PARM->xstrptr+3==PARM->xstrmax) {
+             if (PARM->xstrptr+3>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -286,7 +291,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   "}}"   {
     if(PARM->xsubstr) {
             PARM->xsubstr -= 1; // substr end
-           if (PARM->xstrptr+3==PARM->xstrmax) {
+           if (PARM->xstrptr+3>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -306,7 +311,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   }
 
   "\n"  { /* The next two should be one case but I cannot get that to work */
-           if (PARM->xstrptr+2==PARM->xstrmax) {
+           if (PARM->xstrptr+2>=PARM->xstrmax) {
                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -317,7 +322,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
            }
 
   .        {
-            if (PARM->xstrptr+2==PARM->xstrmax) {
+            if (PARM->xstrptr+2>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                  csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -327,6 +332,75 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
               PARM->xstrbuff[PARM->xstrptr] = '\0';
             }
 }
+
+"```"   {
+                  PARM->xstrbuff = (char *)malloc(128);
+                  PARM->xstrptr = 0; PARM->xstrmax = 128;
+                  PARM->xstrbuff[PARM->xstrptr++] = '"';
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xsubstr = 0;
+                  BEGIN(rstr);
+                }
+
+<rstr>{
+  "```" {
+             PARM->xsubstr += 1; // substr start
+             if (PARM->xstrptr+4>=PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending rstr buffer\n");
+             }
+             PARM->xstrbuff[PARM->xstrptr++] = '`';
+             PARM->xstrbuff[PARM->xstrptr++] = '`';
+             PARM->xstrbuff[PARM->xstrptr++] = '`';
+             PARM->xstrbuff[PARM->xstrptr] = '\0';
+         }
+
+  "'''"   {
+    if(PARM->xsubstr) {
+            PARM->xsubstr -= 1; // substr end
+           if (PARM->xstrptr+4>=PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending rstr buffer\n");
+           }
+             PARM->xstrbuff[PARM->xstrptr++] = '\'';
+             PARM->xstrbuff[PARM->xstrptr++] = '\'';
+             PARM->xstrbuff[PARM->xstrptr++] = '\'';
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
+    } else {
+           BEGIN(INITIAL);
+           PARM->xstrbuff[PARM->xstrptr++] = '"';
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
+           *lvalp = make_string(csound, PARM->xstrbuff);
+            free(PARM->xstrbuff);
+            return STRING_TOKEN;
+          }
+  }
+
+  "\n"  { /* The next two should be one case but I cannot get that to work */
+           if (PARM->xstrptr+2>=PARM->xstrmax) {
+               PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending xstr buffer\n");
+           }
+            //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
+               PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+               PARM->xstrbuff[PARM->xstrptr] = '\0';
+           }
+
+  .        {
+            if (PARM->xstrptr+2>=PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+                 csound->DebugMsg(csound,"Extending xstr buffer\n");
+               }
+              //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
+              PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+              PARM->xstrbuff[PARM->xstrptr] = '\0';
+            }
+ }
+
 
 ^[ \t]*{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
