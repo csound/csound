@@ -1032,7 +1032,7 @@ PUBLIC void csoundSleep(size_t milliseconds) {
 }
 
 
-#endif
+#endif // HAVE_PTHREADS
 
 #if defined(MSVC)
 // Spinlocks use MSVC atomics
