@@ -1470,7 +1470,7 @@ endif()
 
 # Pass flags according to system capabilities
 
-if(HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H)
+if((HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H) AND NOT EMSCRIPTEN)
     add_definitions(-DHAVE_SOCKETS)
 endif()
 
