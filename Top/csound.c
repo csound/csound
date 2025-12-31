@@ -1402,7 +1402,7 @@ static void psignal_(int sig, char *str) {
 #endif
 
 static void signal_handler(int sig) {
-#if defined(HAVE_EXECINFO) && !defined(ANDROID)
+#if defined(HAVE_EXECINFO_H) && !defined(ANDROID)
 #include <execinfo.h>
 
   {
