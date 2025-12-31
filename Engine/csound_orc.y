@@ -700,9 +700,18 @@ import_definition : IMPORT_TOKEN STRING_TOKEN NEWLINE
                   }
                 ;
 
-import_list : import_list ',' identifier
+import_list : import_list ',' import_item
             {
               $$ = append_to_tree(csound, $1, $3);
+            }
+           | import_item
+           ;
+
+import_item : identifier AS_TOKEN identifier
+            {
+              /* Aliased import: X as Y - store original in left, alias info attached */
+              $$ = $1;
+              $$->right = $3;  /* alias node goes in right child */
             }
            | identifier
            ;

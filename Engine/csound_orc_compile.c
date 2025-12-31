@@ -1750,31 +1750,59 @@ static void varpool_merge_selective(CSOUND *csound, ENGINE_STATE *current_state,
   while (gVar != NULL) {
     /* Check if this variable is in the import list */
     int allowed = 0;
+    const char *local_name = NULL;
     for (int32_t i = 0; i < import_info->item_count; i++) {
       if (strcmp(import_info->items[i].original_name, gVar->varName) == 0) {
         allowed = 1;
+        local_name = import_info->items[i].local_name;
         break;
       }
     }
 
     if (allowed) {
+      /* Use the local_name (alias) if provided, otherwise use original name */
+      const char *target_name = local_name ? local_name : gVar->varName;
       CS_VARIABLE *var = csoundFindVariableWithName(csound, current_state->varPool,
-                                                     gVar->varName);
+                                                     target_name);
       if (var == NULL) {
         ARRAY_VAR_INIT varInit;
         varInit.dimensions = gVar->dimensions;
         varInit.type = gVar->subType;
         var = csoundCreateVariable(csound, csound->typePool,
                                    (void *) gVar->varType,
-                                   gVar->varName, &varInit);
+                                   (char *)target_name, &varInit);
         csoundAddVariable(csound, current_state->varPool, var);
         var->memBlock = gVar->memBlock;
         var->memBlockSize = gVar->memBlockSize;
         if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
           csound->Message(csound,
-                          "DEBUG varpool_merge_selective: added %s:%s\n",
-                          gVar->varName, gVar->varType->varTypeName);
+                          "DEBUG varpool_merge_selective: added %s:%s%s%s\n",
+                          target_name, gVar->varType->varTypeName,
+                          local_name ? " (alias for " : "",
+                          local_name ? gVar->varName : "");
         count++;
+      } else {
+        /* Variable already exists (placeholder), just copy the memory block */
+        var->memBlock = gVar->memBlock;
+        var->memBlockSize = gVar->memBlockSize;
+        if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+          csound->Message(csound,
+                          "DEBUG varpool_merge_selective: updated memblock for %s\n",
+                          target_name);
+      }
+
+      /* CRITICAL: Also update the placeholder in root_module->varPool if it exists.
+       * The root CSD's instruments were compiled to use variables from root_module->varPool,
+       * so we need to ensure those placeholders share the module's memBlock. */
+      MODULE_STATE *module_state = csoundGetModuleState(csound);
+      if (module_state && module_state->root_module && module_state->root_module->varPool) {
+        CS_VARIABLE *root_var = csoundFindVariableWithName(csound,
+                                                           module_state->root_module->varPool,
+                                                           target_name);
+        if (root_var != NULL && root_var->memBlock != gVar->memBlock) {
+          root_var->memBlock = gVar->memBlock;
+          root_var->memBlockSize = gVar->memBlockSize;
+        }
       }
     } else {
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))

@@ -361,17 +361,26 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
               {
                 int is_selective = 0;
                 CS_HASH_TABLE *allowed_names = NULL;
+                CS_HASH_TABLE *alias_map = NULL;  /* Maps original name -> alias name */
 
                 /* Check if this is a selective import (FROM_TOKEN with non-wildcard list) */
                 if (current->type == FROM_TOKEN && current->right && current->right->type != '*') {
                   is_selective = 1;
                   allowed_names = cs_hash_table_create(csound);
+                  alias_map = cs_hash_table_create(csound);
 
-                  /* Build a hash set of allowed names */
+                  /* Build hash sets for allowed names and alias mappings */
                   TREE *item = current->right;
                   while (item != NULL) {
                     if (item->value && item->value->lexeme) {
-                      cs_hash_table_put(csound, allowed_names, item->value->lexeme, (void*)1);
+                      char *original_name = item->value->lexeme;
+                      cs_hash_table_put(csound, allowed_names, original_name, (void*)1);
+
+                      /* Check if this item has an alias (right child contains alias identifier) */
+                      if (item->right && item->right->value && item->right->value->lexeme) {
+                        char *alias_name = item->right->value->lexeme;
+                        cs_hash_table_put(csound, alias_map, original_name, alias_name);
+                      }
                     }
                     item = item->next;
                   }
@@ -389,26 +398,40 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                         should_add = (cs_hash_table_get(csound, allowed_names, name) != NULL);
                       }
 
-                      if (should_add && csoundFindVariableWithName(csound, typeTable->globalPool, name) == NULL) {
-                        const CS_TYPE *tp = NULL;
-                        switch (name[1]) {
-                          case 'i': tp = &CS_VAR_TYPE_I; break;
-                          case 'k': tp = &CS_VAR_TYPE_K; break;
-                          case 'a': tp = &CS_VAR_TYPE_A; break;
-                          case 'S': tp = &CS_VAR_TYPE_S; break;
-                          default:  tp = &CS_VAR_TYPE_I; break;
+                      if (should_add) {
+                        /* Check if this variable has an alias */
+                        char *local_name = name;
+                        if (alias_map != NULL) {
+                          char *alias = cs_hash_table_get(csound, alias_map, name);
+                          if (alias != NULL) {
+                            local_name = alias;
+                          }
                         }
-                        CS_VARIABLE *v = csoundCreateVariable(csound, csound->typePool, tp, name, NULL);
-                        csoundAddVariable(csound, typeTable->globalPool, v);
+
+                        if (csoundFindVariableWithName(csound, typeTable->globalPool, local_name) == NULL) {
+                          const CS_TYPE *tp = NULL;
+                          switch (name[1]) {  /* Use original name's type prefix */
+                            case 'i': tp = &CS_VAR_TYPE_I; break;
+                            case 'k': tp = &CS_VAR_TYPE_K; break;
+                            case 'a': tp = &CS_VAR_TYPE_A; break;
+                            case 'S': tp = &CS_VAR_TYPE_S; break;
+                            default:  tp = &CS_VAR_TYPE_I; break;
+                          }
+                          CS_VARIABLE *v = csoundCreateVariable(csound, csound->typePool, tp, local_name, NULL);
+                          csoundAddVariable(csound, typeTable->globalPool, v);
+                        }
                       }
                     }
                   }
                   it = it->next;
                 }
 
-                /* Free the allowed_names hash table if created */
+                /* Free the hash tables if created */
                 if (allowed_names != NULL) {
                   cs_hash_table_free(csound, allowed_names);
+                }
+                if (alias_map != NULL) {
+                  cs_hash_table_free(csound, alias_map);
                 }
               }
             } else {

@@ -6,24 +6,19 @@
 
 import_tests = [
     # Baseline tests (no imports)
-    ["imports/test_baseline_local_udo.csd", "Local UDO baseline - no imports"],
     ["imports/test_local_udo_only.csd", "Local UDO only - no imports"],
 
-    # Basic global variable tests
-    ["imports/test_basic_globals.csd", "Basic global variables"],
-    ["imports/test_simple_global.csd", "Simple global variables"],
+    # Global variable tests
     ["imports/test_comprehensive_globals.csd", "Comprehensive global variable tests"],
 
     # Minimal import tests
     ["imports/test_minimal.csd", "Minimal import test"],
-    ["imports/test_import_minimal.csd", "Minimal import test variant"],
 
     # Simple import functionality
     ["imports/test_simple.csd", "Basic UDO import and execution"],
     ["imports/test_simple_import.csd", "Simple import test"],
 
     # Compilation tests
-    ["imports/test_compilation_only.csd", "Compilation without execution"],
     ["imports/test_compile_only_no_run.csd", "Compile-only mode"],
     ["imports/test_header_only.csd", "Header-only imports"],
 
@@ -39,6 +34,7 @@ import_tests = [
 
     # Import syntax variants
     ["imports/test_from_import.csd", "From import syntax"],
+    ["imports/test_from_import_var.csd", "From import with variable"],
 
     # Import with alias (import "x.orc" as name) tests
     ["imports/test_import_as_qualified.csd", "Import with alias - qualified variable access"],
@@ -52,6 +48,9 @@ import_tests = [
     # Selective import tests (from X import a,b,c)
     ["imports/test_selective_import.csd", "Selective import - only listed items available"],
     ["imports/test_shadow_variable.csd", "Local variable shadows non-imported module variable"],
+
+    # Symbol alias tests (from X import Y as Z)
+    ["imports/test_import_item_alias.csd", "Symbol alias - from X import Y as Z syntax"],
 
     # Complex tests
     ["imports/test_nested.csd", "Nested module imports"]
