@@ -20,8 +20,7 @@ endop
 
 /* UDO that modifies and returns inner value */
 opcode OuterModifyInner(inewVal):i
-    /* Note: Direct assignment to module alias var not yet supported,
-       so we just read and return a computed value */
+    /* Read current value and return a computed value */
     iCurrent = inner.giInnerValue
     iout = iCurrent + inewVal
     xout iout
