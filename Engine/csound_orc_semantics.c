@@ -1554,6 +1554,18 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   // now remove any : or ; leftover in typename
   type = remove_type_quoting(csound, arg);
 
+  /** This is doubtful code leading to garbled types
+      - restoring previous (from dbc1ce2b1)
+
+    NB: changing the check 
+      if (!hasLeadingBracket && !isSingleChar)
+    to 
+      if (!hasLeadingBracket && isSingleChar)
+
+   fixes the issue, but the previous code
+   seems to be clearer, exiting early if nothing needs
+   to be done.
+
   // treat the case where we have typename[]
   // but NOT for single-letter array types like S[] or i[]
   char *typ = type;
@@ -1563,8 +1575,8 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   while(*type != '\0') {
     if(*type == '[' && *(type+1) ==  ']') {
       // Only strip if this is NOT the internal [typename] format
-      // and a single-letter array type like S[] or i[]
-      if (!hasLeadingBracket && isSingleChar) {
+      // and NOT a single-letter array type like S[] or i[]
+      if (!hasLeadingBracket && !isSingleChar) {
         *type = '\0';
       }
       break;
@@ -1572,6 +1584,40 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     type++;
   }
   type = typ;
+  
+  **/
+
+  // Check if this is already a properly formatted struct array type
+  // (e.g., ":MyType;[]")
+  if (arg[0] == ':' && strstr(arg, ";[") != NULL) {
+    // This is already in external format, return as-is
+    csound->Free(csound, type);
+    return cs_strdup(csound, arg);
+  }
+
+  // If this is already in external primitive array form like "k[]" or "a[][]",
+  // do not attempt to convert it; just return a copy as-is.
+  if (arg[0] != '[' && arg[0] != ':' && strchr(arg, '[') != NULL) {
+    csound->Free(csound, type);
+    return cs_strdup(csound, arg);
+  }
+
+  // Safely handle internal typename[] forms in the internal "[..."
+  // representation Avoid reading past the end by using explicit bounds checks
+  {
+    size_t tlen = strlen(type);
+    if (tlen >= 2) {
+      char *scan = type + 1;   // start after first char
+      char *end = type + tlen; // points at NUL
+      while (scan < end) {
+        if ((scan + 1) < end && *scan == '[' && *(scan + 1) == ']') {
+          *scan = '\0';
+          break;
+        }
+        scan++;
+      }
+    }
+  }
 
   // update arg & len
   arg = type;
