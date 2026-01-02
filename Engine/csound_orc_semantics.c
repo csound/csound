@@ -1563,7 +1563,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   while(*type != '\0') {
     if(*type == '[' && *(type+1) ==  ']') {
       // Only strip if this is NOT the internal [typename] format
-      // and NOT a single-letter array type like S[] or i[]
+      // and a single-letter array type like S[] or i[]
       if (!hasLeadingBracket && isSingleChar) {
         *type = '\0';
       }
