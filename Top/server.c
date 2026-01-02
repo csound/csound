@@ -36,7 +36,7 @@
 #include <arpa/inet.h>
 #endif
 
-extern int32_t *csoundGetChannelLock(CSOUND *csound, const char *name);
+int32_t *get_channel_lock(CSOUND *csound, const char *name);
 
 typedef struct {
   int32_t port;
@@ -48,14 +48,14 @@ typedef struct {
   unsigned char status;
 } UDPCOM;
 
-const char *csoundOSCMessageGetNumber(const char *buf,
+const char *OSC_message_get_number(const char *buf,
                                       char type, MYFLT *out);
 #define MAXSTR 1048576 /* 1MB */
 
 /** Add OSC message to linked list
     threadsafe code
 */
-void csoundAddOSCMessage(CSOUND *csound, const OSC_MESS *mess) {
+static void add_OSC_message(CSOUND *csound, const OSC_MESS *mess) {
   OSC_MESS *p = &csound->osc_message_anchor;
   spin_lock_t *lock = &csound->osc_spinlock;
   
@@ -89,7 +89,7 @@ void csoundAddOSCMessage(CSOUND *csound, const OSC_MESS *mess) {
 
 /** Free OSC message list 
  */
-void csoundFreeOSCMessageList(CSOUND *csound) {
+static void free_OSC_message_list(CSOUND *csound) {
   OSC_MESS *p = &csound->osc_message_anchor, *pp;
   // free allocated data
   while(p != NULL) {
@@ -225,7 +225,7 @@ static uintptr_t udp_recv(void *pdata){
             int32_t n = (int32_t) strlen(mess.type), i;
             MYFLT *arg = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*n);
             for(i = 0; i < n; i++) {
-              buf = csoundOSCMessageGetNumber(buf,
+              buf = OSC_message_get_number(buf,
                                               mess.type[i],
                                               &arg[i]);
               if(buf == NULL) break;
@@ -249,7 +249,7 @@ static uintptr_t udp_recv(void *pdata){
             else  {
               MYFLT f;
               
-              buf = csoundOSCMessageGetNumber(buf, mess.type[i],
+              buf = OSC_message_get_number(buf, mess.type[i],
                                               &f);
               csoundSetControlChannel(csound, channel, f);
             }
@@ -264,7 +264,7 @@ static uintptr_t udp_recv(void *pdata){
         else {
           mess.data = (char *) buf;
           mess.size = received - siz;
-          csoundAddOSCMessage(csound, &mess);
+          add_OSC_message(csound, &mess);
           continue;
         }
       }
@@ -309,7 +309,7 @@ static uintptr_t udp_recv(void *pdata){
               == CSOUND_SUCCESS) {
             size_t size = stringdat->size + strlen(chn) + 1;
             spin_lock_t *lock =
-              (spin_lock_t *) csoundGetChannelLock(csound, (char*) chn);
+              (spin_lock_t *) get_channel_lock(csound, (char*) chn);
             msg = (char *) csound->Calloc(csound, size);
             if (lock != NULL)
               csoundSpinLock(lock);
@@ -353,7 +353,7 @@ static uintptr_t udp_recv(void *pdata){
       }
     }
   }
-  csoundFreeOSCMessageList(csound);
+  free_OSC_message_list(csound);
   csound->Message(csound, Str("UDP server on port %d stopped\n"),port);
   csound->Free(csound, start);
   // csound->Message(csound, "orchestra dealloc\n");

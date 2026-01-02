@@ -217,7 +217,7 @@ const char *csoundOSCMessageGetString(const char *data, STRINGDAT *sdat) {
 /** Get a number according to type 
     returns pointer to the next datum or NULL on failure
 */
-const char *csoundOSCMessageGetNumber(const char *buf,
+const char *OSC_message_get_number(const char *buf,
                                       char type, MYFLT *out) {
   switch(type){
   case 'f':
@@ -258,7 +258,7 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
         buf = csoundOSCMessageGetString(buf, (STRINGDAT *) out[i]);
       }
       else if(IS_KSIG_ARG(p->out[i])){
-        buf = csoundOSCMessageGetNumber(buf, type[i], out[i]);
+        buf = OSC_message_get_number(buf, type[i], out[i]);
         if(buf == NULL)
           return csound->PerfError(csound, &(p->h),  
                                    "unsupported OSC type %c", type[i]);
@@ -289,7 +289,7 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
     const char *buf = mess->data;
     const char *type = p->type->data;
     for(i = 0; i < cnt; i++) {
-      buf = csoundOSCMessageGetNumber(buf, type[i], &out[i]);
+      buf = OSC_message_get_number(buf, type[i], &out[i]);
       if(buf == NULL)
         return csound->PerfError(csound, &(p->h),  
                                  "unsupported OSC type %c",
