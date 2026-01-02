@@ -635,8 +635,9 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         break;
       case 3:
         {
-          int32_t n;
-          csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", block, &n);
+          char msg[32];
+          int32_t n = snprintf(msg, sizeof(msg), "%d", block);
+          csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", msg);
           while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
         }
         break;

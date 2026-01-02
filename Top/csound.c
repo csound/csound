@@ -59,7 +59,7 @@
 #include "namedins.h"
 #include "find_opcode.h"
 
-#if defined(linux) || defined(__HAIKU__) || defined(__EMSCRIPTEN__) ||         \
+#if defined(linux) || defined(BSD) || defined(__HAIKU__) || defined(__EMSCRIPTEN__) ||         \
     defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
@@ -1424,7 +1424,7 @@ static void psignal_(int sig, char *str) {
   fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
 #else
-#if !defined(__CYGWIN__)
+#if !defined(__CYGWIN__) && !defined(BSD)
 void psignal(int sig, const char *str) {
   fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
@@ -1437,7 +1437,7 @@ static void psignal_(int sig, char *str) {
 #endif
 
 static void signal_handler(int sig) {
-#if defined(HAVE_EXECINFO) && !defined(ANDROID)
+#if defined(HAVE_EXECINFO_H) && !defined(ANDROID)
 #include <execinfo.h>
 
   {

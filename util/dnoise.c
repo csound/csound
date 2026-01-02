@@ -1209,8 +1209,12 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
       csound->MessageS(csound, CSOUNDMSG_REALTIME, ".");
       break;
     case 3:
-      csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", *nrecs, &n);
-      while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
+      {
+        char msg[32];
+        n = snprintf(msg, sizeof(msg), "%d", *nrecs);
+        csound->MessageS(csound, CSOUNDMSG_REALTIME, "%s", msg);
+        while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
+      }
       break;
     case 4:
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "\a");
