@@ -52,6 +52,9 @@ import_tests = [
     # Symbol alias tests (from X import Y as Z)
     ["imports/test_import_item_alias.csd", "Symbol alias - from X import Y as Z syntax"],
 
+    # Struct global variable tests
+    ["imports/struct_globals/test_struct_globals.csd", "Import global struct variables from module"],
+
     # Complex tests
     ["imports/test_nested.csd", "Nested module imports"]
 ]

@@ -2199,6 +2199,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       // check for global annotation in explicit-type rhs vars
       lvarName = cs_strdup(csound, varName);
       pool = find_global_annotation(lvarName, typeTable);
+
       if(pool == csound->engineState.varPool
          || pool == typeTable->globalPool) {
         // remove var from pool

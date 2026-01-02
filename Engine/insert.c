@@ -1632,6 +1632,42 @@ static void setup_opcode_argpp(
       else if (arg->type == ARG_GLOBAL) {
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
         argpp[n] =  &(var->memBlock->value);
+
+        /* Handle struct path for global struct variables (e.g., gVec.x) */
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+          MYFLT* fltp = argpp[n];
+          next = cs_strtok_r(path, ".", &th);
+          while (next != NULL) {
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+            if (type == NULL || structVar == NULL || structVar->members == NULL)
+              break;
+            CONS_CELL* members = type->members;
+            int32_t i = 0;
+            int32_t found = 0;
+            while(members != NULL) {
+              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+              if (!strcmp(member->varName, next)) {
+                fltp = &(structVar->members[i]->value);
+                found = 1;
+                break;
+              }
+              i++;
+              members = members->next;
+            }
+            if (!found) {
+              csound->Free(csound, path);
+              csound->Die(csound,
+                Str("setup_opcode_argpp: global struct member '%s' not found in structPath '%s' for %s"),
+                next, arg->structPath, ep->opname ? ep->opname : "(null)");
+            }
+            next = cs_strtok_r(NULL, ".", &th);
+          }
+          csound->Free(csound, path);
+          argpp[n] = fltp;
+        }
       }
       else if (arg->type == ARG_LOCAL){
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);

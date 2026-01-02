@@ -389,20 +389,52 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                 /* Walk imported module AST and add placeholders for g* identifiers */
                 TREE *it = module->ast;
                 while (it != NULL) {
-                  if (it->type == T_ASSIGNMENT && it->left && it->left->value && it->left->value->lexeme) {
+                  /* Handle both T_ASSIGNMENT (simple assignment) and T_OPCALL (opcode call like 'init') */
+                  if ((it->type == T_ASSIGNMENT || it->type == T_OPCALL) &&
+                      it->left && it->left->value && it->left->value->lexeme) {
                     char *name = it->left->value->lexeme;
+                    /* Check if this is a global variable:
+                     * - Traditional globals: start with 'g' followed by type char (gi, gk, ga, gS)
+                     * - Typed globals: use @global annotation (name contains '@global')
+                     */
+                    int is_global = 0;
                     if (name && name[0] == 'g' && name[1] != '\0') {
+                      /* Traditional g-prefix globals (gi, gk, ga, gS, gf, gw) */
+                      char second = name[1];
+                      if (second == 'i' || second == 'k' || second == 'a' ||
+                          second == 'S' || second == 'f' || second == 'w') {
+                        is_global = 1;
+                      }
+                    }
+                    /* Also check for @global annotation in the lexeme */
+                    if (name && strstr(name, "@global") != NULL) {
+                      is_global = 1;
+                    }
+                    if (is_global) {
+                      /* For selective imports, strip @global annotation for name matching.
+                       * User imports "gVec" but AST contains "gVec@global" */
+                      char *base_name = name;
+                      char *stripped_name = NULL;
+                      char *at_pos = strstr(name, "@global");
+                      if (at_pos != NULL) {
+                        size_t base_len = at_pos - name;
+                        stripped_name = csound->Malloc(csound, base_len + 1);
+                        strncpy(stripped_name, name, base_len);
+                        stripped_name[base_len] = '\0';
+                        base_name = stripped_name;
+                      }
+
                       /* For selective imports, only add if name is in allowed list */
                       int should_add = 1;
                       if (is_selective && allowed_names != NULL) {
-                        should_add = (cs_hash_table_get(csound, allowed_names, name) != NULL);
+                        should_add = (cs_hash_table_get(csound, allowed_names, base_name) != NULL);
                       }
 
                       if (should_add) {
                         /* Check if this variable has an alias */
-                        char *local_name = name;
+                        char *local_name = base_name;
                         if (alias_map != NULL) {
-                          char *alias = cs_hash_table_get(csound, alias_map, name);
+                          char *alias = cs_hash_table_get(csound, alias_map, base_name);
                           if (alias != NULL) {
                             local_name = alias;
                           }
@@ -410,16 +442,45 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
                         if (csoundFindVariableWithName(csound, typeTable->globalPool, local_name) == NULL) {
                           const CS_TYPE *tp = NULL;
-                          switch (name[1]) {  /* Use original name's type prefix */
-                            case 'i': tp = &CS_VAR_TYPE_I; break;
-                            case 'k': tp = &CS_VAR_TYPE_K; break;
-                            case 'a': tp = &CS_VAR_TYPE_A; break;
-                            case 'S': tp = &CS_VAR_TYPE_S; break;
-                            default:  tp = &CS_VAR_TYPE_I; break;
+
+                          /* Check if this is a typed identifier (e.g., gVec:Vec2) */
+                          if (it->left->type == T_TYPED_IDENT && it->left->value->optype != NULL) {
+                            /* For user-defined types (structs), look up in typePool */
+                            char *typeName = it->left->value->optype;
+
+                            /* First try the type name directly (for built-in types like i, k, a, S) */
+                            tp = csoundGetTypeWithVarTypeName(csound->typePool, typeName);
+
+                            /* If not found, try internal struct format :TypeName; */
+                            if (tp == NULL) {
+                              size_t len = strlen(typeName);
+                              char *internalName = csound->Malloc(csound, len + 3);
+                              internalName[0] = ':';
+                              strcpy(internalName + 1, typeName);
+                              internalName[len + 1] = ';';
+                              internalName[len + 2] = '\0';
+                              tp = csoundGetTypeWithVarTypeName(csound->typePool, internalName);
+                              csound->Free(csound, internalName);
+                            }
+                          }
+
+                          /* Fall back to inferring type from name prefix if no explicit type */
+                          if (tp == NULL) {
+                            switch (name[1]) {  /* Use original name's type prefix */
+                              case 'i': tp = &CS_VAR_TYPE_I; break;
+                              case 'k': tp = &CS_VAR_TYPE_K; break;
+                              case 'a': tp = &CS_VAR_TYPE_A; break;
+                              case 'S': tp = &CS_VAR_TYPE_S; break;
+                              default:  tp = &CS_VAR_TYPE_I; break;
+                            }
                           }
                           CS_VARIABLE *v = csoundCreateVariable(csound, csound->typePool, tp, local_name, NULL);
                           csoundAddVariable(csound, typeTable->globalPool, v);
                         }
+                      }
+                      /* Free stripped name if allocated */
+                      if (stripped_name != NULL) {
+                        csound->Free(csound, stripped_name);
                       }
                     }
                   }

@@ -1758,7 +1758,6 @@ static void varpool_merge_selective(CSOUND *csound, ENGINE_STATE *current_state,
         break;
       }
     }
-
     if (allowed) {
       /* Use the local_name (alias) if provided, otherwise use original name */
       const char *target_name = local_name ? local_name : gVar->varName;
@@ -3191,27 +3190,87 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     if(csoundGetDebug(csound) & DEBUG_COMPILER)
      csoundMessage(csound, "pfield found: %s %d\n", s, n);
   }
-  /* Check for module alias access (e.g., modAlias.variable) */
+  /* Check for module alias access (e.g., modAlias.variable) or struct member access (e.g., gVec.x) */
   else if (strchr(s, '.') != NULL) {
     char *dot = strchr(s, '.');
-    char *aliasName = cs_strndup(csound, s, dot - s);
-    CS_MODULE *aliasedModule = csoundFindModuleByAlias(csound, aliasName);
+    char *baseName = cs_strndup(csound, s, dot - s);
+    CS_MODULE *aliasedModule = csoundFindModuleByAlias(csound, baseName);
     if (aliasedModule != NULL && aliasedModule->varPool != NULL) {
+      /* Module alias access */
       char *memberName = dot + 1;
       CS_VARIABLE *moduleVar = csoundFindVariableWithName(csound, aliasedModule->varPool, memberName);
       if (moduleVar != NULL) {
         arg->type = ARG_GLOBAL;
         arg->argPtr = moduleVar;
         arg->structPath = NULL;
-        csound->Free(csound, aliasName);
+        csound->Free(csound, baseName);
       } else {
-        csound->Free(csound, aliasName);
-        csoundDie(csound, Str("No variable '%s' found in module alias '%s'"), memberName, aliasName);
+        csound->Free(csound, baseName);
+        csoundDie(csound, Str("No variable '%s' found in module alias '%s'"), memberName, baseName);
       }
     } else {
-      /* Not a module alias - fall through to struct access handling below */
-      csound->Free(csound, aliasName);
-      goto handle_struct_or_variable;
+      /* Not a module alias - check if base name is a struct variable in global pools */
+      CS_VARIABLE *structVar = NULL;
+      CS_VAR_POOL *foundPool = NULL;
+      char *structPath = cs_strdup(csound, dot + 1);
+
+      /* Check engineState->varPool first */
+      if (engineState->varPool != NULL && (uintptr_t)engineState->varPool >= 0x1000) {
+        structVar = csoundFindVariableWithName(csound, engineState->varPool, baseName);
+        if (structVar != NULL) foundPool = engineState->varPool;
+      }
+
+      /* Check csound->engineState.varPool */
+      if (structVar == NULL && csound->engineState.varPool != NULL &&
+          (uintptr_t)csound->engineState.varPool >= 0x1000) {
+        structVar = csoundFindVariableWithName(csound, csound->engineState.varPool, baseName);
+        if (structVar != NULL) foundPool = csound->engineState.varPool;
+      }
+
+      /* Check imported modules' varPools */
+      if (structVar == NULL) {
+        MODULE_STATE *mod_state = csoundGetModuleState(csound);
+        if (mod_state && mod_state->root_module) {
+          CS_MODULE *root = mod_state->root_module;
+          for (int32_t i = 0; i < root->import_count && structVar == NULL; i++) {
+            CS_MODULE *imported = root->imports[i];
+            if (imported && imported->varPool) {
+              structVar = csoundFindVariableWithName(csound, imported->varPool, baseName);
+              if (structVar != NULL && csoundIsItemImportAllowed(csound, root, imported, baseName)) {
+                foundPool = imported->varPool;
+              } else {
+                structVar = NULL;
+              }
+            }
+          }
+        }
+      }
+
+      /* Check root module's varPool */
+      if (structVar == NULL) {
+        MODULE_STATE *mod_state = csoundGetModuleState(csound);
+        if (mod_state && mod_state->root_module && mod_state->root_module->varPool) {
+          structVar = csoundFindVariableWithName(csound, mod_state->root_module->varPool, baseName);
+          if (structVar != NULL) foundPool = mod_state->root_module->varPool;
+        }
+      }
+
+      /* Check local pool for local struct variables */
+      if (structVar == NULL) {
+        structVar = cs_hash_table_get(csound, ip->varPool->table, baseName);
+        if (structVar != NULL) foundPool = ip->varPool;
+      }
+
+      if (structVar != NULL) {
+        arg->type = (foundPool == ip->varPool) ? ARG_LOCAL : ARG_GLOBAL;
+        arg->argPtr = structVar;
+        arg->structPath = structPath;
+        csound->Free(csound, baseName);
+      } else {
+        csound->Free(csound, baseName);
+        csound->Free(csound, structPath);
+        goto handle_struct_or_variable;
+      }
     }
   }
   /* trap local ksmps and kr and sr
