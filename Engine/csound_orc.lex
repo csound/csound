@@ -94,8 +94,8 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 LPAREN          "("
 RPAREN          ")"
 SYMBOL          [\[\]+\-*/%\^\?:.,!]
-RSTR            "```"
-ERSTR           "'''"
+RSTR            "R{"
+ERSTR           "}R"
 
    
 %s ignorenewline
@@ -333,7 +333,7 @@ ERSTR           "'''"
             }
 }
 
-"```"   {
+"R{"   {
                   PARM->xstrbuff = (char *)malloc(128);
                   PARM->xstrptr = 0; PARM->xstrmax = 128;
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
@@ -343,20 +343,19 @@ ERSTR           "'''"
                 }
 
 <rstr>{
-  "```" {
+  "R{" {
              PARM->xsubstr += 1; // substr start
              if (PARM->xstrptr+4>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending rstr buffer\n");
              }
-             PARM->xstrbuff[PARM->xstrptr++] = '`';
-             PARM->xstrbuff[PARM->xstrptr++] = '`';
-             PARM->xstrbuff[PARM->xstrptr++] = '`';
+             PARM->xstrbuff[PARM->xstrptr++] = 'R';
+             PARM->xstrbuff[PARM->xstrptr++] = '{';
              PARM->xstrbuff[PARM->xstrptr] = '\0';
          }
 
-  "'''"   {
+  "}R"   {
     if(PARM->xsubstr) {
             PARM->xsubstr -= 1; // substr end
            if (PARM->xstrptr+4>=PARM->xstrmax) {
@@ -364,9 +363,8 @@ ERSTR           "'''"
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending rstr buffer\n");
            }
-             PARM->xstrbuff[PARM->xstrptr++] = '\'';
-             PARM->xstrbuff[PARM->xstrptr++] = '\'';
-             PARM->xstrbuff[PARM->xstrptr++] = '\'';
+             PARM->xstrbuff[PARM->xstrptr++] = '}';
+             PARM->xstrbuff[PARM->xstrptr++] = 'R';
            PARM->xstrbuff[PARM->xstrptr] = '\0';
     } else {
            BEGIN(INITIAL);

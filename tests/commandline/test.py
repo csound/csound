@@ -588,6 +588,7 @@ def runTest():
         ],
         ["test_named_instr_ramps.csd", "test named instrument ramps"],
         ["test_gen01.csd", "testing GEN01 importing files"],
+        ["test_raw_strings.csd", "test new-style raw strings"],
     ]
 
     arrayTests = [
