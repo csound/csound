@@ -224,7 +224,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-void csound_input_message(CSOUND *csound, const char *message)
+PUBLIC void csound_input_message(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
 #if 1

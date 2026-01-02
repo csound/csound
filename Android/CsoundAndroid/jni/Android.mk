@@ -156,8 +156,13 @@ $(CSOUND_SRC_ROOT)/Opcodes/sc_noise.c \
 $(CSOUND_SRC_ROOT)/Opcodes/squinewave.c \
 $(CSOUND_SRC_ROOT)/Opcodes/sequencer.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
-$(CSOUND_SRC_ROOT)/Top/csdebug.c \
+$(CSOUND_SRC_ROOT)/Top/csound_debug.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
+$(CSOUND_SRC_ROOT)/Top/csound_perf.c \
+$(CSOUND_SRC_ROOT)/Top/csound_events.c \
+$(CSOUND_SRC_ROOT)/Top/csound_rtio.c \
+$(CSOUND_SRC_ROOT)/Top/csound_messages.c \
+$(CSOUND_SRC_ROOT)/Top/csound_time.c \
 $(CSOUND_SRC_ROOT)/Top/csound.c \
 $(CSOUND_SRC_ROOT)/Top/getstring.c \
 $(CSOUND_SRC_ROOT)/Top/main.c \

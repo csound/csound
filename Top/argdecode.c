@@ -1,5 +1,5 @@
 /*
-    argdecode.c:
+    argdecode.c: engine options/flags 
 
     Copyright (C) 1998-2013 John ffitch, Victor Lazzarini
 
@@ -1549,7 +1549,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               dieu(csound, Str("Cannot open indirection file %s\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
-              readOptions(csound, cf, 0);
+              read_options(csound, cf, 0);
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd);
             }
@@ -1623,7 +1623,7 @@ end:
   return 1;
 }
 
-void checkOptions(CSOUND *csound);
+void check_options(CSOUND *csound);
 
 char *unquote_arg(CSOUND *csound, char *arg) {
   char *out = cs_strdup(csound, arg);
@@ -1650,7 +1650,7 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
 
     // check .cs7rc before setting any options
     if (!csound->options_checked) {
-      checkOptions(csound);
+      check_options(csound);
       csound->options_checked = 1;
     }
 

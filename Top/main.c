@@ -1,5 +1,6 @@
 /*
-    main.c:
+    main.c: compilation and startup
+
     Copyright (C) 1991-2002 Barry Vercoe, John ffitch
     This file is part of Csound.
     The Csound Library is free software; you can redistribute it
@@ -29,8 +30,8 @@
 
 extern const uint32_t csPlayScoMask;
 
-extern void csoundInputMessage(CSOUND *csound, const char *sc);
-extern void allocate_message_queue(CSOUND *csound);
+void input_message_async(CSOUND *csound, const char *message);
+void allocate_message_queue(CSOUND *csound);
 CS_NORETURN void dieu(CSOUND *, char *, ...);
 int32_t argdecode(CSOUND *, int32_t, const char **);
 int32_t init_pvsys(CSOUND *);
@@ -44,7 +45,7 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str,
 void csp_barrier_alloc(CSOUND *, void **, int32_t);
 #endif
 
-void checkOptions(CSOUND *csound) {
+void check_options(CSOUND *csound) {
 #if !defined(__wasi__)
   const char *csrcname;
   const char *home_dir;
@@ -78,7 +79,7 @@ void checkOptions(CSOUND *csound) {
   if (fd != NULL) {
     CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
     corfile_rewind(cf);
-    readOptions(csound, cf, 0);
+    read_options(csound, cf, 0);
     corfile_rm(csound, &cf);
     csound->FileClose(csound, fd);
     csound->Free(csound, s);
@@ -89,7 +90,7 @@ void checkOptions(CSOUND *csound) {
   if (fd != NULL) {
     CORFIL *cf = copy_to_corefile(csound, ".csound7rc", NULL, 0);
     corfile_rewind(cf);
-    readOptions(csound, cf, 0);
+    read_options(csound, cf, 0);
     csound->Message(csound,
                     Str("Reading options from local directory .csound7rc\n"));
     corfile_rm(csound, &cf);
@@ -152,7 +153,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   }
 }
 
-int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
+PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
   OPARMS *O = csound->oparms;
   char *s;
   FILE *xfile = NULL;
@@ -184,7 +185,7 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
   /* do not allow orc/sco/csd name in .csound7rc */
   csound->orcname_mode = 2;
   if(!csound->options_checked) {
-    checkOptions(csound);
+    check_options(csound);
     csound->options_checked = 1;
   }
   if (csound->delayederrormessages) {
@@ -413,6 +414,63 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
   return CSOUND_SUCCESS;
 }
 
+static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t async) {
+  int32_t res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
+  if (LIKELY(res)) {
+    if (csound->csdname != NULL)
+      csound->Free(csound, csound->csdname);
+    csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
+    /* Ensure any stale orchname from a previous compile is not used */
+    csound->orchname = NULL;
+
+    res = csound_compile_orc(csound, NULL, async);
+    if (res == CSOUND_SUCCESS) {
+      if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+          char *sc;
+          if (csound->scorestr == NULL)
+            sc = "#exit";
+          else {
+            csound->scorestr->body[+csound->scorestr->len - 9] = ' ';
+            sc = scsortstr(csound, csound->scorestr);
+          }
+          if (sc) {
+            if (csound->oparms->odebug)
+              csound->Message(
+                  csound, Str("Real-time score events (engineStatus: %d).\n"),
+                  csound->engineStatus);
+            if(async)
+            input_message_async(csound, (const char *) sc);
+            else csound_input_message(csound, (const char *) sc);
+          }
+      } else {
+        if (csound->scorestr == NULL) {
+          csound->scorestr = corfile_create_w(csound);
+          corfile_puts(csound, "\n\n\ne\n#exit\n", csound->scorestr);
+        }
+        scsortstr(csound, csound->scorestr);
+        if (csound->oparms->odebug)
+          csound->Message(csound,
+                          Str("Compiled score "
+                              "(engineStatus: %d).\n"),
+                          csound->engineStatus);
+      }
+    }
+    return res;
+  } else
+    return CSOUND_ERROR;
+}
+
+int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t async) {
+  if(mode == 0) {
+  CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
+  if (LIKELY(tt != NULL)) {
+    int32_t res = compile_csd_txt(csound, tt->body, async);
+    corfile_rm(csound, &tt);
+    return res;
+   } else return CSOUND_ERROR;
+  } else return compile_csd_txt(csound, str, async);
+}
+
 extern int32_t playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 extern void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int32_t nbytes);
 extern int32_t recopen_dummy(CSOUND *, const csRtAudioParams *parm);
@@ -445,7 +503,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
 
   /* if a CSD was not used and options were not checked, check options */
   if (csound->csdname == NULL && !csound->options_checked) {
-    checkOptions(csound);
+    check_options(csound);
   }
 
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
@@ -588,66 +646,4 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
   return start_engine(csound);
 }
 
-PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
-  return csoundCompileArgs(csound, argc, argv);
-}
 
-// from threadsafe.c
-void csoundInputMessageAsync(CSOUND *csound, const char *message);
-
-static int32_t csoundCompileCSDText(CSOUND *csound, const char *csd_text, int32_t async) {
-  int32_t res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
-  if (LIKELY(res)) {
-    if (csound->csdname != NULL)
-      csound->Free(csound, csound->csdname);
-    csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
-    /* Ensure any stale orchname from a previous compile is not used */
-    csound->orchname = NULL;
-
-    res = csound_compile_orc(csound, NULL, async);
-    if (res == CSOUND_SUCCESS) {
-      if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          char *sc;
-          if (csound->scorestr == NULL)
-            sc = "#exit";
-          else {
-            csound->scorestr->body[+csound->scorestr->len - 9] = ' ';
-            sc = scsortstr(csound, csound->scorestr);
-          }
-          if (sc) {
-            if (csound->oparms->odebug)
-              csound->Message(
-                  csound, Str("Real-time score events (engineStatus: %d).\n"),
-                  csound->engineStatus);
-            if(async)
-            csoundInputMessageAsync(csound, (const char *) sc);
-            else csound_input_message(csound, (const char *) sc);
-          }
-      } else {
-        if (csound->scorestr == NULL) {
-          csound->scorestr = corfile_create_w(csound);
-          corfile_puts(csound, "\n\n\ne\n#exit\n", csound->scorestr);
-        }
-        scsortstr(csound, csound->scorestr);
-        if (csound->oparms->odebug)
-          csound->Message(csound,
-                          Str("Compiled score "
-                              "(engineStatus: %d).\n"),
-                          csound->engineStatus);
-      }
-    }
-    return res;
-  } else
-    return CSOUND_ERROR;
-}
-
-int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t async) {
-  if(mode == 0) {
-  CORFIL *tt = copy_to_corefile(csound, str, NULL, 0);
-  if (LIKELY(tt != NULL)) {
-    int32_t res = csoundCompileCSDText(csound, tt->body, async);
-    corfile_rm(csound, &tt);
-    return res;
-   } else return CSOUND_ERROR;
-  } else return csoundCompileCSDText(csound, str, async);
-}

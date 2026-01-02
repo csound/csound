@@ -22,9 +22,9 @@
 #include "csoundCore.h"
 #include "corfile.h"
 
-void csoundScoreEventAsync(CSOUND *csound, char type, const MYFLT *pfields,
+void score_event_async(CSOUND *csound, char type, const MYFLT *pfields,
                            long numFields);
-void csoundReadScoreAsync(CSOUND *csound, const char *message);
+void read_score_async(CSOUND *csound, const char *message);
 void csound_input_message(CSOUND *csound, const char *message);
 
 void rewind_score(CSOUND *csound);   /* musmon.c */
@@ -102,7 +102,7 @@ int32_t csound_read_score(CSOUND *csound, const char *str) {
 PUBLIC void csoundEventString(CSOUND *csound, const char *message,
                               int32_t async) {
   if (async) {
-    csoundReadScoreAsync(csound, message);
+    read_score_async(csound, message);
   } else
     csound_read_score(csound, message);
 }
@@ -121,7 +121,7 @@ PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
   else return;
 
   if (async)
-    csoundScoreEventAsync(csound, c, params, nparams);
+    score_event_async(csound, c, params, nparams);
   else
     csound_score_event(csound, c, params, nparams);
 }

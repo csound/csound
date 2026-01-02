@@ -69,7 +69,7 @@ extern "C" {
   int32_t type2csfiletype(int32_t type, int32_t encoding);
   int32_t sftype2csfiletype(int32_t type);
   void  rewriteheader(CSOUND *csound, void *ofd);
-  int32_t readOptions(CSOUND *, CORFIL *, int32_t);
+  int32_t read_options(CSOUND *, CORFIL *, int32_t);
   int32_t argdecode(CSOUND *, int32_t, const char **);
   void  remove_tmpfiles(CSOUND *);
   void  add_tmpfile(CSOUND *, char *);

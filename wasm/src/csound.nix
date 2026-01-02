@@ -580,19 +580,24 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/wterrain2.c \
       ../Opcodes/wpfilters.c \
       ../Opcodes/zak.c \
+      ../Top/csound.c \
+      ../Top/csound_perf.c \
+      ../Top/csound_events.c \
+      ../Top/csound_rtio.c \
+      ../Top/csound_messages.c
+      ../Top/csound_time.c \
       ../Top/argdecode.c \
-      ../Top/csdebug.c \
+      ../Top/csound_debug.c \
       ../Top/csmodule.c \
       ../Top/getstring.c \
-      ../Top/init_static_modules.c \
       ../Top/main.c \
       ../Top/new_opts.c \
       ../Top/one_file.c \
       ../Top/opcode.c \
       ../Top/threads.c \
-      ../Top/threadsafe.c \
       ../Top/utility.c \
-      ../Top/csound.c \
+      ../Top/threadsafe.c \
+      ../Top/server.c \
       ../Opcodes/ampmidid.cpp \
       ../Opcodes/doppler.cpp \
       ../Opcodes/tl/fractalnoise.cpp \
