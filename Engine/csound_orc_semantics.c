@@ -1555,7 +1555,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   type = remove_type_quoting(csound, arg);
 
   /** This is doubtful code leading to garbled types
-      - restoring previous (from dbc1ce2b1)
+      - restoring previous (dbc1ce2b1)
 
     NB: changing the check 
       if (!hasLeadingBracket && !isSingleChar)

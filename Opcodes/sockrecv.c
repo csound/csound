@@ -785,6 +785,9 @@ static OENTRY sockrecv_localops[] = {
     (SUBR) send_srecv, NULL },
   { "OSCraw", S(RAWOSC), 0, "S[]k", "i",
     (SUBR) init_raw_osc, (SUBR) perf_raw_osc,
+    (SUBR) destroy_raw_osc, NULL, 2},
+    { "oscraw", S(RAWOSC), 0, "S[]k", "i",
+    (SUBR) init_raw_osc, (SUBR) perf_raw_osc,
     (SUBR) destroy_raw_osc, NULL}
 };
 
