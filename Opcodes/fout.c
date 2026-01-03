@@ -1265,14 +1265,15 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
 
   memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
-  if (p->h.perf != (SUBR) NULL)      /* fprintks */
+  if (p->h.perf != (SUBR) NULL) {     /* fprintks */
     pp = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
                         p->fname, istring, "w", 1);
-  else                                /* fprints */
-    pp = fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
-                        p->fname, istring, "w", 1);
-  if (UNLIKELY(pp == NULL))
-    return NOTOK;
+    if (UNLIKELY(pp == NULL)) return NOTOK;
+  } else {                             /* fprints */
+    fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
+                   p->fname, istring, "w", 1);
+    if (UNLIKELY(p->f.f  == NULL)) return NOTOK;
+  }
   //setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
   /* Copy the string to the storage place in PRINTKS.
    *
