@@ -2022,6 +2022,190 @@ static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
 }
 
 /**
+ * Merge module named instruments into root instrtxtp array.
+ * This implements "auto-assign on import" for instruments defined in modules.
+ *
+ * For each named instrument in the module:
+ * 1. Check if it's in the import list (or wildcard/import all)
+ * 2. Find next available instrument number
+ * 3. Register in root's instrtxtp[] array
+ * 4. Register in root's instrumentNames hash table
+ * 5. Create an InstrDef variable for the imported instrument
+ *
+ * See INSTRUMENTS_IN_MODULES.md for design rationale.
+ */
+static void merge_module_instruments_to_root(CSOUND *csound, CS_MODULE *module,
+                                              CS_IMPORT *import_info) {
+  if (module == NULL || module->engineState == NULL) {
+    return;
+  }
+
+  ENGINE_STATE *module_state = module->engineState;
+  ENGINE_STATE *root_state = &csound->engineState;
+
+  /* Check if module has any named instruments */
+  if (module_state->instrumentNames == NULL) {
+    return;
+  }
+
+  /* Get list of named instruments from module */
+  CONS_CELL *instr_list = cs_hash_table_values(csound, module_state->instrumentNames);
+  if (instr_list == NULL) {
+    return;
+  }
+
+  int instr_count = 0;
+  CONS_CELL *current = instr_list;
+
+  while (current != NULL) {
+    INSTRNAME *inm = (INSTRNAME *)current->value;
+    current = current->next;
+
+    if (inm == NULL || inm->ip == NULL || inm->name == NULL) {
+      continue;
+    }
+
+    /* Skip special entries (like INSTR_NAME_FIRST marker) */
+    if (inm->name[0] == '\0' || strcmp(inm->name, (char*)INSTR_NAME_FIRST) == 0) {
+      continue;
+    }
+
+    /* Skip UDOs - they're handled by merge_module_udos_to_root */
+    if (inm->ip->opcode_info != NULL) {
+      continue;
+    }
+
+    /* Check if this instrument should be imported */
+    int allowed = 0;
+    const char *local_name = NULL;
+
+    if (import_info == NULL || import_info->is_wildcard) {
+      /* Import all or wildcard - include everything */
+      allowed = 1;
+      local_name = inm->name;
+    } else {
+      /* Selective import - check if this instrument is in the list */
+      for (int32_t i = 0; i < import_info->item_count; i++) {
+        if (strcmp(import_info->items[i].original_name, inm->name) == 0) {
+          allowed = 1;
+          local_name = import_info->items[i].local_name
+                       ? import_info->items[i].local_name
+                       : inm->name;
+          break;
+        }
+      }
+    }
+
+    if (!allowed) {
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound,
+                        "DEBUG merge_module_instruments: skipping %s (not in import list)\n",
+                        inm->name);
+      continue;
+    }
+
+    /* Check if already registered in root (by pointer comparison) */
+    int32_t already_registered = 0;
+    int32_t existing_num = 0;
+    for (int32_t i = 1; i <= root_state->maxinsno; i++) {
+      if (root_state->instrtxtp[i] == inm->ip) {
+        already_registered = 1;
+        existing_num = i;
+        break;
+      }
+    }
+
+    int32_t inum;
+    if (already_registered) {
+      inum = existing_num;
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound,
+                        "DEBUG merge_module_instruments: %s already at slot %d\n",
+                        inm->name, inum);
+    } else {
+      /* Find next available instrument number */
+      inum = 1;
+      while (inum <= root_state->maxinsno && root_state->instrtxtp[inum] != NULL) {
+        inum++;
+      }
+
+      /* Expand array if needed */
+      if (inum > root_state->maxinsno) {
+        int32_t old_max = root_state->maxinsno;
+        root_state->maxinsno += MAXINSNO;
+        root_state->instrtxtp = (INSTRTXT **)
+          csound->ReAlloc(csound, root_state->instrtxtp,
+                          (1 + root_state->maxinsno) * sizeof(INSTRTXT *));
+        /* Null out new entries */
+        for (int32_t i = old_max + 1; i <= root_state->maxinsno; i++) {
+          root_state->instrtxtp[i] = NULL;
+        }
+      }
+
+      /* Register in instrtxtp array */
+      root_state->instrtxtp[inum] = inm->ip;
+
+      /* Note: The instrument should already have been added to the chain and prepped
+       * during module compilation (when depth > 0, instruments are added to root's chain).
+       * The main instr_prep loop runs when depth == 0 after all tree walking is done,
+       * so module instruments should already be prepped. We do NOT call instr_prep again
+       * here as that would cause double-prep issues. */
+    }
+
+    /* Register in root instrumentNames hash table with local_name */
+    if (root_state->instrumentNames == NULL) {
+      root_state->instrumentNames = cs_hash_table_create(csound);
+    }
+
+    /* Check if name already exists */
+    INSTRNAME *existing = cs_hash_table_get(csound, root_state->instrumentNames, (char*)local_name);
+    if (existing == NULL) {
+      /* Create new INSTRNAME entry */
+      INSTRNAME *new_inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
+      new_inm->name = cs_strdup(csound, local_name);
+      new_inm->ip = inm->ip;
+      new_inm->instno = inum;
+      cs_hash_table_put(csound, root_state->instrumentNames, (char*)local_name, new_inm);
+    } else if (existing->ip != inm->ip) {
+      csound->Warning(csound,
+                      "Imported instrument '%s' conflicts with existing instrument\n",
+                      local_name);
+    }
+
+    /* Create InstrDef variable in the importing module's varPool */
+    MODULE_STATE *ms = csoundGetModuleState(csound);
+    CS_VAR_POOL *target_pool = NULL;
+    if (ms && ms->root_module && ms->root_module->varPool) {
+      target_pool = ms->root_module->varPool;
+    } else {
+      target_pool = root_state->varPool;
+    }
+
+    /* Check if variable already exists */
+    CS_VARIABLE *ivar = csoundFindVariableWithName(csound, target_pool, local_name);
+    if (ivar == NULL) {
+      /* Create InstrDef variable with properly allocated memBlock */
+      ivar = add_global_variable(csound, target_pool,
+                                 (CS_TYPE*)&CS_VAR_TYPE_INSTR,
+                                 (char*)local_name, NULL);
+    }
+
+    /* Set the INSTREF value */
+    if (ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR && ivar->memBlock != NULL) {
+      INSTREF *ref = (INSTREF *)&ivar->memBlock->value;
+      ref->instr = inm->ip;
+      ref->readonly = 1;
+    }
+
+    instr_count++;
+    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER) || csound->oparms->msglevel > 0)
+      csound->Message(csound,
+                      Str("Imported instrument '%s' from module '%s' as instr %d\n"),
+                      local_name, module->name ? module->name : "unknown", inum);
+  }
+}
+
+/**
  * Initialize module globals by executing module instr0s depth-first.
  * This ensures dependencies are initialized before dependents.
  *
@@ -2102,6 +2286,12 @@ static int32_t initialize_module_globals_internal(CSOUND *csound, CS_MODULE *mod
       csoundRecalculateVarPoolMemory(csound, module_instr0->varPool);
     }
   }
+
+  /* Merge module named instruments into root (auto-assign on import).
+   * This must happen BEFORE module instr0 executes so that InstrDef variables
+   * are available for use in module initialization code.
+   * See INSTRUMENTS_IN_MODULES.md for design rationale. */
+  merge_module_instruments_to_root(csound, module, import_info);
 
   /* Initialize the instance the same way init0() does */
   csound->curip = ip;
@@ -2584,6 +2774,15 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
           if (compile_result == CSOUND_SUCCESS) {
             module->is_compiled = true;
+
+            /* CRITICAL: Re-find the end of the instrument chain after module compilation.
+             * Module compilation may have added instruments to the chain, but our local
+             * prvinstxt pointer still points to where it was before the recursive call.
+             * We need to update it to point to the actual end of the chain so that
+             * subsequent instruments in this compilation get linked correctly. */
+            while (prvinstxt->nxtinstxt != NULL) {
+              prvinstxt = prvinstxt->nxtinstxt;
+            }
           } else {
             csound->Message(csound, "Error: Failed to compile module: %s (code: %d)\n",
                            module_path, compile_result);

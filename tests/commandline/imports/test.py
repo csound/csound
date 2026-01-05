@@ -55,6 +55,9 @@ import_tests = [
     # Struct global variable tests
     ["imports/struct_globals/test_struct_globals.csd", "Import global struct variables from module"],
 
+    # Instrument import tests
+    ["imports/instruments/test_import_instr.csd", "Import named instrument from module with baseline"],
+
     # Complex tests
     ["imports/test_nested.csd", "Nested module imports"]
 ]
