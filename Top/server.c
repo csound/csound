@@ -427,7 +427,9 @@ static int32_t udp_start(CSOUND *csound, UDPCOM *p)
   p->status = 1;
   /* create thread */
   p->thrid = csoundCreateThread(udp_recv, (void *) p);
-  return CSOUND_SUCCESS;
+  if(p->thrid != NULL)
+    return CSOUND_SUCCESS;
+  else return CSOUND_ERROR;
 }
 
 int32_t csoundUDPServerClose(CSOUND *csound)
