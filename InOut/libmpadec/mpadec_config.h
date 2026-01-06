@@ -30,6 +30,7 @@
 #ifdef WIN32
 #define HAVE_IO_H
 #define HAVE_CONIO_H
+#undef OSS
 #endif
 
 #define FLOAT MYFLT

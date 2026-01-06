@@ -619,6 +619,7 @@ def runTest():
         ["arrays/test_array_copy.csd", "test array copy operations"],
         ["test_arrays_constant_index.csd", "test arrays with constant index"],
         ["test_arrays_in_udo.csd", "test arrays in UDO"],
+        ["test_array_in_expression.csd", "test expressions involving arrays"],
     ]
 
     structTests = [

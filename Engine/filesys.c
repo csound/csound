@@ -633,6 +633,10 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
+      /* since csoundFindFile_Fd() creates an empty file in
+         the process of checking if it can be written
+         we remove it here so the filesystem is as before.
+      */
       if(remove(name_found)<0)
         csound->DebugMsg(csound, Str("Remove failed\n"));
     }
