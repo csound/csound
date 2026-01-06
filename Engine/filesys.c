@@ -428,9 +428,9 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
 
 static void overwrite_warning(CSOUND *csound, const char *name) {
   int32_t fd;
-  fd = open(name, O_RDONLY | O_CREAT | O_EXCL);
+  fd = open(name, WR_OPTS | O_EXCL);
   if(fd == -1)
-    csoundWarning(csound, "file %s exits...\n...will be overwritten", name);
+    csoundWarning(csound, "file %s exists...\n...will be overwritten", name);
   else 
     close(fd);
 }
