@@ -426,6 +426,15 @@ static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
     return (FILE*) NULL;
 }
 
+static void overwrite_warning(CSOUND *csound, const char *name) {
+  int32_t fd;
+  fd = open(name, O_RDONLY | O_CREAT | O_EXCL);
+  if(fd == -1)
+    csoundWarning(csound, "file %s exits...\n...will be overwritten", name);
+  else 
+    close(fd);
+}
+
 static int32_t csoundFindFile_Fd(CSOUND *csound, char **fullName,
                              const char *filename, int32_t write_mode,
                              const char *envList)
@@ -451,6 +460,7 @@ static int32_t csoundFindFile_Fd(CSOUND *csound, char **fullName,
     }
     else if (csoundIsNameFullpath(name)) {
       /* if write and full path: */
+      overwrite_warning(csound, name);
       fd = open(name, WR_OPTS);
       if (fd >= 0)
         *fullName = name;
@@ -480,6 +490,7 @@ static int32_t csoundFindFile_Fd(CSOUND *csound, char **fullName,
     }
     /* if write mode, try current directory last */
     if (write_mode) {
+      overwrite_warning(csound, name);
       fd = open(name, WR_OPTS);
       if (fd >= 0) {
         *fullName = name;
@@ -613,8 +624,7 @@ char *csoundFindInputFile(CSOUND *csound,
  */
 char *csoundFindOutputFile(CSOUND *csound,
                            const char *filename,
-                           const char *envList)
-{
+                           const char *envList) {
     char  *name_found;
     int32_t   fd;
 
@@ -623,10 +633,6 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
-      csound->Warning(csound,
-                      Str("output file %s already exists...\n"
-                                  "\t...will be overwritten"),
-                      filename);
     }
     return name_found;
 }
