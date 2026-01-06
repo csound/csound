@@ -633,6 +633,8 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
+      if(remove(name_found)<0)
+        csound->DebugMsg(csound, Str("Remove failed\n"));
     }
     return name_found;
 }
