@@ -270,7 +270,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - name: Checkout and build libsndfile, portmidi, portaudio and libsamplerate
+      - name: Checkout and build libsndfile, portmidi, portaudio, libsamplerate and liblo
         run: |
           cd platform/osx
           chmod +x build_libsndfile.sh
@@ -318,7 +318,10 @@ jobs:
           cmake --build build --config Release
           cmake --build build --target install
 
-      - name: Adjust link paths
+      - name: Adjust ctcsound library load path 
+        run: sed -i -e 's$ctypes.util.find_library("CsoundLib64")$"/Applications/Csound/Csound64.framework/CsoundLib64"$g' Python/ctcsound.py
+
+      - name: Adjust link paths in libraries
         run: |
           install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
           install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
@@ -330,13 +333,15 @@ jobs:
 
       - name: Build installer
         run: |
+          mkdir csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
+          cp Python/ctcsound.py csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
-          pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+          pkgbuild --identifier com.csound.csound7Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
 
       - name: Upload zip
         uses: actions/upload-artifact@v4
