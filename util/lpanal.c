@@ -765,8 +765,6 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       /* Get next sound frame */
       if ((n = (csound->GetUtility(csound))->Sndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
-      if (UNLIKELY(!csound->CheckEvents(csound)))
-        return -1;
     } while (counter < analframes); /* or nsmps done */
 #if 0
     /* clean up stuff */

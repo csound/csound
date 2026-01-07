@@ -639,8 +639,6 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
-            if (!csound->CheckEvents(csound))
-              csound->LongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
@@ -699,8 +697,6 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
-            if (!csound->CheckEvents(csound))
-              csound->LongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;

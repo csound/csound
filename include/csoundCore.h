@@ -1094,7 +1094,6 @@ struct CSOUND_ {
 
   /** @name Events and Score */
   /**@{ */
-  int32_t (*CheckEvents)(CSOUND *);
   void (*Event)(CSOUND *, int32_t, const MYFLT *, int32_t);
   MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
   void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
@@ -1477,7 +1476,6 @@ struct CSOUND_ {
   void (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat);
   void (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
   int32_t (*csoundExitGraphCallback_)(CSOUND *);
-  int32_t (*csoundYieldCallback_)(CSOUND *);
   void *(*OpenSoundFileCallback_)(CSOUND *, const char *, int32_t, void *);
   FILE *(*OpenFileCallback_)(CSOUND *, const char *, const char *);
   void (*FileOpenCallback_)(CSOUND *, const char *, int32_t, int32_t, int32_t);
@@ -1491,7 +1489,6 @@ struct CSOUND_ {
   int32_t (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int32_t);
   int32_t (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int32_t);
   int32_t (*doCsoundCallback)(CSOUND *, void *, uint32_t);
-  int32_t (*csoundInternalYieldCallback_)(CSOUND *);
   int32_t (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                            and nodebug function */
   void (*csoundMessageStringCallback)(CSOUND *csound, int32_t attr,

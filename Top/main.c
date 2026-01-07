@@ -349,10 +349,6 @@ PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
    csound->Message(csound, "\t ...done\n");
   print_benchmark_info(csound, Str("end of code compilation"));
 
-  if (UNLIKELY(!csoundYield(csound)))
-    return -1;
-  /* IV - Oct 31 2002: now we can read and sort the score */
-
   if (csound->scorename != NULL &&
       (n = (int32_t)strlen(csound->scorename)) >
           4 && /* if score ?.srt or ?.xtr */

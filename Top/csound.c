@@ -117,7 +117,6 @@ int32_t csound_read_score(CSOUND *csound, const char *message);
 void csoundDefaultMessageCallback(CSOUND *, int32_t, const char *,
                                          va_list);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
-static int32_t defaultCsoundYield(CSOUND *);
 static int32_t csoundDoCallback_(CSOUND *, void *, uint32_t);
 static void reset(CSOUND *);
 extern const OENTRY opcodlst_1[];
@@ -488,6 +487,11 @@ static const OENTRY *csoundFindOpcode(CSOUND *csound, int32_t exact,
     return find_opcode_new(csound, opname, outargs, inargs);
 }
 
+// NB: function naming convention
+// all API functions (host/module)
+// csound***(), corresponding to csound->***()
+// but not all marked PUBLIC (only for host API)
+
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetNchnls,
@@ -512,13 +516,12 @@ static const CSOUND cenviron_ = {
     csoundGetChannelPtr,
     csoundListChannels,
     /* events and performance */
-    csoundYield,
-    insert_score_event,
+    insert_score_event, //csoundEvent
     csoundGetScoreOffsetSeconds,
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
-    csound_input_message,
-    csound_read_score,
+    csound_input_message,  // csoundInputMessage
+    csound_read_score,     // csoundReadScore
     /* message printout */
     csoundMessage,
     csoundMessageS,
@@ -527,26 +530,26 @@ static const CSOUND cenviron_ = {
     csoundSetMessageLevel,
     csoundSetMessageCallback,
     /* arguments to opcodes and types*/
-    get_arg_string,
-    string_arg_to_insno,
-    string_arg_to_name,
-    GetType,
+    get_arg_string,      // csoundGetString
+    string_arg_to_insno,  // csoundStringArg2Insno
+    string_arg_to_name,   // csoundStringArg2Name
+    GetType,              // csoundGetType
     csoundGetTypePool,
     csoundAddVariableType,
     /* memory allocation */
-    auxalloc,
-    auxalloc_async,
-    mmalloc,
-    mcalloc,
-    mrealloc,
-    cs_strdup,
-    mfree,
+    auxalloc,            // csoundAuxalloc
+    auxalloc_async,       // csoundAuxallocAsync
+    mmalloc,              // csoundMalloc
+    mcalloc,              // csoundCalloc
+    mrealloc,              // csoundRealloc
+    cs_strdup,             // csoundStrdup
+    mfree,                 // csoundFree
     /* function tables */
-    create_function_table,
-    alloc_function_table,
-    free_function_table,
-    find_function_table,
-    get_named_gens,
+    create_function_table,  // csoundFTCreate
+    alloc_function_table,    // csoundFTAlloc
+    free_function_table,    // csoundFTFree
+    find_function_table,    // csoundFTFind
+    get_named_gens,         // csoundGetNamedGens
     /* global and config variable manipulation */
     csoundCreateGlobalVariable,
     csoundQueryGlobalVariable,
@@ -578,21 +581,21 @@ static const CSOUND cenviron_ = {
     csoundCepsLP,
     csoundLPrms,
     /* PVOC-EX system */
-    pvoc_createfile,
-    pvoc_openfile,
-    pvoc_closefile,
-    pvoc_putframes,
-    pvoc_getframes,
-    pvoc_framecount,
-    pvoc_fseek,
-    pvoc_errorstr,
-    load_PVOCEX_file,
+    pvoc_createfile,  // csoundPVOC_CreateFile
+    pvoc_openfile,   // csoundPVOC_OpenFile
+    pvoc_closefile,  // csoundPVOC_Closefile
+    pvoc_putframes,  // csoundPVOC_PutFrames
+    pvoc_getframes,  // csoundPVOC_GetFrames
+    pvoc_framecount, // csoundPVOC_FrameCount
+    pvoc_fseek,      // csoundPVOC_fseek
+    pvoc_errorstr,   // csoundPVOC_ErrorStr
+    load_PVOCEX_file,  // csoundPVOCEX_LoadFile
     /* error messages */
     csoundDie,
     csoundInitError,
     csoundPerfError,
-    fterror,
-    csoundWarning,
+    fterror,         // csoundFtError
+    csoundWarning,  
     csoundDebugMsg,
     csoundLongJmp,
     csoundErrorMsg,
@@ -602,7 +605,7 @@ static const CSOUND cenviron_ = {
     csoundSeedRandMT,
     csoundRandMT,
     csoundRand31,
-    RandSeed1,
+    RandSeed1,     // csoundRandSeed31
     csoundGetRandSeed,
     /* threads and locks */
     csoundCreateThread,
@@ -643,21 +646,21 @@ static const CSOUND cenviron_ = {
     csoundReadAsync,
     csoundWriteAsync,
     csoundFSeekAsync,
-    rewriteheader,
-    csoundLoadSoundFile,
-    load_memfile_with_cb,
-    fdrecord,
-    csound_fd_close,
+    rewriteheader,   // csoundRewriteHeader
+    csoundLoadSoundFile,   
+    load_memfile_with_cb,  // csoundLoadMemoryfile
+    fdrecord,            // csoundFDRecord
+    csound_fd_close,     // csoundFDClose
     csoundCreateFileHandle,
     csoundGetFileName,
-    type2csfiletype,
-    sftype2csfiletype,
-    type2string,
-    getstrformat,
-    sfsampsize,
+    type2csfiletype,   // csoundType2CsfileType
+    sftype2csfiletype, // csoundSndfileType2CsfileType
+    type2string,       // csoundType2String
+    getstrformat,     // csoundGetStrFormat
+    sfsampsize,       // csoundSndfileSampleSize
     /* sndfile interface */
-    sndfileOpen,
-    sndfileOpenFd,
+    sndfileOpen,    // csoundSndfileOpen
+    sndfileOpenFd,  // etc
     sndfileClose,
     sndfileWrite,
     sndfileRead,
@@ -672,9 +675,9 @@ static const CSOUND cenviron_ = {
     csoundRemoveKeyboardCallback,
     csoundRegisterResetCallback,
     /* hash table funcs */
-    cs_hash_table_create,
-    cs_hash_table_get,
-    cs_hash_table_put,
+    cs_hash_table_create,  // csoundCreateHashTable
+    cs_hash_table_get,   //   csoundGetHashTable
+    cs_hash_table_put,    // etc
     cs_hash_table_remove,
     cs_hash_table_free,
     cs_hash_table_get_key,
@@ -703,12 +706,12 @@ static const CSOUND cenviron_ = {
     csoundSetExternalMidiOutCloseCallback,
     csoundSetExternalMidiErrorStringCallback,
     csoundSetMIDIDeviceListCallback,
-    module_list_add,
+    module_list_add,  // csoundModuleListAdd
     /* displays & graphs */
-    dispset,
-    display,
-    dispexit,
-    dispinit,
+    dispset,    // csoundSetDisplay
+    display,    // csoundDisplay
+    dispexit,   // csoundDeinitDisplay
+    dispinit,   // csoundInitDisplay
     csoundSetIsGraphable,
     csoundSetMakeGraphCallback,
     csoundSetDrawGraphCallback,
@@ -718,10 +721,10 @@ static const CSOUND cenviron_ = {
     csoundGetCsoundUtility,
     csoundPow2,
     csoundLocalizeString,
-    cs_strtod,
-    cs_sprintf,
-    cs_sscanf,
-    csoundDeprecate,
+    cs_strtod, // csoundStrtod
+    cs_sprintf, // csoundSprintf
+    cs_sscanf,  // csoundSscanf
+    csoundDeprecate, 
     /* space for API expansion */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -739,7 +742,6 @@ static const CSOUND cenviron_ = {
   (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
   (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
   (int32_t (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
-  defaultCsoundYield,
   (void*(*)(CSOUND*, const char*, int32_t,  void*)) NULL,/* OpenSoundFileCallback_ */
   (FILE*(*)(CSOUND*, const char*, const char*)) NULL, /* OpenFileCallback_ */
   (void(*)(CSOUND*, const char*, int32_t,  int32_t,  int32_t)) NULL, /* FileOpenCallback_ */
@@ -753,7 +755,6 @@ static const CSOUND cenviron_ = {
   audio_dev_list_dummy,
   midi_dev_list_dummy,
   csoundDoCallback_,  /*  doCsoundCallback    */
-  defaultCsoundYield, /* csoundInternalYieldCallback_*/
   kperf,    /* current kperf function - not debug by default */
   (void (*)(CSOUND *csound, int32_t attr, const char *str)) NULL,/* message string callback */
   (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
@@ -1861,23 +1862,6 @@ static int32_t csoundDeprecate(CSOUND *csound, char *name,
     e->deprecated = deprec;
     return CSOUND_SUCCESS;
   } else return CSOUND_ERROR;
-}
-
-int32_t defaultCsoundYield(CSOUND *csound) {
-  (void)csound;
-  return 1;
-}
-
-void csoundSetYieldCallback(CSOUND *csound,
-                            int32_t (*yieldCallback)(CSOUND *)) {
-  csound->csoundYieldCallback_ = yieldCallback;
-}
-
-int32_t csoundYield(CSOUND *csound) {
-  if (exitNow_)
-    csound->LongJmp(csound, CSOUND_SIGNAL);
-  csound->csoundInternalYieldCallback_(csound);
-  return csound->csoundYieldCallback_(csound);
 }
 
 PUBLIC int32_t csoundGetModule(CSOUND *csound, int32_t no, char **module,
