@@ -88,6 +88,44 @@ uint64_t csound_orcget_locn(void *);
 int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                               char *outtypes, char *intypes, int32_t flags);
 
+/**
+ * Helper: Find which imported module contains a variable that wasn't imported
+ * Returns the module name (file path) if found, NULL otherwise
+ * This is used to provide better error messages for undefined variables.
+ */
+static const char* find_unimported_var_module(CSOUND *csound, const char *varName) {
+  MODULE_STATE *module_state = csoundGetModuleState(csound);
+  if (module_state == NULL || module_state->current_module == NULL) {
+    return NULL;
+  }
+
+  CS_MODULE *current = module_state->current_module;
+  for (int32_t i = 0; i < current->import_count; i++) {
+    CS_MODULE *imported = current->imports[i];
+    if (imported == NULL) continue;
+
+    /* Check if the variable exists in this module's AST */
+    if (imported->ast && ast_defines_global(imported->ast, varName)) {
+      /* Check if this item was NOT imported (i.e., import was selective and excluded it) */
+      if (!csoundIsItemImportAllowed(csound, current, imported, varName)) {
+        return imported->file_path ? imported->file_path : imported->name;
+      }
+    }
+
+    /* Also check for UDOs defined in module */
+    if (imported->opcodes) {
+      void *entry = cs_hash_table_get(csound, imported->opcodes, (char *)varName);
+      if (entry != NULL) {
+        if (!csoundIsItemImportAllowed(csound, current, imported, varName)) {
+          return imported->file_path ? imported->file_path : imported->name;
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
@@ -574,7 +612,14 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   }
 
   if (UNLIKELY(var == NULL)) {
-    synterr(csound, Str("Variable '%s' used before defined at line %d\n"), s, tree->line);
+    /* Check if variable exists in an imported module but wasn't imported */
+    const char *source_module = find_unimported_var_module(csound, s);
+    if (source_module != NULL) {
+      synterr(csound, Str("Variable '%s' exists in module '%s' but was not imported at line %d\n"),
+              s, source_module, tree->line);
+    } else {
+      synterr(csound, Str("Variable '%s' used before defined at line %d\n"), s, tree->line);
+    }
     do_baktrace(csound, tree->locn);
     return NULL;
   }
@@ -1095,8 +1140,15 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("get_arg_type2: Variable '%s' used before defined, line %d"),
-              tree->value->lexeme, tree->line);
+      /* Check if variable exists in an imported module but wasn't imported */
+      const char *source_module = find_unimported_var_module(csound, tree->value->lexeme);
+      if (source_module != NULL) {
+        synterr(csound, Str("Variable '%s' exists in module '%s' but was not imported, line %d"),
+                tree->value->lexeme, source_module, tree->line);
+      } else {
+        synterr(csound, Str("Variable '%s' used before defined, line %d"),
+                tree->value->lexeme, tree->line);
+      }
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -2074,9 +2126,17 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
         var = find_var_from_pools(csound, varName, varName, typeTable);
 
         if (UNLIKELY(var == NULL)) {
-            synterr(csound,
-                    Str("ArgCheck: variable '%s' used before defined\nline %d"),
-                    varName, tree->line);
+            /* Check if variable exists in an imported module but wasn't imported */
+            const char *source_module = find_unimported_var_module(csound, varName);
+            if (source_module != NULL) {
+              synterr(csound,
+                      Str("Variable '%s' exists in module '%s' but was not imported\nline %d"),
+                      varName, source_module, tree->line);
+            } else {
+              synterr(csound,
+                      Str("Variable '%s' used before defined\nline %d"),
+                      varName, tree->line);
+            }
             do_baktrace(csound, tree->locn);
             return 0;
         }
@@ -2088,9 +2148,17 @@ int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
           // search for the variable in all variable pools
           var = find_var_from_pools(csound, varName, varName, typeTable);
           if (UNLIKELY(var == NULL)) {
-              synterr(csound,
-                      Str("ArgCheck: variable '%s' used before defined at line %d\n"),
-                      varName, current->left->line);
+              /* Check if variable exists in an imported module but wasn't imported */
+              const char *source_module = find_unimported_var_module(csound, varName);
+              if (source_module != NULL) {
+                synterr(csound,
+                        Str("Variable '%s' exists in module '%s' but was not imported at line %d\n"),
+                        varName, source_module, current->left->line);
+              } else {
+                synterr(csound,
+                        Str("Variable '%s' used before defined at line %d\n"),
+                        varName, current->left->line);
+              }
               do_baktrace(csound, current->left->locn);
               return 0;
           }
@@ -2782,8 +2850,15 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("unable to find opcode with name: %s, line %d\n"),
-            root->value->lexeme, root->line);
+    /* Check if opcode exists in an imported module but wasn't imported */
+    const char *source_module = find_unimported_var_module(csound, opcodeName);
+    if (source_module != NULL) {
+      synterr(csound, Str("Opcode '%s' exists in module '%s' but was not imported, line %d\n"),
+              root->value->lexeme, source_module, root->line);
+    } else {
+      synterr(csound, Str("Unable to find opcode with name: %s, line %d\n"),
+              root->value->lexeme, root->line);
+    }
     if (entries != NULL) {
       csound->Free(csound, entries);
     }
