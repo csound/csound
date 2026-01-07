@@ -1,5 +1,5 @@
 /*
-    soundfile.c:
+    soundfile.c: soundfile backend
 
     Copyright (C) 2021 V Lazzarini
 
@@ -291,7 +291,7 @@ static int32_t csoundSndfileCommand_stub(CSOUND *csound, void *handle, int32_t c
 /** Sets the callbacks for sndfile IO
     NULL callbacks are replaced by stubs.
  */
-PUBLIC void csoundSetSndfileCallbacks(CSOUND *csound, SNDFILE_CALLBACKS *p) {
+void csoundSetSndfileCallbacks(CSOUND *csound, SNDFILE_CALLBACKS *p) {
   if (p == NULL) {
     csound->SndfileOpen = csoundSndfileOpen;
     csound->SndfileOpenFd = csoundSndfileOpenFd;
