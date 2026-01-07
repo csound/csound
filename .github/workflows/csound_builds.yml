@@ -298,12 +298,20 @@ jobs:
           cmake --build build --target install
           cd ..
 
+          git clone https://github.com/radarsat1/liblo
+          cd liblo
+          cmake ./cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../liblo_install
+          cmake --build build
+          cmake --build build --target install
+          cd ..
+
+
       - name: Brew install bison and flex
         run: brew install bison flex
 
       - name: Configure Csound
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0
+          cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install;$PWD/liblo_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0 -DBUILD_OSC_OPCODES=1
 
       - name: Build Csound
         run: |
@@ -317,11 +325,14 @@ jobs:
           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
+          install_name_tool -change @rpath/liblo.7.dylib @loader_path/../../../../libs/liblo.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libosc.dylib
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib          
 
       - name: Build installer
         run: |
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+          cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
