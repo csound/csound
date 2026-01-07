@@ -379,12 +379,12 @@ int32_t printksset_S(CSOUND *csound, PRINTKS *p){
     char *sarg;
     sarg = ((STRINGDAT*)p->ifilcod)->data;
     if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
-    p->old = cs_strdup(csound, sarg);
+    p->old = csoundStrdup(csound, sarg);
     return printksset_(csound, p, sarg);
 }
 
 int32_t printksset(CSOUND *csound, PRINTKS *p){
-    char* arg_string = get_arg_string(csound, *p->ifilcod);
+    char* arg_string = csoundGetString(csound, *p->ifilcod);
 
     if (arg_string == NULL) {
         return csoundInitError(csound, Str("null string\n"));
@@ -582,7 +582,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       if (p->old==NULL || strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
         csound->Free(csound, p->old);
-        p->old = cs_strdup(csound, sarg);
+        p->old = csoundStrdup(csound, sarg);
       }
     }
 

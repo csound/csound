@@ -67,7 +67,7 @@ static void add_OSC_message(CSOUND *csound, const OSC_MESS *mess) {
     }
     // add a new slot if needed
     if(p->nxt == NULL) {
-      p->nxt = (OSC_MESS *) mcalloc(csound, sizeof(OSC_MESS));
+      p->nxt = (OSC_MESS *) csoundCalloc(csound, sizeof(OSC_MESS));
     }
     p = p->nxt;
   }
@@ -75,14 +75,14 @@ static void add_OSC_message(CSOUND *csound, const OSC_MESS *mess) {
   
   // if this slot has already been used, free data 
   if(p->address) {
-    mfree(csound, p->address);
-    mfree(csound, p->type);
-    mfree(csound, p->data);
+    csoundFree(csound, p->address);
+    csoundFree(csound, p->type);
+    csoundFree(csound, p->data);
   }
   // copy data
-  p->address = cs_strdup(csound, mess->address);
-  p->type = cs_strdup(csound, mess->type);
-  p->data = mcalloc(csound, mess->size);
+  p->address = csoundStrdup(csound, mess->address);
+  p->type = csoundStrdup(csound, mess->type);
+  p->data = csoundCalloc(csound, mess->size);
   memcpy(p->data, mess->data, mess->size);
   ATOMIC_SET(p->flag, 1);
 }
@@ -94,9 +94,9 @@ static void free_OSC_message_list(CSOUND *csound) {
   // free allocated data
   while(p != NULL) {
     if(p->address != NULL) {
-      mfree(csound, p->address);
-      mfree(csound, p->type);
-      mfree(csound, p->data);
+      csoundFree(csound, p->address);
+      csoundFree(csound, p->type);
+      csoundFree(csound, p->data);
     }
     p = p->nxt;
   }
@@ -105,7 +105,7 @@ static void free_OSC_message_list(CSOUND *csound) {
   while(p != NULL) {
     pp = p;
     p = p->nxt;
-    mfree(csound, pp);
+    csoundFree(csound, pp);
   }  
 }
 
@@ -223,7 +223,7 @@ static uintptr_t udp_recv(void *pdata){
         else if(!strcmp(mess.address, "/csound/event/instr")){
             // numeric types
             int32_t n = (int32_t) strlen(mess.type), i;
-            MYFLT *arg = (MYFLT *) mcalloc(csound, sizeof(MYFLT)*n);
+            MYFLT *arg = (MYFLT *) csoundCalloc(csound, sizeof(MYFLT)*n);
             for(i = 0; i < n; i++) {
               buf = OSC_message_get_number(buf,
                                               mess.type[i],
@@ -231,7 +231,7 @@ static uintptr_t udp_recv(void *pdata){
               if(buf == NULL) break;
             }
             csoundEvent(csound, CS_INSTR_EVENT, arg, i, 1);
-            mfree(csound, arg);
+            csoundFree(csound, arg);
         }
         else if(!strncmp(mess.address, "/csound/channel",15)) {
           char *channel = mess.address + 16, *delim, *nxt = NULL;
@@ -285,7 +285,7 @@ static uintptr_t udp_recv(void *pdata){
         char chn[128];
         char *str;
         sscanf(orchestra+1, "%s", chn);
-        str = cs_strdup(csound, orchestra+1+strlen(chn));
+        str = csoundStrdup(csound, orchestra+1+strlen(chn));
         csoundSetStringChannel(csound, chn, str);
         csound->Free(csound, str);
       }
@@ -535,7 +535,7 @@ int32_t csoundUDPConsole(CSOUND *csound, const char *addr, int32_t port, int
     p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
     if(p) {
       p->port = port;
-      p->addr = cs_strdup(csound, (char *) addr);
+      p->addr = csoundStrdup(csound, (char *) addr);
       p->sock = 0;
       if(mirror)
         p->cb = csound->csoundMessageCallback_;

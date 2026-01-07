@@ -224,7 +224,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
-void csound_input_message(CSOUND *csound, const char *message) {
+void csoundInputMessage(CSOUND *csound, const char *message) {
     int32  size = (int32) strlen(message);
 #if 1
     int32_t n;
@@ -440,7 +440,7 @@ void sense_line(CSOUND *csound, void *userData)
             continue;
           }
           {
-            MYFLT tmpv = (MYFLT) cs_strtod(cp, &newcp);
+            MYFLT tmpv = (MYFLT) csoundStrtod(cp, &newcp);
             cp = newcp - 1;
             /* ensure capacity before writing */
             if (pcnt >= STA(msize)) {
@@ -486,7 +486,7 @@ void sense_line(CSOUND *csound, void *userData)
           e.p[2] = e.p[1];
           e.pcnt = 2;
         }
-        insert_score_event_at_sample(csound, &e, e.p+1, csound->icurTimeSamples);
+        csoundEvent__at_sample(csound, &e, e.p+1, csound->icurTimeSamples);
         continue;
       Lerr:
         n = (int32_t) (cp - Linestart);                     /* error position */

@@ -154,7 +154,7 @@ static struct set_element_t* set_element_alloc(CSOUND *csound,
     }
     memset(p, 0, sizeof(struct set_element_t));
     memcpy(p->hdr, SET_ELEMENT_HDR, HDR_LEN);
-    p->data = cs_strdup(csound, data);
+    p->data = csoundStrdup(csound, data);
 
     return p;
 }

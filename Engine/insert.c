@@ -1564,7 +1564,7 @@ static void setup_opcode_argpp(
         }
 
         if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
+          char* path = csoundStrdup(csound, arg->structPath);
           char *next, *th;
 
           next = cs_strtok_r(path, ".", &th);
@@ -1638,7 +1638,7 @@ static void setup_opcode_argpp(
         argpp[n] = lclbas + var->memBlockIndex;
 
         if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
+          char* path = csoundStrdup(csound, arg->structPath);
           char *next, *th;
           MYFLT* fltp = argpp[n];
           next = cs_strtok_r(path, ".", &th);
@@ -1887,7 +1887,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     setup_opcode_argpp(csound, opds, ttp, ep, ip, tp, lclbas, lcloffbas, opMemStart);
 
   }
-  /* display instantiated instrument */
+  /* csoundDisplay instantiated instrument */
   if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
      csoundGetDebug(csound) & DEBUG_INSTR) {
     csoundMessage(csound, "instantiated instr %d\n", ip->insno);

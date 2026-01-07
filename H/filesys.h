@@ -84,7 +84,7 @@ extern "C" {
    * The function returns a pointer to the full name of the file if it is
    * found, and NULL if the file could not be found in any of the search paths,
    * or an error has occured. The caller is responsible for freeing the memory
-   * pointed to by the return value, by calling mfree().
+   * pointed to by the return value, by calling csoundFree().
    */
   char *csoundFindInputFile(CSOUND *csound,
                             const char *filename, const char *envList);
@@ -108,7 +108,7 @@ extern "C" {
    * suitable for writing the file is found, and NULL if the file cannot not be
    * written anywhere in the search paths, or an error has occured.
    * The caller is responsible for freeing the memory pointed to by the return
-   * value, by calling mfree().
+   * value, by calling csoundFree().
    */
   char *csoundFindOutputFile(CSOUND *csound,
                              const char *filename, const char *envList);

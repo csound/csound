@@ -103,14 +103,14 @@ static void memdie(CSOUND *csound, size_t nbytes)
     csound->LongJmp(csound, CSOUND_MEMORY);
 }
 
-void *mmalloc(CSOUND *csound, size_t size)
+void *csoundMalloc(CSOUND *csound, size_t size)
 {
     void  *p;
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
       csound->DebugMsg(csound,
-              " *** internal error: mmalloc() called with zero nbytes\n");
+              " *** internal error: csoundMalloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
@@ -135,14 +135,14 @@ void *mmalloc(CSOUND *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mmalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
+void *csoundMalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
-    void *ans = mmalloc(csound,size);
+    void *ans = csoundMalloc(csound,size);
     csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
-void *mcalloc(CSOUND *csound, size_t size)
+void *csoundCalloc(CSOUND *csound, size_t size)
 {
     void  *p;
 
@@ -174,15 +174,15 @@ void *mcalloc(CSOUND *csound, size_t size)
     return DATA_PTR(p);
 }
 
-void *mcalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
+void *csoundCalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 {
-    void *ans = mcalloc(csound,size);
+    void *ans = csoundCalloc(csound,size);
     csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
 
 
-void mfree(CSOUND *csound, void *p)
+void csoundFree(CSOUND *csound, void *p)
 {
     memAllocBlock_t *pp;
 
@@ -227,27 +227,27 @@ void mfree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINUNLOCK
 }
 
-void mfree_debug(CSOUND *csound, void *ans, char *file, int32_t line)
+void csoundFree_debug(CSOUND *csound, void *ans, char *file, int32_t line)
 {
     printf("Free %p %s:%d\n", ans, file, line);
-    mfree(csound,ans);
+    csoundFree(csound,ans);
 }
 
-void *mrealloc(CSOUND *csound, void *oldp, size_t size)
+void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
 {
     memAllocBlock_t *pp;
     void            *p;
 
     if (UNLIKELY(oldp == NULL))
-      return mmalloc(csound, size);
+      return csoundMalloc(csound, size);
     if (UNLIKELY(size == (size_t) 0)) {
-      mfree(csound, oldp);
+      csoundFree(csound, oldp);
       return NULL;
     }
     pp = HDR_PTR(oldp);
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
-      csound->DebugMsg(csound, " *** internal error: mrealloc() called with invalid "
+      csound->DebugMsg(csound, " *** internal error: csoundRealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
       /* as a result of a bug */
@@ -293,9 +293,9 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     return DATA_PTR(pp);
 }
 
-void *mrealloc_debug(CSOUND *csound, void *oldp, size_t size, char *file, int32_t line)
+void *csoundRealloc_debug(CSOUND *csound, void *oldp, size_t size, char *file, int32_t line)
 {
-    void *p = mrealloc(csound, oldp, size);
+    void *p = csoundRealloc(csound, oldp, size);
     csound->DebugMsg(csound, "Realloc %p->%p (%zu) %s:%d\n", oldp, p, size, file, line);
     return p;
 }

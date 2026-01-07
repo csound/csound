@@ -289,7 +289,7 @@ public:
           csoundDestroyCircularBuffer(csound, recordData->cbuf);
           return;
         }
-        sflib_command((SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
+        csoundSndfileCommand(csound, (SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
                    NULL, SFLIB_TRUE);
         recordData->sfname = csound->Strdup(csound, filename.c_str());
         recordData->running = true;

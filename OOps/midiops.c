@@ -77,7 +77,7 @@ int32_t massign_S(CSOUND *csound, MASSIGNS *p)
     int32_t   resetCtls;
     int32_t   retval = OK;
 
-    if (UNLIKELY((instno = string_arg_to_insno(csound, p->insno->data, 1)) <= 0L))
+    if (UNLIKELY((instno = csoundStringArg2Insno(csound, p->insno->data, 1)) <= 0L))
       return NOTOK;
 
     resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
@@ -122,7 +122,7 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
 
 int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
 {
-    int16 chnl = string_arg_to_insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+    int16 chnl = csoundStringArg2Insno(csound, ((STRINGDAT *)p->iname)->data, 1);
     int16 nargs = p->INOCOUNT;
     if (UNLIKELY(chnl > 63)) {
       return NOTOK;
@@ -485,7 +485,7 @@ int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     if (instname || IsStringCode(*p->inst)) {
       MYFLT buf[128];
       csound->StringArg2Name(csound, (char*) buf, p->inst, "", 1);
-      ins = (int32_t)string_arg_to_insno(csound, buf, 1);
+      ins = (int32_t)csoundStringArg2Insno(csound, buf, 1);
     }
     else
       ins = (int32_t)(*(p->inst) + FL(0.5));

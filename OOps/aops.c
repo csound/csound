@@ -2630,11 +2630,11 @@ int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
     return csound->InitError(csound,
       Str("str: instrument reference is not initialized"));
   }
-  char *name = cs_strdup(csound, p->in->instr->insname);
+  char *name = csoundStrdup(csound, p->in->instr->insname);
   STRINGDAT *out = (STRINGDAT *) p->out;
   if(strlen(name) >= out->size) {
     csound->Free(csound, out->data);
-    out->data = cs_strdup(csound, name);
+    out->data = csoundStrdup(csound, name);
     out->size = strlen(name) + 1;
   } else strNcpy(out->data, name, out->size);
   return OK;

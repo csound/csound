@@ -386,7 +386,7 @@ static int32_t delete_channel_db(CSOUND *csound, void *p)
         cs_cons_free(csound, head);
     }
 
-    cs_hash_table_mfree_complete(csound, csound->chn_db);
+    cs_hash_table_csoundFree_complete(csound, csound->chn_db);
     csound->chn_db = NULL;
     return 0;
 }

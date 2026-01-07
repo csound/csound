@@ -25,7 +25,7 @@
 void score_event_async(CSOUND *csound, char type, const MYFLT *pfields,
                            long numFields);
 void read_score_async(CSOUND *csound, const char *message);
-void csound_input_message(CSOUND *csound, const char *message);
+void csoundInputMessage(CSOUND *csound, const char *message);
 
 void rewind_score(CSOUND *csound);   /* musmon.c */
 void midifile_rewind_score(CSOUND *csound); /* midifile.c */
@@ -45,7 +45,7 @@ int32_t csound_score_event(CSOUND *csound, char type,
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  ret = insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  ret = csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   return ret;
 }
 
@@ -64,13 +64,13 @@ int32_t csound_score_event_absolute(CSOUND *csound, char type,
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  ret = insert_score_event_at_sample(csound, &evt, pfields, time_ofs*csound->esr);
+  ret = csoundEvent__at_sample(csound, &evt, pfields, time_ofs*csound->esr);
   return ret;
 }
 
 
 
-int32_t csound_read_score(CSOUND *csound, const char *str) {
+int32_t csoundReadScore(CSOUND *csound, const char *str) {
   /* protect resource */
   if (csound->scorestr != NULL && csound->scorestr->body != NULL)
     corfile_rewind(csound->scorestr);
@@ -92,7 +92,7 @@ int32_t csound_read_score(CSOUND *csound, const char *str) {
   } else {
 
     char *sc = scsortstr(csound, csound->scorestr);
-    csound_input_message(csound, (const char *)sc);
+    csoundInputMessage(csound, (const char *)sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));
   }
@@ -104,7 +104,7 @@ PUBLIC void csoundEventString(CSOUND *csound, const char *message,
   if (async) {
     read_score_async(csound, message);
   } else
-    csound_read_score(csound, message);
+    csoundReadScore(csound, message);
 }
 
 PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
@@ -164,7 +164,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
     evt.pcnt = 3;
     evt.p[1] = evt.p[0] = FL(0.0);
     evt.p[2] = (MYFLT)aTime;
-    insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+    csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   }
 }
 

@@ -206,9 +206,9 @@ static const char *longUsageList[] = {
     " ",
     Str_noop("--displays              use graphic displays"),
     Str_noop("--nodisplays            suppress all displays"),
-    Str_noop("--asciidisplay          suppress graphics, use ascii displays"),
+    Str_noop("--asciicsoundDisplay          suppress graphics, use ascii displays"),
     Str_noop(
-        "--postscriptdisplay     suppress graphics, use Postscript displays"),
+        "--postscriptcsoundDisplay     suppress graphics, use Postscript displays"),
     " ",
     Str_noop("--defer-gen1            defer GEN01 soundfile loads until "
              "performance time"),
@@ -632,12 +632,12 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   }
   /* -g */
-  else if (!(strcmp(s, "asciidisplay"))) {
+  else if (!(strcmp(s, "asciicsoundDisplay"))) {
     O->graphsoff = 1; /* don't use graphics but ASCII */
     return 1;
   }
   /* -G */
-  else if (!(strcmp(s, "postscriptdisplay"))) {
+  else if (!(strcmp(s, "postscriptcsoundDisplay"))) {
     O->postscript = 1; /* don't use graphics but PostScript */
     return 1;
   }
@@ -1608,9 +1608,9 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
                                 "allowed in .csound7rc"));
       } else if (csound->orcname_mode == 0) {
         if (csound->orchname == NULL) /* VL dec 2016: better duplicate these */
-          csound->orchname = cs_strdup(csound, --s);
+          csound->orchname = csoundStrdup(csound, --s);
         else if (LIKELY(csound->scorename == NULL))
-          csound->scorename = cs_strdup(csound, --s);
+          csound->scorename = csoundStrdup(csound, --s);
         else {
           csound->Message(csound, "argc=%d Additional string \"%s\"\n", argc,
                           --s);
@@ -1626,7 +1626,7 @@ end:
 void check_options(CSOUND *csound);
 
 char *unquote_arg(CSOUND *csound, char *arg) {
-  char *out = cs_strdup(csound, arg);
+  char *out = csoundStrdup(csound, arg);
   char *op = out;
   while(*arg != '\0') {
     if(*arg != '"') *op++ = *arg;
@@ -1658,7 +1658,7 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
     while (*opt == ' ')
       opt++;
 
-    sp = options = cs_strdup(csound, opt);
+    sp = options = csoundStrdup(csound, opt);
 
     /* remove whitespace at end */
     char *end = sp + strlen(sp) - 1;
@@ -1689,7 +1689,7 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
       } else sp++;
     }
     argn = cnt;
-    args = (char **)mcalloc(csound, sizeof(char *) * (cnt + 2));
+    args = (char **)csoundCalloc(csound, sizeof(char *) * (cnt + 2));
     args[0] = "csound";
     args[1] = sp = options;
     cnt = 1;
@@ -1715,9 +1715,9 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
     }
 
     ret = argdecode(csound, argn + 1, (const char **)args);
-    mfree(csound, options);
-    for(i = 1; i < argn; i++) mfree(csound, args[i]);
-     mfree(csound, args);
+    csoundFree(csound, options);
+    for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
+     csoundFree(csound, args);
 
     return ret ? 0 : 1;
   }

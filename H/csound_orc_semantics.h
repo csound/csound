@@ -29,9 +29,9 @@
 
 /** Gets short version of opcode name, trimming off anything after '.'.
  If opname has no '.' in name, simply returns the opname pointer.
- If the name is truncated, caller is responsible for calling mfree
+ If the name is truncated, caller is responsible for calling csoundFree
  on returned value.  Caller should compare the returned value with the
- passed in opname to see if it is different and thus requires mfree'ing. */
+ passed in opname to see if it is different and thus requires csoundFree'ing. */
 #include "find_opcode.h"
 
 char *strip_extension(CSOUND *csound, const char *s);
@@ -42,7 +42,7 @@ OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                 OENTRIES* entries, char* inArgTypes);
 void do_baktrace(CSOUND *csound, uint64_t files);
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
+char* csoundGetString_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);

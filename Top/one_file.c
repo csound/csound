@@ -122,7 +122,7 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
 #endif
-return cs_strdup(csound, lbuf);
+return csoundStrdup(csound, lbuf);
 }
 
 static inline void alloc_globals(CSOUND *csound)

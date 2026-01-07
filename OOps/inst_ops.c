@@ -56,7 +56,7 @@ int32_t kill_instancek(CSOUND *csound, KILLOP *p) {
 int32_t nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  int32_t res = string_arg_to_insno(csound, p->iname, 0);
+  int32_t res = csoundStringArg2Insno(csound, p->iname, 0);
   if (UNLIKELY(res == NOT_AN_INSTRUMENT)) {
     *p->i_insno = -FL(1.0); return NOTOK;
   }
@@ -68,7 +68,7 @@ int32_t nstrnumset(CSOUND *csound, NSTRNUM *p)
 int32_t nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
-  int32_t res = string_arg_to_insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+  int32_t res = csoundStringArg2Insno(csound, ((STRINGDAT *)p->iname)->data, 1);
   if (UNLIKELY(res == NOT_AN_INSTRUMENT)) {
     *p->i_insno = -FL(1.0); return NOTOK;
   }
@@ -86,8 +86,8 @@ int32_t nstrstr(CSOUND *csound, NSTRSTR *p)
                              (int)*p->num);
   }
   else ss= "";
-  mfree(csound,p->ans->data);
-  p->ans->data = cs_strdup(csound, ss);
+  csoundFree(csound,p->ans->data);
+  p->ans->data = csoundStrdup(csound, ss);
   p->ans->size = strlen(ss);
   return OK;
 }
@@ -101,7 +101,7 @@ int32_t prealloc_(CSOUND *csound, AOP *p, int32_t instname)
                                (*p->b == FL(0.0) ? 0 : 1));
   else {
     if (IsStringCode(*p->r))
-      n = (int32_t) string_arg_to_opcno(csound, get_arg_string(csound,*p->r), 1,
+      n = (int32_t) string_arg_to_opcno(csound, csoundGetString(csound,*p->r), 1,
                                  (*p->b == FL(0.0) ? 0 : 1));
     else n = *p->r;
   }

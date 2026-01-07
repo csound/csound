@@ -1034,8 +1034,8 @@ static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat, MYFLT sr
 {
   radat->size = (int32_t) MYFLT2LRND(sr / freq);
   radat->cnt = 0;
-  radat->a1 = (int32) csound->Rand31(csound->RandSeed1(csound));
-  radat->a2 = (int32) csound->Rand31(csound->RandSeed1(csound));
+  radat->a1 = (int32) csound->Rand31(csound->RandSeed31(csound));
+  radat->a2 = (int32) csound->Rand31(csound->RandSeed31(csound));
 }
 
 /* ------------------------------------------------------------------ */
@@ -1046,7 +1046,7 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
   if (radat->cnt == radat->size) {  /* get a new random value */
     radat->a1 = radat->a2;
-    radat->a2 = (int32) csound->Rand31(csound->RandSeed1(csound));
+    radat->a2 = (int32) csound->Rand31(csound->RandSeed31(csound));
     radat->cnt = 0;
   }
 

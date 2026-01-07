@@ -421,7 +421,7 @@ struct sink_data {
   struct spa_hook registry_listener;
   CSOUND *csound;
   int no_devs;
-  int display;
+  int csoundDisplay;
   struct sink_info sinks[256];
   int done;
 };
@@ -435,7 +435,7 @@ static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
   const char *node_description;
   CSOUND *csound = sink_data->csound;
   struct sink_info *sinks = sink_data->sinks;
-  int32_t display = sink_data->display;
+  int32_t csoundDisplay = sink_data->csoundDisplay;
 
   // Check if this is an audio sink node
   if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
@@ -447,7 +447,7 @@ static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
 	  node_name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
 	  node_description = spa_dict_lookup(props,
 					     PW_KEY_NODE_DESCRIPTION);
-	  if(display){
+	  if(csoundDisplay){
 	    csound->Message(csound, "  sink node: %d\n", n);
 	    csound->Message(csound, "  ID: %u\n", id);
 	    csound->Message(csound,"  name: %s\n",
@@ -499,12 +499,12 @@ static const struct pw_core_events core_events = {
   .error = core_event_error,
 };
 
-int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t display)
+int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t csoundDisplay)
 {
   struct sink_data data = {0};
   struct spa_hook core_listener;
   data.csound = csound;
-  data.display = display;
+  data.csoundDisplay = csoundDisplay;
   data.no_devs = 0;
 
   data.tloop = pw_thread_loop_new("sink-query", NULL);
@@ -543,11 +543,11 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
   // Add registry event listener
   pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
 
-  if(display)
+  if(csoundDisplay)
    csound->Message(csound, "pipewire sinks:\n");
   pw_thread_loop_start(data.tloop);
   usleep(100000);
-  if(display)
+  if(csoundDisplay)
     csound->Message(csound, "found %d sinks\n", data.no_devs);
 
  cleanup:

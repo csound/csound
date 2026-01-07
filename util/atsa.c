@@ -26,7 +26,6 @@
 #define _FILE_OFFSET_BITS 64
 
 #include "std_util.h"
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1811,7 +1810,6 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     synth_buff = (double *) csound->Malloc(csound, frm_samps * sizeof(double));
     /* open output file */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    //sfinfo.frames = (sflib_count_t)0; /* was -1 */
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
     sfinfo.format = AE_FLOAT | TYP2SF(TYP_WAV);

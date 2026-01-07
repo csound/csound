@@ -31,14 +31,14 @@ extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
 
-/* somewhere to invoke for no display */
+/* somewhere to invoke for no csoundDisplay */
 
 static void DummyFn1(CSOUND *csound, WINDAT *p, const char *s)
 {
     IGN(csound); IGN(p); IGN(s);
 }
 
-/* somewhere to invoke for no display */
+/* somewhere to invoke for no csoundDisplay */
 
 static void DummyFn2(CSOUND *csound, WINDAT *p)
 {
@@ -60,7 +60,7 @@ static int32_t DummyFn3(CSOUND *csound)
 /* called once on initialisation of program to */
 /*  choose between teletype or bitmap graphics */
 
-void dispinit(CSOUND *csound)
+void csoundInitDisplay(CSOUND *csound)
 {
      const OPARMS * O;
       O = csound->GetOParms(csound) ;
@@ -94,7 +94,7 @@ void dispinit(CSOUND *csound)
     csound->csoundExitGraphCallback_ = DummyFn3;
 }
 
-void dispset(CSOUND *csound,            /* setup a new window       */
+void csoundSetDisplay(CSOUND *csound,            /* setup a new window       */
              WINDAT *wdptr,             /*   & init the data struct */
              MYFLT  *fdata,
              int32  npts,
@@ -131,7 +131,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 
 }
 
-int32_t dispexit(CSOUND *csound)
+int32_t csoundDeinitDisplay(CSOUND *csound)
 {
    const OPARMS * O;
     O = csound->GetOParms(csound) ;
@@ -145,7 +145,7 @@ int32_t dispexit(CSOUND *csound)
     return ret;
 }
 
-void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
+void csoundDisplay(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
                                               /*   call the graphing fn       */
 {
     MYFLT   *fp, *fplim;
@@ -166,7 +166,7 @@ void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
     wdptr->max    = max;                 /* record most pos and most */
     wdptr->min    = min;                 /*  neg this array of data  */
     wdptr->absmax = absmax;              /* record absmax this data  */
-    /* VL: absmax needs to be updated at every display in some cases */
+    /* VL: absmax needs to be updated at every csoundDisplay in some cases */
     if (wdptr->absflag  || absmax > wdptr->oabsmax)
       wdptr->oabsmax = absmax;           /* & absmax over life of win */
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */

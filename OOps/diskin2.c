@@ -315,7 +315,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     /* skip initialisation if requested */
     if (p->SkipInit != FL(0.0))
       return OK;
-    csound_fd_close(csound, &(p->fdch));
+    csoundFDClose(csound, &(p->fdch));
   }
   /* set default format parameters */
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
@@ -333,7 +333,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   /* FIXME: name can overflow with very long string */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+      strNcpy(name,csoundGetString(csound, *p->iFileCode), 1023);
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -348,7 +348,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   /* record file handle so that it will be closed at note-off */
   memset(&(p->fdch), 0, sizeof(FDCH));
   p->fdch.fd = fd;
-  fdrecord(csound, &(p->fdch));
+  csoundFDRecord(csound, &(p->fdch));
 
   /* set the number of channels from file */
   p->nChannels = sfinfo.channels;
@@ -1426,7 +1426,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       /* skip initialisation if requested */
       if (p->SkipInit != FL(0.0))
         return OK;
-      csound_fd_close(csound, &(p->fdch));
+      csoundFDClose(csound, &(p->fdch));
     }
     // to handle raw files number of channels
     if (t->data) p->nChannels = t->sizes[0];
@@ -1446,7 +1446,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
       if (IsStringCode(*p->iFileCode))
-        strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
+        strNcpy(name,csoundGetString(csound, *p->iFileCode), 1023);
       else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -1461,7 +1461,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
+    csoundFDRecord(csound, &(p->fdch));
 
     /* get number of channels in file */
     p->nChannels = sfinfo.channels;
@@ -2010,7 +2010,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
 
     if (stringname==0){
       if (IsStringCode(*ifilcod))
-        strNcpy(name,get_arg_string(csound, *ifilcod), 1023);
+        strNcpy(name,csoundGetString(csound, *ifilcod), 1023);
       else csound->StringArg2Name(csound, name, ifilcod, "soundout.",0);
     }
     else strNcpy(name, ((STRINGDAT *)ifilcod)->data, 1023);

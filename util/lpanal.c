@@ -473,7 +473,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'g':
                         csound->Warning(csound,
-                          "%s", Str("graphical display is currently unsupported"));
+                          "%s", Str("graphical csoundDisplay is currently unsupported"));
                         break;
         case 'a':
                         storePoles = TRUE;
@@ -609,9 +609,9 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     counter = 0;
     analframes = (int32_t)((p->getframes - 1) / slice);
 
-    /* Some display stuff */
+    /* Some csoundDisplay stuff */
 #if 0
-    dispinit(csound);
+    csoundInitDisplay(csound);
     csound->SetDisplay(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
@@ -660,7 +660,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
   /*    *fp1++ = - (MYFLT) *--dfp; */  /* rev coefs & chng sgn */
 #if 0
       CS_SPRINTF(lpc.pwindow.caption, "pitch: %8.2f", coef[3]);
-      display(csound, &lpc.pwindow);
+      csoundDisplay(csound, &lpc.pwindow);
 #endif
 
       /* Prepare buffer for output */
@@ -768,7 +768,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     } while (counter < analframes); /* or nsmps done */
 #if 0
     /* clean up stuff */
-    dispexit(csound);
+    csoundDeinitDisplay(csound);
 #endif
     csound->Message(csound, Str("%d lpc frames written to %s\n"),
                             counter, outfilnam);
@@ -992,7 +992,7 @@ static const char *usage_txt[] = {
   Str_noop("-Q<maxcps>\tupper limit for pitch search (default 200 Hz)"),
   Str_noop("-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug"
            " (default 0)"),
-  Str_noop("-g\tgraphical display of results"),
+  Str_noop("-g\tgraphical csoundDisplay of results"),
   Str_noop("-a\t\talternate (pole) file storage"),
   Str_noop("-n\t\t use Durbin method for linear prediction"),
   Str_noop("-- fname\tLog output to file"),

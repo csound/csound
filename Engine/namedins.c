@@ -78,7 +78,7 @@ MYFLT named_instr_find(CSOUND *csound, char *s)
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
-int32 string_arg_to_insno(CSOUND *csound, void *p, int32_t is_string)
+int32 csoundStringArg2Insno(CSOUND *csound, void *p, int32_t is_string)
 {
     int32    insno;
 
@@ -102,7 +102,7 @@ int32 string_arg_to_insno(CSOUND *csound, void *p, int32_t is_string)
 /* same as strarg2insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
-int32 string_arg_to_insno_p(CSOUND *csound, char *s)
+int32 csoundStringArg2Insno_p(CSOUND *csound, char *s)
 {
     int32    insno;
 
@@ -183,7 +183,7 @@ int32 string_arg_to_opcno(CSOUND *csound, void *p, int32_t is_string, int32_t fo
 /*      freeing the allocated memory with csound->Free() or     */
 /*      csound->Free()                                          */
 
-char *string_arg_to_name(CSOUND *csound, char *s, void *p, const char *baseName,
+char *csoundStringArg2Name(CSOUND *csound, char *s, void *p, const char *baseName,
                                   int32_t is_string)
 {
     if (is_string) {
@@ -194,7 +194,7 @@ char *string_arg_to_name(CSOUND *csound, char *s, void *p, const char *baseName,
     }
     else if (IsStringCode(*((MYFLT*) p))) {
       /* p-field string, unquote and copy */
-      char  *s2 = get_arg_string(csound, *((MYFLT*)p));
+      char  *s2 = csoundGetString(csound, *((MYFLT*)p));
       int32_t   i = 0;
       //printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
       if (s == NULL)
@@ -233,7 +233,7 @@ char *string_arg_to_name(CSOUND *csound, char *s, void *p, const char *baseName,
 /* API function for instrument numbers
  */
 int32 csoundGetInstrNumber(CSOUND *csound, const char *str) {
-  return string_arg_to_insno(csound, (void *) str, 1);
+  return csoundStringArg2Insno(csound, (void *) str, 1);
 }
 
 /* -------- IV - Jan 29 2005 -------- */
@@ -328,6 +328,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
     if (csound == NULL || csound->namedGlobals == NULL) return;
 
-    cs_hash_table_mfree_complete(csound, csound->namedGlobals);
+    cs_hash_table_csoundFree_complete(csound, csound->namedGlobals);
     csound->namedGlobals = NULL;
 }

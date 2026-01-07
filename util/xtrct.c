@@ -274,7 +274,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     xtrc.outputs = xtrc.p->nchanls;
 
     O->outformat = xtrc.p->format; /* Copy from input file */
-    O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+    O->csoundSndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
     O->filetyp = xtrc.p->filetyp; /* Copy from input file */
     
     if (O->outfilename == NULL)

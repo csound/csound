@@ -245,7 +245,7 @@ int32_t start_engine(CSOUND *csound)
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
 
     m_chn_init_all(csound);     /* allocate MIDI channels */
-    dispinit(csound);           /* initialise graphics or character display */
+    csoundInitDisplay(csound);           /* initialise graphics or character csoundDisplay */
 
     /* Initialize unit test counters */
     if (csound->oparms->runUnitTests) {
@@ -531,7 +531,7 @@ int32_t csound_cleanup(CSOUND *csound)
       cs_beep(csound);
 
     csoundUnlockMutex(csound->API_lock);
-    return dispexit(csound);    /* hold or terminate the display output     */
+    return csoundDeinitDisplay(csound);    /* hold or terminate the csoundDisplay output     */
 }
 
 /* make list to turn on instrs for indef */
@@ -549,7 +549,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.pcnt = 3;
 
   if (IsStringCode(*p->insno)) {
-    char *ss = get_arg_string(csound,*p->insno);
+    char *ss = csoundGetString(csound,*p->insno);
     insno = csound->StringArg2Insno(csound,ss,1);
     if (insno == NOT_AN_INSTRUMENT)
       return NOTOK;
@@ -563,7 +563,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
-  return insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  return csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* make list to turn on instrs for indef */
@@ -591,7 +591,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
-  return insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  return csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -869,7 +869,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'f':                   /* f event: */
     {
       FUNC  *dummyftp;
-      create_function_table(csound, &dummyftp, evt, 0); /* construct locally */
+      csoundFTCreate(csound, &dummyftp, evt, 0); /* construct locally */
       if (getRemoteInsRfdCount(csound))
         insGlobevt(csound, evt); /* RM: & optionally send to all remote_cleanups      */
     }
@@ -1373,9 +1373,9 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)
         csoundErrorMsg(csound, "%s",
-                      Str("insert_score_event(): invalid named instrument\n"));
+                      Str("csoundEvent_(): invalid named instrument\n"));
       else
-        csoundErrorMsg(csound, Str("insert_score_event(): invalid instrument "
+        csoundErrorMsg(csound, Str("csoundEvent_(): invalid instrument "
                                   "number or name %d\n" ), i);
       goto err_return;
     }
@@ -1395,7 +1395,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     start_kcnt = (uint32_t)time2kcnt(csound, start_time);
     break;
   default:
-    csoundErrorMsg(csound, Str("insert_score_event(): unknown opcode: %c\n"),
+    csoundErrorMsg(csound, Str("csoundEvent_(): unknown opcode: %c\n"),
                   evt->opcod);
     goto err_return;
   }
@@ -1419,7 +1419,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   return 0;
 
  pfld_err:
-  csoundErrorMsg(csound, Str("insert_score_event(): insufficient p-fields\n"));
+  csoundErrorMsg(csound, Str("csoundEvent_(): insufficient p-fields\n"));
  err_return:
   /* clean up */
   if (e->evt.strarg != NULL)
@@ -1445,7 +1445,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
 /* need not be preserved after calling this function, as a copy of    */
 /* the event is made.                                                 */
 /* Return value is zero on success.                                   */
-int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
+int32_t csoundEvent__at_sample(CSOUND *csound, const EVTBLK *ep,
                                      const MYFLT *pfields,
                                      int64_t time_ofs)
 {

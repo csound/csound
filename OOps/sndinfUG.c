@@ -43,7 +43,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     if (strin)
       strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
     else if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
+      strNcpy(soundiname, csoundGetString(csound, *p->ifilno), 1023);
     }
     else csound->StringArg2Name(csound, soundiname, p->ifilno, "soundin.",0);
 
@@ -128,7 +128,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
     }
     if (sf != NULL) {
-      csFileType = sftype2csfiletype(sfinfo.format);
+      csFileType = csoundSndfileType2CsfileType(sfinfo.format);
       memcpy(hdr, &sfinfo, sizeof(SFLIB_INFO));
       csound->SndfileClose(csound,sf);
     }
@@ -321,7 +321,7 @@ int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
  if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
+      strNcpy(soundiname, csoundGetString(csound, *p->ifilno), 1023);
     }
   else csound->StringArg2Name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
@@ -343,7 +343,7 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
     char soundiname[1024];       /* There is no check on this length */
     *p->r1 = 0;
     if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
+      strNcpy(soundiname, csoundGetString(csound, *p->ifilno), 1023);
     }
     else csound->StringArg2Name(csound, soundiname, p->ifilno,
                         "soundin.", 0);

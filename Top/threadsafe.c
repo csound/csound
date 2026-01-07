@@ -36,8 +36,8 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
                  TYPE_TABLE* typetable, OPDS *ids);
 void xturnoff_instance(CSOUND *csound, MYFLT instr, int32_t insno, INSDS *ip,
                   int32_t mode, int32_t allow_release);
-void csound_input_message(CSOUND *csound, const char *message);
-int32_t csound_read_score(CSOUND *csound, const char *message);
+void csoundInputMessage(CSOUND *csound, const char *message);
+int32_t csoundReadScore(CSOUND *csound, const char *message);
 int32_t csound_score_event(CSOUND *csound, char type,
                              const MYFLT *pfields, long numFields);
 int32_t csound_score_event_absolute(CSOUND *csound, char type,
@@ -139,14 +139,14 @@ void message_dequeue(CSOUND *csound) {
       case INPUT_MESSAGE:
         {
           const char *str = msg->args;
-          csound_input_message(csound, str);
+          csoundInputMessage(csound, str);
         }
 
         break;
       case READ_SCORE:
         {
           const char *str = msg->args;
-          csound_read_score(csound, str);
+          csoundReadScore(csound, str);
         }
         break;
       case SCORE_EVENT:
@@ -281,7 +281,7 @@ static inline int64_t *score_event_enqueue(CSOUND *csound, char type,
                                                 long numFields)
 {
   const int32_t argsize = (int32_t) (sizeof(MYFLT)*(numFields+2));
-  MYFLT *args = mcalloc(csound, argsize);
+  MYFLT *args = csoundCalloc(csound, argsize);
   memcpy(&args[2], pfields, argsize - sizeof(MYFLT)*2);
   args[0] = (MYFLT) type;
   args[1] = numFields;

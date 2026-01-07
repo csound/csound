@@ -24,7 +24,7 @@
 #include "corfile.h"
 #include "udo.h"
 
-char* get_arg_string(CSOUND *csound, MYFLT p)
+char* csoundGetString(CSOUND *csound, MYFLT p)
 {
     int32 n;
     char *ss;
@@ -64,7 +64,7 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     return ss;
 }
 
-char* get_arg_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
+char* csoundGetString_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
 {
     int32 n;
     char *ss = evt->strarg;

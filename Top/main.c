@@ -38,7 +38,7 @@ int32_t init_pvsys(CSOUND *);
 void print_benchmark_info(CSOUND *, const char *);
 int32_t read_unified_file4(CSOUND *csound, CORFIL *csd);
 uintptr_t kperf_thread(void *cs);
-void csound_input_message(CSOUND *csound, const char *message);
+void csoundInputMessage(CSOUND *csound, const char *message);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 #ifdef PARCS
@@ -415,7 +415,7 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t asy
   if (LIKELY(res)) {
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
-    csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
+    csound->csdname = csoundStrdup(csound, "*string*"); /* Mark as from text. */
     /* Ensure any stale orchname from a previous compile is not used */
     csound->orchname = NULL;
 
@@ -436,7 +436,7 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t asy
                   csound->engineStatus);
             if(async)
             input_message_async(csound, (const char *) sc);
-            else csound_input_message(csound, (const char *) sc);
+            else csoundInputMessage(csound, (const char *) sc);
           }
       } else {
         if (csound->scorestr == NULL) {
@@ -598,7 +598,7 @@ PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
       } */
   if (!O->outformat)         /* if no audioformat yet  */
     O->outformat = AE_SHORT; /*  default to short_ints */
-  O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
+  O->csoundSndfileSampleSize = csoundSndfileSampleSize(FORMAT2SF(O->outformat));
   O->informat = O->outformat; /* informat default */
 
 #ifdef PARCS

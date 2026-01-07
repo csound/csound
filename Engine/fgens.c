@@ -83,14 +83,14 @@ typedef struct namedgen {
 
 #define FTAB_SEARCH_BASE (100)
 
-CS_NOINLINE int32_t  fterror(const FGDATA *, const char *, ...);
+CS_NOINLINE int32_t  csoundFtError(const FGDATA *, const char *, ...);
 static CS_NOINLINE void ftresdisp(const FGDATA *, FUNC *);
 static CS_NOINLINE FUNC *ftalloc(const FGDATA *);
 
 static int32_t GENUL(FGDATA *ff, FUNC *ftp)
 {
     (void) ftp;
-    return fterror(ff, Str("unknown GEN number"));
+    return csoundFtError(ff, Str("unknown GEN number"));
 }
 
 /**
@@ -100,7 +100,7 @@ static int32_t GENUL(FGDATA *ff, FUNC *ftp)
  * Returns zero on success.
  * NB: pfields are dynamic, PMAX does not apply anymore anywhere here as a limit.
  */
-int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
+int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
                               int32_t mode)
 {
     int32    genum, ltest;
@@ -136,7 +136,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       ff.fno = -(ff.fno);
       if (UNLIKELY(ff.fno > csound->maxfnum ||
                    (ftp = csound->flist[ff.fno]) == NULL)) {
-        return fterror(&ff, Str("ftable does not exist"));
+        return csoundFtError(&ff, Str("ftable does not exist"));
       }
       csound->flist[ff.fno] = NULL;
       csound->Free(csound, (void*) ftp);
@@ -157,7 +157,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       csound->maxfnum = size;
     }
     if (UNLIKELY(ff.e.pcnt <= 4)) {             /*  chk minimum arg count   */
-      return fterror(&ff, Str("insufficient gen arguments"));
+      return csoundFtError(&ff, Str("insufficient gen arguments"));
     }
      memcpy(&(ff.e.p[2]), &(evtblkp->p[2]),
              sizeof(MYFLT) * ((int32_t) ff.e.pcnt - 1));
@@ -172,7 +172,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
         n = n->next;                            /*  and round again         */
       }
       if (UNLIKELY(n == NULL)) {
-        return fterror(&ff, Str("Named gen \"%s\" not defined"), ff.e.strarg);
+        return csoundFtError(&ff, Str("Named gen \"%s\" not defined"), ff.e.strarg);
       }
     }
     else {
@@ -180,7 +180,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       if (genum < 0)
         genum = -genum;
       if (UNLIKELY(!genum || genum > csound->genmax)) { /*   & legal gen number x*/
-        return fterror(&ff, Str("illegal gen number"));
+        return csoundFtError(&ff, Str("illegal gen number"));
       }
     }
     flen =  ff.e.p[3];
@@ -191,7 +191,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
                    genum != 28 && genum != 44 && genum != 49 &&
                    genum != 53 && genum<=GENMAX)) {
-        return fterror(&ff, Str("deferred size not supported"));
+        return csoundFtError(&ff, Str("deferred size not supported"));
       }
       if (UNLIKELY(msg_enabled))
         csoundMessage(csound, Str("ftable %d:\n"), ff.fno);
@@ -221,7 +221,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
       ff.flen &= -2L;                   /*  flen now w/o guardpt    */
     }
     if (ff.flen >  MAXLEN)
-        return fterror(&ff, Str("illegal table length"));
+        return csoundFtError(&ff, Str("illegal table length"));
     // now flen is set
     // test and set lobits
     for (ltest = ff.flen, lobits = 0;
@@ -256,7 +256,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
     }
 
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
-    ftresdisp(&ff, ftp);           /* rescale and display      */
+    ftresdisp(&ff, ftp);           /* rescale and csoundDisplay      */
 
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
@@ -277,7 +277,7 @@ int32_t create_function_table(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp
  * point32_t) of 'len' samples. The table data is not cleared to zero.
  * Return value is zero on success.
  */
-int32_t alloc_function_table(CSOUND *csound, int32_t tableNum,
+int32_t csoundFTAlloc(CSOUND *csound, int32_t tableNum,
                                     int32_t len)
 {
     int32_t   i, size;
@@ -341,7 +341,7 @@ int32_t alloc_function_table(CSOUND *csound, int32_t tableNum,
  * Return value is zero on success.
  */
 
-int32_t free_function_table(CSOUND *csound, int32_t tableNum)
+int32_t csoundFTFree(CSOUND *csound, int32_t tableNum)
 {
     FUNC  *ftp;
 
@@ -384,12 +384,12 @@ static int32_t gen03(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp = ftp->ftable, x, sum, *coefp, *coef0, *coeflim;
 
     if (UNLIKELY((ncoefs = nargs - 2) <= 0)) {
-      return fterror(ff, Str("no coefs present"));
+      return csoundFtError(ff, Str("no coefs present"));
     }
     coef0 = &ff->e.p[7];
     coeflim = coef0 + ncoefs;
     if (UNLIKELY((xintvl = ff->e.p[6] - ff->e.p[5]) <= 0)) {
-      return fterror(ff, Str("illegal x interval"));
+      return csoundFtError(ff, Str("illegal x interval"));
     }
     xscale = xintvl / (MYFLT)ff->flen;
     xloc = (int32_t) (ff->e.p[5] / xscale);        /* initial xloc */
@@ -418,11 +418,11 @@ static int32_t gen04(FGDATA *ff, FUNC *ftp)
     int32_t     srcno, srcpts, ptratio;
 
     if (UNLIKELY(ff->e.pcnt < 6)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csoundFtError(ff, Str("insufficient arguments"));
     }
     if (UNLIKELY((srcno = (int)ff->e.p[5]) <= 0 || srcno > csound->maxfnum ||
                  (srcftp = csound->flist[srcno]) == NULL)) {
-      return fterror(ff, Str("unknown srctable number"));
+      return csoundFtError(ff, Str("unknown srctable number"));
     }
     if (!ff->e.p[6]) {
       srcpts = srcftp->flen;
@@ -435,7 +435,7 @@ static int32_t gen04(FGDATA *ff, FUNC *ftp)
       rvalp  = valp - 1;
     }
     if (UNLIKELY((ptratio = srcpts / ff->flen) < 1)) {
-      return fterror(ff, Str("table size too large"));
+      return csoundFtError(ff, Str("table size too large"));
     }
     if ((val = *valp++)) {
       if (val < FL(0.0))      val = -val;
@@ -505,9 +505,9 @@ static int32_t gen05(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gn5er1:
-    return fterror(ff, Str("gen call has negative segment size:"));
+    return csoundFtError(ff, Str("gen call has negative segment size:"));
  gn5er2:
-    return fterror(ff, Str("illegal input vals for gen call, beginning:"));
+    return csoundFtError(ff, Str("illegal input vals for gen call, beginning:"));
 }
 
 static int32_t gen07(FGDATA *ff, FUNC *ftp)
@@ -538,7 +538,7 @@ static int32_t gen07(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gn7err:
-    return fterror(ff, Str("gen call has negative segment size:"));
+    return csoundFtError(ff, Str("gen call has negative segment size:"));
 }
 
 static int32_t gen06(FGDATA *ff, FUNC *ftp)
@@ -548,7 +548,7 @@ static int32_t gen06(FGDATA *ff, FUNC *ftp)
     int32_t     pntno, pntinc, nsegs, npts;
 
     if (UNLIKELY((nsegs = ((ff->e.pcnt - 5) >> 1)) < 1)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csoundFtError(ff, Str("insufficient arguments"));
     }
     fp = ftp->ftable;
     finp = fp + ff->flen;
@@ -558,7 +558,7 @@ static int32_t gen06(FGDATA *ff, FUNC *ftp)
       segp += 1;
       segptsp = segp + 1;
       if (UNLIKELY((npts = (int)*segptsp) < 0)) {
-        return fterror(ff, Str("negative segsiz"));
+        return csoundFtError(ff, Str("negative segsiz"));
       }
       if (pntinc > 0) {
         pntno   = 0;
@@ -594,14 +594,14 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
 
 
     if (UNLIKELY((nsegs = (ff->e.pcnt - 5) >> 1) <= 0)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csoundFtError(ff, Str("insufficient arguments"));
     }
     valp = &ff->e.p[5];
     fp = ftp->ftable;
     fplim = fp + ff->flen;
     f0 = *valp++;                    /* 1st 3 params give vals at x0, x1 */
     if (UNLIKELY((dx01 = *valp++) <= FL(0.0))) {      /* and dist between*/
-      return fterror(ff, Str("illegal x interval"));
+      return csoundFtError(ff, Str("illegal x interval"));
     }
     f1 = *valp++;
     curx = df0 = FL(0.0);           /* init x to origin; slope at x0 = 0 */
@@ -609,7 +609,7 @@ static int32_t gen08(FGDATA *ff, FUNC *ftp)
       if (nsegs > 1) {                      /* if another seg to follow  */
         MYFLT dx02;
         if (UNLIKELY((dx12 = *valp++) <= FL(0.0))) {  /*  read its distance  */
-          return fterror(ff, Str("illegal x interval"));
+          return csoundFtError(ff, Str("illegal x interval"));
         }
         f2 = *valp++;                       /*    and the value at x2    */
         dx02 = dx01 + dx12;
@@ -709,7 +709,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY((n = (int32_t) ff->e.p[5]) < 1)) {
-      return fterror(ff, Str("nh partials < 1"));
+      return csoundFtError(ff, Str("nh partials < 1"));
     }
     k = 1;
     r = FL(1.0);
@@ -804,13 +804,13 @@ static int32_t gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
 
 
     if (UNLIKELY((nh = ff->e.pcnt - 6) <= 0)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csoundFtError(ff, Str("insufficient arguments"));
     }
     if (UNLIKELY((xintvl = ff->e.p[5]) <= 0)) {
-      return fterror(ff, Str("illegal xint value"));
+      return csoundFtError(ff, Str("illegal xint value"));
     }
     if (UNLIKELY((xamp = ff->e.p[6]) <= 0)) {
-      return fterror(ff, Str("illegal xamp value"));
+      return csoundFtError(ff, Str("illegal xamp value"));
     }
     ff->e.p[5] = -xintvl;
     ff->e.p[6] = xintvl;
@@ -851,7 +851,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
 
 
     if (UNLIKELY(nargs & 01)) {
-      return fterror(ff, Str("uneven number of args"));
+      return csoundFtError(ff, Str("uneven number of args"));
     }
     hsin = (MYFLT*)csound->Malloc(csound,sizeof(MYFLT)*((1+ff->e.pcnt)/2));
     nh = (nargs - 2) >>1;
@@ -887,7 +887,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     n = gen14(ff, ftp);       /* now draw ftable   */
     ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
     ff->fno--;                /* F. Pinot, the first function table */
-                              /* is scaled and displayed by create_function_table */
+                              /* is scaled and csoundDisplayed by csoundFTCreate */
     return n;
 }
 
@@ -962,7 +962,7 @@ static int32_t gen17(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gn17err:
-    return fterror(ff, Str("gen call has illegal x-ordinate values:"));
+    return csoundFtError(ff, Str("gen call has illegal x-ordinate values:"));
 }
 
 /* by pete moss (petemoss@petemoss.org), jan 2002 */
@@ -977,7 +977,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY((cnt = nargs >> 2) <= 0)) {
-      return fterror(ff, Str("wrong number of args"));
+      return csoundFtError(ff, Str("wrong number of args"));
     }
     while (cnt--) {
       fn=*pp++;
@@ -987,14 +987,14 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
 
       if (UNLIKELY((start>ff->flen) || (finish>=ff->flen))) {
         /* make sure start and finish < flen */
-        return fterror(ff, Str("a range given exceeds table length"));
+        return csoundFtError(ff, Str("a range given exceeds table length"));
       }
 
-      if (LIKELY((fnp=find_function_table(csound,&fn))!=NULL)) { /* make sure fn exists */
+      if (LIKELY((fnp=csoundFTFind(csound,&fn))!=NULL)) { /* make sure fn exists */
         fp = fnp->ftable, fnlen = fnp->flen-1;        /* and set it up */
       }
       else {
-        return fterror(ff, Str("an input function does not exist"));
+        return csoundFtError(ff, Str("an input function does not exist"));
       }
 
       range = (MYFLT) (finish - start), j = start;
@@ -1119,7 +1119,7 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
           ft[i] = (MYFLT) (xarg * sin(x) / x);
         return OK;
     default:
-        return fterror(ff, Str("No such window type!"));
+        return csoundFtError(ff, Str("No such window type!"));
     }
 
     arg = TWOPI / ff->flen;
@@ -1137,8 +1137,8 @@ static int32_t gen21(FGDATA *ff, FUNC *ftp)
 
     switch (retval) {
       case 0:   break;
-      case -1:  return fterror(ff, Str("Wrong number of input arguments"));
-      case -2:  return fterror(ff, Str("unknown distribution"));
+      case -1:  return csoundFtError(ff, Str("Wrong number of input arguments"));
+      case -2:  return csoundFtError(ff, Str("unknown distribution"));
       default:  return NOTOK;
     }
     return OK;
@@ -1191,7 +1191,7 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
     fd = csound->FileOpen(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL)) {
-      return fterror(ff, Str("error opening ASCII file"));
+      return csoundFtError(ff, Str("error opening ASCII file"));
     }
     if (ftp == NULL) {
       /* Start counting elements */
@@ -1207,7 +1207,7 @@ static int32_t gen23(FGDATA *ff, FUNC *ftp)
       /* Allocate memory and read them in now */
   /*  ff->flen      = ff->flen + 2;        ??? */
       ftp           = ftalloc(ff);
-      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in find_function_table */
+      ftp->lenmask  = 0xFFFFFFFF; /* avoid the error in csoundFTFind */
     }
     fp = ftp->ftable;
     j = 0;
@@ -1239,12 +1239,12 @@ static int32_t gen24(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csoundFtError(ff, Str("insufficient arguments"));
     }
     if (UNLIKELY((srcno = (int32_t) ff->e.p[5]) <= 0 ||
         srcno > csound->maxfnum         ||
                  (srcftp = csound->flist[srcno]) == NULL)) {
-      return fterror(ff, Str("unknown srctable number"));
+      return csoundFtError(ff, Str("unknown srctable number"));
     }
     fp_source = srcftp->ftable;
 
@@ -1252,7 +1252,7 @@ static int32_t gen24(FGDATA *ff, FUNC *ftp)
     new_max = ff->e.p[7];
     srcpts = srcftp->flen;
     if (UNLIKELY(srcpts!= ff->flen)) {
-      return fterror(ff, Str("table size must be the same of source table"));
+      return csoundFtError(ff, Str("table size must be the same of source table"));
     }
     max = min = fp_source[0];
     for (j = 0; j < srcpts; j++) {
@@ -1312,13 +1312,13 @@ static int32_t gen25(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gn25err:
-    return fterror(ff, Str("x coordinates must all be in increasing order:"));
+    return csoundFtError(ff, Str("x coordinates must all be in increasing order:"));
 
  gn25err2:
-    return fterror(ff, Str("x coordinate greater than function size:"));
+    return csoundFtError(ff, Str("x coordinate greater than function size:"));
 
  gn25err3:
-    return fterror(ff,
+    return csoundFtError(ff,
                    Str("illegal input val (y <= 0) for gen call, beginning:"));
 }
 
@@ -1362,9 +1362,9 @@ static int32_t gen27(FGDATA *ff, FUNC *ftp)
 
  gn27err:
     printf("nsegs=%d x1,y1 = %f,%f x2,y2 = %f,%f\n", nsegs, x1, y1, x2, y2);
-    return fterror(ff, Str("x coordinates must all be in increasing order:"));
+    return csoundFtError(ff, Str("x coordinates must all be in increasing order:"));
  gn27err2:
-    return fterror(ff, Str("x coordinate greater than function size:"));
+    return csoundFtError(ff, Str("x coordinate greater than function size:"));
 }
 
 /* read X Y values directly from ascii file */
@@ -1382,7 +1382,7 @@ static int32_t gen28(FGDATA *ff, FUNC *ftp)
     MYFLT   x1, y1, z1, x2, y2, z2, incrx, incry;
 
     if (UNLIKELY(ff->flen))
-      return fterror(ff, Str("GEN28 requires zero table length"));
+      return csoundFtError(ff, Str("GEN28 requires zero table length"));
     fd = csound->FileOpen(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
                           "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
@@ -1451,10 +1451,10 @@ static int32_t gen28(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gen28err1:
-    return fterror(ff, Str("could not open space file"));
+    return csoundFtError(ff, Str("could not open space file"));
  gen28err2:
     csound->Free(csound,x); csound->Free(csound,y); csound->Free(csound,z);
-    return fterror(ff, Str("Time values must be in increasing order"));
+    return csoundFtError(ff, Str("Time values must be in increasing order"));
 }
 
 /* gen30: extract a range of harmonic partials from source table */
@@ -1468,14 +1468,14 @@ static int32_t gen30(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
-      return fterror(ff, Str("insufficient gen arguments"));
+      return csoundFtError(ff, Str("insufficient gen arguments"));
     }
     xsr = FL(1.0);
     if ((nargs > 3) && (ff->e.p[8] > FL(0.0)))
       xsr = csound->esr / ff->e.p[8];
     l2 = csoundGetTable(csound, &f2, (int32_t) ff->e.p[5]);
     if (UNLIKELY(l2 < 0)) {
-      return fterror(ff, Str("GEN30: source ftable not found"));
+      return csoundFtError(ff, Str("GEN30: source ftable not found"));
     }
     f1 = ftp->ftable;
     l1 = (int32_t) ftp->flen;
@@ -1553,11 +1553,11 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
 
 
     if (UNLIKELY(nargs < 4)) {
-      return fterror(ff, Str("insufficient gen arguments"));
+      return csoundFtError(ff, Str("insufficient gen arguments"));
     }
     l2 = csoundGetTable(csound, &f2, (int32_t) ff->e.p[5]);
     if (UNLIKELY(l2 < 0)) {
-      return fterror(ff, Str("GEN31: source ftable not found"));
+      return csoundFtError(ff, Str("GEN31: source ftable not found"));
     }
     f1 = ftp->ftable;
     l1 = (int32_t) ftp->flen;
@@ -1630,7 +1630,7 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound, Str("using extended arguments\n"));
     }
     if (UNLIKELY(nargs < 4)) {
-      return fterror(ff, Str("insufficient gen arguments"));
+      return csoundFtError(ff, Str("insufficient gen arguments"));
     }
 
     ntabl = nargs >> 2;         /* number of waves to mix */
@@ -1663,7 +1663,7 @@ static int32_t gen32(FGDATA *ff, FUNC *ftp)
       i = (int32_t) MYFLT2LRND(p);
       l2 = csoundGetTable(csound, &f2, abs(i));
       if (UNLIKELY(l2 < 0)) {
-        fterror(ff, Str("GEN32: source ftable %d not found"), abs(i));
+        csoundFtError(ff, Str("GEN32: source ftable %d not found"), abs(i));
         if (x != NULL) csound->Free(csound,x);
         if (y != NULL) csound->Free(csound,y);
         csound->Free(csound,pnum);
@@ -1747,7 +1747,7 @@ static int32_t gen33(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
-      return fterror(ff, Str("insufficient gen arguments"));
+      return csoundFtError(ff, Str("insufficient gen arguments"));
     }
     if (nargs > 3)      /* check optional argument */
       fmode = ff->e.p[8];
@@ -1758,7 +1758,7 @@ static int32_t gen33(FGDATA *ff, FUNC *ftp)
     /* source table */
     srclen = csoundGetTable(csound, &srcft, (int32_t) ff->e.p[5]);
     if (UNLIKELY(srclen < 0)) {
-      return fterror(ff, Str("GEN33: source ftable not found"));
+      return csoundFtError(ff, Str("GEN33: source ftable not found"));
     }
     /* number of partials */
     nh = (int32_t) (ff->e.p[6] + FL(0.5));
@@ -1828,7 +1828,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
-      return fterror(ff, Str("insufficient gen arguments"));
+      return csoundFtError(ff, Str("insufficient gen arguments"));
     }
     if (nargs > 3)      /* check optional argument */
       fmode = ff->e.p[8];
@@ -1837,7 +1837,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = find_function_table(csound, &(ff->e.p[5]))) == NULL))
+    if (UNLIKELY((src = csoundFTFind(csound, &(ff->e.p[5]))) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -1927,7 +1927,7 @@ static int32_t gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
     if (UNLIKELY((srcno = (int32_t) ff->e.p[5]) <= 0 ||
                  srcno > csound->maxfnum         ||
                  (srcftp = csound->flist[srcno]) == NULL)) {
-      return fterror(ff, Str("unknown source table number"));
+      return csoundFtError(ff, Str("unknown source table number"));
     }
     fp_source = srcftp->ftable;
     srcpts = srcftp->flen;
@@ -1960,12 +1960,12 @@ static int32_t gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
     //printf("*** nargs = %d, len = %d, number = %d\n", nargs, ftp->flen, ftp->fno);
     for (j=0; j < nargs; j+=2) {
       if (UNLIKELY(pp[j+1]<0))
-        return fterror(ff, Str("Gen41: negative probability not allowed"));
+        return csoundFtError(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j+1];
     }
     //printf("total prob = %g\n", tot_prob);
     if (nargs&1)
-      return fterror(ff, Str("Gen41: Must have even numer of arguments"));
+      return csoundFtError(ff, Str("Gen41: Must have even numer of arguments"));
     for (i=0, j=0; j< nargs; j+=2) {
       width = (int32_t) ((pp[j+1]/tot_prob) * ff->flen +.5);
       for ( k=0; k < width; k++,i++) {
@@ -2012,7 +2012,7 @@ static int32_t gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     return OK;
 }
 
-CS_NOINLINE int32_t fterror(const FGDATA *ff, const char *s, ...)
+CS_NOINLINE int32_t csoundFtError(const FGDATA *ff, const char *s, ...)
 {
     CSOUND  *csound = ff->csound;
     char    buf[64];
@@ -2036,7 +2036,7 @@ CS_NOINLINE int32_t fterror(const FGDATA *ff, const char *s, ...)
     return -1;
 }
 
-/* set guardpt, rescale the function, and display it */
+/* set guardpt, rescale the function, and csoundDisplay it */
 static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
@@ -2062,10 +2062,10 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
       return;
     memset(&dwindow, 0, sizeof(WINDAT));
     snprintf(strmsg, 64, Str("ftable %d:"), (int32_t) ff->fno);
-    if (csound->csoundMakeGraphCallback_ == NULL) dispinit(csound);
-    dispset(csound, &dwindow, ftp->ftable, (int32) (ff->flen),
+    if (csound->csoundMakeGraphCallback_ == NULL) csoundInitDisplay(csound);
+    csoundSetDisplay(csound, &dwindow, ftp->ftable, (int32) (ff->flen),
               strmsg, 0, "ftable");
-    display(csound, &dwindow);
+    csoundDisplay(csound, &dwindow);
 }
 
 static void generate_sine_tab(CSOUND *csound)
@@ -2180,7 +2180,7 @@ int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
 /* at any stage                                 */
 /* find ptr to a deferred-size ftable structure */
 /***********************************************/
-FUNC *find_function_table(CSOUND *csound, MYFLT *argp)
+FUNC *csoundFTFind(CSOUND *csound, MYFLT *argp)
 {
     FUNC    *ftp;
     int32_t     fno = MYFLT2LONG(*argp);
@@ -2215,7 +2215,7 @@ FUNC *find_function_table(CSOUND *csound, MYFLT *argp)
 static int32_t gen01(FGDATA *ff, FUNC *ftp)
 {
     if (UNLIKELY(ff->e.pcnt < 8)) {
-      return fterror(ff, Str("insufficient arguments"));
+      return csoundFtError(ff, Str("insufficient arguments"));
     }
     if (ff->csound->oparms->gen01defer) {
       /* We're deferring the soundfile load until performance time,
@@ -2286,7 +2286,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
       if (UNLIKELY(fmt < -9 || fmt > 9))
-        return fterror(ff, Str("invalid sample format: %d"), fmt);
+        return csoundFtError(ff, Str("invalid sample format: %d"), fmt);
       if (fmt<0)
         p->format = -gen01_format_table[-fmt];
       else p->format = 0;
@@ -2295,7 +2295,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     p->channel  = (int32_t) MYFLT2LRND(ff->e.p[8]);
     p->do_floatscaling = 0;
     if (UNLIKELY(p->channel < 0 /* || p->channel > ALLCHNLS-1 */)) {
-      return fterror(ff, Str("channel %d illegal"), (int32_t) p->channel);
+      return csoundFtError(ff, Str("channel %d illegal"), (int32_t) p->channel);
     }
     if (p->channel == 0)                      /* snd is chan 1,2,..8 or all */
       p->channel = ALLCHNLS;
@@ -2305,12 +2305,12 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     }
     if (UNLIKELY((fd = sndgetset(csound, p))==NULL)) {
       /* sndinset to open the file  */
-      return fterror(ff, Str("Failed to open file %s"), p->sfname);
+      return csoundFtError(ff, Str("Failed to open file %s"), p->sfname);
     }
     if (ff->flen == 0) {                      /* deferred ftalloc requestd: */
       if (UNLIKELY((ff->flen = (int32_t) p->framesrem + 1) <= 0)) {
         /*   get minsize from soundin */
-        return fterror(ff, Str("deferred size, but filesize unknown"));
+        return csoundFtError(ff, Str("deferred size, but filesize unknown"));
       }
       if (UNLIKELY(csound->oparms->msglevel & 7))
         csoundMessage(csound, Str("  defer length %d\n"), ff->flen - 1);
@@ -2392,7 +2392,7 @@ static int32_t gen01raw(FGDATA *ff, FUNC *ftp)
     /* read sound with opt gain */
 
     if (UNLIKELY((inlocs=getsndin(csound, fd, ftp->ftable, table_length, p)) < 0)) {
-      return fterror(ff, Str("GEN1 read error"));
+      return csoundFtError(ff, Str("GEN1 read error"));
     }
 
     if (UNLIKELY(p->audrem > 0 && !truncmsg && p->framesrem > ff->flen)) {
@@ -2442,7 +2442,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
     double          accum = 0.0;
 
     if (UNLIKELY(nvals != 2)) {
-      return fterror(ff, Str("wrong number of ftable arguments"));
+      return csoundFtError(ff, Str("wrong number of ftable arguments"));
     }
 
     filno = &ff->e.p[5];
@@ -2451,8 +2451,8 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
     else
       csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
 
-    if (UNLIKELY(load_PVOCEX_file(csound, filename, &pp) != 0))
-      return fterror(ff, Str("Failed to load PVOC-EX file"));
+    if (UNLIKELY(csoundPVOCEX_LoadFile(csound, filename, &pp) != 0))
+      return csoundFtError(ff, Str("Failed to load PVOC-EX file"));
     //csoundDie(csound, Str("Failed to load PVOC-EX file"));
     p.fftsize  = pp.fftsize;
     p.overlap  = pp.overlap;
@@ -2464,7 +2464,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
 
     channel = &ff->e.p[6];
     if (UNLIKELY(*channel > p.chans))
-      return fterror(ff, Str("illegal channel number"));
+      return csoundFtError(ff, Str("illegal channel number"));
 
     framesize = p.fftsize+1;
     bins = framesize/2;
@@ -2482,7 +2482,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
     framep = startp;
 
     if (UNLIKELY(bins > (uint32) (ftp->flen+1))) {
-      return fterror(ff, Str("ftable size too small"));
+      return csoundFtError(ff, Str("ftable size too small"));
     }
 
     for (i=0; i<framesize; i+=2) {
@@ -2518,11 +2518,11 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
-      return fterror(ff, Str("GEN44: Failed to open file %s\n"), buff);
+      return csoundFtError(ff, Str("GEN44: Failed to open file %s\n"), buff);
     if (UNLIKELY(NULL==fgets(buff, 80, filp)))
-      return fterror(ff, Str("GEN44; Failed to read matrix file\n"));
+      return csoundFtError(ff, Str("GEN44; Failed to read matrix file\n"));
     if (1!=sscanf(buff, "<MATRIX size=%d", &len))
-      return fterror(ff, Str("GEN44: No header in matrix file\n"));
+      return csoundFtError(ff, Str("GEN44: No header in matrix file\n"));
     if (ftp==NULL) {
       ff->flen = len*len;
       ftp = ftalloc(ff);
@@ -2541,9 +2541,9 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
       n = sscanf(buff, " %d %d %f \n", &i, &j, &stiffness);
 #endif
       if (n==2)stiffness = FL(1.0);
-      else if (n!=3) return fterror(ff, Str("GEN44: format error\n"));
+      else if (n!=3) return csoundFtError(ff, Str("GEN44: format error\n"));
       if (i<1 || i>len || j<1 || j>len)
-        return fterror(ff, Str("GEN44: Out of range\n"));
+        return csoundFtError(ff, Str("GEN44: Out of range\n"));
       fp[(i-1)*len+j-1] = stiffness;
     }
     if (ff->e.p[4]>0) ff->e.p[4] = -44;
@@ -2567,7 +2567,7 @@ static int32_t gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     basefreq    = *pp++;
     basekeymidi = (int32_t) *pp++;
     if (UNLIKELY((ff->e.pcnt - 8) < numgrades)) { /* gab fixed */
-      return fterror(ff,
+      return csoundFtError(ff,
                      Str("GEN51: invalid number of p-fields (too few grades)"));
     }
 
@@ -2603,11 +2603,11 @@ static int32_t gen52(FGDATA *ff, FUNC *ftp)
       csound->Warning(csound, Str("using extended arguments\n"));
     }
     if (UNLIKELY(nargs < 4)) {
-      return fterror(ff, Str("insufficient gen arguments"));
+      return csoundFtError(ff, Str("insufficient gen arguments"));
     }
     nchn = MYFLT2LRND(ff->e.p[5]);
     if (UNLIKELY(((nchn * 3) + 1) != nargs)) {
-      return fterror(ff, Str("number of channels "
+      return csoundFtError(ff, Str("number of channels "
                              "inconsistent with number of args"));
     }
     len = ((int32_t) ftp->flen / nchn) * nchn;
@@ -2618,7 +2618,7 @@ static int32_t gen52(FGDATA *ff, FUNC *ftp)
     for (n = 0; n < nchn; n++) {
       MYFLT *pp;
       pp = &(ff->e.p[(n * 3) + 6]);;
-      f = find_function_table(csound, pp);
+      f = csoundFTFind(csound, pp);
       if (UNLIKELY(f == NULL))
         return NOTOK;
       len2 = (int32_t) f->flen;
@@ -2774,7 +2774,7 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
 
     if (UNLIKELY(nargs < 1)) { // fail if src is not given,
                                // ignore any extra args
-      return fterror(ff,
+      return csoundFtError(ff,
                      Str("GEN53: invalid number of gen arguments"));
     }
     srcftno = (int32_t) MYFLT2LRND(ff->e.p[5]);
@@ -2791,11 +2791,11 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
     dstftp = ftp->ftable;
     dstflen = (int32_t) ftp->flen;
     if (UNLIKELY(srcflen < 0)) {
-      return fterror(ff, Str("GEN53: invalid source table number"));
+      return csoundFtError(ff, Str("GEN53: invalid source table number"));
     }
     if (UNLIKELY(mode & (~15))) {
       return
-        fterror(ff, Str("GEN53: mode must be in the range 0 to 15"));
+        csoundFtError(ff, Str("GEN53: mode must be in the range 0 to 15"));
     }
     if (UNLIKELY((!(mode & 2) && srcflen != (dstflen >> 1)) ||
                  ((mode & 2) && srcflen != dstflen))) {
@@ -2810,7 +2810,7 @@ static int32_t gen53(FGDATA *ff, FUNC *ftp)
     if (winftno) {
       winflen = csoundGetTable(csound, &winftp, winftno);
       if (UNLIKELY(winflen <= 0)) {
-        return fterror(ff, Str("GEN53: invalid window table"));
+        return csoundFtError(ff, Str("GEN53: invalid window table"));
       }
     }
     if (mode & 2) {     /* if input data is impulse response: */
@@ -2909,7 +2909,7 @@ static int32_t gen49(FGDATA *ff, FUNC *ftp) {
         n = n->next;                            /*  and round again         */
       }
    if (UNLIKELY(n == NULL)) {
-     return fterror(ff, "%s", Str("GEN49 not defined"));
+     return csoundFtError(ff, "%s", Str("GEN49 not defined"));
    }
    return csound->gensub[genum](ff,ftp);
 }
@@ -2929,7 +2929,7 @@ int32_t resize_table(CSOUND *csound, RESIZE *p)
       printf("WARNING: EXPERIMENTAL CODE\n");
       warned = 1;
     }
-    if (UNLIKELY((ftp = find_function_table(csound, p->fn)) == NULL))
+    if (UNLIKELY((ftp = csoundFTFind(csound, p->fn)) == NULL))
       return NOTOK;
     if (ftp->flen<fsize)
       ftp->ftable = (MYFLT *) csound->ReAlloc(csound, ftp->ftable,

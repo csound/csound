@@ -22,7 +22,7 @@
 #include "compile_ops.h"
 #include <stdio.h>
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
-int32_t csound_read_score(CSOUND *csound, const char *str);
+int32_t csoundReadScore(CSOUND *csound, const char *str);
 
 int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
   FILE *fp;
@@ -105,7 +105,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
 
 
 int32_t read_score_i(CSOUND *csound, COMPILE *p){
-  *p->res = (MYFLT)(csound_read_score(csound,((STRINGDAT *)p->str)->data));
+  *p->res = (MYFLT)(csoundReadScore(csound,((STRINGDAT *)p->str)->data));
   return OK;
 }
 
@@ -364,8 +364,8 @@ static int32_t start_csobj(CSOUND *csound, AOP *p) {
                    engine->ksmps : CS_KSMPS)*sizeof(MYFLT);
   csobj->nsmps = engine->ksmps;
   
-  csobj->bufferout = (MYFLT *) mcalloc(csound,bsiz*engine->nchnls);
-  csobj->bufferin = (MYFLT *) mcalloc(csound,bsiz*engine->inchnls);  
+  csobj->bufferout = (MYFLT *) csoundCalloc(csound,bsiz*engine->nchnls);
+  csobj->bufferin = (MYFLT *) csoundCalloc(csound,bsiz*engine->inchnls);  
   *p->r = csoundStart(engine);
   return OK;
 }
@@ -529,8 +529,8 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
 
 static int32_t destroy_csobj(CSOUND *csound, ASSIGN *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->r;
-  mfree(csound, csobj->bufferout);
-  mfree(csound, csobj->bufferin);  
+  csoundFree(csound, csobj->bufferout);
+  csoundFree(csound, csobj->bufferin);  
   csoundDestroy(csobj->csound);
   csobj->csound = NULL;
   return OK;

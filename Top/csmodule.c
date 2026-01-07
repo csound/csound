@@ -515,7 +515,7 @@ static int32_t check_opcode_deny(CSOUND * csound, const char *fname)
   if (list==NULL) return 0;
   strNcpy(buff, fname, 255); 
   strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
-  p = cs_strdup(csound, list);
+  p = csoundStrdup(csound, list);
   deny = cs_strtok_r(p, ",", &th);
   while (deny) {
     if (strcmp(deny, buff)==0) {
@@ -642,7 +642,7 @@ int32_t csoundLoadModules(CSOUND *csound)
     if((end = strchr(dname, sep)) != NULL) {
       *end = '\0';
       /* copy directory name */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = csoundStrdup(csound, (char *) dname);
 
       *end = sep;  /* restore for re-execution */
       /* move to next directory name */
@@ -650,7 +650,7 @@ int32_t csoundLoadModules(CSOUND *csound)
 
     } else {
       /* copy last directory name) */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = csoundStrdup(csound, (char *) dname);
       read_directory = 0;
     }
 
@@ -874,13 +874,13 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
     if((end = strchr(dname, sep)) != NULL) {
       *end = '\0';
       /* copy directory name */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = csoundStrdup(csound, (char *) dname);
       *end = sep;  /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
     } else {
       /* copy last directory name) */
-      dname1 = cs_strdup(csound, (char *) dname);
+      dname1 = csoundStrdup(csound, (char *) dname);
       read_directory = 0;
     }
 

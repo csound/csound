@@ -32,7 +32,7 @@
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {
     MYFLT x;
-    x = (MYFLT) (csound->Rand31(csound->RandSeed1(csound)) - 1) / FL(2147483645.0);
+    x = (MYFLT) (csound->Rand31(csound->RandSeed31(csound)) - 1) / FL(2147483645.0);
     return (x * a);
 }
 

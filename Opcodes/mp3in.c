@@ -122,7 +122,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   /* HOW TO record file handle so that it will be closed at note-off */
   /* memset(&(p->fdch), 0, sizeof(FDCH)); */
   /* p->fdch.fd = fd; */
-  /* fdrecord(csound, &(p->fdch)); */
+  /* csoundFDRecord(csound, &(p->fdch)); */
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s", mp3dec_error(r));
@@ -524,7 +524,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
   /*
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
+    csoundFDRecord(csound, &(p->fdch));
   */
   printf("fftsize = %d\n", p->N);
   int32_t skip = (int32_t)(*p->skip*CS_ESR)*p->resamp;

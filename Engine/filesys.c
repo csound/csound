@@ -848,7 +848,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
       int32_t writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
                      (type == CSFILE_STD && ((char*)param)[0] == 'w'));
       if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
-        csFileType = sftype2csfiletype(((SFLIB_INFO*)param)->format);
+        csFileType = csoundSndfileType2CsfileType(((SFLIB_INFO*)param)->format);
       csound->FileOpenCallback_(csound, p->fullName, csFileType,
                                 writing, isTemporary);
     }

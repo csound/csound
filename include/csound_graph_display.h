@@ -1,5 +1,5 @@
 /*
-  graph_display.h: graphs and displays
+  graph_csoundDisplay.h: graphs and displays
 
   Copyright (C) 2024
 
@@ -26,13 +26,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  /** @defgroup TABLEDISPLAY Function table display
+  /** @defgroup TABLEDISPLAY Function table csoundDisplay
    *
    *  @{ */
   typedef struct windat_  WINDAT;
   
   /**
-   * Tells Csound whether external graphic table display is supported.
+   * Tells Csound whether external graphic table csoundDisplay is supported.
    * Returns the previously set value (initially zero).
    */
   PUBLIC int32_t csoundSetIsGraphable(CSOUND *, int32_t isGraphable);

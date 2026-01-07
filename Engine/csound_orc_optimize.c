@@ -253,7 +253,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->value->fvalue = lval;
           snprintf(buf, 60, "%.20g", lval);
           csound->Free(csound, current->value->lexeme);
-          current->value->lexeme = cs_strdup(csound, buf);
+          current->value->lexeme = csoundStrdup(csound, buf);
           csound->Free(csound, current->left);
           csound->Free(csound, current->right->value);
           csound->Free(csound, current->right);
@@ -410,7 +410,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->value->fvalue = lval;
           snprintf(buf, 60, "%.20g", lval);
           csound->Free(csound, current->value->lexeme);
-          current->value->lexeme = cs_strdup(csound, buf);
+          current->value->lexeme = csoundStrdup(csound, buf);
           csound->Free(csound, current->right);
           current->right = NULL;
         }
