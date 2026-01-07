@@ -1178,8 +1178,8 @@ static OENTRY localops[] = {
     { "OSCcount", S(OSCcount), 0,  "k", "",
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL, NULL, 2 },
   /* aliases */
-  { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
-    (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL },
+  { "oscsenslo", S(OSCSEND), 0,  "", "kSkSN",
+    (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL},
   { "oscinit", S(OSCINIT), 0, "i", "i",
     (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL },
   { "oscinitm", S(OSCINITM), 0,  "i", "Si",

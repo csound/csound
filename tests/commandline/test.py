@@ -588,6 +588,7 @@ def runTest():
         ],
         ["test_named_instr_ramps.csd", "test named instrument ramps"],
         ["test_gen01.csd", "testing GEN01 importing files"],
+        ["test_raw_strings.csd", "test new-style raw strings"],
     ]
 
     arrayTests = [
@@ -618,6 +619,7 @@ def runTest():
         ["arrays/test_array_copy.csd", "test array copy operations"],
         ["test_arrays_constant_index.csd", "test arrays with constant index"],
         ["test_arrays_in_udo.csd", "test arrays in UDO"],
+        ["test_array_in_expression.csd", "test expressions involving arrays"],
     ]
 
     structTests = [

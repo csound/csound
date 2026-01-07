@@ -415,10 +415,17 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
+check_c_compiler_flag(-std=gnu11 HAS_C11)
+if (HAS_C11)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+else()
 check_c_compiler_flag(-std=gnu99 HAS_GNU99)
 if (HAS_GNU99)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 endif()
+endif()
+
+
 if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
@@ -1309,6 +1316,8 @@ endif()
     target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
     set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 endif()
+
+
 
 
 if(APPLE)

@@ -60,7 +60,7 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
-void add_opcode_defs(CSOUND *csound);
+
 
 
 
@@ -2193,7 +2193,6 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     return retVal;
   }
 
-  add_opcode_defs(csound);
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
     // Parser already ran verify_tree; do not re-verify here to avoid pool/markup reentrancy hazards
