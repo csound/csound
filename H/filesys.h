@@ -52,7 +52,7 @@ extern "C" {
    *  conform to the conventions for the current platform (begin with ':'
    *  on MacOS 9 and not begin with DIRSEP on others).
    */
-  char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
+  char* csound_concatenate_paths(CSOUND* csound, const char *path1,
                                                const char *path2);
 
   /** Converts a pathname to native format and returns just the part of
@@ -183,7 +183,7 @@ extern "C" {
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists
    */
-  char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
+  char *csound_get_directory_for_path(CSOUND* csound, const char * path);
 
 
   void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
