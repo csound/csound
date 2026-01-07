@@ -247,7 +247,11 @@ static void free_opcode_table(CSOUND *csound) {
   cs_hash_table_free(csound, csound->opcodes);
 }
 
-static void csoundEvent_(CSOUND *csound, int32_t type, const MYFLT *pfields, int32_t pnum) {
+/** Module API csound->Event() calls are always synchronous
+    as in csound->ReadScore() and csound->InputMessage()
+ */
+static void csoundEvent_(CSOUND *csound, int32_t type,
+                         const MYFLT *pfields, int32_t pnum) {
   csoundEvent(csound, type, pfields, pnum, 0);
 }
 

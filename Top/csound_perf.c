@@ -1,7 +1,7 @@
 /*
     csound_perf.c: engine performance
 
-    Copyright (C) 2025
+    Copyright (C) 2025 The Csound Developers
 
     This file is part of Csound.
 
