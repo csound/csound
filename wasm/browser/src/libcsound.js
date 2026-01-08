@@ -32,7 +32,7 @@ import {
   csoundGetDebug,
   csoundSetDebug,
 } from "./modules/attributes";
-import {,
+import {
   csoundGetSpin,
   csoundGetSpout,
 } from "./modules/rtaudio";
