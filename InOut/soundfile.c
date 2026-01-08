@@ -112,7 +112,7 @@ static inline long sflib_writef_MYFLT(void *handle, double *ptr, long items) {
 }
 #endif // !USE_DOUBLE
 
-#else 
+#else
 static int32_t sflib_command(void *handle, int32_t cmd, void *data, int32_t datasize)  {
       return 0;
 }
@@ -133,38 +133,23 @@ static long sflib_seek(void *handle, long frames, int32_t whence) {
     return 0;
 }
 
-static long sflib_read_float(void *sndfile, float *ptr, long items) {
+static long sflib_read_MYFLT(void *sndfile, MYFLT *ptr, long items) {
     return 0;
 }
 
-static long sflib_readf_float(void *sndfile, float *ptr, long items) {
+static long sflib_readf_MYFLT(void *sndfile, MYFLT *ptr, long items) {
     return 0;
 }
 
-static long sflib_read_double(void *handle, double *ptr, long items) {
+static long sflib_write_MYFLT(void *handle, MYFLT *ptr, long items) {
     return 0;
 }
 
-static long sflib_readf_double(void *handle, double *ptr, long items) {
-    return 0;
-}
-
-static long sflib_write_float(void *handle, float *ptr, long items) {
-    return 0;
-}
-
-static long sflib_write_double(void *handle, double *ptr, long items) {
+static long sflib_writef_MYFLT(void *handle, MYFLT *ptr, long items) {
     return 0;
 }
 
 
-static long sflib_writef_float(void *handle, float *ptr, long items) {
-    return 0;
-}
-
-static long sflib_writef_double(void *handle, double *ptr, long items) {
-    return 0;
-}
 static int32_t  sflib_set_string(void *sndfile, int32_t str_type, const char* str){
   return 0;
 }
