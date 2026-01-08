@@ -584,7 +584,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
       ../Top/csound_perf.c \
       ../Top/csound_events.c \
       ../Top/csound_rtio.c \
-      ../Top/csound_messages.c
+      ../Top/csound_messages.c \
       ../Top/csound_time.c \
       ../Top/argdecode.c \
       ../Top/csound_debug.c \
