@@ -134,9 +134,13 @@ const sabCreateRealtimeAudioThread =
         forceStop
       ) {
         if (lastReturn === 0) {
-          log(`calling one final performKsmps to trigger end of performance logs`)();
-          // Trigger final performKsmps to flush any remaining output
-          libraryCsound.csoundPerformKsmps(csound);
+          log(`calling performKsmps until performance ends`)();
+          // Keep calling until performance ends or max iterations reached
+          let performResult = 0;
+          let maxIterations = 100;
+          while (performResult === 0 && maxIterations-- > 0) {
+            performResult = libraryCsound.csoundPerformKsmps(csound);
+          }
         }
         log(`triggering realtimePerformanceEnded event`)();
         workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
