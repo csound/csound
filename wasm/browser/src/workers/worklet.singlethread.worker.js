@@ -229,7 +229,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
     stop() {
-     if(csound) {
+     if(this.csound) {
       libraryCsound.csoundStop(this.csound);
     }
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
