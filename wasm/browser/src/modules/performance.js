@@ -103,6 +103,14 @@ export const csoundPerformKsmps = (wasm) => (csound) =>
 csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;";
 
 /**
+ * Dummy csoundStop function - the actual csoundStop was removed from Csound 7 API.
+ * This dummy function allows the high-level .stop() method to be generated.
+ * @function
+ */
+export const csoundStop = (wasm) => (csound) => { return 0; };
+csoundStop["toString"] = () => "stop = async () => Number;";
+
+/**
  * Prints information about the end of a performance,
  * and closes audio and MIDI devices.
  * @function

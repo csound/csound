@@ -219,25 +219,6 @@ class VanillaWorkerMainThread {
     this.exportApi["resume"] = this.csoundResume.bind(this);
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
 
-    // Create stop method (csoundStop API removed but high-level stop() still needed)
-    const csoundStop = async function () {
-      if (this.eventPromises.isWaiting("stop")) {
-        return -1;
-      } else {
-        this.eventPromises.createStopPromise();
-        const stopMessagePayload = {};
-        stopMessagePayload["newPlayState"] =
-          this.currentPlayState === "renderStarted"
-            ? "renderEnded"
-            : "realtimePerformanceEnded";
-        this.ipcMessagePorts.mainMessagePort.postMessage(stopMessagePayload);
-
-        await this.eventPromises.waitForStop();
-        return 0;
-      }
-    };
-    this.exportApi["stop"] = csoundStop.bind(this);
-
     this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
 
     this.exportApi["getNode"] = async () => {

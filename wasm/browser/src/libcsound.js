@@ -12,6 +12,7 @@ import {
   csoundStart,
   csoundCompileCSD,
   csoundPerformKsmps,
+  csoundStop,
   csoundReset,
 } from "./modules/performance";
 import {
@@ -94,6 +95,7 @@ export const api = {
   csoundStart,
   csoundCompileCSD,
   csoundPerformKsmps,
+  csoundStop,
   csoundReset,
   // @module/attributes
   csoundGetSr,
