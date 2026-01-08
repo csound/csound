@@ -54,9 +54,10 @@ const sabCreateRealtimeAudioThread =
     const isRequestingRtMidiInput = libraryCsound["_isRequestingRtMidiInput"](csound);
 
     // Prompt for microphone only on demand!
+    // Note: csoundGetInputName was removed in Csound 7, defaulting to not requesting input
     const isExpectingInput =
       Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I) === 0 &&
-      libraryCsound.csoundGetInputName(csound).includes("adc");
+      false;
 
     // Store Csound AudioParams for upcoming performance
     const userProvidedNchnls = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS);
@@ -76,10 +77,11 @@ const sabCreateRealtimeAudioThread =
       result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
     }
 
-    const nchnls = libraryCsound.csoundGetNchnls(csound);
+    const channels = libraryCsound.csoundGetChannels(csound);
+    const nchnls = channels.nchnls;
 
     const nchnlsInput =
-      userProvidedNchnlsIn || isExpectingInput ? libraryCsound.csoundGetNchnlsInput(csound) : 0;
+      userProvidedNchnlsIn || isExpectingInput ? channels.nchnls_i : 0;
     const sampleRate =
       Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE) || libraryCsound.csoundGetSr(csound);
 

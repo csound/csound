@@ -16,37 +16,6 @@ export const csoundTableLength = (wasm) => (csound /* CsoundInst */, tableNumber
 csoundTableLength.toString = () => "tableLength = async (tableNum) => Number;";
 
 /**
- * Gets the value of a slot in a function table.
- * The table number and index are assumed to be valid.
- * This is a convenience wrapper around csoundTableCopyOut.
- * @function
- */
-export const csoundTableGet =
-  (wasm) => (csound /* CsoundInst */, tableNumber /* string */, index /* number */) => {
-    const table = csoundTableCopyOut(wasm)(csound, tableNumber);
-    return table ? table[index] : undefined;
-  };
-
-csoundTableGet.toString = () => "tableGet = async (tableNum, index) => Number;";
-
-/**
- * Sets the value of a slot in a function table.
- * The table number and index are assumed to be valid.
- * This is a convenience wrapper around csoundTableCopyIn/Out.
- * @function
- */
-export const csoundTableSet =
-  (wasm) => (csound /* CsoundInst */, tableNumber /* string */, index /* number */, value /* number */) => {
-    const table = csoundTableCopyOut(wasm)(csound, tableNumber);
-    if (table) {
-      table[index] = value;
-      csoundTableCopyIn(wasm)(csound, tableNumber, table);
-    }
-  };
-
-csoundTableSet.toString = () => "tableSet = async (tableNum, index, value) => undefined;";
-
-/**
  * Copy the contents of an Array or TypedArray from javascript into a given csound function table.
  * The table number is assumed to be valid, and the table needs to have sufficient space
  * to receive all the array contents.
@@ -112,3 +81,34 @@ export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumbe
 };
 
 csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Float64Array;";
+
+/**
+ * Gets the value of a slot in a function table.
+ * The table number and index are assumed to be valid.
+ * This is a convenience wrapper around csoundTableCopyOut.
+ * @function
+ */
+export const csoundTableGet =
+  (wasm) => (csound /* CsoundInst */, tableNumber /* string */, index /* number */) => {
+    const table = csoundTableCopyOut(wasm)(csound, tableNumber);
+    return table ? table[index] : undefined;
+  };
+
+csoundTableGet.toString = () => "tableGet = async (tableNum, index) => Number;";
+
+/**
+ * Sets the value of a slot in a function table.
+ * The table number and index are assumed to be valid.
+ * This is a convenience wrapper around csoundTableCopyIn/Out.
+ * @function
+ */
+export const csoundTableSet =
+  (wasm) => (csound /* CsoundInst */, tableNumber /* string */, index /* number */, value /* number */) => {
+    const table = csoundTableCopyOut(wasm)(csound, tableNumber);
+    if (table) {
+      table[index] = value;
+      csoundTableCopyIn(wasm)(csound, tableNumber, table);
+    }
+  };
+
+csoundTableSet.toString = () => "tableSet = async (tableNum, index, value) => undefined;";

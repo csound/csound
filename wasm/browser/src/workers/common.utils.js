@@ -17,7 +17,8 @@ export const handleCsoundStart =
     }
     const startError = libraryCsound.csoundStart(csound);
 
-    const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
+    // Note: csoundGetOutputName was removed in Csound 7
+    const outputName = "output.wav";
     log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`)();
     if (startError !== 0) {
       workerMessagePort.post(

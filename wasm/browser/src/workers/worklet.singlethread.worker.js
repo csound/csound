@@ -377,15 +377,15 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   async isRequestingInput() {
-    const cs = this.csound;
-    const inputName = libraryCsound.csoundGetInputName(cs) || "";
-    return inputName.includes("adc");
+    // Note: csoundGetInputName was removed in Csound 7
+    // Defaulting to not requesting input
+    return false;
   }
 
   async isRequestingRealtimeOutput() {
-    const cs = this.csound;
-    const outputName = libraryCsound.csoundGetOutputName(cs) || "";
-    return outputName.includes("dac");
+    // Note: csoundGetOutputName was removed in Csound 7
+    // Defaulting to requesting realtime output
+    return true;
   }
 
   async start() {
@@ -398,8 +398,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const ksmps = libraryCsound.csoundGetKsmps(cs);
       this.ksmps = ksmps;
       this.cnt = ksmps;
-      this.nchnls = libraryCsound.csoundGetNchnls(cs);
-      this.nchnls_i = libraryCsound.csoundGetNchnlsInput(cs);
+      const channels = libraryCsound.csoundGetChannels(cs);
+      this.nchnls = channels.nchnls;
+      this.nchnls_i = channels.nchnls_i;
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
 
