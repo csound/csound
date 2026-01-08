@@ -17,6 +17,7 @@
   "freeCsMidiDeviceStruct",
   "allocStringMem",
   "allocFloatArray",
+  "csoundAppendEnv",
   "freeFloatArrayMem",
   "csoundGetControlChannelWasi",
   "csoundGetStringChannelWasi",
