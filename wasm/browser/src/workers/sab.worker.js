@@ -76,10 +76,10 @@ const sabCreateRealtimeAudioThread =
       result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
     }
 
-    const nchnls = libraryCsound.csoundGetNchnls(csound);
+      const nchnls = libraryCsound.csoundGetChannels(csound,0);
 
     const nchnlsInput =
-      userProvidedNchnlsIn || isExpectingInput ? libraryCsound.csoundGetNchnlsInput(csound) : 0;
+          userProvidedNchnlsIn || isExpectingInput ? libraryCsound.csoundGetChannels(csound,1) : 0;
     const sampleRate =
       Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE) || libraryCsound.csoundGetSr(csound);
 
