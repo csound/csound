@@ -200,10 +200,6 @@ endif()
 
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
-if(USE_COMPILER_OPTIMIZATIONS)
-    include(cmake/CompilerOptimizations.cmake)
-endif()
-
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
@@ -313,6 +309,7 @@ if(NOT MSVC AND NOT WASM)
     set(CMAKE_C_FLAGS_RELEASE "-O3")
 #endif
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+       set(USE_COMPILER_OPTIMIZATIONS OFF)
         if (DEBUG_ERROR_ON_WARNING)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
@@ -336,6 +333,13 @@ if(NOT MSVC AND NOT WASM)
             endif()
         endif()
     endif()
+endif()
+
+if(USE_COMPILER_OPTIMIZATIONS)
+    include(cmake/CompilerOptimizations.cmake)
+    message(STATUS  "USING COMPILER OPTIMISATIONS")
+else()
+    message(STATUS  "NOT USING COMPILER OPTIMISATIONS")
 endif()
 
 if(APPLE)

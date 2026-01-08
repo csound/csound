@@ -316,25 +316,6 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE* t, OPDS *i
   message_enqueue(csound,MERGE_STATE, args, argsize);
 }
 
-int32_t init0(CSOUND *csound);
-
-MYFLT csoundEvalCode(CSOUND *csound, const char *str)
-{
-  int32_t async = 0;
-  if (str && csound_compile_orc(csound,str,async)
-      == CSOUND_SUCCESS){
-    if(!(csound->engineStatus & CS_STATE_COMP)) {
-      init0(csound);
-    }
-      return csound->instr0->instance[0].retval;
-    }
-#ifdef NAN
-  else return NAN;
-#else
-  else return 0;
-#endif
-}
-
 /** Async versions of the functions above
     To be removed once everything is made async
 */

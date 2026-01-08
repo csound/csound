@@ -69,6 +69,7 @@
 #include "csdebug.h"
 #include <time.h>
 
+int32_t init0(CSOUND *csound);
 int32_t kperf(CSOUND *csound);
 int32_t csound_cleanup(CSOUND *);
 int32_t get_time_resolution(void);
@@ -1511,6 +1512,19 @@ PUBLIC int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
 PUBLIC int32_t csoundCompileOrc(CSOUND *csound, const char *str,
                                 int32_t async) {
   return csound_compile_orc(csound, str, async);
+}
+
+MYFLT csoundEvalCode(CSOUND *csound, const char *str)
+{
+  int32_t async = 0;
+  if (str && csound_compile_orc(csound,str,async)
+      == CSOUND_SUCCESS){
+    if(!(csound->engineStatus & CS_STATE_COMP)) {
+      init0(csound);
+    }
+      return csound->instr0->instance[0].retval;
+    }
+  else return 0; // always return 0 on failure
 }
 
 

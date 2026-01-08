@@ -649,6 +649,8 @@ extern "C" {
    *           "return i1 \n";
    *       MYFLT retval = csoundEvalCode(csound, code);
    * /endcode
+   *   If the code fails to evaluate, the return value is always 0.
+   *
    */
   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 
