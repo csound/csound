@@ -46,10 +46,35 @@ const makeModuleExportsHack = () => {
     );
     fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
   } else {
-    const matchResults = data.matchAll(/(\("__Csound__",)([A-Za-z]+)\)/g);
-    const matchResultsArr = Array.from(matchResults);
+    // Try multiple patterns to find the exported Csound variable
+    let obfuscatedVariableName = null;
     
-    if (matchResultsArr.length === 0) {
+    // Pattern 1: ("__Csound__",variableName)
+    const pattern1 = /\("__Csound__",\s*([A-Za-z$_][A-Za-z0-9$_]*)\)/g;
+    const matches1 = Array.from(data.matchAll(pattern1));
+    if (matches1.length > 0) {
+      obfuscatedVariableName = matches1[0][1];
+    }
+    
+    // Pattern 2: ("__Csound__",module$src$index)  
+    if (!obfuscatedVariableName) {
+      const pattern2 = /\("__Csound__",\s*([A-Za-z$_][A-Za-z0-9$_]*\$+[A-Za-z0-9$_]*)\)/g;
+      const matches2 = Array.from(data.matchAll(pattern2));
+      if (matches2.length > 0) {
+        obfuscatedVariableName = matches2[0][1];
+      }
+    }
+    
+    // Pattern 3: __Csound__:variableName in object literal
+    if (!obfuscatedVariableName) {
+      const pattern3 = /__Csound__\s*:\s*([A-Za-z$_][A-Za-z0-9$_]*)/g;
+      const matches3 = Array.from(data.matchAll(pattern3));
+      if (matches3.length > 0) {
+        obfuscatedVariableName = matches3[0][1];
+      }
+    }
+    
+    if (!obfuscatedVariableName) {
       console.error("ERROR: Could not find __Csound__ export symbol in compiled output.");
       console.error("This usually means Google Closure Compiler changed the output format.");
       console.error("Falling back to development mode export...");
@@ -60,8 +85,6 @@ const makeModuleExportsHack = () => {
       );
       fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
     } else {
-      const obfuscatedVariableName = matchResultsArr[0][2];
-
       const hackedData = data.replace(
         "__GOOGLE_CLOSURE_REPLACEME__",
         `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
