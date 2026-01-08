@@ -1434,7 +1434,7 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[39];
+  SUBR dummyfn_2[50];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

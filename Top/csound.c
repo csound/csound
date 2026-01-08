@@ -369,7 +369,7 @@ static const CSOUND cenviron_ = {
     csoundGetChannelPtr,
     csoundListChannels,
     /* events and performance */
-    csoundEvent_, 
+    csoundEvent_,   /* csoundEvent_ is csoundEvent arity - 1*/
     csoundGetScoreOffsetSeconds,
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
@@ -578,14 +578,14 @@ static const CSOUND cenviron_ = {
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
     csoundDeprecate, 
-    /* space for API expansion */
+    /* space for API expansion: 50 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+     NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
- /* callback function pointers */
   (SUBR) NULL,    /*  first_callback_     */
   (channelCallback_t) NULL,
   (channelCallback_t) NULL,
