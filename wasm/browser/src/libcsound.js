@@ -59,6 +59,8 @@ import {
 } from "./modules/score-handling";
 import {
   csoundTableLength,
+  csoundTableGet,
+  csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
@@ -134,6 +136,8 @@ export const api = {
   csoundRewindScore,
   // @module/table
   csoundTableLength,
+  csoundTableGet,
+  csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,

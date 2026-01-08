@@ -85,14 +85,14 @@ class VanillaWorkerMainThread {
     }
 
     this.audioWorker.sampleRate = await this.exportApi.getSr(this.csoundInstance);
-    const inputName = await this.exportApi.getInputName(this.csoundInstance);
-    this.audioWorker.isRequestingInput = inputName.includes("adc");
+    // Note: csoundGetInputName was removed in Csound 7
+    // For now, we default to not requesting input unless explicitly set
+    this.audioWorker.isRequestingInput = false;
     this.audioWorker["isRequestingMidi"] = await this.exportApi["_isRequestingRtMidiInput"](
       this.csoundInstance,
     );
-    this.audioWorker.outputsCount = await this.exportApi.getNchnls(this.csoundInstance);
-    // TODO fix upstream: await this.exportApi.csoundGetNchnlsInput(this.csound);
-
+    const channels = await this.exportApi.getChannels(this.csoundInstance);
+    this.audioWorker.outputsCount = channels.nchnls;
     this.audioWorker.inputsCount = this.audioWorker.isRequestingInput ? 1 : 0;
 
     log(`vars for rtPerf set`)();
