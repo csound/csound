@@ -48,7 +48,7 @@ extern "C" {
   
   /** @defgroup MISCELLANEOUS Miscellaneous functions
    *
-   *  @{ */
+   *  @{ */ 
 
   /**
    * Gets an alphabetically sorted list of all opcodes.

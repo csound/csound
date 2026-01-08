@@ -106,7 +106,6 @@ int32_t csoundFtError(const FGDATA *ff, const char *s, ...);
 void csound_aops_init_tables(CSOUND *cs);
 void csoundDeleteAllGlobalVariables(CSOUND *csound);
 void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list) = NULL;
-INSTRTXT *csoundGetInstrument(CSOUND *csound, int32_t insno, const char *name);
 void *csoundDCTSetup(CSOUND *csound, int32_t FFTsize, int32_t d);
 void csoundDCT(CSOUND *csound, void *p, MYFLT *sig);
 void message_dequeue(CSOUND *csound);
@@ -1566,12 +1565,6 @@ PUBLIC MYFLT csoundGetA4(CSOUND *csound) {
 
 PUBLIC int32_t csoundErrCnt(CSOUND *csound) {
   return csound->perferrcnt;
-}
-
-PUBLIC INSTRTXT *csoundGetInstrument(CSOUND *csound, int32_t insno, const char *name) {
-  if (name != NULL)
-    insno = named_instr_find(csound, (char *)name);
-  return csound->engineState.instrtxtp[insno];
 }
 
 PUBLIC MYFLT *csoundGetSpin(CSOUND *csound) {

@@ -526,13 +526,6 @@ extern "C" {
     p->OutputValueCallback(chnName, (double) value);
   }
   */
-  static CS_NOINLINE int YieldCallback_wrapper(CSOUND *csound)
-  {
-    CsoundCallbackWrapper *p;
-    p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-    return p->YieldCallback();
-  }
-
 }       // extern "C"
 
 void CsoundCallbackWrapper::SetMessageCallback()
@@ -550,10 +543,6 @@ void CsoundCallbackWrapper::SetOutputValueCallback()
     csoundSetOutputValueCallback(csound_, OutputValueCallback_wrapper);
 }
   */
-void CsoundCallbackWrapper::SetYieldCallback()
-{
-    csoundSetYieldCallback(csound_, YieldCallback_wrapper);
-}
 
 void CsoundCallbackWrapper::SetMidiInputCallback(CsoundArgVList *argv)
 {

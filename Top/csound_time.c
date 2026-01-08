@@ -29,6 +29,16 @@
 #include <sys/time.h>
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#if defined(WIN32) && !defined(__CYGWIN__)
+#include <winsock2.h>
+#include <windows.h>
+#endif
+#include <time.h>
+
+
 /* enable use of high resolution timer (Linux/i586/GCC only) */
 /* could in fact work under any x86/GCC system, but do not   */
 /* know how to query the actual CPU frequency ...            */
