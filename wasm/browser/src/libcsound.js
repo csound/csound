@@ -28,7 +28,6 @@ import {
   csoundGetSizeOfMYFLT,
   csoundSetOption,
   csoundSetParams,
-  csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
 } from "./modules/attributes";
@@ -111,7 +110,6 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
   csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
