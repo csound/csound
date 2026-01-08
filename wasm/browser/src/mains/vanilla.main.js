@@ -220,7 +220,7 @@ class VanillaWorkerMainThread {
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
 
     this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
-    this.exportApi["stop"] = csoundStop.bind(this);
+    this.exportApi["stop"] = this.csoundStop.bind(this);
 
     this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
       

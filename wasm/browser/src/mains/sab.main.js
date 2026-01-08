@@ -339,6 +339,8 @@ class SharedArrayBufferMainThread {
 
     this.exportApi["pause"] = this.csoundPause.bind(this);
     this.exportApi["resume"] = this.csoundResume.bind(this);
+    this.exportApi["stop"] = this.csoundStop.bind(this);
+      
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
     this.exportApi["enableAudioInput"] = () =>
       console.warn(
