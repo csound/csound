@@ -47,12 +47,12 @@ const createRealtimeAudioThread =
 
     // Audio params are now set immediately after csoundCreate() to ensure
     // they take precedence over CSD file settings
-    const nchnls = libraryCsound.csoundGetNchnls(csound);
+      const nchnls = libraryCsound.csoundGetChannels(csound,0);
     const nchnlsInput =
       inputChannelCount > 0
         ? inputChannelCount
         : isExpectingInput
-        ? libraryCsound.csoundGetNchnlsInput(csound)
+          ? libraryCsound.csoundGetChannels(csound,1)
         : 0;
 
     const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
@@ -93,7 +93,6 @@ const createRealtimeAudioThread =
         currentCsoundBufferPos = (currentCsoundBufferPos + 1) % ksmps;
         if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
           if (lastPerformance === 0) {
-            libraryCsound.csoundStop(csound);
             lastPerformance = libraryCsound.csoundPerformKsmps(csound);
           }
           workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
@@ -306,7 +305,6 @@ const initialize = async (payload) => {
   workerMessagePort.port.addEventListener("message", (event) => {
     if (event.data && event.data["newPlayState"]) {
       if (event.data["newPlayState"] === "realtimePerformanceEnded") {
-        libraryCsound.csoundStop(csoundInstance);
         if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
           libraryCsound.csoundPerformKsmps(csoundInstance);
         }

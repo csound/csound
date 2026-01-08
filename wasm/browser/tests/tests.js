@@ -217,7 +217,6 @@ e
         console.log(`Csound version: ${cs.name}`);
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
-        await cs.stop();
         cs.terminateInstance && (await cs.terminateInstance());
       });
 
@@ -227,7 +226,6 @@ e
         assert.property(cs, "start", "has .start() method");
         assert.property(cs, "stop", "has .stop() method");
         assert.property(cs, "pause", "has .pause() method");
-        await cs.stop();
         await cs.terminateInstance();
       });
 
@@ -242,7 +240,6 @@ e
       `);
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
-        await cs.stop();
         await cs.terminateInstance();
       });
 
@@ -254,7 +251,6 @@ e
         assert.equal(startReturn, 0);
         assert.equal(1, await cs.getControlChannel("test1"));
         assert.equal(2, await cs.getControlChannel("test2"));
-        await cs.stop();
         await cs.terminateInstance();
       });
 
@@ -266,7 +262,6 @@ e
         assert.equal(startReturn, 0);
         await cs.setControlChannel("freq", 880);
         assert.equal(880, await cs.getControlChannel("freq"));
-        await cs.stop();
         await cs.terminateInstance();
       });
 
@@ -279,7 +274,6 @@ e
         assert.equal("test0", await cs.getStringChannel("strChannel"));
         await cs.setStringChannel("strChannel", "test1");
         assert.equal("test1", await cs.getStringChannel("strChannel"));
-        await cs.stop();
         await cs.terminateInstance();
       });
 
@@ -293,7 +287,6 @@ e
         const cs = await Csound(testWithPlugin);
         assert.equal(0, await cs.compileCSD(pluginTest));
         await cs.start();
-        await cs.stop();
         await cs.terminateInstance();
       });
 
