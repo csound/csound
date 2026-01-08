@@ -1043,7 +1043,7 @@ void *get_library_symbol(void *library, const char *procedureName){
 }
 
 #else /* case for platforms without shared libraries -- added 062404, akozar */
-int32_t pen_library(void **library, const char *libraryPath){
+int32_t open_library(void **library, const char *libraryPath){
   *library = NULL;
   return -1;
 }
