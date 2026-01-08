@@ -2107,10 +2107,6 @@ PUBLIC int32_t csoundTableLength(CSOUND *csound, int32_t table) {
   return csoundGetTable(csound, &tablePtr, table);
 }
 
-PUBLIC MYFLT csoundTableGet(CSOUND *csound, int32_t table, int32_t index) {
-  return csound->flist[table]->ftable[index];
-}
-
 
 static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
   if (csound->csoundCallbacks_ != NULL) {
