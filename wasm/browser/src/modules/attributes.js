@@ -44,10 +44,8 @@ csoundGetKsmps["toString"] = () => "getKsmps = async () => Number;";
  * @function
  */
 export const csoundGetChannels = (wasm) => (csound) => {
-  const channels = wasm.exports["csoundGetChannels"](csound);
-  // The return value is a 64-bit value with nchnls in lower 32 bits and nchnls_i in upper 32 bits
-  const nchnls = channels & 0xFFFFFFFF;
-  const nchnls_i = (channels >> 32) & 0xFFFFFFFF;
+  const nchnls = wasm.exports["csoundGetChannels"](csound, 0);  // output channels
+  const nchnls_i = wasm.exports["csoundGetChannels"](csound, 1);  // input channels
   return { nchnls, nchnls_i };
 };
 
