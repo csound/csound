@@ -178,7 +178,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         ...libraryCsound,
         csoundCreate,
         csoundReset: this.resetCsound.bind(this),
-        csoundStart: this.start.bind(this),
+          csoundStart: this.start.bind(this),
+          csoundStop: this.stop.bind(this),
         wasm,
       };
 
@@ -227,9 +228,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     delete this.csoundOutputBuffer;
   }
 
-  stop() {
+    stop() {
+     if(csound) {
+      libraryCsound.csoundStop(this.csound);
+    }
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
   }
+    
 
   pause() {
     if (!this.isPaused) {
