@@ -12,11 +12,7 @@ import {
   csoundEvalCode,
   csoundStart,
   csoundCompileCSD,
-  csoundPerform,
   csoundPerformKsmps,
-  csoundPerformBuffer,
-  csoundStop,
-  csoundCleanup,
   csoundReset,
 } from "./modules/performance";
 import {
@@ -36,11 +32,7 @@ import {
   csoundGetDebug,
   csoundSetDebug,
 } from "./modules/attributes";
-import {
-  csoundGetInputBufferSize,
-  csoundGetOutputBufferSize,
-  csoundGetInputBuffer,
-  csoundGetOutputBuffer,
+import {,
   csoundGetSpin,
   csoundGetSpout,
 } from "./modules/rtaudio";
@@ -53,8 +45,6 @@ import {
   _isRequestingRtMidiInput,
 } from "./modules/rtmidi";
 import {
-  csoundInputMessage,
-  csoundInputMessageAsync,
   csoundGetControlChannel,
   csoundSetControlChannel,
   csoundGetStringChannel,
@@ -65,7 +55,6 @@ import { csoundAppendEnv, csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
-  csoundReadScore,
   csoundGetScoreTime,
   csoundGetScoreOffsetSeconds,
   csoundSetScoreOffsetSeconds,
@@ -73,8 +62,6 @@ import {
 } from "./modules/score-handling";
 import {
   csoundTableLength,
-  csoundTableGet,
-  csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
@@ -110,19 +97,14 @@ export const api = {
   csoundEvalCode,
   csoundStart,
   csoundCompileCSD,
-  csoundPerform,
   csoundPerformKsmps,
-  csoundPerformBuffer,
-  csoundStop,
-  csoundCleanup,
   csoundReset,
   // @module/attributes
   csoundGetSr,
   csoundSystemSr,
   csoundGetKr,
   csoundGetKsmps,
-  csoundGetNchnls,
-  csoundGetNchnlsInput,
+  csoundGetChannels,
   csoundGet0dBFS,
   csoundGetA4,
   csoundGetCurrentTimeSamples,
@@ -133,10 +115,6 @@ export const api = {
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
-  csoundGetInputBufferSize,
-  csoundGetOutputBufferSize,
-  csoundGetInputBuffer,
-  csoundGetOutputBuffer,
   csoundGetSpin,
   csoundGetSpout,
   // @module/rtmidi
@@ -147,8 +125,6 @@ export const api = {
   csoundPushMidiMessage,
   _isRequestingRtMidiInput,
   // @module/control_events
-  csoundInputMessage,
-  csoundInputMessageAsync,
   csoundGetControlChannel,
   csoundSetControlChannel,
   csoundGetStringChannel,
@@ -162,15 +138,12 @@ export const api = {
   // @module/score-handling
   csoundIsScorePending,
   csoundSetScorePending,
-  csoundReadScore,
   csoundGetScoreTime,
   csoundGetScoreOffsetSeconds,
   csoundSetScoreOffsetSeconds,
   csoundRewindScore,
   // @module/table
   csoundTableLength,
-  csoundTableGet,
-  csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,

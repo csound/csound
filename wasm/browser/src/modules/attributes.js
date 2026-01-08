@@ -45,18 +45,9 @@ csoundGetKsmps["toString"] = () => "getKsmps = async () => Number;";
  * Returns the number of output channels from Csound instance
  * @function
  */
-export const csoundGetNchnls = (wasm) => (csound) => wasm.exports["csoundGetNchnls"](csound);
+export const csoundGetChannels= (wasm) => (csound) => wasm.exports["csoundGetChannels"](csound);
 
-csoundGetNchnls["toString"] = () => "getNchnls = async () => Number;";
-
-/**
- * Returns the number of input channels from Csound instance
- * @function
- */
-export const csoundGetNchnlsInput = (wasm) => (csound) =>
-  wasm.exports["csoundGetNchnlsInput"](csound);
-
-csoundGetNchnlsInput["toString"] = () => "getNchnlsInput = async () => Number;";
+csoundGetChannels["toString"] = () => "getChannels = async () => Number;";
 
 /**
  * Returns the value of csoundGet0dBFS

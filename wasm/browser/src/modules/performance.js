@@ -93,13 +93,6 @@ export const csoundCompileCSD = (wasm) => (csound, csd, mode = 1) => {
 
 csoundCompileCSD["toString"] = () => "compileCSD = async (csoundDocument) => Number;";
 
-/**
- * Performs(plays) audio until end is reached
- * @function
- */
-export const csoundPerform = (wasm) => (csound) => wasm.exports["csoundPerform"](csound);
-
-csoundPerform["toString"] = () => "perform = async () => Number;";
 
 /**
  * Performs(plays) 1 ksmps worth of sample(s)
@@ -110,31 +103,6 @@ export const csoundPerformKsmps = (wasm) => (csound) =>
 
 csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;";
 
-/**
- * Performs(plays) 1 buffer worth of audio
- * @function
- */
-export const csoundPerformBuffer = (wasm) => (csound) =>
-  wasm.exports["csoundPerformBuffer"](csound);
-
-csoundPerformBuffer["toString"] = () => "performBuffer = async (csound) => Number;";
-
-/**
- * Stops a csoundPerform
- * @function
- */
-export const csoundStop = (wasm) => (csound) => wasm.exports["csoundStop"](csound);
-
-csoundStop["toString"] = () => "stop = async () => undefined;";
-
-/**
- * Prints information about the end of a performance,
- * and closes audio and MIDI devices.
- * @function
- */
-export const csoundCleanup = (wasm) => (csound) => wasm.exports["csoundCleanup"](csound);
-
-csoundCleanup["toString"] = () => "cleanup = async () => Number;";
 
 /**
  * Prints information about the end of a performance,

@@ -28,19 +28,6 @@ export const csoundSetScorePending = (wasm) => (csound /* CsoundInst */, pending
 
 csoundSetScorePending["toString"] = () => "setScorePending = async (pending) => Number;";
 
-/**
- * Read, preprocess, and load a score from an ASCII string It can be called repeatedly,
- * with the new score events being added to the currently scheduled ones.
- * @function
- */
-export const csoundReadScore = (wasm) => (csound /* CsoundInst */, score /* string */) => {
-  const stringPtr = string2ptr(wasm, score);
-  const result = wasm.exports["csoundReadScore"](csound, stringPtr);
-  freeStringPtr(wasm, stringPtr);
-  return result;
-};
-
-csoundReadScore["toString"] = () => "readScore = async (score) => Number;";
 
 /**
  * Returns the current score time in seconds since the beginning of performance.

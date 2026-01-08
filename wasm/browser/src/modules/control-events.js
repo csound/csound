@@ -5,33 +5,6 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
    https://csound.com/docs/api/modules.html
 */
 
-/**
- * Inputs an immediate score event
- * without any pre-process parsing
- * @function
- */
-export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
-  const stringPtr = string2ptr(wasm, scoEvent);
-  const result = wasm.exports["csoundInputMessage"](csound, stringPtr);
-  freeStringPtr(wasm, stringPtr);
-  return result;
-};
-
-csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Number;";
-
-/**
- * Inputs an immediate score event
- * without any pre-process parsing
- * @function
- */
-export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
-  const stringPtr = string2ptr(wasm, scoEvent);
-  const result = wasm.exports["csoundInputMessageAsync"](csound, stringPtr);
-  freeStringPtr(wasm, stringPtr);
-  return result;
-};
-
-csoundInputMessageAsync["toString"] = () => "inputMessageAsync = async (scoreEvent) => Number;";
 
 /**
  * Retrieves the value of control channel identified by channelName.
