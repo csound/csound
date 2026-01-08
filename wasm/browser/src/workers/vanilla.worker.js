@@ -305,9 +305,9 @@ const initialize = async (payload) => {
 
   workerMessagePort.port.addEventListener("message", (event) => {
     if (event.data && event.data["newPlayState"]) {
-      if (event.data["newPlayState"] === "realtimePerformanceEnded") {
-        if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
+        if (event.data["newPlayState"] === "realtimePerformanceEnded") {
           libraryCsound.csoundStop(csoundInstance);    
+        if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
           libraryCsound.csoundPerformKsmps(csoundInstance);
         }
         // ping-pong for better timing of events:
