@@ -4,42 +4,6 @@
 */
 
 /**
- * Returns the number of samples in Csound's input buffer.
- * @function
- */
-export const csoundGetInputBufferSize = (wasm) => (csound) =>
-  wasm.exports["csoundGetInputBufferSize"](csound);
-
-csoundGetInputBufferSize["toString"] = () => "getInputBufferSize = async () => Number;";
-
-/**
- * Returns the number of samples in Csound's output buffer.
- * @function
- */
-export const csoundGetOutputBufferSize = (wasm) => (csound) =>
-  wasm.exports["csoundGetOutputBufferSize"](csound);
-
-csoundGetOutputBufferSize["toString"] = () => "getOutputBufferSize = async () => Number;";
-
-/**
- * Returns the address of the Csound audio input buffer.
- * @function
- */
-export const csoundGetInputBuffer = (wasm /* WasmInst */) => (csound /* CsoundInst */) =>
-  wasm.exports["csoundGetInputBuffer"](csound);
-
-csoundGetInputBuffer["toString"] = () => "getInputBuffer = async () => Number;";
-
-/**
- * Returns the address of the Csound audio output buffer.
- * @function
- */
-export const csoundGetOutputBuffer = (wasm /* WasmInst */) => (csound /* CsoundInst */) =>
-  wasm.exports["csoundGetOutputBuffer"](csound);
-
-csoundGetOutputBuffer["toString"] = () => "getOutputBuffer = async () => Number;";
-
-/**
  * Returns the address of the Csound audio input working buffer (spin).
  * Enables external software to write audio into Csound before calling csoundPerformKsmps.
  * @function

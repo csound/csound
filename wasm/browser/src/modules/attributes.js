@@ -42,21 +42,19 @@ export const csoundGetKsmps = (wasm) => (csound) => wasm.exports["csoundGetKsmps
 csoundGetKsmps["toString"] = () => "getKsmps = async () => Number;";
 
 /**
- * Returns the number of output channels from Csound instance
+ * Returns the number of audio output and input channels
+ * from Csound instance as an object {nchnls, nchnls_i}.
  * @function
  */
-export const csoundGetNchnls = (wasm) => (csound) => wasm.exports["csoundGetNchnls"](csound);
+export const csoundGetChannels = (wasm) => (csound) => {
+  const channels = wasm.exports["csoundGetChannels"](csound);
+  // The return value is a 64-bit value with nchnls in lower 32 bits and nchnls_i in upper 32 bits
+  const nchnls = channels & 0xFFFFFFFF;
+  const nchnls_i = (channels >> 32) & 0xFFFFFFFF;
+  return { nchnls, nchnls_i };
+};
 
-csoundGetNchnls["toString"] = () => "getNchnls = async () => Number;";
-
-/**
- * Returns the number of input channels from Csound instance
- * @function
- */
-export const csoundGetNchnlsInput = (wasm) => (csound) =>
-  wasm.exports["csoundGetNchnlsInput"](csound);
-
-csoundGetNchnlsInput["toString"] = () => "getNchnlsInput = async () => Number;";
+csoundGetChannels["toString"] = () => "getChannels = async () => {nchnls: Number, nchnls_i: Number};";
 
 /**
  * Returns the value of csoundGet0dBFS
