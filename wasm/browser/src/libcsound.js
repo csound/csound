@@ -27,7 +27,6 @@ import {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
   csoundGetDebug,
   csoundSetDebug,
 } from "./modules/attributes";
@@ -110,7 +109,6 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
