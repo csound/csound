@@ -48,13 +48,26 @@ const makeModuleExportsHack = () => {
   } else {
     const matchResults = data.matchAll(/(\("__Csound__",)([A-Za-z]+)\)/g);
     const matchResultsArr = Array.from(matchResults);
-    const obfuscatedVariableName = matchResultsArr[0][2];
+    
+    if (matchResultsArr.length === 0) {
+      console.error("ERROR: Could not find __Csound__ export symbol in compiled output.");
+      console.error("This usually means Google Closure Compiler changed the output format.");
+      console.error("Falling back to development mode export...");
+      
+      const hackedData = data.replace(
+        "__GOOGLE_CLOSURE_REPLACEME__",
+        `const Csound = Csound$$$module$src$index; export { Csound }; export default Csound;`,
+      );
+      fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+    } else {
+      const obfuscatedVariableName = matchResultsArr[0][2];
 
-    const hackedData = data.replace(
-      "__GOOGLE_CLOSURE_REPLACEME__",
-      `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
-    );
-    fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+      const hackedData = data.replace(
+        "__GOOGLE_CLOSURE_REPLACEME__",
+        `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
+      );
+      fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+    }
   }
 };
 
