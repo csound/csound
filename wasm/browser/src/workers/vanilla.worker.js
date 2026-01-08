@@ -309,8 +309,13 @@ const initialize = async (payload) => {
     if (event.data && event.data["newPlayState"]) {
       if (event.data["newPlayState"] === "realtimePerformanceEnded") {
         // Trigger final performKsmps to end performance
+        // Keep calling until performance ends or max iterations reached
         if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
-          libraryCsound.csoundPerformKsmps(csoundInstance);
+          let performResult = 0;
+          let maxIterations = 100;
+          while (performResult === 0 && maxIterations-- > 0) {
+            performResult = libraryCsound.csoundPerformKsmps(csoundInstance);
+          }
         }
         // ping-pong for better timing of events:
         // the event is only sent from main but state isn't stored

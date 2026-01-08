@@ -229,8 +229,14 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   stop() {
-    // Performance will end naturally when csoundPerformKsmps() returns non-zero
-    // Just broadcast the state change
+    // Call performKsmps until it returns non-zero to ensure performance ends
+    if (this.csound) {
+      let performResult = 0;
+      let maxIterations = 100;
+      while (performResult === 0 && maxIterations-- > 0) {
+        performResult = this.libraryCsound.csoundPerformKsmps(this.csound);
+      }
+    }
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
   }
 
