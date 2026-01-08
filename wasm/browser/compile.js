@@ -77,20 +77,37 @@ const makeModuleExportsHack = () => {
     if (!obfuscatedVariableName) {
       console.error("ERROR: Could not find __Csound__ export symbol in compiled output.");
       console.error("This usually means Google Closure Compiler changed the output format.");
-      console.error("Falling back to development mode export...");
+      console.error("Attempting to find any exported module...");
       
-      const hackedData = data.replace(
-        "__GOOGLE_CLOSURE_REPLACEME__",
-        `const Csound = Csound$$$module$src$index; export { Csound }; export default Csound;`,
-      );
-      fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
-    } else {
-      const hackedData = data.replace(
-        "__GOOGLE_CLOSURE_REPLACEME__",
-        `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
-      );
-      fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+      // Try to find any module export pattern
+      const modulePattern = /(module\$[A-Za-z0-9$_]+)/g;
+      const moduleMatches = Array.from(data.matchAll(modulePattern));
+      
+      if (moduleMatches.length > 0) {
+        // Look for the most likely candidate - module$src$index
+        const srcIndexModule = moduleMatches.find(m => m[1].includes('module$src$index'));
+        if (srcIndexModule) {
+          obfuscatedVariableName = srcIndexModule[1];
+          console.log(`Found module export: ${obfuscatedVariableName}`);
+        } else {
+          // Use the first module found
+          obfuscatedVariableName = moduleMatches[0][1];
+          console.log(`Using first available module: ${obfuscatedVariableName}`);
+        }
+      }
+      
+      if (!obfuscatedVariableName) {
+        console.error("FATAL: Could not find any module exports in compiled output.");
+        console.error("The compiled file may be corrupted. Please check the build process.");
+        process.exit(1);
+      }
     }
+    
+    const hackedData = data.replace(
+      "__GOOGLE_CLOSURE_REPLACEME__",
+      `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
+    );
+    fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
   }
 };
 
