@@ -134,9 +134,8 @@ const sabCreateRealtimeAudioThread =
         forceStop
       ) {
         if (lastReturn === 0) {
-          log(`calling csoundStop and one performKsmps to trigger end of performance logs`)();
-          // Trigger "performance ended" logs
-          libraryCsound.csoundStop(csound);
+          log(`calling one final performKsmps to trigger end of performance logs`)();
+          // Trigger final performKsmps to flush any remaining output
           libraryCsound.csoundPerformKsmps(csound);
         }
         log(`triggering realtimePerformanceEnded event`)();

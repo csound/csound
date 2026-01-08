@@ -165,7 +165,6 @@
   "csoundSpinTryLock",
   "csoundSpinUnLock",
   "csoundStart",
-  "csoundStop",
   "csoundSystemSr",
   "csoundTableCopyIn",
   "csoundTableCopyOut",

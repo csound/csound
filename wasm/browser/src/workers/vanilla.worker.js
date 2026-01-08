@@ -95,7 +95,7 @@ const createRealtimeAudioThread =
         currentCsoundBufferPos = (currentCsoundBufferPos + 1) % ksmps;
         if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
           if (lastPerformance === 0) {
-            libraryCsound.csoundStop(csound);
+            // Trigger final performKsmps to flush any remaining output
             lastPerformance = libraryCsound.csoundPerformKsmps(csound);
           }
           workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
@@ -308,7 +308,7 @@ const initialize = async (payload) => {
   workerMessagePort.port.addEventListener("message", (event) => {
     if (event.data && event.data["newPlayState"]) {
       if (event.data["newPlayState"] === "realtimePerformanceEnded") {
-        libraryCsound.csoundStop(csoundInstance);
+        // Trigger final performKsmps to end performance
         if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
           libraryCsound.csoundPerformKsmps(csoundInstance);
         }
