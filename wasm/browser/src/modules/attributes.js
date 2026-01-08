@@ -1,7 +1,4 @@
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
-import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
-import { sizeOfStruct } from "../utils/native-sizes.js";
-import { CSOUND_PARAMS } from "../structures.js";
 
 /*
    csound attribute module from <csound.h>
@@ -109,40 +106,17 @@ export const csoundSetOption = (wasm) => (csound, option) => {
 csoundSetOption["toString"] = () => "setOption = async (option) => Number;";
 
 /**
- * Configure Csound with a given set of
- * parameters defined in the CSOUND_PARAMS structure.
- * These parameters are the part of the OPARMS struct
- * that are configurable through command line flags.
- * The CSOUND_PARAMS structure can be obtained using
- * csoundGetParams().
- * These options should only be changed before
- * performance has started.
- * @function
- */
-export const csoundSetParams = (wasm) => (csound, csoundParameters) => {
-  wasm.exports["csoundSetParams"](csound, csoundParameters);
-};
-
-csoundSetParams["toString"] = () => "setParams = async (csoundParams) => undefined;";
-
-/**
  * Get the current set of parameters
- * from a Csound instance
- * in a CSOUND_PARAMS structure.
+ * from a Csound instance.
+ * Returns a pointer to the OPARMS structure.
+ * Note: This returns the native OPARMS pointer, not a JavaScript object.
  * @function
  */
 export const csoundGetParams = (wasm) => (csound) => {
-  const { buffer } = wasm.wasi.memory;
-  const structLength = sizeOfStruct(CSOUND_PARAMS);
-  const structOffset = wasm.exports["allocCsoundParamsStruct"]();
-  const structBuffer = new Uint8Array(buffer, structOffset, structLength);
-  wasm.exports["csoundGetParams"](csound, structOffset);
-  const currentCsoundParameters = structBufferToObject(CSOUND_PARAMS, structBuffer);
-  wasm.exports["freeCsoundParams"](structOffset);
-  return currentCsoundParameters;
+  return wasm.exports["csoundGetParams"](csound);
 };
 
-csoundGetParams["toString"] = () => "getParams = async () => CSOUND_PARAMS;";
+csoundGetParams["toString"] = () => "getParams = async () => Number;";
 
 /**
  * Returns whether Csound is set to print debug messages

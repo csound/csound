@@ -20,14 +20,6 @@ export const csoundDestroy = (wasm) => (csound) => wasm.exports["csoundDestroy"]
 csoundDestroy["toString"] = () => "destroy = async () => undefined;";
 
 /**
- * Returns the API version as int
- * @function
- */
-export const csoundGetAPIVersion = (wasm) => () => wasm.exports["csoundGetAPIVersion"]();
-
-csoundGetAPIVersion["toString"] = () => "getAPIVersion = async () => Number;";
-
-/**
  * Returns the Csound version as int
  * @function
  */

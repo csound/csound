@@ -1,7 +1,6 @@
 import {
   csoundCreate,
   csoundDestroy,
-  csoundGetAPIVersion,
   csoundGetVersion,
   csoundInitialize,
 } from "./modules/instantiation";
@@ -26,7 +25,6 @@ import {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
   csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
@@ -50,7 +48,7 @@ import {
   csoundGetStringChannel,
   csoundSetStringChannel,
 } from "./modules/control-events";
-import { csoundAppendEnv, csoundShouldDaemonize } from "./modules/extra";
+import { csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
@@ -84,7 +82,6 @@ export const api = {
   // @module/instantiation
   csoundCreate,
   csoundDestroy,
-  csoundGetAPIVersion,
   csoundGetVersion,
   csoundInitialize,
   // @module/performance
@@ -107,7 +104,6 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
   csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
@@ -128,7 +124,6 @@ export const api = {
   csoundGetStringChannel,
   csoundSetStringChannel,
   // @module/extra
-  csoundAppendEnv,
   csoundShouldDaemonize,
   // @module/score-handling
   csoundIsScorePending,
