@@ -90,7 +90,7 @@ class VanillaWorkerMainThread {
     this.audioWorker["isRequestingMidi"] = await this.exportApi["_isRequestingRtMidiInput"](
       this.csoundInstance,
     );
-    this.audioWorker.outputsCount = await this.exportApi.getChannels(this.csoundInstance, 0);
+    this.audioWorker.outputsCount = await this.exportApi["csoundGetChannels"](this.csoundInstance, 0);
     // TODO fix upstream: await this.exportApi.csoundGetChannels(this.csound, 0);
 
     this.audioWorker.inputsCount = this.audioWorker.isRequestingInput ? 1 : 0;
@@ -220,7 +220,10 @@ class VanillaWorkerMainThread {
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
 
     this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
+    this.exportApi["stop"] = csoundStop.bind(this);
 
+    this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
+      
     this.exportApi["getNode"] = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
       if (maybeNode) {

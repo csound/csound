@@ -14,13 +14,14 @@ import {
   csoundCompileCSD,
   csoundPerformKsmps,
   csoundReset,
+  csoundStop,  
 } from "./modules/performance";
 import {
   csoundGetSr,
   csoundSystemSr,
   csoundGetKr,
   csoundGetKsmps,
-    csoundGetChannels,
+  csoundGetChannels,
   csoundGet0dBFS,
   csoundGetA4,
   csoundGetCurrentTimeSamples,
@@ -98,6 +99,7 @@ export const api = {
   csoundCompileCSD,
   csoundPerformKsmps,
   csoundReset,
+  csoundStop,
   // @module/attributes
   csoundGetSr,
   csoundSystemSr,

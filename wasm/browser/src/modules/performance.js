@@ -113,6 +113,7 @@ export const csoundReset = (wasm) => (csound) => wasm.exports["csoundResetWasi"]
 
 csoundReset["toString"] = () => "reset = async () => Number;";
 
-export const csoundStop = (wasm) => (csound) => { return 0; };
 
+// dummy csoundStop
+export const csoundStop = (wasm) => (csound) => { return 0; };
 csoundStop["toString"] = () => "stop = async () => Number;";
