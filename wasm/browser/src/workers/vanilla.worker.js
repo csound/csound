@@ -47,7 +47,7 @@ const createRealtimeAudioThread =
 
     // Audio params are now set immediately after csoundCreate() to ensure
     // they take precedence over CSD file settings
-      const nchnls = libraryCsound.csoundGetChannels(csound,0);
+    const nchnls = libraryCsound.csoundGetChannels(csound,0);
     const nchnlsInput =
       inputChannelCount > 0
         ? inputChannelCount

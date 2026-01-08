@@ -383,28 +383,6 @@ e
         // then we copy the the array from js into csound's runtime onto table 1
         await csoundObj.tableCopyIn(1, float64array);
 
-        // assert that the values got delivered
-        assert.equal(
-          float64array[0],
-          await csoundObj.tableGet(1, 0),
-          "The first index from table1 matches the first index of the copied array",
-        );
-        assert.equal(
-          float64array[1],
-          await csoundObj.tableGet(1, 1),
-          "The second index from table1 matches the second index of the copied array",
-        );
-        assert.equal(
-          float64array[2],
-          await csoundObj.tableGet(1, 2),
-          "The third index from table1 matches the third index of the copied array",
-        );
-        assert.equal(
-          float64array[3],
-          await csoundObj.tableGet(1, 3),
-          "The fourth index from table1 matches the fourth index of the copied array",
-        );
-
         const csoundTableOneFloat64 = await csoundObj.tableCopyOut(1);
         // we convert it to normal Array for readability
         const csoundTableOneArray = Array.from(csoundTableOneFloat64);

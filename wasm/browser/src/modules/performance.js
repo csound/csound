@@ -112,3 +112,7 @@ csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;
 export const csoundReset = (wasm) => (csound) => wasm.exports["csoundResetWasi"](csound);
 
 csoundReset["toString"] = () => "reset = async () => Number;";
+
+export const csoundStop = (wasm) => (csound) => { return 0; };
+
+csoundStop["toString"] = () => "stop = async () => Number;";

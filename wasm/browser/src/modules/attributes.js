@@ -45,9 +45,9 @@ csoundGetKsmps["toString"] = () => "getKsmps = async () => Number;";
  * Returns the number of output channels from Csound instance
  * @function
  */
-export const csoundGetChannels= (wasm) => (csound) => wasm.exports["csoundGetChannels"](csound);
+export const csoundGetChannels= (wasm) => (csound) => wasm.exports["csoundGetChannels"](csound, mode = 0);
 
-csoundGetChannels["toString"] = () => "getChannels = async () => Number;";
+csoundGetChannels["toString"] = () => "getChannels = async (mode) => Number;";
 
 /**
  * Returns the value of csoundGet0dBFS
