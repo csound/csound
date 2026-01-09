@@ -12,11 +12,8 @@ import {
   csoundEvalCode,
   csoundStart,
   csoundCompileCSD,
-  csoundPerform,
   csoundPerformKsmps,
-  csoundPerformBuffer,
   csoundStop,
-  csoundCleanup,
   csoundReset,
 } from "./modules/performance";
 import {
@@ -26,6 +23,7 @@ import {
   csoundGetKsmps,
   csoundGetNchnls,
   csoundGetNchnlsInput,
+  csoundGetChannels,  
   csoundGet0dBFS,
   csoundGetA4,
   csoundGetCurrentTimeSamples,
@@ -37,10 +35,6 @@ import {
   csoundSetDebug,
 } from "./modules/attributes";
 import {
-  csoundGetInputBufferSize,
-  csoundGetOutputBufferSize,
-  csoundGetInputBuffer,
-  csoundGetOutputBuffer,
   csoundGetSpin,
   csoundGetSpout,
 } from "./modules/rtaudio";
