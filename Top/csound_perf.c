@@ -431,8 +431,11 @@ PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
   return 0;
 }
 
-/* external host's outbuffer passed in csoundPerformBuffer() */
-PUBLIC int32_t csoundPerformBuffer(CSOUND *csound) {
+/** Perform a full buffer 
+    used solely in audio backends, internally (not plugins) 
+    may be fully removed in the future.
+ */
+int32_t csoundPerformBuffer(CSOUND *csound) {
   int32_t returnValue;
   int32_t done;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -477,50 +480,4 @@ PUBLIC int32_t csoundPerformBuffer(CSOUND *csound) {
   return 0;
 }
 
-/* perform an entire score */
-PUBLIC int32_t csoundPerform(CSOUND *csound) {
-  int32_t done;
-  int32_t returnValue;
 
-  /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-  if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-    csound->Warning(csound,
-                    Str("Csound not ready for performance: csoundStart() "
-                        "has not been called\n"));
-    return CSOUND_ERROR;
-  }
-
-  csound->performState = 0;
-  /* setup jmp for return after an exit() */
-  if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
-    csoundMessage(csound, Str("Early return from csoundPerform().\n"));
-#endif
-    return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-  }
-  do {
-    if (!csound->oparms->realtime)
-      csoundLockMutex(csound->API_lock);
-    do {
-      if (UNLIKELY((done = sense_events(csound)))) {
-        csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
-        if (!csound->oparms->realtime)
-          csoundUnlockMutex(csound->API_lock);
-        if (csound->oparms->numThreads > 1) {
-        ATOMIC_SET(csound->multiThreadedComplete, 1);
-#ifdef PARCS_USE_LOCK_BARRIER
-        csound->WaitBarrier(csound->barrier1);
-#else
-        ATOMIC_SET(csound->parflag,!csound->parflag);
-#endif
-        }
-        return done;
-      }
-    } while (csound->kperf(csound));
-    if (!csound->oparms->realtime)
-      csoundUnlockMutex(csound->API_lock);
-  } while ((unsigned char)csound->performState == (unsigned char)'\0');
-  csoundMessage(csound, Str("csoundPerform(): stopped.\n"));
-  csound->performState = 0;
-  return 0;
-}
