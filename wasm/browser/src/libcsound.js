@@ -65,7 +65,7 @@ import { csoundAppendEnv, csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
-  csoundReadScore,
+  csoundReadScore, 
   csoundGetScoreTime,
   csoundGetScoreOffsetSeconds,
   csoundSetScoreOffsetSeconds,
@@ -73,14 +73,10 @@ import {
 } from "./modules/score-handling";
 import {
   csoundTableLength,
-  csoundTableGet,
-  csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
   csoundGetTableArgs,
-  csoundIsNamedGEN,
-  csoundGetNamedGEN,
 } from "./modules/table";
 import fs from "./filesystem/worker-fs";
 
@@ -110,33 +106,25 @@ export const api = {
   csoundEvalCode,
   csoundStart,
   csoundCompileCSD,
-  csoundPerform,
   csoundPerformKsmps,
-  csoundPerformBuffer,
   csoundStop,
-  csoundCleanup,
   csoundReset,
-  // @module/attributes
+  // @module/attributes  
   csoundGetSr,
   csoundSystemSr,
   csoundGetKr,
   csoundGetKsmps,
   csoundGetNchnls,
   csoundGetNchnlsInput,
+  csoundGetChannels,  
   csoundGet0dBFS,
   csoundGetA4,
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
-  csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
-  csoundGetInputBufferSize,
-  csoundGetOutputBufferSize,
-  csoundGetInputBuffer,
-  csoundGetOutputBuffer,
   csoundGetSpin,
   csoundGetSpout,
   // @module/rtmidi
@@ -169,14 +157,10 @@ export const api = {
   csoundRewindScore,
   // @module/table
   csoundTableLength,
-  csoundTableGet,
-  csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
   csoundGetTableArgs,
-  csoundIsNamedGEN,
-  csoundGetNamedGEN,
   // filesystem
   fs,
 };
