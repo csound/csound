@@ -90,7 +90,7 @@ class VanillaWorkerMainThread {
     this.audioWorker["isRequestingMidi"] = await this.exportApi["_isRequestingRtMidiInput"](
       this.csoundInstance,
     );
-      this.audioWorker.outputsCount = 1;//await this.exportApi.getChannels(this.csoundInstance, 0);
+    this.audioWorker.outputsCount = 1;//await this.exportApi.getChannels(this.csoundInstance, 0);
     // TODO fix upstream: await this.exportApi.csoundGetChannels(this.csound, 0);
 
     this.audioWorker.inputsCount = this.audioWorker.isRequestingInput ? 1 : 0;

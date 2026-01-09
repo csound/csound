@@ -399,7 +399,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.ksmps = ksmps;
       this.cnt = ksmps;
         this.nchnls = libraryCsound.csoundGetChannels(cs,0);
-        this.nchnls_i = libraryCsound.csoundGetChannels(cs,0);
+        this.nchnls_i = libraryCsound.csoundGetChannels(cs,1);
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
 
