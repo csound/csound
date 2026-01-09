@@ -435,7 +435,7 @@ int32_t kperf(CSOUND *csound) {
     used solely in audio backends, internally (not plugins) 
     may be fully removed in the future.
  */
-int32_t csoundPerformBuffer(CSOUND *csound) {
+int32_t perform_buffer(CSOUND *csound) {
   int32_t returnValue;
   int32_t done;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
