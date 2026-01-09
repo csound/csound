@@ -99,7 +99,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   return CSOUND_SUCCESS;
 }
 
-PUBLIC void csoundEventString(CSOUND *csound, const char *message,
+ void csoundEventString(CSOUND *csound, const char *message,
                               int32_t async) {
   if (async) {
     read_score_async(csound, message);
@@ -107,7 +107,7 @@ PUBLIC void csoundEventString(CSOUND *csound, const char *message,
     csoundReadScore(csound, message);
 }
 
-PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
+ void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
                         int32_t nparams, int32_t async) {
   char c;
   if (type == CS_INSTR_EVENT)
@@ -130,15 +130,15 @@ PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const MYFLT *params,
  * SCORE HANDLING
  */
 
-PUBLIC int32_t csoundIsScorePending(CSOUND *csound) {
+ int32_t csoundIsScorePending(CSOUND *csound) {
   return csound->csoundIsScorePending_;
 }
 
-PUBLIC void csoundSetScorePending(CSOUND *csound, int32_t pending) {
+ void csoundSetScorePending(CSOUND *csound, int32_t pending) {
   csound->csoundIsScorePending_ = pending;
 }
 
-PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
+ void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
   double aTime;
   MYFLT prv = (MYFLT)csound->csoundScoreOffsetSeconds_;
 
@@ -168,11 +168,11 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset) {
   }
 }
 
-PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *csound) {
+ MYFLT csoundGetScoreOffsetSeconds(CSOUND *csound) {
   return csound->csoundScoreOffsetSeconds_;
 }
 
-PUBLIC void csoundRewindScore(CSOUND *csound) {
+ void csoundRewindScore(CSOUND *csound) {
   rewind_score(csound);
   if (csound->oparms->FMidiname != NULL)
     midifile_rewind_score(csound);

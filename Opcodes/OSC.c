@@ -1194,14 +1194,14 @@ static OENTRY localops[] = {
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
 };
 
-PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)
+ int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
     IGN(csound);
     *ep = localops;
     return (int64_t) sizeof(localops);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

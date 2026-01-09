@@ -1091,16 +1091,16 @@ int32_t mp3in_localops_init(CSOUND *csound,
 }
 
 #ifdef BUILD_PLUGINS
-PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
+ int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
   return mp3in_localops_init(csound, ep);
 }
 
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+ NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {
   return   mp3in_fgen_init(csound);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)                                      
+ int32_t csoundModuleInfo(void)                                      
 {
   return ((CS_VERSION << 16)
           + (CS_SUBVER << 8)

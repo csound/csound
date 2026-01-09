@@ -2817,20 +2817,20 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
 
 #ifdef BUILD_PLUGINS
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound){
+ int32_t csoundModuleCreate(CSOUND *csound){
   return sfont_ModuleCreate(csound);
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound){
+ int32_t csoundModuleInit(CSOUND *csound){
   return csound->AppendOpcodes(csound, &(localops[0]),
                                (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 
-PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
+ int32_t csoundModuleDestroy(CSOUND *csound) {
   return sfont_ModuleDestroy(csound);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t
 ) sizeof(MYFLT));

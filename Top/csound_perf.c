@@ -391,7 +391,7 @@ int32_t kperf(CSOUND *csound) {
 }
 
 
-PUBLIC int32_t csoundPerformKsmps(CSOUND *csound) {
+ int32_t csoundPerformKsmps(CSOUND *csound) {
   int32_t done;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
   if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {

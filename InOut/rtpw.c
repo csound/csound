@@ -591,14 +591,14 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 
 
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
   IGN(csound);
   csound->DebugMsg(csound, "created pipewire module\n");
   return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
+ int32_t csoundModuleInit(CSOUND *csound) {
   const OPARMS *O = csound->GetOParms(csound);
   csound->ModuleListAdd(csound, "rtpw", "audio");
   char buf[32];
@@ -625,10 +625,10 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
   return CSOUND_SUCCESS;
 }
 
-PUBLIC int32_t csoundModuleDestroy(CSOUND *csound){
+ int32_t csoundModuleDestroy(CSOUND *csound){
   return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void){
+ int32_t csoundModuleInfo(void){
   return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

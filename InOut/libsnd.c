@@ -1082,12 +1082,12 @@ void set_io_backend(CSOUND *csound)
     STA(osfopen)   = 1;
 }
 
-PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *csound)
+ MYFLT *csoundGetInputBuffer(CSOUND *csound)
 {
     return STA(inbuf);
 }
 
-PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *csound)
+ MYFLT *csoundGetOutputBuffer(CSOUND *csound)
 {
     return STA(outbuf);
 }

@@ -1326,11 +1326,11 @@ int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
   return OK;
 }
 
-PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata){
+ const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata){
   return sdata->data;
 }
 
-PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata, const char *str){
+ void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata, const char *str){
   size_t bytes = strlen(str);
   if(sdata->size > bytes)
     strcpy(sdata->data, str);

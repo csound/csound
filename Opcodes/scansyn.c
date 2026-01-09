@@ -833,13 +833,13 @@ int32_t scansyn_init_(CSOUND *csound)
 }
 
 #ifdef BUILD_PLUGINS
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     int32_t   err = 0;
 
@@ -849,7 +849,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t
                                                            ) sizeof(MYFLT));

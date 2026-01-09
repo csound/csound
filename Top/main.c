@@ -153,7 +153,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   }
 }
 
-PUBLIC int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
+ int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
   OPARMS *O = csound->oparms;
   char *s;
   FILE *xfile = NULL;
@@ -484,7 +484,7 @@ extern int32_t DummyMidiOutOpen(CSOUND *csound, void **userData,
 extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
                               const unsigned char *buf, int32_t nbytes);
 
-PUBLIC int32_t csoundStart(CSOUND *csound) // DEBUG
+ int32_t csoundStart(CSOUND *csound) // DEBUG
 {
   OPARMS *O = csound->oparms;
   int32_t n;

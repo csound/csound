@@ -62,7 +62,7 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
     csoundDebugFreeVariables(csound, bkpt_info.instrVarList);
 }
 
-PUBLIC void csoundDebuggerInit(CSOUND *csound)
+ void csoundDebuggerInit(CSOUND *csound)
 {
     csdebug_data_t *data =
       (csdebug_data_t *) csound->Malloc(csound, sizeof(csdebug_data_t));
@@ -81,7 +81,7 @@ PUBLIC void csoundDebuggerInit(CSOUND *csound)
     csound->kperf = kperf_debug;
 }
 
-PUBLIC void csoundDebuggerClean(CSOUND *csound)
+ void csoundDebuggerClean(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -98,13 +98,13 @@ PUBLIC void csoundDebuggerClean(CSOUND *csound)
     csound->kperf = kperf;
 }
 
-PUBLIC void csoundDebugStart(CSOUND *csound)
+ void csoundDebugStart(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     data->status = CSDEBUG_STATUS_RUNNING;
 }
 
-PUBLIC void csoundSetBreakpoint(CSOUND *csound, int32_t line, int32_t instr, int32_t skip)
+ void csoundSetBreakpoint(CSOUND *csound, int32_t line, int32_t instr, int32_t skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
@@ -127,7 +127,7 @@ PUBLIC void csoundSetBreakpoint(CSOUND *csound, int32_t line, int32_t instr, int
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr)
+ void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
@@ -147,7 +147,7 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr)
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip)
+ void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
@@ -167,7 +167,7 @@ PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t s
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
+ void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -179,7 +179,7 @@ PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundClearBreakpoints(CSOUND *csound)
+ void csoundClearBreakpoints(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -191,7 +191,7 @@ PUBLIC void csoundClearBreakpoints(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
-PUBLIC void csoundSetBreakpointCallback(CSOUND *csound,
+ void csoundSetBreakpointCallback(CSOUND *csound,
                                        breakpoint_cb_t bkpt_cb, void *userdata)
 {
 
@@ -201,7 +201,7 @@ PUBLIC void csoundSetBreakpointCallback(CSOUND *csound,
     data->cb_data = userdata;
 }
 
-PUBLIC void csoundDebugStepOver(CSOUND *csound)
+ void csoundDebugStepOver(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -209,7 +209,7 @@ PUBLIC void csoundDebugStepOver(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1);
 }
 
-PUBLIC void csoundDebugStepInto(CSOUND *csound)
+ void csoundDebugStepInto(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -217,7 +217,7 @@ PUBLIC void csoundDebugStepInto(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1);
 }
 
-PUBLIC void csoundDebugNext(CSOUND *csound)
+ void csoundDebugNext(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -225,7 +225,7 @@ PUBLIC void csoundDebugNext(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1);
 }
 
-PUBLIC void csoundDebugContinue(CSOUND *csound)
+ void csoundDebugContinue(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -233,7 +233,7 @@ PUBLIC void csoundDebugContinue(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1);
 }
 
-PUBLIC void csoundDebugStop(CSOUND *csound)
+ void csoundDebugStop(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -241,7 +241,7 @@ PUBLIC void csoundDebugStop(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->cmd_buffer, &command, 1);
 }
 
-PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound)
+ debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound)
 {
     debug_instr_t *instrhead = NULL;
     debug_instr_t *debug_instr = NULL;
@@ -319,7 +319,7 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
     csound->Free(csound, opcode_list);
 }
 
-PUBLIC void csoundDebugFreeInstrInstances(CSOUND *csound, debug_instr_t *instr)
+ void csoundDebugFreeInstrInstances(CSOUND *csound, debug_instr_t *instr)
 {
     while (instr) {
         debug_instr_t *oldinstr = instr;
@@ -328,7 +328,7 @@ PUBLIC void csoundDebugFreeInstrInstances(CSOUND *csound, debug_instr_t *instr)
     }
 }
 
-PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
+ debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
                                                  debug_instr_t *instr)
 {
     debug_variable_t *head = NULL;
@@ -365,7 +365,7 @@ PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
 }
 
 
-PUBLIC void csoundDebugFreeVariables(CSOUND *csound, debug_variable_t *varHead)
+ void csoundDebugFreeVariables(CSOUND *csound, debug_variable_t *varHead)
 {
     while (varHead) {
         debug_variable_t *oldvar = varHead;

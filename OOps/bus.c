@@ -306,35 +306,35 @@ int32_t pvsout_perf(CSOUND *csound, FCHAN *p)
     return OK;
 }
 
-PUBLIC int32_t csoundPvsDataFFTSize(const PVSDAT *pvsdat) {
+ int32_t csoundPvsDataFFTSize(const PVSDAT *pvsdat) {
   return pvsdat->N;
 }
 
-PUBLIC int32_t csoundPvsDataOverlap(const PVSDAT *pvsdat) {
+ int32_t csoundPvsDataOverlap(const PVSDAT *pvsdat) {
   return pvsdat->overlap;
 }
 
-PUBLIC int32_t csoundPvsDataWindowSize(const PVSDAT *pvsdat) {
+ int32_t csoundPvsDataWindowSize(const PVSDAT *pvsdat) {
   return pvsdat->winsize;
 }
 
-PUBLIC int32_t csoundPvsDataFormat(const PVSDAT *pvsdat) {
+ int32_t csoundPvsDataFormat(const PVSDAT *pvsdat) {
   return pvsdat->format;
 }
 
-PUBLIC uint32_t csoundPvsDataFramecount(const PVSDAT *pvsdat) {
+ uint32_t csoundPvsDataFramecount(const PVSDAT *pvsdat) {
   return pvsdat->framecount;
 }
 
-PUBLIC const float *csoundGetPvsData(const PVSDAT *pvsdat) {
+ const float *csoundGetPvsData(const PVSDAT *pvsdat) {
   return (const float *) pvsdat->frame.auxp;
 }
 
-PUBLIC void csoundSetPvsData(PVSDAT *pvsdat, const float *frame) {
+ void csoundSetPvsData(PVSDAT *pvsdat, const float *frame) {
   memcpy(pvsdat->frame.auxp, frame, pvsdat->frame.size);
 }
 
-PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
+ PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
                                     int32_t size, int32_t overlap, int32_t winsize,
                                  int32_t wintype, int32_t format) {
     PVSDAT *p;
@@ -492,14 +492,14 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
     return CSOUND_SUCCESS;
 }
 
-PUBLIC const char *csoundGetChannelVarTypeName(CSOUND *csound, const char *name) {
+ const char *csoundGetChannelVarTypeName(CSOUND *csound, const char *name) {
   CHNENTRY *pp = find_channel(csound, name);
   if(pp)
     return pp->varType->varTypeName;
   else return NULL;
 }
 
-PUBLIC const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name) {
+ const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name) {
   CHNENTRY *pp = find_channel(csound, name);
   if(pp)
     return pp->varType;
@@ -507,7 +507,7 @@ PUBLIC const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name) 
 }
 
 
-PUBLIC int32_t csoundGetChannelPtr(CSOUND *csound, void **p,
+ int32_t csoundGetChannelPtr(CSOUND *csound, void **p,
                                const char *name, int32_t type)
 {
     CHNENTRY  *pp;
@@ -531,7 +531,7 @@ PUBLIC int32_t csoundGetChannelPtr(CSOUND *csound, void **p,
     return CSOUND_ERROR;
 }
 
-PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
+ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
 
     CHNENTRY  *pp;
     pp = find_channel(csound, name);
@@ -569,7 +569,7 @@ static int cmp_func(const void *p1, const void *p2)
                   ((controlChannelInfo_t*) p2)->name);
 }
 
-PUBLIC int32_t csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
+ int32_t csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 {
     CHNENTRY  *pp;
     size_t     n;
@@ -609,13 +609,13 @@ PUBLIC int32_t csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
     return (int32_t)n;
 }
 
-PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
+ void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 {
     //(void) csound;
     if (lst != NULL) csound->Free(csound, lst);
 }
 
-PUBLIC int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
+ int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
                                             controlChannelHints_t hints)
 {
     CHNENTRY  *pp;
@@ -666,7 +666,7 @@ PUBLIC int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
 * special parameters set; otherwise, a negative error code is returned.
 */
 
-PUBLIC int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
+ int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
                                             controlChannelHints_t *hints)
 {
     CHNENTRY  *pp;
@@ -2665,7 +2665,7 @@ void csoundGetStringChannel(CSOUND *csound, const char *name,
   }
 }
 
-PUBLIC int32_t csoundSetPvsChannel(CSOUND *csound, const char *name,
+ int32_t csoundSetPvsChannel(CSOUND *csound, const char *name,
                                const PVSDAT *fin)
 {
   PVSDAT *f;
@@ -2688,7 +2688,7 @@ PUBLIC int32_t csoundSetPvsChannel(CSOUND *csound, const char *name,
   return CSOUND_SUCCESS;
 }
 
-PUBLIC int32_t csoundGetPvsChannel(CSOUND *csound, const char *name,
+ int32_t csoundGetPvsChannel(CSOUND *csound, const char *name,
                                PVSDAT *fout)
 {
   PVSDAT *f;
@@ -2709,7 +2709,7 @@ PUBLIC int32_t csoundGetPvsChannel(CSOUND *csound, const char *name,
   return CSOUND_SUCCESS;
 }
 
-PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
+ ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                         const char *type, int32_t dimensions,
                                         const int32_t *sizes) {
   int32_t i, siz = 0, err;
@@ -2737,19 +2737,19 @@ PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
   return adat;
 }
 
-PUBLIC int32_t csoundArrayDataDimensions(const ARRAYDAT *adat) {
+ int32_t csoundArrayDataDimensions(const ARRAYDAT *adat) {
   return adat->dimensions;
 }
 
-PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat) {
+ const char *csoundArrayDataType(const ARRAYDAT *adat) {
   return adat->arrayType->varTypeName;
 }
 
-PUBLIC const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){
+ const int32_t *csoundArrayDataSizes(const ARRAYDAT *adat){
   return adat->sizes;
 }
 
-PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
+ void csoundSetArrayData(ARRAYDAT *adat,
                                const void* data) {
   size_t siz = adat->sizes[0];
   int32_t i;
@@ -2758,14 +2758,14 @@ PUBLIC void csoundSetArrayData(ARRAYDAT *adat,
   memcpy(adat->data, data, siz*adat->arrayMemberSize);
 }
 
-PUBLIC const void *csoundGetArrayData(const ARRAYDAT *adat) {
+ const void *csoundGetArrayData(const ARRAYDAT *adat) {
   return adat->data;
 }
 
-PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel) {
+ void csoundLockChannel(CSOUND *csound, const char *channel) {
   csoundSpinLock((spin_lock_t *) get_channel_lock(csound, (char*) channel));
 }
 
-PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel) {
+ void csoundUnlockChannel(CSOUND *csound, const char *channel) {
   csoundSpinUnLock((spin_lock_t *)get_channel_lock(csound, (char*) channel));
 }

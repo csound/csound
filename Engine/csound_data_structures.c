@@ -161,7 +161,7 @@ void* cs_hash_table_get(CSOUND* csound,
     return NULL;
 }
 
-PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
+ char* cs_hash_table_get_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
     uint32_t index;
     CS_HASH_TABLE_ITEM* item;

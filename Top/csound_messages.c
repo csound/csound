@@ -65,7 +65,7 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
 #endif
 }
 
-PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback)(
+ void csoundSetDefaultMessageCallback(void (*csoundMessageCallback)(
     CSOUND *csound, int32_t attr, const char *format, va_list args)) {
   if (csoundMessageCallback) {
     msgcallback_ = csoundMessageCallback;
@@ -74,7 +74,7 @@ PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback)(
   }
 }
 
-PUBLIC void csoundSetMessageStringCallback(
+ void csoundSetMessageStringCallback(
     CSOUND *csound,
     void (*csoundMessageStrCallback)(CSOUND *csound, int32_t attr,
                                      const char *str)) {
@@ -87,7 +87,7 @@ PUBLIC void csoundSetMessageStringCallback(
   }
 }
 
-PUBLIC void csoundSetMessageCallback(
+ void csoundSetMessageCallback(
     CSOUND *csound,
     void (*csoundMessageCallback)(CSOUND *csound, int32_t attr,
                                   const char *format, va_list args)) {
@@ -99,7 +99,7 @@ PUBLIC void csoundSetMessageCallback(
   }
 }
 
-PUBLIC void csoundMessageV(CSOUND *csound, int32_t attr, const char *format,
+ void csoundMessageV(CSOUND *csound, int32_t attr, const char *format,
                            va_list args) {
   if (!(csound->oparms->msglevel & CS_NOMSG)) {
     if (csound->csoundMessageCallback_) {
@@ -111,7 +111,7 @@ PUBLIC void csoundMessageV(CSOUND *csound, int32_t attr, const char *format,
   }
 }
 
-PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...) {
+ void csoundMessage(CSOUND *csound, const char *format, ...) {
   if (!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
     va_start(args, format);
@@ -125,7 +125,7 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...) {
   }
 }
 
-PUBLIC void csoundMessageS(CSOUND *csound, int32_t attr, const char *format,
+ void csoundMessageS(CSOUND *csound, int32_t attr, const char *format,
                            ...) {
   if (!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
@@ -193,11 +193,11 @@ void csoundErrorMsgS(CSOUND *csound, int32_t attr, const char *msg, ...) {
   va_end(args);
 }
 
-PUBLIC void csoundSetMessageLevel(CSOUND *csound, int32_t messageLevel) {
+ void csoundSetMessageLevel(CSOUND *csound, int32_t messageLevel) {
   csound->oparms_.msglevel = messageLevel;
 }
 
-PUBLIC int32_t csoundGetMessageLevel(CSOUND *csound) {
+ int32_t csoundGetMessageLevel(CSOUND *csound) {
   return csound->oparms_.msglevel;
 }
 
@@ -235,7 +235,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int32_t attr,
  * in addition to being stored in the buffer.
  */
 
-void PUBLIC csoundCreateMessageBuffer(CSOUND *csound, int32_t toStdOut) {
+void  csoundCreateMessageBuffer(CSOUND *csound, int32_t toStdOut) {
   csMsgBuffer *pp;
   size_t nBytes;
 
@@ -270,9 +270,9 @@ void PUBLIC csoundCreateMessageBuffer(CSOUND *csound, int32_t toStdOut) {
  * Returns the first message from the buffer.
  */
 #ifdef MSVC
-const char PUBLIC *csoundGetFirstMessage(CSOUND *csound)
+const char  *csoundGetFirstMessage(CSOUND *csound)
 #else
-const char * /*PUBLIC*/ csoundGetFirstMessage(CSOUND *csound)
+const char * /**/ csoundGetFirstMessage(CSOUND *csound)
 #endif
 {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
@@ -292,7 +292,7 @@ const char * /*PUBLIC*/ csoundGetFirstMessage(CSOUND *csound)
  * in the buffer.
  */
 
-int32_t PUBLIC csoundGetFirstMessageAttr(CSOUND *csound) {
+int32_t  csoundGetFirstMessageAttr(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   int32_t attr = 0;
 
@@ -310,7 +310,7 @@ int32_t PUBLIC csoundGetFirstMessageAttr(CSOUND *csound) {
  * Removes the first message from the buffer.
  */
 
-void PUBLIC csoundPopFirstMessage(CSOUND *csound) {
+void  csoundPopFirstMessage(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
 
   if (pp) {
@@ -333,7 +333,7 @@ void PUBLIC csoundPopFirstMessage(CSOUND *csound) {
  * Returns the number of pending messages in the buffer.
  */
 
-int32_t PUBLIC csoundGetMessageCnt(CSOUND *csound) {
+int32_t  csoundGetMessageCnt(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   int32_t cnt = -1;
 
@@ -349,7 +349,7 @@ int32_t PUBLIC csoundGetMessageCnt(CSOUND *csound) {
  * Releases all memory used by the message buffer.
  */
 
-void PUBLIC csoundDestroyMessageBuffer(CSOUND *csound) {
+void  csoundDestroyMessageBuffer(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   if (!pp) {
     csound->Warning(csound, Str("csoundDestroyMessageBuffer: "

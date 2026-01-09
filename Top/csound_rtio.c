@@ -176,18 +176,18 @@ void csoundSetAudioDeviceListCallback(
   csound->audio_dev_list_callback = audiodevlist__;
 }
 
-PUBLIC void csoundSetMIDIDeviceListCallback(
+ void csoundSetMIDIDeviceListCallback(
     CSOUND *csound,
     int32_t (*mididevlist__)(CSOUND *, CS_MIDIDEVICE *list, int32_t isOutput)) {
   csound->midi_dev_list_callback = mididevlist__;
 }
 
-PUBLIC int32_t csoundGetAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list,
+ int32_t csoundGetAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list,
                                      int32_t isOutput) {
   return csound->audio_dev_list_callback(csound, list, isOutput);
 }
 
-PUBLIC int32_t csoundGetMIDIDevList(CSOUND *csound, CS_MIDIDEVICE *list,
+ int32_t csoundGetMIDIDevList(CSOUND *csound, CS_MIDIDEVICE *list,
                                     int32_t isOutput) {
   return csound->midi_dev_list_callback(csound, list, isOutput);
 }
@@ -265,42 +265,42 @@ const char *csoundExternalMidiErrorString(CSOUND *csound, int32_t errcode) {
 }
 
 /* Set real time MIDI function pointers. */
-PUBLIC void csoundSetExternalMidiInOpenCallback(
+ void csoundSetExternalMidiInOpenCallback(
     CSOUND *csound, int32_t (*func)(CSOUND *, void **, const char *)) {
   csound->midiGlobals->MidiInOpenCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *csound,
+ void csoundSetExternalMidiReadCallback(CSOUND *csound,
                                               int32_t (*func)(CSOUND *, void *,
                                                               unsigned char *,
                                                               int32_t)) {
   csound->midiGlobals->MidiReadCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
+ void csoundSetExternalMidiInCloseCallback(CSOUND *csound,
                                                  int32_t (*func)(CSOUND *,
                                                                  void *)) {
   csound->midiGlobals->MidiInCloseCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiOutOpenCallback(
+ void csoundSetExternalMidiOutOpenCallback(
     CSOUND *csound, int32_t (*func)(CSOUND *, void **, const char *)) {
   csound->midiGlobals->MidiOutOpenCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiWriteCallback(
+ void csoundSetExternalMidiWriteCallback(
     CSOUND *csound,
     int32_t (*func)(CSOUND *, void *, const unsigned char *, int32_t)) {
   csound->midiGlobals->MidiWriteCallback = func;
 }
 
-PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
+ void csoundSetExternalMidiOutCloseCallback(CSOUND *csound,
                                                   int32_t (*func)(CSOUND *,
                                                                   void *)) {
   csound->midiGlobals->MidiOutCloseCallback = func;
 }
 
-PUBLIC void
+ void
 csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
                                          const char *(*func)(int32_t)) {
   csound->midiGlobals->MidiErrorStringCallback = func;
@@ -315,27 +315,27 @@ csoundSetExternalMidiErrorStringCallback(CSOUND *csound,
  * specified.
  */
 
-PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *csound, int32_t state,
+ void csoundSetHostImplementedAudioIO(CSOUND *csound, int32_t state,
                                             int32_t bufSize) {
   csound->enableHostImplementedAudioIO = state;
   csound->hostRequestedBufferSize = (bufSize > 0 ? bufSize : 0);
 }
 
-PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound, int32_t state) {
+ void csoundSetHostImplementedMIDIIO(CSOUND *csound, int32_t state) {
   csound->enableHostImplementedMIDIIO = state;
 }
 
-PUBLIC double csoundGetScoreTime(CSOUND *csound) {
+ double csoundGetScoreTime(CSOUND *csound) {
   double curtime = csound->icurTimeSamples;
   double esr = csound->esr;
   return curtime / esr;
 }
 
-PUBLIC void csoundSetHostAudioIO(CSOUND *csound) {
+ void csoundSetHostAudioIO(CSOUND *csound) {
   csound->enableHostImplementedAudioIO = 1;
 }
 
-PUBLIC void csoundSetHostMIDIIO(CSOUND *csound) {
+ void csoundSetHostMIDIIO(CSOUND *csound) {
   csound->enableHostImplementedMIDIIO = 1;
 }
 
@@ -354,7 +354,7 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 }
 
 
-PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
+ void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
   char *s;
   if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
     strNcpy(s, module, 20);
@@ -375,7 +375,7 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
     csound->LongJmp(csound, 1);
 }
 
-PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module) {
+ void csoundSetMIDIModule(CSOUND *csound, const char *module) {
   char *s;
 
   if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)

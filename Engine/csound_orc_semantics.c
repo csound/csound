@@ -4075,7 +4075,7 @@ void delete_tree(CSOUND *csound, TREE *l)
   }
 }
 
-PUBLIC void csoundDeleteTree(CSOUND *csound, TREE *tree)
+ void csoundDeleteTree(CSOUND *csound, TREE *tree)
 {
   delete_tree(csound, tree);
 }
