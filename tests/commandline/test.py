@@ -22,6 +22,7 @@ max_workers = None  # None = auto-detect based on CPU count
 test_timeout = 300  # 5 minutes timeout per test
 verbose_logging = False
 
+
 # Setup logging for parallel execution
 def setup_logging():
     """Setup logging configuration for parallel test execution."""
@@ -29,10 +30,11 @@ def setup_logging():
 
     logging.basicConfig(
         level=level,
-        format='%(asctime)s - %(threadName)s - %(levelname)s - %(message)s',
-        datefmt='%H:%M:%S'
+        format="%(asctime)s - %(threadName)s - %(levelname)s - %(message)s",
+        datefmt="%H:%M:%S",
     )
-    return logging.getLogger('csound_tests')
+    return logging.getLogger("csound_tests")
+
 
 logger = setup_logging()
 
@@ -46,7 +48,10 @@ class Test:
 
 class TestResult:
     """Container for test execution results with ordering information."""
-    def __init__(self, test_index, test_data, return_code, cs_output, execution_time, error=None):
+
+    def __init__(
+        self, test_index, test_data, return_code, cs_output, execution_time, error=None
+    ):
         self.test_index = test_index
         self.test_data = test_data
         self.return_code = return_code
@@ -74,7 +79,9 @@ class TestResult:
         """Get formatted output for this test result."""
         status = self.status_line
         output = f"{status}Test {counter}: {self.description} ({self.filename})\n"
-        output += f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
+        output += (
+            f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
+        )
         if self.error:
             output += f"\tError: {self.error}\n"
         if verbose and self.execution_time:
@@ -123,13 +130,14 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         # Execute the command with timeout using subprocess.run
         # (subprocess.run already handles WIFEXITED properly, unlike os.system)
         import subprocess
+
         try:
             result = subprocess.run(
                 command,
                 shell=True,
                 timeout=test_timeout,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return_code = result.returncode
 
@@ -142,8 +150,12 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         except subprocess.TimeoutExpired:
             logger.error(f"Test {filename} timed out after {test_timeout} seconds")
             return TestResult(
-                test_index, test_data, -1, "", test_timeout,
-                error=f"Test timed out after {test_timeout} seconds"
+                test_index,
+                test_data,
+                -1,
+                "",
+                test_timeout,
+                error=f"Test timed out after {test_timeout} seconds",
             )
 
         # Read csound output from temp file (stderr)
@@ -160,7 +172,9 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
 
         execution_time = time.time() - start_time
 
-        logger.debug(f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s")
+        logger.debug(
+            f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s"
+        )
 
         return TestResult(test_index, test_data, return_code, cs_output, execution_time)
 
@@ -168,8 +182,7 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         execution_time = time.time() - start_time
         logger.error(f"Exception in test {filename}: {e}")
         return TestResult(
-            test_index, test_data, -1, "", execution_time,
-            error=f"Exception: {str(e)}"
+            test_index, test_data, -1, "", execution_time, error=f"Exception: {str(e)}"
         )
 
 
@@ -188,6 +201,7 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
     """
     if max_workers is None:
         import multiprocessing
+
         max_workers = min(multiprocessing.cpu_count(), len(tests))
 
     # Check if workers=1 for sequential execution
@@ -198,7 +212,10 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
     logger.info(f"Running {len(tests)} tests in parallel with {max_workers} workers")
 
     # Create unique temp files for each worker to avoid conflicts
-    temp_files = [f"csound_test_output_{threading.get_ident()}_{i}.txt" for i in range(max_workers)]
+    temp_files = [
+        f"csound_test_output_{threading.get_ident()}_{i}.txt"
+        for i in range(max_workers)
+    ]
     temp_file_queue = Queue()
     for temp_file in temp_files:
         temp_file_queue.put(temp_file)
@@ -244,8 +261,12 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
                 # Create a failure result for this test
                 test_data = tests[original_index]
                 result = TestResult(
-                    original_index, test_data, -1, "", 0,
-                    error=f"Execution exception: {str(e)}"
+                    original_index,
+                    test_data,
+                    -1,
+                    "",
+                    0,
+                    error=f"Execution exception: {str(e)}",
                 )
                 results[original_index] = result
                 completed_count += 1
@@ -330,6 +351,7 @@ EXAMPLES:
 def get_actual_workers():
     """Helper function to get actual worker count."""
     import multiprocessing
+
     return max_workers if max_workers else multiprocessing.cpu_count()
 
 
@@ -589,6 +611,8 @@ def runTest():
         ["test_named_instr_ramps.csd", "test named instrument ramps"],
         ["test_gen01.csd", "testing GEN01 importing files"],
         ["test_raw_strings.csd", "test new-style raw strings"],
+        ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
+        ["test_all_math_constants.csd", "test all builtin math constant macros"],
     ]
 
     arrayTests = [
@@ -831,7 +855,9 @@ if __name__ == "__main__":
                         print("Error: Worker count must be greater than 0")
                         sys.exit(1)
                 except ValueError:
-                    print("Error: Invalid worker count. Use --workers=<N> where N is a positive integer.")
+                    print(
+                        "Error: Invalid worker count. Use --workers=<N> where N is a positive integer."
+                    )
                     sys.exit(1)
             elif arg.startswith("--timeout="):
                 try:
@@ -840,7 +866,9 @@ if __name__ == "__main__":
                         print("Error: Timeout must be greater than 0 seconds")
                         sys.exit(1)
                 except ValueError:
-                    print("Error: Invalid timeout. Use --timeout=<N> where N is a positive integer.")
+                    print(
+                        "Error: Invalid timeout. Use --timeout=<N> where N is a positive integer."
+                    )
                     sys.exit(1)
 
     results = runTest()

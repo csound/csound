@@ -26,9 +26,19 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <float.h>
 #include "csoundCore.h"
 #include "corfile.h"
 #include <inttypes.h>
+
+#ifdef USE_DOUBLE
+  #define MYFLT_MAX DBL_MAX
+  #define MYFLT_MIN DBL_MIN
+#else
+  #define MYFLT_MAX FLT_MAX
+  #define MYFLT_MIN FLT_MIN
+#endif
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
@@ -486,7 +496,7 @@ QNAN            "qnan"[ \t]*\(
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  
+
                   csound->DebugMsg(csound, "csound_pre(%d): line now %d at %d\n",
                                    __LINE__,
                                    csound_preget_lineno(yyscanner),
@@ -1341,6 +1351,8 @@ static void add_math_const_macro(CSOUND *csound, char * name, char *body)
  */
 void cs_init_math_constants_macros(CSOUND *csound)
 {
+    char buf[64];
+
     if (csound->orc_macros == NULL) {
       add_math_const_macro(csound, "E",     "2.71828182845904523536");
       add_math_const_macro(csound, "LOG2E", "1.44269504088896340736");
@@ -1356,6 +1368,12 @@ void cs_init_math_constants_macros(CSOUND *csound)
       add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
       add_math_const_macro(csound, "SQRT1_2","0.70710678118654752440");
       add_math_const_macro(csound, "INF",   "800000000000.0");/* ~25367 years */
+
+      /* MYFLT limits - use standard library macros converted to strings */
+      snprintf(buf, sizeof(buf), "%.17g", MYFLT_MAX);
+      add_math_const_macro(csound, "MAX_VALUE", buf);
+      snprintf(buf, sizeof(buf), "%.17g", MYFLT_MIN);
+      add_math_const_macro(csound, "MIN_VALUE", buf);
     }
 }
 
