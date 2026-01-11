@@ -785,7 +785,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
     }
     else {                                        /* IV - Oct 31 2002 */
       insno = abs((int32_t) evt->p[1]);
-      if (UNLIKELY((unsigned int)(insno-1) >=
+      if (UNLIKELY((unsigned int) insno >
                    (uint32_t) csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
@@ -835,7 +835,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
     }
     else {                                        /* IV - Oct 31 2002 */
       insno = abs((int32_t) evt->p[1]);
-      if (UNLIKELY((unsigned int)(insno-1) >=
+      if (UNLIKELY((unsigned int) insno >
                    (unsigned int)csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
@@ -1371,7 +1371,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     else
       i = (int32_t) fabs((double) pf[1]);
 
-    if (UNLIKELY((uint32_t) (i - 1) >=
+    if (UNLIKELY((uint32_t) i >
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)
