@@ -1500,11 +1500,8 @@ struct CsoundCallbackEntry_s {
   csound->hostdata = hostData;
 }
 
-void csoundStop(CSOUND *csound) {
-  csound->performState = -1;
-}
 
- int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
+int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
   return csound_compile_tree(csound, root, async);
 }
 
