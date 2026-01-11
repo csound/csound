@@ -191,6 +191,8 @@ static const char *shortUsageList[] = {
     NULL};
 
 static const char *longUsageList[] = {
+    Str_noop("--code=string           compile code string"),
+    Str_noop("--events=string         perform events in string"), 
     "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
     "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,wve,ogg,mpc2k,rf64,mpeg}",
     "--format={alaw,ulaw,schar,uchar,float,double,short,long,24bit,vorbis}",
@@ -1268,6 +1270,27 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->error_deprecated = 1;
     return 1;
   }
+  else if (!(strncmp(s, "code", 4))) {
+    s += 5;
+    if(csound->orcname_mode == 0) {
+      // only 1st argdecode pass
+     if(!(O->msglevel == 16) && (O->msglevel || O->odebug))
+        csound->Message(csound, "Compiling Csound code...\n");
+     if(csoundCompileOrc(csound, s, 0) == 0) {
+       O->daemon = 1; // allow it to start without a .csd or .orc
+      if(!(O->msglevel == 16) && (O->msglevel || O->odebug))
+       csound->Message(csound, "\t ...done\n"); 
+     }
+    }
+    return 1;
+  }
+  else if (!(strncmp(s, "events", 6))) {
+    s += 7;
+    if(csound->orcname_mode == 0) {// only 1st argdecode pass
+      csoundEventString(csound, s, 0);
+    }
+    return 1;
+  }  
   csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored."), s);
   return 1;
 }
