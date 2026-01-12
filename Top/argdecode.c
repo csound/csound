@@ -1273,14 +1273,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   else if (!(strncmp(s, "code", 4))) {
     s += 5;
     if(csound->orcname_mode == 0) {
-      // only 1st argdecode pass
-     if(!(O->msglevel == 16) && (O->msglevel || O->odebug))
-        csound->Message(csound, "Compiling Csound code...\n");
-     if(csoundCompileOrc(csound, s, 0) == 0) {
-       O->daemon = 1; // allow it to start without a .csd or .orc
-      if(!(O->msglevel == 16) && (O->msglevel || O->odebug))
-       csound->Message(csound, "\t ...done\n"); 
-     }
+      csound->orchstr = corfile_create_w(csound);
+      corfile_putc(csound, '\n', csound->orchstr);
+      corfile_puts(csound, s, csound->orchstr);
+      corfile_puts(csound, "\n#exit\n", csound->orchstr);
+      corfile_putc(csound, '\n', csound->orchstr);
+      corfile_putc(csound, '\n', csound->orchstr);
+      csound->orchname = cs_strdup(csound, "cmd-string");
+      csound->use_only_orchfile = 1; 
     }
     return 1;
   }
