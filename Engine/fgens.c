@@ -2174,6 +2174,11 @@ int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr, int32_t tableNum)
     return -1;
 }
 
+int32_t csoundTableLength(CSOUND *csound, int32_t table) {
+  MYFLT *tablePtr;
+  return csoundGetTable(csound, &tablePtr, table);
+}
+
 /************************************************/
 /* New FT interface, subsumming all previous    */
 /* functions into a single one, can be called   */

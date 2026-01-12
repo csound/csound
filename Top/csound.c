@@ -2099,12 +2099,6 @@ static void reset(CSOUND *csound) {
   csound->oparms_.odebug = debug;
 }
 
- int32_t csoundTableLength(CSOUND *csound, int32_t table) {
-  MYFLT *tablePtr;
-  return csoundGetTable(csound, &tablePtr, table);
-}
-
-
 static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
   if (csound->csoundCallbacks_ != NULL) {
     CsoundCallbackEntry_t *pp;
