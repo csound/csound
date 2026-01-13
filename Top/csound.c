@@ -391,7 +391,7 @@ static const CSOUND cenviron_ = {
     csoundAddVariableType,
     /* memory allocation */
     csoundAuxalloc,            
-    csoundAuxalloc_async,       
+    csoundAuxAllocAsync,       
     csoundMalloc,              
     csoundCalloc,              
     csoundRealloc,              

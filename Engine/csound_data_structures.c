@@ -349,7 +349,7 @@ void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     csound->Free(csound, hashTable);
 }
 
-void cs_hash_table_csoundFree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
+void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 
     int32_t i;
 
@@ -379,7 +379,7 @@ void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
         csound->Free(csound, item->key);
 
         /* NOTE: This needs to be free, not csound->Free.
-           To use csoundFree on keys, use cs_hash_table_csoundFree_complete
+           To use csoundFree on keys, use cs_hash_table_free_complete
            TODO: Check if this is even necessary anymore... */
         free(item->value);
         csound->Free(csound, item);

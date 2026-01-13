@@ -37,7 +37,7 @@ extern "C" {
   void csoundFree_debug(CSOUND *, void *, char*, int32_t);
   void csoundAuxalloc(CSOUND *, size_t, AUXCH *);
   void auxchfree(CSOUND *, INSDS *);
-  int32_t csoundAuxalloc_async(CSOUND *, size_t , AUXCH *,
+  int32_t csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
                          AUXASYNC *, aux_cb , void *);
   void csoundFDRecord(CSOUND *, FDCH *);
   void csoundFDClose(CSOUND *, FDCH *);
@@ -87,7 +87,7 @@ extern "C" {
   void free_inactive_instances(CSOUND*);
   void beat_expire(CSOUND *, double);
   void time_expire(CSOUND *, double);
-  int32_t csoundEvent__at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
+  int32_t insert_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
   MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileType,
                                int32_t (*callback)(CSOUND*, MEMFIL*));
   void    free_memfiles(CSOUND *);

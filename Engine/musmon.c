@@ -563,7 +563,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
-  return csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* make list to turn on instrs for indef */
@@ -591,7 +591,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
-  return csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -1445,7 +1445,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
 /* need not be preserved after calling this function, as a copy of    */
 /* the event is made.                                                 */
 /* Return value is zero on success.                                   */
-int32_t csoundEvent__at_sample(CSOUND *csound, const EVTBLK *ep,
+int32_t insert_event_at_sample(CSOUND *csound, const EVTBLK *ep,
                                      const MYFLT *pfields,
                                      int64_t time_ofs)
 {

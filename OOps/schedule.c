@@ -124,7 +124,7 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && *(args[0]) > 0) {
       MYFLT pfields[2] = {*args[0], *args[0]};
       evt.pcnt = 2;
-      return csoundEvent__at_sample(csound, &evt, pfields,
+      return insert_event_at_sample(csound, &evt, pfields,
                                           csound->icurTimeSamples);
     }
 
@@ -225,7 +225,7 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && *args[0] > 0) {
       MYFLT pfields[2] = {*args[0], *args[0]};
       evt.pcnt = 2;
-      err = csoundEvent__at_sample(csound, &evt, pfields,
+      err = insert_event_at_sample(csound, &evt, pfields,
                                          csound->icurTimeSamples);
     }
     else
@@ -331,7 +331,7 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     MYFLT *args = pfields->data;
     pp.opcod = 'i';
     pp.pcnt = pfields->sizes[0];
-    csoundEvent__at_sample(csound, &pp, args, csound->icurTimeSamples);
+    insert_event_at_sample(csound, &pp, args, csound->icurTimeSamples);
     return OK;
 }
 
@@ -830,7 +830,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     else
       p->timrem = 0;
     return
-      (csoundEvent__at_sample(csound, &evt, evt.p+1,
+      (insert_event_at_sample(csound, &evt, evt.p+1,
                                     starttime) == 0 ? OK : NOTOK);
 }
 

@@ -328,6 +328,6 @@ void csoundDeleteAllGlobalVariables(CSOUND *csound)
 {
     if (csound == NULL || csound->namedGlobals == NULL) return;
 
-    cs_hash_table_csoundFree_complete(csound, csound->namedGlobals);
+    cs_hash_table_free_complete(csound, csound->namedGlobals);
     csound->namedGlobals = NULL;
 }

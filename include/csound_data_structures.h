@@ -118,7 +118,7 @@ PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 /** Frees hash table and hash table keys using csoundFree. Does call csoundFree
     on ->value pointer. */
-PUBLIC void cs_hash_table_csoundFree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
+PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
 /** Frees hash table hash table keys using csoundFree. Does call free on
     ->value pointer. */

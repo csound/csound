@@ -45,7 +45,7 @@ int32_t csound_score_event(CSOUND *csound, char type,
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  ret = csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  ret = insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   return ret;
 }
 
@@ -64,7 +64,7 @@ int32_t csound_score_event_absolute(CSOUND *csound, char type,
   evt.scnt = 0;
   evt.opcod = type;
   evt.pcnt = (int16)numFields;
-  ret = csoundEvent__at_sample(csound, &evt, pfields, time_ofs*csound->esr);
+  ret = insert_event_at_sample(csound, &evt, pfields, time_ofs*csound->esr);
   return ret;
 }
 
@@ -164,7 +164,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     evt.pcnt = 3;
     evt.p[1] = evt.p[0] = FL(0.0);
     evt.p[2] = (MYFLT)aTime;
-    csoundEvent__at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+    insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   }
 }
 
