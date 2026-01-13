@@ -686,7 +686,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     if (tree->type == T_FUNCTION) {
-      char* argTypeRight = csoundGetString_from_tree(csound,
+      char* argTypeRight = get_arg_string_from_tree(csound,
                                                     tree->right, typeTable);
       char* opname = tree->value->lexeme;
       OENTRIES* entries = find_opcode2(csound, opname);
@@ -1532,7 +1532,7 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
 }
 
 /* Converts internal array specifier from [[a] to a[][].
-   Used by csoundGetString_from_tree to create an arg string that is
+   Used by get_arg_string_from_tree to create an arg string that is
    compatible with the ones found in OENTRY's.  split_args converts back
    to internal representation. */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
@@ -1702,7 +1702,7 @@ static int is_external(const char *s) {
 }
 
 
-char* csoundGetString_from_tree(CSOUND* csound, TREE* tree,
+char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable) {
   int32_t len = tree_arg_list_count(tree);
   int32_t i;
@@ -2671,8 +2671,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
-  leftArgString = csoundGetString_from_tree(csound, left, typeTable);
-  rightArgString = csoundGetString_from_tree(csound, right, typeTable);
+  leftArgString = get_arg_string_from_tree(csound, left, typeTable);
+  rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
 
 
@@ -3365,8 +3365,8 @@ int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
     current = current->next;
   }
 
-  char* inArgsFound = csoundGetString_from_tree(csound, xinArgs, typeTable);
-  char* outArgsFound = csoundGetString_from_tree(csound, xoutArgs, typeTable);
+  char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
+  char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
 
 
   if (!check_in_args(csound, inArgsFound, inArgs)) {

@@ -906,7 +906,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
-char* csoundGetString_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
+char* get_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
 
 static int32_t events_match(CSOUND *csound,
                             EVTBLK *evt1, EVTBLK *evt2) {
@@ -921,8 +921,8 @@ static int32_t events_match(CSOUND *csound,
       // TODO: encode string in evt1
       // for now we just ignore any string arg
       if(IsStringCode(evt2->p[i])) {
-        char *str1 = csoundGetString_from_evt(csound, evt1->p[i],evt1);
-        char *str2 = csoundGetString_from_evt(csound, evt2->p[i],evt2);
+        char *str1 = get_string_from_evt(csound, evt1->p[i],evt1);
+        char *str2 = get_string_from_evt(csound, evt2->p[i],evt2);
         if(strcmp(str1, str2)) return 0;
       }
       else if(evt1->p[i] != evt2->p[i]) return 0;
@@ -949,7 +949,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
       for(i = 1; i < evtn->pcnt+1; i++) {
         if(IsStringCode(evtn->p[i]))
           csound->Message(csound, "%s ",
-                          csoundGetString_from_evt(csound, evtn->p[i], evtn));
+                          get_string_from_evt(csound, evtn->p[i], evtn));
         else csound->Message(csound, "%.3f ", evtn->p[i]);
       }
       csound->Message(csound, "\n");

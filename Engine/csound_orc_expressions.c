@@ -407,8 +407,8 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
   OENTRIES* opentries = find_opcode2(csound, op);
 
-  char* leftArgType = csoundGetString_from_tree(csound, left, typeTable);
-  char* rightArgType = csoundGetString_from_tree(csound, right, typeTable);
+  char* leftArgType = get_arg_string_from_tree(csound, left, typeTable);
+  char* rightArgType = get_arg_string_from_tree(csound, right, typeTable);
   char* argString = csound->Calloc(csound, 80);
 
   strNcpy(argString, leftArgType, 80);
@@ -544,7 +544,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       }
       else {
         char* inArgTypes =
-          csoundGetString_from_tree(csound, root->right, typeTable);
+          get_arg_string_from_tree(csound, root->right, typeTable);
         if (root->value->optype != NULL)
           outtype =
             check_annotated_type(csound, opentries, root->value->optype);
@@ -617,7 +617,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     {
       strNcpy(op, "##not", 80);
       opentries = find_opcode2(csound, op);
-      char* rightArgType = csoundGetString_from_tree(csound, root->right,
+      char* rightArgType = get_arg_string_from_tree(csound, root->right,
                                                     typeTable);
 
       if (rightArgType == NULL) {
@@ -645,9 +645,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       // Handle struct member access or other complex left expressions
       if (root->left == NULL || root->left->value == NULL ||
           root->left->value->lexeme == NULL) {
-        // This could be a struct member access - delegate to csoundGetString_from_tree
-        // Note: csoundGetString_from_tree returns the element type for T_ARRAY nodes
-        char* elementType = csoundGetString_from_tree(csound, root, typeTable);
+        // This could be a struct member access - delegate to get_arg_string_from_tree
+        // Note: get_arg_string_from_tree returns the element type for T_ARRAY nodes
+        char* elementType = get_arg_string_from_tree(csound, root, typeTable);
         if (elementType == NULL) {
           return NULL;
         }
@@ -692,7 +692,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
-            char *xx = csoundGetString_from_tree(csound, inds, typeTable);
+            char *xx = get_arg_string_from_tree(csound, inds, typeTable);
             if (xx[0]=='k') {
               outype[0] = 'k';
               break;

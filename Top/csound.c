@@ -491,11 +491,11 @@ static const CSOUND cenviron_ = {
     /* File access */
     csoundFindInputFile,
     csoundFindOutputFile,
-    csoundFileOpenWithType,
+    csoundFileOpen,
     csoundNotifyFileOpened,
     csoundFileClose,
     csoundFileError,
-    csoundFileOpenWithType_Async,
+    csoundFileOpenAsync,
     csoundReadAsync,
     csoundWriteAsync,
     csoundFSeekAsync,

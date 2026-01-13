@@ -42,7 +42,7 @@ OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                 OENTRIES* entries, char* inArgTypes);
 void do_baktrace(CSOUND *csound, uint64_t files);
-char* csoundGetString_from_tree(CSOUND* csound, TREE* tree,
+char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);

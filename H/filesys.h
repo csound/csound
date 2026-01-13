@@ -153,9 +153,9 @@ extern "C" {
    *   csoundFileClose(), or storing in FDCH.fd.
    *   On failure, NULL is returned.
    */
-  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
-                               const char *name, void *param, const char *env,
-                               int32_t csFileType, int32_t isTemporary);
+  void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
+                       const char *name, void *param, const char *env,
+                        int32_t csFileType, int32_t isTemporary);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),
@@ -190,7 +190,7 @@ extern "C" {
                    const char *basename,
                    char *env, int32_t fromScore);
 
-  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
+  void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                                      const char *name, void *param,
                                      const char *env,
                                      int32_t csFileType, int32_t buffsize,

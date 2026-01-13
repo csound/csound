@@ -642,7 +642,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     if (STA(sconame)) free(STA(sconame));
     STA(sconame) = tmp_file_name(csound, ".sco");
     extname = tmp_file_name(csound, ".ext");
-    fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
+    fd = csoundFileOpen(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
     csound->tempStatus |= csScoInMask;
 #ifdef _DEBUG
@@ -677,7 +677,7 @@ int system_result = system(sys);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w(csound);
 
-        fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
+        fd = csoundFileOpen(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
           csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
@@ -833,7 +833,7 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     /* Generate MIDI file name */
     if (STA(midname)) free(STA(midname));
     STA(midname) = tmp_file_name(csound, ".mid");
-    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, STA(midname),
+    fd = csoundFileOpen(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
@@ -871,7 +871,7 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), sampname);
     }
-    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
                                 CSFTYPE_UNKNOWN_AUDIO, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
@@ -913,7 +913,7 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
-    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
                                 CSFTYPE_UNKNOWN, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
@@ -1001,7 +1001,7 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
-    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "w", NULL,
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "w", NULL,
                                 CSFTYPE_UNKNOWN, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
