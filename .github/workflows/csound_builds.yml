@@ -270,7 +270,7 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - name: Checkout and build libsndfile, portmidi, portaudio and libsamplerate
+      - name: Checkout and build libsndfile, portmidi, portaudio, libsamplerate and liblo
         run: |
           cd platform/osx
           chmod +x build_libsndfile.sh
@@ -298,34 +298,50 @@ jobs:
           cmake --build build --target install
           cd ..
 
+          git clone https://github.com/radarsat1/liblo
+          cd liblo
+          cmake ./cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../liblo_install
+          cmake --build build
+          cmake --build build --target install
+          cd ..
+
+
       - name: Brew install bison and flex
         run: brew install bison flex
 
       - name: Configure Csound
         run: |
-          cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=0 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0
+          cmake -B build -DCMAKE_BUILD_TYPE="Release" -DUSE_GETTEXT=0 -DCMAKE_PREFIX_PATH="$PWD/platform/osx/libsndfile_build/dependencies;$PWD/portmidi_install;$PWD/portaudio_install;$PWD/samplerate_install;$PWD/liblo_install" -DCMAKE_INSTALL_PREFIX="$PWD/csound_install" -DCS_FRAMEWORK_DEST="$PWD/csound_install" -DCS_OPCODE_DIR="/Applications/Csound/CsoundLib64.framework/Resources/Opcodes64/" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DUSE_MP3=1 -DCMAKE_VERBOSE_MAKEFILE=1 -DUSE_STATIC_DEPS=1 -DBUILD_SRC_CONV=0 -DBUILD_OSC_OPCODES=1
 
       - name: Build Csound
         run: |
           cmake --build build --config Release
           cmake --build build --target install
 
-      - name: Adjust link paths
+      - name: Adjust ctcsound library load path 
+        run: sed -i -e 's$ctypes.util.find_library("CsoundLib64")$"/Applications/Csound/Csound64.framework/CsoundLib64"$g' Python/ctcsound.py
+
+      - name: Adjust link paths in libraries
         run: |
           install_name_tool -id /Applications/Csound/CsoundLib64.framework/CsoundLib64 csound_install/CsoundLib64.framework/CsoundLib64
           install_name_tool -delete_rpath /Users/runner/work/csound/csound/csound_install csound_install/CsoundLib64.framework/CsoundLib64
           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
+          install_name_tool -change @rpath/liblo.7.dylib @loader_path/../../../../libs/liblo.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libosc.dylib
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib          
 
       - name: Build installer
         run: |
+          mkdir csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
+          cp Python/ctcsound.py csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+          cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
-          pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+          pkgbuild --identifier com.csound.csound7Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
 
       - name: Upload zip
         uses: actions/upload-artifact@v4
@@ -502,13 +518,6 @@ jobs:
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
 
-      - name: Acquire Csound manual
-#        if: github.ref == 'refs/heads/develop'
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
-          7z x manual.zip
-
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
@@ -582,13 +591,6 @@ jobs:
 
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
-
-      - name: Acquire Csound manual
-#        if: github.ref == 'refs/heads/develop'
-        shell: powershell
-        run: |
-          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
-          7z x manual.zip
 
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'

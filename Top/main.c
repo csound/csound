@@ -68,7 +68,7 @@ void check_options(CSOUND *csound) {
   }
   if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                      home_dir[0] != '\0')) {
-    s = csoundConcatenatePaths(csound, home_dir, ".csound7rc");
+    s = csound_concatenate_paths(csound, home_dir, ".csound7rc");
     fd = csound->FileOpen(csound, &csrc, CSFILE_STD, s, "r", NULL,
                           CSFTYPE_OPTIONS, 0);
     if (fd != NULL)
@@ -214,7 +214,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
     /* Add directory of CSD file to search paths before orchname gets
      * replaced with temp orch name if default paths is enabled */
     if (!O->noDefaultPaths) {
-      fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+      fileDir = csound_get_directory_for_path(csound, csound->orchname);
       csoundAppendEnv(csound, "SADIR", fileDir);
       csoundAppendEnv(csound, "SSDIR", fileDir);
       csoundAppendEnv(csound, "INCDIR", fileDir);
@@ -277,7 +277,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
                                   "numeric scorefile\n"));
   } else if (!csdFound && !O->noDefaultPaths) {
     /* Add directory of SCO file to search paths*/
-    fileDir = csoundGetDirectoryForPath(csound, csound->scorename);
+    fileDir = csound_get_directory_for_path(csound, csound->scorename);
     csoundAppendEnv(csound, "SADIR", fileDir);
     csoundAppendEnv(csound, "SSDIR", fileDir);
     csoundAppendEnv(csound, "MFDIR", fileDir);
@@ -286,7 +286,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
 
   /* Add directory of ORC file to search paths*/
   if (!csdFound && !O->noDefaultPaths) {
-    fileDir = csoundGetDirectoryForPath(csound, csound->orchname);
+    fileDir = csound_get_directory_for_path(csound, csound->orchname);
     csoundAppendEnv(csound, "SADIR", fileDir);
     csoundAppendEnv(csound, "SSDIR", fileDir);
     csoundAppendEnv(csound, "MFDIR", fileDir);

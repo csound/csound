@@ -26,7 +26,6 @@
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
 #define AppPublisher "Csound"
 #define AppURL "https://csound.com/"
-#define ManualSourceDir "html"
 #define BuildRoot "build"
 #define ReleaseDir "build\Release"
 
@@ -80,10 +79,6 @@ Name: "{app}\include"
 ; All Csound examples go here.
 Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
-
-; Csound manual
-Name: "{app}\doc\manual"
-#define APP_MANUAL "{app}\doc\manual\"
 
 ; Any SoundFonts or sound samples used by Csound examples go here.
 Name: "{app}\samples"
@@ -173,14 +168,11 @@ Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesu
 
 Source: "{#BuildRoot}\include\float-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "{#BuildRoot}\include\version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "{#ManualSourceDir}\*.*"; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
-Name: "{group}\Csound Reference Manual"; Filename: "http://csound.github.io/docs/manual/indexframes.html";  Components: core
-Name: "{group}\Csound API Reference Manual"; Filename: "http://csound.github.io/docs/api/index.html";  Components: core
 
 [Registry]
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE7DIR"; ValueData:"{#APP_PLUGINS}"; Flags: preservestringtype uninsdeletevalue;  Components: core
