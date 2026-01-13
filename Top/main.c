@@ -264,11 +264,8 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
 
   if (csound->scorename == NULL && csound->scorestr == NULL) {
     /* No scorename yet */
-    csound->Message(csound, "scoreless operation\n");
-    // csound->scorestr = corfile_create_r("f0 800000000000.0\n");
-    // VL 21-09-2016: it looks like #exit is needed for the
-    // new score parser to work.
-    // was "\n#exit\n" but seemed to have zero effect;
+    if(csound->playscore == NULL) // if score not given in --events=
+      csound->Message(csound, "scoreless operation\n");
     csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
     corfile_flush(csound, csound->scorestr);
     if (O->RTevents)
@@ -321,16 +318,8 @@ int32_t csoundCompileArgs(CSOUND *csound, int32_t argc, const char **argv) {
     if (csound->oparms->daemon != 1 && csound->orchname != NULL)
       csoundDie(csound, Str("\t ... failed to compile code."));
     else {
-      /* VL -- 21-10-13 Csound does not need to die on
-         failure to compile. It can carry on, because new
-         instruments can be compiled again
-         27-07-24 Csound dies on failure if setting up
-         a server, but only if code is presented -- as
-         before it can start without an orchestra
-        */
       if (csound->oparms->daemon == 1)
-        csound->Warning(csound, Str("\t ... cannot compile code.\n"
-                                    "Csound will start with no instruments"));
+        csound->Warning(csound, Str("\t ... daemon mode, no instruments.\n"));
     }
   } else {
     compiledOk = 1;
