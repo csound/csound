@@ -1272,13 +1272,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }
   else if (!(strncmp(s, "code", 4))) {
     s += 5;
-    if(csound->orcname_mode == 0) {
-      csound->orchstr = corfile_create_w(csound);
-      corfile_putc(csound, '\n', csound->orchstr);
-      corfile_puts(csound, s, csound->orchstr);
-      corfile_puts(csound, "\n#exit\n", csound->orchstr);
-      corfile_putc(csound, '\n', csound->orchstr);
-      corfile_putc(csound, '\n', csound->orchstr);
+    if(csound->orcname_mode == 0 && // only 1st argdecode pass
+       csound->use_only_orchfile == 0) {
+      csound->orchstr = copy_string_to_corefile(csound, s, 0);
       csound->orchname = cs_strdup(csound, "cmd-string");
       csound->use_only_orchfile = 1; 
     }
