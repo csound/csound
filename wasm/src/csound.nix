@@ -334,7 +334,6 @@ pkgs.stdenvNoCC.mkDerivation rec {
       -I${libsndfile}/include \
       -I${wasi-sdk}/share/wasi-sysroot/include \
       -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
-      -DINIT_STATIC_MODULES=1 \
       -U__MACH__ \
       -UMAC \
       -UMACOSX \
