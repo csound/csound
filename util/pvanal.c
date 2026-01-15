@@ -401,7 +401,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
 
 /* Only supports PVOC_AMP_FREQ format for now */
 
-/* cannot add csoundDisplay code, as we may have 8 channels here...*/
+/* cannot add displaycode, as we may have 8 channels here...*/
 
 static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    int64_t srate, int64_t chans, int64_t fftsize, int64_t overlap,

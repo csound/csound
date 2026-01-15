@@ -75,7 +75,7 @@ typedef struct {
         MYFLT   *flop, *fhip, *fundp, *oct0p, threshon, threshoff;
         int32_t     winpts, jmpcount, playing;
         SPECDAT wfund;
-        SPECDISP fcsoundDisplay;
+        SPECDISP fdisplay;
 } SPECPTRK;
 
 typedef struct {

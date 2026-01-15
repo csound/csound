@@ -1433,7 +1433,7 @@ static void install_signal_handler(void) {
   csoundReset(csound);
   csound->API_lock = csoundCreateMutex(1);
   allocate_message_queue(csound);
-  // version is csoundDisplayed by default, can be suppressed via --suppress-version
+  // version is displayed by default, can be suppressed via --suppress-version
   csound->print_version = 1;
   return csound;
 }

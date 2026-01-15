@@ -1887,7 +1887,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     setup_opcode_argpp(csound, opds, ttp, ep, ip, tp, lclbas, lcloffbas, opMemStart);
 
   }
-  /* csoundDisplay instantiated instrument */
+  /* displayinstantiated instrument */
   if(csoundGetDebug(csound) & DEBUG_RUNTIME ||
      csoundGetDebug(csound) & DEBUG_INSTR) {
     csoundMessage(csound, "instantiated instr %d\n", ip->insno);

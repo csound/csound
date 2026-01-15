@@ -287,7 +287,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
  //Check if the connection was successfull
     if (UNLIKELY(hSerial==INVALID_HANDLE_VALUE)) {
-      //If not success full csoundDisplay an Error
+      //If not success full displayan Error
       return csound->InitError(csound, Str("%s not available.\n"), serialport);
     }
     memset(&dcbSerialParams, 0, sizeof(dcbSerialParams));

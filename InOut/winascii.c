@@ -41,7 +41,7 @@ void KillAscii(CSOUND *csound, WINDAT *wdptr)
     wdptr->windid = 0;          /* just to make out that it's dead */
 }
 
-/* csoundDisplay an n-pnt float array using simple ascii chars */
+/* display an n-pnt float array using simple ascii chars */
 
 static CS_NOINLINE void DrawAscii_(CSOUND *csound, WINDAT *wdptr, char *points)
 {

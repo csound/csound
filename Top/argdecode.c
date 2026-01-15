@@ -206,9 +206,9 @@ static const char *longUsageList[] = {
     " ",
     Str_noop("--displays              use graphic displays"),
     Str_noop("--nodisplays            suppress all displays"),
-    Str_noop("--asciicsoundDisplay          suppress graphics, use ascii displays"),
+    Str_noop("--asciidisplay         suppress graphics, use ascii displays"),
     Str_noop(
-        "--postscriptcsoundDisplay     suppress graphics, use Postscript displays"),
+        "--postscriptdisplay    suppress graphics, use Postscript displays"),
     " ",
     Str_noop("--defer-gen1            defer GEN01 soundfile loads until "
              "performance time"),
@@ -632,12 +632,12 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   }
   /* -g */
-  else if (!(strcmp(s, "asciicsoundDisplay"))) {
+  else if (!(strcmp(s, "asciidisplay"))) {
     O->graphsoff = 1; /* don't use graphics but ASCII */
     return 1;
   }
   /* -G */
-  else if (!(strcmp(s, "postscriptcsoundDisplay"))) {
+  else if (!(strcmp(s, "postscriptdisplay"))) {
     O->postscript = 1; /* don't use graphics but PostScript */
     return 1;
   }

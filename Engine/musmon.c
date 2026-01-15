@@ -245,7 +245,7 @@ int32_t start_engine(CSOUND *csound)
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
 
     m_chn_init_all(csound);     /* allocate MIDI channels */
-    csoundInitDisplay(csound);           /* initialise graphics or character csoundDisplay */
+    csoundInitDisplay(csound);           /* initialise graphics or character display*/
 
     /* Initialize unit test counters */
     if (csound->oparms->runUnitTests) {
@@ -531,7 +531,7 @@ int32_t csound_cleanup(CSOUND *csound)
       cs_beep(csound);
 
     csoundUnlockMutex(csound->API_lock);
-    return csoundDeinitDisplay(csound);    /* hold or terminate the csoundDisplay output     */
+    return csoundDeinitDisplay(csound);    /* hold or terminate the displayoutput     */
 }
 
 /* make list to turn on instrs for indef */

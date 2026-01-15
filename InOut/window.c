@@ -31,14 +31,14 @@ extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
 
-/* somewhere to invoke for no csoundDisplay */
+/* somewhere to invoke for no display */
 
 static void DummyFn1(CSOUND *csound, WINDAT *p, const char *s)
 {
     IGN(csound); IGN(p); IGN(s);
 }
 
-/* somewhere to invoke for no csoundDisplay */
+/* somewhere to invoke for no display */
 
 static void DummyFn2(CSOUND *csound, WINDAT *p)
 {
@@ -166,7 +166,7 @@ void csoundDisplay(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, th
     wdptr->max    = max;                 /* record most pos and most */
     wdptr->min    = min;                 /*  neg this array of data  */
     wdptr->absmax = absmax;              /* record absmax this data  */
-    /* VL: absmax needs to be updated at every csoundDisplay in some cases */
+    /* VL: absmax needs to be updated at every display in some cases */
     if (wdptr->absflag  || absmax > wdptr->oabsmax)
       wdptr->oabsmax = absmax;           /* & absmax over life of win */
     pol = wdptr->polarity;     /* adjust polarity flg for life of win */

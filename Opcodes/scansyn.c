@@ -308,7 +308,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 #if PHASE_INTERP == 3
     //memset(p->x3, '\0', len+sizeof(MYFlT));
 #endif
-    /* Setup csoundDisplay window */
+    /* Setup displaywindow */
     if (*p->i_disp) {
       p->win = csound->Calloc(csound, sizeof(WINDAT));
       csound->SetDisplay(csound, (WINDAT*)p->win, p->x1, len,
@@ -550,7 +550,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           p->x0 = x0 = tmp;
           memcpy(x0, x1, len*sizeof(MYFLT));
         }
-        /* Reset index and csoundDisplay the state */
+        /* Reset index and displaythe state */
         idx = 0;
         if (*p->i_disp)
           csound->Display(csound, p->win);

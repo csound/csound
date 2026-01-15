@@ -31,7 +31,7 @@
 #define CSOUNDMSG_ERROR         (0x1000)
 /* orchestra opcodes (e.g. printks) */
 #define CSOUNDMSG_ORCH          (0x2000)
-/* for progress csoundDisplay and heartbeat characters */
+/* for progress display and heartbeat characters */
 #define CSOUNDMSG_REALTIME      (0x3000)
 /* warning messages */
 #define CSOUNDMSG_WARNING       (0x4000)

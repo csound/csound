@@ -256,7 +256,7 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     }
 
     /* VL 11.01.05 for deferred GEN01, it's called in gen01raw */
-    ftresdisp(&ff, ftp);           /* rescale and csoundDisplay      */
+    ftresdisp(&ff, ftp);           /* rescale and display     */
 
     *ftpp = ftp;
     /* keep original arguments, from GEN number  */
@@ -887,7 +887,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     n = gen14(ff, ftp);       /* now draw ftable   */
     ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
     ff->fno--;                /* F. Pinot, the first function table */
-                              /* is scaled and csoundDisplayed by csoundFTCreate */
+                              /* is scaled and displayedby csoundFTCreate */
     return n;
 }
 
@@ -2036,7 +2036,7 @@ CS_NOINLINE int32_t csoundFtError(const FGDATA *ff, const char *s, ...)
     return -1;
 }
 
-/* set guardpt, rescale the function, and csoundDisplay it */
+/* set guardpt, rescale the function, and displayit */
 static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;

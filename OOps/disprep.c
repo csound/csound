@@ -102,7 +102,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
       npts = (int32)(*p->iprd * CS_EKR);
     else npts = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(npts <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd in csoundDisplay"));
+      return csound->InitError(csound, Str("illegal iprd in display"));
 
     }
     if ((nprds = (int32_t)*p->inprds) <= 1) {
@@ -129,7 +129,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
     snprintf(strmsg, 256, Str("instr %d, signal %s:"),
              (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     csoundSetDisplay(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
-            (int32_t) *p->iwtflg, Str("csoundDisplay"));
+            (int32_t) *p->iwtflg, Str("display"));
     return OK;
 }
 
@@ -155,7 +155,7 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
           fp = p->begp;
           fp2 = fp + p->bufpts; /* FIXME: Unused */
         }
-        p->dwindow.fdata = fp;  /* csoundDisplay from fp */
+        p->dwindow.fdata = fp;  /* displayfrom fp */
         csoundDisplay(csound, &p->dwindow);
       }
     }
@@ -163,7 +163,7 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("csoundDisplay: not initialised"));
+                             Str("display: not initialised"));
 }
 
 int32_t dsplay(CSOUND *csound, DSPLAY *p)
@@ -194,7 +194,7 @@ int32_t dsplay(CSOUND *csound, DSPLAY *p)
             fp = p->begp;
             fp2 = fp + p->bufpts;
           }
-          p->dwindow.fdata = fp;  /* csoundDisplay from fp */
+          p->dwindow.fdata = fp;  /* displayfrom fp */
           csoundDisplay(csound, &p->dwindow);
         }
       }
@@ -271,7 +271,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       step_size = (int32)(*p->iprd * CS_EKR);
     else step_size = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(step_size <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd in ffy csoundDisplay"));
+      return csound->InitError(csound, Str("illegal iprd in ffy display"));
     }
     hanning = (int32_t)*p->ihann;
     p->dbout   = (int32_t)*p->idbout;
@@ -403,7 +403,7 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
         //do {
         // *tp *= p->overN;            /* scale 1/N */
         //} while (++tp < tplim);
-        csoundDisplay(csound, &p->dwindow); /* & csoundDisplay */
+        csoundDisplay(csound, &p->dwindow); /* & display*/
         if (p->overlap > 0) {
           bufp = p->sampbuf;
           tp   = endp - p->overlap;
@@ -454,7 +454,7 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
           //  *tp *= p->overN;              /* scale 1/N */
           //} while (++tp < tplim);
 
-          csoundDisplay(csound, &p->dwindow);   /* & csoundDisplay */
+          csoundDisplay(csound, &p->dwindow);   /* & display*/
           if (p->overlap > 0) {
             bufp = p->sampbuf;
             tp   = endp - p->overlap;
@@ -528,7 +528,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       p->lambdas = (int16 *) fltp;
       p->stmemnow = p->stmemp + nptsm1;
     }
-    if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to csoundDisplay stmem & exp */
+    if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to displaystmem & exp */
       snprintf(strmsg, 256, "instr %d tempest:", (int32_t) p->h.insdshead->p1.value);
       csoundSetDisplay(csound, &p->dwindow, p->stmemp, (int32_t)npts * 2, strmsg, 0,
                       Str("tempest"));
@@ -738,7 +738,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       }
       p->fwdmask = p->fwdmask * p->fwdcoef + kin;
     }
-    if (!(--p->dcntdown)) {                 /* on csoundDisplay countdown    */
+    if (!(--p->dcntdown)) {                 /* on displaycountdown    */
       MYFLT *linp = p->linexp;
       MYFLT *xcur = p->xcur;
       MYFLT *xend = p->xend;
@@ -747,7 +747,7 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
         *linp++ = *xcur++;                  /*  into linexp buf       */
       for (xcur=p->xbeg; wrap--; )
         *linp++ = *xcur++;
-      csoundDisplay(csound, &p->dwindow);         /* csoundDisplay double window  */
+      csoundDisplay(csound, &p->dwindow);         /* displaydouble window  */
       p->dcntdown = p->dtimcnt;             /*   & reset the counter  */
     }
 /*  if (p->tempo != 0.0)  */

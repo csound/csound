@@ -425,7 +425,7 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
     /* External force index */
     p->exti = 0;
 
-    /* Setup csoundDisplay window */
+    /* Setup displaywindow */
     if (*p->i_disp) {
       p->win = csound->Calloc(csound, sizeof(WINDAT));
       csound->SetDisplay(csound, (WINDAT*) p->win, p->x1, len,
@@ -546,7 +546,7 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
           x2[i] = x1[i];
           x1[i] = x0[i];
         }
-        /* Reset index and csoundDisplay the state */
+        /* Reset index and displaythe state */
         idx = 0;
         if (*p->i_disp)
           csound->Display(csound, p->win);

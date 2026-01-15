@@ -252,7 +252,7 @@ static int32_t button_set(CSOUND *csound, CNTRL *p)
         pp->buttons[++(pp->max_button)] = 0;
       } while (pp->max_button < n);
     }
-    fprintf(pp->wish_cmd, "csoundDisplaybutton %d\n", n);
+    fprintf(pp->wish_cmd, "displaybutton %d\n", n);
     return OK;
 }
 
@@ -280,7 +280,7 @@ static int32_t check_set(CSOUND *csound, CNTRL *p)
         pp->checks[++(pp->max_check)] = 0;
       } while (pp->max_check < n);
     }
-    fprintf(pp->wish_cmd, "csoundDisplaycheck %d\n", n);
+    fprintf(pp->wish_cmd, "displaycheck %d\n", n);
     return OK;
 }
 
