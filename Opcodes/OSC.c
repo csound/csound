@@ -701,9 +701,11 @@ static int32_t OSC_listendeinit(CSOUND *csound, OSC_PORT *port, OSCLCOMMON *p)
       port->oplst = p->nxt;
     else {
       OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
+      if(o != NULL) {
       for ( ; o->nxt != (void*) p; o = (OSCLCOMMON*) o->nxt)
         ;
       o->nxt = p->nxt;
+    }
     }
     csound->UnlockMutex(port->mutex_);
 #ifdef LIBLO29
@@ -768,14 +770,10 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
-                               "%s", Str("argument list inconsistent with "
+                               "%s", Str("-- argument list inconsistent with "
                                    "format string"));
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
-      const char *s;
-      s = GetInputArgName((OPDS *)p, i + 3);
-      if (s[0] == 'g')
-        s++;
       switch (p->c.saved_types[i]) {
       case 'G':
       case 'A':
@@ -789,12 +787,12 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'f':
       case 'h':
       case 'i':
-        if (UNLIKELY(*s != 'k'))
+        if (!IS_KSIG_ARG(p->args[i]))
           return csound->InitError(csound, "%s", Str("argument list inconsistent "
                                                "with format string"));
         break;
       case 's':
-        if (UNLIKELY(*s != 'S'))
+        if (!IS_STR_ARG(p->args[i]))
           return csound->InitError(csound, "%s", Str("argument list inconsistent "
                                                "with format string"));
         break;
