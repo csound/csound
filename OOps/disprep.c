@@ -36,14 +36,14 @@ int32_t printv(CSOUND *csound, PRINTV *p)
     int32_t    nargs = p->INOCOUNT;
     char   **txtp = p->h.optext->t.inlist->arg;
     MYFLT  **valp = p->iargs;
-   
+
 
     if(p->h.insdshead->instr->opcode_info == NULL)
     csound->MessageS(csound, CSOUNDMSG_ORCH,
                      "instr %d:", (int32_t) p->h.insdshead->p1.value);
     else
      csound->MessageS(csound, CSOUNDMSG_ORCH,
-                      "UDO %s:", p->h.insdshead->instr->opcode_info->name);     
+                      "UDO %s:", p->h.insdshead->instr->opcode_info->name);
     while (nargs--) {
       if(GetTypeForArg(*valp) != &CS_VAR_TYPE_b)
       csound->MessageS(csound, CSOUNDMSG_ORCH,
@@ -53,7 +53,7 @@ int32_t printv(CSOUND *csound, PRINTV *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH,
                          "\t%s = %s", *txtp++, b ? "true" : "false");
       }
-        
+
     }
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
@@ -194,7 +194,7 @@ int32_t dsplay(CSOUND *csound, DSPLAY *p)
             fp = p->begp;
             fp2 = fp + p->bufpts;
           }
-          p->dwindow.fdata = fp;  /* displayfrom fp */
+          p->dwindow.fdata = fp;  /* display from fp */
           csoundDisplay(csound, &p->dwindow);
         }
       }
@@ -528,7 +528,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
       p->lambdas = (int16 *) fltp;
       p->stmemnow = p->stmemp + nptsm1;
     }
-    if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to displaystmem & exp */
+    if (p->dtimcnt && !(p->dwindow.windid)) {  /* init to display stmem & exp */
       snprintf(strmsg, 256, "instr %d tempest:", (int32_t) p->h.insdshead->p1.value);
       csoundSetDisplay(csound, &p->dwindow, p->stmemp, (int32_t)npts * 2, strmsg, 0,
                       Str("tempest"));

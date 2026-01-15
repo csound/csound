@@ -887,7 +887,7 @@ static int32_t gen15(FGDATA *ff, FUNC *ftp)
     n = gen14(ff, ftp);       /* now draw ftable   */
     ftresdisp(ff, ftp);       /* added by F. Pinot 16-01-2012 */
     ff->fno--;                /* F. Pinot, the first function table */
-                              /* is scaled and displayedby csoundFTCreate */
+                              /* is scaled and displayed by csoundFTCreate */
     return n;
 }
 

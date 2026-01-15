@@ -473,7 +473,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'g':
                         csound->Warning(csound,
-                          "%s", Str("graphical displayis currently unsupported"));
+                          "%s", Str("graphical display is currently unsupported"));
                         break;
         case 'a':
                         storePoles = TRUE;
@@ -609,7 +609,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     counter = 0;
     analframes = (int32_t)((p->getframes - 1) / slice);
 
-    /* Some displaystuff */
+    /* Some display stuff */
 #if 0
     csoundInitDisplay(csound);
     csound->SetDisplay(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
@@ -992,7 +992,7 @@ static const char *usage_txt[] = {
   Str_noop("-Q<maxcps>\tupper limit for pitch search (default 200 Hz)"),
   Str_noop("-v<verblevel>\tprinting verbosity: 0=none, 1=verbose, 2=debug"
            " (default 0)"),
-  Str_noop("-g\tgraphical displayof results"),
+  Str_noop("-g\tgraphical display of results"),
   Str_noop("-a\t\talternate (pole) file storage"),
   Str_noop("-n\t\t use Durbin method for linear prediction"),
   Str_noop("-- fname\tLog output to file"),

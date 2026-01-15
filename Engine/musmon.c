@@ -531,7 +531,7 @@ int32_t csound_cleanup(CSOUND *csound)
       cs_beep(csound);
 
     csoundUnlockMutex(csound->API_lock);
-    return csoundDeinitDisplay(csound);    /* hold or terminate the displayoutput     */
+    return csoundDeinitDisplay(csound);    /* hold or terminate the display output     */
 }
 
 /* make list to turn on instrs for indef */
