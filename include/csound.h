@@ -176,7 +176,7 @@ extern "C" {
     /* output soundfile format */
     int32_t outformat;
     /* sample size */
-    int32_t     csoundSndfileSampleSize;
+    int32_t     sndfileSampleSize;
     /* displays flag */
     int32_t     displays;
     /* graphs flag */

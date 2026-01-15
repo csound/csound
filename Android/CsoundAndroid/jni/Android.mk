@@ -304,7 +304,6 @@ $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
-$(CSOUND_SRC_ROOT)/Top/init_static_modules.c \
 $(CSOUND_SRC_ROOT)/Java/cs_glue.cpp
 #CsoundObj.cpp
 

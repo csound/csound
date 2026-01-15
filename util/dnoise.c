@@ -421,7 +421,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       return -1;
     }
     if (O.outformat == 0) O.outformat = p->format;
-    O.csoundSndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
+    O.sndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
       O.rewrt_hdr = 0;
     }

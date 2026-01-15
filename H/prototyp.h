@@ -64,7 +64,7 @@ extern "C" {
   int32_t start_engine(CSOUND *);
   void list_opcodes(CSOUND *, int32_t);
   char  *csoundGetStrFormat(int32_t format);
-  int32_t csoundSndfileSampleSize(int32_t sf_format);
+  int32_t sndfileSampleSize(int32_t sf_format);
   char *csoundType2String(int32_t type);
   int32_t csoundType2CsfileType(int32_t type, int32_t encoding);
   int32_t csoundSndfileType2CsfileType(int32_t type);
@@ -220,10 +220,6 @@ const char *csoundExternalMidiErrorString(CSOUND *, int32_t errcode);
  */
 int32_t csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int32_t n);
 
-/**
- * Check system events, yielding cpu time for coopertative multitasking, etc.
- */
-int32_t csoundYield(CSOUND *);
 
 /**
  * Register utility with the specified name.

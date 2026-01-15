@@ -1701,7 +1701,6 @@ struct CSOUND_ {
   /* VL: pvs bus */
   int32_t nchanif, nchanof;
   char *chanif, *chanof;
-  /* VL: internal yield callback */
   int32_t multiThreadedComplete;
   THREADINFO *multiThreadedThreadInfo;
   struct dag_t *multiThreadedDag;

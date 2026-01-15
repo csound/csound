@@ -12,7 +12,6 @@ Top: main software operation
 * csound_rtio.c: csound engine RT IO
 * csound_time.c: time functions
 * getstring.c: string localisation.
-* init_static_modules.c: initialisation of some opcode modules.
 * main.c: compilation and startup routines.
 * new_opts.c: configuration variable system
 * one_file.c: CSD file reading.

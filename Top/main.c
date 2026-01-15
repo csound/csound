@@ -598,7 +598,7 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
       } */
   if (!O->outformat)         /* if no audioformat yet  */
     O->outformat = AE_SHORT; /*  default to short_ints */
-  O->csoundSndfileSampleSize = csoundSndfileSampleSize(FORMAT2SF(O->outformat));
+  O->sndfileSampleSize = sndfileSampleSize(FORMAT2SF(O->outformat));
   O->informat = O->outformat; /* informat default */
 
 #ifdef PARCS

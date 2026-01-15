@@ -572,13 +572,13 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
     if (STA(pipdevout) == 2) {
        csound->Message(csound,
                       Str("reading %d sample blks of %lu-bit floats from %s\n"),
-                      O->inbufsamps * O->csoundSndfileSampleSize,
+                      O->inbufsamps * O->sndfileSampleSize,
                       (unsigned long) sizeof(MYFLT)*8, sfname);
     }
     else {
        csound->Message(csound,
                       Str("reading %d-byte blks of %s from %s (%s)\n"),
-                      O->inbufsamps * (int32_t) csoundSndfileSampleSize(FORMAT2SF(O->informat)),
+                      O->inbufsamps * (int32_t) sndfileSampleSize(FORMAT2SF(O->informat)),
                       csoundGetStrFormat(O->informat), sfname, csoundType2String(fileType));
     }
     STA(isfopen) = 1;
@@ -693,7 +693,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
       STA(pipdevout) = 1;
       if (O->filetyp == TYP_AIFF || O->filetyp == TYP_WAV) {
         char fmt_name[6];
-        if (O->csoundSndfileSampleSize == 8) {
+        if (O->sndfileSampleSize == 8) {
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
@@ -764,7 +764,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
 #ifdef PIPES
       if (STA(outfile) == NULL) {
         char fmt_name[6];
-        if (O->csoundSndfileSampleSize == 8) {
+        if (O->sndfileSampleSize == 8) {
           if (UNLIKELY(O->filetyp == TYP_AU))
             csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
                       Str(csound->SndfileStrError(csound,NULL)));
@@ -878,7 +878,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
 
 
  outset:
-    O->csoundSndfileSampleSize = (int32_t) csoundSndfileSampleSize(FORMAT2SF(O->outformat));
+    O->sndfileSampleSize = (int32_t) sndfileSampleSize(FORMAT2SF(O->outformat));
     /* calc outbuf size & alloc bufspace */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
@@ -891,7 +891,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
     }
     else {
       csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
-                    O->outbufsamps * O->csoundSndfileSampleSize,
+                    O->outbufsamps * O->sndfileSampleSize,
                     csoundGetStrFormat(O->outformat), STA(sfoutname));
 
     if (O->filetyp == TYP_RAW)
@@ -968,7 +968,7 @@ void sf_close_out(CSOUND *csound)
     }
     else {
       csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
-                      O->outbufsamps, O->outbufsamps * O->csoundSndfileSampleSize,
+                      O->outbufsamps, O->outbufsamps * O->sndfileSampleSize,
                       csoundGetStrFormat(O->outformat), STA(sfoutname));
       if (O->filetyp == TYP_RAW)
         csound->Message(csound, Str(" (raw)\n"));

@@ -145,7 +145,7 @@ void *sndgetset(CSOUND *csound, void *p_)
 
     /* copy type from headata */
     p->format = SF2FORMAT(sfinfo.format);
-    p->sampframsiz = (int32_t) csoundSndfileSampleSize(sfinfo.format) * (int32_t) sfinfo.channels;
+    p->sampframsiz = (int32_t) sndfileSampleSize(sfinfo.format) * (int32_t) sfinfo.channels;
     p->nchanls = sfinfo.channels;
     framesinbuf = (int32_t) SNDINBUFSIZ / (int32_t) p->nchanls;
     p->bufsmps = framesinbuf * p->nchanls;
@@ -352,7 +352,7 @@ char *csoundType2String(int32_t x)
     }
 }
 
-int32_t csoundSndfileSampleSize(int32_t type)
+int32_t sndfileSampleSize(int32_t type)
 {
   switch (TYPE2ENC(type)) {
       case AE_SHORT:   return 2;     /* Signed 16 bit data */

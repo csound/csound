@@ -1373,9 +1373,9 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)
         csoundErrorMsg(csound, "%s",
-                      Str("csoundEvent_(): invalid named instrument\n"));
+                      Str("event insert: invalid named instrument\n"));
       else
-        csoundErrorMsg(csound, Str("csoundEvent_(): invalid instrument "
+        csoundErrorMsg(csound, Str("event: invalid instrument "
                                   "number or name %d\n" ), i);
       goto err_return;
     }
@@ -1395,7 +1395,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     start_kcnt = (uint32_t)time2kcnt(csound, start_time);
     break;
   default:
-    csoundErrorMsg(csound, Str("csoundEvent_(): unknown opcode: %c\n"),
+    csoundErrorMsg(csound, Str("event insert: unknown opcode: %c\n"),
                   evt->opcod);
     goto err_return;
   }
@@ -1419,7 +1419,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   return 0;
 
  pfld_err:
-  csoundErrorMsg(csound, Str("csoundEvent_(): insufficient p-fields\n"));
+  csoundErrorMsg(csound, Str("event insert: insufficient p-fields\n"));
  err_return:
   /* clean up */
   if (e->evt.strarg != NULL)

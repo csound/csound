@@ -262,7 +262,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
         O->filetyp = sc.p->filetyp;
       if (!O->outformat)
         O->outformat = sc.p->format;
-      O->csoundSndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+      O->sndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
       if (O->filetyp == TYP_RAW)
         O->rewrt_hdr = 0;
       if (O->outfilename == NULL)
@@ -297,7 +297,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       if (UNLIKELY(fd == NULL))
         csound->Die(csound, Str("Failed to open output file %s: %s"),
                     O->outfilename, Str(csound->SndfileStrError(csound,NULL)));
-      outbufsiz = 1024 * O->csoundSndfileSampleSize;    /* calc outbuf size  */
+      outbufsiz = 1024 * O->sndfileSampleSize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,
                               csound->GetStrFormat(O->outformat),

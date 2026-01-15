@@ -510,7 +510,7 @@ static const CSOUND cenviron_ = {
     csoundSndfileType2CsfileType, 
     csoundType2String,       
     csoundGetStrFormat,    
-    csoundSndfileSampleSize,       
+    sndfileSampleSize,       
     /* sndfile interface */
     csoundSndfileOpen,    
     csoundSndfileOpenFd, 
@@ -959,7 +959,7 @@ static const CSOUND cenviron_ = {
     0,            /*    odebug            */
     0, 1, 0,   /*    sfread, ...       */
     0, 0, 0, 0,   /*    inbufsamps, ...   */
-    0,            /*    csoundSndfileSampleSize        */
+    0,            /*    sndfileSampleSize        */
     1,            /*    displays          */
     1, 0, 135,    /*    graphsoff ...     */
     0, 0,         /*    Beatmode, ...     */
