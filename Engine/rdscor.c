@@ -64,7 +64,7 @@ char* csoundGetArgString(CSOUND *csound, MYFLT p)
     return ss;
 }
 
-char* get_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
+char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
 {
     int32 n;
     char *ss = evt->strarg;

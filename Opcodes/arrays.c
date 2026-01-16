@@ -105,10 +105,10 @@ static int32_t init_fft_complex(CSOUND *csound, FFT *p) {
   tabinit(csound, p->out, N, p->h.insdshead);
   size_t bytes = (size_t)N * 2u * sizeof(MYFLT);
   csound->AuxAlloc(csound, bytes, &p->mem);
-  if(p->out->arrayType == csound->csoundGetType(csound, "Complex")
-     && p->in->arrayType == csound->csoundGetType(csound, "Complex"))
+  if(p->out->arrayType == csound->GetType(csound, "Complex")
+     && p->in->arrayType == csound->GetType(csound, "Complex"))
     p->b = *((MYFLT *)p->in2);
-  else if(p->out->arrayType == csound->csoundGetType(csound, "Complex"))
+  else if(p->out->arrayType == csound->GetType(csound, "Complex"))
     p->b = 0;
   else p->b = 1;
   return OK;
@@ -118,7 +118,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   int32_t N = p->in->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->in->data;
-  if(p->in->arrayType == csound->csoundGetType(csound, "Complex")) {
+  if(p->in->arrayType == csound->GetType(csound, "Complex")) {
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       tmp[i] = c[j].real;
       tmp[i+1] = c[j].imag;
@@ -133,7 +133,7 @@ static int32_t perf_fft_complex(CSOUND *csound, FFT *p) {
   if(!p->b)
     csound->ComplexFFT(csound,tmp,N);
   else csound->InverseComplexFFT(csound,tmp,N);
-  if(p->out->arrayType == csound->csoundGetType(csound, "Complex")) {
+  if(p->out->arrayType == csound->GetType(csound, "Complex")) {
     c = (COMPLEXDAT *) p->out->data;
     for(int32_t i = 0, j = 0; j < N; i+=2, j++) {
       c[j].real = tmp[i];

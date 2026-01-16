@@ -729,12 +729,12 @@ typedef struct _FFT_SETUP {
 /** @name Macros to check for arg types */
 /**@{ */
 
-#define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->csoundGetType(csound, "a"))
-#define IS_STR_ARG(x) (GetTypeForArg(x) == csound->csoundGetType(csound, "S"))
-#define IS_KSIG_ARG(x) (GetTypeForArg(x) == csound->csoundGetType(csound, "k"))
-#define IS_INIT_ARG(x) (GetTypeForArg(x) == csound->csoundGetType(csound, "i"))
-#define IS_FSIG_ARG(x) (GetTypeForArg(x) == csound->csoundGetType(csound, "f"))
-#define IS_ARRAY_ARG(x) (GetTypeForArg(x) == csound->csoundGetType(csound, "["))
+#define IS_ASIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "a"))
+#define IS_STR_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "S"))
+#define IS_KSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "k"))
+#define IS_INIT_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "i"))
+#define IS_FSIG_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "f"))
+#define IS_ARRAY_ARG(x) (GetTypeForArg(x) == csound->GetType(csound, "["))
 
 /**@}*/
 /** @name Utility inline functions */
@@ -1119,8 +1119,8 @@ struct CSOUND_ {
   char *(*GetArgString)(CSOUND *, MYFLT);
   int32 (*StringArg2Insno)(CSOUND *, void *p, int32_t is_string);
   char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int32_t);
-  const CS_TYPE *(*csoundGetType)(CSOUND *csound, const char *type);
-  TYPE_POOL *(*csoundGetTypePool)(CSOUND *csound);
+  const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
+  TYPE_POOL *(*GetTypePool)(CSOUND *csound);
   int32_t (*AddVariableType)(CSOUND *csound, TYPE_POOL *pool,
                              CS_TYPE *typeInstance);
 

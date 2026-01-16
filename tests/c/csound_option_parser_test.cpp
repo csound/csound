@@ -25,7 +25,7 @@ public:
     {
         csoundSetGlobalEnv ("OPCODE6DIR64", "../../");
         csound = csoundCreate (NULL, NULL);
-        //csoundCreateMessageBuffer (csound, 0);
+        csoundCreateMessageBuffer (csound, 0);
         csoundSetOption (csound, "--logfile=NULL");
     }
 
