@@ -24,7 +24,7 @@
 #include "corfile.h"
 #include "udo.h"
 
-char* csoundGetString(CSOUND *csound, MYFLT p)
+char* csoundGetArgString(CSOUND *csound, MYFLT p)
 {
     int32 n;
     char *ss;

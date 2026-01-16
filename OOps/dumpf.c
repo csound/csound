@@ -75,7 +75,7 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -128,7 +128,7 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -183,7 +183,7 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -235,7 +235,7 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -384,7 +384,7 @@ int32_t krdset_p(CSOUND *csound, KREAD *p)
                                Str("alaw and ulaw not implemented here"));
     }
      if (IsStringCode(*p->ifilcod))
-       strNcpy(soundiname, csoundGetString(csound, *p->ifilcod), 1023);
+       strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -464,7 +464,7 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -518,7 +518,7 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -572,7 +572,7 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
                                Str("alaw and ulaw not implemented here"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
@@ -796,7 +796,7 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetString(csound, *p->ifilcod), 1023);
+      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
     else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));

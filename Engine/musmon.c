@@ -549,7 +549,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.pcnt = 3;
 
   if (IsStringCode(*p->insno)) {
-    char *ss = csoundGetString(csound,*p->insno);
+    char *ss = csoundGetArgString(csound,*p->insno);
     insno = csound->StringArg2Insno(csound,ss,1);
     if (insno == NOT_AN_INSTRUMENT)
       return NOTOK;

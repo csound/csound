@@ -197,7 +197,7 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
     p1 = (MYFLT) instr_num(csound, ref->instr);
   }
   else if (IsStringCode(*p->kInsNo)) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetString(csound, *p->kInsNo), 1);
+    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
 
@@ -300,7 +300,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
     p1 = (MYFLT) instr_num(csound, ref->instr);
   }
   else if (IsStringCode(*p->kInsNo)) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetString(csound, *p->kInsNo), 1);
+    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
 

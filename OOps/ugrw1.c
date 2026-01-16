@@ -384,7 +384,7 @@ int32_t printksset_S(CSOUND *csound, PRINTKS *p){
 }
 
 int32_t printksset(CSOUND *csound, PRINTKS *p){
-    char* arg_string = csoundGetString(csound, *p->ifilcod);
+    char* arg_string = csoundGetArgString(csound, *p->ifilcod);
 
     if (arg_string == NULL) {
         return csoundInitError(csound, Str("null string\n"));

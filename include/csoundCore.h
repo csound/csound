@@ -1116,7 +1116,7 @@ struct CSOUND_ {
 
   /** @name Arguments and Types */
   /**@{ */
-  char *(*GetString)(CSOUND *, MYFLT);
+  char *(*GetArgString)(CSOUND *, MYFLT);
   int32 (*StringArg2Insno)(CSOUND *, void *p, int32_t is_string);
   char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int32_t);
   const CS_TYPE *(*csoundGetType)(CSOUND *csound, const char *type);

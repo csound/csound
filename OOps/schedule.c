@@ -291,7 +291,7 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
       else {
         if (IsStringCode(*args[0])) {
           insno = csound->StringArg2Insno(csound,
-                                     csoundGetString(csound, *args[0]), 1);
+                                     csoundGetArgString(csound, *args[0]), 1);
          if (UNLIKELY(insno == 0)) return NOTOK;
          aref = args[0];
           args[0] = &insno;
@@ -724,7 +724,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     if (stringname)
       insno = (int32_t)csoundStringArg2Insno_p(csound, ((STRINGDAT*)p->args[0])->data);
     else if (IsStringCode(*p->args[0])) {
-      char *ss = csoundGetString(csound, *p->args[0]);
+      char *ss = csoundGetArgString(csound, *p->args[0]);
       insno = (int32_t)csoundStringArg2Insno_p(csound, ss);
     }
     else
@@ -796,7 +796,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
         evt.p[1] = SSTRCOD;*/
     }
     else if (IsStringCode(*p->args[0])) {
-      unquote(name, csoundGetString(csound, *p->args[0]), 512);
+      unquote(name, csoundGetArgString(csound, *p->args[0]), 512);
       evt.p[1] = csound->StringArg2Insno(csound,name, 1);
       evt.strarg = NULL;
       /* evt.strarg = name; */

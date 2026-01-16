@@ -107,7 +107,7 @@ extern "C" {
   int32_t csoundCheckOpcodePluginFile(CSOUND *, const char *);
   int32_t csoundLoadAndInitModule(CSOUND *, const char *);
   void    csoundNotifyFileOpened(CSOUND *, const char *, int32_t, int32_t, int32_t);
-  char *csoundGetString(CSOUND *, MYFLT);
+  char *csoundGetArgString(CSOUND *, MYFLT);
   void    linevent_open(CSOUND *);
   void    linevent_close(CSOUND *);
   void    sf_open_in(CSOUND *);

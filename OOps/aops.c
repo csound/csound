@@ -2501,7 +2501,7 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 
   if (LIKELY(IsStringCode(csound->init_event->p[n]))) {
     p->ians->data = csound->Strdup(csound,
-                                   csound->GetString(csound, csound->init_event->p[n]));
+                                   csound->GetArgString(csound, csound->init_event->p[n]));
     p->ians->size = strlen(p->ians->data) + 1;
   }
   return OK;
@@ -2544,7 +2544,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
             strOut->data = NULL;
             strOut->size = 0;
           }
-          const char* srcStr = csound->GetString(csound, csound->init_event->p[n+start]);
+          const char* srcStr = csound->GetArgString(csound, csound->init_event->p[n+start]);
           if (srcStr != NULL) {
             strOut->data = csound->Strdup(csound, srcStr);
             strOut->size = strlen(strOut->data) + 1;

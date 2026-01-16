@@ -139,7 +139,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     char *ss = csound->init_event->strarg;
     if (ss == NULL)
       return OK;
-    ss = csoundGetString(csound, *p->indx);
+    ss = csoundGetArgString(csound, *p->indx);
     size_t len = strlen(ss);
     if (len >= p->r->size) {
       char *temp = csound->ReAlloc(csound, p->r->data, len + 1);
@@ -213,7 +213,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
   if (IsStringCode(*p->indx)) {
     char *ss;
-    ss = csoundGetString(csound, *p->indx);
+    ss = csoundGetArgString(csound, *p->indx);
     if (ss == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
         return csoundPerfError(csound, (OPDS*)p,
@@ -692,7 +692,7 @@ int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
   double  x;
 
   if (IsStringCode(*p->str))
-    s = csoundGetString(csound, *p->str);
+    s = csoundGetArgString(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
     if (ndx >= 0 && ndx <= (int32_t) csound->strsmax && csound->strsets != NULL)
@@ -789,7 +789,7 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
   int32_t   x = 0L;
 
   if (IsStringCode(*p->str))
-    s = csoundGetString(csound, *p->str);
+    s = csoundGetArgString(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
     if (ndx >= 0 && ndx <= (int32_t) csound->strsmax && csound->strsets != NULL)

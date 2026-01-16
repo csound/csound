@@ -194,7 +194,7 @@ char *csoundStringArg2Name(CSOUND *csound, char *s, void *p, const char *baseNam
     }
     else if (IsStringCode(*((MYFLT*) p))) {
       /* p-field string, unquote and copy */
-      char  *s2 = csoundGetString(csound, *((MYFLT*)p));
+      char  *s2 = csoundGetArgString(csound, *((MYFLT*)p));
       int32_t   i = 0;
       //printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
       if (s == NULL)

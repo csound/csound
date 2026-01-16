@@ -59,7 +59,7 @@ int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
 
   if (stringname==0){
       if (IsStringCode(*p->ifilno))
-        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
       else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
                 }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
@@ -176,7 +176,7 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
 
   if (stringname==0){
       if (IsStringCode(*p->ifilno))
-        strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
+        strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
       else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
                 }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
@@ -368,7 +368,7 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
   }
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
-      strncpy(pvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
+      strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
     else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
   }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);

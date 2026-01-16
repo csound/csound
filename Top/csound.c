@@ -383,7 +383,7 @@ static const CSOUND cenviron_ = {
     csoundSetMessageLevel,
     csoundSetMessageCallback,
     /* arguments to opcodes and types*/
-    csoundGetString,   
+    csoundGetArgString,   
     csoundStringArg2Insno, 
     csoundStringArg2Name,   
     csoundGetType,              

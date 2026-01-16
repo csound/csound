@@ -380,7 +380,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
 
     if (stringname) strNcpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
     else if (IsStringCode(*p->ifilno))
-      strNcpy(pvfilnam, csoundGetString(csound, *p->ifilno), MAXNAME-1);
+      strNcpy(pvfilnam, csoundGetArgString(csound, *p->ifilno), MAXNAME-1);
     else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.", 0);
 
     if (UNLIKELY(csoundPVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {

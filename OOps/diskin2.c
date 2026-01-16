@@ -333,7 +333,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   /* FIXME: name can overflow with very long string */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strNcpy(name,csoundGetString(csound, *p->iFileCode), 1023);
+      strNcpy(name,csoundGetArgString(csound, *p->iFileCode), 1023);
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -1446,7 +1446,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* FIXME: name can overflow with very long string */
     if (stringname==0){
       if (IsStringCode(*p->iFileCode))
-        strNcpy(name,csoundGetString(csound, *p->iFileCode), 1023);
+        strNcpy(name,csoundGetArgString(csound, *p->iFileCode), 1023);
       else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -2010,7 +2010,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
 
     if (stringname==0){
       if (IsStringCode(*ifilcod))
-        strNcpy(name,csoundGetString(csound, *ifilcod), 1023);
+        strNcpy(name,csoundGetArgString(csound, *ifilcod), 1023);
       else csound->StringArg2Name(csound, name, ifilcod, "soundout.",0);
     }
     else strNcpy(name, ((STRINGDAT *)ifilcod)->data, 1023);

@@ -101,7 +101,7 @@ int32_t prealloc_(CSOUND *csound, AOP *p, int32_t instname)
                                (*p->b == FL(0.0) ? 0 : 1));
   else {
     if (IsStringCode(*p->r))
-      n = (int32_t) string_arg_to_opcno(csound, csoundGetString(csound,*p->r), 1,
+      n = (int32_t) string_arg_to_opcno(csound, csoundGetArgString(csound,*p->r), 1,
                                  (*p->b == FL(0.0) ? 0 : 1));
     else n = *p->r;
   }
