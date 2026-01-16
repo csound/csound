@@ -972,10 +972,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       s++; /* skip ETX */
     if (*s == '\0')
       dieu(csound, Str("no utility name"));
-
+    csound->info_message_request = 1;
     retval = csoundRunUtility(csound, s, argc, argv);
     if (retval) {
-      csound->info_message_request = 1;
       csound->orchname = NULL;
       return 0;
     } else
@@ -1324,9 +1323,9 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'U':
           FIND(Str("no utility name"));
           {
+            csound->info_message_request = 1;
             int32_t retval = csoundRunUtility(csound, s, argc, argv);
             if (retval) {
-              csound->info_message_request = 1;
               csound->orchname = NULL;
               goto end;
             } else
