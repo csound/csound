@@ -765,7 +765,7 @@ verify_coherence(CSOUND *csound, BABO *p)
 }
 
 /*
- *  FUNCTIONS - baboset(), babo()
+ * PUBLIC FUNCTIONS - baboset(), babo()
  *
  * these get called from the csound engine
  *
@@ -779,7 +779,7 @@ baboset(CSOUND *csound, void *entry)
     p->matrix_delay.sr = CS_ESR;
     set_defaults(csound,p);
     verify_coherence(csound,p);        /* exits if call is wrong */
-    
+
     BaboTapline_create(csound,&p->tapline, *(p->lx), *(p->ly), *(p->lz));
     BaboDelay_create(csound, &p->matrix_delay,
                      BaboTapline_maxtime(csound, &p->tapline));
@@ -929,7 +929,7 @@ babo2(CSOUND *csound, void *entry)
 
 static OENTRY babo_localops[] = {
   { "babo",   S(BABO), TR, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
-  { "babo2",  S(BABO), TR,  "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2 }  
+  { "babo2",  S(BABO), TR,  "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2 }
 };
 
 LINKAGE_BUILTIN(babo_localops)

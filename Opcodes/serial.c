@@ -287,7 +287,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
  //Check if the connection was successfull
     if (UNLIKELY(hSerial==INVALID_HANDLE_VALUE)) {
-      //If not success full displayan Error
+      //If not success full display an Error
       return csound->InitError(csound, Str("%s not available.\n"), serialport);
     }
     memset(&dcbSerialParams, 0, sizeof(dcbSerialParams));
@@ -601,7 +601,7 @@ uintptr_t arduino_listen(void *p)
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
       if (DEBUG) printf("In bits: va1=%.2x va2= %.2x; c1=%.2x\n",
-                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f); 
+                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f);
       if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
       q->buffer[c] = val;
     }

@@ -401,7 +401,7 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
 
 /* Only supports PVOC_AMP_FREQ format for now */
 
-/* cannot add displaycode, as we may have 8 channels here...*/
+/* cannot add display code, as we may have 8 channels here...*/
 
 static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fname,
                    int64_t srate, int64_t chans, int64_t fftsize, int64_t overlap,
@@ -776,7 +776,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
     csound->RealFFT(csound, pvx->setup, anal);
     anal[N] = anal[1];
     anal[1] = anal[N+1] = FL(0.0);
-    
+
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in

@@ -224,7 +224,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     FUNC    *f;
     uint32_t len;
     //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
-    
+
     /* Mass */
     if (UNLIKELY((f = csound->FTFind(csound, p->i_m)) == NULL)) {
       return csound->InitError(csound,
@@ -308,7 +308,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 #if PHASE_INTERP == 3
     //memset(p->x3, '\0', len+sizeof(MYFlT));
 #endif
-    /* Setup displaywindow */
+    /* Setup display window */
     if (*p->i_disp) {
       p->win = csound->Calloc(csound, sizeof(WINDAT));
       csound->SetDisplay(csound, (WINDAT*)p->win, p->x1, len,
@@ -550,7 +550,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           p->x0 = x0 = tmp;
           memcpy(x0, x1, len*sizeof(MYFLT));
         }
-        /* Reset index and displaythe state */
+        /* Reset index and display the state */
         idx = 0;
         if (*p->i_disp)
           csound->Display(csound, p->win);
@@ -772,7 +772,7 @@ static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
       return csound->PerfError(csound, &(p->h),
                                Str("scan map %d out of range [0,%d]\n"),
                                which, pp->len);
- 
+
     pp->x0[which] = *p->k_pos/(*p->k_pamp);
     pp->v[which]  = *p->k_vel/(*p->k_vamp);
     return OK;
