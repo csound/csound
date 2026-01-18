@@ -765,7 +765,7 @@ verify_coherence(CSOUND *csound, BABO *p)
 }
 
 /*
- * PUBLIC FUNCTIONS - baboset(), babo()
+ * OPCODE FUNCTIONS - baboset(), babo()
  *
  * these get called from the csound engine
  *
