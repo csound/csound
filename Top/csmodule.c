@@ -148,7 +148,7 @@ static char haikudirs[] = "/boot/system/lib/csound7/plugins64:"
   "/boot/home/config/non-packaged/lib/csound7/plugins64";
 # endif
 # define CS_DEFAULT_PLUGINDIR  haikudirs
-#elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
+#elif !(defined(USE_DEFAULT_OPCODEDIR) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
 #    undef CS_DEFAULT_PLUGINDIR
