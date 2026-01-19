@@ -273,7 +273,7 @@ static int32_t MidiOutDeviceClose(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
   /* nothing to do, report success */
   //csound->Message(csound, "%s",
@@ -282,7 +282,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
   return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
   char    *drv;
   csound->ModuleListAdd(csound, "coremidi", "midi");
@@ -303,7 +303,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
   return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
   /* does not depend on MYFLT type */
   return ((CS_VERSION << 16) + (CS_SUBVER << 8));

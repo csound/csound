@@ -72,7 +72,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       return sco->body;
     }
     else {
-      char *str = cs_strdup(csound,sco->body);
+      char *str = csoundStrdup(csound,sco->body);
       //printf("body >>%s<<\n", str);
       corfile_rm(csound, &(sco));
       return str;

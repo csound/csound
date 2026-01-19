@@ -272,7 +272,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
   if (!istring) {
     if (IsStringCode(*p->ifilno))
       csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
-    else strncpy(filename, csound->GetString(csound,*p->ifilno), MAXNAME);
+    else strncpy(filename, csound->GetArgString(csound,*p->ifilno), MAXNAME);
   } else {
     strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
   }
@@ -510,7 +510,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
   if (!istring) {
     if (IsStringCode(*p->ifilno))
       csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
-    else strncpy(filename, csound->GetString(csound,*p->ifilno), MAXNAME);
+    else strncpy(filename, csound->GetArgString(csound,*p->ifilno), MAXNAME);
   } else {
     strncpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
   }

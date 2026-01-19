@@ -170,7 +170,7 @@ int32_t csoundSetEnv(CSOUND *csound, const char *name, const char *value)
     }
 
     cs_hash_table_put(csound, csound->envVarDB,
-                      (char*)name, cs_strdup(csound, (char*)value));
+                      (char*)name, csoundStrdup(csound, (char*)value));
 
     /* print debugging info if requested */
     if (UNLIKELY(csoundGetDebug(csound) > 99)) {

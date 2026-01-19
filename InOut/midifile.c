@@ -663,7 +663,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
   /* allocate structure */
   *top = (void*) csound->Calloc(csound, sizeof(midifile_t));
   midifile = *top;
-  MF(name) = cs_strdup(csound, name);
+  MF(name) = csoundStrdup(csound, name);
   MF(id) = midifile_id;
   MF(port) = port;
   // set all to pause except for -F file

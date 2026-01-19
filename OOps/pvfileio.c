@@ -285,7 +285,7 @@ static int32_t pvoc_readWindow(PVOCFILE *p, float *window, uint32_t length)
     return (pvfile_read_32(p, window, (int32_t) length) != (int32_t) length);
 }
 
-const char *pvoc_errorstr(CSOUND *csound)
+const char *csoundPVOC_ErrorStr(CSOUND *csound)
 {
     int32_t i = -(csound->pvErrorCode);
 
@@ -394,7 +394,7 @@ static void prepare_pvfmt(WAVEFORMATEX *pfmt, uint32 chans,
 /* NB currently this does not enforce a soundfile extension; */
 /* probably it should... */
 
-int32_t  pvoc_createfile(CSOUND *csound, const char *filename,
+int32_t  csoundPVOC_CreateFile(CSOUND *csound, const char *filename,
                      uint32 fftlen, uint32 overlap,
                      uint32 chans, uint32 format,
                      int32_t srate, int32_t stype, int32_t wtype,
@@ -500,7 +500,7 @@ int32_t  pvoc_createfile(CSOUND *csound, const char *filename,
     return fd;
 }
 
-int32_t pvoc_openfile(CSOUND *csound,
+int32_t csoundPVOC_OpenFile(CSOUND *csound,
                   const char *filename, void *data_, void *fmt_)
 {
     WAVEFORMATPVOCEX  wfpx;
@@ -843,7 +843,7 @@ static int32_t pvoc_updateheader(CSOUND *csound, int32_t ofd)
     return 1;
 }
 
-int32_t pvoc_closefile(CSOUND *csound, int32_t ofd)
+int32_t csoundPVOC_Closefile(CSOUND *csound, int32_t ofd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
     int32_t       rc = 1;
@@ -890,7 +890,7 @@ int32_t pvoc_closefile(CSOUND *csound, int32_t ofd)
  *
  * return 0 for error, 1 for success. This could change....
  */
-int32_t pvoc_putframes(CSOUND *csound, int32_t ofd, const float *frame,
+int32_t csoundPVOC_PutFrames(CSOUND *csound, int32_t ofd, const float *frame,
                        int32_t numframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ofd);
@@ -919,7 +919,7 @@ int32_t pvoc_putframes(CSOUND *csound, int32_t ofd, const float *frame,
  * best practice here is to read nChannels frames
  * return -1 for error, 0 for EOF, else numframes read
  */
-int32_t pvoc_getframes(CSOUND *csound, int32_t ifd, float *frames,
+int32_t csoundPVOC_GetFrames(CSOUND *csound, int32_t ifd, float *frames,
                                     uint32 nframes)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
@@ -951,7 +951,7 @@ int32_t pvoc_getframes(CSOUND *csound, int32_t ifd, float *frames,
     return (int32_t) nframes;
 }
 
-int32_t pvoc_fseek(CSOUND *csound, int32_t ifd, int32_t offset)
+int32_t csoundPVOC_fseek(CSOUND *csound, int32_t ifd, int32_t offset)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
     int32_t   pos, skipframes, skipsize;
@@ -989,7 +989,7 @@ int32_t pvsys_release(CSOUND *csound)
     csound->pvErrorCode = 0;
     for (i = 0; i < csound->pvNumFiles; i++) {
       if (pvsys_getFileHandle(csound, i) != NULL) {
-        if (UNLIKELY(!pvoc_closefile(csound, i))) {
+        if (UNLIKELY(!csoundPVOC_Closefile(csound, i))) {
           csound->pvErrorCode = -42;
         }
       }
@@ -1004,7 +1004,7 @@ int32_t pvsys_release(CSOUND *csound)
 
 /* return raw framecount: channel-agnostic for now */
 
-int32_t pvoc_framecount(CSOUND *csound, int32_t ifd)
+int32_t csoundPVOC_FrameCount(CSOUND *csound, int32_t ifd)
 {
     PVOCFILE  *p = pvsys_getFileHandle(csound, ifd);
     if (UNLIKELY(p == NULL)) {

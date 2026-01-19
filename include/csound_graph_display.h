@@ -1,5 +1,5 @@
 /*
-  graph_display.h: graphs and displays
+  csound_graph_display.h: graphs and displays
 
   Copyright (C) 2024
 
@@ -30,7 +30,7 @@ extern "C" {
    *
    *  @{ */
   typedef struct windat_  WINDAT;
-  
+
   /**
    * Tells Csound whether external graphic table display is supported.
    * Returns the previously set value (initially zero).
@@ -69,4 +69,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif 
+#endif

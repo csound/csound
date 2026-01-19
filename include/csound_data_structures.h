@@ -95,7 +95,7 @@ PUBLIC char* cs_hash_table_put_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key);
 
 /** Removes an entry from the hashtable using the given key.  If no
- entry found for key, simply returns. Calls mfree on the table
+ entry found for key, simply returns. Calls csoundFree on the table
  item. */
 PUBLIC void cs_hash_table_remove(CSOUND* csound,
                                  CS_HASH_TABLE* hashTable, char* key);
@@ -112,15 +112,15 @@ PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable);
 /** Returns void* values as a cons list */
 PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
-/** Frees hash table and hash table items using mfree. Does not call
+/** Frees hash table and hash table items using csoundFree. Does not call
     free on ->value pointer. */
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
-/** Frees hash table and hash table keys using mfree. Does call mfree
+/** Frees hash table and hash table keys using csoundFree. Does call csoundFree
     on ->value pointer. */
 PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
-/** Frees hash table hash table keys using mfree. Does call free on
+/** Frees hash table hash table keys using csoundFree. Does call free on
     ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 

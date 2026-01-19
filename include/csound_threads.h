@@ -32,16 +32,6 @@ extern "C" {
    *
    *  @{ */
 
-  /**
-   * Called by external software to set a function for checking system
-   * events, yielding cpu time for coopertative multitasking, etc.
-   * This function is optional. It is often used as a way to 'turn off'
-   * Csound, allowing it to exit gracefully. In addition, some operations
-   * like utility analysis routines are not reentrant and you should use
-   * this function to do any kind of updating during the operation.
-   * Returns an 'OK to continue' boolean.
-   */
-  PUBLIC void csoundSetYieldCallback(CSOUND *, int32_t (*yieldCallback_)(CSOUND *));
 
   /**
    * Creates and starts a new thread of execution.

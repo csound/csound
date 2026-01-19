@@ -617,7 +617,7 @@ ORCTOKEN *new_token(CSOUND *csound, int32_t type)
 ORCTOKEN *make_token(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
-    ans->lexeme = cs_strdup(csound, s);
+    ans->lexeme = csoundStrdup(csound, s);
     return ans;
 }
 

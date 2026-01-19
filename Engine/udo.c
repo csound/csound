@@ -1602,7 +1602,7 @@ int32_t subinstrset_S(CSOUND *csound, SUBINST *p){
   /* check if we are using subinstrinit or subinstr */
   init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
-  instno = string_arg_to_insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
+  instno = csoundStringArg2Insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
   if (UNLIKELY(instno==NOT_AN_INSTRUMENT)) instno = -1;
   return subinstrset_(csound,p,instno);
 }

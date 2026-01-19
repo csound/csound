@@ -369,7 +369,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
 
     if (!O->outformat)                      /* if no audioformat yet  */
       O->outformat = mixin[0].p->format;    /* Copy from first input file */
-    O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+    O->sndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
     if (!O->filetyp)
       O->filetyp = mixin[0].p->filetyp;     /* Copy from input file */
     
@@ -416,7 +416,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
     pp->out_buf = csound->Malloc(csound, pp->outbufsiz * sizeof(MYFLT));
-    pp->outbufsiz *= O->sfsampsize;
+    pp->outbufsiz *= O->sndfileSampleSize;
     csound->Message(csound, Str("writing %d-byte blks of %s to %s (%s)\n"),
                             pp->outbufsiz,
                             csound->GetStrFormat(O->outformat), O->outfilename,
@@ -625,7 +625,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       }
       csound->SndfileWriteSamples(csound, outfd, buffer, this_block * outputs);
       block++;
-      //      bytes += O->sfsampsize * this_block * outputs;
+      //      bytes += O->sndfileSampleSize * this_block * outputs;
       switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);

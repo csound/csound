@@ -16,34 +16,6 @@ export const csoundTableLength = (wasm) => (csound /* CsoundInst */, tableNumber
 csoundTableLength.toString = () => "tableLength = async (tableNum) => Number;";
 
 /**
- * Returns the value of a slot in a function table.
- * The table number and index are assumed to be valid.
- * @function
- */
-export const csoundTableGet =
-  (wasm) => (csound /* CsoundInst */, tableNumber /* string */, tableIndex /* string */) =>
-    wasm.exports["csoundTableGet"](csound, tableNumber, tableIndex);
-
-csoundTableGet.toString = () => "tableGet = async (tableNum, tableIndex) => Number;";
-
-/**
- * Sets the value of a slot in a function table.
- * The table number and index are assumed to be valid.
- * @function
- */
-export const csoundTableSet =
-  (wasm) =>
-  (
-    csound /* CsoundInst */,
-    tableNumber /* string */,
-    tableIndex /* string */,
-    value /* string */,
-  ) =>
-    wasm.exports["csoundTableSet"](csound, tableNumber, tableIndex, value);
-
-csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) => undefined;";
-
-/**
  * Copy the contents of an Array or TypedArray from javascript into a given csound function table.
  * The table number is assumed to be valid, and the table needs to have sufficient space
  * to receive all the array contents.
@@ -110,31 +82,4 @@ export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumbe
 
 csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Float64Array;";
 
-/**
- * Checks if a given GEN number num is a named GEN if so,
- * it returns the string length (excluding terminating NULL char).
- * Otherwise it returns 0.
- */
-export const csoundIsNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) =>
-  wasm.exports["csoundIsNamedGEN"](csound, tableNumber);
 
-csoundIsNamedGEN["toString"] = () => "isNamedGEN = async (tableNum) => number;";
-
-/**
- * Gets the GEN name from a number num, if this is a named GEN.
- * If the table number doesn't represent a named GEN, it will
- * return undefined.
- */
-export const csoundGetNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
-  const stringLength = wasm.exports["csoundIsNamedGEN"](csound, tableNumber);
-  if (stringLength > 0) {
-    const offset = wasm.exports["allocStringMem"](stringLength);
-    wasm.exports["csoundGetNamedGEN"](csound, offset, tableNumber, stringLength);
-    const { buffer } = wasm.wasi.memory;
-    const stringBuffer = new Uint8Array(buffer, offset, stringLength);
-    const result = uint2String(stringBuffer);
-    return result;
-  }
-};
-
-csoundGetNamedGEN["toString"] = () => "getNamedGEN = async (tableNum) => ?string;";

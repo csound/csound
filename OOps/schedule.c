@@ -34,7 +34,7 @@
 #include "csound_standard_types.h"
 #include "fgens.h"
 
-void csound_input_message(CSOUND *, const char *);
+void csoundInputMessage(CSOUND *, const char *);
 void sense_line(CSOUND *csound, void *userData);
 
 MYFLT named_instr_find(CSOUND *csound, char *s);
@@ -124,7 +124,7 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && *(args[0]) > 0) {
       MYFLT pfields[2] = {*args[0], *args[0]};
       evt.pcnt = 2;
-      return insert_score_event_at_sample(csound, &evt, pfields,
+      return insert_event_at_sample(csound, &evt, pfields,
                                           csound->icurTimeSamples);
     }
 
@@ -225,7 +225,7 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
     if (opcod == 'e' && (int32_t) evt.pcnt >= 1 && *args[0] > 0) {
       MYFLT pfields[2] = {*args[0], *args[0]};
       evt.pcnt = 2;
-      err = insert_score_event_at_sample(csound, &evt, pfields,
+      err = insert_event_at_sample(csound, &evt, pfields,
                                          csound->icurTimeSamples);
     }
     else
@@ -291,7 +291,7 @@ int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
       else {
         if (IsStringCode(*args[0])) {
           insno = csound->StringArg2Insno(csound,
-                                     get_arg_string(csound, *args[0]), 1);
+                                     csoundGetArgString(csound, *args[0]), 1);
          if (UNLIKELY(insno == 0)) return NOTOK;
          aref = args[0];
           args[0] = &insno;
@@ -331,7 +331,7 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     MYFLT *args = pfields->data;
     pp.opcod = 'i';
     pp.pcnt = pfields->sizes[0];
-    insert_score_event_at_sample(csound, &pp, args, csound->icurTimeSamples);
+    insert_event_at_sample(csound, &pp, args, csound->icurTimeSamples);
     return OK;
 }
 
@@ -429,7 +429,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
        }
     }
 
-    csound_input_message(csound, s);
+    csoundInputMessage(csound, s);
     sense_line(csound, NULL);
     return OK;
 }
@@ -454,7 +454,7 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
        }
     }
 
-    csound_input_message(csound, s);
+    csoundInputMessage(csound, s);
     sense_line(csound, NULL);
     return OK;
 }
@@ -722,10 +722,10 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* Get absolute instr num */
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
-      insno = (int32_t)string_arg_to_insno_p(csound, ((STRINGDAT*)p->args[0])->data);
+      insno = (int32_t)csoundStringArg2Insno_p(csound, ((STRINGDAT*)p->args[0])->data);
     else if (IsStringCode(*p->args[0])) {
-      char *ss = get_arg_string(csound, *p->args[0]);
-      insno = (int32_t)string_arg_to_insno_p(csound, ss);
+      char *ss = csoundGetArgString(csound, *p->args[0]);
+      insno = (int32_t)csoundStringArg2Insno_p(csound, ss);
     }
     else
       insno = (int32_t)FABS(*p->args[0]);
@@ -796,7 +796,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
         evt.p[1] = SSTRCOD;*/
     }
     else if (IsStringCode(*p->args[0])) {
-      unquote(name, get_arg_string(csound, *p->args[0]), 512);
+      unquote(name, csoundGetArgString(csound, *p->args[0]), 512);
       evt.p[1] = csound->StringArg2Insno(csound,name, 1);
       evt.strarg = NULL;
       /* evt.strarg = name; */
@@ -830,7 +830,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     else
       p->timrem = 0;
     return
-      (insert_score_event_at_sample(csound, &evt, evt.p+1,
+      (insert_event_at_sample(csound, &evt, evt.p+1,
                                     starttime) == 0 ? OK : NOTOK);
 }
 
@@ -906,7 +906,7 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
-char* get_arg_string_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
+char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt);
 
 static int32_t events_match(CSOUND *csound,
                             EVTBLK *evt1, EVTBLK *evt2) {
@@ -921,8 +921,8 @@ static int32_t events_match(CSOUND *csound,
       // TODO: encode string in evt1
       // for now we just ignore any string arg
       if(IsStringCode(evt2->p[i])) {
-        char *str1 = get_arg_string_from_evt(csound, evt1->p[i],evt1);
-        char *str2 = get_arg_string_from_evt(csound, evt2->p[i],evt2);
+        char *str1 = get_string_arg_from_evt(csound, evt1->p[i],evt1);
+        char *str2 = get_string_arg_from_evt(csound, evt2->p[i],evt2);
         if(strcmp(str1, str2)) return 0;
       }
       else if(evt1->p[i] != evt2->p[i]) return 0;
@@ -949,7 +949,7 @@ static void remove_rt_event(CSOUND *csound, EVTBLK *evt, int32_t cont) {
       for(i = 1; i < evtn->pcnt+1; i++) {
         if(IsStringCode(evtn->p[i]))
           csound->Message(csound, "%s ",
-                          get_arg_string_from_evt(csound, evtn->p[i], evtn));
+                          get_string_arg_from_evt(csound, evtn->p[i], evtn));
         else csound->Message(csound, "%.3f ", evtn->p[i]);
       }
       csound->Message(csound, "\n");

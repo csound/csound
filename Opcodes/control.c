@@ -308,7 +308,7 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
     }
     else if (IsStringCode(*p->val)) {
       csound->StringArg2Name(csound, buffer,
-                          csound->GetString(csound, *p->val), "", 1);
+                          csound->GetArgString(csound, *p->val), "", 1);
     }
     else {
       fprintf(pp->wish_cmd, "deltext %d\n", wind);

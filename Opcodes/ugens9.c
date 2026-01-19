@@ -43,7 +43,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
-      strncpy(cvfilnam,csound->GetString(csound, *p->ifilno), MAXNAME-1);
+      strncpy(cvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
     else csound->StringArg2Name(csound, cvfilnam,p->ifilno, "convolve.",0);
   }
   else strncpy(cvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
@@ -390,7 +390,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
   if (stringname==0){ 
     if (IsStringCode(*p->ifilno))
-      sfname = csound->Strdup(csound, csound->GetString(csound, *p->ifilno));
+      sfname = csound->Strdup(csound, csound->GetArgString(csound, *p->ifilno));
     else 
       csound->StringArg2Name(csound, sfname, p->ifilno, "soundin.",0);
   }
