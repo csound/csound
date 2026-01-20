@@ -1570,39 +1570,6 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   // now remove any : or ; leftover in typename
   type = remove_type_quoting(csound, arg);
 
-  /** This is doubtful code leading to garbled types
-      - restoring previous (dbc1ce2b1)
-
-    NB: changing the check
-      if (!hasLeadingBracket && !isSingleChar)
-    to
-      if (!hasLeadingBracket && isSingleChar)
-
-   fixes the issue, but the previous code
-   seems to be clearer, exiting early if nothing needs
-   to be done.
-
-  // treat the case where we have typename[]
-  // but NOT for single-letter array types like S[] or i[]
-  char *typ = type;
-  int hasLeadingBracket = (*type == '[');
-  int isSingleChar = (strlen(type) == 3 && type[1] == '[' && type[2] == ']');
-  type++;
-  while(*type != '\0') {
-    if(*type == '[' && *(type+1) ==  ']') {
-      // Only strip if this is NOT the internal [typename] format
-      // and NOT a single-letter array type like S[] or i[]
-      if (!hasLeadingBracket && !isSingleChar) {
-        *type = '\0';
-      }
-      break;
-    }
-    type++;
-  }
-  type = typ;
-
-  **/
-
   // Check if this is already a properly formatted struct array type
   // (e.g., ":MyType;[]")
   if (arg[0] == ':' && strstr(arg, ";[") != NULL) {
