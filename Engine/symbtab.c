@@ -88,6 +88,18 @@ static char* map_udo_out_arg_type(char* in) {
     VL: 9.2.22 we are disabling the unused and confusing feature of
     a hidden local sampling rate parameter on 7.x
 
+    Array Type Format Contract:
+    ---------------------------
+    This function calls split_args() which takes EXTERNAL format input
+    (from OENTRY.intypes/outypes) and returns INTERNAL format output.
+
+    After split_args(), array types are in INTERNAL format:
+      - "[k]" for 1D k-rate array
+      - "[[a]" for 2D audio array
+      - "[:MyType;]" for UDT array
+
+    The code below (line ~130: if (*in_arg == '[')) expects this
+    INTERNAL format where dimension brackets precede the type.
 */
 static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
 {
