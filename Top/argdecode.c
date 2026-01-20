@@ -1274,7 +1274,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if(csound->orcname_mode == 0 && // only 1st argdecode pass
        csound->use_only_orchfile == 0) {
       csound->orchstr = copy_string_to_corefile(csound, s, 0);
-      csound->orchname = cs_strdup(csound, "cmd-string");
+      csound->orchname = csoundStrdup(csound, "cmd-string");
       csound->use_only_orchfile = 1; 
     }
     return 1;
