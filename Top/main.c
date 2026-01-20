@@ -303,12 +303,14 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
     corfile_putc(csound, '\0', csound->orchstr);
     corfile_rewind(csound->orchstr);
     // csound->orchname = NULL;
-  } else if(strcmp(csound->orchname, "cmd-string") == 0) {
-      corfile_puts(csound, "\n#exit\n", csound->orchstr);
-      corfile_putc(csound, '\0', csound->orchstr);
-      corfile_putc(csound, '\0', csound->orchstr);
-      corfile_rewind(csound->orchstr);
-  }       
+  } 
+
+  if(csound->orchname  && strcmp(csound->orchname, "cmd-string") == 0) {
+     corfile_puts(csound, "\n#exit\n", csound->orchstr);
+     corfile_putc(csound, '\0', csound->orchstr);
+     corfile_putc(csound, '\0', csound->orchstr);
+     corfile_rewind(csound->orchstr);
+   }       
          
   if (csound->xfilename != NULL)
     csound->Message(csound, "xfilename: %s\n", csound->xfilename);
