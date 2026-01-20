@@ -39,6 +39,10 @@ opcode remove(ival, karr[]):k[]
   xout kout
 endop
 
+instr fail
+  exitnow(-1)
+endin
+
 instr 1
   kArr[] fillarray 1, 2, 3, 4, 5
   iArr[] fillarray 10, 20, 30
@@ -53,11 +57,15 @@ instr 1
   ;; Test remove UDO
   kResult[] = remove(2, kArr)
 
-  ;; Verify results at init time only
-  if (iFound == 1 && iNotFound == 0) then
-    prints "PASSED: UDO array args with implied types work correctly\n"
+  ;; Verify results at init time - schedule fail instr if assertions fail
+  if (iFound != 1) then
+    prints "FAILED: contains(20, iArr) should return 1\n"
+    schedule("fail", 0, 0)
+  elseif (iNotFound != 0) then
+    prints "FAILED: contains(99, iArr) should return 0\n"
+    schedule("fail", 0, 0)
   else
-    prints "FAILED: UDO array args test\n"
+    prints "PASSED: UDO array args with implied types work correctly\n"
   endif
 
   turnoff
