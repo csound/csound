@@ -1843,8 +1843,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   TYPE_TABLE* typeTable = (TYPE_TABLE*)current->markup;
   CS_VAR_POOL *globalPool = csound->engineState.varPool;
 
-
-
   /* Advance past sentinel header node only if this node is the synthetic head
      created by the parser (type==0 and no value). If verify_tree returned a
      non-sentinel root (first real statement), do not skip it. */
@@ -2074,8 +2072,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 if (UNLIKELY(csound->synterrcnt)) {
   print_opcodedir_warning(csound);
   csound->Warning(csound, Str("%d syntax errors in orchestra.  "
-                              "compilation invalid, line %d\n"),
-                  csound->synterrcnt, current->line);
+                              "compilation invalid\n"),
+                  csound->synterrcnt);
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
  }
