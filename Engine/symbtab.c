@@ -269,9 +269,9 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
                               sizeof(MYFLT*) * (inm->inchns + inm->outchns));
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
-    opc->intypes = cs_strdup(csound, (inm->intypes[0] == '0') ? "" :
+    opc->intypes = csoundStrdup(csound, (inm->intypes[0] == '0') ? "" :
                                                                  inm->intypes);
-    opc->outypes = cs_strdup(csound, (inm->outtypes[0] == '0') ? "" :
+    opc->outypes = csoundStrdup(csound, (inm->outtypes[0] == '0') ? "" :
                                                                  inm->outtypes);
     // Keep the internal format for type matching - do NOT apply map_args here
 
@@ -382,7 +382,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     /* IV - Oct 31 2002 */
     /* store the name in a linked list (note: must use csound->Calloc) */
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
-    inm->name = cs_strdup(csound, opname);
+    inm->name = csoundStrdup(csound, opname);
     inm->newStyle = newStyle;
     inm->intypes = intypes;
     inm->outtypes = outtypes;
@@ -400,7 +400,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
       /* create a fake opcode so we can call it as such */
       opc = find_opcode(csound, "##userOpcode");
       memcpy(&tmpEntry, opc, sizeof(OENTRY));
-      tmpEntry.opname = cs_strdup(csound, opname);
+      tmpEntry.opname = csoundStrdup(csound, opname);
 
       csoundAppendOpcodes(csound, &tmpEntry, 1);
       newopc = csound_find_internal_oentry(csound, &tmpEntry);

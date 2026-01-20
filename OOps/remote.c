@@ -228,7 +228,7 @@ error:
     return -1;
 }
 
-/* Cleanup the above; called from musmon csoundCleanup */
+/* Cleanup the above; called from musmon csound_cleanup */
 void remote_cleanup(CSOUND *csound)
 {
     int32_t fd;
@@ -712,7 +712,7 @@ char remoteID(CSOUND *csound)
     return '\0';
 }
 
-/* Cleanup the above; called from musmon csoundCleanup */
+/* Cleanup the above; called from musmon csound_cleanup */
 void remote_cleanup(CSOUND *csound)
 {
     csound->remoteGlobals = NULL;

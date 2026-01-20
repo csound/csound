@@ -28,8 +28,8 @@
 #include <stdint.h>
 #include <time.h>
 
-MYFLT *csoundGetOutputBuffer(CSOUND *csound);
-int csoundPerformBuffer(CSOUND *csound);
+MYFLT *get_output_buffer(CSOUND *csound);
+int perform_buffer(CSOUND *csound);
 
 typedef struct OPEN_SL_PARAMS_ {
 
@@ -105,10 +105,10 @@ void bqPlayerCallback(SLBufferQueueItf bq, void *context)
       i, r = 0, ret = 1, paused;
     short *playBuffer = p->playBuffer;
     memset(playBuffer, 0, items*sizeof(short));
-    MYFLT *outputBuffer = csoundGetOutputBuffer(csound);
+    MYFLT *outputBuffer = get_output_buffer(csound);
     if(outputBuffer != NULL) {
      paused = *((int *) csound->QueryGlobalVariable(csound,"::paused::"));
-     if(!paused) ret = csoundPerformBuffer(csound);
+     if(!paused) ret = perform_buffer(csound);
      else csound->Message(csound, "paused \n");
      if(ret==0){
       for(i=0;i < items; i++)

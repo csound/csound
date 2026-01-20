@@ -56,7 +56,7 @@ strNcpy(char *dst, const char *src, size_t siz)
 
 /* module interface */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     int32_t   err = 0;
 
@@ -83,7 +83,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
     return err;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

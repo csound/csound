@@ -124,17 +124,17 @@ int32_t sfile_command(CSOUND *csound, void *p, int32_t flag, void *sf, int32_t n
 SNDFILE_CALLBACKS *sfile_setup(CSOUND *csound) {
       SNDFILE_CALLBACKS *sfcbs = (SNDFILE_CALLBACKS *)
         csound->Calloc(csound, sizeof(SNDFILE_CALLBACKS));
-      sfcbs->sndfileOpen = sfile_open;
-      sfcbs->sndfileOpenFd = sfile_open_fd; 
-      sfcbs->sndfileClose = sfile_close;
-      sfcbs->sndfileWrite = sfile_write;
-      sfcbs->sndfileRead = sfile_read;
-      sfcbs->sndfileWriteSamples = sfile_write_samples;
-      sfcbs->sndfileReadSamples = sfile_read_samples;
-      sfcbs->sndfileSeek = sfile_seek;
-      sfcbs->sndfileSetString = sfile_set_string;
-      sfcbs->sndfileStrError = sfile_str_error;
-      sfcbs->sndfileCommand = sfile_command;
+      sfcbs->SndfileOpen = sfile_open;
+      sfcbs->SndfileOpenFd = sfile_open_fd; 
+      sfcbs->SndfileClose = sfile_close;
+      sfcbs->SndfileWrite = sfile_write;
+      sfcbs->SndfileRead = sfile_read;
+      sfcbs->SndfileWriteSamples = sfile_write_samples;
+      sfcbs->SndfileReadSamples = sfile_read_samples;
+      sfcbs->SndfileSeek = sfile_seek;
+      sfcbs->SndfileSetString = sfile_set_string;
+      sfcbs->SndfileStrError = sfile_str_error;
+      sfcbs->SndfileCommand = sfile_command;
       return sfcbs;
 }
 

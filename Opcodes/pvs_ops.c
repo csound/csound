@@ -23,7 +23,7 @@
 #include "pvs_ops.h"
 
 /*
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
@@ -49,15 +49,15 @@ int32_t pvsopc_ModuleInit(CSOUND *csound)
 
 #ifdef BUILD_PLUGINS
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound) {  
+ int32_t csoundModuleCreate(CSOUND *csound) {  
         return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound) {
+ int32_t csoundModuleInit(CSOUND *csound) {
   return pvsopc_ModuleInit(csound);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t
 ) sizeof(MYFLT));

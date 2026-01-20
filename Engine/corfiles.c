@@ -43,7 +43,7 @@ CORFIL *corfile_create_r(CSOUND *csound, const char *text)
 {
     //char *strdup(const char *);
     CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
-    ans->body = cs_strdup(csound, (char*)text);
+    ans->body = csoundStrdup(csound, (char*)text);
     ans->len = (int32_t) strlen(text)+1;
     ans->p = 0;
     return ans;

@@ -29,7 +29,7 @@
 #include "arrays.h"
 
 /* Forward declaration for p-field string extraction */
-extern char* get_arg_string(CSOUND *csound, MYFLT p);
+extern char* csoundGetArgString(CSOUND *csound, MYFLT p);
 
 static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
@@ -215,7 +215,7 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
             return NULL;
           }
           var->varType = type;
-          var->varName = cs_strdup(csound, name);
+          var->varName = csoundStrdup(csound, name);
           return var;
         }
         current = current->next;
@@ -429,7 +429,7 @@ static char* normalize_type_name_for_comparison(CSOUND *csound, const char* type
   }
 
   // Otherwise, return a copy of the original name
-  return cs_strdup(csound, typeName);
+  return csoundStrdup(csound, typeName);
 }
 
 /**
@@ -493,8 +493,8 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
         STRINGDAT *strOut = (STRINGDAT *)assign->r;
 
         if (IsStringCode(pval)) {
-          /* P-field contains string data - extract it using get_arg_string */
-          const char *pstr = get_arg_string(csound, pval);
+          /* P-field contains string data - extract it using csoundGetArgString */
+          const char *pstr = csoundGetArgString(csound, pval);
 
           if (pstr != NULL && strlen(pstr) > 0) {
             if (strOut->data != NULL) {

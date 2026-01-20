@@ -139,7 +139,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
     char *ss = csound->init_event->strarg;
     if (ss == NULL)
       return OK;
-    ss = get_arg_string(csound, *p->indx);
+    ss = csoundGetArgString(csound, *p->indx);
     size_t len = strlen(ss);
     if (len >= p->r->size) {
       char *temp = csound->ReAlloc(csound, p->r->data, len + 1);
@@ -213,7 +213,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
   if (IsStringCode(*p->indx)) {
     char *ss;
-    ss = get_arg_string(csound, *p->indx);
+    ss = csoundGetArgString(csound, *p->indx);
     if (ss == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
         return csoundPerfError(csound, (OPDS*)p,
@@ -253,7 +253,7 @@ int32_t str_changed(CSOUND *csound, STRCHGD *p)
 {
   if (p->mem != NULL)
     csound->Free(csound, p->mem);
-  p->mem = cs_strdup(csound, p->str->data);
+  p->mem = csoundStrdup(csound, p->str->data);
   *p->r = 0;
   return OK;
 }
@@ -262,7 +262,7 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 {
     if (p->str->data && ( p->mem == NULL || strcmp(p->str->data, p->mem)!=0)) {
     csound->Free(csound, p->mem);
-    p->mem = cs_strdup(csound, p->str->data);
+    p->mem = csoundStrdup(csound, p->str->data);
     *p->r = 1;
     }
     else *p->r = 0;
@@ -340,7 +340,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     }
   else if(p->str1 != p->r && p->str2 == p->r) {
     // the bad case where str2 == r
-    char *ostr = cs_strdup(csound, p->str2->data);
+    char *ostr = csoundStrdup(csound, p->str2->data);
    if(size >= p->r->size) {
        size_t alloc_size;
        if (size > SIZE_MAX / 2) {
@@ -369,7 +369,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     }
   else {
     // the bad case where (str1 == str2) == r
-   char *ostr = cs_strdup(csound, p->str2->data);
+   char *ostr = csoundStrdup(csound, p->str2->data);
    if (size >= p->r->size) {
         size_t alloc_size;
         if (size > SIZE_MAX / 2) {
@@ -692,7 +692,7 @@ int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
   double  x;
 
   if (IsStringCode(*p->str))
-    s = get_arg_string(csound, *p->str);
+    s = csoundGetArgString(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
     if (ndx >= 0 && ndx <= (int32_t) csound->strsmax && csound->strsets != NULL)
@@ -703,7 +703,7 @@ int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
   while (isblank(*s)) s++;
   if (UNLIKELY(*s == '\0'))
     return StrOp_ErrMsg(p, Str("empty string"));
-  x = cs_strtod(s, &tmp);
+  x = csoundStrtod(s, &tmp);
   if (UNLIKELY(*tmp != '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
   *p->indx = (MYFLT) x;
@@ -720,7 +720,7 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
   while (isblank(*s)) s++;
   if (UNLIKELY(*s == '\0'))
     return StrOp_ErrMsg(p, Str("empty string"));
-  x = cs_strtod(s, &tmp);
+  x = csoundStrtod(s, &tmp);
   if (UNLIKELY(*tmp != '\0'))
     return StrOp_ErrMsg(p, Str("invalid format"));
   *p->indx = (MYFLT) x;
@@ -789,7 +789,7 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
   int32_t   x = 0L;
 
   if (IsStringCode(*p->str))
-    s = get_arg_string(csound, *p->str);
+    s = csoundGetArgString(csound, *p->str);
   else {
     int32_t ndx = (int32_t) MYFLT2LRND(*p->str);
     if (ndx >= 0 && ndx <= (int32_t) csound->strsmax && csound->strsets != NULL)
@@ -1326,11 +1326,11 @@ int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
   return OK;
 }
 
-PUBLIC const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata){
+ const char* csoundGetStringData(CSOUND *csound, STRINGDAT *sdata){
   return sdata->data;
 }
 
-PUBLIC void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata, const char *str){
+ void csoundSetStringData(CSOUND *csound, STRINGDAT *sdata, const char *str){
   size_t bytes = strlen(str);
   if(sdata->size > bytes)
     strcpy(sdata->data, str);

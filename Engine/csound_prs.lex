@@ -334,7 +334,7 @@ NM              [nm][ \t]+
                                          yyscanner);
                     corfile_putc(csound, '\n', PARM->cf);
                     csound_prs_line(PARM->cf, yyscanner);
-                    mfree(csound, pp);
+                    csoundFree(csound, pp);
                   }
                   else {
                     corfile_puts(csound, yytext, PARM->cf);
@@ -540,7 +540,7 @@ NM              [nm][ \t]+
                buff[i] = '\0';
                //printf("macro name %s\n", buff);
                /* Define macro for counter */
-               PARM->repeat_sect_mm->name = cs_strdup(csound, buff);
+               PARM->repeat_sect_mm->name = csoundStrdup(csound, buff);
                PARM->repeat_sect_mm->acnt = -1; /* inhibit */
                PARM->repeat_sect_mm->body = csound->Calloc(csound, 16);
                PARM->repeat_sect_mm->body[0] = '0';
@@ -1133,10 +1133,10 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     csound->DebugMsg(csound, "macro %s undefined\n", name0);
     if (strcmp(name0, PARM->macros->name)==0) {
       MACRO *mm=PARM->macros->next;
-      mfree(csound, PARM->macros->name); mfree(csound, PARM->macros->body);
+      csoundFree(csound, PARM->macros->name); csoundFree(csound, PARM->macros->body);
       for (i=0; i<PARM->macros->acnt; i++)
-        mfree(csound, PARM->macros->arg[i]);
-      mfree(csound, PARM->macros); PARM->macros = mm;
+        csoundFree(csound, PARM->macros->arg[i]);
+      csoundFree(csound, PARM->macros); PARM->macros = mm;
     }
     else {
       MACRO *mm = PARM->macros;
@@ -1148,10 +1148,10 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      mfree(csound, nn->name); mfree(csound, nn->body);
+      csoundFree(csound, nn->name); csoundFree(csound, nn->body);
       for (i=0; i<nn->acnt; i++)
-        mfree(csound, nn->arg[i]);
-      mm->next = nn->next; mfree(csound, nn);
+        csoundFree(csound, nn->arg[i]);
+      mm->next = nn->next; csoundFree(csound, nn);
     }
     while ((c=input(yyscanner)) != '\n' &&
            c != EOF && c != '\r'); /* ignore rest of line */
@@ -1217,7 +1217,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
         if (strcmp("end", buf) == 0 || strcmp("endif", buf) == 0) {
           if (nested_ifdef-- == 0) {
             PARM->ifdefStack = pp->prv;
-            mfree(csound, pp);
+            csoundFree(csound, pp);
             break;
           }
         }
@@ -1292,7 +1292,7 @@ void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
         qq->macros = mm;
       }
       else
-        mfree(csound, mname);
+        csoundFree(csound, mname);
       mm->margs = MARGS;    /* Initial size */
       mm->acnt = 0;
       if (*p != '\0')
@@ -1852,8 +1852,8 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
       x = PARM->macros;
       if (x==y) {
         while (n>0) {
-          mfree(csound, y->name); x=y->next;
-          mfree(csound, y); y=x; n--;
+          csoundFree(csound, y->name); x=y->next;
+          csoundFree(csound, y); y=x; n--;
         }
         PARM->macros = x;
       }
@@ -1862,7 +1862,7 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
         while (x->next != y) x = x->next;
         while (n>0) {
           nxt = y->next;
-          mfree(csound, y->name); mfree(csound, y); y=nxt; n--;
+          csoundFree(csound, y->name); csoundFree(csound, y); y=nxt; n--;
         }
         x->next = nxt;
       }

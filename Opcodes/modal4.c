@@ -292,7 +292,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     int32_t doubles = (*p->doubles<=FL(0.0) ? 40 : triples + (int32_t)*p->doubles);
    const OPARMS *parm;
     parm =  csound->GetOParms(csound) ;
-    itemp = csound->Rand31(csound->RandSeed1(csound)) % 100;
+    itemp = csound->Rand31(csound->RandSeed31(csound)) % 100;
     if (itemp < triples) {
       p->multiStrike = 2;   
       if (parm->msglevel & CS_RNGEMSG)

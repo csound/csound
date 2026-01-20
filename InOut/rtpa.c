@@ -727,7 +727,7 @@ static void PaNoOpDebugPrint(const char* msg) {
 
 /* module interface functions */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
   IGN(csound);
 #ifdef WIN32
@@ -736,7 +736,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
   return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
   char    *s = NULL;
   char    drv[12];
@@ -783,7 +783,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
   return 0;
 }
 
-PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
+ int32_t csoundModuleDestroy(CSOUND *csound)
 {
   if (csound->QueryGlobalVariable(csound, "::PortAudio::NeedsTerminate")) {
     csound->DestroyGlobalVariable(csound, "::PortAudio::NeedsTerminate");
@@ -792,7 +792,7 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
   return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
   return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

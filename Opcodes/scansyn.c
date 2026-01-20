@@ -224,7 +224,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     FUNC    *f;
     uint32_t len;
     //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
-    
+
     /* Mass */
     if (UNLIKELY((f = csound->FTFind(csound, p->i_m)) == NULL)) {
       return csound->InitError(csound,
@@ -772,7 +772,7 @@ static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
       return csound->PerfError(csound, &(p->h),
                                Str("scan map %d out of range [0,%d]\n"),
                                which, pp->len);
- 
+
     pp->x0[which] = *p->k_pos/(*p->k_pamp);
     pp->v[which]  = *p->k_vel/(*p->k_vamp);
     return OK;
@@ -833,13 +833,13 @@ int32_t scansyn_init_(CSOUND *csound)
 }
 
 #ifdef BUILD_PLUGINS
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     int32_t   err = 0;
 
@@ -849,7 +849,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t
                                                            ) sizeof(MYFLT));

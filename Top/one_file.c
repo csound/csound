@@ -22,7 +22,6 @@
 
 #include "csoundCore.h"
 #include <stdlib.h>
-//int32_t mkstemp(char *);
 #include <ctype.h>
 #ifndef __wasi__
 #include <errno.h>
@@ -48,8 +47,6 @@
 #  define FALSE (0)
 #endif
 
-//#define _DEBUG
-
 /* These are used to set/clear bits in csound->tempStatus.
    If the bit is set, it indicates that the given file is
    a temporary. */
@@ -61,7 +58,7 @@ const uint32_t csPlayScoMask = 16;
 
 #define STA(x)   (csound->onefileStatics.x)
 
-CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
+CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
@@ -125,7 +122,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
       /* if the file already exists, try again */
     } while (stat(lbuf, &tmp) == 0);
 #endif
-return cs_strdup(csound, lbuf);
+return csoundStrdup(csound, lbuf);
 }
 
 static inline void alloc_globals(CSOUND *csound)
@@ -245,9 +242,9 @@ static void remove_special_placeholders(char *s, size_t n)
     }
 }
 
-/* readingCsOptions should be non-zero when readOptions() is called
+/* readingCsOptions should be non-zero when read_options() is called
    while reading the <CsOptions> tag, but zero in other cases. */
-int32_t readOptions(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
+int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
     int32_t   argc = 0;
@@ -395,7 +392,7 @@ static int32_t all_blank(char* start, char* end)
     return 1;
 }
 
-static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
+static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *q;
     CORFIL *incore = corfile_create_w(csound);
@@ -478,7 +475,7 @@ static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 #else
-static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
+static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     CORFIL *incore = corfile_create_w(csound);
@@ -496,8 +493,6 @@ static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
 
       if (comm == 0 &&
           strstr(p, "</CsInstruments>") == p) {
-        //csound->Message(csound, "closing tag\n");
-        //corfile_flush(incore);
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
         corfile_putc(csound, '\0', incore);
@@ -523,7 +518,7 @@ static int32_t createOrchestra(CSOUND *csound, CORFIL *cf)
 #endif
 
 #if 1
-static int32_t createScore(CSOUND *csound, CORFIL *cf)
+static int32_t create_score(CSOUND *csound, CORFIL *cf)
 {
     char   *p, *q;
     int32_t    state = 0;
@@ -591,7 +586,7 @@ static int32_t createScore(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 #else
-static int32_t createScore(CSOUND *csound, CORFIL *cf)
+static int32_t create_score(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
     char   buffer[CSD_MAX_LINE_LEN];
@@ -618,7 +613,7 @@ static int32_t createScore(CSOUND *csound, CORFIL *cf)
 }
 #endif
 
-static int32_t createExScore(CSOUND *csound, char *p, CORFIL *cf)
+static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 {
 #ifdef IOS
   csoundErrorMsg(csound, "External scores not supported on iOS");
@@ -645,9 +640,9 @@ static int32_t createExScore(CSOUND *csound, char *p, CORFIL *cf)
     strNcpy(prog, p+5, 256); //prog[255]='\0';/* after "<CsExScore " */
     /* Generate score name */
     if (STA(sconame)) free(STA(sconame));
-    STA(sconame) = csoundTmpFileName(csound, ".sco");
-    extname = csoundTmpFileName(csound, ".ext");
-    fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, extname, "w", NULL,
+    STA(sconame) = tmp_file_name(csound, ".sco");
+    extname = tmp_file_name(csound, ".ext");
+    fd = csoundFileOpen(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
     csound->tempStatus |= csScoInMask;
 #ifdef _DEBUG
@@ -682,7 +677,7 @@ int system_result = system(sys);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w(csound);
 
-        fd = csoundFileOpenWithType(csound, &scof, CSFILE_STD, STA(sconame),
+        fd = csoundFileOpen(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
           csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
@@ -828,7 +823,7 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 }
 #endif
 
-static int32_t createMIDI2(CSOUND *csound, CORFIL *cf)
+static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     FILE  *midf;
@@ -837,8 +832,8 @@ static int32_t createMIDI2(CSOUND *csound, CORFIL *cf)
 
     /* Generate MIDI file name */
     if (STA(midname)) free(STA(midname));
-    STA(midname) = csoundTmpFileName(csound, ".mid");
-    fd = csoundFileOpenWithType(csound, &midf, CSFILE_STD, STA(midname),
+    STA(midname) = tmp_file_name(csound, ".mid");
+    fd = csoundFileOpen(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
@@ -862,7 +857,7 @@ static int32_t createMIDI2(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int32_t createSample(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     int32_t   num;
     FILE  *smpf;
@@ -876,7 +871,7 @@ static int32_t createSample(CSOUND *csound, char *buffer, CORFIL *cf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), sampname);
     }
-    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
                                 CSFTYPE_UNKNOWN_AUDIO, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
@@ -897,7 +892,7 @@ static int32_t createSample(CSOUND *csound, char *buffer, CORFIL *cf)
     return FALSE;
 }
 
-static int32_t createFile(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     FILE  *smpf;
     void  *fd;
@@ -913,18 +908,12 @@ static int32_t createFile(CSOUND *csound, char *buffer, CORFIL *cf)
     else
       q = strchr(p, '>');
     if (q) *q='\0';
-    //  printf("p=>>%s<<\n", p);
-    strNcpy(filename, p, 256); //filename[255]='\0';
-//sscanf(buffer, "<CsFileB filename=\"%s\">", filename);
-//    if (filename[0] != '\0' &&
-//       filename[strlen(filename) - 1] == '>' &&
-//       filename[strlen(filename) - 2] == '"')
-//    filename[strlen(filename) - 2] = '\0';
+    strNcpy(filename, p, 256);
     if (UNLIKELY((smpf = fopen(filename, "rb")) != NULL)) {
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
-    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
                                 CSFTYPE_UNKNOWN, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
@@ -947,7 +936,7 @@ static int32_t createFile(CSOUND *csound, char *buffer, CORFIL *cf)
 }
 
 #ifdef JPFF
-static int32_t createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     CORFIL  *smpf;
     char  filename[256];
@@ -988,7 +977,7 @@ static int32_t createCorfile(CSOUND *csound, char *buffer, CORFIL *cf)
 }
 #endif
 
-static int32_t createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
+static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
 {
     FILE  *smpf;
     void  *fd;
@@ -1012,7 +1001,7 @@ static int32_t createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
       fclose(smpf);
       csoundDie(csound, Str("File %s already exists"), filename);
     }
-    fd = csoundFileOpenWithType(csound, &smpf, CSFILE_STD, filename, "w", NULL,
+    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "w", NULL,
                                 CSFTYPE_UNKNOWN, 1);
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
@@ -1032,7 +1021,7 @@ static int32_t createFilea(CSOUND *csound, char *buffer, CORFIL *cf)
     return res;
 }
 
-static int32_t checkVersion(CSOUND *csound, CORFIL *cf)
+static int32_t check_version(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     int32_t   major = 0, minor = 0;
@@ -1081,7 +1070,7 @@ static int32_t checkVersion(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int32_t checkLicence(CSOUND *csound, CORFIL *cf)
+static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;
     int32_t   len = 1;
@@ -1108,7 +1097,7 @@ static int32_t checkLicence(CSOUND *csound, CORFIL *cf)
     return FALSE;
 }
 
-static int32_t checkShortLicence(CSOUND *csound, CORFIL *cf)
+static int32_t check_short_licence(CSOUND *csound, CORFIL *cf)
 {
     int32_t   type = 0;
     char  buff[CSD_MAX_LINE_LEN];
@@ -1148,7 +1137,6 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)
           csoundMessage(csound, Str("STARTING FILE\n"));
-        //printf("****csd starts on line %d\n", STA(csdlinecount));
         started = TRUE;
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
@@ -1167,7 +1155,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
           if(csound->oparms->odebug)
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
-          r = readOptions(csound, cf, 1);
+          r = read_options(csound, cf, 1);
           result = r && result;
         }
         else {
@@ -1187,21 +1175,21 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       else if (strstr(p, "<CsInstruments>") == p) {
         if(csound->oparms->odebug)
          csoundMessage(csound, Str("Creating orchestra\n"));
-        r = createOrchestra(csound, cf);
+        r = create_orchestra(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsScore") == p) {
         if(csound->oparms->odebug)
          csoundMessage(csound, Str("Creating score\n"));
         if (strstr(p, "<CsScore>") == p)
-          r = createScore(csound, cf);
+          r = create_score(csound, cf);
         else
-          r = createExScore(csound, p, cf);
+          r = create_ex_score(csound, p, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsMidifileB>") == p) {
         if (notrunning) {
-          r = createMIDI2(csound, cf);
+          r = create_MIDI2(csound, cf);
           result = r && result;
         }
         else {
@@ -1219,37 +1207,37 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         }
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {
-        r = createSample(csound, buffer, cf);
+        r = create_sample(csound, buffer, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsFileB filename=") == p) {
-        r = createFile(csound, buffer, cf);
+        r = create_file(csound, buffer, cf);
         result = r && result;
       }
 #ifdef JPFF
       else if (strstr(p, "<CsFileC filename=") == p) {
-        r = createCorfile(csound, buffer, cf);
+        r = create_corfile(csound, buffer, cf);
         result = r && result;
       }
 #endif
       else if (strstr(p, "<CsFile filename=") == p) {
         csoundMessage(csound,
                       Str("CsFile is deprecated and may not work; use CsFileB\n"));
-        r = createFilea(csound, buffer, cf);
+        r = create_filea(csound, buffer, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsVersion>") == p) {
-        r = checkVersion(csound, cf);
+        r = check_version(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsLicence>") == p ||
                strstr(p, "<CsLicense>") == p) {
-        r = checkLicence(csound, cf);
+        r = check_licence(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsShortLicence>") == p ||
                strstr(p, "<CsSortLicense>") == p) {
-        r = checkShortLicence(csound, cf);
+        r = check_short_licence(csound, cf);
         result = r && result;
       }
       else if (blank_buffer(/*csound,*/ buffer)) continue;

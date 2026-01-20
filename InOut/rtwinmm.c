@@ -713,7 +713,7 @@ static int32_t midi_out_close(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     rtWinMMGlobals  *pp;
    const OPARMS *O;
@@ -754,7 +754,7 @@ static CS_NOINLINE int32_t check_name(const char *s)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     if (check_name((char*) csound->QueryGlobalVariable(csound, "_RTAUDIO"))) {
       csound->DebugMsg(csound, Str("rtaudio: WinMM module enabled\n"));
@@ -776,7 +776,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

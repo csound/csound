@@ -35,7 +35,7 @@ csoundSetScorePending["toString"] = () => "setScorePending = async (pending) => 
  */
 export const csoundReadScore = (wasm) => (csound /* CsoundInst */, score /* string */) => {
   const stringPtr = string2ptr(wasm, score);
-  const result = wasm.exports["csoundReadScore"](csound, stringPtr);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 0);
   freeStringPtr(wasm, stringPtr);
   return result;
 };

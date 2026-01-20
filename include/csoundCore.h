@@ -1094,7 +1094,6 @@ struct CSOUND_ {
 
   /** @name Events and Score */
   /**@{ */
-  int32_t (*CheckEvents)(CSOUND *);
   void (*Event)(CSOUND *, int32_t, const MYFLT *, int32_t);
   MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
   void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
@@ -1117,7 +1116,7 @@ struct CSOUND_ {
 
   /** @name Arguments and Types */
   /**@{ */
-  char *(*GetString)(CSOUND *, MYFLT);
+  char *(*GetArgString)(CSOUND *, MYFLT);
   int32 (*StringArg2Insno)(CSOUND *, void *p, int32_t is_string);
   char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int32_t);
   const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
@@ -1228,7 +1227,7 @@ struct CSOUND_ {
                      uint32_t keyLength);
   uint32_t (*RandMT)(CsoundRandMTState *p);
   int32_t (*Rand31)(int32_t *seedVal);
-  int32_t *(*RandSeed1)(CSOUND *);
+  int32_t *(*RandSeed31)(CSOUND *);
   int32_t (*GetRandSeed)(CSOUND *, int32_t which);
   /**@}*/
 
@@ -1435,7 +1434,7 @@ struct CSOUND_ {
       To allow the API to grow while maintining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[39];
+  SUBR dummyfn_2[50];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1477,7 +1476,6 @@ struct CSOUND_ {
   void (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat);
   void (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
   int32_t (*csoundExitGraphCallback_)(CSOUND *);
-  int32_t (*csoundYieldCallback_)(CSOUND *);
   void *(*OpenSoundFileCallback_)(CSOUND *, const char *, int32_t, void *);
   FILE *(*OpenFileCallback_)(CSOUND *, const char *, const char *);
   void (*FileOpenCallback_)(CSOUND *, const char *, int32_t, int32_t, int32_t);
@@ -1491,7 +1489,6 @@ struct CSOUND_ {
   int32_t (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int32_t);
   int32_t (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int32_t);
   int32_t (*doCsoundCallback)(CSOUND *, void *, uint32_t);
-  int32_t (*csoundInternalYieldCallback_)(CSOUND *);
   int32_t (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                            and nodebug function */
   void (*csoundMessageStringCallback)(CSOUND *csound, int32_t attr,
@@ -1704,7 +1701,6 @@ struct CSOUND_ {
   /* VL: pvs bus */
   int32_t nchanif, nchanof;
   char *chanif, *chanof;
-  /* VL: internal yield callback */
   int32_t multiThreadedComplete;
   THREADINFO *multiThreadedThreadInfo;
   struct dag_t *multiThreadedDag;

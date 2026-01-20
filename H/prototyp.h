@@ -27,22 +27,22 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void *mmalloc(CSOUND *, size_t);
-  void *mcalloc(CSOUND *, size_t);
-  void *mrealloc(CSOUND *, void *, size_t);
-  void mfree(CSOUND *, void *);
-  void *mmalloc_debug(CSOUND *, size_t, char*, int32_t);
-  void *mcalloc_debug(CSOUND *, size_t, char*, int32_t);
-  void *mrealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
-  void mfree_debug(CSOUND *, void *, char*, int32_t);
-  void auxalloc(CSOUND *, size_t, AUXCH *);
+  void *csoundMalloc(CSOUND *, size_t);
+  void *csoundCalloc(CSOUND *, size_t);
+  void *csoundRealloc(CSOUND *, void *, size_t);
+  void csoundFree(CSOUND *, void *);
+  void *csoundMalloc_debug(CSOUND *, size_t, char*, int32_t);
+  void *csoundCalloc_debug(CSOUND *, size_t, char*, int32_t);
+  void *csoundRealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
+  void csoundFree_debug(CSOUND *, void *, char*, int32_t);
+  void csoundAuxalloc(CSOUND *, size_t, AUXCH *);
   void auxchfree(CSOUND *, INSDS *);
-  int32_t auxalloc_async(CSOUND *, size_t , AUXCH *,
+  int32_t csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
                          AUXASYNC *, aux_cb , void *);
-  void fdrecord(CSOUND *, FDCH *);
-  void csound_fd_close(CSOUND *, FDCH *);
+  void csoundFDRecord(CSOUND *, FDCH *);
+  void csoundFDClose(CSOUND *, FDCH *);
   void fdchclose(CSOUND *, INSDS *);
-  char *cs_strdup(CSOUND*, const char*);
+  char *csoundStrdup(CSOUND*, const char*);
   char *cs_strndup(CSOUND*, const char*, size_t);
   CS_PRINTF2  void synterr(CSOUND *, const char *, ...);
   CS_NORETURN CS_PRINTF2  void csoundDie(CSOUND *, const char *, ...);
@@ -55,7 +55,7 @@ extern "C" {
   void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
   CS_NORETURN void csoundLongJmp(CSOUND *, int32_t retval);
   TEXT *getoptxt(CSOUND *, int32_t *);
-  void  dispinit(CSOUND *);
+  void  csoundInitDisplay(CSOUND *);
   int32_t init0(CSOUND *);
   void scsort(CSOUND *, FILE *, FILE *);
   char *scsortstr(CSOUND *, CORFIL *);
@@ -63,13 +63,13 @@ extern "C" {
   int32_t rdscor(CSOUND *, EVTBLK *);
   int32_t start_engine(CSOUND *);
   void list_opcodes(CSOUND *, int32_t);
-  char  *getstrformat(int32_t format);
-  int32_t sfsampsize(int32_t sf_format);
-  char *type2string(int32_t type);
-  int32_t type2csfiletype(int32_t type, int32_t encoding);
-  int32_t sftype2csfiletype(int32_t type);
-  void  rewriteheader(CSOUND *csound, void *ofd);
-  int32_t readOptions(CSOUND *, CORFIL *, int32_t);
+  char  *csoundGetStrFormat(int32_t format);
+  int32_t sndfileSampleSize(int32_t sf_format);
+  char *csoundType2String(int32_t type);
+  int32_t csoundType2CsfileType(int32_t type, int32_t encoding);
+  int32_t csoundSndfileType2CsfileType(int32_t type);
+  void  csoundRewriteHeader(CSOUND *csound, void *ofd);
+  int32_t read_options(CSOUND *, CORFIL *, int32_t);
   int32_t argdecode(CSOUND *, int32_t, const char **);
   void  remove_tmpfiles(CSOUND *);
   void  add_tmpfile(CSOUND *, char *);
@@ -87,8 +87,8 @@ extern "C" {
   void free_inactive_instances(CSOUND*);
   void beat_expire(CSOUND *, double);
   void time_expire(CSOUND *, double);
-  int32_t insert_score_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
-  MEMFIL *load_memfile_with_cb(CSOUND *csound, const char *filnam, int32_t csFileType,
+  int32_t insert_event_at_sample(CSOUND *, const EVTBLK *, const MYFLT *, int64_t);
+  MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileType,
                                int32_t (*callback)(CSOUND*, MEMFIL*));
   void    free_memfiles(CSOUND *);
   int32_t  delete_memfile(CSOUND *, const char *);
@@ -99,7 +99,7 @@ extern "C" {
   void    dbfs_init(CSOUND *, MYFLT dbfs);
   int32_t csoundLoadExternals(CSOUND *);
   SNDMEMFILE *csoundLoadSoundFile(CSOUND *, const char *name, void *sfinfo);
-  int32_t load_PVOCEX_file(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
+  int32_t csoundPVOCEX_LoadFile(CSOUND *, const char *fname, PVOCEX_MEMFILE *p);
   void    print_opcodedir_warning(CSOUND *);
   int32_t check_rtaudio_name(char *fName, char **devName, int32_t isOutput);
   int32_t csoundLoadOpcodeDB(CSOUND *, const char *);
@@ -107,7 +107,7 @@ extern "C" {
   int32_t csoundCheckOpcodePluginFile(CSOUND *, const char *);
   int32_t csoundLoadAndInitModule(CSOUND *, const char *);
   void    csoundNotifyFileOpened(CSOUND *, const char *, int32_t, int32_t, int32_t);
-  char *get_arg_string(CSOUND *, MYFLT);
+  char *csoundGetArgString(CSOUND *, MYFLT);
   void    linevent_open(CSOUND *);
   void    linevent_close(CSOUND *);
   void    sf_open_in(CSOUND *);
@@ -220,10 +220,6 @@ const char *csoundExternalMidiErrorString(CSOUND *, int32_t errcode);
  */
 int32_t csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int32_t n);
 
-/**
- * Check system events, yielding cpu time for coopertative multitasking, etc.
- */
-int32_t csoundYield(CSOUND *);
 
 /**
  * Register utility with the specified name.
@@ -249,37 +245,28 @@ int32_t csoundDeleteAllConfigurationVariables(CSOUND *);
 #ifdef __cplusplus
 }
 #endif
-
-#ifdef  USE_DOUBLE
-#define sflib_write_MYFLT  sflib_write_double
-#define sflib_writef_MYFLT  sflib_writef_double
-#define sflib_read_MYFLT   sflib_read_double
-#define sflib_readf_MYFLT   sflib_readf_double
-#else
-#define sflib_write_MYFLT  sflib_write_float
-#define sflib_writef_MYFLT  sflib_writef_float
-#define sflib_read_MYFLT   sflib_read_float
-#define sflib_readf_MYFLT   sflib_readf_float
-#endif
  
 #ifdef __cplusplus
 extern "C" {
 #endif
-  int32_t sflib_command (void *handle, int32_t cmd, void *data, int32_t datasize);
-  void *sflib_open(const char *path, int32_t mode, SFLIB_INFO *sfinfo);
-  void *sflib_open_fd(int32_t fd, int32_t mode, SFLIB_INFO *sfinfo, int32_t close_desc);
-  int32_t sflib_close(void *sndfile);
-  long sflib_seek(void *handle, long frames, int32_t whence);
-  long sflib_read_float(void *sndfile, float *ptr, long items);
-  long sflib_readf_float(void *handle, float *ptr, long frames);
-  long sflib_read_double(void *sndfile, double *ptr, long items);
-  long sflib_readf_double(void *handle, double *ptr, long frames);
-  long sflib_write_float(void *sndfile, float *ptr, long items);
-  long sflib_writef_float(void *handle, float *ptr, long frames);
-  long sflib_write_double(void *handle, double *ptr, long items);
-  long sflib_writef_double(void *handle, double *ptr, long frames);
-  int32_t sflib_set_string(void *sndfile, int32_t str_type, const char* str);
-  const char *sflib_strerror(void *);  
+int64_t csoundSndfileWrite(CSOUND *csound, void *h, MYFLT *p, int64_t frames);
+int64_t csoundSndfileRead(CSOUND *csound, void *h, MYFLT *p, int64_t frames);
+int64_t csoundSndfileWriteSamples(CSOUND *csound, void *h, MYFLT *p,
+                                  int64_t samples);
+int64_t csoundSndfileReadSamples(CSOUND *csound, void *h, MYFLT *p,
+                                 int64_t samples);
+int64_t csoundSndfileSeek(CSOUND *csound, void *h, int64_t frames,
+                          int32_t whence);
+void *csoundSndfileOpen(CSOUND *csound, const char *path, int32_t mode,
+                        SFLIB_INFO *sfinfo);
+void *csoundSndfileOpenFd(CSOUND *csound, int32_t fd, int32_t mode,
+                          SFLIB_INFO *sfinfo, int32_t close_desc);
+int32_t csoundSndfileClose(CSOUND *csound, void *sndfile);
+int32_t csoundSndfileSetString(CSOUND *csound, void *sndfile, int32_t str_type,
+                               const char *str);
+const char *csoundSndfileStrError(CSOUND *csound, void *sndfile);
+int32_t csoundSndfileCommand(CSOUND *csound, void *handle, int32_t cmd,
+                             void *data, int32_t datasize);
 #ifdef __cplusplus
 }
 #endif

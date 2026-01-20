@@ -133,6 +133,7 @@ class PUBLIC CsoundPerformanceThread {
   PyThreadState *_tstate;
   pycallbackdata pydata;
 #endif
+  
   /**
    * Returns 1 if the performance thread is running, 0 otherwise
    */
@@ -157,6 +158,7 @@ class PUBLIC CsoundPerformanceThread {
     {
       return csound;
     }
+    
     /**
      * Returns the current status, zero if still playing, positive if
      * the end of score was reached or performance was stopped, and
@@ -166,32 +168,39 @@ class PUBLIC CsoundPerformanceThread {
     {
       return status;
     }
+    
     /**
      * Continues performance if it was paused.
      */
     void Play();
+    
     /**
      * Pauses performance (can be continued by calling Play()).
      */
     void Pause();
+    
     /**
      * Pauses performance unless it is already paused, in which case
      * it is continued.
      */
     void TogglePause();
+    
     /**
      * Stops performance (cannot be continued).
      */
     void Stop();
+    
     /**
      * Starts recording the output from Csound. The sample rate and number
      * of channels are taken directly from the running Csound instance.
      */
     void Record(std::string filename, int32_t samplebits = 16, int32_t numbufs = 4);
+    
     /**
      * Stops recording and closes audio file.
      */
     void StopRecord();
+    
     /**
      * Sends a score event of type 'opcod' (e.g. 'i' for a note event), with
      * 'pcnt' p-fields in array 'p' (p[0] is p1). If absp2mode is non-zero,
@@ -199,43 +208,52 @@ class PUBLIC CsoundPerformanceThread {
      * performance, instead of the default of relative to the current time.
      */
     void ScoreEvent(int32_t absp2mode, char opcod, int32_t pcnt, const MYFLT *p);
+    
     /**
      * Sends a score event as a string, similarly to line events (-L).
      */
     void InputMessage(const char *s);
+    
     /**
      * Sets the playback time pointer to the specified value (in seconds).
      */
     void SetScoreOffsetSeconds(double timeVal);
+
+
     /**
+     * Compiles the given orchestra code
+     */
+    void CompileOrc(const char *code);
+
+
+     /**
+     * Evaluates the given code, calls the `returncb` callback with the 
+     * value passed to the `return` opcode in global space. 
+     */
+    void EvalCode(const char *code, void (*returncb)(MYFLT));
+
+
+    /**
+     * Calls the given callback within the context of the performance thread
+     */
+    void RequestCallback(void (*func)(CsoundPerformanceThread *));
+
+
+     /**
+     * Waits until all pending messages (pause, send score event, etc.)
+     * are actually received by the performance thread.
+     */
+    void FlushMessageQueue();
+
+     /**
      * Waits until the performance is finished or fails, and returns a
      * positive value if the end of score was reached or Stop() was called,
      * and a negative value if an error occured. Also releases any resources
      * associated with the performance thread object.
      */
-     
-    void CompileOrc(const char *code);
-    /**
-     * Compiles the given orchestra code
-     */
-    
-    void EvalCode(const char *code, void (*returncb)(MYFLT));
-    /**
-     * Evaluates the given code, calls the `returncb` callback with the 
-     * value passed to the `return` opcode in global space. 
-     */
-     
-    void RequestCallback(void (*func)(CsoundPerformanceThread *));
-    /**
-     * Calls the given callback within the context of the performance thread
-     */
-    
     int32_t Join();
-    /**
-     * Waits until all pending messages (pause, send score event, etc.)
-     * are actually received by the performance thread.
-     */
-    void FlushMessageQueue();
+
+  
     // --------
     CsoundPerformanceThread(Csound *);
     CsoundPerformanceThread(Csound &);

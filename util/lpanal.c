@@ -611,7 +611,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     /* Some display stuff */
 #if 0
-    dispinit(csound);
+    csoundInitDisplay(csound);
     csound->SetDisplay(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
@@ -660,7 +660,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
   /*    *fp1++ = - (MYFLT) *--dfp; */  /* rev coefs & chng sgn */
 #if 0
       CS_SPRINTF(lpc.pwindow.caption, "pitch: %8.2f", coef[3]);
-      display(csound, &lpc.pwindow);
+      csoundDisplay(csound, &lpc.pwindow);
 #endif
 
       /* Prepare buffer for output */
@@ -765,12 +765,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
       /* Get next sound frame */
       if ((n = (csound->GetUtility(csound))->Sndin(csound, infd, sigbuf2, slice, p)) == 0)
         break;          /* refill til EOF */
-      if (UNLIKELY(!csound->CheckEvents(csound)))
-        return -1;
     } while (counter < analframes); /* or nsmps done */
 #if 0
     /* clean up stuff */
-    dispexit(csound);
+    csoundDeinitDisplay(csound);
 #endif
     csound->Message(csound, Str("%d lpc frames written to %s\n"),
                             counter, outfilnam);

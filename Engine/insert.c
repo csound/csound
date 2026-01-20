@@ -1564,7 +1564,7 @@ static void setup_opcode_argpp(
         }
 
         if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
+          char* path = csoundStrdup(csound, arg->structPath);
           char *next, *th;
 
           next = cs_strtok_r(path, ".", &th);
@@ -1638,7 +1638,7 @@ static void setup_opcode_argpp(
         argpp[n] = lclbas + var->memBlockIndex;
 
         if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
+          char* path = csoundStrdup(csound, arg->structPath);
           char *next, *th;
           MYFLT* fltp = argpp[n];
           next = cs_strtok_r(path, ".", &th);

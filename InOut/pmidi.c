@@ -525,7 +525,7 @@ static int32_t CloseMidiOutDevice_(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     // csound->ErrorMsg(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
@@ -533,7 +533,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
     csound->ModuleListAdd(csound, "portmidi", "midi");
@@ -555,13 +555,13 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleDestroy(CSOUND *csound) {
+ int32_t csoundModuleDestroy(CSOUND *csound) {
 
   IGN(csound);
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     /* does not depend on MYFLT type */
     return ((CS_VERSION << 16) + (CS_SUBVER << 8));

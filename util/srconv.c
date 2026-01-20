@@ -441,7 +441,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 
     if (O->outformat == 0)
       O->outformat = AE_SHORT;//p->format;
-    O->sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
+    O->sndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O->outformat));
     if (O->filetyp == TYP_RAW) {
       
       O->rewrt_hdr = 0;
@@ -503,7 +503,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
     (csound->GetUtility(csound))->SetUtilSr(csound, (MYFLT)p->sr);
     (csound->GetUtility(csound))->SetUtilNchnls(csound, Chans = p->nchanls);
 
-    outbufsiz = OBUF * O->sfsampsize;                   /* calc outbuf size */
+    outbufsiz = OBUF * O->sndfileSampleSize;                   /* calc outbuf size */
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     outbufsiz, csound->GetStrFormat(O->outformat),
                     O->outfilename);
@@ -639,8 +639,6 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
-            if (!csound->CheckEvents(csound))
-              csound->LongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
@@ -699,8 +697,6 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
           n++;
           m++;
           if ((Chans * (m + wLen + 1)) >= mMax) {
-            if (!csound->CheckEvents(csound))
-              csound->LongJmp(csound, 1);
             mMax += IBUF2;
             if (nextIn >= (input + IBUF))
               nextIn = input;
