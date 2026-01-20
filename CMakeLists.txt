@@ -295,13 +295,10 @@ endif()
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
     message(STATUS "Building for release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+    add_definitions("-DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     message(STATUS "Building for debug")
     add_definitions("-DBETA")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
 
 # set -Werror if in Debug configuration
