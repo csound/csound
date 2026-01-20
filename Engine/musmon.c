@@ -245,7 +245,7 @@ int32_t start_engine(CSOUND *csound)
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR");
 
     m_chn_init_all(csound);     /* allocate MIDI channels */
-    dispinit(csound);           /* initialise graphics or character display */
+    csoundInitDisplay(csound);           /* initialise graphics or character display*/
 
     /* Initialize unit test counters */
     if (csound->oparms->runUnitTests) {
@@ -299,7 +299,6 @@ int32_t start_engine(CSOUND *csound)
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
 
-    /* kperf() will not call csoundYield() more than 250 times per second */
     csound->evt_poll_cnt    = 0;
     csound->evt_poll_maxcnt =
       (int)(250.0 /(double) csound->ekr); /* VL this was wrong: kr/250 originally */
@@ -413,7 +412,7 @@ static inline void cs_beep(CSOUND *csound)
     csound->ErrorMsg(csound, Str("%c\tbeep!\n"), '\a');
 }
 
-int32_t csoundCleanup(CSOUND *csound)
+int32_t csound_cleanup(CSOUND *csound)
 {
     void    *p;
     MYFLT   *maxp;
@@ -532,7 +531,7 @@ int32_t csoundCleanup(CSOUND *csound)
       cs_beep(csound);
 
     csoundUnlockMutex(csound->API_lock);
-    return dispexit(csound);    /* hold or terminate the display output     */
+    return csoundDeinitDisplay(csound);    /* hold or terminate the display output     */
 }
 
 /* make list to turn on instrs for indef */
@@ -550,7 +549,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.pcnt = 3;
 
   if (IsStringCode(*p->insno)) {
-    char *ss = get_arg_string(csound,*p->insno);
+    char *ss = csoundGetArgString(csound,*p->insno);
     insno = csound->StringArg2Insno(csound,ss,1);
     if (insno == NOT_AN_INSTRUMENT)
       return NOTOK;
@@ -564,7 +563,7 @@ int32_t turnon(CSOUND *csound, TURNON *p)
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
-  return insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* make list to turn on instrs for indef */
@@ -592,7 +591,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   evt.p[0] = (MYFLT) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
-  return insert_score_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
+  return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
 /* Print current amplitude values, and update section amps. */
@@ -870,7 +869,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'f':                   /* f event: */
     {
       FUNC  *dummyftp;
-      create_function_table(csound, &dummyftp, evt, 0); /* construct locally */
+      csoundFTCreate(csound, &dummyftp, evt, 0); /* construct locally */
       if (getRemoteInsRfdCount(csound))
         insGlobevt(csound, evt); /* RM: & optionally send to all remote_cleanups      */
     }
@@ -1194,8 +1193,6 @@ int32_t sense_events(CSOUND *csound)
                 csound->MTrkend = 1;                     /* catch a Trkend    */
                 csound->ErrorMsg(csound, "SERVER%c: ", remoteID(csound));
                 csound->ErrorMsg(csound, "caught a Trkend\n");
-                /*csoundCleanup(csound);
-                  exit(0);*/
                 return 2;  /* end of performance */
               }
               else m_chanmsg(csound, mep);               /* or a chan msg     */
@@ -1376,9 +1373,9 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)
         csoundErrorMsg(csound, "%s",
-                      Str("insert_score_event(): invalid named instrument\n"));
+                      Str("event insert: invalid named instrument\n"));
       else
-        csoundErrorMsg(csound, Str("insert_score_event(): invalid instrument "
+        csoundErrorMsg(csound, Str("event: invalid instrument "
                                   "number or name %d\n" ), i);
       goto err_return;
     }
@@ -1398,7 +1395,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     start_kcnt = (uint32_t)time2kcnt(csound, start_time);
     break;
   default:
-    csoundErrorMsg(csound, Str("insert_score_event(): unknown opcode: %c\n"),
+    csoundErrorMsg(csound, Str("event insert: unknown opcode: %c\n"),
                   evt->opcod);
     goto err_return;
   }
@@ -1422,7 +1419,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   return 0;
 
  pfld_err:
-  csoundErrorMsg(csound, Str("insert_score_event(): insufficient p-fields\n"));
+  csoundErrorMsg(csound, Str("event insert: insufficient p-fields\n"));
  err_return:
   /* clean up */
   if (e->evt.strarg != NULL)
@@ -1448,7 +1445,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
 /* need not be preserved after calling this function, as a copy of    */
 /* the event is made.                                                 */
 /* Return value is zero on success.                                   */
-int32_t insert_score_event_at_sample(CSOUND *csound, const EVTBLK *ep,
+int32_t insert_event_at_sample(CSOUND *csound, const EVTBLK *ep,
                                      const MYFLT *pfields,
                                      int64_t time_ofs)
 {

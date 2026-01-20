@@ -468,9 +468,9 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     if (*p->iphs > 1) {
       do {
         if(p->floatph)
-          *fphs++ = PHMOD1((csound->Rand31(csound->RandSeed1(csound)) - 1)/ 2147483645.0);
+          *fphs++ = PHMOD1((csound->Rand31(csound->RandSeed31(csound)) - 1)/ 2147483645.0);
         else
-         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(csound->RandSeed1(csound)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
+         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(csound->RandSeed31(csound)) - 1) / 2147483645.0)* FMAXLEN)) & PHMASK;
       } while (--count);
     }
     else if (*p->iphs >= 0) {

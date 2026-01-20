@@ -1636,7 +1636,7 @@ static int32_t alsaseq_out_close(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     int32_t minsched, maxsched, *priority, maxlen;
     char *alsaseq_client;
@@ -1893,7 +1893,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
     return count;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     int32_t     i;
     char    buf[9];
@@ -1973,7 +1973,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
+ int32_t csoundModuleDestroy(CSOUND *csound)
 {
     csCfgVariable_t *cfg;
 
@@ -1983,7 +1983,7 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
     return OK;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

@@ -421,7 +421,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       return -1;
     }
     if (O.outformat == 0) O.outformat = p->format;
-    O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
+    O.sndfileSampleSize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
     if (O.filetyp == TYP_RAW) {
       O.rewrt_hdr = 0;
     }
@@ -719,7 +719,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       ERR(Str("dnoise: insufficient memory\n"));
     }
 
-/* noise reduction: calculate noise reference by taking as many
+     /* noise reduction: calculate noise reference by taking as many
         consecutive FFT's as possible in noise soundfile, and
         averaging them all together.  Multiply by th*th to
         establish threshold for noise-gating in each bin. */
@@ -753,8 +753,6 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     /* skip over nMin samples */
     while (nMin > (int64_t)ibuflen) {
-      if (UNLIKELY(!csound->CheckEvents(csound)))
-        csound->LongJmp(csound, 1);
       nread = (csound->GetUtility(csound))->Sndin(csound, fp, ibuf1, ibuflen, pn);
       for(i=0; i < nread; i++)
         ibuf1[i] *= 1.0/csound->Get0dBFS(csound);
@@ -763,8 +761,6 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       }
       nMin -= (int64_t) ibuflen;
     }
-    if (UNLIKELY(!csound->CheckEvents(csound)))
-      csound->LongJmp(csound, 1);
     i = (int32_t) nMin;
     nread = (csound->GetUtility(csound))->Sndin(csound, fp, ibuf1, i, pn);
     for(i=0; i < nread; i++)
@@ -775,8 +771,6 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     k = 0;
     lj = Beg;  /* single channel only */
     while (lj < End) {
-      if (UNLIKELY(!csound->CheckEvents(csound)))
-        csound->LongJmp(csound, 1);
       lj += (int64_t) N;
       nread = (csound->GetUtility(csound))->Sndin(csound, fp, fbuf, N, pn);
       for(i=0; i < nread; i++)
@@ -818,8 +812,6 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     /* f = ibuf1; */
     /* for (i = 0; i < ibuflen; i++, f++) */
     /*   *f = FL(0.0); */
-    if (UNLIKELY(!csound->CheckEvents(csound)))
-      csound->LongJmp(csound, 1);
     /* fill ibuf2 to start */
     nread = (csound->GetUtility(csound))->Sndin(csound, inf, ibuf2, ibuflen, p);
 /*     nread = read(inf, ibuf2, ibuflen*sizeof(MYFLT)); */
@@ -866,8 +858,6 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     /*                         always begin writing to ob1 */
 
         if (ibs >= ibuflen) {    /* done reading from ib1 */
-          if (UNLIKELY(!csound->CheckEvents(csound)))
-            csound->LongJmp(csound, 1);
           /* swap buffers */
           ib0 = ib1;
           ib1 = ib2;

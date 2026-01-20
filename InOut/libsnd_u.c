@@ -24,7 +24,7 @@
 #include "soundfile.h"
 #include "soundio.h"
 
-void rewriteheader(CSOUND *csound, void *ofd)
+void csoundRewriteHeader(CSOUND *csound, void *ofd)
 {
     if (LIKELY(ofd != NULL))
       csound->SndfileCommand(csound,(SNDFILE *)ofd, SFC_UPDATE_HEADER_NOW, NULL, 0);
@@ -145,7 +145,7 @@ void *sndgetset(CSOUND *csound, void *p_)
 
     /* copy type from headata */
     p->format = SF2FORMAT(sfinfo.format);
-    p->sampframsiz = (int32_t) sfsampsize(sfinfo.format) * (int32_t) sfinfo.channels;
+    p->sampframsiz = (int32_t) sndfileSampleSize(sfinfo.format) * (int32_t) sfinfo.channels;
     p->nchanls = sfinfo.channels;
     framesinbuf = (int32_t) SNDINBUFSIZ / (int32_t) p->nchanls;
     p->bufsmps = framesinbuf * p->nchanls;
@@ -188,7 +188,7 @@ void *sndgetset(CSOUND *csound, void *p_)
                                   (int32_t) p->channel);
       }
       csound->Message(csound, Str("\nopening %s infile %s\n"),
-                              type2string(p->filetyp), sfname);
+                              csoundType2String(p->filetyp), sfname);
     }
     p->audrem = (int64_t) sfinfo.frames * (int64_t) sfinfo.channels;
     p->framesrem = (int64_t) sfinfo.frames;         /*   find frames rem */
@@ -321,7 +321,7 @@ void dbfs_init(CSOUND *csound, MYFLT dbfs)
 
 }
 
-char *type2string(int32_t x)
+char *csoundType2String(int32_t x)
 {
     switch (x) {
       case TYP_WAV:   return "WAV";
@@ -352,7 +352,7 @@ char *type2string(int32_t x)
     }
 }
 
-int32_t sfsampsize(int32_t type)
+int32_t sndfileSampleSize(int32_t type)
 {
   switch (TYPE2ENC(type)) {
       case AE_SHORT:   return 2;     /* Signed 16 bit data */
@@ -364,7 +364,7 @@ int32_t sfsampsize(int32_t type)
     return 1;
 }
 
-char *getstrformat(int32_t format)  /* used here, and in sfheader.c */
+char *csoundGetStrFormat(int32_t format)  /* used here, and in sfheader.c */
 {
     switch (format) {
       case  AE_UNCH:    return Str("unsigned bytes"); /* J. Mohr 1995 Oct 17 */
@@ -384,7 +384,7 @@ char *getstrformat(int32_t format)  /* used here, and in sfheader.c */
 
 /* type should be one of Csound's TYP_XXX macros,
    encoding should be one of its AE_XXX macros. */
-int32_t type2csfiletype(int32_t type, int32_t encoding)
+int32_t csoundType2CsfileType(int32_t type, int32_t encoding)
 {
     switch (type) {
       case TYP_RAW:    return CSFTYPE_RAW_AUDIO;
@@ -426,9 +426,9 @@ int32_t type2csfiletype(int32_t type, int32_t encoding)
 }
 
 /* type should be one of libsndfile's format values. */
-int32_t sftype2csfiletype(int32_t type)
+int32_t csoundSndfileType2CsfileType(int32_t type)
 {
     /* mask out the endian-ness bits */
   int32_t typemod = type & ENDIANESSBITS;
-  return type2csfiletype(SF2TYPE(typemod), SF2FORMAT(typemod));
+  return csoundType2CsfileType(SF2TYPE(typemod), SF2FORMAT(typemod));
 }

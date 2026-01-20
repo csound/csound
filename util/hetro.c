@@ -350,8 +350,6 @@ static int32_t hetro(CSOUND *csound, int32_t argc, char **argv)
       csound->Message(csound,Str("freq estimate %6.1f,"), t->cur_est);
       if (hetdyn(csound, t, hno) != 0)  /* perform actual computation */
         return -1;
-      if (!csound->CheckEvents(csound))
-        return -1;
       csound->Message(csound, Str(" max found %6.1f, rel amp %6.1f\n"),
                               t->max_frq, t->max_amp);
     }
@@ -453,8 +451,6 @@ static int32_t hetdyn(CSOUND *csound,
         /* if next out-time */
         output(t, smplno, hno, outpnt);  /*     place in     */
         lastout = outpnt;                      /*     output array */
-        if (!csound->CheckEvents(csound))
-          return -1;
       }
       if (t->skip) {
         t->skip = 0;       /* quit if no more samples in file */

@@ -161,7 +161,7 @@ void* cs_hash_table_get(CSOUND* csound,
     return NULL;
 }
 
-PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
+ char* cs_hash_table_get_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
     uint32_t index;
     CS_HASH_TABLE_ITEM* item;
@@ -237,13 +237,13 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
 void cs_hash_table_put(CSOUND* csound,
                               CS_HASH_TABLE* hashTable, char* key, void* value) {
     cs_hash_table_put_no_key_copy(csound, hashTable,
-                                  cs_strdup(csound, key), value);
+                                  csoundStrdup(csound, key), value);
 }
 
 char* cs_hash_table_put_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
     return cs_hash_table_put_no_key_copy(csound, hashTable,
-                                         cs_strdup(csound, key), NULL);
+                                         csoundStrdup(csound, key), NULL);
 }
 
 void cs_hash_table_remove(CSOUND* csound,
@@ -379,7 +379,7 @@ void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
         csound->Free(csound, item->key);
 
         /* NOTE: This needs to be free, not csound->Free.
-           To use mfree on keys, use cs_hash_table_mfree_complete
+           To use csoundFree on keys, use cs_hash_table_free_complete
            TODO: Check if this is even necessary anymore... */
         free(item->value);
         csound->Free(csound, item);

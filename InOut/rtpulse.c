@@ -37,7 +37,7 @@ typedef struct _pulse_globals {
   char iname[32];
 } pulse_globals;
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     pulse_globals *p;
     int32_t siz = 64;
@@ -83,7 +83,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 }
 
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }
@@ -268,7 +268,7 @@ static int32_t pulse_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
 }
 
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *s;
     int32_t     i;

@@ -478,8 +478,8 @@ QNAN            "qnan"[ \t]*\(
                     x = csound->orc_macros;
                     if (x==y) {
                       while (n>0) {
-                        mfree(csound, y->name); x=y->next;
-                        mfree(csound, y); y=x; n--;
+                        csoundFree(csound, y->name); x=y->next;
+                        csoundFree(csound, y); y=x; n--;
                       }
                       csound->orc_macros = x;
                     }
@@ -488,7 +488,7 @@ QNAN            "qnan"[ \t]*\(
                       while (x->next != y) x = x->next;
                       while (n>0) {
                         nxt = y->next;
-                        mfree(csound, y->name); mfree(csound, y); y=nxt; n--;
+                        csoundFree(csound, y->name); csoundFree(csound, y); y=nxt; n--;
                       }
                       x->next = nxt;
                     }
@@ -612,7 +612,7 @@ QNAN            "qnan"[ \t]*\(
                                          yyscanner);
                     corfile_putc(csound, '\n', csound->expanded_orc);
                     csound_pre_line(csound, csound->expanded_orc, yyscanner);
-                    mfree(csound, pp);
+                    csoundFree(csound, pp);
                   }
                   else {
                     corfile_puts(csound, yytext, csound->expanded_orc);
@@ -1190,10 +1190,10 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     csound->DebugMsg(csound, "macro %s undefined\n", name0);
     if (strcmp(name0, csound->orc_macros->name)==0) {
       MACRO *mm=csound->orc_macros->next;
-      mfree(csound, csound->orc_macros->name); mfree(csound, csound->orc_macros->body);
+      csoundFree(csound, csound->orc_macros->name); csoundFree(csound, csound->orc_macros->body);
       for (i=0; i<csound->orc_macros->acnt; i++)
-        mfree(csound, csound->orc_macros->arg[i]);
-      mfree(csound, csound->orc_macros); csound->orc_macros = mm;
+        csoundFree(csound, csound->orc_macros->arg[i]);
+      csoundFree(csound, csound->orc_macros); csound->orc_macros = mm;
     }
     else {
       MACRO *mm = csound->orc_macros;
@@ -1205,10 +1205,10 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      mfree(csound, nn->name); mfree(csound, nn->body);
+      csoundFree(csound, nn->name); csoundFree(csound, nn->body);
       for (i=0; i<nn->acnt; i++)
-        mfree(csound, nn->arg[i]);
-      mm->next = nn->next; mfree(csound, nn);
+        csoundFree(csound, nn->arg[i]);
+      mm->next = nn->next; csoundFree(csound, nn);
     }
     while ((c=input(yyscanner)) != '\n' &&
            c != EOF && c != '\r'); /* ignore rest of line */
@@ -1222,10 +1222,10 @@ static void do_umacroq(CSOUND *csound, char *name0, yyscan_t yyscanner)
     while (mm) {
       if (strcmp(name0, mm->name)==0) {
         MACRO *nn=mm->next;
-        mfree(csound, mm->name); mfree(csound, mm->body);
+        csoundFree(csound, mm->name); csoundFree(csound, mm->body);
         for (i=0; i<mm->acnt; i++)
-          mfree(csound, mm->arg[i]);
-        mfree(csound, mm);
+          csoundFree(csound, mm->arg[i]);
+        csoundFree(csound, mm);
         if (last) last->next = nn;
         else csound->orc_macros = nn;
         return;
@@ -1294,7 +1294,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
         if (strcmp("end", buf) == 0 || strcmp("endif", buf) == 0) {
           if (nested_ifdef-- == 0) {
             PARM->ifdefStack = pp->prv;
-            mfree(csound, pp);
+            csoundFree(csound, pp);
             break;
           }
         }
@@ -1416,7 +1416,7 @@ void cs_init_omacros(CSOUND *csound, NAMES *nn)
         csound->orc_macros = mm;
       }
       else
-        mfree(csound, mname);
+        csoundFree(csound, mname);
       mm->margs = MARGS;    /* Initial size */
       mm->acnt = 0;
       if (*p != '\0')

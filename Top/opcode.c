@@ -61,7 +61,7 @@ static int opcode_cmp_func(const void *a, const void *b) {
  * Make sure to call csoundDisposeOpcodeList() when done with the list.
  */
 
-PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
+ int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
   void *lst = NULL;
   OENTRY *ep;
   char *s;
@@ -162,7 +162,7 @@ PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
   return cnt;
 }
 
-PUBLIC void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst) {
+ void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst) {
   csound->Free(csound, lst);
 }
 

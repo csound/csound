@@ -157,7 +157,7 @@ static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
 
 /* module interface functions */
 
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     const OPARMS *O;
      O = csound->GetOParms(csound) ;
@@ -168,7 +168,7 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
@@ -185,7 +185,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     /* does not depend on MYFLT type */
     return ((CS_VERSION << 16) + (CS_SUBVER << 8));

@@ -518,6 +518,10 @@ def runTest():
             "test new-style UDO syntax with explicit types",
         ],
         [
+            "test_udo_array_args_implied_types.csd",
+            "test new-style UDO with array args using implied types",
+        ],
+        [
             "test_multiple_return.csd",
             "test multiple return from express (i.. a1,a2 = xx())",
         ],

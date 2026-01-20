@@ -54,7 +54,7 @@ static const MYFLT bicoefs[] = {
      FL(0.3661840), FL(0.0837990), FL(0.3867783), FL(0.6764264), FL(0.3867783)
 };
 
-#define rand_31(x) (x->Rand31(csound->RandSeed1(csound)) - 1)
+#define rand_31(x) (x->Rand31(csound->RandSeed31(csound)) - 1)
 
 int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology */
 {
@@ -152,7 +152,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       minr = windsiz >> 1;                  /* sep odd windsiz into maj, min */
       majr = windsiz - minr;                /*      & calc totsamps reqd     */
       totsamps = (majr*nocts) + (minr<<nocts) - minr;
-      DOWNset(csound, dwnp, totsamps);      /* auxalloc in DOWNDAT struct */
+      DOWNset(csound, dwnp, totsamps);      /* csoundAuxalloc in DOWNDAT struct */
       fltp = (MYFLT *) dwnp->auxch.auxp;    /*  & distrib to octdata */
       for (n=nocts,octp=dwnp->octdata+(nocts-1); n--; octp--) {
         bufsiz = majr + minr;
@@ -674,9 +674,9 @@ int32_t adsyntset(CSOUND *csound, ADSYNT *p)
     if (*p->iphs > 1) {
       do {
         if(p->floatph)
-        *fphs++ = PHMOD1((csound->Rand31(csound->RandSeed1(csound)) - 1)/ 2147483645.0);
+        *fphs++ = PHMOD1((csound->Rand31(csound->RandSeed31(csound)) - 1)/ 2147483645.0);
         else
-         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(csound->RandSeed1(csound)) - 1) / 2147483645.0)
+         *lphs++ = ((int32) ((MYFLT) ((double)(csound->Rand31(csound->RandSeed31(csound)) - 1) / 2147483645.0)
                            * FMAXLEN)) & PHMASK;
       } while (--count);
     }

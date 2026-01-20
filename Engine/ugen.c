@@ -55,7 +55,7 @@ typedef struct {
 /** Creates a UGEN_FACTORY, used to list available UGENs (Csound Opcodes),
  * as well as create instances of UGENs. User should configure the CSOUND
  * instance for sr and ksmps before creating a factory. */
-PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
+ UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
   UGEN_FACTORY* factory = csound->Calloc(csound, sizeof(UGEN_FACTORY));
   INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
 
@@ -74,17 +74,17 @@ PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
 }
 
 /* Delete a UGEN_FACTORY */
-PUBLIC bool ugen_factory_delete(CSOUND* csound, UGEN_FACTORY* factory) {
+ bool ugen_factory_delete(CSOUND* csound, UGEN_FACTORY* factory) {
   csound->Free(csound, factory);
   return true;
 }
 
 /*
- PUBLIC UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory) {
+  UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory) {
   return NULL;
 }
 
-PUBLIC UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory) {
+ UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory) {
   return NULL;
 }
 
@@ -219,7 +219,7 @@ static CONS_CELL* get_assignable_out_types(CSOUND* csound, char* intypes) {
 
 
 /** Create a new UGEN, using the given UGEN_FACTORY and OENTRY */
-PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, char* inargTypes) {
+ UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, char* inargTypes) {
     UGEN* ugen;
     OPDS* opds;
     OPTXT* optxt;
@@ -331,15 +331,15 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 }
 
 
-PUBLIC bool ugen_set_output(UGEN* ugen, int32_t index, void* arg) {
+ bool ugen_set_output(UGEN* ugen, int32_t index, void* arg) {
   return false;
 }
 
-PUBLIC bool ugen_set_input(UGEN* ugen, int32_t index, void* arg) {
+ bool ugen_set_input(UGEN* ugen, int32_t index, void* arg) {
   return false;
 }
 
-PUBLIC int32_t ugen_init(UGEN* ugen) {
+ int32_t ugen_init(UGEN* ugen) {
   OPDS* opds = (OPDS*)ugen->opcodeMem;
   OENTRY* oentry = ugen->oentry;
   opds->optext->t.inArgCount = ugen->inocount;
@@ -349,7 +349,7 @@ PUBLIC int32_t ugen_init(UGEN* ugen) {
   return CSOUND_SUCCESS;
 }
 
-PUBLIC int32_t ugen_perform(UGEN* ugen) {
+ int32_t ugen_perform(UGEN* ugen) {
     OENTRY* oentry = ugen->oentry;
     CSOUND* csound = ugen->csound;
     void* opcodeMem = ugen->opcodeMem;
@@ -358,7 +358,7 @@ PUBLIC int32_t ugen_perform(UGEN* ugen) {
     return CSOUND_SUCCESS;
 }
 
-PUBLIC bool ugen_delete(UGEN* ugen) {
+ bool ugen_delete(UGEN* ugen) {
   CSOUND* csound = ugen->csound;
   csound->Free(csound, ugen->opcodeMem);
   csound->Free(csound, ugen->outPool);

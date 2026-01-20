@@ -67,7 +67,7 @@ int32_t csoundAddUtility(CSOUND *csound, const char *name,
 void print_csound_version(CSOUND *csound);
 void print_sndfile_version(CSOUND* csound);
 
-PUBLIC int32_t csoundRunUtility(CSOUND *csound, const char *name,
+ int32_t csoundRunUtility(CSOUND *csound, const char *name,
                             int32_t argc, char **argv)
 {
     csUtility_t   *p;
@@ -250,7 +250,7 @@ const char *csoundGetUtilityDescription(CSOUND *csound,
  * after sorting the score to clean up. On success, zero is returned.
  */
 
-PUBLIC int32_t csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
+ int32_t csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
 {
     int32_t   err;
     CORFIL *inf = corfile_create_w(csound);
@@ -277,7 +277,7 @@ PUBLIC int32_t csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
  * should be called after score extraction to clean up.
  * The return value is zero on success.
  */
-PUBLIC int32_t csoundScoreExtract(CSOUND *csound,
+ int32_t csoundScoreExtract(CSOUND *csound,
                               FILE *inFile, FILE *outFile, FILE *extractFile)
 {
     int32_t   err;
