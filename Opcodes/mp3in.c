@@ -108,7 +108,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   /* FIXME: name can overflow with very long string -- truncates safely */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strncpy(name,csound->GetString(csound, *p->iFileCode), 1023);
+      strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -122,7 +122,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   /* HOW TO record file handle so that it will be closed at note-off */
   /* memset(&(p->fdch), 0, sizeof(FDCH)); */
   /* p->fdch.fd = fd; */
-  /* fdrecord(csound, &(p->fdch)); */
+  /* csoundFDRecord(csound, &(p->fdch)); */
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s", mp3dec_error(r));
@@ -283,7 +283,7 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   /* FIXME: name can overflow with very long string -- safely truncated */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strncpy(name,csound->GetString(csound, *p->iFileCode), 1023);
+      strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -524,7 +524,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
   /*
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
+    csoundFDRecord(csound, &(p->fdch));
   */
   printf("fftsize = %d\n", p->N);
   int32_t skip = (int32_t)(*p->skip*CS_ESR)*p->resamp;
@@ -1091,16 +1091,16 @@ int32_t mp3in_localops_init(CSOUND *csound,
 }
 
 #ifdef BUILD_PLUGINS
-PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
+ int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
   return mp3in_localops_init(csound, ep);
 }
 
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+ NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {
   return   mp3in_fgen_init(csound);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)                                      
+ int32_t csoundModuleInfo(void)                                      
 {
   return ((CS_VERSION << 16)
           + (CS_SUBVER << 8)

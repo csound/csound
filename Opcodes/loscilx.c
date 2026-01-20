@@ -52,7 +52,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
   if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
   else {
     if(IsStringCode(*p->Sfname))
-      fname = csound->Strdup(csound, csound->GetString(csound, *p->Sfname));
+      fname = csound->Strdup(csound, csound->GetArgString(csound, *p->Sfname));
     else
       fname = csound->StringArg2Name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
   }
@@ -225,7 +225,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
 
     p->usingFtable = 0;
     sf = csound->LoadSoundFile(csound,
-                               (char*) csound->GetString(csound, *p->ifn),
+                               (char*) csound->GetArgString(csound, *p->ifn),
                                (SFLIB_INFO *) NULL);
     if (UNLIKELY(sf == NULL))
       return csound->InitError(csound, Str("could not load '%s'"),
@@ -374,7 +374,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
 
     p->usingFtable = 0;
     sf = csound->LoadSoundFile(csound,
-                               (char*) csound->GetString(csound, *p->ifn),
+                               (char*) csound->GetArgString(csound, *p->ifn),
                                (SFLIB_INFO *) NULL);
     if (UNLIKELY(sf == NULL))
       return csound->InitError(csound, Str("could not load '%s'"),

@@ -120,7 +120,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
   if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
   else {
     if (IsStringCode(*((MYFLT*)name_arg)))
-      strncpy(fname,csound->GetString(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+      strncpy(fname,csound->GetArgString(csound, *((MYFLT*)name_arg)),MAXNAME-1);
     else csound->StringArg2Name(csound, fname, name_arg, "ats.",0);
   }
   /* load memfile */
@@ -1034,8 +1034,8 @@ static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat, MYFLT sr
 {
   radat->size = (int32_t) MYFLT2LRND(sr / freq);
   radat->cnt = 0;
-  radat->a1 = (int32) csound->Rand31(csound->RandSeed1(csound));
-  radat->a2 = (int32) csound->Rand31(csound->RandSeed1(csound));
+  radat->a1 = (int32) csound->Rand31(csound->RandSeed31(csound));
+  radat->a2 = (int32) csound->Rand31(csound->RandSeed31(csound));
 }
 
 /* ------------------------------------------------------------------ */
@@ -1046,7 +1046,7 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
   if (radat->cnt == radat->size) {  /* get a new random value */
     radat->a1 = radat->a2;
-    radat->a2 = (int32) csound->Rand31(csound->RandSeed1(csound));
+    radat->a2 = (int32) csound->Rand31(csound->RandSeed31(csound));
     radat->cnt = 0;
   }
 

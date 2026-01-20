@@ -1,5 +1,5 @@
 /*
-    argdecode.c:
+    argdecode.c: engine options/flags 
 
     Copyright (C) 1998-2013 John ffitch, Victor Lazzarini
 
@@ -206,9 +206,9 @@ static const char *longUsageList[] = {
     " ",
     Str_noop("--displays              use graphic displays"),
     Str_noop("--nodisplays            suppress all displays"),
-    Str_noop("--asciidisplay          suppress graphics, use ascii displays"),
+    Str_noop("--asciidisplay         suppress graphics, use ascii displays"),
     Str_noop(
-        "--postscriptdisplay     suppress graphics, use Postscript displays"),
+        "--postscriptdisplay    suppress graphics, use Postscript displays"),
     " ",
     Str_noop("--defer-gen1            defer GEN01 soundfile loads until "
              "performance time"),
@@ -1549,7 +1549,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               dieu(csound, Str("Cannot open indirection file %s\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
-              readOptions(csound, cf, 0);
+              read_options(csound, cf, 0);
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd);
             }
@@ -1608,9 +1608,9 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
                                 "allowed in .csound7rc"));
       } else if (csound->orcname_mode == 0) {
         if (csound->orchname == NULL) /* VL dec 2016: better duplicate these */
-          csound->orchname = cs_strdup(csound, --s);
+          csound->orchname = csoundStrdup(csound, --s);
         else if (LIKELY(csound->scorename == NULL))
-          csound->scorename = cs_strdup(csound, --s);
+          csound->scorename = csoundStrdup(csound, --s);
         else {
           csound->Message(csound, "argc=%d Additional string \"%s\"\n", argc,
                           --s);
@@ -1623,10 +1623,10 @@ end:
   return 1;
 }
 
-void checkOptions(CSOUND *csound);
+void check_options(CSOUND *csound);
 
 char *unquote_arg(CSOUND *csound, char *arg) {
-  char *out = cs_strdup(csound, arg);
+  char *out = csoundStrdup(csound, arg);
   char *op = out;
   while(*arg != '\0') {
     if(*arg != '"') *op++ = *arg;
@@ -1637,7 +1637,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
 }
 
 
-PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
+ int32_t csoundSetOption(CSOUND *csound, const char *opt) {
   /* if already compiled and running, return */
   if (csound->engineStatus & CS_STATE_COMP)
     return 1;
@@ -1650,7 +1650,7 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
 
     // check .cs7rc before setting any options
     if (!csound->options_checked) {
-      checkOptions(csound);
+      check_options(csound);
       csound->options_checked = 1;
     }
 
@@ -1658,7 +1658,7 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
     while (*opt == ' ')
       opt++;
 
-    sp = options = cs_strdup(csound, opt);
+    sp = options = csoundStrdup(csound, opt);
 
     /* remove whitespace at end */
     char *end = sp + strlen(sp) - 1;
@@ -1689,7 +1689,7 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
       } else sp++;
     }
     argn = cnt;
-    args = (char **)mcalloc(csound, sizeof(char *) * (cnt + 2));
+    args = (char **)csoundCalloc(csound, sizeof(char *) * (cnt + 2));
     args[0] = "csound";
     args[1] = sp = options;
     cnt = 1;
@@ -1715,19 +1715,19 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *opt) {
     }
 
     ret = argdecode(csound, argn + 1, (const char **)args);
-    mfree(csound, options);
-    for(i = 1; i < argn; i++) mfree(csound, args[i]);
-     mfree(csound, args);
+    csoundFree(csound, options);
+    for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
+     csoundFree(csound, args);
 
     return ret ? 0 : 1;
   }
 }
 
-PUBLIC const OPARMS *csoundGetParams(CSOUND *csound) {
+ const OPARMS *csoundGetParams(CSOUND *csound) {
   return csound->oparms;
 }
 
-PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type,
+ void csoundSetOutput(CSOUND *csound, const char *name, const char *type,
                             const char *format) {
 
   OPARMS *oparms = csound->oparms;
@@ -1773,7 +1773,7 @@ PUBLIC void csoundSetOutput(CSOUND *csound, const char *name, const char *type,
   }
 }
 
-PUBLIC void csoundGetOutputFormat(CSOUND *csound, char *type, char *format) {
+ void csoundGetOutputFormat(CSOUND *csound, char *type, char *format) {
 
   OPARMS *oparms = csound->oparms;
   int32_t i = 0;
@@ -1791,7 +1791,7 @@ PUBLIC void csoundGetOutputFormat(CSOUND *csound, char *type, char *format) {
     strcpy(format, "");
 }
 
-PUBLIC void csoundSetInput(CSOUND *csound, const char *name) {
+ void csoundSetInput(CSOUND *csound, const char *name) {
   OPARMS *oparms = csound->oparms;
 
   /* if already compiled and running, return */
@@ -1811,7 +1811,7 @@ PUBLIC void csoundSetInput(CSOUND *csound, const char *name) {
   oparms->sfread = 1;
 }
 
-PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name) {
+ void csoundSetMIDIInput(CSOUND *csound, const char *name) {
   OPARMS *oparms = csound->oparms;
 
   /* if already compiled and running, return */
@@ -1831,7 +1831,7 @@ PUBLIC void csoundSetMIDIInput(CSOUND *csound, const char *name) {
   oparms->Midiin = 1;
 }
 
-PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name) {
+ void csoundSetMIDIFileInput(CSOUND *csound, const char *name) {
   OPARMS *oparms = csound->oparms;
 
   /* if already compiled and running, return */
@@ -1851,7 +1851,7 @@ PUBLIC void csoundSetMIDIFileInput(CSOUND *csound, const char *name) {
   oparms->FMidiin = 1;
 }
 
-PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name) {
+ void csoundSetMIDIFileOutput(CSOUND *csound, const char *name) {
   OPARMS *oparms = csound->oparms;
 
   /* if already compiled and running, return */
@@ -1863,7 +1863,7 @@ PUBLIC void csoundSetMIDIFileOutput(CSOUND *csound, const char *name) {
   strcpy(oparms->FMidioutname, name);
 }
 
-PUBLIC void csoundSetMIDIOutput(CSOUND *csound, const char *name) {
+ void csoundSetMIDIOutput(CSOUND *csound, const char *name) {
   OPARMS *oparms = csound->oparms;
 
   /* if already compiled and running, return */

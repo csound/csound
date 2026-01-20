@@ -230,7 +230,24 @@ int32_t args_required(char* argString)
   return retVal;
 }
 
-/** Splits args in argString into char**, taking into account array identifiers */
+/**
+ * Splits a concatenated argument type string into individual type specifiers.
+ *
+ * Array Type Format Contract:
+ * ---------------------------
+ * INPUT:  argString in EXTERNAL format - types concatenated together
+ *         Examples: "ik[]", "aS", ":MyType;[]", "k[]k[]"
+ *         - Primitive arrays: type char followed by brackets ("k[]", "a[][]")
+ *         - UDT arrays: ":TypeName;[]" format
+ *
+ * OUTPUT: Array of strings in INTERNAL format
+ *         Examples: "[k]", "[[a]", "[:MyType;]"
+ *         - Brackets precede the type, single closing bracket at end
+ *         - Dimension count = number of leading '[' chars
+ *
+ * This function is the bridge between human-readable OENTRY definitions
+ * and the internal representation used by parse_opcode_args().
+ */
 char** split_args(CSOUND* csound, char* argString)
 {
   int32_t argCount = args_required(argString);
@@ -327,7 +344,7 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   TREE* current;
 
   if (name != NULL) {
-    return cs_strdup(csound, name);
+    return csoundStrdup(csound, name);
   }
 
   current = structTree->right;
@@ -379,7 +396,7 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
 
   }
 
-  name = cs_strdup(csound, temp);
+  name = csoundStrdup(csound, temp);
   structTree->markup = name;
 
   return name;
@@ -664,7 +681,7 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
              strcmp(lhs, "A4") == 0)) {
           /* Validate rhs is numeric */
           char* endptr = NULL;
-          MYFLT val = (MYFLT) cs_strtod((char *) rhs, &endptr);
+          MYFLT val = (MYFLT) csoundStrtod((char *) rhs, &endptr);
           if (endptr == rhs || *endptr != '\0') {
              csoundDie(csound, Str("System constant %s must be assigned a numeric value, got: %s"), lhs, rhs);
           }
@@ -1314,7 +1331,7 @@ cont:
   inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
 
   /* and store parameters */
-  inm->name = cs_strdup(csound, s);
+  inm->name = csoundStrdup(csound, s);
   inm->ip = ip;
   // VL 26.05.2018 copy existing number
   if(no > 0)
@@ -2029,7 +2046,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                       opname, current->line);
     } else {
       opinfo->ip = instrtxt;
-      instrtxt->insname = cs_strdup(csound, opname);
+      instrtxt->insname = csoundStrdup(csound, opname);
       instrtxt->opcode_info = opinfo;
     }
 
@@ -2437,7 +2454,7 @@ static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
     if (cs_hash_table_get(csound, csound->engineState.constantsPool, s) ==
         NULL) {
       find_or_add_constant(csound, engineState->constantsPool, s,
-                           cs_strtod(s, NULL));
+                           csoundStrtod(s, NULL));
     }
   } else if (c == '"') {
     temp = csound->Calloc(csound, strlen(s) + 1);
@@ -2466,7 +2483,7 @@ static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
   char* delimit = strchr(varName, '.');
   if(delimit != NULL) {
     char *baseName = cs_strndup(csound, varName, delimit - varName);
-    char *structPath = cs_strdup(csound, delimit + 1);
+    char *structPath = csoundStrdup(csound, delimit + 1);
     arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
     arg->structPath = structPath;
   } else {
@@ -2502,7 +2519,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, s);
     if (arg->argPtr == NULL) {
       arg->argPtr = find_or_add_constant(csound, csound->engineState.constantsPool, s,
-                                         cs_strtod(s, NULL));
+                                         csoundStrtod(s, NULL));
     }
   } else if (c == '"') {
     size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
@@ -2552,7 +2569,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, (char*)t);
       if (arg->argPtr == NULL) {
         arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, (char*)t,
-                                           cs_strtod((char*)t, NULL));
+                                           csoundStrtod((char*)t, NULL));
       }
     } else {
       arg->type = ARG_LOCAL;
@@ -2602,9 +2619,9 @@ uint8_t file_to_int(CSOUND *csound, const char *name) {
   // Not there so add
   // ensure long enough?
   if (UNLIKELY(n == 255)) {
-    filedir[n] = cs_strdup(csound, Str("**unrecorded**"));
+    filedir[n] = csoundStrdup(csound, Str("**unrecorded**"));
   } else {
-    filedir[n] = cs_strdup(csound, (char *)name);
+    filedir[n] = csoundStrdup(csound, (char *)name);
     filedir[n + 1] = NULL;
   }
   return n;

@@ -92,7 +92,7 @@ static MYFLT read_ieee(FILE* f, int32_t *end)
       *end = 1;
       return FL(0.0);
     }
-    x = cs_strtod(buff, NULL);
+    x = csoundStrtod(buff, NULL);
     return (MYFLT)x;
 }
 
@@ -122,7 +122,7 @@ static int32_t load_cv_file(CSOUND *csound, const char *filnam,
     cvh.headBsize = (int32_t) strtol(p, &p, 10);
     cvh.dataBsize = (int32_t) strtol(p, &p, 10);
     cvh.dataFormat = (int32_t) strtol(p, &p, 10);
-    cvh.samplingRate = (MYFLT)cs_strtod(p, &p);
+    cvh.samplingRate = (MYFLT)csoundStrtod(p, &p);
     cvh.src_chnls = (int32_t) strtol(p, &p, 10);
     cvh.channel = (int32_t) strtol(p, &p, 10);
     cvh.Hlen = (int32_t) strtol(p, &p, 10);
@@ -172,9 +172,9 @@ static int32_t load_lp_file(CSOUND *csound, const char *filnam,
       return csound->InitError(csound, Str("Ill-formed LPC file\n"));
     }
     ignore_value(fgets(buff, 120, f));
-    lph.framrate = (MYFLT)cs_strtod(buff, &p);
-    lph.srate = (MYFLT)cs_strtod(p, &p);
-    lph.duration = (MYFLT)cs_strtod(p, &p);
+    lph.framrate = (MYFLT)csoundStrtod(buff, &p);
+    lph.srate = (MYFLT)csoundStrtod(p, &p);
+    lph.duration = (MYFLT)csoundStrtod(p, &p);
     // This needs surgery if in/out different MYFLT sizes *** FIX ME ***
     lph.headersize = sizeof(int32)*4+sizeof(MYFLT)*3;
     memcpy(&all[0], &lph, lph.headersize);
@@ -263,7 +263,7 @@ static int32_t load_file(CSOUND *csound, const char *filnam,
    Callback signature:     int32_t myfunc(CSOUND* csound, MEMFIL* mfp)
    Callback return value:  OK (0) or NOTOK (-1)
  */
-MEMFIL *load_memfile_with_cb(CSOUND *csound, const char *filnam, int32_t csFileType,
+MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileType,
                          int32_t (*callback)(CSOUND*, MEMFIL*))
 {                               /* read an entire file into memory and log it */
     MEMFIL  *mfp, *last = NULL; /* share the file with all subsequent requests*/
@@ -381,7 +381,7 @@ static int32_t pvx_err_msg(CSOUND *csound, const char *fmt, ...)
     return -1;
 }
 
-int32_t load_PVOCEX_file(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
+int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 {
     PVOCDATA      pvdata;
     WAVEFORMATEX  fmt;

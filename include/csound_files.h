@@ -41,20 +41,20 @@ extern "C" {
    * Soundfile interface callbacks
    */
   typedef struct sndfileCallbacks {
-    void *(*sndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
+    void *(*SndfileOpen)(CSOUND *csound, const char *path, int32_t mode,
                         SFLIB_INFO *sfinfo);
-    void *(*sndfileOpenFd)(CSOUND *csound,
+    void *(*SndfileOpenFd)(CSOUND *csound,
                           int32_t fd, int32_t mode, SFLIB_INFO *sfinfo,
                           int32_t close_desc);
-    int32_t (*sndfileClose)(CSOUND *csound, void *);
-    int64_t (*sndfileWrite)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*sndfileRead)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*sndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*sndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
-    int64_t (*sndfileSeek)(CSOUND *, void *, int64_t, int32_t);
-    int32_t (*sndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
-    const char *(*sndfileStrError)(CSOUND *csound, void *);
-    int32_t (*sndfileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
+    int32_t (*SndfileClose)(CSOUND *csound, void *);
+    int64_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
+    int64_t (*SndfileSeek)(CSOUND *, void *, int64_t, int32_t);
+    int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type, const char* str);
+    const char *(*SndfileStrError)(CSOUND *csound, void *);
+    int32_t (*SndfileCommand)(CSOUND *, void *, int32_t , void *, int32_t );
   } SNDFILE_CALLBACKS;
   
 
@@ -64,7 +64,7 @@ extern "C" {
    * opened.  This information is passed by Csound to a host's FileOpen
    * callback and does not influence the opening operation in any other
    * way. Conversion from Csound's TYP_XXX macros for audio formats to
-   * CSOUND_FILETYPES values can be done with csound->type2csfiletype().
+   * CSOUND_FILETYPES values can be done with csound->csoundSndfileType2CsfileType().
    */
   typedef enum {
     CSFTYPE_UNIFIED_CSD = 1,   /* Unified Csound document */

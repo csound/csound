@@ -646,9 +646,9 @@ char *csoundFindOutputFile(CSOUND *csound,
  *   On failure, NULL is returned.
  */
 
-void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
-                             const char *name, void *param, const char *env,
-                             int32_t csFileType, int32_t isTemporary)
+void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
+                     const char *name, void *param, const char *env,
+                     int32_t csFileType, int32_t isTemporary)
 {
     CSFILE  *p = NULL;
     char    *fullName = NULL;
@@ -822,7 +822,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
       int32_t writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
                      (type == CSFILE_STD && ((char*)param)[0] == 'w'));
       if (csFileType == CSFTYPE_UNKNOWN_AUDIO && type == CSFILE_SND_R)
-        csFileType = sftype2csfiletype(((SFLIB_INFO*)param)->format);
+        csFileType = csoundSndfileType2CsfileType(((SFLIB_INFO*)param)->format);
       csound->FileOpenCallback_(csound, p->fullName, csFileType,
                                 writing, isTemporary);
     }
@@ -1043,13 +1043,13 @@ void *fopen_path(CSOUND *csound, FILE **fp, const char *name, const char *basena
 
 static uintptr_t file_iothread(void *p);
 
-void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
-                                   const char *name, void *param, const char *env,
-                                   int32_t csFileType, int32_t buffsize, int32_t isTemporary)
+void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
+                           const char *name, void *param, const char *env,
+                           int32_t csFileType, int32_t buffsize, int32_t isTemporary)
 {
 #ifndef __EMSCRIPTEN__
     CSFILE *p;
-    if ((p = (CSFILE *) csoundFileOpenWithType(csound,fd,type,name,param,env,
+    if ((p = (CSFILE *) csoundFileOpen(csound,fd,type,name,param,env,
                                                csFileType,isTemporary)) == NULL)
       return NULL;
 

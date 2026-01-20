@@ -299,7 +299,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
             double  tt;
             char    *tmp = p;
-            tt = cs_strtod(p, &tmp);
+            tt = csoundStrtod(p, &tmp);
             //printf("tt=%lf q=%c\n", tt, q);
             csound->randSeed1 = (int)tt;
             printf("seed from score %d\n", csound->randSeed1);
@@ -385,7 +385,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
             double  tt;
             char    *tmp = p;
-            tt = cs_strtod(p, &tmp);
+            tt = csoundStrtod(p, &tmp);
             if (tmp != p && (*tmp == '\0' || isspace(*tmp))) {
               (csound->sread.bp)->pcnt = 1;
               (csound->sread.bp)->p1val =
@@ -444,7 +444,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           }
           if (j>=(csound->sread.last_name)) {
             j = ++(csound->sread.last_name);
-            (csound->sread.names)[j].name =cs_strdup(csound, buff);
+            (csound->sread.names)[j].name =csoundStrdup(csound, buff);
           }
           (csound->sread.names)[j].posit =
             corfile_tell(csound->expanded_sco);
@@ -1264,7 +1264,7 @@ MYFLT stof(CSOUND *csound, char s[])            /* convert string to MYFLT  */
                                     /* (assumes no white space at beginning */
 {                                   /*      but a blank or nl at end)       */
     char    *p;
-    MYFLT   x = (MYFLT) cs_strtod(s, &p);
+    MYFLT   x = (MYFLT) csoundStrtod(s, &p);
     if (*p=='z') return FL(800000000000.0); /* 25367 years */
     if (UNLIKELY(s == p || !(*p == '\0' || isspace(*p)))) {
       csound->Message(csound, Str("sread: illegal number format:  "));
