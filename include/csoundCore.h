@@ -74,12 +74,25 @@ extern "C" {
     struct arg *next;
   } ARG;
 
+  /**
+   * Opcode entry structure.
+   *
+   * Array Type Format Contract:
+   * ---------------------------
+   * The outypes and intypes strings use EXTERNAL format for array types:
+   *   - Primitive arrays: "k[]", "a[][]", "S[]"
+   *   - UDT arrays: ":TypeName;[]"
+   *
+   * This format is human-readable and consistent with how opcodes are defined.
+   * The split_args() function converts external format to internal format
+   * (e.g., "k[]" -> "[k]") for runtime processing.
+   */
   typedef struct oentry {
     char    *opname;
     size_t  dsblksiz;
     int32_t flags;
-    char    *outypes;
-    char    *intypes;
+    char    *outypes;   /* Output types in EXTERNAL format (e.g., "ak[]") */
+    char    *intypes;   /* Input types in EXTERNAL format (e.g., "ik[]") */
     SUBR    init;
     SUBR    perf;
     SUBR    deinit;

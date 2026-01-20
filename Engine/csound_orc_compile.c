@@ -230,7 +230,24 @@ int32_t args_required(char* argString)
   return retVal;
 }
 
-/** Splits args in argString into char**, taking into account array identifiers */
+/**
+ * Splits a concatenated argument type string into individual type specifiers.
+ *
+ * Array Type Format Contract:
+ * ---------------------------
+ * INPUT:  argString in EXTERNAL format - types concatenated together
+ *         Examples: "ik[]", "aS", ":MyType;[]", "k[]k[]"
+ *         - Primitive arrays: type char followed by brackets ("k[]", "a[][]")
+ *         - UDT arrays: ":TypeName;[]" format
+ *
+ * OUTPUT: Array of strings in INTERNAL format
+ *         Examples: "[k]", "[[a]", "[:MyType;]"
+ *         - Brackets precede the type, single closing bracket at end
+ *         - Dimension count = number of leading '[' chars
+ *
+ * This function is the bridge between human-readable OENTRY definitions
+ * and the internal representation used by parse_opcode_args().
+ */
 char** split_args(CSOUND* csound, char* argString)
 {
   int32_t argCount = args_required(argString);

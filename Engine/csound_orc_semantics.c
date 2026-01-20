@@ -1531,10 +1531,26 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
   return NULL;
 }
 
-/* Converts internal array specifier from [[a] to a[][].
-   Used by get_arg_string_from_tree to create an arg string that is
-   compatible with the ones found in OENTRY's.  split_args converts back
-   to internal representation. */
+/**
+ * Converts array type from INTERNAL to EXTERNAL format.
+ *
+ * Array Type Format Contract:
+ * ---------------------------
+ * INTERNAL format: Brackets before type, single closing bracket
+ *   - "[k]" = 1D k-rate array
+ *   - "[[a]" = 2D audio array
+ *   - "[:MyType;]" = 1D UDT array
+ *
+ * EXTERNAL format: Type followed by bracket pairs
+ *   - "k[]" = 1D k-rate array
+ *   - "a[][]" = 2D audio array
+ *   - ":MyType;[]" = 1D UDT array
+ *
+ * EXTERNAL format is used in OENTRY.intypes/outypes and is human-readable.
+ * INTERNAL format is used in parse trees and after split_args() processing.
+ *
+ * NOTE: This function also wraps non-array UDT names with :; delimiters.
+ */
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int32_t i = 0, dimensions;
   char *start;
@@ -1557,9 +1573,9 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   /** This is doubtful code leading to garbled types
       - restoring previous (dbc1ce2b1)
 
-    NB: changing the check 
+    NB: changing the check
       if (!hasLeadingBracket && !isSingleChar)
-    to 
+    to
       if (!hasLeadingBracket && isSingleChar)
 
    fixes the issue, but the previous code
@@ -1584,7 +1600,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     type++;
   }
   type = typ;
-  
+
   **/
 
   // Check if this is already a properly formatted struct array type
@@ -1753,7 +1769,23 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
 
 
-/* Used by new UDO syntax, expects tree's with value->lexeme as type names */
+/**
+ * Builds a concatenated input type string from the parse tree for new-style UDOs.
+ *
+ * Array Type Format Contract:
+ * ---------------------------
+ * OUTPUT: Returns a string in EXTERNAL format for use in OENTRY.intypes
+ *         Examples: "ik[]", "a:MyType;[]", "SS"
+ *         - Primitive arrays: "k[]", "a[][]"
+ *         - UDT arrays: ":TypeName;[]"
+ *
+ * IMPORTANT: get_arg_type2() returns INTERNAL format ("[k]"), so we must
+ * convert to EXTERNAL format before concatenation. Failure to do so produces
+ * invalid hybrid strings like "i[k]" that split_args() cannot parse.
+ *
+ * This string is passed to add_udo_definition() and ultimately to split_args()
+ * which expects EXTERNAL format input.
+ */
 char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
   int32_t len = tree_arg_list_count(tree);
 
@@ -1779,15 +1811,25 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
     int32_t argLen = (int32_t) strlen(argType);
     int32_t offset = i * 256;
 
-    // Check if this is already in internal format or needs conversion
-    if (argType[0] == ':' && argType[argLen - 1] == ';') {
-      // Already in internal format, use as-is
+    // Check if this is in internal array format (starts with '[')
+    // Convert to external format for proper concatenation
+    if (argType[0] == '[') {
+      char* converted = convert_internal_to_external(csound, argType);
+      int32_t convLen = (int32_t) strlen(converted);
+      strcpy(&argTypes[offset], converted);
+      argsLen += convLen;
+      csound->Free(csound, argType);
+      csound->Free(csound, converted);
+    } else if (argType[0] == ':' && argType[argLen - 1] == ';') {
+      // Already in UDT format, use as-is
       strcpy(&argTypes[offset], argType);
       argsLen += argLen;
-    } else if (argLen <= 3 && (argType[argLen-1] == ']' || argLen == 1)) {
-      // Built-in types (single char like 'i' or array like 'i[]')
+      csound->Free(csound, argType);
+    } else if (argLen == 1 || (argLen == 3 && argType[1] == '[' && argType[2] == ']')) {
+      // Built-in types (single char like 'i' or array like 'k[]')
       strcpy(&argTypes[offset], argType);
       argsLen += argLen;
+      csound->Free(csound, argType);
     } else {
       // User-defined types (length > 1 and not built-in array) - convert to :TypeName; format
       // Check if it's an array type
@@ -1809,9 +1851,9 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
         argTypes[offset + argLen + 2] = '\0';
         argsLen += argLen + 2;
       }
+      csound->Free(csound, argType);
     }
 
-    csound->Free(csound, argType);
     current = current->next;
     i += 1;
   }
@@ -1830,7 +1872,19 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
   return argString;
 }
 
-/* Used by new UDO syntax, expects tree's with value->lexeme as type names */
+/**
+ * Builds a concatenated output type string from the parse tree for new-style UDOs.
+ *
+ * Array Type Format Contract:
+ * ---------------------------
+ * OUTPUT: Returns a string in EXTERNAL format for use in OENTRY.outypes
+ *         Examples: "k[]", ":MyType;[]", "aS"
+ *         - Primitive arrays: "k[]", "a[][]"
+ *         - UDT arrays: ":TypeName;[]"
+ *
+ * This string is passed to add_udo_definition() and ultimately to split_args()
+ * which expects EXTERNAL format input.
+ */
 char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
   int32_t len = tree_arg_list_count(tree);
@@ -2109,7 +2163,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
                                get_var_pool(csound,typeTable,
                                             var->varName)->table,
                                var->varName);
-      }  
+      }
       // check to see if annotation is optional type
       char *nm = check_optional_type(csound, annotation);
 
@@ -2741,7 +2795,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     }
     else if(oentry->deprecated == 2) {
       if(csound->oparms->error_deprecated) {
-        synterr(csound, "opcode %s has been renamed (uppercase to lowercase / underscores removed), line %d", 
+        synterr(csound, "opcode %s has been renamed (uppercase to lowercase / underscores removed), line %d",
                 oentry->opname, root->line);
         csoundMessage(csound, Str(" %s %s %s\n"),
                         leftArgString ? leftArgString : "",
