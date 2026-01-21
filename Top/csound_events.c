@@ -162,8 +162,8 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     evt.scnt = 0;
     evt.opcod = 'a';
     evt.pcnt = 3;
-    evt.p[1] = evt.p[0] = FL(0.0);
-    evt.p[2] = (MYFLT)aTime;
+    pfields[1] =  pfields[0] = FL(0.0);
+    pfields[2] = (MYFLT)aTime;
     insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
   }
 }

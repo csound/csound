@@ -420,6 +420,7 @@ def runTest():
         ["test46.csd", "if-then with expression in boolean comparison"],
         ["test47.csd", "until loop and k[]"],
         ["test48.csd", "expected failure with variable used before defined", 1],
+        ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
         ["test_instr0_call.csd", "testing ability to call instr 0"],
         ["test_udo_local_pool.csd", "test udos for separate local var pool"],
         ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
