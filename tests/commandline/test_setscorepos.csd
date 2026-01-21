@@ -13,10 +13,17 @@ instr 2
   prints "Rewinding...\n"
   rewindscore()
 endin
+
+instr 3
+  // should not reach this if rewindscore() worked
+  exitnow(-1)
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 1
-i 2 1 0 
+i 2 1 0
+i 3 2 0
 </CsScore>
 </CsoundSynthesizer>
 
