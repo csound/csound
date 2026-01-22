@@ -448,8 +448,12 @@ statement_list : statement_list statement
                     in turn causes a lot of shift/reduce errors to be
                     reported.  The parser works with this, but we should
                     perhaps look at expanding the other rules to work
-                    without statement_list in them. */
-                    $$ = NULL;
+                    without statement_list in them.
+
+                    Create an empty node instead of NULL to distinguish
+                    between "no statements" and "not yet set". This is
+                    important for switch/case statement merging. */
+                    $$ = make_node(csound, LINE, LOCN, 0, NULL, NULL);
                   }
                 ;
 
@@ -592,7 +596,35 @@ case_list : case_list case
                   tempLastNode->right->next!=NULL) {
                   tempLastNode = tempLastNode->right->next;
                 }
-                tempLastNode->right->next = $2;
+                // Handle the case where tempLastNode->right is NULL or empty
+                // This happens when we have consecutive case statements
+                // without any code between them (e.g., case 1 case 2)
+                // Check for NULL or empty statement node (type == 0)
+                // IMPORTANT: Only merge if both are CASE nodes (not DEFAULT)
+                if ((tempLastNode->right == NULL ||
+                    (tempLastNode->right->type == 0 &&
+                     tempLastNode->right->left == NULL &&
+                     tempLastNode->right->right == NULL)) &&
+                    tempLastNode->type == CASE_TOKEN &&
+                    $2->type == CASE_TOKEN) {
+                  // If the first case has no statement list, we need to
+                  // merge the expressions from both cases and use the
+                  // statement list from the second case
+                  if ($2->left != NULL) {
+                    // Create an expression list using append_to_tree
+                    if (tempLastNode->left != NULL) {
+                      tempLastNode->left = append_to_tree(csound, tempLastNode->left, $2->left);
+                    } else {
+                      tempLastNode->left = $2->left;
+                    }
+                  }
+                  tempLastNode->right = $2->right;
+                  // Free the second case node since we've merged it
+                  $2->left = NULL;
+                  $2->right = NULL;
+                } else {
+                  tempLastNode->right->next = $2;
+                }
                 $$ = $1; }
             | case { $$ = $1; }
             ;

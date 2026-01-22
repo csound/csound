@@ -874,7 +874,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     break;
   case S_EQ:
     strNcpy(op, "==", 80);
-    break;   
+    break;
   case S_NEQ:
     strNcpy(op, "!=", 80);
     break;
@@ -1589,7 +1589,12 @@ TREE* expand_switch_statement(
           caseArg = caseArg->next;
         }
 
-        if (caseNode->right != NULL) {
+        // Check if we have a real statement list (not NULL and not empty node)
+        // Empty nodes have type == 0 with NULL left and right
+        if (caseNode->right != NULL &&
+            !(caseNode->right->type == 0 &&
+              caseNode->right->left == NULL &&
+              caseNode->right->right == NULL)) {
           tempNext = caseNode->right->next;
           gotoChainTailAnchor = append_to_tree(csound, gotoChainTailAnchor, caseNode->right);
           gotoChainTailAnchor->next->next = NULL;
@@ -1599,7 +1604,18 @@ TREE* expand_switch_statement(
             copy_node(csound, endGoto)
           );
         } else {
-          tempNext = NULL;
+          // Empty case - add a goto to end to prevent fall-through
+          gotoChainTailAnchor = append_to_tree(
+            csound,
+            gotoChainTailAnchor,
+            copy_node(csound, endGoto)
+          );
+          // Still need to get the next node
+          if (caseNode->right != NULL) {
+            tempNext = caseNode->right->next;
+          } else {
+            tempNext = NULL;
+          }
         }
     } else if (caseNode->type == DEFAULT_TOKEN && gotoChainHeadDefaultCase == NULL) {
       gotoChainHeadDefaultCase = create_goto_node(csound, isPerfRate);
@@ -1863,7 +1879,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   }
 
   char* array_get = arrayType != sType ? "##array_get" : "##array_geti";
-  TREE* arrayGetStatement = create_opcode_token(csound, array_get); 
+  TREE* arrayGetStatement = create_opcode_token(csound, array_get);
   arrayGetStatement->left = current->left;
 
   arrayGetStatement->right = copy_node(csound, arrayIdent);
