@@ -608,12 +608,36 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   return OK;
 }
 
+/*
+ * Default performance execution stub for UDOs.
+ *
+ * This function is the initial performance method for UDOs. It is normally
+ * replaced by a specialized function (e.g. useropcd_pass_by_ref) during
+ * initialization (useropcdset).
+ *
+ * If this function is called, it typically means the UDO was skipped during
+ * initialization (e.g. due to conditional control flow). In this case, it
+ * acts as a No-Op to allow the performance chain to continue execution.
+ */
 int32_t useropcd(CSOUND *csound, UOPCODE *p)
-{  if (UNLIKELY(p->h.nxtp))
-    return csoundPerfError(csound, &(p->h), Str("%s: not initialised"),
-                           p->h.optext->t.opcod);
-  else
+{
+  /* If init wasn't run yet (ip is NULL or init_done not set), just return OK.
+     This allows UDOs skipped at i-time to safely exist in the perf chain. */
+  if (p->ip == NULL || !p->ip->init_done)
     return OK;
+
+  /* If execution reaches here, the UDO claims to be initialized, but the
+     specialized performance function was not installed. If the internal UDO
+     contains performance opcodes (nxtp != NULL), this indicates an initialization
+     failure or inconsistency. */
+  if (UNLIKELY(p->ip->nxtp != NULL)) {
+    const char *opname = (p->h.optext && p->h.optext->t.opcod)
+                         ? p->h.optext->t.opcod : "unknown UDO";
+    return csoundPerfError(csound, &(p->h),
+                           Str("%s: perf routine not initialised"), opname);
+  }
+
+  return OK;
 }
 
 /** This function sets up the input
