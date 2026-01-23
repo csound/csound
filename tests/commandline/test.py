@@ -699,6 +699,10 @@ def runTest():
         ],
         ["udo/crashing_test.csd", "test for UDO crashing", 1],
         ["udo/test_udo_array_set.csd", "test UDO array setting"],
+        [
+            "test_udo_optional_after_instr.csd",
+            "test new-style UDO optional args defined after instr",
+        ],
     ]
 
     maxallocTests = [

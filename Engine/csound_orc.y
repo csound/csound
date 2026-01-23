@@ -244,6 +244,7 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
                                   $2, $5);
                     csp_orc_sa_instr_finalize(csound);
+                    namedInstrFlag = 0;
                  }
                 | INSTR_TOKEN NEWLINE error
                    { csound->ErrorMsg(csound, Str("No number following instr\n"));
