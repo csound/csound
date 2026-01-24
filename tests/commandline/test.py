@@ -622,6 +622,10 @@ def runTest():
             "test_op_precedence.csd",
             "test bitwise operator precedence vs equality",
         ],
+        [
+            "test_keyword_spacing.csd",
+            "test keyword spacing (if(, elseif(, etc.)",
+        ],
     ]
 
     arrayTests = [

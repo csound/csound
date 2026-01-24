@@ -151,10 +151,11 @@ ERSTR           "}R"
 "true"          { return TRUE_TOKEN; }
 "falsek"        { return FALSEK_TOKEN; }
 "truek"         { return TRUEK_TOKEN; }
-"if"            { *lvalp = make_token(csound, yytext);
+"if"\([ \t]*    { yyless(2);
+                  *lvalp = make_token(csound, "if");
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-"if"/"("        { *lvalp = make_token(csound, yytext);
+"if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
@@ -166,10 +167,11 @@ ERSTR           "}R"
 "kthen"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
-"elseif"        { *lvalp = make_token(csound, yytext);
+"elseif"\([ \t]* { yyless(6);
+                  *lvalp = make_token(csound, "elseif");
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
-"elseif"/"("    { *lvalp = make_token(csound, yytext);
+"elseif"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -181,16 +183,18 @@ ERSTR           "}R"
 "fi"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ENDIF_TOKEN;
                   return ENDIF_TOKEN; }
+"until"\([ \t]* { yyless(5);
+                  *lvalp = make_token(csound, "until");
+                  (*lvalp)->type = UNTIL_TOKEN;
+                  return UNTIL_TOKEN; }
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
-"until"/"("     { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = UNTIL_TOKEN;
-                  return UNTIL_TOKEN; }
-"while"         { *lvalp = make_token(csound, yytext);
+"while"\([ \t]* { yyless(5);
+                  *lvalp = make_token(csound, "while");
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
-"while"/"("     { *lvalp = make_token(csound, yytext);
+"while"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
@@ -233,9 +237,6 @@ ERSTR           "}R"
 "struct"        {
                   return STRUCT_TOKEN;
                 }
- /*"A4"            { *lvalp = make_token(csound, yytext);*/
-                  /*(*lvalp)->type = A4_TOKEN;*/
-                  /*return A4_TOKEN; }*/
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
