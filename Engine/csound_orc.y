@@ -40,7 +40,7 @@
 %token S_GT
 %token S_GE
 %token S_BITSHIFT_LEFT
-%token S_BITSHIFT_RRIGHT
+%token S_BITSHIFT_RIGHT
 
 %token LABEL_TOKEN
 %token IF_TOKEN
@@ -115,14 +115,14 @@
 /* Precedence Rules */
 %right '?'
 %left S_AND S_OR
-%left '|'
-%left '&'
 %left S_LT S_GT S_LE S_GE S_EQ S_NEQ '=' // VL 6.8.25 for backwards compat
+%left '|'
+%left '#'
+%left '&'
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
-%left '#'
 %right S_UNOT
 %right S_UMINUS
 %right S_UPLUS

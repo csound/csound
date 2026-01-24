@@ -618,6 +618,10 @@ def runTest():
         ["test_raw_strings.csd", "test new-style raw strings"],
         ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
         ["test_all_math_constants.csd", "test all builtin math constant macros"],
+        [
+            "test_op_precedence.csd",
+            "test bitwise operator precedence vs equality",
+        ],
     ]
 
     arrayTests = [
