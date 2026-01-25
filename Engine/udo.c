@@ -146,7 +146,7 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
 
 /* Helper to rewire opcode arguments in a chain for pass-by-ref parameters */
 static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chain,
-                                   CS_HASH_TABLE *arg_ptr_map, CS_HASH_TABLE *xout_skip_names) {
+                                   CS_HASH_TABLE *arg_ptr_map) {
   while (chain != NULL) {
     OPTXT *optext = chain->optext;
     ARGLST *outlist = optext->t.outlist;
@@ -165,9 +165,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
       for (int i = 0; i < outlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = outlist->arg[i];
         if (!varName) continue;
-        if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
-          continue;
-        }
 
         // Get base variable name (without struct path)
         char *baseName = varName;
@@ -192,9 +189,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
       for (int i = 0; i < inlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = inlist->arg[i];
         if (!varName) continue;
-        if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
-          continue;
-        }
 
         // Get base variable name (without struct path)
         char *baseName = varName;
@@ -230,7 +224,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
 static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   int32_t i;
   CS_HASH_TABLE *arg_ptr_map = cs_hash_table_create(csound);
-  CS_HASH_TABLE *xout_skip_names = cs_hash_table_create(csound);
   OPDS *ichain = lcurip->nxti;
 
   // Locate xin opcode for parameter name mapping
@@ -323,11 +316,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ichain = ichain->nxti;
   }
 
-  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map, xout_skip_names);
-  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map, xout_skip_names);
+  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map);
+  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map);
 
   cs_hash_table_free(csound, arg_ptr_map);
-  cs_hash_table_free(csound, xout_skip_names);
 }
 
 /*
