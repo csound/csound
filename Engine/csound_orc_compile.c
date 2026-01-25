@@ -1609,12 +1609,16 @@ static int32_t inargs_check(OPCODINFO *opinfo, char *inargs) {
   char *c = opinfo->intypes;
   int32_t i;
   if(strcmp(c, inargs) != 0) {
-  for(i = 0; c[i] != 0; i++) {
-    if(c[i] != inargs[i]) {
-       if(c[i] == 'k' && inargs[i] == 'K') continue;
-       else return 1;
-     }
-  }
+    for(i = 0; c[i] != 0 && inargs[i] != 0; i++) {
+      if(c[i] != inargs[i]) {
+        if(c[i] == 'k' && inargs[i] == 'K') continue;
+        else return 1;
+      }
+    }
+    // Check that both strings ended at the same position (same length)
+    if (c[i] != 0 || inargs[i] != 0) {
+      return 1;
+    }
   }
   return 0;
 }
