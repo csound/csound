@@ -213,7 +213,7 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
-option(BUILD_RELEASE "Build for release" ON)
+option(USE_DEFAULT_OPCODEDIR "Use default opcodedir for the system" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" OFF)
 option(LEXER_DEBUG "Build lexer with debug option" OFF)
@@ -291,12 +291,10 @@ endif()
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
     message(STATUS "Building for release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+    add_definitions("-DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     message(STATUS "Building for debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
+    add_definitions("-DBETA")
 endif()
 
 # set -Werror if in Debug configuration
@@ -538,15 +536,16 @@ if(WIN32)
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
-if(BUILD_RELEASE)
-    add_definitions("-D_CSOUND_RELEASE_")
-else()
-    add_definitions("-DBETA")
-endif()
-
 if(APPLE OR LINUX)
     message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
+
+if(USE_DEFAULT_OPCODEDIR)
+ add_definitions("-DUSE_DEFAULT_OPCODEDIR")
+ message(STATUS "using default opcodedir")
+endif()
+
+
 
 set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
