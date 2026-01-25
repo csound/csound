@@ -788,7 +788,7 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
     { (char *)"serialwrite.S", S(SERIALWRITE), WR, (char *)"", (char *)"iS",
       (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL   },
-    { (char *)"serialrad", S(SERIALREAD), 0, (char *)"k", (char *)"i",
+    { (char *)"serialread", S(SERIALREAD), 0, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
     { (char *)"serialprint", S(SERIALPRINT), WR, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
