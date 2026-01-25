@@ -2269,9 +2269,13 @@ const OENTRY opcodlst_1[] = {
    (SUBR) resonbnk_init, (SUBR) resonbnk},
   { "inrg", S(INRANGE), WI, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
   { "OSClisten", S(ROSC), 0, "kNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-    "SS", NULL, (SUBR) readOSC_perf},
+    "SS", NULL, (SUBR) readOSC_perf, NULL, NULL, 2},
   { "OSClisten", S(ROSCA), 0, "kk[]",
-    "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf},
+    "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf, NULL, NULL, 2},
+  { "osclisten", S(ROSC), 0, "kNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+    "SS", NULL, (SUBR) readOSC_perf},  /* Alias */
+  { "osclisten", S(ROSCA), 0, "kk[]",
+    "SS", (SUBR) readOSCarray_init, (SUBR) readOSCarray_perf},  /* Alias */
   { "midifileopen", S(MFILE), 0, "i", "So", midi_file_opcode},
   { "midifileplay", S(MFILE), 0, "", "o", midi_file_play},
   { "midifilepause", S(MFILE), 0, "", "o", midi_file_pause},
