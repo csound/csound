@@ -115,14 +115,14 @@
 /* Precedence Rules */
 %right '?'
 %left S_AND S_OR
-%left S_LT S_GT S_LE S_GE S_EQ S_NEQ '=' // VL 6.8.25 for backwards compat
 %left '|'
-%left '#'
 %left '&'
+%left S_LT S_GT S_LE S_GE S_EQ S_NEQ '=' // VL 6.8.25 for backwards compat
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
+%left '#'
 %right S_UNOT
 %right S_UMINUS
 %right S_UPLUS
@@ -964,7 +964,7 @@ false_const: FALSE_TOKEN
        | FALSEK_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, FALSEK_TOKEN,
                         make_token(csound,"falsek")); }
-       
+
        ;
 
 true_const: TRUE_TOKEN
