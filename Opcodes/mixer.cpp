@@ -327,7 +327,7 @@ static OENTRY localops[] = {
    (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL},
   {(char *)"mixerreceive", sizeof(MixerReceive), _CR,  (char *)"a",
    (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_,
-   0, NULL, 2},
+   0, NULL},
   {(char *)"mixerclear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
    (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL},
   {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, NULL}};
