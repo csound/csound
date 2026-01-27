@@ -407,6 +407,12 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     csound->opcodeInfo = inm;
 
     if (opc != NULL) {
+      OPCODINFO *old_inm = (OPCODINFO *) opc->useropinfo;
+      if (old_inm != NULL && old_inm->instno > 0) {
+        /* Preserve existing UDO instrument number during redefinition
+           to avoid transient instno==0 during live recompiles. */
+        inm->instno = old_inm->instno;
+      }
       opc->useropinfo = inm;
       newopc = opc;
       inm->oentry = opc;
