@@ -60,6 +60,23 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                         OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
+int32_t useropcdset(CSOUND *, void *);
+
+/* Check if a UDO definition has any perf-time opcodes.
+   Returns 1 if perf-time opcodes exist, 0 otherwise. */
+static int32_t udo_has_perf_opcodes(INSTRTXT *ip) {
+  OPTXT *optxt = (OPTXT *) ip;
+  while ((optxt = optxt->nxtop) != NULL) {
+    TEXT *ttp = &optxt->t;
+    if (ttp->oentry == NULL) continue;
+    if (strcmp(ttp->oentry->opname, "$label") == 0) continue;
+    if (strcmp(ttp->oentry->opname, "endop") == 0) break;
+    if (ttp->oentry->perf != NULL) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 
 
@@ -2082,7 +2099,34 @@ if (UNLIKELY(csound->synterrcnt)) {
   return CSOUND_ERROR;
  }
 
-
+/* Set oentry->perf = NULL for calls to init-only UDOs. Csound may have
+   multiple OENTRY copies for the same opcode, so we must update the specific
+   OENTRY pointer stored in each TEXT structure to ensure instantiation skips
+   linking init-only UDOs into the perf chain. */
+{
+  INSTRTXT *ip = engineState->instxtanchor.nxtinstxt;
+  while (ip != NULL) {
+    OPTXT *optxt = (OPTXT *) ip;
+    while ((optxt = optxt->nxtop) != NULL) {
+      TEXT *ttp = &optxt->t;
+      if (ttp->oentry != NULL && ttp->oentry->init == (SUBR) useropcdset &&
+          ttp->oentry->perf != NULL) {
+        /* Check if this UDO is init-only */
+        INSTRTXT *udo_ip = engineState->instxtanchor.nxtinstxt;
+        while (udo_ip != NULL) {
+          if (udo_ip->insname && strcmp(udo_ip->insname, ttp->oentry->opname) == 0) {
+            if (!udo_has_perf_opcodes(udo_ip)) {
+              ttp->oentry->perf = NULL;
+            }
+            break;
+          }
+          udo_ip = udo_ip->nxtinstxt;
+        }
+      }
+    }
+    ip = ip->nxtinstxt;
+  }
+}
 
 if (engineState != &csound->engineState) {
   OPDS *ids = csound->ids;
