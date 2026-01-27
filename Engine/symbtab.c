@@ -409,6 +409,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     if (opc != NULL) {
       opc->useropinfo = inm;
       newopc = opc;
+      inm->oentry = opc;
     } else {
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
@@ -426,12 +427,12 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                                        + strlen(intypes) + 1);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
       newopc->flags = flags | newopc->flags;
-      
+
     }
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 
-    
+
     // add opcodeDef for this UDO
     add_opcode_def(csound, newopc);
     return 0;
