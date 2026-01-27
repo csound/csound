@@ -192,6 +192,7 @@ extern "C" {
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
     struct instr *ip;
+    OENTRY *oentry;
     struct opcodinfo *prv;
   } OPCODINFO;
 

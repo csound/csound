@@ -340,6 +340,8 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     return retVal;
 }
 
+
+
 void add_opcode_def(CSOUND *csound, OENTRY *ep);
 
 /** Adds a UDO definition as an T_OPCODE or T_OPCODE0 type to the symbol table
@@ -416,19 +418,20 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
 
       csoundAppendOpcodes(csound, &tmpEntry, 1);
       newopc = csound_find_internal_oentry(csound, &tmpEntry);
+      inm->oentry = newopc;
 
       newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-
       /* check in/out types and copy to the opcode's */
       newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
                                        + strlen(intypes) + 1);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
       newopc->flags = flags | newopc->flags;
+      
     }
-
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
       return -3;
 
+    
     // add opcodeDef for this UDO
     add_opcode_def(csound, newopc);
     return 0;
