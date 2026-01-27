@@ -1551,17 +1551,17 @@ static void setup_opcode_argpp(
     for (n = 0; arg != NULL; n++) {
       MYFLT *fltp;
       CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
-      if (arg->type == ARG_GLOBAL) {
-        fltp = &(var->memBlock->value);
-      }
-      else if (arg->type == ARG_LOCAL) {
-        if (UNLIKELY(var == NULL)) {
-          csound->Die(csound,
-                      Str("setup_opcode_argpp: NULL local variable pointer for out-arg of %s"),
-                      ep->opname ? ep->opname : "(null)");
-        } else {
-          fltp = lclbas + var->memBlockIndex;
-        }
+      if (arg->type == ARG_GLOBAL || arg->type == ARG_LOCAL) {
+        if (arg->type == ARG_LOCAL) {
+          if (UNLIKELY(var == NULL)) {
+            csound->Die(csound,
+                        Str("setup_opcode_argpp:"
+                            " NULL local variable pointer for out-arg of %s"),
+                        ep->opname ? ep->opname : "(null)");
+          } else {
+            fltp = lclbas + var->memBlockIndex;
+          }
+        } else fltp = &(var->memBlock->value);
 
         if (arg->structPath != NULL) {
           char* path = csoundStrdup(csound, arg->structPath);
@@ -1629,13 +1629,11 @@ static void setup_opcode_argpp(
         CS_VAR_MEM* pfield = lcloffbas + arg->index;
         argpp[n] = &(pfield->value);
       }
-      else if (arg->type == ARG_GLOBAL) {
+      else if (arg->type == ARG_LOCAL || arg->type == ARG_GLOBAL){
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        argpp[n] =  &(var->memBlock->value);
-      }
-      else if (arg->type == ARG_LOCAL){
-        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        argpp[n] = lclbas + var->memBlockIndex;
+        argpp[n] = arg->type == ARG_LOCAL ?
+          lclbas + var->memBlockIndex :
+          &(var->memBlock->value);
 
         if (arg->structPath != NULL) {
           char* path = csoundStrdup(csound, arg->structPath);
