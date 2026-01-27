@@ -2077,7 +2077,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         instrtxt->insname = csoundStrdup(csound, opname);
         instrtxt->opcode_info = opinfo;
         // replace ip oentry by the UDO oentry
-        ((OPTXT *)instrtxt)->t.oentry = opinfo->oentry;
+        //((OPTXT *)instrtxt)->t.oentry = opinfo->oentry;
       }
 
       // remove dummy perf routine from init-time opcodes
