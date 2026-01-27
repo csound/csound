@@ -1827,6 +1827,21 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
     csoundUnlockMutex(csound->init_pass_threadlock);
 }
 
+static int32_t udo_has_perf_opcodes(INSTRTXT *ip) {
+  OPTXT *optxt = (OPTXT *) ip;
+  while ((optxt = optxt->nxtop) != NULL) {
+    TEXT *ttp = &optxt->t;
+    printf("opcode: %s, %p, %p \n",  ttp->oentry->opname, ttp->oentry, ttp->oentry->perf );
+    if (ttp->oentry == NULL) continue;
+    if (strcmp(ttp->oentry->opname, "$label") == 0) continue;
+    if (strcmp(ttp->oentry->opname, "endop") == 0) break;
+    if (ttp->oentry->perf != NULL) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 /**
  * Compile the given TREE node into structs
 
@@ -2068,7 +2083,13 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       instrtxt->insname = csoundStrdup(csound, opname);
       instrtxt->opcode_info = opinfo;
     }
-
+    
+    if(!udo_has_perf_opcodes(instrtxt)) {
+       OPTXT *optxt = (OPTXT *) instrtxt;
+       TEXT *ttp = &optxt->t;
+       opinfo->oentry->perf = NULL;
+    } 
+      
     /* Handle Inserting into CSOUND here by checking id's (name or
      * numbered) and using new insert_instrtxt?
      */

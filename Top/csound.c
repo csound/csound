@@ -1679,7 +1679,7 @@ static CS_NOINLINE int32_t opcode_list_new_oentry(CSOUND *csound,
   err = opcode_list_new_oentry(csound, &tmpEntry);
   // add_to_symbtab(csound, &tmpEntry);
   if (UNLIKELY(err))
-    csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
+    csoundErrorMsg(csound, Str("Failed to allocate new opcode entry for %s\n"), opname);
   return err;
 }
 
