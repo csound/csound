@@ -373,8 +373,8 @@ static const CSOUND cenviron_ = {
     csoundGetScoreOffsetSeconds,
     csoundSetScoreOffsetSeconds,
     csoundRewindScore,
-    csoundInputMessage,  
-    csoundReadScore,     
+    csoundInputMessage,
+    csoundReadScore,
     /* message printout */
     csoundMessage,
     csoundMessageS,
@@ -383,26 +383,26 @@ static const CSOUND cenviron_ = {
     csoundSetMessageLevel,
     csoundSetMessageCallback,
     /* arguments to opcodes and types*/
-    csoundGetArgString,   
-    csoundStringArg2Insno, 
-    csoundStringArg2Name,   
-    csoundGetType,              
+    csoundGetArgString,
+    csoundStringArg2Insno,
+    csoundStringArg2Name,
+    csoundGetType,
     csoundGetTypePool,
     csoundAddVariableType,
     /* memory allocation */
-    csoundAuxalloc,            
-    csoundAuxAllocAsync,       
-    csoundMalloc,              
-    csoundCalloc,              
-    csoundRealloc,              
-    csoundStrdup,             
-    csoundFree,                 
+    csoundAuxalloc,
+    csoundAuxAllocAsync,
+    csoundMalloc,
+    csoundCalloc,
+    csoundRealloc,
+    csoundStrdup,
+    csoundFree,
     /* function tables */
     csoundFTCreate,
-    csoundFTAlloc,   
-    csoundFTFree,   
-    csoundFTFind,    
-    csoundGetNamedGens,         
+    csoundFTAlloc,
+    csoundFTFree,
+    csoundFTFind,
+    csoundGetNamedGens,
     /* global and config variable manipulation */
     csoundCreateGlobalVariable,
     csoundQueryGlobalVariable,
@@ -434,21 +434,21 @@ static const CSOUND cenviron_ = {
     csoundCepsLP,
     csoundLPrms,
     /* PVOC-EX system */
-    csoundPVOC_CreateFile, 
-    csoundPVOC_OpenFile,   
-    csoundPVOC_Closefile,  
-    csoundPVOC_PutFrames,  
-    csoundPVOC_GetFrames,  
-    csoundPVOC_FrameCount, 
-    csoundPVOC_fseek,     
-    csoundPVOC_ErrorStr,   
-    csoundPVOCEX_LoadFile,  
+    csoundPVOC_CreateFile,
+    csoundPVOC_OpenFile,
+    csoundPVOC_Closefile,
+    csoundPVOC_PutFrames,
+    csoundPVOC_GetFrames,
+    csoundPVOC_FrameCount,
+    csoundPVOC_fseek,
+    csoundPVOC_ErrorStr,
+    csoundPVOCEX_LoadFile,
     /* error messages */
     csoundDie,
     csoundInitError,
     csoundPerfError,
-    csoundFtError,         
-    csoundWarning,  
+    csoundFtError,
+    csoundWarning,
     csoundDebugMsg,
     csoundLongJmp,
     csoundErrorMsg,
@@ -458,7 +458,7 @@ static const CSOUND cenviron_ = {
     csoundSeedRandMT,
     csoundRandMT,
     csoundRand31,
-    csoundRandSeed31,    
+    csoundRandSeed31,
     csoundGetRandSeed,
     /* threads and locks */
     csoundCreateThread,
@@ -499,21 +499,21 @@ static const CSOUND cenviron_ = {
     csoundReadAsync,
     csoundWriteAsync,
     csoundFSeekAsync,
-    csoundRewriteHeader, 
-    csoundLoadSoundFile,   
-    csoundLoadMemoryfile,  
-    csoundFDRecord,           
-    csoundFDClose,     
+    csoundRewriteHeader,
+    csoundLoadSoundFile,
+    csoundLoadMemoryfile,
+    csoundFDRecord,
+    csoundFDClose,
     csoundCreateFileHandle,
     csoundGetFileName,
-    csoundType2CsfileType,   
-    csoundSndfileType2CsfileType, 
-    csoundType2String,       
-    csoundGetStrFormat,    
-    sndfileSampleSize,       
+    csoundType2CsfileType,
+    csoundSndfileType2CsfileType,
+    csoundType2String,
+    csoundGetStrFormat,
+    sndfileSampleSize,
     /* sndfile interface */
-    csoundSndfileOpen,    
-    csoundSndfileOpenFd, 
+    csoundSndfileOpen,
+    csoundSndfileOpenFd,
     csoundSndfileClose,
     csoundSndfileWrite,
     csoundSndfileRead,
@@ -577,7 +577,7 @@ static const CSOUND cenviron_ = {
     csoundStrtod, // csoundStrtod
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
-    csoundDeprecate, 
+    csoundDeprecate,
     /* space for API expansion: 50 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -1630,7 +1630,8 @@ csoundSetOutputChannelCallback(CSOUND *csound,
  * OPCODES
  */
 static CS_NOINLINE int32_t opcode_list_new_oentry(CSOUND *csound,
-                                                  const OENTRY *ep) {
+                                                  const OENTRY *ep,
+                                                  int32_t prepend) {
   CONS_CELL *head;
   OENTRY *entryCopy;
   char *shortName;
@@ -1646,7 +1647,14 @@ static CS_NOINLINE int32_t opcode_list_new_oentry(CSOUND *csound,
   entryCopy->useropinfo = NULL;
 
   if (head != NULL) {
-    cs_cons_append(head, cs_cons(csound, entryCopy, NULL));
+    if (prepend) {
+      /* Prepend new entry so redefinitions are found first */
+      CONS_CELL *newHead = cs_cons(csound, entryCopy, head);
+      cs_hash_table_put(csound, csound->opcodes, shortName, newHead);
+    } else {
+      /* Append to preserve polymorphic opcode ordering */
+      cs_cons_append(head, cs_cons(csound, entryCopy, NULL));
+    }
   } else {
     head = cs_cons(csound, entryCopy, NULL);
     cs_hash_table_put(csound, csound->opcodes, shortName, head);
@@ -1676,7 +1684,7 @@ static CS_NOINLINE int32_t opcode_list_new_oentry(CSOUND *csound,
   tmpEntry.init     = init;
   tmpEntry.perf     = perf;
   tmpEntry.deinit     = deinit;
-  err = opcode_list_new_oentry(csound, &tmpEntry);
+  err = opcode_list_new_oentry(csound, &tmpEntry, 0);
   // add_to_symbtab(csound, &tmpEntry);
   if (UNLIKELY(err))
     csoundErrorMsg(csound, Str("Failed to allocate new opcode entry for %s\n"), opname);
@@ -1700,8 +1708,34 @@ int32_t csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList,
   if (UNLIKELY(n <= 0))
     n = 0x7FFFFFFF;
   while (n && ep->opname != NULL) {
-    if (UNLIKELY((err = opcode_list_new_oentry(csound, ep)) != 0)) {
+    if (UNLIKELY((err = opcode_list_new_oentry(csound, ep, 0)) != 0)) {
       csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s."),
+                     ep->opname);
+      retval = err;
+    }
+
+    n--, ep++;
+  }
+  return retval;
+}
+
+/**
+ * Prepends a list of opcodes to Csound's internal opcode list.
+ * Used for UDO redefinitions so new definitions are found first.
+ * Returns zero on success.
+ */
+int32_t csoundPrependOpcodes(CSOUND *csound, const OENTRY *opcodeList,
+                             int32_t n) {
+  OENTRY *ep = (OENTRY *)opcodeList;
+  int32_t err, retval = 0;
+
+  if (UNLIKELY(opcodeList == NULL))
+    return -1;
+  if (UNLIKELY(n <= 0))
+    n = 0x7FFFFFFF;
+  while (n && ep->opname != NULL) {
+    if (UNLIKELY((err = opcode_list_new_oentry(csound, ep, 1)) != 0)) {
+      csoundErrorMsg(csound, Str("Failed to prepend opcode entry for %s."),
                      ep->opname);
       retval = err;
     }

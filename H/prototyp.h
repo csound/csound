@@ -220,6 +220,13 @@ const char *csoundExternalMidiErrorString(CSOUND *, int32_t errcode);
  */
 int32_t csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int32_t n);
 
+/**
+ * Prepends a list of opcodes to Csound's internal opcode list.
+ * Used for UDO redefinitions so new definitions are found first.
+ * Returns zero on success.
+ */
+int32_t csoundPrependOpcodes(CSOUND *, const OENTRY *opcodeList, int32_t n);
+
 
 /**
  * Register utility with the specified name.

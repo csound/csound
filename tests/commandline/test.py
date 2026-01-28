@@ -505,6 +505,10 @@ def runTest():
         ["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         [
+            "test_compilestr_udo_redefine_assert.csd",
+            "test UDO redefinition via compilestr",
+        ],
+        [
             "test_array_function_call.csd",
             "test synthesizing an array arg from a function-call",
         ],

@@ -35,6 +35,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc_compile.h"
 #include "namedins.h"
+#include "udo.h"
 #include "aops.h"
 
 #include "csound_orc_expressions.h"
@@ -60,7 +61,6 @@ void merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                          OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
-int32_t useropcdset(CSOUND *, void *);
 
 /* Check if a UDO definition has any perf-time opcodes.
    Returns 1 if perf-time opcodes exist, 0 otherwise. */
@@ -1622,35 +1622,21 @@ static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
   }
 }
 
-static int32_t inargs_check(OPCODINFO *opinfo, char *inargs) {
-  char *c = opinfo->intypes;
-  int32_t i;
-  if(strcmp(c, inargs) != 0) {
-    for(i = 0; c[i] != 0 && inargs[i] != 0; i++) {
-      if(c[i] != inargs[i]) {
-        if(c[i] == 'k' && inargs[i] == 'K') continue;
-        else return 1;
-      }
-    }
-    // Check that both strings ended at the same position (same length)
-    if (c[i] != 0 || inargs[i] != 0) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-static OPCODINFO *find_opcode_info(CSOUND *csound, char *opname,
-                                   char *outargs, char *inargs) {
-  OPCODINFO *opinfo = csound->opcodeInfo;
+/**
+ * Search a linked list of OPCODINFO for a UDO matching name and signature.
+ * Returns the matching OPCODINFO or NULL if not found.
+ */
+static OPCODINFO *find_opcode_info(CSOUND *csound, OPCODINFO *infoList,
+                                   char *opname, char *outargs, char *inargs) {
+  OPCODINFO *opinfo = infoList;
   if (UNLIKELY(opinfo == NULL)) {
-    csound->Message(csound, Str("!!! csound->opcodeInfo is NULL !!!\n"));
+    csound->Message(csound, Str("!!! opcodeInfo is NULL !!!\n"));
     return NULL;
   }
 
   while (opinfo != NULL) {
     if (UNLIKELY(strcmp(opinfo->name, opname) == 0 &&
-                 inargs_check(opinfo, inargs) == 0 && // VL: treat the 'K' case
+                 inargs_match(opinfo->intypes, inargs) == 0 &&
                  strcmp(opinfo->outtypes, outargs) == 0)) {
       return opinfo;
     }
@@ -1891,6 +1877,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                                    * sizeof(INSTRTXT*));
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
     insert_instrtxt(csound, csound->instr0, 0, engineState,0);
+    engineState->opcodeInfo = csound->opcodeInfo;
   }
   else {
     engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
@@ -1912,6 +1899,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     csound->instr0 = create_global_instrument(csound, current, engineState,
                                               typeTable->instr0LocalPool);
     insert_instrtxt(csound, csound->instr0, 0, engineState,1);
+    engineState->opcodeInfo = csound->opcodeInfo;
 
     prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
   }
@@ -2035,9 +2023,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         }
         p = p->next;
       }
-      /* Sanity: ensure numbered instrument was actually inserted (p-walk 
+      /* Sanity: ensure numbered instrument was actually inserted (p-walk
         can miss)
-        Use the number stored in inlist[0] bycreate_instrument when 
+        Use the number stored in inlist[0] bycreate_instrument when
         insname is NULL. */
       if (instrtxt && instrtxt->insname == NULL && instrtxt->t.inlist
           && instrtxt->t.inlist->count > 0 && instrtxt->t.inlist->arg[0]) {
@@ -2065,7 +2053,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
       opname = current->left->value->lexeme;
       OPCODINFO *opinfo =
-        find_opcode_info(csound, opname, current->left->left->markup,
+        find_opcode_info(csound, csound->opcodeInfo, opname,
+                         current->left->left->markup,
                          current->left->right->markup);
 
       if (UNLIKELY(opinfo == NULL)) {
@@ -2083,8 +2072,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       // remove dummy perf routine from init-time opcodes
       if(!udo_has_perf_opcodes(instrtxt)) {
         opinfo->oentry->perf = NULL;
-      } 
-      
+      }
+
       break;
     case T_OPCALL:
     case LABEL_TOKEN:
@@ -2309,10 +2298,10 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
       n = outlist->count;
       argp = outlist->arg; /* get outarg indices */
       while (n--) {
-	if(n > 0)
-	  csound->Message(csound, "%s,",*argp++);
-	else
-          csound->Message(csound, "%s ",*argp++);
+        if (n > 0)
+          csound->Message(csound, "%s,", *argp++);
+        else
+          csound->Message(csound, "%s ", *argp++);
       }
     }
     csound->Message(csound, " %s ", ep->opname);
@@ -2321,10 +2310,10 @@ static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {
       n = inlist->count;
       argp = inlist->arg; /* get inarg indices */
       while (n--)
-       	if(n > 0)
-	  csound->Message(csound, "%s,",*argp++);
-	else
-          csound->Message(csound, "%s ",*argp++);
+        if (n > 0)
+          csound->Message(csound, "%s,", *argp++);
+        else
+          csound->Message(csound, "%s ", *argp++);
     }
     csound->Message(csound, "\n");
   }

@@ -350,6 +350,21 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
 
 */
 
+static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
+                                         const char *outtypes,
+                                         const char *intypes) {
+  OPCODINFO *opinfo = csound->opcodeInfo;
+  while (opinfo != NULL) {
+    if (strcmp(opinfo->name, name) == 0 &&
+        strcmp(opinfo->outtypes, outtypes) == 0 &&
+        inargs_match(opinfo->intypes, intypes) == 0) {
+      return opinfo;
+    }
+    opinfo = opinfo->prv;
+  }
+  return NULL;
+}
+
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
@@ -361,7 +376,17 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   OPCOD_IOBUFS *buf = p->buf;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
-  instno = inm->instno;  tp = csound->engineState.instrtxtp[instno];
+  if (inm != NULL) {
+    /* Find the latest OPCODINFO for this UDO signature, in case it was
+       redefined after this instrument was compiled. */
+    OPCODINFO *latest = find_latest_useropinfo(csound, inm->name,
+                                               inm->outtypes, inm->intypes);
+    if (latest != NULL) {
+      inm = latest;
+    }
+  }
+  instno = inm->instno;
+  tp = csound->engineState.instrtxtp[instno];
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
