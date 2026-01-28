@@ -40,7 +40,7 @@
 %token S_GT
 %token S_GE
 %token S_BITSHIFT_LEFT
-%token S_BITSHIFT_RRIGHT
+%token S_BITSHIFT_RIGHT
 
 %token LABEL_TOKEN
 %token IF_TOKEN
@@ -244,6 +244,7 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
                                   $2, $5);
                     csp_orc_sa_instr_finalize(csound);
+                    namedInstrFlag = 0;
                  }
                 | INSTR_TOKEN NEWLINE error
                  { csound->ErrorMsg(csound, Str("No number following instr\n"));
@@ -963,7 +964,7 @@ false_const: FALSE_TOKEN
        | FALSEK_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, FALSEK_TOKEN,
                         make_token(csound,"falsek")); }
-       
+
        ;
 
 true_const: TRUE_TOKEN
