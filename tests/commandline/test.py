@@ -505,6 +505,10 @@ def runTest():
         ["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         [
+            "test_compilestr_udo_redefine_assert.csd",
+            "test UDO redefinition via compilestr",
+        ],
+        [
             "test_array_function_call.csd",
             "test synthesizing an array arg from a function-call",
         ],
@@ -619,6 +623,14 @@ def runTest():
         ["test_raw_strings.csd", "test new-style raw strings"],
         ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
         ["test_all_math_constants.csd", "test all builtin math constant macros"],
+        [
+            "test_op_precedence.csd",
+            "test bitwise operator precedence vs equality",
+        ],
+        [
+            "test_keyword_spacing.csd",
+            "test keyword spacing (if(, elseif(, etc.)",
+        ],
     ]
 
     arrayTests = [
@@ -690,12 +702,21 @@ def runTest():
         ["udo/fail_no_xout.csd", "fail due to no xout", 1],
         ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
         ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
+        ["udo/test_udo_const_inargs.csd", "correct polymorphic UDO entry found"],
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
         ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
+        [
+            "udo/test_udo_init_only_conditional_perf_chain.csd",
+            "init-only UDOs in conditionals do not install perf chains",
+        ],
         ["udo/crashing_test.csd", "test for UDO crashing", 1],
         ["udo/test_udo_array_set.csd", "test UDO array setting"],
+        [
+            "test_udo_optional_after_instr.csd",
+            "test new-style UDO optional args defined after instr",
+        ],
     ]
 
     maxallocTests = [

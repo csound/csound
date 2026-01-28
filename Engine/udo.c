@@ -53,7 +53,6 @@ static int32_t count_args(const char *args) {
   return count;
 }
 
-
 /* Forward declaration from insert.c */
 extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
 
@@ -146,7 +145,7 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
 
 /* Helper to rewire opcode arguments in a chain for pass-by-ref parameters */
 static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chain,
-                                   CS_HASH_TABLE *arg_ptr_map, CS_HASH_TABLE *xout_skip_names) {
+                                   CS_HASH_TABLE *arg_ptr_map) {
   while (chain != NULL) {
     OPTXT *optext = chain->optext;
     ARGLST *outlist = optext->t.outlist;
@@ -165,9 +164,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
       for (int i = 0; i < outlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = outlist->arg[i];
         if (!varName) continue;
-        if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
-          continue;
-        }
 
         // Get base variable name (without struct path)
         char *baseName = varName;
@@ -192,9 +188,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
       for (int i = 0; i < inlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = inlist->arg[i];
         if (!varName) continue;
-        if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
-          continue;
-        }
 
         // Get base variable name (without struct path)
         char *baseName = varName;
@@ -230,7 +223,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
 static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   int32_t i;
   CS_HASH_TABLE *arg_ptr_map = cs_hash_table_create(csound);
-  CS_HASH_TABLE *xout_skip_names = cs_hash_table_create(csound);
   OPDS *ichain = lcurip->nxti;
 
   // Locate xin opcode for parameter name mapping
@@ -323,11 +315,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ichain = ichain->nxti;
   }
 
-  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map, xout_skip_names);
-  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map, xout_skip_names);
+  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map);
+  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map);
 
   cs_hash_table_free(csound, arg_ptr_map);
-  cs_hash_table_free(csound, xout_skip_names);
 }
 
 /*
@@ -359,6 +350,21 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
 
 */
 
+static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
+                                         const char *outtypes,
+                                         const char *intypes) {
+  OPCODINFO *opinfo = csound->opcodeInfo;
+  while (opinfo != NULL) {
+    if (strcmp(opinfo->name, name) == 0 &&
+        strcmp(opinfo->outtypes, outtypes) == 0 &&
+        inargs_match(opinfo->intypes, intypes) == 0) {
+      return opinfo;
+    }
+    opinfo = opinfo->prv;
+  }
+  return NULL;
+}
+
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
@@ -370,7 +376,17 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   OPCOD_IOBUFS *buf = p->buf;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
-  instno = inm->instno;  tp = csound->engineState.instrtxtp[instno];
+  if (inm != NULL) {
+    /* Find the latest OPCODINFO for this UDO signature, in case it was
+       redefined after this instrument was compiled. */
+    OPCODINFO *latest = find_latest_useropinfo(csound, inm->name,
+                                               inm->outtypes, inm->intypes);
+    if (latest != NULL) {
+      inm = latest;
+    }
+  }
+  instno = inm->instno;
+  tp = csound->engineState.instrtxtp[instno];
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                              instno, inm->name);
@@ -579,7 +595,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
      (3) local sr >= parent sr: select useropcd2
   */
 
-  if(inm->passByRef) {    parent_ip->xtratim = lcurip->xtratim;
+  if(inm->passByRef) {
+    parent_ip->xtratim = lcurip->xtratim;
     p->h.perf = (SUBR) useropcd_pass_by_ref;
   } else if (lcurip->ksmps != parent_ip->ksmps &&
 	     lcurip->esr == parent_ip->esr) {
@@ -609,11 +626,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 }
 
 int32_t useropcd(CSOUND *csound, UOPCODE *p)
-{  if (UNLIKELY(p->h.nxtp))
+{
+  if (UNLIKELY(p->h.nxtp)) {
     return csoundPerfError(csound, &(p->h), Str("%s: not initialised"),
                            p->h.optext->t.opcod);
-  else
-    return OK;
+  }
+  return OK;
 }
 
 /** This function sets up the input
