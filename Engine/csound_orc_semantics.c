@@ -1090,12 +1090,20 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
   }
 
   shortName = get_opcode_short_name(csound, opname);
+
+  /* Lock to protect hash table read during concurrent compilations */
+  if (csound->init_pass_threadlock)
+    csoundLockMutex(csound->init_pass_threadlock);
+
   head = cs_hash_table_get(csound, csound->opcodes, shortName);
   retVal = get_entries(csound, cs_cons_length(head));
   while (head != NULL) {
     retVal->entries[i++] = head->value;
     head = head->next;
   }
+
+  if (csound->init_pass_threadlock)
+    csoundUnlockMutex(csound->init_pass_threadlock);
 
   if (shortName != opname) {
     csound->Free(csound, shortName);
