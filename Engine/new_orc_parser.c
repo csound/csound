@@ -199,8 +199,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                           Str("Parsing failed due to memory exhaustion!\n"));
         }
         else if (err == 3){
-          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s!, line %d\n"),
-                          csound->synterrcnt, csound->synterrcnt==1?"":"s", astTree->line);
+          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s\n"),
+                         csound->synterrcnt, csound->synterrcnt==1?"":"s");
         }
         goto ending;
       }

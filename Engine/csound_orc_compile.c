@@ -2565,7 +2565,8 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       }
     } else {
       if(setup_arg_for_var_name(csound, arg, ip->varPool, s) == NULL) {
-        csoundDie(csound, Str("Missing temporary variable %s in local pool"), s);
+        csoundDie(csound, Str("compile error:"
+                              " missing variable '%s'"), s);
       }
       arg->type = ARG_LOCAL;
     }
@@ -2584,10 +2585,12 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
   else {
     if (setup_arg_for_var_name(csound, arg, ip->varPool, s)) {
       if (s[0] == '#') {
-        csoundDie(csound, Str("Missing temporary variable %s in local pool"), s);
+        csoundDie(csound, Str("compile error:"
+                              " missing temporary variable '%s'"), s);
       }   
       else {
-        csoundDie(csound, Str("Undeclared local variable '%s' used before declaration"), s);
+        csoundDie(csound, Str("compile error:"
+                              " missing variable '%s'"), s);
       }
     }
     arg->type = ARG_LOCAL;
