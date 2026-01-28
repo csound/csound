@@ -420,6 +420,7 @@ def runTest():
         ["test46.csd", "if-then with expression in boolean comparison"],
         ["test47.csd", "until loop and k[]"],
         ["test48.csd", "expected failure with variable used before defined", 1],
+        ["test_fail_compilestr.csd", "testing clean compilestr fail"],        
         ["test_global_struct_var.csd", "testing global structure var"],
         ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
         ["test_instr0_call.csd", "testing ability to call instr 0"],
