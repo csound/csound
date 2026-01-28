@@ -5,8 +5,7 @@
 <CsInstruments>
 
 ires = compilestr({{
-i1 = 0
-instr 
+instr 1
   nonsense()
 endin
 }})
