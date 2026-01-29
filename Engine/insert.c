@@ -1673,35 +1673,6 @@ static void setup_opcode_argpp(
     }
 }
 
-// Handle struct references
-// TODO: recurse at lower levels of struct
-// at the moment references only work at top-level
-static int32_t handle_struct_reference(CSOUND *csound, TEXT *ttp) {
-
-  if(strcmp(ttp->opcod, "=.generic") == 0) { 
-    CS_VARIABLE *var = ttp->outArgs->argPtr,
-    *var1 = ttp->inArgs->argPtr;
-    if (var->varType->userDefinedType && var1->varType->userDefinedType
-        &&
-        strcmp(var1->varType->varTypeName, var->varType->varTypeName)
-        == 0)  {
-      if (ttp->outArgs->structPath == NULL &&
-          ttp->inArgs->structPath == NULL) {
-      var->next->refCount += 1;
-      var->varType = var1->varType;
-      var->memBlock = var1->memBlock;
-      var->memBlockSize = var1->memBlockSize;
-      var->memBlockIndex = var1->memBlockIndex;
-      var->dimensions = var1->dimensions;
-      var->subType = var1->subType;
-      var->updateMemBlockSize = var1->updateMemBlockSize;
-      return 1;
-    }
-    }
-  }
-  return 0;
-}
-
 
 /**
  * Reinitialize all argument pointers for opcodes in an instrument instance.
@@ -1888,9 +1859,6 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
       lblbp->prvd = prvpdd;
       continue;                               /*    for later refs */
     }
-
-    if(handle_struct_reference(csound,ttp))
-      continue;  // do not link into chain
     
     if (ep->init != NULL) {  /* init */
       prvids = prvids->nxti = opds; /* link into ichain */
