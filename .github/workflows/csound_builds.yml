@@ -943,8 +943,7 @@ jobs:
       - name: Zip release directories
         run: |
           zip -r csound-windows-${{env.CSOUND_VERSION}}.zip csound-windows-${{env.CSOUND_VERSION}}
-          zip -r csound-windows-x86-installer-${{env.CSOUND_VERSION}}.zip csound-windows-x86-installer-${{env.CSOUND_VERSION}}
-          zip -r csound-windows-x86-${{env.CSOUND_VERSION}}.zip csound-windows-x86-${{env.CSOUND_VERSION}}
+          zip -r csound-windows-i386-installer-${{env.CSOUND_VERSION}}.zip csound-windows-i386-installer-${{env.CSOUND_VERSION}}
           zip -r csound-macos-${{env.CSOUND_VERSION}}.zip csound-macos-${{env.CSOUND_VERSION}}
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
           zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
@@ -963,7 +962,6 @@ jobs:
           files: |
             csound-windows-${{env.CSOUND_VERSION}}.zip
             csound-windows-x86-installer-${{env.CSOUND_VERSION}}.zip
-            csound-windows-x86-${{env.CSOUND_VERSION}}.zip
             csound-macos-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip

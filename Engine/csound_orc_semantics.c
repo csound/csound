@@ -4083,7 +4083,7 @@ static void delete_tree(CSOUND *csound, TREE **l)
     }
     delete_tree(csound, &(tree->left));
     tree->left = NULL;
-    delete_tree(csound, &((*l)->right));
+    delete_tree(csound, &(tree->right));
     tree->right = NULL;
     *l = tree->next;
     csound->Free(csound, old);
