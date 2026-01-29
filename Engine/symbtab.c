@@ -101,9 +101,14 @@ static char* map_udo_out_arg_type(char* in) {
     The code below (line ~130: if (*in_arg == '[')) expects this
     INTERNAL format where dimension brackets precede the type.
 */
-static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc)
+static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
+                                 OPCODINFO *inm)
 {
-    OPCODINFO   *inm = (OPCODINFO*) opc->useropinfo;
+    if (inm == NULL) {
+      synterr(csound, Str("invalid opcode info for opcode %s"),
+              opc && opc->opname ? opc->opname : "(unknown)");
+      return NOTOK;
+    }
     char** in_args;
     char** out_args;
     char typeSpecifier[256];
@@ -340,6 +345,8 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     return retVal;
 }
 
+
+
 void add_opcode_def(CSOUND *csound, OENTRY *ep);
 
 /** Adds a UDO definition as an T_OPCODE or T_OPCODE0 type to the symbol table
@@ -353,6 +360,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     OENTRY    tmpEntry, *opc, *newopc;
     OPCODINFO *inm;
     int32_t len;
+    int32_t isRedefinition = 0;
 
     if (UNLIKELY(!check_instr_name(opname))) {
       synterr(csound, Str("invalid name for opcode"));
@@ -361,7 +369,8 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
 
     len = (int32_t) strlen(intypes);
     if (len == 1 && *intypes == '0') {
-      opc = find_opcode_exact(csound, opname, outtypes, "o");
+      /* For no-input UDOs, OENTRY intypes is stored as "" not "o" */
+      opc = find_opcode_exact(csound, opname, outtypes, "");
     } else {
       opc = find_opcode_exact(csound, opname, outtypes, intypes);
     }
@@ -390,44 +399,50 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
       }
       csound->Message(csound,
                       Str("WARNING: redefined opcode: %s\n"), opname);
+      isRedefinition = 1;
     }
     /* IV - Oct 31 2002 */
     /* store the name in a linked list (note: must use csound->Calloc) */
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = csoundStrdup(csound, opname);
     inm->newStyle = newStyle;
-    inm->intypes = intypes;
-    inm->outtypes = outtypes;
+    /* Duplicate strings to avoid dangling pointers to parser-allocated memory */
+    inm->intypes = csoundStrdup(csound, intypes);
+    inm->outtypes = csoundStrdup(csound, outtypes);
     inm->in_arg_pool = csoundCreateVarPool(csound);
     inm->out_arg_pool = csoundCreateVarPool(csound);
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
 
-    if (opc != NULL) {
-      opc->useropinfo = inm;
-      newopc = opc;
+    /* Always create a fresh OENTRY for this UDO definition.
+       For redefinitions, we don't reuse the old OENTRY because running
+       instances may still reference it. Instead, we create a new one
+       and prepend it so lookups find the new definition first. */
+    opc = find_opcode(csound, "##userOpcode");
+    memcpy(&tmpEntry, opc, sizeof(OENTRY));
+    tmpEntry.opname = csoundStrdup(csound, opname);
+
+    if (isRedefinition) {
+      /* Use prepend so redefined UDOs are found first in opcode lookup */
+      csoundPrependOpcodes(csound, &tmpEntry, 1);
     } else {
-      /* IV - Oct 31 2002: */
-      /* create a fake opcode so we can call it as such */
-      opc = find_opcode(csound, "##userOpcode");
-      memcpy(&tmpEntry, opc, sizeof(OENTRY));
-      tmpEntry.opname = csoundStrdup(csound, opname);
-
+      /* Use append to preserve polymorphic ordering for new definitions */
       csoundAppendOpcodes(csound, &tmpEntry, 1);
-      newopc = csound_find_internal_oentry(csound, &tmpEntry);
-
-      newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-
-      /* check in/out types and copy to the opcode's */
-      newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                       + strlen(intypes) + 1);
-      newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
-      newopc->flags = flags | newopc->flags;
     }
+    newopc = csound_find_internal_oentry(csound, &tmpEntry);
+    inm->oentry = newopc;
 
-    if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
+    newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+    /* check in/out types and copy to the opcode's */
+    newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
+                                     + strlen(intypes) + 1);
+    newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+    newopc->flags = flags | newopc->flags;
+
+    if (UNLIKELY(parse_opcode_args(csound, newopc, inm) != 0))
       return -3;
+
 
     // add opcodeDef for this UDO
     add_opcode_def(csound, newopc);

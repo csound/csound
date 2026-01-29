@@ -125,6 +125,7 @@ static int32_t cs_hash_table_check_resize(CSOUND* csound, CS_HASH_TABLE* table) 
                 item = next;
             }
         }
+        csound->Free(csound, oldTable);
         return 1;
     }
     return 0;
@@ -346,6 +347,7 @@ void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
         item = next;
       }
     }
+    csound->Free(csound, hashTable->buckets);
     csound->Free(csound, hashTable);
 }
 
@@ -364,6 +366,7 @@ void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
         item = next;
       }
     }
+    csound->Free(csound, hashTable->buckets);
     csound->Free(csound, hashTable);
 }
 
@@ -386,6 +389,7 @@ void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable) {
         item = next;
       }
     }
+    csound->Free(csound, hashTable->buckets);
     csound->Free(csound, hashTable);
 }
 

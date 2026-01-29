@@ -51,7 +51,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
 char *csound_orcget_text ( void *scanner );
 uint64_t csound_orcget_locn(void *);
 int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
-                              char *outtypes, char *intypes, int32_t flags);
+                           char *outtypes, char *intypes, int32_t flags);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
@@ -249,17 +249,17 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
                                  const char* varBaseName, TYPE_TABLE* typeTable) {
   CS_VARIABLE* var = NULL;
 
-    // we first check for local variables
-    var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                     varBaseName);
-    // then check for global variables in engine
-    if(var == NULL)
+  // we first check for local variables
+  var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                   varBaseName);
+  // then check for global variables in engine
+  if(var == NULL)
     var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                      varBaseName);
-    // and finally newly defined global vars
-    if(var == NULL)
-      var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                       varBaseName);
+  // and finally newly defined global vars
+  if(var == NULL)
+    var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                     varBaseName);
 
   return var;
 }
@@ -275,10 +275,10 @@ static int32_t is_pfield(CSOUND *csound, TYPE_TABLE* typeTable, char *s)
   // if symbol does not exist as a variable
   // or if it is a pfield type var
   if(var == NULL || var->varType == &CS_VAR_TYPE_P) {
-  int32_t n;
-  if (*s == 'p' || *s == 'P')
-    if (sscanf(++s, "%d", &n))
-      return (n);
+    int32_t n;
+    if (*s == 'p' || *s == 'P')
+      if (sscanf(++s, "%d", &n))
+        return (n);
   }
   return (-1);
 }
@@ -1090,12 +1090,20 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
   }
 
   shortName = get_opcode_short_name(csound, opname);
+
+  /* Lock to protect hash table read during concurrent compilations */
+  if (csound->init_pass_threadlock)
+    csoundLockMutex(csound->init_pass_threadlock);
+
   head = cs_hash_table_get(csound, csound->opcodes, shortName);
   retVal = get_entries(csound, cs_cons_length(head));
   while (head != NULL) {
     retVal->entries[i++] = head->value;
     head = head->next;
   }
+
+  if (csound->init_pass_threadlock)
+    csoundUnlockMutex(csound->init_pass_threadlock);
 
   if (shortName != opname) {
     csound->Free(csound, shortName);
@@ -1497,7 +1505,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                              char* outArgTypes, char* inArgTypes) {
   IGN(csound);
-  OENTRY* retVal = NULL;
   int32_t i;
 
   char* outTest = (!strcmp("0", outArgTypes)) ? "" : outArgTypes;
@@ -1505,10 +1512,10 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
     OENTRY* temp = entries->entries[i];
     if (temp->intypes != NULL && !strcmp(inArgTypes, temp->intypes) &&
         temp->outypes != NULL && !strcmp(outTest, temp->outypes)) {
-      retVal = temp;
+      return temp;
     }
   }
-  return retVal;
+  return NULL;
 }
 
 /* used when creating T_FUNCTION's */
@@ -3486,8 +3493,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
         top->left->markup = csoundStrdup(csound, outArgString);
         top->right->markup = csoundStrdup(csound, inArgString);
-        add_udo_definition(csound,
-                           true,
+        add_udo_definition(csound, true,
                            current->left->value->lexeme,
                            outArgString,
                            inArgString,
@@ -3530,8 +3536,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       char* inArgStringDecl = get_in_types_from_tree(csound,
                                                      current->left->right,
                                                      typeTable);
-      add_udo_definition(csound, false, current->value->lexeme, inArgStringDecl,
-                         outArgStringDecl, UNDEFINED);
+      add_udo_definition(csound, false, current->value->lexeme,
+             inArgStringDecl, outArgStringDecl, UNDEFINED);
       csound->inZero = 0;
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "UDO declared\n");

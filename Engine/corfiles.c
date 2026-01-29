@@ -269,6 +269,27 @@ void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f)
     csound->Free(csound, body);
 }
 
+
+CORFIL *copy_string_to_corefile(CSOUND *csound, const char *string,
+                                int32_t fromScore){
+    CORFIL *mm;
+    if (UNLIKELY(string==NULL)) {
+      csound->ErrorMsg(csound, Str("Null string"));
+      csound->LongJmp(csound, 1);
+    }
+    mm = corfile_create_w(csound);
+    if (fromScore) corfile_putc(csound, '\n', mm);
+    corfile_puts(csound, string, mm);
+    if (fromScore) {
+      corfile_puts(csound, "\ne\n#exit\n", mm);
+    }
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    if (fromScore) corfile_flush(csound, mm);
+    return mm;
+}
+
+
 #ifdef HAVE_CURL
 
 #include <curl/curl.h>
