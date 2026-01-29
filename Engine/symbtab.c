@@ -457,13 +457,15 @@ void synterr(CSOUND *csound, const char *s, ...)
     va_list args_copy;
     va_copy(args_copy, args);
 #endif
-    csoundErrMsgV(csound, Str("error: "), s, args);
+    csoundErrMsgV(csound, "\nsyntax error, ", s, args);
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+    if(csoundGetDebug(csound)) {
     // Also echo semantic errors to the normal message channel to make them visible in verbose runs
-    char buf[1024];
-    vsnprintf(buf, sizeof(buf), s, args_copy);
-    va_end(args_copy);
-    csound->Message(csound, "SEMERR: %s\n", buf);
+     char buf[1024];
+     vsnprintf(buf, sizeof(buf), s, args_copy);
+     va_end(args_copy);
+     csound->Message(csound, "SEMERR: %s\n", buf);
+    }
 #endif
     va_end(args);
     csound->synterrcnt++;

@@ -3005,21 +3005,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
-
-  // if it's an assignment from one user defined object to another
-  // we create a reference to it instead of initializing new struct
-  if (var->varType->userDefinedType && var->next != NULL &&
-      strcmp(var->varType->varTypeName, var->next->varType->varTypeName) == 0) {
-        var->next->refCount += 1;
-        var->varType = var->next->varType;
-        var->memBlock = var->next->memBlock;
-        var->memBlockSize = var->next->memBlockSize;
-        var->memBlockIndex = var->next->memBlockIndex;
-        var->dimensions = var->next->dimensions;
-        var->subType = var->next->subType;
-        var->updateMemBlockSize = var->next->updateMemBlockSize;
-    }
-
+  
   int32_t len = cs_cons_length(members);
   int32_t i;
 
@@ -3887,10 +3873,9 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
-  csound->ErrorMsg(csound, Str("\nerror: %s (token \"%s\")\n"),
+  csound->ErrorMsg(csound, Str("\n%s (token \"%s\"), "),
                   str, csound_orcget_text(yyscanner));
-  do_baktrace(csound, files);
-  csound->ErrorMsg(csound, Str(" line %d:\n>>>"), line);
+  csound->ErrorMsg(csound, Str(" line %d\n>>>"), line);
   while ((ch=*--p) != '\n' && ch != '\0');
   do {
     ch = *++p;
@@ -3902,7 +3887,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     else csound->ErrorMsg(csound, "%c", ch);
   } while (ch != '\n' && ch != '\0');
   csound->ErrorMsg(csound, " <<<\n");
-
+  do_baktrace(csound, files);
 
 }
 
@@ -3945,7 +3930,6 @@ TREE* append_to_tree(CSOUND * csound, TREE *first, TREE *newlast)
   }
 
   current = first;
-
   while (current->next != NULL) {
     current = current->next;
   }
@@ -3961,7 +3945,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
   TREE *ans = NULL;
 
   if(tree != NULL) {
-    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
        csoundMessage(csound, "Out of memory\n");
@@ -3992,7 +3976,7 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
   TREE *ans = NULL;
 
   if(tree != NULL) {
-    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -4022,7 +4006,7 @@ TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
                 TREE* left, TREE* right)
 {
   TREE *ans;
-  ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+  ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, "Out of memory\n");
@@ -4081,30 +4065,34 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int32_t line, uint64_t locn,
   return left;
 }
 
-void delete_tree(CSOUND *csound, TREE *l)
+static void delete_tree(CSOUND *csound, TREE **l)
 {
   while (1) {
-    TREE *old = l;
-
-    if (UNLIKELY(l==NULL)) {
+    TREE *old = *l;
+    TREE *tree = *l;
+    if (UNLIKELY(*l==NULL)) {
       return;
     }
-    if (l->value) {
-      if (l->value->lexeme) {
-        csound->Free(csound, l->value->lexeme);
+    if (tree->value) {
+      if (tree->value->lexeme) {
+        csound->Free(csound, tree->value->lexeme);
+        tree->value->lexeme = NULL;
       }
-      csound->Free(csound, l->value);
+      csound->Free(csound,tree->value);
+      tree->value = NULL;
     }
-    delete_tree(csound, l->left);
-    delete_tree(csound, l->right);
-    l = l->next;
+    delete_tree(csound, &(tree->left));
+    tree->left = NULL;
+    delete_tree(csound, &((*l)->right));
+    tree->right = NULL;
+    *l = tree->next;
     csound->Free(csound, old);
   }
 }
 
  void csoundDeleteTree(CSOUND *csound, TREE *tree)
 {
-  delete_tree(csound, tree);
+  delete_tree(csound, &tree);
 }
 
 

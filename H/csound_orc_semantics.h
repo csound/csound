@@ -58,7 +58,6 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
                                  const char* varBaseName, TYPE_TABLE* typeTable);
-void delete_tree(CSOUND *csound, TREE *l);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions

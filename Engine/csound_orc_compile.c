@@ -81,8 +81,6 @@ static int32_t udo_has_perf_opcodes(INSTRTXT *ip) {
 
 
 
-static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
-                                   CS_VAR_POOL* varPool, char* varName);
 
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
@@ -2497,7 +2495,7 @@ static void remove_global_annotation(char *varName) {
   }
 }
 
-static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
+static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
                                    CS_VAR_POOL* varPool, char* varName) {
   char* delimit = strchr(varName, '.');
   if(delimit != NULL) {
@@ -2509,6 +2507,7 @@ static void setup_arg_for_var_name(CSOUND* csound, ARG* arg,
     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
     arg->structPath = NULL;
   }
+  return arg->argPtr;
 }
 
 /* get storage ndx of const, pnum, lcl or gbl */
@@ -2574,11 +2573,8 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->argPtr = csoundFindVariableWithName(csound, ip->varPool, s);
   }
   /* now check for local vars shadowing global vars */
-  else if(csoundFindVariableWithName(csound, ip->varPool,
-                                     s) != NULL) {
+  else if(setup_arg_for_var_name(csound, arg, ip->varPool,s) != NULL) {
     arg->type = ARG_LOCAL;
-    setup_arg_for_var_name(csound, arg, ip->varPool, s);
-
   } else if (s[0] == '#') {
     const char* t = s + 1; if (*t == '+' || *t == '-') t++;
     int allDigits = (*t != '\0');
@@ -2591,38 +2587,37 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
                                            csoundStrtod((char*)t, NULL));
       }
     } else {
-      arg->type = ARG_LOCAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-      if (arg->argPtr == NULL) {
-        csoundDie(csound, Str("Missing temporary variable %s in local pool"), s);
+      if(setup_arg_for_var_name(csound, arg, ip->varPool, s) == NULL) {
+        csoundDie(csound, Str("compile error:"
+                              " missing variable '%s'"), s);
       }
+      arg->type = ARG_LOCAL;
     }
   }
   /* now global vars are searched for */
   else if(engineState->varPool != NULL && (uintptr_t)engineState->varPool >= 0x1000 &&
-          csoundFindVariableWithName(csound, engineState->varPool, s) != NULL) {
+          setup_arg_for_var_name(csound, arg, engineState->varPool, s) != NULL) {
+       arg->type = ARG_GLOBAL;
+    }
+    else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
+            setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
-    setup_arg_for_var_name(csound, arg, engineState->varPool, s);
-  }
-  else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
-          csoundFindVariableWithName(csound, csound->engineState.varPool, s) != NULL) {
-    arg->type = ARG_GLOBAL;
-    setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s);
-
+    
   }
   /* otherwise we have a local arg */
   else {
-    arg->type = ARG_LOCAL;
-    setup_arg_for_var_name(csound, arg, ip->varPool, s);
-    if (arg->argPtr == NULL) {
+    if (setup_arg_for_var_name(csound, arg, ip->varPool, s)) {
       if (s[0] == '#') {
-        csoundDie(csound, Str("Missing temporary variable %s in local pool"), s);
-      } else {
-        csoundDie(csound, Str("Undeclared local variable '%s' used before declaration"), s);
+        csoundDie(csound, Str("compile error:"
+                              " missing temporary variable '%s'"), s);
+      }   
+      else {
+        csoundDie(csound, Str("compile error:"
+                              " missing variable '%s'"), s);
       }
     }
+    arg->type = ARG_LOCAL;
   }
-
   return arg;
 }
 
