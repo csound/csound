@@ -4068,25 +4068,25 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int32_t line, uint64_t locn,
 static void delete_tree(CSOUND *csound, TREE **l)
 {
   while (1) {
-    TREE **old = l;
+    TREE *old = *l;
+    TREE *tree = *l;
     if (UNLIKELY(*l==NULL)) {
       return;
     }
-    if ((*l)->value) {
-      if ((*l)->value->lexeme) {
-        csound->Free(csound, (*l)->value->lexeme);
-        (*l)->value->lexeme = NULL;
+    if (tree->value) {
+      if (tree->value->lexeme) {
+        csound->Free(csound, tree->value->lexeme);
+        tree->value->lexeme = NULL;
       }
-      csound->Free(csound,(*l)->value);
-      (*l)->value = NULL;
+      csound->Free(csound,tree->value);
+      tree->value = NULL;
     }
-    delete_tree(csound, &((*l)->left));
-    (*l)->left = NULL;
+    delete_tree(csound, &(tree->left));
+    tree->left = NULL;
     delete_tree(csound, &((*l)->right));
-    (*l)->right = NULL;
-    *l = (*l)->next;
-    csound->Free(csound, *old);
-    *old = NULL;
+    tree->right = NULL;
+    *l = tree->next;
+    csound->Free(csound, old);
   }
 }
 
