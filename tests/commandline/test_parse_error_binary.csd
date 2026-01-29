@@ -4,6 +4,9 @@
 </CsOptions>
 <CsInstruments>
 
+; Test: binary '+' missing RHS.
+; Expected: parse failure without any crash.
+
 instr 1
   ival init 0
   ival = 1 +

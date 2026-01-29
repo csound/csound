@@ -4,12 +4,12 @@
 </CsOptions>
 <CsInstruments>
 
-; Test: unary '~' missing operand.
+; Test: binary '<<' missing RHS.
 ; Expected: parse failure without any crash.
 
 instr 1
   ival init 0
-  ival = ~
+  ival = 1 <<
 endin
 
 </CsInstruments>

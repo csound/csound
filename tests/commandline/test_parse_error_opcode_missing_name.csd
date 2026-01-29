@@ -4,16 +4,15 @@
 </CsOptions>
 <CsInstruments>
 
-; Test: unary '~' missing operand.
+; Test: opcode definition missing name.
 ; Expected: parse failure without any crash.
 
-instr 1
-  ival init 0
-  ival = ~
-endin
+opcode , a, k
+  aout = 0
+endop
 
 </CsInstruments>
 <CsScore>
-i1 0 0.1
+e 0.1
 </CsScore>
 </CsoundSynthesizer>

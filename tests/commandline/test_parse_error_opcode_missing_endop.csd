@@ -4,12 +4,14 @@
 </CsOptions>
 <CsInstruments>
 
-; Test: unary '~' missing operand.
+; Test: opcode definition missing endop.
 ; Expected: parse failure without any crash.
 
+opcode myop, a, k
+  aout = 0
+
 instr 1
-  ival init 0
-  ival = ~
+  a1 myop 0.1
 endin
 
 </CsInstruments>

@@ -4,12 +4,12 @@
 </CsOptions>
 <CsInstruments>
 
-; Test: unary '~' missing operand.
+; Test: unary '!' missing operand.
 ; Expected: parse failure without any crash.
 
 instr 1
   ival init 0
-  ival = ~
+  ival = !
 endin
 
 </CsInstruments>
