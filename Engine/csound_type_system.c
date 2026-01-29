@@ -544,19 +544,18 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
     return OK;
 }
 
+
 int32_t copy_var_generic_init(CSOUND *csound, void *p)
 {
     ASSIGN *assign = (ASSIGN *)p;
 
     // Determine destination (right-hand?) type once.
-    CS_TYPE *destType = csoundGetTypeForArg(assign->r); // Check destination type, not source type
+    CS_TYPE *destType = csoundGetTypeForArg(assign->r);
+    CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
 
     // If destination is an array, handle array-specific init/copy paths.
     if (destType == &CS_VAR_TYPE_ARRAY) {
         ARRAYDAT *dstArr = (ARRAYDAT *)assign->r;
-
-        // Check if source is also an array before accessing array-specific fields
-        CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
         if (srcType != &CS_VAR_TYPE_ARRAY) {
             // Source is a scalar (e.g., assigning to array element), not array-to-array
             return copy_var_generic(csound, p);
