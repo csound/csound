@@ -249,6 +249,7 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                 | INSTR_TOKEN NEWLINE error
                  { csound->ErrorMsg(csound, Str("No number following instr\n"));
                   csp_orc_sa_instr_finalize(csound);
+                  $$ = NULL;
                  }
                 ;
 

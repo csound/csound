@@ -610,9 +610,7 @@ static inline int isNameChar(int c, int pos)
 
 ORCTOKEN *new_token(CSOUND *csound, int32_t type)
 {
-  // we need to allocate enough memory to hold a TREE struct
-  // for append_to_tree() to iterate correctly over lists
-    ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(TREE));
+    ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(ORCTOKEN));
     ans->type = type;
     return ans;
 }
