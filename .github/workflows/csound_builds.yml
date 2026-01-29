@@ -961,7 +961,7 @@ jobs:
           make_latest: true
           files: |
             csound-windows-${{env.CSOUND_VERSION}}.zip
-            csound-windows-x86-installer-${{env.CSOUND_VERSION}}.zip
+            csound-windows-i386-installer-${{env.CSOUND_VERSION}}.zip
             csound-macos-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip
