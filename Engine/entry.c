@@ -663,7 +663,7 @@ const OENTRY opcodlst_1[] = {
   { "genarray.ki", sizeof(TABGEN),0, "k[]", "iip", (SUBR)tabgen, NULL, NULL},
   { "genarray.k", sizeof(TABGEN),0, "k[]", "kkp", NULL, (SUBR)tabgen    },
   { "genarray_i", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL, NULL, 2},
-  { "genarray", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
+  { "genarrayi", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
   { "maparray.i", sizeof(TABMAP), 0, "i[]", "i[]S", (SUBR) tabmap_set },
   { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set, NULL, NULL, NULL, 2},  
   { "maparrayi", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },  /* Alias */
