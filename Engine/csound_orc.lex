@@ -97,13 +97,13 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 RSTR            "R{"
 ERSTR           "}R"
 
-   
+
 %s ignorenewline
 %x line
 %x sline
 %x src
 %x xstr
-%x rstr   
+%x rstr
 %x declare
 %x udodef
 %x udoarg
