@@ -339,6 +339,7 @@ jobs:
           cp Python/ctcsound.py csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+          cp portaudio_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
