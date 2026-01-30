@@ -328,6 +328,8 @@ jobs:
           install_name_tool -change @rpath/CsoundLib64.framework/Versions/7.0/CsoundLib64 /Applications/Csound/CsoundLib64.framework/Versions/7.0/CsoundLib64 csound_install/bin/csound
           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
+          install_name_tool -change @rpath/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/librtpa.dylib
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portaudio_install/lib/libportaudio.dylib          
           install_name_tool -change @rpath/liblo.7.dylib @loader_path/../../../../libs/liblo.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libosc.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib          
 
