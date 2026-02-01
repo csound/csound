@@ -592,7 +592,28 @@ case_list : case_list case
                   tempLastNode->right->next!=NULL) {
                   tempLastNode = tempLastNode->right->next;
                 }
-                tempLastNode->right->next = $2;
+                // Handle the case where tempLastNode->right is NULL
+                if (tempLastNode->right == NULL &&
+                    tempLastNode->type == CASE_TOKEN &&
+                    $2->type == CASE_TOKEN) {
+                  // If the first case has no statement list, we need to
+                  // merge the expressions from both cases and use the
+                  // statement list from the second case
+                  if ($2->left != NULL) {
+                    // Create an expression list using append_to_tree
+                    if (tempLastNode->left != NULL) {
+                      tempLastNode->left = append_to_tree(csound, tempLastNode->left, $2->left);
+                    } else {
+                      tempLastNode->left = $2->left;
+                    }
+                  }
+                  tempLastNode->right = $2->right;
+                  // Free the second case node since we've merged it
+                  $2->left = NULL;
+                  $2->right = NULL;
+                } else if (tempLastNode->right != NULL) {
+                  tempLastNode->right->next = $2;
+                }
                 $$ = $1; }
             | case { $$ = $1; }
             ;
