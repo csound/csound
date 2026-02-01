@@ -390,8 +390,9 @@ void m_chn_init_all(CSOUND *csound)
           n <= (int32_t) csound->engineState.maxinsno &&
           csound->engineState.instrtxtp[n] != NULL)
         chn->insno = (int16_t) n;
-      else if (defaultinsno > 0)
+      else if (defaultinsno >= 0) {
         chn->insno = (int16_t) defaultinsno;
+      }
       else
         chn->insno = (int16_t) -1;        /* else mute channel */
       /* reset all controllers */

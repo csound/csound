@@ -760,7 +760,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
-  if (UNLIKELY(insno <= 0 || csound->engineState.instrtxtp[insno]->muted == 0))
+  if (UNLIKELY(insno < 0 || csound->engineState.instrtxtp[insno]->muted == 0))
     return 0;     /* muted */
 
   tp = csound->engineState.instrtxtp[insno];
