@@ -1389,7 +1389,11 @@ TREE* expand_if_statement(CSOUND* csound,
       tempRight = ifBlockCurrent->right;
 
       if (ifBlockCurrent->type == ELSE_TOKEN) {
-        append_to_tree(csound, anchor, tempRight);
+        // Filter out empty nodes from else branch
+        if (tempRight != NULL &&
+            !(tempRight->type == 0 && tempRight->left == NULL && tempRight->right == NULL)) {
+          append_to_tree(csound, anchor, tempRight);
+        }
         break;
       }
 
@@ -1408,6 +1412,13 @@ TREE* expand_if_statement(CSOUND* csound,
         int32_t gotoType;
 
         statements = tempRight->right;
+
+        // Filter out empty nodes from branch statements
+        if (statements != NULL &&
+            statements->type == 0 && statements->left == NULL && statements->right == NULL) {
+          statements = NULL;
+        }
+
         label = create_synthetic_ident(csound, csound->genlabs);
         labelEnd = create_synthetic_label(csound, csound->genlabs++);
         tempRight->right = label;

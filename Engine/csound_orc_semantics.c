@@ -3005,7 +3005,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
-  
+
   int32_t len = cs_cons_length(members);
   int32_t i;
 
@@ -3415,6 +3415,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   char *udo_name = NULL;
   CONS_CELL* activeLoopStack = NULL;
 
+  // Don't process empty statements
+  if (root != NULL && root->type == 0 && root->left == NULL && root->right == NULL) {
+    return NULL;
+  }
+
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
@@ -3443,7 +3448,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         newRight = verify_tree(csound, current->right, typeTable);
 
-        if (newRight == NULL) {
+        // Allow empty statements except if there were semantic errors
+        if (newRight == NULL && csound->synterrcnt > 0) {
           cs_cons_free(csound, typeTable->labelList);
           typeTable->labelList = parentLabelList;
           return NULL;
@@ -3508,7 +3514,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         newRight = verify_tree(csound, current->right, typeTable);
 
-        if (newRight == NULL) {
+        // Allow empty UDO bodies (newRight == NULL is valid)
+        // But if there were semantic errors, we should still fail
+        if (newRight == NULL && csound->synterrcnt > 0) {
           cs_cons_free(csound, typeTable->labelList);
           typeTable->labelList = parentLabelList;
           return NULL;
@@ -3775,6 +3783,13 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 1;
       /* fall through */
     default:
+      // Skip empty statements
+      if (current->type == 0 && current->left == NULL && current->right == NULL) {
+        // Skip this node but don't add it to the anchor chain
+        current = current->next;
+        continue;
+      }
+
       // Check for struct array member assignments: array[index].member = value
       if ((current->type == '=' || current->type == T_ASSIGNMENT) &&
           current->left && current->left->type == STRUCT_EXPR &&
