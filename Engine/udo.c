@@ -494,6 +494,23 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
+   // check for setksmps or over/undersample
+  csound->curip = lcurip;
+  csound->ids = (OPDS *) (lcurip->nxti);
+  ATOMIC_SET(p->ip->init_done, 0);
+  csound->mode = 1;
+  buf->iflag = 0;
+  int err = 0;
+  while (csound->ids != NULL && err == 0) {
+    csound->op = csound->ids->optext->t.oentry->opname;
+    if(strcmp("setksmps", csound->op) == 0  ||
+       strcmp("oversample", csound->op) == 0 ||
+       strcmp("undersample", csound->op) == 0)
+       err = (*csound->ids->init)
+               (csound, csound->ids);
+    csound->ids = csound->ids->nxti;
+  }
+
   inm->passByRef = buf->opcode_info->newStyle &&
     parent_ip->ksmps == p->ip->ksmps &&
     parent_ip->esr == p->ip->esr;
@@ -509,10 +526,14 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
-  int err = 0;
+  err = 0;
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    err = (*csound->ids->init)(csound, csound->ids);
+    // don't run setksmps etc 
+    if(strcmp("setksmps", csound->op) != 0 ||
+       strcmp("oversample", csound->op) != 0 ||
+       strcmp("undersample", csound->op) != 0)
+      err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
 
