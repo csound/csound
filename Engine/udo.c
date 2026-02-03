@@ -751,6 +751,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
       current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
+      memset(in, 0, sizeof(MYFLT)*CS_KSMPS); // clear output
       if(CS_ESR != parent_sr) {
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, CS_KSMPS)) == 0)
@@ -759,6 +760,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
       }
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
+      memset(in, 0, sizeof(MYFLT)); // clear output
       if(CS_ESR != parent_sr) {
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
                                          parent_sr/CS_ESR, 1)) == 0)
