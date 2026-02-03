@@ -494,15 +494,6 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-  inm->passByRef = buf->opcode_info->newStyle &&
-    parent_ip->ksmps == p->ip->ksmps &&
-    parent_ip->esr == p->ip->esr;
-
-  if(inm->passByRef) {
-    handle_pass_by_ref(csound, p, lcurip);
-    // No copyValue needed - rewiring with struct path navigation handles everything
-  }
-
   /* Initialize the UDO */
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
@@ -517,17 +508,27 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   }
 
   if(err) return err;
-  csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
+  csound->mode = 0;
+  ATOMIC_SET(p->ip->init_done, 1);
 
-  /* After init chain completes, ensure UDO outputs are materialised into caller vars.
-     This is only needed for pass-by-copy mode. In pass-by-ref mode, xout is rewired
-     to write directly to caller's output locations, so no post-init copying is needed. */
-  if (!inm->passByRef) {
+  // VL: these checks only make sense *after* init
+  inm->passByRef = buf->opcode_info->newStyle &&
+    parent_ip->ksmps == p->ip->ksmps &&
+    parent_ip->esr == p->ip->esr;
+  
+  if(inm->passByRef) {
+    handle_pass_by_ref(csound, p, lcurip);
+    // No copyValue needed - rewiring with struct path navigation handles everything
+  } else {
+    /* After init chain completes, ensure UDO outputs are materialised into caller vars.
+       This is only needed for pass-by-copy mode. In pass-by-ref mode, xout is rewired
+       to write directly to caller's output locations, so no post-init copying is needed. 
+    */
     OPCOD_IOBUFS *buf_local = p->buf;
     OPCODINFO *inm_local = buf_local->opcode_info;
     CS_VARIABLE* cur = inm_local->out_arg_pool ? inm_local->out_arg_pool->head : NULL;
-    MYFLT** internal_ptrs = buf_local->iobufp_ptrs;  // recorded by xoutset (pass-by-copy)
-    MYFLT** external_ptrs = p->ar;                   // caller-side pointers
+    MYFLT** internal_ptrs = buf_local->iobufp_ptrs; // recorded by xoutset (pass-by-copy) 
+    MYFLT** external_ptrs = p->ar;             // caller-side pointers
     UOPCODE *udo_local = (UOPCODE*) buf_local->uopcode_struct;
     MYFLT** udo_out_ptrs = udo_local ? udo_local->ar : NULL; // UDO's own outputs
 
@@ -549,14 +550,19 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       if (src == NULL && udo_out_ptrs)
         src = (void*)udo_out_ptrs[i]; // fallback: UDO's declared OUT var memory
 
-      // If array out still unresolved or aliased to dst, try to locate a concrete local array to copy from
-      if ((src == NULL || src == dst) && dst && cur->varType == &CS_VAR_TYPE_ARRAY && lcurip && lcurip->instr && lcurip->instr->varPool && lcurip->lclbas) {
+      // If array out still unresolved or aliased to dst, try to locate a
+      // concrete local array to copy from
+      if ((src == NULL || src == dst) && dst && cur->varType
+          == &CS_VAR_TYPE_ARRAY && lcurip && lcurip->instr
+          && lcurip->instr->varPool && lcurip->lclbas) {
         const CS_TYPE* wantedSubType = cur ? cur->subType : NULL;
         CS_VARIABLE* v = lcurip->instr->varPool->head;
         while (v) {
-          if (v->varType == &CS_VAR_TYPE_ARRAY && (wantedSubType == NULL || v->subType == wantedSubType)) {
+          if (v->varType == &CS_VAR_TYPE_ARRAY &&
+              (wantedSubType == NULL || v->subType == wantedSubType)) {
             ARRAYDAT* cand = (ARRAYDAT*)(lcurip->lclbas + v->memBlockIndex);
-            if (cand && cand->data && cand->allocated > 0 && cand->dimensions >= 0 && cand->arrayType) {
+            if (cand && cand->data && cand->allocated > 0 &&
+                cand->dimensions >= 0 && cand->arrayType) {
               if ((void*)cand != dst) {
                 src = (void*)cand;
                 break;
