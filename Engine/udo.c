@@ -494,7 +494,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-  /* Initialize the UDO */
+  // check for setksmps or over/undersample
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   ATOMIC_SET(p->ip->init_done, 0);
@@ -503,23 +503,44 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   int err = 0;
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    err = (*csound->ids->init)(csound, csound->ids);
+    if(strcmp("setksmps", csound->op) == 0  ||
+       strcmp("oversample", csound->op) == 0 ||
+       strcmp("undersample", csound->op) == 0)
+       err = (*csound->ids->init)
+               (csound, csound->ids);
     csound->ids = csound->ids->nxti;
+  }
+
+  // VL: these checks only make sense *after* setksmps etc
+  inm->passByRef = buf->opcode_info->newStyle &&
+    parent_ip->ksmps == p->ip->ksmps &&
+    parent_ip->esr == p->ip->esr;
+
+  if(inm->passByRef)
+    handle_pass_by_ref(csound, p, lcurip);
+  
+  /* Initialize the UDO */
+  csound->curip = lcurip;
+  csound->ids = (OPDS *) (lcurip->nxti);
+  csound->mode = 1;
+  buf->iflag = 0;
+  err = 0;
+  while (csound->ids != NULL && err == 0) {
+    csound->op = csound->ids->optext->t.oentry->opname;
+    // don't run setksmps etc 
+    if(strcmp("setksmps", csound->op) != 0 ||
+       strcmp("oversample", csound->op) != 0 ||
+       strcmp("undersample", csound->op) != 0)
+        err = (*csound->ids->init)(csound, csound->ids);
+    csound->ids = csound->ids->nxti;
+
   }
 
   if(err) return err;
   csound->mode = 0;
   ATOMIC_SET(p->ip->init_done, 1);
 
-  // VL: these checks only make sense *after* init
-  inm->passByRef = buf->opcode_info->newStyle &&
-    parent_ip->ksmps == p->ip->ksmps &&
-    parent_ip->esr == p->ip->esr;
-  
-  if(inm->passByRef) {
-    handle_pass_by_ref(csound, p, lcurip);
-    // No copyValue needed - rewiring with struct path navigation handles everything
-  } else {
+  if(!inm->passByRef) {
     /* After init chain completes, ensure UDO outputs are materialised into caller vars.
        This is only needed for pass-by-copy mode. In pass-by-ref mode, xout is rewired
        to write directly to caller's output locations, so no post-init copying is needed. 
