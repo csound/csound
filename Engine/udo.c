@@ -530,8 +530,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
     // don't run setksmps etc 
-    if(strcmp("setksmps", csound->op) != 0 ||
-       strcmp("oversample", csound->op) != 0 ||
+    if(strcmp("setksmps", csound->op) != 0 &&
+       strcmp("oversample", csound->op) != 0 &&
        strcmp("undersample", csound->op) != 0)
       err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
