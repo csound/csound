@@ -531,6 +531,7 @@ def runTest():
         ["test_karrays_udo.csd", "UDO with k[] arg"],
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
         ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
+        ["test_newstyle_passbycopy.csd", "test newstyle udo with setksmps"],
         ["test_polymorphic_udo.csd", "test polymorphic udo"],
         ["test_udo_a_array.csd", "test udo with a-array"],
         ["test_udo_2d_array.csd", "test udo with 2d-array"],
