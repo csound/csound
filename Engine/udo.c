@@ -570,14 +570,18 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       if (src == NULL && udo_out_ptrs)
         src = (void*)udo_out_ptrs[i]; // fallback: UDO's declared OUT var memory
 
-      // If array out still unresolved or aliased to dst, try to locate a concrete local array to copy from
-      if ((src == NULL || src == dst) && dst && cur->varType == &CS_VAR_TYPE_ARRAY && lcurip && lcurip->instr && lcurip->instr->varPool && lcurip->lclbas) {
+      // If array out still unresolved or aliased to dst, try to locate
+      // a concrete local array to copy from
+      if ((src == NULL || src == dst) && dst && cur->varType == &CS_VAR_TYPE_ARRAY
+          && lcurip && lcurip->instr && lcurip->instr->varPool && lcurip->lclbas) {
         const CS_TYPE* wantedSubType = cur ? cur->subType : NULL;
         CS_VARIABLE* v = lcurip->instr->varPool->head;
         while (v) {
-          if (v->varType == &CS_VAR_TYPE_ARRAY && (wantedSubType == NULL || v->subType == wantedSubType)) {
+          if (v->varType == &CS_VAR_TYPE_ARRAY && (wantedSubType == NULL
+                                                   || v->subType == wantedSubType)) {
             ARRAYDAT* cand = (ARRAYDAT*)(lcurip->lclbas + v->memBlockIndex);
-            if (cand && cand->data && cand->allocated > 0 && cand->dimensions >= 0 && cand->arrayType) {
+            if (cand && cand->data && cand->allocated > 0
+                && cand->dimensions >= 0 && cand->arrayType) {
               if ((void*)cand != dst) {
                 src = (void*)cand;
                 break;
@@ -590,8 +594,11 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
       if (src && dst) {
         if (src != dst) {
-          cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
-        }
+          // no copying of a & k types at i-time !!!
+          if(cur->varType != &CS_VAR_TYPE_A &&
+             cur->varType != &CS_VAR_TYPE_K) 
+            cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
+         }
       }
       cur = cur->next;
     }
