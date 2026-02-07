@@ -299,11 +299,9 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   }
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                MP3DEC_RETCODE_OK)) {
-    fclose(f);
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s", mp3dec_error(r));
   }
-  fclose(f);
   if(!strcmp(GetOpcodeName(&p->h), "mp3len"))
     *p->ir = (MYFLT) mpainfo.duration;
   else if(!strcmp(GetOpcodeName(&p->h), "mp3sr"))
