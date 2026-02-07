@@ -127,7 +127,7 @@ static int32_t gendyset(CSOUND *csound, GENDY *p)
   csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
-  p->rand = csound->Rand31(csound->RandSeed1(csound));
+  p->rand = csound->Rand31(csound->RandSeed31(csound));
   for (i=0; i < p->points; i++) {
     p->rand = csound->Rand31(&p->rand);
     memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;
@@ -259,7 +259,7 @@ static int32_t gendyxset(CSOUND *csound, GENDYX *p)
   csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
-  p->rand = csound->Rand31(csound->RandSeed1(csound));
+  p->rand = csound->Rand31(csound->RandSeed31(csound));
 
   for (i=0; i < p->points; i++) {
     p->rand   = (int32)csound->Rand31(&p->rand);
@@ -403,7 +403,7 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
   csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
-  p->rand = csound->Rand31(csound->RandSeed1(csound));
+  p->rand = csound->Rand31(csound->RandSeed31(csound));
   for (i=0; i < p->points; i++) {
     p->rand = csound->Rand31(&p->rand);
     memamp[i] = (MYFLT)((int32)((uint32_t)p->rand<<1)-BIPOLAR)*dv2_31;

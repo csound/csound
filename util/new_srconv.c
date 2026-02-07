@@ -103,8 +103,7 @@ static void heartbeater(void)
       break;
     case 3:
       {
-        int32_t n;
-        fprintf(stderr, "%d%n", block, &n);
+        int32_t n = fprintf(stderr, "%d", block);
         while (n--) fprintf(stderr, "\010");
       }
       break;

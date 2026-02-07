@@ -42,11 +42,22 @@ export const csoundGetKsmps = (wasm) => (csound) => wasm.exports["csoundGetKsmps
 
 csoundGetKsmps["toString"] = () => "getKsmps = async () => Number;";
 
+
+/**
+ * Returns the number of channels from Csound instance
+ * @function
+ */
+export const csoundGetChannels = (wasm) => (csound, isInput) => wasm.exports["csoundGetChannels"](csound, isInput);
+
+csoundGetKsmps["toString"] = () => "getChannels = async (isInput) => Number;";
+
 /**
  * Returns the number of output channels from Csound instance
  * @function
  */
-export const csoundGetNchnls = (wasm) => (csound) => wasm.exports["csoundGetNchnls"](csound);
+export const csoundGetNchnls = (wasm) => (csound) => {
+    return wasm.exports["csoundGetChannels"](csound, 0);
+}
 
 csoundGetNchnls["toString"] = () => "getNchnls = async () => Number;";
 
@@ -54,8 +65,9 @@ csoundGetNchnls["toString"] = () => "getNchnls = async () => Number;";
  * Returns the number of input channels from Csound instance
  * @function
  */
-export const csoundGetNchnlsInput = (wasm) => (csound) =>
-  wasm.exports["csoundGetNchnlsInput"](csound);
+export const csoundGetNchnlsInput = (wasm) => (csound) =>{
+    return wasm.exports["csoundGetChannels"](csound, 1);
+}
 
 csoundGetNchnlsInput["toString"] = () => "getNchnlsInput = async () => Number;";
 

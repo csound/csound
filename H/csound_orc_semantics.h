@@ -29,9 +29,9 @@
 
 /** Gets short version of opcode name, trimming off anything after '.'.
  If opname has no '.' in name, simply returns the opname pointer.
- If the name is truncated, caller is responsible for calling mfree
+ If the name is truncated, caller is responsible for calling csoundFree
  on returned value.  Caller should compare the returned value with the
- passed in opname to see if it is different and thus requires mfree'ing. */
+ passed in opname to see if it is different and thus requires csoundFree'ing. */
 #include "find_opcode.h"
 
 char *strip_extension(CSOUND *csound, const char *s);
@@ -58,7 +58,6 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
                                  const char* varBaseName, TYPE_TABLE* typeTable);
-void delete_tree(CSOUND *csound, TREE *l);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions

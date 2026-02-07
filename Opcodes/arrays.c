@@ -994,14 +994,37 @@ static int32_t shiftout_perf(CSOUND *csound, FFT *p) {
 }
 
 
+static int32_t unwrap_set(CSOUND *csound, FFT *p) {
+  if(p->in->sizes == NULL)
+    return csound->InitError(csound, "array not initialised\n");
+  int32_t N = p->in->sizes[0];
+  tabinit(csound, p->out, N, p->h.insdshead);
+  if(*((MYFLT *)p->in2) != FL(0)) {
+    csound->AuxAlloc(csound, N*sizeof(float), &p->mem);
+    memset(p->mem.auxp, 0, N*sizeof(float));
+  }
+  return OK;
+}
+
+
 static int32_t unwrap(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");;
   int32_t i,siz = p->in->sizes[0];
+  int32_t mode = (int32_t) *((MYFLT *)p->in2);
   MYFLT *phs = p->out->data;
+  if(mode == 0) { // wrap
   for (i=0; i < siz; i++) {
     while (phs[i] >= PI) phs[i] -= TWOPI;
     while (phs[i] < -PI) phs[i] += TWOPI;
+  }
+  } else {  // unwrap
+    MYFLT *ophs = (MYFLT *) p->mem.auxp;
+    for (i=0; i < siz; i++) {
+      while (ophs[i] - phs[i] >= PI) phs[i] -= 2*PI;
+      while (ophs[i] - phs[i] < -PI) phs[i] += 2*PI;
+      ophs[i] = phs[i];
+    }
   }
   return OK;
 }
@@ -1347,8 +1370,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
     {"shiftout", sizeof(FFT), 0, "a","k[]o",
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
-    {"unwrap", sizeof(FFT), 0, "k[]","k[]",
-     (SUBR) init_recttopol, (SUBR) unwrap},
+    {"unwrap", sizeof(FFT), 0, "k[]","k[]o",
+     (SUBR) unwrap_set, (SUBR) unwrap},
     {"dct", sizeof(FFT), 0, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
     {"dct", sizeof(FFT), 0, "i[]","i[]",

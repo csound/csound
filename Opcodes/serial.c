@@ -601,7 +601,7 @@ uintptr_t arduino_listen(void *p)
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
       if (DEBUG) printf("In bits: va1=%.2x va2= %.2x; c1=%.2x\n",
-                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f); 
+                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f);
       if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
       q->buffer[c] = val;
     }
@@ -788,7 +788,7 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialWrite, (SUBR)NULL   },
     { (char *)"serialwrite.S", S(SERIALWRITE), WR, (char *)"", (char *)"iS",
       (SUBR)NULL, (SUBR)serialWrite_S, (SUBR)NULL   },
-    { (char *)"serialrad", S(SERIALREAD), 0, (char *)"k", (char *)"i",
+    { (char *)"serialread", S(SERIALREAD), 0, (char *)"k", (char *)"i",
       (SUBR)NULL, (SUBR)serialRead, (SUBR)NULL   },
     { (char *)"serialprint", S(SERIALPRINT), WR, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },

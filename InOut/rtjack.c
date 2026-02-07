@@ -1137,7 +1137,7 @@ typedef struct RtJackMIDIGlobals_ {
 
 
 /* module interface functions */
-PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
+ int32_t csoundModuleCreate(CSOUND *csound)
 {
     RtJackGlobals   *p;
     int32_t             i, j;
@@ -1543,7 +1543,7 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
 
 
 
-PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
+ int32_t csoundModuleDestroy(CSOUND *csound)
 {
     RtJackGlobals* p =
       (RtJackGlobals*) csound->QueryGlobalVariableNoCheck(csound,
@@ -1557,7 +1557,7 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
 
 
 
-PUBLIC int32_t csoundModuleInit(CSOUND *csound)
+ int32_t csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
 
@@ -1599,7 +1599,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     return 0;
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

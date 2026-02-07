@@ -42,12 +42,13 @@ extern "C" {
     char        *outypes;
     char        *intypes;
     int32_t     flags;
+    int32_t     deprecated;
   } opcodeListEntry;
 
   
   /** @defgroup MISCELLANEOUS Miscellaneous functions
    *
-   *  @{ */
+   *  @{ */ 
 
   /**
    * Gets an alphabetically sorted list of all opcodes.
@@ -215,6 +216,19 @@ extern "C" {
    * The PRNG must be initialised first by calling csoundSeedRandMT().
    */
   PUBLIC uint32_t csoundRandMT(CsoundRandMTState *p);
+
+  /**
+   * Returns the currently defined output name
+   * from configuration parameters
+   */
+  PUBLIC const char *csoundGetOutputName(CSOUND *csound);
+
+  /**
+   * Returns the currently defined input name
+   * from configuration parameters
+   */
+  PUBLIC const char *csoundGetInputName(CSOUND *csound);
+
   /** @}*/
 #ifdef __cplusplus
 }

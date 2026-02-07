@@ -101,7 +101,7 @@ static CS_NOINLINE FOUT_FILE *fout_open_file(CSOUND *csound, FOUT_FILE *p, void 
   /* get file name, */
   if (isString) name = csound->Strdup(csound, ((STRINGDAT *)iFile)->data);
   else if (IsStringCode(*iFile))
-    name = csound->Strdup(csound, csound->GetString(csound, *iFile));
+    name = csound->Strdup(csound, csound->GetArgString(csound, *iFile));
   /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
   else {
     /* or handle to previously opened file */
@@ -617,7 +617,7 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
     char    *fname = NULL;
     if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->iFile)->data);
     else if (IsStringCode(*(p->iFile)))
-      fname = csound->Strdup(csound, csound->GetString(csound, *p->iFile));
+      fname = csound->Strdup(csound, csound->GetArgString(csound, *p->iFile));
     if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
       if (fname != NULL) csound->Free(csound, fname);
       return csound->InitError(csound, "%s", Str("invalid file name"));
@@ -1265,14 +1265,15 @@ static int32_t fprintf_set_(CSOUND *csound, FPRINTF *p, int32_t istring)
 
   memset(p->txtstring, 0, 8192); /* Nasty to have exposed constant in code */
 
-  if (p->h.perf != (SUBR) NULL)      /* fprintks */
+  if (p->h.perf != (SUBR) NULL) {     /* fprintks */
     pp = fout_open_file(csound, &(p->f), NULL, CSFILE_STD,
                         p->fname, istring, "w", 1);
-  else                                /* fprints */
-    pp = fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
-                        p->fname, istring, "w", 1);
-  if (UNLIKELY(pp == NULL))
-    return NOTOK;
+    if (UNLIKELY(pp == NULL)) return NOTOK;
+  } else {                             /* fprints */
+    fout_open_file(csound, (FOUT_FILE*) NULL, &(p->f.f), CSFILE_STD,
+                   p->fname, istring, "w", 1);
+    if (UNLIKELY(p->f.f  == NULL)) return NOTOK;
+  }
   //setvbuf(p->f.f, (char*)NULL, _IOLBF, BUFSIZ); /* Seems a good option */
   /* Copy the string to the storage place in PRINTKS.
    *

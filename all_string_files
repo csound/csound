@@ -265,11 +265,6 @@
 ./Opcodes/hrtfopcodes.c
 ./Opcodes/hrtfreverb.c
 ./Opcodes/ifd.c
-<<<<<<< HEAD
-./plugins/jackops/jackTransport.c
-./plugins/jackops/jacko.cpp
-=======
->>>>>>> cs7
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
 ./Opcodes/liveconv.c

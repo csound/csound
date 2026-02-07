@@ -253,7 +253,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->value->fvalue = lval;
           snprintf(buf, 60, "%.20g", lval);
           csound->Free(csound, current->value->lexeme);
-          current->value->lexeme = cs_strdup(csound, buf);
+          current->value->lexeme = csoundStrdup(csound, buf);
           csound->Free(csound, current->left);
           csound->Free(csound, current->right->value);
           csound->Free(csound, current->right);
@@ -290,7 +290,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->value = current->right->value;
                 current->right = NULL;
                 current->left = NULL;
-                delete_tree(csound, tmp);
+                csoundDeleteTree(csound, tmp);
                 //print_tree(csound, "X op 0 -> 0\n", current);
                 break;
               }
@@ -307,7 +307,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             switch (current->type) {
             case '+':
             case '|':
-                delete_tree(csound,current->left);
+                csoundDeleteTree(csound,current->left);
                 current->type = current->right->type;
                 current->value = current->right->value;
                 current->left = current->right->left;
@@ -327,7 +327,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->value = current->left->value;
                 current->right = NULL;
                 current->left = NULL;
-                delete_tree(csound, tmp);
+                csoundDeleteTree(csound, tmp);
                 //print_tree(csound, "0 op X -> 0\n", current);
                 break;
               }
@@ -367,12 +367,12 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
                 current->value = current->left->value;
                 current->right = NULL;
                 current->left = NULL;
-                delete_tree(csound, tmp);
+                csoundDeleteTree(csound, tmp);
                 //print_tree(csound, "1 op X -> 1\n", current);
                 break;
               }
               case '*':
-                delete_tree(csound,current->left);
+                csoundDeleteTree(csound,current->left);
                 current->type = current->right->type;
                 current->value = current->right->value;
                 current->left = current->right->left;
@@ -410,7 +410,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           current->value->fvalue = lval;
           snprintf(buf, 60, "%.20g", lval);
           csound->Free(csound, current->value->lexeme);
-          current->value->lexeme = cs_strdup(csound, buf);
+          current->value->lexeme = csoundStrdup(csound, buf);
           csound->Free(csound, current->right);
           current->right = NULL;
         }

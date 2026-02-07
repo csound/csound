@@ -28,6 +28,7 @@
 #include "score_param.h"
 #include "csound_orc_semantics.h"
 #include "new_orc_parser.h"
+void add_opcode_defs(CSOUND *csound);
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -101,6 +102,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int32_t err;
+    add_opcode_defs(csound);  // add global OpcodeDef variables
     csound->parserNamedInstrFlag = 2;
     {
       PRE_PARM    qq;
@@ -197,8 +199,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                           Str("Parsing failed due to memory exhaustion!\n"));
         }
         else if (err == 3){
-          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s!, line %d\n"),
-                          csound->synterrcnt, csound->synterrcnt==1?"":"s", astTree->line);
+          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s\n"),
+                         csound->synterrcnt, csound->synterrcnt==1?"":"s");
         }
         goto ending;
       }

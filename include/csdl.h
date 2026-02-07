@@ -68,10 +68,15 @@ static int32_t op_deinit(CSOUND *csound, OPCODE *p)
     return OK;
 }
 
+// add the opcode OENTRY:
+static OENTRY localops[] =
+{
+  { "opcode",   sizeof(OPCODE),  0, "i",    "ii", (SUBR)op_init, (SUBR)op_k, (SUBR) op_deinit }}
+};
 
-// You can use these functions if you need to prepare and cleanup things on
-// loading/unloading the library, but they can be absent if you don't need them
 
+// These are generic functions to use for any type of csound plugin module
+// (opcodes, ftables, IO backends etc)
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     return 0;
@@ -79,11 +84,12 @@ PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 
 PUBLIC int32_t csoundModuleInit(CSOUND *csound)
 {
+    // opcode registration example
     OENTRY  *ep = (OENTRY *) &(localops[0]);
     int32_t     err = 0;
     while (ep->opname != NULL) {
       err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->dsblksiz, 
+                                  ep->opname, ep->dsblksiz, 0,
                                   ep->outypes, ep->intypes,
                                   (int32_t (*)(CSOUND *, void *)) ep->init,
                                   (int32_t (*)(CSOUND *, void *)) ep->perf,
@@ -99,11 +105,8 @@ PUBLIC int32_t csoundModuleDestroy(CSOUND *csound)
     return 0;
 }
 
-static OENTRY localops[] =
-{
-  { "opcode",   sizeof(OPCODE),  0, "i",    "ii", (SUBR)op_init, (SUBR)op_k }}
-};
-
+// instead of using the above generic functions
+// you can use this macro - for opcode modules only
 LINKAGE(localops)
 
 *

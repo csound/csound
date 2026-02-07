@@ -94,12 +94,16 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 LPAREN          "("
 RPAREN          ")"
 SYMBOL          [\[\]+\-*/%\^\?:.,!]
+RSTR            "R{"
+ERSTR           "}R"
+
 
 %s ignorenewline
 %x line
 %x sline
 %x src
 %x xstr
+%x rstr
 %x declare
 %x udodef
 %x udoarg
@@ -147,10 +151,11 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "true"          { return TRUE_TOKEN; }
 "falsek"        { return FALSEK_TOKEN; }
 "truek"         { return TRUEK_TOKEN; }
-"if"            { *lvalp = make_token(csound, yytext);
+"if"\([ \t]*    { yyless(2);
+                  *lvalp = make_token(csound, "if");
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-"if"/"("        { *lvalp = make_token(csound, yytext);
+"if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
 "then"          { *lvalp = make_token(csound, yytext);
@@ -162,10 +167,11 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "kthen"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
-"elseif"        { *lvalp = make_token(csound, yytext);
+"elseif"\([ \t]* { yyless(6);
+                  *lvalp = make_token(csound, "elseif");
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
-"elseif"/"("    { *lvalp = make_token(csound, yytext);
+"elseif"        { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
 "else"          { *lvalp = make_token(csound, yytext);
@@ -177,16 +183,18 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "fi"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = ENDIF_TOKEN;
                   return ENDIF_TOKEN; }
+"until"\([ \t]* { yyless(5);
+                  *lvalp = make_token(csound, "until");
+                  (*lvalp)->type = UNTIL_TOKEN;
+                  return UNTIL_TOKEN; }
 "until"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
-"until"/"("     { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = UNTIL_TOKEN;
-                  return UNTIL_TOKEN; }
-"while"         { *lvalp = make_token(csound, yytext);
+"while"\([ \t]* { yyless(5);
+                  *lvalp = make_token(csound, "while");
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
-"while"/"("     { *lvalp = make_token(csound, yytext);
+"while"         { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
 "do"            { *lvalp = make_token(csound, yytext);
@@ -229,9 +237,6 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "struct"        {
                   return STRUCT_TOKEN;
                 }
- /*"A4"            { *lvalp = make_token(csound, yytext);*/
-                  /*(*lvalp)->type = A4_TOKEN;*/
-                  /*return A4_TOKEN; }*/
 "instr"         {
                   namedInstrFlag = 1;
                   return INSTR_TOKEN;
@@ -240,14 +245,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   (*lvalp)->type = ENDIN_TOKEN;
                   return ENDIN_TOKEN; }
 "void"          { return VOID_TOKEN; }
-"\{\{"          {
-                  PARM->xstrbuff = (char *)malloc(128);
-                  PARM->xstrptr = 0; PARM->xstrmax = 128;
-                  PARM->xstrbuff[PARM->xstrptr++] = '"';
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
-                  PARM->xsubstr = 0;
-                  BEGIN(xstr);
-                }
+
 
 "for"           {  *lvalp = make_token(csound, yytext);
                    (*lvalp)->type = FOR_TOKEN;
@@ -270,10 +268,18 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   }
 }
 
+"\{\{"          {
+                  PARM->xstrbuff = (char *)malloc(128);
+                  PARM->xstrptr = 0; PARM->xstrmax = 128;
+                  PARM->xstrbuff[PARM->xstrptr++] = '"';
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xsubstr = 0;
+                  BEGIN(xstr);
+                }
 <xstr>{
   "\{\{" {
              PARM->xsubstr += 1; // substr start
-             if (PARM->xstrptr+3==PARM->xstrmax) {
+             if (PARM->xstrptr+3>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -286,7 +292,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   "}}"   {
     if(PARM->xsubstr) {
             PARM->xsubstr -= 1; // substr end
-           if (PARM->xstrptr+3==PARM->xstrmax) {
+           if (PARM->xstrptr+3>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -306,7 +312,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   }
 
   "\n"  { /* The next two should be one case but I cannot get that to work */
-           if (PARM->xstrptr+2==PARM->xstrmax) {
+           if (PARM->xstrptr+2>=PARM->xstrmax) {
                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -317,7 +323,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
            }
 
   .        {
-            if (PARM->xstrptr+2==PARM->xstrmax) {
+            if (PARM->xstrptr+2>=PARM->xstrmax) {
                 PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
                  csound->DebugMsg(csound,"Extending xstr buffer\n");
@@ -328,7 +334,74 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
             }
 }
 
-^[ ]*{IDENT}:/[ \t\n]  { char *pp = yytext;
+"R{"   {
+                  PARM->xstrbuff = (char *)malloc(128);
+                  PARM->xstrptr = 0; PARM->xstrmax = 128;
+                  PARM->xstrbuff[PARM->xstrptr++] = '"';
+                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xsubstr = 0;
+                  BEGIN(rstr);
+                }
+
+<rstr>{
+  "R{" {
+             PARM->xsubstr += 1; // substr start
+             if (PARM->xstrptr+4>=PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending rstr buffer\n");
+             }
+             PARM->xstrbuff[PARM->xstrptr++] = 'R';
+             PARM->xstrbuff[PARM->xstrptr++] = '{';
+             PARM->xstrbuff[PARM->xstrptr] = '\0';
+         }
+
+  "}R"   {
+    if(PARM->xsubstr) {
+            PARM->xsubstr -= 1; // substr end
+           if (PARM->xstrptr+4>=PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending rstr buffer\n");
+           }
+             PARM->xstrbuff[PARM->xstrptr++] = '}';
+             PARM->xstrbuff[PARM->xstrptr++] = 'R';
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
+    } else {
+           BEGIN(INITIAL);
+           PARM->xstrbuff[PARM->xstrptr++] = '"';
+           PARM->xstrbuff[PARM->xstrptr] = '\0';
+           *lvalp = make_string(csound, PARM->xstrbuff);
+            free(PARM->xstrbuff);
+            return STRING_TOKEN;
+          }
+  }
+
+  "\n"  { /* The next two should be one case but I cannot get that to work */
+           if (PARM->xstrptr+2>=PARM->xstrmax) {
+               PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+               csound->DebugMsg(csound,"Extending xstr buffer\n");
+           }
+            //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
+               PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+               PARM->xstrbuff[PARM->xstrptr] = '\0';
+           }
+
+  .        {
+            if (PARM->xstrptr+2>=PARM->xstrmax) {
+                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
+                                                       PARM->xstrmax+=80);
+                 csound->DebugMsg(csound,"Extending xstr buffer\n");
+               }
+              //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
+              PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
+              PARM->xstrbuff[PARM->xstrptr] = '\0';
+            }
+ }
+
+
+^[ \t]*{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
@@ -387,7 +460,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
   {IDENT} {
     csound->Message(csound, "unsupported UDO arg type: %s", yytext);
     return ERROR_TOKEN;
-  }  
+  }
 }
 
 
@@ -545,7 +618,7 @@ ORCTOKEN *new_token(CSOUND *csound, int32_t type)
 ORCTOKEN *make_token(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);
-    ans->lexeme = cs_strdup(csound, s);
+    ans->lexeme = csoundStrdup(csound, s);
     return ans;
 }
 

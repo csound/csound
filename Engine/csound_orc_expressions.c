@@ -323,10 +323,10 @@ static TREE *create_cond_expression(CSOUND *csound,
 
   typeTable->labelList =
     cs_cons(csound,
-            cs_strdup(csound, L1->value->lexeme), typeTable->labelList);
+            csoundStrdup(csound, L1->value->lexeme), typeTable->labelList);
   typeTable->labelList =
     cs_cons(csound,
-            cs_strdup(csound, L2->value->lexeme), typeTable->labelList);
+            csoundStrdup(csound, L2->value->lexeme), typeTable->labelList);
   left = get_arg_type2(csound, c, typeTable);
   right  = get_arg_type2(csound, d, typeTable);
   if (left[0]=='c') left[0] = 'i';
@@ -369,12 +369,12 @@ static TREE *create_cond_expression(CSOUND *csound,
   right = create_out_arg(csound,left,
                          typeTable->localPool->synthArgCount++, typeTable);
   {
-    TREE *C = create_opcode_token(csound, cs_strdup(csound, eq));
+    TREE *C = create_opcode_token(csound, csoundStrdup(csound, eq));
     C->left = create_ans_token(csound, right); C->right = c;
     c = C;
   }
   {
-    TREE *D = create_opcode_token(csound, cs_strdup(csound, eq));
+    TREE *D = create_opcode_token(csound, csoundStrdup(csound, eq));
     D->left = create_ans_token(csound, right); D->right = d;
     d = D;
   }
@@ -395,7 +395,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   while (last->next != NULL) last = last->next;
   last->next = create_synthetic_label(csound,ln2);
   while (last->next != NULL) last = last->next;
-  last->next = create_opcode_token(csound, cs_strdup(csound, eq));
+  last->next = create_opcode_token(csound, csoundStrdup(csound, eq));
   last->next->left = create_ans_token(csound, right);
   last->next->right = create_ans_token(csound, right);
   return b;
@@ -1120,7 +1120,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   // Step 1: temp:Type = array[index]
   ORCTOKEN* tempToken = make_token(csound, tempVarName);
   tempToken->type = T_TYPED_IDENT;
-  tempToken->optype = cs_strdup(csound, cleanTypeName);
+  tempToken->optype = csoundStrdup(csound, cleanTypeName);
 
   TREE* tempVar = make_leaf(csound, current->line, current->locn, T_TYPED_IDENT, tempToken);
 
@@ -1414,7 +1414,7 @@ TREE* expand_if_statement(CSOUND* csound,
 
         typeTable->labelList =
           cs_cons(csound,
-                  cs_strdup(csound,
+                  csoundStrdup(csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
         // checking for #B... var name
@@ -1466,7 +1466,7 @@ TREE* expand_if_statement(CSOUND* csound,
       anchor = append_to_tree(csound, anchor, endLabel);
 
       typeTable->labelList = cs_cons(csound,
-                                     cs_strdup(csound,
+                                     csoundStrdup(csound,
                                                endLabel->value->lexeme),
                                      typeTable->labelList);
     }
@@ -1530,7 +1530,7 @@ TREE* expand_switch_statement(
   TREE* endLabel = create_synthetic_label(csound, csound->genlabs++);
   typeTable->labelList = cs_cons(
     csound,
-    cs_strdup(csound, endLabel->value->lexeme),
+    csoundStrdup(csound, endLabel->value->lexeme),
     typeTable->labelList
   );
   endGoto->right = endLabel;
@@ -1554,7 +1554,7 @@ TREE* expand_switch_statement(
         caseLabel = create_synthetic_label(csound, csound->genlabs++);
         typeTable->labelList = cs_cons(
           csound,
-          cs_strdup(csound, caseLabel->value->lexeme),
+          csoundStrdup(csound, caseLabel->value->lexeme),
           typeTable->labelList
         );
 
@@ -1606,7 +1606,7 @@ TREE* expand_switch_statement(
       defaultCaseLabel = create_synthetic_label(csound, csound->genlabs++);
       typeTable->labelList = cs_cons(
         csound,
-        cs_strdup(csound, defaultCaseLabel->value->lexeme),
+        csoundStrdup(csound, defaultCaseLabel->value->lexeme),
         typeTable->labelList
       );
       gotoChainHeadDefaultCase->right = defaultCaseLabel;
@@ -1687,7 +1687,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
   anchor = create_synthetic_label(csound, topLabelCounter);
   typeTable->labelList = cs_cons(csound,
-                                 cs_strdup(csound, anchor->value->lexeme),
+                                 csoundStrdup(csound, anchor->value->lexeme),
                                  typeTable->labelList);
 
   if (current->left->type == T_IDENT) {
@@ -1713,7 +1713,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
   typeTable->labelList = cs_cons(csound,
-                                 cs_strdup(csound, labelEnd->value->lexeme),
+                                 csoundStrdup(csound, labelEnd->value->lexeme),
                                  typeTable->labelList);
   gotoToken =
     create_goto_token(csound,
@@ -1757,6 +1757,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   const CS_TYPE *iType = &CS_VAR_TYPE_I;
   const CS_TYPE *kType = &CS_VAR_TYPE_K;
   const CS_TYPE *aType = &CS_VAR_TYPE_A;
+  const CS_TYPE *sType = &CS_VAR_TYPE_S;
   const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
   const CS_TYPE *arrayType =
     csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
@@ -1834,7 +1835,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
                          loopLabel->value->lexeme, NULL);
   csoundAddVariable(csound, typeTable->localPool, loopLabelVar);
   typeTable->labelList =
-    cs_cons(csound, cs_strdup(csound, loopLabel->value->lexeme),
+    cs_cons(csound, csoundStrdup(csound, loopLabel->value->lexeme),
                                  typeTable->labelList);
   arrayLength->next = loopLabel;
 
@@ -1861,7 +1862,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
-  TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
+  char* array_get = arrayType != sType ? "##array_get" : "##array_geti";
+  TREE* arrayGetStatement = create_opcode_token(csound, array_get); 
   arrayGetStatement->left = current->left;
 
   arrayGetStatement->right = copy_node(csound, arrayIdent);
@@ -1876,21 +1878,21 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   int32_t continueTargetCounter = csound->genlabs++;
   TREE* continueTargetLabel = create_synthetic_label(csound, continueTargetCounter);
   typeTable->labelList = cs_cons(csound,
-                                 cs_strdup(csound, continueTargetLabel->value->lexeme),
+                                 csoundStrdup(csound, continueTargetLabel->value->lexeme),
                                  typeTable->labelList);
   TREE* continueTargetIdent = create_synthetic_ident(csound, continueTargetCounter);
 
   int32_t breakTargetCounter = csound->genlabs++;
   TREE* breakTargetLabel = create_synthetic_label(csound, breakTargetCounter);
   typeTable->labelList = cs_cons(csound,
-                                 cs_strdup(csound, breakTargetLabel->value->lexeme),
+                                 csoundStrdup(csound, breakTargetLabel->value->lexeme),
                                  typeTable->labelList);
   TREE* breakTargetIdent = create_synthetic_ident(csound, breakTargetCounter);
 
   TREE* tail = tree_tail(current->right->right);
   tail->next = continueTargetLabel;
 
-  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+  strNcpy(op, isPerfRate ? "looplt.k" : "looplt.i", 10);
   TREE* loopLtStatement = create_opcode_token(csound, op);
   continueTargetLabel->next = loopLtStatement;
 

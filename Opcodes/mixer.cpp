@@ -317,20 +317,20 @@ static OENTRY localops[] = {
   /* aliases */
   {(char *)"mixersetlevel", sizeof(MixerSetLevel), _CW,  (char *)"",
    (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
-   0, NULL, 2},
+   0, NULL},
   {(char *)"mixersetleveli", sizeof(MixerSetLevel), _CW,  (char *)"",
-   (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0, NULL, 2},
+   (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0, NULL},
   {(char *)"mixergetlevel", sizeof(MixerGetLevel), _CR,  (char *)"k",
    (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
-   0, NULL, 2},
+   0, NULL},
   {(char *)"mixersend", sizeof(MixerSend), _CW,  (char *)"", (char *)"aiii",
-   (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL, 2},
+   (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL},
   {(char *)"mixerreceive", sizeof(MixerReceive), _CR,  (char *)"a",
    (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_,
-   0, NULL, 2},
+   0, NULL},
   {(char *)"mixerclear", sizeof(MixerClear), 0,  (char *)"", (char *)"",
-   (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL, 2},
-  {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, NULL, 2}};
+   (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL},
+  {NULL, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, NULL}};
 
 PUBLIC int32_t csoundModuleCreate_mixer(CSOUND *csound) {
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>>
@@ -405,6 +405,7 @@ PUBLIC int32_t csoundModuleInit_mixer(CSOUND *csound) {
                                 (int32_t (*)(CSOUND *, void *))ep->init,
                                 (int32_t (*)(CSOUND *, void *))ep->perf,
                                 (int32_t (*)(CSOUND *, void *))ep->deinit);
+    csound->Deprecate(csound, ep->opname, ep->outypes, ep->intypes, ep->deprecated);
     ep++;
   }
   // need to register reset callback

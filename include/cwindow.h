@@ -66,9 +66,9 @@ struct xyindat_ {       /* for 'joystick' input window */
 
 #ifdef __BUILDING_LIBCSOUND
 
-void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t, char *);
-int32_t dispexit(CSOUND *);
-void display(CSOUND *, WINDAT*);
+void csoundSetDisplay(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t, char *);
+int32_t csoundDeinitDisplay(CSOUND *);
+void csoundDisplay(CSOUND *, WINDAT*);
 #if 0
 /* create window for a graph */
 void MakeGraph(CSOUND *, WINDAT *, const char *);

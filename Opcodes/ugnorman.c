@@ -120,7 +120,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
   if (istring) strncpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
   else {
     if (IsStringCode(*((MYFLT*)name_arg)))
-      strncpy(fname,csound->GetString(csound, *((MYFLT*)name_arg)),MAXNAME-1);
+      strncpy(fname,csound->GetArgString(csound, *((MYFLT*)name_arg)),MAXNAME-1);
     else csound->StringArg2Name(csound, fname, name_arg, "ats.",0);
   }
   /* load memfile */
@@ -1034,8 +1034,8 @@ static void randiats_setup(CSOUND *csound, MYFLT freq, RANDIATS *radat, MYFLT sr
 {
   radat->size = (int32_t) MYFLT2LRND(sr / freq);
   radat->cnt = 0;
-  radat->a1 = (int32) csound->Rand31(csound->RandSeed1(csound));
-  radat->a2 = (int32) csound->Rand31(csound->RandSeed1(csound));
+  radat->a1 = (int32) csound->Rand31(csound->RandSeed31(csound));
+  radat->a2 = (int32) csound->Rand31(csound->RandSeed31(csound));
 }
 
 /* ------------------------------------------------------------------ */
@@ -1046,7 +1046,7 @@ static MYFLT randiats(CSOUND *csound, RANDIATS *radat)
 
   if (radat->cnt == radat->size) {  /* get a new random value */
     radat->a1 = radat->a2;
-    radat->a2 = (int32) csound->Rand31(csound->RandSeed1(csound));
+    radat->a2 = (int32) csound->Rand31(csound->RandSeed31(csound));
     radat->cnt = 0;
   }
 
@@ -3005,7 +3005,22 @@ static OENTRY localops[] = {
       (SUBR) atssinnoiset_S,            (SUBR) atssinnoi,    (SUBR) NULL, NULL, 2 },
     { "ATSsinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
       (SUBR) atssinnoiset,            (SUBR) atssinnoi,     (SUBR) NULL, NULL, 2 },
-
+    { "ATSbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
+        (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL, NULL, 2 },
+    { "ATSbufread.i",     S(ATSBUFREAD),    TW,  "",     "kkiiop",
+        (SUBR) atsbufreadset,       (SUBR) atsbufread,      (SUBR) NULL, NULL, 2 },
+    { "ATSpartialtap",  S(ATSPARTIALTAP),   0,  "kk",   "i",
+        (SUBR) atspartialtapset,    (SUBR) atspartialtap,   (SUBR) NULL, NULL, 2 },
+    { "ATSinterpread",  S(ATSINTERPREAD),   0,  "k",    "k",
+        (SUBR) atsinterpreadset,    (SUBR) atsinterpread,   (SUBR) NULL, NULL, 2 },
+    { "ATScross",       S(ATSCROSS),        TR,   "a",    "kkSikkiopoo",
+        (SUBR) atscrossset_S,            (SUBR) atscross, NULL, NULL, 2  },
+    { "ATSinfo",        S(ATSINFO),         0, "i",    "Si",
+      (SUBR) atsinfo_S, (SUBR) NULL, (SUBR) NULL, NULL, 2 },
+    { "ATScross.i",       S(ATSCROSS),        TR,   "a",    "kkiikkiopoo",
+        (SUBR) atscrossset, (SUBR) atscross, (SUBR) NULL, NULL, 2  },
+    { "ATSinfo.i",        S(ATSINFO),         0,  "i",    "ii",
+        (SUBR) atsinfo, (SUBR) NULL, (SUBR) NULL, NULL, 2  },
     /* aliases */
     { "atsread",        S(ATSREAD),       0,   "kk",   "kSi",
         (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL      },
@@ -3023,9 +3038,9 @@ static OENTRY localops[] = {
         (SUBR) atsaddnzset_S,            (SUBR) atsaddnz  },
     { "atsaddnz.i",       S(ATSADDNZ),       0,   "a",    "kiiop",
         (SUBR) atsaddnzset,            (SUBR) atsaddnz  },
-    { "atsinnoi",      S(ATSSINNOI),       0,  "a",    "kkkkSiop",
+    { "atssinnoi",      S(ATSSINNOI),       0,  "a",    "kkkkSiop",
         (SUBR) atssinnoiset_S,            (SUBR) atssinnoi },
-    { "atsinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
+    { "atssinnoi.i",      S(ATSSINNOI),       0,  "a",    "kkkkiiop",
         (SUBR) atssinnoiset,            (SUBR) atssinnoi },
     { "atsbufread",     S(ATSBUFREAD),      TW,  "",     "kkSiop",
         (SUBR) atsbufreadset_S,       (SUBR) atsbufread,      (SUBR) NULL      },

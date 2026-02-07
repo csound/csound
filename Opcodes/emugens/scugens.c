@@ -668,7 +668,7 @@ static OENTRY scugens_localops[] = {
 
     {"sc_lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a, NULL, NULL, 2 },
-    {"sc_lagud",  S(LagUD),  0,  "a", "akk",
+    {"sclagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a }, /* alias */
     {"lagud",  S(LagUD),  0,  "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },

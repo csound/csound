@@ -63,7 +63,7 @@ static void sanitise_set(CSOUND *csound, struct set_t* p)
 {
     struct set_element_t *ele = p->head;
     while (ele != NULL) {
-      ele->data = cs_strdup(csound, (char*)ele->data);
+      ele->data = csoundStrdup(csound, (char*)ele->data);
       ele = ele->next;
     }
 }
@@ -234,7 +234,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-    name = cs_strdup(csound, name); // JPff:  leaks: necessary?? Think it is correct
+    name = csoundStrdup(csound, name); // JPff:  leaks: necessary?? Think it is correct
     //printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {

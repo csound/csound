@@ -31,7 +31,7 @@
 #include "stdopcod.h"
 #include "sndwarp.h"
 
-#define unirand(x) ((MYFLT) (x->Rand31((x->RandSeed1(x))) - 1) / FL(2147483645.0))
+#define unirand(x) ((MYFLT) (x->Rand31((x->RandSeed31(x))) - 1) / FL(2147483645.0))
 
 static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {

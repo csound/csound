@@ -60,7 +60,7 @@ static int32_t DummyFn3(CSOUND *csound)
 /* called once on initialisation of program to */
 /*  choose between teletype or bitmap graphics */
 
-void dispinit(CSOUND *csound)
+void csoundInitDisplay(CSOUND *csound)
 {
      const OPARMS * O;
       O = csound->GetOParms(csound) ;
@@ -94,7 +94,7 @@ void dispinit(CSOUND *csound)
     csound->csoundExitGraphCallback_ = DummyFn3;
 }
 
-void dispset(CSOUND *csound,            /* setup a new window       */
+void csoundSetDisplay(CSOUND *csound,            /* setup a new window       */
              WINDAT *wdptr,             /*   & init the data struct */
              MYFLT  *fdata,
              int32  npts,
@@ -131,7 +131,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
 
 }
 
-int32_t dispexit(CSOUND *csound)
+int32_t csoundDeinitDisplay(CSOUND *csound)
 {
    const OPARMS * O;
     O = csound->GetOParms(csound) ;
@@ -145,7 +145,7 @@ int32_t dispexit(CSOUND *csound)
     return ret;
 }
 
-void display(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
+void csoundDisplay(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
                                               /*   call the graphing fn       */
 {
     MYFLT   *fp, *fplim;

@@ -189,10 +189,10 @@
   resolved "https://registry.yarnpkg.com/@bazel/runfiles/-/runfiles-6.5.0.tgz#63cf7b77b91b54873e75f7a08fabec215c6888be"
   integrity sha512-RzahvqTkfpY2jsDxo8YItPX+/iZ6hbiikw1YhE0bA9EKBR5Og8Pa6FHn9PO9M0zaXRVsr0GFQLKbB/0rzy9SzA==
 
-"@csound/wasm-bin@7.0.0-beta10":
-  version "7.0.0-beta10"
-  resolved "https://registry.yarnpkg.com/@csound/wasm-bin/-/wasm-bin-7.0.0-beta10.tgz#38b2940c62a32db7e175a3c2614eed51ace17b43"
-  integrity sha512-OaWcH0YPMamYbKjQ0wF0VAIWyKNEU1NoEDf3PV/odAKRq1sEWHS7jOZ4zY39lYdmDexzONoIV239qHF0wMa96g==
+"@csound/wasm-bin@7.0.0-beta16":
+  version "7.0.0-beta16"
+  resolved "https://registry.yarnpkg.com/@csound/wasm-bin/-/wasm-bin-7.0.0-beta16.tgz#8ece2e475282240a0433449baaccf5f0845ba765"
+  integrity sha512-QdwRkKrSkgNDk1U/mawdtP0NizE1v03BbYMDT7fiVqUv1M8SM8i2DaLg+CWcyUJBGm9gYwJbpps5qQAttEYDaQ==
 
 "@eslint-community/eslint-utils@^4.1.2", "@eslint-community/eslint-utils@^4.2.0":
   version "4.9.0"

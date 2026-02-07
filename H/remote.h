@@ -38,7 +38,7 @@
     #endif
     #include <sys/socket.h>
     #include <netinet/in.h>
-    #ifdef MACOSX
+    #if defined (MACOSX) || defined(BSD)
       #include <net/if.h>
     #endif
     #ifdef LINUX
