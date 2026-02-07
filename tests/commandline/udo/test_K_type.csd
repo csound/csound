@@ -58,10 +58,25 @@ instr 3
     endif
 endin
 
+opcode TestKIO,K,K
+ kval xin
+ kval = 0
+  xout kval
+endop
+
+instr 4
+input:i = 1
+output:k = TestKIO(input)
+if input:i != i(output:k) then
+  exitnow(-1)
+endif
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 0.01
 i2 0 0.01
 i3 0 0.01
+i4 0 0.01
 </CsScore>
 </CsoundSynthesizer>

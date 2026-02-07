@@ -704,7 +704,9 @@ const char* VAR_ARG_IN_TYPES[] = {
 
 const char* POLY_OUT_TYPES[] = {
     "s", "ka",                  /* ***Deprecated*** */
-    "i", "pi", NULL
+    "i", "pi",
+    "K", "cprki",               /* k-rate with initialization */
+    NULL
 };
 
 const char* VAR_ARG_OUT_TYPES[] = {
