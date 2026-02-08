@@ -1175,11 +1175,17 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
   if(obj->dataspace->insdshead == insds) return OK;
   INSDS *ip = obj->dataspace->insdshead;
   INSDS *ctx = insds;
+  if(ctx) {
   // different SR always fails check
   if(ip->esr != ctx->esr) return NOTOK;
   // ksmps less than ctx fails check
   if(ip->ksmps < ctx->ksmps) return NOTOK;
   // otherwise there is no context incompatibility
+  }
+  else {
+    csound->Warning(csound, "no valid context for opcode object\n");
+    return NOTOK;
+  }
   return OK;
 }
 
