@@ -9,6 +9,8 @@ nchnls	=	2
 struct MyType  imaginary:k, real:k, kimaginary, kreal
 struct MyType2 x:i, y:i
 
+struct MyType3 val:i, opc:Opcode
+
 opcode processMyType(var:MyType):(MyType)
   retVal:MyType init 0, 0, 0, 0
   retVal.imaginary = var.imaginary + 1 
@@ -20,9 +22,13 @@ endop
 
 instr 1
 
-var0:MyType init 1, 2, 3, 4
-;var1:MyType = init:MyType(0, 0, 1, 1)
+var1:MyType3 init 2, create(sqrt)
+res:i = init(var1.opc, var1.val)
+if res != sqrt(var1.val) then
+  exitnow(-1)
+endif
 
+var0:MyType init 1, 2, 3, 4
 var0.imaginary init 5
 var0.real init 6
 var0.kimaginary init 7

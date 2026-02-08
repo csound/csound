@@ -2995,7 +2995,7 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
     mem->varType->copyValue(csound, mem->varType, &mem->value,
-                            init->inArgs[i], NULL);
+                            init->inArgs[i], init->h.insdshead);
   }
 
   return CSOUND_SUCCESS;
