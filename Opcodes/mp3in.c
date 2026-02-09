@@ -883,33 +883,6 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
   }
 }
 
-static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff, FUNC *ftp)
-{
-  CSOUND  *csound = ff->csound;
- 
-  if (UNLIKELY(ftp != NULL)) {
-    csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
-    if (ff->flen != (int32)ftp->flen) {       /* if redraw & diff len, */
-      csound->Free(csound, ftp->ftable);
-      csound->Free(csound, (void*) ftp);             /*   release old space   */
-    }
-    else {
-      /* else clear it to zero */
-      MYFLT *tmp = ftp->ftable;
-      memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
-      memset((void*) ftp, 0, sizeof(FUNC));
-      ftp->ftable = tmp; /* restore table pointer */
-    }
-  }
-  if (ftp == NULL) {                      /*   alloc space as reqd */
-    ftp = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
-    ftp->ftable = (MYFLT*) csound->Calloc(csound, (1+ff->flen) * sizeof(MYFLT));
-  }
-  ftp->fno = (int32) ff->fno;
-  ftp->flen = ff->flen;
-  return ftp;
-}
-
 int32_t gen49raw(FGDATA *ff, FUNC *ftp)
 {
   CSOUND  *csound        = ff->csound;
@@ -1019,13 +992,15 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
   nchanls = (chan == 2 && mpainfo.channels == 2 ? 2 : 1);
   if (ff->flen == 0) {    /* deferred ftalloc */
     int32_t fsize, frames;
-    frames = mpainfo.frames * mpainfo.decoded_frame_samples;
+    MYFLT fno = FL(ff->fno);
+    frames = mpainfo.duration * mpainfo.frequency;
     fsize  = frames * nchanls;
     if (UNLIKELY((ff->flen = fsize) <= 0))
       return csound->FtError(ff, "%s", Str("deferred size, but filesize unknown"));
     if (UNLIKELY(ff->flen > MAXLEN))
       return csound->FtError(ff, "%s", Str("illegal table length"));
-    ftp = ftalloc(ff,ftp);
+    csound->FTAlloc(csound, ff->fno, fsize);
+    ftp = csound->FTFind(csound, &fno);
     ftp->lenmask  = 0L;
     ftp->flenfrms = frames;
     ftp->nchanls  = nchanls;
