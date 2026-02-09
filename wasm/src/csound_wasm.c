@@ -1,4 +1,5 @@
 #include "csound.h"
+#include "csound_misc.h"
 #include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -223,24 +224,38 @@ int csoundResetWasi(CSOUND *csound) {
   return CSOUND_SUCCESS;
 }
 
-// int isRequestingRtMidiInput(CSOUND *csound) {
-//   // Since csoundGetOption might not be in public API, we'll use a different approach
-//   // For WASI, we'll assume MIDI input is not requested by default
-//   // This function can be expanded later if needed
-//   return 0;
-// }
+// Keep a stable non-null pointer for JS string reads.
+static char emptyString[1] = { 0 };
 
-char* getRtMidiName(CSOUND *csound) {
-  // Since QueryGlobalVariable is not in public API, return NULL for WASI
-  return NULL;
+__attribute__((used))
+int isRequestingRtMidiInput(CSOUND *csound) {
+  const OPARMS *params = csoundGetParams(csound);
+  if (params == NULL) {
+    return 0;
+  }
+
+  if (params->Midiin || params->FMidiin || params->RMidiin) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
-// char* getMidiOutFileName(CSOUND *csound) {
-//   // Since csoundGetOption might not be in public API, we'll use a different approach
-//   // For WASI, we'll return an empty string by default
-//   // This function can be expanded later if needed
-//   return "\0";
-// }
+__attribute__((used))
+char* getRtMidiName(CSOUND *csound) {
+  char *name = (char *) csoundQueryGlobalVariable(csound, "_RTMIDI");
+  return name == NULL ? emptyString : name;
+}
+
+__attribute__((used))
+char* getMidiOutFileName(CSOUND *csound) {
+  const OPARMS *params = csoundGetParams(csound);
+  if (params == NULL || params->FMidiname == NULL) {
+    return emptyString;
+  } else {
+    return params->FMidiname;
+  }
+}
 
 double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
