@@ -105,6 +105,8 @@ project(Csound)
 
 enable_testing()
 
+string(TOUPPER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME_UPPER)
+
 # Collect private libraries for static linking (for pkg-config --static)
 set(CSOUND_PRIVATE_LIBS "")
 
@@ -740,7 +742,7 @@ list(APPEND libcsound_private_include_dirs
 )
 
 #checking pthread functions
-if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
   if (NOT VCPKG_TARGET_TRIPLET STREQUAL "x64-mingw-static")
@@ -971,7 +973,7 @@ set(externs_SRCS
     Opcodes/paulstretch.c
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     set(HAVE_PTHREAD 0)
     # Disable shared libraries for WASI to avoid -shared flag warning
     set(BUILD_SHARED_LIBS OFF)
@@ -1104,7 +1106,7 @@ set(mp3in_SRCS
     InOut/libmpadec/mp3dec.c)
 
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+if(NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     # Only include C++ opcodes for non-WASI builds
     set(cppops_SRCS
        Opcodes/ampmidid.cpp
@@ -1151,7 +1153,7 @@ endif()
  list(APPEND libcsound_static_SRCS ${unixops_SRCS})
 endif()
 
-if(BUILD_PERFTHREAD_CLASS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+if(BUILD_PERFTHREAD_CLASS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
     list(APPEND libcsound_static_SRCS "Top/csPerfThread.cpp")
 endif()
@@ -1331,7 +1333,7 @@ endif()
 
 if(NOT IOS OR OSXCROSS_TARGET)
     set(_csound_library_type SHARED)
-    if(CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+    if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
         set(_csound_library_type STATIC)
     endif()
 
@@ -1390,7 +1392,7 @@ endif()
 
 set(libcsound_LIBS "")
 
-if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     list(APPEND libcsound_LIBS Threads::Threads)
 endif()
 
@@ -1514,7 +1516,7 @@ endif()
 
 if((HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H) AND
    NOT EMSCRIPTEN AND
-   NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
+   NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     add_definitions(-DHAVE_SOCKETS)
 endif()
 
