@@ -32,8 +32,8 @@ in
 
     # Tools needed at build time
     nativeBuildInputs = with pkgs; [
-      flex
-      bison
+      buildPackages.flex
+      buildPackages.bison
       cmake
       zopfli
       pkg-config
@@ -57,6 +57,8 @@ in
       "-DBUILD_UTILITIES=OFF"
       # Skip deprecated opcodes that try to build .so
       "-DBUILD_DEPRECATED_OPCODES=OFF"
+      "-DBISON_EXECUTABLE=${pkgs.buildPackages.bison}/bin/bison"
+      "-DFLEX_EXECUTABLE=${pkgs.buildPackages.flex}/bin/flex"
     ];
 
     NIX_CFLAGS_COMPILE = [
