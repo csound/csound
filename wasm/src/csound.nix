@@ -45,7 +45,7 @@ in
       libvorbis
     ];
 
-    # enableParallelBuilding = false;
+    enableParallelBuilding = false;
 
     cmakeFlags = [
       "-DBUILD_DIR=build"
@@ -55,6 +55,7 @@ in
       "-DCUSTOM_MALLOC=ON"
       # Skip util libraries that try to build .so
       "-DBUILD_UTILITIES=OFF"
+      "-DINSTALL_PYTHON_INTERFACE=OFF"
       # Skip deprecated opcodes that try to build .so
       "-DBUILD_DEPRECATED_OPCODES=OFF"
       "-DBISON_EXECUTABLE=${pkgs.buildPackages.bison}/bin/bison"

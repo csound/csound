@@ -357,10 +357,20 @@ int32_t csoundInitModules(CSOUND *csound) {
   return retval;
 }
 
-// In browser-wasi, this function is replaced
-// by the js-host.
-__attribute__((used))
-extern int32_t csoundLoadModules(CSOUND *csound);
+// In browser-wasi, this function is provided by the JS host.
+int32_t csoundLoadModulesHost(CSOUND *csound)
+    __attribute__((used,
+                   __import_module__("env"),
+                   __import_name__("csoundLoadModules")));
+
+int32_t csoundLoadModules(CSOUND *csound) {
+  return csoundLoadModulesHost(csound);
+}
+
+int32_t csoundLoadExternals(CSOUND *csound) {
+  (void) csound;
+  return CSOUND_SUCCESS;
+}
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;

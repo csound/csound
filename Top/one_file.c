@@ -91,7 +91,7 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 
     /* Optionally, you could loop/stat() to avoid collisions, but for WASI it's usually enough
        to just return a unique-looking name; the caller will open/create it later. */
-    return cs_strdup(csound, lbuf);
+    return csoundStrdup(csound, lbuf);
 
 #elif defined(WIN32) && !defined(__CYGWIN__)
 
@@ -111,7 +111,7 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
             strlcat(lbuf, ext, nBytes);
     } while (_stat(lbuf, &tmp) == 0);
 
-    return cs_strdup(csound, lbuf);
+    return csoundStrdup(csound, lbuf);
 
 #else /* Unix/POSIX */
 

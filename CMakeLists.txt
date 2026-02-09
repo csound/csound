@@ -1512,7 +1512,9 @@ endif()
 
 # Pass flags according to system capabilities
 
-if((HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H) AND NOT EMSCRIPTEN)
+if((HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H) AND
+   NOT EMSCRIPTEN AND
+   NOT CMAKE_SYSTEM_NAME STREQUAL "Wasi")
     add_definitions(-DHAVE_SOCKETS)
 endif()
 
