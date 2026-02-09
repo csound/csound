@@ -363,7 +363,8 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
 
     retval = Pm_OpenOutput(&midistream,
                            (PmDeviceID) portMidi_getRealDeviceID(devnum, 1),
-                           NULL, 512L, (PmTimeProcPtr) NULL, NULL, 0L);
+                           NULL, 512L, (PmTimeProcPtr) NULL, NULL,
+    1000*csound->GetOutputBufferSize(csound)/csound->GetEngineSr(csound));
     if (UNLIKELY(retval != pmNoError)) {
       return portMidiErrMsg(csound, Str("error opening output device %d: %s"),
                                     devnum, Pm_GetErrorText(retval));
@@ -452,6 +453,9 @@ static int32_t WriteMidiData_(CSOUND *csound, void *userData,
     int32_t             n, st;
     PmEvent         mev;
     PortMidiStream  *midistream;
+    //PmTimestamp time = (PmTimestamp)
+    //(csound->GetCurrentTimeSamples(csound)*csound->GetEngineSr(csound)/1000);
+    
     /*
      * Writes to user-defined MIDI output.
      */
@@ -476,8 +480,9 @@ static int32_t WriteMidiData_(CSOUND *csound, void *userData,
         portMidiErrMsg(csound, Str("MIDI out: truncated message"));
         break;
       }
+
       mev.message = (PmMessage) 0;
-      mev.timestamp = (PmTimestamp) 0;
+      mev.timestamp =  0;// time;
       mev.message |= (PmMessage) Pm_Message(st, 0, 0);
       if (datbyts[(st - 0x80) >> 4] > 0)
         mev.message |= (PmMessage) Pm_Message(0, (int32_t)*(mbuf++), 0);
