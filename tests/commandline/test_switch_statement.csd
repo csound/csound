@@ -7,7 +7,8 @@ instr 1
     case 1
       prints "pass\n"
     default
-     prints "fail\n"
+      prints "test1 fail\n"
+      exitnow(-1)
   endsw
   prints "test1 passed\n"
 endin
@@ -45,7 +46,8 @@ instr 4
     case 1 + 2
       prints "pass\n"
     default
-     prints "fail\n"
+      prints "test4 fail\n"
+      exitnow(-1)
   endsw
   prints "test4 passed\n"
 endin
