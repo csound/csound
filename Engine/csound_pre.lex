@@ -808,9 +808,21 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
           cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    if (UNLIKELY(cf == NULL))
+    if (UNLIKELY(cf == NULL)) {
+#if defined(__wasi__)
+      csound->Message(csound,
+                      Str("Cannot open #include'd file %s\n"), buffer);
+      if (PARM->depth > 0) {
+        PARM->depth--;
+      }
+      /* Force parser failure without triggering csoundDie()/longjmp. */
+      corfile_puts(csound, "$error", csound->expanded_orc);
+      return;
+#else
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+#endif
+    }
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
@@ -884,9 +896,21 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    if (UNLIKELY(cf == NULL))
+    if (UNLIKELY(cf == NULL)) {
+#if defined(__wasi__)
+      csound->Message(csound,
+                      Str("Cannot open #include'd file %s\n"), buffer);
+      if (PARM->depth > 0) {
+        PARM->depth--;
+      }
+      /* Force parser failure without triggering csoundDie()/longjmp. */
+      corfile_puts(csound, "$error", csound->expanded_orc);
+      return;
+#else
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+#endif
+    }
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,

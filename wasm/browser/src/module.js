@@ -9,6 +9,7 @@ const { assert } = goog.require("goog.asserts");
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
+const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 
 // shared state
 const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
@@ -359,6 +360,10 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options["env"]["printDebugCallback"] = (offset, length) => {
     const buf = new Uint8Array(memory.buffer, offset, length);
     const string = uint2String(buf);
+    if (string.startsWith(WASI_LONGJMP_PREFIX)) {
+      const code = Number.parseInt(string.slice(WASI_LONGJMP_PREFIX.length), 10);
+      throw new Error(`csound longjmp with code: ${Number.isNaN(code) ? -1 : code}`);
+    }
     console.log(string);
   };
 

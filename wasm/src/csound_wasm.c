@@ -393,6 +393,11 @@ int __wasm_setjmp_test(int a, void *env) {
 
 __attribute__((weak))
 void __wasm_longjmp(void *env, int val) {
-  // WASI doesn't support longjmp, just exit
-  exit(val);
+  // Report through JS host so callers can catch a normal exception instead
+  // of aborting the entire WASI instance via proc_exit.
+  char message[64];
+  (void) env;
+  snprintf(message, sizeof(message), "CSOUND_WASI_LONGJMP:%d", val);
+  printDebug(message);
+  __builtin_trap();
 }

@@ -13,6 +13,7 @@ const readFilePromise = promisify(fs.readFile);
 
 const wasmDylibPath = require.resolve("@csound/wasm/lib/csound.dylib.wasm");
 const PAGE_SIZE = 65536;
+const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 
 const getBinaryHeaderData = (wasmBytes) => {
   const magicBytes = new Uint32Array(new Uint8Array(wasmBytes.subarray(0, 24)).buffer);
@@ -101,6 +102,16 @@ export default async function ({ withPlugins = [] }) {
     streamBuffer,
     messagePort,
   });
+  options.env.printDebugCallback = (offset, length) => {
+    const bytes = new Uint8Array(memory.buffer, offset, length);
+    const message = new TextDecoder("utf-8").decode(bytes);
+    if (message.startsWith(WASI_LONGJMP_PREFIX)) {
+      const code = Number.parseInt(message.slice(WASI_LONGJMP_PREFIX.length), 10);
+      throw new Error(`csound longjmp with code: ${Number.isNaN(code) ? -1 : code}`);
+    }
+    // eslint-disable-next-line no-console
+    console.log(message);
+  };
 
   options["GOT.mem"] = options["GOT.mem"] || {};
   options["GOT.mem"].__heap_base = heapBase;

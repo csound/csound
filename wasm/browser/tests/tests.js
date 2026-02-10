@@ -682,22 +682,22 @@ e
         `,
         );
 
-        // Attempting to compile will fail due to missing include file
-        // Currently throws RuntimeError after reporting "Cannot open #include'd file"
-        // This is due to setjmp/longjmp cleanup issues in WASM after csoundDie()
-        let errorCaught = false;
+        // Attempting to compile should fail with a normal Csound error code
+        // and must not crash the WASM runtime.
+        let compileResult = 0;
+        let thrownError = null;
         try {
-          await csoundObj.compileCSD("/test.csd", 0);
+          compileResult = await csoundObj.compileCSD("/test.csd", 0);
         } catch (e) {
-          errorCaught = true;
-          // The error should be a RuntimeError from the WASM crash after reporting the missing file
-          assert.ok(
-            e.message.includes("memory access") || e.message.includes("RuntimeError"),
-            `Expected memory access error, got: ${e.message}`,
-          );
+          thrownError = e;
         }
 
-        assert.ok(errorCaught, "compileCSD should throw error for missing #include file");
+        assert.equal(
+          null,
+          thrownError,
+          `compileCSD should not crash when include file is missing: ${thrownError?.message}`,
+        );
+        assert.notEqual(0, compileResult, "compileCSD should fail for missing #include file");
         await csoundObj.terminateInstance();
       });
     });
