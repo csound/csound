@@ -117,7 +117,7 @@
 </CsoundSynthesizer>
 `;
 
-  const cxxPluginTest = `
+  const cppPluginTest = `
 <CsoundSynthesizer>
 <CsOptions>
  -odac
@@ -300,21 +300,20 @@ e
         await cs.terminateInstance();
       });
 
-      // DISABLED due to cxx plugin using source not updated for CS7
-      //   it("can load and run c++ plugins", async function () {
-      //     const testWithPlugin = Object.assign(
-      //       {
-      //         withPlugins: ["./plugin_example_cxx.wasm"],
-      //       },
-      //       test,
-      //     );
-      //     const cs = await Csound(testWithPlugin);
+      it("can load and run c++ plugins", async function () {
+        const testWithPlugin = Object.assign(
+          {
+            withPlugins: ["./plugin_example_cpp.wasm"],
+          },
+          test,
+        );
+        const cs = await Csound(testWithPlugin);
 
-      //     assert.equal(0, await cs.compileCSD(cxxPluginTest));
-      //     await cs.start();
-      //     await cs.stop();
-      //     await cs.terminateInstance();
-      //   });
+        assert.equal(0, await cs.compileCSD(cppPluginTest));
+        await cs.start();
+        await cs.stop();
+        await cs.terminateInstance();
+      });
 
       it("emits public events in realtime performance", async function () {
         if (test.name !== "WORKER, AW, SAB") {
@@ -352,7 +351,7 @@ e
         }
       });
 
-    /* DISABLED due to removed API functions in CS7
+      /* DISABLED due to removed API functions in CS7
       it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
         await csoundObj.setOption("-odac");

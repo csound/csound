@@ -1,13 +1,12 @@
 {
   pkgs ? import <nixpkgs> {},
+  pkgsWasm ? pkgs.pkgsCross.wasi32,
+  stdenvWasm ? pkgsWasm.clangStdenv,
   static ? false,
   gitHash ? "HEAD",
 }: let
   lib = pkgs.lib;
   llvm = pkgs.llvmPackages_latest;
-
-  pkgsWasm = pkgs.pkgsCross.wasi32;
-  stdenvWasm = pkgsWasm.clangStdenv;
 
   exports = with builtins; (fromJSON (readFile ./exports.json));
   libsndfile = pkgs.callPackage ./libsndfile.nix {inherit pkgs pkgsWasm stdenvWasm;};
@@ -78,6 +77,7 @@ in
         "--no-entry"
         "--gc-sections"
         "--export-table" # plugins do the reverse and import
+        "--growable-table" # required so dlinit can append plugin function pointers
         "--import-memory"
         "-z,stack-size=131072"
         "${libogg}/lib/libogg.a"

@@ -1120,6 +1120,17 @@ WASI.prototype.sock_recv = function () {
  * @export
  * @return {number}
  */
+WASI.prototype.sock_accept = function () {
+  if (DEBUG_WASI) {
+    console.log("sock_accept", arguments);
+  }
+  return constants.WASI_ENOSYS;
+};
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.sock_send = function () {
   if (DEBUG_WASI) {
     console.log("sock_send", arguments);
