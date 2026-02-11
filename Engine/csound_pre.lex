@@ -812,11 +812,10 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 #if defined(__wasi__)
       csound->Message(csound,
                       Str("Cannot open #include'd file %s\n"), buffer);
+      csound->synterrcnt++;
       if (PARM->depth > 0) {
         PARM->depth--;
       }
-      /* Force parser failure without triggering csoundDie()/longjmp. */
-      corfile_puts(csound, "$error", csound->expanded_orc);
       return;
 #else
       csound->Die(csound,
@@ -900,11 +899,10 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
 #if defined(__wasi__)
       csound->Message(csound,
                       Str("Cannot open #include'd file %s\n"), buffer);
+      csound->synterrcnt++;
       if (PARM->depth > 0) {
         PARM->depth--;
       }
-      /* Force parser failure without triggering csoundDie()/longjmp. */
-      corfile_puts(csound, "$error", csound->expanded_orc);
       return;
 #else
       csound->Die(csound,
