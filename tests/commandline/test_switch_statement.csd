@@ -107,6 +107,68 @@ instr 7
   prints "test7 passed\n"
 endin
 
+// empty default body is accepted and does not alter control flow
+instr 8
+  iAssertCase = 0
+  iAfterSwitch = 0
+  switch p4
+    case 1
+      iAssertCase = 1
+    default
+  endsw
+  iAfterSwitch = 1
+  if p4 == 1 && iAssertCase == 0 then
+    prints "assert error, case 1 did not execute\n"
+    exitnow(-1)
+  endif
+  if p4 != 1 && iAssertCase != 0 then
+    prints "assert error, case 1 executed unexpectedly\n"
+    exitnow(-1)
+  endif
+  if iAfterSwitch == 0 then
+    prints "assert error, control did not continue after empty default\n"
+    exitnow(-1)
+  endif
+  prints "test8 passed\n"
+endin
+
+// no-default switches do nothing on no-match and continue
+instr 9
+  iAssertCase = 0
+  switch p4
+    case 1
+      iAssertCase = 1
+  endsw
+  if p4 == 1 && iAssertCase == 0 then
+    prints "assert error, no-default case did not match\n"
+    exitnow(-1)
+  endif
+  if p4 != 1 && iAssertCase != 0 then
+    prints "assert error, no-default switch matched unexpectedly\n"
+    exitnow(-1)
+  endif
+  prints "test9 passed\n"
+endin
+
+// trailing empty case without default is ignored
+instr 10
+  iAssertCase = 0
+  switch p4
+    case 1
+      iAssertCase = 1
+    case 2
+  endsw
+  if p4 == 1 && iAssertCase == 0 then
+    prints "assert error, case 1 did not execute with trailing empty case\n"
+    exitnow(-1)
+  endif
+  if p4 != 1 && iAssertCase != 0 then
+    prints "assert error, trailing empty case executed unexpectedly\n"
+    exitnow(-1)
+  endif
+  prints "test10 passed\n"
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 0 1
@@ -120,5 +182,12 @@ i 6 0 0 3
 i 7 0 0 1
 i 7 0 0 2
 i 7 0 0 3
+i 8 0 0 1
+i 8 0 0 2
+i 9 0 0 1
+i 9 0 0 2
+i 10 0 0 1
+i 10 0 0 2
+i 10 0 0 3
 </CsScore>
 </CsoundSynthesizer>
