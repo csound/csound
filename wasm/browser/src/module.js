@@ -313,12 +313,17 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   let currentMemorySegment = initialMemory;
 
+  let hostRuntimeInstance;
+
   const csoundLoadModules = (csoundInstance) => {
-    withPlugins_.forEach((pluginInstance) => {
-      if (instance === undefined) {
+    withPlugins_.forEach((pluginItem) => {
+      const pluginInstance =
+        pluginItem && pluginItem.instance ? pluginItem.instance : pluginItem;
+      const pluginTable = pluginItem && pluginItem.table ? pluginItem.table : table;
+      if (hostRuntimeInstance === undefined) {
         console.error("csound-wasm internal: timing problem detected!");
       } else {
-        dlinit(instance, pluginInstance, table, csoundInstance);
+        dlinit(hostRuntimeInstance, pluginInstance, table, csoundInstance, pluginTable, memory);
       }
     });
     return 0;
@@ -375,8 +380,12 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   /** @suppress {checkTypes} */
   instance_["exports"] = moduleExports;
+  hostRuntimeInstance = instance_;
 
   const table = instance_["exports"]["__indirect_function_table"];
+  const hasLegacyWasiPluginLoader =
+    typeof instance_["exports"]["csoundWasiLoadPlugin"] === "function" ||
+    typeof instance_["exports"]["csoundWasiLoadOpcodeLibrary"] === "function";
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
@@ -390,12 +399,30 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       /** @suppress {checkTypes} */
       const plugin = await WebAssembly.compile(wasmPluginBytes);
       const pluginOptions = wasi.getImports(plugin);
+      const pluginExports = WebAssembly.Module.exports(plugin);
+      const hasOpcodeInit = pluginExports.some(
+        ({ name }) => name === "csound_opcode_init" || name === "csound_fgen_init",
+      );
+      const hasModuleInit = pluginExports.some(({ name }) => name === "csoundModuleInit");
+      const useIsolatedPluginTable = !hasLegacyWasiPluginLoader || (hasOpcodeInit && !hasModuleInit);
+      let pluginTable = table;
 
-      table.grow(pluginTableSize);
+      if (useIsolatedPluginTable) {
+        const isolatedInitial = Math.max(table.length + Math.max(pluginTableSize, 0) + 16, 16);
+        pluginTable = new WebAssembly.Table({ initial: isolatedInitial, element: "anyfunc" });
+        for (let tableIndex = 0; tableIndex < table.length; tableIndex += 1) {
+          const tableFn = table.get(tableIndex);
+          if (tableFn) {
+            pluginTable.set(tableIndex, tableFn);
+          }
+        }
+      } else if (pluginTableSize > 0) {
+        table.grow(pluginTableSize);
+      }
 
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
-      pluginOptions["env"]["__indirect_function_table"] = table;
+      pluginOptions["env"]["__indirect_function_table"] = pluginTable;
       // pluginOptions["env"]["__memory_base"] = currentMemorySegment * PAGE_SIZE;
       // pluginOptions["env"]["__table_base"] = tableBase;
       delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
@@ -409,7 +436,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
       if (assertPluginExports(pluginInstance)) {
         pluginInstance.exports.__wasm_call_ctors();
-        accumulator.push(pluginInstance);
+        accumulator.push({ instance: pluginInstance, table: pluginTable });
       }
     } catch (error) {
       console.error("Error while compiling csound-plugin", error);

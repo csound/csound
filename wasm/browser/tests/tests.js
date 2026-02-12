@@ -123,25 +123,17 @@
  -odac
 </CsOptions>
 <CsInstruments>
-  0dbfs=1
-instr 1
- kcone_lengths[] fillarray 0.0316, 0.051, .3, 0.2
- kradii_in[] fillarray 0.0055, 0.00635, 0.0075, 0.0075
- kradii_out[]  fillarray 0.0055, 0.0075, 0.0075, 0.0275
- kcurve_type[] fillarray 1, 1, 1, 2
- kLength linseg 0.2, 2, 0.3
- kPick_Pos = 1.0
- kEndReflection init 1.0
- kEndReflection = 1.0
- kDensity = 1.0
- kComputeVisco = 0
- aImpulse mpulse .5, .1
- aFeedback, aSound resontube 0.005*aImpulse, kLength, kcone_lengths, kradii_in, kradii_out, kcurve_type, kEndReflection, kDensity, kPick_Pos, kComputeVisco
- out aSound
-endin
+  sr = 44100
+  ksmps = 64
+  nchnls = 1
+  0dbfs = 1
+
+  instr 1
+    a1 hello440
+  endin
 </CsInstruments>
 <CsScore>
-i1 0 2
+  i1 0 0.2
 </CsScore>
 </CsoundSynthesizer>
 `;
