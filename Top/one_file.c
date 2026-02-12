@@ -148,9 +148,8 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
         #ifdef __MACH__
         /* macOS: normalize /var/tmp -> /tmp (historic behavior). */
         if (strncmp(lbuf, "/var/tmp/", 9) == 0) {
-            /* shift left by 4 chars to replace "/var" with "" in "/var/tmp" */
-            for (int i = 3; lbuf[i + 1] != '\0'; ++i)
-                lbuf[i - 3] = lbuf[i + 1];
+            /* shift left by 4 chars to drop "/var" prefix, including '\0' */
+            memmove(lbuf, lbuf + 4, strlen(lbuf + 4) + 1);
         }
         #endif
 
