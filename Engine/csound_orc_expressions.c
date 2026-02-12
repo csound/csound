@@ -1543,7 +1543,7 @@ TREE* expand_switch_statement(
   TREE* gotoChainHeadAnchor = NULL;
   TREE* gotoChainHeadDefaultCase = NULL;
   TREE* gotoChainTail = NULL;
-  TREE* gotoChainTailAnchor;
+  TREE* gotoChainTailAnchor = NULL;
   int hasTrailingEmptyCases = 0;
 
   TREE* caseNode = current->right;
