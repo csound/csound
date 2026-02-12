@@ -15,5 +15,5 @@ nix-build --impure -E "(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_
     cp ./result/lib/csound-plugin-sdk.tar.gz lib &&
     cp ./result_plugin_c/lib/plugin_example.wasm lib &&
     cp ./result_plugin_cpp/lib/plugin_example_cpp.wasm lib &&
-    chown `whoami` lib/* &&
-    chmod 0655 lib/*
+    chown "$(whoami)" lib/* &&
+    chmod 0644 lib/*

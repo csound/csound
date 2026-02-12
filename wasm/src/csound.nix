@@ -47,26 +47,27 @@ in
 
     enableParallelBuilding = false;
 
-    cmakeFlags = [
-      "-DBUILD_DIR=build"
-      "-DUSE_IPMIDI=OFF"
-      "-DBUILD_SHARED_LIBS=OFF"
-      "-DBUILD_STATIC_LIBRARY=ON"
-      "-DCUSTOM_MALLOC=ON"
-      # Skip util libraries that try to build .so
-      "-DBUILD_UTILITIES=OFF"
-      "-DINSTALL_PYTHON_INTERFACE=OFF"
-      # Skip deprecated opcodes that try to build .so
-      "-DBUILD_DEPRECATED_OPCODES=OFF"
-      "-DBISON_EXECUTABLE=${pkgs.buildPackages.bison}/bin/bison"
-      "-DFLEX_EXECUTABLE=${pkgs.buildPackages.flex}/bin/flex"
-    ]
-    ++ lib.optionals (gitHash != "") [
-      "-DCSOUND_GIT_HASH=${gitHash}"
-    ]
-    ++ lib.optionals (buildDate != "") [
-      "-DCSOUND_BUILD_DATE=${buildDate}"
-    ];
+    cmakeFlags =
+      [
+        "-DBUILD_DIR=build"
+        "-DUSE_IPMIDI=OFF"
+        "-DBUILD_SHARED_LIBS=OFF"
+        "-DBUILD_STATIC_LIBRARY=ON"
+        "-DCUSTOM_MALLOC=ON"
+        # Skip util libraries that try to build .so
+        "-DBUILD_UTILITIES=OFF"
+        "-DINSTALL_PYTHON_INTERFACE=OFF"
+        # Skip deprecated opcodes that try to build .so
+        "-DBUILD_DEPRECATED_OPCODES=OFF"
+        "-DBISON_EXECUTABLE=${pkgs.buildPackages.bison}/bin/bison"
+        "-DFLEX_EXECUTABLE=${pkgs.buildPackages.flex}/bin/flex"
+      ]
+      ++ lib.optionals (gitHash != "") [
+        "-DCSOUND_GIT_HASH=${gitHash}"
+      ]
+      ++ lib.optionals (buildDate != "") [
+        "-DCSOUND_BUILD_DATE=${buildDate}"
+      ];
 
     NIX_CFLAGS_COMPILE = [
       "-D_WASI_EMULATED_SIGNAL=1"

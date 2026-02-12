@@ -12,7 +12,7 @@ in stdenvWasm.mkDerivation rec {
     ];
 
     NIX_CFLAGS_COMPILE = [
-      "-I${pkgs.libogg.dev}/include"
+      "-I${libogg}/include"
     ];
 
     cmakeFlags = [

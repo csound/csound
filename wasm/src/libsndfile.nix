@@ -1,14 +1,16 @@
-{ pkgs, pkgsWasm, stdenvWasm }:
-
-let lib = pkgs.lib;
-    libmpg123 = pkgs.callPackage ./libmpg123.nix { inherit pkgs pkgsWasm stdenvWasm; };
-    libflac = pkgs.callPackage ./libflac.nix { inherit pkgs pkgsWasm stdenvWasm; };
-    libogg = pkgs.callPackage ./libogg.nix { inherit pkgs pkgsWasm stdenvWasm; };
-    libvorbis = pkgs.callPackage ./libvorbis.nix { inherit pkgs pkgsWasm stdenvWasm; };
-    libopus = pkgs.callPackage ./libopus.nix { inherit pkgs pkgsWasm stdenvWasm; };
-
-
-in stdenvWasm.mkDerivation rec {
+{
+  pkgs,
+  pkgsWasm,
+  stdenvWasm,
+}: let
+  lib = pkgs.lib;
+  libmpg123 = pkgs.callPackage ./libmpg123.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  libflac = pkgs.callPackage ./libflac.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  libogg = pkgs.callPackage ./libogg.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  libvorbis = pkgs.callPackage ./libvorbis.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  libopus = pkgs.callPackage ./libopus.nix {inherit pkgs pkgsWasm stdenvWasm;};
+in
+  stdenvWasm.mkDerivation rec {
     name = "libsndfile";
     src = pkgs.fetchFromGitHub {
       owner = "libsndfile";
@@ -52,4 +54,4 @@ in stdenvWasm.mkDerivation rec {
       "-DINSTALL_MANPAGES=OFF"
       "-DENABLE_SSE2=OFF"
     ];
-}
+  }

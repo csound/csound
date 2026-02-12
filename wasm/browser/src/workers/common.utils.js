@@ -3,7 +3,6 @@ import { logCommonUtils as log } from "../logger.js";
 export const handleCsoundStart =
   (workerMessagePort, libraryCsound, wasi, createRealtimeAudioThread, renderFunction) =>
   (arguments_) => {
-    console.log("HAndle csound start...");
     const csound = arguments_["csound"];
 
     // If no orchestra was given, we assume realtime daemon mode

@@ -4,9 +4,7 @@
   stdenvWasm ? pkgsWasm.clangStdenv,
   csoundSdkArchive ? ../lib/csound-plugin-sdk.tar.gz,
   useSdkArchive ? true,
-}:
-
-let
+}: let
   archiveAvailable = useSdkArchive && builtins.pathExists csoundSdkArchive;
 in
   if archiveAvailable
@@ -18,7 +16,7 @@ in
       dontConfigure = true;
       dontBuild = true;
 
-      nativeBuildInputs = [ pkgs.buildPackages.gnutar ];
+      nativeBuildInputs = [pkgs.buildPackages.gnutar];
 
       installPhase = ''
         mkdir -p $out
@@ -29,5 +27,4 @@ in
         fi
       '';
     }
-  else
-    pkgs.callPackage ./csound.nix { inherit pkgs pkgsWasm stdenvWasm; }
+  else pkgs.callPackage ./csound.nix {inherit pkgs pkgsWasm stdenvWasm;}

@@ -58,6 +58,7 @@ export const makeProxyCallback =
       return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 

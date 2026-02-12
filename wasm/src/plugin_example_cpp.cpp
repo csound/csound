@@ -1,5 +1,5 @@
 /*
-  plugin_example_cxx.cpp: simple C++ oscillator opcode example
+  plugin_example_cpp.cpp: simple C++ oscillator opcode example
 
   Copyright (C) 2026
   This file is part of Csound.

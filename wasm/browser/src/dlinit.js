@@ -92,7 +92,7 @@ export const dlinit = (
         const epPointerPtr = allocStringMem(4);
         try {
           const bytesRaw = pluginInstance.exports["csound_opcode_init"](csoundInstance, epPointerPtr);
-          const bytes = typeof bytesRaw === "bigint" ? Number(bytesRaw) : Number(bytesRaw);
+          const bytes = Number(bytesRaw);
           const opcodeListPtr = new DataView(memory.buffer).getUint32(epPointerPtr, true);
           const entryCount = Math.floor(bytes / wasm32OentrySize);
           if (entryCount > 0 && opcodeListPtr !== 0) {

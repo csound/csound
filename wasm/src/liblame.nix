@@ -1,8 +1,11 @@
-{ pkgs, pkgsWasm, stdenvWasm }:
-
-let lib = pkgs.lib;
-
-in stdenvWasm.mkDerivation rec {
+{
+  pkgs,
+  pkgsWasm,
+  stdenvWasm,
+}: let
+  lib = pkgs.lib;
+in
+  stdenvWasm.mkDerivation rec {
     name = "liblame";
     src = pkgs.lame.src;
     nativeBuildInputs = [
@@ -18,4 +21,4 @@ in stdenvWasm.mkDerivation rec {
       "-lwasi-emulated-signal"
       "-lwasi-emulated-process-clocks"
     ];
-}
+  }

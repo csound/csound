@@ -36,7 +36,7 @@ in stdenvWasm.mkDerivation {
 
     echo "Link together plugin_example.wasm"
     $CC \
-      -Wl,-z,stack-size=128 \
+      -Wl,-z,stack-size=131072 \
       -Wl,--import-table \
       -Wl,--import-memory \
       -Wl,--export-all \
