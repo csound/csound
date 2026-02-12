@@ -418,7 +418,7 @@ static inline int64 MYFLT2LRND64(double fval)
 #ifdef HAVE_C99
 #define MYFLT2UINT64(x) ((uint64_t) llrint(x))
 #else
-#define MYFLT2UINT64(x) ((uint64_t) (tval + 0.5)) 
+#define MYFLT2UINT64(x) ((uint64_t) ((x) + 0.5)) 
 #endif
 
 /* inline functions and macros for clamping denormals to zero */
