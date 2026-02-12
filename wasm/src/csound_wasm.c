@@ -208,7 +208,7 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL, NULL);
-  printDebug("DEBUG: csoundCreateWasi called, setting message callback");
+  // printDebug("DEBUG: csoundCreateWasi called, setting message callback");
   csoundSetMessageCallback(csound, &csoundWasiCMessageCallback);
   csoundSetMidiCallbacks(csound);
   return csound;

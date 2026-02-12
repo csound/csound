@@ -232,6 +232,9 @@ option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
 option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
+# Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
+set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
+set(CSOUND_BUILD_DATE "" CACHE STRING "Override build date shown in version output (e.g. 2026-02-12)")
 
 
 # secret rabbit code
@@ -763,7 +766,10 @@ endif()
 # get the git hash and pass it to csound
 set(git_hash_values "none")
 
-if(USE_GIT_COMMIT)
+if(CSOUND_GIT_HASH)
+    string(STRIP "${CSOUND_GIT_HASH}" git_hash_values)
+    message(STATUS "HASH (override): ${git_hash_values}")
+elseif(USE_GIT_COMMIT)
     find_package(Git)
     message(STATUS "GIT: ${GIT_EXECUTABLE}")
 
@@ -780,6 +786,14 @@ if(USE_GIT_COMMIT)
 endif()
 
 set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VALUE=${git_hash_values})
+
+# Provide a configurable date token used by include/version.h.in.
+set(CS_PACKAGE_DATE_DEFINE "__DATE__")
+if(CSOUND_BUILD_DATE)
+    string(STRIP "${CSOUND_BUILD_DATE}" csound_build_date_value)
+    set(CS_PACKAGE_DATE_DEFINE "\"${csound_build_date_value}\"")
+    message(STATUS "DATE (override): ${csound_build_date_value}")
+endif()
 
 # The csound library
 set(libcsound_SRCS

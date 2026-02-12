@@ -73,9 +73,8 @@ csoundEvalCode["toString"] = () => "csoundEvalCode = async (orchestra) => Number
  */
 export const csoundStart = (wasm) => (csound) => {
   const result = wasm.exports["csoundStartWasi"](csound);
-  console.log("CALLING csoundStart", {result});
   return result;
-}
+};
 
 csoundStart["toString"] = () => "start = async () => Number;";
 
@@ -101,17 +100,15 @@ csoundCompileCSD["toString"] = () => "compileCSD = async (csoundDocument) => Num
  * Performs(plays) 1 ksmps worth of sample(s)
  * @function
  */
-export const csoundPerformKsmps = (wasm) => (csound) =>
-  wasm.exports["csoundPerformKsmps"](csound);
+export const csoundPerformKsmps = (wasm) => (csound) => wasm.exports["csoundPerformKsmps"](csound);
 
 csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;";
-
 
 /**
  * Dummy function to enable stop mechanism
  * @function
  */
-export const csoundStop = (wasm) => (csound) => { };
+export const csoundStop = (wasm) => (csound) => {};
 
 csoundStop["toString"] = () => "stop = async () => undefined;";
 

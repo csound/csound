@@ -3,7 +3,8 @@
   pkgsWasm ? pkgs.pkgsCross.wasi32,
   stdenvWasm ? pkgsWasm.clangStdenv,
   static ? false,
-  gitHash ? "HEAD",
+  gitHash ? "",
+  buildDate ? "",
 }: let
   lib = pkgs.lib;
   llvm = pkgs.llvmPackages_latest;
@@ -59,6 +60,12 @@ in
       "-DBUILD_DEPRECATED_OPCODES=OFF"
       "-DBISON_EXECUTABLE=${pkgs.buildPackages.bison}/bin/bison"
       "-DFLEX_EXECUTABLE=${pkgs.buildPackages.flex}/bin/flex"
+    ]
+    ++ lib.optionals (gitHash != "") [
+      "-DCSOUND_GIT_HASH=${gitHash}"
+    ]
+    ++ lib.optionals (buildDate != "") [
+      "-DCSOUND_BUILD_DATE=${buildDate}"
     ];
 
     NIX_CFLAGS_COMPILE = [
