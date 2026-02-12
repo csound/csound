@@ -98,5 +98,20 @@ in
       # make a compressed version for the browser bundle
       zopfli --zlib -c $out/bin/csound > $out/lib/csound.wasm.z
       cp $out/bin/csound $out/lib/csound.wasm
+
+      # Build a lightweight SDK archive for compiling external WASM plugins.
+      # This can be distributed so plugin builds do not need the full Csound source build.
+      mkdir -p $out/share/csound-plugin-sdk/include
+      mkdir -p $out/share/csound-plugin-sdk/lib
+      cp -R $out/include/csound $out/share/csound-plugin-sdk/include/
+      cp $out/lib/libcsound64.a $out/share/csound-plugin-sdk/lib/
+      cat > $out/share/csound-plugin-sdk/README.md <<'EOF'
+      Csound WASM Plugin SDK
+      ======================
+
+      This archive contains headers and static library artifacts needed to compile
+      Csound plugins for WASM/WASI without rebuilding Csound from source.
+      EOF
+      tar -C $out/share -czf $out/lib/csound-plugin-sdk.tar.gz csound-plugin-sdk
     '';
   }

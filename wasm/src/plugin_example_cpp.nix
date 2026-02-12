@@ -2,13 +2,17 @@
   pkgs ? import <nixpkgs> {},
   pkgsWasm ? pkgs.pkgsCross.wasi32,
   stdenvWasm ? pkgsWasm.clangStdenv,
+  csoundSdkArchive ? ../lib/csound-plugin-sdk.tar.gz,
+  useSdkArchive ? true,
 }: let
-  csound-wasm = pkgs.callPackage ./csound.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  csound-sdk = pkgs.callPackage ./csound_plugin_sdk.nix {
+    inherit pkgs pkgsWasm stdenvWasm csoundSdkArchive useSdkArchive;
+  };
 in
   stdenvWasm.mkDerivation {
     name = "csound-wasm-cpp-plugin-example";
 
-    buildInputs = [csound-wasm];
+    buildInputs = [csound-sdk];
     unpackPhase = "true";
 
     dontStrip = true;
@@ -25,8 +29,8 @@ in
         -D_WASI_EMULATED_SIGNAL \
         -D_WASI_EMULATED_MMAN \
         -DUSE_DOUBLE=1 \
-        -I${csound-wasm}/include \
-        -I${csound-wasm}/include/csound \
+        -I${csound-sdk}/include \
+        -I${csound-sdk}/include/csound \
         -c plugin_example_cpp.cpp \
         -o plugin_example_cpp.o
 
