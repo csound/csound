@@ -595,11 +595,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       if (src && dst) {
         if (src != dst) {
           // no copying of a & k types at i-time !!!
-          if(cur->varType != &CS_VAR_TYPE_A &&
-             cur->varType != &CS_VAR_TYPE_K) 
+          if((cur->varType != &CS_VAR_TYPE_A &&
+              cur->varType != &CS_VAR_TYPE_K) ||
+             // special case - K-type arg
+             inm_local->outtypes[i] == 'K') 
             cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
          }
       }
+      
+        
       cur = cur->next;
     }
   }
@@ -698,8 +702,11 @@ int32_t set_inbufs(CSOUND *csound,
     void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
 
-    if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
+
+    if ((csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
+         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) ||
+        // special case: K-type inputs
+          inm->intypes[i] == 'K') {
       current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
     }
 
