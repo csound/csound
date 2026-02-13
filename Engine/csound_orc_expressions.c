@@ -1525,6 +1525,7 @@ TREE* expand_switch_statement(
   int isPerfRate = switchArgType[0] == 'k';
   // TODO: assign to synthetic variable
   TREE* switchExpression = current->left;
+  TREE* originalNext = current->next;
 
   TREE* endGoto = create_goto_node(csound, isPerfRate);
   TREE* endLabel = create_synthetic_label(csound, csound->genlabs++);
@@ -1542,14 +1543,15 @@ TREE* expand_switch_statement(
   TREE* gotoChainHeadAnchor = NULL;
   TREE* gotoChainHeadDefaultCase = NULL;
   TREE* gotoChainTail = NULL;
-  TREE* gotoChainTailAnchor;
+  TREE* gotoChainTailAnchor = NULL;
+  int hasTrailingEmptyCases = 0;
 
   TREE* caseNode = current->right;
   TREE* caseLabel;
 
-  tempNext = caseNode->right != NULL ? caseNode->right->next : NULL;
-
   while (caseNode) {
+    tempNext = caseNode->next;
+
     if (caseNode->type == CASE_TOKEN) {
         caseLabel = create_synthetic_label(csound, csound->genlabs++);
         typeTable->labelList = cs_cons(
@@ -1590,18 +1592,25 @@ TREE* expand_switch_statement(
         }
 
         if (caseNode->right != NULL) {
-          tempNext = caseNode->right->next;
           gotoChainTailAnchor = append_to_tree(csound, gotoChainTailAnchor, caseNode->right);
-          gotoChainTailAnchor->next->next = NULL;
           gotoChainTailAnchor = append_to_tree(
             csound,
             gotoChainTailAnchor,
             copy_node(csound, endGoto)
           );
+          hasTrailingEmptyCases = 0;
         } else {
-          tempNext = NULL;
+          hasTrailingEmptyCases = 1;
         }
     } else if (caseNode->type == DEFAULT_TOKEN && gotoChainHeadDefaultCase == NULL) {
+      if (hasTrailingEmptyCases) {
+        gotoChainTailAnchor = append_to_tree(
+          csound,
+          gotoChainTailAnchor,
+          copy_node(csound, endGoto)
+        );
+        hasTrailingEmptyCases = 0;
+      }
       gotoChainHeadDefaultCase = create_goto_node(csound, isPerfRate);
       defaultCaseLabel = create_synthetic_label(csound, csound->genlabs++);
       typeTable->labelList = cs_cons(
@@ -1610,14 +1619,14 @@ TREE* expand_switch_statement(
         typeTable->labelList
       );
       gotoChainHeadDefaultCase->right = defaultCaseLabel;
-      defaultCaseBody = caseNode->right;
-      defaultCaseBody->next = copy_node(csound, endGoto);
-    } else {
       if (caseNode->right != NULL) {
-        tempNext = caseNode->right->next;
+        defaultCaseBody = caseNode->right;
+        append_to_tree(csound, defaultCaseBody, copy_node(csound, endGoto));
       } else {
-        tempNext = NULL;
+        defaultCaseBody = copy_node(csound, endGoto);
       }
+    } else {
+      /* Ignore duplicate default clauses. */
     }
 
     caseNode = tempNext;
@@ -1659,8 +1668,9 @@ TREE* expand_switch_statement(
     gotoChainHeadAnchor,
     copy_node(csound, endLabel)
   );
+  append_to_tree(csound, gotoChainHeadAnchor, originalNext);
 
-  return gotoChainHead;
+  return gotoChainHead != NULL ? gotoChainHead : gotoChainHeadAnchor;
 }
 
 /* 1. create top label to loop back to
