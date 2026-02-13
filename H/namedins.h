@@ -47,13 +47,13 @@ MYFLT named_instr_find_in_engine(CSOUND *csound, char *s,
 /* return value is -1 if the instrument cannot be found */
 /* (in such cases, csoundInitError() is also called) */
 
-int32 string_arg_to_insno(CSOUND *, void *, int32_t);
+int32 csoundStringArg2Insno(CSOUND *, void *, int32_t);
 
-/* same as string_arg_to_insno, but runs at perf time, */
+/* same as csoundStringArg2Insno, but runs at perf time, */
 /* and does not support numbered instruments */
 /* (used by opcodes like event or schedkwhen) */
 
-int32 string_arg_to_insno_p(CSOUND *, char *);
+int32 csoundStringArg2Insno_p(CSOUND *, char *);
 
 /* convert opcode string argument to instrument number */
 /* (also allows user defined opcode names); if the integer */
@@ -94,10 +94,10 @@ int32 string_arg_to_opcno(CSOUND *, void *, int32_t, int32_t);
 /*   return value:                                              */
 /*      pointer to the output string; if 's' is not NULL, it is */
 /*      always the same as 's', otherwise it is allocated with  */
-/*      mmalloc() and the caller is responsible for freeing the */
-/*      allocated memory with mfree() or csound->Free()         */
+/*      csoundMalloc() and the caller is responsible for freeing the */
+/*      allocated memory with csoundFree() or csound->Free()         */
 
-char *string_arg_to_name(CSOUND *, char *, void *, const char *, int32_t);
+char *csoundStringArg2Name(CSOUND *, char *, void *, const char *, int32_t);
 
 /* ----------------------------------------------------------------------- */
 

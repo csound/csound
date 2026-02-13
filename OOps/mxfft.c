@@ -57,7 +57,7 @@ static char *rcsid = "$Id$";
  *      Warnings
  *
  *      Revision 1.6  2005/02/18 16:21:14  istvanv
- *      added csound pointer to csound->Malloc, auxalloc, and other functions
+ *      added csound pointer to csound->Malloc, csoundAuxalloc, and other functions
  *
  *      Revision 1.5  2005/01/27 19:22:50  istvanv
  *      Merged changes from 4.24.1, including new localization system,

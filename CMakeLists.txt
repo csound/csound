@@ -72,7 +72,12 @@ if (USE_VCPKG)
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm32.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
     elseif (WIN32)
-        set(VCPKG_TARGET_TRIPLET "x64-windows-static")
+        # Detect 32-bit vs 64-bit Windows build
+        if (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+            set(VCPKG_TARGET_TRIPLET "x86-windows-static")
+        else()
+            set(VCPKG_TARGET_TRIPLET "x64-windows-static")
+        endif()
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     elseif(APPLE)
         execute_process(COMMAND uname -m OUTPUT_VARIABLE ARCH)
@@ -195,10 +200,6 @@ endif()
 
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
-if(USE_COMPILER_OPTIMIZATIONS)
-    include(cmake/CompilerOptimizations.cmake)
-endif()
-
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
@@ -212,7 +213,7 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
-option(BUILD_RELEASE "Build for release" ON)
+option(USE_DEFAULT_OPCODEDIR "Use default opcodedir for the system" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" OFF)
 option(LEXER_DEBUG "Build lexer with debug option" OFF)
@@ -290,12 +291,10 @@ endif()
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
     message(STATUS "Building for release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+    add_definitions("-DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     message(STATUS "Building for debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
+    add_definitions("-DBETA")
 endif()
 
 # set -Werror if in Debug configuration
@@ -308,6 +307,7 @@ if(NOT MSVC AND NOT WASM)
     set(CMAKE_C_FLAGS_RELEASE "-O3")
 #endif
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+       set(USE_COMPILER_OPTIMIZATIONS OFF)
         if (DEBUG_ERROR_ON_WARNING)
             set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
@@ -331,6 +331,13 @@ if(NOT MSVC AND NOT WASM)
             endif()
         endif()
     endif()
+endif()
+
+if(USE_COMPILER_OPTIMIZATIONS)
+    include(cmake/CompilerOptimizations.cmake)
+    message(STATUS  "USING COMPILER OPTIMISATIONS")
+else()
+    message(STATUS  "NOT USING COMPILER OPTIMISATIONS")
 endif()
 
 if(APPLE)
@@ -410,10 +417,17 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
 
+check_c_compiler_flag(-std=gnu11 HAS_C11)
+if (HAS_C11)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+else()
 check_c_compiler_flag(-std=gnu99 HAS_GNU99)
 if (HAS_GNU99)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
 endif()
+endif()
+
+
 if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
 endif()
@@ -522,15 +536,16 @@ if(WIN32)
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
-if(BUILD_RELEASE)
-    add_definitions("-D_CSOUND_RELEASE_")
-else()
-    add_definitions("-DBETA")
-endif()
-
 if(APPLE OR LINUX)
     message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
+
+if(USE_DEFAULT_OPCODEDIR)
+ add_definitions("-DUSE_DEFAULT_OPCODEDIR")
+ message(STATUS "using default opcodedir")
+endif()
+
+
 
 set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
@@ -666,14 +681,13 @@ foreach(header ${HEADERS_TO_CHECK})
 
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
     check_include_file(${header} HAVE_${upper_header})
+    if (HAVE_${upper_header})
+        add_definitions("-DHAVE_${upper_header}")
+    endif()
 endforeach()
 
 if (NOT HAVE_INTTYPES_H)
     message(FATAL_ERROR "Csound requires inttypes.h")
-endif()
-
-if (HAVE_EXECINFO_H)
-    add_definitions("-DHAVE_EXECINFO")
 endif()
 
 check_deps(USE_LRINT FOUND_LRINT)
@@ -768,8 +782,13 @@ set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VAL
 # The csound library
 set(libcsound_SRCS
     Top/csound.c
+    Top/csound_perf.c
+    Top/csound_events.c
+    Top/csound_rtio.c
+    Top/csound_messages.c
+    Top/csound_time.c
     Top/argdecode.c
-    Top/csdebug.c
+    Top/csound_debug.c
     Top/csmodule.c
     Top/getstring.c
     Top/main.c
@@ -1303,6 +1322,8 @@ endif()
 endif()
 
 
+
+
 if(APPLE)
     if(NOT IOS OR OSXCROSS_TARGET)
         target_link_options(${CSOUNDLIB} PRIVATE LINKER:-adhoc_codesign)
@@ -1383,6 +1404,16 @@ else()
     message(STATUS "Not using localization.")
 endif()
 
+if (HAVE_EXECINFO_H)
+    find_library(LIBEXECINFO_LIBRARY execinfo)
+
+    if(LIBEXECINFO_LIBRARY)
+       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
+       set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBEXECINFO_LIBRARY}")
+       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
+    endif()
+endif()
+
 if(LINUX)
     message(STATUS "Building on Linux.")
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE
@@ -1397,14 +1428,11 @@ if(LINUX)
         set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBRT_LIBRARY}")
         message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
+endif()
 
-    find_library(LIBEXECINFO_LIBRARY execinfo)
-
-    if(LIBEXECINFO_LIBRARY)
-       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
-       set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} ${LIBEXECINFO_LIBRARY}")
-       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
-    endif()
+if(BSD)
+    message(STATUS "Building on BSD.")
+    add_definitions(-DBSD)
 endif()
 
 if((APPLE AND NOT IOS) OR (OSXCROSS_TARGET))
@@ -1460,33 +1488,10 @@ endif()
 
 # Pass flags according to system capabilities
 
-if(HAVE_WINSOCK_H OR HAVE_SYS_SOCKETS_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_SOCKETS)
+if((HAVE_WINSOCK_H OR HAVE_SYS_SOCKET_H) AND NOT EMSCRIPTEN)
+    add_definitions(-DHAVE_SOCKETS)
 endif()
-if(HAVE_DIRENT_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_DIRENT_H)
-endif()
-if(HAVE_FCNTL_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_FCNTL_H)
-endif()
-if(HAVE_UNISTD_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_UNISTD_H)
-endif()
-if(HAVE_STDINT_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_STDINT_H)
-endif()
-if(HAVE_SYS_TIME_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_SYS_TIME_H)
-endif()
-if(HAVE_SYS_TYPES_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_SYS_TYPES_H)
-endif()
-if(HAVE_TERMIOS_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_TERMIOS_H)
-endif()
-if(HAVE_VALUES_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_VALUES_H)
-endif()
+
 #if(CMAKE_C_COMPILER MATCHES "gcc")
 #    list(APPEND libcsound_CFLAGS -fno-strict-aliasing)
 #endif()

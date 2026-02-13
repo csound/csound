@@ -43,7 +43,7 @@ TEST_F (OptionParserTests, testParseSimpleEnvVar)
     const char option_str[] = "--env:FOO1=bar1 --env:FOO2=bar2\n";
     const char *value;
     CORFIL *cf = corfile_create_r(csound, option_str);
-    readOptions(csound, cf, 0);
+    read_options(csound, cf, 0);
 
     value = csoundGetEnv(csound, "FOO1");
     ASSERT_TRUE(value != NULL);
@@ -61,7 +61,7 @@ TEST_F (OptionParserTests, testParseQuotedEnvVar)
     const char option_str[] = "--env:FOO1=\"bar baz\"\n";
     const char *value;
     CORFIL *cf = corfile_create_r(csound, option_str);
-    readOptions(csound, cf, 0);
+    read_options(csound, cf, 0);
 
     value = csoundGetEnv(csound, "FOO1");
     ASSERT_TRUE(value != NULL);

@@ -420,10 +420,6 @@ class PUBLIC CsoundCallbackWrapper {
       (void) chnName;
       (void) value;
     }
-    virtual int YieldCallback()
-    {
-      return 1;
-    }
     virtual void MidiInputCallback(CsoundMidiInputBuffer *p)
     {
       (void) p;
@@ -436,7 +432,6 @@ class PUBLIC CsoundCallbackWrapper {
     void SetMessageCallback();
     // void SetInputValueCallback();
     // void SetOutputValueCallback();
-    void SetYieldCallback();
     void SetMidiInputCallback(CsoundArgVList *argv);
     void SetMidiOutputCallback(CsoundArgVList *argv);
     // void SetChannelIOCallbacks();

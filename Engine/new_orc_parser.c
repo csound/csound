@@ -31,6 +31,7 @@
 #include "csound_module.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+void add_opcode_defs(CSOUND *csound);
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -104,6 +105,7 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int32_t err;
+    add_opcode_defs(csound);  // add global OpcodeDef variables
     csound->parserNamedInstrFlag = 2;
     {
       PRE_PARM    qq;
@@ -129,7 +131,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
           /* Duplicate csdname instead of just pointing to it, to avoid
            * dangling pointer if csdname gets freed during recompilation */
           if (csound->csdname != NULL) {
-            csound->orchname = cs_strdup(csound, csound->csdname);
+            csound->orchname = csoundStrdup(csound, csound->csdname);
           }
         }
         /* We know this is the start so stack is empty so far */
@@ -206,8 +208,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                           Str("Parsing failed due to memory exhaustion!\n"));
         }
         else if (err == 3){
-          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s!, line %d\n"),
-                          csound->synterrcnt, csound->synterrcnt==1?"":"s", astTree->line);
+          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s\n"),
+                         csound->synterrcnt, csound->synterrcnt==1?"":"s");
         }
         goto ending;
       }

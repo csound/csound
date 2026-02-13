@@ -108,7 +108,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   /* FIXME: name can overflow with very long string -- truncates safely */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strncpy(name,csound->GetString(csound, *p->iFileCode), 1023);
+      strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -122,7 +122,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   /* HOW TO record file handle so that it will be closed at note-off */
   /* memset(&(p->fdch), 0, sizeof(FDCH)); */
   /* p->fdch.fd = fd; */
-  /* fdrecord(csound, &(p->fdch)); */
+  /* csoundFDRecord(csound, &(p->fdch)); */
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s", mp3dec_error(r));
@@ -283,7 +283,7 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   /* FIXME: name can overflow with very long string -- safely truncated */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strncpy(name,csound->GetString(csound, *p->iFileCode), 1023);
+      strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
     else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
@@ -299,11 +299,9 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   }
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                MP3DEC_RETCODE_OK)) {
-    fclose(f);
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s", mp3dec_error(r));
   }
-  fclose(f);
   if(!strcmp(GetOpcodeName(&p->h), "mp3len"))
     *p->ir = (MYFLT) mpainfo.duration;
   else if(!strcmp(GetOpcodeName(&p->h), "mp3sr"))
@@ -524,7 +522,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
   /*
     memset(&(p->fdch), 0, sizeof(FDCH));
     p->fdch.fd = fd;
-    fdrecord(csound, &(p->fdch));
+    csoundFDRecord(csound, &(p->fdch));
   */
   printf("fftsize = %d\n", p->N);
   int32_t skip = (int32_t)(*p->skip*CS_ESR)*p->resamp;
@@ -885,33 +883,6 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
   }
 }
 
-static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff, FUNC *ftp)
-{
-  CSOUND  *csound = ff->csound;
- 
-  if (UNLIKELY(ftp != NULL)) {
-    csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
-    if (ff->flen != (int32)ftp->flen) {       /* if redraw & diff len, */
-      csound->Free(csound, ftp->ftable);
-      csound->Free(csound, (void*) ftp);             /*   release old space   */
-    }
-    else {
-      /* else clear it to zero */
-      MYFLT *tmp = ftp->ftable;
-      memset((void*) ftp->ftable, 0, sizeof(MYFLT)*(ff->flen+1));
-      memset((void*) ftp, 0, sizeof(FUNC));
-      ftp->ftable = tmp; /* restore table pointer */
-    }
-  }
-  if (ftp == NULL) {                      /*   alloc space as reqd */
-    ftp = (FUNC*) csound->Calloc(csound, sizeof(FUNC));
-    ftp->ftable = (MYFLT*) csound->Calloc(csound, (1+ff->flen) * sizeof(MYFLT));
-  }
-  ftp->fno = (int32) ff->fno;
-  ftp->flen = ff->flen;
-  return ftp;
-}
-
 int32_t gen49raw(FGDATA *ff, FUNC *ftp)
 {
   CSOUND  *csound        = ff->csound;
@@ -1021,13 +992,15 @@ int32_t gen49raw(FGDATA *ff, FUNC *ftp)
   nchanls = (chan == 2 && mpainfo.channels == 2 ? 2 : 1);
   if (ff->flen == 0) {    /* deferred ftalloc */
     int32_t fsize, frames;
-    frames = mpainfo.frames * mpainfo.decoded_frame_samples;
+    MYFLT fno = FL(ff->fno);
+    frames = mpainfo.duration * mpainfo.frequency;
     fsize  = frames * nchanls;
     if (UNLIKELY((ff->flen = fsize) <= 0))
       return csound->FtError(ff, "%s", Str("deferred size, but filesize unknown"));
     if (UNLIKELY(ff->flen > MAXLEN))
       return csound->FtError(ff, "%s", Str("illegal table length"));
-    ftp = ftalloc(ff,ftp);
+    csound->FTAlloc(csound, ff->fno, fsize);
+    ftp = csound->FTFind(csound, &fno);
     ftp->lenmask  = 0L;
     ftp->flenfrms = frames;
     ftp->nchanls  = nchanls;
@@ -1091,16 +1064,16 @@ int32_t mp3in_localops_init(CSOUND *csound,
 }
 
 #ifdef BUILD_PLUGINS
-PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
+ int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep) {
   return mp3in_localops_init(csound, ep);
 }
 
-PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
+ NGFENS *csound_fgen_init(CSOUND *csound)                         \
 {
   return   mp3in_fgen_init(csound);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)                                      
+ int32_t csoundModuleInfo(void)                                      
 {
   return ((CS_VERSION << 16)
           + (CS_SUBVER << 8)

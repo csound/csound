@@ -701,9 +701,11 @@ static int32_t OSC_listendeinit(CSOUND *csound, OSC_PORT *port, OSCLCOMMON *p)
       port->oplst = p->nxt;
     else {
       OSCLCOMMON *o = (OSCLCOMMON*) port->oplst;
+      if(o != NULL) {
       for ( ; o->nxt != (void*) p; o = (OSCLCOMMON*) o->nxt)
         ;
       o->nxt = p->nxt;
+    }
     }
     csound->UnlockMutex(port->mutex_);
 #ifdef LIBLO29
@@ -768,14 +770,10 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
-                               "%s", Str("argument list inconsistent with "
+                               "%s", Str("-- argument list inconsistent with "
                                    "format string"));
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
-      const char *s;
-      s = GetInputArgName((OPDS *)p, i + 3);
-      if (s[0] == 'g')
-        s++;
       switch (p->c.saved_types[i]) {
       case 'G':
       case 'A':
@@ -789,12 +787,12 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'f':
       case 'h':
       case 'i':
-        if (UNLIKELY(*s != 'k'))
+        if (!IS_KSIG_ARG(p->args[i]))
           return csound->InitError(csound, "%s", Str("argument list inconsistent "
                                                "with format string"));
         break;
       case 's':
-        if (UNLIKELY(*s != 'S'))
+        if (!IS_STR_ARG(p->args[i]))
           return csound->InitError(csound, "%s", Str("argument list inconsistent "
                                                "with format string"));
         break;
@@ -1178,8 +1176,8 @@ static OENTRY localops[] = {
     { "OSCcount", S(OSCcount), 0,  "k", "",
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL, NULL, 2 },
   /* aliases */
-  { "OSCsend_lo", S(OSCSEND), 0,  "", "kSkSN",
-    (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL },
+  { "oscsendlo", S(OSCSEND), 0,  "", "kSkSN",
+    (SUBR)osc_send_set, (SUBR)osc_send, (SUBR) oscsend_deinit, NULL},
   { "oscinit", S(OSCINIT), 0, "i", "i",
     (SUBR)osc_listener_init, NULL, (SUBR) OSC_deinit , NULL },
   { "oscinitm", S(OSCINITM), 0,  "i", "Si",
@@ -1194,14 +1192,14 @@ static OENTRY localops[] = {
     (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
 };
 
-PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)
+ int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)
 {
     IGN(csound);
     *ep = localops;
     return (int64_t) sizeof(localops);
 }
 
-PUBLIC int32_t csoundModuleInfo(void)
+ int32_t csoundModuleInfo(void)
 {
     return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
 }

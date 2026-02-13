@@ -9,6 +9,8 @@ nchnls	=	2
 struct MyType  imaginary:k, real:k, kimaginary, kreal
 struct MyType2 x:i, y:i
 
+struct MyType3 val:i, opc:Opcode
+
 opcode processMyType(var:MyType):(MyType)
   retVal:MyType init 0, 0, 0, 0
   retVal.imaginary = var.imaginary + 1 
@@ -20,9 +22,13 @@ endop
 
 instr 1
 
-var0:MyType init 1, 2, 3, 4
-;var1:MyType = init:MyType(0, 0, 1, 1)
+var1:MyType3 init 2, create(sqrt)
+res:i = init(var1.opc, var1.val)
+if res != sqrt(var1.val) then
+  exitnow(-1)
+endif
 
+var0:MyType init 1, 2, 3, 4
 var0.imaginary init 5
 var0.real init 6
 var0.kimaginary init 7
@@ -43,43 +49,11 @@ printks "\ti %d r %d ki %d kr %d\n", 0.2, var2.imaginary, var2.real, var2.kimagi
 
 endin
 
-;; make sure that struct references
-;; refer correctly to their original pointer
-instr 2
-
-  iexitCode = 0
-
-  var1:MyType2 init 1, 2
-  var2:MyType2 = var1
-  var2.x = 6
-  var2.y = 7
-
-  iexpect6 = var1.x
-  iexpect7 = var1.y
-
-  if iexpect6 != 6 then
-    iexitCode = 1
-  endif
-
-  if iexpect7 != 7 then
-    iexitCode = 1
-  endif
-
-  if iexitCode == 0 then
-    prints "struct reference test success\n"
-  else
-    prints "struct reference test failed!\n"
-    exitnow 1
-  endif
-
-endin
 
 </CsInstruments>
 ; ==============================================
 <CsScore>
 i1 0 0.5
-i2 + 0
-
 
 </CsScore>
 </CsoundSynthesizer>

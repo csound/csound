@@ -61,7 +61,7 @@ static int opcode_cmp_func(const void *a, const void *b) {
  * Make sure to call csoundDisposeOpcodeList() when done with the list.
  */
 
-PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
+ int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
   void *lst = NULL;
   OENTRY *ep;
   char *s;
@@ -138,6 +138,7 @@ PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
         ((opcodeListEntry *)lst)[cnt].intypes = s;
         s += ((int32_t)strlen(ep->intypes) + 1);
         ((opcodeListEntry *)lst)[cnt].flags = ep->flags;
+        ((opcodeListEntry *)lst)[cnt].deprecated = ep->deprecated;
         // if (ep->flags&_QQ) printf("DEPRICATED: %s\n", ep->opname);
         // if (ep->flags&_QQ) *deprec++;
         cnt++;
@@ -150,6 +151,7 @@ PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
   ((opcodeListEntry *)lst)[cnt].outypes = NULL;
   ((opcodeListEntry *)lst)[cnt].intypes = NULL;
   ((opcodeListEntry *)lst)[cnt].flags = 0;
+  ((opcodeListEntry *)lst)[cnt].deprecated = 0;
 
   cs_cons_free(csound, head);
 
@@ -160,7 +162,7 @@ PUBLIC int32_t csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp) {
   return cnt;
 }
 
-PUBLIC void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst) {
+ void csoundDisposeOpcodeList(CSOUND *csound, opcodeListEntry *lst) {
   csound->Free(csound, lst);
 }
 
@@ -179,10 +181,12 @@ void list_opcodes(CSOUND *csound, int32_t level) {
   }
 
   for (j = 0, k = -1; j < cnt; j++) {
+
+    //continue;
     if ((level & 1) == 0) { /* Print in 4 columns */
       if (j > 0 && strcmp(lst[j - 1].opname, lst[j].opname) == 0)
         continue;
-      if ((level & 2) == 0 && ((lst[j].flags & _QQ) != 0)) {
+      if ((level & 2) == 0 && ((lst[j].flags & _QQ) != 0 || lst[j].deprecated)) {
         // printf("dropping %s\n", lst[j].opname);
         continue;
       }
@@ -201,7 +205,7 @@ void list_opcodes(CSOUND *csound, int32_t level) {
       len = (int32_t)strlen(lst[j].opname) + xlen;
     } else {
       char *ans = lst[j].outypes, *arg = lst[j].intypes;
-      if ((level & 2) == 0 && ((lst[j].flags & _QQ) != 0)) {
+      if ((level & 2) == 0 &&  ((lst[j].flags & _QQ) != 0 || lst[j].deprecated)) {
         // printf("dropping %s\n", lst[j].opname);
         continue;
       }
@@ -276,7 +280,7 @@ static int32_t check_oentry(OENTRY *ep) {
   else return 0;
 }
 
-CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
+CS_VARIABLE *add_global_variable(CSOUND *csound, CS_VAR_POOL *varPool, CS_TYPE *type,
                                char *name, void *typeArg);
 
 /** This function takes an OENTRY and adds a corresponding
@@ -1174,11 +1178,17 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
   if(obj->dataspace->insdshead == insds) return OK;
   INSDS *ip = obj->dataspace->insdshead;
   INSDS *ctx = insds;
+  if(ctx) {
   // different SR always fails check
   if(ip->esr != ctx->esr) return NOTOK;
   // ksmps less than ctx fails check
   if(ip->ksmps < ctx->ksmps) return NOTOK;
   // otherwise there is no context incompatibility
+  }
+  else {
+    csound->Warning(csound, "no valid context for opcode object\n");
+    return NOTOK;
+  }
   return OK;
 }
 
@@ -1474,7 +1484,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
                                obj[i].dataspace->optext->t.oentry->opname);
     for(j = 0; j < (int32_t) p->OUTOCOUNT; j++) {
       // if passed an array, check that the outype is not
-      // an array first and deal with it 
+      // an array first and deal with it
       if((types[j] = csoundGetTypeForArg(p->args[j]))
           == &CS_VAR_TYPE_ARRAY &&
          !isTypeArray(&obj[i],j, 0)) {
@@ -1496,7 +1506,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       // skip the obj argument
       m = j + p->OUTOCOUNT + 1;
       // if passed an array, check that the intype is not
-      // an array first and deal with it  
+      // an array first and deal with it
       if((types[m] = csoundGetTypeForArg(p->args[m]))
          == &CS_VAR_TYPE_ARRAY &&
          !isTypeArray(&obj[i],j, 1)) {
@@ -1519,7 +1529,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       } else // single var
         args[m] = p->args[m];
      }
-   
+
     // call setup_args with array flag checked, passing assigned args
     if(setup_args(csound, &obj[i], &(p->h), args, types,
                   p->OUTOCOUNT, p->INOCOUNT - 1) == OK) {
@@ -1535,8 +1545,8 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
             argmem = (CS_VAR_MEM *) mem[ndx].auxp;
             // copy array args data out - but not k or a vars
            if(array->arrayType != &CS_VAR_TYPE_K &&
-             array->arrayType != &CS_VAR_TYPE_A) 
-             memcpy(data+i*size, &argmem->value, size); 
+             array->arrayType != &CS_VAR_TYPE_A)
+             memcpy(data+i*size, &argmem->value, size);
              }
         }
       }
@@ -1594,7 +1604,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
        if(array->arrayType != &CS_VAR_TYPE_I)
           memcpy(data+i*size, &argmem->value, size);
      }
-     } 
+     }
   }
   return OK;
 }

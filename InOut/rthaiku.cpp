@@ -53,7 +53,6 @@ static void gotSigIntAudio(int sig, char* data, vregs*)
         DPRINTF(("signal received to Audio\n");)
         sigaction(sig, &old_sa, NULL);
         CSOUND *csound = (CSOUND *)data;
-        csoundStop(csound);
         DPRINTF(("signal to Audio called csoundStop\n");)
 }
 
@@ -148,7 +147,6 @@ static void gotSigIntMidi(int sig, char* data, vregs*)
 {
         DPRINTF(("signal received to Midi\n");)
         CSOUND *csound = (CSOUND *)data;
-        csoundStop(csound);
         DPRINTF(("signal to MIDI called csoundStop\n");)
 }
 

@@ -1076,7 +1076,7 @@ struct Connect : public OpcodeBase<Connect> {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->StringArg2Name(
         csound, (char *)0,
-        ((isstrcod(*Source)) ? csound->GetString(csound, *Source)
+        ((isstrcod(*Source)) ? csound->GetArgString(csound, *Source)
                                : (char *)Source),
         (char *)"", isstrcod(*Source));
     sourceOutletId += ":";
@@ -1085,7 +1085,7 @@ struct Connect : public OpcodeBase<Connect> {
 
     std::string sinkInletId = csound->StringArg2Name(
         csound, (char *)0,
-        ((isstrcod(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
+        ((isstrcod(*Sink)) ? csound->GetArgString(csound, *Sink) : (char *)Sink),
         (char *)"", isstrcod(*Sink));
     sinkInletId += ":";
     sinkInletId +=
@@ -1112,7 +1112,7 @@ struct Connecti : public OpcodeBase<Connecti> {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->StringArg2Name(
         csound, (char *)0,
-        ((isstrcod(*Source)) ? csound->GetString(csound, *Source)
+        ((isstrcod(*Source)) ? csound->GetArgString(csound, *Source)
                                : (char *)Source),
         (char *)"", isstrcod(*Source));
     sourceOutletId += ":";
@@ -1150,7 +1150,7 @@ struct Connectii : public OpcodeBase<Connectii> {
         csound->StringArg2Name(csound, (char *)0, Soutlet->data, (char *)"", 1);
     std::string sinkInletId = csound->StringArg2Name(
         csound, (char *)0,
-        ((isstrcod(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
+        ((isstrcod(*Sink)) ? csound->GetArgString(csound, *Sink) : (char *)Sink),
         (char *)"", isstrcod(*Sink));
     ;
     sinkInletId += ":";

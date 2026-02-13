@@ -87,6 +87,26 @@ typedef struct {
     MYFLT   *args[OPCODENUMOUTS_MAX];
 } XOUT_MAX;
 
+/**
+ * Compare two UDO type signature strings for compatibility.
+ * Allows 'k' to match 'K' (k-rate input accepting K-type pass-by-reference).
+ * Returns 0 if signatures match, 1 if they don't.
+ */
+static inline int32_t inargs_match(const char *intypes, const char *inargs) {
+  int32_t i;
+  if (intypes == NULL || inargs == NULL) return 1;
+  if (strcmp(intypes, inargs) != 0) {
+    for (i = 0; intypes[i] != 0 && inargs[i] != 0; i++) {
+      if (intypes[i] != inargs[i]) {
+        if (intypes[i] == 'k' && inargs[i] == 'K') continue;
+        else return 1;
+      }
+    }
+    if (intypes[i] != 0 || inargs[i] != 0) return 1;
+  }
+  return 0;
+}
+
 int32_t useropcd(CSOUND *, UOPCODE *p);
 int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);

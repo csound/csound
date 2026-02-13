@@ -176,7 +176,7 @@ extern "C" {
     /* output soundfile format */
     int32_t outformat;
     /* sample size */
-    int32_t     sfsampsize;
+    int32_t     sndfileSampleSize;
     /* displays flag */
     int32_t     displays;
     /* graphs flag */
@@ -386,7 +386,8 @@ extern "C" {
   enum {
     CS_INSTR_EVENT = 0,
     CS_TABLE_EVENT,
-    CS_END_EVENT
+    CS_END_EVENT,
+    CS_ADV_EVENT
   };
 
 #ifndef CSOUND_CSDL_H
@@ -648,6 +649,8 @@ extern "C" {
    *           "return i1 \n";
    *       MYFLT retval = csoundEvalCode(csound, code);
    * /endcode
+   *   If the code fails to evaluate, the return value is always 0.
+   *
    */
   PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
 

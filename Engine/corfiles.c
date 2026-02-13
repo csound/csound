@@ -43,7 +43,7 @@ CORFIL *corfile_create_r(CSOUND *csound, const char *text)
 {
     //char *strdup(const char *);
     CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
-    ans->body = cs_strdup(csound, (char*)text);
+    ans->body = csoundStrdup(csound, (char*)text);
     ans->len = (int32_t) strlen(text)+1;
     ans->p = 0;
     return ans;
@@ -268,6 +268,27 @@ void corfile_preputs(CSOUND *csound, const char *s, CORFIL *f)
     strcpy(f->body, s); strcat(f->body, body);
     csound->Free(csound, body);
 }
+
+
+CORFIL *copy_string_to_corefile(CSOUND *csound, const char *string,
+                                int32_t fromScore){
+    CORFIL *mm;
+    if (UNLIKELY(string==NULL)) {
+      csound->ErrorMsg(csound, Str("Null string"));
+      csound->LongJmp(csound, 1);
+    }
+    mm = corfile_create_w(csound);
+    if (fromScore) corfile_putc(csound, '\n', mm);
+    corfile_puts(csound, string, mm);
+    if (fromScore) {
+      corfile_puts(csound, "\ne\n#exit\n", mm);
+    }
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
+    if (fromScore) corfile_flush(csound, mm);
+    return mm;
+}
+
 
 #ifdef HAVE_CURL
 

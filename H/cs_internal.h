@@ -1,7 +1,7 @@
 /*
   cs_internal.h: csound internal data structures
 
-  Copyright (C) 1991-2024 
+  Copyright (C) 1991-2024
 
   This file is part of Csound.
 
@@ -51,7 +51,7 @@ extern "C" {
 
 #define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
-  
+
   typedef struct MACRO {          /* To store active macros */
     char          *name;        /* Use is by name */
     int32_t           acnt;         /* Count of arguments */
@@ -94,7 +94,7 @@ extern "C" {
     int32_t           type, count;
   } NAME;
 
-  
+
   typedef union {
     uint32 dwData;
     unsigned char bData[4];
@@ -165,6 +165,8 @@ extern "C" {
 #include "environ.h"
 #include "remote.h"
 
+typedef struct opcodinfo OPCODINFO;
+
   /**
    * This struct will hold the current engine state after compilation
    */
@@ -177,6 +179,7 @@ extern "C" {
     INSTRTXT      instxtanchor;
     CS_HASH_TABLE *instrumentNames; /* instrument names */
     int32_t           maxinsno;
+    OPCODINFO     *opcodeInfo;
   } ENGINE_STATE;
 
 
@@ -193,6 +196,7 @@ extern "C" {
     CS_VAR_POOL* in_arg_pool;
     CS_VAR_POOL* module_var_pool;  /* Module's global varPool for namespace isolation */
     struct instr *ip;
+    OENTRY *oentry;
     struct opcodinfo *prv;
   } OPCODINFO;
 
@@ -310,9 +314,9 @@ extern "C" {
   struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
 
-  
+
 #ifdef __cplusplus
 }
 #endif /*  __cplusplus */
 
-#endif // _CS_INTERNAL 
+#endif // _CS_INTERNAL

@@ -78,12 +78,12 @@ void init_getstring(void *cs)
 #endif
 }
 
-PUBLIC char *csoundLocalizeString(const char *s)
+ char *csoundLocalizeString(const char *s)
 {
     return (char*)s;
 }
 /* This stub is needed for backwards compatibility */
-PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
+ void csoundSetLanguage(cslanguage_t lang_code)
 {
   IGN(lang_code);
     return;
@@ -111,7 +111,7 @@ void init_getstring(void *cs)
 #endif
 }
 
-PUBLIC char *csoundLocalizeString(const char *s)
+ char *csoundLocalizeString(const char *s)
 {
     return dgettext("csound7", s);
 }
@@ -191,7 +191,7 @@ static const char *language_names[] = {"", /* Default */
                             "es_CO", /* COLUMBIAN */
   };
 
-PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
+ void csoundSetLanguage(cslanguage_t lang_code)
 {
     const char *name;
     if (lang_code == CSLANGUAGE_DEFAULT)
@@ -207,7 +207,7 @@ PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 
 #endif
 
-PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
+ char* cs_strtok_r(char* str, char* delim, char** nextp) {
 #ifdef HAVE_STRTOK_R
     return strtok_r(str, delim, nextp);
 #else
@@ -242,7 +242,7 @@ PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
 #endif
 }
 
-PUBLIC double cs_strtod(char* nptr, char** endptr) {
+ double csoundStrtod(char* nptr, char** endptr) {
 #ifdef HAVE_STRTOD_L
   return strtod_l(nptr, endptr, csound_c_locale);
 #else
@@ -251,7 +251,7 @@ PUBLIC double cs_strtod(char* nptr, char** endptr) {
 }
 
 #if defined(HAVE_SPRINTF_L)
-PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
+ int32_t csoundSprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
@@ -262,7 +262,7 @@ PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
     return retVal;
 }
 
-PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
+ int32_t csoundSscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
@@ -275,7 +275,7 @@ PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
 }
 #else
 #if defined(HAVE__SPRINT_L)
-PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
+ int32_t csoundSprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
@@ -286,7 +286,7 @@ PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
     return retVal;
 }
 
-PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
+ int32_t csoundSscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
@@ -297,7 +297,7 @@ PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
     return retVal;
 }
 #else
-PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
+ int32_t csoundSprintf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;
@@ -310,7 +310,7 @@ PUBLIC int32_t cs_sprintf(char *str, const char *format, ...)
     return retVal;
 }
 
-PUBLIC int32_t cs_sscanf(char *str, const char *format, ...)
+ int32_t csoundSscanf(char *str, const char *format, ...)
 {
     // This is not thread-safe but no idea how to fix
     va_list args;

@@ -60,9 +60,9 @@ PUBLIC CS_MODULE* csoundCreateRootModule(CSOUND *csound)
     }
 
     CS_MODULE *root = (CS_MODULE*)csound->Calloc(csound, sizeof(CS_MODULE));
-    root->name = cs_strdup(csound, "<root>");
+    root->name = csoundStrdup(csound, "<root>");
     root->file_path = NULL;
-    root->normalized_path = cs_strdup(csound, "<root>");
+    root->normalized_path = csoundStrdup(csound, "<root>");
 
     /* Root module is treated like any other module */
     root->opcodes = cs_hash_table_create(csound);
@@ -847,8 +847,8 @@ PUBLIC CS_IMPORT* csoundCreateImport(CSOUND *csound,
 {
     CS_IMPORT *import = csound->Calloc(csound, sizeof(CS_IMPORT));
     import->type = type;
-    import->module_path = module_path ? cs_strdup(csound, module_path) : NULL;
-    import->module_alias = alias ? cs_strdup(csound, alias) : NULL;
+    import->module_path = module_path ? csoundStrdup(csound, module_path) : NULL;
+    import->module_alias = alias ? csoundStrdup(csound, alias) : NULL;
     import->is_wildcard = is_wildcard;
     import->items = NULL;
     import->item_count = 0;
@@ -875,8 +875,8 @@ PUBLIC void csoundAddImportItem(CSOUND *csound,
 
     /* Add new item */
     CS_IMPORT_ITEM *item = &import_info->items[import_info->item_count];
-    item->original_name = cs_strdup(csound, original_name);
-    item->local_name = local_name ? cs_strdup(csound, local_name) : cs_strdup(csound, original_name);
+    item->original_name = csoundStrdup(csound, original_name);
+    item->local_name = local_name ? csoundStrdup(csound, local_name) : csoundStrdup(csound, original_name);
     item->is_wildcard = false;
 
     import_info->item_count = new_count;

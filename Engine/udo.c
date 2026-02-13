@@ -53,7 +53,6 @@ static int32_t count_args(const char *args) {
   return count;
 }
 
-
 /* Forward declaration from insert.c */
 extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
 
@@ -146,7 +145,7 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
 
 /* Helper to rewire opcode arguments in a chain for pass-by-ref parameters */
 static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chain,
-                                   CS_HASH_TABLE *arg_ptr_map, CS_HASH_TABLE *xout_skip_names) {
+                                   CS_HASH_TABLE *arg_ptr_map) {
   while (chain != NULL) {
     OPTXT *optext = chain->optext;
     ARGLST *outlist = optext->t.outlist;
@@ -165,9 +164,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
       for (int i = 0; i < outlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = outlist->arg[i];
         if (!varName) continue;
-        if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
-          continue;
-        }
 
         // Get base variable name (without struct path)
         char *baseName = varName;
@@ -192,9 +188,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
       for (int i = 0; i < inlist->count; i++, arg = arg ? arg->next : NULL) {
         char *varName = inlist->arg[i];
         if (!varName) continue;
-        if (cs_hash_table_get(csound, xout_skip_names, varName) != NULL) {
-          continue;
-        }
 
         // Get base variable name (without struct path)
         char *baseName = varName;
@@ -230,7 +223,6 @@ static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chai
 static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
   int32_t i;
   CS_HASH_TABLE *arg_ptr_map = cs_hash_table_create(csound);
-  CS_HASH_TABLE *xout_skip_names = cs_hash_table_create(csound);
   OPDS *ichain = lcurip->nxti;
 
   // Locate xin opcode for parameter name mapping
@@ -323,11 +315,10 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
     ichain = ichain->nxti;
   }
 
-  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map, xout_skip_names);
-  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map, xout_skip_names);
+  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map);
+  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map);
 
   cs_hash_table_free(csound, arg_ptr_map);
-  cs_hash_table_free(csound, xout_skip_names);
 }
 
 /*
@@ -359,6 +350,21 @@ static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
 
 */
 
+static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
+                                         const char *outtypes,
+                                         const char *intypes) {
+  OPCODINFO *opinfo = csound->opcodeInfo;
+  while (opinfo != NULL) {
+    if (strcmp(opinfo->name, name) == 0 &&
+        strcmp(opinfo->outtypes, outtypes) == 0 &&
+        inargs_match(opinfo->intypes, intypes) == 0) {
+      return opinfo;
+    }
+    opinfo = opinfo->prv;
+  }
+  return NULL;
+}
+
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
@@ -373,7 +379,16 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (inm == NULL) {
     return csound->InitError(csound, Str("UDO OPCODINFO is NULL\n"));
   }
-  instno = inm->instno;  /* Get the UDO's assigned instrument number */
+  /* Find the latest OPCODINFO for this UDO signature, in case it was
+     redefined after this instrument was compiled. */
+  {
+    OPCODINFO *latest = find_latest_useropinfo(csound, inm->name,
+                                               inm->outtypes, inm->intypes);
+    if (latest != NULL) {
+      inm = latest;
+    }
+  }
+  instno = inm->instno;
   tp = csound->engineState.instrtxtp[instno];
   if (tp == NULL)
     return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
@@ -482,16 +497,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
   }
 
-  inm->passByRef = buf->opcode_info->newStyle &&
-    parent_ip->ksmps == p->ip->ksmps &&
-    parent_ip->esr == p->ip->esr;
-
-  if(inm->passByRef) {
-    handle_pass_by_ref(csound, p, lcurip);
-    // No copyValue needed - rewiring with struct path navigation handles everything
-  }
-
-  /* Initialize the UDO */
+   // check for setksmps or over/undersample
   csound->curip = lcurip;
   csound->ids = (OPDS *) (lcurip->nxti);
   ATOMIC_SET(p->ip->init_done, 0);
@@ -500,7 +506,36 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   int err = 0;
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    err = (*csound->ids->init)(csound, csound->ids);
+    if(strcmp("setksmps", csound->op) == 0  ||
+       strcmp("oversample", csound->op) == 0 ||
+       strcmp("undersample", csound->op) == 0)
+       err = (*csound->ids->init)
+               (csound, csound->ids);
+    csound->ids = csound->ids->nxti;
+  }
+
+  inm->passByRef = buf->opcode_info->newStyle &&
+    parent_ip->ksmps == p->ip->ksmps &&
+    parent_ip->esr == p->ip->esr;
+
+  if(inm->passByRef) {
+    handle_pass_by_ref(csound, p, lcurip);
+  }
+
+  /* Initialize the UDO */
+  csound->curip = lcurip;
+  csound->ids = (OPDS *) (lcurip->nxti);
+  ATOMIC_SET(p->ip->init_done, 0);
+  csound->mode = 1;
+  buf->iflag = 0;
+  err = 0;
+  while (csound->ids != NULL && err == 0) {
+    csound->op = csound->ids->optext->t.oentry->opname;
+    // don't run setksmps etc
+    if(strcmp("setksmps", csound->op) != 0 &&
+       strcmp("oversample", csound->op) != 0 &&
+       strcmp("undersample", csound->op) != 0)
+      err = (*csound->ids->init)(csound, csound->ids);
     csound->ids = csound->ids->nxti;
   }
 
@@ -537,14 +572,18 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       if (src == NULL && udo_out_ptrs)
         src = (void*)udo_out_ptrs[i]; // fallback: UDO's declared OUT var memory
 
-      // If array out still unresolved or aliased to dst, try to locate a concrete local array to copy from
-      if ((src == NULL || src == dst) && dst && cur->varType == &CS_VAR_TYPE_ARRAY && lcurip && lcurip->instr && lcurip->instr->varPool && lcurip->lclbas) {
+      // If array out still unresolved or aliased to dst, try to locate
+      // a concrete local array to copy from
+      if ((src == NULL || src == dst) && dst && cur->varType == &CS_VAR_TYPE_ARRAY
+          && lcurip && lcurip->instr && lcurip->instr->varPool && lcurip->lclbas) {
         const CS_TYPE* wantedSubType = cur ? cur->subType : NULL;
         CS_VARIABLE* v = lcurip->instr->varPool->head;
         while (v) {
-          if (v->varType == &CS_VAR_TYPE_ARRAY && (wantedSubType == NULL || v->subType == wantedSubType)) {
+          if (v->varType == &CS_VAR_TYPE_ARRAY && (wantedSubType == NULL
+                                                   || v->subType == wantedSubType)) {
             ARRAYDAT* cand = (ARRAYDAT*)(lcurip->lclbas + v->memBlockIndex);
-            if (cand && cand->data && cand->allocated > 0 && cand->dimensions >= 0 && cand->arrayType) {
+            if (cand && cand->data && cand->allocated > 0
+                && cand->dimensions >= 0 && cand->arrayType) {
               if ((void*)cand != dst) {
                 src = (void*)cand;
                 break;
@@ -557,9 +596,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
       if (src && dst) {
         if (src != dst) {
-          cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
-        }
+          // no copying of a & k types at i-time !!!
+          if((cur->varType != &CS_VAR_TYPE_A &&
+              cur->varType != &CS_VAR_TYPE_K) ||
+             // special case - K-type arg
+             inm_local->outtypes[i] == 'K')
+            cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
+         }
       }
+
       cur = cur->next;
     }
   }
@@ -583,7 +628,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
      (3) local sr >= parent sr: select useropcd2
   */
 
-  if(inm->passByRef) {    parent_ip->xtratim = lcurip->xtratim;
+  if(inm->passByRef) {
+    parent_ip->xtratim = lcurip->xtratim;
     p->h.perf = (SUBR) useropcd_pass_by_ref;
   } else if (lcurip->ksmps != parent_ip->ksmps &&
 	     lcurip->esr == parent_ip->esr) {
@@ -613,11 +659,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 }
 
 int32_t useropcd(CSOUND *csound, UOPCODE *p)
-{  if (UNLIKELY(p->h.nxtp))
+{
+  if (UNLIKELY(p->h.nxtp)) {
     return csoundPerfError(csound, &(p->h), Str("%s: not initialised"),
                            p->h.optext->t.opcod);
-  else
-    return OK;
+  }
+  return OK;
 }
 
 /** This function sets up the input
@@ -656,8 +703,11 @@ int32_t set_inbufs(CSOUND *csound,
     void* out = (void*) args[i];
     tmp[i + inm->outchns] = out;
 
-    if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
+
+    if ((csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
+         csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) ||
+        // special case: K-type inputs
+          inm->intypes[i] == 'K') {
       current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
     }
 
@@ -716,6 +766,9 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   (void) csound;
 
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+  if (buf == NULL) {
+    return csound->InitError(csound, "xoutset: opcod_iobufs is NULL");
+  }
   parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
@@ -1606,7 +1659,7 @@ int32_t subinstrset_S(CSOUND *csound, SUBINST *p){
   /* check if we are using subinstrinit or subinstr */
   init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
-  instno = string_arg_to_insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
+  instno = csoundStringArg2Insno(csound, ((STRINGDAT *)p->ar[inarg_ofs])->data, 1);
   if (UNLIKELY(instno==NOT_AN_INSTRUMENT)) instno = -1;
   return subinstrset_(csound,p,instno);
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Csound Test Suite
 # By Steven Yi <stevenyi at gmail dot com>
@@ -31,10 +31,11 @@ def setup_logging():
 
     logging.basicConfig(
         level=level,
-        format='%(asctime)s - %(threadName)s - %(levelname)s - %(message)s',
-        datefmt='%H:%M:%S'
+        format="%(asctime)s - %(threadName)s - %(levelname)s - %(message)s",
+        datefmt="%H:%M:%S",
     )
-    return logging.getLogger('csound_tests')
+    return logging.getLogger("csound_tests")
+
 
 logger = setup_logging()
 
@@ -48,7 +49,10 @@ class Test:
 
 class TestResult:
     """Container for test execution results with ordering information."""
-    def __init__(self, test_index, test_data, return_code, cs_output, execution_time, error=None):
+
+    def __init__(
+        self, test_index, test_data, return_code, cs_output, execution_time, error=None
+    ):
         self.test_index = test_index
         self.test_data = test_data
         self.return_code = return_code
@@ -76,7 +80,9 @@ class TestResult:
         """Get formatted output for this test result."""
         status = self.status_line
         output = f"{status}Test {counter}: {self.description} ({self.filename})\n"
-        output += f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
+        output += (
+            f"\tReturn Code: {self.return_code}\tExpected: {self.expected_result}\n"
+        )
         if self.error:
             output += f"\tError: {self.error}\n"
         if verbose and self.execution_time:
@@ -131,7 +137,7 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
                 shell=True,
                 timeout=test_timeout,
                 capture_output=True,
-                text=True
+                text=True,
             )
             return_code = result.returncode
 
@@ -144,8 +150,12 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         except subprocess.TimeoutExpired:
             logger.error(f"Test {filename} timed out after {test_timeout} seconds")
             return TestResult(
-                test_index, test_data, -1, "", test_timeout,
-                error=f"Test timed out after {test_timeout} seconds"
+                test_index,
+                test_data,
+                -1,
+                "",
+                test_timeout,
+                error=f"Test timed out after {test_timeout} seconds",
             )
 
         # Read csound output from temp file (stderr)
@@ -162,7 +172,9 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
 
         execution_time = time.time() - start_time
 
-        logger.debug(f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s")
+        logger.debug(
+            f"Completed test {test_index + 1}: {filename} in {execution_time:.2f}s"
+        )
 
         return TestResult(test_index, test_data, return_code, cs_output, execution_time)
 
@@ -170,8 +182,7 @@ def execute_single_test(test_index, test_data, run_args, temp_file):
         execution_time = time.time() - start_time
         logger.error(f"Exception in test {filename}: {e}")
         return TestResult(
-            test_index, test_data, -1, "", execution_time,
-            error=f"Exception: {str(e)}"
+            test_index, test_data, -1, "", execution_time, error=f"Exception: {str(e)}"
         )
 
 
@@ -200,7 +211,10 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
     logger.info(f"Running {len(tests)} tests in parallel with {max_workers} workers")
 
     # Create unique temp files for each worker to avoid conflicts
-    temp_files = [f"csound_test_output_{threading.get_ident()}_{i}.txt" for i in range(max_workers)]
+    temp_files = [
+        f"csound_test_output_{threading.get_ident()}_{i}.txt"
+        for i in range(max_workers)
+    ]
     temp_file_queue = Queue()
     for temp_file in temp_files:
         temp_file_queue.put(temp_file)
@@ -246,8 +260,12 @@ def run_tests_parallel(tests, run_args, max_workers=None, result_callback=None):
                 # Create a failure result for this test
                 test_data = tests[original_index]
                 result = TestResult(
-                    original_index, test_data, -1, "", 0,
-                    error=f"Execution exception: {str(e)}"
+                    original_index,
+                    test_data,
+                    -1,
+                    "",
+                    0,
+                    error=f"Execution exception: {str(e)}",
                 )
                 results[original_index] = result
                 completed_count += 1
@@ -400,6 +418,40 @@ def runTest():
         ["test46.csd", "if-then with expression in boolean comparison"],
         ["test47.csd", "until loop and k[]"],
         ["test48.csd", "expected failure with variable used before defined", 1],
+        ["test_parse_error_unary.csd", "expected failure: unary parse error", 1],
+        ["test_parse_error_unary_not.csd", "expected failure: unary ! parse error", 1],
+        ["test_parse_error_unary_minus.csd", "expected failure: unary - parse error", 1],
+        ["test_parse_error_unary_plus.csd", "expected failure: unary + parse error", 1],
+        ["test_parse_error_binary.csd", "expected failure: binary parse error", 1],
+        ["test_parse_error_div.csd", "expected failure: binary / parse error", 1],
+        ["test_parse_error_pow.csd", "expected failure: binary ^ parse error", 1],
+        ["test_parse_error_mod.csd", "expected failure: binary % parse error", 1],
+        ["test_parse_error_bitor.csd", "expected failure: binary | parse error", 1],
+        ["test_parse_error_bitand.csd", "expected failure: binary & parse error", 1],
+        ["test_parse_error_bitxor.csd", "expected failure: binary # parse error", 1],
+        ["test_parse_error_shift_left.csd", "expected failure: binary << parse error", 1],
+        ["test_parse_error_shift_right.csd", "expected failure: binary >> parse error", 1],
+        ["test_parse_error_lt.csd", "expected failure: binary < parse error", 1],
+        ["test_parse_error_gt.csd", "expected failure: binary > parse error", 1],
+        ["test_parse_error_le.csd", "expected failure: binary <= parse error", 1],
+        ["test_parse_error_ge.csd", "expected failure: binary >= parse error", 1],
+        ["test_parse_error_neq.csd", "expected failure: binary != parse error", 1],
+        ["test_parse_error_eqeq.csd", "expected failure: binary == parse error", 1],
+        ["test_parse_error_assign_expr.csd", "expected failure: binary = parse error", 1],
+        ["test_parse_error_and.csd", "expected failure: binary && parse error", 1],
+        ["test_parse_error_or.csd", "expected failure: binary || parse error", 1],
+        ["test_parse_error_ternary.csd", "expected failure: ternary parse error", 1],
+        ["test_parse_error_instr_missing_id.csd", "expected failure: instr missing id", 1],
+        ["test_parse_error_opcode_missing_name.csd", "expected failure: opcode missing name", 1],
+        ["test_parse_error_opcode_missing_endop.csd", "expected failure: opcode missing endop", 1],
+        ["test_parse_error_udo_missing_inargs.csd", "expected failure: udo missing inargs", 1],
+        ["test_parse_error_udo_missing_commas.csd", "expected failure: udo missing commas", 1],
+        ["test_parse_error_udo_missing_arglist.csd", "expected failure: udo missing arg list", 1],
+        ["test_gen49_defer.csd", "test GEN49 deferred length"],
+        ["test_fail_compilestr.csd", "testing clean compilestr fail"],
+        ["test_global_struct_var.csd", "testing global structure var"],
+        ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
+        ["test_instr0_call.csd", "testing ability to call instr 0"],
         ["test_udo_local_pool.csd", "test udos for separate local var pool"],
         ["test_ternary_expr.csd", "test ternary expr for backwards compatibility"],
         ["test_array_expr_opcall.csd", "test array expr in opcall"],
@@ -478,10 +530,15 @@ def runTest():
         ["test_karrays_udo.csd", "UDO with k[] arg"],
         ["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
         ["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
+        ["test_newstyle_passbycopy.csd", "test newstyle udo with setksmps"],
         ["test_polymorphic_udo.csd", "test polymorphic udo"],
         ["test_udo_a_array.csd", "test udo with a-array"],
         ["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
+        [
+            "test_compilestr_udo_redefine_assert.csd",
+            "test UDO redefinition via compilestr",
+        ],
         [
             "test_array_function_call.csd",
             "test synthesizing an array arg from a function-call",
@@ -495,6 +552,10 @@ def runTest():
         [
             "test_new_udo_syntax_explicit_types.csd",
             "test new-style UDO syntax with explicit types",
+        ],
+        [
+            "test_udo_array_args_implied_types.csd",
+            "test new-style UDO with array args using implied types",
         ],
         [
             "test_multiple_return.csd",
@@ -542,6 +603,7 @@ def runTest():
         ["testnewline.csd", "test newline in statements"],
         ["test_string_in_event.csd", "test multiple strings in realtime event"],
         ["testmidichannels.csd", "test use of mapped multiport channels"],
+        ["test_midi_default.csd", "test midi default instr"],
         ["test_instr_type.csd", "test instr type and variables"],
         ["test_delete_instr.csd", "test creating and deleting instr"],
         ["test_create_instr.csd", "testing creating and scheduling instr"],
@@ -590,6 +652,17 @@ def runTest():
         ],
         ["test_named_instr_ramps.csd", "test named instrument ramps"],
         ["test_gen01.csd", "testing GEN01 importing files"],
+        ["test_raw_strings.csd", "test new-style raw strings"],
+        ["test_min_max_values.csd", "test MIN_VALUE and MAX_VALUE math constants"],
+        ["test_all_math_constants.csd", "test all builtin math constant macros"],
+        [
+            "test_op_precedence.csd",
+            "test bitwise operator precedence vs equality",
+        ],
+        [
+            "test_keyword_spacing.csd",
+            "test keyword spacing (if(, elseif(, etc.)",
+        ],
     ]
 
     arrayTests = [
@@ -620,6 +693,7 @@ def runTest():
         ["arrays/test_array_copy.csd", "test array copy operations"],
         ["test_arrays_constant_index.csd", "test arrays with constant index"],
         ["test_arrays_in_udo.csd", "test arrays in UDO"],
+        ["test_array_in_expression.csd", "test expressions involving arrays"],
     ]
 
     structTests = [
@@ -660,12 +734,21 @@ def runTest():
         ["udo/fail_no_xout.csd", "fail due to no xout", 1],
         ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
         ["udo/fail_invalid_xout.csd", "fail due to invalid xout", 1],
+        ["udo/test_udo_const_inargs.csd", "correct polymorphic UDO entry found"],
         ["udo/test_udo_xout_const.csd", "Constants as xout inputs work"],
         ["udo/pass_by_ref.csd", "Pass-by-ref works with new-style UDOs"],
         ["udo/test_args_in.csd", "Pass-by-ref connects args correctly."],
         ["udo/test_K_type.csd", "K-type arguments work with pass-by-ref"],
+        [
+            "udo/test_udo_init_only_conditional_perf_chain.csd",
+            "init-only UDOs in conditionals do not install perf chains",
+        ],
         ["udo/crashing_test.csd", "test for UDO crashing", 1],
         ["udo/test_udo_array_set.csd", "test UDO array setting"],
+        [
+            "test_udo_optional_after_instr.csd",
+            "test new-style UDO optional args defined after instr",
+        ],
     ]
 
     maxallocTests = [
@@ -832,7 +915,9 @@ if __name__ == "__main__":
                         print("Error: Worker count must be greater than 0")
                         sys.exit(1)
                 except ValueError:
-                    print("Error: Invalid worker count. Use --workers=<N> where N is a positive integer.")
+                    print(
+                        "Error: Invalid worker count. Use --workers=<N> where N is a positive integer."
+                    )
                     sys.exit(1)
             elif arg.startswith("--timeout="):
                 try:
@@ -841,7 +926,9 @@ if __name__ == "__main__":
                         print("Error: Timeout must be greater than 0 seconds")
                         sys.exit(1)
                 except ValueError:
-                    print("Error: Invalid timeout. Use --timeout=<N> where N is a positive integer.")
+                    print(
+                        "Error: Invalid timeout. Use --timeout=<N> where N is a positive integer."
+                    )
                     sys.exit(1)
 
     results = runTest()

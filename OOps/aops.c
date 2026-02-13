@@ -2528,7 +2528,7 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 
   if (LIKELY(IsStringCode(csound->init_event->p[n]))) {
     p->ians->data = csound->Strdup(csound,
-                                   csound->GetString(csound, csound->init_event->p[n]));
+                                   csound->GetArgString(csound, csound->init_event->p[n]));
     p->ians->size = strlen(p->ians->data) + 1;
   }
   return OK;
@@ -2571,7 +2571,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
             strOut->data = NULL;
             strOut->size = 0;
           }
-          const char* srcStr = csound->GetString(csound, csound->init_event->p[n+start]);
+          const char* srcStr = csound->GetArgString(csound, csound->init_event->p[n+start]);
           if (srcStr != NULL) {
             strOut->data = csound->Strdup(csound, srcStr);
             strOut->size = strlen(strOut->data) + 1;
@@ -2636,9 +2636,7 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
    int32_t inum = 0;
    INSTRTXT **instrs = csound->GetInstrumentList(csound);
    int32_t max_instrs = csound->engineState.maxinsno + 1;
-   while(inum < max_instrs && instrs[inum] != instr) {
-     inum++;
-   }
+   while(inum < max_instrs && instrs[inum] != instr) inum++;
    return inum;
 }
 
@@ -2659,11 +2657,11 @@ int32_t get_instr_name(CSOUND *csound, IREF_NUM *p) {
     return csound->InitError(csound,
       Str("str: instrument reference is not initialized"));
   }
-  char *name = cs_strdup(csound, p->in->instr->insname);
+  char *name = csoundStrdup(csound, p->in->instr->insname);
   STRINGDAT *out = (STRINGDAT *) p->out;
   if(strlen(name) >= out->size) {
     csound->Free(csound, out->data);
-    out->data = cs_strdup(csound, name);
+    out->data = csoundStrdup(csound, name);
     out->size = strlen(name) + 1;
   } else strNcpy(out->data, name, out->size);
   return OK;

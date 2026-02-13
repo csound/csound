@@ -12,7 +12,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  */
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
-  const result = wasm.exports["csoundInputMessage"](csound, stringPtr);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 0);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -26,7 +26,7 @@ csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Num
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
-  const result = wasm.exports["csoundInputMessageAsync"](csound, stringPtr);
+    const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
   freeStringPtr(wasm, stringPtr);
   return result;
 };

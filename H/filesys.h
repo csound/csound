@@ -52,7 +52,7 @@ extern "C" {
    *  conform to the conventions for the current platform (begin with ':'
    *  on MacOS 9 and not begin with DIRSEP on others).
    */
-  char* csoundConcatenatePaths(CSOUND* csound, const char *path1,
+  char* csound_concatenate_paths(CSOUND* csound, const char *path1,
                                                const char *path2);
 
   /** Converts a pathname to native format and returns just the part of
@@ -84,7 +84,7 @@ extern "C" {
    * The function returns a pointer to the full name of the file if it is
    * found, and NULL if the file could not be found in any of the search paths,
    * or an error has occured. The caller is responsible for freeing the memory
-   * pointed to by the return value, by calling mfree().
+   * pointed to by the return value, by calling csoundFree().
    */
   char *csoundFindInputFile(CSOUND *csound,
                             const char *filename, const char *envList);
@@ -108,7 +108,7 @@ extern "C" {
    * suitable for writing the file is found, and NULL if the file cannot not be
    * written anywhere in the search paths, or an error has occured.
    * The caller is responsible for freeing the memory pointed to by the return
-   * value, by calling mfree().
+   * value, by calling csoundFree().
    */
   char *csoundFindOutputFile(CSOUND *csound,
                              const char *filename, const char *envList);
@@ -153,9 +153,9 @@ extern "C" {
    *   csoundFileClose(), or storing in FDCH.fd.
    *   On failure, NULL is returned.
    */
-  void *csoundFileOpenWithType(CSOUND *csound, void *fd, int32_t type,
-                               const char *name, void *param, const char *env,
-                               int32_t csFileType, int32_t isTemporary);
+  void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
+                       const char *name, void *param, const char *env,
+                        int32_t csFileType, int32_t isTemporary);
 
   /**
    * Allocate a file handle for an existing file already opened with open(),
@@ -183,14 +183,14 @@ extern "C" {
   /** Given a file name as string, return full path of directory of file;
    * Note: does not check if file exists
    */
-  char *csoundGetDirectoryForPath(CSOUND* csound, const char * path);
+  char *csound_get_directory_for_path(CSOUND* csound, const char * path);
 
 
   void *fopen_path(CSOUND *csound, FILE **fp, const char *name,
                    const char *basename,
                    char *env, int32_t fromScore);
 
-  void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int32_t type,
+  void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                                      const char *name, void *param,
                                      const char *env,
                                      int32_t csFileType, int32_t buffsize,

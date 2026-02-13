@@ -760,7 +760,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
-  if (UNLIKELY(insno <= 0 || csound->engineState.instrtxtp[insno]->muted == 0))
+  if (UNLIKELY(insno < 0 || csound->engineState.instrtxtp[insno]->muted == 0))
     return 0;     /* muted */
 
   tp = csound->engineState.instrtxtp[insno];
@@ -1551,20 +1551,22 @@ static void setup_opcode_argpp(
     for (n = 0; arg != NULL; n++) {
       MYFLT *fltp;
       CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
-      if (arg->type == ARG_GLOBAL) {
-        fltp = &(var->memBlock->value);
-      }
-      else if (arg->type == ARG_LOCAL) {
-        if (UNLIKELY(var == NULL)) {
-          csound->Die(csound,
-                      Str("setup_opcode_argpp: NULL local variable pointer for out-arg of %s"),
-                      ep->opname ? ep->opname : "(null)");
+      if (arg->type == ARG_GLOBAL || arg->type == ARG_LOCAL) {
+        if (arg->type == ARG_LOCAL) {
+          if (UNLIKELY(var == NULL)) {
+            csound->Die(csound,
+                        Str("setup_opcode_argpp:"
+                            " NULL local variable pointer for out-arg of %s"),
+                        ep->opname ? ep->opname : "(null)");
+          } else {
+            fltp = lclbas + var->memBlockIndex;
+          }
         } else {
-          fltp = lclbas + var->memBlockIndex;
+          fltp = &(var->memBlock->value);
         }
 
         if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
+          char* path = csoundStrdup(csound, arg->structPath);
           char *next, *th;
 
           next = cs_strtok_r(path, ".", &th);
@@ -1612,7 +1614,6 @@ static void setup_opcode_argpp(
     for (argStringCount = args_required(ep->outypes); n < argStringCount; n++) {
       argpp[n] = NULL;
     }
-
     /* Set up input arguments */
     arg = ttp->inArgs;
     ip->lclbas = lclbas;
@@ -1629,52 +1630,14 @@ static void setup_opcode_argpp(
         CS_VAR_MEM* pfield = lcloffbas + arg->index;
         argpp[n] = &(pfield->value);
       }
-      else if (arg->type == ARG_GLOBAL) {
+      else if (arg->type == ARG_LOCAL || arg->type == ARG_GLOBAL){
         CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        argpp[n] =  &(var->memBlock->value);
-
-        /* Handle struct path for global struct variables (e.g., gVec.x) */
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-          MYFLT* fltp = argpp[n];
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
-            if (type == NULL || structVar == NULL || structVar->members == NULL)
-              break;
-            CONS_CELL* members = type->members;
-            int32_t i = 0;
-            int32_t found = 0;
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              if (!strcmp(member->varName, next)) {
-                fltp = &(structVar->members[i]->value);
-                found = 1;
-                break;
-              }
-              i++;
-              members = members->next;
-            }
-            if (!found) {
-              csound->Free(csound, path);
-              csound->Die(csound,
-                Str("setup_opcode_argpp: global struct member '%s' not found in structPath '%s' for %s"),
-                next, arg->structPath, ep->opname ? ep->opname : "(null)");
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-          csound->Free(csound, path);
-          argpp[n] = fltp;
-        }
-      }
-      else if (arg->type == ARG_LOCAL){
-        CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-        argpp[n] = lclbas + var->memBlockIndex;
+        argpp[n] = arg->type == ARG_LOCAL ?
+          lclbas + var->memBlockIndex :
+          &(var->memBlock->value);
 
         if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
+          char* path = csoundStrdup(csound, arg->structPath);
           char *next, *th;
           MYFLT* fltp = argpp[n];
           next = cs_strtok_r(path, ".", &th);

@@ -10,8 +10,12 @@ instr FailNow
     exitnow(-1)
 endin
 
-opcode inc_k, k, K
-    kval xin
+opcode inc_k, k, Ki
+    kval,ival xin
+    if(ival != i(kval)) then
+     prints "Init fail on K-type\n"
+     exitnow(-1)
+    endif
     kout = kval + 1
     xout kout
 endop
@@ -27,7 +31,7 @@ gkResult init -1
 
 instr 1
     gkInput init 5
-    kresult = inc_k(gkInput)
+    kresult = inc_k(gkInput, i(gkInput))
 
     if (kresult != 6) then
         printks("ERROR: Return value failed for inc_k. kresult=%g\n", .001, kresult)
@@ -58,10 +62,25 @@ instr 3
     endif
 endin
 
+opcode TestKIO,K,K
+ kval xin
+ kval = 0
+  xout kval
+endop
+
+instr 4
+input:i = 1
+output:k = TestKIO(input)
+if input:i != i(output:k) then
+  exitnow(-1)
+endif
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 0.01
 i2 0 0.01
 i3 0 0.01
+i4 0 0.01
 </CsScore>
 </CsoundSynthesizer>

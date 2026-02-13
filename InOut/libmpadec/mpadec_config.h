@@ -31,8 +31,6 @@
 #define HAVE_IO_H
 #define HAVE_CONIO_H
 #undef OSS
-#else
-#define HAVE_INTTYPES_H
 #endif
 
 #define FLOAT MYFLT
