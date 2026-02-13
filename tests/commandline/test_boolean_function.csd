@@ -34,11 +34,24 @@ instr 2
   end:
 endin
 
+opcode Test3(B:b,D:i):b
+  xout B || D==123
+endop
+
+instr 3
+  if Test3(1==1,123) then
+    prints "pass\n"
+  else
+    prints "error\n"
+    exitnow(-1)
+  endif
+endin
+
 
 </CsInstruments>
 <CsScore>
 i1 0 0
 i2 0 0
+i3 0 0
 </CsScore>
 </CsoundSynthesizer>
-

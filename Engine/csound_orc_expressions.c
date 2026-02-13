@@ -794,6 +794,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
 
   if (is_boolean_expression_node(root->right)) {
+    TREE * remaining = root->right->next;
     TREE * newRight = create_boolean_expression(csound,
                                                 root->right, line, locn,
                                                 typeTable);
@@ -812,9 +813,12 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     while (last->next != NULL) {
       last = last->next;
     }
-    /* TODO - Free memory of old right node
-       freetree */
-    root->right = create_ans_token(csound, last->left->value->lexeme);
+    /* TODO - Free only the replaced right wrapper node/token here;
+       do not recursively delete children since they are reused. */
+    root->right = append_to_tree(csound,
+                                 create_ans_token(csound,
+                                                  last->left->value->lexeme),
+                                 remaining);
   }
   else if (is_expression_node(root->right)) {
     TREE * newRight = create_expression(csound, root->right, line,
@@ -844,8 +848,8 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                                  create_ans_token(csound,
                                                   last->left->value->lexeme),
                                  remaining);
-    /* TODO - Free memory of old right node
-       freetree */
+    /* TODO - Free only the replaced right wrapper node/token here;
+       do not recursively delete children since they are reused. */
     root->line = line;
     root->locn = locn;
   }
