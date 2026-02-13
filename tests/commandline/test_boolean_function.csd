@@ -24,10 +24,21 @@ endif
 
 endin
 
+opcode Test2(A:i,B:i,C:i):b
+  xout A+B==C
+endop
+
+instr 2
+  if Test2(1+1,2,4)  goto end 
+  prints "hello\n"
+  end:
+endin
+
 
 </CsInstruments>
 <CsScore>
 i1 0 0
+i2 0 0
 </CsScore>
 </CsoundSynthesizer>
 

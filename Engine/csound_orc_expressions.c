@@ -819,6 +819,8 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   else if (is_expression_node(root->right)) {
     TREE * newRight = create_expression(csound, root->right, line,
                                         locn, typeTable);
+    TREE * remaining = root->right->next;
+    
 
     if (anchor == NULL) {
       anchor = newRight;
@@ -836,9 +838,13 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
       last = last->next;
     }
 
+    // VL need to append any arguments following
+    // the new expression
+    root->right = append_to_tree(csound,
+                                 create_ans_token(csound, last->left->value->lexeme),
+                                 remaining);
     /* TODO - Free memory of old right node
        freetree */
-    root->right = create_ans_token(csound, last->left->value->lexeme);
     root->line = line;
     root->locn = locn;
   }
