@@ -131,6 +131,8 @@ static void install_signal_handler(void)
 unsigned int i;
 #if defined(__MACH__) || defined(__LINUX__)
   struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sigemptyset(&sa.sa_mask);
   sa.sa_handler = &signal_handler;
   for (i = 0; sigs[i] >= 0; i++) 
     sigaction(sigs[i], &sa, NULL);
