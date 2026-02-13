@@ -588,11 +588,10 @@ case  : CASE_TOKEN expr_list NEWLINE statement_list
 
 case_list : case_list case
             { TREE * tempLastNode = $1;
-                while (tempLastNode->right!=NULL &&
-                  tempLastNode->right->next!=NULL) {
-                  tempLastNode = tempLastNode->right->next;
+                while (tempLastNode->next != NULL) {
+                  tempLastNode = tempLastNode->next;
                 }
-                tempLastNode->right->next = $2;
+                tempLastNode->next = $2;
                 $$ = $1; }
             | case { $$ = $1; }
             ;
