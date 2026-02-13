@@ -68,6 +68,7 @@ class SingleThreadAudioWorkletMainThread {
     this["handleMidiInput"] = this.handleMidiInput.bind(this);
     this.currentPlayState = undefined;
     this.midiPortStarted = false;
+    this.needsResetBeforeCompileCsd = false;
   }
 
   async terminateInstance() {
@@ -136,6 +137,7 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
       case "renderEnded": {
+        this.currentPlayState = undefined;
         this.publicEvents.triggerRenderEnded();
         this.eventPromises &&
           this.eventPromises.isWaitingToStop() &&
@@ -274,12 +276,16 @@ class SingleThreadAudioWorkletMainThread {
               const startResult = await proxyCallback({ csound: csoundInstance });
               this.publicEvents.triggerOnAudioNodeCreated(this.node);
               await this.eventPromises.waitForStart();
+              if (startResult === 0) {
+                this.needsResetBeforeCompileCsd = true;
+              }
               return startResult;
             } else {
               // because worklet worker can't return while rendering
               proxyCallback({ csound: csoundInstance });
               this.publicEvents.triggerOnAudioNodeCreated(this.node);
               await this.eventPromises.waitForStart();
+              this.needsResetBeforeCompileCsd = true;
               return 0;
             }
           };
@@ -302,6 +308,34 @@ class SingleThreadAudioWorkletMainThread {
           };
           csoundStop["toString"] = () => reference["toString"]();
           this.exportApi.stop = csoundStop.bind(this);
+          break;
+        }
+
+        case "csoundCompileCSD": {
+          const csoundCompileCSD = async (...arguments_) => {
+            // Starting a new CSD after any previous run must reset engine state first.
+            if (
+              this.needsResetBeforeCompileCsd &&
+              (this.currentPlayState === undefined || this.currentPlayState === "renderEnded")
+            ) {
+              await this.workletProxy["csoundReset"](csoundInstance);
+              this.needsResetBeforeCompileCsd = false;
+            }
+            return proxyCallback(...arguments_);
+          };
+          csoundCompileCSD["toString"] = () => reference["toString"]();
+          this.exportApi[csoundApiRename(apiK)] = csoundCompileCSD.bind(this);
+          break;
+        }
+
+        case "csoundReset": {
+          const csoundReset = async (...arguments_) => {
+            const resetResult = await proxyCallback(...arguments_);
+            this.needsResetBeforeCompileCsd = false;
+            return resetResult;
+          };
+          csoundReset["toString"] = () => reference["toString"]();
+          this.exportApi[csoundApiRename(apiK)] = csoundReset.bind(this);
           break;
         }
 

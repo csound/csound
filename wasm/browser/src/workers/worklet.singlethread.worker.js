@@ -41,8 +41,7 @@ const callUncloned = async (k, arguments_) => {
 
 const singlethreadWorkerRender =
   ({ libraryCsound, workerMessagePort, wasi }) =>
-  async (payload) => {
-    const csound = payload["csound"];
+  async (csound) => {
     const kr = libraryCsound.csoundGetKr(csound);
     let lastResult = 0;
     let cnt = 0;
@@ -226,9 +225,19 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
   }
 
   stop() {
+    // Ensure process() cannot keep advancing DSP after a manual stop.
+    this.running = false;
+    this.started = false;
+    this.result = 0;
+    this.needsStartNotification = false;
+    this.isRendering = false;
+    delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
+
     if (this.csound) {
       libraryCsound.csoundStop(this.csound);
     }
@@ -254,7 +263,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       renderSleep();
     }
 
-    if (!this.isRendering && (this.isPaused || !this.csoundOutputBuffer || !this.running)) {
+    if (this.isRendering || this.isPaused || !this.csoundOutputBuffer || !this.running) {
       const output = outputs[0];
       const bufferLength = output[0].length;
       for (let index = 0; index < bufferLength; index++) {
@@ -375,16 +384,16 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     return true;
   }
 
-  async isRequestingInput() {
+  isRequestingInput() {
     const cs = this.csound;
     const inputName = libraryCsound.csoundGetInputName(cs) || "";
-    return inputName.includes("adc");
+    return inputName.startsWith("adc");
   }
 
-  async isRequestingRealtimeOutput() {
+  isRequestingRealtimeOutput() {
     const cs = this.csound;
     const outputName = libraryCsound.csoundGetOutputName(cs) || "";
-    return outputName.includes("dac");
+    return outputName.startsWith("dac");
   }
 
   async start() {
@@ -408,7 +417,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         return returnValueValue;
       }
 
-      const isExpectingRealtimeOutput = await this.isRequestingRealtimeOutput();
+      const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
         this.csoundOutputBuffer = new Float64Array(
@@ -432,12 +441,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           libraryCsound,
           workerMessagePort: this.workerMessagePort,
           wasi: this.wasi,
-        })({ csound: cs })
+        })(cs)
           .then(() => {
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
           })
-          .catch(() => {
+          .catch((error) => {
+            console.error(error);
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
           });
