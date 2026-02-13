@@ -449,6 +449,7 @@ def runTest():
         ["test_parse_error_udo_missing_inargs.csd", "expected failure: udo missing inargs", 1],
         ["test_parse_error_udo_missing_commas.csd", "expected failure: udo missing commas", 1],
         ["test_parse_error_udo_missing_arglist.csd", "expected failure: udo missing arg list", 1],
+        ["test_gen49_defer.csd", "test GEN49 deferred length"],
         ["test_fail_compilestr.csd", "testing clean compilestr fail"],
         ["test_global_struct_var.csd", "testing global structure var"],
         ["test_setscorepos.csd", "testing setscorepos and rewindscore"],
