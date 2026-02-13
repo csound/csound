@@ -1,6 +1,6 @@
 name: csound_wasm
 env:
-  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/4bed3c8ef7b2669d96ef6716bcf689176fdee60f.tar.gz
+  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/4db2c220f32fd162658ed1b7bb2f46a82996ddbe.tar.gz
 on:
   pull_request:
     branches: ["**"]
@@ -65,6 +65,10 @@ jobs:
           yarn link
       - name: Build the production js module bundle
         run: |
+          nix-env -f '<nixpkgs>' -iA openjdk
+          export JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(which java)")")")"
+          export PATH="$JAVA_HOME/bin:$PATH"
+          echo "JAVA_HOME=$JAVA_HOME"
           cd $wasm_browser_dir
           yarn
           yarn link @csound/wasm-bin
