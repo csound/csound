@@ -20,11 +20,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bash ./scripts/compile.sh",
-    "build:release": "bash ./scripts/compile.release.sh",
-    "build:nix": "nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result",
-    "build:nix:plugin": "nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example.nix {})' -o result",
-    "build:docker": "docker build -t csound-wasm -f ./Dockerfile ."
+    "build": "bash ./scripts/compile.sh"
   },
   "keywords": [
     "@csound",
