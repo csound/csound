@@ -841,7 +841,8 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     // VL need to append any arguments following
     // the new expression
     root->right = append_to_tree(csound,
-                                 create_ans_token(csound, last->left->value->lexeme),
+                                 create_ans_token(csound,
+                                                  last->left->value->lexeme),
                                  remaining);
     /* TODO - Free memory of old right node
        freetree */
