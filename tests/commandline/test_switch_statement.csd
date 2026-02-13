@@ -1,6 +1,36 @@
 <CsoundSynthesizer>
 <CsInstruments>
 
+// switch in UDO must not break xout typing or branch logic
+opcode switch_xout_value, i, i
+  iCond xin
+  iOut = -1
+  switch iCond
+    case 1
+      iOut = 11
+    case 2
+      iOut = 22
+    case 3
+      iOut = 33
+    default
+      iOut = 44
+  endsw
+  xout iOut
+endop
+
+// empty switch cases in UDO must not crash and should not fall through to default
+opcode switch_empty_case_udo, i, i
+  iCond xin
+  iDefault = 0
+  switch iCond
+    case 1
+    case 2
+    default
+      iDefault = 1
+  endsw
+  xout iDefault
+endop
+
 // accepts p-fields
 instr 1
   switch p4
@@ -169,6 +199,85 @@ instr 10
   prints "test10 passed\n"
 endin
 
+// switch in UDO preserves valid xout type and branch behavior
+instr 11
+  i1 switch_xout_value 1
+  i2 switch_xout_value 2
+  i3 switch_xout_value 3
+  i4 switch_xout_value 4
+  if i1 != 11 || i2 != 22 || i3 != 33 || i4 != 44 then
+    prints "assert error, switch_xout_value produced wrong results\n"
+    exitnow(-1)
+  endif
+  prints "test11 passed\n"
+endin
+
+// empty cases in UDO do not crash and route correctly to default
+instr 12
+  i1 switch_empty_case_udo 1
+  i2 switch_empty_case_udo 2
+  i3 switch_empty_case_udo 3
+  if i1 != 0 || i2 != 0 || i3 != 1 then
+    prints "assert error, switch_empty_case_udo produced wrong results\n"
+    exitnow(-1)
+  endif
+  prints "test12 passed\n"
+endin
+
+// switch inside for-loop executes all iterations and reaches code after loop
+instr 13
+  iLoopCount = 0
+  iBranchSum = 0
+  iAfterLoop = 0
+  for iCond in [1,2,3,4] do
+    switch iCond
+      case 1
+        iBranchSum += 1
+      case 2
+        iBranchSum += 2
+      case 3
+        iBranchSum += 3
+      default
+        iBranchSum += 4
+    endsw
+    iLoopCount += 1
+  od
+  iAfterLoop = 1
+  if iLoopCount != 4 then
+    prints "assert error, loop exited early with switch\n"
+    exitnow(-1)
+  endif
+  if iBranchSum != 10 then
+    prints "assert error, switch branches in loop were incorrect\n"
+    exitnow(-1)
+  endif
+  if iAfterLoop == 0 then
+    prints "assert error, code after loop was not reached\n"
+    exitnow(-1)
+  endif
+  prints "test13 passed\n"
+endin
+
+// switch with only default case executes default body and continues
+instr 14
+  iDefault = 0
+  iAfterSwitch = 0
+  switch 123
+    default
+      iDefault = 1
+  endsw
+  iAfterSwitch = 1
+  if iDefault == 0 then
+    prints "assert error, default-only switch did not execute default\n"
+    exitnow(-1)
+  endif
+  if iAfterSwitch == 0 then
+    prints "assert error, default-only switch did not continue control flow\n"
+    exitnow(-1)
+  endif
+  prints "test14 passed\n"
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 0 1
@@ -189,5 +298,9 @@ i 9 0 0 2
 i 10 0 0 1
 i 10 0 0 2
 i 10 0 0 3
+i 11 0 0
+i 12 0 0
+i 13 0 0
+i 14 0 0
 </CsScore>
 </CsoundSynthesizer>

@@ -1648,6 +1648,9 @@ TREE* expand_switch_statement(
       gotoChainTailAnchor,
       defaultCaseBody
     );
+    if (gotoChainTail == NULL) {
+      gotoChainTail = gotoChainTailAnchor;
+    }
   }
 
   if (gotoChainHeadDefaultCase == NULL) {
