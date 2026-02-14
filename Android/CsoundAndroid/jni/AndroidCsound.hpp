@@ -27,7 +27,7 @@
 #endif
 #include "csound.hpp"
 #include "csound_misc.h"
-extern "C" long csoundGetKcounter(CSOUND *csound);
+
 class PUBLIC AndroidCsound : public Csound {
   int asyncProcess;
   void initControls() {

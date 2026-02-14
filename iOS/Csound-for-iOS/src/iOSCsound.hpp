@@ -24,7 +24,7 @@
 
 #include "csound.hpp"
 #include "csound_misc.h"
-extern "C" long csoundGetKcounter(CSOUND *csound);
+
 class PUBLIC iOSCsound : public Csound {
   void initControls() {
     // set up pause controls

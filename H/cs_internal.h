@@ -165,7 +165,22 @@ extern "C" {
 #include "environ.h"
 #include "remote.h"
 
-typedef struct opcodinfo OPCODINFO;
+  /* Holds UDO information, when an instrument is
+     defined as a UDO
+  */
+  typedef struct opcodinfo {
+    int32    instno;
+    char    *name, *intypes, *outtypes;
+    int16   inchns, outchns;
+    bool newStyle;
+    bool passByRef;
+    CS_VAR_POOL* out_arg_pool;
+    CS_VAR_POOL* in_arg_pool;
+    struct instr *ip;
+    OENTRY *oentry;
+    struct opcodinfo *prv;
+  } OPCODINFO;
+
 
   /**
    * This struct will hold the current engine state after compilation
@@ -182,22 +197,6 @@ typedef struct opcodinfo OPCODINFO;
     OPCODINFO     *opcodeInfo;
   } ENGINE_STATE;
 
-
-  /* Holds UDO information, when an instrument is
-     defined as a UDO
-  */
-  typedef struct opcodinfo {
-    int32    instno;
-    char    *name, *intypes, *outtypes;
-    int16   inchns, outchns;
-    bool newStyle;
-    bool passByRef;
-    CS_VAR_POOL* out_arg_pool;
-    CS_VAR_POOL* in_arg_pool;
-    struct instr *ip;
-    OENTRY *oentry;
-    struct opcodinfo *prv;
-  } OPCODINFO;
 
   /**
    * plugin module info

@@ -578,6 +578,9 @@ static const CSOUND cenviron_ = {
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
     csoundDeprecate,
+    csoundGetSr,
+    csoundGetKr,
+    csoundGetKcounter,
     /* space for API expansion: 50 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -1552,7 +1555,7 @@ MYFLT csoundEvalCode(CSOUND *csound, const char *str)
   return csound->e0dbfs;
 }
 
- uint64_t csoundGetKcounter(CSOUND *csound) {
+uint64_t csoundGetKcounter(CSOUND *csound) {
   return csound->kcounter;
 }
 

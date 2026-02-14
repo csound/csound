@@ -447,6 +447,11 @@ extern "C" {
   PUBLIC uint32_t csoundGetKsmps(CSOUND *);
 
   /**
+   * Returns the current k-cycle count in control frames
+   */
+  PUBLIC uint64_t csoundGetKcounter(CSOUND *csound);
+
+  /**
    * Returns the number of audio channels in the Csound instance.
    * If isInput = 0, the value of nchnls is returned,
    * otherwise nchnls_i. If this variable is
