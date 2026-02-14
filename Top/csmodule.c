@@ -529,12 +529,92 @@ static int32_t check_opcode_deny(CSOUND * csound, const char *fname)
 }
 
 
-static int32_t _dir_exists(char *path) {
+static int32_t _dir_exists(const char *path) {
   // returns 1 if path is a directory and it exists
   struct stat s;
   int32_t err = stat(path, &s);
   return (err == 0 && S_ISDIR(s.st_mode)) ? 1 : 0;
 }
+
+#if defined(__MACH__) && (TARGET_OS_IPHONE == 0)
+#ifdef USE_DOUBLE
+#define CS_OPCODE_SUBDIR "Opcodes64"
+#else
+#define CS_OPCODE_SUBDIR "Opcodes"
+#endif
+
+static int32_t append_existing_dir(char *dst, size_t dst_len, const char *dir)
+{
+  size_t len;
+  if (UNLIKELY(dir == NULL || dir[0] == '\0'))
+    return 0;
+  if (UNLIKELY(!_dir_exists(dir)))
+    return 0;
+  len = strlen(dst);
+  if (len > 0) {
+    if (UNLIKELY((len + 1) >= dst_len))
+      return 0;
+    dst[len++] = ':';
+    dst[len] = '\0';
+  }
+  if (UNLIKELY((len + strlen(dir)) >= dst_len))
+    return 0;
+  strlcat(dst, dir, dst_len);
+  return 1;
+}
+
+static int32_t get_macos_dev_plugin_dirs(char *buf, size_t buflen)
+{
+  Dl_info info;
+  char resolved[1024];
+  char framework_path[1024];
+  char resources_path[1024];
+  char build_path[1024];
+  const char *src_path;
+  char *p;
+  char *fw;
+  size_t fwlen;
+  int32_t added = 0;
+
+  if (UNLIKELY(buf == NULL || buflen < 2))
+    return 0;
+  buf[0] = '\0';
+
+  if (UNLIKELY(dladdr((void*) load_external, &info) == 0 || info.dli_fname == NULL))
+    return 0;
+
+  src_path = realpath(info.dli_fname, resolved);
+  if (src_path == NULL)
+    src_path = info.dli_fname;
+
+  strNcpy(framework_path, src_path, sizeof(framework_path) - 1);
+  framework_path[sizeof(framework_path) - 1] = '\0';
+
+  fw = strstr(framework_path, ".framework");
+  if (UNLIKELY(fw == NULL))
+    return 0;
+
+  fwlen = (size_t) (fw - framework_path) + strlen(".framework");
+  if (UNLIKELY(fwlen >= sizeof(framework_path)))
+    return 0;
+  framework_path[fwlen] = '\0';
+
+  snprintf(resources_path, sizeof(resources_path),
+           "%s/Versions/Current/Resources/%s",
+           framework_path, CS_OPCODE_SUBDIR);
+  added += append_existing_dir(buf, buflen, resources_path);
+
+  strNcpy(build_path, framework_path, sizeof(build_path) - 1);
+  build_path[sizeof(build_path) - 1] = '\0';
+  p = strrchr(build_path, '/');
+  if (p != NULL) {
+    *p = '\0';
+    added += append_existing_dir(buf, buflen, build_path);
+  }
+
+  return added;
+}
+#endif
 
 
 /**
@@ -555,7 +635,9 @@ int32_t csoundLoadModules(CSOUND *csound)
   int32_t i, n, len, err = CSOUND_SUCCESS;
   char *dname1, *end;
   int32_t read_directory = 1;
+  int32_t using_default_plugindir = 0;
   char searchpath_buf[searchpath_buflen];
+  char fallback_default_buf[searchpath_buflen];
   char sep =
 #ifdef WIN32
     ';';
@@ -582,6 +664,7 @@ int32_t csoundLoadModules(CSOUND *csound)
 #endif
 #ifdef  CS_DEFAULT_PLUGINDIR
       dname = CS_DEFAULT_PLUGINDIR;
+      using_default_plugindir = 1;
 #ifdef __HAIKU__
     dfltdir = 1;
 #endif
@@ -594,7 +677,17 @@ int32_t csoundLoadModules(CSOUND *csound)
   if (csound->opcodedir != NULL) {
     dname = csound->opcodedir;
     csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
+    using_default_plugindir = 0;
   }
+
+#if defined(__MACH__) && (TARGET_OS_IPHONE == 0)
+  if (using_default_plugindir && !_dir_exists(dname)) {
+    if (get_macos_dev_plugin_dirs(fallback_default_buf, searchpath_buflen) > 0) {
+      dname = fallback_default_buf;
+    }
+  }
+#endif
+
   size_t pos = strlen(dname);
   char *userplugindir = getenv("CS_USER_PLUGINDIR");
   // The user set a search path for plugins via an env variable. Paths here
@@ -832,6 +925,8 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
   int32_t         i, n, len, err = CSOUND_SUCCESS;
   char            *dname1, *end;
   int32_t         read_directory = 1;
+  int32_t         using_default_plugindir = 0;
+  char            fallback_default_buf[1024];
   char sep =
 #ifdef WIN32
     ';';
@@ -856,6 +951,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #endif
 #ifdef  CS_DEFAULT_PLUGINDIR
       dname = CS_DEFAULT_PLUGINDIR;
+      using_default_plugindir = 1;
 #ifdef __HAIKU__
     dfltdir = 1;
 #endif
@@ -866,7 +962,17 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 
   if (opdir != NULL) {
     dname = opdir;
+    using_default_plugindir = 0;
   }
+
+#if defined(__MACH__) && (TARGET_OS_IPHONE == 0)
+  if (using_default_plugindir && !_dir_exists(dname)) {
+    if (get_macos_dev_plugin_dirs(fallback_default_buf,
+                                  sizeof(fallback_default_buf)) > 0) {
+      dname = fallback_default_buf;
+    }
+  }
+#endif
 
   /* We now loop through the directory list */
   while(read_directory) {
