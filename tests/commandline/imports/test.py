@@ -10,6 +10,7 @@ import_tests = [
 
     # Global variable tests
     ["imports/test_comprehensive_globals.csd", "Comprehensive global variable tests"],
+    ["imports/test_string_global_import.csd", "Import gS string global variable from module"],
 
     # Minimal import tests
     ["imports/test_minimal.csd", "Minimal import test"],
@@ -38,6 +39,7 @@ import_tests = [
 
     # Import with alias (import "x.orc" as name) tests
     ["imports/test_import_as_qualified.csd", "Import with alias - qualified variable access"],
+    ["imports/test_alias_assignment.csd", "Import with alias - qualified assignment writes through"],
     ["imports/test_same_module_different_aliases.csd", "Same module imported with different aliases"],
     ["imports/test_different_modules_same_alias.csd", "Different modules with same alias (shadowing)"],
     ["imports/test_nested_module_aliases.csd", "Nested module imports with aliases"],
@@ -59,5 +61,8 @@ import_tests = [
     ["imports/instruments/test_import_instr.csd", "Import named instrument from module with baseline"],
 
     # Complex tests
-    ["imports/test_nested.csd", "Nested module imports"]
+    ["imports/test_nested.csd", "Nested module imports"],
+
+    # Error-path tests
+    ["imports/test_circular_import_fails.csd", "Circular import detection (expected compile failure)", 1]
 ]

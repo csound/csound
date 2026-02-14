@@ -16,7 +16,7 @@ endop
 
 /* Module-level variables */
 giModuleVersion = 1
-; gsModuleName = "oscillators"  ; String variables need special handling - disabled for now
+; gSModuleName = "oscillators"  ; Example string global (left commented to keep fixture minimal)
 
 /* Export a simple instrument that uses the module */
 ; instr SimpleOscInstrument
