@@ -1499,9 +1499,10 @@ static TREE* create_goto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "igoto");
-  gotoOperator->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
-  gotoOperator->value->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
+  const int gotoType = isPerfRate ? KGOTO_TOKEN : GOTO_TOKEN;
+  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "goto");
+  gotoOperator->type = gotoType;
+  gotoOperator->value->type = gotoType;
   return gotoOperator;
 }
 
@@ -1509,7 +1510,7 @@ static TREE* create_cgoto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cigoto");
+  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cggoto");
   cgotoOperator->type = T_OPCALL;
   cgotoOperator->value->type = T_OPCALL;
   return cgotoOperator;

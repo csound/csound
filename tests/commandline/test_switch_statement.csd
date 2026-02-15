@@ -278,6 +278,127 @@ instr 14
   prints "test14 passed\n"
 endin
 
+gk15InitSeen init 0
+gk15WrongSeen init 0
+gk15PerfSeen init 0
+gk15PerfWrong init 0
+gk16InitMask init 0
+gk16PerfCase1 init 0
+gk16PerfCase2 init 0
+gk16PerfDefault init 0
+
+// i-time switch test: selected branch executes at i-time and perf-time
+instr 15
+  gk15InitSeen = 0
+  gk15WrongSeen = 0
+  gk15PerfSeen = 0
+  gk15PerfWrong = 0
+  iCond = 2
+  iInitSeen = 0
+  iWrongSeen = 0
+  kPerfSeen init 0
+  kPerfWrong init 0
+  switch iCond
+    case 1
+      iWrongSeen = 1
+      if timeinsts:k() > 0 then
+        kPerfWrong = 1
+      endif
+    case 2
+      iInitSeen = 1
+      if timeinsts:k() > 0 then
+        kPerfSeen = 1
+      endif
+    default
+      iWrongSeen = 1
+      if timeinsts:k() > 0 then
+        kPerfWrong = 1
+      endif
+  endsw
+  if timeinsts:k() > p3 - 1/kr then
+    gk15InitSeen = iInitSeen
+    gk15WrongSeen = iWrongSeen
+    gk15PerfSeen = kPerfSeen
+    gk15PerfWrong = kPerfWrong
+  endif
+endin
+
+instr 115
+  iInitSeen = i(gk15InitSeen)
+  iWrongSeen = i(gk15WrongSeen)
+  iPerfSeen = i(gk15PerfSeen)
+  iPerfWrong = i(gk15PerfWrong)
+  if iWrongSeen != 0 then
+    prints "assert error, i-time switch executed wrong branch\n"
+    exitnow(-1)
+  endif
+  if iInitSeen == 0 then
+    prints "assert error, i-time switch did not execute selected branch at i-time\n"
+    exitnow(-1)
+  endif
+  if iPerfWrong != 0 then
+    prints "assert error, i-time switch executed wrong branch at perf-time\n"
+    exitnow(-1)
+  endif
+  if iPerfSeen == 0 then
+    prints "assert error, i-time switch did not execute at perf-time\n"
+    exitnow(-1)
+  endif
+  prints "test15 passed\n"
+endin
+
+// perf-time switch test: all branches run at i-time, then conditional at perf-time
+instr 16
+  gk16InitMask = 0
+  gk16PerfCase1 = 0
+  gk16PerfCase2 = 0
+  gk16PerfDefault = 0
+  kCond = 2
+  iInitMask = 0
+  switch kCond
+    case 1
+      iInitMask += 1
+      if timeinsts:k() > 0 then
+        gk16PerfCase1 = 1
+      endif
+    case 2
+      iInitMask += 10
+      if timeinsts:k() > 0 then
+        gk16PerfCase2 = 1
+      endif
+    default
+      iInitMask += 100
+      if timeinsts:k() > 0 then
+        gk16PerfDefault = 1
+      endif
+  endsw
+  gk16InitMask = iInitMask
+endin
+
+instr 116
+  iInitMask = i(gk16InitMask)
+  iPerfCase1 = i(gk16PerfCase1)
+  iPerfCase2 = i(gk16PerfCase2)
+  iPerfDefault = i(gk16PerfDefault)
+  if iInitMask != 111 then
+    prints "assert error, perf-time switch did not execute all branches at i-time\n"
+    exitnow(-1)
+  endif
+  if iPerfCase1 != 0 then
+    prints "assert error, perf-time switch executed case 1 at perf-time when condition was false\n"
+    exitnow(-1)
+  endif
+  if iPerfDefault != 0 then
+    prints "assert error, perf-time switch executed default at perf-time when condition was false\n"
+    exitnow(-1)
+  endif
+  if iPerfCase2 == 0 then
+    prints "assert error, perf-time switch did not execute selected branch at perf-time\n"
+    exitnow(-1)
+  endif
+  prints "test16 passed\n"
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 0 1
@@ -301,6 +422,10 @@ i 10 0 0 3
 i 11 0 0
 i 12 0 0
 i 13 0 0
-i 14 0 0
+i 14 0.5 0
+i 16 0 0.1
+i 116 0.11 0
+i 15 0.2 0.1
+i 115 0.31 0
 </CsScore>
 </CsoundSynthesizer>
