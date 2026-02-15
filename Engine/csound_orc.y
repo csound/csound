@@ -594,6 +594,10 @@ case_list : case_list case
                 tempLastNode->next = $2;
                 $$ = $1; }
             | case { $$ = $1; }
+            | NEWLINE case_list
+             {
+              $$ = $2;
+             }
             ;
 
 switch  : SWITCH_TOKEN expr NEWLINE case_list ENDSW_TOKEN

@@ -6,14 +6,19 @@ opcode switch_xout_value, i, i
   iCond xin
   iOut = -1
   switch iCond
+  
     case 1
       iOut = 11
+      
     case 2
       iOut = 22
+      
     case 3
       iOut = 33
+      
     default
       iOut = 44
+      
   endsw
   xout iOut
 endop
