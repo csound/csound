@@ -6,6 +6,7 @@ import { messageEventHandler } from "./messages.main";
 import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
 let UID = 0;
+const registeredContexts = new WeakSet();
 
 /**
  * @unrestricted
@@ -190,10 +191,15 @@ class AudioWorkletMainThread {
     }
     this.workletWorkerUrl = WorkletWorker();
 
-    try {
-      await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
-    } catch (error) {
-      console.error("Error calling audioWorklet.addModule", error);
+    if (!registeredContexts.has(this.audioContext)) {
+      try {
+        await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
+        registeredContexts.add(this.audioContext);
+      } catch (error) {
+        console.error("Error calling audioWorklet.addModule", error);
+      }
+    } else {
+      log("Module already registered on this AudioContext, skipping addModule")();
     }
 
     log("WorkletWorker module added")();
