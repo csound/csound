@@ -31,10 +31,17 @@ import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
 import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
 
+const registeredContexts = new WeakSet();
+
 const initializeModule = async (audioContext) => {
+  if (registeredContexts.has(audioContext)) {
+    log("Module already registered on this AudioContext, skipping addModule")();
+    return true;
+  }
   log("Initialize Module")();
   try {
     await audioContext.audioWorklet.addModule(WorkletWorker());
+    registeredContexts.add(audioContext);
   } catch (error) {
     console.error("Error calling audioWorklet.addModule", error);
     return false;

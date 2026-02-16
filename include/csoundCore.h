@@ -1432,16 +1432,28 @@ struct CSOUND_ {
   const CSOUND_UTIL *(*GetUtility)(CSOUND *csound);
   /* Fast power of two function from a precomputed table */
   MYFLT (*Pow2)(CSOUND *, MYFLT a);
+  /* String localisation */
 #if defined(__CUDACC__) || defined(__MACH__)
   char *(*LocalizeString)(const char *);
 #else
   char *(*LocalizeString)(const char *)__attribute__((format_arg(1)));
 #endif
+  /* String conversion */
   double (*Strtod)(char *nptr, char **);
+  /* String formatted printing */
   int32_t (*Sprintf)(char *str, const char *format, ...);
+  /* String formatted scanning */
   int32_t (*Sscanf)(char *str, const char *format, ...);
+  /* Set opcode as deprecated */
   int32_t (*Deprecate)(CSOUND *csound, char *name,
                        char *o, char *i, int32_t deprec);
+  /* Get engine sampling rate */
+  MYFLT   (*GetEngineSr) (CSOUND *csound);
+  /* Get engine control rate */
+  MYFLT   (*GetEngineKr) (CSOUND *csound);
+  /* Get engine kcounter value */
+  uint64_t (*GetKcounter) (CSOUND *csound);
+  
   /**@}*/
   /** @name Placeholders
       To allow the API to grow while maintining backward binary compatibility.

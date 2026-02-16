@@ -794,6 +794,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
 
   if (is_boolean_expression_node(root->right)) {
+    TREE * remaining = root->right->next;
     TREE * newRight = create_boolean_expression(csound,
                                                 root->right, line, locn,
                                                 typeTable);
@@ -812,13 +813,18 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     while (last->next != NULL) {
       last = last->next;
     }
-    /* TODO - Free memory of old right node
-       freetree */
-    root->right = create_ans_token(csound, last->left->value->lexeme);
+    /* TODO - Free only the replaced right wrapper node/token here;
+       do not recursively delete children since they are reused. */
+    root->right = append_to_tree(csound,
+                                 create_ans_token(csound,
+                                                  last->left->value->lexeme),
+                                 remaining);
   }
   else if (is_expression_node(root->right)) {
     TREE * newRight = create_expression(csound, root->right, line,
                                         locn, typeTable);
+    TREE * remaining = root->right->next;
+    
 
     if (anchor == NULL) {
       anchor = newRight;
@@ -836,9 +842,14 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
       last = last->next;
     }
 
-    /* TODO - Free memory of old right node
-       freetree */
-    root->right = create_ans_token(csound, last->left->value->lexeme);
+    // VL need to append any arguments following
+    // the new expression
+    root->right = append_to_tree(csound,
+                                 create_ans_token(csound,
+                                                  last->left->value->lexeme),
+                                 remaining);
+    /* TODO - Free only the replaced right wrapper node/token here;
+       do not recursively delete children since they are reused. */
     root->line = line;
     root->locn = locn;
   }
@@ -1499,9 +1510,10 @@ static TREE* create_goto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "igoto");
-  gotoOperator->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
-  gotoOperator->value->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
+  const int gotoType = isPerfRate ? KGOTO_TOKEN : GOTO_TOKEN;
+  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "goto");
+  gotoOperator->type = gotoType;
+  gotoOperator->value->type = gotoType;
   return gotoOperator;
 }
 
@@ -1509,7 +1521,7 @@ static TREE* create_cgoto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cigoto");
+  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cggoto");
   cgotoOperator->type = T_OPCALL;
   cgotoOperator->value->type = T_OPCALL;
   return cgotoOperator;
@@ -1648,6 +1660,9 @@ TREE* expand_switch_statement(
       gotoChainTailAnchor,
       defaultCaseBody
     );
+    if (gotoChainTail == NULL) {
+      gotoChainTail = gotoChainTailAnchor;
+    }
   }
 
   if (gotoChainHeadDefaultCase == NULL) {

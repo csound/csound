@@ -343,6 +343,116 @@ e
         }
       });
 
+      it("keeps multi-instance worklets isolated on shared AudioContext", async function () {
+        const backendConfig = {
+          useWorker: Boolean(test.useWorker),
+          useSAB: test.useSAB === true,
+        };
+
+        const sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)({
+          latencyHint: "interactive",
+        });
+
+        let csound1;
+        let csound2;
+        let node1;
+        let node2;
+
+        try {
+          csound1 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+          csound2 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+
+          const realtimeOrc = `
+          instr 1
+            chnset(p4, "last")
+            out oscili(.25, p5)
+          endin
+        `;
+
+          await csound1.setOption("-odac");
+          await csound2.setOption("-odac");
+          assert.equal(await csound1.compileOrc(realtimeOrc), 0);
+          assert.equal(await csound2.compileOrc(realtimeOrc), 0);
+
+          // In worker mode, the AudioWorkletNode is created lazily during start(),
+          // so we must initiate start() before awaiting getNode().
+          // getNode() returns immediately in singlethread mode, or waits for the
+          // onAudioNodeCreated event in worker mode.
+          if (backendConfig.useWorker) {
+            const [startResult1, startResult2] = await Promise.all([
+              csound1.start(),
+              csound2.start(),
+            ]);
+
+            node1 = await csound1.getNode();
+            node2 = await csound2.getNode();
+            node1.connect(sharedAudioContext.destination);
+            node2.connect(sharedAudioContext.destination);
+          } else {
+            node1 = await csound1.getNode();
+            node2 = await csound2.getNode();
+            node1.connect(sharedAudioContext.destination);
+            node2.connect(sharedAudioContext.destination);
+
+            await csound1.start();
+            await csound2.start();
+          }
+
+          await csound1.inputMessage("i1 0 0.2 111 440");
+          await csound2.inputMessage("i1 0 0.2 222 550");
+          await new Promise((resolve) => setTimeout(resolve, 250));
+
+          assert.closeTo(
+            await csound1.getControlChannel("last"),
+            111,
+            0.001,
+            `${test.name}: csound1 should keep its own channel/message state`,
+          );
+          assert.closeTo(
+            await csound2.getControlChannel("last"),
+            222,
+            0.001,
+            `${test.name}: csound2 should keep its own channel/message state`,
+          );
+        } finally {
+          if (node1) {
+            node1.disconnect();
+          }
+          if (node2) {
+            node2.disconnect();
+          }
+          if (csound1) {
+            try {
+              await csound1.stop();
+            } catch {}
+          }
+          if (csound2) {
+            try {
+              await csound2.stop();
+            } catch {}
+          }
+          if (csound2 && csound2.terminateInstance) {
+            await csound2.terminateInstance();
+          }
+          if (csound1 && csound1.terminateInstance) {
+            await csound1.terminateInstance();
+          }
+          if (sharedAudioContext && sharedAudioContext.state !== "closed") {
+            await sharedAudioContext.close();
+          }
+        }
+      });
+
       /* DISABLED due to removed API functions in CS7
       it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
