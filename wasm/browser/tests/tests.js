@@ -349,70 +349,98 @@ e
         }
       });
 
-      it("keeps multi-instance singlethread worklets isolated on shared AudioContext", async function () {
-        if (test.name !== "SINGLE THREAD, AW") {
-          return;
-        }
+      it("keeps multi-instance worklets isolated on shared AudioContext", async function () {
+        const backendConfig = {
+          useWorker: Boolean(test.useWorker),
+          useSAB: test.useSAB === true,
+        };
 
         const sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)({
           latencyHint: "interactive",
         });
-        const csound1 = await Csound({
-          ...test,
-          audioContext: sharedAudioContext,
-          autoConnect: false,
-        });
-        const csound2 = await Csound({
-          ...test,
-          audioContext: sharedAudioContext,
-          autoConnect: false,
-        });
 
-        const eventStartSpy1 = sinon.spy();
-        const eventStartSpy2 = sinon.spy();
-        csound1.on("realtimePerformanceStarted", eventStartSpy1);
-        csound2.on("realtimePerformanceStarted", eventStartSpy2);
+        let csound1;
+        let csound2;
+        let node1;
+        let node2;
 
-        const realtimeOrc = `
-        instr 1
-          out oscili(.25, 440)
-        endin
-      `;
+        try {
+          csound1 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+          csound2 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
 
-        await csound1.setOption("-odac");
-        await csound2.setOption("-odac");
-        assert.equal(await csound1.compileOrc(realtimeOrc), 0);
-        assert.equal(await csound2.compileOrc(realtimeOrc), 0);
+          const realtimeOrc = `
+          instr 1
+            chnset(p4, "last")
+            out oscili(.25, p5)
+          endin
+        `;
 
-        const node1 = await csound1.getNode();
-        const node2 = await csound2.getNode();
-        node1.connect(sharedAudioContext.destination);
-        node2.connect(sharedAudioContext.destination);
+          await csound1.setOption("-odac");
+          await csound2.setOption("-odac");
+          assert.equal(await csound1.compileOrc(realtimeOrc), 0);
+          assert.equal(await csound2.compileOrc(realtimeOrc), 0);
 
-        await csound1.start();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        assert.isTrue(
-          eventStartSpy1.calledOnce,
-          "csound1 emits realtimePerformanceStarted when csound1.start() is called",
-        );
-        assert.isFalse(
-          eventStartSpy2.called,
-          "csound2 must not emit realtimePerformanceStarted while only csound1.start() is called",
-        );
+          node1 = await csound1.getNode();
+          node2 = await csound2.getNode();
+          node1.connect(sharedAudioContext.destination);
+          node2.connect(sharedAudioContext.destination);
 
-        await csound2.start();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        assert.isTrue(
-          eventStartSpy2.calledOnce,
-          "csound2 emits realtimePerformanceStarted when csound2.start() is called",
-        );
+          await csound1.start();
+          await csound2.start();
 
-        await csound1.stop();
-        await csound2.stop();
-        node1.disconnect();
-        node2.disconnect();
-        await csound2.terminateInstance();
-        await csound1.terminateInstance();
+          await csound1.inputMessage("i1 0 0.2 111 440");
+          await csound2.inputMessage("i1 0 0.2 222 550");
+          await new Promise((resolve) => setTimeout(resolve, 250));
+
+          assert.closeTo(
+            await csound1.getControlChannel("last"),
+            111,
+            0.001,
+            `${test.name}: csound1 should keep its own channel/message state`,
+          );
+          assert.closeTo(
+            await csound2.getControlChannel("last"),
+            222,
+            0.001,
+            `${test.name}: csound2 should keep its own channel/message state`,
+          );
+        } finally {
+          if (node1) {
+            node1.disconnect();
+          }
+          if (node2) {
+            node2.disconnect();
+          }
+          if (csound1) {
+            try {
+              await csound1.stop();
+            } catch {}
+          }
+          if (csound2) {
+            try {
+              await csound2.stop();
+            } catch {}
+          }
+          if (csound2 && csound2.terminateInstance) {
+            await csound2.terminateInstance();
+          }
+          if (csound1 && csound1.terminateInstance) {
+            await csound1.terminateInstance();
+          }
+          if (sharedAudioContext && sharedAudioContext.state !== "closed") {
+            await sharedAudioContext.close();
+          }
+        }
       });
 
     /* DISABLED due to removed API functions in CS7
