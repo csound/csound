@@ -390,13 +390,29 @@ e
           assert.equal(await csound1.compileOrc(realtimeOrc), 0);
           assert.equal(await csound2.compileOrc(realtimeOrc), 0);
 
-          node1 = await csound1.getNode();
-          node2 = await csound2.getNode();
-          node1.connect(sharedAudioContext.destination);
-          node2.connect(sharedAudioContext.destination);
+          // In worker mode, the AudioWorkletNode is created lazily during start(),
+          // so we must initiate start() before awaiting getNode().
+          // getNode() returns immediately in singlethread mode, or waits for the
+          // onAudioNodeCreated event in worker mode.
+          if (backendConfig.useWorker) {
+            const [startResult1, startResult2] = await Promise.all([
+              csound1.start(),
+              csound2.start(),
+            ]);
 
-          await csound1.start();
-          await csound2.start();
+            node1 = await csound1.getNode();
+            node2 = await csound2.getNode();
+            node1.connect(sharedAudioContext.destination);
+            node2.connect(sharedAudioContext.destination);
+          } else {
+            node1 = await csound1.getNode();
+            node2 = await csound2.getNode();
+            node1.connect(sharedAudioContext.destination);
+            node2.connect(sharedAudioContext.destination);
+
+            await csound1.start();
+            await csound2.start();
+          }
 
           await csound1.inputMessage("i1 0 0.2 111 440");
           await csound2.inputMessage("i1 0 0.2 222 550");
