@@ -349,6 +349,72 @@ e
         }
       });
 
+      it("keeps multi-instance singlethread worklets isolated on shared AudioContext", async function () {
+        if (test.name !== "SINGLE THREAD, AW") {
+          return;
+        }
+
+        const sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)({
+          latencyHint: "interactive",
+        });
+        const csound1 = await Csound({
+          ...test,
+          audioContext: sharedAudioContext,
+          autoConnect: false,
+        });
+        const csound2 = await Csound({
+          ...test,
+          audioContext: sharedAudioContext,
+          autoConnect: false,
+        });
+
+        const eventStartSpy1 = sinon.spy();
+        const eventStartSpy2 = sinon.spy();
+        csound1.on("realtimePerformanceStarted", eventStartSpy1);
+        csound2.on("realtimePerformanceStarted", eventStartSpy2);
+
+        const realtimeOrc = `
+        instr 1
+          out oscili(.25, 440)
+        endin
+      `;
+
+        await csound1.setOption("-odac");
+        await csound2.setOption("-odac");
+        assert.equal(await csound1.compileOrc(realtimeOrc), 0);
+        assert.equal(await csound2.compileOrc(realtimeOrc), 0);
+
+        const node1 = await csound1.getNode();
+        const node2 = await csound2.getNode();
+        node1.connect(sharedAudioContext.destination);
+        node2.connect(sharedAudioContext.destination);
+
+        await csound1.start();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        assert.isTrue(
+          eventStartSpy1.calledOnce,
+          "csound1 emits realtimePerformanceStarted when csound1.start() is called",
+        );
+        assert.isFalse(
+          eventStartSpy2.called,
+          "csound2 must not emit realtimePerformanceStarted while only csound1.start() is called",
+        );
+
+        await csound2.start();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        assert.isTrue(
+          eventStartSpy2.calledOnce,
+          "csound2 emits realtimePerformanceStarted when csound2.start() is called",
+        );
+
+        await csound1.stop();
+        await csound2.stop();
+        node1.disconnect();
+        node2.disconnect();
+        await csound2.terminateInstance();
+        await csound1.terminateInstance();
+      });
+
     /* DISABLED due to removed API functions in CS7
       it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
