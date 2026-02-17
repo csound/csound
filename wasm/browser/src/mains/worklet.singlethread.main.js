@@ -53,7 +53,12 @@ const initializeModule = async (audioContext) => {
  * @unrestricted
  */
 class SingleThreadAudioWorkletMainThread {
-  constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
+  constructor({
+    audioContext,
+    audioContextIsProvided = false,
+    inputChannelCount = 1,
+    outputChannelCount = 2,
+  }) {
     /** @type {(WorkletSinglethreadProxy | undefined)} */
     this.workletProxy = undefined;
     this.node = undefined;
@@ -65,6 +70,7 @@ class SingleThreadAudioWorkletMainThread {
     this.eventPromises = new EventPromises();
 
     this.audioContext = audioContext;
+    this.audioContextIsProvided = audioContextIsProvided;
     this.inputChannelCount = inputChannelCount;
     this.outputChannelCount = outputChannelCount;
 
@@ -84,7 +90,7 @@ class SingleThreadAudioWorkletMainThread {
       delete this.node;
     }
     if (this.audioContext) {
-      if (this.audioContext.state !== "closed") {
+      if (!this.audioContextIsProvided && this.audioContext.state !== "closed") {
         await this.audioContext.close();
       }
       delete this.audioContext;

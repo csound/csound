@@ -453,6 +453,71 @@ e
         }
       });
 
+      it("does not close shared AudioContext when terminating one instance", async function () {
+        const backendConfig = {
+          useWorker: Boolean(test.useWorker),
+          useSAB: test.useSAB === true,
+        };
+
+        const sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)({
+          latencyHint: "interactive",
+        });
+
+        let csound1;
+        let csound2;
+
+        try {
+          csound1 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+          csound2 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+
+          assert.notEqual(
+            sharedAudioContext.state,
+            "closed",
+            `${test.name}: shared AudioContext should start open`,
+          );
+
+          await csound1.terminateInstance();
+
+          assert.notEqual(
+            sharedAudioContext.state,
+            "closed",
+            `${test.name}: terminating one instance must not close shared AudioContext`,
+          );
+
+          await csound2.terminateInstance();
+
+          assert.notEqual(
+            sharedAudioContext.state,
+            "closed",
+            `${test.name}: terminating second instance must not close shared AudioContext`,
+          );
+        } finally {
+          if (csound2 && csound2.terminateInstance) {
+            try {
+              await csound2.terminateInstance();
+            } catch {}
+          }
+          if (csound1 && csound1.terminateInstance) {
+            try {
+              await csound1.terminateInstance();
+            } catch {}
+          }
+          if (sharedAudioContext && sharedAudioContext.state !== "closed") {
+            await sharedAudioContext.close();
+          }
+        }
+      });
+
       /* DISABLED due to removed API functions in CS7
       it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
