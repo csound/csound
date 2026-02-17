@@ -8,39 +8,6 @@ const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 
-// shared state
-const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
-let tempRet0 = 0; // for 64-bit return value handling
-
-function saveSetjmp(jmpbuf, label) {
-  jumpTable.set(jmpbuf, label);
-  return 0;
-}
-
-function testSetjmp(jmpbuf) {
-  return jumpTable.has(jmpbuf) ? 1 : 0;
-}
-
-function longjmp(jmpbuf, value) {
-  const label = jumpTable.get(jmpbuf);
-  if (!label) {
-    throw new Error(`Invalid longjmp target ${jmpbuf}`);
-  }
-  throw `csound exit with code: ${value}`;
-}
-
-function __wasm_longjmp(_, value) {
-  throw `csound exit with code: ${value}`;
-}
-
-function getTempRet0() {
-  return tempRet0;
-}
-
-function setTempRet0(value) {
-  tempRet0 = value;
-}
-
 export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
   return function (_, __, length_, offset) {
     if (!memory) {
@@ -234,6 +201,33 @@ export function getBinaryHeaderData(input) {
 
 export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasi = new WASI({ preopens: { "/": "/" } });
+  const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
+  let tempRet0 = 0; // for 64-bit return value handling
+
+  const saveSetjmp = (jmpbuf, label) => {
+    jumpTable.set(jmpbuf, label);
+    return 0;
+  };
+
+  const testSetjmp = (jmpbuf) => (jumpTable.has(jmpbuf) ? 1 : 0);
+
+  const longjmp = (jmpbuf, value) => {
+    const label = jumpTable.get(jmpbuf);
+    if (!label) {
+      throw new Error(`Invalid longjmp target ${jmpbuf}`);
+    }
+    throw `csound exit with code: ${value}`;
+  };
+
+  const __wasm_longjmp = (_, value) => {
+    throw `csound exit with code: ${value}`;
+  };
+
+  const getTempRet0 = () => tempRet0;
+
+  const setTempRet0 = (value) => {
+    tempRet0 = value;
+  };
 
   const wasmCompressed = new Uint8Array(wasmDataURI);
   const wasmZlib = new Inflate(wasmCompressed);
