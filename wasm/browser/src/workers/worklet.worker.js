@@ -434,6 +434,7 @@ const initialize = async (payload) => {
     startPromiz = resolve;
   });
   audioNode.initCallbacks({ workerMessagePort, audioInputPort, audioFramePort, startPromiz });
+  activeNodes.delete(nodeUid);
   await startPromise;
 };
 
