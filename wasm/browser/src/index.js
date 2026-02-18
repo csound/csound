@@ -57,6 +57,7 @@ const Csound = async function ({
       log("Single Thread AudioWorklet")();
       const instance = new SingleThreadAudioWorkletMainThread({
         audioContext,
+        audioContextIsProvided,
         inputChannelCount: inputChannelCount || 2,
         outputChannelCount: outputChannelCount || 2,
       });
