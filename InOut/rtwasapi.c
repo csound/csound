@@ -612,7 +612,6 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     csdata *cdata;
     void **recordata = csound->GetRtRecordUserData(csound);
-    HRESULT hr;
 
     if (*(csound->GetRtRecordUserData(csound)) != NULL)
         return 0;
@@ -641,12 +640,8 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
         }
         
         cdata->inRunning = 1;
-        hr = cdata->pInAudioClient->lpVtbl->Start(cdata->pInAudioClient);
-        if (FAILED(hr)) {
-            cdata->inRunning = 0;
-            return csound->InitError(csound,
-                                     Str("WASAPI: Failed to start input audio client"));
-        }
+        HRESULT hr = cdata->pInAudioClient->lpVtbl->Start(cdata->pInAudioClient);
+        csound->DebugMsg(csound, "WASAPI: Input audio client Start returned hr=0x%x\n", hr);
         cdata->hInThread = CreateThread(NULL, 0, InputThread, cdata, 0, NULL);
         if (cdata->hInThread == NULL) {
             cdata->inRunning = 0;
@@ -663,7 +658,6 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
 {
     csdata *cdata;
     void **playdata = csound->GetRtPlayUserData(csound);
-    HRESULT hr;
 
     if (*(csound->GetRtRecordUserData(csound)) != NULL)
         cdata = (csdata *)*(csound->GetRtRecordUserData(csound));
@@ -689,12 +683,8 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         }
         
         cdata->outRunning = 1;
-        hr = cdata->pOutAudioClient->lpVtbl->Start(cdata->pOutAudioClient);
-        if (FAILED(hr)) {
-            cdata->outRunning = 0;
-            return csound->InitError(csound,
-                                     Str("WASAPI: Failed to start output audio client"));
-        }
+        HRESULT hr = cdata->pOutAudioClient->lpVtbl->Start(cdata->pOutAudioClient);
+        csound->DebugMsg(csound, "WASAPI: Output audio client Start returned hr=0x%x\n", hr);
         cdata->hOutThread = CreateThread(NULL, 0, OutputThread, cdata, 0, NULL);
         if (cdata->hOutThread == NULL) {
             cdata->outRunning = 0;
