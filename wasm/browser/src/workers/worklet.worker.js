@@ -254,7 +254,10 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     this.pause = this.pause.bind(this);
     /** @export */
     this.resume = this.resume.bind(this);
+    /** @export */
+    this.terminate = this.terminate.bind(this);
     this.isPaused = false;
+    this.isTerminated = false;
     // this.sampleRate = sampleRate;
     this.ksmps = ksmps;
     this.inputsCount = inputsCount;
@@ -304,7 +307,10 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.actualProcess = processVanillaBuffers.bind(this);
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     }
-    Comlink.expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
+    Comlink.expose(
+      { initialize, pause: this.pause, resume: this.resume, terminate: this.terminate },
+      this.port,
+    );
     log(`Worker thread was constructed`)();
   }
 
@@ -367,7 +373,28 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     this.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
   }
 
+  terminate() {
+    this.isTerminated = true;
+    this.isPaused = false;
+    this.messagePortsReady = false;
+    this.startPromiz = undefined;
+    this.audioFramePort = undefined;
+    this.audioInputPort = undefined;
+    this.workerMessagePort = undefined;
+    this.sharedArrayBuffer = undefined;
+    this.audioStreamIn = undefined;
+    this.audioStreamOut = undefined;
+    this.sabInputChannels = [];
+    this.sabOutputChannels = [];
+    this.vanillaInputChannels = [];
+    this.vanillaOutputChannels = [];
+  }
+
   process(inputs, outputs) {
+    if (this.isTerminated) {
+      ((outputs && outputs[0]) || []).forEach((array) => array.fill(0));
+      return false;
+    }
     return this.isPaused || !this.messagePortsReady ? true : this.actualProcess(inputs, outputs);
   }
 }

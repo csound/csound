@@ -95,6 +95,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     /** @export */
     this.stop = this.stop.bind(this);
     /** @export */
+    this.terminate = this.terminate.bind(this);
+    /** @export */
     this.process = this.process.bind(this);
     /** @export */
     this.resume = this.resume.bind(this);
@@ -109,6 +111,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.isPaused = false;
     this.running = false;
     this.started = false;
+    this.isTerminated = false;
     /** @export */
     this.callUncloned = async (k, arguments_) => {
       const caller = this.combined && this.combined.get(k);
@@ -167,6 +170,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.running = false;
       this.isRendering = false;
       this.started = false;
+      this.isTerminated = false;
       this.resetCsound(false);
 
       const csoundCreate = async (v) => {
@@ -244,6 +248,20 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
   }
 
+  terminate() {
+    if (this.isTerminated) {
+      return;
+    }
+    this.isTerminated = true;
+    const resolveRenderSleep = this.renderSleep;
+    this.renderSleep = undefined;
+    if (typeof resolveRenderSleep === "function") {
+      resolveRenderSleep();
+    }
+    clearArray(this.rtmidiQueue);
+    this.stop();
+  }
+
   pause() {
     if (!this.isPaused) {
       this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
@@ -263,6 +281,11 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const resolve = this.renderSleep;
       this.renderSleep = undefined;
       resolve();
+    }
+
+    if (this.isTerminated) {
+      (outputs[0] || []).forEach((array) => array.fill(0));
+      return false;
     }
 
     if (this.isRendering || this.isPaused || !this.csoundOutputBuffer || !this.running) {

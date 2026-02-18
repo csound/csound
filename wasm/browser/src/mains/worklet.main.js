@@ -45,6 +45,11 @@ class AudioWorkletMainThread {
   }
 
   async terminateInstance() {
+    if (this.workletProxy) {
+      try {
+        await this.workletProxy["terminate"]();
+      } catch {}
+    }
     if (this.audioWorkletNode) {
       this.audioWorkletNode.disconnect();
       delete this.audioWorkletNode;

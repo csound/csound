@@ -183,10 +183,24 @@ class SharedArrayBufferMainThread {
         });
         this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
+        // Preserve audio configuration while re-initializing SAB runtime state.
+        const userProvidedSampleRate = Atomics.load(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
+        const userProvidedNchnls = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS);
+        const userProvidedNchnlsInput = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS_I);
+
         // re-initialize SAB
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
         });
+        if (userProvidedSampleRate > -1) {
+          Atomics.store(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE, userProvidedSampleRate);
+        }
+        if (userProvidedNchnls > -1) {
+          Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS, userProvidedNchnls);
+        }
+        if (userProvidedNchnlsInput > -1) {
+          Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS_I, userProvidedNchnlsInput);
+        }
         break;
       }
       case "renderStarted": {
@@ -331,6 +345,27 @@ class SharedArrayBufferMainThread {
       ]),
     );
     this.csoundInstance = csoundInstance;
+
+    // Ensure Csound aligns with requested audio setup before user compilation/start.
+    const userProvidedSampleRate = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
+    const userProvidedNchnls = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS);
+    const userProvidedNchnlsInput = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
+
+    if (userProvidedSampleRate > -1) {
+      await proxyPort["callUncloned"]("csoundSetOption", [
+        csoundInstance,
+        "--sample-rate=" + userProvidedSampleRate,
+      ]);
+    }
+    if (userProvidedNchnls > -1) {
+      await proxyPort["callUncloned"]("csoundSetOption", [csoundInstance, "--nchnls=" + userProvidedNchnls]);
+    }
+    if (userProvidedNchnlsInput > -1) {
+      await proxyPort["callUncloned"]("csoundSetOption", [
+        csoundInstance,
+        "--nchnls_i=" + userProvidedNchnlsInput,
+      ]);
+    }
 
     this.ipcMessagePorts.mainMessagePort.start();
     this.ipcMessagePorts.mainMessagePortAudio.start();

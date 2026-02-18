@@ -85,6 +85,11 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async terminateInstance() {
+    if (this.workletProxy) {
+      try {
+        await this.workletProxy["terminate"]();
+      } catch {}
+    }
     if (this.node) {
       this.node.disconnect();
       delete this.node;
