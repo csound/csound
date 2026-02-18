@@ -319,12 +319,11 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
 
 static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
 {
-  int32_t     cntdev, devnum, opendevs, in;
+  int32_t     cntdev, devnum, opendevs = 0,  i;
   PmError     retval;
   PmDeviceInfo *info;
   pmall_data *data = NULL;
   pmall_data *next = NULL;
-  int32_t port = 0;
 
   if (UNLIKELY(start_portmidi(csound) != 0))
     return -1;
@@ -350,8 +349,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
     devnum = -1;
   }
     
-  if (UNLIKELY(devnum < 0 || devnum >= cntdev
-               && (dev==NULL || dev[0] != 'a' || dev[0] != 'm'))) {
+  if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a' || dev[0] != 'm'))) {
     portMidiErrMsg(csound, Str("error: device number is out of range"));
     return -1;
   }
@@ -371,22 +369,21 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
       }
 
     
-      info = portMidi_getDeviceInfo(devnum, 1);
+      info = portMidi_getDeviceInfo(i, 1);
       if (info->interf != NULL)
         csound->ErrorMsg(csound,
                          Str("PortMIDI: selected output device %d: '%s' (%s)\n"),
-                         devnum, info->name, info->interf);
+                         i, info->name, info->interf);
       else
         csound->ErrorMsg(csound,
                          Str("PortMIDI: selected output device %d: '%s'\n"),
-                         devnum, info->name);
+                         i, info->name);
       /* set multiport mapping if asked */
       if(dev[0] == 'm') next->multiport_flag = 1;
       else next->multiport_flag = 0;
-      port++;
 
       retval = Pm_OpenOutput(&(next->midistream),
-                             (PmDeviceID) portMidi_getRealDeviceID(devnum, 1),
+                             (PmDeviceID) portMidi_getRealDeviceID(i, 1),
                              NULL, 512L, (PmTimeProcPtr) NULL, NULL,
                              1000*csound->GetOutputBufferSize(csound)/csound->GetEngineSr(csound));
       if (UNLIKELY(retval != pmNoError)) {
@@ -408,7 +405,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
 static int32_t ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int32_t nbytes)
 {
-  int32_t             n, retval, st, d1, d2;
+  int32_t   n, retval, st, d1, d2;
   unsigned char port = 0, map = 0;
     PmEvent         mev;
     pmall_data *data;
@@ -478,13 +475,16 @@ static int32_t ReadMidiData_(CSOUND *csound, void *userData,
 }
 
 static int32_t WriteMidiData_(CSOUND *csound, void *userData,
-                              const unsigned char *mbuff, int32_t nbytes)
+                              const unsigned char *mbuf, int32_t nbytes)
 {
-  int32_t   n, st, port = 0, cnt = 0, portswritten = 0;
+  int32_t   n, st, port = 0, ports_used = 0;
   PmEvent   mev;
   pmall_data *data = (pmall_data *)userData;
-  int32_t *mess_port = csound->GetMidiOutports(csound);
-    
+  // port for this message is stored here
+  int32_t mess_port = csound->GetMidiOutPort(csound);
+  PmTimestamp time = 1000*
+    csound->GetCurrentTimeSamples(csound)/csound->GetEngineSr(csound);
+  
   /*
    * Writes to user-defined MIDI output.
    */
@@ -510,28 +510,27 @@ static int32_t WriteMidiData_(CSOUND *csound, void *userData,
     }
 
     mev.message = (PmMessage) 0;
-    mev.timestamp =  0;// time;
+    mev.timestamp =  time;
     mev.message |= (PmMessage) Pm_Message(st, 0, 0);
     if (datbyts[(st - 0x80) >> 4] > 0)
       mev.message |= (PmMessage) Pm_Message(0, (int32_t)*(mbuf++), 0);
     if (datbyts[(st - 0x80) >> 4] > 1)
       mev.message |= (PmMessage) Pm_Message(0, 0, (int32_t)*(mbuf++));
     while(data) {
-      if(data->multiport_flat && mess_port[cnt]  == port) {      
+      if((data->multiport_flag && mess_port == port)
+         || !data->multiport_flag) {      
         if (UNLIKELY(Pm_Write(data->midistream, &mev, 1L) != pmNoError)){
           portMidiErrMsg(csound, Str("MIDI out: error writing message"));
         } else {
           n += (datbyts[(st - 0x80) >> 4] + 1);
-          ports_written++;
-        }
-          
+          ports_used++;
+        }    
       }
       data = data->next;
       port++;
     }
-    if(portswritten) n /= portswritten;
-    portswritten = 0;
-    cnt++;
+    if(ports_used) n /= ports_used;
+    ports_used = 0;
   } while (nbytes > 0);
  
   /* return the number of bytes written */
@@ -558,12 +557,16 @@ static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
 static int32_t CloseMidiOutDevice_(CSOUND *csound, void *userData)
 {
     PmError retval;
-
-    if (userData != NULL) {
-      retval = Pm_Close((PortMidiStream*) userData);
+    pmall_data* data = (pmall_data*) userData;
+    while (data) {
+      retval = Pm_Close(data->midistream);
       if (UNLIKELY(retval != pmNoError)) {
         return portMidiErrMsg(csound, Str("error closing output device"));
       }
+      pmall_data* olddata;
+      olddata = data;
+      data = data->next;
+      csound->Free(csound, olddata);
     }
     return 0;
 }

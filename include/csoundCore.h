@@ -1452,7 +1452,13 @@ struct CSOUND_ {
   /* Get engine control rate */
   MYFLT   (*GetEngineKr) (CSOUND *csound);
   /* Get engine kcounter value */
-  uint64_t (*GetKcounter) (CSOUND *csound);
+  uint64_t (*GetEngineKcounter) (CSOUND *csound);
+  /* Send MIDI message to output */
+  void (*SendMidiMsg) (CSOUND *csound, int32_t status,
+                       int32_t data1, int32_t data2,
+                       int32_t port);
+  /* Retrieve MIDI out port for last msg sent */
+  int32_t (*GetMidiOutPort) (CSOUND *csound);
   
   /**@}*/
   /** @name Placeholders
@@ -1804,6 +1810,7 @@ struct CSOUND_ {
   int32_t struct_array_temp_counter;
   int32_t parflag;
   int32_t *taskflag;
+  int32_t midiout_port;
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
