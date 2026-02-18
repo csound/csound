@@ -241,14 +241,14 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
 
     hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
-        return csound->InitError(csound,
+        return csound->ErrorMsg(csound,
                                  Str("WASAPI: Failed to initialize COM"));
     }
 
     hr = CoCreateInstance(&CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL,
                           &IID_IMMDeviceEnumerator, (void **)&pEnumerator);
     if (FAILED(hr)) {
-        return csound->InitError(csound,
+        return csound->ErrorMsg(csound,
                                  Str("WASAPI: Failed to create device enumerator"));
     }
 
@@ -264,7 +264,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             pEnumerator, isInput ? eCapture : eRender, eConsole, &pDevice);
         if (FAILED(hr)) {
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to get default device"));
         }
     } else {
@@ -275,7 +275,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             pEnumerator, isInput ? eCapture : eRender, DEVICE_STATE_ACTIVE, &pCollection);
         if (FAILED(hr)) {
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to enumerate devices"));
         }
 
@@ -283,7 +283,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         if (FAILED(hr)) {
             SAFE_RELEASE(pCollection);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to enumerate devices"));
         }
         
@@ -298,7 +298,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
                 pEnumerator, isInput ? eCapture : eRender, eConsole, &pDevice);
             if (FAILED(hr)) {
                 SAFE_RELEASE(pEnumerator);
-                return csound->InitError(csound,
+                return csound->ErrorMsg(csound,
                                          Str("WASAPI: Failed to get default device"));
             }
         } else {
@@ -307,7 +307,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
 
             if (FAILED(hr)) {
                 SAFE_RELEASE(pEnumerator);
-                return csound->InitError(csound,
+                return csound->ErrorMsg(csound,
                                          Str("WASAPI: Failed to get device"));
             }
         }
@@ -318,7 +318,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     if (FAILED(hr)) {
         SAFE_RELEASE(pDevice);
         SAFE_RELEASE(pEnumerator);
-        return csound->InitError(csound,
+        return csound->ErrorMsg(csound,
                                  Str("WASAPI: Failed to activate audio client"));
     }
 
@@ -327,7 +327,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         SAFE_RELEASE(pAudioClient);
         SAFE_RELEASE(pDevice);
         SAFE_RELEASE(pEnumerator);
-        return csound->InitError(csound,
+        return csound->ErrorMsg(csound,
                                  Str("WASAPI: Failed to get mix format"));
     }
 
@@ -375,7 +375,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         SAFE_RELEASE(pAudioClient);
         SAFE_RELEASE(pDevice);
         SAFE_RELEASE(pEnumerator);
-        return csound->InitError(csound,
+        return csound->ErrorMsg(csound,
                                  Str("WASAPI: Failed to initialize audio client"));
     }
 
@@ -385,7 +385,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         SAFE_RELEASE(pAudioClient);
         SAFE_RELEASE(pDevice);
         SAFE_RELEASE(pEnumerator);
-        return csound->InitError(csound,
+        return csound->ErrorMsg(csound,
                                  Str("WASAPI: Failed to get buffer size"));
     }
 
@@ -400,7 +400,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to get capture client"));
         }
 
@@ -411,7 +411,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to create event"));
         }
 
@@ -423,7 +423,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to set event handle"));
         }
 
@@ -450,7 +450,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to get render client"));
         }
 
@@ -461,7 +461,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to create event"));
         }
 
@@ -473,7 +473,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to set event handle"));
         }
 
@@ -635,7 +635,7 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
         cdata->inputBuffer = (MYFLT *)csound->Calloc(csound,
                                                       cdata->inBufferFrames * cdata->inchnls * sizeof(MYFLT));
         if (cdata->inputBuffer == NULL) {
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to allocate input buffer"));
         }
         
@@ -645,7 +645,7 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
         if (cdata->hInThread == NULL) {
             cdata->inRunning = 0;
             cdata->pInAudioClient->lpVtbl->Stop(cdata->pInAudioClient);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to create input thread"));
         }
     }
@@ -677,7 +677,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         cdata->outputBuffer = (MYFLT *)csound->Calloc(csound,
                                                        cdata->outBufferFrames * cdata->onchnls * sizeof(MYFLT));
         if (cdata->outputBuffer == NULL) {
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to allocate output buffer"));
         }
         
@@ -687,7 +687,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         if (cdata->hOutThread == NULL) {
             cdata->outRunning = 0;
             cdata->pOutAudioClient->lpVtbl->Stop(cdata->pOutAudioClient);
-            return csound->InitError(csound,
+            return csound->ErrorMsg(csound,
                                      Str("WASAPI: Failed to create output thread"));
         }
     }
