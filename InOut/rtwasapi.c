@@ -626,13 +626,19 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
     *recordata = (void *)cdata;
     cdata->inParm = (csRtAudioParams *)parm;
     cdata->csound = csound;
-    cdata->inputBuffer = (MYFLT *)csound->Calloc(csound,
-                                                  csound->GetInputBufferSize(csound) * sizeof(MYFLT));
     cdata->incb = csound->CreateCircularBuffer(csound,
                                                parm->bufSamp_HW * parm->nChannels, sizeof(MYFLT));
 
     int32_t ret = WASAPI_open(csound, parm, cdata, 1);
     if (ret == 0) {
+        /* Allocate inputBuffer based on the actual buffer size from WASAPI */
+        cdata->inputBuffer = (MYFLT *)csound->Calloc(csound,
+                                                      cdata->inBufferFrames * cdata->inchnls * sizeof(MYFLT));
+        if (cdata->inputBuffer == NULL) {
+            return csound->InitError(csound,
+                                     Str("WASAPI: Failed to allocate input buffer"));
+        }
+        
         cdata->inRunning = 1;
         cdata->pInAudioClient->lpVtbl->Start(cdata->pInAudioClient);
         cdata->hInThread = CreateThread(NULL, 0, InputThread, cdata, 0, NULL);
@@ -662,14 +668,19 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
     *playdata = (void *)cdata;
     cdata->outParm = (csRtAudioParams *)parm;
     cdata->csound = csound;
-    cdata->outputBuffer = (MYFLT *)csound->Calloc(csound,
-                                                   csound->GetOutputBufferSize(csound) * sizeof(MYFLT));
-    memset(cdata->outputBuffer, 0, csound->GetOutputBufferSize(csound) * sizeof(MYFLT));
     cdata->outcb = csound->CreateCircularBuffer(csound,
                                                 parm->bufSamp_HW * parm->nChannels, sizeof(MYFLT));
 
     int32_t ret = WASAPI_open(csound, parm, cdata, 0);
     if (ret == 0) {
+        /* Allocate outputBuffer based on the actual buffer size from WASAPI */
+        cdata->outputBuffer = (MYFLT *)csound->Calloc(csound,
+                                                       cdata->outBufferFrames * cdata->onchnls * sizeof(MYFLT));
+        if (cdata->outputBuffer == NULL) {
+            return csound->InitError(csound,
+                                     Str("WASAPI: Failed to allocate output buffer"));
+        }
+        
         cdata->outRunning = 1;
         cdata->pOutAudioClient->lpVtbl->Start(cdata->pOutAudioClient);
         cdata->hOutThread = CreateThread(NULL, 0, OutputThread, cdata, 0, NULL);
