@@ -640,8 +640,7 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
         }
         
         cdata->inRunning = 1;
-        HRESULT hr = cdata->pInAudioClient->lpVtbl->Start(cdata->pInAudioClient);
-        csound->DebugMsg(csound, "WASAPI: Input audio client Start returned hr=0x%x\n", hr);
+        cdata->pInAudioClient->lpVtbl->Start(cdata->pInAudioClient);
         cdata->hInThread = CreateThread(NULL, 0, InputThread, cdata, 0, NULL);
         if (cdata->hInThread == NULL) {
             cdata->inRunning = 0;
@@ -683,8 +682,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         }
         
         cdata->outRunning = 1;
-        HRESULT hr = cdata->pOutAudioClient->lpVtbl->Start(cdata->pOutAudioClient);
-        csound->DebugMsg(csound, "WASAPI: Output audio client Start returned hr=0x%x\n", hr);
+        cdata->pOutAudioClient->lpVtbl->Start(cdata->pOutAudioClient);
         cdata->hOutThread = CreateThread(NULL, 0, OutputThread, cdata, 0, NULL);
         if (cdata->hOutThread == NULL) {
             cdata->outRunning = 0;
