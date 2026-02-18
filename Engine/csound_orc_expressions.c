@@ -1646,7 +1646,10 @@ TREE* expand_switch_statement(
         defaultCaseBody = copy_node(csound, endGoto);
       }
     } else {
-      /* Ignore duplicate default clauses. */
+      /* Ignore duplicate default clauses: print a warning */
+      csound->Warning(csound,
+                      "duplicate default case in switch, line %d",
+                      caseNode->line-1);
     }
 
     caseNode = tempNext;
