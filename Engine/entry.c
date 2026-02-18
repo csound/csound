@@ -220,11 +220,20 @@ const OENTRY opcodlst_1[] = {
   { "||",     S(LOGCL),0,  /* 0,*/     "b",    "bb",   or,     NULL             },
   { "||.0",     S(LOGCL),0,  /* 0,*/       "B",    "BB",   NULL,     or              },
   /* end boolean */
-  { ":cond.i",     S(CONVAL),0,        "i",    "bii",  conval                  },
-  { ":cond.k",     S(CONVAL),0,         "k",    "Bkk",  NULL,   conval          },
-  { ":cond.a",     S(CONVAL),0,         "a",    "Bxx",  NULL,   aconval },
-  { ":cond.s",     S(CONVAL),0,        "S",    "bSS",  conval, NULL         },
-  { ":cond.S",     S(CONVAL),0,        "S",    "BSS",  conval, conval       },
+  /** These "cond" opcodes are not used anymore, but the entries are - for tree checking 
+      the code needs to be changed so it doesn't depend on these entries anymore
+  */
+  { ":cond.i",     0,0,        "i",    "bii" },
+  { ":cond.b",     0,0,        "b",    "bbb" },
+  { ":cond.b",     0,0,        "b",    "bib" },
+  { ":cond.b",     0,0,        "b",    "bbi" },
+  { ":cond.k",     0,0,        "k",    "Bkk" },
+  { ":cond.B",     0,0,        "B",    "BBB" },
+  { ":cond.B",     0,0,        "B",    "BkB" },
+  { ":cond.B",     0,0,        "B",    "BBk" },
+  { ":cond.a",     0,0,        "a",    "Bxx"},
+  { ":cond.s",     0,0,        "S",    "bSS" },
+  { ":cond.S",     0,0,        "S",    "BSS" },
   { "##add.ii",  S(AOP),0,          "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,          "i",    "ii",   subkk                   },
   { "##mul.ii",  S(AOP),0,          "i",    "ii",   mulkk                   },

@@ -336,6 +336,13 @@ static TREE *create_cond_expression(CSOUND *csound,
     last = last->next;
   }
 
+  if(last->left == NULL) {
+    csound->Message(csound,
+                    "missing boolean expression in " 
+                    "conditional expression, line %d\n", root->line-1);
+    return NULL;
+  }
+
   if (left[0]=='S' || right[0]=='S') {
     type = (last->left->value->lexeme[1]=='B') ?2 : 1;
     eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
@@ -1214,13 +1221,14 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                                     currentArg->line, currentArg->locn,
                                     typeTable);
       }
-      nextArg = currentArg->next;
-      csound->Free(csound, currentArg);
+     
 
       if (expressionNodes == NULL) {
-        csound->Message(csound, "Error: create_expression returned NULL\n");
+        csound->Message(csound, "error creating expression.\n");
         return NULL;
       }
+      nextArg = currentArg->next;
+      csound->Free(csound, currentArg);
 
       /* Set as anchor if necessary */
       anchor = append_to_tree(csound, anchor, expressionNodes);
