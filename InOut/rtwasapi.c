@@ -357,11 +357,17 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     AUDCLNT_SHAREMODE shareMode = AUDCLNT_SHAREMODE_EXCLUSIVE;
     REFERENCE_TIME hnsBufferDuration = hnsRequestedDuration;
     
+    if (O->msglevel || O->odebug)
+        csound->Message(csound, Str("WASAPI: Attempting exclusive mode initialization...\n"));
+    
     /* For exclusive mode, check if exact format is supported (no pClosestMatch parameter) */
     hr = pAudioClient->lpVtbl->IsFormatSupported(pAudioClient, AUDCLNT_SHAREMODE_EXCLUSIVE,
                                                    &desiredFormat, NULL);
     
     if (hr == S_OK) {
+        if (O->msglevel || O->odebug)
+            csound->Message(csound, Str("WASAPI: Exclusive mode format supported\n"));
+        
         /* Exclusive mode with our desired format */
         pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX));
         if (pFormatToUse != NULL) {
@@ -379,7 +385,19 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         
         if (SUCCEEDED(hr)) {
             if (O->msglevel || O->odebug)
-                csound->Message(csound, Str("WASAPI: Using exclusive mode\n"));
+                csound->Message(csound, Str("WASAPI: Successfully using exclusive mode\n"));
+        } else {
+            if (O->msglevel || O->odebug)
+                csound->Message(csound, Str("WASAPI: Exclusive mode Initialize failed (HRESULT: 0x%08lX)\n"), hr);
+        }
+    } else {
+        if (O->msglevel || O->odebug) {
+            if (hr == S_FALSE)
+                csound->Message(csound, Str("WASAPI: Exclusive mode format not exactly supported\n"));
+            else if (hr == AUDCLNT_E_UNSUPPORTED_FORMAT)
+                csound->Message(csound, Str("WASAPI: Exclusive mode format unsupported\n"));
+            else
+                csound->Message(csound, Str("WASAPI: IsFormatSupported for exclusive mode failed (HRESULT: 0x%08lX)\n"), hr);
         }
     }
     
