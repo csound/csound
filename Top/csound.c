@@ -74,6 +74,11 @@ int32_t kperf(CSOUND *csound);
 int32_t csound_cleanup(CSOUND *);
 int32_t get_time_resolution(void);
 
+int32_t csoundGetMidiOutPort(CSOUND *csound);
+void csoundSendMidiMsg(CSOUND *csound, int32_t status,
+                       int32_t data1, int32_t data2,
+                       int32_t port);
+
 void allocate_message_queue(CSOUND *csound);
 int32_t playopen_dummy(CSOUND *, const csRtAudioParams *parm);
 void rtplay_dummy(CSOUND *, const MYFLT *outBuf, int32_t nbytes);
@@ -581,6 +586,8 @@ static const CSOUND cenviron_ = {
     csoundGetSr,
     csoundGetKr,
     csoundGetKcounter,
+    csoundSendMidiMsg,
+    csoundGetMidiOutPort,
     /* space for API expansion: 50 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
