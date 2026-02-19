@@ -233,11 +233,22 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     IMMDevice *pDevice = NULL;
     IAudioClient *pAudioClient = NULL;
     WAVEFORMATEX *pwfx = NULL;
-    REFERENCE_TIME hnsRequestedDuration = REFTIMES_PER_SEC;
+    REFERENCE_TIME hnsRequestedDuration;
     UINT32 bufferFrameCount;
     UINT32 nchnls;
     const OPARMS *O = csound->GetOParms(csound);
     DWORD devnum = 0;
+
+    /* Calculate requested buffer duration from -B flag (bufSamp_HW) */
+    /* WASAPI duration is in 100-nanosecond units (REFERENCE_TIME) */
+    /* Duration = (bufSamp_HW / sampleRate) * 10,000,000 */
+    if (parm->bufSamp_HW > 0 && parm->sampleRate > 0) {
+        hnsRequestedDuration = (REFERENCE_TIME)((double)parm->bufSamp_HW / 
+                                                 parm->sampleRate * REFTIMES_PER_SEC);
+    } else {
+        /* Default to 100ms if not specified */
+        hnsRequestedDuration = REFTIMES_PER_SEC / 10;
+    }
 
     hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
     if (FAILED(hr) && hr != RPC_E_CHANGED_MODE) {
