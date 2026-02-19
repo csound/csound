@@ -377,33 +377,69 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     /* Try exclusive mode first for lower latency */
     WAVEFORMATEX *pFormatToUse = NULL;
     REFERENCE_TIME hnsBufferDuration = hnsRequestedDuration;
+    WAVEFORMATEX *exclusiveFmts[2];
+    size_t exclusiveFmtSizes[2];
+    int fi;
 
     if (O->msglevel || O->odebug)
         csound->Message(csound, Str("WASAPI: Attempting exclusive mode initialization...\n"));
 
-    /* For exclusive mode, check if WAVEFORMATEXTENSIBLE float is supported */
-    hr = pAudioClient->lpVtbl->IsFormatSupported(pAudioClient, AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                                   (WAVEFORMATEX *)&desiredFormatEx, NULL);
+    /* Try two formats for exclusive mode in order:
+     * 1. The device's own mix format (most compatible - uses device-native format)
+     * 2. Our custom WAVEFORMATEXTENSIBLE 32-bit float format
+     * Only float formats are tried since the I/O threads assume 32-bit float data. */
+    exclusiveFmts[0] = pwfx;
+    exclusiveFmtSizes[0] = (pwfx != NULL) ? (sizeof(WAVEFORMATEX) + pwfx->cbSize) : 0;
+    exclusiveFmts[1] = (WAVEFORMATEX *)&desiredFormatEx;
+    exclusiveFmtSizes[1] = sizeof(WAVEFORMATEXTENSIBLE);
 
-    if (hr == S_OK) {
+    /* Reset hr so the shared mode fallback triggers if exclusive mode fails */
+    hr = AUDCLNT_E_UNSUPPORTED_FORMAT;
+
+    for (fi = 0; fi < 2; fi++) {
+        WAVEFORMATEX *fmt = exclusiveFmts[fi];
+        if (fmt == NULL) continue;
+
+        /* Only use 32-bit float formats (I/O threads assume float data) */
+        int isFloat32 = 0;
+        if (fmt->wFormatTag == WAVE_FORMAT_IEEE_FLOAT && fmt->wBitsPerSample == 32) {
+            isFloat32 = 1;
+        } else if (fmt->wFormatTag == WAVE_FORMAT_EXTENSIBLE && fmt->wBitsPerSample == 32) {
+            WAVEFORMATEXTENSIBLE *fmtex = (WAVEFORMATEXTENSIBLE *)fmt;
+            isFloat32 = (memcmp(&fmtex->SubFormat, &ksdataFormatSubtypeIeeeFloat,
+                                sizeof(GUID)) == 0);
+        }
+        if (!isFloat32) {
+            if (O->msglevel || O->odebug)
+                csound->Message(csound,
+                                Str("WASAPI: Exclusive format %d skipped (not 32-bit float)\n"),
+                                fi);
+            continue;
+        }
+
+        hr = pAudioClient->lpVtbl->IsFormatSupported(pAudioClient, AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                                       fmt, NULL);
+        if (hr != S_OK) {
+            if (O->msglevel || O->odebug)
+                csound->Message(csound,
+                                Str("WASAPI: Exclusive format %d not supported "
+                                    "(HRESULT: 0x%08lX)\n"), fi, hr);
+            continue;
+        }
+
+        /* Format is supported - get device period and align buffer duration */
         REFERENCE_TIME hnsDefaultDevicePeriod = 0, hnsMinimumDevicePeriod = 0;
-        if (O->msglevel || O->odebug)
-            csound->Message(csound, Str("WASAPI: Exclusive mode format supported\n"));
-
-        /* Query device period - exclusive mode requires buffer aligned to device period */
         pAudioClient->lpVtbl->GetDevicePeriod(pAudioClient,
                                                &hnsDefaultDevicePeriod, &hnsMinimumDevicePeriod);
         if (hnsMinimumDevicePeriod > 0 && hnsBufferDuration < hnsMinimumDevicePeriod)
             hnsBufferDuration = hnsMinimumDevicePeriod;
 
-        pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEXTENSIBLE));
-        if (pFormatToUse != NULL) {
-            memcpy(pFormatToUse, &desiredFormatEx, sizeof(WAVEFORMATEXTENSIBLE));
-            CoTaskMemFree(pwfx);
-            pwfx = NULL;
-        } else {
-            pFormatToUse = pwfx;
+        pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(exclusiveFmtSizes[fi]);
+        if (pFormatToUse == NULL) {
+            hr = E_OUTOFMEMORY;
+            continue;
         }
+        memcpy(pFormatToUse, fmt, exclusiveFmtSizes[fi]);
 
         hr = pAudioClient->lpVtbl->Initialize(pAudioClient, AUDCLNT_SHAREMODE_EXCLUSIVE,
                                                AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
@@ -416,43 +452,58 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             pAudioClient->lpVtbl->GetBufferSize(pAudioClient, &nFrames);
             CoTaskMemFree(pFormatToUse);
             pFormatToUse = NULL;
-            hnsBufferDuration = (REFERENCE_TIME)(10000.0 * 1000 * nFrames / parm->sampleRate + 0.5);
+            hnsBufferDuration =
+                (REFERENCE_TIME)(10000.0 * 1000 * nFrames / parm->sampleRate + 0.5);
             SAFE_RELEASE(pAudioClient);
             hr = pDevice->lpVtbl->Activate(pDevice, &IID_IAudioClient, CLSCTX_ALL,
                                             NULL, (void **)&pAudioClient);
             if (SUCCEEDED(hr)) {
-                pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEXTENSIBLE));
-                if (pFormatToUse != NULL)
-                    memcpy(pFormatToUse, &desiredFormatEx, sizeof(WAVEFORMATEXTENSIBLE));
-                hr = pAudioClient->lpVtbl->Initialize(pAudioClient, AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                                       AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                                                       hnsBufferDuration, hnsBufferDuration,
-                                                       pFormatToUse, NULL);
+                pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(exclusiveFmtSizes[fi]);
+                if (pFormatToUse != NULL) {
+                    memcpy(pFormatToUse, fmt, exclusiveFmtSizes[fi]);
+                    hr = pAudioClient->lpVtbl->Initialize(pAudioClient,
+                                                           AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                                           AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                                                           hnsBufferDuration, hnsBufferDuration,
+                                                           pFormatToUse, NULL);
+                } else {
+                    hr = E_OUTOFMEMORY;
+                }
             }
         }
 
         if (SUCCEEDED(hr)) {
             if (O->msglevel || O->odebug)
-                csound->Message(csound, Str("WASAPI: Successfully using exclusive mode\n"));
+                csound->Message(csound, Str("WASAPI: Successfully using exclusive mode "
+                                            "(format %d)\n"), fi);
+            if (fi == 0 && pwfx != NULL) {
+                /* We copied the mix format into pFormatToUse - free the original */
+                CoTaskMemFree(pwfx);
+                pwfx = NULL;
+            }
+            break; /* Exclusive mode succeeded */
         } else {
             if (O->msglevel || O->odebug)
                 csound->Message(csound,
-                                Str("WASAPI: Exclusive mode Initialize failed (HRESULT: 0x%08lX)\n"),
-                                hr);
-            if (pFormatToUse != NULL) {
-                CoTaskMemFree(pFormatToUse);
-                pFormatToUse = NULL;
-            }
+                                Str("WASAPI: Exclusive Initialize failed (HRESULT: 0x%08lX), "
+                                    "trying next format\n"), hr);
+            CoTaskMemFree(pFormatToUse);
+            pFormatToUse = NULL;
+            hnsBufferDuration = hnsRequestedDuration; /* Reset for next attempt */
         }
-    } else {
-        if (O->msglevel || O->odebug)
-            csound->Message(csound,
-                            Str("WASAPI: Exclusive mode format not supported (HRESULT: 0x%08lX), "
-                                "falling back to shared mode\n"), hr);
+    }
+
+    /* Free the mix format if exclusive mode succeeded and we didn't use it */
+    if (hr == S_OK && pwfx != NULL) {
+        CoTaskMemFree(pwfx);
+        pwfx = NULL;
     }
 
     /* If exclusive mode failed, fall back to shared mode */
     if (FAILED(hr) || hr != S_OK) {
+        if (O->msglevel || O->odebug)
+            csound->Message(csound, Str("WASAPI: All exclusive mode attempts failed, "
+                                        "falling back to shared mode\n"));
         /* Ensure we still have the mix format */
         if (pwfx == NULL) {
             hr = pAudioClient->lpVtbl->GetMixFormat(pAudioClient, &pwfx);
