@@ -254,6 +254,22 @@ e
       /(INIT ERROR|failed to open file|unimplemented format|note deleted)/i.test(message),
     );
 
+  const waitForPerformanceEnd = (csoundObj) =>
+    new Promise((resolve) => {
+      const onRealtimeEnded = () => {
+        csoundObj.off("realtimePerformanceEnded", onRealtimeEnded);
+        csoundObj.off("renderEnded", onRenderEnded);
+        resolve("realtimePerformanceEnded");
+      };
+      const onRenderEnded = () => {
+        csoundObj.off("realtimePerformanceEnded", onRealtimeEnded);
+        csoundObj.off("renderEnded", onRenderEnded);
+        resolve("renderEnded");
+      };
+      csoundObj.on("realtimePerformanceEnded", onRealtimeEnded);
+      csoundObj.on("renderEnded", onRenderEnded);
+    });
+
   mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
 
   if (isCI) {
@@ -664,11 +680,7 @@ e
         await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
 
         // allow the example to play until the end
-        let endResolver;
-        const waitUntilEnd = new Promise((resolve) => {
-          endResolver = resolve;
-        });
-        csoundObj.on("realtimePerformanceEnded", endResolver);
+        const waitUntilEnd = waitForPerformanceEnd(csoundObj);
 
         assert.include(
           await csoundObj.fs.readdir("/"),
@@ -700,11 +712,7 @@ e
         await csoundObj.fs.writeFile("sine.mp3", mp3Sample);
         const messageCollector = collectCsoundMessages(csoundObj);
 
-        let endResolver;
-        const waitUntilEnd = new Promise((resolve) => {
-          endResolver = resolve;
-        });
-        csoundObj.on("realtimePerformanceEnded", endResolver);
+        const waitUntilEnd = waitForPerformanceEnd(csoundObj);
 
         assert.include(
           await csoundObj.fs.readdir("/"),
@@ -737,11 +745,7 @@ e
         const csoundObj = await Csound(test);
         const messageCollector = collectCsoundMessages(csoundObj);
 
-        let endResolver;
-        const waitUntilEnd = new Promise((resolve) => {
-          endResolver = resolve;
-        });
-        csoundObj.on("realtimePerformanceEnded", endResolver);
+        const waitUntilEnd = waitForPerformanceEnd(csoundObj);
 
         assert.equal(
           0,

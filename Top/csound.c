@@ -1997,6 +1997,9 @@ static void reset(CSOUND *csound) {
   /* allow selecting real time audio module */
   csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t)max_len);
   s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
+#ifdef __wasi__
+  strcpy(s, "null");
+#else
 #ifndef LINUX
 #ifdef __HAIKU__
   strcpy(s, "haiku");
@@ -2009,6 +2012,7 @@ static void reset(CSOUND *csound) {
 #endif
 #else
   strcpy(s, "alsa");
+#endif
 #endif
 
   csoundCreateConfigurationVariable(csound, "rtaudio", s, CSOUNDCFG_STRING, 0,
@@ -2351,5 +2355,4 @@ MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n) {
   return ((MYFLT)((OPDS *)p)->insdshead->xtratim *
           ((OPDS *)p)->insdshead->csound->onedkr);
 }
-
 

@@ -31,7 +31,9 @@ static double *get_dummy_rtaudio_globals(CSOUND *csound) {
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
                                               sizeof(double) * 4) != 0))
       csound->Die(csound, Str("rtdummy: failed to allocate globals"));
+#ifndef __wasi__
     csound->Message(csound, Str("rtaudio: dummy module enabled\n"));
+#endif
     p = (double *)csound->QueryGlobalVariable(csound, "__rtaudio_null_state");
   }
   return p;
