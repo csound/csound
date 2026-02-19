@@ -189,6 +189,71 @@ e
 </CsoundSynthesizer>
 `;
 
+  const mp3DiskinTest = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  a1 diskin2 "sine.mp3", 1, 0, 0
+  out a1
+endin
+
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+e
+</CsScore>
+</CsoundSynthesizer>
+`;
+
+  const missingMp3DiskinTest = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  a1 diskin2 "missing.mp3", 1, 0, 0
+  out a1
+endin
+
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+e
+</CsScore>
+</CsoundSynthesizer>
+`;
+
+  const collectCsoundMessages = (csoundObj) => {
+    const messages = [];
+    const listener = (message) => {
+      messages.push(String(message));
+    };
+    csoundObj.on("message", listener);
+    return {
+      messages,
+      stop: () => csoundObj.off("message", listener),
+    };
+  };
+
+  const findRuntimeAudioOpenErrors = (messages) =>
+    messages.filter((message) =>
+      /(INIT ERROR|failed to open file|unimplemented format|note deleted)/i.test(message),
+    );
+
   mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
 
   if (isCI) {
@@ -623,6 +688,81 @@ e
           await csoundObj.fs.readdir("/"),
           "monitor_out.wav",
           "The sample which csound wrote with fout, is accessible after the end of performance",
+        );
+        await csoundObj.terminateInstance();
+      });
+
+      it("can play an mp3 sample with diskin2", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("sine.mp3");
+        const mp3ArrayBuffer = await response.arrayBuffer();
+        const mp3Sample = new Uint8Array(mp3ArrayBuffer);
+        await csoundObj.fs.writeFile("sine.mp3", mp3Sample);
+        const messageCollector = collectCsoundMessages(csoundObj);
+
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "sine.mp3",
+          "The MP3 sample was written into the root dir",
+        );
+
+        assert.equal(
+          0,
+          await csoundObj.compileCSD(mp3DiskinTest),
+          "The MP3 diskin2 CSD is valid",
+        );
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csound starts and can open sine.mp3 with diskin2",
+        );
+        await waitUntilEnd;
+        const runtimeErrors = findRuntimeAudioOpenErrors(messageCollector.messages);
+        messageCollector.stop();
+        assert.equal(
+          runtimeErrors.length,
+          0,
+          `No runtime diskin2/open-file errors expected.\n${runtimeErrors.join("\n")}`,
+        );
+        await csoundObj.terminateInstance();
+      });
+
+      it("reports runtime diskin2 open errors even when start() returns 0", async function () {
+        const csoundObj = await Csound(test);
+        const messageCollector = collectCsoundMessages(csoundObj);
+
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
+        assert.equal(
+          0,
+          await csoundObj.compileCSD(missingMp3DiskinTest),
+          "Missing-file diskin2 CSD should compile",
+        );
+
+        const startReturn = await csoundObj.start();
+        await waitUntilEnd;
+        const runtimeErrors = findRuntimeAudioOpenErrors(messageCollector.messages);
+        messageCollector.stop();
+
+        assert(
+          startReturn !== 0 || runtimeErrors.length > 0,
+          `Expected start failure or runtime init errors.\nstart() returned: ${startReturn}\n` +
+            `messages:\n${messageCollector.messages.join("\n")}`,
+        );
+        assert(
+          runtimeErrors.length > 0,
+          `Expected a runtime diskin2 open error for missing.mp3.\n` +
+            `messages:\n${messageCollector.messages.join("\n")}`,
         );
         await csoundObj.terminateInstance();
       });

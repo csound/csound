@@ -13,6 +13,7 @@
   libsndfile = pkgs.callPackage ./libsndfile.nix {inherit pkgs pkgsWasm stdenvWasm;};
   libogg = pkgs.callPackage ./libogg.nix {inherit pkgs pkgsWasm stdenvWasm;};
   libvorbis = pkgs.callPackage ./libvorbis.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  libmpg123 = pkgs.callPackage ./libmpg123.nix {inherit pkgs pkgsWasm stdenvWasm;};
   liblame = pkgs.callPackage ./liblame.nix {inherit pkgs pkgsWasm stdenvWasm;};
   libFLAC = pkgs.callPackage ./libflac.nix {inherit pkgs pkgsWasm stdenvWasm;};
   libopus = pkgs.callPackage ./libopus.nix {inherit pkgs pkgsWasm stdenvWasm;};
@@ -43,6 +44,8 @@ in
       libsndfile
       libogg
       libvorbis
+      libmpg123
+      liblame
     ];
 
     enableParallelBuilding = false;
@@ -93,6 +96,8 @@ in
         "${libvorbis}/lib/libvorbis.a"
         "${libvorbis}/lib/libvorbisenc.a"
         "${libogg}/lib/libogg.a"
+        "${liblame}/lib/libmp3lame.a"
+        "${libmpg123}/lib/libmpg123.a"
         "${libopus}/lib/libopus.a"
         "--export=__heap_base"
         "--export=__data_end"
