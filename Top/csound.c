@@ -3586,7 +3586,7 @@ PUBLIC void csoundReset(CSOUND *csound) {
   strcpy(s, "auhal");
 #else
 #ifdef _WIN32
-  strcpy(s, "wasapi");
+  strcpy(s, "PortAudio");
 #else
   strcpy(s, "PortAudio");
 #endif

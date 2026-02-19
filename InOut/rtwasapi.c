@@ -1,7 +1,7 @@
 /*
   rtwasapi.c:
 
-  Copyright (C) 2025 Victor Lazzarini, Steven Yi
+  Copyright (C) 2026 The Csound Developers
 
   This file is part of Csound.
 
