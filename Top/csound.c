@@ -2002,7 +2002,11 @@ static void reset(CSOUND *csound) {
 #ifdef __MACH__
   strcpy(s, "auhal");
 #else
+#ifdef _WIN32
   strcpy(s, "PortAudio");
+#else
+  strcpy(s, "PortAudio");
+#endif
 #endif
 #endif
 #else

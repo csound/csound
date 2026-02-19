@@ -264,3 +264,4 @@ iOS/include
 tmp
 *-g
 .zed
+_codeql_detected_source_root
