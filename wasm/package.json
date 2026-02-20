@@ -1,6 +1,6 @@
 {
   "name": "@csound/wasm-bin",
-  "version": "7.0.0-beta17",
+  "version": "7.0.0-beta18",
   "description": "A package containing csound wasm binaries which can be bundled into other csound packages 📂",
   "main": "./lib/csound.wasm",
   "files": [
