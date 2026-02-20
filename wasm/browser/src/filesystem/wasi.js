@@ -1151,7 +1151,7 @@ WASI.prototype.sock_shutdown = function () {
 // helpers
 
 WASI.prototype.findBuffers = function (filePath /* string */) {
-  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
+  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
   return maybeFd && maybeFd.buffers;
 };
 
@@ -1184,7 +1184,7 @@ WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) 
   const filePath = this.resolvePath(fname);
 
   const nextFd = Object.keys(this.fd).length;
-  const maybeOldFd = Object.values(this.fd).find(({ path }) => path === filePath);
+  const maybeOldFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
 
   this.fd[nextFd] = {
     fd: nextFd,
@@ -1229,7 +1229,7 @@ WASI.prototype.readStdOut = function () {
 
 WASI.prototype.unlink = function (fname /* string */) {
   const filePath = this.resolvePath(fname);
-  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
+  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
 
   if (maybeFd) {
     delete this.fd[maybeFd.fd];
@@ -1263,7 +1263,7 @@ WASI.prototype.mkdir = function (dirname /* string */) {
 
 WASI.prototype.stat = function (fname /* string */) {
   const filePath = this.resolvePath(fname);
-  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
+  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
 
   if (!maybeFd) {
     return undefined;
@@ -1307,6 +1307,6 @@ WASI.prototype.stat = function (fname /* string */) {
 
 WASI.prototype.pathExists = function (fname /* string */) {
   const filePath = this.resolvePath(fname);
-  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
+  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
   return !!maybeFd;
 };
