@@ -1,4 +1,4 @@
-import goog from "google-closure-compiler";
+import googClosureCompiler from "google-closure-compiler";
 import JarPath from "google-closure-compiler-java";
 import prettier from "prettier";
 import { Readable } from "stream";
@@ -7,7 +7,7 @@ import rimraf from "rimraf";
 import fs from "fs";
 import path from "path";
 import * as R from "ramda";
-const { compiler: ClosureCompiler } = goog;
+const ClosureCompiler = googClosureCompiler.compiler || googClosureCompiler;
 import { inlineWebworker } from "./goog/generate-webworker-module.js";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
 
@@ -63,24 +63,17 @@ if (fs.existsSync(distDir)) {
 }
 fs.mkdirSync(distDir);
 
-if (process.env.BUILD_STATIC) {
   fs.writeFileSync(
     path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-    inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.static.wasm.z", "binary.wasm"),
+    inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
   );
-} else {
-  fs.writeFileSync(
-    path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-    inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.dylib.wasm.z", "binary.wasm"),
-  );
-}
 
-const polyfills = {
-  fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),
-  set_timeout_noop: fs.readFileSync("polyfills/set-timeout-noop.js", "utf-8"),
-  text_encoding: fs.readFileSync("polyfills/text-encoding.js", "utf-8"),
-  performance: fs.readFileSync("polyfills/performance.js", "utf-8"),
-};
+// const polyfills = {
+//   fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),
+//   set_timeout_noop: fs.readFileSync("polyfills/set-timeout-noop.js", "utf-8"),
+//   text_encoding: fs.readFileSync("polyfills/text-encoding.js", "utf-8"),
+//   performance: fs.readFileSync("polyfills/performance.js", "utf-8"),
+// };
 
 const compilationSequence = [
   {
@@ -179,6 +172,8 @@ const compile = async (config) => {
     hide_warnings_for: [
       "./node_modules/eventemitter3/umd/eventemitter3.min.js",
       "./node_modules/lines-logger/lib/index.js",
+      "./node_modules/google-closure-library/closure/goog/base.js",
+      "./node_modules/google-closure-library/closure/goog/dom/tagname.js",
     ],
     jscomp_off: ["accessControls"],
     assume_function_wrapper: false,

@@ -409,6 +409,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
 
 static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t async) {
   int32_t res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
+  int32_t scoreErrCnt;
   if (LIKELY(res)) {
     if (csound->csdname != NULL)
       csound->Free(csound, csound->csdname);
@@ -420,11 +421,15 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t asy
     if (res == CSOUND_SUCCESS) {
       if ((csound->engineStatus & CS_STATE_COMP) != 0) {
           char *sc;
+          scoreErrCnt = csound->inerrcnt;
           if (csound->scorestr == NULL)
             sc = "#exit";
           else {
             csound->scorestr->body[+csound->scorestr->len - 9] = ' ';
             sc = scsortstr(csound, csound->scorestr);
+          }
+          if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
+            return CSOUND_ERROR;
           }
           if (sc) {
             if (csound->oparms->odebug)
@@ -440,7 +445,11 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text, int32_t asy
           csound->scorestr = corfile_create_w(csound);
           corfile_puts(csound, "\n\n\ne\n#exit\n", csound->scorestr);
         }
+        scoreErrCnt = csound->inerrcnt;
         scsortstr(csound, csound->scorestr);
+        if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
+          return CSOUND_ERROR;
+        }
         if (csound->oparms->odebug)
           csound->Message(csound,
                           Str("Compiled score "
@@ -638,5 +647,4 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
 
   return start_engine(csound);
 }
-
 

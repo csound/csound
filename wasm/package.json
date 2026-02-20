@@ -1,6 +1,6 @@
 {
   "name": "@csound/wasm-bin",
-  "version": "7.0.0-beta16",
+  "version": "7.0.0-beta18",
   "description": "A package containing csound wasm binaries which can be bundled into other csound packages 📂",
   "main": "./lib/csound.wasm",
   "files": [
@@ -20,11 +20,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "bash ./scripts/compile.sh",
-    "build:release": "bash ./scripts/compile.release.sh",
-    "build:nix": "nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result",
-    "build:nix:plugin": "nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example.nix {})' -o result",
-    "build:docker": "docker build -t csound-wasm -f ./Dockerfile ."
+    "build": "bash ./scripts/compile.sh"
   },
   "keywords": [
     "@csound",

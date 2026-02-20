@@ -71,25 +71,28 @@ csoundEvalCode["toString"] = () => "csoundEvalCode = async (orchestra) => Number
  * Prepares Csound for performance
  * @function
  */
-export const csoundStart = (wasm) => (csound) => wasm.exports["csoundStartWasi"](csound);
+export const csoundStart = (wasm) => (csound) => {
+  const result = wasm.exports["csoundStartWasi"](csound);
+  return result;
+};
 
 csoundStart["toString"] = () => "start = async () => Number;";
 
 // TODO
 // csoundCompile (CSOUND *, int argc, const char **argv)
 
-
-
 /**
  * Compiles a CSD string but does not perform it.
  * @function
  */
-export const csoundCompileCSD = (wasm) => (csound, csd, mode = 1) => {
-  const stringPtr = string2ptr(wasm, csd);
-  const result = wasm.exports["csoundCompileCSD"](csound, stringPtr, mode, 0);
-  freeStringPtr(wasm, stringPtr);
-  return result;
-};
+export const csoundCompileCSD =
+  (wasm) =>
+  (csound, csd, mode = 1) => {
+    const stringPtr = string2ptr(wasm, csd);
+    const result = wasm.exports["csoundCompileCSD"](csound, stringPtr, mode, 0);
+    freeStringPtr(wasm, stringPtr);
+    return result;
+  };
 
 csoundCompileCSD["toString"] = () => "compileCSD = async (csoundDocument) => Number;";
 
@@ -97,17 +100,15 @@ csoundCompileCSD["toString"] = () => "compileCSD = async (csoundDocument) => Num
  * Performs(plays) 1 ksmps worth of sample(s)
  * @function
  */
-export const csoundPerformKsmps = (wasm) => (csound) =>
-  wasm.exports["csoundPerformKsmpsWasi"](csound);
+export const csoundPerformKsmps = (wasm) => (csound) => wasm.exports["csoundPerformKsmps"](csound);
 
 csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;";
-
 
 /**
  * Dummy function to enable stop mechanism
  * @function
  */
-export const csoundStop = (wasm) => (csound) => { };
+export const csoundStop = (wasm) => (csound) => {};
 
 csoundStop["toString"] = () => "stop = async () => undefined;";
 

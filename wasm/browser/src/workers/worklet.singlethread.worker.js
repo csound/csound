@@ -95,6 +95,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     /** @export */
     this.stop = this.stop.bind(this);
     /** @export */
+    this.terminate = this.terminate.bind(this);
+    /** @export */
     this.process = this.process.bind(this);
     /** @export */
     this.resume = this.resume.bind(this);
@@ -109,6 +111,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.isPaused = false;
     this.running = false;
     this.started = false;
+    this.isTerminated = false;
     /** @export */
     this.callUncloned = async (k, arguments_) => {
       const caller = this.combined && this.combined.get(k);
@@ -167,6 +170,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.running = false;
       this.isRendering = false;
       this.started = false;
+      this.isTerminated = false;
       this.resetCsound(false);
 
       const csoundCreate = async (v) => {
@@ -225,13 +229,37 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
   }
 
   stop() {
+    // Ensure process() cannot keep advancing DSP after a manual stop.
+    this.running = false;
+    this.started = false;
+    this.result = 0;
+    this.needsStartNotification = false;
+    this.isRendering = false;
+    delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
+
     if (this.csound) {
       this.libraryCsound.csoundStop(this.csound);
     }
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+  }
+
+  terminate() {
+    if (this.isTerminated) {
+      return;
+    }
+    this.isTerminated = true;
+    const resolveRenderSleep = this.renderSleep;
+    this.renderSleep = undefined;
+    if (typeof resolveRenderSleep === "function") {
+      resolveRenderSleep();
+    }
+    clearArray(this.rtmidiQueue);
+    this.stop();
   }
 
   pause() {
@@ -255,7 +283,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       resolve();
     }
 
-    if (!this.isRendering && (this.isPaused || !this.csoundOutputBuffer || !this.running)) {
+    if (this.isTerminated) {
+      (outputs[0] || []).forEach((array) => array.fill(0));
+      return false;
+    }
+
+    if (this.isRendering || this.isPaused || !this.csoundOutputBuffer || !this.running) {
       const output = outputs[0];
       const bufferLength = output[0].length;
       for (let index = 0; index < bufferLength; index++) {
@@ -376,13 +409,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     return true;
   }
 
-  async isRequestingInput() {
+  isRequestingInput() {
     const cs = this.csound;
     const inputName = this.libraryCsound.csoundGetInputName(cs) || "";
     return inputName.includes("adc");
   }
 
-  async isRequestingRealtimeOutput() {
+  isRequestingRealtimeOutput() {
     const cs = this.csound;
     const outputName = this.libraryCsound.csoundGetOutputName(cs) || "";
     return outputName.includes("dac");
@@ -409,7 +442,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         return returnValueValue;
       }
 
-      const isExpectingRealtimeOutput = await this.isRequestingRealtimeOutput();
+      const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
         this.csoundOutputBuffer = new Float64Array(
@@ -440,7 +473,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
           })
-          .catch(() => {
+          .catch((error) => {
+            console.error(error);
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
           });

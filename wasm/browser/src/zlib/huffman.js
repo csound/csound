@@ -4,7 +4,7 @@
 /**
  * build huffman table from length list.
  * @param {Uint8Array} lengths length list.
- * @return {Array.<number,number,number>} huffman table.
+ * @return {!Array<(!Uint32Array|number)>} huffman table.
  */
 export function Huffman(lengths) {
   /** @type {number} length list size. */

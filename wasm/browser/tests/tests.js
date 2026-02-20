@@ -117,31 +117,23 @@
 </CsoundSynthesizer>
 `;
 
-  const cxxPluginTest = `
+  const cppPluginTest = `
 <CsoundSynthesizer>
 <CsOptions>
  -odac
 </CsOptions>
 <CsInstruments>
-  0dbfs=1
-instr 1
- kcone_lengths[] fillarray 0.0316, 0.051, .3, 0.2
- kradii_in[] fillarray 0.0055, 0.00635, 0.0075, 0.0075
- kradii_out[]  fillarray 0.0055, 0.0075, 0.0075, 0.0275
- kcurve_type[] fillarray 1, 1, 1, 2
- kLength linseg 0.2, 2, 0.3
- kPick_Pos = 1.0
- kEndReflection init 1.0
- kEndReflection = 1.0
- kDensity = 1.0
- kComputeVisco = 0
- aImpulse mpulse .5, .1
- aFeedback, aSound resontube 0.005*aImpulse, kLength, kcone_lengths, kradii_in, kradii_out, kcurve_type, kEndReflection, kDensity, kPick_Pos, kComputeVisco
- out aSound
-endin
+  sr = 44100
+  ksmps = 64
+  nchnls = 1
+  0dbfs = 1
+
+  instr 1
+    a1 hello440
+  endin
 </CsInstruments>
 <CsScore>
-i1 0 2
+  i1 0 0.2
 </CsScore>
 </CsoundSynthesizer>
 `;
@@ -197,6 +189,87 @@ e
 </CsoundSynthesizer>
 `;
 
+  const mp3DiskinTest = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  a1 diskin2 "sine.mp3", 1, 0, 0
+  out a1
+endin
+
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+e
+</CsScore>
+</CsoundSynthesizer>
+`;
+
+  const missingMp3DiskinTest = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  a1 diskin2 "missing.mp3", 1, 0, 0
+  out a1
+endin
+
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+e
+</CsScore>
+</CsoundSynthesizer>
+`;
+
+  const collectCsoundMessages = (csoundObj) => {
+    const messages = [];
+    const listener = (message) => {
+      messages.push(String(message));
+    };
+    csoundObj.on("message", listener);
+    return {
+      messages,
+      stop: () => csoundObj.off("message", listener),
+    };
+  };
+
+  const findRuntimeAudioOpenErrors = (messages) =>
+    messages.filter((message) =>
+      /(INIT ERROR|failed to open file|unimplemented format|note deleted)/i.test(message),
+    );
+
+  const waitForPerformanceEnd = (csoundObj) =>
+    new Promise((resolve) => {
+      const onRealtimeEnded = () => {
+        csoundObj.off("realtimePerformanceEnded", onRealtimeEnded);
+        csoundObj.off("renderEnded", onRenderEnded);
+        resolve("realtimePerformanceEnded");
+      };
+      const onRenderEnded = () => {
+        csoundObj.off("realtimePerformanceEnded", onRealtimeEnded);
+        csoundObj.off("renderEnded", onRenderEnded);
+        resolve("renderEnded");
+      };
+      csoundObj.on("realtimePerformanceEnded", onRealtimeEnded);
+      csoundObj.on("renderEnded", onRenderEnded);
+    });
+
   mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
 
   if (isCI) {
@@ -213,9 +286,12 @@ e
     describe(`@csound/browser : ${test.name}`, async function () {
       this.timeout(10000);
       it("can be started", async function () {
+        console.log("initialising Csound object");
         const cs = await Csound(test);
         console.log(`Csound version: ${cs.name}`);
+        console.log("calling start");
         const startReturn = await cs.start();
+        console.log("done calling start");
         assert.equal(startReturn, 0);
         await cs.stop();
         cs.terminateInstance && (await cs.terminateInstance());
@@ -297,21 +373,20 @@ e
         await cs.terminateInstance();
       });
 
-      // DISABLED due to cxx plugin using source not updated for CS7
-      //   it("can load and run c++ plugins", async function () {
-      //     const testWithPlugin = Object.assign(
-      //       {
-      //         withPlugins: ["./plugin_example_cxx.wasm"],
-      //       },
-      //       test,
-      //     );
-      //     const cs = await Csound(testWithPlugin);
+      it("can load and run c++ plugins", async function () {
+        const testWithPlugin = Object.assign(
+          {
+            withPlugins: ["./plugin_example_cpp.wasm"],
+          },
+          test,
+        );
+        const cs = await Csound(testWithPlugin);
 
-      //     assert.equal(0, await cs.compileCSD(cxxPluginTest));
-      //     await cs.start();
-      //     await cs.stop();
-      //     await cs.terminateInstance();
-      //   });
+        assert.equal(0, await cs.compileCSD(cppPluginTest));
+        await cs.start();
+        await cs.stop();
+        await cs.terminateInstance();
+      });
 
       it("emits public events in realtime performance", async function () {
         if (test.name !== "WORKER, AW, SAB") {
@@ -459,7 +534,72 @@ e
         }
       });
 
-    /* DISABLED due to removed API functions in CS7
+      it("does not close shared AudioContext when terminating one instance", async function () {
+        const backendConfig = {
+          useWorker: Boolean(test.useWorker),
+          useSAB: test.useSAB === true,
+        };
+
+        const sharedAudioContext = new (window.AudioContext || window.webkitAudioContext)({
+          latencyHint: "interactive",
+        });
+
+        let csound1;
+        let csound2;
+
+        try {
+          csound1 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+          csound2 = await Csound({
+            useWorker: backendConfig.useWorker,
+            useSAB: backendConfig.useSAB,
+            audioContext: sharedAudioContext,
+            autoConnect: false,
+          });
+
+          assert.notEqual(
+            sharedAudioContext.state,
+            "closed",
+            `${test.name}: shared AudioContext should start open`,
+          );
+
+          await csound1.terminateInstance();
+
+          assert.notEqual(
+            sharedAudioContext.state,
+            "closed",
+            `${test.name}: terminating one instance must not close shared AudioContext`,
+          );
+
+          await csound2.terminateInstance();
+
+          assert.notEqual(
+            sharedAudioContext.state,
+            "closed",
+            `${test.name}: terminating second instance must not close shared AudioContext`,
+          );
+        } finally {
+          if (csound2 && csound2.terminateInstance) {
+            try {
+              await csound2.terminateInstance();
+            } catch {}
+          }
+          if (csound1 && csound1.terminateInstance) {
+            try {
+              await csound1.terminateInstance();
+            } catch {}
+          }
+          if (sharedAudioContext && sharedAudioContext.state !== "closed") {
+            await sharedAudioContext.close();
+          }
+        }
+      });
+
+      /* DISABLED due to removed API functions in CS7
       it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
         await csoundObj.setOption("-odac");
@@ -540,11 +680,7 @@ e
         await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
 
         // allow the example to play until the end
-        let endResolver;
-        const waitUntilEnd = new Promise((resolve) => {
-          endResolver = resolve;
-        });
-        csoundObj.on("realtimePerformanceEnded", endResolver);
+        const waitUntilEnd = waitForPerformanceEnd(csoundObj);
 
         assert.include(
           await csoundObj.fs.readdir("/"),
@@ -564,6 +700,73 @@ e
           await csoundObj.fs.readdir("/"),
           "monitor_out.wav",
           "The sample which csound wrote with fout, is accessible after the end of performance",
+        );
+        await csoundObj.terminateInstance();
+      });
+
+      it("can play an mp3 sample with diskin2", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("sine.mp3");
+        const mp3ArrayBuffer = await response.arrayBuffer();
+        const mp3Sample = new Uint8Array(mp3ArrayBuffer);
+        await csoundObj.fs.writeFile("sine.mp3", mp3Sample);
+        const messageCollector = collectCsoundMessages(csoundObj);
+
+        const waitUntilEnd = waitForPerformanceEnd(csoundObj);
+
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "sine.mp3",
+          "The MP3 sample was written into the root dir",
+        );
+
+        assert.equal(
+          0,
+          await csoundObj.compileCSD(mp3DiskinTest),
+          "The MP3 diskin2 CSD is valid",
+        );
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csound starts and can open sine.mp3 with diskin2",
+        );
+        await waitUntilEnd;
+        const runtimeErrors = findRuntimeAudioOpenErrors(messageCollector.messages);
+        messageCollector.stop();
+        assert.equal(
+          runtimeErrors.length,
+          0,
+          `No runtime diskin2/open-file errors expected.\n${runtimeErrors.join("\n")}`,
+        );
+        await csoundObj.terminateInstance();
+      });
+
+      it("reports runtime diskin2 open errors even when start() returns 0", async function () {
+        const csoundObj = await Csound(test);
+        const messageCollector = collectCsoundMessages(csoundObj);
+
+        const waitUntilEnd = waitForPerformanceEnd(csoundObj);
+
+        assert.equal(
+          0,
+          await csoundObj.compileCSD(missingMp3DiskinTest),
+          "Missing-file diskin2 CSD should compile",
+        );
+
+        const startReturn = await csoundObj.start();
+        await waitUntilEnd;
+        const runtimeErrors = findRuntimeAudioOpenErrors(messageCollector.messages);
+        messageCollector.stop();
+
+        assert(
+          startReturn !== 0 || runtimeErrors.length > 0,
+          `Expected start failure or runtime init errors.\nstart() returned: ${startReturn}\n` +
+            `messages:\n${messageCollector.messages.join("\n")}`,
+        );
+        assert(
+          runtimeErrors.length > 0,
+          `Expected a runtime diskin2 open error for missing.mp3.\n` +
+            `messages:\n${messageCollector.messages.join("\n")}`,
         );
         await csoundObj.terminateInstance();
       });
@@ -712,13 +915,15 @@ e
         await csoundObj.terminateInstance();
       });
 
-     it("can #include a file from parent directory", async function () {
+      it("can #include a file from parent directory", async function () {
         const csoundObj = await Csound(test);
         const csdPath = "/folder1/test.csd";
 
         await csoundObj.fs.writeFile("/test.orc", "i1 0 .1");
         await csoundObj.fs.mkdir("/folder1");
-        await csoundObj.fs.writeFile(csdPath, `
+        await csoundObj.fs.writeFile(
+          csdPath,
+          `
 <CsoundSynthesizer>
 <CsOptions>
     -odac
@@ -738,7 +943,8 @@ e
     #include "../test.orc"
 </CsScore>
 </CsoundSynthesizer>
-        `);
+        `,
+        );
 
         // allow the example to play until the end
         let endResolver;
@@ -758,10 +964,11 @@ e
         await csoundObj.terminateInstance();
       });
 
-
-     it("it fails with error when #include references a non-existent file", async function () {
+      it("it fails with error when #include references a non-existent file", async function () {
         const csoundObj = await Csound(test);
-        await csoundObj.fs.writeFile('/test.csd', `
+        await csoundObj.fs.writeFile(
+          "/test.csd",
+          `
 <CsoundSynthesizer>
 <CsOptions>
     -odac
@@ -782,26 +989,27 @@ e
     i1 0 0.01
 </CsScore>
 </CsoundSynthesizer>
-        `);
+        `,
+        );
 
-        // Attempting to compile will fail due to missing include file
-        // Currently throws RuntimeError after reporting "Cannot open #include'd file"
-        // This is due to setjmp/longjmp cleanup issues in WASM after csoundDie()
-        let errorCaught = false;
+        // Attempting to compile should fail with a normal Csound error code
+        // and must not crash the WASM runtime.
+        let compileResult = 0;
+        let thrownError = null;
         try {
-          await csoundObj.compileCSD('/test.csd', 0);
+          compileResult = await csoundObj.compileCSD("/test.csd", 0);
         } catch (e) {
-          errorCaught = true;
-          // The error should be a RuntimeError from the WASM crash after reporting the missing file
-          assert.ok(e.message.includes('memory access') || e.message.includes('RuntimeError'),
-            `Expected memory access error, got: ${e.message}`);
+          thrownError = e;
         }
 
-        assert.ok(errorCaught, "compileCSD should throw error for missing #include file");
+        assert.equal(
+          null,
+          thrownError,
+          `compileCSD should not crash when include file is missing: ${thrownError?.message}`,
+        );
+        assert.notEqual(0, compileResult, "compileCSD should fail for missing #include file");
         await csoundObj.terminateInstance();
       });
-
-
     });
   });
 

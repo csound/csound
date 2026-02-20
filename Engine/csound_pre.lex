@@ -787,14 +787,6 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_preget_lineno(yyscanner));
-    {
-      uint8_t n = file_to_int(csound, buffer);
-      char bb[128];
-      PARM->lstack[PARM->depth] = n;
-      snprintf(bb, 80, "#source %"PRIu64"\n", PARM->locn = make_location(PARM)) ;
-      PARM->llocn = PARM->locn;
-      corfile_puts(csound, bb, csound->expanded_orc);
-    }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
@@ -808,9 +800,28 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
           cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    if (UNLIKELY(cf == NULL))
+    if (UNLIKELY(cf == NULL)) {
+#if defined(__wasi__)
+      csound->Message(csound,
+                      Str("Cannot open #include'd file %s\n"), buffer);
+      csound->synterrcnt++;
+      if (PARM->depth > 0) {
+        PARM->depth--;
+      }
+      return;
+#else
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+#endif
+    }
+    {
+      uint8_t n = file_to_int(csound, buffer);
+      char bb[128];
+      PARM->lstack[PARM->depth] = n;
+      snprintf(bb, 80, "#source %"PRIu64"\n", PARM->locn = make_location(PARM)) ;
+      PARM->llocn = PARM->locn;
+      corfile_puts(csound, bb, csound->expanded_orc);
+    }
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,
@@ -865,14 +876,6 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_preget_lineno(yyscanner));
-    {
-      uint8_t n = file_to_int(csound, buffer);
-      char bb[128];
-      PARM->lstack[PARM->depth] = n;
-      snprintf(bb, 128, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
-      PARM->llocn = PARM->locn;
-      corfile_puts(csound, bb, csound->expanded_orc);
-    }
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
@@ -884,9 +887,28 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
-    if (UNLIKELY(cf == NULL))
+    if (UNLIKELY(cf == NULL)) {
+#if defined(__wasi__)
+      csound->Message(csound,
+                      Str("Cannot open #include'd file %s\n"), buffer);
+      csound->synterrcnt++;
+      if (PARM->depth > 0) {
+        PARM->depth--;
+      }
+      return;
+#else
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+#endif
+    }
+    {
+      uint8_t n = file_to_int(csound, buffer);
+      char bb[128];
+      PARM->lstack[PARM->depth] = n;
+      snprintf(bb, 128, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
+      PARM->llocn = PARM->locn;
+      corfile_puts(csound, bb, csound->expanded_orc);
+    }
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       PARM->alt_stack =
         (MACRON*) csound->ReAlloc(csound, PARM->alt_stack,

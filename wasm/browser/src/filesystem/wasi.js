@@ -14,9 +14,7 @@ function splitPathSegments(path) {
   if (!path) {
     return [];
   }
-  return path
-    .split("/")
-    .filter((segment) => segment.length > 0 && segment !== ".");
+  return path.split("/").filter((segment) => segment.length > 0 && segment !== ".");
 }
 
 function normalizeAbsolutePath(path) {
@@ -944,7 +942,7 @@ WASI.prototype.path_open = function (
       console.warn(`path_open: file not found: ${pathOpen}`);
     }
     // Write maximum unsigned 32-bit value (-1 as signed) to indicate bad fd
-    memory.setUint32(fd, 0xFFFFFFFF, true);
+    memory.setUint32(fd, 0xffffffff, true);
     return constants.WASI_ENOENT;
   }
 
@@ -1121,6 +1119,17 @@ WASI.prototype.sock_recv = function () {
  * @export
  * @return {number}
  */
+WASI.prototype.sock_accept = function () {
+  if (DEBUG_WASI) {
+    console.log("sock_accept", arguments);
+  }
+  return constants.WASI_ENOSYS;
+};
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.sock_send = function () {
   if (DEBUG_WASI) {
     console.log("sock_send", arguments);
@@ -1168,9 +1177,7 @@ WASI.prototype.readdir = function (dirname /* string */) {
       files.push(path);
     }
   });
-  return files
-    .map((p) => removeLeadingSlash(p.replace(prefixPath, "")))
-    .filter((p) => !!p);
+  return files.map((p) => removeLeadingSlash(p.replace(prefixPath, ""))).filter((p) => !!p);
 };
 
 WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {

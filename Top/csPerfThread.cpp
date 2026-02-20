@@ -294,7 +294,7 @@ public:
         recordData->sfname = csound->Strdup(csound, filename.c_str());
         recordData->running = true;
         recordData->thread = csoundCreateThread(recordThread_, (void*) recordData);
-         
+
 
         CsoundPerformanceThreadMessage::unlockRecord();
     }
@@ -319,7 +319,7 @@ public:
       CsoundPerformanceThreadMessage::lockRecord();
       recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
       CSOUND *csound = recordData->csound;
-      
+
       if (recordData->running) {
           recordData->running = false;
           csoundJoinThread(recordData->thread);
@@ -498,13 +498,13 @@ private:
     int32_t len;
     char    *sp;
     char    s[_PERFTHREAD_COMPILE_BUFSIZE];
-    
+
 public:
     CsPerfThreadMsg_CompileOrc(CsoundPerformanceThread *pt, const char *code)
     : CsoundPerformanceThreadMessage(pt)
     {
       len = (int32_t)strlen(code);
-      if(len < _PERFTHREAD_COMPILE_BUFSIZE) 
+      if(len < _PERFTHREAD_COMPILE_BUFSIZE)
         this->sp = &(this->s[0]);
       else
         this->sp = new char[(unsigned int)(len + 1)];
@@ -514,10 +514,10 @@ public:
     {
       // 1=async, 0=block
       // async does not seem to work, needs more debugging...
-      csoundCompileOrc(pt_->GetCsound(), sp, 0);  
+      csoundCompileOrc(pt_->GetCsound(), sp, 0);
       return 0;
     }
-    
+
     ~CsPerfThreadMsg_CompileOrc() {
       if(len >= _PERFTHREAD_COMPILE_BUFSIZE)
         delete[] sp;
@@ -532,14 +532,14 @@ private:
     char    *sp;
     char    s[_PERFTHREAD_COMPILE_BUFSIZE];
     void (*returncb)(MYFLT out);
-   
+
 public:
     CsPerfThreadMsg_EvalCode(CsoundPerformanceThread *pt, const char *code, void (*returncb)(MYFLT))
     : CsoundPerformanceThreadMessage(pt)
     {
-      this->returncb = returncb; 
+      this->returncb = returncb;
       len = (int32_t)strlen(code);
-      if(len < _PERFTHREAD_COMPILE_BUFSIZE) 
+      if(len < _PERFTHREAD_COMPILE_BUFSIZE)
         this->sp = &(this->s[0]);
       else
         this->sp = new char[(unsigned int)(len + 1)];
@@ -551,7 +551,7 @@ public:
       this->returncb(out);
       return 0;
     }
-    
+
     ~CsPerfThreadMsg_EvalCode() {
       if(len >= _PERFTHREAD_COMPILE_BUFSIZE)
         delete[] sp;
@@ -563,20 +563,20 @@ class CsPerfThreadMsg_RequestCallback
       : public CsoundPerformanceThreadMessage {
 private:
     void (*func)(CsoundPerformanceThread *pt);
-   
+
 public:
     CsPerfThreadMsg_RequestCallback(CsoundPerformanceThread *pt, void (*func)(CsoundPerformanceThread*))
     : CsoundPerformanceThreadMessage(pt)
     {
       this->func = func;
     }
-    
+
     int run()
     {
       this->func(this->pt_);
       return 0;
     }
-    
+
     ~CsPerfThreadMsg_RequestCallback() {}
 };
 
@@ -585,7 +585,7 @@ public:
 // ----------------------------------------------------------------------------
 
 /**
- * Performs the score until end of score, error, or 
+ * Performs the score until end of score, error, or
    receiving a stop event.
  * Returns a negative value on error.
  */
@@ -609,7 +609,7 @@ int32_t CsoundPerformanceThread::Perform()
           // process and destroy message
           retval = msg->run();
           // TODO: This should be moved out of the Perform function
-          delete msg; 
+          delete msg;
         } while (!retval);
         if (paused)
           csoundWaitThreadLock(pauseLock, (size_t) 0);
@@ -722,7 +722,7 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
     recordLock = csoundCreateMutex(0);
     if (!recordLock)
       return;
-#ifdef EMSCRIPTEN
+#if defined(EMSCRIPTEN) || defined(__wasi__)
     lastMessage = new CsPerfThreadMsg_Pause(this);
 #else
     try {

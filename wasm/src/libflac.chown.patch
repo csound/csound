@@ -1,0 +1,14 @@
+--- a/src/libFLAC/metadata_iterators.c
++++ b/src/libFLAC/metadata_iterators.c
+@@ -3617,8 +3617,12 @@
+         /* Change file ownership to match original. */
+-        FLAC_CHECK_RETURN(chown(filename, stats->st_uid, -1));
+-        FLAC_CHECK_RETURN(chown(filename, -1, stats->st_gid));
++        #if defined(__wasm__) || defined(__wasi__)
++            /* no-op: WASI has no user/group ownership */
++            (void) filename;
++            (void) stats;
++        #else
++            FLAC_CHECK_RETURN(chown(filename, stats->st_uid, -1));
++            FLAC_CHECK_RETURN(chown(filename, -1, stats->st_gid));
++        #endif

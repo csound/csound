@@ -42,8 +42,7 @@
 #define CS_PATCHLEVEL       (${CS_PATCHLEVEL})
   
 #ifndef CS_PACKAGE_DATE
-#define CS_PACKAGE_DATE __DATE__
+#define CS_PACKAGE_DATE @CS_PACKAGE_DATE_DEFINE@
 #endif
 
 #endif /* CSOUND_VERSION_H */
-
