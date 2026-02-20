@@ -176,18 +176,30 @@ WASI.prototype.resolvePath = function (path) {
 /**
  * @function
  * @param {string} filePath
+ * @return {!Array<!Object>}
+ */
+WASI.prototype.findEntries = function (filePath) {
+  const normalized = normalizeAbsolutePath(filePath);
+  const matches = [];
+  const entries = Object.values(this.fd);
+
+  for (const entry of entries) {
+    if (entry?.path === normalized) {
+      matches.push(entry);
+    }
+  }
+
+  return matches;
+};
+
+/**
+ * @function
+ * @param {string} filePath
  * @return {?Object}
  */
 WASI.prototype.findEntry = function (filePath) {
-  const normalized = normalizeAbsolutePath(filePath);
-  const entries = Object.values(this.fd);
-  for (const entry of entries) {
-    if (entry?.path === normalized) {
-      return entry;
-    }
-  }
-  // eslint-disable-next-line unicorn/no-null
-  return null;
+  const matches = this.findEntries(filePath);
+  return matches.length > 0 ? matches[matches.length - 1] : null;
 };
 
 /**
@@ -1151,8 +1163,8 @@ WASI.prototype.sock_shutdown = function () {
 // helpers
 
 WASI.prototype.findBuffers = function (filePath /* string */) {
-  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
-  return maybeFd && maybeFd.buffers;
+  const maybeFd = this.findEntry(filePath);
+  return maybeFd?.buffers;
 };
 
 // fs api
@@ -1177,15 +1189,36 @@ WASI.prototype.readdir = function (dirname /* string */) {
       files.push(path);
     }
   });
-  return files.map((p) => removeLeadingSlash(p.replace(prefixPath, ""))).filter((p) => !!p);
+  const normalized = files
+    .map((p) => removeLeadingSlash(p.replace(prefixPath, "")))
+    .filter((p) => !!p);
+  return [...new Set(normalized)];
 };
 
 WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {
   const filePath = this.resolvePath(fname);
+  const existingEntries = this.findEntries(filePath);
 
-  const nextFd = Object.keys(this.fd).length;
-  const maybeOldFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
+  if (existingEntries.length > 0) {
+    const maybeDirectory = existingEntries.find((entry) => entry.type === "dir");
+    if (maybeDirectory) {
+      console.error(`Can't write file ${filePath}, path is a directory`);
+      return;
+    }
 
+    const newestEntry = existingEntries[existingEntries.length - 1];
+    newestEntry.seekPos = goog.global.BigInt(0);
+    newestEntry.buffers = [data];
+    newestEntry.type = "file";
+
+    // If stale duplicate fds exist for the same path, keep only the latest one.
+    existingEntries.slice(0, -1).forEach((entry) => {
+      delete this.fd[entry.fd];
+    });
+    return;
+  }
+
+  const nextFd = this.fd.length;
   this.fd[nextFd] = {
     fd: nextFd,
     path: filePath,
@@ -1193,10 +1226,6 @@ WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) 
     buffers: [data],
     type: "file",
   };
-
-  if (maybeOldFd) {
-    delete this.fd[maybeOldFd];
-  }
 };
 
 WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */) {
@@ -1223,16 +1252,18 @@ WASI.prototype.readFile = function (fname /* string */) {
 
 WASI.prototype.readStdOut = function () {
   const maybeFd = this.fd[1];
-  const buffers = (maybeFd && maybeFd.buffers) || [];
+  const buffers = maybeFd?.buffers ?? [];
   return concatUint8Arrays(buffers);
 };
 
 WASI.prototype.unlink = function (fname /* string */) {
   const filePath = this.resolvePath(fname);
-  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
+  const entries = this.findEntries(filePath);
 
-  if (maybeFd) {
-    delete this.fd[maybeFd.fd];
+  if (entries.length > 0) {
+    entries.forEach((entry) => {
+      delete this.fd[entry.fd];
+    });
   } else {
     console.error(`While trying to unlink ${filePath}, path not found`);
   }
@@ -1252,7 +1283,7 @@ WASI.prototype.mkdir = function (dirname /* string */) {
   if (alreadyExist) {
     console.warn(`mkdir: path ${dirname} already exists`);
   } else {
-    const nextFd = Object.keys(this.fd).length;
+    const nextFd = this.fd.length;
     this.fd[nextFd] = {
       fd: nextFd,
       path: cleanPath,
@@ -1263,13 +1294,13 @@ WASI.prototype.mkdir = function (dirname /* string */) {
 
 WASI.prototype.stat = function (fname /* string */) {
   const filePath = this.resolvePath(fname);
-  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
+  const maybeFd = this.findEntry(filePath);
 
   if (!maybeFd) {
     return undefined;
   }
 
-  const buffers = maybeFd.buffers || [];
+  const buffers = maybeFd?.buffers ?? [];
   const size = buffers.reduce((accumulator, buffer) => {
     return accumulator + (buffer?.byteLength || 0);
   }, 0);
@@ -1307,6 +1338,6 @@ WASI.prototype.stat = function (fname /* string */) {
 
 WASI.prototype.pathExists = function (fname /* string */) {
   const filePath = this.resolvePath(fname);
-  const maybeFd = Object.values(this.fd).find((entry) => entry?.path === filePath);
+  const maybeFd = this.findEntry(filePath);
   return !!maybeFd;
 };
