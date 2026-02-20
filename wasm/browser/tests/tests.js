@@ -1009,6 +1009,60 @@ e
         await csoundObj.terminateInstance();
       });
 
+      it("fs operations work after unlink creates holes in fd table", async function () {
+        const csoundObj = await Csound(test);
+
+        // Create files, then unlink one to create a hole (undefined entry) in the fd array
+        await csoundObj.fs.writeFile("file_a.txt", new TextEncoder().encode("AAA"));
+        await csoundObj.fs.writeFile("file_b.txt", new TextEncoder().encode("BBB"));
+        await csoundObj.fs.writeFile("file_c.txt", new TextEncoder().encode("CCC"));
+
+        // Unlink the middle file — this creates an undefined slot in this.fd
+        await csoundObj.fs.unlink("file_b.txt");
+
+        // All of these iterate Object.values(this.fd) and must handle the hole:
+
+        // readdir should still work
+        const files = await csoundObj.fs.readdir("/");
+        assert.include(files, "file_a.txt", "readdir lists file_a.txt after unlink");
+        assert.include(files, "file_c.txt", "readdir lists file_c.txt after unlink");
+        assert.notInclude(files, "file_b.txt", "readdir does not list unlinked file_b.txt");
+
+        // writeFile should still work (its find for existing files must not crash)
+        await csoundObj.fs.writeFile("file_d.txt", new TextEncoder().encode("DDD"));
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "file_d.txt",
+          "writeFile works after unlink",
+        );
+
+        // stat should still work
+        const statA = await csoundObj.fs.stat("file_a.txt");
+        assert.isObject(statA, "stat works for file_a.txt after unlink");
+        assert.equal(statA.size, 3, "stat returns correct size");
+        const statB = await csoundObj.fs.stat("file_b.txt");
+        assert.isUndefined(statB, "stat returns undefined for unlinked file");
+
+        // pathExists should still work
+        assert.isTrue(
+          await csoundObj.fs.pathExists("file_a.txt"),
+          "pathExists returns true for existing file after unlink",
+        );
+        assert.isFalse(
+          await csoundObj.fs.pathExists("file_b.txt"),
+          "pathExists returns false for unlinked file",
+        );
+
+        // mkdir should still work
+        await csoundObj.fs.mkdir("new_dir");
+        assert.isTrue(
+          await csoundObj.fs.pathExists("new_dir"),
+          "mkdir works after unlink creates holes in fd table",
+        );
+
+        await csoundObj.terminateInstance();
+      });
+
       it("it fails with error when #include references a non-existent file", async function () {
         const csoundObj = await Csound(test);
         await csoundObj.fs.writeFile(
