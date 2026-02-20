@@ -545,7 +545,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
 
-      if(interp) // linear
+      if(!interp) // linear
         ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       else { // expon
         amp = amp > 0 ? amp : odbfs*0.0001;
@@ -570,7 +570,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
           ar[n] += ftbl[(int32_t) (phsf*flen)]*amp2;
           phsf = PHMOD1(incf+phsf);
         }
-        if(interp)
+        if(!interp)
           amp2 += ampIncr;
         else 
           amp2 *= ampIncr;     
