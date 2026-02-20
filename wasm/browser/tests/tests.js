@@ -915,6 +915,51 @@ e
         await csoundObj.terminateInstance();
       });
 
+      it("does not leave stale entries after unlink and repeated writeFile", async function () {
+        const csoundObj = await Csound(test);
+
+        const deletePath = "/deleteme";
+        const testPath = "/test";
+
+        if (await csoundObj.fs.pathExists(deletePath)) {
+          await csoundObj.fs.unlink(deletePath);
+        }
+        if (await csoundObj.fs.pathExists(testPath)) {
+          await csoundObj.fs.unlink(testPath);
+        }
+
+        await csoundObj.fs.writeFile(deletePath, new Uint8Array([0]));
+        await csoundObj.fs.unlink(deletePath);
+
+        const rootAfterUnlink = await csoundObj.fs.readdir("/");
+        assert.notInclude(
+          rootAfterUnlink,
+          "deleteme",
+          `unlink should remove ${deletePath}; got ${JSON.stringify(rootAfterUnlink)}`,
+        );
+
+        for (let x = 0; x < 6; x += 1) {
+          await csoundObj.fs.writeFile(testPath, new Uint8Array([99 + x]));
+        }
+
+        const rootAfterRepeatedWrites = await csoundObj.fs.readdir("/");
+        const testEntries = rootAfterRepeatedWrites.filter((entry) => entry === "test").length;
+        assert.equal(
+          testEntries,
+          1,
+          `repeated writeFile should not duplicate entries; got ${JSON.stringify(rootAfterRepeatedWrites)}`,
+        );
+
+        const finalContent = await csoundObj.fs.readFile(testPath);
+        assert.equal(
+          finalContent[0],
+          104,
+          `expected final file content from last write (104); got ${finalContent[0]}`,
+        );
+
+        await csoundObj.terminateInstance();
+      });
+
       it("can #include a file from parent directory", async function () {
         const csoundObj = await Csound(test);
         const csdPath = "/folder1/test.csd";
