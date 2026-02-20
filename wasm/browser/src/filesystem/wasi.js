@@ -1222,7 +1222,7 @@ WASI.prototype.readFile = function (fname /* string */) {
 };
 
 WASI.prototype.readStdOut = function () {
-  const maybeFd = Object.values(this.fd[0]);
+  const maybeFd = this.fd[1];
   const buffers = (maybeFd && maybeFd.buffers) || [];
   return concatUint8Arrays(buffers);
 };
@@ -1241,8 +1241,11 @@ WASI.prototype.unlink = function (fname /* string */) {
 WASI.prototype.mkdir = function (dirname /* string */) {
   const cleanPath = this.resolvePath(dirname);
   const files = [];
-  Object.values(this.fd).forEach(({ path }) => {
-    return path.startsWith(cleanPath) && files.push(path);
+  Object.values(this.fd).forEach((entry) => {
+    if (!entry || !entry.path) {
+      return;
+    }
+    return entry.path.startsWith(cleanPath) && files.push(entry.path);
   });
 
   const alreadyExist = files.length > 0;
