@@ -182,7 +182,7 @@ WASI.prototype.findEntry = function (filePath) {
   const normalized = normalizeAbsolutePath(filePath);
   const entries = Object.values(this.fd);
   for (const entry of entries) {
-    if (entry && entry.path === normalized) {
+    if (entry?.path === normalized) {
       return entry;
     }
   }
@@ -1162,7 +1162,7 @@ WASI.prototype.readdir = function (dirname /* string */) {
   const prefixPath = absoluteDir === "/" ? "/" : `${absoluteDir}/`;
   const files = [];
   Object.values(this.fd).forEach((entry) => {
-    if (!entry || !entry.path) {
+    if (!entry?.path) {
       return;
     }
     const { path } = entry;
@@ -1242,7 +1242,7 @@ WASI.prototype.mkdir = function (dirname /* string */) {
   const cleanPath = this.resolvePath(dirname);
   const files = [];
   Object.values(this.fd).forEach((entry) => {
-    if (!entry || !entry.path) {
+    if (!entry?.path) {
       return;
     }
     return entry.path.startsWith(cleanPath) && files.push(entry.path);
