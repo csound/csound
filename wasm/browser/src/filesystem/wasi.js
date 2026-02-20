@@ -1164,7 +1164,7 @@ WASI.prototype.sock_shutdown = function () {
 
 WASI.prototype.findBuffers = function (filePath /* string */) {
   const maybeFd = this.findEntry(filePath);
-  return maybeFd && maybeFd.buffers;
+  return maybeFd?.buffers;
 };
 
 // fs api
@@ -1252,7 +1252,7 @@ WASI.prototype.readFile = function (fname /* string */) {
 
 WASI.prototype.readStdOut = function () {
   const maybeFd = Object.values(this.fd[0]);
-  const buffers = (maybeFd && maybeFd.buffers) || [];
+  const buffers = maybeFd?.buffers ?? [];
   return concatUint8Arrays(buffers);
 };
 
@@ -1297,7 +1297,7 @@ WASI.prototype.stat = function (fname /* string */) {
     return undefined;
   }
 
-  const buffers = maybeFd.buffers || [];
+  const buffers = maybeFd?.buffers ?? [];
   const size = buffers.reduce((accumulator, buffer) => {
     return accumulator + (buffer?.byteLength || 0);
   }, 0);
