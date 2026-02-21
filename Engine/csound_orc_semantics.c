@@ -3868,27 +3868,16 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
 
   IGN(pp);
   IGN(astTree);
-  char ch;
   char *p = csound_orcget_current_pointer(yyscanner)-1;
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
+  uint32_t column1 = csound_orcget_first_column(yyscanner);
+  uint32_t column2 = csound_orcget_last_column(yyscanner);  
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
-  csound->ErrorMsg(csound, Str("\n%s (token \"%s\"), "),
+  csound->ErrorMsg(csound, Str("%s (token \"%s\"), "),
                   str, csound_orcget_text(yyscanner));
-  csound->ErrorMsg(csound, Str(" line %d\n>>>"), line);
-  while ((ch=*--p) != '\n' && ch != '\0');
-  do {
-    ch = *++p;
-    if (UNLIKELY(ch == '\n')) break;
-    // Now get rid of any continuations
-    if (ch=='#' && strncmp(p,"sline ",6)) {
-      p+=7; while (isdigit(*p)) p++;
-    }
-    else csound->ErrorMsg(csound, "%c", ch);
-  } while (ch != '\n' && ch != '\0');
-  csound->ErrorMsg(csound, " <<<\n");
+  csound->ErrorMsg(csound, Str(" line %d, columns %d,%d\n"), line, column1, column2);
   do_baktrace(csound, files);
-
 }
 
 void do_baktrace(CSOUND *csound, uint64_t files)

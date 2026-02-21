@@ -53,12 +53,7 @@ ORCTOKEN *make_label(CSOUND *, char *s);
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-/* #define YY_INPUT(buf,result,max_size)  {\ */
-/*     result = get_next_char(buf, max_size, yyg); \ */
-/*     if ( UNLIKELY( result <= 0  )) \ */
-/*       result = YY_NULL; \ */
-/*     } */
-
+#define YY_USER_ACTION PARM->first_column = yycolumn; PARM->last_column = yycolumn + yyleng - 1; yycolumn += yyleng;
 #define YY_USER_INIT
 
 struct yyguts_t;
@@ -571,9 +566,9 @@ ERSTR           "}R"
 {FILE}          { BEGIN(src); }
 
 <src>{
-  [ \t]*     /* eat the whitespace */
+  [ \t]*     /* eat the whitespace */ {yycolumn += yyleng;}
   {FNAME}    { PARM->locn = atoll(yytext); }
-  "\n"       { BEGIN(INITIAL); }
+  "\n"       { BEGIN(INITIAL);}
 }
 
 .               {
@@ -589,14 +584,16 @@ ERSTR           "}R"
 
 <ignorenewline>{
   "\n" {
+    yycolumn = 1;
     csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                          yyscanner);
   }
 }
 
-<INITIAL>"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+<INITIAL>"\n" { yycolumn = 1;
+                csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
-                  return NEWLINE; }
+                return NEWLINE; }
 
 %%
 
@@ -729,3 +726,16 @@ uint64_t csound_orcget_ilocn(void *yyscanner)
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->ilocn;
 }
+
+uint32_t csound_orcget_first_column(void *yyscanner)
+{
+  //   struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->first_column;
+}
+
+uint32_t csound_orcget_last_column(void *yyscanner)
+{
+  //   struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
+    return PARM->last_column;
+}
+

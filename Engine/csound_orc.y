@@ -26,6 +26,7 @@
 %lex-param { CSOUND * csound }
 %lex-param {yyscan_t *scanner}
 
+
 %token NEWLINE
 %token S_NEQ
 %token S_AND
