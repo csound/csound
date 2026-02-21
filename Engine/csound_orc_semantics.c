@@ -56,34 +56,6 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
-/* VL - 20.10.24 moved here from symbtab.c
-   as this is a more appropriate place for it
-*/
-ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
-{
-    IGN(yyscanner);
-    int32_t type = T_IDENT;
-    ORCTOKEN *ans;
-
-    if(UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
-      csound->Message(csound, "Looking up token for: %s\n", s);
-    ans = new_token(csound, T_IDENT);
-    if (strchr(s, ':') != NULL) {
-        char* th;
-        char* baseName = strtok_r(s, ":", &th);
-        char* annotation = strtok_r(NULL, ":", &th);
-        ans->lexeme = csoundStrdup(csound, baseName);
-        ans->optype = csoundStrdup(csound, annotation);
-        type = T_TYPED_IDENT;
-    } else {
-        ans->lexeme = csoundStrdup(csound, s);
-    }
-    if (csound->parserNamedInstrFlag == 1) {
-        return ans;
-    }
-    ans->type = type;
-    return ans;
-}
 
 char* csoundStrdup(CSOUND* csound, const char* str) {
   size_t len;
@@ -2706,8 +2678,10 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("unable to find opcode with name: %s, line %d\n"),
-            root->value->lexeme, root->line);
+    synterr(csound, Str("unable to find opcode with name: %s, line %d," 
+                         " columns %d-%d"),
+            root->value->lexeme, root->line,
+            root->value->first_column, root->value->last_column);
     if (entries != NULL) {
       csound->Free(csound, entries);
     }
@@ -2757,8 +2731,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   if(oentry && oentry->deprecated) {
     if(oentry->deprecated == 1) {
       if(csound->oparms->error_deprecated) {
-        synterr(csound, "opcode %s is deprecated, line %d", oentry->opname,
-                root->line);
+        synterr(csound, "opcode %s is deprecated, line %d,"
+                " columns %d-%d",
+                oentry->opname,
+                root->line, root->value->first_column,
+                root->value->last_column);
         csoundMessage(csound, Str(" %s %s %s\n"),
                         leftArgString ? leftArgString : "",
                         oentry->opname, rightArgString ? rightArgString : "");
@@ -2769,15 +2746,22 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     }
     else if(oentry->deprecated == 2) {
       if(csound->oparms->error_deprecated) {
-        synterr(csound, "opcode %s has been renamed (uppercase to lowercase / underscores removed), line %d",
-                oentry->opname, root->line);
+        synterr(csound, "opcode %s has been renamed"
+                " (uppercase to lowercase / underscores removed), line %d"
+                " columns %d-%d",
+                oentry->opname, root->line,root->value->first_column,
+                root->value->last_column);
         csoundMessage(csound, Str(" %s %s %s\n"),
                         leftArgString ? leftArgString : "",
                         oentry->opname, rightArgString ? rightArgString : "");
         return 0;
        }
-      else csoundWarning(csound, "opcode %s has been renamed (uppercase to lowercase / underscores removed), line %d",
-                         oentry->opname, root->line);
+      else csoundWarning(csound, "opcode %s has been renamed"
+                         " (uppercase to lowercase / underscores removed), line %d"
+                         " columns %d-%d",
+                         oentry->opname, root->line,
+                         root->value->first_column,
+                         root->value->last_column);
     }
    }
 
@@ -2787,7 +2771,10 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     int32_t i;
     char *name = strip_extension(csound, opcodeName);
     synterr(csound, Str("Unable to find opcode entry for \'%s\'\n"
-                        "  with matching argument types, line %d"), name, root->line);
+                        "  with matching argument types, line %d"
+                        " columns %d-%d"), name, root->line,
+                          root->value->first_column,
+                         root->value->last_column);
     csound->Free(csound, name);
     name = strip_extension(csound, root->value->lexeme);
     csoundMessage(csound, Str("Found:\n  %s %s %s\n"),
@@ -2804,8 +2791,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, name);
     }
 
-    csoundMessage(csound, Str("\nLine: %d\n"),
-                  root->line);
+    csoundMessage(csound, Str("\nLine: %d\n"
+                              " columns %d-%d"),
+                  root->line,
+                  root->value->first_column,
+                  root->value->last_column);
     do_baktrace(csound, root->locn);
 
     csound->Free(csound, leftArgString);
@@ -3944,8 +3934,10 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
     ans->left = (tree->left == NULL) ? NULL : copy_node(csound, tree->left);
     ans->right = (tree->right == NULL) ? NULL : copy_node(csound, tree->right);
     if (tree->value != NULL) {
-      ans->value = make_token(csound, tree->value->lexeme);
+      ans->value = make_token(csound, tree->value->lexeme, NULL);
       ans->value->optype = csoundStrdup(csound, tree->value->optype);
+      ans->value->first_column = tree->value->first_column;
+      ans->value->last_column = tree->value->last_column;
     } else {
       ans->value = NULL;
     }
@@ -3975,8 +3967,10 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
     ans->right = tree->right;
 
     if (tree->value != NULL) {
-      ans->value = make_token(csound, tree->value->lexeme);
+      ans->value = make_token(csound, tree->value->lexeme, NULL);
       ans->value->optype = csoundStrdup(csound, tree->value->optype);
+      ans->value->first_column = tree->value->first_column;
+      ans->value->last_column = tree->value->last_column;      
     } else {
       ans->value = NULL;
     }
@@ -4449,7 +4443,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         case 'O':             /* Will this work?  Doubtful code.... */
         case 'o':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "0"));
+                           make_int(csound, "0", NULL));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
           else append_to_tree(csound, l->right, temp);
@@ -4457,14 +4451,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         case 'P':
         case 'p':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "1"));
+                           make_int(csound, "1", NULL));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
           else append_to_tree(csound, l->right, temp);
           break;
         case 'q':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "10"));
+                           make_int(csound, "10", NULL));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
           else append_to_tree(csound, l->right, temp);
@@ -4473,14 +4467,14 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         case 'V':
         case 'v':
           temp = make_leaf(csound, l->line, l->locn, NUMBER_TOKEN,
-                           make_num(csound, ".5"));
+                           make_num(csound, ".5", NULL));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
           else append_to_tree(csound, l->right, temp);
           break;
         case 'h':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "127"));
+                           make_int(csound, "127", NULL));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
           else append_to_tree(csound, l->right, temp);
@@ -4488,7 +4482,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
         case 'J':
         case 'j':
           temp = make_leaf(csound, l->line, l->locn, INTEGER_TOKEN,
-                           make_int(csound, "-1"));
+                           make_int(csound, "-1", NULL));
           temp->markup = &SYNTHESIZED_ARG;
           if (l->right==NULL) l->right = temp;
           else append_to_tree(csound, l->right, temp);

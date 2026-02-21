@@ -32,7 +32,7 @@ static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
     if (UNLIKELY(ans == NULL)) exit(1);
     ans->type = T_FUNCTION;
-    ans->value = make_token(csound, fname);
+    ans->value = make_token(csound, fname, NULL);
     ans->value->type = T_FUNCTION;
     ans->left = NULL;
     ans->right = right;
