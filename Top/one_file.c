@@ -1274,12 +1274,12 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         r = check_short_licence(csound, cf);
         result = r && result;
       }
-      else if (blank_buffer(/*csound,*/ buffer)) continue;
+      else if (blank_buffer(buffer)) continue;
       else if (started && strchr(p, '<') == buffer){
-        if(result > 0) // reading failed before here
-        csoundMessage(csound, Str("unknown CSD tag: %s"), buffer);
-        else
-          csoundMessage(csound, "\n");
+        if(result > 0) // we have an unknown tag
+         csoundMessage(csound, Str("unknown CSD tag: %s"), buffer);
+        else  // some other issue
+         csoundMessage(csound, "\n");
       }
     }
     if (UNLIKELY(!started)) {

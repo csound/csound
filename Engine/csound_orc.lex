@@ -107,7 +107,9 @@ ERSTR           "}R"
 %%
 <*>"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
 
-{CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+{CONT}          {
+                  yycolumn = 1;
+                  csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                 }
 "->"            { return S_ELIPSIS; }
@@ -373,6 +375,7 @@ ERSTR           "}R"
   }
 
   "\n"  { /* The next two should be one case but I cannot get that to work */
+           yycolumn = 1;
            if (PARM->xstrptr+2>=PARM->xstrmax) {
                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
@@ -449,9 +452,10 @@ ERSTR           "}R"
                   (*lvalp)->type = UDO_IDENT;
                   return (*lvalp)->type; }
   "\n"     { BEGIN(INITIAL);
-                   csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                        yyscanner);
-                  return NEWLINE; }
+             yycolumn = 1;
+             csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                   yyscanner);
+             return NEWLINE; }
   {IDENT} {
     csound->Message(csound, "unsupported UDO arg type: %s", yytext);
     return ERROR_TOKEN;
@@ -560,15 +564,15 @@ ERSTR           "}R"
 <line>{
   [ \t]*     /* eat the whitespace */
   {INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
-  "\n"      {BEGIN(INITIAL);}
+  "\n"      {BEGIN(INITIAL); yycolumn = 1;}
 }
 
 {FILE}          { BEGIN(src); }
 
 <src>{
-  [ \t]*     /* eat the whitespace */ {yycolumn += yyleng;}
+  [ \t]*     /* eat the whitespace */ 
   {FNAME}    { PARM->locn = atoll(yytext); }
-  "\n"       { BEGIN(INITIAL);}
+  "\n"       { BEGIN(INITIAL); yycolumn = 1;}
 }
 
 .               {
@@ -618,7 +622,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     if (csound->parserNamedInstrFlag == 1) {
         return ans;
     }
-    ans->type = type; // never reached?
+    ans->type = type; 
     return ans;
 }
 

@@ -40,10 +40,6 @@
 
 #include "csound_orc_expressions.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-# define strtok_r strtok_s
-#endif
-
 extern const char *SYNTHESIZED_ARG;
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
