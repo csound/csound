@@ -597,6 +597,11 @@ ERSTR           "}R"
 
 %%
 
+#if defined(_WIN32) || defined(_WIN64)
+# define strtok_r strtok_s
+#endif
+
+
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
     int32_t type = T_IDENT;

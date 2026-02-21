@@ -35,9 +35,6 @@
 #include "csound_orc_semantics.h"
 #include "csound_orc_compile.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-# define strtok_r strtok_s
-#endif
 
 static CS_VAR_POOL *find_global_annotation(char *varName,
                                            TYPE_TABLE* typeTable);
