@@ -110,11 +110,19 @@ static CS_NOINLINE void
     fwrite(&(buf[0]), (size_t) 1, (size_t) ndx, p->f);
 }
 
-void send_midi_message(CSOUND *csound, int32_t status, int32_t data1, int32_t data2)
-{
+int32_t csoundGetMidiOutPort(CSOUND *csound) {
+  return csound->midiout_port;
+}
+
+void csoundSendMidiMsg(CSOUND *csound, int32_t status,
+                       int32_t data1, int32_t data2,
+                       int32_t port) {
     MGLOBAL       *p = csound->midiGlobals;
     unsigned char buf[4];
     unsigned char nbytes;
+    // store the port for message
+    // this can be retrieved in the callback
+    csound->midiout_port = port;
 
     buf[0] = (unsigned char) status;
     nbytes = midiMsgBytes[(unsigned char) status >> 3];
@@ -126,41 +134,49 @@ void send_midi_message(CSOUND *csound, int32_t status, int32_t data1, int32_t da
       p->MidiWriteCallback(csound, p->midiOutUserData, &(buf[0]), (int32_t) nbytes);
     if (p->midiOutFileData != NULL)
       csoundWriteMidiOutFile(csound, &(buf[0]), (int32_t) nbytes);
+    csound->midiout_port = 0;
 }
 
-void note_on(CSOUND *csound, int32_t chan, int32_t num, int32_t vel)
+void note_on(CSOUND *csound, int32_t chan, int32_t num, int32_t vel,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_NOTEON, num, vel);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_NOTEON, num, vel, port);
 }
 
-void note_off(CSOUND *csound, int32_t chan, int32_t num, int32_t vel)
+void note_off(CSOUND *csound, int32_t chan, int32_t num, int32_t vel,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_NOTEOFF, num, vel);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_NOTEOFF, num, vel, port);
 }
 
-void control_change(CSOUND *csound, int32_t chan, int32_t num, int32_t value)
+void control_change(CSOUND *csound, int32_t chan, int32_t num, int32_t value,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_CNTRLCHG, num, value);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_CNTRLCHG, num, value, port);
 }
 
-void after_touch(CSOUND *csound, int32_t chan, int32_t value)
+void after_touch(CSOUND *csound, int32_t chan, int32_t value,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_CHANPRESS, value, 0);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_CHANPRESS, value, 0, port);
 }
 
-void program_change(CSOUND *csound, int32_t chan, int32_t num)
+void program_change(CSOUND *csound, int32_t chan, int32_t num,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_PGMCHG, num, 0);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_PGMCHG, num, 0, port);
 }
 
-void pitch_bend(CSOUND *csound, int32_t chan, int32_t lsb, int32_t msb)
+void pitch_bend(CSOUND *csound, int32_t chan, int32_t lsb, int32_t msb,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_PTCHBENDCHG, lsb, msb);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_PTCHBENDCHG, lsb, msb, port);
 }
 
-void poly_after_touch(CSOUND *csound, int32_t chan, int32_t note_num, int32_t value)
+void poly_after_touch(CSOUND *csound, int32_t chan, int32_t note_num, int32_t value,
+             int32_t port)
 {
-    send_midi_message(csound, (chan & 0x0F) | MD_POLYAFTER, note_num, value);
+  csoundSendMidiMsg(csound, (chan & 0x0F) | MD_POLYAFTER, note_num, value, port);
 }
 
 void midi_open_out(CSOUND *csound)

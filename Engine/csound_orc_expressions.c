@@ -336,6 +336,13 @@ static TREE *create_cond_expression(CSOUND *csound,
     last = last->next;
   }
 
+  if(last->left == NULL) {
+    csound->Message(csound,
+                    "missing boolean expression in " 
+                    "conditional expression, line %d\n", root->line-1);
+    return NULL;
+  }
+
   if (left[0]=='S' || right[0]=='S') {
     type = (last->left->value->lexeme[1]=='B') ?2 : 1;
     eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
@@ -1214,13 +1221,14 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                                     currentArg->line, currentArg->locn,
                                     typeTable);
       }
-      nextArg = currentArg->next;
-      csound->Free(csound, currentArg);
+     
 
       if (expressionNodes == NULL) {
-        csound->Message(csound, "Error: create_expression returned NULL\n");
+        csound->Message(csound, "error creating expression.\n");
         return NULL;
       }
+      nextArg = currentArg->next;
+      csound->Free(csound, currentArg);
 
       /* Set as anchor if necessary */
       anchor = append_to_tree(csound, anchor, expressionNodes);
@@ -1510,9 +1518,10 @@ static TREE* create_goto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "igoto");
-  gotoOperator->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
-  gotoOperator->value->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
+  const int gotoType = isPerfRate ? KGOTO_TOKEN : GOTO_TOKEN;
+  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "goto");
+  gotoOperator->type = gotoType;
+  gotoOperator->value->type = gotoType;
   return gotoOperator;
 }
 
@@ -1520,7 +1529,7 @@ static TREE* create_cgoto_node(
   CSOUND* csound,
   int isPerfRate
 ) {
-  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cigoto");
+  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cggoto");
   cgotoOperator->type = T_OPCALL;
   cgotoOperator->value->type = T_OPCALL;
   return cgotoOperator;
@@ -1637,7 +1646,10 @@ TREE* expand_switch_statement(
         defaultCaseBody = copy_node(csound, endGoto);
       }
     } else {
-      /* Ignore duplicate default clauses. */
+      /* Ignore duplicate default clauses: print a warning */
+      csound->Warning(csound,
+                      "duplicate default case in switch, line %d",
+                      caseNode->line-1);
     }
 
     caseNode = tempNext;
@@ -1659,6 +1671,9 @@ TREE* expand_switch_statement(
       gotoChainTailAnchor,
       defaultCaseBody
     );
+    if (gotoChainTail == NULL) {
+      gotoChainTail = gotoChainTailAnchor;
+    }
   }
 
   if (gotoChainHeadDefaultCase == NULL) {

@@ -115,14 +115,14 @@
 /* Precedence Rules */
 %right '?'
 %left S_AND S_OR
-%left '|'
-%left '&'
 %left S_LT S_GT S_LE S_GE S_EQ S_NEQ '=' // VL 6.8.25 for backwards compat
+%left '|'
+%left '#'
+%left '&'
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
 %left '+' '-'
 %left '*' '/' '%'
 %left '^'
-%left '#'
 %right S_UNOT
 %right S_UMINUS
 %right S_UPLUS
@@ -594,6 +594,10 @@ case_list : case_list case
                 tempLastNode->next = $2;
                 $$ = $1; }
             | case { $$ = $1; }
+            | NEWLINE case_list
+             {
+              $$ = $2;
+             }
             ;
 
 switch  : SWITCH_TOKEN expr NEWLINE case_list ENDSW_TOKEN

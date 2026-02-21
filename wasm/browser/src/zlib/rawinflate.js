@@ -292,7 +292,7 @@ RawInflate.prototype.readBits = function (length) {
 
 /**
  * read huffman code using table
- * @param {Array.<number>|Uint8Array|Uint16Array|null} table huffman code table.
+ * @param {!Array<(!Uint32Array|number)>} table huffman code table.
  * @return {number} huffman code.
  */
 RawInflate.prototype.readCodeByTable = function (table) {
@@ -303,10 +303,10 @@ RawInflate.prototype.readCodeByTable = function (table) {
 
   /** @type {number} */
   const inputLength = input.length;
-  /** @type {!(Uint8Array)} huffman code table */
-  const codeTable = table[0];
+  /** @type {!Uint32Array} huffman code table */
+  const codeTable = /** @type {!Uint32Array} */ (table[0]);
   /** @type {number} */
-  const maxCodeLength = table[1];
+  const maxCodeLength = /** @type {number} */ (table[1]);
 
   // not enough buffer
   while (bitsbuflen < maxCodeLength) {
@@ -466,7 +466,7 @@ RawInflate.prototype.parseDynamicHuffmanBlock = function () {
   }
 
   // decode length table
-  /** @type {Array.<number,number,number>} code lengths table. */
+  /** @type {!Array<(!Uint32Array|number)>} code lengths table. */
   const codeLengthsTable = Huffman(codeLengths);
   /** @type {Uint8Array} code length table. */
   const lengthTable = new Uint8Array(hlit + hdist);
@@ -504,9 +504,9 @@ RawInflate.prototype.parseDynamicHuffmanBlock = function () {
     }
   }
 
-  /** @type {Array.<number>|Uint8Array|null} literal and length code table. */
+  /** @type {!Array<(!Uint32Array|number)>} literal and length code table. */
   const litlenTable = Huffman(lengthTable.subarray(0, hlit));
-  /** @type {Array.<number>|Uint8Array} distance code table. */
+  /** @type {!Array<(!Uint32Array|number)>} distance code table. */
   const distTable = Huffman(lengthTable.subarray(hlit));
 
   switch (this.bufferType) {
@@ -526,8 +526,8 @@ RawInflate.prototype.parseDynamicHuffmanBlock = function () {
 
 /**
  * decode huffman code
- * @param {Array.<number>|Uint8Array|Uint16Array} litlen literal and length code table.
- * @param {Array.<number>|Uint8Array} dist distination code table.
+ * @param {!Array<(!Uint32Array|number)>} litlen literal and length code table.
+ * @param {!Array<(!Uint32Array|number)>} dist distination code table.
  */
 RawInflate.prototype.decodeHuffmanBlock = function (litlen, dist) {
   let output = this.output;
@@ -598,8 +598,8 @@ RawInflate.prototype.decodeHuffmanBlock = function (litlen, dist) {
 
 /**
  * decode huffman code (adaptive)
- * @param {Array.<number>|Uint8Array|Uint16Array} litlen literal and length code table.
- * @param {Array.<number>|Uint8Array} dist distination code table.
+ * @param {!Array<(!Uint32Array|number)>} litlen literal and length code table.
+ * @param {!Array<(!Uint32Array|number)>} dist distination code table.
  */
 RawInflate.prototype.decodeHuffmanAdaptive = function (litlen, dist) {
   let output = this.output;

@@ -274,20 +274,25 @@ static int32_t set_stream_parameters(CSOUND *csound, PaStreamParameters *sp,
 static int32_t audio_callback(const void *input, void *output,unsigned long framecount,
                               const PaStreamCallbackTimeInfo *timeInfo,
                               PaStreamCallbackFlags statusFlags, void *userData){
- 
+
   PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
   CSOUND  *csound = pabs->csound;
   float   *paInput = (float*) input;
   float   *paOutput = (float*) output;
   int32_t samps;
-  memset(output,0,framecount*sizeof(float)*pabs->outParm.nChannels);
-   
-  if (pabs->complete == 1) return paContinue;
-  
+  int32_t nout = 0;
+
+  if ((pabs->mode & 2) && paOutput != NULL) {
+    memset(paOutput, 0, (size_t) pabs->outBufSamples * sizeof(float));
+  }
+
 #ifdef WIN32
-  if (pabs->paStream == NULL || pabs->paused) return paContinue;
+  if (pabs->paStream == NULL)
+    return paContinue;
+  if (pabs->paused)
+    return (pabs->complete == 1 ? paComplete : paContinue);
 #endif
-  
+
   if (pabs->mode & 1){
     samps = (int32_t) (pabs->inParm.nChannels*framecount);
     for(int i = 0; i < samps; i++)
@@ -296,11 +301,18 @@ static int32_t audio_callback(const void *input, void *output,unsigned long fram
   }
   if (pabs->mode & 2) {
     samps = pabs->outBufSamples;
-    int32_t n = csound->ReadCircularBuffer(csound,pabs->outcb,
-                                           pabs->outputBuffer,samps);
-    for(int i = 0; i < n; i++)
-      paOutput[i] = pabs->outputBuffer[i];     
+    nout = csound->ReadCircularBuffer(csound, pabs->outcb,
+                                      pabs->outputBuffer, samps);
+    for(int i = 0; i < nout; i++)
+      paOutput[i] = pabs->outputBuffer[i];
   }
+
+  /* Once closing, continue until queued output is drained. */
+  if (pabs->complete == 1) {
+    if ((pabs->mode & 2) == 0 || nout == 0)
+      return paComplete;
+  }
+
   return paContinue;
 }
 
@@ -500,6 +512,7 @@ static void rtclose_noblock(CSOUND *csound)
   if (pabs == NULL)
     return;
 
+  /* Mark completion first so callback can drain and then terminate. */
   pabs->complete = 1;
 
   if (pabs->paStream != NULL) {
@@ -507,7 +520,7 @@ static void rtclose_noblock(CSOUND *csound)
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
   }
-  
+
   if (pabs->outputBuffer != NULL) {
     csound->Free(csound,pabs->outputBuffer);
     pabs->outputBuffer = NULL;

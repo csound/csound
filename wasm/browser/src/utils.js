@@ -49,12 +49,17 @@ export const stopableStates = new Set([
 export const makeProxyCallback =
   (proxyPort, csoundInstance, apiK, playState) =>
   async (...arguments_) => {
-    if (!playState || !stopableStates.has(playState)) {
-      const modifiedFs = {}; // getModifiedPersistentStorage();
-      Object.values(modifiedFs).length > 0 &&
-        (await proxyPort.callUncloned("syncWorkerFs", [csoundInstance, modifiedFs]));
+    try {
+      if (!playState || !stopableStates.has(playState)) {
+        const modifiedFs = {};
+        Object.values(modifiedFs).length > 0 &&
+          (await proxyPort.callUncloned("syncWorkerFs", [csoundInstance, modifiedFs]));
+      }
+      return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
-    return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
   };
 
 export const makeSingleThreadCallback =

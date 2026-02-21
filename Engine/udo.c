@@ -682,8 +682,8 @@ int32_t set_inbufs(CSOUND *csound,
   CS_VARIABLE* current;
   UOPCODE  *udo;
   MYFLT parent_sr = buf->parent_ip->esr;
-  MYFLT o1ksmps = h->insdshead->ekr/parent_sr;
   MYFLT esr = h->insdshead->esr;
+  MYFLT ratio = esr/parent_sr;
   MYFLT **args = buf->inargs;
 
   buf->iflag = 1;
@@ -714,7 +714,7 @@ int32_t set_inbufs(CSOUND *csound,
       // initialise the converter
       if(esr != parent_sr) {
         if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,
-                                        o1ksmps, h->insdshead->ksmps)) == NULL)
+                                        ratio, h->insdshead->ksmps)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
@@ -723,7 +723,7 @@ int32_t set_inbufs(CSOUND *csound,
       // initialise the converter
       if(esr != parent_sr) {
         if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,
-                                        o1ksmps, 1)) == NULL)
+                                        ratio, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
@@ -1390,7 +1390,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
   p->h.insdshead->xtratim *= os;
   CS_KCNT *= onedos;
   /* oversampling mode (s) */
-  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? MYFLT2LRND(*p->in_cvt) : 0;
   if(*p->out_cvt >= 0)
     p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
   else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;
@@ -1468,7 +1468,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   p->h.insdshead->xtratim *= onedos;
   CS_KCNT *= FL(1.0)/onedos;
   /* undersampling mode (s) */
-  p->h.insdshead->in_cvt = MYFLT2LRND(*p->in_cvt);
+  p->h.insdshead->in_cvt = *p->in_cvt >= 0 ? MYFLT2LRND(*p->in_cvt) : 0;
   if(*p->out_cvt >= 0)
     p->h.insdshead->out_cvt = MYFLT2LRND(*p->out_cvt);
   else p->h.insdshead->out_cvt = p->h.insdshead->in_cvt;

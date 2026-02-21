@@ -25,6 +25,29 @@ const callUncloned = async (k, arguments_) => {
   return returnValue;
 };
 
+const applyUserProvidedAudioParams = ({ audioStateBuffer, csound, libraryCsound }) => {
+  if (!audioStateBuffer) {
+    return;
+  }
+  const audioStatePointer = new Int32Array(audioStateBuffer);
+  const userProvidedNchnls = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS);
+  const userProvidedNchnlsIn = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
+  const userProvidedSr = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
+
+  if (userProvidedNchnls > -1) {
+    const result = libraryCsound.csoundSetOption(csound, "--nchnls=" + userProvidedNchnls);
+    result !== 0 && console.error("csoundSetOption nchnls failed:", result);
+  }
+  if (userProvidedNchnlsIn > -1) {
+    const result = libraryCsound.csoundSetOption(csound, "--nchnls_i=" + userProvidedNchnlsIn);
+    result !== 0 && console.error("csoundSetOption nchnls_i failed:", result);
+  }
+  if (userProvidedSr > -1) {
+    const result = libraryCsound.csoundSetOption(csound, "--sample-rate=" + userProvidedSr);
+    result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
+  }
+};
+
 const sabCreateRealtimeAudioThread =
   ({
     libraryCsound,
@@ -45,10 +68,24 @@ const sabCreateRealtimeAudioThread =
 
     const audioStatePointer = new Int32Array(audioStateBuffer);
 
+    // Preserve user-provided audio config across state reset.
+    const userProvidedNchnls = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS);
+    const userProvidedNchnlsIn = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
+    const userProvidedSr = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
+
     // In case of multiple performances, let's reset the sab state
     initialSharedState.forEach((value, index) => {
       Atomics.store(audioStatePointer, index, value);
     });
+    if (userProvidedNchnls > -1) {
+      Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS, userProvidedNchnls);
+    }
+    if (userProvidedNchnlsIn > -1) {
+      Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS_I, userProvidedNchnlsIn);
+    }
+    if (userProvidedSr > -1) {
+      Atomics.store(audioStatePointer, AUDIO_STATE.SAMPLE_RATE, userProvidedSr);
+    }
 
     // Prompt for midi-input on demand
     const isRequestingRtMidiInput = libraryCsound["_isRequestingRtMidiInput"](csound);
@@ -57,24 +94,6 @@ const sabCreateRealtimeAudioThread =
     const isExpectingInput =
       Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I) === 0 &&
       libraryCsound.csoundGetInputName(csound).includes("adc");
-
-    // Store Csound AudioParams for upcoming performance
-    const userProvidedNchnls = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS);
-    const userProvidedNchnlsIn = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
-    const userProvidedSr = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
-
-    if (userProvidedNchnls > -1) {
-      const result = libraryCsound.csoundSetOption(csound, "--nchnls=" + userProvidedNchnls);
-      result !== 0 && console.error("csoundSetOption nchnls failed:", result);
-    }
-    if (userProvidedNchnlsIn > -1) {
-      const result = libraryCsound.csoundSetOption(csound, "--nchnls_i=" + userProvidedNchnlsIn);
-      result !== 0 && console.error("csoundSetOption nchnls_i failed:", result);
-    }
-    if (userProvidedSr > -1) {
-      const result = libraryCsound.csoundSetOption(csound, "--sample-rate=" + userProvidedSr);
-      result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
-    }
 
     const nchnls = libraryCsound.csoundGetNchnls(csound);
 
@@ -404,8 +423,14 @@ const initialize = async (payload) => {
 
   const libraryCsound = libcsoundFactory(wasm);
 
-  const startHandler = (_, arguments_) =>
-    handleCsoundStart(
+  const startHandler = (_, arguments_) => {
+    applyUserProvidedAudioParams({
+      audioStateBuffer: arguments_ && arguments_["audioStateBuffer"],
+      csound: arguments_ && arguments_["csound"],
+      libraryCsound,
+    });
+
+    return handleCsoundStart(
       workerMessagePort,
       libraryCsound,
       wasi,
@@ -428,6 +453,7 @@ const initialize = async (payload) => {
         releaseResumed,
       }),
     )(arguments_);
+  };
 
   const allAPI = { ...libraryCsound, csoundStart: startHandler, wasm };
   combined = new Map(Object.entries(allAPI));

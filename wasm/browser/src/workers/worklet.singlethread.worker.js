@@ -28,19 +28,8 @@ import loadWasm from "../module";
 import { clearArray } from "../utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "../logger";
 
-let renderSleep;
-let libraryCsound;
-let combined;
-const rtmidiQueue = [];
-
-const callUncloned = async (k, arguments_) => {
-  const caller = combined.get(k);
-  const returnValue = caller && caller.apply({}, arguments_ || []);
-  return returnValue;
-};
-
 const singlethreadWorkerRender =
-  ({ libraryCsound, workerMessagePort, wasi }) =>
+  ({ libraryCsound, workerMessagePort, setRenderSleep }) =>
   async (payload) => {
     const csound = payload["csound"];
     const kr = libraryCsound.csoundGetKr(csound);
@@ -55,7 +44,7 @@ const singlethreadWorkerRender =
         // this is immediately executed, but allows events to be picked up
         // we use the process loop instead of setTimeout(0)
         await new Promise((resolve) => {
-          renderSleep = resolve;
+          setRenderSleep(resolve);
         });
       }
     }
@@ -91,6 +80,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.result = undefined;
 
     this.rtmidiPort = undefined;
+    this.renderSleep = undefined;
+    this.libraryCsound = undefined;
+    this.combined = undefined;
+    this.rtmidiQueue = [];
 
     /** @suppress {checkTypes} */
     this.sampleRate = globalThis.sampleRate;
@@ -101,6 +94,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.pause = this.pause.bind(this);
     /** @export */
     this.stop = this.stop.bind(this);
+    /** @export */
+    this.terminate = this.terminate.bind(this);
     /** @export */
     this.process = this.process.bind(this);
     /** @export */
@@ -116,8 +111,17 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.isPaused = false;
     this.running = false;
     this.started = false;
+    this.isTerminated = false;
     /** @export */
-    this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
+    this.callUncloned = async (k, arguments_) => {
+      const caller = this.combined && this.combined.get(k);
+      if (!caller) {
+        console.error("Csound worklet thread is still uninitialized!");
+        return undefined;
+      }
+      const returnValue = caller.apply({}, arguments_ || []);
+      return returnValue;
+    };
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
@@ -137,7 +141,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       log(`initRtMidiEventPort`)();
       this.rtmidiPort = rtmidiPort;
       this.rtmidiPort.addEventListener("message", ({ data: payload }) => {
-        rtmidiQueue.push(payload);
+        this.rtmidiQueue.push(payload);
       });
       this.rtmidiPort.start();
     };
@@ -160,14 +164,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.wasi = wasi;
       wasm.wasi = wasi;
 
-      libraryCsound = libcsoundFactory(wasm);
-      /** @suppress {checkTypes} */
-      this.callUncloned = callUncloned;
-      this.csound = libraryCsound.csoundCreate(0);
+      this.libraryCsound = libcsoundFactory(wasm);
+      this.csound = this.libraryCsound.csoundCreate(0);
       this.result = 0;
       this.running = false;
       this.isRendering = false;
       this.started = false;
+      this.isTerminated = false;
       this.resetCsound(false);
 
       const csoundCreate = async (v) => {
@@ -175,7 +178,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       };
 
       const allAPI = {
-        ...libraryCsound,
+        ...this.libraryCsound,
         csoundCreate,
         csoundReset: this.resetCsound.bind(this),
         csoundStop: this.stop.bind(this),
@@ -183,7 +186,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         wasm,
       };
 
-      combined = new Map(Object.entries(allAPI));
+      this.combined = new Map(Object.entries(allAPI));
       log("wasm initialized and api generated")();
       resolver();
     });
@@ -215,24 +218,48 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     const cs = this.csound;
 
     if (callReset) {
-      libraryCsound.csoundReset(cs);
+      this.libraryCsound.csoundReset(cs);
     }
 
-    libraryCsound.csoundSetMidiCallbacks(cs);
+    this.libraryCsound.csoundSetMidiCallbacks(cs);
     if (this.sampleRate) {
-      const result = libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+      const result = this.libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
       result !== 0 && console.error("csoundSetOption sample-rate failed:", result);
     }
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
   }
 
   stop() {
+    // Ensure process() cannot keep advancing DSP after a manual stop.
+    this.running = false;
+    this.started = false;
+    this.result = 0;
+    this.needsStartNotification = false;
+    this.isRendering = false;
+    delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
+
     if (this.csound) {
-      libraryCsound.csoundStop(this.csound);
+      this.libraryCsound.csoundStop(this.csound);
     }
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+  }
+
+  terminate() {
+    if (this.isTerminated) {
+      return;
+    }
+    this.isTerminated = true;
+    const resolveRenderSleep = this.renderSleep;
+    this.renderSleep = undefined;
+    if (typeof resolveRenderSleep === "function") {
+      resolveRenderSleep();
+    }
+    clearArray(this.rtmidiQueue);
+    this.stop();
   }
 
   pause() {
@@ -250,11 +277,18 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
-    if (typeof renderSleep === "function") {
-      renderSleep();
+    if (typeof this.renderSleep === "function") {
+      const resolve = this.renderSleep;
+      this.renderSleep = undefined;
+      resolve();
     }
 
-    if (!this.isRendering && (this.isPaused || !this.csoundOutputBuffer || !this.running)) {
+    if (this.isTerminated) {
+      (outputs[0] || []).forEach((array) => array.fill(0));
+      return false;
+    }
+
+    if (this.isRendering || this.isPaused || !this.csoundOutputBuffer || !this.running) {
       const output = outputs[0];
       const bufferLength = output[0].length;
       for (let index = 0; index < bufferLength; index++) {
@@ -273,11 +307,11 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
     }
 
-    if (rtmidiQueue.length > 0) {
-      rtmidiQueue.forEach((event) => {
-        libraryCsound["csoundPushMidiMessage"](this.csound, event[0], event[1], event[2]);
+    if (this.rtmidiQueue.length > 0) {
+      this.rtmidiQueue.forEach((event) => {
+        this.libraryCsound["csoundPushMidiMessage"](this.csound, event[0], event[1], event[2]);
       });
-      clearArray(rtmidiQueue);
+      clearArray(this.rtmidiQueue);
     }
 
     const input = inputs[0];
@@ -299,7 +333,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     for (let index = 0; index < bufferLength; index++, cnt++) {
       if (cnt >= ksmps && result === 0) {
         // if we need more samples from Csound
-        result = libraryCsound.csoundPerformKsmps(this.csound);
+        result = this.libraryCsound.csoundPerformKsmps(this.csound);
         cnt = 0;
 
         if (result !== 0) {
@@ -314,7 +348,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       if (!csOut || csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
-          libraryCsound.csoundGetSpout(this.csound),
+          this.libraryCsound.csoundGetSpout(this.csound),
           ksmps * nchnls,
         );
       }
@@ -322,7 +356,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       if (!csIn || csIn.length === 0) {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
-          libraryCsound.csoundGetSpin(this.csound),
+          this.libraryCsound.csoundGetSpin(this.csound),
           ksmps * nchnlsIn,
         );
       }
@@ -375,15 +409,15 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     return true;
   }
 
-  async isRequestingInput() {
+  isRequestingInput() {
     const cs = this.csound;
-    const inputName = libraryCsound.csoundGetInputName(cs) || "";
+    const inputName = this.libraryCsound.csoundGetInputName(cs) || "";
     return inputName.includes("adc");
   }
 
-  async isRequestingRealtimeOutput() {
+  isRequestingRealtimeOutput() {
     const cs = this.csound;
-    const outputName = libraryCsound.csoundGetOutputName(cs) || "";
+    const outputName = this.libraryCsound.csoundGetOutputName(cs) || "";
     return outputName.includes("dac");
   }
 
@@ -394,31 +428,31 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     } else {
       log("worklet thread is starting..")();
       const cs = this.csound;
-      const ksmps = libraryCsound.csoundGetKsmps(cs);
+      const ksmps = this.libraryCsound.csoundGetKsmps(cs);
       this.ksmps = ksmps;
       this.cnt = ksmps;
-      this.nchnls = libraryCsound.csoundGetNchnls(cs);
-      this.nchnls_i = libraryCsound.csoundGetNchnlsInput(cs);
+      this.nchnls = this.libraryCsound.csoundGetNchnls(cs);
+      this.nchnls_i = this.libraryCsound.csoundGetNchnlsInput(cs);
 
-      this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
+      this.zerodBFS = this.libraryCsound.csoundGet0dBFS(cs);
 
-      returnValueValue = libraryCsound.csoundStart(cs);
+      returnValueValue = this.libraryCsound.csoundStart(cs);
 
       if (returnValueValue !== 0) {
         return returnValueValue;
       }
 
-      const isExpectingRealtimeOutput = await this.isRequestingRealtimeOutput();
+      const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
         this.csoundOutputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
-          libraryCsound.csoundGetSpout(cs),
+          this.libraryCsound.csoundGetSpout(cs),
           ksmps * this.nchnls,
         );
         this.csoundInputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
-          libraryCsound.csoundGetSpin(cs),
+          this.libraryCsound.csoundGetSpin(cs),
           ksmps * this.nchnls_i,
         );
         log("csoundStart called with {} return val", returnValueValue)();
@@ -429,15 +463,18 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         this.isRendering = true;
 
         singlethreadWorkerRender({
-          libraryCsound,
+          libraryCsound: this.libraryCsound,
           workerMessagePort: this.workerMessagePort,
-          wasi: this.wasi,
+          setRenderSleep: (resolve) => {
+            this.renderSleep = resolve;
+          },
         })({ csound: cs })
           .then(() => {
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
           })
-          .catch(() => {
+          .catch((error) => {
+            console.error(error);
             this.workerMessagePort.broadcastPlayState("renderEnded");
             this.isRendering = false;
           });

@@ -242,8 +242,8 @@ static const char *language_names[] = {"", /* Default */
 #endif
 }
 
- double csoundStrtod(char* nptr, char** endptr) {
-#ifdef HAVE_STRTOD_L
+double csoundStrtod(char* nptr, char** endptr) {
+#if defined(HAVE_STRTOD_L) && !defined(__wasi__)
   return strtod_l(nptr, endptr, csound_c_locale);
 #else
     return strtod(nptr, endptr);
@@ -257,7 +257,7 @@ static const char *language_names[] = {"", /* Default */
     va_list args;
     int32_t retVal;
     va_start(args, format);
-    retVal = vsprintf_l(str,csound_c_locale,format,args);   
+    retVal = vsprintf_l(str,csound_c_locale,format,args);
     va_end(args);
     return retVal;
 }
@@ -267,9 +267,9 @@ static const char *language_names[] = {"", /* Default */
     // This is not thread-safe but no idea how to fix
     va_list args;
     int32_t retVal;
-    va_start(args, format);      
+    va_start(args, format);
     retVal = vsscanf_l(str,csound_c_locale,format,args);
-    retVal = vsscanf(str,format,args);       
+    retVal = vsscanf(str,format,args);
     va_end(args);
     return retVal;
 }

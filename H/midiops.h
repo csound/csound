@@ -50,8 +50,6 @@
 #define TVA_DEC         134
 #define TVA_RLS         135
 
-
-
 typedef struct {
     OPDS      h;
     MYFLT     *chnl;
@@ -168,7 +166,6 @@ typedef struct {
   OPDS    h;
   MYFLT   *noteOut, *counter;
   MYFLT   *arpRate, *arpMode;
-
   int32_t metroTick;
   double  curphs;
   int32_t flag;

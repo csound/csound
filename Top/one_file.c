@@ -60,66 +60,100 @@ const uint32_t csPlayScoMask = 16;
 
 CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 {
-#define   nBytes (256)
-    char lbuf[256];
-#if defined(WIN32) && !defined(__CYGWIN__)
+    enum { nBytes = 256 };
+    char lbuf[nBytes];
+
+#if defined(__wasi__)
+
+    /* WASI: no POSIX signals/umask, temp dirs depend on preopened FDs.
+       We just fabricate a unique-ish name in TMPDIR or "." and DO NOT create the file. */
+    const char *tmpdir = getenv("TMPDIR");
+    if (tmpdir == NULL || tmpdir[0] == '\0')
+        tmpdir = ".";
+
+    /* Prefer arc4random() if available (wasi-libc provides it). */
+    unsigned r1 = 0u, r2 = 0u;
+    /* If arc4random is unavailable, these stay 0; still fine for a temp *name* hint. */
+    #if defined(__has_include)
+    #  if __has_include(<stdlib.h>)
+         r1 = (unsigned)arc4random();
+         r2 = (unsigned)arc4random();
+    #  endif
+    #else
+         r1 = (unsigned)arc4random();
+         r2 = (unsigned)arc4random();
+    #endif
+
+    if (ext && ext[0] != '\0')
+        snprintf(lbuf, nBytes, "%s/csound-%08x%08x%s", tmpdir, r1, r2, ext);
+    else
+        snprintf(lbuf, nBytes, "%s/csound-%08x%08x",   tmpdir, r1, r2);
+
+    /* Optionally, you could loop/stat() to avoid collisions, but for WASI it's usually enough
+       to just return a unique-looking name; the caller will open/create it later. */
+    return csoundStrdup(csound, lbuf);
+
+#elif defined(WIN32) && !defined(__CYGWIN__)
+
+    /* Windows: use _tempnam() since mkstemp() is not available. */
     struct _stat tmp;
-#else
-    struct stat tmp;
-#endif
     do {
-#ifndef WIN32
-      int32_t fd;
-      char *tmpdir = getenv("TMPDIR");
-      if (tmpdir != NULL && tmpdir[0] != '\0')
-        snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
-      else
-        strcpy(lbuf, "/tmp/csond-XXXXXX");
-#ifndef BARE_METAL      
-      umask(0077);
-#endif      
-        /* ensure exclusive access on buggy implementations of mkstemp */
-      if (UNLIKELY((fd = mkstemp(lbuf)) < 0))
-        csound->Die(csound, Str(" *** cannot create temporary file"));
-      close(fd);
-      //unlink(lbuf);
-#else
-      {
-        char  *s = (char*) csoundGetEnv(csound, "SFDIR");
+        char *s = (char*) csoundGetEnv(csound, "SFDIR");
         if (s == NULL)
-          s = (char*) csoundGetEnv(csound, "HOME");
+            s = (char*) csoundGetEnv(csound, "HOME");
         s = _tempnam(s, "cs");
         if (UNLIKELY(s == NULL))
-          csound->Die(csound, Str(" *** cannot create temporary file"));
+            csound->Die(csound, Str(" *** cannot create temporary file"));
         strNcpy(lbuf, s, nBytes);
         free(s);
-      }
-#endif
-      if (ext != NULL && ext[0] != (char) 0) {
-#if !defined(LINUX) && !defined(__MACH__) && !defined(WIN32)
-        char  *p;
-        /* remove original extension (does not work on OS X */
-        /* and may be a bad idea) */
-        if ((p = strrchr(lbuf, '.')) != NULL)
-          *p = '\0';
-#endif
-        strlcat(lbuf, ext, nBytes);
-      }
-#ifdef __MACH__
-      /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
-      /* (suggested by Matt Ingalls) */
-      if (strncmp(lbuf, "/var/tmp/", 9) == 0) {
-        int32_t i = 3;
-        do {
-          i++;
-          lbuf[i - 4] = lbuf[i];
-          } while (lbuf[i] != '\0');
-      }
-#endif
-#if defined(WIN32)
+
+        if (ext && ext[0] != '\0')
+            strlcat(lbuf, ext, nBytes);
     } while (_stat(lbuf, &tmp) == 0);
-#else
-      /* if the file already exists, try again */
+
+    return csoundStrdup(csound, lbuf);
+
+#else /* Unix/POSIX */
+
+    /* Non-WASI, non-Windows: preserve original mkstemp-based flow. */
+    struct stat tmp;
+    int32_t fd;
+
+    do {
+        const char *tmpdir = getenv("TMPDIR");
+        if (tmpdir && tmpdir[0] != '\0')
+            snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
+        else
+            strcpy(lbuf, "/tmp/csound-XXXXXX");
+
+        /* Restrictive perms for the temp file (when supported). */
+        #ifndef BARE_METAL
+            umask(0077);
+        #endif
+
+        /* Ensure exclusive creation (workaround "buggy mkstemp" comment kept). */
+        fd = mkstemp(lbuf);
+        if (UNLIKELY(fd < 0))
+            csound->Die(csound, Str(" *** cannot create temporary file"));
+        close(fd);
+
+        if (ext && ext[0] != '\0') {
+            #if !defined(LINUX) && !defined(__MACH__)
+            char *p = strrchr(lbuf, '.');
+            if (p) *p = '\0';
+            #endif
+            strlcat(lbuf, ext, nBytes);
+        }
+
+        #ifdef __MACH__
+        /* macOS: normalize /var/tmp -> /tmp (historic behavior). */
+        if (strncmp(lbuf, "/var/tmp/", 9) == 0) {
+            /* shift left by 4 chars to drop "/var" prefix, including '\0' */
+            memmove(lbuf, lbuf + 4, strlen(lbuf + 4) + 1);
+        }
+        #endif
+
+        /* Loop if the name somehow already exists (paranoia). */
     } while (stat(lbuf, &tmp) == 0);
 #endif
 return csoundStrdup(csound, lbuf);
@@ -660,7 +694,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
         char sys[1024];
         csoundFileClose(csound, fd);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
-#ifdef IOS
+#if defined(IOS) || defined(__wasi__)
 int system_result = 0;
 #else
 int system_result = system(sys);

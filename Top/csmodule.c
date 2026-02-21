@@ -357,10 +357,20 @@ int32_t csoundInitModules(CSOUND *csound) {
   return retval;
 }
 
-// In browser-wasi, this function is replaced
-// by the js-host.
-__attribute__((used))
-extern int32_t csoundLoadModules(CSOUND *csound);
+// In browser-wasi, this function is provided by the JS host.
+int32_t csoundLoadModulesHost(CSOUND *csound)
+    __attribute__((used,
+                   __import_module__("env"),
+                   __import_name__("csoundLoadModules")));
+
+int32_t csoundLoadModules(CSOUND *csound) {
+  return csoundLoadModulesHost(csound);
+}
+
+int32_t csoundLoadExternals(CSOUND *csound) {
+  (void) csound;
+  return CSOUND_SUCCESS;
+}
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
   return 0;
@@ -513,7 +523,7 @@ static int32_t check_opcode_deny(CSOUND * csound, const char *fname)
   char *p, *deny;
   char *list = getenv("CS_OMIT_LIBS");
   if (list==NULL) return 0;
-  strNcpy(buff, fname, 255); 
+  strNcpy(buff, fname, 255);
   strrchr(buff, '.')[0] = '\0'; /* Remove .so etc */
   p = csoundStrdup(csound, list);
   deny = cs_strtok_r(p, ",", &th);
@@ -1181,18 +1191,20 @@ typedef int32_t (*INITFN2)(CSOUND *);
  int32_t sfont_ModuleInit(CSOUND *csound);
  int32_t sfont_ModuleCreate(CSOUND *csound);
  int32_t newgabopc_ModuleInit(CSOUND *csound);
+ #ifndef __wasi__
  int32_t csoundModuleInit_ampmidid(CSOUND *csound);
  int32_t csoundModuleCreate_mixer(CSOUND *csound);
  int32_t csoundModuleInit_mixer(CSOUND *csound);
  int32_t csoundModuleInit_doppler(CSOUND *csound);
-#ifndef BARE_METAL
- int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
-#endif
  int32_t csoundModuleInit_signalflowgraph(CSOUND *csound);
  int32_t arrayops_init_modules(CSOUND *csound);
  int32_t lfsr_init_modules(CSOUND *csound);
  int32_t pvsops_init_modules(CSOUND *csound);
  int32_t trigEnv_init_modules(CSOUND *csound);
+ #endif
+ #ifndef BARE_METAL
+ extern int32_t csoundModuleInit_ftsamplebank(CSOUND *csound);
+ #endif
  int32_t csoundModuleInit_fractalnoise(CSOUND *csound);
  int32_t scansyn_init_(CSOUND *csound);
  int32_t scansynx_init_(CSOUND *csound);
@@ -1276,19 +1288,21 @@ CS_NOINLINE int32_t csoundInitStaticModules(CSOUND *csound)
     pvsopc_ModuleInit,
     sfont_ModuleCreate,
     sfont_ModuleInit,
+#if !defined(__wasi__)
     csoundModuleInit_ampmidid,
     csoundModuleCreate_mixer,
     csoundModuleInit_mixer,
     csoundModuleInit_doppler,
-#if !defined(BARE_METAL) && !defined(__wasi__)
-    csoundModuleInit_ftsamplebank,
-#endif
     csoundModuleInit_signalflowgraph,
     arrayops_init_modules,
     lfsr_init_modules,
     pvsops_init_modules,
     trigEnv_init_modules,
     csoundModuleInit_fractalnoise,
+#endif
+#if !defined(BARE_METAL) && !defined(__wasi__)
+    csoundModuleInit_ftsamplebank,
+#endif
     scansyn_init_,
     scansynx_init_,
     NULL

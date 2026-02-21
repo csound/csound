@@ -1,56 +1,59 @@
 {
-  pkgs ? import <nixpkgs> { },
-  static ? false,
-}:
-
-let
+  pkgs,
+  pkgsWasm,
+  stdenvWasm,
+}: let
   lib = pkgs.lib;
-  wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
-  wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
-  wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
-
+  libvorbis = pkgs.callPackage ./libvorbis.nix {inherit pkgs pkgsWasm stdenvWasm;};
+  libogg = pkgs.callPackage ./libogg.nix {inherit pkgs pkgsWasm stdenvWasm;};
 in
-pkgs.stdenvNoCC.mkDerivation rec {
-  name = "libflac";
-  src = pkgs.flac.src;
-  phases = [
-    "unpackPhase"
-    "patchPhase"
-    "buildPhase"
-    "installPhase"
-  ];
+  stdenvWasm.mkDerivation rec {
+    name = "libflac";
+    src = pkgs.flac.src;
+    nativeBuildInputs = [
+      pkgs.cmake
+      pkgs.pkg-config
+    ];
 
-  patchPhase = ''
-    rm ./src/libFLAC/windows_unicode_filenames.c || true
-    mv ./include/share/win_utf8_io.h ./include/io.h
-    # Fix conflicting stdio function redefinitions for WASI
-    sed -i 's/#define fseeko fseek/\/\/ #define fseeko fseek/' ./include/share/compat.h
-    sed -i 's/#define ftello ftell/\/\/ #define ftello ftell/' ./include/share/compat.h
-  '';
+    postPatch = ''
+        echo "Prepending WASI chown() stub to libFLAC metadata_iterators.c"
+        tmpfile=$(mktemp)
+        cat > "$tmpfile" <<'EOF'
+      /* ---------------------------------------------------------------------
+       * WASI / WebAssembly stub for chown()
+       * ---------------------------------------------------------------------
+       * WASI and other WebAssembly environments have no user/group ownership
+       * system calls, so we provide a harmless no-op implementation to allow
+       * code expecting POSIX chown() to compile and link successfully.
+       */
+      #if defined(__wasm__) || defined(__wasi__)
+      #  include <unistd.h>
+      #  include <errno.h>
+      int chown(const char *path, uid_t owner, gid_t group) {
+          (void)path; (void)owner; (void)group;
+          errno = ENOSYS; /* Operation not supported */
+          return -1;      /* or return 0 to silently succeed */
+      }
+      #endif /* __wasm__ || __wasi__ */
 
-  buildPhase = ''
-    ${wasi-sdk}/bin/clang \
-       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-       ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten"} \
-       ${lib.optionalString (static == false) "-fPIC"} \
-       -I${pkgs.libogg.dev}/include \
-       -I${pkgs.flac.dev}/include \
-       -I./src/libFLAC/include \
-       -I./include \
-       -I${pkgs.libsndfile.dev}/include \
-       -O3 \
-       -D__wasi__=1 \
-       -D__wasm32__=1 \
-       -DHAVE_LROUND=1 \
-       -DPACKAGE_VERSION='"1.3.3"' \
-       -DFLAC__HAS_OGG=1 \
-       -c \
-       ./src/libFLAC/*.c
-  '';
+      EOF
+        cat src/libFLAC/metadata_iterators.c >> "$tmpfile"
+        mv "$tmpfile" src/libFLAC/metadata_iterators.c
+    '';
 
-  installPhase = ''
-    mkdir -p $out/lib
-    ${wasi-sdk}/bin/llvm-ar crS $out/lib/libflac.a ./*.o
-    ${wasi-sdk}/bin/llvm-ranlib -U $out/lib/libflac.a
-  '';
-}
+    cmakeFlags = [
+      "-DCMAKE_BUILD_TYPE=RELEASE"
+      "-DBUILD_SHARED_LIBS=OFF"
+      "-DBUILD_PROGRAMS=OFF"
+      "-DBUILD_CXXLIBS=OFF"
+      "-DBUILD_DOCS=OFF"
+      "-DBUILD_EXAMPLES=OFF"
+      "-DBUILD_TESTING=OFF"
+      "-DINSTALL_MANPAGES=OFF"
+      "-DENABLE_MULTITHREADING=OFF"
+      "-DWITH_FORTIFY_SOURCE=OFF"
+      "-DWITH_STACK_PROTECTOR=OFF"
+      "-DOGG_INCLUDE_DIR=${libogg}/include"
+      "-DOGG_LIBRARY=${libogg}/lib"
+    ];
+  }

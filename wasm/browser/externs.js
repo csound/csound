@@ -38,23 +38,6 @@ Buffer.from = function (arrayBuffer, byteOffset, length) {};
 Buffer.concat = function (arrayBuffer, length) {};
 
 /**
- * @typedef {{value:string, mutable:boolean}}
- */
-var WasmGlobalMeta;
-
-/**
- * @constructor
- * @param {WasmGlobalMeta} wasmGlobalMeta
- * @param {number} initialValue
- */
-WebAssembly.Global = function (wasmGlobalMeta, initialValue) {};
-
-/**
- * @type {number}
- */
-WebAssembly.Global.prototype.value;
-
-/**
  * @function
  * @param {string} awScopeName
  * @param {Object} awClassName

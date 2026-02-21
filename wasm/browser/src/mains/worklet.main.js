@@ -6,6 +6,7 @@ import { messageEventHandler } from "./messages.main";
 import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
 let UID = 0;
+const registeredContexts = new WeakSet();
 
 /**
  * @unrestricted
@@ -14,6 +15,7 @@ class AudioWorkletMainThread {
   constructor({ audioContext, audioContextIsProvided, autoConnect }) {
     this.autoConnect = autoConnect;
     this.audioContextIsProvided = audioContextIsProvided;
+    this.audioContextOwnedByInstance = !audioContextIsProvided;
     /** @type {({ mainMessagePortAudio: EventTarget } | undefined)} */
     this.ipcMessagePorts = undefined;
     this.audioContext = audioContext;
@@ -43,12 +45,17 @@ class AudioWorkletMainThread {
   }
 
   async terminateInstance() {
+    if (this.workletProxy) {
+      try {
+        await this.workletProxy["terminate"]();
+      } catch {}
+    }
     if (this.audioWorkletNode) {
       this.audioWorkletNode.disconnect();
       delete this.audioWorkletNode;
     }
     if (this.audioContext) {
-      if (this.audioContext.state !== "closed") {
+      if (this.audioContextOwnedByInstance && this.audioContext.state !== "closed") {
         try {
           await this.audioContext.close();
         } catch {}
@@ -108,7 +115,7 @@ class AudioWorkletMainThread {
             : "",
         )();
         if (
-          !this.audioContextIsProvided &&
+          this.audioContextOwnedByInstance &&
           this.autoConnect &&
           this.audioContext &&
           this.audioContext.state !== "closed"
@@ -171,6 +178,7 @@ class AudioWorkletMainThread {
         console.error(`fatal: the provided AudioContext was undefined`);
       }
       this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+      this.audioContextOwnedByInstance = true;
     }
 
     if (this.audioContext.state === "closed") {
@@ -178,10 +186,12 @@ class AudioWorkletMainThread {
         console.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
       }
       this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+      this.audioContextOwnedByInstance = true;
     }
 
     if (this.sampleRate !== this.audioContext.sampleRate) {
       this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+      this.audioContextOwnedByInstance = true;
       // if this.audioContextIsProvided is true
       // it should already be picked
       if (this.audioContextIsProvided) {
@@ -190,10 +200,15 @@ class AudioWorkletMainThread {
     }
     this.workletWorkerUrl = WorkletWorker();
 
-    try {
-      await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
-    } catch (error) {
-      console.error("Error calling audioWorklet.addModule", error);
+    if (!registeredContexts.has(this.audioContext)) {
+      try {
+        await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
+        registeredContexts.add(this.audioContext);
+      } catch (error) {
+        console.error("Error calling audioWorklet.addModule", error);
+      }
+    } else {
+      log("Module already registered on this AudioContext, skipping addModule")();
     }
 
     log("WorkletWorker module added")();
