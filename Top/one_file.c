@@ -479,7 +479,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
           }
           else if (c=='"') { state =  0; goto top;}
         }
-        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        csoundErrorMsg(csound, Str("CsInstruments: missing \" to terminate string\n"));
         corfile_rm(csound, &incore);
         return FALSE;
       }
@@ -600,7 +600,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
           }
           else if (c=='"') { state =  0; goto top;}
         }
-        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        csoundErrorMsg(csound, Str("CsScore: missing \" to terminate string\n"));
         corfile_rm(csound, &csound->scorestr);
         return FALSE;
       }
@@ -1278,8 +1278,6 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       else if (started && strchr(p, '<') == buffer){
         if(result > 0) // we have an unknown tag
          csoundMessage(csound, Str("unknown CSD tag: %s"), buffer);
-        else  // some other issue
-         csoundMessage(csound, "\n");
       }
     }
     if (UNLIKELY(!started)) {
