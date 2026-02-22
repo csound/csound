@@ -31,8 +31,8 @@
 #include <inttypes.h>
 
 
-ORCTOKEN *make_token(CSOUND *, char *);
-ORCTOKEN *make_label(CSOUND *, char *);
+ORCTOKEN *make_token(CSOUND *, char *, void *);
+ORCTOKEN *make_label(CSOUND *, char *, void *);
 
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*);
@@ -162,7 +162,7 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
   ans->len = 0;
   ans->rate = -1;
   ans->markup = NULL;
-  ans->value = make_int(csound, sym);
+  ans->value = make_int(csound, sym, NULL);
   return ans;
 }
 
@@ -171,7 +171,7 @@ TREE * create_opcode_token(CSOUND *csound, char* op)
 {
   TREE *ans = create_empty_token(csound);
   ans->type = T_OPCALL;
-  ans->value = make_token(csound, op);
+  ans->value = make_token(csound, op, NULL);
   ans->value->type = T_OPCALL;
   return ans;
 }
@@ -180,7 +180,7 @@ static TREE * create_ans_token(CSOUND *csound, char* var)
 {
   TREE *ans = create_empty_token(csound);
   ans->type = T_IDENT;
-  ans->value = make_token(csound, var);
+  ans->value = make_token(csound, var, NULL);
   ans->value->type = ans->type;
   return ans;
 
@@ -227,7 +227,7 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
   opTree = create_opcode_token(csound, op);
   bVar = create_empty_token(csound);
   bVar->type = T_IDENT;
-  bVar->value = make_token(csound, booleanVar);
+  bVar->value = make_token(csound, booleanVar, NULL);
   bVar->value->type = bVar->type;
 
   opTree->left = NULL;
@@ -365,7 +365,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
   xx = create_empty_token(csound);
   xx->type = T_IDENT;
-  xx->value = make_token(csound, last->left->value->lexeme);
+  xx->value = make_token(csound, last->left->value->lexeme, NULL);
   xx->value->type = T_IDENT;
   last = last->next;
   last->left = NULL;
@@ -987,7 +987,7 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
   snprintf(label, 32, "__synthetic_%"PRIi32, count);
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
-  token = make_token(csound, label);
+  token = make_token(csound, label, NULL);
   token->type = T_IDENT;
   csound->Free(csound, label);
   return make_leaf(csound, -1, 0, T_IDENT, token);
@@ -1000,7 +1000,7 @@ static TREE *create_synthetic_label(CSOUND *csound, int32 count)
   snprintf(label, 32, "__synthetic_%"PRIi32":", count);
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "Creating Synthetic label: %s\n", label);
-  token = make_label(csound, label);
+  token = make_label(csound, label, NULL);
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
     csound->Message(csound, "**** label lexeme >>%s<<\n", token->lexeme);
   csound->Free(csound, label);
@@ -1019,7 +1019,7 @@ void handle_negative_number(CSOUND* csound, TREE* root)
     negativeNumber[len + 2] = '\0';
     root->type = root->right->type;
     root->value = root->right->type == INTEGER_TOKEN ?
-      make_int(csound, negativeNumber) : make_num(csound, negativeNumber);
+      make_int(csound, negativeNumber, NULL) : make_num(csound, negativeNumber, NULL);
     root->value->lexeme = negativeNumber;
   }
 }
@@ -1136,7 +1136,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   snprintf(tempVarName, sizeof(tempVarName), "#structArrayTemp%d#", csound->struct_array_temp_counter++);
 
   // Step 1: temp:Type = array[index]
-  ORCTOKEN* tempToken = make_token(csound, tempVarName);
+  ORCTOKEN* tempToken = make_token(csound, tempVarName, NULL);
   tempToken->type = T_TYPED_IDENT;
   tempToken->optype = csoundStrdup(csound, cleanTypeName);
 
@@ -1152,12 +1152,12 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   TREE* setMemberOp = create_opcode_token(csound, "##member_set");
   setMemberOp->type = T_OPCALL;
   setMemberOp->right = make_leaf(csound, current->line, current->locn, T_IDENT,
-                                 make_token(csound, tempVarName));
+                                 make_token(csound, tempVarName, NULL));
 
   char indexBuf[32];
   snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
   TREE* memberIndexNode = make_leaf(csound, current->line, current->locn,
-                                   INTEGER_TOKEN, make_int(csound, indexBuf));
+                                    INTEGER_TOKEN, make_int(csound, indexBuf, NULL));
   setMemberOp->right->next = memberIndexNode;
   memberIndexNode->next = copy_node(csound, valueExpr);
 
@@ -1165,10 +1165,10 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   TREE* arraySetAssignment = make_node(csound, current->line, current->locn, T_ASSIGNMENT,
                                       copy_node(csound, arrayExpr),
                                       make_leaf(csound, current->line, current->locn, T_IDENT,
-                                               make_token(csound, tempVarName)));
+                                                make_token(csound, tempVarName, NULL)));
 
   // T_ASSIGNMENT needs a value token for verify_opcode
-  arraySetAssignment->value = make_token(csound, "=");
+  arraySetAssignment->value = make_token(csound, "=", NULL);
   arraySetAssignment->value->type = T_ASSIGNMENT;
 
   // Chain the operations
@@ -1334,7 +1334,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       arraySet->right->next =
         make_leaf(csound, temp->line, temp->locn,
                   T_IDENT, make_token(csound,
-                                      temp->value->lexeme));
+                                      temp->value->lexeme, NULL));
       arraySet->right->next->next =
         currentArg->right; // TODO - check if this handles expressions
 
@@ -1506,7 +1506,7 @@ TREE* create_equality_statement(
   TREE* right
 ) {
   TREE *equalityNode = create_empty_token(csound);
-  equalityNode->value = make_token(csound, "==");
+  equalityNode->value = make_token(csound, "==", NULL);
   equalityNode->type = S_EQ;
   equalityNode->value->type = S_EQ;
   equalityNode->left = left;
@@ -1807,17 +1807,17 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   char* op = (char *)csound->Malloc(csound, 10);
   // create index counter
   TREE *indexAssign = create_empty_token(csound);
-  indexAssign->value = make_token(csound, "=");
+  indexAssign->value = make_token(csound, "=", NULL);
   indexAssign->type = T_ASSIGNMENT;
   indexAssign->value->type = T_ASSIGNMENT;
   char *indexName = create_synthetic_var_name(csound,csound->genlabs++,
                                               isPerfRate ? 'k' : 'i');
   TREE *indexIdent = create_empty_token(csound);
-  indexIdent->value = make_token(csound, indexName);
+  indexIdent->value = make_token(csound, indexName, NULL);
   indexIdent->type = T_IDENT;
   indexIdent->value->type = T_IDENT;
   TREE *zeroToken = create_empty_token(csound);
-  zeroToken->value = make_token(csound, "0");
+  zeroToken->value = make_token(csound, "0", NULL);
   zeroToken->value->value = 0;
   zeroToken->type = INTEGER_TOKEN;
   zeroToken->value->type = INTEGER_TOKEN;
@@ -1825,7 +1825,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   indexAssign->right = zeroToken;
 
   TREE *arrayAssign = create_empty_token(csound);
-  arrayAssign->value = make_token(csound, "=");
+  arrayAssign->value = make_token(csound, "=", NULL);
   arrayAssign->type = T_ASSIGNMENT;
   arrayAssign->value->type = T_ASSIGNMENT;
 
@@ -1834,7 +1834,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   // with the exception of 'i' and 'k' which may be used interchangeably
   char *arrayName = create_synthetic_array_var_name(csound,csound->genlabs++,'x');
   TREE *arrayIdent = create_empty_token(csound);
-  arrayIdent->value = make_token(csound, arrayName);
+  arrayIdent->value = make_token(csound, arrayName, NULL);
   arrayIdent->type = T_ARRAY_IDENT;
   arrayIdent->value->type = T_ARRAY_IDENT;
   add_array_arg(csound, arrayName, arrayArgType, 1, typeTable);
@@ -1844,18 +1844,18 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   indexAssign->next = arrayAssign;
 
   TREE *arrayLength = create_empty_token(csound);
-  arrayLength->value = make_token(csound, "=");
+  arrayLength->value = make_token(csound, "=", NULL);
   arrayLength->type = T_ASSIGNMENT;
   arrayLength->value->type = T_ASSIGNMENT;
   char *arrayLengthName = create_synthetic_var_name(csound,csound->genlabs++,
                                                     isPerfRate ? 'k' : 'i');
   TREE *arrayLengthIdent = create_empty_token(csound);
-  arrayLengthIdent->value = make_token(csound, arrayLengthName);
+  arrayLengthIdent->value = make_token(csound, arrayLengthName, NULL);
   arrayLengthIdent->type = T_IDENT;
   arrayLengthIdent->value->type = T_IDENT;
   arrayLength->left = arrayLengthIdent;
   TREE *arrayLengthFn = create_empty_token(csound);
-  arrayLengthFn->value = make_token(csound, "lenarray");
+  arrayLengthFn->value = make_token(csound, "lenarray", NULL);
   arrayLengthFn->type = T_FUNCTION;
   arrayLengthFn->value->type = T_FUNCTION;
   TREE *arrayLengthArrayIdent = copy_node(csound, arrayIdent);
@@ -1889,7 +1889,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
     hasOptionalIndex = 1;
     TREE *optionalUserIndexAssign = create_empty_token(csound);
-    optionalUserIndexAssign->value = make_token(csound, "=");
+    optionalUserIndexAssign->value = make_token(csound, "=", NULL);
     optionalUserIndexAssign->type = T_ASSIGNMENT;
     optionalUserIndexAssign->value->type = T_ASSIGNMENT;
     optionalUserIndexAssign->left = current->left->next;
@@ -1940,7 +1940,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   // loop less-than arg1: increment by 1
   TREE *oneToken = create_empty_token(csound);
-  oneToken->value = make_token(csound, "1");
+  oneToken->value = make_token(csound, "1", NULL);
   oneToken->value->value = 1;
   oneToken->type = INTEGER_TOKEN;
   oneToken->value->type = INTEGER_TOKEN;
@@ -1953,7 +1953,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   // loop less-than arg3: goto label
   TREE *labelGotoIdent = create_empty_token(csound);
-  labelGotoIdent->value = make_token(csound, loopLabel->value->lexeme);
+  labelGotoIdent->value = make_token(csound, loopLabel->value->lexeme, NULL);
   labelGotoIdent->type = T_IDENT;
   labelGotoIdent->value->type = T_IDENT;
   arrayLengthArgToken->next = labelGotoIdent;

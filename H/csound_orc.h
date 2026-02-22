@@ -53,9 +53,9 @@ typedef struct type_table {
 
 TREE* make_node(CSOUND *, int32_t, uint64_t, int32_t, TREE*, TREE*);
 TREE* make_leaf(CSOUND *, int32_t, uint64_t, int32_t, ORCTOKEN*);
-ORCTOKEN* make_int(CSOUND *,char *);
-ORCTOKEN* make_num(CSOUND *,char *);
-ORCTOKEN *make_token(CSOUND *csound, char *s);
+ORCTOKEN* make_int(CSOUND *,char *, void*);
+ORCTOKEN* make_num(CSOUND *,char *, void *);
+ORCTOKEN *make_token(CSOUND *csound, char *s, void *);
 TREE* copy_node(CSOUND*, TREE*);
 extern void csp_orc_sa_print_list(CSOUND*);
 

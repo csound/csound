@@ -26,6 +26,7 @@
 %lex-param { CSOUND * csound }
 %lex-param {yyscan_t *scanner}
 
+
 %token NEWLINE
 %token S_NEQ
 %token S_AND
@@ -334,15 +335,15 @@ udo_arg_list : '(' out_arg_list ')'
              | '(' out_arg_list_array ')'
              { $$ = $2;  }
              | '(' ')'
-             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
+             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0", NULL)); }
              ;
 
 udo_out_arg_list : '(' out_type_list ')'
              { $$ = $2; }
              | '(' ')'
-             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
+             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0", NULL)); }
              | VOID_TOKEN
-             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0")); }
+             { $$ = make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, "0", NULL)); }
              | out_type
              ;
 
@@ -625,7 +626,7 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
  {
-   $$ = make_leaf(csound, LINE, LOCN, T_DECLARE, make_token(csound, $2->value->lexeme));
+   $$ = make_leaf(csound, LINE, LOCN, T_DECLARE, make_token(csound, $2->value->lexeme, NULL));
    $$->left = $2;
    $$->left->left = $5;
    $$->left->right = $3;
@@ -662,20 +663,20 @@ expr    : function_call
 
 
 gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
-            $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, make_token(csound, "genarray"));
+            $$ = make_leaf(csound, LINE,LOCN, T_FUNCTION, make_token(csound, "genarray", NULL));
             $$->right = $2;
             append_to_tree(csound, $$->right, $4);
              }
 
 slice_array : identifier '[' expr ':' expr_list  ']' {
-            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray"));
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
             $$->right = append_to_tree(csound, $$->right, $3);
             append_to_tree(csound, $$->right, $5);
            }
 
 static_array : '[' expr_list ']' {
-            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray"));
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray", NULL));
             $$->right = $2;
           }
 
@@ -691,7 +692,7 @@ array_expr :  array_expr '[' expr ']'
           {
            char* arrayName = $1->value->lexeme;
             $$ = make_node(csound, LINE, LOCN, T_ARRAY,
-              	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3);
+                           make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName, NULL)), $3);
           }
           | function_call '[' expr ']'
           {
@@ -708,7 +709,7 @@ struct_expr : struct_expr '.' identifier
                 csound, LINE, LOCN, STRUCT_EXPR,
                 $1,
                 make_leaf(
-                  csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName)
+                          csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName, NULL)
                 )
               );
             }
@@ -720,7 +721,7 @@ struct_expr : struct_expr '.' identifier
                                   $3->left->value->lexeme :
                                   $3->value->lexeme;
               TREE* memberLeaf = make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT,
-                                           make_token(csound, memberName));
+                                           make_token(csound, memberName, NULL));
               TREE* structMember = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, memberLeaf);
               /* Now make the array_expr index the struct member */
               $3->left = structMember;
@@ -739,8 +740,8 @@ struct_expr : struct_expr '.' identifier
                 $3->value->lexeme;
 
               $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
-                make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
-                make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
+                             make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName, NULL)),
+                             make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName, NULL))
               );
               $3->left = $$;
               $$ = $3;
@@ -756,8 +757,8 @@ struct_expr : struct_expr '.' identifier
               // Important: Clear the next pointer of $3 to prevent it from being processed separately
               $3->next = NULL;
               $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
-                     make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
-                     make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
+                             make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName, NULL)),
+                             make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName, NULL))
                    );
             }
             ;
@@ -870,13 +871,13 @@ out_arg_list_array : out_arg_list_array ',' array_expr
 
 array_identifier: array_identifier '[' ']' {
             append_to_tree(csound, $1->right,
-	             make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[")));
+                           make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL)));
             $$ = $1;
           }
           | identifier '[' ']' {
             $$ = $1;
             $1->type = T_ARRAY_IDENT;
-	          $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+            $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
           }
           | typed_identifier '[' ']' {
             $$ = $1;
@@ -891,47 +892,47 @@ array_identifier: array_identifier '[' ']' {
               } else {
                 // This is array access syntax, convert to T_ARRAY_IDENT
                 $1->type = T_ARRAY_IDENT;
-                $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+                $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
               }
             } else {
               // No type annotation, treat as array access
               $1->type = T_ARRAY_IDENT;
-              $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "["));
+              $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
             }
           }
           ;
 
 /* ORCTOKEN wrappings and simplifications */
 assignment : '='
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=", NULL)); }
               | S_ADDIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##addin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, S_ADDIN, make_token(csound, "##addin", NULL)); }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_SUBIN, make_token(csound, "##subin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, S_SUBIN, make_token(csound, "##subin", NULL)); }
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_DIVIN, make_token(csound, "##divin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, S_DIVIN, make_token(csound, "##divin", NULL)); }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, S_MULIN, make_token(csound, "##mulin")); }
+                { $$ = make_leaf(csound,LINE,LOCN, S_MULIN, make_token(csound, "##mulin", NULL)); }
               ;
 
 /* special case for array expressions */
 assignment_array : '='
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=")); }
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=", NULL)); }
               | S_ADDIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+"));
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=", NULL));
+                  $$->right = make_leaf(csound, LINE, LOCN, '+', make_token(csound, "+", NULL));
                 }
               | S_SUBIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-"));
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=", NULL));
+                  $$->right = make_leaf(csound, LINE, LOCN, '-', make_token(csound, "-", NULL));
                 }
               | S_DIVIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/"));
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=", NULL));
+                  $$->right = make_leaf(csound, LINE, LOCN, '/', make_token(csound, "/", NULL));
                 }
               | S_MULIN
-                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "="));
-                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*"));
+                { $$ = make_leaf(csound,LINE,LOCN, T_ASSIGNMENT, make_token(csound, "=", NULL));
+                  $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*", NULL));
                 }
               ;
 
@@ -964,19 +965,19 @@ string : STRING_TOKEN
 
 false_const: FALSE_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, FALSE_TOKEN,
-                        make_token(csound,"false")); }
+                        make_token(csound,"false", NULL)); }
        | FALSEK_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, FALSEK_TOKEN,
-                        make_token(csound,"falsek")); }
+                        make_token(csound,"falsek", NULL)); }
 
        ;
 
 true_const: TRUE_TOKEN
            { $$ = make_leaf(csound, LINE,LOCN, TRUE_TOKEN,
-                            make_token(csound,"true")); }
+                            make_token(csound,"true", NULL)); }
        | TRUEK_TOKEN
        { $$ = make_leaf(csound, LINE,LOCN, TRUEK_TOKEN,
-                        make_token(csound,"truek")); }
+                        make_token(csound,"truek", NULL)); }
        ;
 
 

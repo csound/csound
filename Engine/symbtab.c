@@ -39,10 +39,6 @@
 #define PARSER_DEBUG (0)
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-# define strtok_r strtok_s
-#endif
-
 static char* map_udo_in_arg_type(char* in) {
     if(strlen(in) == 1) {
       if (strchr("ijopqvh", *in) != NULL) {

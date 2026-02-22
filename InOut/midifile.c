@@ -597,7 +597,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
     fd = csound->FileOpen(csound, &f, CSFILE_STD, name, "rb",
                           "SFDIR;SSDIR;MFDIR", CSFTYPE_STD_MIDI, 0);
     if (UNLIKELY(fd == NULL)) {
-      csound->ErrorMsg(csound, Str(" *** error opening MIDI file '%s': %s"),
+      csound->ErrorMsg(csound, Str(" *** error opening MIDI file '%s': %s\n"),
                        name, strerror(errno));
       return -1;
     }
