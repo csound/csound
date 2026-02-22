@@ -416,7 +416,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 
 
 
-#if 1
+#if 0
 static int32_t all_blank(char* start, char* end)
 {
     while (start != end) {
@@ -551,7 +551,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
 }
 #endif
 
-#if 1
+#if 0
 static int32_t create_score(CSOUND *csound, CORFIL *cf)
 {
     char   *p, *q;
@@ -633,7 +633,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
       while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
         //#ifdef SCORE_PARSER
-        corfile_puts(csound, "\n#exit\n", csound->scorestr);
+        corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         //#endif
@@ -1276,7 +1276,6 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       }
       else if (blank_buffer(buffer)) continue;
       else if (started && strchr(p, '<') == buffer){
-        if(result > 0) // we have an unknown tag
          csoundMessage(csound, Str("unknown CSD tag: %s"), buffer);
       }
     }
