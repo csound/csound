@@ -309,6 +309,7 @@ ERSTR           "}R"
   }
 
   "\n"  { /* The next two should be one case but I cannot get that to work */
+           yycolumn = 1;
            if (PARM->xstrptr+2>=PARM->xstrmax) {
                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
                                                        PARM->xstrmax+=80);
@@ -557,7 +558,9 @@ ERSTR           "}R"
 {WHITE}         { }
 
 {SLINE}         { BEGIN(sline); }
-<sline>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
+<sline>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner);
+                  yycolumn = 0; /* reset for new source line;
+                                    0 accounts for trailing space in #sline format */ }
 <sline>[ \t]*   { BEGIN(INITIAL);}
 {LINE}          { BEGIN(line); }
 
@@ -570,7 +573,7 @@ ERSTR           "}R"
 {FILE}          { BEGIN(src); }
 
 <src>{
-  [ \t]*     /* eat the whitespace */ 
+  [ \t]*     /* eat the whitespace */
   {FNAME}    { PARM->locn = atoll(yytext); }
   "\n"       { BEGIN(INITIAL); yycolumn = 1;}
 }
@@ -622,7 +625,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     if (csound->parserNamedInstrFlag == 1) {
         return ans;
     }
-    ans->type = type; 
+    ans->type = type;
     return ans;
 }
 
