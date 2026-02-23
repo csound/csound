@@ -1413,6 +1413,7 @@ const OENTRY opcodlst_1[] = {
   { "printks.i",S(PRINTKS),WR,    "",   "iiN",
     (SUBR)printksset,(SUBR)printks, NULL },
   { "prints",S(PRINTS),0,      "",   "SN",   (SUBR)printsset_S, NULL, NULL },
+  { "print",S(PRINTS),0,      "",   "S",   (SUBR)printsset_S, NULL, NULL },
   { "prints.i",S(PRINTS),0,      "",   "iN",   (SUBR)printsset, NULL, NULL },
   { "printk2", S(PRINTK2), WR,  "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
