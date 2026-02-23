@@ -688,7 +688,7 @@ const OENTRY opcodlst_1[] = {
     (SUBR) tabslice, (SUBR) tabslice, NULL },
   { "slicearray.S", sizeof(TABSLICE), 0, "S[]", "S[]ijp",
     (SUBR) tabslice, (SUBR) tabslice, NULL },
-  { "slicearray_i.i", sizeof(TABSLICE), 0, "i[]", "i[]ip",
+  { "slicearray_i.i", sizeof(TABSLICE), 0, "i[]", "i[]iip",
     (SUBR) tabslice, NULL },
   { "slicearrayi.i", sizeof(TABSLICE), 0, "i[]", "i[]iip",
     (SUBR) tabslice, NULL }, /* Alias */
