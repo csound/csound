@@ -403,6 +403,7 @@ int32_t prepare_dbap_helper(
     DBAP_STATE *dbap_state,
     MYFLT *input_coords,
     MYFLT *weights,
+    uint32_t nsamples,
     int32_t nchnls,
     int32_t npos,
     int32_t ncoords,
@@ -429,7 +430,7 @@ int32_t prepare_dbap_helper(
         ncoords,
         rolloff_value,
         weights,
-        csound->ksmps,
+        nsamples,
         coord_kind
     );
 };
@@ -446,7 +447,7 @@ int32_t dbap_helper(
     MYFLT *input_frame,
     MYFLT *out
 ) {
-    int32_t nsamples = csound->ksmps;
+    int32_t nsamples = h->insdshead->ksmps;
     int32_t nchnls = dbap_state->nchnls;
 
     if (source_size < 2 || source_size > 3) {
@@ -495,6 +496,7 @@ int32_t prepare_dbap_with_arr(CSOUND *csound, DBAP_WITH_ARR *dbap) {
         &dbap->dbap_state,
         (MYFLT *)dbap->loudspeaker_pos->data,
         (MYFLT *)dbap->loudspeakers_weights->data,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         dbap->loudspeaker_pos->sizes[0],
         dbap->loudspeaker_pos->sizes[1],
@@ -509,6 +511,7 @@ int32_t prepare_dbap_gains_with_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR *dbap) {
         &dbap->dbap_state,
         (MYFLT *)dbap->loudspeaker_pos->data,
         (MYFLT *)dbap->loudspeakers_weights->data,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         dbap->loudspeaker_pos->sizes[0],
         dbap->loudspeaker_pos->sizes[1],
@@ -523,6 +526,7 @@ int32_t prepare_dbap_with_arr_no_weights(CSOUND *csound, DBAP_WITH_ARR *dbap) {
         &dbap->dbap_state,
         (MYFLT *)dbap->loudspeaker_pos->data,
         NULL,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         dbap->loudspeaker_pos->sizes[0],
         dbap->loudspeaker_pos->sizes[1],
@@ -537,6 +541,7 @@ int32_t prepare_dbap_gains_with_arr_no_weights(CSOUND *csound, DBAP_GAINS_WITH_A
         &dbap->dbap_state,
         (MYFLT *)dbap->loudspeaker_pos->data,
         NULL,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         dbap->loudspeaker_pos->sizes[0],
         dbap->loudspeaker_pos->sizes[1],
@@ -556,6 +561,7 @@ int32_t prepare_dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *dbap) {
         &dbap->dbap_state,
         (MYFLT *)pos_table->ftable,
         (MYFLT *)dbap->loudspeakers_weights->data,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         (int32_t)pos_table->flen / ncoords,
         ncoords,
@@ -575,6 +581,7 @@ int32_t prepare_dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *dbap)
         &dbap->dbap_state,
         (MYFLT *)pos_table->ftable,
         (MYFLT *)dbap->loudspeakers_weights->data,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         (int32_t)pos_table->flen / ncoords,
         ncoords,
@@ -594,6 +601,7 @@ int32_t prepare_dbap_with_func_no_weights(CSOUND *csound, DBAP_WITH_FUNC *dbap) 
         &dbap->dbap_state,
         (MYFLT *)pos_table->ftable,
         NULL,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         (int32_t)pos_table->flen / ncoords,
         ncoords,
@@ -613,6 +621,7 @@ int32_t prepare_dbap_gains_with_func_no_weights(CSOUND *csound, DBAP_GAINS_WITH_
         &dbap->dbap_state,
         (MYFLT *)pos_table->ftable,
         NULL,
+        dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         (int32_t)pos_table->flen / ncoords,
         ncoords,

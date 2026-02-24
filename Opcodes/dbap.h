@@ -156,6 +156,7 @@ int32_t prepare_dbap_helper(
     DBAP_STATE *dbap_state,
     MYFLT *input_coords,
     MYFLT *weights,
+    uint32_t nsamples,
     int32_t nchnls,
     int32_t npos,
     int32_t ncoords,
