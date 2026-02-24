@@ -158,7 +158,7 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp,
 // fallback to linear conversion
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
                        float ratio, CS_VARIABLE *var, INSDS *ip) {
-  return src_linear_init(csound, mode, ratio, size, var, ip);
+  return src_linear_init(csound, mode, ratio, var, ip);
 }
 int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp,
                     MYFLT *in, MYFLT *out){
