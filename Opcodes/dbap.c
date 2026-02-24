@@ -41,18 +41,16 @@
 
 #define DB_RATIO FL(6.02059991327962)
 #define TO_RAD(x) ((x) * PI / FL(180.0))
-#define TO_DEG(x) ((x) * FL(180.0) / PI)
 
 static inline double wrap_angle(MYFLT x) {
     x = FMOD(x, FL(360.0));
-    if (x > FL(180.0)) x -= FL(360.0);
-    if (x < FL(-180.0)) x += FL(360.0);
+    if (x < FL(0.0)) x += FL(360.0);
     return x;
 }
 
 static inline MYFLT clamp_elevation(MYFLT x) {
-    if (x > FL(90.0)) x -= FL(180.0);
-    if (x < FL(-90.0)) x += FL(180.0);
+    if (x > FL(90.0)) return FL(90.0);
+    if (x < FL(-90.0)) return FL(-90.0);
     return x;
 }
 
@@ -391,7 +389,7 @@ void gain_vector_interpolation(DBAP_STATE *dbap, MYFLT *input_frame, int32_t nsa
         MYFLT gdiff = (g1 - g0) / nsamples;
         MYFLT g = g0;
         for (int32_t j = 0; j < nsamples; j++) {
-            internal_out[index+ j] = input_frame[j] * g;
+            internal_out[index + j] = input_frame[j] * g;
             g += gdiff;
         }
     }
