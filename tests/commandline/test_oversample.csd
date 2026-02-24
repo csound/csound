@@ -14,7 +14,7 @@ a2 = a1*k1
 endop
 
 opcode Test1(k1:k[],a1:a[]):a[]
-oversample 2,3
+oversample 2,4
 a2[] = a1*k1
   xout a2
 endop
@@ -55,7 +55,7 @@ endin
 </CsInstruments>
 <CsScore>
 i1 0 2 0.25 440
-;i3 2 2 0.25 330
+i3 2 2 0.25 330
 i2 4 6 0.1 440
 </CsScore>
 </CsoundSynthesizer>
