@@ -36,7 +36,7 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
                                      float ratio, int32_t size,
                                      CS_VARIABLE *var, INSDS *ip) {
   IGN(mode);
-  int32_t n = 1, i;
+  int32_t n, asize = 0,  i;
   const CS_TYPE *typ = var->varType;
   SR_CONVERTER *pp = (SR_CONVERTER *) csound->Calloc(csound,
                                                      sizeof(SR_CONVERTER));
@@ -45,7 +45,7 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
   pp->ip = ip;
   if(typ == &CS_VAR_TYPE_ARRAY) {
     typ = var->subType;
-    n = (var->memBlockSize/sizeof(MYFLT))/size; // num of converters
+    asize = (var->memBlockSize/sizeof(MYFLT)); // num of converters
   }
 
   if(typ->userDefinedType) { // UDTs currently unsupported
@@ -57,6 +57,8 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
   
   if(typ == &CS_VAR_TYPE_A ||
      typ == &CS_VAR_TYPE_K) {
+    size = typ == &CS_VAR_TYPE_K ? 1 : size;
+    n = asize ? asize/size : 1;
     pp->dat = (CVTDAT *) csound->Calloc(csound, sizeof(CVTDAT)*n);
     for(i = 0; i < n; i++) { // one cvt per array item or per asig/ksig var
       pp->dat[i].data = csound->Calloc(csound, sizeof(MYFLT));
@@ -66,7 +68,7 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
     }
     pp->ncvt = n;
     pp->ratio = ratio;
-    pp->size = typ == &CS_VAR_TYPE_K ? 1 : size;
+    pp->size = size;
     pp->mode = 4;
   } else // bypass conversion
     pp->ncvt = 0;
@@ -200,10 +202,9 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
     if(typ == &CS_VAR_TYPE_A || typ == &CS_VAR_TYPE_K) {
       // src conversion
       int i;
-      pp->size = typ == &CS_VAR_TYPE_K ? 1 : size;
-      n = asize == 0 ? 1 : asize/pp->size;
+      size = typ == &CS_VAR_TYPE_K ? 1 : size;
+      n = asize == 0 ? 1 : asize/size;
       pp->dat = (CVTDAT *) csound->Calloc(csound, sizeof(CVTDAT)*n);
-      
       for(i = 0; i < n; i++) { // one cvt per array item or per asig/ksig var
         SRC_STATE* stat = src_new(mode > 0 ? mode : 0, 1, &err);
         if(!err) {
@@ -239,6 +240,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
     pp->ratio = ratio;      
     pp->mode = mode;
     pp->var = var;
+    pp->size = size;
     pp->csound = csound;
     pp->ip = ip;           
     return pp;
@@ -255,14 +257,13 @@ int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
     // src conversion
     if(pp->mode < 4){
       for(int n = 0; n < k; n++) {
-        csound->Message(csound, "size:%d ratio:%f \n",pp->size, pp->ratio);
         int32_t i, cnt = pp->dat[n].cnt, size = pp->size;
         float ratio = pp->ratio;
         SRC *p = (SRC *) pp->dat[n].data;
         out += n*size;
         in += n*size;
         if(ratio > 1) {
-          // (udo input)
+          // oversample
           if(!cnt) {
             for(i = 0; i < size; i++) {
               pp->dat[n].bufferin[i] = in[i];
@@ -273,7 +274,7 @@ int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
             out[i] = pp->dat[n].bufferout[i+size*cnt];
           cnt = cnt < ratio - 1 ? cnt + 1 : 0;
         } else {
-          //  (udo output)
+          // undersample
           for(i = 0; i < size; i++)
             pp->dat[n].bufferin[i+size*cnt] = in[i];
           cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
