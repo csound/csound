@@ -8,13 +8,13 @@
 
 
 opcode Test(k1:k,a1:a):a
-oversample 2
+oversample 2,3
 a2 = a1*k1
   xout a2
 endop
 
 opcode Test1(k1:k[],a1:a[]):a[]
-oversample 2,4
+oversample 2,3
 a2[] = a1*k1
   xout a2
 endop
@@ -37,7 +37,7 @@ a2[] Test1 k1, a1
 endin
 
 opcode SVF,a,akk
-oversample 2
+oversample 2,3
 a1,kcf,kq xin
 alow, ahigh, aband svfilter a1,kcf,kq
   xout alow
@@ -55,7 +55,7 @@ endin
 </CsInstruments>
 <CsScore>
 i1 0 2 0.25 440
-i3 2 2 0.25 330
+;i3 2 2 0.25 330
 i2 4 6 0.1 440
 </CsScore>
 </CsoundSynthesizer>
