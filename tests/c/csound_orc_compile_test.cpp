@@ -167,6 +167,7 @@ TEST_F (OrcCompileTests, testLineNumber)
     ASSERT_TRUE(tree != NULL);
 }
 
+#if 0
 // Helper to dump AST tree for debugging column number tests
 static void dump_tree(TREE *t, int depth) {
     if (!t) return;
@@ -192,6 +193,7 @@ static void dump_tree(TREE *t, int depth) {
         dump_tree(t->next, depth);
     }
 }
+#endif
 
 // Test basic column number tracking on tokens
 TEST_F (OrcCompileTests, testColumnNumbers)
@@ -378,7 +380,7 @@ TEST_F (OrcCompileTests, testColumnNumbersInErrors)
                       "k1 badopcode 440\n"  // "badopcode" at cols 4-12
                       "endin\n";
 
-    int32_t result = csoundCompileOrc(csound, orc);
+   csoundCompileOrc(csound, orc);
 
     // Scan message buffer for column info
     bool found_column = false;
