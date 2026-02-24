@@ -14,7 +14,7 @@ a2 = a1*k1
 endop
 
 opcode Test1(k1:k[],a1:a[]):a[]
-oversample 2,4
+oversample 2,3
 a2[] = a1*k1
   xout a2
 endop
