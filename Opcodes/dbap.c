@@ -366,7 +366,7 @@ void solve_dbap_gain_vector(DBAP_STATE *dbap, CARTESIAN_COORD *source, MYFLT *sp
     }
 
     MYFLT norm = SQRT(sum_sq);
-    norm = (norm < 0.000001) ? 1.0 : norm;
+    norm = (norm < FL(0.000001)) ? FL(1.0) : norm;
     for (int32_t i = 0; i < dbap->nchnls; i++) {
         gains[i] /= norm;
     }
