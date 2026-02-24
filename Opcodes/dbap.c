@@ -688,10 +688,10 @@ static OENTRY localops[] = {
         "dbap", sizeof(DBAP_WITH_ARR), 0, "a[]", "aik[]i[][]ki", (SUBR)prepare_dbap_with_arr_no_weights, (SUBR)dbap_with_arr
     },
     {
-        "dbap", sizeof(DBAP_WITH_FUNC), 0, "a[]", "aik[]ikii[]", (SUBR)prepare_dbap_with_func, (SUBR)dbap_with_func
+        "dbap", sizeof(DBAP_WITH_FUNC), 0, "a[]", "aik[]iikii[]", (SUBR)prepare_dbap_with_func, (SUBR)dbap_with_func
     },
     {
-        "dbap", sizeof(DBAP_WITH_FUNC), 0, "a[]", "aik[]iki", (SUBR)prepare_dbap_with_func_no_weights, (SUBR)dbap_with_func
+        "dbap", sizeof(DBAP_WITH_FUNC), 0, "a[]", "aik[]iiki", (SUBR)prepare_dbap_with_func_no_weights, (SUBR)dbap_with_func
     },
     // gain vector generation
     {
@@ -701,10 +701,10 @@ static OENTRY localops[] = {
         "dbapgains", sizeof(DBAP_GAINS_WITH_ARR), 0, "k[]", "ik[]i[][]ki", (SUBR)prepare_dbap_gains_with_arr_no_weights, (SUBR)dbap_gains_with_arr
     },
     {
-        "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC), 0, "k[]", "ik[]ikii[]", (SUBR)prepare_dbap_gains_with_func, (SUBR)dbap_gains_with_func
+        "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC), 0, "k[]", "ik[]iikii[]", (SUBR)prepare_dbap_gains_with_func, (SUBR)dbap_gains_with_func
     },
     {
-        "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC), 0, "k[]", "ik[]iki", (SUBR)prepare_dbap_gains_with_func_no_weights, (SUBR)dbap_gains_with_func
+        "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC), 0, "k[]", "ik[]iiki", (SUBR)prepare_dbap_gains_with_func_no_weights, (SUBR)dbap_gains_with_func
     },
 };
 
