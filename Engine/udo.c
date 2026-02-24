@@ -710,8 +710,7 @@ int32_t set_inbufs(CSOUND *csound,
     // set up src units one per input arg - non k/a sigs/arrays are bypassed
     if(esr != parent_sr) {
         if((udo->cvt_in[i] = src_init(csound, h->insdshead->in_cvt,
-                                        ratio, h->insdshead->ksmps,
-                                        current, h->insdshead)) == NULL)
+                                        ratio, current, h->insdshead)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
@@ -766,8 +765,8 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     if(CS_ESR != parent_sr) {
         // set up src units one per input arg - non k/a sigs/arrays are bypassed
         if((udo->cvt_out[i] = src_init(csound, p->h.insdshead->out_cvt,
-                                         parent_sr/CS_ESR, CS_KSMPS,
-                                         current, p->h.insdshead)) == 0)
+                                         parent_sr/CS_ESR, current,
+                                         p->h.insdshead)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }

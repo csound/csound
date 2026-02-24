@@ -49,12 +49,11 @@ typedef struct _SR_CONVERTER {
     one per argument
     mode - conversion mode (0 - 4)
     ratio - conversion ratio (oversampling or 1/oversampling factor)
-    size - vector size
     var - actual variable given to conversion
-    ip - calling insds
+    ip - calling insds (context)
 */
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
-                       float ratio, int32_t size, CS_VARIABLE *var,
+                       float ratio, CS_VARIABLE *var,
                        INSDS *ip);
 
 /** conversion de-initialisation
