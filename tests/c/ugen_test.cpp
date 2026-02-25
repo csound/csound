@@ -235,18 +235,18 @@ TEST_F(UGenTests, SetInputByPointer) {
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    MYFLT amp = 0.9;
+    MYFLT amp = 0.5;
     EXPECT_TRUE(ugen_set_input(ugen, 0, &amp));
 
     /* Reading through get_input_value should see the pointed-to value */
     MYFLT readBack = 0;
     ugen_get_input_value(ugen, 0, &readBack);
-    EXPECT_DOUBLE_EQ(readBack, 0.9);
+    EXPECT_DOUBLE_EQ(readBack, 0.5);
 
     /* Changing the source updates the ugen's view */
-    amp = 0.1;
+    amp = 0.25;
     ugen_get_input_value(ugen, 0, &readBack);
-    EXPECT_DOUBLE_EQ(readBack, 0.1);
+    EXPECT_DOUBLE_EQ(readBack, 0.25);
 
     ugen_delete(ugen);
     ugen_factory_delete(factory);
