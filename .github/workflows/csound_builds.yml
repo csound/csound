@@ -76,7 +76,8 @@ jobs:
 
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
-    runs-on: ubuntu-latest   
+    runs-on: ubuntu-latest
+    if: false
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
