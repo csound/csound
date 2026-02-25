@@ -96,10 +96,10 @@ static inline double mod1(double x){
 
 static
 void src_linear_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out,
-                        MYFLT **data, int32_t outsamps){
+                        MYFLT *data, int32_t outsamps){
 
   int32_t outcnt, incnt;
-  MYFLT start = *((MYFLT *) data), frac;
+  MYFLT start = *data, frac;
   MYFLT ratio = pp->ratio, fac = FL(0.0);
   for(incnt = 0, outcnt = 0; outcnt < outsamps; outcnt++) {
     out[outcnt] = start + fac*(in[incnt] - start);
@@ -109,7 +109,7 @@ void src_linear_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out,
     fac = frac;
     if(incnt >= 1) start = in[incnt-1];
   }
-  *((MYFLT *) data) = in[incnt-1];
+  *data = in[incnt-1];
 }
 
 static
@@ -135,7 +135,7 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp,
       if(ratio > 1) {
         if(!cnt) {
           src_linear_process(pp, in, buff,
-                             (MYFLT **) &(pp->dat[n].data),
+                             (MYFLT *) pp->dat[n].data,
                              size*ratio);
         }
         memcpy(out,buff+cnt*size, sizeof(MYFLT)*size);
@@ -144,7 +144,7 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp,
         memcpy(buff+cnt*size,in,sizeof(MYFLT)*size);
         cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
         if(!cnt) src_linear_process(pp,buff, out,
-                                    (MYFLT **)&(pp->dat[n].data),
+                                    (MYFLT *) pp->dat[n].data,
                                     size);
       }
       pp->dat[n].cnt = cnt;
