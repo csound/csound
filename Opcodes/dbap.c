@@ -244,12 +244,13 @@ void set_loudspeakers_position(CARTESIAN_COORD *lpos, MYFLT *input_coords, int32
             }
 
             POLAR_COORD p = { rho, phi, theta };
-            lpos[i] = (CARTESIAN_COORD) pol_to_car(&p, coord_kind);
+            lpos[i] = pol_to_car(&p, coord_kind);
         } else {
-            MYFLT x = input_coords[index];
-            MYFLT y = input_coords[index + 1];
-            MYFLT z = (ncoords == 3) ? input_coords[index + 2] : FL(0.0);
-            lpos[i] = (CARTESIAN_COORD) { x, y, z };
+            CARTESIAN_COORD c;
+            c.x = input_coords[index];
+            c.y = input_coords[index + 1];
+            c.z = (ncoords == 3) ? input_coords[index + 2] : FL(0.0);
+            lpos[i] = c;
         }
     }
 };
