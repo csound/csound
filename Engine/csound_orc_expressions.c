@@ -658,14 +658,12 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         if (elementType == NULL) {
           return NULL;
         }
-
-        // Use the element type directly (it's already the type of array[index])
-        outype = elementType;
-
+        
         // Set the operation to array_get (struct members are always plain arrays)
         strNcpy(op, "##array_get", 80);
 
-        outarg = create_out_arg(csound, outype,
+        // Use the element type directly (it's already the type of array[index])
+        outarg = create_out_arg(csound, elementType,
                                typeTable->localPool->synthArgCount++, typeTable);
         csound->Free(csound, elementType);
         break;
@@ -713,7 +711,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
           outype = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           strNcpy(op, "##array_get", 80);
-          outype = "k";
+          outype = strdup("k");
         } else {
           // Typed array like k[], varType is the element type
           strNcpy(op, "##array_get", 80);
@@ -726,6 +724,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
       outarg = create_out_arg(csound, outype,
                               typeTable->localPool->synthArgCount++, typeTable);
+      free(outype);
     }
 
     break;
@@ -1298,7 +1297,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
           // Generic array with dimensions
           outType = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
-          outType = "k";
+          outType = strdup("k");
         } else {
           // Typed array like k[], varType is the element type
           outType = strdup(var->varType->varTypeName);
@@ -1310,7 +1309,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                          create_out_arg(csound, outType,
                                         typeTable->localPool->synthArgCount++,
                                         typeTable));
-
+      free(outType);  
+      
       if (previousArg == NULL) {
         current->left = temp;
       }
@@ -1340,6 +1340,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       anchor = append_to_tree(csound, anchor, arraySet);
       currentArg = temp;
+      
     }
     previousArg = currentArg;
     currentArg = currentArg->next;
