@@ -76,7 +76,7 @@ jobs:
 
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
@@ -114,6 +114,7 @@ jobs:
     name: Csound for iOS
     runs-on: macos-latest
     needs: update_version
+    if: false    
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
@@ -145,6 +146,7 @@ jobs:
   ios_build_ioscross:
     name: iOS build (ioscross/vcpkg)
     runs-on: ubuntu-latest
+    if: false    
     env:
       VERSION: v1
     steps:
@@ -200,6 +202,7 @@ jobs:
   macos_build_brew:
     name: MacOS build (brew)
     runs-on: macos-latest
+    if: false    
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
@@ -223,6 +226,7 @@ jobs:
   bare_arm_brew:
     name: ARM baremetal build (brew)
     runs-on: macos-latest
+    if: false    
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -261,6 +265,7 @@ jobs:
   macos_build_installer:
     name: MacOS build (installer)
     runs-on: macos-latest
+    if: false
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -425,7 +430,7 @@ jobs:
 
   macos_build_osxcross:
     name: MacOS build (osxcross/vcpkg)
-    #if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
+    if: false
     runs-on: ubuntu-latest
     env:
       VERSION: v1
@@ -485,6 +490,7 @@ jobs:
   windows_build:
     name: Windows build (vcpkg)
     runs-on: windows-latest
+    if: false    
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -559,6 +565,7 @@ jobs:
   windows_build_i386:
     name: Windows 32-bit build (vcpkg)
     runs-on: windows-latest
+    if: false    
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -632,7 +639,7 @@ jobs:
 
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
-    #if: github.ref == 'refs/heads/develop' || vars.ENABLE_CROSS_COMPILERS == 'true'
+    if: false
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout source code
@@ -675,6 +682,7 @@ jobs:
   windows_build_32bit:
     name: Windows 32-bit build (mingw/vcpkg)
     runs-on: ubuntu-22.04
+    if: false    
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -747,6 +755,7 @@ jobs:
   android_build_vcpkg:
     name: Android build (vcpkg)
     runs-on: ubuntu-latest
+    if: false    
     env:
       VERSION: v1
     steps:
@@ -801,6 +810,7 @@ jobs:
   wasm_build:
     name: Wasm build (emscripten/vcpkg)
     runs-on: ubuntu-latest
+    if: false    
     steps:
       - name: Checkout source code
         uses: actions/checkout@v5
@@ -837,6 +847,7 @@ jobs:
   android-release:
     name: Csound for Android
     runs-on: macos-latest
+    if: false    
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -882,7 +893,7 @@ jobs:
 
   publish_artifacts:
     # 
-    if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
+    if: false
     name: Publish Artifacts
     runs-on: ubuntu-latest
     needs:
