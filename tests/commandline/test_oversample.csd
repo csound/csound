@@ -8,13 +8,13 @@
 
 
 opcode Test(k1:k,a1:a):a
-oversample 2,4
+oversample 2
 a2 = a1*k1
   xout a2
 endop
 
 opcode Test1(k1:k[],a1:a[]):a[]
-oversample 2,4
+oversample 2,1
 a2[] = a1*k1
   xout a2
 endop
