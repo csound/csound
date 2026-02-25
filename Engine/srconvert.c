@@ -78,12 +78,12 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
 }
 
 static void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
-  for(int i = 0; i < pp->ncvt; i++) {
+  /*for(int i = 0; i < pp->ncvt; i++) {
    csound->Free(csound, pp->dat[i].bufferin);
    csound->Free(csound, pp->dat[i].data);
   }
   if(pp->ncvt) csound->Free(csound, pp->dat);
-  csound->Free(csound, pp);
+  csound->Free(csound, pp);*/
 }
 
 static inline double mod1(double x){
