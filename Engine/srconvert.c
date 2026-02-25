@@ -79,8 +79,8 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
 
 static void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
   for(int i = 0; i < pp->ncvt; i++) {
-   csound->Free(csound, pp->dat->bufferin);
-   csound->Free(csound, pp->dat->data);
+   csound->Free(csound, pp->dat[i].bufferin);
+   csound->Free(csound, pp->dat[i].data);
   }
   if(pp->ncvt) csound->Free(csound, pp->dat);
   csound->Free(csound, pp);
@@ -241,8 +241,8 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
         }
         else {
           // init fail - free memory
-          csound->Free(csound, pp->dat);
-          csound->Free(csound, pp);
+          pp->ncvt = i; // set count to last allocated
+          src_deinit(csound, pp); // call deinit to free all memory
           return NULL;
         } 
       }
