@@ -60,7 +60,7 @@ typedef struct {
     AUXCH weights;
     AUXCH temp_b;
     AUXCH temp_u;
-    // 0 -> current gains, n -> previous gains, 3 * n -> temp gains
+    // 0 -> current gains, n -> previous gains, 2 * n -> temp gains
     AUXCH lgains;
     // 0 -> distances, n -> sorted distances, 2 * n + 1 -> max distance, 2 * n + 2 -> mean distance
     AUXCH distances;
@@ -85,14 +85,14 @@ typedef struct  {
     MYFLT *input_frame;
     MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
     ARRAYDAT *source;
-    ARRAYDAT *loudspeaker_pos;
+    ARRAYDAT *loudspeakers_pos;
     MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
     MYFLT *rolloff_value;
     ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
     DBAP_STATE dbap_state;
-} DBAP_WITH_ARR;
+} DBAP_WITH_ARR_ARR;
 
 typedef struct  {
     OPDS h;
@@ -101,16 +101,17 @@ typedef struct  {
     ARRAYDAT *out;
 
     // inputs
+    MYFLT *input_frame;
     MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
     ARRAYDAT *source;
-    ARRAYDAT *loudspeaker_pos;
+    ARRAYDAT *loudspeakers_pos;
     MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
     MYFLT *rolloff_value;
-    ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
+    MYFLT *loudspeakers_weights; // optional in init with NULL weights (func)
 
     // internal
     DBAP_STATE dbap_state;
-} DBAP_GAINS_WITH_ARR;
+} DBAP_WITH_ARR_FUNC;
 
 typedef struct  {
     OPDS h;
@@ -122,15 +123,71 @@ typedef struct  {
     MYFLT *input_frame;
     MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
     ARRAYDAT *source;
-    MYFLT *loudspeaker_dimension; // 2 = 2D, 3 = 3D
-    MYFLT *loudspeaker_pos;
+    MYFLT *loudspeakers_pos;
+    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    MYFLT *rolloff_value;
+    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
+
+    // internal
+    DBAP_STATE dbap_state;
+} DBAP_WITH_FUNC_ARR;
+
+typedef struct  {
+    OPDS h;
+
+    // output channels
+    ARRAYDAT *out;
+
+    // inputs
+    MYFLT *input_frame;
+    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
+    ARRAYDAT *source;
+    MYFLT *loudspeakers_pos;
+    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    MYFLT *rolloff_value;
+    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    MYFLT *loudspeakers_weights; // optional in init with NULL weights
+
+    // internal
+    DBAP_STATE dbap_state;
+} DBAP_WITH_FUNC_FUNC;
+
+typedef struct  {
+    OPDS h;
+
+    // output channels
+    ARRAYDAT *out;
+
+    // inputs
+    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
+    ARRAYDAT *source;
+    ARRAYDAT *loudspeakers_pos;
     MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
     MYFLT *rolloff_value;
     ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
 
     // internal
     DBAP_STATE dbap_state;
-} DBAP_WITH_FUNC;
+} DBAP_GAINS_WITH_ARR_ARR;
+
+typedef struct  {
+    OPDS h;
+
+    // output channels
+    ARRAYDAT *out;
+
+    // inputs
+    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar degree, 2 -> polar radians
+    ARRAYDAT *source;
+    ARRAYDAT *loudspeakers_pos;
+    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    MYFLT *rolloff_value;
+    MYFLT *loudspeakers_weights; // optional in init with NULL weights
+
+    // internal
+    DBAP_STATE dbap_state;
+} DBAP_GAINS_WITH_ARR_FUNC;
 
 typedef struct  {
     OPDS h;
@@ -141,15 +198,34 @@ typedef struct  {
     // inputs
     MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
     ARRAYDAT *source;
-    MYFLT *loudspeaker_dimension; // 2 = 2D, 3 = 3D
-    MYFLT *loudspeaker_pos;
+    MYFLT *loudspeakers_pos;
     MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
     MYFLT *rolloff_value;
-    ARRAYDAT *loudspeakers_weights; // optional in init with NULL weights
+    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    ARRAYDAT *loudspeakers_weights;
 
     // internal
     DBAP_STATE dbap_state;
-} DBAP_GAINS_WITH_FUNC;
+} DBAP_GAINS_WITH_FUNC_ARR;
+
+typedef struct  {
+    OPDS h;
+
+    // output channels
+    ARRAYDAT *out;
+
+    // inputs
+    MYFLT *coord_mode; // coordinates kind 0 -> cartesian, 1 -> polar, 2 -> polar radians
+    ARRAYDAT *source;
+    MYFLT *loudspeakers_pos;
+    MYFLT *spread; // spread amount 0 -> 1 (0 -> dbap classis, 1 -> focus)
+    MYFLT *rolloff_value;
+    MYFLT *loudspeakers_dimension; // 2 = 2D, 3 = 3D
+    MYFLT *loudspeakers_weights;
+
+    // internal
+    DBAP_STATE dbap_state;
+} DBAP_GAINS_WITH_FUNC_FUNC;
 
 int32_t prepare_dbap_helper(
     CSOUND *csound,
@@ -167,7 +243,7 @@ int32_t prepare_dbap_helper(
 int32_t dbap_helper(
     CSOUND *csound,
     OPDS *h,
-    DBAP_STATE *dbap_state,
+    DBAP_STATE *dbap,
     MYFLT spread,
     int32_t coord_mode,
     int32_t source_size,
@@ -187,18 +263,29 @@ int32_t initialize_dbap(
     int32_t nsamples,
     int32_t coord_kind
 );
-int32_t prepare_dbap_with_arr(CSOUND *csound, DBAP_WITH_ARR *dbap);
-int32_t prepare_dbap_with_arr_no_weights(CSOUND *csound, DBAP_WITH_ARR *dbap);
-int32_t prepare_dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *dbap);
-int32_t prepare_dbap_with_func_no_weights(CSOUND *csound, DBAP_WITH_FUNC *dbap);
-int32_t dbap_with_arr(CSOUND *csound, DBAP_WITH_ARR *sdbap);
-int32_t dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *sdbap);
 
-int32_t prepare_dbap_gains_with_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR *dbap);
-int32_t prepare_dbap_gains_with_arr_no_weights(CSOUND *csound, DBAP_GAINS_WITH_ARR *dbap);
-int32_t prepare_dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *dbap);
-int32_t prepare_dbap_gains_with_func_no_weights(CSOUND *csound, DBAP_GAINS_WITH_FUNC *dbap);
-int32_t dbap_gains_with_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR *sdbap);
-int32_t dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *sdbap);
+// --- INIT INTERFACE ---
+int32_t prepare_dbap_with_arr_arr(CSOUND *csound, DBAP_WITH_ARR_ARR *dbap);
+int32_t prepare_dbap_with_arr_func(CSOUND *csound, DBAP_WITH_ARR_FUNC *dbap);
+int32_t prepare_dbap_with_func_arr(CSOUND *csound, DBAP_WITH_FUNC_ARR *dbap);
+int32_t prepare_dbap_with_func_func(CSOUND *csound, DBAP_WITH_FUNC_FUNC *dbap);
+
+int32_t dbap_with_arr_arr(CSOUND *csound, DBAP_WITH_ARR_ARR *sdbap);
+int32_t dbap_with_arr_func(CSOUND *csound, DBAP_WITH_ARR_FUNC *sdbap);
+int32_t dbap_with_func_arr(CSOUND *csound, DBAP_WITH_FUNC_ARR *sdbap);
+int32_t dbap_with_func_func(CSOUND *csound, DBAP_WITH_FUNC_FUNC *sdbap);
+// --- END INIT INTERFACE ---
+
+// --- PERF INTERFACE ---
+int32_t prepare_dbap_gains_with_arr_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR_ARR *dbap);
+int32_t prepare_dbap_gains_with_arr_func(CSOUND *csound, DBAP_GAINS_WITH_ARR_FUNC *dbap);
+int32_t prepare_dbap_gains_with_func_arr(CSOUND *csound, DBAP_GAINS_WITH_FUNC_ARR *dbap);
+int32_t prepare_dbap_gains_with_func_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC_FUNC *dbap);
+
+int32_t dbap_gains_with_arr_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR_ARR *sdbap);
+int32_t dbap_gains_with_arr_func(CSOUND *csound, DBAP_GAINS_WITH_ARR_FUNC *sdbap);
+int32_t dbap_gains_with_func_arr(CSOUND *csound, DBAP_GAINS_WITH_FUNC_ARR *sdbap);
+int32_t dbap_gains_with_func_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC_FUNC *sdbap);
+// --- END PERF INTERFACE ---
 
 #endif

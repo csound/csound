@@ -37,6 +37,7 @@
 #include "csound.h"
 #include "sysdep.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #define DB_RATIO FL(6.02059991327962)
@@ -142,7 +143,16 @@ static MYFLT quickselect(MYFLT *arr, int32_t n, int32_t k) {
     return arr[k];
 }
 
-int32_t init_dbap(CSOUND *csound, DBAP_STATE *dbap, int32_t n, int32_t ncoords, MYFLT rolloff, MYFLT *weights, int32_t nsamples, int32_t coord_kind) {
+int32_t init_dbap(
+    CSOUND *csound,
+    DBAP_STATE *dbap,
+    int32_t n,
+    int32_t ncoords,
+    MYFLT rolloff,
+    MYFLT *weights,
+    int32_t nsamples,
+    int32_t coord_kind
+) {
     if (n < 2) {
         return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Need at least 2 loudspeakers\n");
     }
@@ -217,7 +227,7 @@ MYFLT get_spatial_blur(DBAP_STATE *dbap) {
     return (sb / dbap->nchnls) + FL(0.2);
 }
 
-void set_loudspeaker_position(CARTESIAN_COORD *lpos, MYFLT *input_coords, int32_t n, int32_t ncoords, int32_t coord_kind) {
+void set_loudspeakers_position(CARTESIAN_COORD *lpos, MYFLT *input_coords, int32_t n, int32_t ncoords, int32_t coord_kind) {
 
     for (int i = 0; i < n; i++) {
         int32_t index = i * ncoords;
@@ -246,7 +256,7 @@ void set_loudspeaker_position(CARTESIAN_COORD *lpos, MYFLT *input_coords, int32_
 
 void finalize_dbap(DBAP_STATE *dbap, MYFLT *input_coords, int32_t ncoords) {
     CARTESIAN_COORD *lpos = (CARTESIAN_COORD *)dbap->lpos.auxp;
-    set_loudspeaker_position(lpos, input_coords, dbap->nchnls, ncoords, dbap->coord_kind);
+    set_loudspeakers_position(lpos, input_coords, dbap->nchnls, ncoords, dbap->coord_kind);
 
     MYFLT x = FL(0.0);
     MYFLT y = FL(0.0);
@@ -267,7 +277,17 @@ void finalize_dbap(DBAP_STATE *dbap, MYFLT *input_coords, int32_t ncoords) {
     memset(dbap->distances.auxp, 0, sizeof(MYFLT) * dbap->nchnls);
 }
 
-int32_t initialize_dbap(CSOUND *csound, DBAP_STATE *dbap, MYFLT *input_coords, int32_t n, int32_t ncoords, MYFLT rolloff, MYFLT *weights, int32_t nsamples, int32_t coord_kind) {
+int32_t initialize_dbap(
+    CSOUND *csound,
+    DBAP_STATE *dbap,
+    MYFLT *input_coords,
+    int32_t n,
+    int32_t ncoords,
+    MYFLT rolloff,
+    MYFLT *weights,
+    int32_t nsamples,
+    int32_t coord_kind
+) {
     int32_t err = init_dbap(csound, dbap, n, ncoords, rolloff, weights, nsamples, coord_kind);
     if (err != OK) {
         return csound->InitError(csound, "\n[DBAP OPCODE ERROR] DBAP init error\n");
@@ -357,6 +377,9 @@ void solve_dbap_gain_vector(DBAP_STATE *dbap, CARTESIAN_COORD *source, MYFLT *sp
         MYFLT b = ((MYFLT *)dbap->temp_b.auxp)[i];
         MYFLT w = ((MYFLT *)dbap->weights.auxp)[i];
         MYFLT d = ((MYFLT *)dbap->distances.auxp)[i];
+
+        if (d < FL(0.00001)) d = FL(0.00001);
+
         MYFLT gain = (k * w * b) / POWER(d, dbap->a);
         gain *= EXP(-beta * d);
         gains[i] = gain;
@@ -383,15 +406,15 @@ void gain_vector_interpolation(DBAP_STATE *dbap, MYFLT *input_frame, int32_t nsa
         int32_t index = i *  nsamples;
         if (g0 == FL(0.0) && g1 == FL(0.0)) {
             memset(internal_out + index, 0, sizeof(MYFLT) * nsamples);
-            continue;
+        } else {
+            MYFLT gdiff = (g1 - g0) / nsamples;
+            MYFLT g = g0;
+            for (int32_t j = 0; j < nsamples; j++) {
+                internal_out[index + j] = input_frame[j] * g;
+                g += gdiff;
+            }
         }
 
-        MYFLT gdiff = (g1 - g0) / nsamples;
-        MYFLT g = g0;
-        for (int32_t j = 0; j < nsamples; j++) {
-            internal_out[index + j] = input_frame[j] * g;
-            g += gdiff;
-        }
     }
 
     memcpy(prev_gains, curr_gains, sizeof(MYFLT) * dbap->nchnls);
@@ -490,72 +513,52 @@ int32_t dbap_helper(
     return OK;
 }
 
-int32_t prepare_dbap_with_arr(CSOUND *csound, DBAP_WITH_ARR *dbap) {
+// --- INTEFACE IMPLEMENTATION ---
+
+int32_t prepare_dbap_with_arr_arr(CSOUND *csound, DBAP_WITH_ARR_ARR *dbap) {
     return prepare_dbap_helper(
         csound,
         &dbap->dbap_state,
-        (MYFLT *)dbap->loudspeaker_pos->data,
+        (MYFLT *)dbap->loudspeakers_pos->data,
         (MYFLT *)dbap->loudspeakers_weights->data,
         dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
-        dbap->loudspeaker_pos->sizes[0],
-        dbap->loudspeaker_pos->sizes[1],
+        dbap->loudspeakers_pos->sizes[0],
+        dbap->loudspeakers_pos->sizes[1],
         (int32_t)(*dbap->coord_mode),
         *dbap->rolloff_value
     );
 }
 
-int32_t prepare_dbap_gains_with_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR *dbap) {
+int32_t prepare_dbap_with_arr_func(CSOUND *csound, DBAP_WITH_ARR_FUNC *dbap) {
+    MYFLT check_table = (MYFLT)(*dbap->loudspeakers_weights);
+    MYFLT *weights = NULL;
+    if (check_table != FL(-1)) {
+        FUNC *weights_table = csound->FTFind(csound, dbap->loudspeakers_weights);
+        weights = (MYFLT *)weights_table->ftable;
+    }
+
     return prepare_dbap_helper(
         csound,
         &dbap->dbap_state,
-        (MYFLT *)dbap->loudspeaker_pos->data,
-        (MYFLT *)dbap->loudspeakers_weights->data,
+        (MYFLT *)dbap->loudspeakers_pos->data,
+        weights,
         dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
-        dbap->loudspeaker_pos->sizes[0],
-        dbap->loudspeaker_pos->sizes[1],
+        dbap->loudspeakers_pos->sizes[0],
+        dbap->loudspeakers_pos->sizes[1],
         (int32_t)(*dbap->coord_mode),
         *dbap->rolloff_value
     );
 }
 
-int32_t prepare_dbap_with_arr_no_weights(CSOUND *csound, DBAP_WITH_ARR *dbap) {
-    return prepare_dbap_helper(
-        csound,
-        &dbap->dbap_state,
-        (MYFLT *)dbap->loudspeaker_pos->data,
-        NULL,
-        dbap->h.insdshead->ksmps,
-        dbap->out->sizes[0],
-        dbap->loudspeaker_pos->sizes[0],
-        dbap->loudspeaker_pos->sizes[1],
-        (int32_t)(*dbap->coord_mode),
-        *dbap->rolloff_value
-    );
-}
-
-int32_t prepare_dbap_gains_with_arr_no_weights(CSOUND *csound, DBAP_GAINS_WITH_ARR *dbap) {
-    return prepare_dbap_helper(
-        csound,
-        &dbap->dbap_state,
-        (MYFLT *)dbap->loudspeaker_pos->data,
-        NULL,
-        dbap->h.insdshead->ksmps,
-        dbap->out->sizes[0],
-        dbap->loudspeaker_pos->sizes[0],
-        dbap->loudspeaker_pos->sizes[1],
-        (int32_t)(*dbap->coord_mode),
-        *dbap->rolloff_value
-    );
-};
-
-int32_t prepare_dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *dbap) {
-    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeaker_pos);
+int32_t prepare_dbap_with_func_arr(CSOUND *csound, DBAP_WITH_FUNC_ARR *dbap) {
+    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
         return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
     }
-    int32_t ncoords = (int32_t)(*dbap->loudspeaker_dimension);
+
+    int32_t ncoords = (int32_t)(*dbap->loudspeakers_dimension);
     return prepare_dbap_helper(
         csound,
         &dbap->dbap_state,
@@ -570,12 +573,78 @@ int32_t prepare_dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *dbap) {
     );
 }
 
-int32_t prepare_dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *dbap) {
-    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeaker_pos);
+int32_t prepare_dbap_with_func_func(CSOUND *csound, DBAP_WITH_FUNC_FUNC *dbap) {
+    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
         return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
     }
-    int32_t ncoords = (int32_t)(*dbap->loudspeaker_dimension);
+
+    MYFLT check_table = (MYFLT)(*dbap->loudspeakers_weights);
+    MYFLT *weights = NULL;
+    if (check_table != FL(-1)) {
+        FUNC *weights_table = csound->FTFind(csound, dbap->loudspeakers_weights);
+        weights = (MYFLT *)weights_table->ftable;
+    }
+
+    int32_t ncoords = (int32_t)(*dbap->loudspeakers_dimension);
+    return prepare_dbap_helper(
+        csound,
+        &dbap->dbap_state,
+        (MYFLT *)pos_table->ftable,
+        weights,
+        dbap->h.insdshead->ksmps,
+        dbap->out->sizes[0],
+        (int32_t)pos_table->flen / ncoords,
+        ncoords,
+        (int32_t)(*dbap->coord_mode),
+        *dbap->rolloff_value
+    );
+}
+
+int32_t prepare_dbap_gains_with_arr_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR_ARR *dbap) {
+    return prepare_dbap_helper(
+        csound,
+        &dbap->dbap_state,
+        (MYFLT *)dbap->loudspeakers_pos->data,
+        (MYFLT *)dbap->loudspeakers_weights->data,
+        dbap->h.insdshead->ksmps,
+        dbap->out->sizes[0],
+        dbap->loudspeakers_pos->sizes[0],
+        dbap->loudspeakers_pos->sizes[1],
+        (int32_t)(*dbap->coord_mode),
+        *dbap->rolloff_value
+    );
+}
+
+int32_t prepare_dbap_gains_with_arr_func(CSOUND *csound, DBAP_GAINS_WITH_ARR_FUNC *dbap) {
+    MYFLT check_table = (MYFLT)(*dbap->loudspeakers_weights);
+    MYFLT *weights = NULL;
+    if (check_table != FL(-1)) {
+        FUNC *weights_table = csound->FTFind(csound, dbap->loudspeakers_weights);
+        weights = (MYFLT *)weights_table->ftable;
+    }
+
+    return prepare_dbap_helper(
+        csound,
+        &dbap->dbap_state,
+        (MYFLT *)dbap->loudspeakers_pos->data,
+        weights,
+        dbap->h.insdshead->ksmps,
+        dbap->out->sizes[0],
+        dbap->loudspeakers_pos->sizes[0],
+        dbap->loudspeakers_pos->sizes[1],
+        (int32_t)(*dbap->coord_mode),
+        *dbap->rolloff_value
+    );
+}
+
+int32_t prepare_dbap_gains_with_func_arr(CSOUND *csound, DBAP_GAINS_WITH_FUNC_ARR *dbap) {
+    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
+    if (!pos_table) {
+        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
+    }
+
+    int32_t ncoords = (int32_t)(*dbap->loudspeakers_dimension);
     return prepare_dbap_helper(
         csound,
         &dbap->dbap_state,
@@ -590,17 +659,25 @@ int32_t prepare_dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *dbap)
     );
 }
 
-int32_t prepare_dbap_with_func_no_weights(CSOUND *csound, DBAP_WITH_FUNC *dbap) {
-    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeaker_pos);
+int32_t prepare_dbap_gains_with_func_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC_FUNC *dbap) {
+    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeakers_pos);
     if (!pos_table) {
         return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
     }
-    int32_t ncoords = (int32_t)(*dbap->loudspeaker_dimension);
+
+    MYFLT check_table = (MYFLT)(*dbap->loudspeakers_weights);
+    MYFLT *weights = NULL;
+    if (check_table != FL(-1)) {
+        FUNC *weights_table = csound->FTFind(csound, dbap->loudspeakers_weights);
+        weights = (MYFLT *)weights_table->ftable;
+    }
+
+    int32_t ncoords = (int32_t)(*dbap->loudspeakers_dimension);
     return prepare_dbap_helper(
         csound,
         &dbap->dbap_state,
         (MYFLT *)pos_table->ftable,
-        NULL,
+        weights,
         dbap->h.insdshead->ksmps,
         dbap->out->sizes[0],
         (int32_t)pos_table->flen / ncoords,
@@ -610,27 +687,7 @@ int32_t prepare_dbap_with_func_no_weights(CSOUND *csound, DBAP_WITH_FUNC *dbap) 
     );
 }
 
-int32_t prepare_dbap_gains_with_func_no_weights(CSOUND *csound, DBAP_GAINS_WITH_FUNC *dbap) {
-    FUNC *pos_table = csound->FTFind(csound, dbap->loudspeaker_pos);
-    if (!pos_table) {
-        return csound->InitError(csound, "\n[DBAP OPCODE ERROR] Invalid loudspeaker positions GEN table\n");
-    }
-    int32_t ncoords = (int32_t)(*dbap->loudspeaker_dimension);
-    return prepare_dbap_helper(
-        csound,
-        &dbap->dbap_state,
-        (MYFLT *)pos_table->ftable,
-        NULL,
-        dbap->h.insdshead->ksmps,
-        dbap->out->sizes[0],
-        (int32_t)pos_table->flen / ncoords,
-        ncoords,
-        (int32_t)(*dbap->coord_mode),
-        *dbap->rolloff_value
-    );
-}
-
-int32_t dbap_with_arr(CSOUND *csound, DBAP_WITH_ARR *sdbap) {
+int32_t dbap_with_arr_arr(CSOUND *csound, DBAP_WITH_ARR_ARR *sdbap) {
     return dbap_helper(
         csound,
         &(sdbap->h),
@@ -644,21 +701,7 @@ int32_t dbap_with_arr(CSOUND *csound, DBAP_WITH_ARR *sdbap) {
     );
 }
 
-int32_t dbap_gains_with_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR *sdbap) {
-    return dbap_helper(
-        csound,
-        &(sdbap->h),
-        &sdbap->dbap_state,
-        (MYFLT)(*sdbap->spread),
-        (int32_t)(*sdbap->coord_mode),
-        sdbap->source->sizes[0],
-        sdbap->source->data,
-        NULL,
-        sdbap->out->data
-    );
-}
-
-int32_t dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *sdbap) {
+int32_t dbap_with_arr_func(CSOUND *csound, DBAP_WITH_ARR_FUNC *sdbap) {
     return dbap_helper(
         csound,
         &(sdbap->h),
@@ -672,7 +715,35 @@ int32_t dbap_with_func(CSOUND *csound, DBAP_WITH_FUNC *sdbap) {
     );
 }
 
-int32_t dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *sdbap) {
+int32_t dbap_with_func_arr(CSOUND *csound, DBAP_WITH_FUNC_ARR *sdbap) {
+    return dbap_helper(
+        csound,
+        &(sdbap->h),
+        &sdbap->dbap_state,
+        (MYFLT)(*sdbap->spread),
+        (int32_t)(*sdbap->coord_mode),
+        sdbap->source->sizes[0],
+        sdbap->source->data,
+        sdbap->input_frame,
+        sdbap->out->data
+    );
+}
+
+int32_t dbap_with_func_func(CSOUND *csound, DBAP_WITH_FUNC_FUNC *sdbap) {
+    return dbap_helper(
+        csound,
+        &(sdbap->h),
+        &sdbap->dbap_state,
+        (MYFLT)(*sdbap->spread),
+        (int32_t)(*sdbap->coord_mode),
+        sdbap->source->sizes[0],
+        sdbap->source->data,
+        sdbap->input_frame,
+        sdbap->out->data
+    );
+}
+
+int32_t dbap_gains_with_arr_arr(CSOUND *csound, DBAP_GAINS_WITH_ARR_ARR *sdbap) {
     return dbap_helper(
         csound,
         &(sdbap->h),
@@ -685,34 +756,61 @@ int32_t dbap_gains_with_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC *sdbap) {
         sdbap->out->data
     );
 }
+
+int32_t dbap_gains_with_arr_func(CSOUND *csound, DBAP_GAINS_WITH_ARR_FUNC *sdbap) {
+    return dbap_helper(
+        csound,
+        &(sdbap->h),
+        &sdbap->dbap_state,
+        (MYFLT)(*sdbap->spread),
+        (int32_t)(*sdbap->coord_mode),
+        sdbap->source->sizes[0],
+        sdbap->source->data,
+        NULL,
+        sdbap->out->data
+    );
+}
+
+int32_t dbap_gains_with_func_arr(CSOUND *csound, DBAP_GAINS_WITH_FUNC_ARR *sdbap) {
+    return dbap_helper(
+        csound,
+        &(sdbap->h),
+        &sdbap->dbap_state,
+        (MYFLT)(*sdbap->spread),
+        (int32_t)(*sdbap->coord_mode),
+        sdbap->source->sizes[0],
+        sdbap->source->data,
+        NULL,
+        sdbap->out->data
+    );
+}
+
+int32_t dbap_gains_with_func_func(CSOUND *csound, DBAP_GAINS_WITH_FUNC_FUNC *sdbap) {
+    return dbap_helper(
+        csound,
+        &(sdbap->h),
+        &sdbap->dbap_state,
+        (MYFLT)(*sdbap->spread),
+        (int32_t)(*sdbap->coord_mode),
+        sdbap->source->sizes[0],
+        sdbap->source->data,
+        NULL,
+        sdbap->out->data
+    );
+}
+
 
 static OENTRY localops[] = {
     // dbap on audio frame
-    {
-        "dbap", sizeof(DBAP_WITH_ARR), 0, "a[]", "aik[]i[][]kii[]", (SUBR)prepare_dbap_with_arr, (SUBR)dbap_with_arr
-    },
-    {
-        "dbap", sizeof(DBAP_WITH_ARR), 0, "a[]", "aik[]i[][]ki", (SUBR)prepare_dbap_with_arr_no_weights, (SUBR)dbap_with_arr
-    },
-    {
-        "dbap", sizeof(DBAP_WITH_FUNC), 0, "a[]", "aik[]iikii[]", (SUBR)prepare_dbap_with_func, (SUBR)dbap_with_func
-    },
-    {
-        "dbap", sizeof(DBAP_WITH_FUNC), 0, "a[]", "aik[]iiki", (SUBR)prepare_dbap_with_func_no_weights, (SUBR)dbap_with_func
-    },
+    { "dbap", sizeof(DBAP_WITH_ARR_ARR),   0, "a[]", "aik[]i[][]kii[]", (SUBR)prepare_dbap_with_arr_arr,   (SUBR)dbap_with_arr_arr },
+    { "dbap", sizeof(DBAP_WITH_ARR_FUNC),  0, "a[]", "aik[]i[][]kij",   (SUBR)prepare_dbap_with_arr_func,  (SUBR)dbap_with_arr_func }, // weights in func
+    { "dbap", sizeof(DBAP_WITH_FUNC_ARR),  0, "a[]", "aik[]ikiii[]",    (SUBR)prepare_dbap_with_func_arr,  (SUBR)dbap_with_func_arr },
+    { "dbap", sizeof(DBAP_WITH_FUNC_FUNC), 0, "a[]", "aik[]ikiij",      (SUBR)prepare_dbap_with_func_func, (SUBR)dbap_with_func_func }, // weights in func optional
     // gain vector generation
-    {
-        "dbapgains", sizeof(DBAP_GAINS_WITH_ARR), 0, "k[]", "ik[]i[][]kii[]", (SUBR)prepare_dbap_gains_with_arr, (SUBR)dbap_gains_with_arr
-    },
-    {
-        "dbapgains", sizeof(DBAP_GAINS_WITH_ARR), 0, "k[]", "ik[]i[][]ki", (SUBR)prepare_dbap_gains_with_arr_no_weights, (SUBR)dbap_gains_with_arr
-    },
-    {
-        "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC), 0, "k[]", "ik[]iikii[]", (SUBR)prepare_dbap_gains_with_func, (SUBR)dbap_gains_with_func
-    },
-    {
-        "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC), 0, "k[]", "ik[]iiki", (SUBR)prepare_dbap_gains_with_func_no_weights, (SUBR)dbap_gains_with_func
-    },
+    { "dbapgains", sizeof(DBAP_GAINS_WITH_ARR_ARR),   0, "k[]", "ik[]i[][]kii[]", (SUBR)prepare_dbap_gains_with_arr_arr,   (SUBR)dbap_gains_with_arr_arr },
+    { "dbapgains", sizeof(DBAP_GAINS_WITH_ARR_FUNC),  0, "k[]", "ik[]i[][]kij",   (SUBR)prepare_dbap_gains_with_arr_func,  (SUBR)dbap_gains_with_arr_func },
+    { "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC_ARR),  0, "k[]", "ik[]ikiii[]",    (SUBR)prepare_dbap_gains_with_func_arr,  (SUBR)dbap_gains_with_func_arr },
+    { "dbapgains", sizeof(DBAP_GAINS_WITH_FUNC_FUNC), 0, "k[]", "ik[]ikiij",      (SUBR)prepare_dbap_gains_with_func_func, (SUBR)dbap_gains_with_func_func }
 };
 
 int32_t dbap_init_(CSOUND *csound) {
