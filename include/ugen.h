@@ -1,93 +1,159 @@
-/** API Functions for creating instances of Csound Opcodes as 
- * individual unit generators. UGEN's should also be extensible
- * by host languages at runtime.
+/** API Functions for creating instances of Csound Opcodes as
+ * individual unit generators.
+ *
+ * Based on the design from:
+ *   "Extending Aura with Csound Opcodes"
+ *   Steven Yi, Victor Lazzarini, Roger Dannenberg, John ffitch
+ *   ICMC/SMC 2014
  *
  * Workflow:
  *
  * - User creates a CSOUND instance
  * - User creates a UGEN_FACTORY
- * - User lists OENTRYs 
- * - User uses OENTRY with UGEN_FACTORY to create UGEN instance.
- * - User connects arguments together using ugen_set_input and ugen_set_output.
- *   This is the process to dynamically create a graph.
- * - User uses graph of UGENs and schedule to run with a CSOUND instance.
- * - User turns off graph.
+ * - User lists available opcodes
+ * - User creates UGENs via the factory
+ * - User connects arguments using ugen_set_input / ugen_set_output
+ *   or ugen_graph_connect to build a signal graph
+ * - User calls ugen_init / ugen_perform (or graph equivalents) to
+ *   run the processing
  *
- * - context: required for things like hold, releasing, etc.
- * */
+ * All struct types are opaque; internal details are in H/ugen_internal.h
+ * (for library implementation and white-box tests only).
+ */
 
 #pragma once
 
-#include "csoundCore.h"
+#include "csound.h"
 #include <stdbool.h>
+#include <stdint.h>
 
-typedef struct {
-  CSOUND* csound;
-  INSDS* insds;
-  OENTRY* oentry;
-  void *opcodeMem;
-  MYFLT* data;
-  OPDS* opds;
-  CS_VAR_POOL* inPool;
-  CS_VAR_POOL* outPool;
-  int32_t inPoolCount;
-  int32_t outPoolCount;
-  int32_t inocount;
-} UGEN;
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
-typedef struct {
-  INSDS* insds;
-} UGEN_CONTEXT;
+/** Maximum number of var-arg slots expanded for a single var-arg parameter */
+#define UGEN_MAX_VAR_ARGS 8
 
+/* Opaque types – defined in H/ugen_internal.h */
+typedef struct UGEN UGEN;
+typedef struct UGEN_FACTORY UGEN_FACTORY;
+typedef struct UGEN_CONTEXT UGEN_CONTEXT;
+typedef struct UGEN_GRAPH UGEN_GRAPH;
+
+/**
+ * Argument type enum returned by the query API.
+ * Maps to Csound's internal CS_TYPE system without exposing it.
+ */
+typedef enum {
+  UGEN_ARG_TYPE_I = 0,   /**< i-rate (init-time scalar) */
+  UGEN_ARG_TYPE_K,       /**< k-rate (control-rate scalar) */
+  UGEN_ARG_TYPE_A,       /**< a-rate (audio-rate vector, ksmps samples) */
+  UGEN_ARG_TYPE_S,       /**< S (string) */
+  UGEN_ARG_TYPE_F,       /**< f (fsig / spectral) */
+  UGEN_ARG_TYPE_UNKNOWN  /**< unknown / unsupported */
+} UGEN_ARG_TYPE;
+
+/** Opcode info struct returned by the listing API.
+ * Contains strings and metadata for one opcode entry. */
 typedef struct {
-  CSOUND* csound;
-  INSDS* insds;
-} UGEN_FACTORY;
+  const char* opname;
+  const char* outypes;
+  const char* intypes;
+  size_t dsblksiz;
+  int32_t flags;
+} UGEN_OPCODE_INFO;
+
+/* ==== Factory API ==== */
 
 /** Creates a UGEN_FACTORY, used to list available UGENs (Csound Opcodes),
  * as well as create instances of UGENs. User should configure the CSOUND
- * instance for sr and ksmps before creating a factory. */ 
+ * instance for sr and ksmps before creating a factory. */
 PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound);
 
-/* Delete a UGEN_FACTORY */
-PUBLIC bool ugen_factory_delete(CSOUND* csound, UGEN_FACTORY* factory);
+/** Delete a UGEN_FACTORY */
+PUBLIC bool ugen_factory_delete(UGEN_FACTORY* factory);
 
-/*
+/* ==== Context API ==== */
+
+/** Create a new UGEN_CONTEXT for instrument-like state management */
 PUBLIC UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory);
 
-PUBLIC UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory);
-*/
+/** Delete a UGEN_CONTEXT */
+PUBLIC bool ugen_context_delete(UGEN_CONTEXT* context);
 
-/** Create a new UGEN, using the given UGEN_FACTORY and OENTRY */
-PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, char* inargTypes);
+/** Associate a UGEN with a context for hold/release/MIDI support.
+ * Must be called before ugen_init() if the opcode needs
+ * instrument-like state. */
+PUBLIC bool ugen_set_context(UGEN* ugen, UGEN_CONTEXT* context);
 
+/* ==== UGEN Creation/Destruction ==== */
 
-/** Set output argument pointer for opcode's data struct by index. 
- * TODO - consider using CS_VARIABLE instead of void* so that 
- * type check can happen here.
- * */
+/** Create a new UGEN, using the given UGEN_FACTORY and opcode name/types.
+ * The outargTypes and inargTypes must match an OENTRY exactly. */
+PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName,
+                      char* outargTypes, char* inargTypes);
+
+/** Delete a UGEN and free all associated resources */
+PUBLIC bool ugen_delete(UGEN* ugen);
+
+/* ==== Argument Handling: By Pointer (zero-copy) ==== */
+
+/** Set output argument pointer for opcode's data struct by index.
+ * The pointer must point to memory of the correct size for the arg type
+ * (MYFLT for k/i, MYFLT[ksmps] for a-rate). */
 PUBLIC bool ugen_set_output(UGEN* ugen, int32_t index, void* arg);
 
-/** Set input argument pointer for opcode's data struct by index. 
- * TODO - consider using CS_VARIABLE instead of void* so that 
- * type check can happen here.
- * */
+/** Set input argument pointer for opcode's data struct by index.
+ * The pointer must point to memory of the correct size for the arg type. */
 PUBLIC bool ugen_set_input(UGEN* ugen, int32_t index, void* arg);
 
-/** Set value for output argument for opcode's data struct by index. Assumes UGEN arguments are not set by reference. 
- * 
- * TODO - consider using CS_VARIABLE instead of void* so that 
- * type check can happen here. Also, would provide hook to use
- * CS_TYPE's copyValue function.
- */
+/* ==== Argument Handling: By Value (copy) ==== */
+
+/** Copy a value into the output argument data for index.
+ * Copies ugen_get_out_arg_size() bytes from arg into the internal buffer.
+ * For scalar types (i/k) this is sizeof(MYFLT); for a-rate it is
+ * ksmps * sizeof(MYFLT), so arg must point to a buffer of that size. */
 PUBLIC bool ugen_set_output_value(UGEN* ugen, int32_t index, void* arg);
 
-/** Set value for input argument for opcode's data struct by index. Assumes UGEN arguments are not set by reference. 
- *
- * TODO - consider using CS_VARIABLE instead of void* so that 
- * type check can happen here.
- * */
+/** Copy a value into the input argument data for index.
+ * Copies ugen_get_in_arg_size() bytes from arg into the internal buffer.
+ * For scalar types (i/k) this is sizeof(MYFLT); for a-rate it is
+ * ksmps * sizeof(MYFLT), so arg must point to a buffer of that size. */
 PUBLIC bool ugen_set_input_value(UGEN* ugen, int32_t index, void* arg);
+
+/** Read output argument value for index into dest buffer.
+ * Copies ugen_get_out_arg_size() bytes. For a-rate arguments,
+ * dest must be a buffer of at least ksmps * sizeof(MYFLT).
+ * Returns the number of bytes copied, or 0 on error. */
+PUBLIC size_t ugen_get_output_value(UGEN* ugen, int32_t index, void* dest);
+
+/** Read input argument value for index into dest buffer.
+ * Copies ugen_get_in_arg_size() bytes. For a-rate arguments,
+ * dest must be a buffer of at least ksmps * sizeof(MYFLT).
+ * Returns the number of bytes copied, or 0 on error. */
+PUBLIC size_t ugen_get_input_value(UGEN* ugen, int32_t index, void* dest);
+
+/* ==== Argument Query ==== */
+
+/** Get number of input arguments */
+PUBLIC int32_t ugen_get_in_count(UGEN* ugen);
+
+/** Get number of output arguments */
+PUBLIC int32_t ugen_get_out_count(UGEN* ugen);
+
+/** Get the argument type for input argument at index */
+PUBLIC UGEN_ARG_TYPE ugen_get_in_type(UGEN* ugen, int32_t index);
+
+/** Get the argument type for output argument at index */
+PUBLIC UGEN_ARG_TYPE ugen_get_out_type(UGEN* ugen, int32_t index);
+
+/** Get the size in bytes of the argument at the given index for input args */
+PUBLIC size_t ugen_get_in_arg_size(UGEN* ugen, int32_t index);
+
+/** Get the size in bytes of the argument at the given index for output args */
+PUBLIC size_t ugen_get_out_arg_size(UGEN* ugen, int32_t index);
+
+/* ==== Init/Perform ==== */
 
 /** Run the init-pass for the opcode instance held in UGEN. */
 PUBLIC int32_t ugen_init(UGEN* ugen);
@@ -95,7 +161,50 @@ PUBLIC int32_t ugen_init(UGEN* ugen);
 /** Run the perf-pass for the opcode instance held in UGEN. */
 PUBLIC int32_t ugen_perform(UGEN* ugen);
 
-/** Delets the opcode instance held in UGEN. */
-PUBLIC bool ugen_delete(UGEN* ugen);
+/* ==== Opcode Listing API ==== */
 
+/** Get a list of all available opcodes.
+ * Sets *list to a newly allocated array and *count to the number of entries.
+ * Caller must free with ugen_free_opcode_list(). */
+PUBLIC int32_t ugen_list_opcodes(UGEN_FACTORY* factory,
+                                 UGEN_OPCODE_INFO** list, int32_t* count);
+
+/** Free opcode list returned by ugen_list_opcodes(). */
+PUBLIC void ugen_free_opcode_list(UGEN_FACTORY* factory,
+                                  UGEN_OPCODE_INFO* list);
+
+/** Check whether a specific opcode entry exists by name and types.
+ * Returns true if found, false otherwise. */
+PUBLIC bool ugen_find_opcode(UGEN_FACTORY* factory, const char* opname,
+                             const char* outargTypes, const char* inargTypes);
+
+/* ==== UGen Graph API ==== */
+
+/** Create a new empty UGen graph */
+PUBLIC UGEN_GRAPH* ugen_graph_new(UGEN_FACTORY* factory);
+
+/** Add a UGEN to the graph. Returns the index of the UGEN in the graph,
+ * or -1 on error. */
+PUBLIC int32_t ugen_graph_add(UGEN_GRAPH* graph, UGEN* ugen);
+
+/** Connect output of source UGEN to input of dest UGEN by pointer.
+ * This wires source's output[outIdx] memory to dest's input[inIdx]. */
+PUBLIC bool ugen_graph_connect(UGEN* source, int32_t outIdx,
+                               UGEN* dest, int32_t inIdx);
+
+/** Initialize all UGENs in graph order */
+PUBLIC int32_t ugen_graph_init(UGEN_GRAPH* graph);
+
+/** Perform one ksmps block for all UGENs in graph order */
+PUBLIC int32_t ugen_graph_perform(UGEN_GRAPH* graph);
+
+/** Delete a UGen graph (does NOT delete the individual UGENs) */
+PUBLIC bool ugen_graph_delete(UGEN_GRAPH* graph);
+
+/** Delete a UGen graph AND all UGENs contained in it */
+PUBLIC bool ugen_graph_delete_all(UGEN_GRAPH* graph);
+
+#ifdef  __cplusplus
+}
+#endif
 
