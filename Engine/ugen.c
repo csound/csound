@@ -34,9 +34,9 @@
  * - User creates a UGEN_FACTORY
  * - User lists available opcodes
  * - User creates UGENs via the factory
- * - User connects arguments using ugen_set_input / ugen_set_output
- *   or ugen_graph_connect to build a signal graph
- * - User calls ugen_init / ugen_perform (or graph equivalents) to
+ * - User connects arguments using csoundUgenSetInput / csoundUgenSetOutput
+ *   or csoundUgenGraphConnect to build a signal graph
+ * - User calls csoundUgenInit / csoundUgenPerform (or graph equivalents) to
  *   run the processing
  *
  * - context: required for things like hold, releasing, etc.
@@ -211,7 +211,7 @@ static MYFLT** get_arg_pointers(void* opcodeMem) {
  *  Factory API
  * ============================================================ */
 
-UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
+UGEN_FACTORY* csoundUgenFactoryNew(CSOUND* csound) {
     UGEN_FACTORY* factory = csound->Calloc(csound, sizeof(UGEN_FACTORY));
     INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
 
@@ -224,7 +224,7 @@ UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
     return factory;
 }
 
-bool ugen_factory_delete(UGEN_FACTORY* factory) {
+bool csoundUgenFactoryDelete(UGEN_FACTORY* factory) {
     if (factory == NULL) return false;
     CSOUND* csound = factory->csound;
     csound->Free(csound, factory->insds);
@@ -236,7 +236,7 @@ bool ugen_factory_delete(UGEN_FACTORY* factory) {
  *  Context API
  * ============================================================ */
 
-UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory) {
+UGEN_CONTEXT* csoundUgenContextNew(UGEN_FACTORY* factory) {
     CSOUND* csound = factory->csound;
     UGEN_CONTEXT* ctx = csound->Calloc(csound, sizeof(UGEN_CONTEXT));
     ctx->csound = csound;
@@ -250,7 +250,7 @@ UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory) {
     return ctx;
 }
 
-bool ugen_context_delete(UGEN_CONTEXT* context) {
+bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
     if (context == NULL) return false;
     CSOUND* csound = context->csound;
     csound->Free(csound, context->insds);
@@ -258,7 +258,7 @@ bool ugen_context_delete(UGEN_CONTEXT* context) {
     return true;
 }
 
-bool ugen_set_context(UGEN* ugen, UGEN_CONTEXT* context) {
+bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
     if (ugen == NULL || context == NULL) return false;
     OPDS* opds = (OPDS*)ugen->opcodeMem;
     ugen->insds = context->insds;
@@ -283,7 +283,7 @@ static OENTRY* ugen_resolve_opcode(OENTRIES* entries,
     return NULL;
 }
 
-UGEN* ugen_new(UGEN_FACTORY* factory, char* opName,
+UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                char* outargTypes, char* inargTypes) {
     UGEN* ugen;
     OPDS* opds;
@@ -458,7 +458,7 @@ reject_unsupported_types:
     return ugen;
 }
 
-bool ugen_delete(UGEN* ugen) {
+bool csoundUgenDelete(UGEN* ugen) {
     if (ugen == NULL) return false;
     CSOUND* csound = ugen->csound;
     OPDS* opds = (OPDS*)ugen->opcodeMem;
@@ -489,7 +489,7 @@ bool ugen_delete(UGEN* ugen) {
  *  Argument Handling: By Pointer (zero-copy)
  * ============================================================ */
 
-bool ugen_set_output(UGEN* ugen, int32_t index, void* arg) {
+bool csoundUgenSetOutput(UGEN* ugen, int32_t index, void* arg) {
     if (ugen == NULL || index < 0 || index >= ugen->outCount) return false;
 
     MYFLT** p = get_arg_pointers(ugen->opcodeMem);
@@ -497,7 +497,7 @@ bool ugen_set_output(UGEN* ugen, int32_t index, void* arg) {
     return true;
 }
 
-bool ugen_set_input(UGEN* ugen, int32_t index, void* arg) {
+bool csoundUgenSetInput(UGEN* ugen, int32_t index, void* arg) {
     if (ugen == NULL || index < 0 || index >= ugen->inCount) return false;
 
     MYFLT** p = get_arg_pointers(ugen->opcodeMem);
@@ -509,7 +509,7 @@ bool ugen_set_input(UGEN* ugen, int32_t index, void* arg) {
  *  Argument Handling: By Value (copy)
  * ============================================================ */
 
-bool ugen_set_output_value(UGEN* ugen, int32_t index, void* arg) {
+bool csoundUgenSetOutputValue(UGEN* ugen, int32_t index, void* arg) {
     if (ugen == NULL || index < 0 || index >= ugen->outCount || arg == NULL)
         return false;
 
@@ -519,7 +519,7 @@ bool ugen_set_output_value(UGEN* ugen, int32_t index, void* arg) {
     return true;
 }
 
-bool ugen_set_input_value(UGEN* ugen, int32_t index, void* arg) {
+bool csoundUgenSetInputValue(UGEN* ugen, int32_t index, void* arg) {
     if (ugen == NULL || index < 0 || index >= ugen->inCount || arg == NULL)
         return false;
 
@@ -529,7 +529,7 @@ bool ugen_set_input_value(UGEN* ugen, int32_t index, void* arg) {
     return true;
 }
 
-size_t ugen_get_output_value(UGEN* ugen, int32_t index, void* dest) {
+size_t csoundUgenGetOutputValue(UGEN* ugen, int32_t index, void* dest) {
     if (ugen == NULL || index < 0 || index >= ugen->outCount || dest == NULL)
         return 0;
 
@@ -539,7 +539,7 @@ size_t ugen_get_output_value(UGEN* ugen, int32_t index, void* dest) {
     return sz;
 }
 
-size_t ugen_get_input_value(UGEN* ugen, int32_t index, void* dest) {
+size_t csoundUgenGetInputValue(UGEN* ugen, int32_t index, void* dest) {
     if (ugen == NULL || index < 0 || index >= ugen->inCount || dest == NULL)
         return 0;
 
@@ -553,32 +553,32 @@ size_t ugen_get_input_value(UGEN* ugen, int32_t index, void* dest) {
  *  Argument Query
  * ============================================================ */
 
-int32_t ugen_get_in_count(UGEN* ugen) {
+int32_t csoundUgenGetInCount(UGEN* ugen) {
     return (ugen != NULL) ? ugen->inCount : 0;
 }
 
-int32_t ugen_get_out_count(UGEN* ugen) {
+int32_t csoundUgenGetOutCount(UGEN* ugen) {
     return (ugen != NULL) ? ugen->outCount : 0;
 }
 
-UGEN_ARG_TYPE ugen_get_in_type(UGEN* ugen, int32_t index) {
+UGEN_ARG_TYPE csoundUgenGetInType(UGEN* ugen, int32_t index) {
     if (ugen == NULL || index < 0 || index >= ugen->inCount)
         return UGEN_ARG_TYPE_UNKNOWN;
     return ugen->inTypes[index];
 }
 
-UGEN_ARG_TYPE ugen_get_out_type(UGEN* ugen, int32_t index) {
+UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index) {
     if (ugen == NULL || index < 0 || index >= ugen->outCount)
         return UGEN_ARG_TYPE_UNKNOWN;
     return ugen->outTypes[index];
 }
 
-size_t ugen_get_in_arg_size(UGEN* ugen, int32_t index) {
+size_t csoundUgenGetInArgSize(UGEN* ugen, int32_t index) {
     if (ugen == NULL || index < 0 || index >= ugen->inCount) return 0;
     return ugen_arg_type_size(ugen->inTypes[index], ugen->insds->ksmps);
 }
 
-size_t ugen_get_out_arg_size(UGEN* ugen, int32_t index) {
+size_t csoundUgenGetOutArgSize(UGEN* ugen, int32_t index) {
     if (ugen == NULL || index < 0 || index >= ugen->outCount) return 0;
     return ugen_arg_type_size(ugen->outTypes[index], ugen->insds->ksmps);
 }
@@ -587,7 +587,7 @@ size_t ugen_get_out_arg_size(UGEN* ugen, int32_t index) {
  *  Init / Perform
  * ============================================================ */
 
-int32_t ugen_init(UGEN* ugen) {
+int32_t csoundUgenInit(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
     if (oentry->init != NULL) {
@@ -596,7 +596,7 @@ int32_t ugen_init(UGEN* ugen) {
     return CSOUND_SUCCESS;
 }
 
-int32_t ugen_perform(UGEN* ugen) {
+int32_t csoundUgenPerform(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
     if (oentry->perf != NULL) {
@@ -609,7 +609,7 @@ int32_t ugen_perform(UGEN* ugen) {
  *  Opcode Listing API
  * ============================================================ */
 
-int32_t ugen_list_opcodes(UGEN_FACTORY* factory,
+int32_t csoundUgenListOpcodes(UGEN_FACTORY* factory,
                           UGEN_OPCODE_INFO** list, int32_t* count) {
     if (factory == NULL || list == NULL || count == NULL)
         return CSOUND_ERROR;
@@ -682,14 +682,14 @@ int32_t ugen_list_opcodes(UGEN_FACTORY* factory,
     return CSOUND_SUCCESS;
 }
 
-void ugen_free_opcode_list(UGEN_FACTORY* factory, UGEN_OPCODE_INFO* list) {
+void csoundUgenFreeOpcodeList(UGEN_FACTORY* factory, UGEN_OPCODE_INFO* list) {
     if (factory != NULL && list != NULL) {
         CSOUND* csound = factory->csound;
         csound->Free(csound, list);
     }
 }
 
-bool ugen_find_opcode(UGEN_FACTORY* factory, const char* opname,
+bool csoundUgenFindOpcode(UGEN_FACTORY* factory, const char* opname,
                       const char* outargTypes, const char* inargTypes) {
     if (factory == NULL || opname == NULL) return false;
 
@@ -719,7 +719,7 @@ bool ugen_find_opcode(UGEN_FACTORY* factory, const char* opname,
 
 #define UGEN_GRAPH_INITIAL_CAPACITY 16
 
-UGEN_GRAPH* ugen_graph_new(UGEN_FACTORY* factory) {
+UGEN_GRAPH* csoundUgenGraphNew(UGEN_FACTORY* factory) {
     if (factory == NULL) return NULL;
     CSOUND* csound = factory->csound;
 
@@ -732,7 +732,7 @@ UGEN_GRAPH* ugen_graph_new(UGEN_FACTORY* factory) {
     return graph;
 }
 
-int32_t ugen_graph_add(UGEN_GRAPH* graph, UGEN* ugen) {
+int32_t csoundUgenGraphAdd(UGEN_GRAPH* graph, UGEN* ugen) {
     if (graph == NULL || ugen == NULL) return -1;
 
     /* Grow array if needed */
@@ -751,7 +751,7 @@ int32_t ugen_graph_add(UGEN_GRAPH* graph, UGEN* ugen) {
     return idx;
 }
 
-bool ugen_graph_connect(UGEN* source, int32_t outIdx,
+bool csoundUgenGraphConnect(UGEN* source, int32_t outIdx,
                         UGEN* dest, int32_t inIdx) {
     if (source == NULL || dest == NULL) return false;
     if (outIdx < 0 || outIdx >= source->outCount) return false;
@@ -762,30 +762,30 @@ bool ugen_graph_connect(UGEN* source, int32_t outIdx,
     MYFLT* outPtr = srcP[outIdx];
 
     /* Set dest's input to point to source's output (zero-copy wiring) */
-    return ugen_set_input(dest, inIdx, outPtr);
+    return csoundUgenSetInput(dest, inIdx, outPtr);
 }
 
-int32_t ugen_graph_init(UGEN_GRAPH* graph) {
+int32_t csoundUgenGraphInit(UGEN_GRAPH* graph) {
     if (graph == NULL) return CSOUND_ERROR;
 
     for (int32_t i = 0; i < graph->count; i++) {
-        int32_t ret = ugen_init(graph->ugens[i]);
+        int32_t ret = csoundUgenInit(graph->ugens[i]);
         if (ret != CSOUND_SUCCESS) return ret;
     }
     return CSOUND_SUCCESS;
 }
 
-int32_t ugen_graph_perform(UGEN_GRAPH* graph) {
+int32_t csoundUgenGraphPerform(UGEN_GRAPH* graph) {
     if (graph == NULL) return CSOUND_ERROR;
 
     for (int32_t i = 0; i < graph->count; i++) {
-        int32_t ret = ugen_perform(graph->ugens[i]);
+        int32_t ret = csoundUgenPerform(graph->ugens[i]);
         if (ret != CSOUND_SUCCESS) return ret;
     }
     return CSOUND_SUCCESS;
 }
 
-bool ugen_graph_delete(UGEN_GRAPH* graph) {
+bool csoundUgenGraphDelete(UGEN_GRAPH* graph) {
     if (graph == NULL) return false;
     CSOUND* csound = graph->factory->csound;
     csound->Free(csound, graph->ugens);
@@ -793,13 +793,13 @@ bool ugen_graph_delete(UGEN_GRAPH* graph) {
     return true;
 }
 
-bool ugen_graph_delete_all(UGEN_GRAPH* graph) {
+bool csoundUgenGraphDeleteAll(UGEN_GRAPH* graph) {
     if (graph == NULL) return false;
     CSOUND* csound = graph->factory->csound;
 
     for (int32_t i = 0; i < graph->count; i++) {
         if (graph->ugens[i] != NULL) {
-            ugen_delete(graph->ugens[i]);
+            csoundUgenDelete(graph->ugens[i]);
         }
     }
     csound->Free(csound, graph->ugens);

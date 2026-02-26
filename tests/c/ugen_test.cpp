@@ -54,16 +54,16 @@ public:
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, FactoryCreateDelete) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     ASSERT_NE(factory, nullptr);
     EXPECT_EQ(factory->csound, csound);
     EXPECT_NE(factory->insds, nullptr);
     EXPECT_EQ((uint32_t)factory->insds->ksmps, csoundGetKsmps(csound));
-    EXPECT_TRUE(ugen_factory_delete(factory));
+    EXPECT_TRUE(csoundUgenFactoryDelete(factory));
 }
 
 TEST_F(UGenTests, FactoryDeleteNull) {
-    EXPECT_FALSE(ugen_factory_delete(nullptr));
+    EXPECT_FALSE(csoundUgenFactoryDelete(nullptr));
 }
 
 /* ------------------------------------------------------------------
@@ -71,42 +71,42 @@ TEST_F(UGenTests, FactoryDeleteNull) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, CreateOscils) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
     EXPECT_NE(ugen->oentry, nullptr);
     EXPECT_NE(ugen->opcodeMem, nullptr);
     EXPECT_NE(ugen->data, nullptr);
 
-    EXPECT_TRUE(ugen_delete(ugen));
-    ugen_factory_delete(factory);
+    EXPECT_TRUE(csoundUgenDelete(ugen));
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, CreateLine) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"line",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"line",
                            (char*)"k", (char*)"iii");
     ASSERT_NE(ugen, nullptr);
-    EXPECT_TRUE(ugen_delete(ugen));
-    ugen_factory_delete(factory);
+    EXPECT_TRUE(csoundUgenDelete(ugen));
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, CreateNonExistent) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"__no_such_opcode__",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"__no_such_opcode__",
                            (char*)"k", (char*)"k");
     EXPECT_EQ(ugen, nullptr);
-    ugen_factory_delete(factory);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, CreateWrongTypes) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     /* oscils exists but not with these types */
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"k", (char*)"kk");
     EXPECT_EQ(ugen, nullptr);
-    ugen_factory_delete(factory);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -114,58 +114,58 @@ TEST_F(UGenTests, CreateWrongTypes) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, QueryCounts) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     /* oscils: "a" -> 1 out, "iiio" -> 4 in (o maps to i) */
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    EXPECT_EQ(ugen_get_out_count(ugen), 1);
-    EXPECT_EQ(ugen_get_in_count(ugen), 4);
+    EXPECT_EQ(csoundUgenGetOutCount(ugen), 1);
+    EXPECT_EQ(csoundUgenGetInCount(ugen), 4);
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, QueryTypes) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
     /* Output 0 should be audio */
-    EXPECT_EQ(ugen_get_out_type(ugen, 0), UGEN_ARG_TYPE_A);
+    EXPECT_EQ(csoundUgenGetOutType(ugen, 0), UGEN_ARG_TYPE_A);
 
     /* Inputs 0-3 should all be i-rate */
     for (int i = 0; i < 4; i++) {
-        EXPECT_EQ(ugen_get_in_type(ugen, i), UGEN_ARG_TYPE_I);
+        EXPECT_EQ(csoundUgenGetInType(ugen, i), UGEN_ARG_TYPE_I);
     }
 
     /* Out-of-range returns UNKNOWN */
-    EXPECT_EQ(ugen_get_out_type(ugen, 1), UGEN_ARG_TYPE_UNKNOWN);
-    EXPECT_EQ(ugen_get_in_type(ugen, 4), UGEN_ARG_TYPE_UNKNOWN);
+    EXPECT_EQ(csoundUgenGetOutType(ugen, 1), UGEN_ARG_TYPE_UNKNOWN);
+    EXPECT_EQ(csoundUgenGetInType(ugen, 4), UGEN_ARG_TYPE_UNKNOWN);
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, QueryArgSizes) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
     int32_t ksmps = csoundGetKsmps(csound);
 
     /* Audio output should be ksmps * sizeof(MYFLT) */
-    EXPECT_EQ(ugen_get_out_arg_size(ugen, 0),
+    EXPECT_EQ(csoundUgenGetOutArgSize(ugen, 0),
               (size_t)ksmps * sizeof(MYFLT));
 
     /* i-rate inputs should be sizeof(MYFLT) */
-    EXPECT_EQ(ugen_get_in_arg_size(ugen, 0), sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenGetInArgSize(ugen, 0), sizeof(MYFLT));
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -173,8 +173,8 @@ TEST_F(UGenTests, QueryArgSizes) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, SetGetInputValue) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
@@ -182,25 +182,25 @@ TEST_F(UGenTests, SetGetInputValue) {
     MYFLT amp = 0.5;
     MYFLT freq = 440.0;
     MYFLT phase = 0.0;
-    EXPECT_TRUE(ugen_set_input_value(ugen, 0, &amp));
-    EXPECT_TRUE(ugen_set_input_value(ugen, 1, &freq));
-    EXPECT_TRUE(ugen_set_input_value(ugen, 2, &phase));
+    EXPECT_TRUE(csoundUgenSetInputValue(ugen, 0, &amp));
+    EXPECT_TRUE(csoundUgenSetInputValue(ugen, 1, &freq));
+    EXPECT_TRUE(csoundUgenSetInputValue(ugen, 2, &phase));
 
     /* Read back and verify */
     MYFLT readBack = 0;
-    EXPECT_EQ(ugen_get_input_value(ugen, 0, &readBack), sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenGetInputValue(ugen, 0, &readBack), sizeof(MYFLT));
     EXPECT_DOUBLE_EQ(readBack, 0.5);
 
-    EXPECT_EQ(ugen_get_input_value(ugen, 1, &readBack), sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenGetInputValue(ugen, 1, &readBack), sizeof(MYFLT));
     EXPECT_DOUBLE_EQ(readBack, 440.0);
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, SetGetOutputValue) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
@@ -211,18 +211,18 @@ TEST_F(UGenTests, SetGetOutputValue) {
     buf[0] = 1.0;
     buf[ksmps - 1] = -1.0;
 
-    EXPECT_TRUE(ugen_set_output_value(ugen, 0, buf));
+    EXPECT_TRUE(csoundUgenSetOutputValue(ugen, 0, buf));
 
     /* Read back */
     MYFLT* readBuf = (MYFLT*)calloc(ksmps, sizeof(MYFLT));
-    EXPECT_EQ(ugen_get_output_value(ugen, 0, readBuf), outSz);
+    EXPECT_EQ(csoundUgenGetOutputValue(ugen, 0, readBuf), outSz);
     EXPECT_DOUBLE_EQ(readBuf[0], 1.0);
     EXPECT_DOUBLE_EQ(readBuf[ksmps - 1], -1.0);
 
     free(buf);
     free(readBuf);
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -230,26 +230,26 @@ TEST_F(UGenTests, SetGetOutputValue) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, SetInputByPointer) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
     MYFLT amp = 0.5;
-    EXPECT_TRUE(ugen_set_input(ugen, 0, &amp));
+    EXPECT_TRUE(csoundUgenSetInput(ugen, 0, &amp));
 
     /* Reading through get_input_value should see the pointed-to value */
     MYFLT readBack = 0;
-    ugen_get_input_value(ugen, 0, &readBack);
+    csoundUgenGetInputValue(ugen, 0, &readBack);
     EXPECT_DOUBLE_EQ(readBack, 0.5);
 
     /* Changing the source updates the ugen's view */
     amp = 0.25;
-    ugen_get_input_value(ugen, 0, &readBack);
+    csoundUgenGetInputValue(ugen, 0, &readBack);
     EXPECT_DOUBLE_EQ(readBack, 0.25);
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -257,8 +257,8 @@ TEST_F(UGenTests, SetInputByPointer) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, InitPerformOscils) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
@@ -266,20 +266,20 @@ TEST_F(UGenTests, InitPerformOscils) {
 
     /* Set inputs: amp=1.0, freq=1000, phase=0, iphs(optional)=0 */
     MYFLT amp = 1.0, freq = 1000.0, phase = 0.0, iphs = 0.0;
-    ugen_set_input_value(ugen, 0, &amp);
-    ugen_set_input_value(ugen, 1, &freq);
-    ugen_set_input_value(ugen, 2, &phase);
-    ugen_set_input_value(ugen, 3, &iphs);
+    csoundUgenSetInputValue(ugen, 0, &amp);
+    csoundUgenSetInputValue(ugen, 1, &freq);
+    csoundUgenSetInputValue(ugen, 2, &phase);
+    csoundUgenSetInputValue(ugen, 3, &iphs);
 
     /* Init the opcode */
-    EXPECT_EQ(ugen_init(ugen), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenInit(ugen), CSOUND_SUCCESS);
 
     /* Perform one k-cycle */
-    EXPECT_EQ(ugen_perform(ugen), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
 
     /* Read output – it's an audio buffer,  should have non-zero samples */
     MYFLT* outBuf = (MYFLT*)calloc(ksmps, sizeof(MYFLT));
-    size_t sz = ugen_get_output_value(ugen, 0, outBuf);
+    size_t sz = csoundUgenGetOutputValue(ugen, 0, outBuf);
     EXPECT_EQ(sz, (size_t)ksmps * sizeof(MYFLT));
 
     /* At least some samples should be non-zero for a 1kHz sine */
@@ -293,8 +293,8 @@ TEST_F(UGenTests, InitPerformOscils) {
     EXPECT_TRUE(hasNonZero);
 
     free(outBuf);
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -302,10 +302,10 @@ TEST_F(UGenTests, InitPerformOscils) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, ListOpcodes) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     UGEN_OPCODE_INFO* list = nullptr;
     int32_t count = 0;
-    int32_t ret = ugen_list_opcodes(factory, &list, &count);
+    int32_t ret = csoundUgenListOpcodes(factory, &list, &count);
     EXPECT_EQ(ret, CSOUND_SUCCESS);
     EXPECT_GT(count, 0);
     EXPECT_NE(list, nullptr);
@@ -321,17 +321,17 @@ TEST_F(UGenTests, ListOpcodes) {
     }
     EXPECT_TRUE(foundOscils);
 
-    ugen_free_opcode_list(factory, list);
-    ugen_factory_delete(factory);
+    csoundUgenFreeOpcodeList(factory, list);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, FindOpcode) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    EXPECT_TRUE(ugen_find_opcode(factory, "oscils", "a", "iiio"));
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    EXPECT_TRUE(csoundUgenFindOpcode(factory, "oscils", "a", "iiio"));
 
     /* Non-existent opcode */
-    EXPECT_FALSE(ugen_find_opcode(factory, "__no_such_opcode__", "k", "k"));
-    ugen_factory_delete(factory);
+    EXPECT_FALSE(csoundUgenFindOpcode(factory, "__no_such_opcode__", "k", "k"));
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -339,30 +339,30 @@ TEST_F(UGenTests, FindOpcode) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, ContextCreateDelete) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN_CONTEXT* ctx = ugen_context_new(factory);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     ASSERT_NE(ctx, nullptr);
     EXPECT_NE(ctx->insds, nullptr);
     EXPECT_EQ((uint32_t)ctx->insds->ksmps, csoundGetKsmps(csound));
 
-    EXPECT_TRUE(ugen_context_delete(ctx));
-    ugen_factory_delete(factory);
+    EXPECT_TRUE(csoundUgenContextDelete(ctx));
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, SetContext) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN_CONTEXT* ctx = ugen_context_new(factory);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    EXPECT_TRUE(ugen_set_context(ugen, ctx));
+    EXPECT_TRUE(csoundUgenSetContext(ugen, ctx));
     /* After setting context, the ugen's insds should be the context's */
     EXPECT_EQ(ugen->insds, ctx->insds);
 
-    ugen_delete(ugen);
-    ugen_context_delete(ctx);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenContextDelete(ctx);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -370,50 +370,50 @@ TEST_F(UGenTests, SetContext) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, GraphCreateDelete) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN_GRAPH* graph = ugen_graph_new(factory);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN_GRAPH* graph = csoundUgenGraphNew(factory);
     ASSERT_NE(graph, nullptr);
     EXPECT_EQ(graph->count, 0);
 
-    EXPECT_TRUE(ugen_graph_delete(graph));
-    ugen_factory_delete(factory);
+    EXPECT_TRUE(csoundUgenGraphDelete(graph));
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, GraphAddUGens) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN_GRAPH* graph = ugen_graph_new(factory);
-    UGEN* u1 = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN_GRAPH* graph = csoundUgenGraphNew(factory);
+    UGEN* u1 = csoundUgenNew(factory, (char*)"oscils",
                          (char*)"a", (char*)"iiio");
-    UGEN* u2 = ugen_new(factory, (char*)"oscils",
+    UGEN* u2 = csoundUgenNew(factory, (char*)"oscils",
                          (char*)"a", (char*)"iiio");
     ASSERT_NE(u1, nullptr);
     ASSERT_NE(u2, nullptr);
 
-    EXPECT_EQ(ugen_graph_add(graph, u1), 0);
-    EXPECT_EQ(ugen_graph_add(graph, u2), 1);
+    EXPECT_EQ(csoundUgenGraphAdd(graph, u1), 0);
+    EXPECT_EQ(csoundUgenGraphAdd(graph, u2), 1);
     EXPECT_EQ(graph->count, 2);
 
     /* delete_all cleans up both graph and contained UGENs */
-    ugen_graph_delete_all(graph);
-    ugen_factory_delete(factory);
+    csoundUgenGraphDeleteAll(graph);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, GraphConnect) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
 
     /* Create two oscils and connect the audio output of the first
        to an input of the second (just testing the wiring, not the
        signal processing semantics). */
-    UGEN* src = ugen_new(factory, (char*)"oscils",
+    UGEN* src = csoundUgenNew(factory, (char*)"oscils",
                           (char*)"a", (char*)"iiio");
-    UGEN* dst = ugen_new(factory, (char*)"oscils",
+    UGEN* dst = csoundUgenNew(factory, (char*)"oscils",
                           (char*)"a", (char*)"iiio");
     ASSERT_NE(src, nullptr);
     ASSERT_NE(dst, nullptr);
 
     /* Wire src output[0] -> dst input[0]
        (type mismatch a->i for oscils but this tests the pointer wiring) */
-    EXPECT_TRUE(ugen_graph_connect(src, 0, dst, 0));
+    EXPECT_TRUE(csoundUgenGraphConnect(src, 0, dst, 0));
 
     /* Verify the pointers are shared: write to src output, read from dst input */
     int32_t ksmps = csoundGetKsmps(csound);
@@ -422,42 +422,42 @@ TEST_F(UGenTests, GraphConnect) {
 
     /* Write a test value into src's output buffer */
     srcOutBuf[0] = 42.0;
-    ugen_set_output_value(src, 0, srcOutBuf);
+    csoundUgenSetOutputValue(src, 0, srcOutBuf);
 
     /* Read from dst's input – should see 42.0 because they share the pointer */
-    ugen_get_input_value(dst, 0, dstInBuf);
+    csoundUgenGetInputValue(dst, 0, dstInBuf);
     EXPECT_DOUBLE_EQ(dstInBuf[0], 42.0);
 
     free(srcOutBuf);
     free(dstInBuf);
-    ugen_delete(src);
-    ugen_delete(dst);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(src);
+    csoundUgenDelete(dst);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, GraphInitPerform) {
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN_GRAPH* graph = ugen_graph_new(factory);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN_GRAPH* graph = csoundUgenGraphNew(factory);
 
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
     MYFLT amp = 1.0, freq = 440.0, phase = 0.0, iphs = 0.0;
-    ugen_set_input_value(ugen, 0, &amp);
-    ugen_set_input_value(ugen, 1, &freq);
-    ugen_set_input_value(ugen, 2, &phase);
-    ugen_set_input_value(ugen, 3, &iphs);
+    csoundUgenSetInputValue(ugen, 0, &amp);
+    csoundUgenSetInputValue(ugen, 1, &freq);
+    csoundUgenSetInputValue(ugen, 2, &phase);
+    csoundUgenSetInputValue(ugen, 3, &iphs);
 
-    ugen_graph_add(graph, ugen);
+    csoundUgenGraphAdd(graph, ugen);
 
-    EXPECT_EQ(ugen_graph_init(graph), CSOUND_SUCCESS);
-    EXPECT_EQ(ugen_graph_perform(graph), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenGraphInit(graph), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenGraphPerform(graph), CSOUND_SUCCESS);
 
     /* Output should have non-zero samples */
     int32_t ksmps = csoundGetKsmps(csound);
     MYFLT* outBuf = (MYFLT*)calloc(ksmps, sizeof(MYFLT));
-    ugen_get_output_value(ugen, 0, outBuf);
+    csoundUgenGetOutputValue(ugen, 0, outBuf);
     bool hasNonZero = false;
     for (int i = 0; i < ksmps; i++) {
         if (outBuf[i] != 0.0) {
@@ -468,8 +468,8 @@ TEST_F(UGenTests, GraphInitPerform) {
     EXPECT_TRUE(hasNonZero);
 
     free(outBuf);
-    ugen_graph_delete_all(graph);
-    ugen_factory_delete(factory);
+    csoundUgenGraphDeleteAll(graph);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -477,17 +477,17 @@ TEST_F(UGenTests, GraphInitPerform) {
  * ------------------------------------------------------------------ */
 
 TEST_F(UGenTests, NullUGenOps) {
-    EXPECT_FALSE(ugen_delete(nullptr));
-    EXPECT_FALSE(ugen_set_output(nullptr, 0, nullptr));
-    EXPECT_FALSE(ugen_set_input(nullptr, 0, nullptr));
-    EXPECT_EQ(ugen_get_in_count(nullptr), 0);
-    EXPECT_EQ(ugen_get_out_count(nullptr), 0);
-    EXPECT_EQ(ugen_get_in_type(nullptr, 0), UGEN_ARG_TYPE_UNKNOWN);
-    EXPECT_EQ(ugen_get_out_type(nullptr, 0), UGEN_ARG_TYPE_UNKNOWN);
-    EXPECT_EQ(ugen_get_in_arg_size(nullptr, 0), (size_t)0);
-    EXPECT_EQ(ugen_get_out_arg_size(nullptr, 0), (size_t)0);
-    EXPECT_EQ(ugen_init(nullptr), CSOUND_ERROR);
-    EXPECT_EQ(ugen_perform(nullptr), CSOUND_ERROR);
+    EXPECT_FALSE(csoundUgenDelete(nullptr));
+    EXPECT_FALSE(csoundUgenSetOutput(nullptr, 0, nullptr));
+    EXPECT_FALSE(csoundUgenSetInput(nullptr, 0, nullptr));
+    EXPECT_EQ(csoundUgenGetInCount(nullptr), 0);
+    EXPECT_EQ(csoundUgenGetOutCount(nullptr), 0);
+    EXPECT_EQ(csoundUgenGetInType(nullptr, 0), UGEN_ARG_TYPE_UNKNOWN);
+    EXPECT_EQ(csoundUgenGetOutType(nullptr, 0), UGEN_ARG_TYPE_UNKNOWN);
+    EXPECT_EQ(csoundUgenGetInArgSize(nullptr, 0), (size_t)0);
+    EXPECT_EQ(csoundUgenGetOutArgSize(nullptr, 0), (size_t)0);
+    EXPECT_EQ(csoundUgenInit(nullptr), CSOUND_ERROR);
+    EXPECT_EQ(csoundUgenPerform(nullptr), CSOUND_ERROR);
 }
 
 /* ------------------------------------------------------------------
@@ -508,8 +508,8 @@ TEST_F(UGenTests, MemoryLayoutNoDoubleOffset) {
      *   3. The CS_VAR_MEM header at ((char*)p[i] - CS_VAR_TYPE_OFFSET)
      *      has a non-null varType pointer.
      */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
@@ -542,17 +542,17 @@ TEST_F(UGenTests, MemoryLayoutNoDoubleOffset) {
             << "input[" << i << "] CS_VAR_MEM header should have varType set";
     }
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, MemoryLayoutHeaderAlignment) {
     /* Verify the CS_VAR_MEM header doesn't overlap into adjacent
      * variable data — the header for variable N must not fall within
      * the value region of variable N-1. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     /* Use an opcode with multiple input args of different sizes */
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
@@ -565,7 +565,7 @@ TEST_F(UGenTests, MemoryLayoutHeaderAlignment) {
     for (int i = 0; i + 1 < inCount; i++) {
         MYFLT* curr = p[outCount + i];
         MYFLT* next = p[outCount + i + 1];
-        size_t currArgSizeBytes = ugen_get_in_arg_size(ugen, i);
+        size_t currArgSizeBytes = csoundUgenGetInArgSize(ugen, i);
         size_t currArgSizeMYFLTs = currArgSizeBytes / sizeof(MYFLT);
 
         /* next's header starts at (next - CS_VAR_TYPE_OFFSET/sizeof(MYFLT)) in
@@ -576,8 +576,8 @@ TEST_F(UGenTests, MemoryLayoutHeaderAlignment) {
             << "input[" << i+1 << "] header overlaps input[" << i << "] data";
     }
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
@@ -585,8 +585,8 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
      * and verify the CS_VAR_MEM header is intact.  This catches
      * double-offset bugs where writing at p[i] would clobber the
      * wrong memory region. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
@@ -610,7 +610,7 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
 
     /* Read back through the API */
     MYFLT* readBuf = (MYFLT*)calloc(ksmps, sizeof(MYFLT));
-    size_t sz = ugen_get_output_value(ugen, 0, readBuf);
+    size_t sz = csoundUgenGetOutputValue(ugen, 0, readBuf);
     EXPECT_EQ(sz, (size_t)ksmps * sizeof(MYFLT));
     for (int i = 0; i < ksmps; i++) {
         EXPECT_DOUBLE_EQ(readBuf[i], (MYFLT)(i + 1));
@@ -619,9 +619,9 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
 
     /* Write an i-rate scalar through the API */
     MYFLT val = 12345.0;
-    ugen_set_input_value(ugen, 0, &val);
+    csoundUgenSetInputValue(ugen, 0, &val);
     MYFLT readVal = 0;
-    ugen_get_input_value(ugen, 0, &readVal);
+    csoundUgenGetInputValue(ugen, 0, &readVal);
     EXPECT_DOUBLE_EQ(readVal, 12345.0);
 
     /* Verify headers are still intact after all writes */
@@ -630,8 +630,8 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
     EXPECT_EQ(inHdr0->varType, inType0)
         << "input varType header was corrupted by data write";
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -641,52 +641,52 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
 TEST_F(UGenTests, RejectStringOutputType) {
     /* Opcodes with S (string) type arguments should be rejected
      * because the UGen data layout lacks STRINGDAT init/free hooks. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"puts",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"puts",
                            (char*)"i", (char*)"So");
     EXPECT_EQ(ugen, nullptr);
-    ugen_factory_delete(factory);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, RejectStringInputType) {
     /* Even if the output is numeric, string inputs should be rejected. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
 
     /* Try "sprintf" if available: output S, input S... */
-    UGEN* ugen = ugen_new(factory, (char*)"strcat",
+    UGEN* ugen = csoundUgenNew(factory, (char*)"strcat",
                            (char*)"S", (char*)"SS");
     /* Should either be NULL (rejected by S check) or not found */
     EXPECT_EQ(ugen, nullptr);
-    ugen_factory_delete(factory);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, RejectFsigType) {
     /* Opcodes using f-sig (PVOC) types are unsupported. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     /* pvsanal: "f" output, "aiio" input */
-    UGEN* ugen = ugen_new(factory, (char*)"pvsanal",
+    UGEN* ugen = csoundUgenNew(factory, (char*)"pvsanal",
                            (char*)"f", (char*)"aiio");
     EXPECT_EQ(ugen, nullptr);
-    ugen_factory_delete(factory);
+    csoundUgenFactoryDelete(factory);
 }
 
 TEST_F(UGenTests, AcceptNumericTypes) {
     /* Opcodes with only i/k/a types should be accepted. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
 
     /* oscils: a, iiio – all numeric, should succeed */
-    UGEN* u1 = ugen_new(factory, (char*)"oscils",
+    UGEN* u1 = csoundUgenNew(factory, (char*)"oscils",
                          (char*)"a", (char*)"iiio");
     EXPECT_NE(u1, nullptr);
-    if (u1) ugen_delete(u1);
+    if (u1) csoundUgenDelete(u1);
 
     /* line: k, iii – k-rate output with i-rate inputs */
-    UGEN* u2 = ugen_new(factory, (char*)"line",
+    UGEN* u2 = csoundUgenNew(factory, (char*)"line",
                          (char*)"k", (char*)"iii");
     EXPECT_NE(u2, nullptr);
-    if (u2) ugen_delete(u2);
+    if (u2) csoundUgenDelete(u2);
 
-    ugen_factory_delete(factory);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -697,20 +697,20 @@ TEST_F(UGenTests, MultiCycleStability) {
     /* Perform multiple k-cycles and verify the output buffer produces
      * valid samples each time, and that the CS_VAR_MEM headers stay
      * intact over repeated use.  Regression test for memory corruption. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"oscils",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
     int32_t ksmps = csoundGetKsmps(csound);
 
     MYFLT amp = 0.5, freq = 1000.0, phase = 0.0, iphs = 0.0;
-    ugen_set_input_value(ugen, 0, &amp);
-    ugen_set_input_value(ugen, 1, &freq);
-    ugen_set_input_value(ugen, 2, &phase);
-    ugen_set_input_value(ugen, 3, &iphs);
+    csoundUgenSetInputValue(ugen, 0, &amp);
+    csoundUgenSetInputValue(ugen, 1, &freq);
+    csoundUgenSetInputValue(ugen, 2, &phase);
+    csoundUgenSetInputValue(ugen, 3, &iphs);
 
-    EXPECT_EQ(ugen_init(ugen), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenInit(ugen), CSOUND_SUCCESS);
 
     /* Remember the varType header pointer */
     MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
@@ -720,9 +720,9 @@ TEST_F(UGenTests, MultiCycleStability) {
     MYFLT* buf = (MYFLT*)calloc(ksmps, sizeof(MYFLT));
 
     for (int cycle = 0; cycle < 100; cycle++) {
-        EXPECT_EQ(ugen_perform(ugen), CSOUND_SUCCESS);
+        EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
 
-        size_t sz = ugen_get_output_value(ugen, 0, buf);
+        size_t sz = csoundUgenGetOutputValue(ugen, 0, buf);
         EXPECT_EQ(sz, (size_t)ksmps * sizeof(MYFLT));
 
         /* Samples from a sine oscillator should be in [-1, 1] */
@@ -737,8 +737,8 @@ TEST_F(UGenTests, MultiCycleStability) {
     }
 
     free(buf);
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }
 
 /* ------------------------------------------------------------------
@@ -748,8 +748,8 @@ TEST_F(UGenTests, MultiCycleStability) {
 TEST_F(UGenTests, MemoryLayoutKRate) {
     /* Verify the memory layout fix with a k-rate opcode (line)
      * which has different sizes than audio-rate opcodes. */
-    UGEN_FACTORY* factory = ugen_factory_new(csound);
-    UGEN* ugen = ugen_new(factory, (char*)"line",
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"line",
                            (char*)"k", (char*)"iii");
     ASSERT_NE(ugen, nullptr);
 
@@ -780,16 +780,16 @@ TEST_F(UGenTests, MemoryLayoutKRate) {
 
     /* Set inputs and verify init/perform work correctly */
     MYFLT ia = 0.0, dur = 1.0, ib = 1.0;
-    ugen_set_input_value(ugen, 0, &ia);
-    ugen_set_input_value(ugen, 1, &dur);
-    ugen_set_input_value(ugen, 2, &ib);
-    EXPECT_EQ(ugen_init(ugen), CSOUND_SUCCESS);
-    EXPECT_EQ(ugen_perform(ugen), CSOUND_SUCCESS);
+    csoundUgenSetInputValue(ugen, 0, &ia);
+    csoundUgenSetInputValue(ugen, 1, &dur);
+    csoundUgenSetInputValue(ugen, 2, &ib);
+    EXPECT_EQ(csoundUgenInit(ugen), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
 
     /* Read back the k-rate scalar output */
     MYFLT result = 0;
-    EXPECT_EQ(ugen_get_output_value(ugen, 0, &result), sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenGetOutputValue(ugen, 0, &result), sizeof(MYFLT));
 
-    ugen_delete(ugen);
-    ugen_factory_delete(factory);
+    csoundUgenDelete(ugen);
+    csoundUgenFactoryDelete(factory);
 }

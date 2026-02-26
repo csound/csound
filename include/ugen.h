@@ -12,9 +12,9 @@
  * - User creates a UGEN_FACTORY
  * - User lists available opcodes
  * - User creates UGENs via the factory
- * - User connects arguments using ugen_set_input / ugen_set_output
- *   or ugen_graph_connect to build a signal graph
- * - User calls ugen_init / ugen_perform (or graph equivalents) to
+ * - User connects arguments using csoundUgenSetInput / csoundUgenSetOutput
+ *   or csoundUgenGraphConnect to build a signal graph
+ * - User calls csoundUgenInit / csoundUgenPerform (or graph equivalents) to
  *   run the processing
  *
  * All struct types are opaque; internal details are in H/ugen_internal.h
@@ -68,141 +68,141 @@ typedef struct {
 /** Creates a UGEN_FACTORY, used to list available UGENs (Csound Opcodes),
  * as well as create instances of UGENs. User should configure the CSOUND
  * instance for sr and ksmps before creating a factory. */
-PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound);
+PUBLIC UGEN_FACTORY* csoundUgenFactoryNew(CSOUND* csound);
 
 /** Delete a UGEN_FACTORY */
-PUBLIC bool ugen_factory_delete(UGEN_FACTORY* factory);
+PUBLIC bool csoundUgenFactoryDelete(UGEN_FACTORY* factory);
 
 /* ==== Context API ==== */
 
 /** Create a new UGEN_CONTEXT for instrument-like state management */
-PUBLIC UGEN_CONTEXT* ugen_context_new(UGEN_FACTORY* factory);
+PUBLIC UGEN_CONTEXT* csoundUgenContextNew(UGEN_FACTORY* factory);
 
 /** Delete a UGEN_CONTEXT */
-PUBLIC bool ugen_context_delete(UGEN_CONTEXT* context);
+PUBLIC bool csoundUgenContextDelete(UGEN_CONTEXT* context);
 
 /** Associate a UGEN with a context for hold/release/MIDI support.
- * Must be called before ugen_init() if the opcode needs
+ * Must be called before csoundUgenInit() if the opcode needs
  * instrument-like state. */
-PUBLIC bool ugen_set_context(UGEN* ugen, UGEN_CONTEXT* context);
+PUBLIC bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context);
 
 /* ==== UGEN Creation/Destruction ==== */
 
 /** Create a new UGEN, using the given UGEN_FACTORY and opcode name/types.
  * The outargTypes and inargTypes must match an OENTRY exactly. */
-PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName,
+PUBLIC UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                       char* outargTypes, char* inargTypes);
 
 /** Delete a UGEN and free all associated resources */
-PUBLIC bool ugen_delete(UGEN* ugen);
+PUBLIC bool csoundUgenDelete(UGEN* ugen);
 
 /* ==== Argument Handling: By Pointer (zero-copy) ==== */
 
 /** Set output argument pointer for opcode's data struct by index.
  * The pointer must point to memory of the correct size for the arg type
  * (MYFLT for k/i, MYFLT[ksmps] for a-rate). */
-PUBLIC bool ugen_set_output(UGEN* ugen, int32_t index, void* arg);
+PUBLIC bool csoundUgenSetOutput(UGEN* ugen, int32_t index, void* arg);
 
 /** Set input argument pointer for opcode's data struct by index.
  * The pointer must point to memory of the correct size for the arg type. */
-PUBLIC bool ugen_set_input(UGEN* ugen, int32_t index, void* arg);
+PUBLIC bool csoundUgenSetInput(UGEN* ugen, int32_t index, void* arg);
 
 /* ==== Argument Handling: By Value (copy) ==== */
 
 /** Copy a value into the output argument data for index.
- * Copies ugen_get_out_arg_size() bytes from arg into the internal buffer.
+ * Copies csoundUgenGetOutArgSize() bytes from arg into the internal buffer.
  * For scalar types (i/k) this is sizeof(MYFLT); for a-rate it is
  * ksmps * sizeof(MYFLT), so arg must point to a buffer of that size. */
-PUBLIC bool ugen_set_output_value(UGEN* ugen, int32_t index, void* arg);
+PUBLIC bool csoundUgenSetOutputValue(UGEN* ugen, int32_t index, void* arg);
 
 /** Copy a value into the input argument data for index.
- * Copies ugen_get_in_arg_size() bytes from arg into the internal buffer.
+ * Copies csoundUgenGetInArgSize() bytes from arg into the internal buffer.
  * For scalar types (i/k) this is sizeof(MYFLT); for a-rate it is
  * ksmps * sizeof(MYFLT), so arg must point to a buffer of that size. */
-PUBLIC bool ugen_set_input_value(UGEN* ugen, int32_t index, void* arg);
+PUBLIC bool csoundUgenSetInputValue(UGEN* ugen, int32_t index, void* arg);
 
 /** Read output argument value for index into dest buffer.
- * Copies ugen_get_out_arg_size() bytes. For a-rate arguments,
+ * Copies csoundUgenGetOutArgSize() bytes. For a-rate arguments,
  * dest must be a buffer of at least ksmps * sizeof(MYFLT).
  * Returns the number of bytes copied, or 0 on error. */
-PUBLIC size_t ugen_get_output_value(UGEN* ugen, int32_t index, void* dest);
+PUBLIC size_t csoundUgenGetOutputValue(UGEN* ugen, int32_t index, void* dest);
 
 /** Read input argument value for index into dest buffer.
- * Copies ugen_get_in_arg_size() bytes. For a-rate arguments,
+ * Copies csoundUgenGetInArgSize() bytes. For a-rate arguments,
  * dest must be a buffer of at least ksmps * sizeof(MYFLT).
  * Returns the number of bytes copied, or 0 on error. */
-PUBLIC size_t ugen_get_input_value(UGEN* ugen, int32_t index, void* dest);
+PUBLIC size_t csoundUgenGetInputValue(UGEN* ugen, int32_t index, void* dest);
 
 /* ==== Argument Query ==== */
 
 /** Get number of input arguments */
-PUBLIC int32_t ugen_get_in_count(UGEN* ugen);
+PUBLIC int32_t csoundUgenGetInCount(UGEN* ugen);
 
 /** Get number of output arguments */
-PUBLIC int32_t ugen_get_out_count(UGEN* ugen);
+PUBLIC int32_t csoundUgenGetOutCount(UGEN* ugen);
 
 /** Get the argument type for input argument at index */
-PUBLIC UGEN_ARG_TYPE ugen_get_in_type(UGEN* ugen, int32_t index);
+PUBLIC UGEN_ARG_TYPE csoundUgenGetInType(UGEN* ugen, int32_t index);
 
 /** Get the argument type for output argument at index */
-PUBLIC UGEN_ARG_TYPE ugen_get_out_type(UGEN* ugen, int32_t index);
+PUBLIC UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index);
 
 /** Get the size in bytes of the argument at the given index for input args */
-PUBLIC size_t ugen_get_in_arg_size(UGEN* ugen, int32_t index);
+PUBLIC size_t csoundUgenGetInArgSize(UGEN* ugen, int32_t index);
 
 /** Get the size in bytes of the argument at the given index for output args */
-PUBLIC size_t ugen_get_out_arg_size(UGEN* ugen, int32_t index);
+PUBLIC size_t csoundUgenGetOutArgSize(UGEN* ugen, int32_t index);
 
 /* ==== Init/Perform ==== */
 
 /** Run the init-pass for the opcode instance held in UGEN. */
-PUBLIC int32_t ugen_init(UGEN* ugen);
+PUBLIC int32_t csoundUgenInit(UGEN* ugen);
 
 /** Run the perf-pass for the opcode instance held in UGEN. */
-PUBLIC int32_t ugen_perform(UGEN* ugen);
+PUBLIC int32_t csoundUgenPerform(UGEN* ugen);
 
 /* ==== Opcode Listing API ==== */
 
 /** Get a list of all available opcodes.
  * Sets *list to a newly allocated array and *count to the number of entries.
- * Caller must free with ugen_free_opcode_list(). */
-PUBLIC int32_t ugen_list_opcodes(UGEN_FACTORY* factory,
+ * Caller must free with csoundUgenFreeOpcodeList(). */
+PUBLIC int32_t csoundUgenListOpcodes(UGEN_FACTORY* factory,
                                  UGEN_OPCODE_INFO** list, int32_t* count);
 
-/** Free opcode list returned by ugen_list_opcodes(). */
-PUBLIC void ugen_free_opcode_list(UGEN_FACTORY* factory,
+/** Free opcode list returned by csoundUgenListOpcodes(). */
+PUBLIC void csoundUgenFreeOpcodeList(UGEN_FACTORY* factory,
                                   UGEN_OPCODE_INFO* list);
 
 /** Check whether a specific opcode entry exists by name and types.
  * Returns true if found, false otherwise. */
-PUBLIC bool ugen_find_opcode(UGEN_FACTORY* factory, const char* opname,
+PUBLIC bool csoundUgenFindOpcode(UGEN_FACTORY* factory, const char* opname,
                              const char* outargTypes, const char* inargTypes);
 
 /* ==== UGen Graph API ==== */
 
 /** Create a new empty UGen graph */
-PUBLIC UGEN_GRAPH* ugen_graph_new(UGEN_FACTORY* factory);
+PUBLIC UGEN_GRAPH* csoundUgenGraphNew(UGEN_FACTORY* factory);
 
 /** Add a UGEN to the graph. Returns the index of the UGEN in the graph,
  * or -1 on error. */
-PUBLIC int32_t ugen_graph_add(UGEN_GRAPH* graph, UGEN* ugen);
+PUBLIC int32_t csoundUgenGraphAdd(UGEN_GRAPH* graph, UGEN* ugen);
 
 /** Connect output of source UGEN to input of dest UGEN by pointer.
  * This wires source's output[outIdx] memory to dest's input[inIdx]. */
-PUBLIC bool ugen_graph_connect(UGEN* source, int32_t outIdx,
+PUBLIC bool csoundUgenGraphConnect(UGEN* source, int32_t outIdx,
                                UGEN* dest, int32_t inIdx);
 
 /** Initialize all UGENs in graph order */
-PUBLIC int32_t ugen_graph_init(UGEN_GRAPH* graph);
+PUBLIC int32_t csoundUgenGraphInit(UGEN_GRAPH* graph);
 
 /** Perform one ksmps block for all UGENs in graph order */
-PUBLIC int32_t ugen_graph_perform(UGEN_GRAPH* graph);
+PUBLIC int32_t csoundUgenGraphPerform(UGEN_GRAPH* graph);
 
 /** Delete a UGen graph (does NOT delete the individual UGENs) */
-PUBLIC bool ugen_graph_delete(UGEN_GRAPH* graph);
+PUBLIC bool csoundUgenGraphDelete(UGEN_GRAPH* graph);
 
 /** Delete a UGen graph AND all UGENs contained in it */
-PUBLIC bool ugen_graph_delete_all(UGEN_GRAPH* graph);
+PUBLIC bool csoundUgenGraphDeleteAll(UGEN_GRAPH* graph);
 
 #ifdef  __cplusplus
 }
