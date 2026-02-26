@@ -674,6 +674,22 @@ slice_array : identifier '[' expr ':' expr_list  ']' {
             $$->right = append_to_tree(csound, $$->right, $3);
             append_to_tree(csound, $$->right, $5);
            }
+           |
+           identifier '[' ':' expr_list  ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
+            $$->right = $1;
+            $$->right = append_to_tree(csound, $$->right,
+                                       make_leaf(csound,LINE,LOCN, T_IDENT,
+                                                 make_int(csound, "0", NULL)));
+            append_to_tree(csound, $$->right, $4);
+           }
+           |
+           identifier '[' expr ':' ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
+            $$->right = $1;
+            $$->right = append_to_tree(csound, $$->right, $3);
+           }
+
 
 static_array : '[' expr_list ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "fillarray", NULL));

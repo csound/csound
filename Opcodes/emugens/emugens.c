@@ -3141,9 +3141,14 @@ static OENTRY emugens_localops[] = {
     { "tab2array", S(TAB2ARRAY), TR,  "i[]", "ioop", (SUBR)tab2array_i},
 
     { "printarray.i", S(ARRAYPRINT), 0,  "", "i[]", (SUBR)arrayprint_i},
+    { "print.i[]", S(ARRAYPRINT), 0,  "", "i[]", (SUBR)arrayprint_i},
     
     { "printarray", S(ARRAYPRINTK), 0,  "", "k[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "print", S(ARRAYPRINTK), 0,  "", "k[]J",
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+
+    
     { "printarray", S(ARRAYPRINTK), 0,  "", "k[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray.k_notrig", S(ARRAYPRINT), 0,  "", "k[]S",
@@ -3161,6 +3166,10 @@ static OENTRY emugens_localops[] = {
 
     { "printarray", S(ARRAYPRINTK), 0,  "", "S[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "print.k[]", S(ARRAYPRINTK), 0,  "", "S[]J",
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+
+    
     { "printarray", S(ARRAYPRINTK), 0,  "", "S[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
