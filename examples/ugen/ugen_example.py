@@ -412,6 +412,124 @@ def example_realtime_graph():
     print()
 
 
+def example_buffer_passing():
+    """Example 7: Passing output buffers between UGens.
+
+    Shows how to connect the output of one UGen to the input of
+    another using shared buffers.  You cannot wire UGens directly:
+
+        osc2.set_input_value(1, osc1)   # NOT supported
+
+    Instead, use set_output() / set_input() to point two UGens at
+    the same ctypes buffer — done ONCE, before the loop.  After that,
+    each perform() automatically reads/writes through the shared
+    memory with no extra copying.
+
+    This example uses a k-rate oscili as an LFO whose output is wired
+    via a shared MYFLT to the frequency input of an audio-rate oscili
+    carrier.  Because we need to add a base-frequency offset, a small
+    arithmetic step remains in the loop, but the UGen ↔ buffer wiring
+    itself is set up once.
+    """
+    print("=" * 60)
+    print("Example 7: Passing output buffers between UGens")
+    print("=" * 60)
+
+    DURATION = 3.0
+    BASE_FREQ = 440.0
+    MOD_DEPTH = 40.0   # Hz deviation for vibrato
+    MOD_RATE = 5.0      # LFO speed in Hz
+    AMP = 0.25
+
+    cs = ctcsound.Csound()
+    cs.set_option("-odac")
+    cs.set_option("-d")
+    cs.set_option("-m0")
+    orc = ("sr = 44100\nksmps = 64\n0dbfs = 1\nnchnls = 1\n"
+           "gifn ftgen 1, 0, 8192, 10, 1\n"
+           "instr 1\n  asig in\n  out asig\nendin\n")
+    cs.compile_orc(orc)
+    cs.start()
+
+    ksmps = cs.ksmps()
+    sr = cs.sr()
+    factory = ctcsound.UgenFactory(cs)
+
+    # --- Modulator: k-rate LFO ---
+    # oscili with k-rate output ("k") produces one value per k-cycle.
+    lfo = factory.new_ugen("oscili", "k", "kkjo")
+
+    # --- Carrier: a-rate oscillator ---
+    carrier = factory.new_ugen("oscili", "a", "kkjo")
+
+    if lfo is None or carrier is None:
+        print("ERROR: could not create UGens")
+        factory.delete()
+        cs.reset()
+        return
+
+    # Configure LFO: amp = MOD_DEPTH (outputs +/- MOD_DEPTH),
+    # freq = MOD_RATE, table = sine
+    lfo.set_input_value(0, MOD_DEPTH)
+    lfo.set_input_value(1, MOD_RATE)
+    lfo.set_input_value(2, 1.0)
+
+    # Configure carrier: amp, table = sine
+    carrier.set_input_value(0, AMP)
+    carrier.set_input_value(2, 1.0)
+
+    # --- Wire shared buffers (done ONCE, before the loop) ---
+    #
+    # Create a shared MYFLT that the LFO writes to and we read from:
+    lfo_out = ctcsound.MYFLT(0.0)
+    lfo.set_output(0, ct.byref(lfo_out))
+    #
+    # Create a shared MYFLT for the carrier's frequency input:
+    carrier_freq = ctcsound.MYFLT(BASE_FREQ)
+    carrier.set_input(1, ct.byref(carrier_freq))
+
+    # Init both UGens
+    lfo.init()
+    carrier.init()
+
+    total_kcycles = int(DURATION * sr / ksmps)
+
+    # Start pass-through instrument
+    cs.event_string("i1 0 %f" % (DURATION + 1.0))
+
+    print(f"  Playing {DURATION}s: LFO ({MOD_RATE} Hz, +/-{MOD_DEPTH} Hz) "
+          f"-> carrier ({BASE_FREQ} Hz)")
+    print(f"  Wiring: lfo.output[0] -> shared MYFLT -> carrier.input[1]")
+
+    for k in range(total_kcycles):
+        # 1) Perform the LFO — writes its value into lfo_out
+        lfo.perform()
+
+        # 2) Compute carrier frequency from the shared LFO output
+        carrier_freq.value = BASE_FREQ + lfo_out.value
+
+        # 3) Perform the carrier — reads frequency from carrier_freq
+        carrier.perform()
+
+        # 4) Copy carrier audio output into Csound's input buffer
+        spin = cs.spin()
+        samples = carrier.get_output_buffer(0, ksmps)
+        if samples:
+            for i in range(ksmps):
+                spin[i] = samples[i]
+
+        if cs.perform_ksmps():
+            break
+
+    print("  Done.")
+
+    lfo.delete()
+    carrier.delete()
+    factory.delete()
+    cs.reset()
+    print()
+
+
 def main():
     print("\nCsound UGen API - Python Examples")
     print("=" * 60)
@@ -423,6 +541,7 @@ def main():
     example_ugen_graph()
     example_realtime_vibrato()
     example_realtime_graph()
+    example_buffer_passing()
 
     print("All examples completed.")
 
