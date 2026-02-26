@@ -2403,15 +2403,14 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
-      // & needs to be an array
-      if(arrvar->varType != &CS_VAR_TYPE_ARRAY) {
+      // & needs to be an array or asigs
+      if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
+         arrvar->varType != &CS_VAR_TYPE_A) {
         synterr(csound,"variable %s is not an array, line %d", 
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
-        
-      // FIXME - this needs to work for array and a-names
-      csound->Message(csound, "var %s\n", varName);
+     
       add_arg(csound, varName, current->left->value->optype,
               typeTable, current);
       break;
