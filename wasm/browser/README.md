@@ -911,3 +911,8 @@ otherwise undefined.
 | isOutput | <code>number</code> |
 
 
+## License
+
+`@csound/browser` is licensed under the [Apache License 2.0](./LICENSE).
+
+> **Note:** The `@csound/wasm-bin` package (which contains the compiled Csound WebAssembly binary) remains licensed under the GNU Lesser General Public License v2.1 (LGPL-2.1), as required by the Csound core library it is built from. `@csound/browser` dynamically loads `@csound/wasm-bin` at runtime and is therefore not subject to LGPL copyleft requirements.
