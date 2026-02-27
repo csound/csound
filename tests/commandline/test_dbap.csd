@@ -34,7 +34,7 @@ instr 1
         schedulek("ExitError", 0, 1)
     endif
 
-    out(dbap_sig[0], dbap_sig[1], dbap_sig[2], dbap_sig[3], dbap_sig[4], dbap_sig[5], dbap_sig[6], dbap_sig[7])
+    out(dbap_sig)
 
     if time > 2 then
         printf("[PASS] Audio test passed without errors\n", 1)
