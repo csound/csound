@@ -4,7 +4,7 @@ Opcodes: internal and plugin opcodes
 - OSC.c: open sound control opcodes (lliblo-based)
 - Vosim.c: VOSIM opcode
 - afilters.c: miscellaneous filters
-- ambicode.c: original ambisonics opcodes 
+- ambicode.c: original ambisonics opcodes
 - ambicode1.c: ambisonics (new decoding algorithms)
 - ampmidid.cpp: ampmidi opcodes
 - arrayops.cpp: array operators/functions
@@ -26,12 +26,13 @@ Opcodes: internal and plugin opcodes
 - crossfm.c: crossFM synthesis
 - dam.c: compressor
 - date.c: date utilities
+- dbap.c: distance based amplitude panning
 - dcblockr.c: DC block filter
 - deprecated.c: deprecated opcodes
 - doppler.cpp: doppler effect
 - dsputil.c: DSP utility code for spectral processing
 - eqfil.c: equaliser
-- exciter.c: exciter 
+- exciter.c: exciter
 - fareygen.c: Farey GEN routines
 - fareyseq.c: Farey sequence opcodes
 - filter.c: miscellaneous filters
@@ -42,7 +43,7 @@ Opcodes: internal and plugin opcodes
 - framebuffer.c: data buffering
 - freeverb.c: freeverb reverb
 - ftconv.c: ftconv opcode
-- ftest.c: miscelaneous GEN routines 
+- ftest.c: miscelaneous GEN routines
 - ftgen.c: ftgen opcode
 - ftsamplebank.cpp: sample bank loading opcode
 - gammatone.c: gamma tone filter
@@ -56,7 +57,7 @@ Opcodes: internal and plugin opcodes
 - hrtfreverb.c: binaural reverb
 - ifd.c: instantaneous frequency distribution
 - linuxjoystick.c: joystick controls
-- liveconv.c: live convolution 
+- liveconv.c: live convolution
 - locsig.c: locsig and locsend
 - loscilx.c: looping oscillator
 - lowpassr.c: low-pass filters
@@ -140,7 +141,7 @@ Opcodes: internal and plugin opcodes
 - ugnorman.c:  ATS opcodes
 - ugsc.c: miscellaneous filters
 - urandom.c: random number generators
-- vaops.c: vector access 
+- vaops.c: vector access
 - vbap.c: vbap opcodes
 - vpvoc.c: phase vocoder opcodes
 - wave-terrain.c: wave terrain synthesis

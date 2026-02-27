@@ -665,6 +665,7 @@ def runTest():
             "test_keyword_spacing.csd",
             "test keyword spacing (if(, elseif(, etc.)",
         ],
+        ["test_dbap.csd", "test dbap and dbapgains opcodes"],
     ]
 
     arrayTests = [
