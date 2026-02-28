@@ -12,8 +12,8 @@
  * - User creates a UGEN_FACTORY
  * - User lists available opcodes
  * - User creates UGENs via the factory
- * - User connects arguments using csoundUgenSetInput / csoundUgenSetOutput
- *   or csoundUgenGraphConnect to build a signal graph
+ * - User gets UGEN_VAR handles for inputs/outputs
+ * - User sets values on vars and/or connects vars between UGENs
  * - User calls csoundUgenInit / csoundUgenPerform (or graph equivalents) to
  *   run the processing
  *
@@ -39,6 +39,7 @@ typedef struct UGEN UGEN;
 typedef struct UGEN_FACTORY UGEN_FACTORY;
 typedef struct UGEN_CONTEXT UGEN_CONTEXT;
 typedef struct UGEN_GRAPH UGEN_GRAPH;
+typedef struct UGEN_VAR UGEN_VAR;
 
 /**
  * Argument type enum returned by the query API.
@@ -96,44 +97,98 @@ PUBLIC UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
 /** Delete a UGEN and free all associated resources */
 PUBLIC bool csoundUgenDelete(UGEN* ugen);
 
-/* ==== Argument Handling: By Pointer (zero-copy) ==== */
+/* ==== UGEN_VAR: Typed Variable Handles ==== */
 
-/** Set output argument pointer for opcode's data struct by index.
- * The pointer must point to memory of the correct size for the arg type
- * (MYFLT for k/i, MYFLT[ksmps] for a-rate). */
-PUBLIC bool csoundUgenSetOutput(UGEN* ugen, int32_t index, void* arg);
+/** Get a handle to the output variable at the given index.
+ * The returned UGEN_VAR is owned by the UGEN and must NOT be freed
+ * by the caller. It remains valid until the UGEN is deleted. */
+PUBLIC UGEN_VAR* csoundUgenGetOutVar(UGEN* ugen, int32_t index);
 
-/** Set input argument pointer for opcode's data struct by index.
- * The pointer must point to memory of the correct size for the arg type. */
-PUBLIC bool csoundUgenSetInput(UGEN* ugen, int32_t index, void* arg);
+/** Get a handle to the input variable at the given index.
+ * The returned UGEN_VAR is owned by the UGEN and must NOT be freed
+ * by the caller. It remains valid until the UGEN is deleted. */
+PUBLIC UGEN_VAR* csoundUgenGetInVar(UGEN* ugen, int32_t index);
 
-/* ==== Argument Handling: By Value (copy) ==== */
+/** Connect a UGEN_VAR to a UGEN's input at the given index.
+ * This performs zero-copy pointer wiring: the destination opcode's
+ * input will read directly from the var's data.
+ * Typically used to wire one UGEN's output to another's input:
+ *   csoundUgenSetInputVar(dest, 0, csoundUgenGetOutVar(source, 0));
+ */
+PUBLIC bool csoundUgenSetInputVar(UGEN* ugen, int32_t inIdx, UGEN_VAR* var);
 
-/** Copy a value into the output argument data for index.
- * Copies csoundUgenGetOutArgSize() bytes from arg into the internal buffer.
- * For scalar types (i/k) this is sizeof(MYFLT); for a-rate it is
- * ksmps * sizeof(MYFLT), so arg must point to a buffer of that size. */
-PUBLIC bool csoundUgenSetOutputValue(UGEN* ugen, int32_t index, void* arg);
+/** Create a standalone UGEN_VAR of the given type.
+ * Useful for user-controlled parameters (e.g. a k-rate frequency value).
+ * The caller must free it with csoundUgenVarDelete(). */
+PUBLIC UGEN_VAR* csoundUgenVarNew(UGEN_FACTORY* factory, UGEN_ARG_TYPE type);
 
-/** Copy a value into the input argument data for index.
- * Copies csoundUgenGetInArgSize() bytes from arg into the internal buffer.
- * For scalar types (i/k) this is sizeof(MYFLT); for a-rate it is
- * ksmps * sizeof(MYFLT), so arg must point to a buffer of that size. */
-PUBLIC bool csoundUgenSetInputValue(UGEN* ugen, int32_t index, void* arg);
+/** Delete a standalone UGEN_VAR created with csoundUgenVarNew().
+ * Do NOT call this on vars returned by csoundUgenGetOutVar/GetInVar. */
+PUBLIC void csoundUgenVarDelete(UGEN_VAR* var);
 
-/** Read output argument value for index into dest buffer.
- * Copies csoundUgenGetOutArgSize() bytes. For a-rate arguments,
- * dest must be a buffer of at least ksmps * sizeof(MYFLT).
- * Returns the number of bytes copied, or 0 on error. */
-PUBLIC size_t csoundUgenGetOutputValue(UGEN* ugen, int32_t index, void* dest);
+/* ==== UGEN_VAR: Query ==== */
 
-/** Read input argument value for index into dest buffer.
- * Copies csoundUgenGetInArgSize() bytes. For a-rate arguments,
- * dest must be a buffer of at least ksmps * sizeof(MYFLT).
- * Returns the number of bytes copied, or 0 on error. */
-PUBLIC size_t csoundUgenGetInputValue(UGEN* ugen, int32_t index, void* dest);
+/** Get the type of a UGEN_VAR. */
+PUBLIC UGEN_ARG_TYPE csoundUgenVarGetType(UGEN_VAR* var);
 
-/* ==== Argument Query ==== */
+/** Get the size in bytes of a UGEN_VAR's data. */
+PUBLIC size_t csoundUgenVarGetSize(UGEN_VAR* var);
+
+/* ==== UGEN_VAR: Numeric Access (i/k) ==== */
+
+/** Set a scalar (i-rate or k-rate) value on a UGEN_VAR. */
+PUBLIC void csoundUgenVarSetValue(UGEN_VAR* var, MYFLT value);
+
+/** Get a scalar (i-rate or k-rate) value from a UGEN_VAR. */
+PUBLIC MYFLT csoundUgenVarGetValue(UGEN_VAR* var);
+
+/* ==== UGEN_VAR: Data Access (generic) ==== */
+
+/** Get a raw pointer to the var's data.
+ * For i/k types: points to a single MYFLT.
+ * For a-rate: points to MYFLT[ksmps].
+ * For S type: points to the internal STRINGDAT struct.
+ * For f type: points to the internal PVSDAT struct.
+ * The pointer is valid until the owning UGEN or standalone var is deleted. */
+PUBLIC void* csoundUgenVarGetData(UGEN_VAR* var);
+
+/* ==== UGEN_VAR: String Access ==== */
+
+/** Set a string value on a UGEN_VAR of type S.
+ * Returns false if var is NULL or not of type S. */
+PUBLIC bool csoundUgenVarSetString(UGEN_VAR* var, const char* str);
+
+/** Get the string value from a UGEN_VAR of type S.
+ * Returns NULL if var is NULL or not of type S. */
+PUBLIC const char* csoundUgenVarGetString(UGEN_VAR* var);
+
+/* ==== UGEN convenience: scalar access by index ==== */
+
+/** Convenience: set a scalar value on input argument at the given index.
+ * Equivalent to csoundUgenVarSetValue(csoundUgenGetInVar(ugen, index), value)
+ * but avoids the UGEN_VAR lookup.  Best for one-off init-time setup.
+ * For per-k-cycle updates in a tight loop, prefer caching the UGEN_VAR
+ * handle from csoundUgenGetInVar() and calling csoundUgenVarSetValue(). */
+PUBLIC void csoundUgenSetValue(UGEN* ugen, int32_t index, MYFLT value);
+
+/** Convenience: get a scalar value from output argument at the given index.
+ * Equivalent to csoundUgenVarGetValue(csoundUgenGetOutVar(ugen, index)).
+ * For repeated reads in a tight loop, prefer caching the UGEN_VAR handle. */
+PUBLIC MYFLT csoundUgenGetValue(UGEN* ugen, int32_t index);
+
+/* ==== UGEN convenience: string access by index ==== */
+
+/** Convenience: set a string on input argument at the given index.
+ * Equivalent to csoundUgenVarSetString(csoundUgenGetInVar(ugen, index), str).
+ * Returns false if the argument is not an S type or index is out of range. */
+PUBLIC bool csoundUgenSetString(UGEN* ugen, int32_t index, const char* str);
+
+/** Convenience: get a string from output argument at the given index.
+ * Equivalent to csoundUgenVarGetString(csoundUgenGetOutVar(ugen, index)).
+ * Returns NULL if the argument is not an S type or index is out of range. */
+PUBLIC const char* csoundUgenGetString(UGEN* ugen, int32_t index);
+
+/* ==== Argument Query (convenience) ==== */
 
 /** Get number of input arguments */
 PUBLIC int32_t csoundUgenGetInCount(UGEN* ugen);
@@ -146,12 +201,6 @@ PUBLIC UGEN_ARG_TYPE csoundUgenGetInType(UGEN* ugen, int32_t index);
 
 /** Get the argument type for output argument at index */
 PUBLIC UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index);
-
-/** Get the size in bytes of the argument at the given index for input args */
-PUBLIC size_t csoundUgenGetInArgSize(UGEN* ugen, int32_t index);
-
-/** Get the size in bytes of the argument at the given index for output args */
-PUBLIC size_t csoundUgenGetOutArgSize(UGEN* ugen, int32_t index);
 
 /* ==== Init/Perform ==== */
 
@@ -186,11 +235,6 @@ PUBLIC UGEN_GRAPH* csoundUgenGraphNew(UGEN_FACTORY* factory);
 /** Add a UGEN to the graph. Returns the index of the UGEN in the graph,
  * or -1 on error. */
 PUBLIC int32_t csoundUgenGraphAdd(UGEN_GRAPH* graph, UGEN* ugen);
-
-/** Connect output of source UGEN to input of dest UGEN by pointer.
- * This wires source's output[outIdx] memory to dest's input[inIdx]. */
-PUBLIC bool csoundUgenGraphConnect(UGEN* source, int32_t outIdx,
-                               UGEN* dest, int32_t inIdx);
 
 /** Initialize all UGENs in graph order */
 PUBLIC int32_t csoundUgenGraphInit(UGEN_GRAPH* graph);

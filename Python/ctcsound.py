@@ -92,6 +92,7 @@ UGEN_p = ct.c_void_p
 UGEN_FACTORY_p = ct.c_void_p
 UGEN_CONTEXT_p = ct.c_void_p
 UGEN_GRAPH_p = ct.c_void_p
+UGEN_VAR_p = ct.c_void_p
 
 #
 # csound configuration structure, mirrors part of
@@ -548,21 +549,49 @@ libcsound.csoundUgenNew.argtypes = [UGEN_FACTORY_p, ct.c_char_p, ct.c_char_p, ct
 libcsound.csoundUgenDelete.restype = ct.c_bool
 libcsound.csoundUgenDelete.argtypes = [UGEN_p]
 
-# Argument handling: by pointer
-libcsound.csoundUgenSetOutput.restype = ct.c_bool
-libcsound.csoundUgenSetOutput.argtypes = [UGEN_p, ct.c_int32, ct.c_void_p]
-libcsound.csoundUgenSetInput.restype = ct.c_bool
-libcsound.csoundUgenSetInput.argtypes = [UGEN_p, ct.c_int32, ct.c_void_p]
+# UGEN_VAR: variable handle accessors
+libcsound.csoundUgenGetOutVar.restype = UGEN_VAR_p
+libcsound.csoundUgenGetOutVar.argtypes = [UGEN_p, ct.c_int32]
+libcsound.csoundUgenGetInVar.restype = UGEN_VAR_p
+libcsound.csoundUgenGetInVar.argtypes = [UGEN_p, ct.c_int32]
+libcsound.csoundUgenSetInputVar.restype = ct.c_bool
+libcsound.csoundUgenSetInputVar.argtypes = [UGEN_p, ct.c_int32, UGEN_VAR_p]
 
-# Argument handling: by value
-libcsound.csoundUgenSetOutputValue.restype = ct.c_bool
-libcsound.csoundUgenSetOutputValue.argtypes = [UGEN_p, ct.c_int32, ct.c_void_p]
-libcsound.csoundUgenSetInputValue.restype = ct.c_bool
-libcsound.csoundUgenSetInputValue.argtypes = [UGEN_p, ct.c_int32, ct.c_void_p]
-libcsound.csoundUgenGetOutputValue.restype = ct.c_size_t
-libcsound.csoundUgenGetOutputValue.argtypes = [UGEN_p, ct.c_int32, ct.c_void_p]
-libcsound.csoundUgenGetInputValue.restype = ct.c_size_t
-libcsound.csoundUgenGetInputValue.argtypes = [UGEN_p, ct.c_int32, ct.c_void_p]
+# UGEN_VAR: standalone creation/deletion
+libcsound.csoundUgenVarNew.restype = UGEN_VAR_p
+libcsound.csoundUgenVarNew.argtypes = [UGEN_FACTORY_p, ct.c_int32]
+libcsound.csoundUgenVarDelete.restype = ct.c_bool
+libcsound.csoundUgenVarDelete.argtypes = [UGEN_VAR_p]
+
+# UGEN_VAR: type and size query
+libcsound.csoundUgenVarGetType.restype = ct.c_int32
+libcsound.csoundUgenVarGetType.argtypes = [UGEN_VAR_p]
+libcsound.csoundUgenVarGetSize.restype = ct.c_size_t
+libcsound.csoundUgenVarGetSize.argtypes = [UGEN_VAR_p]
+
+# UGEN_VAR: scalar value access
+libcsound.csoundUgenVarSetValue.argtypes = [UGEN_VAR_p, MYFLT]
+libcsound.csoundUgenVarGetValue.restype = MYFLT
+libcsound.csoundUgenVarGetValue.argtypes = [UGEN_VAR_p]
+
+# UGEN_VAR: raw data pointer access
+libcsound.csoundUgenVarGetData.restype = ct.c_void_p
+libcsound.csoundUgenVarGetData.argtypes = [UGEN_VAR_p]
+
+# UGEN_VAR: string value access
+libcsound.csoundUgenVarSetString.restype = ct.c_bool
+libcsound.csoundUgenVarSetString.argtypes = [UGEN_VAR_p, ct.c_char_p]
+libcsound.csoundUgenVarGetString.restype = ct.c_char_p
+libcsound.csoundUgenVarGetString.argtypes = [UGEN_VAR_p]
+
+# UGEN convenience: scalar/string access by index
+libcsound.csoundUgenSetValue.argtypes = [UGEN_p, ct.c_int32, MYFLT]
+libcsound.csoundUgenGetValue.restype = MYFLT
+libcsound.csoundUgenGetValue.argtypes = [UGEN_p, ct.c_int32]
+libcsound.csoundUgenSetString.restype = ct.c_bool
+libcsound.csoundUgenSetString.argtypes = [UGEN_p, ct.c_int32, ct.c_char_p]
+libcsound.csoundUgenGetString.restype = ct.c_char_p
+libcsound.csoundUgenGetString.argtypes = [UGEN_p, ct.c_int32]
 
 # Argument query
 libcsound.csoundUgenGetInCount.restype = ct.c_int32
@@ -573,10 +602,6 @@ libcsound.csoundUgenGetInType.restype = ct.c_int32
 libcsound.csoundUgenGetInType.argtypes = [UGEN_p, ct.c_int32]
 libcsound.csoundUgenGetOutType.restype = ct.c_int32
 libcsound.csoundUgenGetOutType.argtypes = [UGEN_p, ct.c_int32]
-libcsound.csoundUgenGetInArgSize.restype = ct.c_size_t
-libcsound.csoundUgenGetInArgSize.argtypes = [UGEN_p, ct.c_int32]
-libcsound.csoundUgenGetOutArgSize.restype = ct.c_size_t
-libcsound.csoundUgenGetOutArgSize.argtypes = [UGEN_p, ct.c_int32]
 
 # Init/Perform
 libcsound.csoundUgenInit.restype = ct.c_int32
@@ -597,8 +622,6 @@ libcsound.csoundUgenGraphNew.restype = UGEN_GRAPH_p
 libcsound.csoundUgenGraphNew.argtypes = [UGEN_FACTORY_p]
 libcsound.csoundUgenGraphAdd.restype = ct.c_int32
 libcsound.csoundUgenGraphAdd.argtypes = [UGEN_GRAPH_p, UGEN_p]
-libcsound.csoundUgenGraphConnect.restype = ct.c_bool
-libcsound.csoundUgenGraphConnect.argtypes = [UGEN_p, ct.c_int32, UGEN_p, ct.c_int32]
 libcsound.csoundUgenGraphInit.restype = ct.c_int32
 libcsound.csoundUgenGraphInit.argtypes = [UGEN_GRAPH_p]
 libcsound.csoundUgenGraphPerform.restype = ct.c_int32
@@ -2233,6 +2256,19 @@ class UgenFactory:
         ptr = libcsound.csoundUgenContextNew(self.factory)
         return UgenContext(ptr) if ptr else None
 
+    def new_var(self, arg_type):
+        """Create a standalone UGEN_VAR with its own memory.
+
+        Args:
+            arg_type: One of UGEN_ARG_TYPE_I, UGEN_ARG_TYPE_K,
+                      UGEN_ARG_TYPE_A, UGEN_ARG_TYPE_S, UGEN_ARG_TYPE_F.
+
+        Returns:
+            A UgenVar instance, or None on failure.
+        """
+        ptr = libcsound.csoundUgenVarNew(self.factory, arg_type)
+        return UgenVar(ptr) if ptr else None
+
 
 class Ugen:
     """A single instantiated Csound opcode (unit generator).
@@ -2254,107 +2290,90 @@ class Ugen:
             libcsound.csoundUgenDelete(self.ugen)
             self.ugen = None
 
-    # Argument handling: by pointer (zero-copy)
+    # UGEN_VAR accessors
 
-    def set_output(self, index, ptr):
-        """Set output argument pointer (zero-copy wiring)."""
-        return libcsound.csoundUgenSetOutput(self.ugen, index, ptr)
-
-    def set_input(self, index, ptr):
-        """Set input argument pointer (zero-copy wiring)."""
-        return libcsound.csoundUgenSetInput(self.ugen, index, ptr)
-
-    # Argument handling: by value (copy)
-
-    def set_output_value(self, index, value):
-        """Copy a scalar MYFLT value into the output argument at index.
-
-        Only valid for i-rate and k-rate arguments.
-
-        Raises:
-            ValueError: If the argument at *index* is audio-rate.
-        """
-        if libcsound.csoundUgenGetOutType(self.ugen, index) == UGEN_ARG_TYPE_A:
-            raise ValueError(
-                f"set_output_value() cannot be used on a-rate output {index}; "
-                "use set_output() with a buffer pointer instead")
-        v = MYFLT(value)
-        return libcsound.csoundUgenSetOutputValue(self.ugen, index, ct.byref(v))
-
-    def set_input_value(self, index, value):
-        """Copy a scalar MYFLT value into the input argument at index.
-
-        Only valid for i-rate and k-rate arguments.
-
-        Raises:
-            ValueError: If the argument at *index* is audio-rate.
-        """
-        if libcsound.csoundUgenGetInType(self.ugen, index) == UGEN_ARG_TYPE_A:
-            raise ValueError(
-                f"set_input_value() cannot be used on a-rate input {index}; "
-                "use set_input() with a buffer pointer instead")
-        v = MYFLT(value)
-        return libcsound.csoundUgenSetInputValue(self.ugen, index, ct.byref(v))
-
-    def get_output_value(self, index):
-        """Read a scalar output argument value at index.
-
-        Returns the value as a float, or None on error.
-
-        Raises:
-            ValueError: If the argument at *index* is audio-rate.
-        """
-        if libcsound.csoundUgenGetOutType(self.ugen, index) == UGEN_ARG_TYPE_A:
-            raise ValueError(
-                f"get_output_value() cannot be used on a-rate output {index}; "
-                "use get_output_buffer() instead")
-        v = MYFLT(0)
-        sz = libcsound.csoundUgenGetOutputValue(self.ugen, index, ct.byref(v))
-        return float(v.value) if sz > 0 else None
-
-    def get_input_value(self, index):
-        """Read a scalar input argument value at index.
-
-        Returns the value as a float, or None on error.
-
-        Raises:
-            ValueError: If the argument at *index* is audio-rate.
-        """
-        if libcsound.csoundUgenGetInType(self.ugen, index) == UGEN_ARG_TYPE_A:
-            raise ValueError(
-                f"get_input_value() cannot be used on a-rate input {index}; "
-                "use get_input_buffer() instead")
-        v = MYFLT(0)
-        sz = libcsound.csoundUgenGetInputValue(self.ugen, index, ct.byref(v))
-        return float(v.value) if sz > 0 else None
-
-    def get_output_buffer(self, index, ksmps):
-        """Read an audio-rate output buffer at index.
-
-        Args:
-            index: output argument index.
-            ksmps: number of samples per k-cycle.
+    def get_out_var(self, index):
+        """Get a UgenVar handle for the output argument at index.
 
         Returns:
-            A list of floats (length ksmps), or None on error.
+            A UgenVar (non-owning) or None if out of range.
         """
-        buf = (MYFLT * ksmps)()
-        sz = libcsound.csoundUgenGetOutputValue(self.ugen, index, ct.byref(buf))
-        return list(buf) if sz > 0 else None
+        ptr = libcsound.csoundUgenGetOutVar(self.ugen, index)
+        return UgenVar(ptr, owned=False) if ptr else None
 
-    def get_input_buffer(self, index, ksmps):
-        """Read an audio-rate input buffer at index.
-
-        Args:
-            index: input argument index.
-            ksmps: number of samples per k-cycle.
+    def get_in_var(self, index):
+        """Get a UgenVar handle for the input argument at index.
 
         Returns:
-            A list of floats (length ksmps), or None on error.
+            A UgenVar (non-owning) or None if out of range.
         """
-        buf = (MYFLT * ksmps)()
-        sz = libcsound.csoundUgenGetInputValue(self.ugen, index, ct.byref(buf))
-        return list(buf) if sz > 0 else None
+        ptr = libcsound.csoundUgenGetInVar(self.ugen, index)
+        return UgenVar(ptr, owned=False) if ptr else None
+
+    def set_input_var(self, index, var):
+        """Wire a UgenVar to this ugen's input at index.
+
+        This is used for zero-copy connections between UGENs:
+
+            src_var = src_ugen.get_out_var(0)
+            dst_ugen.set_input_var(0, src_var)
+
+        Args:
+            index: Input argument index.
+            var:   A UgenVar instance (or raw UGEN_VAR_p).
+        """
+        var_p = var.var if isinstance(var, UgenVar) else var
+        return libcsound.csoundUgenSetInputVar(self.ugen, index, var_p)
+
+    # Convenience: scalar access by index
+
+    def set_value(self, index, value):
+        """Set a scalar (i/k-rate) value on input argument at index.
+
+        Convenience shorthand for::
+
+            ugen.get_in_var(index).set_value(value)
+
+        Best for one-off init-time setup.  In a per-k-cycle loop,
+        prefer caching the UgenVar handle::
+
+            freq_var = ugen.get_in_var(1)   # cache once
+            for ...:                         # tight loop
+                freq_var.set_value(new_freq)
+        """
+        libcsound.csoundUgenSetValue(self.ugen, index, MYFLT(value))
+
+    def get_value(self, index):
+        """Get a scalar value from output argument at index.
+
+        Convenience shorthand for::
+
+            ugen.get_out_var(index).get_value()
+
+        In a tight loop, prefer caching the UgenVar handle.
+        """
+        return float(libcsound.csoundUgenGetValue(self.ugen, index))
+
+    # Convenience: string access by index
+
+    def set_string(self, index, s):
+        """Set a string on input argument at index (S-type only).
+
+        Convenience shorthand for::
+
+            ugen.get_in_var(index).set_string(s)
+        """
+        return libcsound.csoundUgenSetString(self.ugen, index, cstring(s))
+
+    def get_string(self, index):
+        """Get a string from output argument at index (S-type only).
+
+        Convenience shorthand for::
+
+            ugen.get_out_var(index).get_string()
+        """
+        s = libcsound.csoundUgenGetString(self.ugen, index)
+        return pstring(s) if s else None
 
     # Query
 
@@ -2375,14 +2394,6 @@ class Ugen:
     def get_out_type(self, index):
         """Get the UGEN_ARG_TYPE for output argument at index."""
         return libcsound.csoundUgenGetOutType(self.ugen, index)
-
-    def get_in_arg_size(self, index):
-        """Get the byte size of input argument at index."""
-        return libcsound.csoundUgenGetInArgSize(self.ugen, index)
-
-    def get_out_arg_size(self, index):
-        """Get the byte size of output argument at index."""
-        return libcsound.csoundUgenGetOutArgSize(self.ugen, index)
 
     # Context
 
@@ -2436,6 +2447,11 @@ class UgenGraph:
     """A graph of connected UGENs that can be performed together.
 
     Created via UgenFactory.new_graph(). Do not instantiate directly.
+
+    Connections between UGENs are made via UGEN_VAR handles::
+
+        src_var = src_ugen.get_out_var(0)
+        dst_ugen.set_input_var(0, src_var)
     """
 
     def __init__(self, ptr, factory):
@@ -2473,20 +2489,6 @@ class UgenGraph:
             self._ugens.append(ugen)
         return idx
 
-    @staticmethod
-    def connect(source, out_idx, dest, in_idx):
-        """Wire source's output[out_idx] to dest's input[in_idx].
-
-        Args:
-            source:  Ugen instance (or raw UGEN_p).
-            out_idx: Index of the output argument on source.
-            dest:    Ugen instance (or raw UGEN_p).
-            in_idx:  Index of the input argument on dest.
-        """
-        src_p = source.ugen if isinstance(source, Ugen) else source
-        dst_p = dest.ugen if isinstance(dest, Ugen) else dest
-        return libcsound.csoundUgenGraphConnect(src_p, out_idx, dst_p, in_idx)
-
     def init(self):
         """Initialize all UGENs in graph order."""
         return libcsound.csoundUgenGraphInit(self.graph)
@@ -2494,4 +2496,87 @@ class UgenGraph:
     def perform(self):
         """Perform one ksmps block for all UGENs."""
         return libcsound.csoundUgenGraphPerform(self.graph)
+
+
+class UgenVar:
+    """A typed variable handle for UGEN input/output arguments.
+
+    UgenVar objects come in two flavours:
+
+    * **UGEN-owned**: returned by ``Ugen.get_out_var()`` / ``Ugen.get_in_var()``.
+      These share memory with the opcode and must NOT be deleted manually.
+    * **Standalone**: created by ``UgenFactory.new_var()``.
+      These own their own memory and must be deleted when done.
+
+    Example – setting a scalar input::
+
+        var = ugen.get_in_var(0)
+        var.set_value(440.0)
+
+    Example – reading an audio output buffer::
+
+        var = ugen.get_out_var(0)
+        ptr = var.data_ptr         # raw MYFLT* pointer
+        buf = (MYFLT * ksmps).from_address(ptr)
+        samples = list(buf)
+
+    Example – wiring two UGENs::
+
+        src_out = src_ugen.get_out_var(0)
+        dst_ugen.set_input_var(0, src_out)
+    """
+
+    def __init__(self, ptr, owned=True):
+        self.var = ptr
+        self._owned = owned
+
+    def __del__(self):
+        if self._owned:
+            self.delete()
+
+    def delete(self):
+        """Free a standalone var. Safe to call multiple times.
+
+        Do NOT call this on vars obtained from Ugen.get_out_var()/get_in_var().
+        """
+        if self.var and self._owned:
+            libcsound.csoundUgenVarDelete(self.var)
+            self.var = None
+
+    @property
+    def arg_type(self):
+        """The UGEN_ARG_TYPE of this variable."""
+        return libcsound.csoundUgenVarGetType(self.var)
+
+    @property
+    def size(self):
+        """The data size in bytes for the variable's payload."""
+        return libcsound.csoundUgenVarGetSize(self.var)
+
+    def set_value(self, value):
+        """Set a scalar (i/k-rate) value."""
+        libcsound.csoundUgenVarSetValue(self.var, MYFLT(value))
+
+    def get_value(self):
+        """Get a scalar (i/k-rate) value."""
+        return float(libcsound.csoundUgenVarGetValue(self.var))
+
+    @property
+    def data_ptr(self):
+        """Raw pointer to the variable's data buffer.
+
+        For audio-rate vars this points to ksmps MYFLTs.
+        For i/k-rate this points to a single MYFLT.
+        For S-type this points to a STRINGDAT struct.
+        """
+        return libcsound.csoundUgenVarGetData(self.var)
+
+    def set_string(self, s):
+        """Set the string value (S-type vars only)."""
+        return libcsound.csoundUgenVarSetString(self.var, cstring(s))
+
+    def get_string(self):
+        """Get the string value (S-type vars only)."""
+        s = libcsound.csoundUgenVarGetString(self.var)
+        return pstring(s) if s else None
 

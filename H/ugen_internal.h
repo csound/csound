@@ -18,6 +18,21 @@ extern "C" {
 #endif
 
 /**
+ * UGEN_VAR is a typed handle to a variable's data slot.
+ * Vars returned by csoundUgenGetOutVar/GetInVar point into the
+ * UGEN's data block and are owned by the UGEN.
+ * Vars created by csoundUgenVarNew are standalone and must be
+ * freed by the caller with csoundUgenVarDelete.
+ */
+struct UGEN_VAR {
+  CSOUND* csound;
+  MYFLT* data;              /**< Points past CS_VAR_MEM header to value slot */
+  UGEN_ARG_TYPE type;       /**< Cached type enum */
+  int32_t ksmps;            /**< Needed for audio size calculations */
+  bool owned;               /**< true if standalone (caller must free) */
+};
+
+/**
  * UGEN represents a single instantiated Csound opcode that can be
  * used outside of the normal Csound instrument compilation pipeline.
  */
@@ -34,6 +49,8 @@ struct UGEN {
   UGEN_ARG_TYPE* inTypes;   /**< Array of UGEN_ARG_TYPE for each input arg */
   UGEN_ARG_TYPE* outTypes;  /**< Array of UGEN_ARG_TYPE for each output arg */
   int32_t outDataOffset;    /**< Offset in data block where input args begin (in MYFLTs) */
+  UGEN_VAR* outVars;        /**< Array of UGEN_VAR for output args (owned by UGEN) */
+  UGEN_VAR* inVars;         /**< Array of UGEN_VAR for input args (owned by UGEN) */
 };
 
 /**

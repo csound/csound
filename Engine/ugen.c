@@ -34,8 +34,8 @@
  * - User creates a UGEN_FACTORY
  * - User lists available opcodes
  * - User creates UGENs via the factory
- * - User connects arguments using csoundUgenSetInput / csoundUgenSetOutput
- *   or csoundUgenGraphConnect to build a signal graph
+ * - User gets UGEN_VAR handles for inputs/outputs
+ * - User sets values on vars and/or connects vars between UGENs
  * - User calls csoundUgenInit / csoundUgenPerform (or graph equivalents) to
  *   run the processing
  *
@@ -46,6 +46,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc.h"
 #include "csound_orc_semantics.h"
+#include "pstream.h"
 #include <string.h>
 
 /* ============================================================
@@ -94,15 +95,20 @@ static const CS_TYPE* ugen_arg_type_to_cs_type(UGEN_ARG_TYPE type) {
 
 /**
  * Returns the size in bytes of an argument given its UGEN_ARG_TYPE and the
- * current ksmps value.  Returns sizeof(MYFLT) for scalar types (i, k),
- * ksmps * sizeof(MYFLT) for audio-rate.
+ * current ksmps value.
  */
 static size_t ugen_arg_type_size(UGEN_ARG_TYPE type, int32_t ksmps) {
-    if (type == UGEN_ARG_TYPE_A) {
-        return (size_t)ksmps * sizeof(MYFLT);
+    switch (type) {
+        case UGEN_ARG_TYPE_A:
+            return (size_t)ksmps * sizeof(MYFLT);
+        case UGEN_ARG_TYPE_S:
+            return CS_FLOAT_ALIGN(sizeof(STRINGDAT));
+        case UGEN_ARG_TYPE_F:
+            return CS_FLOAT_ALIGN(sizeof(PVSDAT));
+        default:
+            /* k, i, and other scalar types */
+            return sizeof(MYFLT);
     }
-    /* k, i, and other scalar types */
-    return sizeof(MYFLT);
 }
 
 /**
@@ -341,33 +347,6 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
         ugen->inTypes[i] = ugen_cs_type_to_arg_type(parsedInTypes[i]);
     }
 
-    /* Reject opcodes whose resolved signature contains S or f types.
-     * The UGen data layout does not run type-specific init/free hooks
-     * (e.g. STRINGDAT allocation), so these would malfunction. */
-    for (i = 0; i < outCount; i++) {
-        if (ugen->outTypes[i] == UGEN_ARG_TYPE_S ||
-            ugen->outTypes[i] == UGEN_ARG_TYPE_F) {
-            goto reject_unsupported_types;
-        }
-    }
-    for (i = 0; i < inCount; i++) {
-        if (ugen->inTypes[i] == UGEN_ARG_TYPE_S ||
-            ugen->inTypes[i] == UGEN_ARG_TYPE_F) {
-            goto reject_unsupported_types;
-        }
-    }
-    if (0) {
-reject_unsupported_types:
-        csound->Free(csound, ugen->outTypes);
-        csound->Free(csound, ugen->inTypes);
-        csound->Free(csound, ugen->opcodeMem);
-        csound->Free(csound, optxt);
-        csound->Free(csound, ugen);
-        csound->Free(csound, parsedOutTypes);
-        csound->Free(csound, parsedInTypes);
-        return NULL;
-    }
-
     /* Set TEXT metadata */
     optxt->t.outArgCount = outCount;
     optxt->t.inArgCount = inCount;
@@ -451,6 +430,31 @@ reject_unsupported_types:
         var = var->next;
     }
 
+    /* Initialize variable memory (allocates STRINGDAT buffers, etc.) */
+    csoundInitializeVarPool(csound, ugen->data, ugen->outPool);
+    csoundInitializeVarPool(csound,
+                            ugen->data + ugen->outDataOffset,
+                            ugen->inPool);
+
+    /* Create UGEN_VAR arrays for output and input vars */
+    ugen->outVars = csound->Calloc(csound, outCount * sizeof(UGEN_VAR));
+    for (i = 0; i < outCount; i++) {
+        ugen->outVars[i].csound = csound;
+        ugen->outVars[i].data = p[i];
+        ugen->outVars[i].type = ugen->outTypes[i];
+        ugen->outVars[i].ksmps = ksmps;
+        ugen->outVars[i].owned = false;
+    }
+
+    ugen->inVars = csound->Calloc(csound, inCount * sizeof(UGEN_VAR));
+    for (i = 0; i < inCount; i++) {
+        ugen->inVars[i].csound = csound;
+        ugen->inVars[i].data = p[outCount + i];
+        ugen->inVars[i].type = ugen->inTypes[i];
+        ugen->inVars[i].ksmps = ksmps;
+        ugen->inVars[i].owned = false;
+    }
+
     /* Clean up temporary arrays */
     csound->Free(csound, parsedOutTypes);
     csound->Free(csound, parsedInTypes);
@@ -468,6 +472,30 @@ bool csoundUgenDelete(UGEN* ugen) {
         (*ugen->oentry->deinit)(csound, ugen->opcodeMem);
     }
 
+    /* Free variable memory (e.g. STRINGDAT.data buffers) before
+     * freeing the data block they reside in. Walk each pool and call
+     * the type's freeVariableMemory hook when present. */
+    if (ugen->outPool != NULL) {
+        CS_VARIABLE* var = ugen->outPool->head;
+        while (var != NULL) {
+            if (var->varType != NULL && var->varType->freeVariableMemory != NULL) {
+                MYFLT* base = ugen->data + var->memBlockIndex;
+                var->varType->freeVariableMemory(csound, base);
+            }
+            var = var->next;
+        }
+    }
+    if (ugen->inPool != NULL) {
+        CS_VARIABLE* var = ugen->inPool->head;
+        while (var != NULL) {
+            if (var->varType != NULL && var->varType->freeVariableMemory != NULL) {
+                MYFLT* base = ugen->data + ugen->outDataOffset + var->memBlockIndex;
+                var->varType->freeVariableMemory(csound, base);
+            }
+            var = var->next;
+        }
+    }
+
     /* Free OPTXT */
     if (opds != NULL && opds->optext != NULL) {
         csound->Free(csound, opds->optext);
@@ -481,76 +509,194 @@ bool csoundUgenDelete(UGEN* ugen) {
     csound->Free(csound, ugen->data);
     csound->Free(csound, ugen->outTypes);
     csound->Free(csound, ugen->inTypes);
+    csound->Free(csound, ugen->outVars);
+    csound->Free(csound, ugen->inVars);
     csound->Free(csound, ugen);
     return true;
 }
 
 /* ============================================================
- *  Argument Handling: By Pointer (zero-copy)
+ *  UGEN_VAR: Typed Variable Handles
  * ============================================================ */
 
-bool csoundUgenSetOutput(UGEN* ugen, int32_t index, void* arg) {
-    if (ugen == NULL || index < 0 || index >= ugen->outCount) return false;
-
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
-    p[index] = (MYFLT*)arg;
-    return true;
+UGEN_VAR* csoundUgenGetOutVar(UGEN* ugen, int32_t index) {
+    if (ugen == NULL || index < 0 || index >= ugen->outCount) return NULL;
+    return &ugen->outVars[index];
 }
 
-bool csoundUgenSetInput(UGEN* ugen, int32_t index, void* arg) {
-    if (ugen == NULL || index < 0 || index >= ugen->inCount) return false;
+UGEN_VAR* csoundUgenGetInVar(UGEN* ugen, int32_t index) {
+    if (ugen == NULL || index < 0 || index >= ugen->inCount) return NULL;
+    return &ugen->inVars[index];
+}
 
+bool csoundUgenSetInputVar(UGEN* ugen, int32_t inIdx, UGEN_VAR* var) {
+    if (ugen == NULL || var == NULL) return false;
+    if (inIdx < 0 || inIdx >= ugen->inCount) return false;
+
+    /* Wire the opcode's input pointer to the var's data */
     MYFLT** p = get_arg_pointers(ugen->opcodeMem);
-    p[ugen->outCount + index] = (MYFLT*)arg;
+    p[ugen->outCount + inIdx] = var->data;
+
+    /* Update the UGEN_VAR handle to point at the same data */
+    ugen->inVars[inIdx].data = var->data;
     return true;
 }
 
 /* ============================================================
- *  Argument Handling: By Value (copy)
+ *  UGEN_VAR: Standalone Creation/Destruction
  * ============================================================ */
 
-bool csoundUgenSetOutputValue(UGEN* ugen, int32_t index, void* arg) {
-    if (ugen == NULL || index < 0 || index >= ugen->outCount || arg == NULL)
-        return false;
+UGEN_VAR* csoundUgenVarNew(UGEN_FACTORY* factory, UGEN_ARG_TYPE type) {
+    if (factory == NULL) return NULL;
+    CSOUND* csound = factory->csound;
+    int32_t ksmps = factory->insds->ksmps;
 
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
-    size_t sz = ugen_arg_type_size(ugen->outTypes[index], ugen->insds->ksmps);
-    memcpy(p[index], arg, sz);
-    return true;
+    size_t dataSize = CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) +
+                      ugen_arg_type_size(type, ksmps);
+
+    /* Allocate the var struct and data block together */
+    UGEN_VAR* var = csound->Calloc(csound, sizeof(UGEN_VAR));
+    char* block = csound->Calloc(csound, dataSize);
+
+    /* Set up the CS_VAR_MEM header */
+    CS_VAR_MEM* varmem = (CS_VAR_MEM*)block;
+    varmem->varType = ugen_arg_type_to_cs_type(type);
+
+    var->csound = csound;
+    var->data = (MYFLT*)(block + CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
+    var->type = type;
+    var->ksmps = ksmps;
+    var->owned = true;
+
+    /* Call initializeVariableMemory hook (e.g. allocate STRINGDAT buffer) */
+    if (type == UGEN_ARG_TYPE_S || type == UGEN_ARG_TYPE_F) {
+        const CS_TYPE* csType = ugen_arg_type_to_cs_type(type);
+        /* Create a temporary variable to call the init hook */
+        CS_VARIABLE* tempVar = csoundCreateVariable(csound, csound->typePool,
+                                                     csType, "_tmp", NULL);
+        if (tempVar != NULL && tempVar->initializeVariableMemory != NULL) {
+            tempVar->initializeVariableMemory(csound, tempVar, var->data);
+        }
+        /* We don't add the temp variable to any pool; just free it */
+        if (tempVar != NULL) csound->Free(csound, tempVar);
+    }
+
+    return var;
 }
 
-bool csoundUgenSetInputValue(UGEN* ugen, int32_t index, void* arg) {
-    if (ugen == NULL || index < 0 || index >= ugen->inCount || arg == NULL)
-        return false;
+void csoundUgenVarDelete(UGEN_VAR* var) {
+    if (var == NULL || !var->owned) return;
+    CSOUND* csound = var->csound;
 
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
-    size_t sz = ugen_arg_type_size(ugen->inTypes[index], ugen->insds->ksmps);
-    memcpy(p[ugen->outCount + index], arg, sz);
-    return true;
-}
+    /* Call freeVariableMemory hook for S types (frees STRINGDAT.data) */
+    if (var->type == UGEN_ARG_TYPE_S || var->type == UGEN_ARG_TYPE_F) {
+        const CS_TYPE* csType = ugen_arg_type_to_cs_type(var->type);
+        if (csType->freeVariableMemory != NULL) {
+            csType->freeVariableMemory(csound, var->data);
+        }
+    }
 
-size_t csoundUgenGetOutputValue(UGEN* ugen, int32_t index, void* dest) {
-    if (ugen == NULL || index < 0 || index >= ugen->outCount || dest == NULL)
-        return 0;
-
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
-    size_t sz = ugen_arg_type_size(ugen->outTypes[index], ugen->insds->ksmps);
-    memcpy(dest, p[index], sz);
-    return sz;
-}
-
-size_t csoundUgenGetInputValue(UGEN* ugen, int32_t index, void* dest) {
-    if (ugen == NULL || index < 0 || index >= ugen->inCount || dest == NULL)
-        return 0;
-
-    MYFLT** p = get_arg_pointers(ugen->opcodeMem);
-    size_t sz = ugen_arg_type_size(ugen->inTypes[index], ugen->insds->ksmps);
-    memcpy(dest, p[ugen->outCount + index], sz);
-    return sz;
+    /* Free the data block (CS_VAR_MEM header + value data) */
+    char* block = (char*)var->data - CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET);
+    csound->Free(csound, block);
+    csound->Free(csound, var);
 }
 
 /* ============================================================
- *  Argument Query
+ *  UGEN_VAR: Query
+ * ============================================================ */
+
+UGEN_ARG_TYPE csoundUgenVarGetType(UGEN_VAR* var) {
+    if (var == NULL) return UGEN_ARG_TYPE_UNKNOWN;
+    return var->type;
+}
+
+size_t csoundUgenVarGetSize(UGEN_VAR* var) {
+    if (var == NULL) return 0;
+    return ugen_arg_type_size(var->type, var->ksmps);
+}
+
+/* ============================================================
+ *  UGEN_VAR: Numeric Access (i/k scalars)
+ * ============================================================ */
+
+void csoundUgenVarSetValue(UGEN_VAR* var, MYFLT value) {
+    if (var == NULL) return;
+    *(var->data) = value;
+}
+
+MYFLT csoundUgenVarGetValue(UGEN_VAR* var) {
+    if (var == NULL) return FL(0.0);
+    return *(var->data);
+}
+
+/* ============================================================
+ *  UGEN_VAR: Data Access (generic)
+ * ============================================================ */
+
+void* csoundUgenVarGetData(UGEN_VAR* var) {
+    if (var == NULL) return NULL;
+    return (void*)var->data;
+}
+
+/* ============================================================
+ *  UGEN_VAR: String Access
+ * ============================================================ */
+
+bool csoundUgenVarSetString(UGEN_VAR* var, const char* str) {
+    if (var == NULL || var->type != UGEN_ARG_TYPE_S) return false;
+    STRINGDAT* sd = (STRINGDAT*)var->data;
+    if (str == NULL) {
+        if (sd->data != NULL) sd->data[0] = '\0';
+        sd->size = 0;
+        return true;
+    }
+    size_t len = strlen(str);
+    if (sd->data == NULL || sd->size < (int64_t)(len + 1)) {
+        CSOUND* csound = var->csound;
+        if (sd->data != NULL) csound->Free(csound, sd->data);
+        sd->data = csound->Calloc(csound, len + 1);
+        sd->size = (int64_t)(len + 1);
+    }
+    memcpy(sd->data, str, len + 1);
+    return true;
+}
+
+const char* csoundUgenVarGetString(UGEN_VAR* var) {
+    if (var == NULL || var->type != UGEN_ARG_TYPE_S) return NULL;
+    STRINGDAT* sd = (STRINGDAT*)var->data;
+    return sd->data;
+}
+
+/* ============================================================
+ *  UGEN convenience: scalar and string access by index
+ * ============================================================ */
+
+void csoundUgenSetValue(UGEN* ugen, int32_t index, MYFLT value) {
+    UGEN_VAR* var = csoundUgenGetInVar(ugen, index);
+    if (var != NULL) csoundUgenVarSetValue(var, value);
+}
+
+MYFLT csoundUgenGetValue(UGEN* ugen, int32_t index) {
+    UGEN_VAR* var = csoundUgenGetOutVar(ugen, index);
+    if (var != NULL) return csoundUgenVarGetValue(var);
+    return FL(0.0);
+}
+
+bool csoundUgenSetString(UGEN* ugen, int32_t index, const char* str) {
+    UGEN_VAR* var = csoundUgenGetInVar(ugen, index);
+    if (var != NULL) return csoundUgenVarSetString(var, str);
+    return false;
+}
+
+const char* csoundUgenGetString(UGEN* ugen, int32_t index) {
+    UGEN_VAR* var = csoundUgenGetOutVar(ugen, index);
+    if (var != NULL) return csoundUgenVarGetString(var);
+    return NULL;
+}
+
+/* ============================================================
+ *  Argument Query (convenience)
  * ============================================================ */
 
 int32_t csoundUgenGetInCount(UGEN* ugen) {
@@ -571,16 +717,6 @@ UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index) {
     if (ugen == NULL || index < 0 || index >= ugen->outCount)
         return UGEN_ARG_TYPE_UNKNOWN;
     return ugen->outTypes[index];
-}
-
-size_t csoundUgenGetInArgSize(UGEN* ugen, int32_t index) {
-    if (ugen == NULL || index < 0 || index >= ugen->inCount) return 0;
-    return ugen_arg_type_size(ugen->inTypes[index], ugen->insds->ksmps);
-}
-
-size_t csoundUgenGetOutArgSize(UGEN* ugen, int32_t index) {
-    if (ugen == NULL || index < 0 || index >= ugen->outCount) return 0;
-    return ugen_arg_type_size(ugen->outTypes[index], ugen->insds->ksmps);
 }
 
 /* ============================================================
@@ -749,20 +885,6 @@ int32_t csoundUgenGraphAdd(UGEN_GRAPH* graph, UGEN* ugen) {
     int32_t idx = graph->count;
     graph->ugens[graph->count++] = ugen;
     return idx;
-}
-
-bool csoundUgenGraphConnect(UGEN* source, int32_t outIdx,
-                        UGEN* dest, int32_t inIdx) {
-    if (source == NULL || dest == NULL) return false;
-    if (outIdx < 0 || outIdx >= source->outCount) return false;
-    if (inIdx < 0 || inIdx >= dest->inCount) return false;
-
-    /* Get the pointer to source's output data */
-    MYFLT** srcP = get_arg_pointers(source->opcodeMem);
-    MYFLT* outPtr = srcP[outIdx];
-
-    /* Set dest's input to point to source's output (zero-copy wiring) */
-    return csoundUgenSetInput(dest, inIdx, outPtr);
 }
 
 int32_t csoundUgenGraphInit(UGEN_GRAPH* graph) {
