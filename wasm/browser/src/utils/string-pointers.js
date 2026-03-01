@@ -11,9 +11,14 @@ export const freeStringPtr = (wasm, ptr) => {
 
 export const ptr2string = (wasm, stringPtr) => {
   const { buffer } = wasm.wasi.memory;
-  const intArray = new Uint8Array(buffer, stringPtr);
-  const result = uint2String(intArray);
-  return trimNull(result);
+  const bytes = new Uint8Array(buffer, stringPtr);
+  // Find the null terminator so we only decode the actual string,
+  // not the entire remaining wasm memory buffer.
+  let len = 0;
+  while (bytes[len] !== 0) len++;
+  if (len === 0) return "";
+  const bounded = new Uint8Array(buffer, stringPtr, len);
+  return uint2String(bounded);
 };
 
 export const string2ptr = (wasm, string) => {

@@ -908,6 +908,78 @@ TEST_F(UGenTests, ConvenienceSetGetValue) {
 }
 
 /* ------------------------------------------------------------------
+ *  csoundUgenGetValue: reads output after init/perform
+ * ------------------------------------------------------------------ */
+
+TEST_F(UGenTests, GetValueReadsOutputAfterPerform) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+
+    /* --- oscils (a-rate output): GetValue returns first sample --- */
+    UGEN* osc = csoundUgenNew(factory, (char*)"oscils",
+                          (char*)"a", (char*)"iiio");
+    ASSERT_NE(osc, nullptr);
+
+    csoundUgenSetValue(osc, 0, 1.0);    /* amp   */
+    csoundUgenSetValue(osc, 1, 1000.0); /* freq  */
+    csoundUgenSetValue(osc, 2, 0.25);   /* phase — quarter-cycle so sin != 0 */
+
+    EXPECT_EQ(csoundUgenInit(osc), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenPerform(osc), CSOUND_SUCCESS);
+
+    /* GetValue on output 0 should return the first audio sample.
+     * With phase=0.25 (quarter cycle) the first sample of a sine should
+     * be near 1.0 (sin(π/2) = 1). */
+    MYFLT outA = csoundUgenGetValue(osc, 0);
+    EXPECT_NEAR(outA, 1.0, 0.05) << "oscils first sample with phase=0.25";
+
+    /* Verify consistency: same value accessible via UGEN_VAR */
+    UGEN_VAR* outVar = csoundUgenGetOutVar(osc, 0);
+    ASSERT_NE(outVar, nullptr);
+    EXPECT_DOUBLE_EQ(csoundUgenGetValue(osc, 0),
+                     csoundUgenVarGetValue(outVar));
+
+    /* --- line (k-rate output): GetValue returns a scalar --- */
+    UGEN* ln = csoundUgenNew(factory, (char*)"line",
+                         (char*)"k", (char*)"iii");
+    ASSERT_NE(ln, nullptr);
+
+    /* Start at 1.0, ramp to 0.0 over 1s — first output should be near 1.0 */
+    csoundUgenSetValue(ln, 0, 1.0);  /* ia  */
+    csoundUgenSetValue(ln, 1, 1.0);  /* dur */
+    csoundUgenSetValue(ln, 2, 0.0);  /* ib  */
+
+    EXPECT_EQ(csoundUgenInit(ln), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenPerform(ln), CSOUND_SUCCESS);
+
+    MYFLT outK = csoundUgenGetValue(ln, 0);
+    /* After one k-cycle, output should be near 1.0 (slightly less) */
+    EXPECT_GT(outK, 0.0);
+    EXPECT_LE(outK, 1.0);
+
+    /* --- edge cases --- */
+    /* Out-of-range index returns 0 */
+    EXPECT_DOUBLE_EQ(csoundUgenGetValue(osc, 99), 0.0);
+
+    /* NULL ugen returns 0 and does not crash */
+    EXPECT_DOUBLE_EQ(csoundUgenGetValue(nullptr, 0), 0.0);
+
+    /* Before perform, output should still be zero (or init value) */
+    UGEN* osc2 = csoundUgenNew(factory, (char*)"oscils",
+                           (char*)"a", (char*)"iiio");
+    ASSERT_NE(osc2, nullptr);
+    csoundUgenSetValue(osc2, 0, 1.0);
+    csoundUgenSetValue(osc2, 1, 440.0);
+    csoundUgenSetValue(osc2, 2, 0.0);
+    /* Output has not been written yet */
+    EXPECT_DOUBLE_EQ(csoundUgenGetValue(osc2, 0), 0.0);
+
+    csoundUgenDelete(osc2);
+    csoundUgenDelete(osc);
+    csoundUgenDelete(ln);
+    csoundUgenFactoryDelete(factory);
+}
+
+/* ------------------------------------------------------------------
  *  Convenience methods: csoundUgenSetString / csoundUgenGetString
  * ------------------------------------------------------------------ */
 
