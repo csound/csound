@@ -273,6 +273,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/signalflowgraph.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/trigEnvSegs.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/pvsops.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/bformdec2.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/dbap.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/fractalnoise.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/emugens.c \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/scugens.c \
@@ -330,4 +331,3 @@ $(call import-module,libsndfile-android/jni)
 #$(call import-module,libfluidsynth/jni)
 #$(call import-module,signalflowgraph/jni)
 #$(call import-module,LuaCsound/jni)
-

@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta27",
+  "version": "7.0.0-beta28",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -12,9 +12,11 @@
     "src",
     "tests/index.html",
     "tests/*.js",
-    "index.d.ts"
+    "index.d.ts",
+    "LICENSE",
+    "THIRD_PARTY.md"
   ],
-  "license": "LGPL-2.1",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/csound/csound/issues"
   },

@@ -2360,7 +2360,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
   TREE* current;
   char* varName;
-
+  CS_VARIABLE *arrvar;
 
   if (tree == NULL) {
     return 1;
@@ -2371,6 +2371,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     switch (current->type) {
     case T_ARRAY_IDENT:
+      
       varName = current->value->lexeme;
       add_array_arg(csound, varName, current->value->optype,
                     tree_arg_list_count(current->right), typeTable);
@@ -2393,9 +2394,25 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       break;
 
     case T_ARRAY:
+      
       varName = current->left->value->lexeme;
-      // FIXME - this needs to work for array and a-names
-      add_arg(csound, varName, NULL, typeTable, current);
+      // check if the array variable exists, it needs to be declared
+      arrvar = find_var_from_pools(csound, varName, varName, typeTable);
+      if(arrvar == NULL) {
+        synterr(csound,"cannot find array variable %s, line %d", 
+                varName, current->line);
+        csound->LongJmp(csound, 1);
+      }
+      // & needs to be an array or asigs
+      if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
+         arrvar->varType != &CS_VAR_TYPE_A) {
+        synterr(csound,"variable %s is not an array, line %d", 
+                varName, current->line);
+        csound->LongJmp(csound, 1);
+      }
+     
+      add_arg(csound, varName, current->left->value->optype,
+              typeTable, current);
       break;
 
     default:
