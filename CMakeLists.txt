@@ -554,6 +554,7 @@ if(LINUX)
 endif()
 
 if(WIN32)
+    add_definitions("-DCS_DEFAULT_UDODIR=\"${UDO_INSTALL_DIR}\"")
     # dir relaive to %LOCALAPPDATA%
     if(USE_DOUBLE)
         set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugins64")
@@ -1374,7 +1375,6 @@ if(APPLE)
     file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
     set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
 endif()
-
 
 if(NOT IOS OR OSXCROSS_TARGET)
     set(_csound_library_type SHARED)
