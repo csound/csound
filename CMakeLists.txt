@@ -571,6 +571,11 @@ if(APPLE OR LINUX)
     message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
 
+if(UDO_INSTALL_DIR)
+    message(STATUS "CS_DEFAULT_UDODIR set to ${UDO_INSTALL_DIR}.")
+    add_definitions("-DCS_DEFAULT_UDODIR=\"${UDO_INSTALL_DIR}\"")
+endif()
+
 if(USE_DEFAULT_OPCODEDIR)
  add_definitions("-DUSE_DEFAULT_OPCODEDIR")
  message(STATUS "using default opcodedir")

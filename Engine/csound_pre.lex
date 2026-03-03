@@ -852,6 +852,8 @@ void do_includelib(CSOUND *csound, int term, yyscan_t yyscanner)
     int found_files = 0;
     size_t used = 0;
 
+    csound->Message(csound, "DEBUG: CS_DEFAULT_UDODIR is set to: %s\n", CS_DEFAULT_UDODIR);
+
     struct stat st;
     char base_path [2048];
     snprintf(base_path, 2047, "%s/%s", CS_DEFAULT_UDODIR, dir_buffer);
