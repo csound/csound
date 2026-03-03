@@ -2417,16 +2417,16 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 {
   if(init_chn_array(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
-    if(adat->arrayType != &CS_VAR_TYPE_K &&
-       adat->arrayType != &CS_VAR_TYPE_A) {
+    if(adat->arrayType != &CS_VAR_TYPE_A &&
+       adat->arrayType != &CS_VAR_TYPE_K) {
       /* copy array data - except if it is k or a-type */
       copy_array(csound, adat, (ARRAYDAT *) p->fp, p->lock);
     } else {
      if(CS_ESR != csound->esr)
        return csound->InitError(csound,
                              "local sampling rate not supported\n");
-      p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
     }
+     p->h.perf = (SUBR) chnget_opcode_perf_ARRAY;
     return OK;
   }
   else return NOTOK;
@@ -2447,14 +2447,16 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 {
   if(init_chn_array(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
-    if(adat->arrayType == &CS_VAR_TYPE_I) {
+    if(adat->arrayType != &CS_VAR_TYPE_A &&
+       adat->arrayType != &CS_VAR_TYPE_K) {
+      /* copy array data - except if it is k or a-type */
       copy_array(csound, (ARRAYDAT *) p->fp, adat, p->lock);
     } else {
     if(CS_ESR != csound->esr)
      return csound->InitError(csound,
                              "local sampling rate not supported\n");
-     p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
     }
+    p->h.perf = (SUBR) chnset_opcode_perf_ARRAY;
     return OK;
   }
   else return NOTOK;
