@@ -2417,9 +2417,9 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
 {
   if(init_chn_array(csound, p, CSOUND_INPUT_CHANNEL) == OK) {
     ARRAYDAT *adat = (ARRAYDAT *) p->arg;
-    if(adat->arrayType == &CS_VAR_TYPE_I ||
-       adat->arrayType == &CS_VAR_TYPE_S) {
-      /* i-rate and S-rate arrays are copied immediately at init time */
+    if(adat->arrayType != &CS_VAR_TYPE_K &&
+       adat->arrayType != &CS_VAR_TYPE_A) {
+      /* copy array data - except if it is k or a-type */
       copy_array(csound, adat, (ARRAYDAT *) p->fp, p->lock);
     } else {
      if(CS_ESR != csound->esr)
