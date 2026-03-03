@@ -47,6 +47,7 @@ typedef struct pre_parm_s {
     uint16_t        depth;
     uint16_t        lstack[1024];
     unsigned char   isinclude;
+    unsigned char   isincludelib;
     char            *path;
 } PRE_PARM;
 

@@ -60,7 +60,6 @@ uint64_t make_slocation(PRS_PARM *qq)
     }
     return loc;
 }
-
 // Code to add #includes of UDOs
 static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 {
@@ -360,4 +359,3 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       return newRoot;
     }
 }
-

@@ -1,6 +1,5 @@
 %{
-
- /*
+/*
     csound_pre.l:
 
     Copyright (C) 2011
@@ -22,11 +21,14 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "sysdep.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+#include <dirent.h>
 #include "csoundCore.h"
 #include "corfile.h"
 #include <inttypes.h>
@@ -43,6 +45,7 @@
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
+static void do_includelib(CSOUND *, int, yyscan_t);
 static void do_new_include(CSOUND *, yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
@@ -91,6 +94,7 @@ MACRO           [a-zA-Z_][a-zA-Z0-9_]*
 STCOM           \/\*
 INCLUDE         "#include"
 INCLUDESTR      "#includestr"
+INCLUDELIB      "#includelib"
 DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
@@ -425,21 +429,36 @@ QNAN            "qnan"[ \t]*\(
                    }
                  }
 {INCLUDESTR}    {
-                  if (PARM->isString != 1)
-                    PARM->isinclude = 1;
-                  else
-                    corfile_puts(csound, yytext, csound->expanded_orc);
+                    if (PARM->isString != 1)
+                        PARM->isinclude = 1;
+                    else
+                        corfile_puts(csound, yytext, csound->expanded_orc);
+                }
+{INCLUDELIB}    {
+                    if (PARM->isString != 1) {
+                        PARM->isincludelib = 1;
+                        BEGIN(incl);
+                    } else {
+                        corfile_puts(csound, yytext, csound->expanded_orc);
+                    }
                 }
 {INCLUDE}       {
-                  if (PARM->isString != 1)
-                    BEGIN(incl);
-                  else
-                    corfile_puts(csound, yytext, csound->expanded_orc);
+                    if (PARM->isString != 1) {
+                        PARM->isincludelib = 0;
+                        BEGIN(incl);
+                    } else {
+                        corfile_puts(csound, yytext, csound->expanded_orc);
+                    }
                 }
 <incl>[ \t]*     /* eat the whitespace */
 <incl>.         { /* got the include file name */
-                  do_include(csound, yytext[0], yyscanner);
-                  BEGIN(INITIAL);
+                    if (PARM->isincludelib) {
+                        do_includelib(csound, yytext[0], yyscanner);
+                        PARM->isincludelib = 0;
+                    } else {
+                        do_include(csound, yytext[0], yyscanner);
+                    }
+                    BEGIN(INITIAL);
                 }
 #exit           { corfile_putc(csound, '\0', csound->expanded_orc);
                   corfile_putc(csound, '\0', csound->expanded_orc);
@@ -762,6 +781,121 @@ int isDir(char *path) {
 #else
 int isDir(char *path) { return 0;}
 #endif
+
+void read_helper(CSOUND *csound, char **include_script, size_t *script_size, size_t *used, int *found_files, const char *sub_path) {
+    char line_buffer[2048];
+    snprintf(line_buffer, sizeof(line_buffer), "#include \"%s\"\n", sub_path);
+    size_t len_buffer = strlen(line_buffer);
+
+    if (*used + len_buffer + 1 > *script_size) {
+        *script_size *= 2;
+        *include_script = (char *)csound->ReAlloc(csound, *include_script, *script_size);
+    }
+
+    memcpy(*include_script + *used, line_buffer, len_buffer);
+    *used += len_buffer;
+    (*include_script)[*used] = '\0';
+    (*found_files)++;
+}
+
+void do_entire_dir(CSOUND *csound, const char *path, char **script_ptr, size_t *size_ptr, size_t *used_ptr, int *found_ptr, yyscan_t yyscanner) {
+    DIR *d = opendir(path);
+    if (!d) return;
+
+    struct dirent *f;
+    while ((f = readdir(d)) != NULL) {
+        const char *fname = f->d_name;
+        if (fname[0] == '.') continue;
+
+        char next_phys_path[2048];
+        snprintf(next_phys_path, 2047, "%s%c%s", path, DIRSEP, fname);
+
+        struct stat st;
+        if (stat(next_phys_path, &st) != 0) continue;
+
+        if (S_ISDIR(st.st_mode)) {
+            do_entire_dir(csound, next_phys_path, script_ptr, size_ptr, used_ptr, found_ptr, yyscanner);
+        } else {
+            int n = (int)strlen(fname);
+            if (n > 4 && strcmp(&fname[n - 4], ".udo") == 0) {
+                read_helper(csound, script_ptr, size_ptr, used_ptr, found_ptr, next_phys_path);
+            }
+        }
+    }
+    closedir(d);
+}
+
+void do_includelib(CSOUND *csound, int term, yyscan_t yyscanner)
+{
+    char dir_buffer[2048];
+    int p = 0;
+    int c;
+
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    while ((c = input(yyscanner)) != term) {
+        if (c == '\n' || c == EOF || c == '\0') {
+            csound->Warning(csound, Str("Ill formed #includelib ignored"));
+            return;
+        }
+
+        if (p < 2048) {
+            if (p > 4 && c == '.') dir_buffer[p++] = DIRSEP;
+            else dir_buffer[p++] = c;
+        }
+    }
+
+    dir_buffer[p] = '\0';
+    while ((c = input(yyscanner)) != '\n' && c != EOF);
+
+    size_t script_size = 4096;
+    char *include_script = (char *)csound->Calloc(csound, script_size);
+    int found_files = 0;
+    size_t used = 0;
+
+    struct stat st;
+    char base_path [2048];
+    snprintf(base_path, 2047, "%s/%s", CS_DEFAULT_UDODIR, dir_buffer);
+
+    if (stat(base_path, &st) == 0 && S_ISDIR(st.st_mode)) {
+        do_entire_dir(csound, base_path, &include_script, &script_size, &used, &found_files, yyscanner);
+    } else {
+        char udo_sys_path[2048];
+        snprintf(udo_sys_path, 2047, "%s.udo", base_path);
+
+        if (stat(udo_sys_path, &st) == 0) {
+            read_helper(csound, &include_script, &script_size, &used, &found_files, udo_sys_path);
+        } else {
+            csound->Warning(csound, Str("#includelib: '%s' is not a directory and '%s' not found"), base_path, udo_sys_path);
+        }
+    }
+
+    if (found_files > 0) {
+        if (UNLIKELY(PARM->depth++ >= 2048)) {
+            csound->Die(csound, Str("Includes nested too deeply"));
+        }
+
+        if (UNLIKELY(PARM->macro_stack_ptr + 1 >= PARM->macro_stack_size)) {
+            PARM->alt_stack = (MACRON*) csound->ReAlloc(
+                csound, PARM->alt_stack,
+                sizeof(MACRON) * (PARM->macro_stack_size += S_INC));
+        }
+
+        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+        PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
+        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+        PARM->alt_stack[PARM->macro_stack_ptr].included = 1;
+        PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+
+        csound_prepush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+        csound_pre_scan_string(include_script, yyscanner);
+        csound_preset_lineno(1, yyscanner);
+
+    } else {
+        csound->Warning(csound, Str("No lib found in: %s"), dir_buffer);
+    }
+
+    csound->Free(csound, include_script);
+}
 
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
