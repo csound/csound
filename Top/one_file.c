@@ -410,13 +410,13 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       else argdecode(csound, argc, argv);
     }
     if (UNLIKELY(readingCsOptions))
-      csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
+      csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
     return FALSE;
 }
 
 
 
-#if 1
+#if 0
 static int32_t all_blank(char* start, char* end)
 {
     while (start != end) {
@@ -479,7 +479,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
           }
           else if (c=='"') { state =  0; goto top;}
         }
-        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        csoundErrorMsg(csound, Str("CsInstruments: missing \" to terminate string\n"));
         corfile_rm(csound, &incore);
         return FALSE;
       }
@@ -504,7 +504,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
         goto nxt;
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>\n"));
     corfile_rm(csound, &incore);
     return FALSE;
 }
@@ -545,13 +545,13 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
       else
         corfile_puts(csound, buffer, incore);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>\n"));
     corfile_rm(csound, &incore);
     return FALSE;
 }
 #endif
 
-#if 1
+#if 0
 static int32_t create_score(CSOUND *csound, CORFIL *cf)
 {
     char   *p, *q;
@@ -600,7 +600,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
           }
           else if (c=='"') { state =  0; goto top;}
         }
-        csoundErrorMsg(csound, Str("missing \" to terminate string"));
+        csoundErrorMsg(csound, Str("CsScore: missing \" to terminate string\n"));
         corfile_rm(csound, &csound->scorestr);
         return FALSE;
       }
@@ -616,7 +616,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
         goto nxt;
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
     return FALSE;
 }
 #else
@@ -633,7 +633,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
       while (isblank(*p)) p++;
       if (strstr(p, "</CsScore>") == p) {
         //#ifdef SCORE_PARSER
-        corfile_puts(csound, "\n#exit\n", csound->scorestr);
+        corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         //#endif
@@ -642,7 +642,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
       else
         corfile_puts(csound, buffer, csound->scorestr);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
     return FALSE;
 }
 #endif
@@ -887,7 +887,7 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>\n"));
     return FALSE;
 }
 
@@ -922,7 +922,7 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsSampleB>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsSampleB>\n"));
     return FALSE;
 }
 
@@ -965,7 +965,7 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsFileB>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsFileB>\n"));
     return FALSE;
 }
 
@@ -1006,7 +1006,7 @@ static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsFileC>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsFileC>\n"));
     return FALSE;
 }
 #endif
@@ -1049,7 +1049,7 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
       fputs(buff, smpf);
     }
     if (UNLIKELY(res==FALSE))
-      csoundErrorMsg(csound, Str("Missing end tag </CsFile>"));
+      csoundErrorMsg(csound, Str("Missing end tag </CsFile>\n"));
     csoundFileClose(csound, fd);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
     return res;
@@ -1100,7 +1100,7 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         }
       }
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsVersion>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsVersion>\n"));
     return FALSE;
 }
 
@@ -1127,7 +1127,7 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
       strlcat(licence, p, len);
     }
     csound->Free(csound, licence);
-    csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsLicence>\n"));
     return FALSE;
 }
 
@@ -1145,7 +1145,7 @@ static int32_t check_short_licence(CSOUND *csound, CORFIL *cf)
       }
       type = atoi(buff);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsShortLicence>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsShortLicence>\n"));
     return FALSE;
 }
 
@@ -1197,7 +1197,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
           do {
             if (UNLIKELY(my_fgets_cf(csound, buffer,
                                    CSD_MAX_LINE_LEN, cf) == NULL)) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>"));
+              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
               result = FALSE;
               break;
             }
@@ -1231,7 +1231,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
           do {
             if (UNLIKELY(my_fgets_cf(csound, buffer,
                                    CSD_MAX_LINE_LEN, cf) == NULL)) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsMidiFileB>"));
+              csoundErrorMsg(csound, Str("Missing end tag </CsMidiFileB>\n"));
               result = FALSE;
               break;
             }
@@ -1274,9 +1274,9 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         r = check_short_licence(csound, cf);
         result = r && result;
       }
-      else if (blank_buffer(/*csound,*/ buffer)) continue;
+      else if (blank_buffer(buffer)) continue;
       else if (started && strchr(p, '<') == buffer){
-        csoundMessage(csound, Str("unknown CSD tag: %s\n"), buffer);
+         csoundMessage(csound, Str("unknown CSD tag: %s"), buffer);
       }
     }
     if (UNLIKELY(!started)) {

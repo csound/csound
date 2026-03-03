@@ -3836,12 +3836,10 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p) {
 
   MYFLT *tabin = p->tabin->data;
   int32_t start = (int32_t) *p->start;
-  int32_t end   = (int32_t) *p->end;
+  int32_t end   = (int32_t) *p->end >= 0 ? *p->end :
+    p->tabin->sizes[0] - 1;
   int32_t inc   = (int32_t) *p->inc;
   int32_t size = (end - start)/inc + 1;
-
-
-
 
   int32_t i, destIndex;
   int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);

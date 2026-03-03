@@ -58,6 +58,8 @@ typedef struct parse_parm_s {
     int             xstrptr,xstrmax;
     uint64_t        iline;      /* Line number for start of instrument */
     uint64_t        ilocn;      /* and location */
+    uint32_t        first_column;
+    uint32_t        last_column;  
     int             xsubstr;    /* count for substr */
 } PARSE_PARM;
 
@@ -70,4 +72,6 @@ extern uint8_t file_to_int(CSOUND*, const char*);
 extern void csound_orcput_ilocn(void *, uint64_t, uint64_t);
 extern uint64_t csound_orcget_iline(void *);
 extern uint64_t csound_orcget_ilocn(void *);
+extern uint32_t csound_orcget_first_column(void *);
+extern uint32_t csound_orcget_last_column(void *);
 #endif

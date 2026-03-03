@@ -28,6 +28,6 @@
 
 /* typedef int32_t    (*SUBR)(void *, void *); */
 
-extern ORCTOKEN *new_token(CSOUND *, int32_t);
+extern ORCTOKEN *new_token(CSOUND *, int32_t, void *);
 
 #endif

@@ -23,6 +23,10 @@
             "platform": "linux|osx"
         },
         {
+            "name": "curl",
+            "platform": "linux"
+        },
+        {
             "name": "portaudio",
             "platform": "!android & !emscripten & !ios"
         },

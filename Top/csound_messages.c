@@ -109,6 +109,7 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
       csound->csoundMessageStringCallback(csound, attr, csound->message_string);
     }
   }
+  
 }
 
  void csoundMessage(CSOUND *csound, const char *format, ...) {
@@ -127,6 +128,7 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
 
  void csoundMessageS(CSOUND *csound, int32_t attr, const char *format,
                            ...) {
+
   if (!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
     va_start(args, format);
@@ -188,6 +190,7 @@ void csoundErrMsgV(CSOUND *csound, const char *hdr, const char *msg,
 
 void csoundErrorMsgS(CSOUND *csound, int32_t attr, const char *msg, ...) {
   va_list args;
+
   va_start(args, msg);
   csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
   va_end(args);

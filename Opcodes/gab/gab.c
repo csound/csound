@@ -484,8 +484,17 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   if (p->pamp.auxp==NULL ||
       p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
     csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
-  else  if (*p->iphs >= 0)        /* AuxAlloc clear anyway */
-    memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
+  
+  if(*p->iphs >= 0) {
+  // linear
+  if(!*p->interp) memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
+  else { // expon
+    MYFLT *pamp = (MYFLT *) p->pamp.auxp;
+    for(count = 0;count<p->count;count++) {
+      pamp[count] = 0.0001*csound->Get0dBFS(csound);
+    }
+  }
+  }
   return OK;
 }
 
@@ -501,6 +510,8 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    MYFLT odbfs = csound->Get0dBFS(csound);
+    int32_t interp = (int32_t) *p->interp;
 
   /* I believe this can never happen as InitError will remove instance */
   /* The check should be on p->amptp and p->freqtp  -- JPff            */
@@ -534,6 +545,14 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
 
+      if(!interp) // linear
+        ampIncr = (amp - amp2) * CS_ONEDKSMPS;
+      else { // expon
+        amp = amp > 0 ? amp : odbfs*0.0001;
+        amp2 = amp2 > 0 ? amp2 : odbfs*0.0001;
+        ampIncr = pow(amp/amp2, CS_ONEDKSMPS);
+      }
+      
       if(!floatph) {
        inc = (int32) (cps * CS_SICVT);
        phs = lphs[c];
@@ -541,20 +560,23 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       incf = (cps * CS_ONEDSR);   
       phsf = fphs[c];
       }
-
-      ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       for (n=offset; n<nsmps; n++) {
-        if(!floatph) {        
+        
+        if(!floatph) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
         phs &= PHMASK;
         } else {
           ar[n] += ftbl[(int32_t) (phsf*flen)]*amp2;
           phsf = PHMOD1(incf+phsf);
-        }    
-        amp2 += ampIncr;
+        }
+        if(!interp)
+          amp2 += ampIncr;
+        else 
+          amp2 *= ampIncr;     
       }
       prevAmp[c] = amp;
+      
       if(!floatph) lphs[c] = phs;
       else fphs[c] = phsf;
     }
@@ -952,7 +974,7 @@ OENTRY gab_localops[] = {
   { "tb15.k", S(FASTB), _QQ|TR,   "k",    "k",    NULL, (SUBR) tab15_k_tmp  },
   { "nlalp",  S(NLALP), 0,    "a",    "akkoo",
                             (SUBR) nlalp_set, (SUBR) nlalp   },
-  { "adsynt2",S(ADSYNT2),TR,     "a",     "kkiiiio",
+  { "adsynt2",S(ADSYNT2),TR,     "a",     "kkiiiioo",
                             (SUBR) adsynt2_set, (SUBR)adsynt2 },
   { "exitnow",S(EXITNOW),   0,     "",  "o", (SUBR) exitnow, NULL, NULL },
   { "tabrec",   S(TABREC),  TW,      "",      "kkkkz",

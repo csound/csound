@@ -34,6 +34,8 @@ extern "C" {
     int32_t              value;
     double           fvalue;
     char             *optype;
+    uint32_t        first_column;
+    uint32_t        last_column;    
     struct ORCTOKEN  *next;
   } ORCTOKEN;
 

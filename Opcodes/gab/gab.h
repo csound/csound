@@ -68,7 +68,7 @@ typedef struct {        /* for nlalp opcode */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *sr, *kamp, *kcps, *ifn, *ifreqtbl, *iamptbl, *icnt, *iphs;
+    MYFLT   *sr, *kamp, *kcps, *ifn, *ifreqtbl, *iamptbl, *icnt, *iphs, *interp;
     FUNC    *ftp;
     FUNC    *freqtp;
     FUNC    *amptp;
