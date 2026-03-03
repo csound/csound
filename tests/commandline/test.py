@@ -685,6 +685,7 @@ def runTest():
         ["arrays/test_redef_fail.csd", "fail on redefinition of variable by array", 1],
         ["arrays/array_copy.csd", "test for =.generic copy on k-rate only"],
         ["complex_array_test.csd", "testing complex array ops"],
+        ["test_array_channels.csd", "testing bus channels holding arrays"],
         ["fft_array_test.csd", "testing complex fft array ops"],
         ["rfft_array_test.csd", "testing complex rfft array ops"],
         ["test_k_i_array_args.csd", "testing k[] in-arg with i[] var"],
