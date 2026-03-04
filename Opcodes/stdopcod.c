@@ -35,7 +35,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     int32_t  err = 0;
     p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                         "STDOPC_GLOBALS");
-    
+
     if(p == NULL) {
       if(UNLIKELY(csound->CreateGlobalVariable(csound,
                                              "STDOPC_GLOBALS", sizeof(STDOPCOD_GLOBALS))
@@ -47,7 +47,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
       p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                             "STDOPC_GLOBALS");
     } else return CSOUND_SUCCESS;  // already initialised
-    
+
     p->csound = csound;
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
@@ -97,7 +97,8 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
     err |= wter2_init_(csound);
-    
+    err |= dbap_init_(csound);
+
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
@@ -125,4 +126,3 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
 }
 
 #endif
-
