@@ -61,8 +61,6 @@ class CsoundUgenProcessor extends AudioWorkletProcessor {
       cs.csoundSetOption(csound, "--0dbfs=1");
       cs.csoundSetOption(csound, `--sr=${this.sr}`);
       cs.csoundSetOption(csound, `--ksmps=${this.ksmps}`);
-      // Minimal orchestra so csoundStart() succeeds
-      cs.csoundCompileOrc(csound, "instr 1\n  out oscili(p4,p5)\nendin");
       cs.csoundStart(csound);
 
       const factory = cs.csoundUgenFactoryNew(csound);
