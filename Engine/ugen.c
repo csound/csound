@@ -276,19 +276,6 @@ bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
  *  UGEN Creation / Destruction
  * ============================================================ */
 
-static OENTRY* ugen_resolve_opcode(OENTRIES* entries,
-                                   char* outargTypes, char* inargTypes) {
-    int32_t i;
-    for (i = 0; i < entries->count; i++) {
-        OENTRY* temp = entries->entries[i];
-        if (strcmp(outargTypes, temp->outypes) == 0 &&
-            strcmp(inargTypes, temp->intypes) == 0) {
-            return temp;
-        }
-    }
-    return NULL;
-}
-
 UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                char* outargTypes, char* inargTypes) {
     UGEN* ugen;
@@ -300,12 +287,10 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     int32_t i;
     int32_t maxArgs = 64; /* max total arg slots */
 
-    OENTRIES* entries = find_opcode2(csound, opName);
-    if (entries == NULL) {
-        return NULL;
-    }
-
-    OENTRY* oentry = ugen_resolve_opcode(entries, outargTypes, inargTypes);
+    /* Reuse the existing exact-match opcode resolver from
+     * csound_orc_semantics.c (find_opcode2 + resolve_opcode_exact) */
+    OENTRY* oentry = find_opcode_exact(csound, opName,
+                                       outargTypes, inargTypes);
     if (oentry == NULL) {
         return NULL;
     }
@@ -830,9 +815,21 @@ bool csoundUgenFindOpcode(UGEN_FACTORY* factory, const char* opname,
     if (factory == NULL || opname == NULL) return false;
 
     CSOUND* csound = factory->csound;
+
+    /* When both type strings are provided, reuse the existing
+     * exact-match resolver from csound_orc_semantics.c */
+    if (outargTypes != NULL && inargTypes != NULL) {
+        OENTRY* oentry = find_opcode_exact(csound, (char*)opname,
+                                           (char*)outargTypes,
+                                           (char*)inargTypes);
+        return oentry != NULL;
+    }
+
+    /* NULL type strings act as wildcards — must iterate manually */
     OENTRIES* entries = find_opcode2(csound, (char*)opname);
     if (entries == NULL) return false;
 
+    bool found = false;
     for (int32_t i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
         if (temp == NULL) continue;
@@ -843,10 +840,13 @@ bool csoundUgenFindOpcode(UGEN_FACTORY* factory, const char* opname,
                        (strcmp(inargTypes, temp->intypes) == 0);
 
         if (outMatch && inMatch) {
-            return true;
+            found = true;
+            break;
         }
     }
-    return false;
+
+    csound->Free(csound, entries);
+    return found;
 }
 
 /* ============================================================
