@@ -1681,6 +1681,7 @@ add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
 add_subdirectory(tests/soak)
+add_subdirectory(tests/python)
 
 # uninstall target
 configure_file(

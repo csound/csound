@@ -1,0 +1,23 @@
+[project]
+name = "csound-ugen-examples"
+version = "0.1.0"
+description = "Csound UGen API Python examples"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+]
+
+# Usage (from the examples/ugen directory):
+#
+#   uv run --env-file .env ugen_example.py
+#
+# The .env file sets PYTHONPATH (for ctcsound) and DYLD_FRAMEWORK_PATH
+# (for the Csound framework) relative to this directory.
+#
+# If Csound was built somewhere else, edit .env or override on the
+# command line:
+#
+#   DYLD_FRAMEWORK_PATH=/other/build uv run --env-file .env ugen_example.py
+
+[project.scripts]
+ugen-example = "ugen_example:main"

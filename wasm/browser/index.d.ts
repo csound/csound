@@ -549,3 +549,234 @@ declare type CSOUND_PARAMS = {
   midi_key_pch: number;
   midi_velocity: number;
 };
+
+/* ==== UGEN Types ==== */
+
+/**
+ * Opaque pointer types for the UGEN API.
+ * These are wasm i32 pointers represented as numbers in JS.
+ */
+declare type UgenFactoryPtr = number;
+declare type UgenPtr = number;
+declare type UgenVarPtr = number;
+declare type UgenGraphPtr = number;
+declare type UgenContextPtr = number;
+
+/**
+ * Argument type enum for UGEN variables.
+ */
+declare interface UgenArgTypeEnum {
+  /** i-rate (init-time scalar) */
+  I: 0;
+  /** k-rate (control-rate scalar) */
+  K: 1;
+  /** a-rate (audio-rate vector, ksmps samples) */
+  A: 2;
+  /** S (string) */
+  S: 3;
+  /** f (fsig / spectral) */
+  F: 4;
+  /** unknown / unsupported */
+  UNKNOWN: 5;
+}
+
+/**
+ * Opcode info returned by csoundUgenListOpcodes.
+ */
+declare interface UgenOpcodeInfo {
+  opname: string;
+  outypes: string;
+  intypes: string;
+}
+
+/**
+ * LibCsoundObj — synchronous C-library-like API object returned by libcsound().
+ * All functions are synchronous (not async/Promise-based).
+ * Opaque Csound pointer is returned by csoundCreate() and passed as first arg.
+ * UGEN pointers are integers (wasm i32).
+ */
+declare interface LibCsoundObj {
+  /* ==== Csound Core API ==== */
+  csoundCreate: () => number;
+  csoundDestroy: (csound: number) => void;
+  csoundGetAPIVersion: () => number;
+  csoundGetVersion: () => number;
+  csoundInitialize: (flags: number) => number;
+  csoundParseOrc: (csound: number, orc: string) => number;
+  csoundCompileTree: (csound: number, tree: number) => number;
+  csoundCompileOrc: (csound: number, orc: string) => number;
+  csoundEvalCode: (csound: number, code: string) => number;
+  csoundStart: (csound: number) => number;
+  csoundCompileCSD: (csound: number, csd: string) => number;
+  csoundPerformKsmps: (csound: number) => number;
+  csoundStop: (csound: number) => void;
+  csoundReset: (csound: number) => void;
+  csoundGetSr: (csound: number) => number;
+  csoundSystemSr: (sr: number) => number;
+  csoundGetKr: (csound: number) => number;
+  csoundGetKsmps: (csound: number) => number;
+  csoundGetNchnls: (csound: number) => number;
+  csoundGetNchnlsInput: (csound: number) => number;
+  csoundGetChannels: (csound: number) => number;
+  csoundGet0dBFS: (csound: number) => number;
+  csoundGetA4: (csound: number) => number;
+  csoundGetCurrentTimeSamples: (csound: number) => number;
+  csoundGetSizeOfMYFLT: () => number;
+  csoundSetOption: (csound: number, option: string) => number;
+  csoundGetDebug: (csound: number) => number;
+  csoundSetDebug: (csound: number, debug: number) => void;
+  csoundGetSpin: (csound: number) => number;
+  csoundGetSpout: (csound: number) => number;
+  csoundInputMessage: (csound: number, scoreEvent: string) => number;
+  csoundInputMessageAsync: (csound: number, scoreEvent: string) => number;
+  csoundGetControlChannel: (csound: number, channelName: string) => number;
+  csoundSetControlChannel: (csound: number, channelName: string, value: number) => void;
+  csoundGetStringChannel: (csound: number, channelName: string) => string;
+  csoundSetStringChannel: (csound: number, channelName: string, value: string) => void;
+  csoundReadScore: (csound: number, score: string) => number;
+  csoundGetScoreTime: (csound: number) => number;
+  csoundIsScorePending: (csound: number) => number;
+  csoundSetScorePending: (csound: number, pending: number) => void;
+  csoundGetScoreOffsetSeconds: (csound: number) => number;
+  csoundSetScoreOffsetSeconds: (csound: number, offset: number) => void;
+  csoundRewindScore: (csound: number) => void;
+  csoundTableLength: (csound: number, table: number) => number;
+  csoundTableCopyIn: (csound: number, table: number, src: Float64Array) => void;
+  csoundTableCopyOut: (csound: number, table: number) => Float64Array;
+  csoundGetTable: (csound: number, table: number) => Float64Array;
+  csoundGetTableArgs: (csound: number, table: number) => Float64Array;
+  csoundGetInputName: (csound: number) => string;
+  csoundGetOutputName: (csound: number) => string;
+  csoundAppendEnv: (name: string, value: string) => void;
+
+  /* ==== UGEN Factory API ==== */
+  /** Creates a UGEN_FACTORY for listing and creating UGENs */
+  csoundUgenFactoryNew: (csound: number) => UgenFactoryPtr;
+  /** Deletes a UGEN_FACTORY */
+  csoundUgenFactoryDelete: (factory: UgenFactoryPtr) => number;
+
+  /* ==== UGEN Context API ==== */
+  /** Creates a new UGEN_CONTEXT for instrument-like state */
+  csoundUgenContextNew: (factory: UgenFactoryPtr) => UgenContextPtr;
+  /** Deletes a UGEN_CONTEXT */
+  csoundUgenContextDelete: (context: UgenContextPtr) => number;
+  /** Associates a UGEN with a context (call before init) */
+  csoundUgenSetContext: (ugen: UgenPtr, context: UgenContextPtr) => number;
+
+  /* ==== UGEN Creation/Destruction ==== */
+  /** Creates a new UGEN from opcode name and type strings */
+  csoundUgenNew: (factory: UgenFactoryPtr, opName: string, outargTypes: string, inargTypes: string) => UgenPtr;
+  /** Deletes a UGEN and frees resources */
+  csoundUgenDelete: (ugen: UgenPtr) => number;
+
+  /* ==== UGEN_VAR Handles ==== */
+  /** Gets output variable at index (owned by UGEN) */
+  csoundUgenGetOutVar: (ugen: UgenPtr, index: number) => UgenVarPtr;
+  /** Gets input variable at index (owned by UGEN) */
+  csoundUgenGetInVar: (ugen: UgenPtr, index: number) => UgenVarPtr;
+  /** Zero-copy wiring: connect a var to a UGEN input */
+  csoundUgenSetInputVar: (ugen: UgenPtr, inIdx: number, var_: UgenVarPtr) => number;
+  /** Creates a standalone UGEN_VAR (caller must free) */
+  csoundUgenVarNew: (factory: UgenFactoryPtr, type: number) => UgenVarPtr;
+  /** Deletes a standalone UGEN_VAR */
+  csoundUgenVarDelete: (var_: UgenVarPtr) => void;
+
+  /* ==== UGEN_VAR Query ==== */
+  /** Gets the type of a UGEN_VAR */
+  csoundUgenVarGetType: (var_: UgenVarPtr) => number;
+  /** Gets the size in bytes of a UGEN_VAR's data */
+  csoundUgenVarGetSize: (var_: UgenVarPtr) => number;
+
+  /* ==== UGEN_VAR Numeric Access ==== */
+  /** Sets scalar (i/k) value */
+  csoundUgenVarSetValue: (var_: UgenVarPtr, value: number) => void;
+  /** Gets scalar (i/k) value */
+  csoundUgenVarGetValue: (var_: UgenVarPtr) => number;
+
+  /* ==== UGEN_VAR Data Access ==== */
+  /** Gets raw pointer to var's data buffer */
+  csoundUgenVarGetData: (var_: UgenVarPtr) => number;
+  /** Gets data pointer (same as GetData, named for Float64Array clarity) */
+  csoundUgenVarGetDataAsFloat64Array: (var_: UgenVarPtr) => number;
+  /** Gets ksmps (block size) for the var */
+  csoundUgenVarGetKsmps: (var_: UgenVarPtr) => number;
+
+  /* ==== UGEN_VAR String Access ==== */
+  /** Sets string value on S-type var */
+  csoundUgenVarSetString: (var_: UgenVarPtr, str: string) => number;
+  /** Gets string value from S-type var */
+  csoundUgenVarGetString: (var_: UgenVarPtr) => string | null;
+
+  /* ==== UGEN Convenience ==== */
+  /** Sets scalar on input at index */
+  csoundUgenSetValue: (ugen: UgenPtr, index: number, value: number) => void;
+  /** Gets scalar from output at index */
+  csoundUgenGetValue: (ugen: UgenPtr, index: number) => number;
+  /** Sets string on input at index */
+  csoundUgenSetString: (ugen: UgenPtr, index: number, str: string) => number;
+  /** Gets string from output at index */
+  csoundUgenGetString: (ugen: UgenPtr, index: number) => string | null;
+
+  /* ==== UGEN Query ==== */
+  /** Gets input argument count */
+  csoundUgenGetInCount: (ugen: UgenPtr) => number;
+  /** Gets output argument count */
+  csoundUgenGetOutCount: (ugen: UgenPtr) => number;
+  /** Gets input argument type at index */
+  csoundUgenGetInType: (ugen: UgenPtr, index: number) => number;
+  /** Gets output argument type at index */
+  csoundUgenGetOutType: (ugen: UgenPtr, index: number) => number;
+
+  /* ==== UGEN Init/Perform ==== */
+  /** Runs init-pass for the opcode */
+  csoundUgenInit: (ugen: UgenPtr) => number;
+  /** Runs perf-pass for the opcode */
+  csoundUgenPerform: (ugen: UgenPtr) => number;
+
+  /* ==== UGEN Opcode Listing ==== */
+  /** Lists all available opcodes */
+  csoundUgenListOpcodes: (factory: UgenFactoryPtr) => UgenOpcodeInfo[];
+  /** Checks if opcode exists */
+  csoundUgenFindOpcode: (factory: UgenFactoryPtr, opname: string, outargTypes: string, inargTypes: string) => number;
+
+  /* ==== UGEN Graph ==== */
+  /** Creates empty graph */
+  csoundUgenGraphNew: (factory: UgenFactoryPtr) => UgenGraphPtr;
+  /** Adds UGEN to graph */
+  csoundUgenGraphAdd: (graph: UgenGraphPtr, ugen: UgenPtr) => number;
+  /** Inits all UGENs in graph */
+  csoundUgenGraphInit: (graph: UgenGraphPtr) => number;
+  /** Performs one block for all UGENs */
+  csoundUgenGraphPerform: (graph: UgenGraphPtr) => number;
+  /** Deletes graph only */
+  csoundUgenGraphDelete: (graph: UgenGraphPtr) => number;
+  /** Deletes graph and all UGENs in it */
+  csoundUgenGraphDeleteAll: (graph: UgenGraphPtr) => number;
+
+  /* ==== JS Helpers ==== */
+  /** Creates Float64Array view over var's audio data */
+  csoundUgenVarGetFloat64Array: (var_: UgenVarPtr) => Float64Array;
+
+  /** UGEN_ARG_TYPE constants */
+  UGEN_ARG_TYPE: UgenArgTypeEnum;
+
+  /** Raw wasm instance for advanced memory access */
+  wasm: any;
+  /** Gets the wasm memory object */
+  getMemory: () => WebAssembly.Memory;
+}
+
+/**
+ * Creates a lightweight, in-process Csound wasm instance.
+ * No AudioContext or AudioWorklet dependency required.
+ * Each call creates an independent wasm instance supporting multiple Csound instances.
+ *
+ * @param [params.withPlugins] - Optional plugin wasm binaries to load
+ * @returns Promise resolving to a synchronous C-library-like API object
+ */
+declare function libcsound(params?: {
+  withPlugins?: object[];
+}): Promise<LibCsoundObj>;
+
+export { Csound, libcsound };
+export default Csound;

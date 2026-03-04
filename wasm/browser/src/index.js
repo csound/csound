@@ -31,6 +31,8 @@ import {
   WebkitAudioContext,
 } from "./utils";
 
+import libcsoundEntry from "./libcsound-entry";
+
 unmuteIosAudio();
 
 /**
@@ -140,3 +142,4 @@ const Csound = async function ({
 };
 
 goog.exportSymbol("__Csound__", Csound);
+goog.exportSymbol("__libcsound__", libcsoundEntry);

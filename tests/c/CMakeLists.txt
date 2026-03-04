@@ -20,7 +20,7 @@ if(BUILD_TESTS)
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
         csound_circular_buffer_test.cpp
-        engine_test.cpp     
+        engine_test.cpp
         io_test.cpp
         server_test.cpp
         csound_plugin_opcode_test.cpp
@@ -28,6 +28,7 @@ if(BUILD_TESTS)
         csound_test_sndfile.cpp
         test_new_type.cpp
         test_pfields.cpp
+        ugen_test.cpp
     )
 
     target_compile_features(unittests PUBLIC cxx_std_17)

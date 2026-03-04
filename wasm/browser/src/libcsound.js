@@ -87,6 +87,49 @@ import {
   csoundGetTable,
   csoundGetTableArgs,
 } from "./modules/table";
+import {
+  UGEN_ARG_TYPE,
+  csoundUgenFactoryNew,
+  csoundUgenFactoryDelete,
+  csoundUgenContextNew,
+  csoundUgenContextDelete,
+  csoundUgenSetContext,
+  csoundUgenNew,
+  csoundUgenDelete,
+  csoundUgenGetOutVar,
+  csoundUgenGetInVar,
+  csoundUgenSetInputVar,
+  csoundUgenVarNew,
+  csoundUgenVarDelete,
+  csoundUgenVarGetType,
+  csoundUgenVarGetSize,
+  csoundUgenVarSetValue,
+  csoundUgenVarGetValue,
+  csoundUgenVarGetData,
+  csoundUgenVarGetDataAsFloat64Array,
+  csoundUgenVarGetKsmps,
+  csoundUgenVarSetString,
+  csoundUgenVarGetString,
+  csoundUgenSetValue,
+  csoundUgenGetValue,
+  csoundUgenSetString,
+  csoundUgenGetString,
+  csoundUgenGetInCount,
+  csoundUgenGetOutCount,
+  csoundUgenGetInType,
+  csoundUgenGetOutType,
+  csoundUgenInit,
+  csoundUgenPerform,
+  csoundUgenListOpcodes,
+  csoundUgenFindOpcode,
+  csoundUgenGraphNew,
+  csoundUgenGraphAdd,
+  csoundUgenGraphInit,
+  csoundUgenGraphPerform,
+  csoundUgenGraphDelete,
+  csoundUgenGraphDeleteAll,
+  csoundUgenVarGetFloat64Array,
+} from "./modules/ugen";
 import fs from "./filesystem/worker-fs";
 
 goog.declareModuleId("libcsound");
@@ -170,12 +213,55 @@ export const api = {
   csoundTableCopyOut,
   csoundGetTable,
   csoundGetTableArgs,
+  // @module/ugen
+  UGEN_ARG_TYPE,
+  csoundUgenFactoryNew,
+  csoundUgenFactoryDelete,
+  csoundUgenContextNew,
+  csoundUgenContextDelete,
+  csoundUgenSetContext,
+  csoundUgenNew,
+  csoundUgenDelete,
+  csoundUgenGetOutVar,
+  csoundUgenGetInVar,
+  csoundUgenSetInputVar,
+  csoundUgenVarNew,
+  csoundUgenVarDelete,
+  csoundUgenVarGetType,
+  csoundUgenVarGetSize,
+  csoundUgenVarSetValue,
+  csoundUgenVarGetValue,
+  csoundUgenVarGetData,
+  csoundUgenVarGetDataAsFloat64Array,
+  csoundUgenVarGetKsmps,
+  csoundUgenVarSetString,
+  csoundUgenVarGetString,
+  csoundUgenSetValue,
+  csoundUgenGetValue,
+  csoundUgenSetString,
+  csoundUgenGetString,
+  csoundUgenGetInCount,
+  csoundUgenGetOutCount,
+  csoundUgenGetInType,
+  csoundUgenGetOutType,
+  csoundUgenInit,
+  csoundUgenPerform,
+  csoundUgenListOpcodes,
+  csoundUgenFindOpcode,
+  csoundUgenGraphNew,
+  csoundUgenGraphAdd,
+  csoundUgenGraphInit,
+  csoundUgenGraphPerform,
+  csoundUgenGraphDelete,
+  csoundUgenGraphDeleteAll,
+  csoundUgenVarGetFloat64Array,
   // filesystem
   fs,
 };
 
 export default function (wasm) {
-  const { fs: apiFs, ...apiRest } = api;
+  /** @suppress {missingProperties} */
+  const { fs: apiFs, UGEN_ARG_TYPE: ugenArgType, ...apiRest } = api;
 
   return {
     ...Object.keys(apiRest).reduce((accumulator, k) => {
@@ -186,5 +272,6 @@ export default function (wasm) {
       accumulator[k] = apiFs[k](wasm);
       return accumulator;
     }, {}),
+    UGEN_ARG_TYPE: ugenArgType,
   };
 }

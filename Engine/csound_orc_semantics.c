@@ -1911,7 +1911,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                           char* outArgsFound, char* inArgsFound) {
   OENTRIES* opcodes = find_opcode2(csound, opname);
-  if (opcodes->count == 0) {
+  if (opcodes == NULL || opcodes->count == 0) {
     return NULL;
   }
   OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
@@ -2692,7 +2692,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("unable to find opcode with name: %s, line %d," 
+    synterr(csound, Str("unable to find opcode with name: %s, line %d,"
                          " columns %d-%d"),
             root->value->lexeme, root->line,
             root->value->first_column, root->value->last_column);
@@ -3009,7 +3009,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
-  
+
   int32_t len = cs_cons_length(members);
   int32_t i;
 
@@ -3876,7 +3876,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   uint32_t column1 = csound_orcget_first_column(yyscanner);
-  uint32_t column2 = csound_orcget_last_column(yyscanner);  
+  uint32_t column2 = csound_orcget_last_column(yyscanner);
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
   csound->ErrorMsg(csound, Str("%s (token \"%s\"), "),
                   str, csound_orcget_text(yyscanner));
@@ -3984,7 +3984,7 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
       ans->value = make_token(csound, tree->value->lexeme, NULL);
       ans->value->optype = csoundStrdup(csound, tree->value->optype);
       ans->value->first_column = tree->value->first_column;
-      ans->value->last_column = tree->value->last_column;      
+      ans->value->last_column = tree->value->last_column;
     } else {
       ans->value = NULL;
     }
