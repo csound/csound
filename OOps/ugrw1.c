@@ -622,8 +622,9 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
                             Str("Insufficient arguments in formatted printing"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
-  else csound->Message(csound, "%s\n", csound->GetArgString(csound, *p->ifilcod));
-    
+  else if(isstrcod(*p->ifilcod))
+    csound->Message(csound, "%s\n", csound->GetArgString(csound, *p->ifilcod));
+  else csound->Message(csound, "%f\n", *p->ifilcod);
     return OK;
 }
 

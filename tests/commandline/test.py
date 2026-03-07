@@ -569,8 +569,7 @@ def runTest():
         ],
         [
             "prints_number_no_crash.csd",
-            "test prints does not crash when given a number arguments",
-            1,
+            "test prints does not crash when given a number arguments"
         ],
         [
             "test_newlines_within_function_calls.csd",
