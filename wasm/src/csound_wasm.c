@@ -3,6 +3,7 @@
 #include "ugen.h"
 #include <ctype.h>
 #include <limits.h>
+#include "csdebug.h"
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -109,6 +110,21 @@ void csoundWasiCMessageCallback(CSOUND *csound, int attr, const char *format, va
 __attribute__((used))
 void __wasi_js_csoundSetMessageStringCallback() {
   return csoundSetDefaultMessageCallback(&csoundWasiCMessageCallback);
+}
+
+/* ---- per-k-cycle debug callback: C → JS ---- */
+
+/* JS import: signals JS that a k-cycle just completed (debug mode) */
+void csoundWasiJsDebugCallback(void) __attribute__((
+     used,
+    __import_module__("env"),
+    __import_name__("csoundWasiJsDebugCallback")
+));
+
+static void csoundWasiCDebugCallback(CSOUND *csound, void *userdata) {
+  (void)csound;
+  (void)userdata;
+  (* csoundWasiJsDebugCallback)();
 }
 
 // copy/paste from upstream csound-emscripten
@@ -224,6 +240,12 @@ int csoundResetWasi(CSOUND *csound) {
   csoundReset(csound);
   csoundSetMidiCallbacks(csound);
   return CSOUND_SUCCESS;
+}
+
+__attribute__((used))
+void csoundSetDebugCallbackWasi(CSOUND *csound) {
+  csoundDebuggerInit(csound);
+  csoundSetDebugCallback(csound, &csoundWasiCDebugCallback, NULL);
 }
 
 // Keep a stable non-null pointer for JS string reads.

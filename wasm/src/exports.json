@@ -13,6 +13,7 @@
   "csoundCreateWasi",
   "csoundPerformKsmpsWasi",
   "csoundStartWasi",
+  "csoundSetDebugCallbackWasi",
   "csoundAppendEnv",
   "allocCsMidiDeviceStruct",
   "freeStringMem",
@@ -219,5 +220,11 @@
   "csoundUgenGraphDelete",
   "csoundUgenGraphDeleteAll",
   "csoundUgenVarGetDataAsFloat64Array",
-  "csoundUgenVarGetKsmps"
+  "csoundUgenVarGetKsmps",
+  "csoundSetDebugCallback",
+  "csoundRemoveDebugCallback",
+  "csoundDebugGetInstrInstances",
+  "csoundDebugFreeInstrInstances",
+  "csoundDebugGetVariables",
+  "csoundDebugFreeVariables"
 ]

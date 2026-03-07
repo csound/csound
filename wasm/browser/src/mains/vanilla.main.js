@@ -367,6 +367,12 @@ class VanillaWorkerMainThread {
         }
       }
     }
+
+    this.exportApi["enableDebugCallback"] = async () => {
+      const fn = this.exportApi["setDebugCallbackWasi"];
+      return typeof fn === "function" ? await fn() : -1;
+    };
+
     log(`exportAPI generated`)();
   }
 }

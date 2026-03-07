@@ -1064,6 +1064,8 @@ static const CSOUND cenviron_ = {
   0,              /* modules loaded */
   -1,             /* audio system sr */
   0,              /* csdebug_data */
+  NULL,           /* debug_cb */
+  NULL,           /* debug_cb_data */
   0,              /* which score parser */
   0,              /* print_version */
   1,              /* inZero */

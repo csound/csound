@@ -660,8 +660,28 @@ int32_t kperf_debug(CSOUND *csound) {
     }
   }
 
+  /* fire per-k-cycle debug callback if set (only when not stopped at a breakpoint) */
+  if (csound->debug_cb && (!data || data->status != CSDEBUG_STATUS_STOPPED)) {
+    csound->debug_cb(csound, csound->debug_cb_data);
+  }
   if (!data || data->status != CSDEBUG_STATUS_STOPPED)
     csound->spoutran(csound); /*      send to audio_out  */
 
   return 0;
+}
+
+/* ---- per-k-cycle debug callback API ---- */
+
+void csoundSetDebugCallback(CSOUND *csound,
+                            void (*cb)(CSOUND *, void *),
+                            void *userdata)
+{
+  csound->debug_cb      = cb;
+  csound->debug_cb_data = userdata;
+}
+
+void csoundRemoveDebugCallback(CSOUND *csound)
+{
+  csound->debug_cb      = NULL;
+  csound->debug_cb_data = NULL;
 }

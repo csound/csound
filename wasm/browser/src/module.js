@@ -362,6 +362,10 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     streamBuffer,
   });
 
+  options["env"]["csoundWasiJsDebugCallback"] = () => {
+    messagePort.post({ kcycle: true });
+  };
+
   options["env"]["printDebugCallback"] = (offset, length) => {
     const buf = new Uint8Array(memory.buffer, offset, length);
     const string = uint2String(buf);

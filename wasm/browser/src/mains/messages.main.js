@@ -27,6 +27,10 @@ export const messageEventHandler = (worker) => (event) => {
           : event.data.log,
       );
     }
+  } else if (event.data.kcycle) {
+    if (worker && worker.publicEvents && worker.publicEvents.triggerKcycle) {
+      worker.publicEvents.triggerKcycle();
+    }
   } else if (event.data["playStateChange"] && worker && worker["onPlayStateChange"]) {
     worker["onPlayStateChange"](event.data["playStateChange"]);
   }
