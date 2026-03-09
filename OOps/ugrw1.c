@@ -605,6 +605,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
 /* matt ingalls --  i-rate prints */
 int32_t printsset(CSOUND *csound, PRINTS *p)
 {
+  if(p->INOCOUNT > 1) {
     PRINTKS pk;
     char    string[8192];
     MYFLT ptime = 1;
@@ -620,11 +621,16 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
           csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+  }
+  else if(isstrcod(*p->ifilcod))
+    csound->Message(csound, "%s\n", csound->GetArgString(csound, *p->ifilcod));
+  else csound->Message(csound, "%f\n", *p->ifilcod);
     return OK;
 }
 
 int32_t printsset_S(CSOUND *csound, PRINTS *p)
 {
+  if(p->INOCOUNT > 1) {
     PRINTKS pk;
     char   string[8192];
     MYFLT ptime = 1;
@@ -639,11 +645,12 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing"));
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", string);
     } else {
       csound->Warning(csound,
                       Str("Formatting string too long: %s"), pk.txtstring);
     }
+  } else csound->Message(csound, "%s\n", ((STRINGDAT*)p->ifilcod)->data);
     return OK;
 }
 

@@ -10,7 +10,7 @@ ksmps	=	1
 0dbfs	=	1
 
 instr 1
-  prints 1 ;; should give an error and not crash!
+  prints 1 // should not crash ever
 endin
 
 </CsInstruments>
