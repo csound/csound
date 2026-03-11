@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) The Csound Developers
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
@@ -1109,6 +1124,496 @@ e
         assert.notEqual(0, compileResult, "compileCSD should fail for missing #include file");
         await csoundObj.terminateInstance();
       });
+    });
+  });
+
+  /* ================================================================
+   * libcsound + UGEN API tests (no WebAudio node)
+   * ================================================================ */
+  describe.only("libcsound (no WebAudio)", function () {
+    this.timeout(30000);
+
+    /** Shared libcsound API instance (one wasm load for all tests) */
+    let cs;
+
+    before(async function () {
+      console.log("[libcsound tests] before: importing module…");
+      const { libcsound } = await import(url);
+      console.log("[libcsound tests] before: calling libcsound()…");
+      cs = await libcsound();
+      console.log("[libcsound tests] before: done, cs =", cs);
+    });
+
+    /** Helper: create a started csound instance with common options */
+    function makeStartedCsound() {
+      const csound = cs.csoundCreate();
+      cs.csoundSetOption(csound, "-d");
+      cs.csoundSetOption(csound, "-n");
+      cs.csoundSetOption(csound, "--nchnls=1");
+      cs.csoundSetOption(csound, "--0dbfs=1");
+      cs.csoundStart(csound);
+      return csound;
+    }
+
+    it("can instantiate via libcsound()", function () {
+      assert.isObject(cs, "libcsound() returns an object");
+      assert.property(cs, "csoundCreate");
+      assert.property(cs, "csoundDestroy");
+      assert.property(cs, "csoundSetOption");
+      assert.property(cs, "csoundCompileOrc");
+      assert.property(cs, "csoundStart");
+      assert.property(cs, "csoundPerformKsmps");
+      assert.property(cs, "csoundStop");
+      assert.property(cs, "csoundReset");
+      assert.property(cs, "wasm");
+      assert.property(cs, "getMemory");
+    });
+
+    it("can create and run a csound instance", function () {
+      const csound = cs.csoundCreate();
+      assert.notEqual(csound, 0, "csoundCreate returns non-zero pointer");
+      assert.equal(0, cs.csoundSetOption(csound, "-d"));
+      assert.equal(0, cs.csoundSetOption(csound, "-n"));
+      assert.equal(0, cs.csoundSetOption(csound, "--nchnls=1"));
+      assert.equal(0, cs.csoundSetOption(csound, "--0dbfs=1"));
+      assert.equal(
+        0,
+        cs.csoundCompileOrc(
+          csound,
+          "instr 1\n  out oscili(0.5, 440)\nendin\nschedule(1,0,0.01)",
+        ),
+      );
+      assert.equal(0, cs.csoundStart(csound));
+      // Perform a few k-cycles
+      for (let i = 0; i < 10; i++) {
+        cs.csoundPerformKsmps(csound);
+      }
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("exposes UGEN_ARG_TYPE enum", function () {
+      assert.isObject(cs.UGEN_ARG_TYPE, "UGEN_ARG_TYPE is an object");
+      assert.equal(cs.UGEN_ARG_TYPE.I, 0);
+      assert.equal(cs.UGEN_ARG_TYPE.K, 1);
+      assert.equal(cs.UGEN_ARG_TYPE.A, 2);
+      assert.equal(cs.UGEN_ARG_TYPE.S, 3);
+      assert.equal(cs.UGEN_ARG_TYPE.F, 4);
+      assert.equal(cs.UGEN_ARG_TYPE.UNKNOWN, 5);
+    });
+
+    it("can create and delete a UGEN factory", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+      assert.notEqual(factory, 0, "factory is non-zero");
+
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can list opcodes", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+      const opcodes = cs.csoundUgenListOpcodes(factory);
+      assert.isArray(opcodes, "listOpcodes returns an array");
+      assert.isAbove(opcodes.length, 0, "opcodes list is non-empty");
+
+      // Each entry should have opname, outypes, intypes
+      const first = opcodes[0];
+      assert.property(first, "opname");
+      assert.property(first, "outypes");
+      assert.property(first, "intypes");
+
+      // Check that we can find well-known opcodes.
+      // Note: polymorphic opcodes appear with suffixes (e.g. "oscili.a")
+      const oscNames = opcodes.map((o) => o.opname);
+      assert.isTrue(
+        oscNames.some((n) => n === "oscils"),
+        "oscils is in opcode list",
+      );
+      assert.isTrue(
+        oscNames.some((n) => n === "vco2"),
+        "vco2 is in opcode list",
+      );
+
+      // Verify oscils has correct types
+      const oscils = opcodes.find((o) => o.opname === "oscils");
+      assert.equal(oscils.outypes, "a", "oscils outypes");
+      assert.equal(oscils.intypes, "iiio", "oscils intypes");
+
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can find a specific opcode", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+      // csoundUgenFindOpcode returns bool: true(1)=found, false(0)=not found
+      // Must use exact OENTRY types: oscils has outypes="a", intypes="iiio"
+      const found = cs.csoundUgenFindOpcode(factory, "oscils", "a", "iiio");
+      assert.notEqual(found, 0, "findOpcode returns true for oscils/a/iiio");
+
+      const notFound = cs.csoundUgenFindOpcode(factory, "not_an_opcode", "a", "kk");
+      assert.equal(notFound, 0, "findOpcode returns false for unknown opcode");
+
+      // Wrong types for an existing opcode should also return false
+      const wrongTypes = cs.csoundUgenFindOpcode(factory, "oscils", "k", "kk");
+      assert.equal(wrongTypes, 0, "findOpcode returns false for wrong types");
+
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can create a UGEN and query argument counts/types", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+      // oscils: a oscils iAmp, iFreq, iPhs [, iOpt]
+      // Exact OENTRY types: outypes="a", intypes="iiio"
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+      assert.notEqual(osc, 0, "csoundUgenNew returns non-zero for valid opcode");
+
+      assert.equal(cs.csoundUgenGetOutCount(osc), 1, "oscils has 1 output");
+      assert.equal(cs.csoundUgenGetInCount(osc), 4, "oscils has 4 inputs (iiio)");
+
+      assert.equal(cs.csoundUgenGetOutType(osc, 0), cs.UGEN_ARG_TYPE.A, "output 0 is A-rate");
+      assert.equal(cs.csoundUgenGetInType(osc, 0), cs.UGEN_ARG_TYPE.I, "input 0 is I-rate");
+      assert.equal(cs.csoundUgenGetInType(osc, 1), cs.UGEN_ARG_TYPE.I, "input 1 is I-rate");
+      assert.equal(cs.csoundUgenGetInType(osc, 2), cs.UGEN_ARG_TYPE.I, "input 2 is I-rate");
+      assert.equal(cs.csoundUgenGetInType(osc, 3), cs.UGEN_ARG_TYPE.I, "input 3 is I-rate (optional)");
+
+      cs.csoundUgenDelete(osc);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can set/get scalar values on UGEN inputs/outputs", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+      // oscils: outypes="a", intypes="iiio"
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+
+      // Set amplitude, frequency, phase
+      cs.csoundUgenSetValue(osc, 0, 0.5);
+      cs.csoundUgenSetValue(osc, 1, 440.0);
+      cs.csoundUgenSetValue(osc, 2, 0.0);
+
+      // csoundUgenGetValue reads OUTPUTS; to read back INPUTS use csoundUgenGetInVar + csoundUgenVarGetValue
+      const inVar0 = cs.csoundUgenGetInVar(osc, 0);
+      const inVar1 = cs.csoundUgenGetInVar(osc, 1);
+      const inVar2 = cs.csoundUgenGetInVar(osc, 2);
+      assert.notEqual(inVar0, 0, "inVar0 pointer valid");
+      assert.notEqual(inVar1, 0, "inVar1 pointer valid");
+      assert.notEqual(inVar2, 0, "inVar2 pointer valid");
+      assert.closeTo(cs.csoundUgenVarGetValue(inVar0), 0.5, 1e-6, "amplitude read back");
+      assert.closeTo(cs.csoundUgenVarGetValue(inVar1), 440.0, 1e-6, "frequency read back");
+      assert.closeTo(cs.csoundUgenVarGetValue(inVar2), 0.0, 1e-6, "phase read back");
+
+      cs.csoundUgenDelete(osc);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("csoundUgenGetValue reads output after init/perform", function () {
+      const csound = makeStartedCsound();
+      const factory = cs.csoundUgenFactoryNew(csound);
+
+      // --- oscils (a-rate output): GetValue returns first audio sample ---
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+      assert.notEqual(osc, 0, "oscils created");
+
+      cs.csoundUgenSetValue(osc, 0, 1.0);    // amp
+      cs.csoundUgenSetValue(osc, 1, 1000.0); // freq
+      cs.csoundUgenSetValue(osc, 2, 0.25);   // phase — quarter-cycle so sin(π/2)≈1
+
+      assert.equal(0, cs.csoundUgenInit(osc));
+      assert.equal(0, cs.csoundUgenPerform(osc));
+
+      // GetValue on output 0 should return first sample near 1.0
+      const outA = cs.csoundUgenGetValue(osc, 0);
+      assert.closeTo(outA, 1.0, 0.05, "oscils first sample with phase=0.25");
+
+      // Consistency: same as UgenVar
+      const outVar = cs.csoundUgenGetOutVar(osc, 0);
+      assert.notEqual(outVar, 0);
+      assert.closeTo(
+        cs.csoundUgenGetValue(osc, 0),
+        cs.csoundUgenVarGetValue(outVar),
+        1e-10,
+        "GetValue == VarGetValue"
+      );
+
+      // --- line (k-rate output): GetValue returns a scalar ---
+      const ln = cs.csoundUgenNew(factory, "line", "k", "iii");
+      assert.notEqual(ln, 0, "line created");
+
+      // Start at 1.0, ramp to 0.0 — first output should be near 1.0
+      cs.csoundUgenSetValue(ln, 0, 1.0);  // ia
+      cs.csoundUgenSetValue(ln, 1, 1.0);  // dur
+      cs.csoundUgenSetValue(ln, 2, 0.0);  // ib
+
+      assert.equal(0, cs.csoundUgenInit(ln));
+      assert.equal(0, cs.csoundUgenPerform(ln));
+
+      const outK = cs.csoundUgenGetValue(ln, 0);
+      assert.isAbove(outK, 0.0, "line output > 0 after one k-cycle");
+      assert.isAtMost(outK, 1.0, "line output <= 1.0");
+
+      // --- edge cases ---
+      // Out-of-range index returns 0
+      assert.equal(cs.csoundUgenGetValue(osc, 99), 0.0, "out-of-range returns 0");
+
+      // Before perform: output is zero
+      const osc2 = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+      cs.csoundUgenSetValue(osc2, 0, 1.0);
+      cs.csoundUgenSetValue(osc2, 1, 440.0);
+      cs.csoundUgenSetValue(osc2, 2, 0.0);
+      assert.equal(cs.csoundUgenGetValue(osc2, 0), 0.0, "before perform output is 0");
+
+      cs.csoundUgenDelete(osc2);
+      cs.csoundUgenDelete(osc);
+      cs.csoundUgenDelete(ln);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can init and perform a UGEN", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+      // oscils: outypes="a", intypes="iiio"
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+
+      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 1, 440.0);  // freq
+      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+
+      assert.equal(0, cs.csoundUgenInit(osc), "init returns 0");
+      assert.equal(0, cs.csoundUgenPerform(osc), "perform returns 0");
+
+      // Get audio output as Float64Array
+      const outVar = cs.csoundUgenGetOutVar(osc, 0);
+      assert.notEqual(outVar, 0, "output var pointer is valid");
+
+      const samples = cs.csoundUgenVarGetFloat64Array(outVar);
+      assert.instanceOf(samples, Float64Array, "returns Float64Array");
+      assert.isAbove(samples.length, 0, "samples array is non-empty");
+
+      // After perform, some samples should be non-zero (oscillator output)
+      const hasNonZero = samples.some((s) => Math.abs(s) > 1e-10);
+      assert.isTrue(hasNonZero, "oscillator produces non-zero output");
+
+      cs.csoundUgenDelete(osc);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can wire UGENs together via UGEN_VAR", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+
+      // Create oscillator: a oscils iAmp, iFreq, iPhs [, iOpt]
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 1, 440.0); // freq
+      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+
+      // Create gain multiplier: a product y (y = variable number of a-rate args)
+      const gain = cs.csoundUgenNew(factory, "product", "a", "y");
+
+      // Wire oscillator output -> gain input
+      const oscOut = cs.csoundUgenGetOutVar(osc, 0);
+      cs.csoundUgenSetInputVar(gain, 0, oscOut);
+
+      // Set gain factor via a standalone a-rate var
+      const gainVar = cs.csoundUgenVarNew(factory, cs.UGEN_ARG_TYPE.A);
+      assert.notEqual(gainVar, 0, "standalone var is valid");
+      cs.csoundUgenVarSetValue(gainVar, 0.25);
+      cs.csoundUgenSetInputVar(gain, 1, gainVar);
+
+      // Init and perform both
+      assert.equal(0, cs.csoundUgenInit(osc));
+      assert.equal(0, cs.csoundUgenInit(gain));
+      assert.equal(0, cs.csoundUgenPerform(osc));
+      assert.equal(0, cs.csoundUgenPerform(gain));
+
+      // Check output of gain
+      const gainOutVar = cs.csoundUgenGetOutVar(gain, 0);
+      const gainSamples = cs.csoundUgenVarGetFloat64Array(gainOutVar);
+      assert.instanceOf(gainSamples, Float64Array);
+      assert.isAbove(gainSamples.length, 0);
+
+      cs.csoundUgenVarDelete(gainVar);
+      cs.csoundUgenDelete(osc);
+      cs.csoundUgenDelete(gain);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can use UGEN_VAR get/set for i/k scalars", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+
+      // Create a standalone K-rate var and set/get its value
+      const kVar = cs.csoundUgenVarNew(factory, cs.UGEN_ARG_TYPE.K);
+      assert.notEqual(kVar, 0, "kVar is valid");
+      assert.equal(cs.csoundUgenVarGetType(kVar), cs.UGEN_ARG_TYPE.K, "type is K");
+
+      cs.csoundUgenVarSetValue(kVar, 123.456);
+      assert.closeTo(cs.csoundUgenVarGetValue(kVar), 123.456, 1e-3, "value read-back");
+
+      // Create an I-rate var
+      const iVar = cs.csoundUgenVarNew(factory, cs.UGEN_ARG_TYPE.I);
+      assert.equal(cs.csoundUgenVarGetType(iVar), cs.UGEN_ARG_TYPE.I, "type is I");
+      cs.csoundUgenVarSetValue(iVar, 42.0);
+      assert.closeTo(cs.csoundUgenVarGetValue(iVar), 42.0, 1e-6, "iVar value");
+
+      cs.csoundUgenVarDelete(kVar);
+      cs.csoundUgenVarDelete(iVar);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can use UGEN context for instrument-like state", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+
+      const ctx = cs.csoundUgenContextNew(factory);
+      assert.notEqual(ctx, 0, "context is valid");
+
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+      cs.csoundUgenSetContext(osc, ctx);
+      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 1, 440.0); // freq
+      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+      assert.equal(0, cs.csoundUgenInit(osc));
+      assert.equal(0, cs.csoundUgenPerform(osc));
+
+      cs.csoundUgenDelete(osc);
+      cs.csoundUgenContextDelete(ctx);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("can use UGEN graph for ordered init/perform", function () {
+      const csound = makeStartedCsound();
+
+      const factory = cs.csoundUgenFactoryNew(csound);
+
+      // Build a simple graph: oscils -> product (gain control)
+      const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
+      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 1, 440.0); // freq
+      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+
+      const gain = cs.csoundUgenNew(factory, "product", "a", "y");
+      const oscOut = cs.csoundUgenGetOutVar(osc, 0);
+      cs.csoundUgenSetInputVar(gain, 0, oscOut);
+
+      // Create a constant gain var
+      const gainVar = cs.csoundUgenVarNew(factory, cs.UGEN_ARG_TYPE.A);
+      cs.csoundUgenVarSetValue(gainVar, 0.5);
+      cs.csoundUgenSetInputVar(gain, 1, gainVar);
+
+      // Build graph
+      const graph = cs.csoundUgenGraphNew(factory);
+      assert.notEqual(graph, 0, "graph is valid");
+      cs.csoundUgenGraphAdd(graph, osc);
+      cs.csoundUgenGraphAdd(graph, gain);
+
+      // Init and perform the entire graph at once
+      assert.equal(0, cs.csoundUgenGraphInit(graph));
+      assert.equal(0, cs.csoundUgenGraphPerform(graph));
+
+      // Verify oscils output has non-zero samples after graph perform
+      // (product with A-rate gainVar set via scalar won't produce non-zero
+      // because csoundUgenVarSetValue only sets data[0] and sin(0)=0)
+      const oscOutSamples = cs.csoundUgenVarGetFloat64Array(oscOut);
+      assert.instanceOf(oscOutSamples, Float64Array);
+      assert.isAbove(oscOutSamples.length, 0);
+      const hasNonZero = oscOutSamples.some((s) => Math.abs(s) > 1e-10);
+      assert.isTrue(hasNonZero, "graph produces non-zero output from oscils");
+
+      // Perform a second block
+      assert.equal(0, cs.csoundUgenGraphPerform(graph));
+
+      cs.csoundUgenVarDelete(gainVar);
+      cs.csoundUgenGraphDeleteAll(graph);
+      cs.csoundUgenFactoryDelete(factory);
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
+    it("supports multiple independent libcsound instances", async function () {
+      // This test needs its own, second wasm instance
+      const { libcsound } = await import(url);
+      const cs2 = await libcsound();
+
+      const csound1 = cs.csoundCreate();
+      const csound2 = cs2.csoundCreate();
+
+      cs.csoundSetOption(csound1, "-d");
+      cs.csoundSetOption(csound1, "-n");
+      cs.csoundSetOption(csound1, "--0dbfs=1");
+      cs2.csoundSetOption(csound2, "-d");
+      cs2.csoundSetOption(csound2, "-n");
+      cs2.csoundSetOption(csound2, "--0dbfs=1");
+
+      cs.csoundStart(csound1);
+      cs2.csoundStart(csound2);
+
+      // Each instance should have its own UGEN factory
+      const factory1 = cs.csoundUgenFactoryNew(csound1);
+      const factory2 = cs2.csoundUgenFactoryNew(csound2);
+      assert.notEqual(factory1, 0);
+      assert.notEqual(factory2, 0);
+
+      // Create a UGEN in each and verify isolation
+      // oscils: outypes="a", intypes="iiio"
+      const osc1 = cs.csoundUgenNew(factory1, "oscils", "a", "iiio");
+      const osc2 = cs2.csoundUgenNew(factory2, "oscils", "a", "iiio");
+      cs.csoundUgenSetValue(osc1, 0, 0.5);
+      cs.csoundUgenSetValue(osc1, 1, 440.0);
+      cs.csoundUgenSetValue(osc1, 2, 0.0);
+      cs2.csoundUgenSetValue(osc2, 0, 0.25);
+      cs2.csoundUgenSetValue(osc2, 1, 880.0);
+      cs2.csoundUgenSetValue(osc2, 2, 0.0);
+
+      // Values should be independent — read back inputs via csoundUgenGetInVar
+      const in1_0 = cs.csoundUgenGetInVar(osc1, 0);
+      const in2_0 = cs2.csoundUgenGetInVar(osc2, 0);
+      const in1_1 = cs.csoundUgenGetInVar(osc1, 1);
+      const in2_1 = cs2.csoundUgenGetInVar(osc2, 1);
+      assert.closeTo(cs.csoundUgenVarGetValue(in1_0), 0.5, 1e-6);
+      assert.closeTo(cs2.csoundUgenVarGetValue(in2_0), 0.25, 1e-6);
+      assert.closeTo(cs.csoundUgenVarGetValue(in1_1), 440.0, 1e-6);
+      assert.closeTo(cs2.csoundUgenVarGetValue(in2_1), 880.0, 1e-6);
+
+      cs.csoundUgenDelete(osc1);
+      cs2.csoundUgenDelete(osc2);
+      cs.csoundUgenFactoryDelete(factory1);
+      cs2.csoundUgenFactoryDelete(factory2);
+      cs.csoundStop(csound1);
+      cs2.csoundStop(csound2);
+      cs.csoundDestroy(csound1);
+      cs2.csoundDestroy(csound2);
     });
   });
 

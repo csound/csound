@@ -1911,7 +1911,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                           char* outArgsFound, char* inArgsFound) {
   OENTRIES* opcodes = find_opcode2(csound, opname);
-  if (opcodes->count == 0) {
+  if (opcodes == NULL || opcodes->count == 0) {
     return NULL;
   }
   OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
@@ -2360,7 +2360,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
   TREE* current;
   char* varName;
-
+  CS_VARIABLE *arrvar;
 
   if (tree == NULL) {
     return 1;
@@ -2371,6 +2371,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     switch (current->type) {
     case T_ARRAY_IDENT:
+      
       varName = current->value->lexeme;
       add_array_arg(csound, varName, current->value->optype,
                     tree_arg_list_count(current->right), typeTable);
@@ -2393,9 +2394,25 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       break;
 
     case T_ARRAY:
+      
       varName = current->left->value->lexeme;
-      // FIXME - this needs to work for array and a-names
-      add_arg(csound, varName, NULL, typeTable, current);
+      // check if the array variable exists, it needs to be declared
+      arrvar = find_var_from_pools(csound, varName, varName, typeTable);
+      if(arrvar == NULL) {
+        synterr(csound,"cannot find array variable %s, line %d", 
+                varName, current->line);
+        csound->LongJmp(csound, 1);
+      }
+      // & needs to be an array or asigs
+      if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
+         arrvar->varType != &CS_VAR_TYPE_A) {
+        synterr(csound,"variable %s is not an array, line %d", 
+                varName, current->line);
+        csound->LongJmp(csound, 1);
+      }
+     
+      add_arg(csound, varName, current->left->value->optype,
+              typeTable, current);
       break;
 
     default:
@@ -2675,7 +2692,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
-    synterr(csound, Str("unable to find opcode with name: %s, line %d," 
+    synterr(csound, Str("unable to find opcode with name: %s, line %d,"
                          " columns %d-%d"),
             root->value->lexeme, root->line,
             root->value->first_column, root->value->last_column);
@@ -2992,7 +3009,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   const CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
-  
+
   int32_t len = cs_cons_length(members);
   int32_t i;
 
@@ -3859,7 +3876,7 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   uint32_t column1 = csound_orcget_first_column(yyscanner);
-  uint32_t column2 = csound_orcget_last_column(yyscanner);  
+  uint32_t column2 = csound_orcget_last_column(yyscanner);
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
   csound->ErrorMsg(csound, Str("%s (token \"%s\"), "),
                   str, csound_orcget_text(yyscanner));
@@ -3967,7 +3984,7 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
       ans->value = make_token(csound, tree->value->lexeme, NULL);
       ans->value->optype = csoundStrdup(csound, tree->value->optype);
       ans->value->first_column = tree->value->first_column;
-      ans->value->last_column = tree->value->last_column;      
+      ans->value->last_column = tree->value->last_column;
     } else {
       ans->value = NULL;
     }

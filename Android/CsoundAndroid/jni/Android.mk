@@ -8,9 +8,9 @@ LOCAL_MODULE   := csoundandroid
 LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../H $(LOCAL_PATH)/../../../include $(LOCAL_PATH)/../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../Engine $(LOCAL_PATH)/../../../interfaces
 
 ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
-LOCAL_CFLAGS := -std=c99 -O3 -DUSE_LIBSNDFILE -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_PTHREAD -DHAVE_ATOMIC_BUILTIN -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -DPARCS
+LOCAL_CFLAGS := -std=c99 -O3 -DUSE_LIBSNDFILE -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_PTHREAD -DHAVE_ATOMIC_BUILTIN -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -fno-finite-math-only -DPARCS -DGIT_HASH_VALUE=`git rev-parse HEAD`
 else
-LOCAL_CFLAGS := -std=c99 -O3 -DUSE_LIBSNDFILE -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_PTHREAD -DHAVE_ATOMIC_BUILTIN -unroll-allow-partial -unroll-runtime -funsafe-math-optimizations -ffast-math -DPFFFT_SIMD_DISABLE -DPARCS
+LOCAL_CFLAGS := -std=c99 -O3 -DUSE_LIBSNDFILE -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_PTHREAD -DHAVE_ATOMIC_BUILTIN -unroll-allow-partial -unroll-runtime -funsafe-math-optimizations -ffast-math-fno-finite-math-only -DPFFFT_SIMD_DISABLE -DPARCS -DGIT_HASH_VALUE=`git rev-parse HEAD`
 endif
 
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
@@ -52,6 +52,7 @@ $(CSOUND_SRC_ROOT)/Engine/twarp.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_type_system.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_standard_types.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_data_structures.c \
+$(CSOUND_SRC_ROOT)/Engine/ugen.c \
 $(CSOUND_SRC_ROOT)/InOut/soundfile.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd_u.c \
@@ -272,6 +273,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/signalflowgraph.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/trigEnvSegs.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/pvsops.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/bformdec2.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/dbap.c \
 $(CSOUND_SRC_ROOT)/Opcodes/tl/fractalnoise.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/emugens.c \
 $(CSOUND_SRC_ROOT)/Opcodes/emugens/scugens.c \
@@ -329,4 +331,3 @@ $(call import-module,libsndfile-android/jni)
 #$(call import-module,libfluidsynth/jni)
 #$(call import-module,signalflowgraph/jni)
 #$(call import-module,LuaCsound/jni)
-

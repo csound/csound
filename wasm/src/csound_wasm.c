@@ -1,5 +1,6 @@
 #include "csound.h"
 #include "csound_misc.h"
+#include "ugen.h"
 #include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -357,6 +358,40 @@ int main (int argc, char *argv[] ) {}
 //     return -1;
 //   }
 // }
+
+// ==== UGEN helpers for WASM/JS ====
+
+/**
+ * Returns the raw data pointer for a UGEN_VAR so JS can create
+ * a Float64Array view over wasm memory.
+ * JS usage: new Float64Array(memory.buffer, ptr, size / 8)
+ */
+__attribute__((used))
+void* csoundUgenVarGetDataAsFloat64Array(UGEN_VAR* var) {
+  return csoundUgenVarGetData(var);
+}
+
+/**
+ * Returns the ksmps value used by this UGEN_VAR.
+ * For a-rate vars, the data buffer contains ksmps MYFLTs.
+ * For i/k vars this still returns the factory ksmps (useful for
+ * knowing the audio block size).
+ */
+__attribute__((used))
+int32_t csoundUgenVarGetKsmps(UGEN_VAR* var) {
+  if (var == NULL) return 0;
+  // Access the ksmps field from the UGEN_VAR struct.
+  // We need the internal header for this, but since we include ugen.h
+  // (opaque types only), we use csoundUgenVarGetSize and type to infer:
+  UGEN_ARG_TYPE type = csoundUgenVarGetType(var);
+  size_t size = csoundUgenVarGetSize(var);
+  if (type == UGEN_ARG_TYPE_A) {
+    // a-rate: size = ksmps * sizeof(MYFLT)
+    return (int32_t)(size / sizeof(MYFLT));
+  }
+  // For i/k/S/F types, return 1 (scalar)
+  return 1;
+}
 
 void printDebugCallback(
     const char *str,

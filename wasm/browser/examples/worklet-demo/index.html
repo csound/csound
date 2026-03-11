@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Csound UGEN API — AudioWorklet Demo</title>
+    <style>
+      body {
+        font-family: monospace;
+        max-width: 800px;
+        margin: 2em auto;
+        line-height: 1.6;
+      }
+      button {
+        font-size: 1.2em;
+        padding: 0.5em 1em;
+        margin: 0.5em 0;
+        cursor: pointer;
+      }
+      .log {
+        background: #111;
+        color: #0f0;
+        padding: 1em;
+        max-height: 400px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        font-size: 0.85em;
+      }
+      label {
+        display: block;
+        margin: 0.3em 0;
+      }
+      input[type="range"] {
+        width: 200px;
+        vertical-align: middle;
+      }
+      .controls {
+        margin: 1em 0;
+      }
+      h1 {
+        font-size: 1.3em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Csound UGEN API &mdash; AudioWorklet Demo</h1>
+    <p>
+      <code>libcsound</code> wasm loads <em>inside</em> the AudioWorklet.
+      The UGEN graph renders directly in <code>process()</code> &mdash; no
+      main-thread rendering, no ring buffer.
+    </p>
+
+    <button id="startBtn">&#9654; Start</button>
+    <button id="stopBtn" disabled>&#9632; Stop</button>
+
+    <div class="controls">
+      <label
+        >Frequency:
+        <input
+          type="range"
+          id="freq"
+          min="100"
+          max="2000"
+          value="440"
+          step="1"
+        />
+        <span id="freqVal">440</span> Hz</label
+      >
+      <label
+        >Amplitude:
+        <input
+          type="range"
+          id="amp"
+          min="0"
+          max="100"
+          value="25"
+          step="1"
+        />
+        <span id="ampVal">0.25</span></label
+      >
+    </div>
+
+    <div class="log" id="log"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
