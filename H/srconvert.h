@@ -23,21 +23,50 @@
 #ifndef SRCONVERT_H
 #define SRCONVERT_H
 
-#include "csound.h"
+#include "csoundCore.h"
+#include "csound_type_system.h"
+#include "csound_standard_types.h"
 
-typedef struct _SR_CONVERTER
-{
-  float *bufferin, *bufferout;
-  float   ratio;
-  int32_t     size;
-  int32_t     cnt;
-  int32_t     mode;
-  void   *data;
+typedef struct {
+  float *bufferin, *bufferout; // buffers
+  void   *data;  // converter state
+  int32_t cnt;   // rw count
+} CVTDAT;
+  
+typedef struct _SR_CONVERTER {
+  float   ratio;  // src ratio
+  int32_t size;   // vector size
+  int32_t mode;   // conversion mode
+  CVTDAT *dat; // converter data
+  int32_t ncvt;   // no of converters
+  CS_VARIABLE *var; // argument var
+  CSOUND *csound;   
+  INSDS *ip;  // calling insds
 } SR_CONVERTER;
 
 
-SR_CONVERTER *src_init(CSOUND *, int32_t, float, int32_t);
-void src_deinit(CSOUND *, SR_CONVERTER *);
-int32_t src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
+/** converter initialisation
+    one per argument
+    mode - conversion mode (0 - 4)
+    ratio - conversion ratio (oversampling or 1/oversampling factor)
+    var - actual variable given to conversion
+    ip - calling insds (context)
+*/
+SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
+                       float ratio, CS_VARIABLE *var,
+                       INSDS *ip);
+
+/** conversion de-initialisation
+ */  
+void src_deinit(CSOUND *csound, SR_CONVERTER *p);
+
+/** sampling rate conversion
+    in - signal to be converted
+    out - signal to be converted
+
+    src is only performed on time-domain signals (a,k and arrays thereof)
+    other variable types are simply copied
+ */
+int32_t src_convert(CSOUND *csoubnd, SR_CONVERTER *p, MYFLT *in, MYFLT *out);
 
 #endif

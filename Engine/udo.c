@@ -678,7 +678,7 @@ int32_t set_inbufs(CSOUND *csound,
                    OPCOD_IOBUFS *buf) {
   OPCODINFO   *inm;
   MYFLT **bufs, **tmp;
-  int32_t i, k = 0;
+  int32_t i;
   CS_VARIABLE* current;
   UOPCODE  *udo;
   MYFLT parent_sr = buf->parent_ip->esr;
@@ -699,43 +699,21 @@ int32_t set_inbufs(CSOUND *csound,
 
   for (i = 0; i < inm->inchns; i++) {
     void* in = (void*)bufs[i];
-    void* out = (void*) args[i];
+    void* out = (void*)args[i];
     tmp[i + inm->outchns] = out;
-
-
     if ((csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
          csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) ||
         // special case: K-type inputs
           inm->intypes[i] == 'K') {
       current->varType->copyValue(csound, current->varType, out, in, h->insdshead);
     }
-
-    if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
-      // initialise the converter
-      if(esr != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,
-                                        ratio, h->insdshead->ksmps)) == NULL)
+    // set up src units one per input arg - non k/a sigs/arrays are bypassed
+    if(esr != parent_sr) {
+        if((udo->cvt_in[i] = src_init(csound, h->insdshead->in_cvt,
+                                        ratio, current, h->insdshead)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
-    }
-    else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
-      // initialise the converter
-      if(esr != parent_sr) {
-        if((udo->cvt_in[k++] = src_init(csound, h->insdshead->in_cvt,
-                                        ratio, 1)) == NULL)
-          return csound->InitError(csound, "could not initialise sample rate "
-                                   "converter");
-      }
-    }
-    // protect against audio/k arrays when oversampling
-    if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
-      if((current->subType == &CS_VAR_TYPE_A ||
-          current->subType == &CS_VAR_TYPE_K)
-         && esr != parent_sr)
-        return csound->InitError(csound, "audio/control arrays not allowed\n"
-                                 "as UDO arguments when using under/oversampling\n");
-    }
     current = current->next;
   }
 
@@ -759,7 +737,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   MYFLT       **bufs, **tmp;
   CS_VARIABLE* current;
   UOPCODE  *udo;
-  int32_t i, k = 0;
+  int32_t i;
   MYFLT parent_sr;
 
   (void) csound;
@@ -781,37 +759,19 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
     void* out = (void*) bufs[i];
     CS_TYPE* outType = csoundGetTypeForArg(out);
     tmp[i] = in;
-
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
     }
-    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
-      if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
-                                         parent_sr/CS_ESR, CS_KSMPS)) == 0)
+    if(CS_ESR != parent_sr) {
+        // set up src units one per input arg - non k/a sigs/arrays are bypassed
+        if((udo->cvt_out[i] = src_init(csound, p->h.insdshead->out_cvt,
+                                         parent_sr/CS_ESR, current,
+                                         p->h.insdshead)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
                                    "converter");
       }
-    }
-    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
-      if(CS_ESR != parent_sr) {
-        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->out_cvt,
-                                         parent_sr/CS_ESR, 1)) == 0)
-          return csound->InitError(csound, "could not initialise sample rate "
-                                   "converter");
-      }
-    }
-    // protect against audio/k arrays when oversampling
-    if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
-      if((current->subType == &CS_VAR_TYPE_A ||
-          current->subType == &CS_VAR_TYPE_K)
-         && CS_ESR != parent_sr)
-        return csound->InitError(csound, "audio/control arrays not allowed\n"
-                                 "as UDO arguments when using under/oversampling\n");
-    }
     current = current->next;
   }
-
   return OK;
 }
 
@@ -1151,7 +1111,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     OPDS *opstart;
     /* copy inputs */
     current = inm->in_arg_pool->head;
-    for (i = cvt = 0; i < inm->inchns; i++) {
+    for (i = cvt = 0; i < inm->inchns; i++, cvt++) {
       // this hardcoded type check for non-perf time vars needs to
       // change to use generic code...
       if (current->varType != &CS_VAR_TYPE_I &&
@@ -1165,17 +1125,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
             void* out = (void*)internal_ptrs[i + inm->outchns];
             current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
           }
-        } else { // oversampling
-          void* in = (void*)external_ptrs[i + inm->outchns];
-          void* out = (void*)internal_ptrs[i + inm->outchns];
-          if (current->varType == &CS_VAR_TYPE_A ||
-              current->varType == &CS_VAR_TYPE_K) {
-            // sample rate conversion
-            src_convert(csound, p->cvt_in[cvt++], in, out);
-
-          }
-          else if(ocnt == 0) // only copy other variables once
-            current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+        } else { // under/oversampling
+          void* in = (void*) external_ptrs[i + inm->outchns];
+          void* out = (void*) internal_ptrs[i + inm->outchns];
+          src_convert(csound, p->cvt_in[cvt], in, out);
         }
       }
       current = current->next;
@@ -1194,7 +1147,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 
     /* copy outputs */
     current = inm->out_arg_pool->head;
-    for (i = cvt = 0; i < inm->outchns; i++) {
+    for (i = cvt = 0; i < inm->outchns; i++, cvt++) {
       // this hardcoded type check for non-perf time vars needs to change to
       // use generic code...
       if (current->varType != &CS_VAR_TYPE_I &&
@@ -1206,19 +1159,14 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)internal_ptrs[i];
             void* out = (void*)external_ptrs[i];
-            current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
+            current->varType->copyValue(csound, current->varType,
+                                        out, in, p->h.insdshead);
           }
         }
-        else { // oversampling
+        else { // under/oversampling
           void* in = (void*)internal_ptrs[i];
           void* out = (void*)external_ptrs[i];
-          if (current->varType == &CS_VAR_TYPE_A ||
-              current->varType == &CS_VAR_TYPE_K) {
-            // sample rate conversion
-            src_convert(csound, p->cvt_out[cvt++], in, out);
-          } else if(ocnt == 0) {// only copy other variables once
-            current->varType->copyValue(csound, current->varType, out, in, p->h.insdshead);
-          }
+          src_convert(csound, p->cvt_out[cvt], in, out);
         }
       }
       current = current->next;
