@@ -161,8 +161,8 @@ PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 {   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
 { return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT)); } \
-OENTRY *name##_p = name; \
-int32_t name##_len = (int32_t) (sizeof(name)/sizeof(OENTRY)); \
+const OENTRY *name##_p = name; \
+const int32_t name##_len = (int32_t) (sizeof(name)/sizeof(OENTRY)); \
 
 /** LINKAGE for f-table plugins */
 
