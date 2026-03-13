@@ -1736,6 +1736,22 @@ install(EXPORT CsoundExports
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
 )
 
+# generate and install CsoundConfigVersion.cmake
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
+    VERSION "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}"
+    COMPATIBILITY AnyNewerVersion
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
+
+# install FindCsound.cmake for projects using Module mode
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindCsound.cmake"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
+
 # configure and install pkg-config file
 # Set appropriate link flags for different platforms
 if(APPLE AND NOT IOS)
