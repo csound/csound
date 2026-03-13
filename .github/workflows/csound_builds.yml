@@ -342,6 +342,10 @@ jobs:
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp portaudio_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
+          mkdir -p csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake
+          cp csound_install/share/csound/CsoundConfig.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+          cp csound_install/share/csound/CsoundConfigVersion.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+          cp csound_install/share/csound/FindCsound.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
@@ -523,6 +527,9 @@ jobs:
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
 
+      - name: Install Csound (for cmake package files)
+        run: cmake --install build --prefix build\install --config Release
+
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
@@ -596,6 +603,9 @@ jobs:
 
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
+
+      - name: Install Csound (for cmake package files)
+        run: cmake --install build --prefix build\install --config Release
 
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'

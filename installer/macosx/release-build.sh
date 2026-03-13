@@ -113,6 +113,13 @@ mv $FRAMEWORK64_DIR/Resources/html $FRAMEWORK64_DIR/Resources/Manual
 
 cp  $BLD/libCsoundLib64.a $FRAMEWORK64_DIR/
 
+echo "copying cmake files..."
+
+mkdir -p $FRAMEWORK64_DIR/Resources/cmake
+cp $DIST/share/csound/CsoundConfig.cmake $FRAMEWORK64_DIR/Resources/cmake/
+cp $DIST/share/csound/CsoundConfigVersion.cmake $FRAMEWORK64_DIR/Resources/cmake/
+cp $DIST/share/csound/FindCsound.cmake $FRAMEWORK64_DIR/Resources/cmake/
+
 echo "copying apps..."
 
 cp $DIST/bin/* $APPS64_DIR

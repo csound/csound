@@ -20,12 +20,16 @@ if(APPLE)
             "$ENV{HOME}/Library/Frameworks/CsoundLib.framework/Headers"
             /Library/Frameworks/CsoundLib64.framework/Headers
             /Library/Frameworks/CsoundLib.framework/Headers
+            /Applications/Csound/CsoundLib64.framework/Versions/Current/Headers
             ${CSOUND_INCLUDE_DIR_HINT}
     )
 else()
     find_path(CSOUND_INCLUDE_DIR csound.h
         PATH_SUFFIXES csound
-        HINTS ${CSOUND_INCLUDE_DIR_HINT}
+        HINTS
+            ${CSOUND_INCLUDE_DIR_HINT}
+            "$ENV{ProgramFiles}/Csound7/include"
+            "$ENV{ProgramW6432}/Csound7/include"
     )
 endif()
 
@@ -35,12 +39,19 @@ if(APPLE)
         PATHS
             "$ENV{HOME}/Library/Frameworks"
             /Library/Frameworks
+            /Applications/Csound
             ${CSOUND_LIBRARY_DIR_HINT}
     )
 else()
     find_library(CSOUND_LIBRARY
         NAMES csound64 csound
-        HINTS ${CSOUND_LIBRARY_DIR_HINT}
+        PATH_SUFFIXES lib lib64
+        HINTS
+            ${CSOUND_LIBRARY_DIR_HINT}
+            "$ENV{ProgramFiles}/Csound7/lib"
+            "$ENV{ProgramW6432}/Csound7/lib"
+            "$ENV{ProgramFiles}/Csound7/bin"
+            "$ENV{ProgramW6432}/Csound7/bin"
     )
 endif()
 

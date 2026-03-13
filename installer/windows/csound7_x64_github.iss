@@ -75,6 +75,9 @@ Name: "{app}\plugins64"; Permissions: users-modify
 ; features of these third party components.
 Name: "{app}\include"
 #define APP_INCLUDE "{app}\include\"
+; CMake package configuration files go here.
+Name: "{app}\cmake"
+#define APP_CMAKE "{app}\cmake\"
 ; All Csound examples go here.
 Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
@@ -167,6 +170,10 @@ Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesu
 
 Source: "{#BuildRoot}\include\float-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "{#BuildRoot}\include\version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+
+Source: "cmake\FindCsound.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\CsoundConfigVersion.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\install\share\csound\CsoundConfig.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
