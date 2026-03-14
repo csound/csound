@@ -1736,17 +1736,17 @@ include(CMakePackageConfigHelpers)
 install(EXPORT CsoundExports
     FILE "CsoundTargets.cmake"
     NAMESPACE "Csound::"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+    DESTINATION "share/csound"
 )
 
 # generate relocatable CsoundConfig.cmake from template
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CsoundConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfig.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+    INSTALL_DESTINATION "share/csound"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfig.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+    DESTINATION "share/csound"
 )
 
 # generate and install CsoundConfigVersion.cmake
@@ -1756,12 +1756,12 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+    DESTINATION "share/csound"
 )
 
 # install FindCsound.cmake for projects using Module mode
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindCsound.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+    DESTINATION "share/csound"
 )
 
 # configure and install pkg-config file
