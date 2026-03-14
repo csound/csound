@@ -1,16 +1,40 @@
-# FindCsound.cmake
+# FindCsound.cmake - CMake Module-mode find script for Csound
 #
-# Try to find the Csound library.
-# Once done this will define:
+# Finds an installed Csound library by searching standard system paths
+# and common platform-specific installation locations.
 #
-#  CSOUND_FOUND        - System has the Csound library
-#  CSOUND_INCLUDE_DIRS - The Csound include directories
-#  CSOUND_LIBRARIES    - The libraries needed to use Csound
-#  CSOUND_VERSION      - The version of the Csound library found
+# This module is a fallback for environments where the CMake Config-mode
+# package (CsoundConfig.cmake) is not available. If Csound was installed
+# via CMake or a platform installer that includes cmake config files,
+# prefer Config mode:
 #
-# The following hints are accepted:
-#  CSOUND_INCLUDE_DIR_HINT    - Path hint for the include directory
-#  CSOUND_LIBRARY_DIR_HINT    - Path hint for the library directory
+#   find_package(Csound CONFIG)
+#
+# For Config mode with a non-standard install, set Csound_DIR:
+#   cmake -DCsound_DIR=/path/to/share/csound ..
+#
+# On macOS (framework installer):
+#   cmake -DCsound_DIR=/Applications/Csound/CsoundLib64.framework/Versions/7.0/Resources/cmake ..
+#
+# On Windows (default installer):
+#   cmake -DCsound_DIR="C:/Program Files/Csound7/cmake" ..
+#
+# Module mode usage (this file):
+#   find_package(Csound)          # or find_package(Csound MODULE)
+#   target_link_libraries(myapp PRIVATE Csound::Csound)
+#
+# Result variables:
+#   CSOUND_FOUND         - System has the Csound library
+#   CSOUND_INCLUDE_DIRS  - The Csound include directories
+#   CSOUND_LIBRARIES     - The libraries needed to use Csound
+#   CSOUND_VERSION       - The version of the Csound library found
+#
+# Imported targets:
+#   Csound::Csound       - The Csound shared library
+#
+# Hint variables (optional):
+#   CSOUND_INCLUDE_DIR_HINT  - Path hint for the include directory
+#   CSOUND_LIBRARY_DIR_HINT  - Path hint for the library directory
 #
 
 if(APPLE)

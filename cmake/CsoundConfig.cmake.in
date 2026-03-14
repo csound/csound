@@ -1,0 +1,27 @@
+@PACKAGE_INIT@
+
+# CsoundConfig.cmake - CMake package configuration file for Csound
+#
+# This file is part of the Csound CMake package configuration.
+# It provides the Csound::CsoundLib64 (or Csound::CsoundLib) imported target
+# and optionally Csound::CsoundLib64_static for the static library.
+#
+# Usage:
+#   find_package(Csound CONFIG)
+#   target_link_libraries(myapp PRIVATE Csound::CsoundLib64)
+#
+# Or for version-constrained searches:
+#   find_package(Csound 7.0 CONFIG)
+#
+# If Csound is installed in a non-standard location, set Csound_DIR:
+#   cmake -DCsound_DIR=/path/to/csound/share/csound ..
+#
+# On macOS with the framework installer:
+#   cmake -DCsound_DIR=/Applications/Csound/CsoundLib64.framework/Versions/7.0/Resources/cmake ..
+#
+# On Windows with the default installer:
+#   cmake -DCsound_DIR="C:/Program Files/Csound7/cmake" ..
+
+include("${CMAKE_CURRENT_LIST_DIR}/CsoundTargets.cmake")
+
+check_required_components(Csound)

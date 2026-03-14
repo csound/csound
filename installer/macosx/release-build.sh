@@ -31,23 +31,23 @@ if [ $# -gt 2 ]; then
 	cd $3
 	echo "Using directory $3 `pwd`"
         export INSTALLER_DIR=`pwd`/installer
-        rm -rf installer 
+        rm -rf installer
 	rm -rf csound/build/dist
         mkdir installer
 else
 	export RELEASE_DIR="`eval date +%Y-%m-%d-%H%M%S`"
         export INSTALLER_DIR=`pwd`/$RELEASE_DIR/installer
-	mkdir $RELEASE_DIR 
+	mkdir $RELEASE_DIR
         mkdir $INSTALLER_DIR
 	cd $RELEASE_DIR
 
-	git clone -b $BRANCH_NAME file://$PWD/../../.. csound --depth=1 
+	git clone -b $BRANCH_NAME file://$PWD/../../.. csound --depth=1
 fi
 
 #BUILD DOUBLES CSOUND
 echo "Building Csound (double)..."
 cd csound
-cp ../../Custom_10.9.cmake Custom.cmake 
+cp ../../Custom_10.9.cmake Custom.cmake
 
 #$DEPS_BASE/bin/scons -j2 &> ../csound5_build_log.txt
 mkdir build
@@ -118,6 +118,7 @@ echo "copying cmake files..."
 mkdir -p $FRAMEWORK64_DIR/Resources/cmake
 cp $DIST/share/csound/CsoundConfig.cmake $FRAMEWORK64_DIR/Resources/cmake/
 cp $DIST/share/csound/CsoundConfigVersion.cmake $FRAMEWORK64_DIR/Resources/cmake/
+cp $DIST/share/csound/CsoundTargets*.cmake $FRAMEWORK64_DIR/Resources/cmake/
 cp $DIST/share/csound/FindCsound.cmake $FRAMEWORK64_DIR/Resources/cmake/
 
 echo "copying apps..."
@@ -137,7 +138,7 @@ cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libopus.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libmpg123.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libmp3lame.0.dylib $SUPPORT_LIBS_DIR
- 
+
 # chnage IDs
 install_name_tool -id liblo.7.dylib $SUPPORT_LIBS_DIR/liblo.7.dylib
 install_name_tool -id libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
@@ -265,7 +266,7 @@ productbuild --distribution ../../Distribution2.dist --resources ../../PkgResour
 
 echo "assembling DMG..."
 
-mkdir "$DMG_DIR" 
+mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 cp -r ../CsoundLib64.bundle .
@@ -274,7 +275,7 @@ cp -r ../CsoundLib64.bundle .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
-hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" -fs HFS+ 
+hdiutil create "$DMG_NAME" -srcfolder "$DMG_DIR" -fs HFS+
 
 echo "... finished."
 

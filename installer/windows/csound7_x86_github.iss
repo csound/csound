@@ -173,8 +173,10 @@ Source: "{#BuildRoot}\include\float-version.h"; DestDir: "{#APP_INCLUDE}\csound"
 Source: "{#BuildRoot}\include\version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 
 Source: "cmake\FindCsound.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\CsoundConfig.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
 Source: "{#BuildRoot}\CsoundConfigVersion.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
-Source: "{#BuildRoot}\install\share\csound\CsoundConfig.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\install\share\csound\CsoundTargets.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\install\share\csound\CsoundTargets-release.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion skipifsourcedoesntexist;  Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;

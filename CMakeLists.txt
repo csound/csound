@@ -1729,15 +1729,27 @@ else()
     message(STATUS "Not building documentation")
 endif()
 
-# install CMake module
+# install CMake package configuration files
+include(CMakePackageConfigHelpers)
+
+# export targets to CsoundTargets.cmake (separate from config wrapper)
 install(EXPORT CsoundExports
-    FILE "CsoundConfig.cmake"
+    FILE "CsoundTargets.cmake"
     NAMESPACE "Csound::"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
 )
 
+# generate relocatable CsoundConfig.cmake from template
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CsoundConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfig.cmake"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
+
 # generate and install CsoundConfigVersion.cmake
-include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
     VERSION "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}"
