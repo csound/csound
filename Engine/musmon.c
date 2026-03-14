@@ -828,7 +828,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
         /* Use a consistent INIT ERROR prefix so frontends can parse it */
         print_score_error(csound, rtEvt,
-                        Str("INIT ERROR in instr %d (%s): note deleted (%d init errors)"),
+                        Str("\nINIT ERROR in instr %d (%s): note deleted (%d init errors)"),
                         insno, evt->strarg, n);
       }
     }
@@ -860,7 +860,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           /* else alloc, init, activate */
           /* Use a consistent INIT ERROR prefix so frontends can parse it */
           print_score_error(csound, rtEvt,
-                          Str("INIT ERROR in instr %d: note deleted (%d init errors)"),
+                          Str("\nINIT ERROR in instr %d: note deleted (%d init errors)"),
                           insno, n);
         }
       }
@@ -903,10 +903,10 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
       {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (name)
-          csound->ErrorMsg(csound, Str("INIT ERROR in instr %s: note deleted (%d init errors)\n"),
+          csound->ErrorMsg(csound, Str("\nINIT ERROR in instr %s: note deleted (%d init errors)\n"),
                           name, n);
         else
-          csound->ErrorMsg(csound, Str("INIT ERROR in instr %d: note deleted (%d init errors)\n"),
+          csound->ErrorMsg(csound, Str("\nINIT ERROR in instr %d: note deleted (%d init errors)\n"),
                           insno, n);
       }
       csound->perferrcnt++;

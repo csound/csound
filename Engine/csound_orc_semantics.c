@@ -2805,8 +2805,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, name);
     }
 
-    csoundMessage(csound, Str("\nLine: %d\n"
-                              " columns %d-%d"),
+    csoundMessage(csound, Str("\nLine: %d "
+                              " columns %d-%d\n"),
                   root->line,
                   root->value->first_column,
                   root->value->last_column);
@@ -3066,6 +3066,7 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
   }
 
   if (varDest->members == NULL || varSrc->members == NULL) {
+    csound->Message(csound, "struct not initialised - cannot copy\n");
     return;  // Can't copy if members aren't initialized
   }
 

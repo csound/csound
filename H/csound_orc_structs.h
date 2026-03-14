@@ -56,7 +56,6 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem);
 CS_VARIABLE* createStructVar(void* cs, void* p, INSDS* ctx);
 void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
                    const void* src, INSDS* p);
-OENTRY* new_struct_init_oentry(CSOUND* csound, CS_TYPE* type);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);

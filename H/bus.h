@@ -238,6 +238,10 @@ extern "C" {
   int32_t outvalset_S(CSOUND *csound, OUTVAL *p);
   int32_t outvalsetgo(CSOUND *csound, OUTVAL *p);
   int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p);
+  int32_t chnget_opcode_generic_init(CSOUND *csound, CHNGET *p);
+  int32_t chnset_opcode_generic_init(CSOUND *csound, CHNGET *p);
+  int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p);
+  int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p);
 #ifdef __cplusplus
 }
 #endif

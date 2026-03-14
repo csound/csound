@@ -390,6 +390,8 @@ extern "C" {
     CS_ADV_EVENT
   };
 
+  typedef struct cstype CS_TYPE;
+
 #ifndef CSOUND_CSDL_H
   /** @defgroup INSTANTIATION Instantiation
    *
@@ -910,13 +912,19 @@ extern "C" {
                                  void **p, const char *name, int32_t type);
 
   /**
-   *  Returns the var type for a channel name or NULL if the channel
+   *  Returns the var type name for a channel name or NULL if the channel
    *  was not found.
-   *  Currently supported channel var types are 'k' (control), 'a' (audio),
-   *  'S' (string), 'f' (pvs), and '[' (array).
    */
   PUBLIC const char *csoundGetChannelVarTypeName(CSOUND *csound,
                                              const char *name);
+
+
+  /**
+   *  Returns the var type for a channel name or NULL if the channel
+   *  was not found.
+   */
+  PUBLIC const CS_TYPE *csoundGetChannelVarType(CSOUND *csound,
+                                                const char *name); 
 
   /**
    * Returns a list of allocated channels in *lst. A controlChannelInfo_t
@@ -1089,7 +1097,8 @@ extern "C" {
    * this function is a non-op.
    */
   PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
-                                      int32_t size, int32_t overlap, int32_t winsize,
+                                      int32_t size, int32_t overlap,
+                                      int32_t winsize,
                                       int32_t wintype, int32_t format);
 
   /**
