@@ -3,12 +3,16 @@
 # CsoundConfig.cmake - CMake package configuration file for Csound
 #
 # This file is part of the Csound CMake package configuration.
-# It provides the Csound::CsoundLib64 (or Csound::CsoundLib) imported target
-# and optionally Csound::CsoundLib64_static for the static library.
+# It provides a stable Csound::Csound imported target for consumers,
+# backed by the exported platform-specific shared library target
+# (typically Csound::CsoundLib64 or Csound::CsoundLib).
+#
+# Compatibility targets exported from the build are also available,
+# including Csound::CsoundLib64 and Csound::CsoundLib64-static.
 #
 # Usage:
 #   find_package(Csound CONFIG)
-#   target_link_libraries(myapp PRIVATE Csound::CsoundLib64)
+#   target_link_libraries(myapp PRIVATE Csound::Csound)
 #
 # Or for version-constrained searches:
 #   find_package(Csound 7.0 CONFIG)
@@ -22,6 +26,42 @@
 # On Windows with the default installer:
 #   cmake -DCsound_DIR="C:/Program Files/Csound7/cmake" ..
 
+include(CMakeFindDependencyMacro)
+
+if(@USE_LIBSNDFILE@)
+	find_dependency(SndFile CONFIG)
+endif()
+
+if(@SampleRate_FOUND@)
+	find_dependency(SampleRate CONFIG)
+endif()
+
+if(@BUILD_STATIC_LIBRARY@)
+	find_dependency(Threads)
+endif()
+
+if(@USE_GETTEXT@)
+	find_dependency(Intl)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/CsoundTargets.cmake")
+
+if(NOT TARGET Csound::Csound)
+	set(_csound_shared_target "")
+	if(TARGET Csound::CsoundLib64)
+		set(_csound_shared_target Csound::CsoundLib64)
+	elseif(TARGET Csound::CsoundLib)
+		set(_csound_shared_target Csound::CsoundLib)
+	endif()
+
+	if(NOT _csound_shared_target STREQUAL "")
+		add_library(Csound::Csound INTERFACE IMPORTED)
+		set_target_properties(Csound::Csound PROPERTIES
+			INTERFACE_LINK_LIBRARIES "${_csound_shared_target}"
+		)
+	endif()
+
+	unset(_csound_shared_target)
+endif()
 
 check_required_components(Csound)

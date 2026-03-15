@@ -729,6 +729,13 @@ endif()
 
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
+if(APPLE)
+    set(_csound_install_interface_include_dir
+        "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Headers")
+else()
+    set(_csound_install_interface_include_dir "${HEADER_INSTALL_DIR}")
+endif()
+
 list(APPEND libcsound_public_include_dirs
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}>
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
@@ -736,7 +743,7 @@ list(APPEND libcsound_public_include_dirs
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/Engine>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:${_csound_install_interface_include_dir}>
 )
 
 list(APPEND libcsound_private_include_dirs
