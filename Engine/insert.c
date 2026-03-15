@@ -1822,6 +1822,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   while ((optxt = optxt->nxtop) != NULL) {    /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
+  
+    
     /* Robustness: skip unresolved nodes (no opcode entry) */
     if (UNLIKELY(ep == NULL || ep->opname == NULL)) {
       if (UNLIKELY(odebug))
@@ -1839,9 +1841,12 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
       continue;
     }
 
+    if (UNLIKELY(strcmp(ep->opname, "new") == 0)) continue;
+      
     if (UNLIKELY(odebug))
       csound->Message(csound, Str("op (%s) allocated at %p for instr %d nxt %p\n"),
                       ep->opname, opds, insno, nxtopds);
+     
     /* Initialize OPDS linkage and function pointers to safe defaults */
     opds->nxti = NULL;
     opds->nxtp = NULL;

@@ -249,6 +249,8 @@ ERSTR           "}R"
                    BEGIN(forloop);
                    return FOR_TOKEN; }
 
+"new"           { return NEW_TOKEN; }
+
 <forloop>{
    ","            { return ','; }
 

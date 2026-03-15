@@ -548,6 +548,14 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       }
     }
     break;
+   case T_NEW:
+    tp->oentry = find_opcode(csound, "new");
+    tp->opcod = NULL;
+    tp->outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->outlist->count = 0;
+    tp->inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->inlist->count = 0;
+   break;
   default:
     csound->Message(csound, Str("create_opcode: No rule to handle statement of "
                                 "type %d\n"),

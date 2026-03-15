@@ -43,8 +43,10 @@
 %token S_BITSHIFT_LEFT
 %token S_BITSHIFT_RIGHT
 
+
 %token LABEL_TOKEN
 %token IF_TOKEN
+%token NEW_TOKEN
 
 %token DECLARE_TOKEN
 %token UDO_TOKEN
@@ -101,12 +103,12 @@
 %token TRUEK_TOKEN
 %token FALSEK_TOKEN
 
-
 %token S_ELIPSIS
 %token S_ELIPSIS2
 %token T_ARRAY
 %token T_ARRAY_IDENT
 %token T_DECLARE
+%token T_NEW
 %token STRUCT_EXPR
 %token T_MAPI
 %token T_MAPK
@@ -506,7 +508,7 @@ statement : out_arg_list assignment expr_list NEWLINE
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
             { $$ = NULL; }
-
+          | new_statement 
           ;
 
 
@@ -631,6 +633,22 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
    $$->left->left = $5;
    $$->left->right = $3;
  }
+
+new_statement : identifier NEW_TOKEN identifier
+              {
+                $$ = make_leaf(csound, LINE, LOCN, T_NEW, make_token(csound, $1->value->lexeme, NULL));
+                $$->left = $1;
+                $$->right = $3;
+              }
+             | identifier NEW_TOKEN identifierb expr_list ')'
+             {
+               $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "init", NULL));
+               $$->right = $4;
+               $$->left = $1;
+               $$->left->value->optype = $3->value->lexeme;
+             }
+             | identifier NEW_TOKEN error { $$ = NULL; }
+              
 
 /* Expressions */
 expr_list : expr_list ',' expr

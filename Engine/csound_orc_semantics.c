@@ -2076,7 +2076,6 @@ char *check_optional_type(CSOUND *csound, char *name) {
 */
 void add_arg(CSOUND* csound, char* varName, char* annotation,
              TYPE_TABLE* typeTable, TREE* tree) {
-
   const CS_TYPE* type;
   CS_VARIABLE* var;
   char *t = csoundStrdup(csound, varName);
@@ -2510,7 +2509,8 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
 
   if (root->type == GOTO_TOKEN ||
       root->type == KGOTO_TOKEN ||
-      root->type == IGOTO_TOKEN) {
+      root->type == IGOTO_TOKEN ||
+      root->type == T_NEW) {
     // i.e. a = func(a + b)
     return root;
   }
@@ -3565,6 +3565,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       typeTable->localPool = typeTable->instr0LocalPool;
 
+      break;
+    }
+
+    case T_NEW: {
+      add_arg(csound, current->left->value->lexeme, current->right->value->lexeme,
+              typeTable, current);
       break;
     }
 

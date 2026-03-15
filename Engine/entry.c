@@ -84,6 +84,7 @@ const OENTRY opcodlst_1[] = {
   { "opcode",  0,    0,            "",     "",   NULL, NULL, NULL, NULL },
   { "endop",   0,    0,            "",     "",   NULL, NULL, NULL, NULL },
   { "declare", 0,    0,            "",     "",   NULL, NULL, NULL, NULL },
+  { "new", 0,    0,            "",     "",   NULL, NULL, NULL, NULL },
   { "$label", S(LBLBLK),  0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,      "",     "m",  NULL, NULL, NULL, NULL },
   { "##userOpcode", S(UOPCODE),0,  "", "", (SUBR) useropcdset, (SUBR) useropcd, NULL, NULL },
