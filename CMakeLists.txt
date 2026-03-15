@@ -1392,14 +1392,14 @@ endif()
 # Add the install target
 if(WIN32)
     install(TARGETS ${CSOUNDLIB}
-        EXPORT CsoundExports
+        EXPORT CsoundPackageExports
         RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
         FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 else()
     if(NOT IOS OR OSXCROSS_TARGET)
         install(TARGETS ${CSOUNDLIB}
-            EXPORT CsoundExports
+            EXPORT CsoundPackageExports
             LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
             ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
             FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
@@ -1564,7 +1564,7 @@ endif()
 
 if(USE_LIBSNDFILE)
     if(NOT IOS OR OSXCROSS_TARGET)
-        target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
+        target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
        if(USE_STATIC_DEPS)
           message(STATUS "Adding static link libraries for libsndfile:")
           Find_Package(Oggs)
@@ -1609,20 +1609,20 @@ if(USE_LIBSNDFILE)
           else()
            message(STATUS "Mpg123 not found")
           endif()
-          target_link_libraries(${CSOUNDLIB} PUBLIC Oggs::oggs)
-          target_link_libraries(${CSOUNDLIB} PUBLIC Vorbiss::vorbiss)
-          target_link_libraries(${CSOUNDLIB} PUBLIC Vorbisencs::vorbisencs)
-          target_link_libraries(${CSOUNDLIB} PUBLIC FLACS::flacs)
-          target_link_libraries(${CSOUNDLIB} PUBLIC Opuss::opuss)
-          target_link_libraries(${CSOUNDLIB} PUBLIC "${LAME_LIBRARY}")
-          target_link_libraries(${CSOUNDLIB} PUBLIC Mpg123s::mpg123s)
+          target_link_libraries(${CSOUNDLIB} PRIVATE Oggs::oggs)
+          target_link_libraries(${CSOUNDLIB} PRIVATE Vorbiss::vorbiss)
+          target_link_libraries(${CSOUNDLIB} PRIVATE Vorbisencs::vorbisencs)
+          target_link_libraries(${CSOUNDLIB} PRIVATE FLACS::flacs)
+          target_link_libraries(${CSOUNDLIB} PRIVATE Opuss::opuss)
+          target_link_libraries(${CSOUNDLIB} PRIVATE "${LAME_LIBRARY}")
+          target_link_libraries(${CSOUNDLIB} PRIVATE Mpg123s::mpg123s)
        endif()
     endif()
 endif()
 
 if(SampleRate_FOUND)
     if(NOT IOS OR OSXCROSS_TARGET)
-        target_link_libraries(${CSOUNDLIB} PUBLIC SampleRate::samplerate)
+        target_link_libraries(${CSOUNDLIB} PRIVATE SampleRate::samplerate)
     endif()
     set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lsamplerate")
 endif()
@@ -1656,7 +1656,7 @@ if(BUILD_STATIC_LIBRARY)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SampleRate::samplerate)
     endif()
 
-    target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
+    target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_LIBS})
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1671,7 +1671,7 @@ if(BUILD_STATIC_LIBRARY)
 
     # Add the install target
     install(TARGETS ${CSOUNDLIB_STATIC}
-        EXPORT CsoundExports
+        EXPORT CsoundStaticExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
@@ -1740,11 +1740,20 @@ endif()
 include(CMakePackageConfigHelpers)
 
 # export targets to CsoundTargets.cmake (separate from config wrapper)
-install(EXPORT CsoundExports
+install(EXPORT CsoundPackageExports
     FILE "CsoundTargets.cmake"
     NAMESPACE "Csound::"
     DESTINATION "share/csound"
 )
+
+# export static library targets (only when BUILD_STATIC_LIBRARY is enabled)
+if(BUILD_STATIC_LIBRARY)
+    install(EXPORT CsoundStaticExports
+        FILE "CsoundStaticTargets.cmake"
+        NAMESPACE "Csound::"
+        DESTINATION "share/csound"
+    )
+endif()
 
 # generate relocatable CsoundConfig.cmake from template
 configure_package_config_file(

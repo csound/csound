@@ -118,7 +118,6 @@ echo "copying cmake files..."
 mkdir -p $FRAMEWORK64_DIR/Resources/cmake
 cp $DIST/share/csound/CsoundConfig.cmake $FRAMEWORK64_DIR/Resources/cmake/
 cp $DIST/share/csound/CsoundConfigVersion.cmake $FRAMEWORK64_DIR/Resources/cmake/
-cp $DIST/share/csound/CsoundTargets*.cmake $FRAMEWORK64_DIR/Resources/cmake/
 cp $DIST/share/csound/FindCsound.cmake $FRAMEWORK64_DIR/Resources/cmake/
 
 echo "copying apps..."

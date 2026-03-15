@@ -345,7 +345,6 @@ jobs:
           mkdir -p csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake
           cp csound_install/share/csound/CsoundConfig.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           cp csound_install/share/csound/CsoundConfigVersion.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
-          cp csound_install/share/csound/CsoundTargets*.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           cp csound_install/share/csound/FindCsound.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
