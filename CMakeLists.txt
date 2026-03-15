@@ -1740,11 +1740,13 @@ endif()
 include(CMakePackageConfigHelpers)
 
 # export targets to CsoundTargets.cmake (separate from config wrapper)
-install(EXPORT CsoundPackageExports
-    FILE "CsoundTargets.cmake"
-    NAMESPACE "Csound::"
-    DESTINATION "share/csound"
-)
+if(WIN32 OR NOT IOS OR OSXCROSS_TARGET)
+    install(EXPORT CsoundPackageExports
+        FILE "CsoundTargets.cmake"
+        NAMESPACE "Csound::"
+        DESTINATION "share/csound"
+    )
+endif()
 
 # export static library targets (only when BUILD_STATIC_LIBRARY is enabled)
 if(BUILD_STATIC_LIBRARY)
