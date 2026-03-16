@@ -1146,12 +1146,6 @@ endif()
 
 list(APPEND libcsound_SRCS)
 
-list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
-${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
-${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
-${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
-)
-
 if(NOT BUILD_PLUGINS)
  list(APPEND libcsound_SRCS ${cppops_SRCS} ${scanops_SRCS} ${physmod_SRCS}
  ${mp3in_SRCS} ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS}
@@ -1159,7 +1153,18 @@ if(NOT BUILD_PLUGINS)
  ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
  list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
+
+ list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
+${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
+${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
+${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
+)
+else()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_PLUGINS")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBUILD_PLUGINS")
 endif()
+
+
 
 if(UNIX)
 if(NOT BUILD_PLUGINS)

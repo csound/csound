@@ -380,6 +380,8 @@ extern "C" {
                                     const char *channelName,
                                     void *channelValuePtr,
                                     const void *channelType);
+
+  typedef struct oentry OENTRY;
   /**
      Event Types
   */
@@ -1395,6 +1397,12 @@ extern "C" {
                                  int32_t (*init)(CSOUND *, void *),
                                  int32_t (*perf)(CSOUND *, void *),
                                  int32_t (*deinit)(CSOUND *, void *));
+
+  /** 
+   * Appends a list of opcodes given as OENTRY array of length lne
+   */
+  PUBLIC int32_t csoundAppendOpcodes(CSOUND *, const OENTRY *oplist, int32_t len);
+  
 
   /** @}*/
 #endif  /* !CSOUND_CSDL_H */
