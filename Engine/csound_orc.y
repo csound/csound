@@ -636,7 +636,7 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
 
 new_statement : identifier NEW_TOKEN identifier
               {
-                $$ = make_leaf(csound, LINE, LOCN, T_NEW, make_token(csound, $1->value->lexeme, NULL));
+                $$ = make_leaf(csound, LINE, LOCN, T_NEW, NULL);
                 $$->left = $1;
                 $$->right = $3;
               }
