@@ -29,7 +29,7 @@
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
-    MYFLT *out = p->out;                                             \
+    MYFLT* restrict out = p->out;                                    \
     uint32_t offset = p->h.insdshead->ksmps_offset;                  \
     uint32_t early = p->h.insdshead->ksmps_no_end;                   \
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
@@ -54,8 +54,7 @@ zapgremlins(MYFLT x) {
     return (absx > (MYFLT)1e-15 && absx < (MYFLT)1e15) ? x : (MYFLT)0.0;
 }
 
-static inline MYFLT
-sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
+static inline MYFLT sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
     MYFLT range;
     // avoid the divide if possible
     if(in >= hi) {
@@ -72,6 +71,16 @@ sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
     return in - range * FLOOR((in - lo) / range);
 }
 
+
+// Scalar branchless version
+static inline MYFLT sc_wrap_fast(MYFLT in, MYFLT lo, MYFLT hi, MYFLT range) {
+    in -= range * (in >= hi);   // subtract range if over
+    in += range * (in <  lo);   // add range if under
+    // fallback only if still out of range (multiple wraps)
+    if (UNLIKELY(in >= hi || in < lo))
+        in = in - range * FLOOR((in - lo) / range);
+    return in;
+}
 
 
 
@@ -183,7 +192,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *in = p->in;
+    const MYFLT* restrict in = p->in;
     MYFLT lag = *p->lagtime;
     MYFLT y0, y1;
     MYFLT b1 = p->b1;
@@ -196,9 +205,9 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     }
 
     if (lag == p->lag) {
+        MYFLT c = FL(1.0) - b1;
         for (n=offset; n<nsmps; n++) {
-            y0 = in[n];
-            y1 = y0 + b1 * (y1 - y0);
+            y1 = b1 * y1 + c * in[n];
             out[n] = y1;
         }
     } else {
@@ -310,7 +319,7 @@ lagud_a(CSOUND *csound, LagUD *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *in  = p->in;
+    const MYFLT* restrict in = p->in;
     MYFLT lagu = *p->lagtimeU;
     MYFLT lagd = *p->lagtimeD;
     // MYFLT y1   = p->y1;
@@ -330,15 +339,18 @@ lagud_a(CSOUND *csound, LagUD *p) {
         y1 = in[0];
     }
 
-
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
+        MYFLT cu = 1 - b1u;
+        MYFLT cd = 1 - b1d;
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
             if (y0 > y1)
-                y1 = y0 + b1u * (y1 - y0);
+                y1 = b1u * y1 + cu * in[n];
+                // y1 = y0 + b1u * (y1 - y0);
             else
-                y1 = y0 + b1d * (y1 - y0);
-            out[n]= y1;
+                y1 = b1d * y1 + cd * in[n];
+                // y1 = y0 + b1d * (y1 - y0);
+            out[n] = y1;
         }
     } else {
         MYFLT sr = CS_ESR;
@@ -351,7 +363,6 @@ lagud_a(CSOUND *csound, LagUD *p) {
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
-
             b1u += b1u_slope;
             b1d += b1d_slope;
             if (y0 > y1)
@@ -389,7 +400,7 @@ trig_a(CSOUND *csound, Trig *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *in = p->in;
+    MYFLT* restrict in = p->in;
     MYFLT dur = *p->dur;
     MYFLT sr = CS_ESR;
     MYFLT prevtrig = p->prevtrig;
@@ -509,13 +520,14 @@ phasor_a_aa(CSOUND *csound, Phasor *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *in = p->trig;
-    MYFLT *rate = p->rate;
-    MYFLT start = *p->start;
-    MYFLT end = *p->end;
-    MYFLT resetPos = *p->resetPos;
+    MYFLT* restrict in = p->trig;
+    const MYFLT *rate = p->rate;
+    const MYFLT start = *p->start;
+    const MYFLT end = *p->end;
+    const MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
+    const MYFLT range = end - start;
 
     for(n=offset; n<nsmps; n++) {
         MYFLT curin = in[n];
@@ -526,7 +538,8 @@ phasor_a_aa(CSOUND *csound, Phasor *p) {
         }
         out[n] = level;
         level += zrate;
-        level = sc_wrap(level, start, end);
+        // level = sc_wrap(level, start, end);
+        level = sc_wrap_fast(level, start, end, range);
         previn = curin;
     }
     p->previn = previn;
@@ -540,13 +553,14 @@ phasor_a_ak(CSOUND *csound, Phasor *p) {
 
     SAMPLE_ACCURATE
 
-    MYFLT *in = p->trig;
+    MYFLT* restrict in = p->trig;
     MYFLT rate = *p->rate;
     MYFLT start = *p->start;
     MYFLT end = *p->end;
     MYFLT resetPos = *p->resetPos;
     MYFLT previn = p->previn;
     MYFLT level = p->level;
+    const MYFLT range = end - start;
 
     for(n=offset; n<nsmps; n++) {
         MYFLT curin = in[n];
@@ -556,7 +570,7 @@ phasor_a_ak(CSOUND *csound, Phasor *p) {
         }
         out[n] = level;
         level += rate;
-        level = sc_wrap(level, start, end);
+        level = sc_wrap_fast(level, start, end, range);
         previn = curin;
     }
     p->previn = previn;
@@ -580,9 +594,10 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
     int32_t trig = (previn <= FL(0.0)) && (curin > FL(0.0));
     MYFLT frac = FL(1.0) - previn/(curin-previn);
 
+    if (trig)
+        level = resetPos + frac * rate;
+
     for(n=offset; n<nsmps; n++) {
-        if (trig)
-            level = resetPos + frac * rate;
         out[n] = level;
         level += rate;
         level  = sc_wrap(level, start, end);

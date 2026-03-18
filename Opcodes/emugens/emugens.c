@@ -113,12 +113,13 @@ static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
     return OK;
 }
 
+
 static int32_t
 linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
-    MYFLT x0 = *p->kx0;
-    MYFLT y0 = *p->ky0;
-    MYFLT x1 = *p->kx1;
-    MYFLT y1 = *p->ky1;
+    const MYFLT x0 = *p->kx0;
+    const MYFLT y0 = *p->ky0;
+    const MYFLT x1 = *p->kx1;
+    const MYFLT y1 = *p->ky1;
 
     if (UNLIKELY(x0 == x1)) {
         return csound->PerfError(csound, &(p->h), "%s",
@@ -128,14 +129,15 @@ linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
 
     int32_t numitems = p->xs->sizes[0];
     ARRAY_ENSURESIZE_PERF(csound, p->ys, numitems);
-    MYFLT *out = p->ys->data;
-    MYFLT *in  = p->xs->data;
+    MYFLT* restrict out = p->ys->data;
+    const MYFLT* restrict in = p->xs->data;
     int32_t i;
     for(i=0; i<numitems; i++) {
         out[i] = (in[i] - x0) * fact + y0;
     }
     return OK;
 }
+
 
 static int32_t
 linlinarr1_i(CSOUND *csound, LINLINARR1 *p) {
@@ -512,9 +514,14 @@ static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t 
     // -2 if x is higher than the highest breakpoint
     if (x>=*data[datalen-2])
         return -2;
-    if(lastidx >= 0 && lastidx < datalen-4 && *data[lastidx] <= x && x < *data[lastidx+2])
-        return lastidx;
-    // bin search
+    if(lastidx >= 0) {
+        if(lastidx < datalen - 4 && *data[lastidx] <= x && x < *data[lastidx+2])
+            return lastidx;
+        // search next pair
+        if(lastidx < datalen - 6 && *data[lastidx+2] <= x && x < *data[lastidx+4])
+            return lastidx+1;
+    }
+    // binary search
     int32_t numpairs = datalen / 2;
     int32_t pairmin = 0;
     int32_t pairmax = numpairs;
@@ -682,7 +689,6 @@ static int32_t bpf_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     return OK;
 
 }
-
 
 
 static int32_t bpf_k_kKK_ir(CSOUND *csound, BPF_k_kKK *p) {
@@ -3142,13 +3148,13 @@ static OENTRY emugens_localops[] = {
 
     { "printarray.i", S(ARRAYPRINT), 0,  "", "i[]", (SUBR)arrayprint_i},
     { "print.i[]", S(ARRAYPRINT), 0,  "", "i[]", (SUBR)arrayprint_i},
-    
+
     { "printarray", S(ARRAYPRINTK), 0,  "", "k[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "print", S(ARRAYPRINTK), 0,  "", "k[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
-    
+
     { "printarray", S(ARRAYPRINTK), 0,  "", "k[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray.k_notrig", S(ARRAYPRINT), 0,  "", "k[]S",
@@ -3169,7 +3175,7 @@ static OENTRY emugens_localops[] = {
     { "print.k[]", S(ARRAYPRINTK), 0,  "", "S[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
-    
+
     { "printarray", S(ARRAYPRINTK), 0,  "", "S[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
