@@ -597,10 +597,13 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
     if (trig)
         level = resetPos + frac * rate;
 
+    const MYFLT range = end - start;
+
     for(n=offset; n<nsmps; n++) {
         out[n] = level;
         level += rate;
-        level  = sc_wrap(level, start, end);
+        // level  = sc_wrap(level, start, end);
+        level = sc_wrap_fast(level, start, end, range);
     }
     p->previn = curin;
     p->level  = level;
