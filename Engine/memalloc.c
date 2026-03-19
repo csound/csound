@@ -67,9 +67,8 @@ void my_free(void *old) {
 #define CS_REALLOC realloc
 #define CS_FREE free
 
-#ifdef WIN32
-#include <malloc.h>
-#define CS_ALIGNED_ALLOC(size, align) _aligned_malloc(size, align)
+#ifdef WIN32 || ANDROID
+#define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
 #else
 #if __STDC_VERSION__ >= 201112L
 #define CS_ALIGNED_ALLOC(size, align) aligned_alloc(align,size)
