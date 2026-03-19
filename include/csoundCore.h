@@ -1096,6 +1096,12 @@ struct CSOUND_ {
   const OPARMS *(*GetOParms)(CSOUND *);
   const char *(*GetEnv)(CSOUND *, const char *name);
   MYFLT (*GetSystemSr)(CSOUND *, MYFLT);
+  /* Get engine sampling rate */
+  MYFLT   (*GetEngineSr) (CSOUND *csound);
+  /* Get engine control rate */
+  MYFLT   (*GetEngineKr) (CSOUND *csound);
+  /* Get engine kcounter value */
+  uint64_t (*GetEngineKcounter) (CSOUND *csound);  
   /**@}*/
 
   /** @name Software bus */
@@ -1142,10 +1148,12 @@ struct CSOUND_ {
   /** @name Memory allocation */
   /**@{ */
   void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
+  void (*AuxAllocAligned)(CSOUND *, size_t nbytes, size_t align, AUXCH *auxchp);
   int32_t (*AuxAllocAsync)(CSOUND *, size_t, AUXCH *, AUXASYNC *, aux_cb,
                            void *);
   void *(*Malloc)(CSOUND *, size_t nbytes);
   void *(*Calloc)(CSOUND *, size_t nbytes);
+  void *(*CallocAligned)(CSOUND *, size_t nbytes, size_t align);
   void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
   char *(*Strdup)(CSOUND *, const char *);
   void (*Free)(CSOUND *, void *ptr);
@@ -1406,7 +1414,15 @@ struct CSOUND_ {
                                                 int32_t isOutput));
   void (*ModuleListAdd)(CSOUND *, char *, char *);
   /**@}*/
-
+  /** @name MIDI message output support */
+  /**@{ */
+  /* Send MIDI message to output */
+  void (*SendMidiMsg) (CSOUND *csound, int32_t status,
+                       int32_t data1, int32_t data2,
+                       int32_t port);
+  /* Retrieve MIDI out port for last msg sent */
+  int32_t (*GetMidiOutPort) (CSOUND *csound);
+  /**@}*/
   /** @name Displays & graphs support */
   /**@{ */
   void (*SetDisplay)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t,
@@ -1446,20 +1462,7 @@ struct CSOUND_ {
   int32_t (*Sscanf)(char *str, const char *format, ...);
   /* Set opcode as deprecated */
   int32_t (*Deprecate)(CSOUND *csound, char *name,
-                       char *o, char *i, int32_t deprec);
-  /* Get engine sampling rate */
-  MYFLT   (*GetEngineSr) (CSOUND *csound);
-  /* Get engine control rate */
-  MYFLT   (*GetEngineKr) (CSOUND *csound);
-  /* Get engine kcounter value */
-  uint64_t (*GetEngineKcounter) (CSOUND *csound);
-  /* Send MIDI message to output */
-  void (*SendMidiMsg) (CSOUND *csound, int32_t status,
-                       int32_t data1, int32_t data2,
-                       int32_t port);
-  /* Retrieve MIDI out port for last msg sent */
-  int32_t (*GetMidiOutPort) (CSOUND *csound);
-  
+                       char *o, char *i, int32_t deprec);  
   /**@}*/
   /** @name Placeholders
       To allow the API to grow while maintining backward binary compatibility.

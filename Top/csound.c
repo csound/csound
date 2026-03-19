@@ -370,6 +370,9 @@ static const CSOUND cenviron_ = {
     csoundGetParams,
     csoundGetEnv,
     csoundSystemSr,
+    csoundGetSr,
+    csoundGetKr,
+    csoundGetKcounter,    
     /* channels */
     csoundGetChannelPtr,
     csoundListChannels,
@@ -395,10 +398,12 @@ static const CSOUND cenviron_ = {
     csoundGetTypePool,
     csoundAddVariableType,
     /* memory allocation */
-    csoundAuxalloc,
+    csoundAuxAlloc,
+    csoundAuxAllocAligned,
     csoundAuxAllocAsync,
     csoundMalloc,
     csoundCalloc,
+    csoundCallocAligned,
     csoundRealloc,
     csoundStrdup,
     csoundFree,
@@ -565,6 +570,8 @@ static const CSOUND cenviron_ = {
     csoundSetExternalMidiErrorStringCallback,
     csoundSetMIDIDeviceListCallback,
     csoundModuleListAdd,  // csoundModuleListAdd
+    csoundSendMidiMsg,
+    csoundGetMidiOutPort,
     /* displays & graphs */
     csoundSetDisplay,    // csoundSetDisplay
     csoundDisplay,    // csoundDisplay
@@ -583,11 +590,6 @@ static const CSOUND cenviron_ = {
     csoundSprintf, // csoundSprintf
     csoundSscanf,  // csoundSscanf
     csoundDeprecate,
-    csoundGetSr,
-    csoundGetKr,
-    csoundGetKcounter,
-    csoundSendMidiMsg,
-    csoundGetMidiOutPort,
     /* space for API expansion: 50 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

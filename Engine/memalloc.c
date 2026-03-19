@@ -60,11 +60,18 @@ void my_free(void *old) {
 #define CS_CALLOC mycalloc
 #define CS_REALLOC myrealloc
 #define CS_FREE myfree
+#define CS_ALIGNED_ALLOC(align,size) mycalloc(size, 1)
 #else
 #define CS_MALLOC malloc
 #define CS_CALLOC calloc
 #define CS_REALLOC realloc
 #define CS_FREE free
+
+#if __STDC_VERSION__ >= 201112L
+#define CS_ALIGNED_ALLOC(align,size) aligned_alloc(align,size)
+#else
+#define CS_ALIGNED_ALLOC(align,size) calloc(size, 1)
+#endif
 #endif
 
 /* This code wraps malloc etc with maintaining a list of allocated memory
@@ -147,6 +154,7 @@ void *csoundMalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
     return ans;
 }
 
+
 void *csoundCalloc(CSOUND *csound, size_t size)
 {
     void  *p;
@@ -185,6 +193,39 @@ void *csoundCalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
     csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
+
+void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
+    void  *p;
+
+#ifdef MEMDEBUG
+    if (UNLIKELY(size == (size_t) 0)) {
+      csound->DebugMsg(csound,
+              " *** internal error: csound->Calloc() called with zero nbytes\n");
+      return NULL;
+    }
+#endif
+    /* allocate memory */
+    if (UNLIKELY((p = CS_ALIGNED_ALLOC(align,size+HDR_SIZE)) == NULL)) {
+      csound->ErrorMsg(csound, "CallocAligned failed: ");
+      memdie(csound, size);     /* does longjump */
+    }
+    memset(p,0,size+HDR_SIZE);
+    /* link into chain */
+#ifdef MEMDEBUG
+    ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
+    ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+#endif
+    CSOUND_MEM_SPINLOCK
+    ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
+    ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
+    if (MEMALLOC_DB != NULL)
+      ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
+    MEMALLOC_DB = (void*) p;
+    CSOUND_MEM_SPINUNLOCK
+    /* return with data pointer */
+    return DATA_PTR(p);
+}
+
 
 
 void csoundFree(CSOUND *csound, void *p)

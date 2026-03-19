@@ -29,13 +29,15 @@ extern "C" {
 #endif
   void *csoundMalloc(CSOUND *, size_t);
   void *csoundCalloc(CSOUND *, size_t);
+  void *csoundCallocAligned(CSOUND *, size_t, size_t);  
   void *csoundRealloc(CSOUND *, void *, size_t);
   void csoundFree(CSOUND *, void *);
   void *csoundMalloc_debug(CSOUND *, size_t, char*, int32_t);
   void *csoundCalloc_debug(CSOUND *, size_t, char*, int32_t);
   void *csoundRealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
   void csoundFree_debug(CSOUND *, void *, char*, int32_t);
-  void csoundAuxalloc(CSOUND *, size_t, AUXCH *);
+  void csoundAuxAlloc(CSOUND *, size_t, AUXCH *);
+  void csoundAuxAllocAligned(CSOUND *, size_t, size_t, AUXCH *);
   void auxchfree(CSOUND *, INSDS *);
   int32_t csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
                          AUXASYNC *, aux_cb , void *);
