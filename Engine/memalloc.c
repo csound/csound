@@ -67,7 +67,7 @@ void my_free(void *old) {
 #define CS_REALLOC realloc
 #define CS_FREE free
 
-#ifdef WIN32 || ANDROID
+#if defined(WIN32) || defined(ANDROID)
 #define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
 #else
 #if __STDC_VERSION__ >= 201112L
