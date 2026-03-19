@@ -88,9 +88,14 @@ typedef struct memAllocBlock_s {
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
 } memAllocBlock_t;
+#ifdef ALIGN_MEMORY
+ #define MALIGN (sizeof(MYFLT)-1)
+#else 
+ #define MALIGN 0
+#endif
 
-#define HDR_SIZE    (((int32_t) sizeof(memAllocBlock_t) + 7) & (~7))
-#define ALLOC_BYTES(n)  ((size_t) HDR_SIZE + (size_t) (n))
+#define HDR_SIZE    (((size_t) sizeof(memAllocBlock_t) + 7) & (~7))
+#define ALLOC_BYTES(n)  (((size_t) HDR_SIZE + (size_t) (n) + MALIGN) & (~ MALIGN))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
 

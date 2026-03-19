@@ -232,6 +232,7 @@ option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
 option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
+option(ALIGN_MEMORY "Align memory allocation to MYFLT size" OFF)
 # Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
 set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
 set(CSOUND_BUILD_DATE "" CACHE STRING "Override build date shown in version output (e.g. 2026-02-12)")
@@ -256,6 +257,14 @@ endif()
 if(USE_SHORT_TABLE_LENGTH)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DSHORT_TABLE_LENGTH")
     message(STATUS "Using short max table length")
+endif()
+
+
+if(ALIGN_MEMORY)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DALIGN_MEMORY")
+    message(STATUS "Aligning memory to MYFLT size")
+else()
+    message(STATUS "No memory alignment")
 endif()
 
 
