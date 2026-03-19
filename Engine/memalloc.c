@@ -67,10 +67,15 @@ void my_free(void *old) {
 #define CS_REALLOC realloc
 #define CS_FREE free
 
-#if __STDC_VERSION__ >= 201112L
-#define CS_ALIGNED_ALLOC(align,size) aligned_alloc(align,size)
+#ifdef WIN32
+#include <malloc.h>
+#define CS_ALIGNED_ALLOC(size, align) _aligned_malloc(size, align)
 #else
-#define CS_ALIGNED_ALLOC(align,size) calloc(size, 1)
+#if __STDC_VERSION__ >= 201112L
+#define CS_ALIGNED_ALLOC(size, align) aligned_alloc(align,size)
+#else
+#define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
+#endif
 #endif
 #endif
 
@@ -105,6 +110,7 @@ typedef struct memAllocBlock_s {
 #define ALLOC_BYTES(n)  (((size_t) HDR_SIZE + (size_t) (n) + MALIGN) & (~ MALIGN))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
+#define ALIGN_BYTES(n,a)  (((size_t) (n) + (a-1)) & (~ (a-1)))
 
 #define MEMALLOC_DB (csound->memalloc_db)
 
@@ -205,11 +211,12 @@ void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = CS_ALIGNED_ALLOC(align,size+HDR_SIZE)) == NULL)) {
+    if (UNLIKELY((p = CS_ALIGNED_ALLOC(ALIGN_BYTES(size+HDR_SIZE,align), align)) == NULL)) {
       csound->ErrorMsg(csound, "CallocAligned failed: ");
       memdie(csound, size);     /* does longjump */
     }
-    memset(p,0,size+HDR_SIZE);
+    
+    memset(p,0,ALIGN_BYTES(size+HDR_SIZE,align));
     /* link into chain */
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
