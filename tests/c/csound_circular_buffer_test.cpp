@@ -158,3 +158,20 @@ TEST_F (CircularBufferTests, testWraping)
         ASSERT_EQ (written, 1);
     }
 }
+
+extern "C" {
+void csoundFree(CSOUND *, void *);
+void *csoundCallocAligned(CSOUND *, size_t, size_t);
+}
+  
+TEST_F (CircularBufferTests, testAlignedMemory) {
+  MYFLT *p = (MYFLT *) csoundCallocAligned(csound,sizeof(MYFLT)*10, 32);
+  for(int32_t i = 0; i < 10; i++) {
+    p[i] = (MYFLT) i;
+  }
+
+  for(int32_t i = 0; i < 10; i++) {
+    ASSERT_EQ(i, (int32_t) p[i]);
+    }
+  csoundFree(csound, p);
+}

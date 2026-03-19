@@ -60,11 +60,22 @@ void my_free(void *old) {
 #define CS_CALLOC mycalloc
 #define CS_REALLOC myrealloc
 #define CS_FREE myfree
+#define CS_ALIGNED_ALLOC(align,size) mycalloc(size, 1)
 #else
 #define CS_MALLOC malloc
 #define CS_CALLOC calloc
 #define CS_REALLOC realloc
 #define CS_FREE free
+
+#if defined(WIN32) || defined(ANDROID)
+#define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
+#else
+#if __STDC_VERSION__ >= 201112L
+#define CS_ALIGNED_ALLOC(size, align) aligned_alloc(align,size)
+#else
+#define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
+#endif
+#endif
 #endif
 
 /* This code wraps malloc etc with maintaining a list of allocated memory
@@ -88,11 +99,17 @@ typedef struct memAllocBlock_s {
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
 } memAllocBlock_t;
+#ifdef ALIGN_MEMORY
+ #define MALIGN (sizeof(MYFLT)-1)
+#else 
+ #define MALIGN 0
+#endif
 
-#define HDR_SIZE    (((int32_t) sizeof(memAllocBlock_t) + 7) & (~7))
-#define ALLOC_BYTES(n)  ((size_t) HDR_SIZE + (size_t) (n))
+#define HDR_SIZE    (((size_t) sizeof(memAllocBlock_t) + 7) & (~7))
+#define ALLOC_BYTES(n)  (((size_t) HDR_SIZE + (size_t) (n) + MALIGN) & (~ MALIGN))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
+#define ALIGN_BYTES(n,a)  (((size_t) (n) + (a-1)) & (~ (a-1)))
 
 #define MEMALLOC_DB (csound->memalloc_db)
 
@@ -142,6 +159,7 @@ void *csoundMalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
     return ans;
 }
 
+
 void *csoundCalloc(CSOUND *csound, size_t size)
 {
     void  *p;
@@ -180,6 +198,40 @@ void *csoundCalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
     csound->DebugMsg(csound, "Alloc %p (%zu) %s:%d\n", ans, size, file, line);
     return ans;
 }
+
+void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
+    void  *p;
+
+#ifdef MEMDEBUG
+    if (UNLIKELY(size == (size_t) 0)) {
+      csound->DebugMsg(csound,
+              " *** internal error: csound->Calloc() called with zero nbytes\n");
+      return NULL;
+    }
+#endif
+    /* allocate memory */
+    if (UNLIKELY((p = CS_ALIGNED_ALLOC(ALIGN_BYTES(size+HDR_SIZE,align), align)) == NULL)) {
+      csound->ErrorMsg(csound, "CallocAligned failed: ");
+      memdie(csound, size);     /* does longjump */
+    }
+    
+    memset(p,0,ALIGN_BYTES(size+HDR_SIZE,align));
+    /* link into chain */
+#ifdef MEMDEBUG
+    ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
+    ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+#endif
+    CSOUND_MEM_SPINLOCK
+    ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
+    ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
+    if (MEMALLOC_DB != NULL)
+      ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
+    MEMALLOC_DB = (void*) p;
+    CSOUND_MEM_SPINUNLOCK
+    /* return with data pointer */
+    return DATA_PTR(p);
+}
+
 
 
 void csoundFree(CSOUND *csound, void *p)
