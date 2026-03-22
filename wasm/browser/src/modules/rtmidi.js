@@ -76,9 +76,12 @@ export const csoundGetMidiOutFileName = (wasm) => (csound /* CsoundInst */) => {
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-export const _isRequestingRtMidiInput = (wasm) => (csound /* CsoundInst */) => {
+export const isRequestingRtMidiInput = (wasm) => (csound /* CsoundInst */) => {
   return wasm.exports["isRequestingRtMidiInput"](csound);
 };
+
+// Backwards-compatibility alias
+export const _isRequestingRtMidiInput = isRequestingRtMidiInput;
 
 /**
  * Emit a midi message with a given triplet of values

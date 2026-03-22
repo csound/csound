@@ -103,12 +103,12 @@ const sabCreateRealtimeAudioThread =
     }
 
     // Prompt for midi-input on demand
-    const isRequestingRtMidiInput = libraryCsound["_isRequestingRtMidiInput"](csound);
+    const isRequestingRtMidiInput = libraryCsound["isRequestingRtMidiInput"](csound);
 
     // Prompt for microphone only on demand!
     const isExpectingInput =
       Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I) === 0 &&
-      libraryCsound.csoundGetInputName(csound).includes("adc");
+      libraryCsound.isRequestingRtAudioInput(csound);
 
     const nchnls = libraryCsound.csoundGetNchnls(csound);
 

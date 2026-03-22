@@ -100,9 +100,10 @@ class VanillaWorkerMainThread {
     }
 
     this.audioWorker.sampleRate = await this.exportApi.getSr(this.csoundInstance);
-    const inputName = await this.exportApi.getInputName(this.csoundInstance);
-    this.audioWorker.isRequestingInput = inputName.includes("adc");
-    this.audioWorker["isRequestingMidi"] = await this.exportApi["_isRequestingRtMidiInput"](
+    this.audioWorker.isRequestingInput = await this.exportApi["isRequestingRtAudioInput"](
+      this.csoundInstance,
+    );
+    this.audioWorker["isRequestingMidi"] = await this.exportApi["isRequestingRtMidiInput"](
       this.csoundInstance,
     );
     this.audioWorker.outputsCount = await this.exportApi.getNchnls(this.csoundInstance);

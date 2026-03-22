@@ -243,6 +243,21 @@ int isRequestingRtMidiInput(CSOUND *csound) {
 }
 
 __attribute__((used))
+int isRequestingRtAudioInput(CSOUND *csound) {
+  const char *inputName = csoundGetInputName(csound);
+  if (inputName == NULL) {
+    return 0;
+  }
+
+  // Check if the input name contains "adc" (real-time audio input)
+  if (strstr(inputName, "adc") != NULL) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+__attribute__((used))
 char* getRtMidiName(CSOUND *csound) {
   char *name = (char *) csoundQueryGlobalVariable(csound, "_RTMIDI");
   return name == NULL ? emptyString : name;
