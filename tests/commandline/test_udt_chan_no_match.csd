@@ -4,6 +4,11 @@
 </CsOptions>
 <CsInstruments>
 
+; Expected failure test.
+; Writes one UDT layout to a generic channel, then attempts to read it
+; back as a different UDT layout. The init-time type mismatch is the
+; assertion, so test.py expects a nonzero exit status.
+
 struct Test1 var:i, var2:k
 struct Test2 var1:i, var2:i
 
