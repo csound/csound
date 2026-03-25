@@ -263,6 +263,18 @@ ERSTR           "}R"
                       return T_IDENT;
                     }
                   }
+  
+  [ \t]*          /* eat the whitespace */
+  {TYPED_IDENTIFIER}/[ \t]*   { char *pp = yytext;
+                    while (*pp==' ' || *pp=='\t') pp++;
+                    *lvalp = make_token(csound, pp, yyscanner);
+                    if (strcmp(pp, "in") == 0) {
+                      BEGIN(INITIAL);
+                      return IN_TOKEN;
+                    } else {
+                      return T_TYPED_IDENT;
+                    }
+                  }
 }
 
 "\{\{"          {

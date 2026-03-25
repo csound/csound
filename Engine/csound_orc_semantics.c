@@ -3643,7 +3643,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       atype[strlen(atype)-1] = '\0'; // remove ']'
       typ = remove_type_quoting(csound, atype);
       if(var == NULL) {
-       // now create the arg based on the array type
+       // check for optype
+        if(current->left->value->optype != NULL) typ = current->left->value->optype;        
+       // now create the arg based on the detected type
        add_arg(csound, current->left->value->lexeme, typ,
 	       typeTable, current);
        } else {
