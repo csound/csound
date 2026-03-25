@@ -730,6 +730,7 @@ def runTest():
             "test what breaking example with structs",
             1,
         ],
+        ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
     ]
 

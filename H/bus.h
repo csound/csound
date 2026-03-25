@@ -127,7 +127,7 @@ extern "C" {
     ARRAYDAT *idim;
     spin_lock_t *lock;
   } CHN_OPCODE_ARRAY;
-  
+
   typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
@@ -220,7 +220,7 @@ extern "C" {
   int32_t     chnget_opcode_init_ARRAY(CSOUND *, CHNGET *);
   int32_t     chnset_opcode_init_ARRAY(CSOUND *, CHNGET *);
   int32_t     chnclear_opcode_init_ARRAY(CSOUND *, CHNCLEAR *);
- 
+
 
   int32_t kinval(CSOUND *csound, INVAL *p);
   int32_t kinvalS(CSOUND *csound, INVAL *p);
@@ -239,7 +239,9 @@ extern "C" {
   int32_t outvalsetgo(CSOUND *csound, OUTVAL *p);
   int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p);
   int32_t chnget_opcode_generic_init(CSOUND *csound, CHNGET *p);
+  int32_t chnget_opcode_generic_init_k(CSOUND *csound, CHNGET *p);
   int32_t chnset_opcode_generic_init(CSOUND *csound, CHNGET *p);
+  int32_t chnset_opcode_generic_init_k(CSOUND *csound, CHNGET *p);
   int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p);
   int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p);
 #ifdef __cplusplus
