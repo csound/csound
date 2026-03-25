@@ -2371,7 +2371,7 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     switch (current->type) {
     case T_ARRAY_IDENT:
-      
+
       varName = current->value->lexeme;
       add_array_arg(csound, varName, current->value->optype,
                     tree_arg_list_count(current->right), typeTable);
@@ -2394,23 +2394,23 @@ int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       break;
 
     case T_ARRAY:
-      
+
       varName = current->left->value->lexeme;
       // check if the array variable exists, it needs to be declared
       arrvar = find_var_from_pools(csound, varName, varName, typeTable);
       if(arrvar == NULL) {
-        synterr(csound,"cannot find array variable %s, line %d", 
+        synterr(csound,"cannot find array variable %s, line %d",
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
       // & needs to be an array or asigs
       if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
          arrvar->varType != &CS_VAR_TYPE_A) {
-        synterr(csound,"variable %s is not an array, line %d", 
+        synterr(csound,"variable %s is not an array, line %d",
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
-     
+
       add_arg(csound, varName, current->left->value->optype,
               typeTable, current);
       break;
@@ -2805,8 +2805,8 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, name);
     }
 
-    csoundMessage(csound, Str("\nLine: %d\n"
-                              " columns %d-%d"),
+    csoundMessage(csound, Str("\nLine: %d "
+                              " columns %d-%d\n"),
                   root->line,
                   root->value->first_column,
                   root->value->last_column);
@@ -3066,6 +3066,7 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
   }
 
   if (varDest->members == NULL || varSrc->members == NULL) {
+    csound->Message(csound, "struct not initialised - cannot copy\n");
     return;  // Can't copy if members aren't initialized
   }
 
@@ -3231,6 +3232,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   }
 
   OENTRY oentry;
+  memset(&oentry, 0, sizeof(OENTRY));
   memset(temp, 0, 256);
 
   // Extract plain struct name from internal format (:name;) for opcode name

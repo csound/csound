@@ -665,6 +665,8 @@ def runTest():
             "test keyword spacing (if(, elseif(, etc.)",
         ],
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
+        ["test_generic_chan.csd", "testing generic bus channel"],
+        ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
     ]
 
     arrayTests = [
@@ -730,6 +732,9 @@ def runTest():
             "test what breaking example with structs",
             1,
         ],
+        ["test_exitnowk.csd", "perf-time exitnow opcode"],
+        ["test_udt_channel.csd", "testing user-defined type channel"],
+        ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],
     ]
 
     udoTests = [

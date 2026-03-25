@@ -7,7 +7,8 @@
 opcode assert,0,kk
 k1, k2 xin
 if k1 != k2 then
- event "i", 2, 0, 0
+ prints "assert error\n"
+ exitnowk(-1)
 endif
 endop
 
@@ -23,11 +24,6 @@ instr 1
  Cb:Complex[] = Ca + Ca
  cc:Complex = Ca[0]
  assert(abs(cc), 1)
-endin
-
-instr 2
-prints "assert error\n"
-exitnow(-1)
 endin
 
 </CsInstruments>

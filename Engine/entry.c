@@ -220,7 +220,7 @@ const OENTRY opcodlst_1[] = {
   { "||",     S(LOGCL),0,  /* 0,*/     "b",    "bb",   or,     NULL             },
   { "||.0",     S(LOGCL),0,  /* 0,*/       "B",    "BB",   NULL,     or              },
   /* end boolean */
-  /** These "cond" opcodes are not used anymore, but the entries are - for tree checking 
+  /** These "cond" opcodes are not used anymore, but the entries are - for tree checking
       the code needs to be changed so it doesn't depend on these entries anymore
   */
   { ":cond.i",     0,0,        "i",    "bii" },
@@ -674,7 +674,7 @@ const OENTRY opcodlst_1[] = {
   { "genarray_i", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL, NULL, 2},
   { "genarrayi", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
   { "maparray.i", sizeof(TABMAP), 0, "i[]", "i[]S", (SUBR) tabmap_set },
-  { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set, NULL, NULL, NULL, 2},  
+  { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set, NULL, NULL, NULL, 2},
   { "maparrayi", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },  /* Alias */
   { "maparray.k", sizeof(TABMAP), 0, "k[]", "k[]S", (SUBR) tabmap_set,
     (SUBR) tabmap_perf          },
@@ -1905,6 +1905,12 @@ const OENTRY opcodlst_1[] = {
     (SUBR) chnget_opcode_init_a, (SUBR) notinit_opcode_stub },
   { "chnget.S",    S(CHNGET),_CR,                 "S",            "S",
     (SUBR) chnget_opcode_init_S, (SUBR) chnget_opcode_perf_S, NULL},
+  { "chnget.generic",    S(CHNGET),_CR, ".",            "S",
+    (SUBR) chnget_opcode_generic_init,  (SUBR) chnget_opcode_generic_perf, NULL},
+  { "chngeti.generic",    S(CHNGET),_CR, ".",            "S",
+    (SUBR) chnget_opcode_generic_init, NULL, NULL},
+  { "chngetk.generic",    S(CHNGET),_CR, ".",            "S",
+    (SUBR) chnget_opcode_generic_init_k, (SUBR) chnget_opcode_generic_perf, NULL},
   { "chnget.i[]",    S(CHNGET), _CR,                 "i[]",            "S",
     (SUBR) chnget_opcode_init_ARRAY, NULL, NULL},
   { "chnget.k[]",    S(CHNGET), _CR,                 "k[]",            "S",
@@ -1933,6 +1939,12 @@ const OENTRY opcodlst_1[] = {
     (SUBR) chnset_opcode_init_a, (SUBR) notinit_opcode_stub },
   { "chnset.S",    S(CHNGET),_CW,                 "",             "SS",
     (SUBR) chnset_opcode_init_S, (SUBR) chnset_opcode_perf_S, NULL },
+  { "chnset.generic",    S(CHNGET),_CW,                 "",             ".S",
+    (SUBR) chnset_opcode_generic_init, (SUBR) chnset_opcode_generic_perf, NULL },
+  { "chnseti.generic",    S(CHNGET),_CW,                 "",             ".S",
+    (SUBR) chnset_opcode_generic_init, NULL, NULL },
+  { "chnsetk.generic",    S(CHNGET),_CW,                 "",             ".S",
+    (SUBR) chnset_opcode_generic_init_k, (SUBR) chnset_opcode_generic_perf, NULL },
   { "chnset.i[]",    S(CHNGET), _CR,                 "",            "i[]S",
     (SUBR) chnset_opcode_init_ARRAY, NULL, NULL},
   { "chnset.k[]",    S(CHNGET), _CR,                 "",            "k[]S",
@@ -1942,7 +1954,7 @@ const OENTRY opcodlst_1[] = {
   { "chnset.S[]",    S(CHNGET), _CR,                 "",            "S[]S",
     (SUBR) chnset_opcode_init_ARRAY, (SUBR) notinit_opcode_stub, NULL},
   { "chnset..[]",    S(CHNGET), _CR,                 "",            ".[]S",
-    (SUBR) chnset_opcode_init_ARRAY, (SUBR) notinit_opcode_stub, NULL},  
+    (SUBR) chnset_opcode_init_ARRAY, (SUBR) notinit_opcode_stub, NULL},
   { "chnsetks",    S(CHNGET),_CW,                  "",             "SS",
     NULL, (SUBR) chnset_opcode_perf_S, NULL },
   { "chnmix",      S(CHNGET),           _CB,       "",             "aS",

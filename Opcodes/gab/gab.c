@@ -428,7 +428,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
       p->inerr = 1;
       return csound->InitError(csound, "%s", Str("adsynt2: wavetable not found!"));
     }
-    p->floatph = !IS_POW_TWO(ftp->flen);    
+    p->floatph = !IS_POW_TWO(ftp->flen);
   count = (uint32_t)*p->icnt;
   if (UNLIKELY(count < 1)) count = 1;
   p->count = count;
@@ -484,7 +484,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   if (p->pamp.auxp==NULL ||
       p->pamp.size < (uint32_t)(sizeof(MYFLT)*p->count))
     csound->AuxAlloc(csound, sizeof(MYFLT)*p->count, &p->pamp);
-  
+
   if(*p->iphs >= 0) {
   // linear
   if(!*p->interp) memset(p->pamp.auxp, 0, sizeof(MYFLT)*p->count);
@@ -552,16 +552,16 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
         amp2 = amp2 > 0 ? amp2 : odbfs*0.0001;
         ampIncr = pow(amp/amp2, CS_ONEDKSMPS);
       }
-      
+
       if(!floatph) {
        inc = (int32) (cps * CS_SICVT);
        phs = lphs[c];
       } else {
-      incf = (cps * CS_ONEDSR);   
+      incf = (cps * CS_ONEDSR);
       phsf = fphs[c];
       }
       for (n=offset; n<nsmps; n++) {
-        
+
         if(!floatph) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp2;
         phs += inc;
@@ -572,11 +572,11 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
         }
         if(!interp)
           amp2 += ampIncr;
-        else 
-          amp2 *= ampIncr;     
+        else
+          amp2 *= ampIncr;
       }
       prevAmp[c] = amp;
-      
+
       if(!floatph) lphs[c] = phs;
       else fphs[c] = phsf;
     }
@@ -977,6 +977,7 @@ OENTRY gab_localops[] = {
   { "adsynt2",S(ADSYNT2),TR,     "a",     "kkiiiioo",
                             (SUBR) adsynt2_set, (SUBR)adsynt2 },
   { "exitnow",S(EXITNOW),   0,     "",  "o", (SUBR) exitnow, NULL, NULL },
+  { "exitnowk",S(EXITNOW),  0,     "",  "k", NULL, (SUBR) exitnow, NULL },
   { "tabrec",   S(TABREC),  TW,      "",      "kkkkz",
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR,      "",      "kkkz",

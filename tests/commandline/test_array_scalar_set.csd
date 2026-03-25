@@ -10,12 +10,8 @@ instr 1
 arr:k[][] init 2, 10
 arr = 1
 if arr[1][9] != 1 then
-  event "i", 2, 0, 0
+  exitnowk(-1)
 endif
-endin
-
-instr 2
-exitnow(-1)
 endin
 
 </CsInstruments>
