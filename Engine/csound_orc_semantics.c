@@ -3644,8 +3644,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       typ = remove_type_quoting(csound, atype);
       if(var == NULL) {
        // check for optype
-        if(current->left->value->optype != NULL) typ = current->left->value->optype;        
-       // now create the arg based on the detected type
+        if(current->left->value->optype != NULL) {
+          csoundFree(csound, typ);
+          typ = csoundStrdup(csound, current->left->value->optype);
+        }
+       // now create the arg based on the array type
        add_arg(csound, current->left->value->lexeme, typ,
 	       typeTable, current);
        } else {
@@ -3675,6 +3678,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 			    var->varType->varTypeName, current->line);
           }
 	}
+       csoundFree(csound, typ);
        typ = csoundStrdup(csound, var->varType->varTypeName);
       }
       LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
