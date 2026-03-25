@@ -51,8 +51,8 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     sfname = soundiname;
     if (strcmp(sfname, "-i") == 0) {    /* get info on the -i    */
       if (UNLIKELY(!csound->oparms->infilename)) {  /* commandline inputfile */
-        return
-          csound->InitError(csound, Str("no infile specified in the commandline"));
+          csound->Message(csound, Str("no infile specified in the commandline"));
+          return 0;
       }
       sfname = csound->oparms->infilename;
     }
@@ -61,7 +61,8 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       s = csoundFindInputFile(csound, sfname, "SADIR");
       if (UNLIKELY(s == NULL)) {
         /* RWD 5:2001 better to exit in this situation ! */
-        return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+        csound->Message(csound, Str("diskinfo cannot open %s"), sfname);
+        return 0;
       }
     }
     sfname = s;                         /* & record fullpath filnam */
@@ -143,11 +144,14 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
 int32_t filelen(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
+    int32_t res = getsndinfo(csound, p, &hdr, 0);
 
-    if (getsndinfo(csound, p, &hdr, 0))
+    if (res)
       *(p->r1) = (MYFLT)((int32_t)hdr.frames) / (MYFLT)hdr.samplerate;
-    else
+    else {
       *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }
 
     return OK;
 }
@@ -155,11 +159,15 @@ int32_t filelen(CSOUND *csound, SNDINFO *p)
 int32_t filelen_S(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
+    int32_t res = getsndinfo(csound, p, &hdr, 1);
 
-    if (getsndinfo(csound, p, &hdr, 1))
+    if (res)
       *(p->r1) = (MYFLT)((int32_t)hdr.frames) / (MYFLT)hdr.samplerate;
-    else
+    else {
       *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }
+
 
     return OK;
 }
@@ -167,20 +175,28 @@ int32_t filelen_S(CSOUND *csound, SNDINFO *p)
 int32_t filenchnls_S(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
-
-    getsndinfo(csound, p, &hdr, 1);
+    int32_t res = getsndinfo(csound, p, &hdr, 1);
+    
+    if (res)    
     *(p->r1) = (MYFLT)hdr.channels;
-
+    else {
+      *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }
     return OK;
 }
 
 int32_t filesr_S(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
-
-    getsndinfo(csound, p, &hdr, 1);
+    int32_t res = getsndinfo(csound, p, &hdr, 1);
+    
+    if (res)  
     *(p->r1) = (MYFLT)hdr.samplerate;
-
+    else {
+      *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }
     return OK;
 }
 
@@ -188,8 +204,9 @@ int32_t filebit_S(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
     int32_t bits, format;
-
-    getsndinfo(csound, p, &hdr, 1);
+    int32_t res = getsndinfo(csound, p, &hdr, 1);
+    
+    if (res) {  
     format = TYPE2ENC(hdr.format);
     if (format < 5)
       bits = format*8 ;
@@ -197,9 +214,12 @@ int32_t filebit_S(CSOUND *csound, SNDINFO *p)
     else if (format == 6) bits = -1;
     else if (format == 7) bits = -2;
     else bits = -format; /* non-PCM data */
-
     *(p->r1) = (MYFLT) bits;
-
+    }
+    else {
+      *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }    
     return OK;
 }
 
@@ -207,20 +227,27 @@ int32_t filebit_S(CSOUND *csound, SNDINFO *p)
 int32_t filenchnls(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
-
-    getsndinfo(csound, p, &hdr, 0);
+    int32_t res = getsndinfo(csound, p, &hdr, 0);
+    
+    if (res)    
     *(p->r1) = (MYFLT)hdr.channels;
-
+    else {
+      *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }
     return OK;
 }
 
-int32_t filesr(CSOUND *csound, SNDINFO *p)
-{
+int32_t filesr(CSOUND *csound, SNDINFO *p) {
     SFLIB_INFO hdr;
-
-    getsndinfo(csound, p, &hdr, 0);
+    int32_t res = getsndinfo(csound, p, &hdr, 0);
+    
+    if (res)  
     *(p->r1) = (MYFLT)hdr.samplerate;
-
+    else {
+      *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }
     return OK;
 }
 
@@ -228,8 +255,9 @@ int32_t filebit(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
     int32_t bits, format;
-
-    getsndinfo(csound, p, &hdr, 0);
+    int32_t res = getsndinfo(csound, p, &hdr, 0);
+    
+    if (res) {  
     format = TYPE2ENC(hdr.format);
     if (format < 5)
       bits = format*8 ;
@@ -237,9 +265,12 @@ int32_t filebit(CSOUND *csound, SNDINFO *p)
     else if (format == 6) bits = -1;
     else if (format == 7) bits = -2;
     else bits = -format; /* non-PCM data */
-
     *(p->r1) = (MYFLT) bits;
-
+    }
+    else {
+      *(p->r1) = FL(0.0);
+      return csound->InitError(csound, "error reading input file\n");
+    }    
     return OK;
 }
 
