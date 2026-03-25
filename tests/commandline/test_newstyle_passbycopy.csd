@@ -1,6 +1,6 @@
 <CsoundSynthesizer>
 <CsOptions>
--n 
+-n
 </CsOptions>
 <CsInstruments>
 0dbfs=1
@@ -53,13 +53,9 @@ if (krms1 + krms2 + krms3) > 0 then
   printk2 krms1
   printk2 krms2
   printk2 krms3
-  event "i", 2, 0, 0
+  exitnowk(-1)
 endif
 turnoff
-endin
-
-instr 2
-exitnow(-1)
 endin
 
 </CsInstruments>

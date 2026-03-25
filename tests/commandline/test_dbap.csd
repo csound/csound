@@ -106,22 +106,14 @@ instr 4
     for g in gains do
         if (g != 0.5) then
             printf("[FAIL] Center source test failed, gain should be 0.5 for each channel\n", 1)
-            schedulek("ExitError", 0, 1)
+            exitnowk(-1)
         endif
     od
 
     printf("[PASS] Center source test passed without errors\n", 1)
     printf("[DONE] All tests: OK\n", 1)
-    schedulek("ExitSuccess", 0, 1)
+    exitnowk(0)
 
-endin
-
-instr ExitError
-    exitnow(-1)
-endin
-
-instr ExitSuccess
-    exitnow(0)
 endin
 
 
