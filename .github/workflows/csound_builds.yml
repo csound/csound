@@ -218,7 +218,7 @@ jobs:
         run: cmake --build build --config Debug
 
       - name: Run unit tests
-        run: cmake --build build --target csdtests test 
+        run: cmake --build build --target csdtests test
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -235,7 +235,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew update  
+          brew update
           brew install --cask gcc-arm-embedded
           brew install bison flex
 
@@ -319,7 +319,7 @@ jobs:
           cmake --build build --config Release
           cmake --build build --target install
 
-      - name: Adjust ctcsound library load path 
+      - name: Adjust ctcsound library load path
         run: sed -i -e 's$ctypes.util.find_library("CsoundLib64")$"/Applications/Csound/Csound64.framework/CsoundLib64"$g' Python/ctcsound.py
 
       - name: Adjust link paths in libraries
@@ -330,9 +330,9 @@ jobs:
           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
           install_name_tool -change @rpath/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/librtpa.dylib
-          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portaudio_install/lib/libportaudio.dylib          
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portaudio_install/lib/libportaudio.dylib
           install_name_tool -change @rpath/liblo.7.dylib @loader_path/../../../../libs/liblo.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libosc.dylib
-          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib          
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib
 
       - name: Build installer
         run: |
@@ -341,7 +341,11 @@ jobs:
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp portaudio_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
-          cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
+          cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+          mkdir -p csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake
+          cp csound_install/share/csound/CsoundConfig.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+          cp csound_install/share/csound/CsoundConfigVersion.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+          cp csound_install/share/csound/FindCsound.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
@@ -523,6 +527,9 @@ jobs:
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
 
+      - name: Install Csound (for cmake package files)
+        run: cmake --install build --prefix build\install --config Release
+
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
@@ -596,6 +603,9 @@ jobs:
 
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
+
+      - name: Install Csound (for cmake package files)
+        run: cmake --install build --prefix build\install --config Release
 
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'
@@ -881,7 +891,7 @@ jobs:
           path: Android/csound-android-${{env.CSOUND_VERSION}}
 
   publish_artifacts:
-    # 
+    #
     if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest

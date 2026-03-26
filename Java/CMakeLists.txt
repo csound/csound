@@ -20,12 +20,12 @@ if(BUILD_JAVA_INTERFACE)
         list(APPEND CMAKE_SWIG_FLAGS "-DUSE_DOUBLE")
     endif(USE_DOUBLE)
     set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
-   
+
 
     # The java package needs this unset or it will litter us with .java files
     unset(CMAKE_SWIG_OUTDIR)
 
-         if(APPLE) 
+         if(APPLE)
              get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
         else()
             set(JAVA_MODULE_INSTALL_DIR_DEFAULT ${LIBRARY_INSTALL_DIR})
@@ -43,9 +43,9 @@ if(BUILD_JAVA_INTERFACE)
                                         ../H/cs_glue.hpp ../include/csPerfThread.hpp)
 
         if(COMMAND SWIG_ADD_LIBRARY)
-            SWIG_ADD_LIBRARY(_jcsound7 
-                TYPE MODULE 
-                LANGUAGE java 
+            SWIG_ADD_LIBRARY(_jcsound7
+                TYPE MODULE
+                LANGUAGE java
                 SOURCES java_interface.i cs_glue.cpp)
  	    else()
 	        SWIG_ADD_MODULE(_jcsound7 java java_interface.i)
@@ -58,13 +58,13 @@ if(BUILD_JAVA_INTERFACE)
         if (JNI_JVM_FOUND)
             target_link_libraries(_jcsound7 PRIVATE JNI::JVM)
         endif()
-        
+
         if(LINUX)
         set_target_properties(${SWIG_MODULE__jcsound7_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function"
             LINK_FLAGS "-Wl,-soname,lib_jcsound.so.1"
             )
-         message(STATUS "Setting soname")   
+         message(STATUS "Setting soname")
          endif()
          if (APPLE)
           set_target_properties(${SWIG_MODULE__jcsound7_REAL_NAME}
@@ -88,7 +88,6 @@ if(BUILD_JAVA_INTERFACE)
          endif()
 
         install(TARGETS _jcsound7
-            EXPORT CsoundExports
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${JAVA_MODULE_INSTALL_DIR}")
         install(FILES ${BUILD_LIB_DIR}/csnd7.jar
