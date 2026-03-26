@@ -622,6 +622,24 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $5->right = $8;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
         }
+         | FOR_TOKEN typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          $3->left = $4;
+          $3->right = $6;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN,
+                         make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
+                                   lookup_token(csound, $2->value->lexeme, NULL)), $3);
+        }
+         | FOR_TOKEN typed_identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          
+          $5->left = $6;
+          $5->right = $8;
+          $$ = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
+                         lookup_token(csound, $2->value->lexeme, NULL));
+          $$->next = $4;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
+          }
         ;
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE

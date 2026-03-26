@@ -14,7 +14,7 @@ seed(0)
 */
 
 /* case 1
-   loop var is not declared
+   loop var is not declared and type not given
    loop type follows array type
    (i-type in this case)
 */
@@ -25,14 +25,14 @@ od
 endin
 
 /* case 2
-   loop var is declared
+   loop var is either previously declared or
+   the variable type is given explicitly
    loop type follows var type
    if a conversion is possible (e.g. k and i)
    regardless of array type
 */
 instr 2
-j:k init 0
-for j in [1,2,3] do
+for j:k in [1,2,3] do
  printk2 j
 od
 turnoff
