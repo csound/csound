@@ -58,7 +58,7 @@ TEST_F (ChannelTests, ControlChannel)
 {
     csoundCompileOrc(csound, orc1);
     ASSERT_TRUE(csoundStart(csound) == CSOUND_SUCCESS);
-    //csoundSetControlChannel(csound, "testing", 5.0);
+    csoundSetControlChannel(csound, "testing", 5.0);
     //ASSERT_EQ(5.0, csoundGetControlChannel(csound, "testing", NULL));
 }
 
