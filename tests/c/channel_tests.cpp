@@ -22,7 +22,7 @@ public:
     {
       csound = csoundCreate (NULL, NULL);
       csoundCreateMessageBuffer (csound, 0);
-      csoundSetOption (csound, "--logfile=NULL");
+      csoundSetOption (csound, "-n");
     }
 
     virtual void TearDown ()
@@ -300,4 +300,31 @@ TEST_F (ChannelTests, StringChannel)
     ASSERT_STREQ(string, "strchan3_val");
 
     delete [] string;
+}
+
+const char orc7[] = R"ORC(
+ chnset 1, "1"
+ chnset 0, "2"
+
+ instr 1
+  k1 chnget "2"
+  chnset k1, "1"
+ endin
+ schedule(1,0,1)
+
+)ORC";
+
+TEST_F (ChannelTests, ChannelVariable)
+{
+    csoundCompileOrc(csound, orc7);
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    const CS_VARIABLE *var = csoundGetChannel(csound, "1");
+    MYFLT val = csoundGetControlChannel(csound, "2", &err);
+    ASSERT_EQ(val, 0.0);
+    err = csoundSetChannel(csound, "2", var);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    val = csoundGetControlChannel(csound, "1", &err);
+    ASSERT_EQ(val, 1.0);
 }

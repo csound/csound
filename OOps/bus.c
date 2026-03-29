@@ -397,8 +397,9 @@ void set_channel_data_ptr(CSOUND *csound,
 static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                            const char *name, int32_t type){
   CHNENTRY      *pp;
-  int32_t           dsize = 0;
-  const CS_TYPE *varType;
+  int32_t       dsize = 0;
+  char      *datap;
+  const CS_TYPE *varType;  
   switch (type & CSOUND_CHANNEL_TYPE_MASK) {
   case CSOUND_CONTROL_CHANNEL:
     dsize = sizeof(MYFLT);
@@ -421,7 +422,6 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     varType = &CS_VAR_TYPE_ARRAY;
     break;
   case CSOUND_VAR_CHANNEL: // generic
-    dsize = 0;
     varType = NULL;
     break;
   default:  // no match
@@ -432,20 +432,35 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                    (size_t) sizeof(CHNENTRY)
                                    + strlen(name) + 1);
   if (pp == NULL) return (CHNENTRY*) NULL;
-  if(dsize)
-    pp->data = (MYFLT *) csound->Calloc(csound, dsize);
-  else
-    pp->data = NULL;
 
-  if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_STRING_CHANNEL) {
-    ((STRINGDAT*) pp->data)->size = 128;
-    ((STRINGDAT*) pp->data)->data = csound->Calloc(csound, 128 * sizeof(char));
-  }
-
+  if(varType) {
+    // if we know the type, create the var to wrap it
+    pp->var = varType->createVariable(csound, (void*) varType, NULL);
+    if (UNLIKELY(pp->var == NULL)) {
+      csound->InitError(csound, "failed to create channel variable for type %s\n",
+                        varType->varTypeName);
+      csoundFree(csound, pp);
+      return NULL;
+    }
+    pp->var->varType = varType;
+    // set the channel varMem size and use it to alloc channel data
+    pp->var->memBlockSize = dsize; 
+    dsize = CS_VAR_TYPE_OFFSET + pp->var->memBlockSize; 
+    datap = (char *) csound->Calloc(csound, dsize);
+    // channel data is aliased to varMem value
+    pp->data = (MYFLT *) (datap + sizeof(CS_TYPE *));
+    pp->var->memBlock = (CS_VAR_MEM *) datap;
+    pp->var->memBlock->varType = varType;
+    if (pp->var->initializeVariableMemory != NULL)
+      pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
+    if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_STRING_CHANNEL) {
+      ((STRINGDAT*) pp->data)->size = 128;
+      ((STRINGDAT*) pp->data)->data = csound->Calloc(csound, 128 * sizeof(char));
+    }
+    pp->datasize = dsize;
+  } // otherwise setup is incomplete, will be finished up later
+  
   csoundSpinLockInit(&pp->lock);
-  pp->datasize = dsize;
-  pp->varType = varType;
-
   return (CHNENTRY*) pp;
 }
 
@@ -486,15 +501,15 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
 
 const char *csoundGetChannelVarTypeName(CSOUND *csound, const char *name) {
   CHNENTRY *pp = find_channel(csound, name);
-  if(pp && pp->varType)
-    return pp->varType->varTypeName;
+  if(pp && pp->var)
+    return pp->var->varType->varTypeName;
   else return NULL;
 }
 
 const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name) {
   CHNENTRY *pp = find_channel(csound, name);
   if(pp)
-    return pp->varType;
+    return pp->var->varType;
   else return NULL;
 }
 
@@ -731,26 +746,31 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
 
   pp->type |= accessMode;
 
-  if(pp->datasize == 0) {
+  if(pp->var == NULL) {
+    char *datap;
     // channel exists but not set up
-    CS_VARIABLE *var = argtype->createVariable(csound, (void*) argtype,
+    
+     pp->var = argtype->createVariable(csound, (void*) argtype,
                                                p->h.insdshead);
-    if (UNLIKELY(var == NULL)) {
+    if (UNLIKELY(pp->var == NULL)) {
       csound->InitError(csound, "failed to create channel storage for type %s\n",
                         argtype->varTypeName);
       return NULL;
     }
-    pp->varType = argtype;
+    pp->var->varType = argtype;
     // allocate memory
-    pp->datasize = var->memBlockSize;
-    pp->data = csoundCalloc(csound, pp->datasize);
-    if (UNLIKELY(pp->data == NULL)) {
+    pp->datasize = pp->var->memBlockSize;
+    datap  = (char *) csoundCalloc(csound, pp->datasize + CS_VAR_TYPE_OFFSET);
+    if (UNLIKELY(datap == NULL)) {
       csound->InitError(csound, "memory allocation failure");
       return NULL;
     }
-    if (var->initializeVariableMemory != NULL)
-      var->initializeVariableMemory(csound, var, pp->data);
-  } else if(pp->varType != argtype) {
+    pp->data = (MYFLT *) (datap + sizeof(CS_TYPE *));
+    pp->var->memBlock = (CS_VAR_MEM *) datap;
+    pp->var->memBlock->varType = argtype;
+    if (pp->var->initializeVariableMemory != NULL)
+      pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
+  } else if(pp->var->varType != argtype) {
     csound->InitError(csound,
                       "channel type did not match argument\n");
     return NULL;
@@ -766,7 +786,7 @@ int32_t chnset_opcode_generic_init(CSOUND *csound, CHNGET *p) {
     p->lock = (spin_lock_t *)
       get_channel_lock(csound, (char*) p->iname->data);
     csoundSpinLock(p->lock);
-    pp->varType->copyValue(csound, pp->varType, pp->data,
+    pp->var->varType->copyValue(csound, pp->var->varType, pp->data,
                            p->arg, p->h.insdshead);
     csoundSpinUnLock(p->lock);
     return OK;
@@ -780,7 +800,7 @@ int32_t chnget_opcode_generic_init(CSOUND *csound, CHNGET *p) {
     p->lock = (spin_lock_t *)
       get_channel_lock(csound, (char*) p->iname->data);
     csoundSpinLock(p->lock);
-    pp->varType->copyValue(csound, pp->varType,
+    pp->var->varType->copyValue(csound, pp->var->varType,
                            p->arg, pp->data, p->h.insdshead);
     csoundSpinUnLock(p->lock);
     return OK;
@@ -808,7 +828,7 @@ int32_t chnget_opcode_generic_init_k(CSOUND *csound, CHNGET *p) {
 int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
   CHNENTRY *pp = find_channel(csound, p->iname->data);
   if(pp) {
-    if(pp->varType != GetTypeForArg(p->arg))
+    if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
                                "channel type did not match argument\n");
     if(pp->datasize == 0)
@@ -819,7 +839,7 @@ int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
     p->lock = (spin_lock_t *)
       get_channel_lock(csound, (char*) p->iname->data);
     csoundSpinLock(p->lock);
-    pp->varType->copyValue(csound, pp->varType, pp->data, p->arg,
+    pp->var->varType->copyValue(csound, pp->var->varType, pp->data, p->arg,
                            p->h.insdshead);
     csoundSpinUnLock(p->lock);
     return OK;
@@ -829,7 +849,7 @@ int32_t chnset_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
 int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
   CHNENTRY *pp = find_channel(csound, p->iname->data);
   if(pp) {
-    if(pp->varType != GetTypeForArg(p->arg))
+    if(pp->var->varType != GetTypeForArg(p->arg))
       return csound->PerfError(csound, &(p->h),
                                "channel type did not match argument\n");
     if(pp->datasize == 0)
@@ -840,7 +860,7 @@ int32_t chnget_opcode_generic_perf(CSOUND *csound, CHNGET *p) {
     p->lock = (spin_lock_t *)
       get_channel_lock(csound, (char*) p->iname->data);
     csoundSpinLock(p->lock);
-    pp->varType->copyValue(csound, pp->varType,
+    pp->var->varType->copyValue(csound, pp->var->varType,
                            p->arg, pp->data, p->h.insdshead);
     csoundSpinUnLock(p->lock);
     return OK;
@@ -2872,3 +2892,26 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
 
   return OK;
 }
+
+const CS_VARIABLE *csoundGetChannel(CSOUND *csound, const char *name) { 
+  CHNENTRY *pp = find_channel(csound, name);
+  if(pp) return pp->var;
+  else return NULL;
+} 
+
+int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VARIABLE *var) { 
+  CHNENTRY *pp = find_channel(csound, name);
+  if(pp) {
+    if(pp->var && pp->var->varType ==  var->varType) {
+      pp->var->varType->copyValue(csound, pp->var->varType, pp->data,
+                                  &(var->memBlock->value), NULL);
+      return CSOUND_SUCCESS;
+    } else {
+      csoundMessage(csound, "could not copy data into channel %s\n", name);
+      return CSOUND_ERROR;
+    }
+  } else {
+    csoundMessage(csound, "could not find channel %s\n", name);
+    return CSOUND_ERROR;
+  }
+} 

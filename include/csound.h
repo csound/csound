@@ -393,6 +393,7 @@ extern "C" {
   };
 
   typedef struct cstype CS_TYPE;
+  typedef struct csvariable CS_VARIABLE;
 
 #ifndef CSOUND_CSDL_H
   /** @defgroup INSTANTIATION Instantiation
@@ -983,6 +984,21 @@ extern "C" {
    * elsewhere.
    **/
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
+
+
+  /** 
+   * Sets the data in a channel from a CS_VARIABLE 
+   * variable data is copied into the channel
+   */
+  PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
+                                  const CS_VARIABLE *var);
+
+  /** 
+   * Gets a CS_VARIABLE holding the data in a channel
+   * 
+   */    
+  PUBLIC const CS_VARIABLE *csoundGetChannel(CSOUND *csound,
+                                             const char *name);
 
   /**
    * retrieves the value of control channel identified by *name.
