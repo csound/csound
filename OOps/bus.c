@@ -869,7 +869,7 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p){
                             CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
-#if defined(MSVC)
+#if defined(MSVC) && defined(USE_DOUBLE)
   {
     union {
       MYFLT d;
@@ -878,7 +878,7 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p){
     x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)p->fp, 0);
     *(p->arg) = x.d;
   }
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
   {
     union {
       MYFLT d;
@@ -964,14 +964,14 @@ static int32_t chnget_opcode_perf_k(CSOUND* csound, CHNGET* p)
       }
     }
 
-#if defined(MSVC)
+#if defined(MSVC) && defined(USE_DOUBLE)
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
   } x;
   x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->fp, 0);
   *(p->arg) = x.d;
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -1101,14 +1101,14 @@ int32_t chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
-#if defined(MSVC)
+#if defined(MSVC) && defined(USE_DOUBLE)
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
   } x;
   x.d = *(p->arg);
   InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
   union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -1219,14 +1219,14 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
       print_chn_err_perf(p, err);
   }
 
-#if defined(MSVC)
+#if defined(MSVC) && defined(USE_DOUBLE)
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
   } x;
   x.d = *(p->arg);
   InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
   union {
     MYFLT d;
     MYFLT_INT_TYPE i;
