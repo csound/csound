@@ -397,28 +397,22 @@ void set_channel_data_ptr(CSOUND *csound,
 static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                            const char *name, int32_t type){
   CHNENTRY      *pp;
-  int32_t       dsize = 0;
   const CS_TYPE *varType;
   
   switch (type & CSOUND_CHANNEL_TYPE_MASK) {
   case CSOUND_CONTROL_CHANNEL:
-    dsize = sizeof(MYFLT);
     varType = &CS_VAR_TYPE_K;
     break;
   case CSOUND_AUDIO_CHANNEL:
-    dsize = ((int32_t)sizeof(MYFLT) * csound->ksmps);
     varType = &CS_VAR_TYPE_A;
     break;
   case CSOUND_STRING_CHANNEL:
-    dsize = sizeof(STRINGDAT);
     varType = &CS_VAR_TYPE_S;
     break;
   case CSOUND_PVS_CHANNEL:
-    dsize = sizeof(PVSDAT);
     varType = &CS_VAR_TYPE_F;
     break;
   case CSOUND_ARRAY_CHANNEL:
-    dsize = sizeof(ARRAYDAT);
     varType = &CS_VAR_TYPE_ARRAY;
     break;
   case CSOUND_VAR_CHANNEL: // generic
@@ -443,10 +437,8 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       return NULL;
     }
     pp->var->varType = varType;
-    // set the channel varMem size and use it to alloc channel data
-    pp->var->memBlockSize = dsize; 
-    dsize = sizeof(CS_TYPE *) + pp->var->memBlockSize; 
-    pp->var->memBlock = (CS_VAR_MEM *) csound->Calloc(csound, dsize);
+    pp->var->memBlock = (CS_VAR_MEM *) csound->Calloc(csound, sizeof(CS_TYPE *) +
+                                                      pp->var->memBlockSize);
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       csound->InitError(csound, "memory allocation failure");
       csoundFree(csound, pp->var);
@@ -462,7 +454,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       ((STRINGDAT*) pp->data)->size = 128;
       ((STRINGDAT*) pp->data)->data = csound->Calloc(csound, 128 * sizeof(char));
     }
-    pp->datasize = dsize;
+    pp->datasize = pp->var->memBlockSize;
   } // otherwise setup is incomplete, will be finished up later
   
   csoundSpinLockInit(&pp->lock);
