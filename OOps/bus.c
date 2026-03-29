@@ -445,7 +445,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     pp->var->varType = varType;
     // set the channel varMem size and use it to alloc channel data
     pp->var->memBlockSize = dsize; 
-    dsize = CS_VAR_TYPE_OFFSET + pp->var->memBlockSize; 
+    dsize = sizeof(CS_TYPE *) + pp->var->memBlockSize; 
     datap = (char *) csound->Calloc(csound, dsize);
     // channel data is aliased to varMem value
     pp->data = (MYFLT *) (datap + sizeof(CS_TYPE *));
@@ -749,7 +749,6 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
   if(pp->var == NULL) {
     char *datap;
     // channel exists but not set up
-    
      pp->var = argtype->createVariable(csound, (void*) argtype,
                                                p->h.insdshead);
     if (UNLIKELY(pp->var == NULL)) {
@@ -760,7 +759,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     pp->var->varType = argtype;
     // allocate memory
     pp->datasize = pp->var->memBlockSize;
-    datap  = (char *) csoundCalloc(csound, pp->datasize + CS_VAR_TYPE_OFFSET);
+    datap  = (char *) csoundCalloc(csound, pp->datasize + sizeof(CS_TYPE *));
     if (UNLIKELY(datap == NULL)) {
       csound->InitError(csound, "memory allocation failure");
       return NULL;
