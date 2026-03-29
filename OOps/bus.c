@@ -398,8 +398,8 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                            const char *name, int32_t type){
   CHNENTRY      *pp;
   int32_t       dsize = 0;
-  char      *datap;
-  const CS_TYPE *varType;  
+  const CS_TYPE *varType;
+  
   switch (type & CSOUND_CHANNEL_TYPE_MASK) {
   case CSOUND_CONTROL_CHANNEL:
     dsize = sizeof(MYFLT);
@@ -446,10 +446,15 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     // set the channel varMem size and use it to alloc channel data
     pp->var->memBlockSize = dsize; 
     dsize = sizeof(CS_TYPE *) + pp->var->memBlockSize; 
-    datap = (char *) csound->Calloc(csound, dsize);
+    pp->var->memBlock = (CS_VAR_MEM *) csound->Calloc(csound, dsize);
+    if (UNLIKELY(pp->var->memBlock == NULL)) {
+      csound->InitError(csound, "memory allocation failure");
+      csoundFree(csound, pp->var);
+      csoundFree(csound, pp);
+      return NULL;
+    }
     // channel data is aliased to varMem value
-    pp->data = (MYFLT *) (datap + sizeof(CS_TYPE *));
-    pp->var->memBlock = (CS_VAR_MEM *) datap;
+    pp->data = &(pp->var->memBlock->value);
     pp->var->memBlock->varType = varType;
     if (pp->var->initializeVariableMemory != NULL)
       pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
@@ -747,7 +752,6 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
   pp->type |= accessMode;
 
   if(pp->var == NULL) {
-    char *datap;
     // channel exists but not set up
      pp->var = argtype->createVariable(csound, (void*) argtype,
                                                p->h.insdshead);
@@ -759,13 +763,13 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     pp->var->varType = argtype;
     // allocate memory
     pp->datasize = pp->var->memBlockSize;
-    datap  = (char *) csoundCalloc(csound, pp->datasize + sizeof(CS_TYPE *));
-    if (UNLIKELY(datap == NULL)) {
+    pp->var->memBlock = (CS_VAR_MEM *) csoundCalloc(csound, pp->datasize + sizeof(CS_TYPE *));
+    if (UNLIKELY(pp->var->memBlock == NULL)) {
       csound->InitError(csound, "memory allocation failure");
       return NULL;
     }
-    pp->data = (MYFLT *) (datap + sizeof(CS_TYPE *));
-    pp->var->memBlock = (CS_VAR_MEM *) datap;
+    
+    pp->data = &(pp->var->memBlock->value);
     pp->var->memBlock->varType = argtype;
     if (pp->var->initializeVariableMemory != NULL)
       pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
