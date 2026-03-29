@@ -397,7 +397,7 @@ void set_channel_data_ptr(CSOUND *csound,
 static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                            const char *name, int32_t type){
   CHNENTRY      *pp;
-  const CS_TYPE *varType;
+  const CS_TYPE *varType = NULL;
   
   switch (type & CSOUND_CHANNEL_TYPE_MASK) {
   case CSOUND_CONTROL_CHANNEL:
@@ -2564,9 +2564,9 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int32_t *err)
                                   CSOUND_CONTROL_CHANNEL |
                                   CSOUND_OUTPUT_CHANNEL))
       == CSOUND_SUCCESS) {
-#if defined(MSVC)
+#if defined(MSVC) && defined(USE_DOUBLE)
     x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)pval, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
     x.i = __atomic_load_n((MYFLT_INT_TYPE *)pval, __ATOMIC_SEQ_CST);
 #else
     x.d = *pval;
@@ -2580,7 +2580,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int32_t *err)
 
 void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
   MYFLT *pval;
-#if defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN)
+#if (defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN)) && defined(USE_DOUBLE)
   union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -2591,9 +2591,9 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS)
 
-#if defined(MSVC)
+#if defined(MSVC) && defined(USE_DOUBLE)
     InterlockedExchange64((MYFLT_INT_TYPE *)pval, x.i);
-#elif defined(HAVE_ATOMIC_BUILTIN)
+#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
   __atomic_store_n((MYFLT_INT_TYPE *)pval, x.i, __ATOMIC_SEQ_CST);
 #else
   {
