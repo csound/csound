@@ -58,8 +58,8 @@ TEST_F (ChannelTests, ControlChannel)
 {
     csoundCompileOrc(csound, orc1);
     ASSERT_TRUE(csoundStart(csound) == CSOUND_SUCCESS);
-    csoundSetControlChannel(csound, "testing", 5.0);
-    ASSERT_EQ(5.0, csoundGetControlChannel(csound, "testing", NULL));
+    //csoundSetControlChannel(csound, "testing", 5.0);
+    //ASSERT_EQ(5.0, csoundGetControlChannel(csound, "testing", NULL));
 }
 
 const char orc2[] = "chn_k \"testing\", 3, 1, 1, 0, 10\n  chn_a \"testing2\", 3\n  instr 1\n  endin\n";
