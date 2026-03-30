@@ -458,18 +458,19 @@ static CS_VARIABLE* create_string(void* cs, const CS_TYPE *p, INSDS *ctx) {
 CS_VARIABLE* create_array(void* csnd, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)csnd;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
-    var->initializeVariableMemory = &array_init_memory;
-    var->ctx = ctx;
-    var->varType = &CS_VAR_TYPE_ARRAY;
 
-    if (p) {
-      // a typeArg is passed instead of CS_TYPE
+    // a typeArg is *always* passed instead of CS_TYPE if not NULL
+    if(p) {
       ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
       const CS_TYPE* type = state->type;
       var->subType = type;
       var->dimensions = state->dimensions;
     }
+    
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
+    var->initializeVariableMemory = &array_init_memory;
+    var->ctx = ctx;
+    var->varType = &CS_VAR_TYPE_ARRAY;
     return var;
 }
 

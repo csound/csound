@@ -65,12 +65,27 @@ chnset asig, "audio"
 aout[] chnget "audio"
    out aout
 endin
+
+instr 4 // other array types should work
+arr:Complex[] init 2
+arr[0] = 1,2
+chnset arr, "test"
+arr1:Complex[] chnget "test"
+if real(arr1[0]) == real(arr[0]) then
+  printk2 real(arr1[0])
+else
+  exitnowk(-1)
+endif
+endin
+
+
 </CsInstruments>
 
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
+i4 0 1
 </CsScore>
 </CsoundSynthesizer>
 
