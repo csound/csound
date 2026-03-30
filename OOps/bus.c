@@ -876,7 +876,7 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p){
       MYFLT_INT_TYPE i;
     } x;
 #if defined(USE_DOUBLE)  
-    x.i = InterlockedExchange64Add((MYFLT_INT_TYPE *) p->fp, 0);
+    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->fp, 0);
 #else
     x.i = InterlockedExchangeAdd((MYFLT_INT_TYPE *) p->fp, 0);
 #endif
