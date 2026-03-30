@@ -869,13 +869,17 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p){
                             CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
-#if defined(MSVC) && defined(USE_DOUBLE)
+#if defined(MSVC) 
   {
     union {
       MYFLT d;
       MYFLT_INT_TYPE i;
     } x;
-    x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)p->fp, 0);
+#if defined(USE_DOUBLE)  
+    x.i = InterlockedExchange64Add((MYFLT_INT_TYPE *) p->fp, 0);
+#else
+    x.i = InterlockedExchangeAdd((MYFLT_INT_TYPE *) p->fp, 0);
+#endif
     *(p->arg) = x.d;
   }
 #elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
@@ -964,14 +968,18 @@ static int32_t chnget_opcode_perf_k(CSOUND* csound, CHNGET* p)
       }
     }
 
-#if defined(MSVC) && defined(USE_DOUBLE)
+#if defined(MSVC)  
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
   } x;
+#if defined(USE_DOUBLE)  
   x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->fp, 0);
+#else
+  x.i = InterlockedExchangeAdd((MYFLT_INT_TYPE *) p->fp, 0);
+#endif
   *(p->arg) = x.d;
-#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
+#elif defined(HAVE_ATOMIC_BUILTIN)
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -1101,14 +1109,19 @@ int32_t chnset_opcode_init_i(CSOUND *csound, CHNGET *p)
                             CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
-#if defined(MSVC) && defined(USE_DOUBLE)
+#if defined(MSVC) 
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
   } x;
   x.d = *(p->arg);
+
+#if defined(USE_DOUBLE)
   InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
-#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
+#else
+  InterlockedExchange((MYFLT_INT_TYPE *) p->fp, x.i);
+#endif
+#elif defined(HAVE_ATOMIC_BUILTIN) 
   union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -1219,14 +1232,18 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
       print_chn_err_perf(p, err);
   }
 
-#if defined(MSVC) && defined(USE_DOUBLE)
+#if defined(MSVC)
   volatile union {
     MYFLT d;
     MYFLT_INT_TYPE i;
   } x;
   x.d = *(p->arg);
+#if defined(USE_DOUBLE)
   InterlockedExchange64((MYFLT_INT_TYPE *) p->fp, x.i);
-#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
+#else
+  InterlockedExchange((MYFLT_INT_TYPE *) p->fp, x.i);
+#endif
+#elif defined(HAVE_ATOMIC_BUILTIN)
   union {
     MYFLT d;
     MYFLT_INT_TYPE i;
@@ -2564,9 +2581,13 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int32_t *err)
                                   CSOUND_CONTROL_CHANNEL |
                                   CSOUND_OUTPUT_CHANNEL))
       == CSOUND_SUCCESS) {
-#if defined(MSVC) && defined(USE_DOUBLE)
+#if defined(MSVC)
+#if defined(USE_DOUBLE)
     x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *)pval, 0);
-#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
+#else
+    x.i = InterlockedExchangeAdd((MYFLT_INT_TYPE *)pval, 0);
+#endif
+#elif defined(HAVE_ATOMIC_BUILTIN)
     x.i = __atomic_load_n((MYFLT_INT_TYPE *)pval, __ATOMIC_SEQ_CST);
 #else
     x.d = *pval;
@@ -2591,9 +2612,13 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS)
 
-#if defined(MSVC) && defined(USE_DOUBLE)
+#if defined(MSVC)
+#if defined(USE_DOUBLE)
     InterlockedExchange64((MYFLT_INT_TYPE *)pval, x.i);
-#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
+#else
+    InterlockedExchange((MYFLT_INT_TYPE *)pval, x.i);
+#endif
+#elif defined(HAVE_ATOMIC_BUILTIN) 
   __atomic_store_n((MYFLT_INT_TYPE *)pval, x.i, __ATOMIC_SEQ_CST);
 #else
   {
