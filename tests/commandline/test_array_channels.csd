@@ -3,6 +3,7 @@
 -n
 </CsOptions>
 <CsInstruments>
+nchnls=2
 
 instr 1
  S1[] fillarray "one", "two", "three"
@@ -56,11 +57,20 @@ else
   printks "all k numbers in init channel correctly matched\n", 1
 endif
 endin
+
+instr 3
+a1 oscili 0dbfs, A4
+asig[] = [a1, a1]
+chnset asig, "audio"
+aout[] chnget "audio"
+   out aout
+endin
 </CsInstruments>
 
 <CsScore>
 i1 0 1
 i2 0 1
+i3 0 1
 </CsScore>
 </CsoundSynthesizer>
 

@@ -206,7 +206,7 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
     if (LIKELY(type != NULL))
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          void *pArg = (typeArg != NULL) ? typeArg : (void*)type;
+          const CS_TYPE *pArg = (typeArg != NULL) ? (const CS_TYPE *) typeArg : type;
           CS_VARIABLE* var = current->cstype->createVariable(csound, pArg, NULL);
           if (UNLIKELY(var == NULL)) {
             ((CSOUND *)csound)->ErrorMsg(csound,
