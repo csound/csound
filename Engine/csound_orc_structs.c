@@ -89,3 +89,101 @@ void freeStructVarMemory(void *csnd, void *p) {
   CS_STRUCT_VAR *var = (CS_STRUCT_VAR *)p;
   csound_free_struct_members(csound, var);
 }
+
+int32_t initStructVar(CSOUND* csound, void* p) {
+  INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
+  CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
+  CS_TYPE* type = csoundGetTypeForArg(init->out);
+  int32_t len = cs_cons_length(type->members);
+  int32_t i;
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
+     csound->Message(csound, "Initializing Struct...\n");
+     csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
+  for (i = 0; i < len; i++) {
+    CS_VAR_MEM* mem = structVar->members[i];
+    mem->varType->copyValue(csound, mem->varType, &mem->value,
+                            init->inArgs[i], init->h.insdshead);
+  }
+
+  return CSOUND_SUCCESS;
+}
+
+void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
+  CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
+  const CS_TYPE* type = var->varType;
+  CONS_CELL* members = type->members;
+
+  int32_t len = cs_cons_length(members);
+  int32_t i;
+
+  structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
+  structVar->memberCount = len;  // Set the member count
+  structVar->ownsMembers = 1;    // This struct owns its members
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
+      csound->Message(csound, "Initializing Struct...\n");
+      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+  }
+  for (i = 0; i < len; i++) {
+    CS_VARIABLE* var = members->value;
+    size_t size = (sizeof(CS_VAR_MEM) - sizeof(MYFLT)) + var->memBlockSize;
+    CS_VAR_MEM* mem = csound->Calloc(csound, size);
+    if (var->initializeVariableMemory != NULL) {
+      var->initializeVariableMemory(csound, var, &mem->value);
+    }
+    mem->varType = var->varType;
+    structVar->members[i] = mem;
+
+    members = members->next;
+  }
+}
+
+CS_VARIABLE* createStructVar(void* cs, const CS_TYPE *p, INSDS *ctx) {
+  CSOUND* csound = (CSOUND*)cs;
+  
+  if (p == NULL) {
+    csound->Message(csound, "ERROR: no type given for struct creation\n");
+    return NULL;
+  }
+
+  CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+  IGN(p);
+  var->memBlockSize = sizeof(CS_STRUCT_VAR);
+  var->initializeVariableMemory = initializeStructVar;
+  var->varType = p;
+  var->ctx = ctx;
+
+  //FIXME - implement
+  return var;
+}
+
+void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest, const
+                   void* src, INSDS *p) {
+  CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
+  CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
+  int32_t i, count;
+
+  // Don't copy to itself
+  if (dest == src) {
+    return;
+  }
+
+  if (varDest->members == NULL || varSrc->members == NULL) {
+    csound->Message(csound, "struct not initialised - cannot copy\n");
+    return;  // Can't copy if members aren't initialized
+  }
+
+  count = cs_cons_length(structType->members);
+  for (i = 0; i < count; i++) {
+    CS_VAR_MEM* d = varDest->members[i];
+    CS_VAR_MEM* s = varSrc->members[i];
+    if (d != NULL && s != NULL) {
+      // Check if d and s are the same (aliased)
+      if (d == s) {
+        // Already aliased, nothing to copy
+        continue;
+      }
+      d->varType->copyValue(csound, d->varType, &d->value, &s->value, p);
+    }
+  }
+}

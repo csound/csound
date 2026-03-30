@@ -2,6 +2,7 @@
 #include <string.h>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "csound_type_system.h"
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
 #define csoundScoreEvent(a,b,c,d) csoundEvent(a,0,c,d,0)
@@ -32,6 +33,7 @@ public:
     }
 
     CSOUND* csound {nullptr};
+
 };
 
 TEST_F (ChannelTests, ControlChannelParams)
@@ -320,11 +322,29 @@ TEST_F (ChannelTests, ChannelVariable)
     int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     const CS_VARIABLE *var = csoundGetChannel(csound, "1");
-    MYFLT val = csoundGetControlChannel(csound, "2", &err);
+    MYFLT val = csoundGetChannel(csound, "2")->memBlock->value;
     ASSERT_EQ(val, 0.0);
     err = csoundSetChannel(csound, "2", var);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     csoundPerformKsmps(csound);
-    val = csoundGetControlChannel(csound, "1", &err);
-    ASSERT_EQ(val, 1.0);
+    ASSERT_EQ(csoundGetChannel(csound, "2")->memBlock->value,
+              csoundGetChannel(csound, "1")->memBlock->value);
+}
+
+extern "C" void *csoundCalloc(CSOUND *, size_t);
+
+TEST_F (ChannelTests, ChannelNewVariable)
+{
+    const char *name = "testing";
+    csoundCompileOrc(csound, orc1);
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    const CS_TYPE *ktype = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
+    CS_VARIABLE *var = ktype->createVariable(csound, ktype, NULL);
+    var->memBlock = (CS_VAR_MEM  *)csoundCalloc(csound, var->memBlockSize + sizeof(CS_TYPE *));
+    MYFLT val = 1.0;
+    ktype->copyValue(csound, ktype, &(var->memBlock->value), &val, NULL);
+    err = csoundSetChannel(csound, name, var);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    ASSERT_EQ(val, csoundGetChannel(csound,name)->memBlock->value);
 }

@@ -52,14 +52,14 @@ void tupleCopyValue(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   memcpy(dest, src, sizeof(Tuple));
 }
 
-CS_VARIABLE* createTuple(void* cs, void* p, INSDS *ctx) {
+CS_VARIABLE* createTuple(void* cs, const CS_TYPE* p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*) cs;
     CS_VARIABLE* var = (CS_VARIABLE *)
       csound->Calloc(csound, sizeof(CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(Tuple));
     var->initializeVariableMemory = &varInitMemory;
     var->ctx = ctx;
+    var->varType = p;              
     return var;
 }
 

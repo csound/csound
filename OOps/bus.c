@@ -436,9 +436,9 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       csoundFree(csound, pp);
       return NULL;
     }
-    pp->var->varType = varType;
     pp->var->memBlock = (CS_VAR_MEM *) csound->Calloc(csound, sizeof(CS_TYPE *) +
                                                       pp->var->memBlockSize);
+    pp->var->memBlock->varType = pp->var->varType;
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       csound->InitError(csound, "memory allocation failure");
       csoundFree(csound, pp->var);
@@ -447,7 +447,6 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     }
     // channel data is aliased to varMem value
     pp->data = &(pp->var->memBlock->value);
-    pp->var->memBlock->varType = varType;
     if (pp->var->initializeVariableMemory != NULL)
       pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
     if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_STRING_CHANNEL) {
@@ -752,7 +751,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
                         argtype->varTypeName);
       return NULL;
     }
-    pp->var->varType = argtype;
+    
     // allocate memory
     pp->datasize = pp->var->memBlockSize;
     pp->var->memBlock = (CS_VAR_MEM *) csoundCalloc(csound, pp->datasize + sizeof(CS_TYPE *));
@@ -762,7 +761,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     }
     
     pp->data = &(pp->var->memBlock->value);
-    pp->var->memBlock->varType = argtype;
+    pp->var->memBlock->varType = pp->var->varType;
     if (pp->var->initializeVariableMemory != NULL)
       pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
   } else if(pp->var->varType != argtype) {

@@ -376,10 +376,9 @@ static void var_init_memory_fsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblo
 
 /* CREATE VAR FUNCTIONS */
 
-static CS_VARIABLE* create_asig(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_asig(void* cs, const CS_TYPE *p, INSDS *ctx) {
     int32_t ksmps;
     CSOUND* csound = (CSOUND*)cs;
-    IGN(p);
 
    if (ctx  != NULL) {
       ksmps = ctx->ksmps;
@@ -392,79 +391,81 @@ static CS_VARIABLE* create_asig(void* cs, void* p, INSDS *ctx) {
     var->updateMemBlockSize = &update_asig_memblock;
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-static CS_VARIABLE* create_myflt(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_myflt(void* cs, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof (MYFLT));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-static CS_VARIABLE* create_complex(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_complex(void* cs, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(COMPLEXDAT));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-static CS_VARIABLE* create_bool(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_bool(void* cs, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(int32_t));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-static CS_VARIABLE* create_wsig(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_wsig(void* cs, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(SPECDAT));
     var->initializeVariableMemory = &var_init_memory;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-static CS_VARIABLE* create_fsig(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_fsig(void* cs, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
     var->initializeVariableMemory = &var_init_memory_fsig;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-static CS_VARIABLE* create_string(void* cs, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_string(void* cs, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-    IGN(p);
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(STRINGDAT));
     var->initializeVariableMemory = &var_init_memory_string;
     var->ctx = ctx;
+    var->varType = p;
     return var;
 }
 
-CS_VARIABLE* create_array(void* csnd, void* p, INSDS *ctx) {
+CS_VARIABLE* create_array(void* csnd, const CS_TYPE *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)csnd;
-    ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
-
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &array_init_memory;
     var->ctx = ctx;
+    var->varType = &CS_VAR_TYPE_ARRAY;
 
-    if (state) { // NB: this function is being called with p=NULL
+    if (p) {
+      // a typeArg is passed instead of CS_TYPE
+      ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
       const CS_TYPE* type = state->type;
       var->subType = type;
       var->dimensions = state->dimensions;
@@ -473,39 +474,43 @@ CS_VARIABLE* create_array(void* csnd, void* p, INSDS *ctx) {
 }
 
 
-static CS_VARIABLE* create_opcodedef(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_opcodedef(void* csnd, const CS_TYPE *p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(OPCODEREF));
    var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
+   var->varType = p;
    return var;
 }
 
-static CS_VARIABLE* create_opcode(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_opcode(void* csnd, const CS_TYPE *p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(OPCODEOBJ));
    var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
+   var->varType = p;
    return var;
 }
 
-static CS_VARIABLE* create_instrdef(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_instrdef(void* csnd, const CS_TYPE *p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(INSTREF));
    var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
+   var->varType = p;
    return var;
 }
 
-static CS_VARIABLE* create_instr(void* csnd, void* p, INSDS *ctx) {
+static CS_VARIABLE* create_instr(void* csnd, const CS_TYPE *p, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(INSTANCEREF));
    var->initializeVariableMemory = &var_init_memory;
    var->ctx = ctx;
+   var->varType = p;
    return var;
 }
 
