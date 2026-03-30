@@ -882,7 +882,7 @@ int32_t chnget_opcode_init_i(CSOUND *csound, CHNGET *p){
 #endif
     *(p->arg) = x.d;
   }
-#elif defined(HAVE_ATOMIC_BUILTIN) && defined(USE_DOUBLE)
+#elif defined(HAVE_ATOMIC_BUILTIN) 
   {
     union {
       MYFLT d;
@@ -2618,7 +2618,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int32_t *err)
 
 void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
   MYFLT *pval;
-#if (defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN)) && defined(USE_DOUBLE)
+#if (defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN))
   union {
     MYFLT d;
     MYFLT_INT_TYPE i;
