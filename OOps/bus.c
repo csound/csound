@@ -734,8 +734,10 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     // channel exists but not set up
     ARRAY_VAR_INIT varInit;
     if(argtype == &CS_VAR_TYPE_ARRAY) {
+      // support for arrays (not currently used)
       varInit.dimensions = ((ARRAYDAT*)p->arg)->dimensions;
       varInit.type = ((ARRAYDAT*)p->arg)->arrayType;
+      pp->type = CSOUND_ARRAY_CHANNEL | accessMode;
     }
     pp->var = argtype->createVariable(csound, (argtype == &CS_VAR_TYPE_ARRAY ?
                                                (const CS_TYPE *)
@@ -757,6 +759,10 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     pp->var->memBlock->varType = pp->var->varType;
     if (pp->var->initializeVariableMemory != NULL)
       pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
+    
+    if(pp->type == CSOUND_ARRAY_CHANNEL)
+      tabinit_like(csound, (ARRAYDAT *) &pp->var->memBlock->value,
+                   (ARRAYDAT *) p->arg);
   } else if(pp->var->varType != argtype) {
     csound->InitError(csound,
                       "channel type did not match argument\n");
@@ -2409,6 +2415,7 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
 
   chn = find_channel(csound, p->iname->data);
   chn->var->subType = adat->arrayType;
+  chn->var->dimensions = adat->dimensions;
   adat_chn = (ARRAYDAT *) p->fp;
   if(adat_chn->arrayType == NULL)
    adat_chn->arrayType = adat->arrayType;
