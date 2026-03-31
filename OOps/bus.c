@@ -369,6 +369,10 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
 
       if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
         csound->Free(csound, entry->hints.attributes);
+        if(entry->var && entry->var->memBlock)
+          csound->Free(csound, entry->var->memBlock);
+        if(entry->var)
+          csound->Free(csound, entry->var);
       }
       entry->datasize = 0;
       values = values->next;
@@ -437,13 +441,21 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                       (const CS_TYPE*) &varInit :
                                       varType, NULL);
     if (UNLIKELY(pp->var == NULL)) {
-      csound->InitError(csound, "failed to create channel variable for type %s\n",
+      csound->Message(csound, "failed to create channel variable for type %s\n",
                         varType->varTypeName);
       csoundFree(csound, pp);
       return NULL;
     }
-    pp->var->memBlock = (CS_VAR_MEM *) csound->Calloc(csound, sizeof(CS_TYPE *) +
-                                                      pp->var->memBlockSize);
+    pp->var->memBlock = (CS_VAR_MEM *)
+        csound->Calloc(csound, sizeof(CS_TYPE *) +
+                       pp->var->memBlockSize);
+    if(pp->var->memBlock == NULL) {
+      csound->Message(csound, "failed to allocate memory for channel %s\n",
+                        name);
+      csoundFree(csound, pp->var);
+      csoundFree(csound, pp);
+      return NULL;
+    }
     pp->var->memBlock->varType = pp->var->varType;
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       csound->InitError(csound, "memory allocation failure");
@@ -454,10 +466,12 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
     // channel data is aliased to varMem value
     pp->data = &(pp->var->memBlock->value);
     if (pp->var->initializeVariableMemory != NULL)
-      pp->var->initializeVariableMemory(csound, pp->var, &(pp->var->memBlock->value));
+      pp->var->initializeVariableMemory(csound, pp->var,
+                                        &(pp->var->memBlock->value));
     if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_STRING_CHANNEL) {
       ((STRINGDAT*) pp->data)->size = 128;
-      ((STRINGDAT*) pp->data)->data = csound->Calloc(csound, 128 * sizeof(char));
+      ((STRINGDAT*) pp->data)->data = csound->Calloc(csound, 128 *
+                                                     sizeof(char));
     }
     pp->datasize = pp->var->memBlockSize;
   } // otherwise setup is incomplete, will be finished up later
@@ -2949,7 +2963,7 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
 
 const CS_VARIABLE *csoundGetChannel(CSOUND *csound, const char *name) { 
   CHNENTRY *pp = find_channel(csound, name);
-  if(pp) return pp->var;
+  if(pp && pp->var) return pp->var;
   else return NULL;
 } 
 
@@ -2957,8 +2971,10 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VARIABLE *va
   CHNENTRY *pp = find_channel(csound, name);
   if(pp) {
     if(pp->var && pp->var->varType ==  var->varType) {
+      csoundLockChannel(csound, name);
       pp->var->varType->copyValue(csound, pp->var->varType, pp->data,
                                   &(var->memBlock->value), NULL);
+      csoundUnlockChannel(csound,name);
       return CSOUND_SUCCESS;
     } else {
       csoundMessage(csound, "could not copy data into channel %s\n", name);
