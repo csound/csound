@@ -44,21 +44,6 @@
 #  define PUBLIC_DATA
 #endif
 
-#if defined(MSVC)
-#  include <intrin.h> /* for _InterlockedExchange */
-#endif
-
-#if defined(__MACH__)
-// on OSX 10.6 i386 does not have all builtins
-#if defined(MAC_OS_X_VERSION_10_6)
-#ifdef HAVE_ATOMIC_BUILTIN
-#ifndef __x86_64__
-#undef HAVE_ATOMIC_BUILTIN
-#endif
-#endif
-#endif
-#endif
-
 // FOR ANDROID
 #ifdef SWIG
 #define CS_PRINTF2

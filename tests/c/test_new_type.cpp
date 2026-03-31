@@ -65,7 +65,7 @@ CS_VARIABLE* createTuple(void* cs, const CS_TYPE* p, INSDS *ctx) {
 
 CS_TYPE CS_VAR_TYPE_TUPLE = {
    (char *) "Tuple", (char *) "Tuple", CS_ARG_TYPE_BOTH,
-    createTuple, tupleCopyValue,
+   (CREATEF) createTuple, tupleCopyValue,
    NULL, NULL, 0
 };
 

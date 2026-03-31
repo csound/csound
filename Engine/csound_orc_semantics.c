@@ -3017,7 +3017,7 @@ int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
   type->varTypeName = internalName;
   type->varDescription = "user-defined struct (placeholder)";
   type->argtype = CS_ARG_TYPE_BOTH;
-  type->createVariable = createStructVar;
+  type->createVariable = (CREATEF) createStructVar;
   type->copyValue = copyStructVar;
   type->freeVariableMemory = freeStructVarMemory;
   type->userDefinedType = 1;
@@ -3061,7 +3061,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     type->varTypeName = internalName;
     type->varDescription = "user-defined struct";
     type->argtype = CS_ARG_TYPE_BOTH;
-    type->createVariable = createStructVar;
+    type->createVariable = (CREATEF) createStructVar;
     type->copyValue = copyStructVar;
     type->freeVariableMemory = freeStructVarMemory;
     type->userDefinedType = 1;

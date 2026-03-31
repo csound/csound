@@ -34,6 +34,7 @@ extern "C" {
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
 #define CS_ARG_TYPE_OUT 2
+#define CREATEF CS_VARIABLE* (*)(void *,const void *,struct insds *)
 
   struct csvariable;
   struct cstype;
@@ -43,7 +44,7 @@ extern "C" {
     char* varTypeName;
     char* varDescription;
     int32_t argtype; // used to denote if allowed as in-arg, out-arg, or both
-    struct csvariable* (*createVariable)(void *cs, const struct cstype *p,
+    struct csvariable* (*createVariable)(void *cs, const void *p,
                                          struct insds *ctx);
     void (*copyValue)(CSOUND* csound, const struct cstype* cstype, void* dest,
                       const void* src, struct insds *ctx);

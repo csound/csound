@@ -539,7 +539,7 @@ static int32_t destroy_csobj(CSOUND *csound, ASSIGN *p) {
 
 const CS_TYPE CS_VAR_TYPE_CSOBJ = {
   "Csound", "Csound", CS_ARG_TYPE_BOTH,
-  create_csobj_var, csobj_copy_value,
+  (CREATEF) create_csobj_var, csobj_copy_value,
   NULL, NULL, 0
 };
 

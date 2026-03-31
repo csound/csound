@@ -26,7 +26,6 @@
 #include "find_opcode.h"
 #include <stdlib.h>
 
-
 /* MEMORY COPYING FUNCTIONS */
 static void myflt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
@@ -455,13 +454,13 @@ static CS_VARIABLE* create_string(void* cs, const CS_TYPE *p, INSDS *ctx) {
     return var;
 }
 
-CS_VARIABLE* create_array(void* csnd, const CS_TYPE *p, INSDS *ctx) {
+CS_VARIABLE* create_array(void* csnd, const void *p, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)csnd;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
 
-    // a typeArg is *always* passed instead of CS_TYPE if not NULL
+    // a typeArg is *always* passed if not NULL
     if(p) {
-      ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
+      ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*) p;
       const CS_TYPE* type = state->type;
       var->subType = type;
       var->dimensions = state->dimensions;
@@ -575,78 +574,78 @@ static void array_free_var_mem(void* csnd, void* p) {
 
 /* STANDARD TYPE DEFINITIONS */
 const CS_TYPE CS_VAR_TYPE_A = {
-    "a", "audio rate vector", CS_ARG_TYPE_BOTH, create_asig, asig_copy_value,
+  "a", "audio rate vector", CS_ARG_TYPE_BOTH, (CREATEF) create_asig, asig_copy_value,
     NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", "control rate var", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
+  "k", "control rate var", CS_ARG_TYPE_BOTH, (CREATEF) create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", "init time var", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
+  "i", "init time var", CS_ARG_TYPE_BOTH,  (CREATEF) create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-  "S", "String var", CS_ARG_TYPE_BOTH, create_string, string_copy_value, string_free_var_mem, NULL, 0
+  "S", "String var", CS_ARG_TYPE_BOTH, (CREATEF) create_string, string_copy_value, string_free_var_mem, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", "p-field", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
+  "p", "p-field", CS_ARG_TYPE_BOTH, (CREATEF) create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", "reserved symbol", CS_ARG_TYPE_BOTH, create_myflt, myflt_copy_value, NULL, NULL, 0
+  "r", "reserved symbol", CS_ARG_TYPE_BOTH,  (CREATEF) create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", "constant", CS_ARG_TYPE_IN, create_myflt, myflt_copy_value, NULL, NULL, 0
+  "c", "constant", CS_ARG_TYPE_IN,  (CREATEF) create_myflt, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", "spectral", CS_ARG_TYPE_BOTH, create_wsig, wsig_copy_value, NULL, NULL, 0
+  "w", "spectral", CS_ARG_TYPE_BOTH,  (CREATEF) create_wsig, wsig_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", "f-sig", CS_ARG_TYPE_BOTH, create_fsig, fsig_copy_value, NULL, NULL, 0
+  "f", "f-sig", CS_ARG_TYPE_BOTH,  (CREATEF) create_fsig, fsig_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
+  "B", "boolean", CS_ARG_TYPE_BOTH,  (CREATEF) create_bool, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
+  "b", "boolean", CS_ARG_TYPE_BOTH, (CREATEF) create_bool, myflt_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
-  "[", "array", CS_ARG_TYPE_BOTH, create_array, array_copy_value,
+  "[", "array", CS_ARG_TYPE_BOTH,  (CREATEF) create_array, array_copy_value,
   array_free_var_mem, NULL, 0
 };
 
 
 const CS_TYPE CS_VAR_TYPE_OPCODEREF = {
   "OpcodeDef", "opcode definition reference", CS_ARG_TYPE_BOTH,
-  create_opcodedef, opcodedef_copy_value, NULL, NULL, 0
+  (CREATEF) create_opcodedef, opcodedef_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_OPCODEOBJ = {
   "Opcode", "opcode instance reference", CS_ARG_TYPE_BOTH,
-  create_opcode, opcode_copy_value, NULL, NULL, 0
+  (CREATEF) create_opcode, opcode_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR = {
   "InstrDef", "instrument definition reference", CS_ARG_TYPE_BOTH,
-  create_instrdef, instrdef_copy_value, NULL, NULL, 0
+  (CREATEF) create_instrdef, instrdef_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR_INSTANCE = {
   "Instr", "instrument instance reference", CS_ARG_TYPE_BOTH,
-  create_instr, instr_copy_value, NULL, NULL, 0
+  (CREATEF) create_instr, instr_copy_value, NULL, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_COMPLEX = {
-  "Complex", "complex", CS_ARG_TYPE_BOTH, create_complex, complex_copy_value,
+  "Complex", "complex", CS_ARG_TYPE_BOTH, (CREATEF) create_complex, complex_copy_value,
     NULL, NULL, 0
 };
 

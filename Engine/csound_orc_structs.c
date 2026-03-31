@@ -147,7 +147,6 @@ CS_VARIABLE* createStructVar(void* cs, const CS_TYPE *p, INSDS *ctx) {
   }
 
   CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-  IGN(p);
   var->memBlockSize = sizeof(CS_STRUCT_VAR);
   var->initializeVariableMemory = initializeStructVar;
   var->varType = p;
