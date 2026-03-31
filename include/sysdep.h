@@ -87,8 +87,6 @@ _Static_assert(sizeof(long) == 4, "expected 32-bit long on wasm32");
 
 #if defined(MSVC)
 #include <intrin.h> /* for _InterlockedExchange */
-#include <malloc.h>
-#define alloc _alloc
 #endif
 
 #ifndef CABBAGE
