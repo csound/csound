@@ -865,6 +865,8 @@ extern "C" {
    *     pvs data as a PVSDATEXT structure - (PVSDAT **) pp
    *    (see csoundPvsData***(), csoundSetPvsData(),
    *     csoundGetPvsData(), and csoundInitPvsData())
+   *   CSOUND_VAR_CHANNEL
+   *    generic variable data channel
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -1034,6 +1036,7 @@ extern "C" {
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
    * - "k" (control sigs): each item is a MYFLT
+   * - all other standard types are supported
    *  dimensions - number of array dimensions
    *  sizes - sizes for each dimension
    * returns the ARRAYDAT for the requested channel or NULL on error
@@ -1052,6 +1055,7 @@ extern "C" {
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
    * - "k" (control sigs): each item is a MYFLT
+   * - other standard type names
    */
   PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat);
 
