@@ -30,6 +30,11 @@
 #include "namedins.h"
 #include "cs_internal.h"
 
+#if defined(MSVC)
+#include <malloc.h>
+#define alloc _alloc
+#endif
+
 // count args in string types arg
 static int32_t count_args(const char *args) {
   int32_t count = 0;
