@@ -32,7 +32,7 @@
 
 #if defined(MSVC)
 #include <malloc.h>
-#define alloc _alloc
+#define alloca _alloca
 #endif
 
 // count args in string types arg
