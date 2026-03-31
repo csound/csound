@@ -667,6 +667,7 @@ def runTest():
         ["test_dbap.csd", "test dbap and dbapgains opcodes"],
         ["test_generic_chan.csd", "testing generic bus channel"],
         ["test_generic_chan_no_match.csd", "testing type mismatch for bus channel", 1],
+        ["test_bus_channels.csd", "testing bus channels"],
     ]
 
     arrayTests = [

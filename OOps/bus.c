@@ -1499,32 +1499,30 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 {
   MYFLT       *dummy;
-  const char  *argName;
+  char  *argName = GetOutputArgName(&p->h, 0);
   int32_t     type = CSOUND_CONTROL_CHANNEL, mode, err;
   controlChannelHints_t hints;
   CHNENTRY *chn;
+  CS_VARIABLE *var = csoundFindVariableWithName(csound,
+                                                csound->engineState.varPool,
+                                                argName);
 
-  /* must have an output argument of type 'gi', 'gk', 'ga', or 'gS' */
-  if (UNLIKELY(GetOutputArgCnt((OPDS *) p) != 1))
-    goto arg_err;
-  argName = GetOutputArgName((OPDS *) p, 0);
-  if (UNLIKELY(argName == NULL))
-    goto arg_err;
-  if (UNLIKELY(argName[0] != 'g'))
-    goto arg_err;
-  switch ((int32_t)argName[1]) {
-  case 'i':
-  case 'k':
-    break;
-  case 'a':
+  if(var == NULL)
+    return csound->InitError(csound, "global variable not found for export\n");
+  
+  if(var->varType == &CS_VAR_TYPE_K ||
+     var->varType == &CS_VAR_TYPE_I) 
+    type = CSOUND_CONTROL_CHANNEL;
+  else if (var->varType == &CS_VAR_TYPE_A)
     type = CSOUND_AUDIO_CHANNEL;
-    break;
-  case 'S':
+  else if (var->varType == &CS_VAR_TYPE_S)
     type = CSOUND_STRING_CHANNEL;
-    break;
-  default:
-    goto arg_err;
-  }
+  else if (var->varType == &CS_VAR_TYPE_ARRAY)
+    type = CSOUND_ARRAY_CHANNEL;
+  else if (var->varType == &CS_VAR_TYPE_F)
+    type = CSOUND_PVS_CHANNEL;
+  else type = CSOUND_VAR_CHANNEL;
+  
   /* mode (input and/or output) */
   mode = (int32_t)MYFLT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
@@ -1537,23 +1535,16 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   err = csoundGetChannelPtr(csound, (void **) &dummy, (char*) p->iname->data, 0);
   if (UNLIKELY(err >= 0))
     return csound->InitError(csound, Str("channel already exists"));
-  /* now create new channel, using output variable for data storage */
-  //    dummy = p->arg;
-  /* THIS NEEDS A LOCK BUT DOES NOT EXIST YET */
-  /* lock = get_channel_lock(csound, (char*) p->iname->data); */
-  /* csoundSpinLock(lock); */
   err = create_new_channel(csound, (char*) p->iname->data, type);
-
-  /* csoundSpinLock(lock); */
   if (err)
     return print_chn_err(p, err);
 
   /* Now we need to find the channel entry */
   chn = find_channel(csound, (char*) p->iname->data);
+  /* Free any existing chn var memBlock */
+  if(chn->var->memBlock)
+    csound->Free(csound, chn->var->memBlock);
   /* point to the arg var */
-  CS_VARIABLE *var = csoundFindVariableWithName(csound,
-                                                csound->engineState.varPool,
-                                                argName);
   chn->var->memBlock = var->memBlock;
 
   /* if control channel, set additional parameters */
@@ -1571,10 +1562,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     return OK;
   if (err == CSOUND_MEMORY)
     return print_chn_err(p, err);
-  return csound->InitError(csound, Str("invalid channel parameters"));
-
- arg_err:
-  return csound->InitError(csound, Str("invalid export variable"));
+  return csound->InitError(csound, Str("invalid channel parameters"));  
 }
 
 /* returns all parameters of a channel */
