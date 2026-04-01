@@ -331,8 +331,6 @@ TEST_F (ChannelTests, ChannelVariable)
               csoundGetChannel(csound, "1")->memBlock->value);
 }
 
-extern "C" void *csoundCalloc(CSOUND *, size_t);
-
 TEST_F (ChannelTests, ChannelNewVariable)
 {
     const char *name = "testing";
@@ -341,7 +339,8 @@ TEST_F (ChannelTests, ChannelNewVariable)
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     const CS_TYPE *ktype = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
     CS_VARIABLE *var = ktype->createVariable(csound, ktype, NULL);
-    var->memBlock = (CS_VAR_MEM  *)csoundCalloc(csound, var->memBlockSize + sizeof(CS_TYPE *));
+    CS_VAR_MEM memBlock;  // enough storage for a scalar (i, k), other types might need extra
+    var->memBlock = &memBlock;
     MYFLT val = 1.0;
     ktype->copyValue(csound, ktype, &(var->memBlock->value), &val, NULL);
     err = csoundSetChannel(csound, name, var);
@@ -392,4 +391,12 @@ TEST_F (ChannelTests, AudioChannel)
     }
     rms = sqrt(rms/10);
     ASSERT_TRUE(rms > 0);
+    // now let's test getting it as an audio variable
+    MYFLT pow = 0;
+    const CS_VARIABLE *var = csoundGetChannel(csound, "audio");
+    const MYFLT *sample = &(var->memBlock->value);
+    for(int i = 0; i < 10; i++) {
+      pow += sample[i]*sample[i];
+    }
+    ASSERT_TRUE(pow > 0);  
 }
