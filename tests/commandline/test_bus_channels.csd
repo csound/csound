@@ -6,27 +6,31 @@
 
 
 instr 1
- cvar@global:i chnexport "test",3
+ cvar@global:k chnexport "test",3
  chnset 1, "test"
+ sig:a oscili 0dbfs, A4
+ chnmix sig, "audio"
 endin
 
 instr 2
- var:i chnget "test"
+ var:k chnget "test"
  if(var != cvar) then
-  prints "exported channel not matching var"
-  exitnow(-1)
+  printks "exported channel not matching var", 1
+  exitnowk(-1)
  else
-  print var
+  printk2 var
  endif
  cvar = 2
+ sig:a chnget "audio"
+ out sig
+ chnclear "audio"
 endin
 
 
 </CsInstruments>
 <CsScore>
-i1 0 1
-i2 1 1
-i2 2 1
+i1 0 2
+i2 0 2
 e
 </CsScore>
 </CsoundSynthesizer>

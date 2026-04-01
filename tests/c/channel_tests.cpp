@@ -348,3 +348,48 @@ TEST_F (ChannelTests, ChannelNewVariable)
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     ASSERT_EQ(val, csoundGetChannel(csound,name)->memBlock->value);
 }
+
+TEST_F (ChannelTests, ArrayChannel)
+{
+    const char *name = "testing";
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    int32_t size = 2;
+    ARRAYDAT *adat = csoundInitArrayChannel(csound, name, "k", 1, &size);
+    MYFLT data[2] = {1., 2.};
+    csoundSetArrayData(adat, data);
+    const MYFLT *dataout = (const MYFLT *) csoundGetArrayData(adat);
+    ASSERT_EQ(dataout[0], data[0]);
+    ASSERT_EQ(dataout[1], data[1]);
+    csoundCompileOrc(csound, R"ORC(
+             instr 1
+              var:k[] chnget "testing"
+              chnset var[0], "control"
+             endin
+             schedule(1,0,1);
+                     )ORC");
+    csoundPerformKsmps(csound);
+    MYFLT val = csoundGetControlChannel(csound, "control", &err);
+    ASSERT_EQ(val, data[0]);
+}
+
+TEST_F (ChannelTests, AudioChannel)
+{
+    csoundCompileOrc(csound, R"ORC(
+             instr 1
+              sig:a oscili 0dbfs, A4
+              chnset sig, "audio"
+             endin
+             schedule(1,0,1);
+                     )ORC");    
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    MYFLT audio[10], rms = 0.; // ksmps defaults to 10
+    csoundGetAudioChannel(csound, "audio", audio);
+    for(int i = 0; i < 10; i++) {
+      rms += audio[i]*audio[i];
+    }
+    rms = sqrt(rms/10);
+    ASSERT_TRUE(rms > 0);
+}
