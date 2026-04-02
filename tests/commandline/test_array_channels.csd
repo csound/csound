@@ -78,6 +78,26 @@ else
 endif
 endin
 
+instr 5
+arr:k[][] init 2,2
+arr fillarray 1,2,3,4
+chnset arr, "matrix"
+mat:k[][] chnget "matrix"
+i:k = 0
+k:k = 1
+while i < 2 do
+ j:k = 0
+ while j < 2 do 
+  if mat[i][j] != k then
+   printks "matrix[%d,%d] not matched\n", 1, i, j
+   exitnowk(-1)
+  endif
+  j+=1
+  k+=1
+ od
+ i+=1
+od
+endin
 
 </CsInstruments>
 
@@ -86,6 +106,7 @@ i1 0 1
 i2 0 1
 i3 0 1
 i4 0 1
+i5 0 1
 </CsScore>
 </CsoundSynthesizer>
 

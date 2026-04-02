@@ -304,21 +304,17 @@ TEST_F (ChannelTests, StringChannel)
     delete [] string;
 }
 
-const char orc7[] = R"ORC(
- chnset 1, "1"
- chnset 0, "2"
-
- instr 1
-  k1 chnget "2"
-  chnset k1, "1"
- endin
- schedule(1,0,1)
-
-)ORC";
-
 TEST_F (ChannelTests, ChannelVariable)
 {
-    csoundCompileOrc(csound, orc7);
+  csoundCompileOrc(csound, R"ORC(
+                 chnset 1, "1"
+                 chnset 0, "2"
+                 instr 1
+                  k1 chnget "2"
+                  chnset k1, "1"
+                 endin
+                 schedule(1,0,1)
+                )ORC");
     int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     const CS_VARIABLE *var = csoundGetChannel(csound, "1");
