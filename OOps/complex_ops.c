@@ -123,6 +123,41 @@ int32_t complex_add(CSOUND *csound, CXOP *p) {
              : complex_add_pp(csound, p)));
 }
 
+static inline int32_t complex_addin_rr(CSOUND *csound, CXOP *p) {
+  p->ans->real =  p->ans->real + p->a->real;
+  p->ans->imag =  p->ans->imag + p->a->imag;
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline  int32_t complex_addin_rp(CSOUND *csound, CXOP *p) {
+  p->ans->real =  p->ans->real + polar_to_real(p->a);
+  p->ans->imag =  p->ans->imag + polar_to_imag(p->a);
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline  int32_t complex_addin_pr(CSOUND *csound, CXOP *p) {
+  p->ans->real =  p->a->real + polar_to_real(p->ans);
+  p->ans->imag =  p->a->imag + polar_to_imag(p->ans);
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline  int32_t complex_addin_pp(CSOUND *csound, CXOP *p) {
+  p->ans->real =  polar_to_real(p->ans) + polar_to_real(p->a);
+  p->ans->imag =  polar_to_imag(p->ans) + polar_to_imag(p->a);
+  *p->ans = polar(p->ans);
+  return OK;
+}
+
+int32_t complex_addin(CSOUND *csound, CXOP *p) {
+  return (!p->ans->isPolar ? (!p->a->isPolar ? complex_addin_rr(csound,p)
+                            : complex_addin_rp(csound, p))
+          : (!p->a->isPolar ? complex_addin_pr(csound,p)
+             : complex_addin_pp(csound, p)));
+}
+
 static int32_t complex_sub_rr(CSOUND *csound, CXOP *p) {
   p->ans->real = p->a->real - p->b->real;
   p->ans->imag =  p->a->imag - p->b->imag;
@@ -158,8 +193,40 @@ int32_t complex_sub(CSOUND *csound, CXOP *p) {
              : complex_sub_pp(csound, p)));
 }
 
+static int32_t complex_subin_rr(CSOUND *csound, CXOP *p) {
+  p->ans->real = p->ans->real - p->a->real;
+  p->ans->imag =  p->ans->imag - p->a->imag;
+  p->ans->isPolar = 0;
+  return OK;
+}
 
+static inline  int32_t complex_subin_rp(CSOUND *csound, CXOP *p) {
+  p->ans->real =  p->ans->real - polar_to_real(p->a);
+  p->ans->imag =  p->ans->imag - polar_to_imag(p->a);
+  p->ans->isPolar = 0;
+  return OK;
+}
 
+static inline  int32_t complex_subin_pr(CSOUND *csound, CXOP *p) {
+  p->ans->real =  polar_to_real(p->ans) - p->a->real;
+  p->ans->imag =  polar_to_imag(p->ans) - p->a->imag;
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline  int32_t complex_subin_pp(CSOUND *csound, CXOP *p) {
+  p->ans->real =  polar_to_real(p->ans) - polar_to_real(p->a);
+  p->ans->imag =  polar_to_imag(p->ans) - polar_to_imag(p->a);
+  *p->ans = polar(p->ans);
+  return OK;
+}
+
+int32_t complex_subin(CSOUND *csound, CXOP *p) {
+  return (!p->ans->isPolar ? (!p->a->isPolar ? complex_subin_rr(csound,p)
+                            : complex_subin_rp(csound, p))
+          : (!p->a->isPolar ? complex_subin_pr(csound,p)
+             : complex_subin_pp(csound, p)));
+}
 
 static inline int32_t complex_prod_rr(CSOUND *csound, CXOP *p) {
   MYFLT ra = p->a->real;
@@ -210,6 +277,54 @@ int32_t complex_prod(CSOUND *csound, CXOP *p) {
 }
 
 
+static inline int32_t complex_mulin_rr(CSOUND *csound, CXOP *p) {
+  MYFLT ra = p->ans->real;
+  MYFLT ia = p->ans->imag;
+  MYFLT rb = p->a->real;
+  MYFLT ib = p->a->imag;
+  p->ans->real = ra*rb - ia*ib;
+  p->ans->imag = ra*ib + ia*rb;
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline int32_t complex_mulin_rp(CSOUND *csound, CXOP *p) {
+  MYFLT ra = p->ans->real;
+  MYFLT ia = p->ans->imag;
+  MYFLT rb = polar_to_real(p->a);
+  MYFLT ib = polar_to_imag(p->a);
+  p->ans->real = ra*rb - ia*ib;
+  p->ans->imag = ra*ib + ia*rb;
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline int32_t complex_mulin_pr(CSOUND *csound, CXOP *p) {
+  MYFLT ra = polar_to_real(p->ans);
+  MYFLT ia = polar_to_imag(p->ans);
+  MYFLT rb = p->a->real;
+  MYFLT ib = p->a->imag;
+  p->ans->real = ra*rb - ia*ib;
+  p->ans->imag = ra*ib + ia*rb;
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline int32_t complex_mulin_pp(CSOUND *csound, CXOP *p) {
+  p->ans->real = p->ans->real * p->a->real;
+  p->ans->imag = p->ans->imag + p->a->imag;
+  p->ans->isPolar = 1;
+  return OK;
+}
+
+
+int32_t complex_mulin(CSOUND *csound, CXOP *p) {
+  return (!p->ans->isPolar ? (!p->a->isPolar ? complex_mulin_rr(csound,p)
+                            : complex_mulin_rp(csound, p))
+          : (!p->a->isPolar ? complex_mulin_pr(csound,p)
+             : complex_mulin_pp(csound, p)));
+}
+
 static inline int32_t complex_div_rr(CSOUND *csound, CXOP *p) {
   MYFLT ra = p->a->real;
   MYFLT ia = p->a->imag;
@@ -218,7 +333,7 @@ static inline int32_t complex_div_rr(CSOUND *csound, CXOP *p) {
   MYFLT den = rb*rb + ib*ib;
   if(den != FL(0.0)) {
     p->ans->real = (ra*rb + ia*ib)/den;
-    p->ans->imag = (ra*ib - ia*rb)/den;
+    p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
     csound->Message(csound, "complex div by zero\n");
     return NOTOK;
@@ -235,7 +350,7 @@ static inline int32_t complex_div_rp(CSOUND *csound, CXOP *p) {
   MYFLT den = rb*rb + ib*ib;
   if(den != FL(0.0)) {
     p->ans->real = (ra*rb + ia*ib)/den;
-    p->ans->imag = (ra*ib - ia*rb)/den;
+    p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
     csound->Message(csound, "complex div by zero\n");
     return NOTOK;
@@ -252,7 +367,7 @@ static inline int32_t complex_div_pr(CSOUND *csound, CXOP *p) {
   MYFLT den = rb*rb + ib*ib;
   if(den != FL(0.0)) {
     p->ans->real = (ra*rb + ia*ib)/den;
-    p->ans->imag = (ra*ib - ia*rb)/den;
+    p->ans->imag = (ia*rb - ra*ib)/den;
   } else {
     csound->Message(csound, "complex div by zero\n");
     return NOTOK;
@@ -281,6 +396,76 @@ int32_t complex_div(CSOUND *csound, CXOP *p) {
              : complex_div_pp(csound, p)));
 }
 
+static inline int32_t complex_divin_rr(CSOUND *csound, CXOP *p) {
+  MYFLT ra = p->ans->real;
+  MYFLT ia = p->ans->imag;
+  MYFLT rb = p->a->real;
+  MYFLT ib = p->a->imag;
+  MYFLT den = rb*rb + ib*ib;
+  if(den != FL(0.0)) {
+    p->ans->real = (ra*rb + ia*ib)/den;
+    p->ans->imag = (ia*rb - ra*ib)/den;
+  } else {
+    csound->Message(csound, "complex div by zero\n");
+    return NOTOK;
+  }
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline int32_t complex_divin_rp(CSOUND *csound, CXOP *p) {
+  MYFLT ra = p->ans->real;
+  MYFLT ia = p->ans->imag;
+  MYFLT rb = polar_to_real(p->a);
+  MYFLT ib = polar_to_imag(p->a);
+  MYFLT den = rb*rb + ib*ib;
+  if(den != FL(0.0)) {
+    p->ans->real = (ra*rb + ia*ib)/den;
+    p->ans->imag = (ia*rb - ra*ib)/den;
+  } else {
+    csound->Message(csound, "complex div by zero\n");
+    return NOTOK;
+  }
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline int32_t complex_divin_pr(CSOUND *csound, CXOP *p) {
+  MYFLT ra = polar_to_real(p->ans);
+  MYFLT ia = polar_to_imag(p->ans);
+  MYFLT rb = p->a->real;
+  MYFLT ib = p->a->imag;
+  MYFLT den = rb*rb + ib*ib;
+  if(den != FL(0.0)) {
+    p->ans->real = (ra*rb + ia*ib)/den;
+    p->ans->imag = (ia*rb - ra*ib)/den;
+  } else {
+    csound->Message(csound, "complex div by zero\n");
+    return NOTOK;
+  }
+  p->ans->isPolar = 0;
+  return OK;
+}
+
+static inline int32_t complex_divin_pp(CSOUND *csound, CXOP *p) {
+  if (p->b->real != FL(0.0)) {
+    p->ans->real = p->ans->real / p->b->real;
+    p->ans->imag = p->ans->imag - p->b->imag;
+  } else {
+    csound->Message(csound, "complex polar div by zero\n");
+    return NOTOK;
+  }
+  p->ans->isPolar = 1;
+  return OK;
+}
+
+
+int32_t complex_divin(CSOUND *csound, CXOP *p) {
+  return (!p->ans->isPolar ? (!p->a->isPolar ? complex_divin_rr(csound,p)
+                            : complex_divin_rp(csound, p))
+          : (!p->a->isPolar ? complex_divin_pr(csound,p)
+             : complex_divin_pp(csound, p)));
+}
 
 int32_t complex_conj(CSOUND *csound, CXOP *p) {
   p->ans->real =  p->a->real;
@@ -441,6 +626,7 @@ int32_t complex_log(CSOUND *csond, CXOP *p) {
 int32_t cops_init(CSOUND *csound, COPS1 *p) {
   int32_t size = 0;
 
+  if(p->INOCOUNT == 2) {
   if(IS_ARRAY_ARG(p->a) &&
      IS_ARRAY_ARG(p->b)){
     ARRAYDAT *aa = (ARRAYDAT *) p->a;
@@ -462,10 +648,17 @@ int32_t cops_init(CSOUND *csound, COPS1 *p) {
       return csound->InitError(csound, "array unitialised\n");
     size = ((ARRAYDAT *)p->b)->sizes[0];
   }
-
+  } else {
+    ARRAYDAT *aa = (ARRAYDAT *) p->a;
+    if(aa->dimensions == 0)
+      return csound->InitError(csound, "array unitialised\n");
+    size = aa->sizes[0];
+  }
   tabinit(csound, p->out, size, p->h.insdshead);
   return OK;
 }
+
+
 
 static inline void
 cmplx_sc_prod(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
@@ -763,40 +956,22 @@ int32_t complexa_x_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-
-  // Determine target length; fall back to ksmps if unset
-  int32_t len = (p->out && p->out->sizes && p->out->dimensions > 0)
-                  ? p->out->sizes[0] : CS_KSMPS;
-
-  // Defensive: lazily initialize missing input arrays to avoid NULL deref
-  if (UNLIKELY(array1 && array1->data == NULL)) {
-    if (array1->arrayType == NULL && p->out)
-      array1->arrayType = p->out->arrayType;
-    if (p->out)
-      tabinit_like(csound, array1, p->out);
-    else
-      tabinit(csound, array1, len, p->h.insdshead);
-  }
-  if (UNLIKELY(array2 && array2->data == NULL)) {
-    if (array2->arrayType == NULL && p->out)
-      array2->arrayType = p->out->arrayType;
-    if (p->out)
-      tabinit_like(csound, array2, p->out);
-    else
-      tabinit(csound, array2, len, p->h.insdshead);
-  }
-
+  int32_t len = p->out->sizes[0];
   COMPLEXDAT *in1 = (COMPLEXDAT *) (array1 ? array1->data : NULL);
   COMPLEXDAT *in2 = (COMPLEXDAT *) (array2 ? array2->data : NULL);
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
-
-  // If still missing, zero output and return gracefully
-  if (UNLIKELY(in1 == NULL || in2 == NULL || out == NULL)) {
-    if (out != NULL) memset(out, 0, sizeof(COMPLEXDAT) * len);
-    return OK;
-  }
-
   cmplx_cmplx_proda(out, in1, in2, len);
+  return OK;
+}
+
+
+int32_t complexa_mulin(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array1;
+  array1 = (ARRAYDAT *) p->a;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in1 = (COMPLEXDAT *) (array1 ? array1->data : NULL);
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_cmplx_proda(out, out, in1, len);
   return OK;
 }
 
@@ -826,6 +1001,16 @@ int32_t complexa_div_complexa(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_diva(out,in1,in2,len);
+  return OK;
+}
+
+int32_t complexa_divin(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array1;
+  array1 = (ARRAYDAT *) p->a;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_cmplx_diva(out,out,in1,len);
   return OK;
 }
 
@@ -860,6 +1045,16 @@ int32_t complexa_plus_complexa(CSOUND *csound, COPS1 *p) {
   return OK;
 }
 
+int32_t complexa_addin(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array1;
+  array1 = (ARRAYDAT *) p->a;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_cmplx_adda(out,out,in1,len);
+  return OK;
+}
+
 static inline void
 cmplx_cmplx_suba(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
   for(int i = 0; i < n; i++) {
@@ -888,6 +1083,16 @@ int32_t complexa_sub_complexa(CSOUND *csound, COPS1 *p) {
   COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_suba(out,in1,in2,len);
+  return OK;
+}
+
+int32_t complexa_subin(CSOUND *csound, COPS1 *p) {
+  ARRAYDAT *array1;
+  array1 = (ARRAYDAT *) p->a;
+  int32_t len = p->out->sizes[0];
+  COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
+  COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
+  cmplx_cmplx_suba(out,out,in1,len);
   return OK;
 }
 
