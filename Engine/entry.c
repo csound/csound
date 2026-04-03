@@ -331,6 +331,8 @@ const OENTRY opcodlst_1[] = {
   { "fillarray.F", sizeof(TABFILLF), 0, "i[]", "S", (SUBR)tabfillf },
   { "fillarray.b", sizeof(TABFILL), 0, "b[]", "m", (SUBR)tabfill },
   { "fillarray.B", sizeof(TABFILL), 0, "B[]", "m", (SUBR)tabfill },
+  { "fillarray.C", sizeof(TABFILL), 0, ":Complex;[]", "*", (SUBR)tabfill, (SUBR)tabfill},
+  { "fillarray.", sizeof(TABFILL), 0, ".[]", "*", (SUBR)tabfill },
   { "string2array.S", sizeof(TABFILLF), 0, "i[]", "S", (SUBR)tabsfill },
   { "string2array.s", sizeof(TABFILLF), 0, "k[]", "S", (SUBR)tabsfill },
   { "array.k", sizeof(TABFILL), _QQ, "k[]", "m", (SUBR)tabfill     },
