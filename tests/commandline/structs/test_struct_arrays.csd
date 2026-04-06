@@ -9,11 +9,12 @@ nchnls	=	2
 struct MyType imaginary:i, real:i
 
 opcode processMyType(dummy:i[], input:MyType[]):i
-
+data:MyType[] init lenarray(input)
 ilen = lenarray(input)
 print ilen
 indx = 0
 while (indx < ilen) do
+  data[indx] = input[indx]
   temp:MyType = input[indx]
   print temp.imaginary
   print temp.real
@@ -39,6 +40,8 @@ while (indx < 4) do
 
   var0[indx].imaginary = (indx * 2) * 2
   var0[indx].real = ((indx + 1) * 2) * 2
+  print var0[index].real
+  print var0[indx].imaginary
 
   indx += 1
 

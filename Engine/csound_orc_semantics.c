@@ -53,7 +53,6 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
 
-
 char* csoundStrdup(CSOUND* csound, const char* str) {
   size_t len;
   char* retVal;
@@ -490,6 +489,32 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   return result;
 }
 
+/* convert array type string from type[] to [type]
+   accepts multidimensional type strings (type[][]) 
+   non-op for non-array type strings
+*/
+static const char *convert_array_type_string(CSOUND *csound,
+                                       const char *str) {
+  const char *check = str;
+  char dim = 0;
+  while(*check != '\0') {
+    if(*check == '[') dim++;
+    check++;
+  }
+  if(dim){
+    int len = (int) strlen(str);
+    char *arr = csoundCalloc(csound, strlen(str)+1);
+    for(int i = 0; i < dim; i++) {
+      arr[i] = '[';
+    }
+    memcpy(arr+dim, str, len-dim);
+    for(int i = len-dim; i < len; i++) {
+      arr[i] = ']';
+    }
+    return arr;
+  } else return str;
+}
+
 /* This function gets arg type with checking type table */
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
@@ -882,7 +907,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
     __attribute__((fallthrough));
   case T_IDENT:
-
     s = tree->value->lexeme;
     if (s == NULL) {
       /* VL: 8/3/2018
@@ -912,8 +936,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
        // found this, return type.
        return csoundStrdup(csound, varType->varTypeName);
      }
-
-
 
     if (is_reserved(s)) {
       return csoundStrdup(csound, "r");                              /* rsvd */
@@ -950,7 +972,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       csound->Free(csound, s_copy);
     }
 
-
     if (UNLIKELY(var == NULL)) {
       synterr(csound, Str("get_arg_type2: Variable '%s' used before defined, line %d"),
               tree->value->lexeme, tree->line);
@@ -970,7 +991,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
   case T_TYPED_IDENT:
-    return csoundStrdup(csound, tree->value->optype);
+    // in the case of arrays, we need to convert from type[] to [type]
+    // so that semantic analysis can identify the type correctly
+    return csoundStrdup(csound,
+                        convert_array_type_string(csound, tree->value->optype));
   case STRUCT_EXPR:
     return resolve_struct_expr_type(csound, tree, typeTable);
 
