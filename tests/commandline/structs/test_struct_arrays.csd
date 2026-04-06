@@ -14,11 +14,10 @@ ilen = lenarray(input)
 print ilen
 indx = 0
 while (indx < ilen) do
-  data[indx].real = input[indx].real
+  data[indx] = input[indx]
   temp:MyType = input[indx]
   print temp.imaginary
   print temp.real
-  ivar = data[indx].real
   indx += 1
 od
 indx = 0

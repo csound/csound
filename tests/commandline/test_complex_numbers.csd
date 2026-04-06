@@ -12,7 +12,13 @@ if k1 != k2 then
 endif
 endop
 
+test@global:Complex[] init 2
+test[0] = 1,2
+test[1] = 3,4
+
+
 instr 1
+ printk2 real(test[0])
  Ca:Complex[] init 10
  ca:Complex = 0,1
  cc:Complex = complex(1,1)*complex(2,2)
