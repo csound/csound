@@ -1807,10 +1807,18 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   // if an index var is given, we use it to define the loop time (i or k)
   if (current->left->next != NULL) {
-    char *vartype;    
+    char *vartype;
+    int32_t isItime = !isPerfRate;
     vartype = current->left->next->value->optype;
     if(vartype)
       isPerfRate = strcmp("k",vartype) == 0 ? 1 : 0;
+    if(isPerfRate == 0 &&
+       isItime == 0) {
+      synterr(csound, "cannot run a perf-time loop"
+              " with an i-time index, line %d",
+              current->line);
+      csoundLongJmp(csound, 0);
+    }
   }
   
   char* op = (char *)csound->Malloc(csound, 10);
