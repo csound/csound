@@ -3813,8 +3813,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     default:
       // Check for struct array member assignments: array[index].member = value
       if ((current->type == '=' || current->type == T_ASSIGNMENT) &&
-          current->left && current->left->type == STRUCT_EXPR &&
-          current->left->left && current->left->left->type == T_ARRAY) {
+          current->left && current->left->type == STRUCT_EXPR) {
 
         TREE* anchor_expansion = NULL;
         if (expand_struct_array_member_assignment(csound, current, typeTable, &anchor_expansion)) {
