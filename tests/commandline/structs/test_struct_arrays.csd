@@ -40,7 +40,7 @@ while (indx < 4) do
 
   var0[indx].imaginary = (indx * 2) * 2
   var0[indx].real = ((indx + 1) * 2) * 2
-  print var0[index].real
+  print var0[indx].real
   print var0[indx].imaginary
 
   indx += 1
