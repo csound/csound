@@ -640,6 +640,24 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $$->next = $4;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
           }
+         | FOR_TOKEN typed_identifier ',' typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          $5->left = $6;
+          $5->right = $8;
+          $$ = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
+                         lookup_token(csound, $2->value->lexeme, NULL));
+          $$->next = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
+                         lookup_token(csound, $4->value->lexeme, NULL));
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
+          }
+        | FOR_TOKEN identifier ',' typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          $2->next = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
+                         lookup_token(csound, $4->value->lexeme, NULL));
+          $5->left = $6;
+          $5->right = $8;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
+        }
         ;
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
