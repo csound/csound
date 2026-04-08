@@ -733,6 +733,18 @@ def runTest():
             "test what breaking example with structs",
             1,
         ],
+        [
+            "structs/test_struct_array_direct_member_access.csd",
+            "test direct member access on struct array elements",
+        ],
+        [
+            "structs/test_struct_array_nested_member_access.csd",
+            "test nested member access on struct array elements",
+        ],
+        [
+            "structs/test_struct_array_k_index_member_access.csd",
+            "test k-rate index member access on struct array elements",
+        ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],
         ["test_udt_chan_no_match.csd", "testing unmatched udt channel", 1],

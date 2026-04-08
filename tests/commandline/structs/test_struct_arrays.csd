@@ -6,18 +6,23 @@ ksmps	=	1
 nchnls	=	2
 0dbfs	=	1
 
+#include "../libassert.orc"
+
 struct MyType imaginary:i, real:i
 
 opcode processMyType(dummy:i[], input:MyType[]):i
 data:MyType[] init lenarray(input)
 ilen = lenarray(input)
 print ilen
+assertEquals(ilen, 4)
 indx = 0
 while (indx < ilen) do
   data[indx] = input[indx]
   temp:MyType = input[indx]
   print temp.imaginary
+  assertEquals(temp.imaginary, indx * 4)
   print temp.real
+  assertEquals(temp.real, (indx + 1) * 4)
   indx += 1
 od
 indx = 0
@@ -40,8 +45,10 @@ while (indx < 4) do
 
   var0[indx].imaginary = (indx * 2) * 2
   var0[indx].real = ((indx + 1) * 2) * 2
-  print var0[index].real
+  print var0[indx].real
+  assertEquals(var0[indx].real, (indx + 1) * 4)
   print var0[indx].imaginary
+  assertEquals(var0[indx].imaginary, indx * 4)
 
   indx += 1
 
@@ -61,4 +68,3 @@ i1 0 0.5
 
 </CsScore>
 </CsoundSynthesizer>
-

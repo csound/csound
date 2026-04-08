@@ -1583,10 +1583,10 @@ static void setup_opcode_argpp(
               members = members->next;
             }
             if (!found) {
-              csound->Free(csound, path);
               csound->Die(csound,
                 Str("setup_opcode_argpp: struct member '%s' not found in structPath '%s' for %s"),
                 next, arg->structPath, ep->opname ? ep->opname : "(null)");
+              csound->Free(csound, path);
             }
             next = cs_strtok_r(NULL, ".", &th);
           }
