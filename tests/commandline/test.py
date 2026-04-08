@@ -581,6 +581,11 @@ def runTest():
             "test_bool_with_explicit_type.csd",
             "test use of explicit type in bool expression",
         ],
+        [
+            "test_fail_typed_ident_expression.csd",
+            "expected failure: explicit type annotation used in expression",
+            1,
+        ],
         ["test_explicit_globals.csd", "test global declaration of explicit types"],
         [
             "test_fail_mismatched_types.csd",
