@@ -1805,6 +1805,22 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
      arrayType == xType) isPerfRate = 1;
   else isPerfRate = 0;
 
+  // if an index var is given, we use it to define the loop time (i or k)
+  if (current->left->next != NULL) {
+    char *vartype;
+    int32_t isItime = !isPerfRate;
+    vartype = current->left->next->value->optype;
+    if(vartype)
+      isPerfRate = strcmp("k",vartype) == 0 ? 1 : 0;
+    if(isPerfRate == 0 &&
+       isItime == 0) {
+      synterr(csound, "cannot run a perf-time loop"
+              " with an i-time index, line %d",
+              current->line);
+      csoundLongJmp(csound, 0);
+    }
+  }
+  
   char* op = (char *)csound->Malloc(csound, 10);
   // create index counter
   TREE *indexAssign = create_empty_token(csound);
@@ -1899,7 +1915,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
-  char* array_get = arrayType != sType ? "##array_get" : "##array_geti";
+  char* array_get = isPerfRate ? "##array_get" :
+    (arrayType == sType ? "##array_geti" : "##array_get"); 
   TREE* arrayGetStatement = create_opcode_token(csound, array_get); 
   arrayGetStatement->left = current->left;
 
