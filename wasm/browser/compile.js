@@ -248,7 +248,9 @@ const compile = async (config) => {
   };
   const closureCompiler = new ClosureCompiler(deepMerge(defaultConfig, config));
 
-  closureCompiler.javaPath = `${process.env.JAVA_HOME}/bin/java`;
+  closureCompiler.javaPath = process.env.JAVA_HOME
+    ? `${process.env.JAVA_HOME}/bin/java`
+    : "java";
   closureCompiler.JAR_PATH = JarPath;
   await new Promise((resolve, reject) => {
     const javaProcess = closureCompiler.run((exitCode, inputString, stderr) => {
