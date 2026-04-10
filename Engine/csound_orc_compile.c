@@ -2073,6 +2073,10 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     case LABEL_TOKEN:
     case STRUCT_TOKEN:
     case T_DECLARE:
+    case S_ADDIN:
+    case S_SUBIN:
+    case S_DIVIN:
+    case S_MULIN:
       break;
 
     default:
