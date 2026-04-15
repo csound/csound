@@ -1261,7 +1261,7 @@ cmplx_real_minusa(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT *num, int32_t n) {
   for(int i = 0; i < n; i++) {
     out[i].isPolar = in[i].isPolar;
     if(!in[i].isPolar) {
-      out[i].real = in[i].real+num[i];
+      out[i].real = in[i].real-num[i];
       out[i].imag = in[i].imag;
     } else {
       MYFLT re, im;
