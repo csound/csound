@@ -1,6 +1,7 @@
 
 if(BUILD_TESTS)
 cmake_minimum_required(VERSION 3.20)
+include(CTest)
  if(USE_VCPKG AND NOT ANDROID AND NOT EMSCRIPTEN AND NOT IOS)
     find_package(GTest CONFIG REQUIRED)
  else()

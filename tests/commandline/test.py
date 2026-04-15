@@ -581,6 +581,11 @@ def runTest():
             "test_bool_with_explicit_type.csd",
             "test use of explicit type in bool expression",
         ],
+        [
+            "test_fail_typed_ident_expression.csd",
+            "expected failure: explicit type annotation used in expression",
+            1,
+        ],
         ["test_explicit_globals.csd", "test global declaration of explicit types"],
         [
             "test_fail_mismatched_types.csd",
@@ -732,6 +737,18 @@ def runTest():
             "structs/test_nonexistent_member.csd",
             "test what breaking example with structs",
             1,
+        ],
+        [
+            "structs/test_struct_array_direct_member_access.csd",
+            "test direct member access on struct array elements",
+        ],
+        [
+            "structs/test_struct_array_nested_member_access.csd",
+            "test nested member access on struct array elements",
+        ],
+        [
+            "structs/test_struct_array_k_index_member_access.csd",
+            "test k-rate index member access on struct array elements",
         ],
         ["test_exitnowk.csd", "perf-time exitnow opcode"],
         ["test_udt_channel.csd", "testing user-defined type channel"],

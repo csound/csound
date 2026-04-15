@@ -68,10 +68,13 @@ jobs:
           cd build
           make
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
           cd build
-          make test
+          ctest -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: |
+          cd build
           make csdtests
 
   linux_build_vcpkg:
@@ -107,8 +110,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   iOS_build:
     name: Csound for iOS
@@ -218,7 +223,9 @@ jobs:
         run: cmake --build build --config Debug
 
       - name: Run unit tests
-        run: cmake --build build --target csdtests test
+        run: ctest --test-dir build -j$(sysctl -n hw.ncpu) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -389,8 +396,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   macos_build_vcpkg_arm64:
     name: MacOS build (vcpkg arm64)
@@ -424,8 +433,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   macos_build_osxcross:
     name: MacOS build (osxcross/vcpkg)
@@ -525,7 +536,7 @@ jobs:
         run: cmake --build build --target csdtests
 
       - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS --config Release
+        run: ctest --test-dir build -C Release -j --output-on-failure
 
       - name: Install Csound (for cmake package files)
         run: cmake --install build --prefix build\install --config Release
@@ -602,7 +613,7 @@ jobs:
         run: cmake --build build --target csdtests
 
       - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS --config Release
+        run: ctest --test-dir build -C Release -j --output-on-failure
 
       - name: Install Csound (for cmake package files)
         run: cmake --install build --prefix build\install --config Release
@@ -679,8 +690,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      # - name: Run integration and unit tests
-      # run: cmake --build build --target test csdtests
+      # - name: Run unit tests
+      #   run: ctest --test-dir build -j$(nproc) --output-on-failure
+      # - name: Run CSD tests
+      #   run: cmake --build build --target csdtests
 
   windows_build_32bit:
     name: Windows 32-bit build (mingw/vcpkg)
@@ -841,8 +854,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      #- name: Run integration and unit tests
-      #  run: cmake --build build --target test csdtests
+      #- name: Run unit tests
+      #  run: ctest --test-dir build -j$(nproc) --output-on-failure
+      #- name: Run CSD tests
+      #  run: cmake --build build --target csdtests
 
   android-release:
     name: Csound for Android
