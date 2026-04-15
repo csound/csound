@@ -817,13 +817,15 @@ const OENTRY opcodlst_1[] = {
   {"##addin.Complex", sizeof(CXOP), 0, ":Complex;",":Complex;",
    (SUBR) complex_addin, (SUBR) complex_addin},
   {"##subin.Complex", sizeof(CXOP), 0, ":Complex;",":Complex;",
-   (SUBR) complex_subin, (SUBR) complex_subin},  
+   (SUBR) complex_subin, (SUBR) complex_subin},
+  { "quadosc", S(QUADOSC), 0, ":Complex;[]", "koo", (SUBR) quadosc_init,
+    (SUBR) quadosc },
+
+  
   { "log", S(CXOP), 0, ":Complex;", ":Complex;", (SUBR) complex_log,  (SUBR) complex_log },
   { "log", S(COPS1), 0, ":Complex;[]", ":Complex;[]", (SUBR) cops_init_r,
     (SUBR) complex_array_log },
   { "exp", S(CXOP), 0, ":Complex;", ":Complex;", (SUBR) complex_exp,  (SUBR) complex_exp },
-  { "exp", S(CXOP), 0, ":Complex;", "i", (SUBR) complex_exp_real,  (SUBR) complex_exp_real },
-  { "exp", S(CXOP), 0, ":Complex;", "k", NULL,  (SUBR) complex_exp_real },
   { "exp", S(COPS1), 0, ":Complex;[]", ":Complex;[]", (SUBR) cops_init_r,
     (SUBR) complex_array_exp },
   { "exp", S(COPS1), 0, ":Complex;[]", "k[]", (SUBR) cops_init_r,
@@ -2373,6 +2375,8 @@ const OENTRY opcodlst_1[] = {
   { "eventtype", S(MIDIKMB), 0, "i", "", event_type},
   { "typeof", S(ASSIGN), 0, "S", ".", type_of },
   { "typecheck", S(RELAT), 0, "b", "..", check_type },
+  { "exp", S(CXOP), 0, ":Complex;", "i", (SUBR) complex_exp_real,  (SUBR) complex_exp_real },
+  { "exp", S(CXOP), 0, ":Complex;", "k", NULL,  (SUBR) complex_exp_real },
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

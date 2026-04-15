@@ -1542,5 +1542,68 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 }
 
 
+#define WRAPPI(x) while(x >= PI) x -= PI; while(x < -PI) x += PI;
+#define WRAP1(x) ((x) - (int)(x))
 
+int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
+  tabinit(csound, p->out, CS_KSMPS, p->h.insdshead);
+  MYFLT freq = *p->cps;
+  int32_t isPolar = (int32_t) *p->isPolar;
+  if(!isPolar) {
+    p->rinc = COS(TWOPI*freq*CS_ONEDSR);
+    p->iinc = SIN(TWOPI*freq*CS_ONEDSR);
+  } else 
+    p->iinc = 2*M_PI*freq*CS_ONEDSR; 
+  p->freq = freq;
+  if(*p->skip == 0) {
+    p->rphs = 1.0;
+    p->iphs = 0;
+  }
+  return OK;
+}
+
+int32_t quadosc(CSOUND *csound, QUADOSC *p) {
+  int32_t n = p->out->sizes[0];
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  MYFLT rphs = p->rphs, iphs = p->iphs;
+  MYFLT rinc = p->rinc, iinc = p->iinc;
+  int32_t isPolar = (int32_t) *p->isPolar;
+
+  if(p->freq != *p->cps) {
+    MYFLT freq = *p->cps;
+    if(!isPolar) {
+    rinc = p->rinc = COS(TWOPI*freq*CS_ONEDSR);
+    iinc = p->iinc = SIN(TWOPI*freq*CS_ONEDSR);
+    } else 
+      iinc = p->iinc = 2*M_PI*freq*CS_ONEDSR; 
+    p->freq = freq;
+  }
+  
+  if(!isPolar) {
+    ans[0].real = rphs*rinc - iphs*iinc;
+    ans[0].imag = rphs*iinc + iphs*rinc;
+    rphs = WRAP1(ans[0].real); iphs = WRAP1(ans[0].imag);
+   } else {
+      ans[0].real = 1.;
+      ans[0].imag = iphs + iinc;
+      WRAPPI(ans[0].imag);
+      iphs = ans[0].imag;
+   }
+    
+  for(int i = 1; i < n; i++) {
+    if(!isPolar) {
+    ans[i].real = rphs*rinc - iphs*iinc;
+    ans[i].imag = rphs*iinc + iphs*rinc;
+    rphs = WRAP1(ans[i].real); iphs = WRAP1(ans[i].imag);
+    } else {
+      ans[i].real = 1.;
+      ans[i].imag = iphs + iinc;
+      WRAPPI(ans[i].imag);
+      iphs = ans[i].imag;
+    }
+  }
+  p->rphs = rphs;
+  p->iphs = iphs;  
+  return OK;
+}
 

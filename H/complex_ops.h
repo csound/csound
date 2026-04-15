@@ -46,6 +46,16 @@ typedef struct COPS1 {
   MYFLT *a, *b;
 } COPS1;
 
+typedef struct QUADOSC {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *cps;
+  MYFLT *isPolar;
+  MYFLT *skip;
+  MYFLT iinc, rinc, iphs, rphs;
+  MYFLT freq;
+} QUADOSC;
+
 
 int32_t complex_assign(CSOUND *csound, R2CXOP *p);
 int32_t complex_add(CSOUND *csound, CXOP *p);
@@ -121,3 +131,5 @@ int32_t complexa_minus_reala(CSOUND *csound, COPS1 *p);
 int32_t reala_minus_complexa(CSOUND *csound, COPS1 *p); 
 int32_t complex_exp_array(CSOUND *csond, COPS1 *p);
 int32_t complex_exp_real(CSOUND *csond, CXOP *p);
+int32_t quadosc_init(CSOUND *csound, QUADOSC *p);
+int32_t quadosc(CSOUND *csound, QUADOSC *p);
