@@ -580,6 +580,21 @@ int32_t real_div_complex(CSOUND *csound, AOP *p) {
   return OK;
 }
 
+
+int32_t complex_exp_real(CSOUND *csond, CXOP *p) {
+ COMPLEXDAT *ans = p->ans;
+ MYFLT angle =  *((MYFLT *) p->a);
+ if(!ans->isPolar) {
+   ans->real = COS(angle);
+   ans->imag = SIN(angle);
+ } else {
+   ans->real = 1.;
+   ans->imag = angle;
+ }
+ return OK;
+}
+
+
 int32_t complex_exp(CSOUND *csond, CXOP *p) {
  COMPLEXDAT *ans = p->ans;
  COMPLEXDAT *cmpx =  p->a;
@@ -1472,8 +1487,8 @@ int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
 
 int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
   int32_t n = p->out->sizes[0];
-  COMPLEXDAT *ans = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
-  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->out->data;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
     if(!cmpx[i].isPolar) {
       ans[i].real = EXP(cmpx[i].real)*COS(cmpx[i].imag);
@@ -1491,8 +1506,8 @@ int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
 
 int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
   int32_t n = p->out->sizes[0];
-  COMPLEXDAT *ans = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
-  COMPLEXDAT *cmpx = (COMPLEXDAT *) p->out->data;
+  COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
     if(!cmpx[i].isPolar) {
       ans[i].real = LOG(HYPOT(cmpx[i].real,cmpx[i].imag));
@@ -1509,3 +1524,23 @@ int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
   }
   return OK;
 }
+
+int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
+  int32_t n = p->out->sizes[0];
+  MYFLT *angle = (MYFLT *)((ARRAYDAT *)p->a)->data;
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  for(int i = 0; i < n; i++) {
+    if(!ans[i].isPolar) {
+      ans[i].real = COS(angle[i]);
+      ans[i].imag = SIN(angle[i]);
+    } else {
+      ans[i].real = 1.;
+      ans[i].imag = angle[i];
+    }
+  }
+  return OK;
+}
+
+
+
+

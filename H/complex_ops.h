@@ -119,3 +119,5 @@ int32_t complexa_plus_reala(CSOUND *csound, COPS1 *p);
 int32_t reala_plus_complexa(CSOUND *csound, COPS1 *p);
 int32_t complexa_minus_reala(CSOUND *csound, COPS1 *p);
 int32_t reala_minus_complexa(CSOUND *csound, COPS1 *p); 
+int32_t complex_exp_array(CSOUND *csond, COPS1 *p);
+int32_t complex_exp_real(CSOUND *csond, CXOP *p);

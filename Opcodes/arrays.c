@@ -172,8 +172,8 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
     if(j) c[j].imag = tmp[i+1];
     else c[j].imag = 0.;
   }
-  c[N].real = tmp[1];
-  c[N].imag =  0.;
+  c[N>>1].real = tmp[1];
+  c[N>>1].imag =  0.;
   return OK;
 }
 
@@ -199,7 +199,7 @@ static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
     tmp[i] = c[j].real;
     if(j) tmp[i+1] = c[j].imag;
   }
-  tmp[1] = c[N].real;
+  tmp[1] = c[N>>1].real;
   csound->RealFFT(csound,p->setup,tmp);
   memcpy(p->out->data,tmp,N*sizeof(MYFLT));
   return OK;
