@@ -820,8 +820,8 @@ const OENTRY opcodlst_1[] = {
    (SUBR) complex_subin, (SUBR) complex_subin},
   { "quadosc", S(QUADOSC), 0, ":Complex;[]", "koo", (SUBR) quadosc_init,
     (SUBR) quadosc },
-
-  
+  { "quadosc", S(QUADOSC), 0, ":Complex;[]", "aoo", (SUBR) quadosc_init,
+    (SUBR) quadosc_audio },
   { "log", S(CXOP), 0, ":Complex;", ":Complex;", (SUBR) complex_log,  (SUBR) complex_log },
   { "log", S(COPS1), 0, ":Complex;[]", ":Complex;[]", (SUBR) cops_init_r,
     (SUBR) complex_array_log },

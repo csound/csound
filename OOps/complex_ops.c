@@ -1545,7 +1545,10 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
 #define WRAPPI(x) while(x >= PI) x -= PI; while(x < -PI) x += PI;
 
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
-  tabinit(csound, p->out, CS_KSMPS, p->h.insdshead);
+  MYFLT ifn = -1;
+  FUNC *ftp = csound->FTFind(csound, &ifn);
+  p->offs = FMAXLEN/4;
+  p->tab = ftp;
   p->freq = *p->cps;
   int32_t isPolar = (int32_t) *p->isPolar;
   MYFLT ang = CS_TPIDSR*p->freq;
@@ -1558,8 +1561,19 @@ int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
     p->rphs = 1.0;
     p->iphs = 0;
   }
+  tabinit(csound, p->out, CS_KSMPS, p->h.insdshead);
   return OK;
 }
+
+
+static
+inline MYFLT sintab(FUNC *ftp, int32_t phs) {
+  MYFLT *tab = ftp->ftable;
+  MYFLT *samp = tab + ((phs>>ftp->lobits) & PHMASK);
+  MYFLT frac = PFRAC(phs);
+  return *samp + frac*(*(samp+1) - *samp);
+}
+
 
 int32_t quadosc(CSOUND *csound, QUADOSC *p) {
   int32_t n = p->out->sizes[0];
@@ -1567,30 +1581,23 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
   MYFLT rphs = p->rphs, iphs = p->iphs;
   MYFLT rinc = p->rinc, iinc = p->iinc;
   int32_t isPolar = (int32_t) *p->isPolar;
+  int32_t offs = p->offs;
+  FUNC *tab = p->tab;
 
   if(p->freq != *p->cps) {
     MYFLT freq = *p->cps;
-    MYFLT ang = CS_TPIDSR*freq;
     if(!isPolar) {
-    rinc = p->rinc = COS(ang);
-    iinc = p->iinc = SIN(ang);
-    } else 
-      iinc = p->iinc = ang; 
+      int32_t ang = CS_SICVT*freq;
+      rinc = p->rinc = sintab(tab, ang + offs);
+      iinc = p->iinc = sintab(tab, ang);
+    } else {
+      MYFLT ang = CS_TPIDSR*p->freq;
+      iinc = p->iinc = ang;
+    }
     p->freq = freq;
   }
   
-  if(!isPolar) {
-    ans[0].real = rphs*rinc - iphs*iinc;
-    ans[0].imag = rphs*iinc + iphs*rinc;
-    rphs =  ans[0].real; iphs = ans[0].imag;
-   } else {
-      ans[0].real = 1.;
-      ans[0].imag = iphs + iinc;
-      WRAPPI(ans[0].imag);
-      iphs = ans[0].imag;
-   }
-    
-  for(int i = 1; i < n; i++) {
+  for(int i = 0; i < n; i++) {
     if(!isPolar) {
     ans[i].real = rphs*rinc - iphs*iinc;
     ans[i].imag = rphs*iinc + iphs*rinc;
@@ -1607,3 +1614,35 @@ int32_t quadosc(CSOUND *csound, QUADOSC *p) {
   return OK;
 }
 
+
+int32_t quadosc_audio(CSOUND *csound, QUADOSC *p) {
+  int32_t n = p->out->sizes[0];
+  COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
+  MYFLT rphs = p->rphs, iphs = p->iphs;
+  MYFLT rinc, iinc;
+  int32_t isPolar = (int32_t) *p->isPolar;
+  int32_t offs = p->offs;
+  FUNC *tab = p->tab;
+  MYFLT *freq = p->cps;
+
+  for(int i = 0; i < n; i++) {
+    if(!isPolar) {
+    int32_t ang = CS_SICVT*freq[i];
+    rinc = sintab(tab, ang + offs);
+    iinc = sintab(tab, ang);  
+    ans[i].real = rphs*rinc - iphs*iinc;
+    ans[i].imag = rphs*iinc + iphs*rinc;
+    rphs = ans[i].real; iphs = ans[i].imag;
+    } else {
+      MYFLT ang = CS_TPIDSR*freq[i];
+      iinc = ang;
+      ans[i].real = 1.;
+      ans[i].imag = iphs + iinc;
+      WRAPPI(ans[i].imag);
+      iphs = ans[i].imag;
+    }
+  }
+  p->rphs = rphs;
+  p->iphs = iphs;  
+  return OK;
+}

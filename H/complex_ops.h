@@ -54,6 +54,8 @@ typedef struct QUADOSC {
   MYFLT *skip;
   MYFLT iinc, rinc, iphs, rphs;
   MYFLT freq;
+  int32_t offs;
+  FUNC *tab;
 } QUADOSC;
 
 
@@ -133,3 +135,4 @@ int32_t complex_exp_array(CSOUND *csond, COPS1 *p);
 int32_t complex_exp_real(CSOUND *csond, CXOP *p);
 int32_t quadosc_init(CSOUND *csound, QUADOSC *p);
 int32_t quadosc(CSOUND *csound, QUADOSC *p);
+int32_t quadosc_audio(CSOUND *csound, QUADOSC *p);
