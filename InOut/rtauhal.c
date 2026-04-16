@@ -703,36 +703,38 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
     return AuHAL_open(csound, parm,cdata,0);
 }
 
+
 OSStatus  Csound_Input(void *inRefCon,
                        AudioUnitRenderActionFlags *ioActionFlags,
                        const AudioTimeStamp *inTimeStamp,
                        UInt32 inBusNumber,
                        UInt32 inNumberFrames,
-                       AudioBufferList *ioData)
-{
+                       AudioBufferList *ioData){
     csdata *cdata = (csdata *) inRefCon;
     CSOUND *csound = cdata->csound;
     int32_t inchnls = cdata->inchnls;
     MYFLT *inputBuffer = cdata->inputBuffer;
-    int32_t j,k;
+    int32_t j,k,i,chns;
     Float32 *buffer;
     int32_t n = inNumberFrames*inchnls;
-    int32_t l;
-    IGN(ioData);
-
+   
     AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
                     inNumberFrames, cdata->inputdata);
-    uint32_t i, chns;
-    for (i = 0; i <  cdata->inputdata->mNumberBuffers; i++) {
-      buffer = (Float32 *)  cdata->inputdata->mBuffers[i].mData;
-      chns =  cdata->inputdata->mBuffers[i].mNumberChannels;
-      for(j=0, l=0; (uint32_t) j < inNumberFrames*chns; j+=chns, l++) {
-	for (k = 0; k < chns; k++) {
-	  inputBuffer[l*inchnls+(k+1)*i] = buffer[j+k];
-	}
+    ioData = cdata->inputdata;
+    chns = ioData->mBuffers[0].mNumberChannels;
+    if(chns == 1) { // non-interleaved
+      for (i = 0; i < ioData->mNumberBuffers; i++) {
+        buffer = (Float32 *) ioData->mBuffers[i].mData;
+        for(j = 0, k = 0; (uint32_t) k < inNumberFrames; j+=inchnls, k++) 
+          inputBuffer[j+i] = (MYFLT) buffer[k];
       }
-    }      
-    l = csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
+    } else { // interleaved
+      buffer = (Float32 *) ioData->mBuffers[0].mData;
+      for(k = 0; k < n; k++)
+        inputBuffer[k] = (MYFLT) buffer[k];
+    }
+
+    csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
     return 0;
 }
 #define slt 100
@@ -756,32 +758,33 @@ OSStatus Csound_Render(void *inRefCon,
                         const AudioTimeStamp *inTimeStamp,
                         UInt32 inBusNumber,
                         UInt32 inNumberFrames,
-                        AudioBufferList *ioData)
-{
+                        AudioBufferList *ioData) {
     csdata *cdata = (csdata *) inRefCon;
     CSOUND *csound = cdata->csound;
     int32_t onchnls = cdata->onchnls;
     MYFLT *outputBuffer = cdata->outputBuffer;
-    int32_t j,k;
+    int32_t j,k,i,chns;
     Float32 *buffer;
     int32_t n = inNumberFrames*onchnls;
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
-
+    
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
-    uint32_t i, l = 0, chns;
-    for (i = 0; i < ioData->mNumberBuffers; i++) {
-      buffer = (Float32 *) ioData->mBuffers[i].mData;
-      chns = ioData->mBuffers[i].mNumberChannels;
-      for(j=0, l=0; (uint32_t) j < inNumberFrames*chns; j+=chns, l++) {
-	for (k = 0; k < chns; k++) {
-	  buffer[j+k] = (Float32) outputBuffer[l*onchnls+(k+1)*i];
-	  outputBuffer[l*onchnls+k*(i+1)] = FL(0.0);
-	}
+    chns = ioData->mBuffers[0].mNumberChannels;
+    if(chns == 1) { // non-interleaved
+      for (i = 0; i < ioData->mNumberBuffers; i++) {
+        buffer = (Float32 *) ioData->mBuffers[i].mData;
+        for(j = 0, k = 0; (uint32_t) k < inNumberFrames; j+=onchnls, k++) 
+          buffer[k] = (Float32) outputBuffer[j+i];
       }
-    }  
-    return 0;
+    } else { // interleaved
+      buffer = (Float32 *) ioData->mBuffers[0].mData;
+      for(k = 0; k < n; k++)
+        buffer[k] = (Float32) outputBuffer[k];
+    }   
+     memset(outputBuffer, 0, sizeof(MYFLT)*n);     
+     return 0;
 }
 
 static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
