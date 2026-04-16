@@ -748,8 +748,8 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(slt);
-    } while(n);
+      if(l) usleep(slt);
+    } while(l);
     return nbytes;
 }
 
