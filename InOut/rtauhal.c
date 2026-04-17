@@ -666,10 +666,9 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->inputBuffer =
       (MYFLT *) csound->Calloc(csound,
                                csound->GetInputBufferSize(csound)* sizeof(MYFLT));
-    /* CircularBuffer keeps one slot empty internally. */
     cdata->incb =
       csound->CreateCircularBuffer(csound,
-                                   parm->bufSamp_HW*parm->nChannels + 1,
+                                   parm->bufSamp_HW*parm->nChannels,
                                    sizeof(MYFLT));
 
     int32_t ret = AuHAL_open(csound, parm, cdata, 1);
@@ -697,10 +696,10 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
                                csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
     memset(cdata->outputBuffer, 0,
            csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
-    /* CircularBuffer keeps one slot empty internally. */
+
     cdata->outcb =
       csound->CreateCircularBuffer(csound,
-                                   parm->bufSamp_HW*parm->nChannels + 1,
+                                   parm->bufSamp_HW*parm->nChannels,
                                    sizeof(MYFLT));
 
     return AuHAL_open(csound, parm,cdata,0);
@@ -770,15 +769,13 @@ OSStatus Csound_Render(void *inRefCon,
     MYFLT *outputBuffer = cdata->outputBuffer;
     int32_t j,k,i,chns;
     Float32 *buffer;
-    int32_t items = inNumberFrames*onchnls;
-    int32_t n;
+    int32_t n = inNumberFrames*onchnls;
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
 
-    n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,items);
-    if(n < items)
-      memset(&outputBuffer[n], 0, sizeof(MYFLT)*(items - n));
+    memset(outputBuffer, 0, sizeof(MYFLT)*n);
+    n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
 
     chns = ioData->mBuffers[0].mNumberChannels;
     if(chns == 1) { // non-interleaved
@@ -789,7 +786,7 @@ OSStatus Csound_Render(void *inRefCon,
       }
     } else { // interleaved
       buffer = (Float32 *) ioData->mBuffers[0].mData;
-      for(k = 0; k < items; k++)
+      for(k = 0; k < n; k++)
         buffer[k] = (Float32) outputBuffer[k];
     }
     return 0;
