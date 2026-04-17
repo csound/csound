@@ -67,6 +67,33 @@ TEST_F (CircularBufferTests, testReadWrite)
     }
 }
 
+TEST_F (CircularBufferTests, testRequestedCapacity)
+{
+    float outvals[512];
+    float invals[512];
+    float val = 512.0f;
+
+    for (int32_t i = 0; i < 512; i++) {
+        outvals[i] = (float) i;
+    }
+
+    int32_t written = csoundWriteCircularBuffer(csound, rb, outvals, 512);
+    ASSERT_EQ (written, 512);
+
+    written = csoundWriteCircularBuffer(csound, rb, &val, 1);
+    ASSERT_EQ (written, 0);
+
+    int32_t read = csoundReadCircularBuffer(csound, rb, invals, 512);
+    ASSERT_EQ (read, 512);
+
+    for (int32_t i = 0; i < 512; i++) {
+        ASSERT_EQ (invals[i], i);
+    }
+
+    read = csoundReadCircularBuffer(csound, rb, &val, 1);
+    ASSERT_EQ (read, 0);
+}
+
 TEST_F (CircularBufferTests, testReadWriteDiffSizes)
 {
     int32_t i, j;
@@ -163,7 +190,7 @@ extern "C" {
 void csoundFree(CSOUND *, void *);
 void *csoundCallocAligned(CSOUND *, size_t, size_t);
 }
-  
+
 TEST_F (CircularBufferTests, testAlignedMemory) {
   MYFLT *p = (MYFLT *) csoundCallocAligned(csound,sizeof(MYFLT)*10, 32);
   for(int32_t i = 0; i < 10; i++) {

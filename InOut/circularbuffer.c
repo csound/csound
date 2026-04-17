@@ -37,14 +37,14 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsi
          csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
       return NULL;
     }
-    p->numelem = numelem;
+    p->numelem = numelem+1;
     p->wp = p->rp = 0;
     p->elemsize = elemsize;
 
-    if ((p->buffer = (char *) csound->Malloc(csound, numelem*elemsize)) == NULL) {
+    if ((p->buffer = (char *) csound->Malloc(csound, p->numelem*elemsize)) == NULL) {
       return NULL;
     }
-    memset(p->buffer, 0, numelem*elemsize);
+    memset(p->buffer, 0, p->numelem*elemsize);
     csoundSpinLockInit(&p->lock);
     return (void *)p;
 }
