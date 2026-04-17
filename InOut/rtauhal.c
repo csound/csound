@@ -108,7 +108,6 @@ typedef struct csdata_ {
   void *incb;
   void *outcb;
   MYFLT sr;
-  bool start;
 } csdata;
 
 
@@ -671,7 +670,6 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams * parm)
       csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels, sizeof(MYFLT));
 
-    cdata->start = false;
     int32_t ret = AuHAL_open(csound, parm, cdata, 1);
     return ret;
 }
@@ -737,8 +735,7 @@ OSStatus  Csound_Input(void *inRefCon,
       for(k = 0; k < n; k++)
         inputBuffer[k] = (MYFLT) buffer[k];
     }
-    if(cdata->start) // only fill buffer if Csound is running
-      csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
+    csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
     return 0;
 }
 #define slt 100
@@ -748,7 +745,6 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
     int32_t n = nbytes/sizeof(MYFLT);
     int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
-    cdata->start = true;  // signal start processing
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
