@@ -619,6 +619,7 @@ def runTest():
         ["test_create_init_perf_delete.csd", "testing new instance opcodes"],
         ["test_complex_numbers.csd", "testing complex number operations"],
         ["test_rfft.csd", "testing real-to-complex and complex-to-real fft"],
+        ["test_quadrature_osc.csd", "testing quadrature oscillator"],
         [
             "test_schedule_named_instance.csd",
             "testing schedule with named instr instance",
