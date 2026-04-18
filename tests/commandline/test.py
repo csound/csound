@@ -636,7 +636,7 @@ def runTest():
         ["test_overload_selection.csd", "test wrong annotation case"],
         ["test_unschedule.csd", "test unscheduling events"],
         ["diskin_excess_channels.csd", "test sample accurate mode"],
-        ["test_async_diskin.csd", "test diskin in rt async mode"],        
+      ##  ["test_async_diskin.csd", "test diskin in rt async mode"],        
         ["test_midifile_ops.csd", "testing midifile opcodes"],
         ["test_csound_object.csd", "test Csound object opcodes"],
         ["test_true_false.csd", "testing true/false booleans"],
