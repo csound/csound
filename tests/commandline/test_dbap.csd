@@ -105,7 +105,7 @@ instr 4
 
     for g in gains do
         if (g != 0.5) then
-            printf("[FAIL] Center source test failed, gain should be 0.5 for each channel\n", 1)
+            printf("[FAIL] Center source test failed, gain should be 0.5 for each channel, got %f\n", 1, g)
             exitnowk(-1)
         endif
     od
