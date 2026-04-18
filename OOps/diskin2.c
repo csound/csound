@@ -546,6 +546,7 @@ int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p){
 #endif
     csound->Free(csound, current);
     csound->DestroyCircularBuffer(csound, ((DISKIN2 *)p)->cb);
+    ((DISKIN2 *)p)->cb = NULL;
   }
 
   return OK;

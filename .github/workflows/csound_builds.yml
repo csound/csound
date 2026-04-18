@@ -533,7 +533,9 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: |
+          cd build
+          make csdtests
 
       - name: Run unit test framework
         run: ctest --test-dir build -C Release -j --output-on-failure

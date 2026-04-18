@@ -68,6 +68,7 @@ static int32_t checkspace(circular_buffer *p, int32_t writeCheck){
 
 int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag){
   (void) csound;
+  if(p == NULL) return 0;
   return checkspace(p, flag); // internal space count includes one extra slot
 }
 
