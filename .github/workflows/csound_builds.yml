@@ -693,7 +693,7 @@ jobs:
       # - name: Run unit tests
       #   run: ctest --test-dir build -j$(nproc) --output-on-failure
       - name: Run CSD tests
-          run: cmake --build build --target csdtests
+        run: cmake --build build --target csdtests
 
   windows_build_32bit:
     name: Windows 32-bit build (mingw/vcpkg)
