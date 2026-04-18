@@ -49,7 +49,7 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsi
     return (void *)p;
 }
 
-int32_t checkspace(circular_buffer *p, int32_t writeCheck){
+static int32_t checkspace(circular_buffer *p, int32_t writeCheck){
     csoundSpinLock(&p->lock);
     int32_t wp = p->wp, rp = p->rp, numelem = p->numelem, res;
     if(writeCheck){
@@ -66,9 +66,15 @@ int32_t checkspace(circular_buffer *p, int32_t writeCheck){
     return res;
 }
 
+int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag){
+  (void) csound;
+  return checkspace(p, flag); // internal space count includes one extra slot
+}
+
+
 int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
 {
-    IGN(csound);
+    (void)csound;
     if (p == NULL) return 0;
     {
       int32_t remaining;

@@ -166,6 +166,20 @@ TEST_F (CircularBufferTests, testPeeking)
     }
 }
 
+#define SIZ 128
+TEST_F (CircularBufferTests, testCheckSpace)
+{
+    int32_t i;
+    float buf[SIZ];
+    i = csoundWriteCircularBuffer(csound, rb, buf, SIZ);
+    ASSERT_EQ(i, SIZ);
+    i = csoundCheckCircularBuffer(csound, rb, 1);
+    ASSERT_EQ(i, 512 - SIZ);
+    i = csoundCheckCircularBuffer(csound, rb, 0);
+    ASSERT_EQ(i, SIZ);    
+}
+
+
 TEST_F (CircularBufferTests, testWraping)
 {
     int32_t i;
@@ -185,6 +199,8 @@ TEST_F (CircularBufferTests, testWraping)
         ASSERT_EQ (written, 1);
     }
 }
+
+
 
 extern "C" {
 void csoundFree(CSOUND *, void *);
