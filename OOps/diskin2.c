@@ -760,7 +760,7 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = csoundCheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
+    int32_t nsmps = csound->CheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
     int32_t i, nn;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
@@ -1224,7 +1224,7 @@ uintptr_t diskin_io_thread_array(void *p){
 int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = csoundCheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
+    int32_t nsmps = csound->CheckCircularBuffer(csound, p->cb, 1)/p->nChannels;
     int32_t i, nn;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;

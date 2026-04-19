@@ -372,7 +372,7 @@ static const CSOUND cenviron_ = {
     csoundSystemSr,
     csoundGetSr,
     csoundGetKr,
-    csoundGetKcounter,    
+    csoundGetKcounter,
     /* channels */
     csoundGetChannelPtr,
     csoundListChannels,
@@ -495,6 +495,7 @@ static const CSOUND cenviron_ = {
     csoundCreateCircularBuffer,
     csoundReadCircularBuffer,
     csoundWriteCircularBuffer,
+    csoundCheckCircularBuffer,
     csoundPeekCircularBuffer,
     csoundFlushCircularBuffer,
     csoundDestroyCircularBuffer,
