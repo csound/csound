@@ -96,6 +96,7 @@ endin
 // Center test
 instr 4
     source:k[] = [0, 0, 0]
+    tolerance:i = 0.000001
 
     lpos:i[][] = init(4, 3)
     lpos = [1, 45, 0, 1, 135, 0, 1, -45, 0, 1, -135, 0] // 3D
@@ -104,7 +105,7 @@ instr 4
     gains = dbapgains:k[](1, source, lpos, 3, 24.0)
 
     for g in gains do
-        if (g != 0.5) then
+        if (abs(g - 0.5) > tolerance) then
             printf("[FAIL] Center source test failed, gain should be 0.5 for each channel, got %f\n", 1, g)
             exitnowk(-1)
         endif
