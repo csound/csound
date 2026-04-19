@@ -32,7 +32,7 @@ if(Python3_Interpreter_FOUND)
     )
   elseif (EMSCRIPTEN)
     # For Emscripten with Node.js runtime
-    list(APPEND PLATFORM_ARGS --runtime-environment=${EMSDK_NODE} --opcode6dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
+    list(APPEND PLATFORM_ARGS --runtime-environment=${EMSDK_NODE} --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
     add_custom_target(csdtests
       ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py
       ${COMMON_TEST_ARGS}
@@ -44,7 +44,7 @@ if(Python3_Interpreter_FOUND)
       --verbose
       --csound-executable=${CMAKE_BINARY_DIR}/csound
       --runtime-environment=${EMSDK_NODE}
-      --opcode6dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}
+      --opcode7dir64=${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}
       --source-dir=${CMAKE_CURRENT_SOURCE_DIR}
     )
   elseif(MSVC)
