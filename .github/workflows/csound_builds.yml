@@ -533,7 +533,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: cmake --build build --config Release --target csdtests
 
       - name: Run unit test framework
         run: ctest --test-dir build -C Release -j --output-on-failure
@@ -610,7 +610,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: cmake --build build --config Release --target csdtests
 
       - name: Run unit test framework
         run: ctest --test-dir build -C Release -j --output-on-failure
@@ -692,8 +692,8 @@ jobs:
 
       # - name: Run unit tests
       #   run: ctest --test-dir build -j$(nproc) --output-on-failure
-      # - name: Run CSD tests
-      #   run: cmake --build build --target csdtests
+      #- name: Run CSD tests
+      #  run: cmake --build build --target csdtests
 
   windows_build_32bit:
     name: Windows 32-bit build (mingw/vcpkg)
