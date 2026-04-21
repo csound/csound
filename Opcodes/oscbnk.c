@@ -873,7 +873,7 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
         pos = o->window_phsf*wflen;
         n = (int32_t) pos;
         a = w_ft[n];
-        if (w_interp) a += (pos - n)*(w_ft[n+1] - k);
+        if (w_interp) a += (pos - n)*(w_ft[n+1] - a);
         o->window_phsf += wf;
         if (o->window_phsf >= FL(1.0)) {
           o->window_phs = PHMOD1(o->window_phs);       /* new grain    */
@@ -1244,7 +1244,7 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
         n = (int32_t) pos;
         k = ft[n];
         if (g_interp) k += (pos - n)*(ft[n+1] - k);
-        g_phf = PHMOD1(g_phf+ g_frqf);
+        g_phf = PHMOD1(g_phf + g_frqf);
         /* check for end of grain */
         if ((w_phf += w_frq_f) >= FL(1.0)) {
           if (++(p->osc_start) > p->osc_max)
