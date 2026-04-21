@@ -1172,84 +1172,88 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
         else {
           w_phf = FL(0.0);
         }
-        grain3_init_grain_f(p, p->osc_end, w_phf, *phs);
+        grain3_init_grain_f(p, p->osc_end, w_phf, *phsf);
         if (++(p->osc_end) > p->osc_max) p->osc_end = p->osc;
         if (UNLIKELY(p->osc_end == p->osc_start)) goto err2;
       }
+    }
 
-      if (o == p->osc_end) {            /* no active grains     */
-        x_ph += x_frq; nn--; aout0++; phs++; continue;
-        x_phf += x_frq_f;
-      }
-
+    if (o == p->osc_end) {            /* no active grains     */
       if(!floatph) {
-        g_ph = o->grain_phs;              /* grain phase          */
-        if (f_nolock) {
-          /* grain frequency */
-          f = o->grain_frq_flt * frq_scl;
-          g_frq = OSCBNK_PHS2INT(f);
-          g_frq = (g_frq + frq) & OSCBNK_PHSMSK;
-        }
-        else {                    /* lock frequency       */
-          g_frq = o->grain_frq_int;
-        }
-        w_ph = o->window_phs;             /* window phase         */
+        x_ph += x_frq; nn--; aout0++; phs++; continue;
       } else {
-        g_phf = o->grain_phsf;              /* grain phase          */
-        if (f_nolock) {
-          /* grain frequency */
-          f = o->grain_frq_flt * frq_scl;
-          g_frqf = f;
-          g_frq = PHMOD1(g_frqf + frqf);
-        }
-        else {                    /* lock frequency       */
-          g_frqf = o->grain_frq;
-        }
-        w_phf = o->window_phsf;             /* window phase         */
+        x_phf += x_frq_f;
+        nn--; aout0++; phsf++; continue;
       }
-      /* render grain */
-      aout = aout0; i = nn;
-      while (i--) {
-        if(!floatph) {
-          /* window waveform */
-          n = w_ph >> w_lobits; a = w_ft[n++];
-          if (w_interp) a += (w_ft[n] - a) * w_pfrac
-                          * (MYFLT) ((int32) (w_ph & w_mask));
-          /* grain waveform */
-          n = g_ph >> lobits; k = ft[n++];
-          if (g_interp) k += (ft[n] - k) * pfrac
-                          * (MYFLT) ((int32) (g_ph & mask));
-          /* update phase */
-          g_ph = (g_ph + g_frq) & OSCBNK_PHSMSK;
-          /* check for end of grain */
-          if ((w_ph += w_frq) >= OSCBNK_PHSMAX) {
-            if (++(p->osc_start) > p->osc_max)
-              p->osc_start = p->osc;
-            break;
-          }
-        }
-        else {
-          /* window waveform */
-          MYFLT pos = w_phf*wflen;
-          n = (int32_t) pos;
-          a = w_ft[n];
-          if (w_interp) a += (pos - n)*(w_ft[n+1] - k);
-          /* grain waveform */
-          pos = g_phf*flen;
-          n = (int32_t) pos;
-          k = ft[n];
-          if (g_interp) k += (pos - n)*(ft[n+1] - k);
-          g_phf = PHMOD1(g_phf+ g_frqf);
-          /* check for end of grain */
-          if ((w_phf += w_frq_f) >= FL(1.0)) {
-            if (++(p->osc_start) > p->osc_max)
-              p->osc_start = p->osc;
-            break;
-          }
-        }
-        /* mix to output */
-        *(aout++) += a * k;
+    }
+
+    if(!floatph) {
+      g_ph = o->grain_phs;              /* grain phase          */
+      if (f_nolock) {
+        /* grain frequency */
+        f = o->grain_frq_flt * frq_scl;
+        g_frq = OSCBNK_PHS2INT(f);
+        g_frq = (g_frq + frq) & OSCBNK_PHSMSK;
       }
+      else {                    /* lock frequency       */
+        g_frq = o->grain_frq_int;
+      }
+      w_ph = o->window_phs;             /* window phase         */
+    } else {
+      g_phf = o->grain_phsf;              /* grain phase          */
+      if (f_nolock) {
+        /* grain frequency */
+        f = o->grain_frq_flt * frq_scl;
+        g_frqf = f;
+        g_frqf = PHMOD1(g_frqf + frqf);
+      }
+      else {                    /* lock frequency       */
+        g_frqf = o->grain_frq;
+      }
+      w_phf = o->window_phsf;             /* window phase         */
+    }
+    /* render grain */
+    aout = aout0; i = nn;
+    while (i--) {
+      if(!floatph) {
+        /* window waveform */
+        n = w_ph >> w_lobits; a = w_ft[n++];
+        if (w_interp) a += (w_ft[n] - a) * w_pfrac
+                        * (MYFLT) ((int32) (w_ph & w_mask));
+        /* grain waveform */
+        n = g_ph >> lobits; k = ft[n++];
+        if (g_interp) k += (ft[n] - k) * pfrac
+                        * (MYFLT) ((int32) (g_ph & mask));
+        /* update phase */
+        g_ph = (g_ph + g_frq) & OSCBNK_PHSMSK;
+        /* check for end of grain */
+        if ((w_ph += w_frq) >= OSCBNK_PHSMAX) {
+          if (++(p->osc_start) > p->osc_max)
+            p->osc_start = p->osc;
+          break;
+        }
+      }
+      else {
+        /* window waveform */
+        MYFLT pos = w_phf*wflen;
+        n = (int32_t) pos;
+        a = w_ft[n];
+        if (w_interp) a += (pos - n)*(w_ft[n+1] - k);
+        /* grain waveform */
+        pos = g_phf*flen;
+        n = (int32_t) pos;
+        k = ft[n];
+        if (g_interp) k += (pos - n)*(ft[n+1] - k);
+        g_phf = PHMOD1(g_phf+ g_frqf);
+        /* check for end of grain */
+        if ((w_phf += w_frq_f) >= FL(1.0)) {
+          if (++(p->osc_start) > p->osc_max)
+            p->osc_start = p->osc;
+          break;
+        }
+      }
+      /* mix to output */
+      *(aout++) += a * k;
     }
     /* save phase */
     o->grain_phs = g_ph; o->window_phs = w_ph;
