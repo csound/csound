@@ -112,6 +112,7 @@ int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
+void csoundRestoreUserOpcodeArgpp(CSOUND *, UOPCODE *);
 void csoundBuildUserOpcodeRewirePlan(CSOUND *, OPCODINFO *);
 void csoundFreeOpcodeInfoChain(CSOUND *);
 

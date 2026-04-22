@@ -178,8 +178,10 @@ extern "C" {
   typedef struct pbr_rewire_plan {
     int32_t init_count;
     int32_t perf_count;
+    int32_t xout_count;
     PBR_REWIRE_ENTRY *init_entries;
     PBR_REWIRE_ENTRY *perf_entries;
+    PBR_REWIRE_ENTRY *xout_entries;
   } PBR_REWIRE_PLAN;
 
   typedef struct opcodinfo {
