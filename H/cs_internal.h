@@ -168,6 +168,20 @@ extern "C" {
   /* Holds UDO information, when an instrument is
      defined as a UDO
   */
+  typedef struct pbr_rewire_entry {
+    size_t  opcode_mem_offset;
+    int32_t arg_index;
+    int32_t ar_index;
+    char    *structPath;
+  } PBR_REWIRE_ENTRY;
+
+  typedef struct pbr_rewire_plan {
+    int32_t init_count;
+    int32_t perf_count;
+    PBR_REWIRE_ENTRY *init_entries;
+    PBR_REWIRE_ENTRY *perf_entries;
+  } PBR_REWIRE_PLAN;
+
   typedef struct opcodinfo {
     int32    instno;
     char    *name, *intypes, *outtypes;
@@ -178,6 +192,7 @@ extern "C" {
     CS_VAR_POOL* in_arg_pool;
     struct instr *ip;
     OENTRY *oentry;
+    PBR_REWIRE_PLAN *pbr_plan;
     struct opcodinfo *prv;
   } OPCODINFO;
 
