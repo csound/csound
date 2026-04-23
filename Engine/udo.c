@@ -56,65 +56,683 @@ static int32_t count_args(const char *args) {
 /* Forward declaration from insert.c */
 extern void csoundReinitInstrumentArgpp(CSOUND *csound, INSDS *ip);
 
+static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
+                                MYFLT *argPtr, const char *structPath);
+static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
+                                        const char *structPath);
+
+typedef struct pbr_alias_entry {
+  const char *name;
+  int32_t ar_index;
+} PBR_ALIAS_ENTRY;
+
+typedef struct pbr_plan_builder {
+  PBR_ALIAS_ENTRY *aliases;
+  int32_t alias_count;
+  int32_t alias_capacity;
+  PBR_REWIRE_ENTRY *init_entries;
+  int32_t init_count;
+  int32_t init_capacity;
+  PBR_REWIRE_ENTRY *perf_entries;
+  int32_t perf_count;
+  int32_t perf_capacity;
+  PBR_REWIRE_ENTRY *xout_entries;
+  int32_t xout_count;
+  int32_t xout_capacity;
+} PBR_PLAN_BUILDER;
+
+static size_t pbr_name_key_length(const char *var_name) {
+  size_t len = 0;
+
+  if (var_name == NULL) {
+    return 0;
+  }
+
+  while (var_name[len] != '\0' && var_name[len] != '.' &&
+         var_name[len] != ':' && var_name[len] != '@' &&
+         var_name[len] != '[') {
+    len++;
+  }
+
+  return len;
+}
+
+static int32_t pbr_names_match(const char *lhs, const char *rhs) {
+  size_t lhs_len;
+  size_t rhs_len;
+
+  if (lhs == NULL || rhs == NULL) {
+    return 0;
+  }
+
+  lhs_len = pbr_name_key_length(lhs);
+  rhs_len = pbr_name_key_length(rhs);
+
+  return lhs_len == rhs_len && strncmp(lhs, rhs, lhs_len) == 0;
+}
+
+static const char *pbr_get_arg_name(const ARG *arg, const char *raw_name) {
+  if (arg != NULL &&
+      (arg->type == ARG_LOCAL || arg->type == ARG_GLOBAL) &&
+      arg->argPtr != NULL) {
+    const CS_VARIABLE *var = (const CS_VARIABLE *)arg->argPtr;
+    if (var->varName != NULL) {
+      return var->varName;
+    }
+  }
+
+  return raw_name;
+}
+
+static char *pbr_dup_struct_path(CSOUND *csound,
+                                 const ARG *arg,
+                                 const char *raw_name) {
+  const char *struct_path = arg != NULL ? arg->structPath : NULL;
+  size_t path_len = 0;
+
+  if ((struct_path == NULL || *struct_path == '\0') && raw_name != NULL) {
+    const char *dot = strchr(raw_name, '.');
+    if (dot != NULL && dot[1] != '\0') {
+      struct_path = dot + 1;
+    }
+  }
+
+  if (struct_path == NULL || *struct_path == '\0') {
+    return NULL;
+  }
+
+  while (struct_path[path_len] != '\0' && struct_path[path_len] != ':' &&
+         struct_path[path_len] != '@' && struct_path[path_len] != '[') {
+    path_len++;
+  }
+
+  return path_len > 0 ? cs_strndup(csound, struct_path, path_len) : NULL;
+}
+
+static int32_t pbr_alias_find(const PBR_ALIAS_ENTRY *aliases,
+                              int32_t alias_count,
+                              const char *name) {
+  int32_t i;
+
+  if (name == NULL) {
+    return -1;
+  }
+
+  for (i = 0; i < alias_count; i++) {
+    if (pbr_names_match(aliases[i].name, name)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+static int32_t pbr_alias_lookup(const PBR_ALIAS_ENTRY *aliases,
+                                int32_t alias_count,
+                                const char *var_name) {
+  int32_t i;
+
+  if (var_name == NULL) {
+    return -1;
+  }
+
+  for (i = 0; i < alias_count; i++) {
+    if (pbr_names_match(aliases[i].name, var_name)) {
+      return aliases[i].ar_index;
+    }
+  }
+
+  return -1;
+}
+
+static int32_t pbr_ensure_alias_capacity(CSOUND *csound,
+                                         PBR_PLAN_BUILDER *builder,
+                                         int32_t needed) {
+  if (needed > builder->alias_capacity) {
+    int32_t new_capacity = builder->alias_capacity > 0 ?
+      builder->alias_capacity * 2 : 8;
+    PBR_ALIAS_ENTRY *grown;
+
+    while (new_capacity < needed) {
+      new_capacity *= 2;
+    }
+
+    grown = builder->aliases == NULL ?
+      (PBR_ALIAS_ENTRY *)csound->Malloc(csound,
+                                        (size_t)new_capacity *
+                                        sizeof(PBR_ALIAS_ENTRY)) :
+      (PBR_ALIAS_ENTRY *)csound->ReAlloc(csound, builder->aliases,
+                                         (size_t)new_capacity *
+                                         sizeof(PBR_ALIAS_ENTRY));
+    if (grown == NULL) {
+      return NOTOK;
+    }
+
+    builder->aliases = grown;
+    builder->alias_capacity = new_capacity;
+  }
+
+  return OK;
+}
+
+static int32_t pbr_add_alias(CSOUND *csound,
+                             PBR_PLAN_BUILDER *builder,
+                             const char *name,
+                             int32_t ar_index) {
+  int32_t slot;
+
+  if (name == NULL) {
+    return OK;
+  }
+
+  slot = pbr_alias_find(builder->aliases, builder->alias_count, name);
+  if (slot >= 0) {
+    builder->aliases[slot].ar_index = ar_index;
+    return OK;
+  }
+
+  if (pbr_ensure_alias_capacity(csound, builder, builder->alias_count + 1) != OK) {
+    return NOTOK;
+  }
+
+  builder->aliases[builder->alias_count].name = name;
+  builder->aliases[builder->alias_count].ar_index = ar_index;
+  builder->alias_count++;
+
+  return OK;
+}
+
+static int32_t pbr_ensure_entry_capacity(CSOUND *csound,
+                                         PBR_REWIRE_ENTRY **entries,
+                                         int32_t *capacity,
+                                         int32_t needed) {
+  if (needed > *capacity) {
+    int32_t new_capacity = *capacity > 0 ? *capacity * 2 : 16;
+    PBR_REWIRE_ENTRY *grown;
+
+    while (new_capacity < needed) {
+      new_capacity *= 2;
+    }
+
+    grown = *entries == NULL ?
+      (PBR_REWIRE_ENTRY *)csound->Malloc(csound,
+                                         (size_t)new_capacity *
+                                         sizeof(PBR_REWIRE_ENTRY)) :
+      (PBR_REWIRE_ENTRY *)csound->ReAlloc(csound, *entries,
+                                          (size_t)new_capacity *
+                                          sizeof(PBR_REWIRE_ENTRY));
+    if (grown == NULL) {
+      return NOTOK;
+    }
+
+    *entries = grown;
+    *capacity = new_capacity;
+  }
+
+  return OK;
+}
+
+static int32_t pbr_append_entry(CSOUND *csound,
+                                PBR_REWIRE_ENTRY **entries,
+                                int32_t *count,
+                                int32_t *capacity,
+                                size_t opcode_mem_offset,
+                                int32_t arg_index,
+                                int32_t ar_index,
+                                const ARG *arg,
+                                const char *raw_name) {
+  PBR_REWIRE_ENTRY *entry;
+
+  if (pbr_ensure_entry_capacity(csound, entries, capacity, *count + 1) != OK) {
+    return NOTOK;
+  }
+
+  entry = &((*entries)[*count]);
+  entry->opcode_mem_offset = opcode_mem_offset;
+  entry->arg_index = arg_index;
+  entry->ar_index = ar_index;
+  entry->structPath = pbr_dup_struct_path(csound, arg, raw_name);
+  (*count)++;
+
+  return OK;
+}
+
+static int32_t pbr_can_rewire_xout_source(const char *raw_name) {
+  if (raw_name == NULL) {
+    return 0;
+  }
+
+  return strchr(raw_name, '[') == NULL && strchr(raw_name, '@') == NULL;
+}
+
+static void pbr_collect_io_aliases(CSOUND *csound,
+                                   OPCODINFO *udoinfo,
+                                   OPTXT *xin_optxt,
+                                   OPTXT *xout_optxt,
+                                   size_t xout_opcode_mem_offset,
+                                   PBR_PLAN_BUILDER *builder) {
+  IGN(xout_opcode_mem_offset);
+
+  if (udoinfo == NULL) {
+    return;
+  }
+
+  if (xin_optxt != NULL && udoinfo->in_arg_pool != NULL &&
+      xin_optxt->t.outlist != NULL) {
+    CS_VARIABLE *param = udoinfo->in_arg_pool->head;
+    ARG *xin_arg = xin_optxt->t.outArgs;
+    ARGLST *xin_outlist = xin_optxt->t.outlist;
+    int32_t i;
+
+    for (i = 0; i < udoinfo->inchns && i < xin_outlist->count && param != NULL;
+         i++, param = param->next, xin_arg = xin_arg != NULL ? xin_arg->next : NULL) {
+      int32_t ar_index = udoinfo->outchns + i;
+      const char *xin_varname = xin_outlist->arg[i];
+      const char *resolved_name = pbr_get_arg_name(xin_arg, xin_varname);
+
+      pbr_add_alias(csound, builder, xin_varname, ar_index);
+      if (resolved_name != xin_varname) {
+        pbr_add_alias(csound, builder, resolved_name, ar_index);
+      }
+      if (param->varName != NULL && xin_varname != NULL &&
+          strcmp(param->varName, xin_varname) != 0) {
+        pbr_add_alias(csound, builder, param->varName, ar_index);
+      }
+    }
+  }
+
+  if (xout_optxt != NULL && xout_optxt->t.inlist != NULL) {
+    ARG *xout_arg = xout_optxt->t.inArgs;
+    ARGLST *xout_inlist = xout_optxt->t.inlist;
+    int32_t i;
+
+    for (i = 0; i < udoinfo->outchns && i < xout_inlist->count;
+         i++, xout_arg = xout_arg != NULL ? xout_arg->next : NULL) {
+      const char *raw_name = xout_inlist->arg[i];
+      const char *resolved_name = pbr_get_arg_name(xout_arg, raw_name);
+      int32_t source_ar_index = -1;
+
+      if (pbr_can_rewire_xout_source(raw_name)) {
+        source_ar_index = pbr_alias_lookup(builder->aliases,
+                                           builder->alias_count,
+                                           resolved_name);
+        if (source_ar_index < 0 && resolved_name != raw_name) {
+          source_ar_index = pbr_alias_lookup(builder->aliases,
+                                             builder->alias_count,
+                                             raw_name);
+        }
+      }
+
+      if (source_ar_index >= udoinfo->outchns) {
+        pbr_append_entry(csound, &builder->xout_entries, &builder->xout_count,
+                         &builder->xout_capacity, xout_opcode_mem_offset, i,
+                         source_ar_index, xout_arg, raw_name);
+        continue;
+      }
+
+      pbr_add_alias(csound, builder, raw_name, i);
+      pbr_add_alias(csound, builder, resolved_name, i);
+    }
+  }
+}
+
+static void pbr_collect_rewire_entries(CSOUND *csound,
+                                       OPCODINFO *udoinfo,
+                                       PBR_PLAN_BUILDER *builder) {
+  OPTXT *optxt = (OPTXT *)udoinfo->ip;
+  size_t opcode_mem_offset = 0;
+
+  while ((optxt = optxt->nxtop) != NULL) {
+    TEXT *ttp = &optxt->t;
+    OENTRY *ep = ttp->oentry;
+    const char *opname;
+    size_t current_offset = opcode_mem_offset;
+
+    if (ep == NULL || ep->opname == NULL) {
+      continue;
+    }
+
+    opname = ttp->opcod != NULL ? ttp->opcod : ep->opname;
+    opcode_mem_offset += ep->dsblksiz;
+
+    if (strcmp(ep->opname, "endin") == 0 || strcmp(ep->opname, "endop") == 0) {
+      break;
+    }
+
+    if (strcmp(opname, "xin") == 0 || strcmp(opname, "xout") == 0) {
+      continue;
+    }
+
+    if (ttp->outlist != NULL) {
+      ARG *arg = ttp->outArgs;
+      int32_t i;
+
+      for (i = 0; i < ttp->outlist->count;
+           i++, arg = arg != NULL ? arg->next : NULL) {
+        const char *arg_name = pbr_get_arg_name(arg, ttp->outlist->arg[i]);
+        int32_t ar_index = pbr_alias_lookup(builder->aliases,
+                                            builder->alias_count,
+                                            arg_name);
+        if (ar_index < 0 && arg_name != ttp->outlist->arg[i]) {
+          ar_index = pbr_alias_lookup(builder->aliases,
+                                      builder->alias_count,
+                                      ttp->outlist->arg[i]);
+        }
+        if (ar_index < 0) {
+          continue;
+        }
+
+        if (ep->init != NULL) {
+          pbr_append_entry(csound, &builder->init_entries, &builder->init_count,
+                           &builder->init_capacity, current_offset, i,
+                           ar_index, arg, ttp->outlist->arg[i]);
+        }
+        if (ep->perf != NULL) {
+          pbr_append_entry(csound, &builder->perf_entries, &builder->perf_count,
+                           &builder->perf_capacity, current_offset, i,
+                           ar_index, arg, ttp->outlist->arg[i]);
+        }
+      }
+    }
+
+    if (ttp->inlist != NULL) {
+      ARG *arg = ttp->inArgs;
+      int32_t actual_outcount = count_args(ep->outypes);
+      int32_t i;
+
+      for (i = 0; i < ttp->inlist->count;
+           i++, arg = arg != NULL ? arg->next : NULL) {
+        const char *arg_name = pbr_get_arg_name(arg, ttp->inlist->arg[i]);
+        int32_t ar_index = pbr_alias_lookup(builder->aliases,
+                                            builder->alias_count,
+                                            arg_name);
+        if (ar_index < 0 && arg_name != ttp->inlist->arg[i]) {
+          ar_index = pbr_alias_lookup(builder->aliases,
+                                      builder->alias_count,
+                                      ttp->inlist->arg[i]);
+        }
+        if (ar_index < 0) {
+          continue;
+        }
+
+        if (ep->init != NULL) {
+          pbr_append_entry(csound, &builder->init_entries, &builder->init_count,
+                           &builder->init_capacity, current_offset,
+                           actual_outcount + i, ar_index,
+                           arg, ttp->inlist->arg[i]);
+        }
+        if (ep->perf != NULL) {
+          pbr_append_entry(csound, &builder->perf_entries, &builder->perf_count,
+                           &builder->perf_capacity, current_offset,
+                           actual_outcount + i, ar_index,
+                           arg, ttp->inlist->arg[i]);
+        }
+      }
+    }
+  }
+}
+
+static void pbr_free_entries(CSOUND *csound,
+                             PBR_REWIRE_ENTRY *entries,
+                             int32_t entry_count) {
+  int32_t i;
+
+  if (entries == NULL) {
+    return;
+  }
+
+  for (i = 0; i < entry_count; i++) {
+    csound->Free(csound, entries[i].structPath);
+  }
+
+  csound->Free(csound, entries);
+}
+
+static void pbr_free_plan(CSOUND *csound, PBR_REWIRE_PLAN *plan) {
+  if (plan == NULL) {
+    return;
+  }
+
+  pbr_free_entries(csound, plan->init_entries, plan->init_count);
+  pbr_free_entries(csound, plan->perf_entries, plan->perf_count);
+  pbr_free_entries(csound, plan->xout_entries, plan->xout_count);
+  csound->Free(csound, plan);
+}
+
+static void pbr_free_var_pool(CSOUND *csound, CS_VAR_POOL *pool) {
+  CS_VARIABLE *var;
+
+  if (pool == NULL) {
+    return;
+  }
+
+  for (var = pool->head; var != NULL; var = var->next) {
+    csound->Free(csound, var->varName);
+  }
+
+  csoundFreeVarPool(csound, pool);
+}
+
+static char *pbr_get_opcode_mem_start(INSDS *lcurip) {
+  INSTRTXT *tp;
+
+  if (lcurip == NULL || lcurip->instr == NULL || lcurip->lclbas == NULL) {
+    return NULL;
+  }
+
+  tp = lcurip->instr;
+  return (char *)lcurip->lclbas + tp->varPool->poolSize +
+    (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
+}
+
+static void pbr_apply_entries(CSOUND *csound,
+                              UOPCODE *p,
+                              OPDS *chain,
+                              char *op_mem_start,
+                              const PBR_REWIRE_ENTRY *entries,
+                              int32_t entry_count) {
+  int32_t max_ar_index;
+  int32_t i;
+
+  IGN(chain);
+
+  if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL ||
+      op_mem_start == NULL) {
+    return;
+  }
+
+  max_ar_index = p->buf->opcode_info->outchns + p->buf->opcode_info->inchns;
+
+  for (i = 0; i < entry_count; i++) {
+    const PBR_REWIRE_ENTRY *entry = &entries[i];
+
+    if (entry->ar_index < 0 || entry->ar_index >= max_ar_index) {
+      continue;
+    }
+
+    rewire_argpp(csound,
+                 (OPDS *)(op_mem_start + entry->opcode_mem_offset),
+                 entry->arg_index,
+                 p->ar[entry->ar_index],
+                 entry->structPath);
+  }
+}
+
+static int32_t pbr_get_opcode_arg_count(OPDS *chain) {
+  OENTRY *ep;
+
+  if (chain == NULL || chain->optext == NULL || chain->optext->t.oentry == NULL) {
+    return 0;
+  }
+
+  ep = chain->optext->t.oentry;
+  if (ep->useropinfo != NULL) {
+    OPCODINFO *useropinfo = (OPCODINFO *)ep->useropinfo;
+    return useropinfo->outchns + useropinfo->inchns;
+  }
+
+  return count_args(ep->outypes) + count_args(ep->intypes);
+}
+
+static MYFLT **pbr_get_arg_slot(OPDS *chain, int32_t index) {
+  OENTRY *ep;
+
+  if (chain == NULL || chain->optext == NULL || chain->optext->t.oentry == NULL ||
+      index < 0) {
+    return NULL;
+  }
+
+  ep = chain->optext->t.oentry;
+  if (ep->useropinfo == NULL) {
+    return (MYFLT **)((char *)chain + sizeof(OPDS) + index * sizeof(void *));
+  }
+
+  return &(((UOPCODE *)chain)->ar[index]);
+}
+
+static void pbr_rewire_caller_chain_aliases(CSOUND *csound,
+                                            OPDS *chain,
+                                            MYFLT *old_ptr,
+                                            MYFLT *new_ptr,
+                                            int32_t perf_chain) {
+  while (chain != NULL) {
+    int32_t arg_count = pbr_get_opcode_arg_count(chain);
+    int32_t i;
+
+    for (i = 0; i < arg_count; i++) {
+      MYFLT **slot = pbr_get_arg_slot(chain, i);
+      if (slot != NULL && *slot == old_ptr) {
+        rewire_argpp(csound, chain, i, new_ptr, NULL);
+      }
+    }
+
+    chain = perf_chain ? chain->nxtp : chain->nxti;
+  }
+}
+
+static void pbr_alias_xout_entries_in_caller(CSOUND *csound,
+                                             UOPCODE *p,
+                                             const PBR_REWIRE_ENTRY *entries,
+                                             int32_t entry_count) {
+  /* Direct xout of a caller-backed source has no internal destination slot to
+     rewire, so later caller opcode args are rewritten to the source pointer.
+     The caller argpp layout is restored when the UDO instance is deactivated. */
+  int32_t i;
+
+  if (p == NULL || p->parent_ip == NULL) {
+    return;
+  }
+
+  for (i = 0; i < entry_count; i++) {
+    const PBR_REWIRE_ENTRY *entry = &entries[i];
+    MYFLT *dst;
+    MYFLT *src;
+
+    if (entry->arg_index < 0 || entry->ar_index < 0) {
+      continue;
+    }
+
+    dst = p->ar[entry->arg_index];
+    src = pbr_resolve_struct_target(csound, p->ar[entry->ar_index],
+                                    entry->structPath);
+    if (dst == NULL || src == NULL || dst == src) {
+      continue;
+    }
+
+    pbr_rewire_caller_chain_aliases(csound, p->h.nxti, dst, src, 0);
+    pbr_rewire_caller_chain_aliases(csound, p->h.nxtp, dst, src, 1);
+  }
+}
+
+void csoundBuildUserOpcodeRewirePlan(CSOUND *csound, OPCODINFO *udoinfo) {
+  PBR_PLAN_BUILDER builder = {0};
+  PBR_REWIRE_PLAN *plan;
+  OPTXT *optxt;
+  OPTXT *xin_optxt = NULL;
+  OPTXT *xout_optxt = NULL;
+  size_t opcode_mem_offset = 0;
+  size_t xout_opcode_mem_offset = 0;
+
+  if (udoinfo == NULL) {
+    return;
+  }
+
+  pbr_free_plan(csound, udoinfo->pbr_plan);
+  udoinfo->pbr_plan = NULL;
+
+  plan = (PBR_REWIRE_PLAN *)csound->Calloc(csound, sizeof(PBR_REWIRE_PLAN));
+  if (plan == NULL) {
+    return;
+  }
+
+  udoinfo->pbr_plan = plan;
+
+  if (!udoinfo->newStyle || udoinfo->ip == NULL) {
+    return;
+  }
+
+  optxt = (OPTXT *)udoinfo->ip;
+  while ((optxt = optxt->nxtop) != NULL) {
+    OENTRY *ep = optxt->t.oentry;
+    size_t current_offset = opcode_mem_offset;
+
+    if (ep != NULL) {
+      opcode_mem_offset += ep->dsblksiz;
+    }
+
+    if (optxt->t.opcod == NULL) {
+      continue;
+    }
+
+    if (strcmp(optxt->t.opcod, "xin") == 0) {
+      xin_optxt = optxt;
+    } else if (strcmp(optxt->t.opcod, "xout") == 0) {
+      xout_optxt = optxt;
+      xout_opcode_mem_offset = current_offset;
+    }
+  }
+
+  pbr_collect_io_aliases(csound, udoinfo, xin_optxt, xout_optxt,
+                         xout_opcode_mem_offset, &builder);
+  pbr_collect_rewire_entries(csound, udoinfo, &builder);
+
+  plan->init_count = builder.init_count;
+  plan->perf_count = builder.perf_count;
+  plan->xout_count = builder.xout_count;
+  plan->init_entries = builder.init_entries;
+  plan->perf_entries = builder.perf_entries;
+  plan->xout_entries = builder.xout_entries;
+
+  csound->Free(csound, builder.aliases);
+}
+
+void csoundFreeOpcodeInfoChain(CSOUND *csound) {
+  OPCODINFO *current = csound->opcodeInfo;
+
+  while (current != NULL) {
+    OPCODINFO *next = current->prv;
+
+    pbr_free_plan(csound, current->pbr_plan);
+    pbr_free_var_pool(csound, current->in_arg_pool);
+    pbr_free_var_pool(csound, current->out_arg_pool);
+    csound->Free(csound, current->name);
+    csound->Free(csound, current->intypes);
+    csound->Free(csound, current->outtypes);
+    csound->Free(csound, current);
+    current = next;
+  }
+
+  csound->opcodeInfo = NULL;
+  csound->engineState.opcodeInfo = NULL;
+}
+
 /* Helper to rewire an opcode argument pointer to pass-by-ref location */
 static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
                                 MYFLT *argPtr, const char *structPath) {
   OENTRY *ep = chain->optext->t.oentry;
-  MYFLT *target_ptr = argPtr;
+  MYFLT *target_ptr = pbr_resolve_struct_target(csound, argPtr, structPath);
 
-  // If there's a struct path, navigate from base pointer to member
-  if (structPath != NULL && *structPath != '\0') {
-    // Use stack buffer for path parsing (max 256 chars for struct paths)
-    char pathBuf[256];
-    size_t pathLen = strlen(structPath);
-    if (pathLen >= sizeof(pathBuf)) {
-      pathLen = sizeof(pathBuf) - 1;
-    }
-    memcpy(pathBuf, structPath, pathLen);
-    pathBuf[pathLen] = '\0';
-
-    // Parse path manually without strtok (to avoid strtok state issues)
-    const char *p = pathBuf;
-    char memberName[64];
-
-    while (*p != '\0' && target_ptr != NULL) {
-      // Extract next member name (up to '.' or end)
-      size_t nameLen = 0;
-      while (*p != '\0' && *p != '.' && nameLen < sizeof(memberName) - 1) {
-        memberName[nameLen++] = *p++;
-      }
-      memberName[nameLen] = '\0';
-
-      if (nameLen == 0) break;
-
-      // Navigate to this member
-      CS_TYPE *type = csoundGetTypeForArg(target_ptr);
-      CS_STRUCT_VAR *structVar = (CS_STRUCT_VAR*)target_ptr;
-
-      if (type == NULL || structVar == NULL || structVar->members == NULL) {
-        break;
-      }
-
-      CONS_CELL *members = type->members;
-      int i = 0;
-      int found = 0;
-      while (members != NULL) {
-        CS_VARIABLE *member = (CS_VARIABLE*)members->value;
-        if (!strcmp(member->varName, memberName)) {
-          target_ptr = &(structVar->members[i]->value);
-          found = 1;
-          break;
-        }
-        i++;
-        members = members->next;
-      }
-
-      if (!found) break;
-
-      // Skip the '.' if present
-      if (*p == '.') p++;
-    }
-  }  // The opcode structure consists of OPDS header followed by argument pointer fields.
+  // The opcode structure consists of OPDS header followed by argument pointer fields.
   // We need to update the structure field at the given index.
   // Structure layout: OPDS | ptr0 | ptr1 | ptr2 | ...
   // So field at index i is at offset: sizeof(OPDS) + i * sizeof(void*)
@@ -143,182 +761,89 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
   }
 }
 
-/* Helper to rewire opcode arguments in a chain for pass-by-ref parameters */
-static void rewire_chain_arguments(CSOUND *csound, OPDS *chain, int is_perf_chain,
-                                   CS_HASH_TABLE *arg_ptr_map) {
-  while (chain != NULL) {
-    OPTXT *optext = chain->optext;
-    ARGLST *outlist = optext->t.outlist;
-    ARGLST *inlist = optext->t.inlist;
+static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
+                                        const char *structPath) {
+  MYFLT *target_ptr = argPtr;
 
-    // Skip xin and xout opcodes - they're no-ops in pass-by-ref mode
-    // (xout variables are already mapped to caller outputs in handle_pass_by_ref)
-    if (strcmp(optext->t.opcod, "xin") == 0 || strcmp(optext->t.opcod, "xout") == 0) {
-      chain = is_perf_chain ? chain->nxtp : chain->nxti;
-      continue;
+  IGN(csound);
+
+  if (structPath != NULL && *structPath != '\0') {
+    char pathBuf[256];
+    size_t pathLen = strlen(structPath);
+    if (pathLen >= sizeof(pathBuf)) {
+      pathLen = sizeof(pathBuf) - 1;
     }
+    memcpy(pathBuf, structPath, pathLen);
+    pathBuf[pathLen] = '\0';
 
-    // Rewire output arguments
-    if (outlist != NULL) {
-      ARG *arg = optext->t.outArgs;
-      for (int i = 0; i < outlist->count; i++, arg = arg ? arg->next : NULL) {
-        char *varName = outlist->arg[i];
-        if (!varName) continue;
+    const char *p = pathBuf;
+    char memberName[64];
 
-        // Get base variable name (without struct path)
-        char *baseName = varName;
-        char *dot = strchr(varName, '.');
-        if (dot != NULL) {
-          int len = (int) (dot - varName);
-          baseName = (char*)alloca(len + 1);
-          strncpy(baseName, varName, len);
-          baseName[len] = '\0';
+    while (*p != '\0' && target_ptr != NULL) {
+      size_t nameLen = 0;
+      while (*p != '\0' && *p != '.' && nameLen < sizeof(memberName) - 1) {
+        memberName[nameLen++] = *p++;
+      }
+      memberName[nameLen] = '\0';
+
+      if (nameLen == 0) {
+        break;
+      }
+
+      CS_TYPE *type = csoundGetTypeForArg(target_ptr);
+      CS_STRUCT_VAR *structVar = (CS_STRUCT_VAR*)target_ptr;
+
+      if (type == NULL || structVar == NULL || structVar->members == NULL) {
+        break;
+      }
+
+      CONS_CELL *members = type->members;
+      int member_index = 0;
+      int found = 0;
+      while (members != NULL) {
+        CS_VARIABLE *member = (CS_VARIABLE*)members->value;
+        if (!strcmp(member->varName, memberName)) {
+          target_ptr = &(structVar->members[member_index]->value);
+          found = 1;
+          break;
         }
+        member_index++;
+        members = members->next;
+      }
 
-        MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, baseName);
-        if (argPtr != NULL) {
-          rewire_argpp(csound, chain, i, argPtr, arg ? arg->structPath : NULL);
-        }
+      if (!found) {
+        break;
+      }
+
+      if (*p == '.') {
+        p++;
       }
     }
-
-    // Rewire input arguments
-    if (inlist != NULL) {
-      ARG *arg = optext->t.inArgs;
-      for (int i = 0; i < inlist->count; i++, arg = arg ? arg->next : NULL) {
-        char *varName = inlist->arg[i];
-        if (!varName) continue;
-
-        // Get base variable name (without struct path)
-        char *baseName = varName;
-        char *dot = strchr(varName, '.');
-        if (dot != NULL) {
-          int len = (int) (dot - varName);
-          baseName = (char*)alloca(len + 1);
-          strncpy(baseName, varName, len);
-          baseName[len] = '\0';
-        }
-
-        MYFLT *argPtr = (MYFLT *)cs_hash_table_get(csound, arg_ptr_map, baseName);
-        if (argPtr != NULL) {
-          // number of arguments needs to be counted - to accommodate
-          // opcodes with variable number of outputs from outypes
-          int32_t actual_outcount = count_args(optext->t.oentry->outypes);
-          rewire_argpp(csound, chain, actual_outcount + i, argPtr,
-                       arg ? arg->structPath : NULL);
-        }
-      }
-    }
-
-    chain = is_perf_chain ? chain->nxtp : chain->nxti;
   }
+
+  return target_ptr;
 }
 
-/* Wire UDO arguments to caller locations for pass-by-reference.
+/* Wire UDO internals to caller storage for pass-by-reference.
  *
- * Input parameters are mapped to caller argument locations. Arrays and strings
- * share the caller's data structures. For outputs, a-rate variables use buffer
- * pointer aliasing, while i-rate and k-rate values are transferred after init.
+ * Inputs are mapped directly to caller argument locations. Outputs written by
+ * internal opcodes are rewired to caller output storage. Direct xout reads from
+ * caller-backed inputs or struct members are handled separately by rewriting
+ * later caller opcode args to the same source pointer.
  */
 static void handle_pass_by_ref(CSOUND* csound, UOPCODE* p, INSDS* lcurip) {
-  int32_t i;
-  CS_HASH_TABLE *arg_ptr_map = cs_hash_table_create(csound);
-  OPDS *ichain = lcurip->nxti;
-
-  // Locate xin opcode for parameter name mapping
-  OPDS *xin_opcode = NULL;
-  OPDS *scan_chain = lcurip->nxti;
-  while (scan_chain != NULL) {
-    if (strcmp("xin", scan_chain->optext->t.opcod) == 0) {
-      xin_opcode = scan_chain;
-      break;
-    }
-    scan_chain = scan_chain->nxti;
-  }
-
-  // Map input parameters to caller arguments
   OPCODINFO *udoinfo = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
-  if (udoinfo && udoinfo->in_arg_pool && xin_opcode) {
-    CS_VARIABLE *param = udoinfo->in_arg_pool->head;
-    ARGLST *xin_outlist = xin_opcode->optext->t.outlist;
+  PBR_REWIRE_PLAN *plan = udoinfo != NULL ? udoinfo->pbr_plan : NULL;
+  char *op_mem_start = pbr_get_opcode_mem_start(lcurip);
 
-    for (i = 0; i < udoinfo->inchns && i < xin_outlist->count && param; i++) {
-      char *xin_varname = xin_outlist->arg[i];
-      if (xin_varname) {
-        int32_t ar_index = udoinfo->outchns + i;
-        if (ar_index >= 0 && ar_index < (udoinfo->outchns + udoinfo->inchns)) {
-          MYFLT *argPtr = p->ar[ar_index];
-
-          cs_hash_table_put(csound, arg_ptr_map, xin_varname, argPtr);
-
-          // Map internal name if different
-          if (param->varName && strcmp(param->varName, xin_varname) != 0) {
-            cs_hash_table_put(csound, arg_ptr_map, param->varName, argPtr);
-          }
-
-          // Note: We don't need to do any special aliasing for arrays/strings here.
-          // The rewire_chain_arguments() function will rewire all opcodes that use
-          // these variables to point directly to the caller's memory.
-          // Any descriptor copying is unnecessary since opcodes get their pointers
-          // updated by rewire_argpp().
-        }
-      }
-      param = param->next;
-    }
+  if (plan == NULL || op_mem_start == NULL) {
+    return;
   }
 
-  // Process xin/xout opcodes
-  while (ichain != NULL) {
-    OPTXT *optext = ichain->optext;
-
-    if (strcmp("xin", optext->t.opcod) == 0) {
-      ARGLST *outlist = optext->t.outlist;
-
-      for (i = 0; i < outlist->count; i++) {
-        char *varName = outlist->arg[i];
-        if (!varName) continue;
-
-        CS_VARIABLE *cv = udoinfo && udoinfo->in_arg_pool ? udoinfo->in_arg_pool->head : NULL;
-        for (int j = 0; j < i && cv; j++) cv = cv->next;
-        int isArrayIn = (cv && cv->varType == &CS_VAR_TYPE_ARRAY);
-
-        if (!isArrayIn && lcurip && lcurip->instr && lcurip->instr->varPool) {
-          CS_VARIABLE* vv = lcurip->instr->varPool->head;
-          while (vv) {
-            if (vv->varName && strcmp(vv->varName, varName) == 0) {
-              isArrayIn = (vv->varType == &CS_VAR_TYPE_ARRAY);
-              break;
-            }
-            vv = vv->next;
-          }
-        }
-
-        if (isArrayIn && udoinfo && i < udoinfo->inchns) {
-          MYFLT *callerArgPtr = p->ar[udoinfo->outchns + i];
-          cs_hash_table_put(csound, arg_ptr_map, varName, callerArgPtr);
-        }
-      }
-    } else if (strcmp("xout", ichain->optext->t.opcod) == 0) {
-      // For xout, map the output variables to caller's output locations
-      // so that all uses/assignments of these variables write to caller's memory
-      ARGLST *inlist = optext->t.inlist;
-      for (i = 0; i < inlist->count && i < udoinfo->outchns; i++) {
-        char *varName = inlist->arg[i];
-        if (!varName) continue;
-
-        // Map this variable to caller's output location
-        MYFLT *outputPtr = p->ar[i];
-        cs_hash_table_put(csound, arg_ptr_map, varName, outputPtr);
-      }
-    }
-
-    ichain = ichain->nxti;
-  }
-
-  rewire_chain_arguments(csound, lcurip->nxti, 0, arg_ptr_map);
-  rewire_chain_arguments(csound, lcurip->nxtp, 1, arg_ptr_map);
-
-  cs_hash_table_free(csound, arg_ptr_map);
+  pbr_apply_entries(csound, p, lcurip->nxti, op_mem_start,
+                    plan->init_entries, plan->init_count);
+  pbr_apply_entries(csound, p, lcurip->nxtp, op_mem_start,
+                    plan->perf_entries, plan->perf_count);
 }
 
 /*
@@ -517,7 +1042,11 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   if(inm->passByRef) {
     handle_pass_by_ref(csound, p, lcurip);
-    // No copyValue needed - rewiring with struct path navigation handles everything
+    if (inm->pbr_plan != NULL && inm->pbr_plan->xout_count > 0) {
+      pbr_alias_xout_entries_in_caller(csound, p,
+                                       inm->pbr_plan->xout_entries,
+                                       inm->pbr_plan->xout_count);
+    }
   }
 
   /* Initialize the UDO */
@@ -529,7 +1058,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   err = 0;
   while (csound->ids != NULL && err == 0) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    // don't run setksmps etc 
+    // don't run setksmps etc
     if(strcmp("setksmps", csound->op) != 0 &&
        strcmp("oversample", csound->op) != 0 &&
        strcmp("undersample", csound->op) != 0)
@@ -540,9 +1069,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if(err) return err;
   csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
 
-  /* After init chain completes, ensure UDO outputs are materialised into caller vars.
-     This is only needed for pass-by-copy mode. In pass-by-ref mode, xout is rewired
-     to write directly to caller's output locations, so no post-init copying is needed. */
+  /* After init chain completes, materialise UDO outputs only for pass-by-copy.
+     In pass-by-ref mode, internal outputs are already rewired to caller storage
+     and direct xout aliases have already been propagated into the caller chain. */
   if (!inm->passByRef) {
     OPCOD_IOBUFS *buf_local = p->buf;
     OPCODINFO *inm_local = buf_local->opcode_info;
@@ -598,12 +1127,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
           if((cur->varType != &CS_VAR_TYPE_A &&
               cur->varType != &CS_VAR_TYPE_K) ||
              // special case - K-type arg
-             inm_local->outtypes[i] == 'K') 
+             inm_local->outtypes[i] == 'K')
             cur->varType->copyValue(csound, cur->varType, dst, src, lcurip);
          }
       }
-      
-        
+
+
       cur = cur->next;
     }
   }
@@ -1232,6 +1761,24 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     }
   }
   return OK;
+}
+
+void csoundRestoreUserOpcodeArgpp(CSOUND *csound, UOPCODE *p)
+{
+  OPCODINFO *udoinfo;
+  PBR_REWIRE_PLAN *plan;
+
+  if (p == NULL || p->parent_ip == NULL || p->buf == NULL) {
+    return;
+  }
+
+  udoinfo = p->buf->opcode_info;
+  plan = udoinfo != NULL ? udoinfo->pbr_plan : NULL;
+  if (plan == NULL || plan->xout_count == 0) {
+    return;
+  }
+
+  csoundReinitInstrumentArgpp(csound, p->parent_ip);
 }
 
 /*

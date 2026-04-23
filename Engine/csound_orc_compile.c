@@ -2068,6 +2068,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         opinfo->oentry->perf = NULL;
       }
 
+      csoundBuildUserOpcodeRewirePlan(csound, opinfo);
+
       break;
     case T_OPCALL:
     case LABEL_TOKEN:
@@ -2602,7 +2604,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
             setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s) != NULL) {
     arg->type = ARG_GLOBAL;
-    
+
   }
   /* otherwise we have a local arg */
   else {
@@ -2610,7 +2612,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       if (s[0] == '#') {
         csoundDie(csound, Str("compile error:"
                               " missing temporary variable '%s'"), s);
-      }   
+      }
       else {
         csoundDie(csound, Str("compile error:"
                               " missing variable '%s'"), s);

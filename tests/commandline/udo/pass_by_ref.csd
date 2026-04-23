@@ -12,6 +12,7 @@ nchnls	= 2
 #include "../libassert.orc"
 
 struct TestStruct member1:i
+struct TestStruct2515 var1:i, var2:i
 
 // increments the value in the passed-in pointer
 opcode incr(ival):void
@@ -51,6 +52,11 @@ endop
 
 opcode incrExpr(ival):(i,i)
     xout ival + 1, ival + 2
+endop
+
+
+opcode readStructMember(var:TestStruct2515):i
+    xout var.var1
 endop
 
 
@@ -126,6 +132,14 @@ instr 3
 endin
 
 
+instr 4
+    ts:TestStruct2515 init 1, 1
+    iVal = readStructMember(ts)
+
+    assertEquals(iVal, 1)
+endin
+
+
 opcode sound(iamp, ifreq):a
     aout = oscili(iamp, ifreq)
     if(ifreq < sr/2) then
@@ -148,6 +162,7 @@ endin
 i1 0 1
 i2 0 1
 i3 0 1
+i4 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25

@@ -58,6 +58,7 @@
 #include "cs_par_orc_semantics.h"
 #include "namedins.h"
 #include "find_opcode.h"
+#include "udo.h"
 
 #if defined(linux) || defined(BSD) || defined(__HAIKU__) || defined(__EMSCRIPTEN__) ||         \
     defined(__CYGWIN__)
@@ -237,14 +238,25 @@ void print_engine_parameters(CSOUND *csound) {
 static void free_opcode_table(CSOUND *csound) {
   int32_t i;
   CS_HASH_TABLE_ITEM *bucket;
-  CONS_CELL *head;
 
   for (i = 0; i < csound->opcodes->table_size; i++) {
     bucket = csound->opcodes->buckets[i];
 
     while (bucket != NULL) {
-      head = bucket->value;
-      cs_cons_free_complete(csound, head);
+      CONS_CELL *head = bucket->value;
+      while (head != NULL) {
+        CONS_CELL *next = head->next;
+        OENTRY *entry = head->value;
+        if (entry != NULL) {
+          if (entry->useropinfo != NULL) {
+            csound->Free(csound, entry->opname);
+            csound->Free(csound, entry->outypes);
+          }
+          csound->Free(csound, entry);
+        }
+        csound->Free(csound, head);
+        head = next;
+      }
       bucket = bucket->next;
     }
   }
@@ -1855,6 +1867,9 @@ static void reset(CSOUND *csound) {
   if (csound->opcodes != NULL) {
     free_opcode_table(csound);
     csound->opcodes = NULL;
+  }
+  if (csound->opcodeInfo != NULL) {
+    csoundFreeOpcodeInfoChain(csound);
   }
 
   csound->oparms_.odebug = 0;

@@ -1112,6 +1112,8 @@ static void deact(CSOUND *csound, INSDS *ip)
         p->cvt_out[k] = NULL; // clear pointer
       }
 
+    csoundRestoreUserOpcodeArgpp(csound, p);
+
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
@@ -1857,7 +1859,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
       lblbp->prvd = prvpdd;
       continue;                               /*    for later refs */
     }
-    
+
     if (ep->init != NULL) {  /* init */
       prvids = prvids->nxti = opds; /* link into ichain */
       opds->init = ep->init; /*   & set exec adr */
