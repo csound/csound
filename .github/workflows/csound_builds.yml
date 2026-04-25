@@ -243,8 +243,17 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
-          brew install --cask gcc-arm-embedded
           brew install bison flex
+
+      - name: Install Arm GNU Toolchain (arm-none-eabi) without Homebrew cask
+        run: |
+          set -euo pipefail
+          TOOLCHAIN_VER="15.2.rel1"
+          URL="https://developer.arm.com/-/media/Files/downloads/gnu/${TOOLCHAIN_VER}/binrel/arm-gnu-toolchain-${TOOLCHAIN_VER}-darwin-arm64-arm-none-eabi.tar.xz"
+          mkdir -p "$HOME/arm-toolchains"
+          curl -L "$URL" -o "$HOME/arm-toolchains/arm-none-eabi.tar.xz"
+          tar -xJf "$HOME/arm-toolchains/arm-none-eabi.tar.xz" -C "$HOME/arm-toolchains"
+          echo "$HOME/arm-toolchains/arm-gnu-toolchain-${TOOLCHAIN_VER}-darwin-arm64-arm-none-eabi/bin" >> "$GITHUB_PATH"
 
       - name: Configure build
         run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/Daisy" -DCUSTOM_CMAKE="$PWD/Daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/Daisy/crosscompile.cmake"
