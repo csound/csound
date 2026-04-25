@@ -243,7 +243,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew update
-          brew install arm-none-eabi-gcc
+          brew install --cask gcc-arm-embedded
           brew install bison flex
 
       - name: Configure build
