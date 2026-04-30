@@ -543,12 +543,21 @@ static void pbr_apply_entries(CSOUND *csound,
 
   max_ar_index = p->buf->opcode_info->outchns + p->buf->opcode_info->inchns;
 
+  fprintf(stderr, "DEBUG pbr_apply_entries: %d entries, max_ar_index=%d\n",
+          entry_count, max_ar_index);
+  for (int j = 0; j < max_ar_index; j++)
+    fprintf(stderr, "  p->ar[%d] = %p -> %g\n", j, (void*)p->ar[j], p->ar[j] ? *p->ar[j] : 0.0);
+
   for (i = 0; i < entry_count; i++) {
     const PBR_REWIRE_ENTRY *entry = &entries[i];
 
     if (entry->ar_index < 0 || entry->ar_index >= max_ar_index) {
       continue;
     }
+
+    fprintf(stderr, "  rewire entry[%d]: opcode_mem_offset=%zu arg_index=%d ar_index=%d -> ptr=%p (val=%g)\n",
+            i, entry->opcode_mem_offset, entry->arg_index, entry->ar_index,
+            (void*)p->ar[entry->ar_index], p->ar[entry->ar_index] ? *p->ar[entry->ar_index] : 0.0);
 
     rewire_argpp(csound,
                  (OPDS *)(op_mem_start + entry->opcode_mem_offset),
@@ -599,9 +608,14 @@ static void pbr_rewire_caller_chain_aliases(CSOUND *csound,
     int32_t arg_count = pbr_get_opcode_arg_count(chain);
     int32_t i;
 
+    fprintf(stderr, "  DEBUG rewire_caller_chain: opcode=%s arg_count=%d\n",
+            chain->optext ? chain->optext->t.opcod : "?", arg_count);
+
     for (i = 0; i < arg_count; i++) {
       MYFLT **slot = pbr_get_arg_slot(chain, i);
       if (slot != NULL && *slot == old_ptr) {
+        fprintf(stderr, "    REWIRING slot[%d] from %p to %p\n",
+                i, (void*)old_ptr, (void*)new_ptr);
         rewire_argpp(csound, chain, i, new_ptr, NULL);
       }
     }
@@ -635,7 +649,13 @@ static void pbr_alias_xout_entries_in_caller(CSOUND *csound,
     dst = p->ar[entry->arg_index];
     src = pbr_resolve_struct_target(csound, p->ar[entry->ar_index],
                                     entry->structPath);
+    fprintf(stderr, "DEBUG pbr_alias_xout: entry[%d] arg_index=%d ar_index=%d "
+            "dst=%p (val=%g) src=%p (val=%g)\n",
+            i, entry->arg_index, entry->ar_index,
+            (void*)dst, dst ? *dst : 0.0,
+            (void*)src, src ? *src : 0.0);
     if (dst == NULL || src == NULL || dst == src) {
+      fprintf(stderr, "DEBUG pbr_alias_xout: skipping (dst==src or null)\n");
       continue;
     }
 
