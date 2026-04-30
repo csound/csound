@@ -55,6 +55,14 @@ opcode incrExpr(ival):(i,i)
 endop
 
 
+// UDO that modifies its input in-place and returns it via xout.
+// Used to test pass-by-reference with constant inputs (issue: xout of xin var).
+opcode incrAndReturn(ival):i
+    ival += 1
+    xout ival
+endop
+
+
 opcode readStructMember(var:TestStruct2515):i
     xout var.var1
 endop

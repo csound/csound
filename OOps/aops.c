@@ -2095,12 +2095,9 @@ int32_t addinak(CSOUND *csound, ASSIGN *p)
 
 int32_t addin(CSOUND *csound, ASSIGN *p)
 {
-  fprintf(stderr, "DEBUG addin: p->r=%p (*r=%g), p->a=%p (*a=%g), before *r += *a\n",
-          (void*)p->r, *p->r, (void*)p->a, *p->a);
   CSOUND_SPOUT_SPINLOCK
     *p->r += *p->a;
   CSOUND_SPOUT_SPINUNLOCK
-  fprintf(stderr, "DEBUG addin after: *r=%g\n", *p->r);
   return OK;
 }
 

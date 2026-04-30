@@ -60,6 +60,7 @@ static inline void rewire_argpp(CSOUND *csound, OPDS *chain, int32_t index,
                                 MYFLT *argPtr, const char *structPath);
 static MYFLT *pbr_resolve_struct_target(CSOUND *csound, MYFLT *argPtr,
                                         const char *structPath);
+static MYFLT **pbr_get_arg_slot(OPDS *chain, int32_t index);
 
 typedef struct pbr_alias_entry {
   const char *name;
@@ -525,6 +526,22 @@ static char *pbr_get_opcode_mem_start(INSDS *lcurip) {
     (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
 }
 
+/* Returns 1 if the nth input argument of the UOPCODE call is a constant
+   (ARG_CONSTANT), meaning it should not be used as a write target. */
+static int32_t pbr_nth_inarg_is_constant(UOPCODE *p, int32_t input_index) {
+  ARG *arg;
+  int32_t k;
+
+  if (p == NULL || p->h.optext == NULL) {
+    return 0;
+  }
+  arg = p->h.optext->t.inArgs;
+  for (k = 0; k < input_index && arg != NULL; k++) {
+    arg = arg->next;
+  }
+  return (arg != NULL && arg->type == ARG_CONSTANT);
+}
+
 static void pbr_apply_entries(CSOUND *csound,
                               UOPCODE *p,
                               OPDS *chain,
@@ -532,6 +549,7 @@ static void pbr_apply_entries(CSOUND *csound,
                               const PBR_REWIRE_ENTRY *entries,
                               int32_t entry_count) {
   int32_t max_ar_index;
+  int32_t outchns;
   int32_t i;
 
   IGN(chain);
@@ -542,22 +560,40 @@ static void pbr_apply_entries(CSOUND *csound,
   }
 
   max_ar_index = p->buf->opcode_info->outchns + p->buf->opcode_info->inchns;
-
-  fprintf(stderr, "DEBUG pbr_apply_entries: %d entries, max_ar_index=%d\n",
-          entry_count, max_ar_index);
-  for (int j = 0; j < max_ar_index; j++)
-    fprintf(stderr, "  p->ar[%d] = %p -> %g\n", j, (void*)p->ar[j], p->ar[j] ? *p->ar[j] : 0.0);
+  outchns = p->buf->opcode_info->outchns;
 
   for (i = 0; i < entry_count; i++) {
     const PBR_REWIRE_ENTRY *entry = &entries[i];
+    OPDS *opds;
+    MYFLT *target;
 
     if (entry->ar_index < 0 || entry->ar_index >= max_ar_index) {
       continue;
     }
 
-    fprintf(stderr, "  rewire entry[%d]: opcode_mem_offset=%zu arg_index=%d ar_index=%d -> ptr=%p (val=%g)\n",
-            i, entry->opcode_mem_offset, entry->arg_index, entry->ar_index,
-            (void*)p->ar[entry->ar_index], p->ar[entry->ar_index] ? *p->ar[entry->ar_index] : 0.0);
+    /* If the rewire target is an input slot that holds a constant, wiring an
+       internal opcode output to it would make the opcode write to a shared
+       global constant, corrupting it and causing aliasing with any other slot
+       in the same opcode that also references the same constant.  In this case,
+       seed the UDO's own local variable with the constant's value and leave the
+       internal opcode's output pointing at that local copy. */
+    if (entry->ar_index >= outchns) {
+      int32_t input_index = entry->ar_index - outchns;
+      if (pbr_nth_inarg_is_constant(p, input_index)) {
+        opds = (OPDS *)(op_mem_start + entry->opcode_mem_offset);
+        target = pbr_resolve_struct_target(csound, p->ar[entry->ar_index],
+                                           entry->structPath);
+        if (target != NULL) {
+          MYFLT **local_slot = pbr_get_arg_slot(opds, entry->arg_index);
+          if (local_slot != NULL && *local_slot != NULL) {
+            /* Copy constant value into the UDO's own local variable so that
+               internal operations start from the right value. */
+            **local_slot = *target;
+          }
+        }
+        continue; /* skip rewire - keep local variable as output */
+      }
+    }
 
     rewire_argpp(csound,
                  (OPDS *)(op_mem_start + entry->opcode_mem_offset),
@@ -608,14 +644,9 @@ static void pbr_rewire_caller_chain_aliases(CSOUND *csound,
     int32_t arg_count = pbr_get_opcode_arg_count(chain);
     int32_t i;
 
-    fprintf(stderr, "  DEBUG rewire_caller_chain: opcode=%s arg_count=%d\n",
-            chain->optext ? chain->optext->t.opcod : "?", arg_count);
-
     for (i = 0; i < arg_count; i++) {
       MYFLT **slot = pbr_get_arg_slot(chain, i);
       if (slot != NULL && *slot == old_ptr) {
-        fprintf(stderr, "    REWIRING slot[%d] from %p to %p\n",
-                i, (void*)old_ptr, (void*)new_ptr);
         rewire_argpp(csound, chain, i, new_ptr, NULL);
       }
     }
@@ -630,12 +661,21 @@ static void pbr_alias_xout_entries_in_caller(CSOUND *csound,
                                              int32_t entry_count) {
   /* Direct xout of a caller-backed source has no internal destination slot to
      rewire, so later caller opcode args are rewritten to the source pointer.
-     The caller argpp layout is restored when the UDO instance is deactivated. */
+     The caller argpp layout is restored when the UDO instance is deactivated.
+
+     When the source is a constant (ARG_CONSTANT), we must not alias caller ops
+     to point at the constant's storage because the UDO might modify the value
+     through that pointer, corrupting the shared constant.  In that case the
+     caller-chain aliasing is skipped; a copy from the UDO's own local variable
+     to the caller's output is done after the init chain runs instead. */
   int32_t i;
+  int32_t outchns;
 
   if (p == NULL || p->parent_ip == NULL) {
     return;
   }
+
+  outchns = (p->buf && p->buf->opcode_info) ? p->buf->opcode_info->outchns : 0;
 
   for (i = 0; i < entry_count; i++) {
     const PBR_REWIRE_ENTRY *entry = &entries[i];
@@ -646,16 +686,19 @@ static void pbr_alias_xout_entries_in_caller(CSOUND *csound,
       continue;
     }
 
+    /* Skip aliasing when the source is a constant input: the post-init copy
+       path will materialise the result into the caller's output instead. */
+    if (entry->ar_index >= outchns) {
+      int32_t input_index = entry->ar_index - outchns;
+      if (pbr_nth_inarg_is_constant(p, input_index)) {
+        continue;
+      }
+    }
+
     dst = p->ar[entry->arg_index];
     src = pbr_resolve_struct_target(csound, p->ar[entry->ar_index],
                                     entry->structPath);
-    fprintf(stderr, "DEBUG pbr_alias_xout: entry[%d] arg_index=%d ar_index=%d "
-            "dst=%p (val=%g) src=%p (val=%g)\n",
-            i, entry->arg_index, entry->ar_index,
-            (void*)dst, dst ? *dst : 0.0,
-            (void*)src, src ? *src : 0.0);
     if (dst == NULL || src == NULL || dst == src) {
-      fprintf(stderr, "DEBUG pbr_alias_xout: skipping (dst==src or null)\n");
       continue;
     }
 
@@ -1091,7 +1134,40 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   /* After init chain completes, materialise UDO outputs only for pass-by-copy.
      In pass-by-ref mode, internal outputs are already rewired to caller storage
-     and direct xout aliases have already been propagated into the caller chain. */
+     and direct xout aliases have already been propagated into the caller chain.
+
+     Exception: when a xout_entry's source is a constant input, the aliasing was
+     skipped to protect the shared constant.  Copy from the UDO's own local
+     variable (recorded in buf->inargs by xinset) to the caller's output now. */
+  if (inm->passByRef && inm->pbr_plan != NULL &&
+      inm->pbr_plan->xout_count > 0) {
+    OPCOD_IOBUFS *buf_local = p->buf;
+    PBR_REWIRE_PLAN *plan = inm->pbr_plan;
+    int32_t j;
+    int32_t out_chns = inm->outchns;
+
+    for (j = 0; j < plan->xout_count; j++) {
+      const PBR_REWIRE_ENTRY *xout_entry = &plan->xout_entries[j];
+      int32_t input_index = xout_entry->ar_index - out_chns;
+
+      if (input_index < 0 ||
+          !pbr_nth_inarg_is_constant(p, input_index)) {
+        continue;
+      }
+
+      /* Source was a constant: copy the UDO's computed result to the caller's
+         output.  buf->inargs[input_index] is the UDO's local variable for this
+         parameter, set by xinset regardless of passByRef mode. */
+      if (buf_local->inargs != NULL &&
+          buf_local->inargs[input_index] != NULL &&
+          xout_entry->arg_index >= 0 &&
+          xout_entry->arg_index < out_chns &&
+          p->ar[xout_entry->arg_index] != NULL) {
+        *p->ar[xout_entry->arg_index] = *buf_local->inargs[input_index];
+      }
+    }
+  }
+
   if (!inm->passByRef) {
     OPCOD_IOBUFS *buf_local = p->buf;
     OPCODINFO *inm_local = buf_local->opcode_info;
