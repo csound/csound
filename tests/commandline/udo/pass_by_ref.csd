@@ -165,12 +165,23 @@ endin
 ; schedule("SoundTest", 0, 4)
 
 
+instr 10
+val:i = incrAndReturn(1)
+assertEquals(val,2)
+print val
+val:i = incrAndReturn(val)
+assertEquals(val,3)
+print val
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
 i4 0 1
+i10 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
