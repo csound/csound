@@ -35,6 +35,7 @@ on:
       - develop
       - main
       - testbuild
+      
   pull_request:
     branches:
       - develop
@@ -138,7 +139,7 @@ jobs:
           cmake --build /tmp/flac-build -j"$(nproc)"
           cmake --install /tmp/flac-build
 
-      - name: Build static libsndfile (FLAC enabled, Vorbis / Opus / MPEG disabled)
+      - name: Build static libsndfile (FLAC enabled, MPEG disabled)
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
@@ -156,11 +157,35 @@ jobs:
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_TESTING=OFF \
             -DENABLE_EXTERNAL_LIBS=ON \
-            -DENABLE_MPEG=OFF \
-            -DENABLE_VORBIS=OFF \
-            -DENABLE_OPUS=OFF
+            -DENABLE_MPEG=OFF
           cmake --build /tmp/sndfile-build -j"$(nproc)"
           cmake --install /tmp/sndfile-build
+
+      # libsndfile 1.2.x writes Vorbis::vorbisenc and Opus::opus into its
+      # installed SndFileTargets.cmake even when those libs were not found,
+      # which causes any downstream find_package(SndFile) to fail.
+      # Strip them unconditionally so the fix also applies when DEPS_PREFIX
+      # is restored from the Actions cache (where the broken file would
+      # otherwise be reused without re-running the build step above).
+      - name: Patch libsndfile CMake targets (remove unfound Vorbis / Opus deps)
+        run: |
+          TARGETS="${DEPS_PREFIX}/lib/cmake/SndFile/SndFileTargets.cmake"
+          if [ ! -f "$TARGETS" ]; then
+            echo "ERROR: $TARGETS not found"
+            exit 1
+          fi
+          echo "Before patch:"
+          grep -E "Vorbis|Opus" "$TARGETS" || echo "  (none found)"
+          sed -i \
+            -e 's/Vorbis::vorbisenc;//g' \
+            -e 's/;Vorbis::vorbisenc//g' \
+            -e 's/Opus::opus;//g' \
+            -e 's/;Opus::opus//g' \
+            "$TARGETS"
+          echo "After patch:"
+          grep -E "Vorbis|Opus" "$TARGETS" \
+            && { echo "ERROR: entries still present"; exit 1; } \
+            || echo "  OK - entries removed"
 
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
