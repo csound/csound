@@ -81,6 +81,7 @@ jobs:
         with:
           # Pull in the full history so version tags resolve correctly.
           fetch-depth: 0
+          ref: "develop"
 
       # ------------------------------------------------------------------ #
       # 3. Build a static libsndfile with zero external codec deps          #
@@ -172,7 +173,7 @@ jobs:
           echo "Checking for unexpected external libs..."
           UNEXPECTED=$(ldd build/csound | \
             grep -v -E \
-              'linux-vdso|ld-linux|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so' \
+              'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libcsound64\.so\.7\.0\libdl\.so|libpthread\.so|librt\.so' \
             || true)
           if [ -n "$UNEXPECTED" ]; then
             echo "ERROR: unexpected runtime dependencies found:"
@@ -180,6 +181,25 @@ jobs:
             exit 1
           fi
           echo "OK – only glibc-family libraries present."
+
+          echo "════════════════════════════════════════"
+          echo "  Dynamic deps of the libcsound "
+          echo "════════════════════════════════════════"
+          ldd build/libcsound64.so*
+  
+          echo ""
+          echo "Checking for unexpected external libs..."
+          UNEXPECTED=$(ldd build/csound | \
+            grep -v -E \
+              'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so' \
+            || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "ERROR: unexpected runtime dependencies found:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "OK – only glibc-family libraries present."
+
 
           echo ""
           echo "════════════════════════════════════════"
