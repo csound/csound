@@ -223,17 +223,9 @@ jobs:
           # it knows they are needed.  Merging everything into one archive
           # sidesteps the ordering problem entirely: the single libsndfile.a
           # that CMake's SndFile target already links contains all symbols.
-          cat > /tmp/merge.mri << MRIEOF
-CREATE ${DEPS_PREFIX}/lib/libsndfile_merged.a
-ADDLIB ${DEPS_PREFIX}/lib/libsndfile.a
-ADDLIB ${DEPS_PREFIX}/lib/libFLAC.a
-ADDLIB ${DEPS_PREFIX}/lib/libvorbisenc.a
-ADDLIB ${DEPS_PREFIX}/lib/libvorbis.a
-ADDLIB ${DEPS_PREFIX}/lib/libogg.a
-ADDLIB ${DEPS_PREFIX}/lib/libopus.a
-SAVE
-END
-MRIEOF
+          D="${DEPS_PREFIX}/lib"
+          printf 'CREATE %s/libsndfile_merged.a\nADDLIB %s/libsndfile.a\nADDLIB %s/libFLAC.a\nADDLIB %s/libvorbisenc.a\nADDLIB %s/libvorbis.a\nADDLIB %s/libogg.a\nADDLIB %s/libopus.a\nSAVE\nEND\n' \
+            "$D" "$D" "$D" "$D" "$D" "$D" "$D" > /tmp/merge.mri
           ar -M < /tmp/merge.mri
           mv "${DEPS_PREFIX}/lib/libsndfile_merged.a" "${DEPS_PREFIX}/lib/libsndfile.a"
           echo "Merged archive size: $(du -sh ${DEPS_PREFIX}/lib/libsndfile.a)"
