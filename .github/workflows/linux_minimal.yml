@@ -1,31 +1,35 @@
 # linux_minimal.yml
 #
 # Builds a Csound binary for Linux with ALSA, JACK, and PortMidi audio
-# back-ends enabled, and libsndfile compiled with FLAC support.
+# back-ends enabled, and libsndfile compiled with FLAC, Vorbis, and Opus
+# support.
 #
 # Dependency strategy
 # -------------------
 #   Core binary & libcsound.so
 #     Only glibc-family runtime deps (libc, libm, libdl, libpthread).
-#     The codec chain libogg → libFLAC → libsndfile is compiled from
-#     source as static PIC libraries and linked directly into libcsound.so,
-#     so none of them appear as shared-library requirements.
-#     libgcc_s / libstdc++ are also baked in via -static-libgcc /
-#     -static-libstdc++.
+#     The full codec chain is compiled from source as static PIC libraries
+#     and linked directly into libcsound.so:
+#
+#       libogg  ──┬──► libvorbis  ──┐
+#                 │                  ├──► libsndfile ──► libcsound.so
+#                 └──► libFLAC   ──┘
+#       libopus ──────────────────────────────────────► libcsound.so
+#
+#     libgcc_s / libstdc++ are also baked in via
+#     -static-libgcc / -static-libstdc++.
 #
 #   Audio backend plugins  (rtalsa.so, rtjack.so, *portmidi*.so …)
-#     Csound loads RT and MIDI modules as plugins at runtime, so their
-#     external deps are isolated to those plugin .so files and never
-#     affect the core binary.  The three audio libraries are installed
-#     from Ubuntu 20.04 packages:
-#       libasound2-dev   →  rtalsa plugin
-#       libjack-jackd2-dev → rtjack plugin
-#       libportmidi-dev  →  portmidi MIDI plugin
+#     Csound loads RT and MIDI modules as plugins at runtime.  Their
+#     external deps are isolated to those plugin .so files:
+#       libasound2-dev     →  rtalsa plugin
+#       libjack-jackd2-dev →  rtjack plugin
+#       libportmidi-dev    →  portmidi MIDI plugin
 #
 # Distribution compatibility
 # --------------------------
-#   The job runs inside an ubuntu:20.04 container (glibc 2.31).
-#   Binaries work on Ubuntu 20+, Debian 11+, Fedora 33+, RHEL 9+, etc.
+#   Built inside ubuntu:20.04 container (glibc 2.31).
+#   Runs on Ubuntu 20+, Debian 11+, Fedora 33+, RHEL 9+, etc.
 
 name: linux_minimal
 
@@ -51,10 +55,12 @@ jobs:
 
     env:
       DEBIAN_FRONTEND: noninteractive
-      DEPS_PREFIX:        /opt/static-deps
-      LIBOGG_VERSION:     "1.3.5"
-      LIBFLAC_VERSION:    "1.4.3"
-      LIBSNDFILE_VERSION: "1.2.2"
+      DEPS_PREFIX:         /opt/static-deps
+      LIBOGG_VERSION:      "1.3.5"
+      LIBVORBIS_VERSION:   "1.3.7"
+      LIBOPUS_VERSION:     "1.4"
+      LIBFLAC_VERSION:     "1.4.3"
+      LIBSNDFILE_VERSION:  "1.2.2"
 
     steps:
       # ------------------------------------------------------------------ #
@@ -86,20 +92,29 @@ jobs:
           fetch-depth: 0
 
       # ------------------------------------------------------------------ #
-      # 3. Static codec chain: libogg → libFLAC → libsndfile                #
+      # 3. Static codec chain                                                #
       #                                                                      #
-      # All three are built as static PIC libraries under $DEPS_PREFIX.     #
-      # CMake finds them via CMAKE_PREFIX_PATH and links them into           #
-      # libcsound.so, so the shared library has no codec .so deps at        #
-      # runtime.                                                             #
+      # Csound's own CMakeLists.txt creates a "sndfile" interface target    #
+      # that unconditionally requires Vorbis::vorbisenc and Opus::opus,     #
+      # so those CMake targets must exist at configure time regardless of   #
+      # whether we personally want Vorbis/Opus support.  Building the full  #
+      # chain also lets libsndfile link them in cleanly.                    #
       # ------------------------------------------------------------------ #
-      - name: Cache static codec chain (libogg + libFLAC + libsndfile)
+      - name: Cache static codec chain
         id: cache-static-deps
         uses: actions/cache@v4
         with:
           path: ${{ env.DEPS_PREFIX }}
-          key: static-deps-ubuntu20-ogg${{ env.LIBOGG_VERSION }}-flac${{ env.LIBFLAC_VERSION }}-sndfile${{ env.LIBSNDFILE_VERSION }}-v2
+          key: |
+            static-deps-ubuntu20
+            -ogg${{ env.LIBOGG_VERSION }}
+            -vorbis${{ env.LIBVORBIS_VERSION }}
+            -opus${{ env.LIBOPUS_VERSION }}
+            -flac${{ env.LIBFLAC_VERSION }}
+            -sndfile${{ env.LIBSNDFILE_VERSION }}
+            -v1
 
+      # --- libogg (required by libvorbis and libFLAC) -------------------- #
       - name: Build static libogg
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
@@ -117,7 +132,45 @@ jobs:
           cmake --build /tmp/ogg-build -j"$(nproc)"
           cmake --install /tmp/ogg-build
 
-      - name: Build static libFLAC (with Ogg support)
+      # --- libvorbis (provides Vorbis::vorbisenc target) ----------------- #
+      - name: Build static libvorbis
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/vorbis/libvorbis-${LIBVORBIS_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/vorbis-build \
+            -S "/tmp/libvorbis-${LIBVORBIS_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build /tmp/vorbis-build -j"$(nproc)"
+          cmake --install /tmp/vorbis-build
+
+      # --- libopus (provides Opus::opus target) -------------------------- #
+      - name: Build static libopus
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/opus/opus-${LIBOPUS_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/opus-build \
+            -S "/tmp/opus-${LIBOPUS_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DOPUS_BUILD_PROGRAMS=OFF \
+            -DOPUS_BUILD_TESTING=OFF
+          cmake --build /tmp/opus-build -j"$(nproc)"
+          cmake --install /tmp/opus-build
+
+      # --- libFLAC (with Ogg support) ------------------------------------ #
+      - name: Build static libFLAC
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
@@ -139,7 +192,8 @@ jobs:
           cmake --build /tmp/flac-build -j"$(nproc)"
           cmake --install /tmp/flac-build
 
-      - name: Build static libsndfile (FLAC enabled, MPEG disabled)
+      # --- libsndfile (FLAC + Vorbis + Opus; no MPEG) -------------------- #
+      - name: Build static libsndfile
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
@@ -160,19 +214,6 @@ jobs:
             -DENABLE_MPEG=OFF
           cmake --build /tmp/sndfile-build -j"$(nproc)"
           cmake --install /tmp/sndfile-build
-
-      # libsndfile 1.2.x writes Vorbis::vorbisenc and Opus::opus into its
-      # installed SndFileTargets.cmake even when those libs were not found.
-      # sed-patching the file is fragile because the exact formatting varies.
-      # The reliable fix is to remove the entire cmake package config dir so
-      # that find_package(SndFile) falls back to pkg-config, whose .pc file
-      # is generated correctly and only lists libs that were actually linked.
-      # Runs unconditionally so a cached (broken) DEPS_PREFIX is also fixed.
-      - name: Remove libsndfile CMake config (force pkg-config fallback)
-        run: |
-          rm -rf "${DEPS_PREFIX}/lib/cmake/SndFile"
-          echo "Removed cmake config. Remaining sndfile pkg-config:"
-          cat "${DEPS_PREFIX}/lib/pkgconfig/sndfile.pc"
 
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
@@ -208,9 +249,6 @@ jobs:
 
       # ------------------------------------------------------------------ #
       # 6. Verify runtime dependencies                                       #
-      #                                                                      #
-      # The core binary and libcsound.so must have only glibc-family deps.  #
-      # The audio backend plugins are allowed their respective audio libs.   #
       # ------------------------------------------------------------------ #
       - name: Verify runtime dependencies
         run: |
@@ -233,8 +271,8 @@ jobs:
 
           echo ""
           echo "════════════════════════════════════════════════════"
-          echo "  libcsound.so (core library – codec chain must be"
-          echo "  statically absorbed; no sndfile/FLAC/ogg .so deps)"
+          echo "  libcsound.so (codec chain must be statically"
+          echo "  absorbed; no sndfile/FLAC/vorbis/opus .so deps)"
           echo "════════════════════════════════════════════════════"
           LIBCSOUND=$(find build -maxdepth 2 -name 'libcsound*.so*' | head -1)
           ldd "$LIBCSOUND"
@@ -255,8 +293,8 @@ jobs:
           echo "  (libasound / libjack / libportmidi expected here)"
           echo "════════════════════════════════════════════════════"
           find build \( \
-            -name 'rtalsa.so'      \
-            -o -name 'rtjack.so'   \
+            -name 'rtalsa.so'        \
+            -o -name 'rtjack.so'     \
             -o -name '*portmidi*.so' \
             -o -name '*pm_midi*.so'  \
           \) | while read -r plugin; do
