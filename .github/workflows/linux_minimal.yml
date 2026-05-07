@@ -1,0 +1,204 @@
+# linux_minimal.yml
+#
+# Builds a self-contained Csound binary for Linux.
+#
+# Goals
+# -----
+#   • No shared-library dependencies at runtime beyond the standard glibc
+#     family (libc, libm, libdl, libpthread).  All other libraries
+#     (libsndfile, libgcc_s, libstdc++) are linked statically.
+#   • Broad distribution compatibility: the binary is compiled inside an
+#     ubuntu:20.04 container (glibc 2.31), so it runs unchanged on any
+#     distro that ships glibc 2.31 or later – Ubuntu 20+, Debian 11+,
+#     Fedora 33+, RHEL 9+, openSUSE Leap 15.3+, etc.
+#   • No audio back-end is compiled in (ALSA / PortAudio / JACK /
+#     PulseAudio), so the binary is useful for offline / batch / embedded
+#     use-cases where an audio daemon is not available.
+#
+# How it works
+# ------------
+#   1. Spin up an ubuntu:20.04 Docker container on the GitHub runner.
+#   2. Build libsndfile from source as a static PIC library with no
+#      external codec dependencies (no Ogg/FLAC/Opus/MPEG).
+#   3. Configure Csound with every optional external dependency disabled;
+#      point CMake at the static libsndfile.
+#   4. Link with -static-libgcc / -static-libstdc++ to avoid runtime
+#      libgcc_s.so / libstdc++.so requirements.
+#   5. Verify that ldd reports only glibc-family libraries, then upload
+#      the binary and shared library as workflow artefacts.
+
+name: linux_minimal
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Linux – minimal (libc only)
+    runs-on: ubuntu-22.04
+
+    # Use an ubuntu:20.04 container so the produced binary targets
+    # glibc 2.31, giving broad compatibility across modern distributions.
+    container:
+      image: ubuntu:20.04
+
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      # Where we install the static libsndfile we build ourselves.
+      SNDFILE_PREFIX: /opt/sndfile-static
+      LIBSNDFILE_VERSION: "1.2.2"
+
+    steps:
+      # ------------------------------------------------------------------ #
+      # 1. Toolchain                                                         #
+      # ------------------------------------------------------------------ #
+      - name: Install build toolchain
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            ca-certificates \
+            cmake \
+            curl \
+            flex \
+            bison \
+            git \
+            xz-utils \
+            pkg-config
+
+      # ------------------------------------------------------------------ #
+      # 2. Source checkout                                                   #
+      # ------------------------------------------------------------------ #
+      - name: Checkout Csound
+        uses: actions/checkout@v4
+        with:
+          # Pull in the full history so version tags resolve correctly.
+          fetch-depth: 0
+
+      # ------------------------------------------------------------------ #
+      # 3. Build a static libsndfile with zero external codec deps          #
+      # ------------------------------------------------------------------ #
+      - name: Cache static libsndfile
+        id: cache-sndfile
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.SNDFILE_PREFIX }}
+          key: sndfile-${{ env.LIBSNDFILE_VERSION }}-ubuntu20-static-v1
+
+      - name: Download & build static libsndfile
+        if: steps.cache-sndfile.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://github.com/libsndfile/libsndfile/releases/download/${LIBSNDFILE_VERSION}/libsndfile-${LIBSNDFILE_VERSION}.tar.xz" \
+            | tar -xJ -C /tmp
+
+          cmake \
+            -B /tmp/sndfile-build \
+            -S "/tmp/libsndfile-${LIBSNDFILE_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${SNDFILE_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DBUILD_PROGRAMS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTING=OFF \
+            -DENABLE_EXTERNAL_LIBS=OFF \
+            -DENABLE_MPEG=OFF
+
+          cmake --build /tmp/sndfile-build -j"$(nproc)"
+          cmake --install /tmp/sndfile-build
+
+      # ------------------------------------------------------------------ #
+      # 4. Configure Csound                                                  #
+      # ------------------------------------------------------------------ #
+      - name: Configure Csound (minimal – no external runtime deps)
+        env:
+          PKG_CONFIG_PATH: "${{ env.SNDFILE_PREFIX }}/lib/pkgconfig"
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            \
+            `# Point CMake's find_package / pkg-config at our static sndfile` \
+            -DCMAKE_PREFIX_PATH="${SNDFILE_PREFIX}" \
+            \
+            `# Link the C++ runtime and GCC support library statically so` \
+            `# libgcc_s.so and libstdc++.so are not required at runtime.` \
+            -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            \
+            `# Disable every optional audio back-end.` \
+            -DUSE_ALSA=OFF \
+            -DUSE_PORTAUDIO=OFF \
+            -DUSE_PORTMIDI=OFF \
+            -DUSE_JACK=OFF \
+            -DUSE_PULSEAUDIO=OFF \
+            \
+            `# Disable GUI, language bindings, and optional sub-projects.` \
+            -DUSE_FLTK=OFF \
+            -DBUILD_VIRTUAL_KEYBOARD=OFF \
+            -DBUILD_JAVA_INTERFACE=OFF \
+            -DBUILD_PYTHON_INTERFACE=OFF \
+            -DINSTALL_PYTHON_INTERFACE=OFF \
+            -DBUILD_LUA_INTERFACE=OFF \
+            -DBUILD_CSBEATS=OFF \
+            \
+            `# Tests require CUnit which is an external dep; skip them.` \
+            -DBUILD_TESTS=OFF
+
+      # ------------------------------------------------------------------ #
+      # 5. Compile                                                           #
+      # ------------------------------------------------------------------ #
+      - name: Build Csound
+        run: cmake --build build -j"$(nproc)"
+
+      # ------------------------------------------------------------------ #
+      # 6. Verify runtime dependencies                                       #
+      # ------------------------------------------------------------------ #
+      - name: Verify binary runtime dependencies
+        run: |
+          echo "════════════════════════════════════════"
+          echo "  Dynamic deps of the csound executable "
+          echo "════════════════════════════════════════"
+          ldd build/csound
+
+          echo ""
+          echo "Checking for unexpected external libs..."
+          UNEXPECTED=$(ldd build/csound | \
+            grep -v -E \
+              'linux-vdso|ld-linux|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so' \
+            || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "ERROR: unexpected runtime dependencies found:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "OK – only glibc-family libraries present."
+
+          echo ""
+          echo "════════════════════════════════════════"
+          echo "  Csound version"
+          echo "════════════════════════════════════════"
+          build/csound --version || true
+
+      # ------------------------------------------------------------------ #
+      # 7. Upload artefacts                                                  #
+      # ------------------------------------------------------------------ #
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: csound-linux-minimal-x86_64
+          # Collect the main binary and the core shared library.
+          # Plugins (*.so in sub-dirs) are omitted because they would
+          # require the caller to also have their indirect deps available.
+          path: |
+            build/csound
+            build/libcsound*.so*
+          if-no-files-found: error
+          
