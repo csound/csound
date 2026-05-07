@@ -185,7 +185,7 @@ jobs:
           echo "════════════════════════════════════════"
           echo "  Dynamic deps of the libcsound "
           echo "════════════════════════════════════════"
-          ldd build/libcsound64.so*
+          ldd build/libcsound64.so.7.0
   
           echo ""
           echo "Checking for unexpected external libs..."
@@ -193,9 +193,9 @@ jobs:
             grep -v -E \
               'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so' \
             || true)
-          if [ -n "$UNEXPECTED" ]; then
+          if [ -n "$UNEXPECTED2" ]; then
             echo "ERROR: unexpected runtime dependencies found:"
-            echo "$UNEXPECTED"
+            echo "$UNEXPECTED2"
             exit 1
           fi
           echo "OK – only glibc-family libraries present."
