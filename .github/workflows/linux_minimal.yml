@@ -39,6 +39,7 @@ on:
       - develop
       - main
       - testbuild
+      
   pull_request:
     branches:
       - develop
@@ -214,6 +215,29 @@ jobs:
           cmake --build /tmp/sndfile-build -j"$(nproc)"
           cmake --install /tmp/sndfile-build
 
+          # Merge all codec static archives into libsndfile.a.
+          #
+          # CMake puts CMAKE_SHARED_LINKER_FLAGS before the target libraries
+          # in the link command, so any codec -l flags we add there are
+          # processed before -lsndfile and get discarded by the linker before
+          # it knows they are needed.  Merging everything into one archive
+          # sidesteps the ordering problem entirely: the single libsndfile.a
+          # that CMake's SndFile target already links contains all symbols.
+          cat > /tmp/merge.mri << MRIEOF
+CREATE ${DEPS_PREFIX}/lib/libsndfile_merged.a
+ADDLIB ${DEPS_PREFIX}/lib/libsndfile.a
+ADDLIB ${DEPS_PREFIX}/lib/libFLAC.a
+ADDLIB ${DEPS_PREFIX}/lib/libvorbisenc.a
+ADDLIB ${DEPS_PREFIX}/lib/libvorbis.a
+ADDLIB ${DEPS_PREFIX}/lib/libogg.a
+ADDLIB ${DEPS_PREFIX}/lib/libopus.a
+SAVE
+END
+MRIEOF
+          ar -M < /tmp/merge.mri
+          mv "${DEPS_PREFIX}/lib/libsndfile_merged.a" "${DEPS_PREFIX}/lib/libsndfile.a"
+          echo "Merged archive size: $(du -sh ${DEPS_PREFIX}/lib/libsndfile.a)"
+
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
       # ------------------------------------------------------------------ #
@@ -225,7 +249,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
-            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++ -L${DEPS_PREFIX}/lib -Wl,--start-group -lFLAC -lvorbisenc -lvorbis -lopus -logg -Wl,--end-group" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DUSE_ALSA=ON \
             -DUSE_JACK=ON \
             -DUSE_PORTMIDI=ON \
@@ -238,8 +262,7 @@ jobs:
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \
             -DBUILD_CSBEATS=OFF \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_UTILITIES=OFF
+            -DBUILD_TESTS=OFF
 
       # ------------------------------------------------------------------ #
       # 5. Compile                                                           #
