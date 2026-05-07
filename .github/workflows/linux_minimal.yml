@@ -308,10 +308,10 @@ jobs:
           echo "  (libasound / libjack / libportmidi expected here)"
           echo "════════════════════════════════════════════════════"
           find build \( \
-            -name 'rtalsa.so'        \
-            -o -name 'rtjack.so'     \
-            -o -name '*portmidi*.so' \
-            -o -name '*pm_midi*.so'  \
+            -name 'librtalsa.so'        \
+            -o -name 'librtjack.so'     \
+            -o -name 'librtpa.so' \
+            -o -name 'libpmidi.so'  \
           \) | while read -r plugin; do
             echo ""
             echo "--- $plugin ---"
