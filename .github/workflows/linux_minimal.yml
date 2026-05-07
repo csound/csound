@@ -97,7 +97,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.DEPS_PREFIX }}
-          key: static-deps-ubuntu20-ogg${{ env.LIBOGG_VERSION }}-flac${{ env.LIBFLAC_VERSION }}-sndfile${{ env.LIBSNDFILE_VERSION }}-v1
+          key: static-deps-ubuntu20-ogg${{ env.LIBOGG_VERSION }}-flac${{ env.LIBFLAC_VERSION }}-sndfile${{ env.LIBSNDFILE_VERSION }}-v2
 
       - name: Build static libogg
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
@@ -138,7 +138,7 @@ jobs:
           cmake --build /tmp/flac-build -j"$(nproc)"
           cmake --install /tmp/flac-build
 
-      - name: Build static libsndfile (FLAC enabled, no Vorbis / MPEG)
+      - name: Build static libsndfile (FLAC enabled, Vorbis / Opus / MPEG disabled)
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
@@ -156,7 +156,9 @@ jobs:
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_TESTING=OFF \
             -DENABLE_EXTERNAL_LIBS=ON \
-            -DENABLE_MPEG=OFF
+            -DENABLE_MPEG=OFF \
+            -DENABLE_VORBIS=OFF \
+            -DENABLE_OPUS=OFF
           cmake --build /tmp/sndfile-build -j"$(nproc)"
           cmake --install /tmp/sndfile-build
 
