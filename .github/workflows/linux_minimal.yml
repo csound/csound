@@ -238,7 +238,8 @@ jobs:
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \
             -DBUILD_CSBEATS=OFF \
-            -DBUILD_TESTS=OFF
+            -DBUILD_TESTS=OFF \
+            -DBUILD_UTILITIES=OFF
 
       # ------------------------------------------------------------------ #
       # 5. Compile                                                           #
