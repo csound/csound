@@ -333,10 +333,10 @@ jobs:
           cp build/csound dist/
           find build -maxdepth 2 -name 'libcsound*.so*' -exec cp {} dist/ \;
           find build \( \
-            -name 'rtalsa.so'        \
-            -o -name 'rtjack.so'     \
-            -o -name '*portmidi*.so' \
-            -o -name '*pm_midi*.so'  \
+            -name 'librtalsa.so'        \
+            -o -name 'librtjack.so'     \
+            -o -name 'librtpa.so' \
+            -o -name 'libpmidi.so'  \
           \) -exec cp {} dist/plugins/ \;
 
       - name: Upload artefacts
