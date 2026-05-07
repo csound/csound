@@ -33,7 +33,7 @@ on:
   push:
     branches:
       - develop
-      - main
+      - testbuild
   pull_request:
     branches:
       - develop
