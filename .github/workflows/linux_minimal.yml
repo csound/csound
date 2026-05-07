@@ -162,30 +162,17 @@ jobs:
           cmake --install /tmp/sndfile-build
 
       # libsndfile 1.2.x writes Vorbis::vorbisenc and Opus::opus into its
-      # installed SndFileTargets.cmake even when those libs were not found,
-      # which causes any downstream find_package(SndFile) to fail.
-      # Strip them unconditionally so the fix also applies when DEPS_PREFIX
-      # is restored from the Actions cache (where the broken file would
-      # otherwise be reused without re-running the build step above).
-      - name: Patch libsndfile CMake targets (remove unfound Vorbis / Opus deps)
+      # installed SndFileTargets.cmake even when those libs were not found.
+      # sed-patching the file is fragile because the exact formatting varies.
+      # The reliable fix is to remove the entire cmake package config dir so
+      # that find_package(SndFile) falls back to pkg-config, whose .pc file
+      # is generated correctly and only lists libs that were actually linked.
+      # Runs unconditionally so a cached (broken) DEPS_PREFIX is also fixed.
+      - name: Remove libsndfile CMake config (force pkg-config fallback)
         run: |
-          TARGETS="${DEPS_PREFIX}/lib/cmake/SndFile/SndFileTargets.cmake"
-          if [ ! -f "$TARGETS" ]; then
-            echo "ERROR: $TARGETS not found"
-            exit 1
-          fi
-          echo "Before patch:"
-          grep -E "Vorbis|Opus" "$TARGETS" || echo "  (none found)"
-          sed -i \
-            -e 's/Vorbis::vorbisenc;//g' \
-            -e 's/;Vorbis::vorbisenc//g' \
-            -e 's/Opus::opus;//g' \
-            -e 's/;Opus::opus//g' \
-            "$TARGETS"
-          echo "After patch:"
-          grep -E "Vorbis|Opus" "$TARGETS" \
-            && { echo "ERROR: entries still present"; exit 1; } \
-            || echo "  OK - entries removed"
+          rm -rf "${DEPS_PREFIX}/lib/cmake/SndFile"
+          echo "Removed cmake config. Remaining sndfile pkg-config:"
+          cat "${DEPS_PREFIX}/lib/pkgconfig/sndfile.pc"
 
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
