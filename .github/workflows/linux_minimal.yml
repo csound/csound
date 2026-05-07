@@ -1,31 +1,31 @@
 # linux_minimal.yml
 #
-# Builds a self-contained Csound binary for Linux.
+# Builds a Csound binary for Linux with ALSA, JACK, and PortMidi audio
+# back-ends enabled, and libsndfile compiled with FLAC support.
 #
-# Goals
-# -----
-#   • No shared-library dependencies at runtime beyond the standard glibc
-#     family (libc, libm, libdl, libpthread).  All other libraries
-#     (libsndfile, libgcc_s, libstdc++) are linked statically.
-#   • Broad distribution compatibility: the binary is compiled inside an
-#     ubuntu:20.04 container (glibc 2.31), so it runs unchanged on any
-#     distro that ships glibc 2.31 or later – Ubuntu 20+, Debian 11+,
-#     Fedora 33+, RHEL 9+, openSUSE Leap 15.3+, etc.
-#   • No audio back-end is compiled in (ALSA / PortAudio / JACK /
-#     PulseAudio), so the binary is useful for offline / batch / embedded
-#     use-cases where an audio daemon is not available.
+# Dependency strategy
+# -------------------
+#   Core binary & libcsound.so
+#     Only glibc-family runtime deps (libc, libm, libdl, libpthread).
+#     The codec chain libogg → libFLAC → libsndfile is compiled from
+#     source as static PIC libraries and linked directly into libcsound.so,
+#     so none of them appear as shared-library requirements.
+#     libgcc_s / libstdc++ are also baked in via -static-libgcc /
+#     -static-libstdc++.
 #
-# How it works
-# ------------
-#   1. Spin up an ubuntu:20.04 Docker container on the GitHub runner.
-#   2. Build libsndfile from source as a static PIC library with no
-#      external codec dependencies (no Ogg/FLAC/Opus/MPEG).
-#   3. Configure Csound with every optional external dependency disabled;
-#      point CMake at the static libsndfile.
-#   4. Link with -static-libgcc / -static-libstdc++ to avoid runtime
-#      libgcc_s.so / libstdc++.so requirements.
-#   5. Verify that ldd reports only glibc-family libraries, then upload
-#      the binary and shared library as workflow artefacts.
+#   Audio backend plugins  (rtalsa.so, rtjack.so, *portmidi*.so …)
+#     Csound loads RT and MIDI modules as plugins at runtime, so their
+#     external deps are isolated to those plugin .so files and never
+#     affect the core binary.  The three audio libraries are installed
+#     from Ubuntu 20.04 packages:
+#       libasound2-dev   →  rtalsa plugin
+#       libjack-jackd2-dev → rtjack plugin
+#       libportmidi-dev  →  portmidi MIDI plugin
+#
+# Distribution compatibility
+# --------------------------
+#   The job runs inside an ubuntu:20.04 container (glibc 2.31).
+#   Binaries work on Ubuntu 20+, Debian 11+, Fedora 33+, RHEL 9+, etc.
 
 name: linux_minimal
 
@@ -33,7 +33,7 @@ on:
   push:
     branches:
       - develop
-      - testbuild
+      - main
   pull_request:
     branches:
       - develop
@@ -41,25 +41,24 @@ on:
 
 jobs:
   build:
-    name: Linux – minimal (libc only)
+    name: Linux – ALSA + JACK + PortMidi (libc-only core)
     runs-on: ubuntu-22.04
 
-    # Use an ubuntu:20.04 container so the produced binary targets
-    # glibc 2.31, giving broad compatibility across modern distributions.
     container:
       image: ubuntu:20.04
 
     env:
       DEBIAN_FRONTEND: noninteractive
-      # Where we install the static libsndfile we build ourselves.
-      SNDFILE_PREFIX: /opt/sndfile-static
+      DEPS_PREFIX:        /opt/static-deps
+      LIBOGG_VERSION:     "1.3.5"
+      LIBFLAC_VERSION:    "1.4.3"
       LIBSNDFILE_VERSION: "1.2.2"
 
     steps:
       # ------------------------------------------------------------------ #
-      # 1. Toolchain                                                         #
+      # 1. Toolchain + audio back-end dev packages                          #
       # ------------------------------------------------------------------ #
-      - name: Install build toolchain
+      - name: Install build toolchain and audio backend headers
         run: |
           apt-get update -qq
           apt-get install -y --no-install-recommends \
@@ -70,8 +69,11 @@ jobs:
             flex \
             bison \
             git \
+            pkg-config \
             xz-utils \
-            pkg-config
+            libasound2-dev \
+            libjack-jackd2-dev \
+            libportmidi-dev
 
       # ------------------------------------------------------------------ #
       # 2. Source checkout                                                   #
@@ -79,69 +81,101 @@ jobs:
       - name: Checkout Csound
         uses: actions/checkout@v4
         with:
-          # Pull in the full history so version tags resolve correctly.
           fetch-depth: 0
-          ref: "develop"
 
       # ------------------------------------------------------------------ #
-      # 3. Build a static libsndfile with zero external codec deps          #
+      # 3. Static codec chain: libogg → libFLAC → libsndfile                #
+      #                                                                      #
+      # All three are built as static PIC libraries under $DEPS_PREFIX.     #
+      # CMake finds them via CMAKE_PREFIX_PATH and links them into           #
+      # libcsound.so, so the shared library has no codec .so deps at        #
+      # runtime.                                                             #
       # ------------------------------------------------------------------ #
-      - name: Cache static libsndfile
-        id: cache-sndfile
+      - name: Cache static codec chain (libogg + libFLAC + libsndfile)
+        id: cache-static-deps
         uses: actions/cache@v4
         with:
-          path: ${{ env.SNDFILE_PREFIX }}
-          key: sndfile-${{ env.LIBSNDFILE_VERSION }}-ubuntu20-static-v1
+          path: ${{ env.DEPS_PREFIX }}
+          key: static-deps-ubuntu20-ogg${{ env.LIBOGG_VERSION }}-flac${{ env.LIBFLAC_VERSION }}-sndfile${{ env.LIBSNDFILE_VERSION }}-v1
 
-      - name: Download & build static libsndfile
-        if: steps.cache-sndfile.outputs.cache-hit != 'true'
+      - name: Build static libogg
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/ogg/libogg-${LIBOGG_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/ogg-build \
+            -S "/tmp/libogg-${LIBOGG_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DINSTALL_DOCS=OFF
+          cmake --build /tmp/ogg-build -j"$(nproc)"
+          cmake --install /tmp/ogg-build
+
+      - name: Build static libFLAC (with Ogg support)
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/flac/flac-${LIBFLAC_VERSION}.tar.xz" \
+            | tar -xJ -C /tmp
+          cmake \
+            -B /tmp/flac-build \
+            -S "/tmp/flac-${LIBFLAC_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DWITH_OGG=ON \
+            -DBUILD_DOCS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTING=OFF \
+            -DINSTALL_MANPAGES=OFF
+          cmake --build /tmp/flac-build -j"$(nproc)"
+          cmake --install /tmp/flac-build
+
+      - name: Build static libsndfile (FLAC enabled, no Vorbis / MPEG)
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
             "https://github.com/libsndfile/libsndfile/releases/download/${LIBSNDFILE_VERSION}/libsndfile-${LIBSNDFILE_VERSION}.tar.xz" \
             | tar -xJ -C /tmp
-
           cmake \
             -B /tmp/sndfile-build \
             -S "/tmp/libsndfile-${LIBSNDFILE_VERSION}" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${SNDFILE_PREFIX}" \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
             -DBUILD_SHARED_LIBS=OFF \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DBUILD_PROGRAMS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_TESTING=OFF \
-            -DENABLE_EXTERNAL_LIBS=OFF \
+            -DENABLE_EXTERNAL_LIBS=ON \
             -DENABLE_MPEG=OFF
-
           cmake --build /tmp/sndfile-build -j"$(nproc)"
           cmake --install /tmp/sndfile-build
 
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
       # ------------------------------------------------------------------ #
-      - name: Configure Csound (minimal – no external runtime deps)
+      - name: Configure Csound
         env:
-          PKG_CONFIG_PATH: "${{ env.SNDFILE_PREFIX }}/lib/pkgconfig"
+          PKG_CONFIG_PATH: "${{ env.DEPS_PREFIX }}/lib/pkgconfig"
         run: |
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Release \
-            \
-            `# Point CMake's find_package / pkg-config at our static sndfile` \
-            -DCMAKE_PREFIX_PATH="${SNDFILE_PREFIX}" \
-            \
-            `# Link the C++ runtime and GCC support library statically so` \
-            `# libgcc_s.so and libstdc++.so are not required at runtime.` \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
-            \
-            `# Disable every optional audio back-end.` \
-            -DUSE_ALSA=OFF \
+            -DUSE_ALSA=ON \
+            -DUSE_JACK=ON \
+            -DUSE_PORTMIDI=ON \
             -DUSE_PORTAUDIO=OFF \
-            -DUSE_PORTMIDI=OFF \
-            -DUSE_JACK=OFF \
             -DUSE_PULSEAUDIO=OFF \
-            \
-            `# Disable GUI, language bindings, and optional sub-projects.` \
             -DUSE_FLTK=OFF \
             -DBUILD_VIRTUAL_KEYBOARD=OFF \
             -DBUILD_JAVA_INTERFACE=OFF \
@@ -149,8 +183,6 @@ jobs:
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \
             -DBUILD_CSBEATS=OFF \
-            \
-            `# Tests require CUnit which is an external dep; skip them.` \
             -DBUILD_TESTS=OFF
 
       # ------------------------------------------------------------------ #
@@ -161,64 +193,87 @@ jobs:
 
       # ------------------------------------------------------------------ #
       # 6. Verify runtime dependencies                                       #
+      #                                                                      #
+      # The core binary and libcsound.so must have only glibc-family deps.  #
+      # The audio backend plugins are allowed their respective audio libs.   #
       # ------------------------------------------------------------------ #
-      - name: Verify binary runtime dependencies
+      - name: Verify runtime dependencies
         run: |
-          echo "════════════════════════════════════════"
-          echo "  Dynamic deps of the csound executable "
-          echo "════════════════════════════════════════"
+          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so'
+
+          echo "════════════════════════════════════════════════════"
+          echo "  csound binary"
+          echo "════════════════════════════════════════════════════"
           ldd build/csound
 
           echo ""
-          echo "Checking for unexpected external libs..."
-          UNEXPECTED=$(ldd build/csound | \
-            grep -v -E \
-              'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libcsound64\.so\.7\.0|libdl\.so|libpthread\.so|librt\.so' \
-            || true)
+          echo "Asserting csound binary has only glibc-family deps..."
+          UNEXPECTED=$(ldd build/csound | grep -Ev "($GLIBC_ONLY|libcsound)" || true)
           if [ -n "$UNEXPECTED" ]; then
-            echo "ERROR: unexpected runtime dependencies found:"
+            echo "FAIL – unexpected runtime dependencies in csound binary:"
             echo "$UNEXPECTED"
             exit 1
           fi
-          echo "OK – only glibc-family libraries present."
+          echo "OK"
 
-          echo "════════════════════════════════════════"
-          echo "  Dynamic deps of the libcsound "
-          echo "════════════════════════════════════════"
-          ldd build/libcsound64.so.7.0
-  
           echo ""
-          echo "Checking for unexpected external libs..."
-          UNEXPECTED=$(ldd build/csound | \
-            grep -v -E \
-              'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so' \
-            || true)
-          if [ -n "$UNEXPECTED2" ]; then
-            echo "ERROR: unexpected runtime dependencies found:"
-            echo "$UNEXPECTED2"
+          echo "════════════════════════════════════════════════════"
+          echo "  libcsound.so (core library – codec chain must be"
+          echo "  statically absorbed; no sndfile/FLAC/ogg .so deps)"
+          echo "════════════════════════════════════════════════════"
+          LIBCSOUND=$(find build -maxdepth 2 -name 'libcsound*.so*' | head -1)
+          ldd "$LIBCSOUND"
+
+          echo ""
+          echo "Asserting libcsound.so has only glibc-family deps..."
+          UNEXPECTED=$(ldd "$LIBCSOUND" | grep -Ev "($GLIBC_ONLY)" || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL – unexpected runtime dependencies in libcsound.so:"
+            echo "$UNEXPECTED"
             exit 1
           fi
-          echo "OK – only glibc-family libraries present."
-
+          echo "OK"
 
           echo ""
-          echo "════════════════════════════════════════"
+          echo "════════════════════════════════════════════════════"
+          echo "  Audio backend plugins"
+          echo "  (libasound / libjack / libportmidi expected here)"
+          echo "════════════════════════════════════════════════════"
+          find build \( \
+            -name 'rtalsa.so'      \
+            -o -name 'rtjack.so'   \
+            -o -name '*portmidi*.so' \
+            -o -name '*pm_midi*.so'  \
+          \) | while read -r plugin; do
+            echo ""
+            echo "--- $plugin ---"
+            ldd "$plugin"
+          done
+
+          echo ""
+          echo "════════════════════════════════════════════════════"
           echo "  Csound version"
-          echo "════════════════════════════════════════"
+          echo "════════════════════════════════════════════════════"
           build/csound --version || true
 
       # ------------------------------------------------------------------ #
       # 7. Upload artefacts                                                  #
       # ------------------------------------------------------------------ #
+      - name: Collect artefacts
+        run: |
+          mkdir -p dist/plugins
+          cp build/csound dist/
+          find build -maxdepth 2 -name 'libcsound*.so*' -exec cp {} dist/ \;
+          find build \( \
+            -name 'rtalsa.so'        \
+            -o -name 'rtjack.so'     \
+            -o -name '*portmidi*.so' \
+            -o -name '*pm_midi*.so'  \
+          \) -exec cp {} dist/plugins/ \;
+
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
         with:
           name: csound-linux-minimal-x86_64
-          # Collect the main binary and the core shared library.
-          # Plugins (*.so in sub-dirs) are omitted because they would
-          # require the caller to also have their indirect deps available.
-          path: |
-            build/csound
-            build/libcsound*.so*
+          path: dist/
           if-no-files-found: error
-          
