@@ -173,7 +173,7 @@ jobs:
           echo "Checking for unexpected external libs..."
           UNEXPECTED=$(ldd build/csound | \
             grep -v -E \
-              'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libcsound64\.so\.7\.0\libdl\.so|libpthread\.so|librt\.so' \
+              'linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libcsound64\.so\.7\.0|libdl\.so|libpthread\.so|librt\.so' \
             || true)
           if [ -n "$UNEXPECTED" ]; then
             echo "ERROR: unexpected runtime dependencies found:"
