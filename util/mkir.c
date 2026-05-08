@@ -128,6 +128,9 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      
      fd = csound->SndfileOpen(csound, sweepfile,
                                  SFM_READ, &sfinfo);
+     if(fd == NULL)
+       csound->Die(csound, "%s", Str("could not open sweep file"));
+       
      if(sfinfo.channels > 1) {
         csound->SndfileClose(csound, fd);
         csound->Die(csound, "%s", Str("sweep file is not mono"));
@@ -140,6 +143,9 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      memset(&sfinfo, 0, sizeof(SFLIB_INFO));
      fd = csound->SndfileOpen(csound, inputfile, SFM_READ,
                               &sfinfo);
+     if(fd == NULL)
+       csound->Die(csound, "%s", Str("could not open input file"));
+     
      
      if(sfinfo.frames < frames) {
         csound->SndfileClose(csound, fd);
@@ -164,11 +170,21 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
        csound->Free(csound, chn);
      } else inp = deconvolve(csound, swp, inp, frames);
      sfinfo.frames = 0;
-     fd = csound->SndfileOpen(csound, outputfile, SFM_WRITE, &sfinfo);    
+     fd = csound->SndfileOpen(csound, outputfile, SFM_WRITE, &sfinfo);
+
+     if(fd == NULL)
+       csound->Die(csound, "%s", Str("could not open output file"));
+     
      csound->SndfileWrite(csound,fd,inp,frames);
      csound->SndfileClose(csound,fd);
      csound->Free(csound, swp);
      csound->Free(csound, inp);
+     csound->Message(csound,
+                     "\tcreated IR file %s\n",
+                     outputfile);
+     csound->Message(csound,
+                     "\tsr = %.1f, %.3f seconds\n",
+                     sr, frames/sr);
    }
   else {
     SFLIB_INFO sfinfo;
@@ -184,7 +200,13 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
                  sweepfile, Str(csound->SndfileStrError(csound,NULL)));
     csound->SndfileWrite(csound,fd,sweep,len*sr);
     csound->SndfileClose(csound,fd);
-    csound->Free(csound, sweep);    
+    csound->Free(csound, sweep);
+    csound->Message(csound,
+                     "\tcreated sine sweep file %s\n",
+                     sweepfile);
+    csound->Message(csound,
+                     "\tsr = %.1f, %.3f seconds\n",
+                     sr, len);
   }
   return CSOUND_SUCCESS;
 }
