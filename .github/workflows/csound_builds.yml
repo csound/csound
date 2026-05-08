@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DUSE_MP3=0 -DUSE_DOUBLE=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1
+          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1
 
       - name: Build Csound
         run: |
@@ -76,7 +76,6 @@ jobs:
       - name: Run CSD tests
         run: |
           cd build
-          export OPCODE7DIR=.
           make csdtests
 
   linux_build_vcpkg:
