@@ -289,7 +289,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Verify runtime dependencies
         run: |
-          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so'
+          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so'
 
           echo "════════════════════════════════════════════════════"
           echo "  Full build tree – all shared libraries"
