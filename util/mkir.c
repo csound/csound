@@ -1,0 +1,198 @@
+#include "csdl.h"
+
+#define FIND(MSG)   if (*s == '\0')  \
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
+      csound->Die(csound, "%s", MSG);
+
+static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
+  int n;
+  double ph = 0, f = 1., fi;
+  double scal = 2*PI/sr;
+  MYFLT *sweep = (MYFLT *) csound->Calloc(csound, len*sizeof(MYFLT));
+  fi = pow(sr/2, 1./len);
+  for(n = 0; n < len; n++) {
+    sweep[n] = sin(ph);
+    ph += scal*f;
+    f *= fi;
+  }
+  return sweep;
+}
+
+static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len) {
+   int n;
+   MYFLT *inp = (MYFLT *) csound->Calloc(csound,(2*len+2)*sizeof(MYFLT));
+   MYFLT *swp = (MYFLT *) csound->Calloc(csound, (2*len+2)*sizeof(MYFLT));
+   memcpy(inp, rec, sizeof(MYFLT)*len);
+   memcpy(swp, sweep, sizeof(MYFLT)*len);
+   csound->RealFFTnp2(csound, inp, len*2);
+   csound->RealFFTnp2(csound, swp, len*2);
+   for(n = 0; n < len*2; n++) {
+     MYFLT a = swp[n], c = inp[n];
+     MYFLT b = swp[n+1], d = inp[n+1];
+     MYFLT den = a*a + b*b;
+     a *=  1./den;
+     b *= -1./den;
+     inp[n] = a*c - b*d;
+     inp[n+1] = a*d + b*c;
+   }
+   csound->InverseRealFFTnp2(csound, inp, len*2);
+   memcpy(rec, inp, sizeof(MYFLT)*len);
+   csound->Free(csound, inp);
+   csound->Free(csound, swp);
+   return rec;
+}
+
+
+static void usage(CSOUND *csound, char *mesg, ...)
+{
+    va_list args;
+    csound->Message(csound,"%s", Str("Usage:\tmkir [-flags] sweepfile \n"));
+    csound->Message(csound,"%s", Str("Legal flags are:\n"));
+    csound->Message(csound,"%s", Str("-g generate sine sweep (RIFF-Wave, float)\n"));
+    csound->Message(csound,"%s", Str("-t sweep length (in secs) to generate\n"));
+    csound->Message(csound,"%s", Str("-r sampling rate for sweep generation\n"));
+    csound->Message(csound,"%s", Str("-o output file\n"));
+    csound->Message(csound,"%s", Str("-i input file\n"));
+    csound->Message(csound,"%s", Str("flag defaults: mkir -t 1 -r 44100 \n"));
+    va_start(args, mesg);
+    csound->ErrMsgV(csound, Str("mkdir: error: "), mesg, args);
+    va_end(args);
+    csound->LongJmp(csound, 1);
+}
+
+static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
+  char *sweepfile = NULL, *inputfile = NULL, *outputfile = NULL;
+  int32_t generate = 0;
+  MYFLT len = 1., sr = 44100.;
+  char *s, c;
+
+  if (UNLIKELY(!(--argc))) {
+      usage(csound,Str("Insufficient arguments"));
+      return 1;
+  }
+  do {
+      s = *++argv;
+      if (*s++ == '-')                
+        while ((c = *s++) != '\0')
+          switch(c) {
+          case 'o':
+            FIND(Str("no output filename"))
+            outputfile = s;         
+            for ( ; *s != '\0'; s++) ;
+            if (UNLIKELY(strcmp(outputfile, "stdin") == 0))
+              csound->Die(csound, "%s", Str("-o cannot be stdin"));
+            break;
+          case 'i':
+            FIND(Str("no input filename"))
+            inputfile = s;        
+            for ( ; *s != '\0'; s++) ;
+            if (UNLIKELY(strcmp(inputfile, "stdout") == 0))
+              csound->Die(csound, "%s", Str("-i cannot be stdout"));
+            break;
+          case 'g':
+            generate = 1;         
+            break;
+          case 't':
+            FIND(Str("no sweep length"));
+            len = (MYFLT) atof(s);
+            while (*++s);           
+            break;
+          case 'r':
+            FIND(Str("no sampling rate"));
+            sr = (MYFLT) atof(s);
+            while (*++s);           
+            break;            
+          default:
+            usage(csound, Str("unknown flag -%c"), c);            
+          }
+      else {
+        if (UNLIKELY(sweepfile != NULL)) usage(csound,Str("Too many inputs"));
+        sweepfile = --s;
+      }
+    } while (--argc);
+
+  if(sweepfile == NULL)
+    csound->Die(csound, "%s", Str("missing sweep file"));
+  
+  if(generate == 0) {
+     SFLIB_INFO sfinfo;
+     SNDFILE *fd;
+     int32_t frames;
+     MYFLT *swp, *inp;
+     if (inputfile == NULL)
+       csound->Die(csound, "%s", Str("missing input file"));
+     if (outputfile == NULL)
+       csound->Die(csound, "%s", Str("missing output file"));
+     
+     fd = csound->SndfileOpen(csound, sweepfile,
+                                 SFM_READ, &sfinfo);
+     if(sfinfo.channels > 1) {
+        csound->SndfileClose(csound, fd);
+        csound->Die(csound, "%s", Str("sweep file is not mono"));
+     }
+     frames = (int32_t) sfinfo.frames; 
+     swp = (MYFLT *) csound->Calloc(csound, frames*sizeof(MYFLT));
+     csound->SndfileRead(csound,fd,swp,frames);
+     csound->SndfileClose(csound,fd);
+
+     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+     fd = csound->SndfileOpen(csound, inputfile, SFM_READ,
+                              &sfinfo);
+     
+     if(sfinfo.frames < frames) {
+        csound->SndfileClose(csound, fd);
+        csound->Die(csound, "%s", Str("input file too short for sweep"));
+     }
+
+     inp = (MYFLT *) csound->Calloc(csound, frames*sizeof(MYFLT)*sfinfo.channels);
+     csound->SndfileRead(csound,fd,inp,frames);
+     csound->SndfileClose(csound,fd);
+     
+     if(sfinfo.channels > 1) {
+       int i, j, m = sfinfo.channels;
+       MYFLT *outp, *chn = (MYFLT *)
+         csound->Calloc(csound, len*sizeof(MYFLT));
+       for(i = 0; i < sfinfo.channels; i++) {
+         for(j = 0; j < len; j++)
+             chn[j] = inp[j*m + i];
+         outp = deconvolve(csound, swp, chn, frames);
+         for(j = 0; j < len; j++)
+             inp[j*m + i] = outp[j];
+       }
+       csound->Free(csound, chn);
+     } else inp = deconvolve(csound, swp, inp, frames);
+     sfinfo.frames = 0;
+     fd = csound->SndfileOpen(csound, outputfile, SFM_WRITE, &sfinfo);    
+     csound->SndfileWrite(csound,fd,inp,frames);
+     csound->SndfileClose(csound,fd);
+     csound->Free(csound, swp);
+     csound->Free(csound, inp);
+   }
+  else {
+    SFLIB_INFO sfinfo;
+    SNDFILE* fd;
+    MYFLT *sweep = generate_sweep(csound, sr, len*sr);
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
+    sfinfo.samplerate = sr;
+    sfinfo.channels = 1;
+    sfinfo.format = TYPE2SF(TYP_WAV) | FORMAT2SF(AE_FLOAT);
+    fd = csound->SndfileOpen(csound, sweepfile, SFM_WRITE, &sfinfo);
+    if (UNLIKELY(fd == NULL))
+      csound->Die(csound, Str("Failed to open file for generated sweep %s: %s"),
+                 sweepfile, Str(csound->SndfileStrError(csound,NULL)));
+    csound->SndfileWrite(csound,fd,sweep,len*sr);
+    csound->SndfileClose(csound,fd);
+    csound->Free(csound, sweep);    
+  }
+  return CSOUND_SUCCESS;
+}
+
+int32_t mkir_init_(CSOUND *csound)
+{
+    int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "mkir", mkir);
+    if (!retval) {
+      retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "mkir",
+                                             Str("Creates empirical impulse responses"));
+    }
+    return retval;
+}
