@@ -61,6 +61,7 @@ jobs:
       LIBOPUS_VERSION:     "1.4"
       LIBFLAC_VERSION:     "1.4.3"
       LIBSNDFILE_VERSION:  "1.2.2"
+      LIBLO_VERSION:       "0.31"
 
     steps:
       # ------------------------------------------------------------------ #
@@ -112,6 +113,7 @@ jobs:
             -opus${{ env.LIBOPUS_VERSION }}
             -flac${{ env.LIBFLAC_VERSION }}
             -sndfile${{ env.LIBSNDFILE_VERSION }}
+            -lo${{ env.LIBLO_VERSION }}
             -v1
 
       # --- libogg (required by libvorbis and libFLAC) -------------------- #
@@ -230,6 +232,25 @@ jobs:
           mv "${DEPS_PREFIX}/lib/libsndfile_merged.a" "${DEPS_PREFIX}/lib/libsndfile.a"
           echo "Merged archive size: $(du -sh ${DEPS_PREFIX}/lib/libsndfile.a)"
 
+      # --- liblo (OSC library – provides lo::lo / liblo target) ----------- #
+      - name: Build static liblo
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://github.com/radarsat1/liblo/releases/download/${LIBLO_VERSION}/liblo-${LIBLO_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/lo-build \
+            -S "/tmp/liblo-${LIBLO_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTS=OFF
+          cmake --build /tmp/lo-build -j"$(nproc)"
+          cmake --install /tmp/lo-build
+
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
       # ------------------------------------------------------------------ #
@@ -242,6 +263,7 @@ jobs:
             -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DUSE_LIBLO=ON \
             -DUSE_ALSA=ON \
             -DUSE_JACK=ON \
             -DUSE_PORTMIDI=ON \
@@ -267,8 +289,14 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Verify runtime dependencies
         run: |
-          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so'
+          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so'
 
+          echo "════════════════════════════════════════════════════"
+          echo "  Full build tree – all shared libraries"
+          echo "════════════════════════════════════════════════════"
+          find build -name '*.so*' | sort
+
+          echo ""
           echo "════════════════════════════════════════════════════"
           echo "  csound binary"
           echo "════════════════════════════════════════════════════"
@@ -289,7 +317,7 @@ jobs:
           echo "  libcsound.so (codec chain must be statically"
           echo "  absorbed; no sndfile/FLAC/vorbis/opus .so deps)"
           echo "════════════════════════════════════════════════════"
-          LIBCSOUND=$(find build -maxdepth 2 -name 'libcsound*.so*' | head -1)
+          LIBCSOUND=$(find build -name 'libcsound*.so' | head -1)
           ldd "$LIBCSOUND"
 
           echo ""
@@ -304,15 +332,9 @@ jobs:
 
           echo ""
           echo "════════════════════════════════════════════════════"
-          echo "  Audio backend plugins"
-          echo "  (libasound / libjack / libportmidi expected here)"
+          echo "  Plugin shared libraries (all non-core .so files)"
           echo "════════════════════════════════════════════════════"
-          find build \( \
-            -name 'librtalsa.so'        \
-            -o -name 'librtjack.so'     \
-            -o -name 'librtpa.so' \
-            -o -name 'libpmidi.so'  \
-          \) | while read -r plugin; do
+          find build -name '*.so' ! -name 'libcsound*' | sort | while read -r plugin; do
             echo ""
             echo "--- $plugin ---"
             ldd "$plugin"
@@ -331,13 +353,48 @@ jobs:
         run: |
           mkdir -p dist/plugins
           cp build/csound dist/
-          find build -maxdepth 2 -name 'libcsound*.so*' -exec cp {} dist/ \;
-          find build \( \
-            -name 'librtalsa.so'        \
-            -o -name 'librtjack.so'     \
-            -o -name 'librtpa.so' \
-            -o -name 'libpmidi.so'  \
-          \) -exec cp {} dist/plugins/ \;
+
+          # Core library (real file + versioned symlinks)
+          find build -name 'libcsound*.so*' -exec cp -P {} dist/ \;
+
+          # Every .so that is not the core library is a plugin.
+          find build -name '*.so' ! -name 'libcsound*' \
+            -exec cp {} dist/plugins/ \;
+
+          echo ""
+          echo "Collected plugins:"
+          ls dist/plugins/
+
+          # Warn about any expected plugins that are missing.
+          EXPECTED="libVosim libafilters libambicode1 libampmidid libarrayops
+            libarrays libbabo libbformdec2 libbilbar libbuchla libcellular
+            libcompress libcontrol libcounter libcpumeter libcrossfm libdate
+            libdoppler libemugens libeqfil libexciter libfareygen libfareyseq
+            libfractalnoise libframebuffer libftest libftsamplebank libgammatone
+            libgendy libgrain4 libharmon libhrtfearly libhrtferX libhrtfopcodes
+            libhrtfreverb libipmidi libjoystick liblfsr libliveconv libloscilx
+            liblufs libminmax libmixer libmodmatrix libmp3in libnewgabops
+            libosc libpadsynth_gen libpan2 libpartikkel libpaulstretch
+            libphisem libphysmod libpinker libpitchtrack libplaterev libpmidi
+            libpvlock libpvoc libpvsopcodes libpvsops libquadbezier librtalsa
+            librtjack librtpw libsc_noise libscansyn libscoreline libscugens
+            libselect libsequencer libserial libsfont libshape
+            libsignalflowgraph libsockrecv libsocksend libspectra
+            libsquinewave libstdopcodes libstdutil libsterrain libsystem_call
+            libtabaudio libtabsum libtrigEnvSegs libugakbari liburandom
+            libvaops libvbap libwpfilters libzak"
+          MISSING=""
+          for name in $EXPECTED; do
+            if [ ! -f "dist/plugins/${name}.so" ]; then
+              MISSING="${MISSING} ${name}.so"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "WARNING – expected plugins not found in build output:"
+            for m in $MISSING; do echo "  $m"; done
+          else
+            echo "All expected plugins present."
+          fi
 
       - name: Upload artefacts
         uses: actions/upload-artifact@v4
