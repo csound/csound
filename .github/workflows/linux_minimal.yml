@@ -264,6 +264,9 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DUSE_LIBLO=ON \
+            -DBUILD_PLUGINS=ON \
+            -DBUILD_DEPRECATED_OPCODES=OFF \
+            -DBUILD_OSC_OPCODES=ON \
             -DUSE_ALSA=ON \
             -DUSE_JACK=ON \
             -DUSE_PORTMIDI=ON \
@@ -276,8 +279,7 @@ jobs:
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \
             -DBUILD_CSBEATS=OFF \
-            -DBUILD_TESTS=OFF
-
+            -DBUILD_TESTS=OFF 
       # ------------------------------------------------------------------ #
       # 5. Compile                                                           #
       # ------------------------------------------------------------------ #
