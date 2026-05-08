@@ -72,9 +72,11 @@ jobs:
         run: |
           cd build
           ctest -j$(nproc) --output-on-failure
+          
       - name: Run CSD tests
         run: |
           cd build
+          export OPCODE7DIR=.
           make csdtests
 
   linux_build_vcpkg:
@@ -619,6 +621,8 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
+        env:
+          OPCODE7DIR: ${{ github.workspace }}\build\Release
         run: cmake --build build --config Release --target csdtests
 
       - name: Run unit test framework
