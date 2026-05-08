@@ -232,24 +232,45 @@ jobs:
           mv "${DEPS_PREFIX}/lib/libsndfile_merged.a" "${DEPS_PREFIX}/lib/libsndfile.a"
           echo "Merged archive size: $(du -sh ${DEPS_PREFIX}/lib/libsndfile.a)"
 
-      # --- liblo (OSC library – provides lo::lo / liblo target) ----------- #
+      # --- liblo (OSC library) -------------------------------------------- #
+      # liblo's cmake subdirectory ignores CMAKE_INSTALL_PREFIX and builds
+      # a shared lib regardless of BUILD_SHARED_LIBS.  Use autotools instead,
+      # which has reliable --disable-shared and --prefix support.
       - name: Build static liblo
         if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
             "https://github.com/radarsat1/liblo/releases/download/${LIBLO_VERSION}/liblo-${LIBLO_VERSION}.tar.gz" \
             | tar -xz -C /tmp
-          cmake \
-            -B /tmp/lo-build \
-            -S "/tmp/liblo-${LIBLO_VERSION}/cmake" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
-            -DBUILD_SHARED_LIBS=OFF \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -DBUILD_EXAMPLES=OFF \
-            -DBUILD_TESTS=OFF
-          cmake --build /tmp/lo-build -j"$(nproc)"
-          cmake --install /tmp/lo-build
+          cd "/tmp/liblo-${LIBLO_VERSION}"
+          ./configure \
+            --prefix="${DEPS_PREFIX}" \
+            --enable-static \
+            --disable-shared \
+            --disable-examples \
+            --disable-tools \
+            CFLAGS="-fPIC -O2"
+          make -j"$(nproc)"
+          make install
+
+      # # --- liblo (OSC library – provides lo::lo / liblo target) ----------- #
+      # - name: Build static liblo
+      #   if: steps.cache-static-deps.outputs.cache-hit != 'true'
+      #   run: |
+      #     curl -fsSL \
+      #       "https://github.com/radarsat1/liblo/releases/download/${LIBLO_VERSION}/liblo-${LIBLO_VERSION}.tar.gz" \
+      #       | tar -xz -C /tmp
+      #     cmake \
+      #       -B /tmp/lo-build \
+      #       -S "/tmp/liblo-${LIBLO_VERSION}/cmake" \
+      #       -DCMAKE_BUILD_TYPE=Release \
+      #       -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+      #       -DBUILD_SHARED_LIBS=OFF \
+      #       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+      #       -DBUILD_EXAMPLES=OFF \
+      #       -DBUILD_TESTS=OFF
+      #     cmake --build /tmp/lo-build -j"$(nproc)"
+      #     cmake --install /tmp/lo-build
 
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
