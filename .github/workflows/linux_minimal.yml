@@ -241,7 +241,7 @@ jobs:
             | tar -xz -C /tmp
           cmake \
             -B /tmp/lo-build \
-            -S "/tmp/liblo-${LIBLO_VERSION}" \
+            -S "/tmp/liblo-${LIBLO_VERSION}/cmake" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
             -DBUILD_SHARED_LIBS=OFF \
