@@ -1192,6 +1192,8 @@ struct CSOUND_ {
   void *(*RealFFTSetup)(CSOUND *csound, int32_t FFTsize, int32_t d);
   void (*RealFFT)(CSOUND *csound, void *p, MYFLT *sig);
   MYFLT (*GetInverseRealFFTScale)(CSOUND *, int32_t FFTsize);
+  void (*RealFFTnp2)(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void (*InverseRealFFTnp2)(CSOUND *csound, MYFLT *buf, int32_t FFTsize); 
   void (*ComplexFFT)(CSOUND *, MYFLT *buf, int32_t FFTsize);
   void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int32_t FFTsize);
   MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int32_t FFTsize);
