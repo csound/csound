@@ -441,8 +441,6 @@ static const CSOUND cenviron_ = {
     csoundRealFFT2Setup,
     csoundRealFFT2,
     csoundGetInverseRealFFTScale,
-    csoundRealFFTnp2,
-    csoundInverseRealFFTnp2,
     csoundComplexFFT,
     csoundInverseComplexFFT,
     csoundGetInverseComplexFFTScale,

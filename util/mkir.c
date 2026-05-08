@@ -1,4 +1,4 @@
-#include "csdl.h"
+#include "std_util.h"
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
@@ -20,22 +20,24 @@ static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
 
 static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len) {
    int n;
-   MYFLT *inp = (MYFLT *) csound->Calloc(csound,(2*len+2)*sizeof(MYFLT));
-   MYFLT *swp = (MYFLT *) csound->Calloc(csound, (2*len+2)*sizeof(MYFLT));
+   MYFLT *inp = (MYFLT *) csound->Calloc(csound,(2*len)*sizeof(MYFLT));
+   MYFLT *swp = (MYFLT *) csound->Calloc(csound, (2*len)*sizeof(MYFLT));
+   void *setup = csound->RealFFTSetup(csound, len*2, FFT_FWD);
    memcpy(inp, rec, sizeof(MYFLT)*len);
    memcpy(swp, sweep, sizeof(MYFLT)*len);
-   csound->RealFFTnp2(csound, inp, len*2);
-   csound->RealFFTnp2(csound, swp, len*2);
-   for(n = 0; n < len*2; n++) {
-     MYFLT a = swp[n], c = inp[n];
-     MYFLT b = swp[n+1], d = inp[n+1];
-     MYFLT den = a*a + b*b;
-     a *=  1./den;
-     b *= -1./den;
-     inp[n] = a*c - b*d;
-     inp[n+1] = a*d + b*c;
+   csound->RealFFT(csound, setup, inp);
+   csound->RealFFT(csound, setup, swp);
+   inp[0] /= swp[0];
+   inp[1] /= swp[1];
+   for(n = 2; n < len*2; n+=2) {
+     MYFLT c = swp[n], a = inp[n];
+     MYFLT d = swp[n+1], b = inp[n+1];
+     MYFLT den = c*c + d*d;
+     inp[n] = (a*c + b*d)/den;
+     inp[n+1] = (b*c - a*d)/den;
    }
-   csound->InverseRealFFTnp2(csound, inp, len*2);
+   setup = csound->RealFFTSetup(csound, len*2, FFT_INV);
+   csound->RealFFT(csound, setup, inp);
    memcpy(rec, inp, sizeof(MYFLT)*len);
    csound->Free(csound, inp);
    csound->Free(csound, swp);
