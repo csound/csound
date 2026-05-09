@@ -244,7 +244,7 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
 
 typedef struct {
   OPDS h;
-  ARRAYDAT *outp, *swp, *inp;
+  ARRAYDAT *outp, *inp, *swp;
 } DECONV;
 
 int32_t deconvi(CSOUND *csound, DECONV *p) {

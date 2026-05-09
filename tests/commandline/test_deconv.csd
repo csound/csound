@@ -16,7 +16,7 @@ while cnt < len do
   inp shiftin diskin:a("rev.wav")
   cnt += ksmps
 od
-  outp:k[] deconv swp[:len-1], inp
+  outp:k[] deconv inp, swp[:len-1]
   copya2ftab outp, tab
 turnoff
 endin
