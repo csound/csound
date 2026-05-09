@@ -118,7 +118,7 @@ jobs:
 
       # --- libogg (required by libvorbis and libFLAC) -------------------- #
       - name: Build static libogg
-        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        # if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
             "https://downloads.xiph.org/releases/ogg/libogg-${LIBOGG_VERSION}.tar.gz" \
