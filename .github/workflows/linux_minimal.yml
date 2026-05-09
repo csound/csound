@@ -249,6 +249,7 @@ jobs:
             --disable-shared \
             --disable-examples \
             --disable-tools \
+            --disable-docs \
             CFLAGS="-fPIC -O2"
           make -j"$(nproc)"
           make install
