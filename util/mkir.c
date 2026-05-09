@@ -245,19 +245,20 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
 typedef struct {
   OPDS h;
   ARRAYDAT *outp, *inp, *swp;
+  int32_t len;
 } DECONV;
 
 int32_t deconvi(CSOUND *csound, DECONV *p) {
+  p->len = p->swp->sizes[0];
+  if(p->len > p->inp->sizes[0])
+    return csound->InitError(csound, "input size too short for sweep");  
   tabinit_like(csound, p->outp, p->swp);
   return OK;
 }
 
 int32_t deconv(CSOUND *csound, DECONV *p) {
-  int32_t len = p->swp->sizes[0];
-  if(len > p->inp->sizes[0])
-    return csound->InitError(csound, "input size too short for sweep");
-  memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*len);
-  deconvolve(csound, p->swp->data, p->outp->data, len);
+  memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*p->len);
+  deconvolve(csound, p->swp->data, p->outp->data, p->len);
   return OK;
 }
 
