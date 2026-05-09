@@ -248,7 +248,7 @@ typedef struct {
   int32_t len;
 } DECONV;
 
-int32_t deconvi(CSOUND *csound, DECONV *p) {
+int32_t deconv_init(CSOUND *csound, DECONV *p) {
   p->len = p->swp->sizes[0];
   if(p->len > p->inp->sizes[0])
     return csound->InitError(csound, "input size too short for sweep");  
@@ -256,9 +256,20 @@ int32_t deconvi(CSOUND *csound, DECONV *p) {
   return OK;
 }
 
-int32_t deconv(CSOUND *csound, DECONV *p) {
+int32_t kdeconv(CSOUND *csound, DECONV *p) {
   memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*p->len);
   deconvolve(csound, p->swp->data, p->outp->data, p->len);
+  return OK;
+}
+
+int32_t ideconv(CSOUND *csound, DECONV *p) {
+  int32_t len = p->swp->sizes[0];
+  if(len > p->inp->sizes[0])
+    return csound->InitError(csound, "input size too short for sweep");  
+  tabinit_like(csound, p->outp, p->swp);
+  memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*len);
+  deconvolve(csound, p->swp->data, p->outp->data, len);
+  csound->Message(csound, "done\n");
   return OK;
 }
 
@@ -271,6 +282,8 @@ int32_t mkir_init_(CSOUND *csound)
                                              Str("Creates empirical impulse responses"));
     }
     csound->AppendOpcode(csound, "deconv", sizeof(DECONV), 0, "k[]", "k[]k[]",
-                         (SUBR) deconvi, (SUBR) deconv, NULL);
+                         (SUBR) deconv_init, (SUBR) kdeconv, NULL);
+    csound->AppendOpcode(csound, "deconv", sizeof(DECONV), 0, "i[]", "i[]i[]",
+                         (SUBR) ideconv, NULL, NULL);
     return retval;
 }

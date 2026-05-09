@@ -813,7 +813,8 @@ def runTest():
       ["mkrev.csd", "run sweep through reverb"],
       ["mkir.csd", "test mkir util IR deconvolution"],
       ["test_ir.csd", "test generated IR"],
-      ["test_deconv.csd", "test deconv opcode"]
+      ["test_deconv.csd", "test deconv opcode"],
+      ["test_ideconv.csd", "test init-time deconv opcode"]
     ]
 
     tests += arrayTests
