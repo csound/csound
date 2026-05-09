@@ -118,7 +118,7 @@ jobs:
 
       # --- libogg (required by libvorbis and libFLAC) -------------------- #
       - name: Build static libogg
-        # if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
             "https://downloads.xiph.org/releases/ogg/libogg-${LIBOGG_VERSION}.tar.gz" \
@@ -237,7 +237,7 @@ jobs:
       # a shared lib regardless of BUILD_SHARED_LIBS.  Use autotools instead,
       # which has reliable --disable-shared and --prefix support.
       - name: Build static liblo
-        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        # if: steps.cache-static-deps.outputs.cache-hit != 'true'
         run: |
           curl -fsSL \
             "https://github.com/radarsat1/liblo/releases/download/${LIBLO_VERSION}/liblo-${LIBLO_VERSION}.tar.gz" \
