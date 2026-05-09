@@ -25,6 +25,7 @@
 */
 
 #include "std_util.h"
+#include "arrays.h"
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
@@ -59,8 +60,12 @@ static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len) 
      MYFLT c = swp[n], a = inp[n];
      MYFLT d = swp[n+1], b = inp[n+1];
      MYFLT den = c*c + d*d;
-     inp[n] = (a*c + b*d)/den;
-     inp[n+1] = (b*c - a*d)/den;
+     if(den == 0)
+       csound->Warning(csound, "deconv: div by zero detected");
+     else {
+      inp[n] = (a*c + b*d)/den;
+      inp[n+1] = (b*c - a*d)/den;
+     }
    }
    setup = csound->RealFFTSetup(csound, len*2, FFT_INV);
    csound->RealFFT(csound, setup, inp);
@@ -237,6 +242,23 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
   return CSOUND_SUCCESS;
 }
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT *outp, *swp, *inp;
+} DECONV;
+
+
+int32_t deconv(CSOUND *csound, DECONV *p) {
+  int32_t len = p->swp->sizes[0];
+  if(len > p->inp->sizes[0])
+    return csound->InitError(csound, "input size too short for sweep");
+  tabinit_like(csound, p->outp, p->inp);
+  memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*len);
+  deconvolve(csound, p->swp->data, p->outp->data, len);
+  return OK;
+}
+
+
 int32_t mkir_init_(CSOUND *csound)
 {
     int32_t retval = (csound->GetUtility(csound))->AddUtility(csound, "mkir", mkir);
@@ -244,5 +266,7 @@ int32_t mkir_init_(CSOUND *csound)
       retval = (csound->GetUtility(csound))->SetUtilityDescription(csound, "mkir",
                                              Str("Creates empirical impulse responses"));
     }
+    csound->AppendOpcode(csound, "deconv", sizeof(DECONV), 0, "k[]", "k[]k[]",
+                         (SUBR) deconv, NULL, NULL);
     return retval;
 }
