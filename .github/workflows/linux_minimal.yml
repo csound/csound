@@ -253,24 +253,20 @@ jobs:
           make -j"$(nproc)"
           make install
 
-      # # --- liblo (OSC library – provides lo::lo / liblo target) ----------- #
-      # - name: Build static liblo
-      #   if: steps.cache-static-deps.outputs.cache-hit != 'true'
-      #   run: |
-      #     curl -fsSL \
-      #       "https://github.com/radarsat1/liblo/releases/download/${LIBLO_VERSION}/liblo-${LIBLO_VERSION}.tar.gz" \
-      #       | tar -xz -C /tmp
-      #     cmake \
-      #       -B /tmp/lo-build \
-      #       -S "/tmp/liblo-${LIBLO_VERSION}/cmake" \
-      #       -DCMAKE_BUILD_TYPE=Release \
-      #       -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
-      #       -DBUILD_SHARED_LIBS=OFF \
-      #       -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-      #       -DBUILD_EXAMPLES=OFF \
-      #       -DBUILD_TESTS=OFF
-      #     cmake --build /tmp/lo-build -j"$(nproc)"
-      #     cmake --install /tmp/lo-build
+      # Libtool sometimes installs a shared lib even with --disable-shared,
+      # and Csound's cmake will prefer the .so over our .a if it finds one
+      # anywhere on the library search path.  Running in a container, we can
+      # simply remove every shared liblo from the system so the linker has
+      # no choice but to use our liblo.a.  This step is unconditional so it
+      # also cleans up after a cache restore.
+      - name: Remove shared liblo (enforce static linking into libosc.so)
+        run: |
+          echo "Removing any shared liblo libraries from the system..."
+          find / -xdev -name 'liblo.so*' -delete 2>/dev/null || true
+          echo "Static liblo in DEPS_PREFIX:"
+          ls -lh "${DEPS_PREFIX}/lib/liblo.a"
+          echo "Shared liblo remaining (expect none):"
+          find / -xdev -name 'liblo.so*' 2>/dev/null && echo "FAIL" || echo "OK"
 
       # ------------------------------------------------------------------ #
       # 4. Configure Csound                                                  #
@@ -285,9 +281,6 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DUSE_LIBLO=ON \
-            -DBUILD_PLUGINS=ON \
-            -DBUILD_DEPRECATED_OPCODES=OFF \
-            -DBUILD_OSC_OPCODES=ON \
             -DUSE_ALSA=ON \
             -DUSE_JACK=ON \
             -DUSE_PORTMIDI=ON \
@@ -300,7 +293,8 @@ jobs:
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \
             -DBUILD_CSBEATS=OFF \
-            -DBUILD_TESTS=OFF 
+            -DBUILD_TESTS=OFF
+
       # ------------------------------------------------------------------ #
       # 5. Compile                                                           #
       # ------------------------------------------------------------------ #
@@ -312,7 +306,7 @@ jobs:
       # ------------------------------------------------------------------ #
       - name: Verify runtime dependencies
         run: |
-          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so'
+          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libdl\.so|libpthread\.so|librt\.so'
 
           echo "════════════════════════════════════════════════════"
           echo "  Full build tree – all shared libraries"
