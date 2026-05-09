@@ -61,7 +61,7 @@ static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len) 
      MYFLT d = swp[n+1], b = inp[n+1];
      MYFLT den = c*c + d*d;
      if(den == 0)
-       csound->Warning(csound, "deconv: div by zero detected %f", rec[n/2]);
+       csound->Warning(csound, "deconv: div by zero detected, sweep bin %d", n/2);
      else {
       inp[n] = (a*c + b*d)/den;
       inp[n+1] = (b*c - a*d)/den;
