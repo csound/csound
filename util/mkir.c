@@ -269,7 +269,35 @@ int32_t ideconv(CSOUND *csound, DECONV *p) {
   tabinit_like(csound, p->outp, p->swp);
   memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*len);
   deconvolve(csound, p->swp->data, p->outp->data, len);
-  csound->Message(csound, "done\n");
+  return OK;
+}
+
+static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
+  CSOUND  *csound = ff->csound;
+  FUNC    *inp = csound->FTFind(csound, &(ff->e.p[5]));
+  FUNC    *sweep = csound->FTFind(csound, &(ff->e.p[6]));
+  int32_t len = sweep->flen;
+  MYFLT   *fp;
+  
+  if(len > inp->flen) {
+    csound->Message(csound, "input size too short for sweep");
+    return NOTOK;
+  }
+  
+  if(ftp) {
+   fp = ftp->ftable;
+   if(len != ftp->flen) {
+    csound->Message(csound, "destination table size not matching sweep");
+    return NOTOK;
+   }
+  }
+  else {
+    ff->e.p[3] = len;
+    csound->FTCreate(csound, &ftp, &ff->e, ff->e.p[1]);
+    fp = ftp->ftable;
+  }  
+  memcpy(fp, inp->ftable, sizeof(MYFLT)*len);
+  deconvolve(csound, sweep->ftable, fp, len);
   return OK;
 }
 
@@ -286,4 +314,10 @@ int32_t mkir_init_(CSOUND *csound)
     csound->AppendOpcode(csound, "deconv", sizeof(DECONV), 0, "i[]", "i[]i[]",
                          (SUBR) ideconv, NULL, NULL);
     return retval;
+}
+
+static NGFENS nfgen[] = {{"deconv", gen_deconv}, {NULL, NULL}};
+PUBLIC NGFENS *csound_fgen_init(CSOUND *csound) {
+   (void) csound;
+   return nfgen;
 }

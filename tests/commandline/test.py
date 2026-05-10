@@ -814,7 +814,8 @@ def runTest():
       ["mkir.csd", "test mkir util IR deconvolution"],
       ["test_ir.csd", "test generated IR"],
       ["test_deconv.csd", "test deconv opcode"],
-      ["test_ideconv.csd", "test init-time deconv opcode"]
+      ["test_ideconv.csd", "test init-time deconv opcode"],
+      ["test_gen_deconv.csd", "test deconv gen"]
     ]
 
     tests += arrayTests
