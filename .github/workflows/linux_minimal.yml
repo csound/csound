@@ -7,24 +7,23 @@
 # Dependency strategy
 # -------------------
 #   Core binary & libcsound.so
-#     Only glibc-family runtime deps (libc, libm, libdl, libpthread).
+#     Only glibc-family runtime deps (libc, libm, libmvec, libdl, libpthread).
+#     
 #     The full codec chain is compiled from source as static PIC libraries
 #     and linked directly into libcsound.so:
 #
-#       libogg  ──┬──► libvorbis  ──┐
-#                 │                  ├──► libsndfile ──► libcsound.so
-#                 └──► libFLAC   ──┘
-#       libopus ──────────────────────────────────────► libcsound.so
-#
+#       libogg, libvorbis -> libsndfile -> libcsound.so
+#       libFLAC           -> libsndfile -> libcsound.so
+#       libopus                         -> libcsound.so
+# 
 #     libgcc_s / libstdc++ are also baked in via
 #     -static-libgcc / -static-libstdc++.
 #
-#   Audio backend plugins  (rtalsa.so, rtjack.so, *portmidi*.so …)
-#     Csound loads RT and MIDI modules as plugins at runtime.  Their
-#     external deps are isolated to those plugin .so files:
-#       libasound2-dev     →  rtalsa plugin
-#       libjack-jackd2-dev →  rtjack plugin
-#       libportmidi-dev    →  portmidi MIDI plugin
+#   Audio backend plugins  (rtalsa.so, rtjack.so, *portmidi*.so …):
+#   Here we use the system's libraries, as available.
+# 
+#   At the moment portaudio is not included since csound has 
+#   already great support for jack, pipewire and ALSA.
 #
 # Distribution compatibility
 # --------------------------
@@ -64,9 +63,6 @@ jobs:
       LIBLO_VERSION:       "0.35"
 
     steps:
-      # ------------------------------------------------------------------ #
-      # 1. Toolchain + audio back-end dev packages                          #
-      # ------------------------------------------------------------------ #
       - name: Install build toolchain and audio backend headers
         run: |
           apt-get update -qq
@@ -84,23 +80,16 @@ jobs:
             libjack-jackd2-dev \
             libportmidi-dev
 
-      # ------------------------------------------------------------------ #
-      # 2. Source checkout                                                   #
-      # ------------------------------------------------------------------ #
       - name: Checkout Csound
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # ------------------------------------------------------------------ #
-      # 3. Static codec chain                                                #
-      #                                                                      #
-      # Csound's own CMakeLists.txt creates a "sndfile" interface target    #
-      # that unconditionally requires Vorbis::vorbisenc and Opus::opus,     #
-      # so those CMake targets must exist at configure time regardless of   #
-      # whether we personally want Vorbis/Opus support.  Building the full  #
-      # chain also lets libsndfile link them in cleanly.                    #
-      # ------------------------------------------------------------------ #
+      # Csound's own CMakeLists.txt creates a "sndfile" interface target   
+      # that requires Vorbis::vorbisenc and Opus::opus,     
+      # so those CMake targets must exist at configure time regardless of   
+      # whether we want Vorbis/Opus support. They are not hard to get built
+      # se we include them and add those formats for libsndfile  
       - name: Cache static codec chain
         id: cache-static-deps
         uses: actions/cache@v4
@@ -232,9 +221,8 @@ jobs:
           mv "${DEPS_PREFIX}/lib/libsndfile_merged.a" "${DEPS_PREFIX}/lib/libsndfile.a"
           echo "Merged archive size: $(du -sh ${DEPS_PREFIX}/lib/libsndfile.a)"
 
-      # --- liblo (OSC library) -------------------------------------------- #
-      # liblo's cmake subdirectory ignores CMAKE_INSTALL_PREFIX and builds
-      # a shared lib regardless of BUILD_SHARED_LIBS.  Use autotools instead,
+      # liblo's cmake subdirectory seems to ignore CMAKE_INSTALL_PREFIX and builds
+      # a shared lib regardless of BUILD_SHARED_LIBS. Use autotools instead,
       # which has reliable --disable-shared and --prefix support.
       - name: Build static liblo
         # if: steps.cache-static-deps.outputs.cache-hit != 'true'
@@ -256,10 +244,9 @@ jobs:
 
       # Libtool sometimes installs a shared lib even with --disable-shared,
       # and Csound's cmake will prefer the .so over our .a if it finds one
-      # anywhere on the library search path.  Running in a container, we can
+      # anywhere on the library search path. Running in a container, we can
       # simply remove every shared liblo from the system so the linker has
-      # no choice but to use our liblo.a.  This step is unconditional so it
-      # also cleans up after a cache restore.
+      # no choice but to use our liblo.a.
       - name: Remove shared liblo (enforce static linking into libosc.so)
         run: |
           echo "Removing any shared liblo libraries from the system..."
@@ -269,9 +256,6 @@ jobs:
           echo "Shared liblo remaining (expect none):"
           find / -xdev -name 'liblo.so*' 2>/dev/null && echo "FAIL" || echo "OK"
 
-      # ------------------------------------------------------------------ #
-      # 4. Configure Csound                                                  #
-      # ------------------------------------------------------------------ #
       - name: Configure Csound
         env:
           PKG_CONFIG_PATH: "${{ env.DEPS_PREFIX }}/lib/pkgconfig"
@@ -297,15 +281,9 @@ jobs:
             -DBUILD_CSBEATS=OFF \
             -DBUILD_TESTS=OFF
 
-      # ------------------------------------------------------------------ #
-      # 5. Compile                                                           #
-      # ------------------------------------------------------------------ #
       - name: Build Csound
         run: cmake --build build -j"$(nproc)"
 
-      # ------------------------------------------------------------------ #
-      # 6. Verify runtime dependencies                                       #
-      # ------------------------------------------------------------------ #
       - name: Verify runtime dependencies
         run: |
           GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so'
