@@ -130,6 +130,8 @@ jobs:
   linux_minimal_build:
     name: Linux – ALSA + JACK + PortMidi (libc-only core)
     runs-on: ubuntu-22.04
+    needs: update_version
+    
     container:
       image: ubuntu:20.04
     env:
