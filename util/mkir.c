@@ -290,31 +290,47 @@ static int32_t ideconv(CSOUND *csound, DECONV *p) {
   return OK;
 }
 
+
 static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   CSOUND  *csound = ff->csound;
-  FUNC    *inp = csound->FTFind(csound, &(ff->e.p[5]));
-  FUNC    *sweep = csound->FTFind(csound, &(ff->e.p[6]));
+  FUNC    *inp = csound->FTFind(csound, &(ff->e.p[6]));
+  FUNC    *sweep = csound->FTFind(csound, &(ff->e.p[5]));
   int32_t len = sweep->flen;
   MYFLT   *fp;
-  MYFLT   *inpd = (MYFLT *) csound->Calloc(csound, inp->flen*sizeof(MYFLT));
-    
+  MYFLT   *inpd;
+  int32_t chns = ff->e.pcnt - 5;
+  
+  if(chns < 1) {
+    csound->Message(csound, "insufficient number of input channels: %d", chns);
+    return NOTOK;
+  }
+
   if(ftp) {
    fp = ftp->ftable;
-   if(len != ftp->flen) {
-    csound->Message(csound, "destination table size not matching sweep");
+   if(len != ftp->flen/chns) {
+     csound->Message(csound, "destination table size not matching"
+                     " sweep, size %d frames, need %d", ftp->flen/chns, len);
     return NOTOK;
    }
   }
   else {
-    ff->e.p[3] = len;
+    ff->e.p[3] = len*chns;
     csound->FTCreate(csound, &ftp, &ff->e, ff->e.p[1]);
     fp = ftp->ftable;
+    // table allocated, exit.
+    return OK;
   }
   
-  memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
-  deconvolve(csound, sweep->ftable, inpd, len, inp->flen);
-  memcpy(fp, inpd, sizeof(MYFLT)*len);
-  csound->Free(csound, inpd);
+  sweep = csound->FTFind(csound, &(ff->e.p[5]));
+  for(int n = 0; n < chns; n++) {
+    inp = csound->FTFind(csound, &(ff->e.p[n+6]));
+    inpd = (MYFLT *) csound->Calloc(csound, inp->flen*sizeof(MYFLT));  
+    memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
+    deconvolve(csound, sweep->ftable, inpd, len, inp->flen);
+    for(int i = 0; i < len; i++)
+      fp[i*chns + n] = inpd[i];  
+     csound->Free(csound, inpd);
+  }
   return OK;
 }
 
