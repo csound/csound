@@ -45,18 +45,13 @@ static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
   return sweep;
 }
 
-static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len) {
-   int n;
-   MYFLT *inp = (MYFLT *) csound->Calloc(csound,(2*len)*sizeof(MYFLT));
-   MYFLT *swp = (MYFLT *) csound->Calloc(csound, (2*len)*sizeof(MYFLT));
-   void *setup = csound->RealFFTSetup(csound, len*2, FFT_FWD);
-   memcpy(inp, rec, sizeof(MYFLT)*len);
-   memcpy(swp, sweep, sizeof(MYFLT)*len);
+static void specdiv(CSOUND *csound, MYFLT *inp, MYFLT *swp, int32_t fftlen) {
+   void *setup = csound->RealFFTSetup(csound, fftlen, FFT_FWD);
    csound->RealFFT(csound, setup, inp);
    csound->RealFFT(csound, setup, swp);
    inp[0] /= swp[0];
    inp[1] /= swp[1];
-   for(n = 2; n < len*2; n+=2) {
+   for(int n = 2; n < fftlen; n+=2) {
      MYFLT c = swp[n], a = inp[n];
      MYFLT d = swp[n+1], b = inp[n+1];
      MYFLT den = c*c + d*d;
@@ -67,11 +62,22 @@ static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len) 
       inp[n+1] = (b*c - a*d)/den;
      }
    }
-   setup = csound->RealFFTSetup(csound, len*2, FFT_INV);
+   setup = csound->RealFFTSetup(csound, fftlen, FFT_INV);
    csound->RealFFT(csound, setup, inp);
-   memcpy(rec, inp, sizeof(MYFLT)*len);
-   csound->Free(csound, inp);
-   csound->Free(csound, swp);
+}
+
+  
+static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len,
+                         int32_t ilen) {
+   int32_t fftlen = 2*len;
+   MYFLT *inp = (MYFLT *) csound->Calloc(csound,fftlen*sizeof(MYFLT));
+   MYFLT *swp = (MYFLT *) csound->Calloc(csound,fftlen*sizeof(MYFLT));
+   memcpy(inp, rec, sizeof(MYFLT)*(ilen < fftlen ? ilen : fftlen));
+   memcpy(swp, sweep, sizeof(MYFLT)*len);
+   specdiv(csound,inp,swp,fftlen);
+   memcpy(rec,inp,sizeof(MYFLT)*len);
+   csound->Free(csound,inp);
+   csound->Free(csound,swp);
    return rec;
 }
 
@@ -150,7 +156,7 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
   if(generate == 0) {
      SFLIB_INFO sfinfo;
      SNDFILE *fd;
-     int32_t frames;
+     int32_t frames, iframes;
      MYFLT *swp, *inp;
      if (inputfile == NULL)
        csound->Die(csound, "%s", Str("missing input file"));
@@ -177,14 +183,9 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      if(fd == NULL)
        csound->Die(csound, "%s", Str("could not open input file"));
      
-     
-     if(sfinfo.frames < frames) {
-        csound->SndfileClose(csound, fd);
-        csound->Die(csound, "%s", Str("input file too short for sweep"));
-     }
-
-     inp = (MYFLT *) csound->Calloc(csound, frames*sizeof(MYFLT)*sfinfo.channels);
-     csound->SndfileRead(csound,fd,inp,frames);
+     iframes = (int32_t) sfinfo.frames;
+     inp = (MYFLT *) csound->Calloc(csound, iframes*sizeof(MYFLT)*sfinfo.channels);
+     csound->SndfileRead(csound,fd,inp,iframes);
      csound->SndfileClose(csound,fd);
      
      if(sfinfo.channels > 1) {
@@ -194,12 +195,12 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
        for(i = 0; i < sfinfo.channels; i++) {
          for(j = 0; j < len; j++)
              chn[j] = inp[j*m + i];
-         outp = deconvolve(csound, swp, chn, frames);
+         outp = deconvolve(csound, swp, chn, frames, iframes);
          for(j = 0; j < len; j++)
              inp[j*m + i] = outp[j];
        }
        csound->Free(csound, chn);
-     } else inp = deconvolve(csound, swp, inp, frames);
+     } else inp = deconvolve(csound, swp, inp, frames, iframes);
      sfinfo.frames = 0;
      fd = csound->SndfileOpen(csound, outputfile, SFM_WRITE, &sfinfo);
 
@@ -245,30 +246,47 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
 typedef struct {
   OPDS h;
   ARRAYDAT *outp, *inp, *swp;
+  MYFLT *in, *sw;
   int32_t len;
 } DECONV;
 
-int32_t deconv_init(CSOUND *csound, DECONV *p) {
+// deconv_init allocates memory for operations
+static int32_t deconv_init(CSOUND *csound, DECONV *p) {
+  int32_t fftlen;
   p->len = p->swp->sizes[0];
-  if(p->len > p->inp->sizes[0])
-    return csound->InitError(csound, "input size too short for sweep");  
+  fftlen = p->len*2;
   tabinit_like(csound, p->outp, p->swp);
+  p->in = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*fftlen);
+  p->sw = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*fftlen);
   return OK;
 }
 
-int32_t kdeconv(CSOUND *csound, DECONV *p) {
-  memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*p->len);
-  deconvolve(csound, p->swp->data, p->outp->data, p->len);
+// frees allocated memory
+static int32_t deconv_deinit(CSOUND *csound, DECONV *p) {
+  csound->Free(csound, p->in);
+  csound->Free(csound, p->sw);
   return OK;
 }
 
-int32_t ideconv(CSOUND *csound, DECONV *p) {
-  int32_t len = p->swp->sizes[0];
-  if(len > p->inp->sizes[0])
-    return csound->InitError(csound, "input size too short for sweep");  
-  tabinit_like(csound, p->outp, p->swp);
-  memcpy(p->outp->data, p->inp->data, sizeof(MYFLT)*len);
-  deconvolve(csound, p->swp->data, p->outp->data, len);
+// copies the data and applies spectral division
+// then copies the data to output array 
+static int32_t kdeconv(CSOUND *csound, DECONV *p) {
+  int32_t fftlen = p->len*2;
+  memcpy(p->sw, p->swp->data, sizeof(MYFLT)*p->len);
+  memcpy(p->in, p->inp->data, sizeof(MYFLT)*(p->inp->sizes[0]
+                                             < fftlen ?
+                                             p->inp->sizes[0] :
+                                             fftlen));
+  specdiv(csound,p->in,p->sw,fftlen);
+  memcpy(p->outp->data,p->in, sizeof(MYFLT)*p->len);
+  return OK;
+}
+
+// all above operations in one go at i-time.
+static int32_t ideconv(CSOUND *csound, DECONV *p) {
+  deconv_init(csound, p);
+  kdeconv(csound, p);
+  deconv_deinit(csound, p);
   return OK;
 }
 
@@ -278,12 +296,8 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   FUNC    *sweep = csound->FTFind(csound, &(ff->e.p[6]));
   int32_t len = sweep->flen;
   MYFLT   *fp;
-  
-  if(len > inp->flen) {
-    csound->Message(csound, "input size too short for sweep");
-    return NOTOK;
-  }
-  
+  MYFLT   *inpd = (MYFLT *) csound->Calloc(csound, inp->flen*sizeof(MYFLT));
+    
   if(ftp) {
    fp = ftp->ftable;
    if(len != ftp->flen) {
@@ -295,9 +309,12 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
     ff->e.p[3] = len;
     csound->FTCreate(csound, &ftp, &ff->e, ff->e.p[1]);
     fp = ftp->ftable;
-  }  
-  memcpy(fp, inp->ftable, sizeof(MYFLT)*len);
-  deconvolve(csound, sweep->ftable, fp, len);
+  }
+  
+  memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
+  deconvolve(csound, sweep->ftable, inpd, len, inp->flen);
+  memcpy(fp, inpd, sizeof(MYFLT)*len);
+  csound->Free(csound, inpd);
   return OK;
 }
 
@@ -310,7 +327,7 @@ int32_t mkir_init_(CSOUND *csound)
                                              Str("Creates empirical impulse responses"));
     }
     csound->AppendOpcode(csound, "deconv", sizeof(DECONV), 0, "k[]", "k[]k[]",
-                         (SUBR) deconv_init, (SUBR) kdeconv, NULL);
+                         (SUBR) deconv_init, (SUBR) kdeconv, (SUBR) deconv_deinit);
     csound->AppendOpcode(csound, "deconv", sizeof(DECONV), 0, "i[]", "i[]i[]",
                          (SUBR) ideconv, NULL, NULL);
     return retval;
