@@ -27,7 +27,7 @@
 static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";
 /* default tempo in beats per minute */
-static const double default_tempo = -120.0;
+static const double default_tempo = 120.0;
 
 typedef struct tempoEvent_s {
   unsigned long   kcnt;               /* time (in ticks while reading     */
@@ -808,9 +808,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   while (j < mf->nTempo &&
          (unsigned long) csound->global_kcounter >=
          (mf->tempoList[j].kcnt*mf->temposcal + mf->koffs)) {
-    MYFLT oldtempo = mf->currentTempo;
     mf->currentTempo = mf->tempoList[j++].tempoVal;
-    mf->temposcal *= mf->currentTempo/oldtempo;
   }
   mf->tempoListIndex = j;
   nRead = 0;
