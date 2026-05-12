@@ -613,6 +613,7 @@ def runTest():
         ["test_string_in_event.csd", "test multiple strings in realtime event"],
         ["testmidichannels.csd", "test use of mapped multiport channels"],
         ["test_midi_default.csd", "test midi default instr"],
+        ["test_midi_tempo.csd", "test tempo reading from midifile"],
         ["test_instr_type.csd", "test instr type and variables"],
         ["test_delete_instr.csd", "test creating and deleting instr"],
         ["test_create_instr.csd", "testing creating and scheduling instr"],
