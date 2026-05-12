@@ -27,7 +27,7 @@
 static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";
 /* default tempo in beats per minute */
-static const double default_tempo = 120.0;
+static const double default_tempo = -120.0;
 
 typedef struct tempoEvent_s {
   unsigned long   kcnt;               /* time (in ticks while reading     */
@@ -796,7 +796,8 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
          (mf->tempoList[j].kcnt*mf->temposcal + mf->koffs)) {
     MYFLT oldtempo = mf->currentTempo;
     mf->currentTempo = mf->tempoList[j++].tempoVal;
-    mf->temposcal *= mf->currentTempo/oldtempo;
+    if(oldtempo > 0)
+     mf->temposcal *= mf->currentTempo/oldtempo;
   }
   mf->tempoListIndex = j;
   nRead = 0;
@@ -992,7 +993,7 @@ int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
   if (mf == NULL)
     *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
   else
-    *(p->kResult) = mf->currentTempo*(1./mf->temposcal);
+    *(p->kResult) = fabs(mf->currentTempo)*(1./mf->temposcal);
   return OK;
 }
 
@@ -1004,7 +1005,7 @@ int32_t midi_set_tempo(CSOUND *csound, void *pp)
     midifile_t *mf = find_midifile(csound, num);
     if (mf != NULL) {
       if(*p->kResult > 0 )
-        mf->temposcal = mf->currentTempo / *p->kResult;
+        mf->temposcal = fabs(mf->currentTempo) / *p->kResult;
       else if(*p->kResult < 0)
         mf->temposcal = -1. / *p->kResult;
       mf->koffs *= mf->temposcal;
