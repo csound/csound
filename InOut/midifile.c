@@ -796,7 +796,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
          (mf->tempoList[j].kcnt*mf->temposcal + mf->koffs)) {
     MYFLT oldtempo = mf->currentTempo;
     mf->currentTempo = mf->tempoList[j++].tempoVal;
-    if(oldtempo > 0)
+    if(oldtempo >= 0)
      mf->temposcal *= mf->currentTempo/oldtempo;
   }
   mf->tempoListIndex = j;

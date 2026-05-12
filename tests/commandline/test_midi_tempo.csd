@@ -21,13 +21,11 @@ instr 1
   //print iamp
   a2 oscili iamp, kcps
   a2 linenr  a2, 0.1,0.1,0.01
-       	out a2*0.09
-	   	
+       	out a2*0.09	   	
 endin
-
 
 </CsInstruments>
 <CsScore>
-f0 30
+f0 10000
 </CsScore>
 </CsoundSynthesizer>
