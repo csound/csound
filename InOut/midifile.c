@@ -26,6 +26,7 @@
 
 static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";
+
 /* default tempo in beats per minute */
 static const double default_tempo = 120.0;
 
