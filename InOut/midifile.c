@@ -1034,7 +1034,7 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
       double posk;
       MYFLT pos = *(pp->kResult);
       if(pos < 0.) pos = 0.;
-      posk = (int64_t) (pos*csoundGetKr(csound));
+      posk = pos*csoundGetKr(csound);
       if(mf->pause == 0) { // if not paused ...
       for(i = 0; i < 16; i++)
         AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
