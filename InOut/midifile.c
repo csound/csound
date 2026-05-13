@@ -1052,6 +1052,7 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
     int i;
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
     if(mf) {
+      MYFLT oldtempo = mf->currentTempo;
       double posk;
       MYFLT pos = *(pp->kResult);
       if(pos < 0.) pos = 0.;
@@ -1066,12 +1067,14 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
       mf->eventListIndex = i;
       
       for(i = 0; i < mf->nTempo; i++) {
-        mf->currentTempo = mf->tempoList[i++].tempoVal; // reset to last tempo found
+        // reset to last tempo found
+        mf->currentTempo = mf->tempoList[i].tempoVal; 
         if(mf->tempoList[i].kcnt > posk) break;
       }
-      mf->tempoListIndex = i;      
-      
-      mf->counter = posk;
+     // now adjust temposcal to keep with tempo change as needed
+     mf->temposcal *= (mf->currentTempo/oldtempo); 
+     mf->tempoListIndex = i;      
+     mf->counter = posk;
     }
   }
   return OK;
