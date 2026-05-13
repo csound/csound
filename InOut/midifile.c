@@ -70,11 +70,11 @@ typedef struct midifile_s {
   int32_t             tempoListIndex;     /* index of next tempo change       */
   int32_t         mute;                /* mute flag      */
   int32_t         pause;               /* pause flag     */
-  /* item id in list */
-  int32_t          id;
-  int32_t           port;
-  double            temposcal;
-  double           counter;
+  int32_t          id;                 /* item id in list */         
+  int32_t           port;              /* MIDI port (internal) */
+  double           temposcal;          /* tempo scaling */
+  double           counter;            /* playback counter */
+  int32_t          loop;               /* loop flag */
   struct midifile_s    *nxt;
 } midifile_t;
 
@@ -718,6 +718,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
   MF(currentTempo) = default_tempo;
   MF(temposcal) = 1.;
   MF(counter) = 0.;
+  MF(loop) = 0;
   MF(eventListIndex) = 0;
   MF(tempoListIndex) = 0;
   /* read all tracks */
@@ -773,6 +774,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   midifile_t  *mf;
   int32_t     i, j, n, nRead;
   uint8_t     port;
+ 
 
   mf = midifile;
   if (mf == NULL)
@@ -782,11 +784,12 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   if(mf->pause) {
     return 0;
   }
-
+  
   port = (uint8_t) mf->port;
   i = mf->eventListIndex;
   j = mf->tempoListIndex;
   if (i >= mf->nEvents && j >= mf->nTempo) {
+    if(!mf->loop) { 
     /* there are no more events, */
     if ((unsigned long) mf->counter >= mf->totalKcnt) {
       if(csound->oparms->msglevel & 7) {
@@ -803,6 +806,12 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       }
     }
     return 0;
+    } else {
+      // don't stop - loop 
+      j = mf->eventListIndex = 0;
+      i = mf->tempoListIndex = 0;
+      mf->counter = 0;
+    }
   }
   /* otherwise read any events with time less than or equal to */
   /* current orchestra time */
@@ -998,7 +1007,7 @@ int32_t midi_file_len(CSOUND *csound, void *p) {
 
 /* miditempo opcode: returns the current tempo of a
    MIDI file or score */
-int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
+int32_t midi_tempo_opcode(CSOUND *csound, MIDITEMPO *p)
 {
   int32_t num = (int32_t) *p->num;
   midifile_t *mf = find_midifile(csound, num);
@@ -1006,6 +1015,15 @@ int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p)
     *(p->kResult) = FL(60.0) *csound->esr / (MYFLT)(csound->ibeatTime);
   else
     *(p->kResult) = mf->currentTempo*(1./mf->temposcal);
+  return OK;
+}
+
+int32_t midi_file_loop(CSOUND *csound, MIDITEMPO *p){
+  find_midifile(csound, (int32_t) *p->num);
+   midifile_t *mf = find_midifile(csound, (int32_t) *p->num);
+  if(mf) {
+    mf->loop = (int) *p->kResult;
+  } 
   return OK;
 }
 
@@ -1093,7 +1111,7 @@ int32_t midi_file_get_event(CSOUND *csound, void *pp) {
 
 
 
-int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
+int32_t midi_file_status(CSOUND *csound, MIDITEMPO *p){
   find_midifile(csound, (int32_t) *p->num);
    midifile_t *mf = find_midifile(csound, (int32_t) *p->num);
   if(mf) {
@@ -1101,3 +1119,5 @@ int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p){
   } else *p->kResult = 0;
   return OK;
 }
+
+
