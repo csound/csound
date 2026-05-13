@@ -74,6 +74,7 @@ typedef struct midifile_s {
   int32_t           port;              /* MIDI port (internal) */
   double           temposcal;          /* tempo scaling */
   double           counter;            /* playback counter */
+  uint64_t         global_kcounter;    /* local reference to global kcounter */
   int32_t          loop;               /* loop flag */
   struct midifile_s    *nxt;
 } midifile_t;
@@ -862,9 +863,13 @@ int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf,
   int32_t n = 0;
 
   while(midifile != NULL) {
-    n += midi_file_read(csound, midifile, buf+n, nbytes);
-    if(!midifile->pause)
+    if(!midifile->pause &&
+       midifile->global_kcounter < csound->global_kcounter) {
+      // increment counter always in sync with global kcounter
       midifile->counter += 1./midifile->temposcal;
+      midifile->global_kcounter = csound->global_kcounter;
+    }
+    n += midi_file_read(csound, midifile, buf+n, nbytes);
     midifile = midifile->nxt;
   }
   return n;
