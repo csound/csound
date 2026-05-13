@@ -816,18 +816,15 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   /* otherwise read any events with time less than or equal to */
   /* current orchestra time */
   while (j < mf->nTempo &&
-         (unsigned long) mf->counter >=
-         (mf->tempoList[j].kcnt)) {
-    MYFLT oldtempo = mf->currentTempo;
+         mf->counter >=
+         mf->tempoList[j].kcnt) {
     mf->currentTempo = mf->tempoList[j++].tempoVal;
-    // now adjust temposcal to keep with tempo change
-     mf->temposcal *= (mf->currentTempo/oldtempo);
   }
   mf->tempoListIndex = j;
   nRead = 0;
   while (i < mf->nEvents &&
-         (unsigned long) mf->counter >=
-         (mf->eventList[i].kcnt)) {
+         mf->counter >=
+         mf->eventList[i].kcnt) {
     n = msgDataBytes((int32_t) mf->eventList[i].st) + 1;
     if (n < 1 || mf->mute) {
       // if track is muted, we skip events;
@@ -1052,7 +1049,6 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
     int i;
     midifile_t *mf = find_midifile(csound, (int32_t) *pp->num);
     if(mf) {
-      MYFLT oldtempo = mf->currentTempo;
       double posk;
       MYFLT pos = *(pp->kResult);
       if(pos < 0.) pos = 0.;
@@ -1071,8 +1067,6 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
         mf->currentTempo = mf->tempoList[i].tempoVal; 
         if(mf->tempoList[i].kcnt > posk) break;
       }
-     // now adjust temposcal to keep with tempo change as needed
-     mf->temposcal *= (mf->currentTempo/oldtempo); 
      mf->tempoListIndex = i;      
      mf->counter = posk;
     }
