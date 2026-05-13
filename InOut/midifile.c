@@ -818,7 +818,10 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   while (j < mf->nTempo &&
          (unsigned long) mf->counter >=
          (mf->tempoList[j].kcnt)) {
+    MYFLT oldtempo = mf->currentTempo;
     mf->currentTempo = mf->tempoList[j++].tempoVal;
+    // now adjust temposcal to keep with tempo change
+     mf->temposcal *= (mf->currentTempo/oldtempo);
   }
   mf->tempoListIndex = j;
   nRead = 0;
@@ -883,10 +886,9 @@ int32_t csoundMIDIFileClose(CSOUND *csound)
 }
 
 /* midirecv.c, resets MIDI controllers on a channel */
-void    midi_ctl_reset(CSOUND *csound, int16 chan);
+void midi_ctl_reset(CSOUND *csound, int16 chan);
 
 /* called by csoundRewindScore() to reset performance to time zero */
-
 void midifile_rewind_score(CSOUND *csound)
 {
   int32_t i;
@@ -903,6 +905,7 @@ void midifile_rewind_score(CSOUND *csound)
     MF(currentTempo) = initial_tempo(midifile);
     MF(eventListIndex) = 0;
     MF(tempoListIndex) = 0;
+    MF(counter) = 0;
     csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
     /* reset controllers on all channels */
     for (i = 0; i < MAXCHAN; i++)
@@ -1062,8 +1065,10 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
         if(mf->eventList[i].kcnt > posk) break;
       mf->eventListIndex = i;
       
-      for(i = 0; i < mf->nTempo; i++)
+      for(i = 0; i < mf->nTempo; i++) {
+        mf->currentTempo = mf->tempoList[i++].tempoVal; // reset to last tempo found
         if(mf->tempoList[i].kcnt > posk) break;
+      }
       mf->tempoListIndex = i;      
       
       mf->counter = posk;
