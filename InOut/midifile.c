@@ -1033,12 +1033,20 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
     if(mf) {
       double posk;
       MYFLT pos = *(pp->kResult);
-      if(pos < 0.) pos = 0.;
       posk = (int64_t) (pos*csoundGetKr(csound));
       if(mf->pause == 0) { // if not paused ...
       for(i = 0; i < 16; i++)
         AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
       }
+      // wind up/down event list indices
+      for(i = 0; i < mf->nEvents; i++)
+        if(mf->eventList[i].kcnt > posk) break;
+      mf->eventListIndex = i;
+      
+      for(i = 0; i < mf->nTempo; i++)
+        if(mf->tempoList[i].kcnt > posk) break;
+      mf->tempoListIndex = i;      
+      
       mf->counter = posk;
     }
   }
