@@ -1101,7 +1101,7 @@ struct CSOUND_ {
   /* Get engine control rate */
   MYFLT   (*GetEngineKr) (CSOUND *csound);
   /* Get engine kcounter value */
-  uint64_t (*GetEngineKcounter) (CSOUND *csound);  
+  uint64_t (*GetEngineKcounter) (CSOUND *csound);
   /**@}*/
 
   /** @name Software bus */
@@ -1281,6 +1281,7 @@ struct CSOUND_ {
   void *(*CreateCircularBuffer)(CSOUND *, int32_t, int32_t);
   int32_t (*ReadCircularBuffer)(CSOUND *, void *, void *, int32_t);
   int32_t (*WriteCircularBuffer)(CSOUND *, void *, const void *, int32_t);
+  int32_t (*CheckCircularBuffer)(CSOUND *, void *, int32_t);
   int32_t (*PeekCircularBuffer)(CSOUND *, void *, void *, int32_t);
   void (*FlushCircularBuffer)(CSOUND *, void *);
   void (*DestroyCircularBuffer)(CSOUND *, void *);
@@ -1462,7 +1463,7 @@ struct CSOUND_ {
   int32_t (*Sscanf)(char *str, const char *format, ...);
   /* Set opcode as deprecated */
   int32_t (*Deprecate)(CSOUND *csound, char *name,
-                       char *o, char *i, int32_t deprec);  
+                       char *o, char *i, int32_t deprec);
   /**@}*/
   /** @name Placeholders
       To allow the API to grow while maintining backward binary compatibility.
@@ -1755,9 +1756,7 @@ struct CSOUND_ {
   uint32_t tempStatus;   /* keeps track of which files are temps */
   int32_t orcLineOffset; /* 1 less than 1st orch line in the CSD */
   int32_t scoLineOffset; /* 1 less than 1st score line in the CSD */
-  char *csdname;
-  /* original CSD name; do not free() */
-  int32_t parserNamedInstrFlag;
+  char *csdname; /* original CSD name; do not free() */
   int32_t tran_nchnlsi;
   int32_t scnt;         /* Count of strings */
   int32_t strsiz;       /* length of current strings space */

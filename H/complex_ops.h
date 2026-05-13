@@ -46,6 +46,18 @@ typedef struct COPS1 {
   MYFLT *a, *b;
 } COPS1;
 
+typedef struct QUADOSC {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *cps;
+  MYFLT *isPolar;
+  MYFLT *skip;
+  MYFLT iinc, rinc, iphs, rphs;
+  MYFLT freq;
+  int32_t offs;
+  FUNC *tab;
+} QUADOSC;
+
 
 int32_t complex_assign(CSOUND *csound, R2CXOP *p);
 int32_t complex_add(CSOUND *csound, CXOP *p);
@@ -99,3 +111,28 @@ int32_t cops_init_a(CSOUND *csound, COPS1 *p);
 int32_t complex_array_assign(CSOUND *csound, COPS1 *p);
 int32_t complex_array_exp(CSOUND *csound, COPS1 *p);
 int32_t complex_array_log(CSOUND *csound, COPS1 *p);
+int32_t complexa_mulin(CSOUND *csound, COPS1 *p);
+int32_t complexa_divin(CSOUND *csound, COPS1 *p);
+int32_t complexa_subin(CSOUND *csound, COPS1 *p);
+int32_t complexa_addin(CSOUND *csound, COPS1 *p);
+int32_t complex_mulin(CSOUND *csound, CXOP *p);
+int32_t complex_divin(CSOUND *csound, CXOP *p);
+int32_t complex_subin(CSOUND *csound, CXOP *p);
+int32_t complex_addin(CSOUND *csound, CXOP *p);
+int32_t complexa_mulrealin(CSOUND *csound, COPS1 *p);
+int32_t complexa_divrealin(CSOUND *csound, COPS1 *p);
+int32_t complexa_subrealin(CSOUND *csound, COPS1 *p);
+int32_t complexa_addrealin(CSOUND *csound, COPS1 *p);
+int32_t complexa_x_reala(CSOUND *csound, COPS1 *p);
+int32_t reala_x_complexa(CSOUND *csound, COPS1 *p);
+int32_t complexa_div_reala(CSOUND *csound, COPS1 *p);
+int32_t reala_div_complexa(CSOUND *csound, COPS1 *p);
+int32_t complexa_plus_reala(CSOUND *csound, COPS1 *p);
+int32_t reala_plus_complexa(CSOUND *csound, COPS1 *p);
+int32_t complexa_minus_reala(CSOUND *csound, COPS1 *p);
+int32_t reala_minus_complexa(CSOUND *csound, COPS1 *p); 
+int32_t complex_exp_array(CSOUND *csond, COPS1 *p);
+int32_t complex_exp_real(CSOUND *csond, CXOP *p);
+int32_t quadosc_init(CSOUND *csound, QUADOSC *p);
+int32_t quadosc(CSOUND *csound, QUADOSC *p);
+int32_t quadosc_audio(CSOUND *csound, QUADOSC *p);

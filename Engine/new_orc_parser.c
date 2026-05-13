@@ -103,7 +103,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     int32_t err;
     add_opcode_defs(csound);  // add global OpcodeDef variables
-    csound->parserNamedInstrFlag = 2;
     {
       PRE_PARM    qq;
       /* Preprocess */

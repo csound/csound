@@ -155,14 +155,14 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
-  tabinit(csound, p->out,N+1, p->h.insdshead);
+  tabinit(csound, p->out, N/2+1, p->h.insdshead);
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
 }
 // NB: outputs are NOT packed (N+1 size)
 static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
-  int32_t N = p->out->sizes[0]-1;
+  int32_t N = p->in->sizes[0];
   MYFLT *tmp = (MYFLT *)p->mem.auxp;
   COMPLEXDAT *c = (COMPLEXDAT *) p->out->data;
   memcpy(tmp,p->in->data,N*sizeof(MYFLT));
@@ -172,19 +172,19 @@ static int32_t perf_rfft_r2c(CSOUND *csound, FFT *p) {
     if(j) c[j].imag = tmp[i+1];
     else c[j].imag = 0.;
   }
-  c[N].real = tmp[1];
-  c[N].imag =  0.;
+  c[N>>1].real = tmp[1];
+  c[N>>1].imag =  0.;
   return OK;
 }
 
 static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, "array not initialised\n");
-  int32_t   N = p->in->sizes[0] - 1;
+  int32_t   N = 2*(p->in->sizes[0] - 1);
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
-  tabinit(csound, p->out,N, p->h.insdshead);
+  tabinit(csound, p->out, N, p->h.insdshead);
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
   csound->AuxAlloc(csound, sizeof(MYFLT)*N, &p->mem);
   return OK;
@@ -199,7 +199,7 @@ static int32_t perf_rfft_c2r(CSOUND *csound, FFT *p) {
     tmp[i] = c[j].real;
     if(j) tmp[i+1] = c[j].imag;
   }
-  tmp[1] = c[N].real;
+  tmp[1] = c[N>>1].real;
   csound->RealFFT(csound,p->setup,tmp);
   memcpy(p->out->data,tmp,N*sizeof(MYFLT));
   return OK;
@@ -518,7 +518,10 @@ static int32_t init_window(CSOUND *csound, FFT *p) {
     break;
   case 1:
   default:
-    for (i=0; i<N; i++) w[i] = 0.5 - 0.5*cos(i*TWOPI/N);
+    for (i = 0; i < N; i++)
+      w[i] = 0.5 - 0.5*cos(i*TWOPI/N);
+    //for (i = 0; i < N/2; i++)
+    //w[i+N/2] = w[N/2-i-1];
   }
   return OK;
 }

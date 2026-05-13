@@ -68,10 +68,13 @@ jobs:
           cd build
           make
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
           cd build
-          make test
+          ctest -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: |
+          cd build
           make csdtests
 
   linux_build_vcpkg:
@@ -107,8 +110,373 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
+
+  # ---------------------------------------------------------------------------
+  # Linux minimal – ALSA + JACK + PortMidi, self-contained libc-only core
+  #
+  # Builds inside ubuntu:20.04 (glibc 2.31). The full codec chain
+  # (libogg / libvorbis / libopus / libFLAC / libsndfile / liblo) is compiled
+  # from source as static PIC libraries and merged into libcsound.so or linked
+  # into the relevant plugin .so. libgcc_s and libstdc++ are baked in via
+  # -static-libgcc / -static-libstdc++.
+  #
+  # Runs on Ubuntu 20+, Debian 11+, Fedora 33+, RHEL 9+ and any other distro
+  # with glibc >= 2.31.
+  # ---------------------------------------------------------------------------
+  linux_minimal_build:
+    name: Linux – ALSA + JACK + PortMidi (libc-only core)
+    runs-on: ubuntu-22.04
+    needs: update_version
+    
+    container:
+      image: ubuntu:20.04
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      DEPS_PREFIX: /opt/static-deps
+      LIBOGG_VERSION: "1.3.5"
+      LIBVORBIS_VERSION: "1.3.7"
+      LIBOPUS_VERSION: "1.4"
+      LIBFLAC_VERSION: "1.4.3"
+      LIBSNDFILE_VERSION: "1.2.2"
+      LIBLO_VERSION: "0.35"
+    steps:
+      - name: Install build toolchain and audio backend headers
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            ca-certificates \
+            cmake \
+            curl \
+            flex \
+            bison \
+            git \
+            pkg-config \
+            xz-utils \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            libportmidi-dev
+
+      - name: Checkout Csound
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Csound's own CMakeLists.txt creates a "sndfile" interface target
+      # that requires Vorbis::vorbisenc and Opus::opus,
+      # so those CMake targets must exist at configure time regardless of
+      # whether we want Vorbis/Opus support. They are not hard to get built
+      # se we include them and add those formats for libsndfile
+      - name: Cache static codec chain
+        id: cache-static-deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DEPS_PREFIX }}
+          key: |
+            static-deps-ubuntu20
+            -ogg${{ env.LIBOGG_VERSION }}
+            -vorbis${{ env.LIBVORBIS_VERSION }}
+            -opus${{ env.LIBOPUS_VERSION }}
+            -flac${{ env.LIBFLAC_VERSION }}
+            -sndfile${{ env.LIBSNDFILE_VERSION }}
+            -lo${{ env.LIBLO_VERSION }}
+            -v1
+
+      # --- libogg (required by libvorbis and libFLAC) -------------------- #
+      - name: Build static libogg
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/ogg/libogg-${LIBOGG_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/ogg-build \
+            -S "/tmp/libogg-${LIBOGG_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DINSTALL_DOCS=OFF
+          cmake --build /tmp/ogg-build -j"$(nproc)"
+          cmake --install /tmp/ogg-build
+
+      # --- libvorbis (provides Vorbis::vorbisenc target) ----------------- #
+      - name: Build static libvorbis
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/vorbis/libvorbis-${LIBVORBIS_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/vorbis-build \
+            -S "/tmp/libvorbis-${LIBVORBIS_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build /tmp/vorbis-build -j"$(nproc)"
+          cmake --install /tmp/vorbis-build
+
+      # --- libopus (provides Opus::opus target) -------------------------- #
+      - name: Build static libopus
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/opus/opus-${LIBOPUS_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cmake \
+            -B /tmp/opus-build \
+            -S "/tmp/opus-${LIBOPUS_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DOPUS_BUILD_PROGRAMS=OFF \
+            -DOPUS_BUILD_TESTING=OFF
+          cmake --build /tmp/opus-build -j"$(nproc)"
+          cmake --install /tmp/opus-build
+
+      # --- libFLAC (with Ogg support) ------------------------------------ #
+      - name: Build static libFLAC
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://downloads.xiph.org/releases/flac/flac-${LIBFLAC_VERSION}.tar.xz" \
+            | tar -xJ -C /tmp
+          cmake \
+            -B /tmp/flac-build \
+            -S "/tmp/flac-${LIBFLAC_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DWITH_OGG=ON \
+            -DBUILD_DOCS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTING=OFF \
+            -DINSTALL_MANPAGES=OFF
+          cmake --build /tmp/flac-build -j"$(nproc)"
+          cmake --install /tmp/flac-build
+
+      # --- libsndfile (FLAC + Vorbis + Opus; no MPEG) -------------------- #
+      - name: Build static libsndfile
+        if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://github.com/libsndfile/libsndfile/releases/download/${LIBSNDFILE_VERSION}/libsndfile-${LIBSNDFILE_VERSION}.tar.xz" \
+            | tar -xJ -C /tmp
+          cmake \
+            -B /tmp/sndfile-build \
+            -S "/tmp/libsndfile-${LIBSNDFILE_VERSION}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="${DEPS_PREFIX}" \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DBUILD_PROGRAMS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_TESTING=OFF \
+            -DENABLE_EXTERNAL_LIBS=ON \
+            -DENABLE_MPEG=OFF
+          cmake --build /tmp/sndfile-build -j"$(nproc)"
+          cmake --install /tmp/sndfile-build
+
+          # Merge all codec static archives into libsndfile.a.
+          #
+          # CMake puts CMAKE_SHARED_LINKER_FLAGS before the target libraries
+          # in the link command, so any codec -l flags we add there are
+          # processed before -lsndfile and get discarded by the linker before
+          # it knows they are needed. Merging everything into one archive
+          # sidesteps the ordering problem entirely: the single libsndfile.a
+          # that CMake's SndFile target already links contains all symbols.
+          D="${DEPS_PREFIX}/lib"
+          printf 'CREATE %s/libsndfile_merged.a\nADDLIB %s/libsndfile.a\nADDLIB %s/libFLAC.a\nADDLIB %s/libvorbisenc.a\nADDLIB %s/libvorbis.a\nADDLIB %s/libogg.a\nADDLIB %s/libopus.a\nSAVE\nEND\n' \
+            "$D" "$D" "$D" "$D" "$D" "$D" "$D" > /tmp/merge.mri
+          ar -M < /tmp/merge.mri
+          mv "${DEPS_PREFIX}/lib/libsndfile_merged.a" "${DEPS_PREFIX}/lib/libsndfile.a"
+          echo "Merged archive size: $(du -sh ${DEPS_PREFIX}/lib/libsndfile.a)"
+
+      # liblo's cmake subdirectory seems to ignore CMAKE_INSTALL_PREFIX and builds
+      # a shared lib regardless of BUILD_SHARED_LIBS. Use autotools instead,
+      # which has reliable --disable-shared and --prefix support.
+      - name: Build static liblo
+        # if: steps.cache-static-deps.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL \
+            "https://github.com/radarsat1/liblo/releases/download/${LIBLO_VERSION}/liblo-${LIBLO_VERSION}.tar.gz" \
+            | tar -xz -C /tmp
+          cd "/tmp/liblo-${LIBLO_VERSION}"
+          ./configure \
+            --prefix="${DEPS_PREFIX}" \
+            --enable-static \
+            --disable-shared \
+            --disable-examples \
+            --disable-tools \
+            --disable-doc \
+            CFLAGS="-fPIC -O2"
+          make -j"$(nproc)"
+          make install
+
+      # Libtool sometimes installs a shared lib even with --disable-shared,
+      # and Csound's cmake will prefer the .so over our .a if it finds one
+      # anywhere on the library search path. Running in a container, we can
+      # simply remove every shared liblo from the system so the linker has
+      # no choice but to use our liblo.a.
+      - name: Remove shared liblo (enforce static linking into libosc.so)
+        run: |
+          echo "Removing any shared liblo libraries from the system..."
+          find / -xdev -name 'liblo.so*' -delete 2>/dev/null || true
+          echo "Static liblo in DEPS_PREFIX:"
+          ls -lh "${DEPS_PREFIX}/lib/liblo.a"
+          echo "Shared liblo remaining (expect none):"
+          find / -xdev -name 'liblo.so*' 2>/dev/null && echo "FAIL" || echo "OK"
+
+      - name: Configure Csound
+        env:
+          PKG_CONFIG_PATH: "${{ env.DEPS_PREFIX }}/lib/pkgconfig"
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
+            -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DBUILD_PLUGINS=ON \
+            -DUSE_LIBLO=ON \
+            -DUSE_ALSA=ON \
+            -DUSE_JACK=ON \
+            -DUSE_PORTMIDI=ON \
+            -DUSE_PORTAUDIO=OFF \
+            -DUSE_PULSEAUDIO=OFF \
+            -DUSE_FLTK=OFF \
+            -DBUILD_VIRTUAL_KEYBOARD=OFF \
+            -DBUILD_JAVA_INTERFACE=OFF \
+            -DBUILD_PYTHON_INTERFACE=OFF \
+            -DINSTALL_PYTHON_INTERFACE=OFF \
+            -DBUILD_LUA_INTERFACE=OFF \
+            -DBUILD_CSBEATS=OFF \
+            -DBUILD_TESTS=OFF
+
+      - name: Build Csound
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Verify runtime dependencies
+        run: |
+          GLIBC_ONLY='linux-vdso|ld-linux|libc\.so|libm\.so|libmvec\.so|libdl\.so|libpthread\.so|librt\.so'
+
+          echo "════════════════════════════════════════════════════"
+          echo " Full build tree – all shared libraries"
+          echo "════════════════════════════════════════════════════"
+          find build -name '*.so*' | sort
+
+          echo ""
+          echo "════════════════════════════════════════════════════"
+          echo " csound binary"
+          echo "════════════════════════════════════════════════════"
+          ldd build/csound
+          echo ""
+          echo "Asserting csound binary has only glibc-family deps..."
+          UNEXPECTED=$(ldd build/csound | grep -Ev "($GLIBC_ONLY|libcsound)" || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL – unexpected runtime dependencies in csound binary:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "OK"
+
+          echo ""
+          echo "════════════════════════════════════════════════════"
+          echo " libcsound.so (codec chain must be statically"
+          echo " absorbed; no sndfile/FLAC/vorbis/opus .so deps)"
+          echo "════════════════════════════════════════════════════"
+          LIBCSOUND=$(find build -name 'libcsound*.so' | head -1)
+          ldd "$LIBCSOUND"
+          echo ""
+          echo "Asserting libcsound.so has only glibc-family deps..."
+          UNEXPECTED=$(ldd "$LIBCSOUND" | grep -Ev "($GLIBC_ONLY)" || true)
+          if [ -n "$UNEXPECTED" ]; then
+            echo "FAIL – unexpected runtime dependencies in libcsound.so:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+          echo "OK"
+
+          echo ""
+          echo "════════════════════════════════════════════════════"
+          echo " Plugin shared libraries (all non-core .so files)"
+          echo "════════════════════════════════════════════════════"
+          find build -name '*.so' ! -name 'libcsound*' | sort | while read -r plugin; do
+            echo ""
+            echo "--- $plugin ---"
+            ldd "$plugin"
+          done
+
+          echo ""
+          echo "════════════════════════════════════════════════════"
+          echo " Csound version"
+          echo "════════════════════════════════════════════════════"
+          build/csound --version || true
+
+      # ------------------------------------------------------------------ #
+      # 7. Upload artefacts                                                 #
+      # ------------------------------------------------------------------ #
+      - name: Collect artefacts
+        run: |
+          mkdir -p dist/plugins
+          cp build/csound dist/
+          # Core library (real file + versioned symlinks)
+          find build -name 'libcsound*.so*' -exec cp -P {} dist/ \;
+          # Every .so that is not the core library is a plugin.
+          find build -name '*.so' ! -name 'libcsound*' \
+            -exec cp {} dist/plugins/ \;
+
+          echo ""
+          echo "Collected plugins:"
+          ls dist/plugins/
+
+          # Warn about any expected plugins that are missing.
+          EXPECTED="libVosim libafilters libambicode1 libampmidid libarrayops
+          libarrays libbabo libbformdec2 libbilbar libbuchla libcellular
+          libcompress libcontrol libcounter libcpumeter libcrossfm libdate
+          libdoppler libemugens libeqfil libexciter libfareygen libfareyseq
+          libfractalnoise libframebuffer libftest libftsamplebank libgammatone
+          libgendy libgrain4 libharmon libhrtfearly libhrtferX libhrtfopcodes
+          libhrtfreverb libipmidi libjoystick liblfsr libliveconv libloscilx
+          liblufs libminmax libmixer libmodmatrix libmp3in libnewgabops
+          libosc libpadsynth_gen libpan2 libpartikkel libpaulstretch
+          libphisem libphysmod libpinker libpitchtrack libplaterev libpmidi
+          libpvlock libpvoc libpvsopcodes libpvsops libquadbezier librtalsa
+          librtjack librtpw libsc_noise libscansyn libscoreline libscugens
+          libselect libsequencer libserial libsfont libshape
+          libsignalflowgraph libsockrecv libsocksend libspectra
+          libsquinewave libstdopcodes libstdutil libsterrain libsystem_call
+          libtabaudio libtabsum libtrigEnvSegs libugakbari liburandom
+          libvaops libvbap libwpfilters libzak"
+
+          MISSING=""
+          for name in $EXPECTED; do
+            if [ ! -f "dist/plugins/${name}.so" ]; then
+              MISSING="${MISSING} ${name}.so"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "WARNING – expected plugins not found in build output:"
+            for m in $MISSING; do echo "  $m"; done
+          else
+            echo "All expected plugins present."
+          fi
+
+      - name: Upload artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: csound-linux-minimal-x86_64
+          path: dist/
+          if-no-files-found: error
 
   iOS_build:
     name: Csound for iOS
@@ -218,7 +586,9 @@ jobs:
         run: cmake --build build --config Debug
 
       - name: Run unit tests
-        run: cmake --build build --target csdtests test 
+        run: ctest --test-dir build -j$(sysctl -n hw.ncpu) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -235,9 +605,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          brew update  
-          brew install --cask gcc-arm-embedded
+          brew update
           brew install bison flex
+
+      - name: Install Arm GNU Toolchain (arm-none-eabi) without Homebrew cask
+        run: |
+          set -euo pipefail
+          TOOLCHAIN_VER="15.2.rel1"
+          URL="https://developer.arm.com/-/media/Files/downloads/gnu/${TOOLCHAIN_VER}/binrel/arm-gnu-toolchain-${TOOLCHAIN_VER}-darwin-arm64-arm-none-eabi.tar.xz"
+          mkdir -p "$HOME/arm-toolchains"
+          curl -L "$URL" -o "$HOME/arm-toolchains/arm-none-eabi.tar.xz"
+          tar -xJf "$HOME/arm-toolchains/arm-none-eabi.tar.xz" -C "$HOME/arm-toolchains"
+          echo "$HOME/arm-toolchains/arm-gnu-toolchain-${TOOLCHAIN_VER}-darwin-arm64-arm-none-eabi/bin" >> "$GITHUB_PATH"
 
       - name: Configure build
         run: cmake -B build -DCMAKE_INSTALL_PREFIX="$PWD/Daisy" -DCUSTOM_CMAKE="$PWD/Daisy/Custom.cmake" -DCMAKE_TOOLCHAIN_FILE="$PWD/Daisy/crosscompile.cmake"
@@ -319,7 +698,7 @@ jobs:
           cmake --build build --config Release
           cmake --build build --target install
 
-      - name: Adjust ctcsound library load path 
+      - name: Adjust ctcsound library load path
         run: sed -i -e 's$ctypes.util.find_library("CsoundLib64")$"/Applications/Csound/Csound64.framework/CsoundLib64"$g' Python/ctcsound.py
 
       - name: Adjust link paths in libraries
@@ -330,9 +709,9 @@ jobs:
           install_name_tool -change @rpath/libportmidi.2.dylib @loader_path/../../../../libs/libportmidi.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libpmidi.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portmidi_install/lib/libportmidi.dylib
           install_name_tool -change @rpath/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/librtpa.dylib
-          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portaudio_install/lib/libportaudio.dylib          
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs portaudio_install/lib/libportaudio.dylib
           install_name_tool -change @rpath/liblo.7.dylib @loader_path/../../../../libs/liblo.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libosc.dylib
-          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib          
+          install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib
 
       - name: Build installer
         run: |
@@ -341,7 +720,11 @@ jobs:
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp portaudio_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
-          cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs          
+          cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+          mkdir -p csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake
+          cp csound_install/share/csound/CsoundConfig.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+          cp csound_install/share/csound/CsoundConfigVersion.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+          cp csound_install/share/csound/FindCsound.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
@@ -385,8 +768,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   macos_build_vcpkg_arm64:
     name: MacOS build (vcpkg arm64)
@@ -420,8 +805,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run unit tests
+        run: ctest --test-dir build -j$(nproc) --output-on-failure
+      - name: Run CSD tests
+        run: cmake --build build --target csdtests
 
   macos_build_osxcross:
     name: MacOS build (osxcross/vcpkg)
@@ -518,10 +905,13 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: cmake --build build --config Release --target csdtests
 
       - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS --config Release
+        run: ctest --test-dir build -C Release -j --output-on-failure
+
+      - name: Install Csound (for cmake package files)
+        run: cmake --install build --prefix build\install --config Release
 
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'
@@ -592,10 +982,13 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: cmake --build build --config Release --target csdtests
 
       - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS --config Release
+        run: ctest --test-dir build -C Release -j --output-on-failure
+
+      - name: Install Csound (for cmake package files)
+        run: cmake --install build --prefix build\install --config Release
 
       - name: Build installer
 #        if: github.ref == 'refs/heads/develop'
@@ -669,8 +1062,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      # - name: Run integration and unit tests
-      # run: cmake --build build --target test csdtests
+      # - name: Run unit tests
+      #   run: ctest --test-dir build -j$(nproc) --output-on-failure
+      #- name: Run CSD tests
+      #  run: cmake --build build --target csdtests
 
   windows_build_32bit:
     name: Windows 32-bit build (mingw/vcpkg)
@@ -831,8 +1226,10 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      #- name: Run integration and unit tests
-      #  run: cmake --build build --target test csdtests
+      #- name: Run unit tests
+      #  run: ctest --test-dir build -j$(nproc) --output-on-failure
+      #- name: Run CSD tests
+      #  run: cmake --build build --target csdtests
 
   android-release:
     name: Csound for Android
@@ -881,7 +1278,7 @@ jobs:
           path: Android/csound-android-${{env.CSOUND_VERSION}}
 
   publish_artifacts:
-    # 
+    #
     if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
@@ -894,6 +1291,7 @@ jobs:
         iOS_build,
         android-release,
         bare_arm_brew,
+        linux_minimal_build,
       ]
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
@@ -946,6 +1344,12 @@ jobs:
           name: CsoundForAndroid-${{env.CSOUND_VERSION}}
           path: csound-android-${{env.CSOUND_VERSION}}
 
+      - name: Download Linux minimal artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: csound-linux-minimal-x86_64
+          path: csound-linux-minimal-x86_64-${{env.CSOUND_VERSION}}
+
       - name: Zip release directories
         run: |
           zip -r csound-windows-${{env.CSOUND_VERSION}}.zip csound-windows-${{env.CSOUND_VERSION}}
@@ -954,6 +1358,7 @@ jobs:
           zip -r csound-ios-${{env.CSOUND_VERSION}}.zip csound-ios-${{env.CSOUND_VERSION}}
           zip -r csound-android-${{env.CSOUND_VERSION}}.zip csound-android-${{env.CSOUND_VERSION}}
           zip -r csound-arm-cortex-m7-${{env.CSOUND_VERSION}}.zip csound-arm-cortex-m7-${{env.CSOUND_VERSION}}
+          zip -r csound-linux-minimal-x86_64-${{env.CSOUND_VERSION}}.zip csound-linux-minimal-x86_64-${{env.CSOUND_VERSION}}
 
       - name: List release artifacts
         run: ls -l
@@ -972,3 +1377,5 @@ jobs:
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip
             csound-arm-cortex-m7-${{env.CSOUND_VERSION}}.zip
+            csound-linux-minimal-x86_64-${{env.CSOUND_VERSION}}.zip
+            

@@ -1,0 +1,57 @@
+import { Csound as createCsound, libcsound } from "@csound/browser";
+import type {
+  Csound,
+  CsoundFs,
+  CsoundFsStat,
+  CsoundObj,
+  CSOUND_PARAMS,
+  LibCsoundObj,
+  PublicEvents,
+  UgenArgTypeEnum,
+  UgenContextPtr,
+  UgenFactoryPtr,
+  UgenGraphPtr,
+  UgenOpcodeInfo,
+  UgenPtr,
+  UgenVarPtr,
+} from "@csound/browser";
+
+type LoadedCsound = Awaited<ReturnType<Csound>>;
+type LoadedLibCsound = Awaited<ReturnType<typeof libcsound>>;
+
+declare const fs: CsoundFs;
+declare const fsStat: CsoundFsStat;
+declare const eventName: PublicEvents;
+declare const browserCsound: CsoundObj;
+declare const csoundParams: CSOUND_PARAMS;
+declare const localLibCsound: LibCsoundObj;
+declare const ugenArgTypeEnum: UgenArgTypeEnum;
+declare const ugenFactoryPtr: UgenFactoryPtr;
+declare const ugenPtr: UgenPtr;
+declare const ugenVarPtr: UgenVarPtr;
+declare const ugenGraphPtr: UgenGraphPtr;
+declare const ugenContextPtr: UgenContextPtr;
+declare const ugenOpcodeInfo: UgenOpcodeInfo;
+
+const createBrowserCsound: Csound = createCsound;
+const loadedCsound: LoadedCsound = browserCsound;
+const loadedLibCsound: LoadedLibCsound = localLibCsound;
+
+void [
+  createBrowserCsound,
+  fs,
+  fsStat,
+  eventName,
+  browserCsound,
+  csoundParams,
+  localLibCsound,
+  ugenArgTypeEnum,
+  ugenFactoryPtr,
+  ugenPtr,
+  ugenVarPtr,
+  ugenGraphPtr,
+  ugenContextPtr,
+  ugenOpcodeInfo,
+  loadedCsound,
+  loadedLibCsound,
+];

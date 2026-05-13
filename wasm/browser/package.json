@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta29",
+  "version": "7.0.0-beta31",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -51,15 +51,16 @@
     "build:prod": "cross-env NODE_ENV=production node compile.js",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "build:tools": "node compile-tools.js",
-    "test:ci": "node tests/selenium_runner.js",
-    "test:ci:firefox": "node tests/selenium_runner_firefox.js",
+    "test:types": "node tests/types/run.cjs",
+    "test:ci": "npm run test:types && node tests/selenium_runner.js",
+    "test:ci:firefox": "npm run test:types && node tests/selenium_runner_firefox.js",
     "test:open": "node tests/server.cjs"
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",
     "@babel/plugin-proposal-object-rest-spread": "^7.20.2",
     "@babel/plugin-transform-destructuring": "^7.20.2",
-    "@csound/wasm-bin": "7.0.0-beta20",
+    "@csound/wasm-bin": "7.0.0-beta21",
     "browser-or-node": "^2.0.0",
     "chai": "^4.3.7",
     "cross-env": "^7.0.3",
@@ -67,7 +68,6 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-junit": "^1.0.1",
-    "eslint-loader": "^4.0.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-n": "^15.5.1",
     "eslint-plugin-node": "^11.1.0",
@@ -86,7 +86,8 @@
     "prettier": "^2.8.0",
     "selenium-webdriver": "^4.6.1",
     "serve-static": "^1.15.0",
-    "sinon": "^14.0.2"
+    "sinon": "^14.0.2",
+    "typescript": "^5.6.3"
   },
   "dependencies": {
     "eventemitter3": "^4.0.7",

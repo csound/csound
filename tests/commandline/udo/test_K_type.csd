@@ -71,7 +71,7 @@ endop
 instr 4
 input:i = 1
 output:k = TestKIO(input)
-if input:i != i(output:k) then
+if input != i(output) then
   exitnow(-1)
 endif
 endin

@@ -83,6 +83,17 @@ extern "C" {
    */
   PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
 
+  
+  /**
+   * Check the available space in a circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @param flag zero for reading space, non-zero for writing space
+   * @returns the available space for reading or writing
+   */
+  PUBLIC int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag);
+
+  
   /**
    * Free circular buffer
    */

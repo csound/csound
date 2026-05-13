@@ -37,19 +37,19 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsi
          csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
       return NULL;
     }
-    p->numelem = numelem;
+    p->numelem = numelem+1;
     p->wp = p->rp = 0;
     p->elemsize = elemsize;
 
-    if ((p->buffer = (char *) csound->Malloc(csound, numelem*elemsize)) == NULL) {
+    if ((p->buffer = (char *) csound->Malloc(csound, p->numelem*elemsize)) == NULL) {
       return NULL;
     }
-    memset(p->buffer, 0, numelem*elemsize);
+    memset(p->buffer, 0, p->numelem*elemsize);
     csoundSpinLockInit(&p->lock);
     return (void *)p;
 }
 
-int32_t checkspace(circular_buffer *p, int32_t writeCheck){
+static int32_t checkspace(circular_buffer *p, int32_t writeCheck){
     csoundSpinLock(&p->lock);
     int32_t wp = p->wp, rp = p->rp, numelem = p->numelem, res;
     if(writeCheck){
@@ -66,9 +66,16 @@ int32_t checkspace(circular_buffer *p, int32_t writeCheck){
     return res;
 }
 
+int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag){
+  (void) csound;
+  if(p == NULL) return 0;
+  return checkspace(p, flag); // internal space count includes one extra slot
+}
+
+
 int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
 {
-    IGN(csound);
+    (void)csound;
     if (p == NULL) return 0;
     {
       int32_t remaining;

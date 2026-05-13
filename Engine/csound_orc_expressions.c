@@ -338,7 +338,7 @@ static TREE *create_cond_expression(CSOUND *csound,
 
   if(last->left == NULL) {
     csound->Message(csound,
-                    "missing boolean expression in " 
+                    "missing boolean expression in "
                     "conditional expression, line %d\n", root->line-1);
     return NULL;
   }
@@ -658,7 +658,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         if (elementType == NULL) {
           return NULL;
         }
-        
+
         // Set the operation to array_get (struct members are always plain arrays)
         strNcpy(op, "##array_get", 80);
 
@@ -683,7 +683,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         // Check if it's an array
         // For typed arrays like k[], i[], S[], the varType is the element type
         // and subType is NULL. For generic arrays, subType contains the element type.
-        if (var->subType) {
+      if (var->subType) {
           // Generic array or struct array
           if (var->subType->userDefinedType) {
             strNcpy(op, "##array_get_struct", 80);
@@ -830,7 +830,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     TREE * newRight = create_expression(csound, root->right, line,
                                         locn, typeTable);
     TREE * remaining = root->right->next;
-    
+
 
     if (anchor == NULL) {
       anchor = newRight;
@@ -891,7 +891,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     break;
   case S_EQ:
     strNcpy(op, "==", 80);
-    break;   
+    break;
   case S_NEQ:
     strNcpy(op, "!=", 80);
     break;
@@ -1063,121 +1063,442 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
  *   2. ##member_set(temp, memberIndex, value)
  *   3. array[index] = temp (standard assignment, becomes ##array_set_struct)
  */
-int expand_struct_array_member_assignment(CSOUND* csound,
-                                         TREE* current,
-                                         TYPE_TABLE* typeTable,
-                                         TREE** anchor)
+enum {
+  STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH = 32
+};
+
+typedef struct {
+  TREE* arrayExpr;
+  const CS_TYPE* rootStructType;
+  CS_VARIABLE* memberVars[STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH];
+  int32_t memberIndices[STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH];
+  int32_t memberCount;
+  int32_t hasKRateIndex;
+} STRUCT_ARRAY_MEMBER_PATH;
+
+static int32_t resolve_struct_member(CSOUND* csound,
+                                     const CS_TYPE* structType,
+                                     const char* memberName,
+                                     int32_t* memberIndex,
+                                     CS_VARIABLE** memberVar)
 {
-  if (!current || !current->left || current->left->type != STRUCT_EXPR) {
+  CONS_CELL* cell;
+  int32_t i;
+
+  if (!structType || !structType->userDefinedType || memberName == NULL) {
     return 0;
   }
 
-  TREE* structExpr = current->left;
-  TREE* valueExpr = current->right;
-
-  if (!structExpr->left || structExpr->left->type != T_ARRAY) {
-    return 0;
-  }
-
-  TREE* arrayExpr = structExpr->left;
-  TREE* memberExpr = structExpr->right;
-
-  if (!memberExpr || !memberExpr->value || !memberExpr->value->lexeme) {
-    return 0;
-  }
-
-  const char* memberName = memberExpr->value->lexeme;
-
-  char* structTypeName = get_arg_type2(csound, arrayExpr->left, typeTable);
-  if (!structTypeName) {
-    return 0;
-  }
-
-  // Handle both ":MyType;[]" format and "[:MyType;]" format
-  char* bracketPos = strchr(structTypeName, '[');
-  if (bracketPos) *bracketPos = '\0';
-
-  char* cleanTypeName = structTypeName;
-  if (cleanTypeName[0] == '\0' && bracketPos) {
-    // Format was "[:MyType;]", extract from inside brackets
-    cleanTypeName = bracketPos + 1;
-    char* endBracket = strchr(cleanTypeName, ']');
-    if (endBracket) *endBracket = '\0';
-  }
-
-  const CS_TYPE* structType = csoundGetTypeWithVarTypeName(csound->typePool, cleanTypeName);
-  if (!structType || !structType->userDefinedType) {
-    csound->Free(csound, structTypeName);
-    return 0;
-  }
-
-  // Find member index
-  int memberIndex = -1;
-  CONS_CELL* cell = structType->members;
-  int i = 0;
-  while (cell) {
-    CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
-    if (member && strcmp(member->varName, memberName) == 0) {
-      memberIndex = i;
-      break;
+  cell = structType->members;
+  i = 0;
+  while (cell != NULL) {
+    CS_VARIABLE* currentMember = (CS_VARIABLE*)cell->value;
+    if (currentMember != NULL && strcmp(currentMember->varName, memberName) == 0) {
+      *memberIndex = i;
+      *memberVar = currentMember;
+      return 1;
     }
     cell = cell->next;
     i++;
   }
 
-  if (memberIndex == -1) {
-    csound->Free(csound, structTypeName);
+  IGN(csound);
+  return 0;
+}
+
+static char* get_struct_array_element_type_name(CSOUND* csound,
+                                                TREE* arrayVar,
+                                                TYPE_TABLE* typeTable)
+{
+  char* arrayTypeName = get_arg_type2(csound, arrayVar, typeTable);
+  char* elementTypeName = NULL;
+  size_t len;
+
+  if (arrayTypeName == NULL) {
+    return NULL;
+  }
+
+  len = strlen(arrayTypeName);
+  if (len >= 3 && arrayTypeName[0] == '[' && arrayTypeName[len - 1] == ']') {
+    elementTypeName = csound->Malloc(csound, len - 1);
+    strncpy(elementTypeName, arrayTypeName + 1, len - 2);
+    elementTypeName[len - 2] = '\0';
+  }
+  else if (len > 2 && arrayTypeName[len - 2] == '[' &&
+           arrayTypeName[len - 1] == ']') {
+    elementTypeName = csound->Malloc(csound, len - 1);
+    strncpy(elementTypeName, arrayTypeName, len - 2);
+    elementTypeName[len - 2] = '\0';
+  }
+
+  csound->Free(csound, arrayTypeName);
+  return elementTypeName;
+}
+
+static int32_t struct_array_has_k_rate_index(CSOUND* csound,
+                                             TREE* indexExpr,
+                                             TYPE_TABLE* typeTable)
+{
+  while (indexExpr != NULL) {
+    char* argType = get_arg_string_from_tree(csound, indexExpr, typeTable);
+    if (argType == NULL) {
+      return 0;
+    }
+    if (argType[0] == 'k' || argType[0] == 'K') {
+      csound->Free(csound, argType);
+      return 1;
+    }
+    csound->Free(csound, argType);
+    indexExpr = indexExpr->next;
+  }
+
+  return 0;
+}
+
+static int32_t struct_expr_has_array_root(TREE* structExpr)
+{
+  TREE* current = structExpr;
+
+  while (current != NULL && current->type == STRUCT_EXPR) {
+    if (current->left != NULL && current->left->type == T_ARRAY) {
+      return 1;
+    }
+    current = current->left;
+  }
+
+  return 0;
+}
+
+static int32_t resolve_struct_array_member_path(CSOUND* csound,
+                                                TREE* structExpr,
+                                                TYPE_TABLE* typeTable,
+                                                STRUCT_ARRAY_MEMBER_PATH* path)
+{
+  TREE* current;
+  TREE* arrayExpr = NULL;
+  const char* memberNames[STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH];
+  int32_t rawMemberCount = 0;
+  char* elementTypeName;
+  const CS_TYPE* currentStructType;
+  int32_t i;
+
+  memset(path, 0, sizeof(*path));
+
+  if (structExpr == NULL || structExpr->type != STRUCT_EXPR) {
     return 0;
   }
 
-  // Generate unique temp variable name
-  char tempVarName[64];
-  snprintf(tempVarName, sizeof(tempVarName), "#structArrayTemp%d#", csound->struct_array_temp_counter++);
+  current = structExpr;
+  while (current != NULL && current->type == STRUCT_EXPR) {
+    if (current->right == NULL || current->right->value == NULL ||
+        current->right->value->lexeme == NULL ||
+        rawMemberCount >= STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH) {
+      return 0;
+    }
 
-  // Step 1: temp:Type = array[index]
-  ORCTOKEN* tempToken = make_token(csound, tempVarName, NULL);
-  tempToken->type = T_TYPED_IDENT;
-  tempToken->optype = csoundStrdup(csound, cleanTypeName);
+    memberNames[rawMemberCount++] = current->right->value->lexeme;
+    if (current->left != NULL && current->left->type == T_ARRAY) {
+      arrayExpr = current->left;
+      break;
+    }
 
-  TREE* tempVar = make_leaf(csound, current->line, current->locn, T_TYPED_IDENT, tempToken);
+    current = current->left;
+  }
 
-  TREE* getOp = create_opcode_token(csound, "##array_get_struct");
-  getOp->type = T_OPCALL;
-  getOp->left = tempVar;
-  getOp->right = copy_node(csound, arrayExpr->left);  // array variable
-  getOp->right->next = copy_node(csound, arrayExpr->right); // index
+  if (arrayExpr == NULL || arrayExpr->left == NULL) {
+    return 0;
+  }
 
-  // Step 2: ##member_set(temp, memberIndex, value)
-  TREE* setMemberOp = create_opcode_token(csound, "##member_set");
-  setMemberOp->type = T_OPCALL;
-  setMemberOp->right = make_leaf(csound, current->line, current->locn, T_IDENT,
-                                 make_token(csound, tempVarName, NULL));
+  elementTypeName = get_struct_array_element_type_name(csound, arrayExpr->left,
+                                                       typeTable);
+  if (elementTypeName == NULL) {
+    return 0;
+  }
 
+  currentStructType =
+    csoundGetTypeWithVarTypeName(csound->typePool, elementTypeName);
+  if (currentStructType == NULL || !currentStructType->userDefinedType) {
+    csound->Free(csound, elementTypeName);
+    return 0;
+  }
+
+  path->arrayExpr = arrayExpr;
+  path->rootStructType = currentStructType;
+  path->hasKRateIndex =
+    struct_array_has_k_rate_index(csound, arrayExpr->right, typeTable);
+
+  for (i = rawMemberCount - 1; i >= 0; i--) {
+    int32_t memberIndex = -1;
+    CS_VARIABLE* memberVar = NULL;
+
+    if (!resolve_struct_member(csound, currentStructType, memberNames[i],
+                               &memberIndex, &memberVar)) {
+      csound->Free(csound, elementTypeName);
+      return 0;
+    }
+
+    path->memberIndices[path->memberCount] = memberIndex;
+    path->memberVars[path->memberCount] = memberVar;
+    path->memberCount++;
+
+    if (i > 0) {
+      if (memberVar->varType == NULL || !memberVar->varType->userDefinedType) {
+        csound->Free(csound, elementTypeName);
+        return 0;
+      }
+      currentStructType = memberVar->varType;
+    }
+  }
+
+  csound->Free(csound, elementTypeName);
+  return path->memberCount > 0;
+}
+
+static TREE* create_ident_leaf(CSOUND* csound,
+                               int32_t line,
+                               uint64_t locn,
+                               const char* ident)
+{
+  return make_leaf(csound, line, locn, T_IDENT,
+                   make_token(csound, (char*)ident, NULL));
+}
+
+static TREE* create_member_index_leaf(CSOUND* csound,
+                                      int32_t line,
+                                      uint64_t locn,
+                                      int32_t memberIndex)
+{
   char indexBuf[32];
   snprintf(indexBuf, sizeof(indexBuf), "%d", memberIndex);
-  TREE* memberIndexNode = make_leaf(csound, current->line, current->locn,
-                                    INTEGER_TOKEN, make_int(csound, indexBuf, NULL));
-  setMemberOp->right->next = memberIndexNode;
-  memberIndexNode->next = copy_node(csound, valueExpr);
+  return make_leaf(csound, line, locn, INTEGER_TOKEN,
+                   make_int(csound, indexBuf, NULL));
+}
 
-  // Step 3: array[index] = temp (will be processed as standard assignment)
-  TREE* arraySetAssignment = make_node(csound, current->line, current->locn, T_ASSIGNMENT,
-                                      copy_node(csound, arrayExpr),
-                                      make_leaf(csound, current->line, current->locn, T_IDENT,
-                                                make_token(csound, tempVarName, NULL)));
+static TREE* create_struct_array_get_call(CSOUND* csound,
+                                          int32_t line,
+                                          uint64_t locn,
+                                          const char* outArg,
+                                          TREE* arrayExpr)
+{
+  TREE* getOp = create_opcode_token(csound, "##array_get_struct");
+  getOp->type = T_OPCALL;
+  getOp->line = line;
+  getOp->locn = locn;
+  getOp->left = create_ans_token(csound, (char*)outArg);
+  getOp->right = copy_node(csound, arrayExpr->left);
+  getOp->right->next = copy_node(csound, arrayExpr->right);
+  return getOp;
+}
 
-  // T_ASSIGNMENT needs a value token for verify_opcode
-  arraySetAssignment->value = make_token(csound, "=", NULL);
-  arraySetAssignment->value->type = T_ASSIGNMENT;
+static TREE* create_struct_member_get_call(CSOUND* csound,
+                                           int32_t line,
+                                           uint64_t locn,
+                                           const char* outArg,
+                                           const char* structArg,
+                                           int32_t memberIndex)
+{
+  TREE* getMemberOp = create_opcode_token(csound, "##member_get");
+  getMemberOp->type = T_OPCALL;
+  getMemberOp->line = line;
+  getMemberOp->locn = locn;
+  getMemberOp->left = create_ans_token(csound, (char*)outArg);
+  getMemberOp->right = create_ident_leaf(csound, line, locn, structArg);
+  getMemberOp->right->next =
+    create_member_index_leaf(csound, line, locn, memberIndex);
+  return getMemberOp;
+}
 
-  // Chain the operations
-  getOp->next = setMemberOp;
-  setMemberOp->next = arraySetAssignment;
+static TREE* create_struct_member_set_call(CSOUND* csound,
+                                           int32_t line,
+                                           uint64_t locn,
+                                           const char* structArg,
+                                           int32_t memberIndex,
+                                           TREE* valueExpr)
+{
+  TREE* setMemberOp = create_opcode_token(csound, "##member_set");
+  setMemberOp->type = T_OPCALL;
+  setMemberOp->line = line;
+  setMemberOp->locn = locn;
+  setMemberOp->right = create_ident_leaf(csound, line, locn, structArg);
+  setMemberOp->right->next =
+    create_member_index_leaf(csound, line, locn, memberIndex);
+  setMemberOp->right->next->next = copy_node(csound, valueExpr);
+  return setMemberOp;
+}
 
-  *anchor = append_to_tree(csound, *anchor, getOp);
+static TREE* create_struct_member_set_from_ident_call(CSOUND* csound,
+                                                      int32_t line,
+                                                      uint64_t locn,
+                                                      const char* structArg,
+                                                      int32_t memberIndex,
+                                                      const char* valueArg)
+{
+  TREE* setMemberOp = create_opcode_token(csound, "##member_set");
+  setMemberOp->type = T_OPCALL;
+  setMemberOp->line = line;
+  setMemberOp->locn = locn;
+  setMemberOp->right = create_ident_leaf(csound, line, locn, structArg);
+  setMemberOp->right->next =
+    create_member_index_leaf(csound, line, locn, memberIndex);
+  setMemberOp->right->next->next =
+    create_ident_leaf(csound, line, locn, valueArg);
+  return setMemberOp;
+}
 
-  csound->Free(csound, structTypeName);
+static TREE* create_struct_array_set_call(CSOUND* csound,
+                                          int32_t line,
+                                          uint64_t locn,
+                                          TREE* arrayExpr,
+                                          const char* valueArg)
+{
+  TREE* arraySetOp = create_opcode_token(csound, "##array_set_struct");
+  arraySetOp->type = T_OPCALL;
+  arraySetOp->line = line;
+  arraySetOp->locn = locn;
+  arraySetOp->right = copy_node(csound, arrayExpr->left);
+  arraySetOp->right->next = create_ident_leaf(csound, line, locn, valueArg);
+  arraySetOp->right->next->next = copy_node(csound, arrayExpr->right);
+  return arraySetOp;
+}
+
+int expand_struct_array_member_assignment(CSOUND* csound,
+                                          TREE* current,
+                                          TYPE_TABLE* typeTable,
+                                          TREE** anchor)
+{
+  STRUCT_ARRAY_MEMBER_PATH path;
+  TREE* assignmentOps = NULL;
+  char* structTemps[STRUCT_ARRAY_MEMBER_PATH_MAX_DEPTH];
+  int32_t i;
+
+  if (!current || !current->left || current->left->type != STRUCT_EXPR ||
+      current->right == NULL) {
+    return 0;
+  }
+
+  if (!resolve_struct_array_member_path(csound, current->left, typeTable,
+                                        &path)) {
+    return 0;
+  }
+
+  structTemps[0] = create_out_arg(csound,
+                                  path.rootStructType->varTypeName,
+                                  typeTable->localPool->synthArgCount++,
+                                  typeTable);
+  assignmentOps =
+    append_to_tree(csound, assignmentOps,
+                   create_struct_array_get_call(csound, current->line,
+                                                current->locn,
+                                                structTemps[0],
+                                                path.arrayExpr));
+
+  for (i = 0; i < path.memberCount - 1; i++) {
+    structTemps[i + 1] = create_out_arg(csound,
+                                        path.memberVars[i]->varType->varTypeName,
+                                        typeTable->localPool->synthArgCount++,
+                                        typeTable);
+    assignmentOps =
+      append_to_tree(csound, assignmentOps,
+                     create_struct_member_get_call(csound, current->line,
+                                                   current->locn,
+                                                   structTemps[i + 1],
+                                                   structTemps[i],
+                                                   path.memberIndices[i]));
+  }
+
+  assignmentOps =
+    append_to_tree(csound, assignmentOps,
+                   create_struct_member_set_call(csound, current->line,
+                                                 current->locn,
+                                                 structTemps[path.memberCount - 1],
+                                                 path.memberIndices[path.memberCount - 1],
+                                                 current->right));
+
+  for (i = path.memberCount - 2; i >= 0; i--) {
+    assignmentOps =
+      append_to_tree(csound, assignmentOps,
+                     create_struct_member_set_from_ident_call(
+                       csound, current->line, current->locn,
+                       structTemps[i], path.memberIndices[i], structTemps[i + 1]));
+  }
+
+  assignmentOps =
+    append_to_tree(csound, assignmentOps,
+                   create_struct_array_set_call(csound, current->line,
+                                                current->locn,
+                                                path.arrayExpr,
+                                                structTemps[0]));
+
+  for (i = 0; i < path.memberCount; i++) {
+    csound->Free(csound, structTemps[i]);
+  }
+
+  *anchor = append_to_tree(csound, *anchor, assignmentOps);
   return 1;
+}
+
+/* Expand struct array member read: var = array[index].member
+ * Transforms into:
+ *   1. temp = ##array_get_struct(array, index)
+ *   2. var = temp.member (converted to ##member_get or direct assignment)
+ * Returns the new anchor, or NULL if not applicable
+ */
+TREE* expand_struct_array_member_read(CSOUND* csound,
+                                      TREE* structExpr,
+                                      int32_t line,
+                                      uint64_t locn,
+                                      TYPE_TABLE* typeTable)
+{
+  STRUCT_ARRAY_MEMBER_PATH path;
+  TREE* readOps = NULL;
+  char* currentStructArg;
+  int32_t i;
+  const char* memberType;
+  const char* outType;
+  char* outArg;
+
+  if (!resolve_struct_array_member_path(csound, structExpr, typeTable, &path)) {
+    return NULL;
+  }
+
+  currentStructArg = create_out_arg(csound,
+                                    path.rootStructType->varTypeName,
+                                    typeTable->localPool->synthArgCount++,
+                                    typeTable);
+  readOps = append_to_tree(csound, readOps,
+                           create_struct_array_get_call(csound, line, locn,
+                                                        currentStructArg,
+                                                        path.arrayExpr));
+
+  for (i = 0; i < path.memberCount - 1; i++) {
+    char* nextStructArg = create_out_arg(csound,
+                                         path.memberVars[i]->varType->varTypeName,
+                                         typeTable->localPool->synthArgCount++,
+                                         typeTable);
+    readOps = append_to_tree(csound, readOps,
+                             create_struct_member_get_call(
+                               csound, line, locn, nextStructArg,
+                               currentStructArg, path.memberIndices[i]));
+    csound->Free(csound, currentStructArg);
+    currentStructArg = nextStructArg;
+  }
+
+  memberType = path.memberVars[path.memberCount - 1]->varType->varTypeName;
+  outType = memberType;
+  if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
+    outType = "k";
+  }
+
+  outArg = create_out_arg(csound, (char*)outType,
+                          typeTable->localPool->synthArgCount++, typeTable);
+  readOps = append_to_tree(csound, readOps,
+                           create_struct_member_get_call(
+                             csound, line, locn, outArg, currentStructArg,
+                             path.memberIndices[path.memberCount - 1]));
+
+  csound->Free(csound, currentStructArg);
+  csound->Free(csound, outArg);
+  return readOps;
 }
 
 /* returns the head of a list of TREE* nodes, expanding all RHS
@@ -1203,6 +1524,33 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     TREE *expressionNodes;
     int32_t is_bool = 0;
     handle_negative_number(csound, currentArg);
+
+    // Check for struct array member read: array[index].member
+    if (currentArg->type == STRUCT_EXPR &&
+        struct_expr_has_array_root(currentArg)) {
+      TREE* expanded = expand_struct_array_member_read(csound, currentArg,
+                                                       currentArg->line, currentArg->locn, typeTable);
+      if (expanded) {
+        anchor = append_to_tree(csound, anchor, expanded);
+        last = tree_tail(anchor);
+        char* newArg = last->left->value->lexeme;
+        newArgTree = create_ans_token(csound, newArg);
+
+        nextArg = currentArg->next;
+        csound->Free(csound, currentArg);
+
+        if (previousArg == NULL) {
+          current->right = newArgTree;
+        }
+        else {
+          previousArg->next = newArgTree;
+        }
+        newArgTree->next = nextArg;
+        currentArg = newArgTree;
+        continue;
+      }
+    }
+
     if (is_expression_node(currentArg) ||
         (is_bool = is_boolean_expression_node(currentArg))) {
       char * newArg;
@@ -1220,7 +1568,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                                     currentArg->line, currentArg->locn,
                                     typeTable);
       }
-     
+
 
       if (expressionNodes == NULL) {
         csound->Message(csound, "error creating expression.\n");
@@ -1309,8 +1657,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                          create_out_arg(csound, outType,
                                         typeTable->localPool->synthArgCount++,
                                         typeTable));
-      free(outType);  
-      
+      free(outType);
+
       if (previousArg == NULL) {
         current->left = temp;
       }
@@ -1340,7 +1688,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       anchor = append_to_tree(csound, anchor, arraySet);
       currentArg = temp;
-      
+
     }
     previousArg = currentArg;
     currentArg = currentArg->next;
@@ -1805,6 +2153,22 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
      arrayType == xType) isPerfRate = 1;
   else isPerfRate = 0;
 
+  // if an index var is given, we use it to define the loop time (i or k)
+  if (current->left->next != NULL) {
+    char *vartype;
+    int32_t isItime = !isPerfRate;
+    vartype = current->left->next->value->optype;
+    if(vartype)
+      isPerfRate = strcmp("k",vartype) == 0 ? 1 : 0;
+    if(isPerfRate == 0 &&
+       isItime == 0) {
+      synterr(csound, "cannot run a perf-time loop"
+              " with an i-time index, line %d",
+              current->line);
+      csoundLongJmp(csound, 0);
+    }
+  }
+
   char* op = (char *)csound->Malloc(csound, 10);
   // create index counter
   TREE *indexAssign = create_empty_token(csound);
@@ -1899,8 +2263,9 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
-  char* array_get = arrayType != sType ? "##array_get" : "##array_geti";
-  TREE* arrayGetStatement = create_opcode_token(csound, array_get); 
+  char* array_get = isPerfRate ? "##array_get" :
+    (arrayType == sType ? "##array_geti" : "##array_get");
+  TREE* arrayGetStatement = create_opcode_token(csound, array_get);
   arrayGetStatement->left = current->left;
 
   arrayGetStatement->right = copy_node(csound, arrayIdent);
@@ -1977,6 +2342,11 @@ int32_t is_statement_expansion_required(TREE* root) {
   TREE* current = root->right;
   while (current != NULL) {
     if (is_boolean_expression_node(current) || is_expression_node(current)) {
+      return 1;
+    }
+    // Check for struct array member read: array[index].member
+    if (current->type == STRUCT_EXPR &&
+        struct_expr_has_array_root(current)) {
       return 1;
     }
     current = current->next;

@@ -779,4 +779,19 @@ declare function libcsound(params?: {
 }): Promise<LibCsoundObj>;
 
 export { Csound, libcsound };
+export type {
+  CsoundFs,
+  CsoundFsStat,
+  CsoundObj,
+  CSOUND_PARAMS,
+  LibCsoundObj,
+  PublicEvents,
+  UgenArgTypeEnum,
+  UgenContextPtr,
+  UgenFactoryPtr,
+  UgenGraphPtr,
+  UgenOpcodeInfo,
+  UgenPtr,
+  UgenVarPtr,
+};
 export default Csound;

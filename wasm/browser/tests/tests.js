@@ -1130,7 +1130,7 @@ e
   /* ================================================================
    * libcsound + UGEN API tests (no WebAudio node)
    * ================================================================ */
-  describe.only("libcsound (no WebAudio)", function () {
+  describe("libcsound (no WebAudio)", function () {
     this.timeout(30000);
 
     /** Shared libcsound API instance (one wasm load for all tests) */

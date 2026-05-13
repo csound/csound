@@ -51,7 +51,7 @@ YYLTYPE *yylloc_param;
  ORCTOKEN *make_num(CSOUND *, char *,  void*);
  ORCTOKEN *make_token(CSOUND *, char *s,  void*);
  ORCTOKEN *make_label(CSOUND *, char *s,  void*);
-#define namedInstrFlag csound->parserNamedInstrFlag
+
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PARSE_PARM *
@@ -239,7 +239,6 @@ ERSTR           "}R"
                   return STRUCT_TOKEN;
                 }
 "instr"         {
-                  namedInstrFlag = 1;
                   return INSTR_TOKEN;
                 }
 "endin"         { *lvalp = make_token(csound, yytext, yyscanner);
@@ -637,9 +636,6 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         type = T_TYPED_IDENT;
     } else {
         ans->lexeme = csoundStrdup(csound, s);
-    }
-    if (csound->parserNamedInstrFlag == 1) {
-        return ans;
     }
     ans->type = type;
     return ans;
