@@ -11,17 +11,14 @@ icps cpsmidi
 asig vco2 iamp, icps
 a2 linenr asig, 0.001, 0.1, 0.01
    out a2*0.01
+itime = round(times:i()*kr)
+imtime = round(midifilepos:i()*kr)
+if itime != imtime then
+    prints "%d  %d\n", itime, imtime
+   exitnow(-1)
+endif
 endin
 
-instr 2
- rewindscore
- pos:i midifilepos 0
- if pos != 0 then
-   exitnow(-1)
- endif
- print pos
-endin
-schedule(2,10,0)
 
 </CsInstruments>
 <CsScore>
