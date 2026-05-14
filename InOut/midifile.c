@@ -70,7 +70,7 @@ typedef struct midifile_s {
   int32_t             tempoListIndex;     /* index of next tempo change       */
   int32_t         mute;                /* mute flag      */
   int32_t         pause;               /* pause flag     */
-  int32_t          id;                 /* item id in list */         
+  int32_t          id;                 /* item id in list */
   int32_t           port;              /* MIDI port (internal) */
   double           temposcal;          /* tempo scaling */
   double           counter;            /* playback counter */
@@ -91,6 +91,24 @@ static double initial_tempo(const midifile_t *midifile)
     tempo = midifile->tempoList[i].tempoVal;
     i++;
   }
+
+  return tempo;
+}
+
+static double tempo_at_position(const midifile_t *midifile, double position,
+                                int32_t *tempoListIndex)
+{
+  double tempo = initial_tempo(midifile);
+  int32_t index = 0;
+
+  while (index < midifile->nTempo &&
+         (double) midifile->tempoList[index].kcnt <= position) {
+    tempo = midifile->tempoList[index].tempoVal;
+    index++;
+  }
+
+  if (tempoListIndex != NULL)
+    *tempoListIndex = index;
 
   return tempo;
 }
@@ -775,7 +793,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   midifile_t  *mf;
   int32_t     i, j, n, nRead;
   uint8_t     port;
- 
+
 
   mf = midifile;
   if (mf == NULL)
@@ -785,12 +803,12 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   if(mf->pause) {
     return 0;
   }
-  
+
   port = (uint8_t) mf->port;
   i = mf->eventListIndex;
   j = mf->tempoListIndex;
   if (i >= mf->nEvents && j >= mf->nTempo) {
-    if(!mf->loop) { 
+    if(!mf->loop) {
     /* there are no more events, */
     if ((unsigned long) mf->counter >= mf->totalKcnt) {
       if(csound->oparms->msglevel & 7) {
@@ -808,9 +826,10 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     }
     return 0;
     } else {
-      // don't stop - loop 
+      // don't stop - loop
       j = mf->eventListIndex = 0;
       i = mf->tempoListIndex = 0;
+      mf->currentTempo = initial_tempo(mf);
       mf->counter = 0;
     }
   }
@@ -993,7 +1012,7 @@ int32_t midi_file_rewind(CSOUND *csound, void *p) {
         AllNotesOff(csound, csound->m_chnbp[i+mf->port]);
     }
     mf->counter = 0;
-    mf->currentTempo = default_tempo;
+    mf->currentTempo = initial_tempo(mf);
     mf->eventListIndex = 0;
     mf->tempoListIndex = 0;
   }
@@ -1028,7 +1047,7 @@ int32_t midi_file_loop(CSOUND *csound, MIDITEMPO *p){
    midifile_t *mf = find_midifile(csound, (int32_t) *p->num);
   if(mf) {
     mf->loop = (int) *p->kResult;
-  } 
+  }
   return OK;
 }
 
@@ -1066,14 +1085,10 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
       for(i = 0; i < mf->nEvents; i++)
         if(mf->eventList[i].kcnt > posk) break;
       mf->eventListIndex = i;
-      
-      for(i = 0; i < mf->nTempo; i++) {
-        // reset to last tempo found
-        mf->currentTempo = mf->tempoList[i].tempoVal; 
-        if(mf->tempoList[i].kcnt > posk) break;
-      }
-     mf->tempoListIndex = i;      
-     mf->counter = posk;
+
+      mf->currentTempo = tempo_at_position(mf, posk, &i);
+      mf->tempoListIndex = i;
+      mf->counter = posk;
     }
   }
   return OK;

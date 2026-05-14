@@ -643,7 +643,8 @@ def runTest():
         ["test_async_diskin.csd", "test diskin in rt async mode"],
         ["test_midifile_ops.csd", "testing midifile opcodes"],
         ["test_midifile_loop.csd", "testing midifile tempo set, pos, loop"],
-        ["test_midifile_time.csd", "testing midifile time counting"],            
+        ["test_midifile_seek_tempo.csd", "testing tempo restoration after midifilepos"],
+        ["test_midifile_time.csd", "testing midifile time counting"],
         ["test_csound_object.csd", "test Csound object opcodes"],
         ["test_true_false.csd", "testing true/false booleans"],
         [
