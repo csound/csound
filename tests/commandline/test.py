@@ -807,12 +807,7 @@ def runTest():
         ["test_midifile.csd", "Test midi file input (-F)"],
     ]
 
-    # NB these need to run sequentially
     mkirTests = [
-      ["gensweep.csd", "test mkir util sweep generation"],
-      ["mkrev.csd", "run sweep through reverb"],
-      ["mkir.csd", "test mkir util IR deconvolution"],
-      ["test_ir.csd", "test generated IR"],
       ["test_deconv.csd", "test deconv opcode"],
       ["test_ideconv.csd", "test init-time deconv opcode"],
       ["test_gen_deconv.csd", "test deconv gen"]
@@ -823,6 +818,7 @@ def runTest():
     tests += udoTests
     tests += maxallocTests
     tests += pfieldTests
+    tests += mkirTests
    
     output = ""
 
@@ -889,8 +885,6 @@ def runTest():
     # Execute tests and collect results
     start_time = time.time()
     results = run_tests_parallel(tests, runArgs, max_workers, collect_result)
-    # mkir tests need to run sequentially and write to disk
-    results2 = run_tests_parallel(mkirTests, "", 1, collect_result)
     total_execution_time = time.time() - start_time
 
     logger.info(f"All tests completed in {total_execution_time:.2f} seconds")
@@ -904,13 +898,6 @@ def runTest():
             counter = i + 1
             formatted_output = result.get_formatted_output(counter, verbose_logging)
             print(formatted_output)
-
-    for i, result in enumerate(results2):
-        if result:  # Check if result exists (should always be true)
-            counter = i + 1
-            formatted_output = result.get_formatted_output(counter, verbose_logging)
-            print(formatted_output)
-            
 
     print("%s\n\n" % ("=" * 80))
     print("Tests Passed: %i\nTests Failed: %i\n" % (testPass, testFail))
