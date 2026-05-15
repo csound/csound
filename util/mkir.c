@@ -49,9 +49,9 @@ static void specdiv(CSOUND *csound, MYFLT *inp, MYFLT *swp, int32_t fftlen) {
    void *setup = csound->RealFFTSetup(csound, fftlen, FFT_FWD);
    csound->RealFFT(csound, setup, inp);
    csound->RealFFT(csound, setup, swp);
-   //if(swp[0] != 0)
+   if(swp[0] != 0)
      inp[0] /= swp[0];
-     //if(swp[1] != 0)
+   if(swp[1] != 0)
      inp[1] /= swp[1];
    for(int n = 2; n < fftlen; n+=2) {
      MYFLT c = swp[n], a = inp[n];
