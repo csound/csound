@@ -49,8 +49,10 @@ static void specdiv(CSOUND *csound, MYFLT *inp, MYFLT *swp, int32_t fftlen) {
    void *setup = csound->RealFFTSetup(csound, fftlen, FFT_FWD);
    csound->RealFFT(csound, setup, inp);
    csound->RealFFT(csound, setup, swp);
-   if(swp[0] != 0) inp[0] /= swp[0];
-   if(swp[1] != 0) inp[1] /= swp[1];
+   //if(swp[0] != 0)
+     inp[0] /= swp[0];
+     //if(swp[1] != 0)
+     inp[1] /= swp[1];
    for(int n = 2; n < fftlen; n+=2) {
      MYFLT c = swp[n], a = inp[n];
      MYFLT d = swp[n+1], b = inp[n+1];
@@ -299,6 +301,12 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   MYFLT   *fp;
   MYFLT   *inpd;
   int32_t chns = ff->e.pcnt - 5;
+
+  if(ff->e.p[5] <= 0) {
+    csound->Message(csound, "sweep table num %d illegal", (int) ff->e.p[5]);
+    return NOTOK;
+  }
+                        
   
   if(chns < 1) {
     csound->Message(csound, "insufficient number of input channels: %d", chns);
@@ -309,27 +317,37 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
    fp = ftp->ftable;
    if(len != ftp->flen/chns) {
      csound->Message(csound, "destination table size not matching"
-                     " sweep, size %d frames, need %d", ftp->flen/chns, len);
+                     " sweep, size %d frames, need %d\n", ftp->flen/chns, len);
     return NOTOK;
    }
   }
   else {
     ff->e.p[3] = len*chns;
     csound->FTCreate(csound, &ftp, &ff->e, ff->e.p[1]);
-    fp = ftp->ftable;
+    if(ftp)
     // table allocated, exit.
     return OK;
+    else return NOTOK;
   }
   
   sweep = csound->FTFind(csound, &(ff->e.p[5]));
   for(int n = 0; n < chns; n++) {
+    if(ff->e.p[n+6] <= 0) {
+      csound->Message(csound, "inpuy table num %d illegal", (int) ff->e.p[n+6]);
+     return NOTOK;
+    }
     inp = csound->FTFind(csound, &(ff->e.p[n+6]));
+    if(inp->flen && len) {
     inpd = (MYFLT *) csound->Calloc(csound, inp->flen*sizeof(MYFLT));  
     memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
     deconvolve(csound, sweep->ftable, inpd, len, inp->flen);
     for(int i = 0; i < len; i++)
       fp[i*chns + n] = inpd[i];  
      csound->Free(csound, inpd);
+    } else {
+      csound->Message(csound, "input table length 0\n");
+      return NOTOK;
+    }
   }
   return OK;
 }
