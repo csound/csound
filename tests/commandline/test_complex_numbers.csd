@@ -62,10 +62,19 @@ assert(imag(Ca[0]), 0)
 assert(imag(Ca[1]), 1)
 endin
 
+instr 4
+Ca1:Complex[] = [ complex(1,0), complex(0,1), complex(0,0) ]
+Ca:Complex[] = [ complex(1,0), complex(0,1) ]
+Ra:k[] = [1, 2, 3]
+Ca += Ra
+Ca = 2*Ca/Ca1
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
+i4 0 1
 </CsScore>
 </CsoundSynthesizer>

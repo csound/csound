@@ -24,6 +24,16 @@
 #include "complex_ops.h"
 #include <math.h>
 
+static inline int32_t smallest(int32_t a, int32_t b, int32_t c) {
+  if(c == 0) return a < b ? a : b;
+  if(a < b && a < c) return a;
+  if(b < a && b < c) return b;
+  return c;
+}
+
+static inline int32_t smallest2(int32_t a, int32_t b) {
+  return a < b ? a : b;
+}
 
 /* magnitude from complex number */
 static inline MYFLT complex_to_mag(COMPLEXDAT *p) {
@@ -699,7 +709,8 @@ int32_t complex_x_scalar(CSOUND *csound, COPS1 *p) {
     array = (ARRAYDAT *) p->a;
     num = *p->b;
   }
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_sc_prod(out,in,num,len);
@@ -723,7 +734,8 @@ cmplx_sc_div(COMPLEXDAT *out, COMPLEXDAT *in, MYFLT num, int32_t n) {
 int32_t complex_div_scalar(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array = (ARRAYDAT *) p->a;
   MYFLT num = *p->b;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_sc_div(out,in,num,len);
@@ -758,7 +770,8 @@ int32_t complex_plus_scalar(CSOUND *csound, COPS1 *p) {
     array = (ARRAYDAT *) p->a;
     num = *p->b;
   }
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_sc_add(out,in,num,len);
@@ -768,7 +781,8 @@ int32_t complex_plus_scalar(CSOUND *csound, COPS1 *p) {
 int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array = (ARRAYDAT *) p->b;
   MYFLT num = *p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < len; i++) {
@@ -791,7 +805,8 @@ int32_t scalar_minus_complex(CSOUND *csound, COPS1 *p) {
 int32_t complex_minus_scalar(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array = (ARRAYDAT *) p->a;
   MYFLT num = *p->b;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < len; i++) {
@@ -838,7 +853,8 @@ int32_t complex_x_complex(CSOUND *csound, COPS1 *p) {
     array = (ARRAYDAT *) p->a;
     num = *(COMPLEXDAT *)p->b;
   }
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_prod(out,in,num,len);
@@ -867,7 +883,8 @@ cmplx_cmplx_div(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT num, int32_t n) {
 int32_t complex_div_complex(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array = (ARRAYDAT *) p->a;
   COMPLEXDAT num = *(COMPLEXDAT *)p->b;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_div(out,in,num,len);
@@ -903,7 +920,8 @@ int32_t complex_plus_complex(CSOUND *csound, COPS1 *p) {
     array = (ARRAYDAT *) p->a;
     num = *(COMPLEXDAT *)p->b;
   }
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_add(out,in,num,len);
@@ -913,7 +931,8 @@ int32_t complex_plus_complex(CSOUND *csound, COPS1 *p) {
 int32_t complex_minus_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array = (ARRAYDAT *) p->b;
   COMPLEXDAT num = *(COMPLEXDAT *)p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < len; i++) {
@@ -937,7 +956,8 @@ int32_t complex_minus_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_minus_complex(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array = (ARRAYDAT *) p->a;
   COMPLEXDAT num = *(COMPLEXDAT *)p->b;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *) array->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < len; i++) {
@@ -977,7 +997,8 @@ int32_t complexa_x_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -989,7 +1010,8 @@ int32_t complexa_x_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_mulin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_proda(out, out, in1, len);
@@ -1012,12 +1034,12 @@ cmplx_cmplx_diva(COMPLEXDAT *out, COMPLEXDAT *in, COMPLEXDAT* num, int32_t n) {
   }
 }
 
-
 int32_t complexa_div_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1028,7 +1050,8 @@ int32_t complexa_div_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_divin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_diva(out,out,in1,len);
@@ -1058,7 +1081,8 @@ int32_t complexa_plus_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1069,7 +1093,8 @@ int32_t complexa_plus_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_addin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_adda(out,out,in1,len);
@@ -1099,7 +1124,8 @@ int32_t complexa_sub_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *in2 = (COMPLEXDAT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1109,8 +1135,9 @@ int32_t complexa_sub_complexa(CSOUND *csound, COPS1 *p) {
 
 int32_t complexa_subin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
-  array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  array1 = (ARRAYDAT *) p->a;  
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_cmplx_suba(out,out,in1,len);
@@ -1135,7 +1162,8 @@ int32_t complexa_x_reala(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   MYFLT *in2 = (MYFLT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1147,7 +1175,8 @@ int32_t reala_x_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1159,7 +1188,8 @@ int32_t reala_x_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_mulrealin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   MYFLT *in1 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_real_proda(out, out, in1, len);
@@ -1185,7 +1215,8 @@ int32_t complexa_div_reala(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   MYFLT *in2 = (MYFLT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1197,7 +1228,8 @@ int32_t reala_div_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1209,7 +1241,8 @@ int32_t reala_div_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_divrealin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   MYFLT *in1 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_real_diva(out,out,in1,len);
@@ -1239,7 +1272,8 @@ int32_t complexa_plus_reala(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   MYFLT *in2 = (MYFLT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1251,7 +1285,8 @@ int32_t reala_plus_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1264,6 +1299,7 @@ int32_t complexa_addrealin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
   int32_t len = p->out->sizes[0];
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   MYFLT *in1 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_real_suma(out,out,in1,len);
@@ -1294,7 +1330,8 @@ int32_t complexa_minus_reala(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array1->data;
   MYFLT *in2 = (MYFLT *) array2->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1306,7 +1343,8 @@ int32_t reala_minus_complexa(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1, *array2;
   array2 = (ARRAYDAT *) p->b;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest(p->out->sizes[0], array1->sizes[0], array2->sizes[0]);
   COMPLEXDAT *in1 = (COMPLEXDAT *) array2->data;
   MYFLT *in2 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
@@ -1318,7 +1356,8 @@ int32_t reala_minus_complexa(CSOUND *csound, COPS1 *p) {
 int32_t complexa_subrealin(CSOUND *csound, COPS1 *p) {
   ARRAYDAT *array1;
   array1 = (ARRAYDAT *) p->a;
-  int32_t len = p->out->sizes[0];
+  int32_t len =
+    smallest2(p->out->sizes[0], array1->sizes[0]);
   MYFLT *in1 = (MYFLT *) array1->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   cmplx_real_minusa(out,out,in1,len);
@@ -1402,7 +1441,8 @@ int32_t complex_array_arg(CSOUND *csound, COPS1 *p) {
 }
 
 int32_t complex_array_conj(CSOUND *csound, COPS1 *p) {
-  int32_t n = p->out->sizes[0];
+  int32_t n =
+    smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
@@ -1414,7 +1454,8 @@ int32_t complex_array_conj(CSOUND *csound, COPS1 *p) {
 }
 
 int32_t complex_array_polar(CSOUND *csound, COPS1 *p) {
-  int32_t n = p->out->sizes[0];
+ int32_t n =
+    smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
@@ -1429,7 +1470,8 @@ int32_t complex_array_polar(CSOUND *csound, COPS1 *p) {
 }
 
 int32_t complex_array_complex(CSOUND *csound, COPS1 *p) {
-  int32_t n = p->out->sizes[0];
+  int32_t n =
+    smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   COMPLEXDAT *in = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
@@ -1475,6 +1517,9 @@ int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
   if(IS_ARRAY_ARG(p->a)) {
     in1 = ((ARRAYDAT *) p->a)->data;
     in2 = ((ARRAYDAT *) p->b)->data;
+    n =
+    smallest(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0],
+             ((ARRAYDAT *)p->b)->sizes[0]);
   }
   COMPLEXDAT *out = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
@@ -1486,7 +1531,7 @@ int32_t complex_array_assign(CSOUND *csound, COPS1 *p) {
 }
 
 int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
-  int32_t n = p->out->sizes[0];
+  int32_t n = smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
@@ -1505,7 +1550,7 @@ int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
 }
 
 int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
-  int32_t n = p->out->sizes[0];
+  int32_t n = smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   COMPLEXDAT *cmpx = (COMPLEXDAT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
@@ -1526,7 +1571,7 @@ int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
 }
 
 int32_t complex_exp_array(CSOUND *csond, COPS1 *p) {
-  int32_t n = p->out->sizes[0];
+  int32_t n = smallest2(p->out->sizes[0],((ARRAYDAT *)p->a)->sizes[0]);
   MYFLT *angle = (MYFLT *)((ARRAYDAT *)p->a)->data;
   COMPLEXDAT *ans = (COMPLEXDAT *) p->out->data;
   for(int i = 0; i < n; i++) {
