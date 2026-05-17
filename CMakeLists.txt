@@ -1702,7 +1702,7 @@ endif()
 
 
 
-if(BUILD_STATIC_LIBRARY)
+if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_static_SRCS})
     target_include_directories(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
@@ -1815,7 +1815,7 @@ if(WIN32 OR NOT IOS OR OSXCROSS_TARGET)
 endif()
 
 # export static library targets (only when BUILD_STATIC_LIBRARY is enabled)
-if(BUILD_STATIC_LIBRARY)
+if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
     install(EXPORT CsoundStaticExports
         FILE "CsoundStaticTargets.cmake"
         NAMESPACE "Csound::"
