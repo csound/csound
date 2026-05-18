@@ -703,7 +703,8 @@ gen_array : '[' expr S_ELIPSIS2 expr_list  ']' {
             append_to_tree(csound, $$->right, $4);
              }
 
-slice_array : identifier '[' expr ':' expr_list  ']' {
+slice_array :
+          identifier '[' expr ':' expr_list  ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
             $$->right = append_to_tree(csound, $$->right, $3);
@@ -720,6 +721,28 @@ slice_array : identifier '[' expr ':' expr_list  ']' {
            }
            |
            identifier '[' expr ':' ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
+            $$->right = $1;
+            $$->right = append_to_tree(csound, $$->right, $3);
+           }
+          |
+          expr '[' expr ':' expr_list  ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
+            $$->right = $1;
+            $$->right = append_to_tree(csound, $$->right, $3);
+            append_to_tree(csound, $$->right, $5);
+           }
+           |
+           expr '[' ':' expr_list  ']' {
+            $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
+            $$->right = $1;
+            $$->right = append_to_tree(csound, $$->right,
+                                       make_leaf(csound,LINE,LOCN, T_IDENT,
+                                                 make_int(csound, "0", NULL)));
+            append_to_tree(csound, $$->right, $4);
+           }
+           |
+           expr '[' expr ':' ']' {
             $$ = make_leaf(csound,LINE,LOCN, T_FUNCTION, make_token(csound, "slicearray", NULL));
             $$->right = $1;
             $$->right = append_to_tree(csound, $$->right, $3);

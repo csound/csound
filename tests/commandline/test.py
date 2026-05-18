@@ -812,12 +812,19 @@ def runTest():
         ["test_midifile.csd", "Test midi file input (-F)"],
     ]
 
+    mkirTests = [
+      ["test_deconv.csd", "test deconv opcode"],
+      ["test_ideconv.csd", "test init-time deconv opcode"],
+      ["test_gen_deconv.csd", "test deconv gen"]
+    ]
+
     tests += arrayTests
     tests += structTests
     tests += udoTests
     tests += maxallocTests
     tests += pfieldTests
-
+    tests += mkirTests
+   
     output = ""
 
     retVals = []
