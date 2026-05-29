@@ -185,7 +185,7 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      if(fd == NULL)
        csound->Die(csound, "%s", Str("could not open input file"));
      
-     iframes = (int32_t) sfinfo.frames;
+     iframes = (int32_t) (sfinfo.frames > frames ? sfinfo.frames : frames);
      inp = (MYFLT *) csound->Calloc(csound, iframes*sizeof(MYFLT)*sfinfo.channels);
      csound->SndfileRead(csound,fd,inp,iframes);
      csound->SndfileClose(csound,fd);
@@ -194,11 +194,17 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
        int i, j, m = sfinfo.channels;
        MYFLT *outp, *chn = (MYFLT *)
          csound->Calloc(csound, len*sizeof(MYFLT));
+       csound->Message(csound,
+                     "\tmultichannel input: %d channels\n",
+                     sfinfo.channels);       
        for(i = 0; i < sfinfo.channels; i++) {
-         for(j = 0; j < len; j++)
+         csound->Message(csound,
+                     "\t\tprocessing channel %d\n",
+                     i);    
+         for(j = 0; j < iframes; j++)
              chn[j] = inp[j*m + i];
          outp = deconvolve(csound, swp, chn, frames, iframes);
-         for(j = 0; j < len; j++)
+         for(j = 0; j < iframes; j++)
              inp[j*m + i] = outp[j];
        }
        csound->Free(csound, chn);
@@ -217,8 +223,8 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
                      "\tcreated IR file %s\n",
                      outputfile);
      csound->Message(csound,
-                     "\tsr = %.1f, %.3f seconds\n",
-                     sr, frames/sr);
+                     "\tsr = %.1f, %.3f seconds, %d channels\n",
+                     sr, frames/sr, sfinfo.channels);
    }
   else {
     SFLIB_INFO sfinfo;
@@ -333,19 +339,22 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   sweep = csound->FTFind(csound, &(ff->e.p[5]));
   for(int n = 0; n < chns; n++) {
     if(ff->e.p[n+6] <= 0) {
-      csound->Message(csound, "inpuy table num %d illegal", (int) ff->e.p[n+6]);
+      csound->Message(csound, "input table num %d illegal", (int) ff->e.p[n+6]);
      return NOTOK;
     }
     inp = csound->FTFind(csound, &(ff->e.p[n+6]));
-    if(inp->flen && len) {
-    inpd = (MYFLT *) csound->Calloc(csound, inp->flen*sizeof(MYFLT));  
-    memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
-    deconvolve(csound, sweep->ftable, inpd, len, inp->flen);
-    for(int i = 0; i < len; i++)
-      fp[i*chns + n] = inpd[i];  
-     csound->Free(csound, inpd);
+    
+    // input length cannot be smaller than sweep length
+    if(len) {
+      int32_t ilen =  inp->flen > len ? inp->flen : len;
+      inpd = (MYFLT *) csound->Calloc(csound, ilen*sizeof(MYFLT));  
+      memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
+      deconvolve(csound, sweep->ftable, inpd, len, ilen);
+      for(int i = 0; i < len; i++)
+        fp[i*chns + n] = inpd[i];  
+      csound->Free(csound, inpd);
     } else {
-      csound->Message(csound, "input table length 0\n");
+      csound->Message(csound, "illegal sweep source table length: %d\n", len);
       return NOTOK;
     }
   }

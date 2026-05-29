@@ -1,17 +1,14 @@
 # CSOUND
 Version 7.0.0 (beta)
 
-This is the develop branch of the Csound main code repository. At
-the moment, we are developing the next main version (moving from 6.x
-to 7.0), and this branch reflects current work-in-progress. This is
-still undergoing changes and fixes until the first release. The
+This is the develop branch of the Csound main code repository. The
 latest beta release installers for MacOS, iOS, and Windows can be
 downloaded from the relevant
 [github actions page](https://github.com/csound/csound/actions/workflows/csound_builds.yml).
 Selecting the latest develop build brings a page with the download
 artefacts at the bottom.
 
-
+The develop branch of this repository contains Csound version 7.x.
 Anyone seeking the latest 6.x version please checkout the csound6
 branch (or the master branch, containing the latest and final release
 of this version). Note that 6.x is EOL and no more releases of that
@@ -39,9 +36,10 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 
 # GETTING STARTED
 
-This repository contains the code for the core Csound library, the
-interfaces library, and the command-line interface frontend. It also
-contains specific code for ports to various embedded, mobile and web platforms.
+This repository contains the code for the core Csound library
+and the command-line interface frontend. It also
+contains specific code for ports to various embedded, 
+mobile and web platforms.
 
 For general project information, please look at http://csound.com,
 where all details about Csound, what it does, its history, music
