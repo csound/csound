@@ -477,7 +477,7 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
       pp.args[0] = p->which;
       pp.args[1] = p->when;
       pp.args[2] = p->dur;
-      pp.argno = p->INOCOUNT;
+      pp.argno = p->INOCOUNT-1;
       for(i=3; i < pp.argno ; i++) {
         pp.args[i] = p->argums[i-3];
       }

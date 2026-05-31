@@ -420,6 +420,7 @@ def runTest():
         ["test46.csd", "if-then with expression in boolean comparison"],
         ["test47.csd", "until loop and k[]"],
         ["test48.csd", "expected failure with variable used before defined", 1],
+        ["test_schedwhen.csd", "schedwhen opcode"],
         ["test_parse_error_unary.csd", "expected failure: unary parse error", 1],
         ["test_parse_error_unary_not.csd", "expected failure: unary ! parse error", 1],
         ["test_parse_error_unary_minus.csd", "expected failure: unary - parse error", 1],
