@@ -3503,8 +3503,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            0x0000);
         udo_name = top->value->lexeme;
       } else {
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
-	csound->Message(csound, "New-style UDO found\n");
+        if(UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
+	 csound->Message(csound, "New-style UDO found\n");
         if(current->left->right != NULL &&
            *current->left->right->value->lexeme != '0') {
           add_args(csound, current->left->right, typeTable);
