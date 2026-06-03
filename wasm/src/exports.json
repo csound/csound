@@ -229,5 +229,7 @@
   "csoundDebugGetInstrInstances",
   "csoundDebugFreeInstrInstances",
   "csoundDebugGetVariables",
-  "csoundDebugFreeVariables"
+  "csoundDebugFreeVariables",
+  "csoundDebugGetUdoFrames",
+  "csoundDebugFreeUdoFrames"
 ]

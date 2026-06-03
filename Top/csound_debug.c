@@ -21,8 +21,10 @@
 */
 
 #include <assert.h>
+#include <string.h>
 
 #include "csdebug.h"
+#include "udo.h"
 
 int32_t kperf(CSOUND *csound);
 int32_t kperf_debug(CSOUND *csound);  
@@ -330,14 +332,14 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
     }
 }
 
- debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
-                                                 debug_instr_t *instr)
+static debug_variable_t *csoundDebugGetVariablesFromPool(
+    CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas)
 {
     debug_variable_t *head = NULL;
-    debug_variable_t *debug_var = head;
-    CS_VARIABLE * var = instr->varPoolHead;
+    debug_variable_t *debug_var = NULL;
+    CS_VARIABLE *var = varPoolHead;
     while (var) {
-        void * varmem = NULL;
+        void *varmem = NULL;
         if (!head) {
             head = csound->Malloc(csound, sizeof(debug_variable_t));
             debug_var = head;
@@ -353,9 +355,9 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
                 || strcmp(debug_var->typeName, "a") == 0
                 || strcmp(debug_var->typeName, "r") == 0
                 ) {
-            varmem = instr->lclbas + var->memBlockIndex;
+            varmem = lclbas + var->memBlockIndex;
         } else if (strcmp(debug_var->typeName, "S") == 0) {
-            STRINGDAT *strdata = (STRINGDAT *) (instr->lclbas + var->memBlockIndex);
+            STRINGDAT *strdata = (STRINGDAT *) (lclbas + var->memBlockIndex);
             varmem = &strdata->data[0];
         } else {
             csound->Message(csound, "csoundDebugGetVarData() unknown data type.\n");
@@ -364,6 +366,117 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
         var = var->next;
     }
     return head;
+}
+
+ debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
+                                                 debug_instr_t *instr)
+{
+    return csoundDebugGetVariablesFromPool(csound, instr->varPoolHead,
+                                           instr->lclbas);
+}
+
+static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p)
+{
+    INSDS *udo_ip;
+    if (p == NULL || p->ip == NULL) {
+        return NULL;
+    }
+    udo_ip = p->ip;
+    return (UOPCODE *)udo_ip->opcod_deact;
+}
+
+static const char *csoundDebugUdoName(UOPCODE *p)
+{
+    OPCOD_IOBUFS *buf = p->buf;
+    if (buf != NULL && buf->opcode_info != NULL && buf->opcode_info->name != NULL) {
+        return buf->opcode_info->name;
+    }
+    if (p->h.optext != NULL && p->h.optext->t.opcod != NULL) {
+        return p->h.optext->t.opcod;
+    }
+    return "unknown";
+}
+
+static void csoundDebugAppendUdoFrame(
+    CSOUND *csound,
+    debug_udo_frame_t **head,
+    debug_udo_frame_t **tail,
+    UOPCODE *p,
+    INSDS *udo_ip,
+    int32_t depth,
+    int32_t frameIndex)
+{
+    debug_udo_frame_t *frame =
+        csound->Malloc(csound, sizeof(debug_udo_frame_t));
+    frame->udoName = csoundDebugUdoName(p);
+    frame->callLine = (p->h.optext != NULL) ? p->h.optext->t.linenum : 0;
+    frame->depth = depth;
+    frame->frameIndex = frameIndex;
+    if (udo_ip->instr != NULL && udo_ip->instr->varPool != NULL) {
+        frame->varList = csoundDebugGetVariablesFromPool(
+            csound, udo_ip->instr->varPool->head, udo_ip->lclbas);
+    } else {
+        frame->varList = NULL;
+    }
+    frame->next = NULL;
+    if (*tail == NULL) {
+        *head = *tail = frame;
+    } else {
+        (*tail)->next = frame;
+        *tail = frame;
+    }
+}
+
+static void csoundDebugCollectUdoFrames(
+    CSOUND *csound,
+    INSDS *ip,
+    int32_t depth,
+    debug_udo_frame_t **head,
+    debug_udo_frame_t **tail,
+    int32_t *frameIndex)
+{
+    UOPCODE *p;
+    for (p = (UOPCODE *)ip->opcod_deact; p != NULL;
+         p = csoundDebugUdoChainNext(p)) {
+        INSDS *udo_ip = p->ip;
+        if (udo_ip == NULL) {
+            continue;
+        }
+        if (!ATOMIC_GET(udo_ip->init_done)) {
+            continue;
+        }
+        csoundDebugAppendUdoFrame(csound, head, tail, p, udo_ip, depth,
+                                  (*frameIndex)++);
+        csoundDebugCollectUdoFrames(csound, udo_ip, depth + 1, head, tail,
+                                    frameIndex);
+    }
+}
+
+debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
+                                           debug_instr_t *instr)
+{
+    debug_udo_frame_t *head = NULL;
+    debug_udo_frame_t *tail = NULL;
+    int32_t frameIndex = 0;
+    INSDS *ip;
+    if (instr == NULL || instr->instrptr == NULL) {
+        return NULL;
+    }
+    ip = (INSDS *)instr->instrptr;
+    csoundDebugCollectUdoFrames(csound, ip, 0, &head, &tail, &frameIndex);
+    return head;
+}
+
+void csoundDebugFreeUdoFrames(CSOUND *csound, debug_udo_frame_t *frameHead)
+{
+    while (frameHead) {
+        debug_udo_frame_t *old = frameHead;
+        frameHead = frameHead->next;
+        if (old->varList) {
+            csoundDebugFreeVariables(csound, old->varList);
+        }
+        csound->Free(csound, old);
+    }
 }
 
 

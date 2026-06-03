@@ -3,6 +3,8 @@
  * Author: mantaraya36
  */
 #define __BUILDING_LIBCSOUND
+#include <cmath>
+#include <cstring>
 #include <stdio.h>
 
 #include "csoundCore.h"
@@ -466,5 +468,184 @@ TEST_F (DebuggerTests, testNext)
     csoundDebuggerClean(csound);
 
     ASSERT_EQ(count, 5);
+}
+
+static int32_t kcycle_count = 0;
+
+static void kcycle_cb_test(CSOUND *csound, void *userdata)
+{
+    int32_t *count = (int32_t *)userdata;
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    if (instrs) {
+        (*count)++;
+        csoundDebugFreeInstrInstances(csound, instrs);
+    }
+    (void)csound;
+}
+
+TEST_F (DebuggerTests, testKcycleCallbackWithoutDebuggerInit)
+{
+    int32_t i;
+    kcycle_count = 0;
+
+    csoundCompileOrc(csound, "instr 1\nkval init 1\nendin\n", 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    csoundSetKcycleCallback(csound, kcycle_cb_test, &kcycle_count);
+
+    for (i = 0; i < 8; i++) {
+        csoundPerformKsmps(csound);
+    }
+
+    csoundRemoveKcycleCallback(csound);
+    ASSERT_GT(kcycle_count, 0);
+}
+
+static debug_variable_t *findDebugVar(debug_variable_t *vars, const char *name)
+{
+    while (vars) {
+        if (vars->name && strcmp(vars->name, name) == 0) {
+            return vars;
+        }
+        vars = vars->next;
+    }
+    return NULL;
+}
+
+static MYFLT readDebugScalar(debug_variable_t *var)
+{
+    return var && var->data ? *((MYFLT *)var->data) : 0;
+}
+
+TEST_F (DebuggerTests, testUdoFramesExposeInternalLocals)
+{
+    const char *orc =
+        "opcode simpleGain, a, ak\n"
+        "  ain, kGain xin\n"
+        "  kInternal = kGain * 2\n"
+        "  aOut = ain * kInternal\n"
+        "  xout aOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  kGain init 0.25\n"
+        "  aIn oscili 0.3, 440\n"
+        "  aOut simpleGain aIn, kGain\n"
+        "endin\n";
+
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    csoundPerformKsmps(csound);
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    ASSERT_NE(frames, nullptr);
+    ASSERT_STREQ(frames->udoName, "simpleGain");
+    ASSERT_GT(frames->callLine, 0);
+
+    debug_variable_t *kInternal = findDebugVar(frames->varList, "kInternal");
+    ASSERT_NE(kInternal, nullptr);
+    ASSERT_DOUBLE_EQ(readDebugScalar(kInternal), 0.5);
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
+TEST_F (DebuggerTests, testUdoFramesDualCallSites)
+{
+    const char *orc =
+        "opcode stereoGain, a, ak\n"
+        "  ain, kGain xin\n"
+        "  kScaled = kGain * 0.5\n"
+        "  aOut = ain * kScaled\n"
+        "  xout aOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  kGainL init 0.3\n"
+        "  kGainR init 0.7\n"
+        "  aIn oscili 0.4, 440\n"
+        "  aL stereoGain aIn, kGainL\n"
+        "  aR stereoGain aIn, kGainR\n"
+        "endin\n";
+
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    csoundPerformKsmps(csound);
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    ASSERT_NE(frames, nullptr);
+
+    int32_t count = 0;
+    int32_t sawL = 0;
+    int32_t sawR = 0;
+    for (debug_udo_frame_t *f = frames; f != NULL; f = f->next) {
+        count++;
+        ASSERT_STREQ(f->udoName, "stereoGain");
+        debug_variable_t *kScaled = findDebugVar(f->varList, "kScaled");
+        ASSERT_NE(kScaled, nullptr);
+        MYFLT val = readDebugScalar(kScaled);
+        if (fabs(val - 0.15) < 1e-6) {
+            sawL = 1;
+        }
+        if (fabs(val - 0.35) < 1e-6) {
+            sawR = 1;
+        }
+    }
+    ASSERT_GE(count, 2);
+    ASSERT_EQ(sawL, 1);
+    ASSERT_EQ(sawR, 1);
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
+TEST_F (DebuggerTests, testUdoFramesNestedDepth)
+{
+    const char *orc =
+        "opcode inner, k, k\n"
+        "  kIn xin\n"
+        "  kOut = kIn + 1\n"
+        "  xout kOut\n"
+        "endop\n"
+        "opcode outer, k, k\n"
+        "  kIn xin\n"
+        "  kChild inner kIn\n"
+        "  kOut = kChild + 10\n"
+        "  xout kOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  kResult outer 0\n"
+        "endin\n";
+
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    csoundPerformKsmps(csound);
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    ASSERT_NE(frames, nullptr);
+
+    int32_t maxDepth = -1;
+    int32_t sawInner = 0;
+    for (debug_udo_frame_t *f = frames; f != NULL; f = f->next) {
+        if (f->depth > maxDepth) {
+            maxDepth = f->depth;
+        }
+        if (strcmp(f->udoName, "inner") == 0) {
+            sawInner = 1;
+            debug_variable_t *kOut = findDebugVar(f->varList, "kOut");
+            ASSERT_NE(kOut, nullptr);
+        }
+    }
+    ASSERT_GE(maxDepth, 1);
+    ASSERT_EQ(sawInner, 1);
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
 }
 
