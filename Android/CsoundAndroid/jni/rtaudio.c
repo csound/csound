@@ -79,8 +79,10 @@ static aaudio_data_callback_result_t
      return AAUDIO_CALLBACK_RESULT_CONTINUE;
   for(int i = 0;  i < numFrames; i++, n++){
     if(n == ksmps){
-      csound->ReadCircularBuffer(csound,cdata->incb,
-                               bufi,ksmps*chns);
+      if(cdata->incb != NULL) {
+       csound->ReadCircularBuffer(csound,cdata->incb,
+                                  bufi,ksmps*csound->GetNchnls_i(csound));
+      }
       res = csoundPerformKsmps(csound);
       if(res != 0) return AAUDIO_CALLBACK_RESULT_STOP;
       n = 0;
@@ -93,48 +95,60 @@ static aaudio_data_callback_result_t
 }
 
 static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
-   AAudioStreamBuilder *builder;
-   aaudio_result_t result = AAudio_createStreamBuilder(&builder);
-   int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
-   void **data = csound->GetRtPlayUserData(csound);
-   AAUDIO_PARAMS *cdata;
-   cdata = (AAUDIO_PARAMS*)
+  AAudioStreamBuilder *builder;
+  aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+  if(result == AAUDIO_OK) {
+    int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
+    void **data = csound->GetRtPlayUserData(csound);
+    AAUDIO_PARAMS *cdata, *cdata_in;
+    cdata = (AAUDIO_PARAMS*)
       csound->Calloc(csound, sizeof(AAUDIO_PARAMS));
-   *data = cdata;
-   
-   AAudioStreamBuilder_setDeviceId(builder, dev);  
-   AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
-   AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
-   AAudioStreamBuilder_setSampleRate(builder, parm->sampleRate);
-   AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
-   AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
-   AAudioStreamBuilder_setPerformanceMode(builder,
-                                          AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-   AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
-   AAudioStreamBuilder_setDataCallback(builder, output_callback, cdata);
+    *data = cdata;
 
-   AAudioStream *stream;
-   AAudioStreamBuilder_openStream(builder, &stream);
-   AAudioStreamBuilder_delete(builder);
-   cdata->nchnls = parm->nChannels;
-   cdata->stream = stream;
-   cdata->csound = csound;
-   cdata->cnt = 0;
-   aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
-   if (state == AAUDIO_STREAM_STATE_OPEN) {
-       AAudioStream_requestStart(cdata->stream);
-   } else {
-     csound->Message(csound, "AAUDIO input could not be opened\n");
-     return CSOUND_ERROR;
-   }
+    // check to see if input audio is open
+    // NB: this is always opened before output
+    cdata_in = *csound->GetRtRecordUserData(csound);
+    // retrieve the circular buffer
+    if(cdata_in) 
+       cdata->incb = cdata_in->incb;
    
-   csound->Message(csound, "AAUDIO output opened\n");
-   return OK;
+    AAudioStreamBuilder_setDeviceId(builder, dev);  
+    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
+    AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+    AAudioStreamBuilder_setSampleRate(builder, parm->sampleRate);
+    AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
+    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
+    AAudioStreamBuilder_setPerformanceMode(builder,
+                                           AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+    AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
+    AAudioStreamBuilder_setDataCallback(builder, output_callback, cdata);
+
+    AAudioStream *stream;
+    result = AAudioStreamBuilder_openStream(builder, &stream);
+    AAudioStreamBuilder_delete(builder);
+    if(result == AAUDIO_OK) {
+      cdata->nchnls = parm->nChannels;
+      cdata->stream = stream;
+      cdata->csound = csound;
+      cdata->cnt = 0;
+      aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
+      if (state == AAUDIO_STREAM_STATE_OPEN) {
+        AAudioStream_requestStart(cdata->stream);
+      } else {
+        csound->Message(csound, "AAUDIO input could not be opened\n");
+        return CSOUND_ERROR;
+      }
+   
+      csound->Message(csound, "AAUDIO output opened\n");
+      return OK;
+    } else return CSOUND_ERROR;
+  } else return CSOUND_ERROR;
 }
 
 static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
    AAudioStreamBuilder *builder;
    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+   if(result == AAUDIO_OK) {
    int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
    void **data = csound->GetRtRecordUserData(csound);
    AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS*)
@@ -157,8 +171,9 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
    AAudioStreamBuilder_setDataCallback(builder, input_callback, cdata);
    
    AAudioStream *stream;
-   AAudioStreamBuilder_openStream(builder, &stream);
+   result = AAudioStreamBuilder_openStream(builder, &stream);
    AAudioStreamBuilder_delete(builder);
+   if(result == AAUDIO_OK) {
    cdata->nchnls = parm->nChannels;
    cdata->stream = stream;
    cdata->csound = csound;
@@ -169,9 +184,10 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
      csound->Message(csound, "AAUDIO input could not be opened\n");
      return CSOUND_ERROR;
    }
-
+   } else return CSOUND_ERROR;
    csound->Message(csound, "AAUDIO input opened\n");
    return OK;
+   } else return CSOUND_ERROR;
 }
 
 
@@ -188,7 +204,7 @@ static void close_io(CSOUND *csound) {
   AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS *)
     *(csound->GetRtRecordUserData(csound));
   if(cdata && cdata->stream) {
-    inputState = AAUDIO_STREAM_STATE_STOPPING;
+    inputState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
     csound->Message(csound, "requested AAudio input stop\n");
@@ -197,14 +213,13 @@ static void close_io(CSOUND *csound) {
                                 &nextState, 
                                 timeout);
     AAudioStream_close(cdata->stream);
-    csound->DestroyCircularBuffer(csound, cdata->incb);
     csound->Message(csound, "closed AAudio input\n");
     csound->Free(csound, cdata);
   }
   cdata = (AAUDIO_PARAMS *)
     *(csound->GetRtPlayUserData(csound));
   if(cdata && cdata->stream) {
-    inputState = AAUDIO_STREAM_STATE_STOPPING;
+    inputState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
     csound->Message(csound, "requested AAudio output stop\n");   
@@ -214,6 +229,8 @@ static void close_io(CSOUND *csound) {
                                     timeout);    
     AAudioStream_close(cdata->stream);
     csound->Message(csound, "closed AAudio output\n");
+    if(cdata->incb)
+      csound->DestroyCircularBuffer(csound, cdata->incb);
     csound->Free(csound, cdata);
   }
 }
