@@ -7,7 +7,7 @@ nchnls=2
 nchnls_i=1
 0dbfs=1
 ksmps=64
-sr = 22050
+sr = 44100
 
 instr 3
 
