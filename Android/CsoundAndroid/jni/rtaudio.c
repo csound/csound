@@ -79,9 +79,11 @@ static aaudio_data_callback_result_t
      return AAUDIO_CALLBACK_RESULT_CONTINUE;
   for(int i = 0;  i < numFrames; i++, n++){
     if(n == ksmps){
+      int32_t nsmps = n*csound->GetNchnls_i(csound);
+      memset(bufi, 0, nsmps*sizeof(MYFLT));
       if(cdata->incb != NULL) {
        csound->ReadCircularBuffer(csound,cdata->incb,
-                                  bufi,ksmps*csound->GetNchnls_i(csound));
+                                  bufi,nsmps);
       }
       res = csoundPerformKsmps(csound);
       if(res != 0) return AAUDIO_CALLBACK_RESULT_STOP;
@@ -134,60 +136,60 @@ static int32_t open_out(CSOUND *csound, const csRtAudioParams *parm) {
       aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
       if (state == AAUDIO_STREAM_STATE_OPEN) {
         AAudioStream_requestStart(cdata->stream);
-      } else {
-        csound->Message(csound, "AAUDIO input could not be opened\n");
-        return CSOUND_ERROR;
+        csound->Message(csound, "AAUDIO output opened\n");
+        return OK;
       }
-   
-      csound->Message(csound, "AAUDIO output opened\n");
-      return OK;
-    } else return CSOUND_ERROR;
-  } else return CSOUND_ERROR;
+     }
+    csound->Free(csound, cdata);
+    *data = NULL;
+  }
+  csound->Message(csound, "AAUDIO output open failed\n");
+  return CSOUND_ERROR;
 }
 
 static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
    AAudioStreamBuilder *builder;
    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
    if(result == AAUDIO_OK) {
-   int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
-   void **data = csound->GetRtRecordUserData(csound);
-   AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS*)
-      csound->Calloc(csound, sizeof(AAUDIO_PARAMS));
-   *data = cdata;
-    cdata->incb =
-      csound->CreateCircularBuffer(csound,
-                                   parm->bufSamp_HW*parm->nChannels,
-                                   sizeof(float));
+     int32 dev = parm->devName ? atoi(parm->devName) : AAUDIO_UNSPECIFIED;
+     void **data = csound->GetRtRecordUserData(csound);
+     AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS*)
+       csound->Calloc(csound, sizeof(AAUDIO_PARAMS));
+     *data = cdata;
+     
+     AAudioStreamBuilder_setDeviceId(builder, dev);  
+     AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
+     AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+     AAudioStreamBuilder_setSampleRate(builder, parm->sampleRate);
+     AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
+     AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
+     AAudioStreamBuilder_setPerformanceMode(builder,
+                                            AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+     AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
+     AAudioStreamBuilder_setDataCallback(builder, input_callback, cdata);
    
-   AAudioStreamBuilder_setDeviceId(builder, dev);  
-   AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
-   AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
-   AAudioStreamBuilder_setSampleRate(builder, parm->sampleRate);
-   AAudioStreamBuilder_setChannelCount(builder, parm->nChannels);
-   AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
-   AAudioStreamBuilder_setPerformanceMode(builder,
-                                          AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-   AAudioStreamBuilder_setBufferCapacityInFrames(builder, parm->bufSamp_HW);
-   AAudioStreamBuilder_setDataCallback(builder, input_callback, cdata);
-   
-   AAudioStream *stream;
-   result = AAudioStreamBuilder_openStream(builder, &stream);
-   AAudioStreamBuilder_delete(builder);
-   if(result == AAUDIO_OK) {
-   cdata->nchnls = parm->nChannels;
-   cdata->stream = stream;
-   cdata->csound = csound;
-   aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
-   if (state == AAUDIO_STREAM_STATE_OPEN) {
-       AAudioStream_requestStart(cdata->stream);
-   } else {
-     csound->Message(csound, "AAUDIO input could not be opened\n");
-     return CSOUND_ERROR;
+     AAudioStream *stream;
+     result = AAudioStreamBuilder_openStream(builder, &stream);
+     AAudioStreamBuilder_delete(builder);
+     if(result == AAUDIO_OK) {
+       cdata->nchnls = parm->nChannels;
+       cdata->stream = stream;
+       cdata->csound = csound;
+       aaudio_stream_state_t state = AAudioStream_getState(cdata->stream);
+       if (state == AAUDIO_STREAM_STATE_OPEN) {
+         cdata->incb =
+           csound->CreateCircularBuffer(csound,
+                                    parm->bufSamp_HW*parm->nChannels,
+                                    sizeof(float));
+         AAudioStream_requestStart(cdata->stream);
+         csound->Message(csound, "AAUDIO input opened\n");
+         return OK;
+       }
+       csound->Free(csound, cdata);
+       *data = NULL;  
+     }
    }
-   } else return CSOUND_ERROR;
-   csound->Message(csound, "AAUDIO input opened\n");
-   return OK;
-   } else return CSOUND_ERROR;
+   return CSOUND_ERROR;
 }
 
 
@@ -208,13 +210,14 @@ static void close_io(CSOUND *csound) {
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     AAudioStream_requestStop(cdata->stream);
     csound->Message(csound, "requested AAudio input stop\n");
-    aaudio_result_t result = AAudioStream_waitForStateChange(cdata->stream, 
+    AAudioStream_waitForStateChange(cdata->stream, 
                                 inputState, 
                                 &nextState, 
                                 timeout);
     AAudioStream_close(cdata->stream);
     csound->Message(csound, "closed AAudio input\n");
     csound->Free(csound, cdata);
+    *(csound->GetRtPlayUserData(csound)) = NULL;
   }
   cdata = (AAUDIO_PARAMS *)
     *(csound->GetRtPlayUserData(csound));
@@ -232,6 +235,7 @@ static void close_io(CSOUND *csound) {
     if(cdata->incb)
       csound->DestroyCircularBuffer(csound, cdata->incb);
     csound->Free(csound, cdata);
+    *(csound->GetRtRecordUserData(csound)) = NULL;
   }
 }
 
