@@ -185,10 +185,11 @@ static int32_t open_in(CSOUND *csound, const csRtAudioParams *parm) {
          csound->Message(csound, "AAUDIO input opened\n");
          return OK;
        }
-       csound->Free(csound, cdata);
-       *data = NULL;  
      }
+     csound->Free(csound, cdata);
+     *data = NULL;  
    }
+   csound->Message(csound, "AAUDIO input open failed\n");
    return CSOUND_ERROR;
 }
 
@@ -217,7 +218,7 @@ static void close_io(CSOUND *csound) {
     AAudioStream_close(cdata->stream);
     csound->Message(csound, "closed AAudio input\n");
     csound->Free(csound, cdata);
-    *(csound->GetRtPlayUserData(csound)) = NULL;
+    *(csound->GetRtRecordUserData(csound)) = NULL;
   }
   cdata = (AAUDIO_PARAMS *)
     *(csound->GetRtPlayUserData(csound));
@@ -235,7 +236,7 @@ static void close_io(CSOUND *csound) {
     if(cdata->incb)
       csound->DestroyCircularBuffer(csound, cdata->incb);
     csound->Free(csound, cdata);
-    *(csound->GetRtRecordUserData(csound)) = NULL;
+    *(csound->GetRtPlayUserData(csound)) = NULL;
   }
 }
 
