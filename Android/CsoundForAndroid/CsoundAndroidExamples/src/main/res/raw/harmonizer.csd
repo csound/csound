@@ -1,13 +1,13 @@
 <CsoundSynthesizer>
 <CsOptions>
--o dac -dm0 -i adc -B1024 -b256
+-o dac -dm0 -i adc -B2048 -b512
 </CsOptions>
 <CsInstruments>
 nchnls=2
 nchnls_i=1
 0dbfs=1
 ksmps=64
-sr = 22050
+sr = 44100
 
 instr 3
 
