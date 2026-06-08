@@ -60,6 +60,15 @@ opcode readStructMember(var:TestStruct2515):i
 endop
 
 
+// UDO that modifies its input in-place and returns it via xout.
+// Tests pass-by-reference with constant inputs: xout of a xin variable
+// should not corrupt the global constant pool.
+opcode incrAndReturn(ival):i
+    ival += 1
+    xout ival
+endop
+
+
 instr 1
     iv = 33
     iv2 = 77
@@ -157,16 +166,36 @@ endin
 ; schedule("SoundTest", 0, 4)
 
 
+instr 10
+// Test incrAndReturn with a literal constant: should not corrupt
+// the global constant pool and should produce the correct result.
+val:i = incrAndReturn(1)
+assertEquals(val,2)
+print val
+// Test with a variable to verify pass-through still works.
+val:i = incrAndReturn(val)
+assertEquals(val,3)
+print val
+// Test distinct input/output variables: the input should still be modified
+// by pass-by-reference, while the output receives the returned value.
+src:i = 5
+dst:i = incrAndReturn(src)
+assertEquals(src,6)
+assertEquals(dst,6)
+print src, dst
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
 i4 0 1
+i10 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
 
 </CsScore>
 </CsoundSynthesizer>
-

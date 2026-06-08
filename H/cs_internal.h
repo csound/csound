@@ -175,13 +175,19 @@ extern "C" {
     char    *structPath;
   } PBR_REWIRE_ENTRY;
 
+  typedef struct pbr_seed_entry {
+    int32_t output_ar_index;   /* output slot (ar[0..outchns-1]) to write into */
+    int32_t input_ar_index;    /* input slot  (ar[outchns..outchns+inchns-1]) to read from */
+    char    *input_struct_path;
+  } PBR_SEED_ENTRY;
+
   typedef struct pbr_rewire_plan {
     int32_t init_count;
     int32_t perf_count;
-    int32_t xout_count;
+    int32_t seed_count;
     PBR_REWIRE_ENTRY *init_entries;
     PBR_REWIRE_ENTRY *perf_entries;
-    PBR_REWIRE_ENTRY *xout_entries;
+    PBR_SEED_ENTRY   *seed_entries;
   } PBR_REWIRE_PLAN;
 
   typedef struct opcodinfo {
