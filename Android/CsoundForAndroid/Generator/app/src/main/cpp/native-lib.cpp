@@ -67,8 +67,9 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_example_csoundapp_MainActivity_stopCsound(
         JNIEnv* env, jobject MainActivity) {
     if(csound != nullptr) {
-        csound->EventString("e 0 0", 1);
-        delete csound;
+        AndroidCsound *tmp = csound;
+        tmp->EventString("e 0 0", 1);
         csound = nullptr;
+        delete tmp;
     }
 }
