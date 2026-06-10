@@ -202,19 +202,24 @@ static int32_t audio_input(CSOUND *csound, MYFLT *inbuff, int32_t nbytes){
 
 static void close_io(CSOUND *csound) {
   const int64_t timeout = 50 * 1000 * 1000;
-  aaudio_stream_state_t inputState;
+  aaudio_stream_state_t currentState;
   aaudio_stream_state_t nextState;
   AAUDIO_PARAMS *cdata = (AAUDIO_PARAMS *)
     *(csound->GetRtRecordUserData(csound));
   if(cdata && cdata->stream) {
-    inputState = AAudioStream_getState(cdata->stream);
+    currentState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    AAudioStream_requestStop(cdata->stream);
-    csound->Message(csound, "requested AAudio input stop\n");
-    AAudioStream_waitForStateChange(cdata->stream, 
-                                inputState, 
-                                &nextState, 
-                                timeout);
+    if(currentState == AAUDIO_STREAM_STATE_STARTING ||
+       currentState == AAUDIO_STREAM_STATE_STARTED) {
+      AAudioStream_requestStop(cdata->stream);
+      csound->Message(csound, "requested AAudio input stop\n");
+      currentState = AAUDIO_STREAM_STATE_STOPPING;
+    }
+    if(currentState == AAUDIO_STREAM_STATE_STOPPING)
+      AAudioStream_waitForStateChange(cdata->stream,
+                                  AAUDIO_STREAM_STATE_STOPPING,
+                                  &nextState,
+                                  timeout);
     AAudioStream_close(cdata->stream);
     csound->Message(csound, "closed AAudio input\n");
     csound->Free(csound, cdata);
@@ -223,14 +228,19 @@ static void close_io(CSOUND *csound) {
   cdata = (AAUDIO_PARAMS *)
     *(csound->GetRtPlayUserData(csound));
   if(cdata && cdata->stream) {
-    inputState = AAudioStream_getState(cdata->stream);
+    currentState = AAudioStream_getState(cdata->stream);
     nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    AAudioStream_requestStop(cdata->stream);
-    csound->Message(csound, "requested AAudio output stop\n");   
-    AAudioStream_waitForStateChange(cdata->stream, 
-                                    inputState, 
-                                    &nextState, 
-                                    timeout);    
+    if(currentState == AAUDIO_STREAM_STATE_STARTING ||
+       currentState == AAUDIO_STREAM_STATE_STARTED) {
+      AAudioStream_requestStop(cdata->stream);
+      csound->Message(csound, "requested AAudio output stop\n");
+      currentState = AAUDIO_STREAM_STATE_STOPPING;
+    }
+    if(currentState == AAUDIO_STREAM_STATE_STOPPING)
+      AAudioStream_waitForStateChange(cdata->stream,
+                                      AAUDIO_STREAM_STATE_STOPPING,
+                                      &nextState,
+                                      timeout);
     AAudioStream_close(cdata->stream);
     csound->Message(csound, "closed AAudio output\n");
     if(cdata->incb)
