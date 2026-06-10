@@ -250,6 +250,10 @@ static void close_io(CSOUND *csound) {
   }
 }
 
+void aaudio_close(CSOUND *csound) {
+  close_io(csound);
+}
+
 void aaudio_setup(CSOUND *csound) {
  csoundSetPlayopenCallback(csound, open_out);
  csoundSetRecopenCallback(csound, open_in);

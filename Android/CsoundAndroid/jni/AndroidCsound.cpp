@@ -66,6 +66,11 @@ void AndroidCsound::setOpenSlCallbacks() {
 };
 
 
+extern "C" void aaudio_close(CSOUND *csound);
+void AndroidCsound::CloseAAudio() {
+  aaudio_close(csound);
+}
+
 extern "C" void aaudio_setup(CSOUND *csound);
 void AndroidCsound::setAAudioCallbacks() {
   initControls();

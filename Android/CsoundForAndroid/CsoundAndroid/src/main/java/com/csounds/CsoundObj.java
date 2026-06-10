@@ -483,6 +483,7 @@ public class CsoundObj {
             csound.EventString("e 0", 1);
             threadSleep(100);
             Log.d("CsoundObj", "LOOP END");
+            ((AndroidCsound) csound).CloseAAudio();
             csound.Reset();
 
             synchronized (mLock) {
