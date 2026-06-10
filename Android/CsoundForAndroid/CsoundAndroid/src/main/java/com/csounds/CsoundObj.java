@@ -108,6 +108,7 @@ public class CsoundObj {
             csound = new AndroidCsound(isAsync);
         }
         iomode = io_mode;
+        this.isAsync = isAsync;
     }
 
     // JNI midi setup
@@ -295,6 +296,13 @@ public class CsoundObj {
             try {
                 thread.join();
                 thread = null;
+                if(iomode < 2) {
+                    // OpenSL or AAudio
+                    if (csound != null) {
+                        csound.delete();
+                    }
+                    csound = new AndroidCsound(isAsync);
+                }
             } catch (InterruptedException e) {
                 Log.d("CsoundObj", e.toString());
                 e.printStackTrace();
@@ -396,7 +404,6 @@ public class CsoundObj {
                 csound.EventString("e 0", isAsync ? 0 : 1);
                 threadSleep(100);
             }
-            csound.Reset();
 
             synchronized (mLock) {
                 for (int i = 0; i < bindings.size(); i++) {
@@ -483,7 +490,6 @@ public class CsoundObj {
             csound.EventString("e 0", 1);
             threadSleep(100);
             Log.d("CsoundObj", "LOOP END");
-            csound.Reset();
 
             synchronized (mLock) {
                 for (int i = 0; i < bindings.size(); i++) {
