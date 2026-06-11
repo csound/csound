@@ -88,10 +88,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -523,10 +523,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -748,10 +748,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -785,10 +785,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -824,10 +824,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -960,10 +960,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1037,10 +1037,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1083,10 +1083,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1154,10 +1154,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1207,7 +1207,7 @@ jobs:
           submodules: true
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
