@@ -918,10 +918,10 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -997,10 +997,10 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2026\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.OpenMP"
+          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.OpenMP"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer
