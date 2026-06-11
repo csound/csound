@@ -914,6 +914,30 @@ static void pbr_writeback_pass_through_inputs(CSOUND *csound,
       continue;
     }
 
+    /* Skip writeback when the caller's input variable is also bound to one
+       of the UDO's output slots.  In that case the output was already
+       materialised by xout/sync and writing the work value back would
+       overwrite it.  This covers the #2061 scenario where the input is
+       aliased to a non-pass-through output position. */
+    {
+      int32_t j;
+      int32_t skip = 0;
+      for (j = 0; j < udoinfo->outchns; j++) {
+        if (j == entry->work_ar_index) {
+          /* The work output slot is where the pass-through value is
+             redirected; that alias is intentional, not a collision. */
+          continue;
+        }
+        if (p->ar[j] == input_base) {
+          skip = 1;
+          break;
+        }
+      }
+      if (skip) {
+        continue;
+      }
+    }
+
     dst = pbr_resolve_struct_target(csound, input_base,
                                     entry->input_struct_path);
     src = p->ar[entry->work_ar_index];

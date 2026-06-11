@@ -417,6 +417,86 @@ assertEquals(p4,7)
 endin
 
 
+// ============================================================
+// Issue #2061: pass-by-ref with multiple UDO outputs was broken
+// when input and output variable names differed, or when the input
+// aliased the second output instead of the first.
+// https://github.com/csound/csound/issues/2061
+// ============================================================
+
+// The exact opcode from issue #2061: one pass-through + one expression
+opcode Test2061K(var:k):(k,k)
+    b:k = var * 2
+    xout var, b
+endop
+
+// i-rate variant to check if the issue is wider than k-rate
+opcode Test2061I(var:i):(i,i)
+    b:i = var * 2
+    xout var, b
+endop
+
+
+// Scenario 1 from #2061: different input/output variable names
+// k0 = 1; k1, k2 = Test(k0) -> should give k1==1, k2==2
+instr 30
+    k0 init 1
+    k1, k2 Test2061K k0
+    if (timeinstk() == 1) then
+        if (k1 != 1 || k2 != 2) then
+            printks "ERROR: #2061 scenario 1 k1=%g k2=%g (expected 1, 2)\n", 0, k1, k2
+            exitnowk(-1)
+        endif
+    endif
+endin
+
+
+// Scenario 2 from #2061: input reused as first output
+// k1 = 1; k1, k2 = Test(k1) -> should give k1==1, k2==2
+instr 31
+    k1 init 1
+    k1, k2 Test2061K k1
+    if (timeinstk() == 1) then
+        if (k1 != 1 || k2 != 2) then
+            printks "ERROR: #2061 scenario 2 k1=%g k2=%g (expected 1, 2)\n", 0, k1, k2
+            exitnowk(-1)
+        endif
+    endif
+endin
+
+
+// Scenario 3 from #2061: input reused as second output (swapped)
+// k1 = 1; k2, k1 = Test(k1) -> should give k2==1, k1==2
+instr 32
+    k1 init 1
+    k2, k1 Test2061K k1
+    if (timeinstk() == 1) then
+        if (k2 != 1 || k1 != 2) then
+            printks "ERROR: #2061 scenario 3 k2=%g k1=%g (expected 1, 2)\n", 0, k2, k1
+            exitnowk(-1)
+        endif
+    endif
+endin
+
+
+// i-rate variant of scenario 1
+instr 33
+    i0 = 1
+    i1, i2 = Test2061I(i0)
+    assertEquals(i1, 1)
+    assertEquals(i2, 2)
+endin
+
+
+// i-rate variant of scenario 3 (swapped outputs)
+instr 34
+    i1 = 1
+    i2, i1 = Test2061I(i1)
+    assertEquals(i2, 1)
+    assertEquals(i1, 2)
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
@@ -434,6 +514,11 @@ i27 0 1
 i28 0 0.01
 i29 0 1
 i10 0 1 7
+i30 0 0.01
+i31 0 0.01
+i32 0 0.01
+i33 0 1
+i34 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
