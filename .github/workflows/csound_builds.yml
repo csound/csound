@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/actions/check-pr-label
         with:
           label: release
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}          
 
   linux_build:
     name: Linux/Ubuntu build (apt-get)
@@ -877,6 +877,19 @@ jobs:
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
+      - name: Resolve VC Redist Directory Dynamically
+        shell: pwsh
+        run: |
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $redistPath = Get-ChildItem -Path "$vsPath\VC\Redist\MSVC\x64\Microsoft.VC*.CRT" | Select-Object -First 1 -ExpandProperty FullName
+    
+          if (-not $redistPath) {
+            Write-Error "Could not find the VC Redist directory on this runner."
+            exit 1
+            }
+          echo "Resolved VCREDIST_CRT_DIR to: $redistPath"
+          "VCREDIST_CRT_DIR=$redistPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          
       - name: Checkout Source Code
         uses: actions/checkout@v5
         with:
@@ -954,6 +967,18 @@ jobs:
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
+      - name: Resolve VC Redist Directory Dynamically
+        shell: pwsh
+        run: |
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $redistPath = Get-ChildItem -Path "$vsPath\VC\Redist\MSVC\x64\Microsoft.VC*.CRT" | Select-Object -First 1 -ExpandProperty FullName
+    
+          if (-not $redistPath) {
+            Write-Error "Could not find the VC Redist directory on this runner."
+            exit 1
+            }
+          echo "Resolved VCREDIST_CRT_DIR to: $redistPath"
+          "VCREDIST_CRT_DIR=$redistPath" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Checkout Source Code
         uses: actions/checkout@v5
         with:
