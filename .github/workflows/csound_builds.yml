@@ -900,7 +900,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -G "Visual Studio 17 2022" -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+        run: cmake -B build -S . -G x64 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -977,7 +977,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -G "Visual Studio 17 2022" -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs-x86.cmake"
+        run: cmake -B build -S . -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs-x86.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
