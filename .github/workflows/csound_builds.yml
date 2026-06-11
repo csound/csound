@@ -914,7 +914,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -A x64 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+        run: cmake -B build -S . -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -932,10 +932,11 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $redistVersion = Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $Env:VCREDIST_CRT_DIR="$vsPath\VC\Redist\MSVC\$redistVersion\x64\Microsoft.VC143.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="$vsPath\VC\Redist\MSVC\$redistVersion\x64\Microsoft.VC143.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="$vsPath\VC\Redist\MSVC\$redistVersion\x64\Microsoft.VC143.OpenMP"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -968,19 +969,6 @@ jobs:
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
     steps:
-      - name: Resolve VC Redist Directory Dynamically
-        shell: pwsh
-        run: |
-          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          $crtFolder = Get-ChildItem -Path "$vsPath\VC\Redist" -Filter "Microsoft.VC*.CRT" -Recurse -Directory | 
-                     Where-Object { $_.FullName -match 'x64' } | 
-                     Select-Object -First 1
-          if (-not $redistPath) {
-            Write-Error "Could not find the VC Redist directory on this runner."
-            exit 1
-            }
-          echo "Resolved VCREDIST_CRT_DIR to: $redistPath"
-          "VCREDIST_CRT_DIR=$redistPath" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Checkout Source Code
         uses: actions/checkout@v5
         with:
@@ -1004,7 +992,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs-x86.cmake"
+        run: cmake -B build -S . -G "Visual Studio 17 2022" -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs-x86.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -1024,10 +1012,11 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.OpenMP"
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $redistVersion = Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $Env:VCREDIST_CRT_DIR="$vsPath\VC\Redist\MSVC\$redistVersion\x86\Microsoft.VC143.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="$vsPath\VC\Redist\MSVC\$redistVersion\x86\Microsoft.VC143.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="$vsPath\VC\Redist\MSVC\$redistVersion\x86\Microsoft.VC143.OpenMP"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer
