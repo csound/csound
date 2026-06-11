@@ -76,6 +76,28 @@ opcode mixedPassExpr(ival):(i,i)
 endop
 
 
+// repeated pass-through outputs share the same mutable UDO value.
+opcode duplicatePass(ival):(i,i)
+    ival += 1
+    xout ival, ival
+endop
+
+
+// repeated k-rate pass-through outputs across perf cycles.
+opcode duplicatePassK(kval):(k,k)
+    kval += 1
+    xout kval, kval
+endop
+
+
+// repeated array pass-through outputs exercise typed copyValue fan-out.
+opcode duplicateArrayPass(iArr[]):(i[],i[])
+    iArr[0] += 1
+    iArr[1] += 2
+    xout iArr, iArr
+endop
+
+
 opcode readStructMember(var:TestStruct2515):i
     xout var.var1
 endop
@@ -309,6 +331,48 @@ assertEquals(iVal, 5)
 endin
 
 
+instr 27
+// duplicate pass-through outputs should both materialise the final value.
+src:i = 4
+out1:i, out2:i = duplicatePass(src)
+assertEquals(src, 5)
+assertEquals(out1, 5)
+assertEquals(out2, 5)
+endin
+
+
+instr 28
+// duplicate k-rate outputs should sync each perf cycle.
+kSrc init 4
+kOut1, kOut2 = duplicatePassK(kSrc)
+if (timeinstk() == 1) then
+    if (kSrc != 5 || kOut1 != 5 || kOut2 != 5) then
+        printks "ERROR: duplicatePassK cycle 1 kSrc=%g kOut1=%g kOut2=%g\n", 0, kSrc, kOut1, kOut2
+        exitnowk(-1)
+    endif
+endif
+if (timeinstk() == 2) then
+    if (kSrc != 6 || kOut1 != 6 || kOut2 != 6) then
+        printks "ERROR: duplicatePassK cycle 2 kSrc=%g kOut1=%g kOut2=%g\n", 0, kSrc, kOut1, kOut2
+        exitnowk(-1)
+    endif
+endif
+endin
+
+
+instr 29
+// duplicate array outputs should copy the final work array to both outputs.
+iArr[] fillarray 3, 4
+iOut1[], iOut2[] = duplicateArrayPass(iArr)
+assertEquals(iArr[0], 4)
+assertEquals(iArr[1], 6)
+assertEquals(iOut1[0], 4)
+assertEquals(iOut1[1], 6)
+assertEquals(iOut2[0], 4)
+assertEquals(iOut2[1], 6)
+endin
+
+
 opcode sound(iamp, ifreq):a
     aout = oscili(iamp, ifreq)
     if(ifreq < sr/2) then
@@ -366,6 +430,9 @@ i23 0 0.1
 i24 0 1
 i25 0 1
 i26 0 1
+i27 0 1
+i28 0 0.01
+i29 0 1
 i10 0 1 7
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25

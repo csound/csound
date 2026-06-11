@@ -176,8 +176,9 @@ extern "C" {
   } PBR_REWIRE_ENTRY;
 
   typedef struct pbr_seed_entry {
-    int32_t output_ar_index;   /* output slot (ar[0..outchns-1]) to write into */
-    int32_t input_ar_index;    /* input slot  (ar[outchns..outchns+inchns-1]) to read from */
+    int32_t output_ar_index;   /* xout position to materialise */
+    int32_t input_ar_index;    /* xin slot to seed from and write back to */
+    int32_t work_ar_index;     /* canonical mutable output slot; duplicates share it */
     char    *input_struct_path;
   } PBR_SEED_ENTRY;
 

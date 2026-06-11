@@ -121,11 +121,11 @@ static const char *pbr_get_arg_name(const ARG *arg, const char *raw_name) {
   return raw_name;
 }
 
-static char *pbr_dup_struct_path(CSOUND *csound,
-                                 const ARG *arg,
-                                 const char *raw_name) {
+static const char *pbr_get_struct_path(const ARG *arg,
+                                       const char *raw_name,
+                                       size_t *path_len) {
   const char *struct_path = arg != NULL ? arg->structPath : NULL;
-  size_t path_len = 0;
+  size_t len = 0;
 
   if ((struct_path == NULL || *struct_path == '\0') && raw_name != NULL) {
     const char *dot = strchr(raw_name, '.');
@@ -135,28 +135,54 @@ static char *pbr_dup_struct_path(CSOUND *csound,
   }
 
   if (struct_path == NULL || *struct_path == '\0') {
+    if (path_len != NULL) {
+      *path_len = 0;
+    }
     return NULL;
   }
 
-  while (struct_path[path_len] != '\0' && struct_path[path_len] != ':' &&
-         struct_path[path_len] != '@' && struct_path[path_len] != '[') {
-    path_len++;
+  while (struct_path[len] != '\0' && struct_path[len] != ':' &&
+         struct_path[len] != '@' && struct_path[len] != '[') {
+    len++;
   }
 
-  return path_len > 0 ? cs_strndup(csound, struct_path, path_len) : NULL;
+  if (path_len != NULL) {
+    *path_len = len;
+  }
+
+  return len > 0 ? struct_path : NULL;
+}
+
+static char *pbr_dup_struct_path(CSOUND *csound,
+                                 const ARG *arg,
+                                 const char *raw_name) {
+  size_t path_len = 0;
+  const char *struct_path = pbr_get_struct_path(arg, raw_name, &path_len);
+
+  return struct_path != NULL ? cs_strndup(csound, struct_path, path_len) : NULL;
 }
 
 static int32_t pbr_arg_has_struct_path(const ARG *arg, const char *raw_name) {
-  if (arg != NULL && arg->structPath != NULL && arg->structPath[0] != '\0') {
-    return 1;
+  size_t path_len = 0;
+  return pbr_get_struct_path(arg, raw_name, &path_len) != NULL && path_len > 0;
+}
+
+static int32_t pbr_struct_paths_match(const char *stored_path,
+                                      const ARG *arg,
+                                      const char *raw_name) {
+  size_t path_len = 0;
+  const char *struct_path = pbr_get_struct_path(arg, raw_name, &path_len);
+
+  if (struct_path == NULL) {
+    return stored_path == NULL || *stored_path == '\0';
   }
 
-  if (raw_name != NULL) {
-    const char *dot = strchr(raw_name, '.');
-    return dot != NULL && dot[1] != '\0';
+  if (stored_path == NULL) {
+    return 0;
   }
 
-  return 0;
+  return strlen(stored_path) == path_len &&
+    strncmp(stored_path, struct_path, path_len) == 0;
 }
 
 static int32_t pbr_alias_find(const PBR_ALIAS_ENTRY *aliases,
@@ -370,6 +396,7 @@ static int32_t pbr_append_seed(CSOUND *csound,
                                int32_t *capacity,
                                int32_t output_ar_index,
                                int32_t input_ar_index,
+                               int32_t work_ar_index,
                                const ARG *input_arg,
                                const char *input_raw_name) {
   PBR_SEED_ENTRY *entry;
@@ -397,11 +424,31 @@ static int32_t pbr_append_seed(CSOUND *csound,
   entry = &((*entries)[*count]);
   entry->output_ar_index = output_ar_index;
   entry->input_ar_index = input_ar_index;
+  entry->work_ar_index = work_ar_index;
   entry->input_struct_path = pbr_dup_struct_path(csound, input_arg,
                                                  input_raw_name);
   (*count)++;
 
   return OK;
+}
+
+static int32_t pbr_find_seed_work_output(const PBR_SEED_ENTRY *entries,
+                                         int32_t entry_count,
+                                         int32_t input_ar_index,
+                                         const ARG *input_arg,
+                                         const char *input_raw_name) {
+  int32_t i;
+
+  for (i = 0; i < entry_count; i++) {
+    const PBR_SEED_ENTRY *entry = &entries[i];
+    if (entry->input_ar_index == input_ar_index &&
+        pbr_struct_paths_match(entry->input_struct_path,
+                               input_arg, input_raw_name)) {
+      return entry->work_ar_index;
+    }
+  }
+
+  return -1;
 }
 
 static int32_t pbr_can_rewire_xout_source(const char *raw_name) {
@@ -410,6 +457,50 @@ static int32_t pbr_can_rewire_xout_source(const char *raw_name) {
   }
 
   return strchr(raw_name, '[') == NULL && strchr(raw_name, '@') == NULL;
+}
+
+/* xout processing rewrites aliases to output slots.  Query the original xin
+   declaration so duplicate pass-through detection is not affected by earlier
+   xout entries mutating the alias table. */
+static int32_t pbr_lookup_xin_alias(OPCODINFO *udoinfo,
+                                    OPTXT *xin_optxt,
+                                    const char *var_name) {
+  int32_t exact_pass;
+
+  if (udoinfo == NULL || xin_optxt == NULL || udoinfo->in_arg_pool == NULL ||
+      xin_optxt->t.outlist == NULL || var_name == NULL) {
+    return -1;
+  }
+
+  for (exact_pass = 1; exact_pass >= 0; exact_pass--) {
+    CS_VARIABLE *param = udoinfo->in_arg_pool->head;
+    ARG *xin_arg = xin_optxt->t.outArgs;
+    ARGLST *xin_outlist = xin_optxt->t.outlist;
+    int32_t i;
+
+    for (i = 0; i < udoinfo->inchns && i < xin_outlist->count && param != NULL;
+         i++, param = param->next,
+         xin_arg = xin_arg != NULL ? xin_arg->next : NULL) {
+      int32_t ar_index = udoinfo->outchns + i;
+      const char *xin_varname = xin_outlist->arg[i];
+      const char *resolved_name = pbr_get_arg_name(xin_arg, xin_varname);
+      const char *names[3] = { xin_varname, resolved_name, param->varName };
+      int32_t j;
+
+      for (j = 0; j < 3; j++) {
+        const char *candidate = names[j];
+        if (candidate == NULL) {
+          continue;
+        }
+        if (exact_pass ? strcmp(candidate, var_name) == 0 :
+            pbr_names_match(candidate, var_name)) {
+          return ar_index;
+        }
+      }
+    }
+  }
+
+  return -1;
 }
 
 static void pbr_collect_io_aliases(CSOUND *csound,
@@ -460,36 +551,41 @@ static void pbr_collect_io_aliases(CSOUND *csound,
       int32_t source_ar_index = -1;
 
       if (pbr_can_rewire_xout_source(raw_name)) {
-        source_ar_index = pbr_alias_lookup(builder->aliases,
-                                           builder->alias_count,
-                                           resolved_name);
+        source_ar_index = pbr_lookup_xin_alias(udoinfo, xin_optxt,
+                                               resolved_name);
         if (source_ar_index < 0 && resolved_name != raw_name) {
-          source_ar_index = pbr_alias_lookup(builder->aliases,
-                                             builder->alias_count,
-                                             raw_name);
+          source_ar_index = pbr_lookup_xin_alias(udoinfo, xin_optxt,
+                                                 raw_name);
         }
       }
 
       if (source_ar_index >= (int32_t)udoinfo->outchns) {
+        int32_t work_ar_index =
+          pbr_find_seed_work_output(builder->seed_entries, builder->seed_count,
+                                    source_ar_index, xout_arg, raw_name);
         /* Pass-through: xout reads from a xin-aliased variable.
            Redirect the alias to the output slot so internal opcodes write to
            the caller's output pointer (like a native opcode's output field),
            and record a seed entry so the output is initialised from the input
-           value before the internal chain runs. */
-        if (pbr_arg_has_struct_path(xout_arg, raw_name)) {
-          pbr_add_alias(csound, builder, raw_name, i);
-          if (resolved_name != raw_name && strchr(resolved_name, '.') != NULL) {
-            pbr_add_alias(csound, builder, resolved_name, i);
-          }
-        } else {
-          pbr_add_alias(csound, builder, resolved_name, i);
-          if (resolved_name != raw_name) {
+           value before the internal chain runs.  Duplicate pass-through xouts
+           share the first output slot as their mutable work value. */
+        if (work_ar_index < 0) {
+          work_ar_index = i;
+          if (pbr_arg_has_struct_path(xout_arg, raw_name)) {
             pbr_add_alias(csound, builder, raw_name, i);
+            if (resolved_name != raw_name && strchr(resolved_name, '.') != NULL) {
+              pbr_add_alias(csound, builder, resolved_name, i);
+            }
+          } else {
+            pbr_add_alias(csound, builder, resolved_name, i);
+            if (resolved_name != raw_name) {
+              pbr_add_alias(csound, builder, raw_name, i);
+            }
           }
         }
         pbr_append_seed(csound, &builder->seed_entries, &builder->seed_count,
                         &builder->seed_capacity, i, source_ar_index,
-                        xout_arg, raw_name);
+                        work_ar_index, xout_arg, raw_name);
         continue;
       }
 
@@ -745,6 +841,43 @@ static void pbr_seed_pass_through_outputs(CSOUND *csound,
   }
 }
 
+static void pbr_sync_pass_through_outputs(CSOUND *csound,
+                                          UOPCODE *p,
+                                          INSDS *ctx) {
+  OPCODINFO *udoinfo;
+  PBR_REWIRE_PLAN *plan;
+  int32_t max_ar_index;
+  int32_t i;
+
+  if (p == NULL || p->buf == NULL || p->buf->opcode_info == NULL) {
+    return;
+  }
+
+  udoinfo = p->buf->opcode_info;
+  plan = udoinfo->pbr_plan;
+  if (plan == NULL || plan->seed_entries == NULL) {
+    return;
+  }
+
+  max_ar_index = udoinfo->outchns + udoinfo->inchns;
+  for (i = 0; i < plan->seed_count; i++) {
+    const PBR_SEED_ENTRY *entry = &plan->seed_entries[i];
+    MYFLT *dst;
+    MYFLT *src;
+
+    /* Fan the final work value out to duplicate xout positions. */
+    if (entry->output_ar_index < 0 || entry->output_ar_index >= max_ar_index ||
+        entry->work_ar_index < 0 || entry->work_ar_index >= max_ar_index ||
+        entry->output_ar_index == entry->work_ar_index) {
+      continue;
+    }
+
+    dst = p->ar[entry->output_ar_index];
+    src = p->ar[entry->work_ar_index];
+    pbr_copy_value(csound, dst, src, ctx);
+  }
+}
+
 static void pbr_writeback_pass_through_inputs(CSOUND *csound,
                                               UOPCODE *p,
                                               INSDS *ctx) {
@@ -771,7 +904,8 @@ static void pbr_writeback_pass_through_inputs(CSOUND *csound,
     MYFLT *input_base;
 
     if (entry->output_ar_index < 0 || entry->output_ar_index >= max_ar_index ||
-        entry->input_ar_index < 0 || entry->input_ar_index >= max_ar_index) {
+        entry->input_ar_index < 0 || entry->input_ar_index >= max_ar_index ||
+        entry->work_ar_index < 0 || entry->work_ar_index >= max_ar_index) {
       continue;
     }
 
@@ -782,7 +916,7 @@ static void pbr_writeback_pass_through_inputs(CSOUND *csound,
 
     dst = pbr_resolve_struct_target(csound, input_base,
                                     entry->input_struct_path);
-    src = p->ar[entry->output_ar_index];
+    src = p->ar[entry->work_ar_index];
     pbr_copy_value(csound, dst, src, ctx);
   }
 }
@@ -1215,6 +1349,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
   if(err) return err;
   if(inm->passByRef) {
+    pbr_sync_pass_through_outputs(csound, p, lcurip);
     pbr_writeback_pass_through_inputs(csound, p, lcurip);
   }
   csound->mode = 0;  ATOMIC_SET(p->ip->init_done, 1);
@@ -1903,6 +2038,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   }
 
  writeback:
+  pbr_sync_pass_through_outputs(csound, p, p->ip);
   pbr_writeback_pass_through_inputs(csound, p, p->ip);
 
  endop:
