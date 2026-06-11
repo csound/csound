@@ -881,8 +881,9 @@ jobs:
         shell: pwsh
         run: |
           $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          $redistPath = Get-ChildItem -Path "$vsPath\VC\Redist\MSVC\x64\Microsoft.VC*.CRT" | Select-Object -First 1 -ExpandProperty FullName
-    
+          $crtFolder = Get-ChildItem -Path "$vsPath\VC\Redist" -Filter "Microsoft.VC*.CRT" -Recurse -Directory | 
+                     Where-Object { $_.FullName -match 'x64' } | 
+                     Select-Object -First 1
           if (-not $redistPath) {
             Write-Error "Could not find the VC Redist directory on this runner."
             exit 1
@@ -971,8 +972,9 @@ jobs:
         shell: pwsh
         run: |
           $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          $redistPath = Get-ChildItem -Path "$vsPath\VC\Redist\MSVC\x64\Microsoft.VC*.CRT" | Select-Object -First 1 -ExpandProperty FullName
-    
+          $crtFolder = Get-ChildItem -Path "$vsPath\VC\Redist" -Filter "Microsoft.VC*.CRT" -Recurse -Directory | 
+                     Where-Object { $_.FullName -match 'x64' } | 
+                     Select-Object -First 1
           if (-not $redistPath) {
             Write-Error "Could not find the VC Redist directory on this runner."
             exit 1
