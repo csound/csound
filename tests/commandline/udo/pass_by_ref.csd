@@ -50,13 +50,93 @@ opcode incrK(kval):void
 endop
 
 
+// k-rate direct pass-through; += 0 ensures a perf-time body.
+opcode passK(kval):k
+    kval += 0
+    xout kval
+endop
+
+
+// k-rate pass-through with source mutation and return.
+opcode incrAndReturnK(kval):k
+    kval += 1
+    xout kval
+endop
+
+
 opcode incrExpr(ival):(i,i)
     xout ival + 1, ival + 2
 endop
 
 
+// mixed xin pass-through and expression xout.
+opcode mixedPassExpr(ival):(i,i)
+    ival += 1
+    xout ival, ival + 1
+endop
+
+
+// repeated pass-through outputs share the same mutable UDO value.
+opcode duplicatePass(ival):(i,i)
+    ival += 1
+    xout ival, ival
+endop
+
+
+// repeated k-rate pass-through outputs across perf cycles.
+opcode duplicatePassK(kval):(k,k)
+    kval += 1
+    xout kval, kval
+endop
+
+
+// repeated array pass-through outputs exercise typed copyValue fan-out.
+opcode duplicateArrayPass(iArr[]):(i[],i[])
+    iArr[0] += 1
+    iArr[1] += 2
+    xout iArr, iArr
+endop
+
+
 opcode readStructMember(var:TestStruct2515):i
     xout var.var1
+endop
+
+
+// struct member pass-through with source writeback.
+opcode incrStructMemberReturn(var:TestStruct2515):i
+    var.var1 += 2
+    xout var.var1
+endop
+
+
+// UDO that modifies its input in-place and returns it via xout.
+// Tests pass-by-reference with constant inputs: xout of a xin variable
+// should not corrupt the global constant pool.
+opcode incrAndReturn(ival):i
+    ival += 1
+    xout ival
+endop
+
+
+// array pass-through with source writeback.
+opcode incrArrayReturn(iArr[]):i[]
+    iArr[0] += 10
+    iArr[1] += 20
+    xout iArr
+endop
+
+
+// array element xout is not a pass-through alias.
+opcode firstArrayValue(iArr[]):i
+    xout iArr[0]
+endop
+
+
+// audio block pass-through with source writeback.
+opcode scaleAudio(aSig):a
+    aSig *= 0.5
+    xout aSig
 endop
 
 
@@ -140,6 +220,159 @@ instr 4
 endin
 
 
+instr 20
+// k-rate input mutation across perf cycles.
+kVal init 10
+incrK(kVal)
+if (timeinstk() == 1) then
+    if (kVal != 13) then
+        printks "ERROR: incrK cycle 1 kVal=%g\n", 0, kVal
+        exitnowk(-1)
+    endif
+endif
+if (timeinstk() == 2) then
+    if (kVal != 16) then
+        printks "ERROR: incrK cycle 2 kVal=%g\n", 0, kVal
+        exitnowk(-1)
+    endif
+endif
+endin
+
+
+instr 21
+// k-rate pass-through seed and mutable source writeback.
+kSrc init 5
+kOut = incrAndReturnK(kSrc)
+if (timeinstk() == 1) then
+    if (kSrc != 6 || kOut != 6) then
+        printks "ERROR: incrAndReturnK cycle 1 kSrc=%g kOut=%g\n", 0, kSrc, kOut
+        exitnowk(-1)
+    endif
+endif
+if (timeinstk() == 2) then
+    if (kSrc != 7 || kOut != 7) then
+        printks "ERROR: incrAndReturnK cycle 2 kSrc=%g kOut=%g\n", 0, kSrc, kOut
+        exitnowk(-1)
+    endif
+endif
+endin
+
+
+instr 22
+// k-rate direct pass-through follows changing source values.
+kSrc init 8
+kOut = passK(kSrc)
+if (timeinstk() == 1) then
+    if (kOut != 8) then
+        printks "ERROR: passK cycle 1 kSrc=%g kOut=%g\n", 0, kSrc, kOut
+        exitnowk(-1)
+    endif
+endif
+kSrc += 1
+if (timeinstk() == 2) then
+    if (kOut != 9) then
+        printks "ERROR: passK cycle 2 kSrc=%g kOut=%g\n", 0, kSrc, kOut
+        exitnowk(-1)
+    endif
+endif
+endin
+
+
+instr 23
+// audio pass-through copies full blocks and writes back source.
+aSrc init 0.5
+aOut = scaleAudio(aSrc)
+kSrc downsamp aSrc
+kOut downsamp aOut
+if (timeinstk() > 0) then
+    if (abs(kSrc - 0.25) > 0.000001) then
+        printks "ERROR: scaleAudio source kSrc=%g\n", 0, kSrc
+        exitnowk(-1)
+    endif
+    if (abs(kOut - 0.25) > 0.000001) then
+        printks "ERROR: scaleAudio output kOut=%g\n", 0, kOut
+        exitnowk(-1)
+    endif
+    turnoff
+endif
+endin
+
+
+instr 24
+// array pass-through xout and array element xout.
+iArr[] fillarray 1, 2
+iOut[] = incrArrayReturn(iArr)
+assertEquals(iArr[0], 11)
+assertEquals(iArr[1], 22)
+assertEquals(iOut[0], 11)
+assertEquals(iOut[1], 22)
+iElem = firstArrayValue(iOut)
+assertEquals(iElem, 11)
+endin
+
+
+instr 25
+// mixed pass-through and expression outputs.
+src:i = 10
+pass:i, expr:i = mixedPassExpr(src)
+assertEquals(src, 11)
+assertEquals(pass, 11)
+assertEquals(expr, 12)
+endin
+
+
+instr 26
+// struct member xout writes back only that member.
+ts:TestStruct2515 init 3, 4
+iVal = incrStructMemberReturn(ts)
+assertEquals(ts.var1, 5)
+assertEquals(ts.var2, 4)
+assertEquals(iVal, 5)
+endin
+
+
+instr 27
+// duplicate pass-through outputs should both materialise the final value.
+src:i = 4
+out1:i, out2:i = duplicatePass(src)
+assertEquals(src, 5)
+assertEquals(out1, 5)
+assertEquals(out2, 5)
+endin
+
+
+instr 28
+// duplicate k-rate outputs should sync each perf cycle.
+kSrc init 4
+kOut1, kOut2 = duplicatePassK(kSrc)
+if (timeinstk() == 1) then
+    if (kSrc != 5 || kOut1 != 5 || kOut2 != 5) then
+        printks "ERROR: duplicatePassK cycle 1 kSrc=%g kOut1=%g kOut2=%g\n", 0, kSrc, kOut1, kOut2
+        exitnowk(-1)
+    endif
+endif
+if (timeinstk() == 2) then
+    if (kSrc != 6 || kOut1 != 6 || kOut2 != 6) then
+        printks "ERROR: duplicatePassK cycle 2 kSrc=%g kOut1=%g kOut2=%g\n", 0, kSrc, kOut1, kOut2
+        exitnowk(-1)
+    endif
+endif
+endin
+
+
+instr 29
+// duplicate array outputs should copy the final work array to both outputs.
+iArr[] fillarray 3, 4
+iOut1[], iOut2[] = duplicateArrayPass(iArr)
+assertEquals(iArr[0], 4)
+assertEquals(iArr[1], 6)
+assertEquals(iOut1[0], 4)
+assertEquals(iOut1[1], 6)
+assertEquals(iOut2[0], 4)
+assertEquals(iOut2[1], 6)
+endin
+
+
 opcode sound(iamp, ifreq):a
     aout = oscili(iamp, ifreq)
     if(ifreq < sr/2) then
@@ -157,16 +390,138 @@ endin
 ; schedule("SoundTest", 0, 4)
 
 
+instr 10
+// Test incrAndReturn with a literal constant: should not corrupt
+// the global constant pool and should produce the correct result.
+val:i = incrAndReturn(1)
+assertEquals(val,2)
+print val
+// Test with a variable to verify pass-through still works.
+val:i = incrAndReturn(val)
+assertEquals(val,3)
+print val
+// Test distinct input/output variables: the input should still be modified
+// by pass-by-reference, while the output receives the returned value.
+src:i = 5
+dst:i = incrAndReturn(src)
+assertEquals(src,6)
+assertEquals(dst,6)
+print src, dst
+// Test p-field input: return value changes, p-field remains read-only.
+pval:i = incrAndReturn(p4)
+assertEquals(pval,8)
+assertEquals(p4,7)
+pval2:i = incrAndReturn(p4)
+assertEquals(pval2,8)
+assertEquals(p4,7)
+endin
+
+
+// ============================================================
+// Issue #2061: pass-by-ref with multiple UDO outputs was broken
+// when input and output variable names differed, or when the input
+// aliased the second output instead of the first.
+// https://github.com/csound/csound/issues/2061
+// ============================================================
+
+// The exact opcode from issue #2061: one pass-through + one expression
+opcode Test2061K(var:k):(k,k)
+    b:k = var * 2
+    xout var, b
+endop
+
+// i-rate variant to check if the issue is wider than k-rate
+opcode Test2061I(var:i):(i,i)
+    b:i = var * 2
+    xout var, b
+endop
+
+
+// Scenario 1 from #2061: different input/output variable names
+// k0 = 1; k1, k2 = Test(k0) -> should give k1==1, k2==2
+instr 30
+    k0 init 1
+    k1, k2 Test2061K k0
+    if (timeinstk() == 1) then
+        if (k1 != 1 || k2 != 2) then
+            printks "ERROR: #2061 scenario 1 k1=%g k2=%g (expected 1, 2)\n", 0, k1, k2
+            exitnowk(-1)
+        endif
+    endif
+endin
+
+
+// Scenario 2 from #2061: input reused as first output
+// k1 = 1; k1, k2 = Test(k1) -> should give k1==1, k2==2
+instr 31
+    k1 init 1
+    k1, k2 Test2061K k1
+    if (timeinstk() == 1) then
+        if (k1 != 1 || k2 != 2) then
+            printks "ERROR: #2061 scenario 2 k1=%g k2=%g (expected 1, 2)\n", 0, k1, k2
+            exitnowk(-1)
+        endif
+    endif
+endin
+
+
+// Scenario 3 from #2061: input reused as second output (swapped)
+// k1 = 1; k2, k1 = Test(k1) -> should give k2==1, k1==2
+instr 32
+    k1 init 1
+    k2, k1 Test2061K k1
+    if (timeinstk() == 1) then
+        if (k2 != 1 || k1 != 2) then
+            printks "ERROR: #2061 scenario 3 k2=%g k1=%g (expected 1, 2)\n", 0, k2, k1
+            exitnowk(-1)
+        endif
+    endif
+endin
+
+
+// i-rate variant of scenario 1
+instr 33
+    i0 = 1
+    i1, i2 = Test2061I(i0)
+    assertEquals(i1, 1)
+    assertEquals(i2, 2)
+endin
+
+
+// i-rate variant of scenario 3 (swapped outputs)
+instr 34
+    i1 = 1
+    i2, i1 = Test2061I(i1)
+    assertEquals(i2, 1)
+    assertEquals(i1, 2)
+endin
+
+
 </CsInstruments>
 <CsScore>
 i1 0 1
 i2 0 1
 i3 0 1
 i4 0 1
+i20 0 0.01
+i21 0 0.01
+i22 0 0.01
+i23 0 0.1
+i24 0 1
+i25 0 1
+i26 0 1
+i27 0 1
+i28 0 0.01
+i29 0 1
+i10 0 1 7
+i30 0 0.01
+i31 0 0.01
+i32 0 0.01
+i33 0 1
+i34 0 1
 ; i"SoundTest" 0 4 220 0.25
 ; i"SoundTest" 1 3 330 0.25
 ; i"SoundTest" 2 3 440 0.25
 
 </CsScore>
 </CsoundSynthesizer>
-

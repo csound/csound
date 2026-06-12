@@ -1112,8 +1112,6 @@ static void deact(CSOUND *csound, INSDS *ip)
         p->cvt_out[k] = NULL; // clear pointer
       }
 
-    csoundRestoreUserOpcodeArgpp(csound, p);
-
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
