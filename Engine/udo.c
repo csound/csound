@@ -239,13 +239,6 @@ static int32_t pbr_alias_lookup_base(const PBR_ALIAS_ENTRY *aliases,
   return -1;
 }
 
-static int32_t pbr_alias_lookup(const PBR_ALIAS_ENTRY *aliases,
-                                int32_t alias_count,
-                                const char *var_name) {
-  int32_t ar_index = pbr_alias_lookup_exact(aliases, alias_count, var_name);
-  return ar_index >= 0 ? ar_index :
-    pbr_alias_lookup_base(aliases, alias_count, var_name);
-}
 
 static int32_t pbr_lookup_arg_alias(const PBR_PLAN_BUILDER *builder,
                                     const char *arg_name,
