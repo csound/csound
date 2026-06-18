@@ -458,7 +458,11 @@ OSStatus  Csound_Render(void *inRefCon,
     [self notifyListenersOfCompletion];
   }
 }
-int csoundGetOutputBufferSize(CSOUND *);
+
+static int csoundGetOutputBufferSize(CSOUND *){
+    const OPARMS *parms = csoundGetParams(csound);
+    return parms->outbufsamps;
+}
 
 - (void)runCsound:(NSString *)csdFilePath
 {
