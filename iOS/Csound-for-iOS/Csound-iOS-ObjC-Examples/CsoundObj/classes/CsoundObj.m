@@ -248,6 +248,8 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
 {
   @autoreleasepool {
     CsoundObj *obj = (__bridge CsoundObj *)(csoundGetHostData(cs));
+    // console debugging
+    vprintf(format, valist);
     Message info;
     info.cs = cs;
     info.attr = attr;
@@ -459,7 +461,7 @@ OSStatus  Csound_Render(void *inRefCon,
   }
 }
 
-static int csoundGetOutputBufferSize(CSOUND *){
+static int csoundGetOutputBufferSize(CSOUND *csound){
     const OPARMS *parms = csoundGetParams(csound);
     return parms->outbufsamps;
 }
