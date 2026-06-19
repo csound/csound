@@ -519,8 +519,7 @@ static int csoundGetOutputBufferSize(CSOUND *csound){
         } else {
           success = [session
                       setCategory:AVAudioSessionCategoryPlayback
-                      withOptions:(AVAudioSessionCategoryOptionMixWithOthers |
-                                   AVAudioSessionCategoryOptionDefaultToSpeaker)
+                      withOptions:(AVAudioSessionCategoryOptionMixWithOthers)
                                    error:&error];
         }
             
