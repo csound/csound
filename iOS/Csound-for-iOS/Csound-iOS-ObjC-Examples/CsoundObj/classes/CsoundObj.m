@@ -445,12 +445,16 @@ OSStatus  Csound_Render(void *inRefCon,
                                      cStringUsingEncoding:NSASCIIStringEncoding]
                            };
     int ret = csoundCompile(cs, 4, argv);
+      
+    
         
     [self setupBindings];
     [self notifyListenersOfStartup];
         
     [self updateAllValuesToCsound];
         
+      
+    csoundStart(cs);
     if(!ret) {
       while(!ret) ret = csoundPerformKsmps(cs);
       csoundDestroy(cs);
