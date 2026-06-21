@@ -2028,10 +2028,13 @@ CS_NOINLINE int32_t csoundFtError(const FGDATA *ff, const char *s, ...)
       csoundMessage(csound,"%s ", ff->e.strarg);
     else
       csoundMessage(csound, "%8.2f", ff->e.p[4]);
-    if (isstrcod(ff->e.p[5]))
+    
+    if (ff->e.pcnt > 4) {
+     if(isstrcod(ff->e.p[5]))
       csoundMessage(csound, "  \"%s\" ...\n", ff->e.strarg);
-    else
+     else
       csoundMessage(csound, "%8.2f ...\n", ff->e.p[5]);
+    } else csoundMessage(csound, "\n");
 
     return -1;
 }

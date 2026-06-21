@@ -4,7 +4,7 @@ BUILD_DIR=Csound-iOS
 rm -rf $BUILD_DIR
 mkdir $BUILD_DIR
 cd $BUILD_DIR
-cmake ../.. -G Xcode -DCMAKE_PREFIX_PATH="$PWD/.." -DUSE_GETTEXT=0 -DUSE_DOUBLE=0 -DBUILD_STATIC_LIBRARY=1 -DBUILD_RELEASE=0 -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=0 -DUSE_SSE=0 -DIOS=1 -DBUILD_TESTS=0 -DCUSTOM_CMAKE="../custom.cmake.ios" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+cmake ../.. -G Xcode -DCMAKE_PREFIX_PATH="$PWD/.." -DPRESERVE_NAN=1 -DUSE_GETTEXT=0 -DUSE_DOUBLE=0 -DBUILD_STATIC_LIBRARY=1 -DCMAKE_BUILD_TYPE=Release -DUSE_CURL=0 -DIOS=1 -DBUILD_TESTS=0 -DCUSTOM_CMAKE="../custom.cmake.ios" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 xcodebuild -sdk iphoneos -xcconfig ../device.xcconfig -target CsoundLib-static -configuration Release -verbose
 cp Release/libCsoundLib.a ./libCsoundLib-device.a
 xcodebuild -sdk iphonesimulator -xcconfig ../simulator.xcconfig -target CsoundLib-static -configuration Release -verbose

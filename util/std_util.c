@@ -80,6 +80,7 @@ strNcpy(char *dst, const char *src, size_t siz)
     err |= sndinfo_init_(csound);
     err |= srconv_init_(csound);
     err |= smf_conv_init_(csound);
+    err |= mkir_init_(csound);
     return err;
 }
 

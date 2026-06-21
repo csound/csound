@@ -153,7 +153,7 @@ static TREE *create_unary_token(CSOUND *csound, char *sym)
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)
     csoundMessage(csound, "Out of memory\n");
-    exit(1);
+   exit(1);
   }
   ans->type = INTEGER_TOKEN;
   ans->left = NULL;

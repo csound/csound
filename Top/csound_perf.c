@@ -414,7 +414,7 @@ int32_t kperf(CSOUND *csound) {
     if (UNLIKELY(done)) {
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
-        if (csound->oparms->numThreads > 1) {
+      if (csound->oparms->numThreads > 1) {
         ATOMIC_SET(csound->multiThreadedComplete, 1);
 #ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier1);

@@ -49,10 +49,15 @@ OPDS and has the following members:
 * offset: the starting position of an audio vector (for audio opcodes).
 * nsmps: the size of an audio vector (also for audio opcodes only).
 * init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
-* sa_offset((MYFLT *v) method to be used in audio processing to calculate offset and
-nsmps for sample-accurate behaviour. It takes an audio output vector
-as input and returns the updated nsmps value. This method should be
-called for each output in the case of multiple channels.
+
+Note: in Csound 7, `sa_offset()` is called automatically by the framework before each
+aperf() invocation. It sets offset and nsmps to reflect the note's active range within
+the current k-cycle, and zeroes the output buffers outside that range. Your aperf() loop
+should use offset and nsmps as its bounds to process only the active samples:
+
+```
+for (uint32_t i = offset; i < nsmps; i++) { ... }
+```
 
 The other base class in the CPOF is FPlugin, derived from Plugin, which
 provides an extra facility for fsig (streaming frequency-domain) plugins:
@@ -121,8 +126,7 @@ is provide an implementation of the aperf() method:
  */
 struct Simplea : csnd::Plugin<1,1> {
 int aperf() {
-    nsmps = insdshead->ksmps;
-    std::copy(inargs.data(0),inargs.data(0)+nsmps, outargs.data(0));
+    std::copy(inargs.data(0), inargs.data(0)+nsmps, outargs.data(0));
     return OK;
   }
 };
@@ -135,8 +139,7 @@ floating-point data type used by Csound.
 
 Note that the OPDS member insdshead holds the value of the instrument
 vector size (ksmps), so we can get it from there. More normally, we
-will just access the nsmps variable after calling sa_offset() to get this
-value. We will demonstrate this in later examples.
+will just use the nsmps variable, which is set automatically before aperf() runs.
 
 Registering opcodes with Csound
 ---------------------------------------
@@ -256,7 +259,7 @@ struct DelayLine : csnd::Plugin<1,2> {
     MYFLT *out = outargs.data(0);
     MYFLT *in = inargs.data(0);
     
-    sa_offset(out);
+
     for(uint32_t i=offset; i < nsmps; i++, iter++) {
       if(iter == delay.end()) iter = delay.begin();
       out[i] = *iter;
@@ -319,7 +322,7 @@ struct Oscillator : csnd::Plugin<1,3> {
     MYFLT amp = inargs[0];
     MYFLT si = inargs[1]*scl;
     
-    sa_offset(out);
+
     for(uint32_t i=offset; i < nsmps; i++) {
       out[i] = amp*table[(uint32_t)ndx];
       ndx += si;

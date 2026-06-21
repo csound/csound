@@ -186,6 +186,7 @@ typedef struct csoundModule_s {
   void        *h;                         /* library handle                */
   int32_t         (*PreInitFunc)(CSOUND *);   /* pre-initialisation routine    */
   /*   (always NULL if opcode lib) */
+  NGFENS  *(*fgen_init)(CSOUND *);        /* list of named GEN routines    */
   union {
     pluginLibFunc_t   p;                  /* generic plugin interface      */
     opcodeLibFunc_t   o;                  /* opcode library interface      */
@@ -243,6 +244,12 @@ static CS_NOINLINE int32_t init_module(CSOUND *csound, csoundModule_t *m)
   int32_t     i;
 
   if (m->PreInitFunc != NULL) {
+    /* fgens in generic module */
+    if (m->fgen_init != NULL) {
+      NGFENS  *names = m->fgen_init(csound);
+      for (i = 0; names[i].name != NULL; i++)
+        allocgen(csound, names[i].name, names[i].fn);
+    }   
     if (m->fn.p.InitFunc != NULL) {
       i = m->fn.p.InitFunc(csound);
       if (UNLIKELY(i != 0)) {
@@ -251,6 +258,8 @@ static CS_NOINLINE int32_t init_module(CSOUND *csound, csoundModule_t *m)
         return CSOUND_ERROR;
       }
     }
+
+    
   }
   else {
     /* deal with fgens if there are any */
@@ -460,6 +469,9 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
       (int32_t (*)(CSOUND *)) get_library_symbol(h, DestFunc_Name);
     m.fn.p.ErrCodeToStr =
       (const char *(*)(int32_t)) get_library_symbol(h, ErrCodeToStr_Name);
+    /* fgens function in generic module */
+    m.fgen_init =
+      (NGFENS *(*)(CSOUND *)) get_library_symbol(h, fgen_init_Name);
   }
   else {
     /* opcode library */

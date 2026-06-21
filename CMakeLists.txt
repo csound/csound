@@ -235,6 +235,7 @@ option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
 option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
 option(ALIGN_MEMORY "Align memory allocation to MYFLT size" OFF)
+option(PRESERVE_NAN "Force preserving NaNs against optimisation removal" OFF)
 # Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
 set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
 set(CSOUND_BUILD_DATE "" CACHE STRING "Override build date shown in version output (e.g. 2026-02-12)")
@@ -480,7 +481,13 @@ if (HAS_VISIBILITY_HIDDEN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
 endif()
 if (HAS_CXX_VISIBILITY_HIDDEN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden ")
+endif()
+
+if (PRESERVE_NAN)
+message(STATUS "Preserving NaNs")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
 endif()
 
 check_c_compiler_flag(-std=gnu11 HAS_C11)
@@ -1254,7 +1261,7 @@ set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
 set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
-    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough -Wno-misleading-indentation")
 
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
@@ -1702,7 +1709,7 @@ endif()
 
 
 
-if(BUILD_STATIC_LIBRARY)
+if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_static_SRCS})
     target_include_directories(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
@@ -1815,7 +1822,7 @@ if(WIN32 OR NOT IOS OR OSXCROSS_TARGET)
 endif()
 
 # export static library targets (only when BUILD_STATIC_LIBRARY is enabled)
-if(BUILD_STATIC_LIBRARY)
+if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
     install(EXPORT CsoundStaticExports
         FILE "CsoundStaticTargets.cmake"
         NAMESPACE "Csound::"

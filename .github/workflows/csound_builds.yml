@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/actions/check-pr-label
         with:
           label: release
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}          
 
   linux_build:
     name: Linux/Ubuntu build (apt-get)
@@ -61,7 +61,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DUSE_MP3=0 -DUSE_DOUBLE=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1
+          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1
 
       - name: Build Csound
         run: |
@@ -72,6 +72,7 @@ jobs:
         run: |
           cd build
           ctest -j$(nproc) --output-on-failure
+          
       - name: Run CSD tests
         run: |
           cd build
@@ -87,10 +88,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -522,10 +523,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -747,10 +748,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -784,10 +785,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -823,10 +824,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -882,10 +883,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -899,7 +900,7 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+        run: cmake -B build -S . -G "Visual Studio 18 2026" -A x64 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
@@ -917,10 +918,23 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $redistVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt").Trim()
+          $redistRoot = "$vsPath\VC\Redist\MSVC\$redistVersion\x64"
+          function Get-RedistDir($component) {
+            $dir = Get-ChildItem -Path $redistRoot -Directory -Filter "Microsoft.VC*.$component" | Select-Object -First 1
+            if (-not $dir) {
+              Write-Error "Could not find Microsoft.VC*.$component under $redistRoot"
+              exit 1
+            }
+            return $dir.FullName
+          }
+          $Env:VCREDIST_CRT_DIR = (Get-RedistDir "CRT")
+          $Env:VCREDIST_CXXAMP_DIR = (Get-RedistDir "CXXAMP")
+          $Env:VCREDIST_OPENMP_DIR = (Get-RedistDir "OpenMP")
+          echo "Resolved VCREDIST_CRT_DIR to: $Env:VCREDIST_CRT_DIR"
+          echo "Resolved VCREDIST_CXXAMP_DIR to: $Env:VCREDIST_CXXAMP_DIR"
+          echo "Resolved VCREDIST_OPENMP_DIR to: $Env:VCREDIST_OPENMP_DIR"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -959,10 +973,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -976,12 +990,14 @@ jobs:
         run: .\vcpkg\bootstrap-vcpkg.bat
 
       - name: Configure build
-        run: cmake -B build -S . -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs-x86.cmake"
+        run: cmake -B build -S . -G "Visual Studio 18 2026" -A Win32 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs-x86.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
 
       - name: Run tests
+        env:
+          OPCODE7DIR: ${{ github.workspace }}\build\Release
         run: cmake --build build --config Release --target csdtests
 
       - name: Run unit test framework
@@ -994,10 +1010,23 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x86\Microsoft.VC143.OpenMP"
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $redistVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt").Trim()
+          $redistRoot = "$vsPath\VC\Redist\MSVC\$redistVersion\x86"
+          function Get-RedistDir($component) {
+            $dir = Get-ChildItem -Path $redistRoot -Directory -Filter "Microsoft.VC*.$component" | Select-Object -First 1
+            if (-not $dir) {
+              Write-Error "Could not find Microsoft.VC*.$component under $redistRoot"
+              exit 1
+            }
+            return $dir.FullName
+          }
+          $Env:VCREDIST_CRT_DIR = (Get-RedistDir "CRT")
+          $Env:VCREDIST_CXXAMP_DIR = (Get-RedistDir "CXXAMP")
+          $Env:VCREDIST_OPENMP_DIR = (Get-RedistDir "OpenMP")
+          echo "Resolved VCREDIST_CRT_DIR to: $Env:VCREDIST_CRT_DIR"
+          echo "Resolved VCREDIST_CXXAMP_DIR to: $Env:VCREDIST_CXXAMP_DIR"
+          echo "Resolved VCREDIST_OPENMP_DIR to: $Env:VCREDIST_OPENMP_DIR"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer
@@ -1034,10 +1063,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1080,10 +1109,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1151,10 +1180,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v3.29.0
+      - uses: lukka/get-cmake@v4.3.3
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -1204,7 +1233,7 @@ jobs:
           submodules: true
 
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');

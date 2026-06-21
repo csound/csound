@@ -248,6 +248,8 @@ static void messageCallback(CSOUND *cs, int attr, const char *format,
 {
   @autoreleasepool {
     CsoundObj *obj = (__bridge CsoundObj *)(csoundGetHostData(cs));
+    // console debugging
+    vprintf(format, valist);
     Message info;
     info.cs = cs;
     info.attr = attr;
@@ -458,7 +460,11 @@ OSStatus  Csound_Render(void *inRefCon,
     [self notifyListenersOfCompletion];
   }
 }
-int csoundGetOutputBufferSize(CSOUND *);
+
+static int csoundGetOutputBufferSize(CSOUND *csound){
+    const OPARMS *parms = csoundGetParams(csound);
+    return parms->outbufsamps;
+}
 
 - (void)runCsound:(NSString *)csdFilePath
 {
@@ -513,8 +519,7 @@ int csoundGetOutputBufferSize(CSOUND *);
         } else {
           success = [session
                       setCategory:AVAudioSessionCategoryPlayback
-                      withOptions:(AVAudioSessionCategoryOptionMixWithOthers |
-                                   AVAudioSessionCategoryOptionDefaultToSpeaker)
+                      withOptions:(AVAudioSessionCategoryOptionMixWithOthers)
                                    error:&error];
         }
             

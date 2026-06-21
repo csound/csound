@@ -395,8 +395,8 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       srate  =  csound->GetSystemSr(csound, sr);
     int attempts = 0;
     while (UNLIKELY(sr != srate)) {
-      if(O->odebug)
-       csound->Warning(csound,
+       if(O->odebug)
+        csound->Warning(csound,
                       Str("Attempted to set device SR, tried %.1f, got %.1f"),
                       srate, sr);
        // wait for it
