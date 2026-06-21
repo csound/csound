@@ -189,14 +189,27 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
        and shared-ownership bugs; alias is non-owning (allocated=0).
        This check is done BEFORE any allocations to prevent memory leaks. */
     if (aSrc && aSrc->arrayType && aSrc->arrayType->userDefinedType) {
-        /* Free any existing destination storage before creating alias */
-        if (aDest->sizes != NULL) {
+        if (aDest->sizes == aSrc->sizes && aDest->data == aSrc->data) {
+            aDest->arrayMemberSize = aSrc->arrayMemberSize;
+            aDest->dimensions      = aSrc->dimensions;
+            aDest->arrayType       = aSrc->arrayType;
+            aDest->allocated       = 0;
+            return;
+        }
+
+        /* Free only owned destination storage before creating an alias. */
+        if (aDest->allocated > 0) {
+            if (aDest->sizes != NULL) {
+                cs->Free(cs, aDest->sizes);
+                aDest->sizes = NULL;
+            }
+            if (aDest->data != NULL) {
+                cs->Free(cs, aDest->data);
+                aDest->data = NULL;
+            }
+        } else if (aDest->data == NULL && aDest->sizes != NULL) {
             cs->Free(cs, aDest->sizes);
             aDest->sizes = NULL;
-        }
-        if (aDest->data != NULL) {
-            cs->Free(cs, aDest->data);
-            aDest->data = NULL;
         }
 
         /* Shallow alias for arrays of structs - non-owning reference */

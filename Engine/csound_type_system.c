@@ -561,6 +561,11 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
             return copy_var_generic(csound, p);
         }
         ARRAYDAT *srcArr = (ARRAYDAT *)assign->a;
+        if (srcArr->arrayType && srcArr->arrayType->userDefinedType) {
+            assign->h.perf = copy_var_no_op;
+            copy_var_generic(csound, p);
+            return OK;
+        }
         // If the destination really is an array, make it like the source.
         if (csoundGetTypeForArg(dstArr) == &CS_VAR_TYPE_ARRAY) {
             tabinit_like(csound, dstArr, (ARRAYDAT *)srcArr);
