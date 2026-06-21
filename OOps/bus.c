@@ -1511,15 +1511,7 @@ static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
     csound->InitError(csound, "channel argument has no variable constructor\n");
   }
-
-  if(pp->var == NULL) {
-    // channel exists but not set up
-    pp->var = argtype->createVariable(csound,  argtype, op);
-    if (UNLIKELY(pp->var == NULL)) {
-      csound->InitError(csound, "failed to create channel storage for type %s\n",
-                        argtype->varTypeName);
-    }
-  }
+  pp->var = argtype->createVariable(csound,  argtype, op);
 }
 
 
@@ -1573,6 +1565,9 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   chn = find_channel(csound, (char*) p->iname->data);
   if(chn->var  ==  NULL) // initialise it now
     chnexport_generic_initialise(csound, chn, var->varType, p->h.insdshead);
+  if(chn->var == NULL)  // check chn var exists
+    return csound->InitError(csound, "failed to create channel storage for type %s\n",
+                             var->varType->varTypeName);
   
   /* Free any existing chn var memBlock */
   if(chn->var->memBlock)
