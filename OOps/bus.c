@@ -507,7 +507,7 @@ int32_t csoundGetChannelPtr(CSOUND *csound, void **p,
   }
   if (pp != NULL &&
       pp->var != NULL && // protect for null-var CSOUND_VAR_CHANNEL
-      pp->var->memblock != NULL // protect for failed memblock alloc
+      pp->var->memBlock != NULL // protect for failed memblock alloc
       ) { 
     if ((pp->type ^ type) & CSOUND_CHANNEL_TYPE_MASK)
       return pp->type;
@@ -1503,12 +1503,44 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
   return OK;
 }
 
+
+static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
+                                         const CS_TYPE *argtype,
+                                         ARRAYDAT *arg,
+                                         INSDS *op) {
+  int32_t   err;
+  
+  if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
+    csound->InitError(csound, "channel argument has no variable constructor\n");
+  }
+
+  if(pp->var == NULL) {
+    // channel exists but not set up
+    ARRAY_VAR_INIT varInit;
+    if(argtype == &CS_VAR_TYPE_ARRAY) {
+      // support for arrays (not currently used)
+      varInit.dimensions = arg->dimensions;
+      varInit.type = arg->arrayType;
+      pp->type = CSOUND_ARRAY_CHANNEL;
+    }
+    pp->var = argtype->createVariable(csound, (argtype == &CS_VAR_TYPE_ARRAY ?
+                                               (const CS_TYPE *)
+                                               &varInit : argtype), op);
+    if (UNLIKELY(pp->var == NULL)) {
+      csound->InitError(csound, "failed to create channel storage for type %s\n",
+                        argtype->varTypeName);
+    }
+  }
+}
+
+
+
 /* export new channel from global orchestra variable */
 int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 {
-  MYFLT       *dummy;
+  MYFLT *dummy;
   char  *argName = GetOutputArgName(&p->h, 0);
-  int32_t     type = CSOUND_CONTROL_CHANNEL, mode, err;
+  int32_t  type = CSOUND_CONTROL_CHANNEL, mode, err;
   controlChannelHints_t hints;
   CHNENTRY *chn;
   CS_VARIABLE *var = csoundFindVariableWithName(csound,
@@ -1549,6 +1581,9 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 
   /* Now we need to find the channel entry */
   chn = find_channel(csound, (char*) p->iname->data);
+  if(type == CSOUND_VAR_CHANNEL) // initialise it now
+    chnexport_generic_initialise(csound, chn, var->varType, ((ARRAYDAT *)p->arg), p->h.insdshead);
+  
   /* Free any existing chn var memBlock */
   if(chn->var->memBlock)
     csound->Free(csound, chn->var->memBlock);
