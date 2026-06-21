@@ -1,6 +1,7 @@
 #include "csound.h"
 #include "csound_misc.h"
 #include "ugen.h"
+#include <ctype.h>
 #include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -242,6 +243,17 @@ int isRequestingRtMidiInput(CSOUND *csound) {
   }
 }
 
+static int isInputNameTokenChar(char c) {
+  return isalnum((unsigned char)c) || c == '_';
+}
+
+static const char *skipInputDeviceNumber(const char *s) {
+  while (isdigit((unsigned char)*s)) {
+    s++;
+  }
+  return s;
+}
+
 __attribute__((used))
 int isRequestingRtAudioInput(CSOUND *csound) {
   const char *inputName = csoundGetInputName(csound);
@@ -249,12 +261,20 @@ int isRequestingRtAudioInput(CSOUND *csound) {
     return 0;
   }
 
-  // Check if the input name contains "adc" (real-time audio input)
-  if (strstr(inputName, "adc") != NULL) {
-    return 1;
-  } else {
-    return 0;
+  const char *match = inputName;
+  while ((match = strstr(match, "adc")) != NULL) {
+    const int startDelimited =
+        match == inputName || !isInputNameTokenChar(*(match - 1));
+    const char *end = skipInputDeviceNumber(match + 3);
+    const int endDelimited = !isInputNameTokenChar(*end);
+
+    if (startDelimited && endDelimited) {
+      return 1;
+    }
+    match += 3;
   }
+
+  return 0;
 }
 
 __attribute__((used))
