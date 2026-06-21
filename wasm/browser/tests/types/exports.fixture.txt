@@ -36,6 +36,10 @@ declare const ugenOpcodeInfo: UgenOpcodeInfo;
 const createBrowserCsound: Csound = createCsound;
 const loadedCsound: LoadedCsound = browserCsound;
 const loadedLibCsound: LoadedLibCsound = localLibCsound;
+const isRequestingRtAudioInput: number = localLibCsound.isRequestingRtAudioInput(0);
+const isRequestingRtMidiInput: number = localLibCsound.isRequestingRtMidiInput(0);
+const isRequestingRtAudioInputAlias: number = localLibCsound._isRequestingRtAudioInput(0);
+const isRequestingRtMidiInputAlias: number = localLibCsound._isRequestingRtMidiInput(0);
 
 void [
   createBrowserCsound,
@@ -54,4 +58,8 @@ void [
   ugenOpcodeInfo,
   loadedCsound,
   loadedLibCsound,
+  isRequestingRtAudioInput,
+  isRequestingRtMidiInput,
+  isRequestingRtAudioInputAlias,
+  isRequestingRtMidiInputAlias,  
 ];

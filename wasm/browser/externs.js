@@ -90,6 +90,7 @@ var WasiFS;
  * __wasm_call_ctors: function(): void,
  * __wasi_js_csoundSetMessageStringCallback: function(): void,
  * _isRequestingRtMidiInput: function(CsoundInst): number,
+ * isRequestingRtMidiInput: function(CsoundInst): number,
  * freeStringMem: function(number): void,
  * csoundCreate: function(CsoundInst): number,
  * csoundDestroy: function(CsoundInst): number,
@@ -128,6 +129,8 @@ var WasiFS;
  * csoundGetOutputBuffer: function(CsoundInst): number,
  * csoundGetSpout: function(CsoundInst): number,
  * csoundGetSpin: function(CsoundInst): number,
+ * isRequestingRtAudioInput: function(CsoundInst): number,
+ * _isRequestingRtAudioInput: function(CsoundInst): number,
  * csoundGetMIDIDevList: function(CsoundInst, Object, number): number,
  * csoundSetMidiCallbacks: function(CsoundInst): number,
  * csoundGetRtMidiName: function(CsoundInst): string,
@@ -238,6 +241,7 @@ var WasmInst;
  * getInputName: function(CsoundInst): Promise.<string>,
  * getSr: function(CsoundInst): Promise.<number>,
  * _isRequestingRtMidiInput: function(CsoundInst): Promise.<number>,
+ * isRequestingRtMidiInput: function(CsoundInst): Promise.<number>,
  * csoundPushMidiMessage: function(CsoundInst, number, number, number): void,
  * }}
  */
