@@ -438,7 +438,6 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       dat->data = csound->Calloc(csound, 128*sizeof(char));
     }
   } // otherwise setup is incomplete, will be finished up later
-  
   csoundSpinLockInit(&pp->lock);
   return (CHNENTRY*) pp;
 }
@@ -506,7 +505,10 @@ int32_t csoundGetChannelPtr(CSOUND *csound, void **p,
       pp = find_channel(csound, name);
     }
   }
-  if (pp != NULL) {
+  if (pp != NULL &&
+      pp->var != NULL && // protect for null-var CSOUND_VAR_CHANNEL
+      pp->var->memblock != NULL // protect for failed memblock alloc
+      ) { 
     if ((pp->type ^ type) & CSOUND_CHANNEL_TYPE_MASK)
       return pp->type;
     pp->type |= (type & (CSOUND_INPUT_CHANNEL | CSOUND_OUTPUT_CHANNEL));
