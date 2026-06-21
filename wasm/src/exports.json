@@ -5,6 +5,7 @@
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",
   "isRequestingRtMidiInput",
+  "isRequestingRtAudioInput",
   "getRtMidiName",
   "getMidiOutFileName",
   "pushMidiMessage",
