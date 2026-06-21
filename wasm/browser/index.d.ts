@@ -627,6 +627,10 @@ declare interface LibCsoundObj {
   csoundSetDebug: (csound: number, debug: number) => void;
   csoundGetSpin: (csound: number) => number;
   csoundGetSpout: (csound: number) => number;
+  isRequestingRtAudioInput: (csound: number) => number;
+  _isRequestingRtAudioInput: (csound: number) => number;
+  isRequestingRtMidiInput: (csound: number) => number;
+  _isRequestingRtMidiInput: (csound: number) => number;
   csoundInputMessage: (csound: number, scoreEvent: string) => number;
   csoundInputMessageAsync: (csound: number, scoreEvent: string) => number;
   csoundGetControlChannel: (csound: number, channelName: string) => number;
