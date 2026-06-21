@@ -52,6 +52,8 @@ import {
 import {
   csoundGetSpin,
   csoundGetSpout,
+  isRequestingRtAudioInput,
+  _isRequestingRtAudioInput,
 } from "./modules/rtaudio";
 import {
   csoundGetMIDIDevList,
@@ -59,6 +61,7 @@ import {
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
   csoundPushMidiMessage,
+  isRequestingRtMidiInput,
   _isRequestingRtMidiInput,
 } from "./modules/rtmidi";
 import {
@@ -179,12 +182,15 @@ export const api = {
   // @module/rtaudio
   csoundGetSpin,
   csoundGetSpout,
+  isRequestingRtAudioInput,
+  _isRequestingRtAudioInput,
   // @module/rtmidi
   csoundGetMIDIDevList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
   csoundPushMidiMessage,
+  isRequestingRtMidiInput,
   _isRequestingRtMidiInput,
   // @module/control_events
   csoundInputMessage,

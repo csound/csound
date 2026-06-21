@@ -407,8 +407,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   isRequestingInput() {
     const cs = this.csound;
-    const inputName = this.libraryCsound.csoundGetInputName(cs) || "";
-    return inputName.includes("adc");
+    return this.libraryCsound.isRequestingRtAudioInput(cs);
   }
 
   isRequestingRealtimeOutput() {
