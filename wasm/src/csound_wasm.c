@@ -243,15 +243,30 @@ int isRequestingRtMidiInput(CSOUND *csound) {
   }
 }
 
-static int isInputNameTokenChar(char c) {
-  return isalnum((unsigned char)c) || c == '_';
-}
-
 static const char *skipInputDeviceNumber(const char *s) {
   while (isdigit((unsigned char)*s)) {
     s++;
   }
   return s;
+}
+
+static int isRtAudioInputName(const char *inputName) {
+  const char *suffix = NULL;
+
+  if (strncmp(inputName, "adc", 3) == 0) {
+    suffix = inputName + 3;
+  } else if (strncmp(inputName, "devaudio", 8) == 0) {
+    suffix = inputName + 8;
+  } else {
+    return 0;
+  }
+
+  if (*suffix == '\0' || *suffix == ':') {
+    return 1;
+  }
+
+  suffix = skipInputDeviceNumber(suffix);
+  return *suffix == '\0';
 }
 
 __attribute__((used))
@@ -261,20 +276,7 @@ int isRequestingRtAudioInput(CSOUND *csound) {
     return 0;
   }
 
-  const char *match = inputName;
-  while ((match = strstr(match, "adc")) != NULL) {
-    const int startDelimited =
-        match == inputName || !isInputNameTokenChar(*(match - 1));
-    const char *end = skipInputDeviceNumber(match + 3);
-    const int endDelimited = !isInputNameTokenChar(*end);
-
-    if (startDelimited && endDelimited) {
-      return 1;
-    }
-    match += 3;
-  }
-
-  return 0;
+  return isRtAudioInputName(inputName);
 }
 
 __attribute__((used))

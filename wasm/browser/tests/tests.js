@@ -1242,23 +1242,55 @@ e
       cs.csoundDestroy(csound);
     });
 
-    it("isRequestingRtAudioInput returns true when -iadc is used", function () {
-      const csound = cs.csoundCreate();
-      cs.csoundSetOption(csound, "-d");
-      cs.csoundSetOption(csound, "-n");
-      cs.csoundSetOption(csound, "-iadc");
-      cs.csoundSetOption(csound, "--nchnls=1");
-      cs.csoundSetOption(csound, "--0dbfs=1");
-      cs.csoundStart(csound);
+    it("isRequestingRtAudioInput recognizes real-time audio input names", function () {
+      const rtInputNames = ["adc", "adc0", "adc1", "adc:microphone", "devaudio", "devaudio0", "devaudio:microphone"];
 
-      const isRequestingInput = cs.isRequestingRtAudioInput(csound);
-      assert.equal(isRequestingInput, 1, "isRequestingRtAudioInput returns 1 when -iadc is set");
+      rtInputNames.forEach((inputName) => {
+        const csound = cs.csoundCreate();
+        cs.csoundSetOption(csound, "-d");
+        cs.csoundSetOption(csound, "-n");
+        cs.csoundSetOption(csound, `-i${inputName}`);
+        cs.csoundSetOption(csound, "--nchnls=1");
+        cs.csoundSetOption(csound, "--0dbfs=1");
+        cs.csoundStart(csound);
 
-      cs.csoundStop(csound);
-      cs.csoundDestroy(csound);
+        const isRequestingInput = cs.isRequestingRtAudioInput(csound);
+        assert.equal(
+          isRequestingInput,
+          1,
+          `isRequestingRtAudioInput returns 1 when -i${inputName} is set`,
+        );
+
+        cs.csoundStop(csound);
+        cs.csoundDestroy(csound);
+      });
     });
 
-    it("isRequestingRtAudioInput returns false when -iadc is not used", function () {
+    it("isRequestingRtAudioInput ignores file input names", function () {
+      const fileInputNames = ["adc.wav", "adc-file.wav", "my_adc_file.wav", "samples/adc.wav"];
+
+      fileInputNames.forEach((inputName) => {
+        const csound = cs.csoundCreate();
+        cs.csoundSetOption(csound, "-d");
+        cs.csoundSetOption(csound, "-n");
+        cs.csoundSetOption(csound, `-i${inputName}`);
+        cs.csoundSetOption(csound, "--nchnls=1");
+        cs.csoundSetOption(csound, "--0dbfs=1");
+        cs.csoundStart(csound);
+
+        const isRequestingInput = cs.isRequestingRtAudioInput(csound);
+        assert.equal(
+          isRequestingInput,
+          0,
+          `isRequestingRtAudioInput returns 0 when -i${inputName} is set`,
+        );
+
+        cs.csoundStop(csound);
+        cs.csoundDestroy(csound);
+      });
+    });
+
+    it("isRequestingRtAudioInput returns false when audio input is not used", function () {
       const csound = cs.csoundCreate();
       cs.csoundSetOption(csound, "-d");
       cs.csoundSetOption(csound, "-n");
