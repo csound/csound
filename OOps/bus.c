@@ -1506,26 +1506,15 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 
 static void chnexport_generic_initialise(CSOUND *csound, CHNENTRY *pp,
                                          const CS_TYPE *argtype,
-                                         ARRAYDAT *arg,
                                          INSDS *op) {
   int32_t   err;
-  
   if (UNLIKELY(argtype == NULL || argtype->createVariable == NULL)) {
     csound->InitError(csound, "channel argument has no variable constructor\n");
   }
 
   if(pp->var == NULL) {
     // channel exists but not set up
-    ARRAY_VAR_INIT varInit;
-    if(argtype == &CS_VAR_TYPE_ARRAY) {
-      // support for arrays (not currently used)
-      varInit.dimensions = arg->dimensions;
-      varInit.type = arg->arrayType;
-      pp->type = CSOUND_ARRAY_CHANNEL;
-    }
-    pp->var = argtype->createVariable(csound, (argtype == &CS_VAR_TYPE_ARRAY ?
-                                               (const CS_TYPE *)
-                                               &varInit : argtype), op);
+    pp->var = argtype->createVariable(csound,  argtype, op);
     if (UNLIKELY(pp->var == NULL)) {
       csound->InitError(csound, "failed to create channel storage for type %s\n",
                         argtype->varTypeName);
@@ -1561,8 +1550,9 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     type = CSOUND_ARRAY_CHANNEL;
   else if (var->varType == &CS_VAR_TYPE_F)
     type = CSOUND_PVS_CHANNEL;
-  else type = CSOUND_VAR_CHANNEL;
-  
+  else {
+    type = CSOUND_VAR_CHANNEL;
+  }
   /* mode (input and/or output) */
   mode = (int32_t)MYFLT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
@@ -1581,8 +1571,8 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
 
   /* Now we need to find the channel entry */
   chn = find_channel(csound, (char*) p->iname->data);
-  if(type == CSOUND_VAR_CHANNEL) // initialise it now
-    chnexport_generic_initialise(csound, chn, var->varType, ((ARRAYDAT *)p->arg), p->h.insdshead);
+  if(chn->var  ==  NULL) // initialise it now
+    chnexport_generic_initialise(csound, chn, var->varType, p->h.insdshead);
   
   /* Free any existing chn var memBlock */
   if(chn->var->memBlock)

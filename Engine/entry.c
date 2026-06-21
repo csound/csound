@@ -2050,6 +2050,9 @@ const OENTRY opcodlst_1[] = {
     (SUBR) chnexport_opcode_init, NULL, NULL              },
   { "chnexport.S", S(CHNEXPORT_OPCODE),0,       "S",            "Si",
     (SUBR) chnexport_opcode_init, NULL, NULL              },
+  { "chnexport.*", S(CHNEXPORT_OPCODE),0,       ".",            "Si",
+    (SUBR) chnexport_opcode_init, NULL, NULL              },
+  
   { "chnparams",   S(CHNPARAMS_OPCODE),_CR,       "iiiiii",       "S",
     (SUBR) chnparams_opcode_init, NULL, NULL              },
   { "chano.k",     S(ASSIGN),_CW,                  "",             "kk",

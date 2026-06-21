@@ -26,11 +26,25 @@ instr 2
  chnclear "audio"
 endin
 
+instr 3
+ var@global:Complex chnexport "complex", 3
+ var = 2,1
+endin
+
+instr 4
+ var:Complex chnget "complex"
+ if real(var) != imag(var) + 1 then
+   exitnowk(-1)
+ endif
+ printk2 abs(var)
+endin
 
 </CsInstruments>
 <CsScore>
 i1 0 2
 i2 0 2
+i3 0 1
+i4 0 1
 e
 </CsScore>
 </CsoundSynthesizer>
