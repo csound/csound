@@ -58,7 +58,7 @@ const createRealtimeAudioThread =
     // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
     // Prompt for microphone only on demand!
-    const isExpectingInput = libraryCsound.csoundGetInputName(csound).includes("adc");
+    const isExpectingInput = libraryCsound.isRequestingRtAudioInput(csound);
 
     // Audio params are now set immediately after csoundCreate() to ensure
     // they take precedence over CSD file settings
@@ -67,8 +67,8 @@ const createRealtimeAudioThread =
       inputChannelCount > 0
         ? inputChannelCount
         : isExpectingInput
-        ? libraryCsound.csoundGetNchnlsInput(csound)
-        : 0;
+          ? libraryCsound.csoundGetNchnlsInput(csound)
+          : 0;
 
     const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
 

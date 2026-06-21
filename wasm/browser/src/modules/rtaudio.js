@@ -74,6 +74,18 @@ export const csoundGetSpout = (wasm /* WasmInst */) => (csound /* CsoundInst */)
 
 csoundGetSpout["toString"] = () => "getSpout = async () => Number;";
 
+/**
+ * Returns whether Csound is requesting real-time audio input.
+ * This checks if the input name contains "adc".
+ * @function
+ */
+export const isRequestingRtAudioInput = (wasm) => (csound /* CsoundInst */) => {
+  return wasm.exports["isRequestingRtAudioInput"](csound);
+};
+
+// Backwards-compatibility alias
+export const _isRequestingRtAudioInput = isRequestingRtAudioInput;
+
 // PUBLIC void 	csoundSetRTAudioModule (CSOUND *csound, const char *module)
 // PUBLIC int 	csoundGetModule (CSOUND *csound, int number, char **name, char **type)
 

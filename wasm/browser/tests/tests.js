@@ -735,11 +735,7 @@ e
           "The MP3 sample was written into the root dir",
         );
 
-        assert.equal(
-          0,
-          await csoundObj.compileCSD(mp3DiskinTest),
-          "The MP3 diskin2 CSD is valid",
-        );
+        assert.equal(0, await csoundObj.compileCSD(mp3DiskinTest), "The MP3 diskin2 CSD is valid");
         assert.equal(
           0,
           await csoundObj.start(),
@@ -1178,10 +1174,7 @@ e
       assert.equal(0, cs.csoundSetOption(csound, "--0dbfs=1"));
       assert.equal(
         0,
-        cs.csoundCompileOrc(
-          csound,
-          "instr 1\n  out oscili(0.5, 440)\nendin\nschedule(1,0,0.01)",
-        ),
+        cs.csoundCompileOrc(csound, "instr 1\n  out oscili(0.5, 440)\nendin\nschedule(1,0,0.01)"),
       );
       assert.equal(0, cs.csoundStart(csound));
       // Perform a few k-cycles
@@ -1249,6 +1242,73 @@ e
       cs.csoundDestroy(csound);
     });
 
+    it("isRequestingRtAudioInput recognizes real-time audio input names", function () {
+      const rtInputNames = ["adc", "adc0", "adc1", "adc:microphone", "devaudio", "devaudio0", "devaudio:microphone"];
+
+      rtInputNames.forEach((inputName) => {
+        const csound = cs.csoundCreate();
+        cs.csoundSetOption(csound, "-d");
+        cs.csoundSetOption(csound, "-n");
+        cs.csoundSetOption(csound, `-i${inputName}`);
+        cs.csoundSetOption(csound, "--nchnls=1");
+        cs.csoundSetOption(csound, "--0dbfs=1");
+        cs.csoundStart(csound);
+
+        const isRequestingInput = cs.isRequestingRtAudioInput(csound);
+        assert.equal(
+          isRequestingInput,
+          1,
+          `isRequestingRtAudioInput returns 1 when -i${inputName} is set`,
+        );
+
+        cs.csoundStop(csound);
+        cs.csoundDestroy(csound);
+      });
+    });
+
+    it("isRequestingRtAudioInput ignores file input names", function () {
+      const fileInputNames = ["adc.wav", "adc-file.wav", "my_adc_file.wav", "samples/adc.wav"];
+
+      fileInputNames.forEach((inputName) => {
+        const csound = cs.csoundCreate();
+        cs.csoundSetOption(csound, "-d");
+        cs.csoundSetOption(csound, "-n");
+        cs.csoundSetOption(csound, `-i${inputName}`);
+        cs.csoundSetOption(csound, "--nchnls=1");
+        cs.csoundSetOption(csound, "--0dbfs=1");
+        cs.csoundStart(csound);
+
+        const isRequestingInput = cs.isRequestingRtAudioInput(csound);
+        assert.equal(
+          isRequestingInput,
+          0,
+          `isRequestingRtAudioInput returns 0 when -i${inputName} is set`,
+        );
+
+        cs.csoundStop(csound);
+        cs.csoundDestroy(csound);
+      });
+    });
+
+    it("isRequestingRtAudioInput returns false when audio input is not used", function () {
+      const csound = cs.csoundCreate();
+      cs.csoundSetOption(csound, "-d");
+      cs.csoundSetOption(csound, "-n");
+      cs.csoundSetOption(csound, "--nchnls=1");
+      cs.csoundSetOption(csound, "--0dbfs=1");
+      cs.csoundStart(csound);
+
+      const isRequestingInput = cs.isRequestingRtAudioInput(csound);
+      assert.equal(
+        isRequestingInput,
+        0,
+        "isRequestingRtAudioInput returns 0 when -iadc is not set",
+      );
+
+      cs.csoundStop(csound);
+      cs.csoundDestroy(csound);
+    });
+
     it("can find a specific opcode", function () {
       const csound = makeStartedCsound();
 
@@ -1286,7 +1346,11 @@ e
       assert.equal(cs.csoundUgenGetInType(osc, 0), cs.UGEN_ARG_TYPE.I, "input 0 is I-rate");
       assert.equal(cs.csoundUgenGetInType(osc, 1), cs.UGEN_ARG_TYPE.I, "input 1 is I-rate");
       assert.equal(cs.csoundUgenGetInType(osc, 2), cs.UGEN_ARG_TYPE.I, "input 2 is I-rate");
-      assert.equal(cs.csoundUgenGetInType(osc, 3), cs.UGEN_ARG_TYPE.I, "input 3 is I-rate (optional)");
+      assert.equal(
+        cs.csoundUgenGetInType(osc, 3),
+        cs.UGEN_ARG_TYPE.I,
+        "input 3 is I-rate (optional)",
+      );
 
       cs.csoundUgenDelete(osc);
       cs.csoundUgenFactoryDelete(factory);
@@ -1331,9 +1395,9 @@ e
       const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
       assert.notEqual(osc, 0, "oscils created");
 
-      cs.csoundUgenSetValue(osc, 0, 1.0);    // amp
+      cs.csoundUgenSetValue(osc, 0, 1.0); // amp
       cs.csoundUgenSetValue(osc, 1, 1000.0); // freq
-      cs.csoundUgenSetValue(osc, 2, 0.25);   // phase — quarter-cycle so sin(π/2)≈1
+      cs.csoundUgenSetValue(osc, 2, 0.25); // phase — quarter-cycle so sin(π/2)≈1
 
       assert.equal(0, cs.csoundUgenInit(osc));
       assert.equal(0, cs.csoundUgenPerform(osc));
@@ -1349,7 +1413,7 @@ e
         cs.csoundUgenGetValue(osc, 0),
         cs.csoundUgenVarGetValue(outVar),
         1e-10,
-        "GetValue == VarGetValue"
+        "GetValue == VarGetValue",
       );
 
       // --- line (k-rate output): GetValue returns a scalar ---
@@ -1357,9 +1421,9 @@ e
       assert.notEqual(ln, 0, "line created");
 
       // Start at 1.0, ramp to 0.0 — first output should be near 1.0
-      cs.csoundUgenSetValue(ln, 0, 1.0);  // ia
-      cs.csoundUgenSetValue(ln, 1, 1.0);  // dur
-      cs.csoundUgenSetValue(ln, 2, 0.0);  // ib
+      cs.csoundUgenSetValue(ln, 0, 1.0); // ia
+      cs.csoundUgenSetValue(ln, 1, 1.0); // dur
+      cs.csoundUgenSetValue(ln, 2, 0.0); // ib
 
       assert.equal(0, cs.csoundUgenInit(ln));
       assert.equal(0, cs.csoundUgenPerform(ln));
@@ -1394,9 +1458,9 @@ e
       // oscils: outypes="a", intypes="iiio"
       const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
 
-      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
-      cs.csoundUgenSetValue(osc, 1, 440.0);  // freq
-      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+      cs.csoundUgenSetValue(osc, 0, 0.5); // amp
+      cs.csoundUgenSetValue(osc, 1, 440.0); // freq
+      cs.csoundUgenSetValue(osc, 2, 0.0); // phase
 
       assert.equal(0, cs.csoundUgenInit(osc), "init returns 0");
       assert.equal(0, cs.csoundUgenPerform(osc), "perform returns 0");
@@ -1426,9 +1490,9 @@ e
 
       // Create oscillator: a oscils iAmp, iFreq, iPhs [, iOpt]
       const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
-      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 0, 0.5); // amp
       cs.csoundUgenSetValue(osc, 1, 440.0); // freq
-      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+      cs.csoundUgenSetValue(osc, 2, 0.0); // phase
 
       // Create gain multiplier: a product y (y = variable number of a-rate args)
       const gain = cs.csoundUgenNew(factory, "product", "a", "y");
@@ -1499,9 +1563,9 @@ e
 
       const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
       cs.csoundUgenSetContext(osc, ctx);
-      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 0, 0.5); // amp
       cs.csoundUgenSetValue(osc, 1, 440.0); // freq
-      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+      cs.csoundUgenSetValue(osc, 2, 0.0); // phase
       assert.equal(0, cs.csoundUgenInit(osc));
       assert.equal(0, cs.csoundUgenPerform(osc));
 
@@ -1519,9 +1583,9 @@ e
 
       // Build a simple graph: oscils -> product (gain control)
       const osc = cs.csoundUgenNew(factory, "oscils", "a", "iiio");
-      cs.csoundUgenSetValue(osc, 0, 0.5);   // amp
+      cs.csoundUgenSetValue(osc, 0, 0.5); // amp
       cs.csoundUgenSetValue(osc, 1, 440.0); // freq
-      cs.csoundUgenSetValue(osc, 2, 0.0);   // phase
+      cs.csoundUgenSetValue(osc, 2, 0.0); // phase
 
       const gain = cs.csoundUgenNew(factory, "product", "a", "y");
       const oscOut = cs.csoundUgenGetOutVar(osc, 0);
