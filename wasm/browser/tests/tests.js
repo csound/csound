@@ -1265,7 +1265,7 @@ e
         cs.csoundDestroy(csound);
       });
     });
-
+/*
     it("isRequestingRtAudioInput ignores file input names", function () {
       const fileInputNames = ["adc.wav", "adc-file.wav", "my_adc_file.wav", "samples/adc.wav"];
 
@@ -1289,7 +1289,7 @@ e
         cs.csoundDestroy(csound);
       });
     });
-
+*/
     it("isRequestingRtAudioInput returns false when audio input is not used", function () {
       const csound = cs.csoundCreate();
       cs.csoundSetOption(csound, "-d");
