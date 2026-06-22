@@ -1243,7 +1243,15 @@ e
     });
 
     it("isRequestingRtAudioInput recognizes real-time audio input names", function () {
-      const rtInputNames = ["adc", "adc0", "adc1", "adc:microphone", "devaudio", "devaudio0", "devaudio:microphone"];
+      const rtInputNames = [
+        "adc",
+        "adc0",
+        "adc1",
+        "adc:microphone",
+        "devaudio",
+        "devaudio0",
+        "devaudio:microphone",
+      ];
 
       rtInputNames.forEach((inputName) => {
         const csound = cs.csoundCreate();
@@ -1252,7 +1260,6 @@ e
         cs.csoundSetOption(csound, `-i${inputName}`);
         cs.csoundSetOption(csound, "--nchnls=1");
         cs.csoundSetOption(csound, "--0dbfs=1");
-        cs.csoundStart(csound);
 
         const isRequestingInput = cs.isRequestingRtAudioInput(csound);
         assert.equal(
@@ -1261,7 +1268,6 @@ e
           `isRequestingRtAudioInput returns 1 when -i${inputName} is set`,
         );
 
-        cs.csoundStop(csound);
         cs.csoundDestroy(csound);
       });
     });
@@ -1276,7 +1282,6 @@ e
         cs.csoundSetOption(csound, `-i${inputName}`);
         cs.csoundSetOption(csound, "--nchnls=1");
         cs.csoundSetOption(csound, "--0dbfs=1");
-        cs.csoundStart(csound);
 
         const isRequestingInput = cs.isRequestingRtAudioInput(csound);
         assert.equal(
@@ -1285,7 +1290,6 @@ e
           `isRequestingRtAudioInput returns 0 when -i${inputName} is set`,
         );
 
-        cs.csoundStop(csound);
         cs.csoundDestroy(csound);
       });
     });
@@ -1296,7 +1300,6 @@ e
       cs.csoundSetOption(csound, "-n");
       cs.csoundSetOption(csound, "--nchnls=1");
       cs.csoundSetOption(csound, "--0dbfs=1");
-      cs.csoundStart(csound);
 
       const isRequestingInput = cs.isRequestingRtAudioInput(csound);
       assert.equal(
@@ -1305,7 +1308,6 @@ e
         "isRequestingRtAudioInput returns 0 when -iadc is not set",
       );
 
-      cs.csoundStop(csound);
       cs.csoundDestroy(csound);
     });
 
