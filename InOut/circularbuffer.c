@@ -31,6 +31,12 @@ typedef struct _circular_buffer {
   spin_lock_t lock;
 } circular_buffer;
 
+int32_t csoundCircularBufferGetSize(CSOUND *csound, void *p) {
+  (void) csound;
+  if(p == NULL) return 0;
+  return ((circular_buffer *)p)->numelem;
+}
+
 void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsize){
     circular_buffer *p;
     if ((p = (circular_buffer *)

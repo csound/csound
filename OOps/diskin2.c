@@ -291,6 +291,7 @@ int32_t soundin(CSOUND *csound, DISKIN2 *p){
 
 static uintptr_t diskin_io_thread(void *p);
 static int32_t diskin2_cleanup(CSOUND *csound, void *p);
+int32_t csoundCircularBufferGetSize(CSOUND *csound, void *p); 
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 {
@@ -412,13 +413,16 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
   if (csound->oparms->realtime==1 && p->fforceSync==0) {
     DISKIN2  **top, *current;
     p->csound = csound;
+    int32_t numelem =  p->bufSize*p->nChannels;
+    
      /* circular buffer is allocated once per opcode
         instance and will be freed by csoundReset
+        we also make sure size is compatible
       */
-    if(p->cb == NULL) {
+    if(p->cb == NULL ||
+       csoundCircularBufferGetSize(csound,p->cb)) {
        p->cb = csound->CreateCircularBuffer(csound,
-                                    p->bufSize*p->nChannels,
-                                             sizeof(MYFLT));
+                                    numelem, sizeof(MYFLT));
     }
 
    if (UNLIKELY(p->cb == NULL)) {
@@ -1534,7 +1538,17 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (csound->oparms->realtime==1 && p->fforceSync==0){
       DISKIN2_ARRAY **top, *current;
       p->csound = csound;
-
+    int32_t numelem =  p->bufSize*p->nChannels;
+    
+     /* circular buffer is allocated once per opcode
+        instance and will be freed by csoundReset
+        we also make sure size is compatible
+      */
+    if(p->cb == NULL ||
+       csoundCircularBufferGetSize(csound,p->cb)) {
+       p->cb = csound->CreateCircularBuffer(csound,
+                                    numelem, sizeof(MYFLT));
+    }
       // create circular buffer if not already created
       // freed on CsoundReset()
       if(p->cb == NULL) {
