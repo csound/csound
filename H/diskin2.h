@@ -30,7 +30,7 @@
 #define POS_FRAC_SCALE  0x10000000
 #define POS_FRAC_MASK   0x0FFFFFFF
 
-typedef struct {
+typedef struct diskin2 {
     OPDS    h;
     MYFLT   *out[DISKIN2_MAXCHN];
     MYFLT   *iFileCode;
@@ -74,10 +74,12 @@ typedef struct {
     MYFLT   aOut_bufsize;
     void    *cb;
     int32_t     async;
-  MYFLT     transpose;
+    MYFLT     transpose;
+    CSOUND *csound;
+    struct diskin2  *nxt;
 } DISKIN2;
 
-typedef struct {
+typedef struct diskin2_array {
     OPDS    h;
     ARRAYDAT *aOut;
     MYFLT   *iFileCode;
@@ -118,6 +120,8 @@ typedef struct {
   MYFLT aOut_bufsize;
   void *cb;
   int32_t  async;
+  CSOUND *csound;
+  struct diskin2_array *nxt;
 } DISKIN2_ARRAY;
 
 int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
