@@ -509,6 +509,8 @@ static const CSOUND cenviron_ = {
     csoundWriteCircularBuffer,
     csoundCheckCircularBuffer,
     csoundPeekCircularBuffer,
+    csoundGetSizeCircularBuffer,
+    csoundGetElementSizeCircularBuffer,
     csoundFlushCircularBuffer,
     csoundDestroyCircularBuffer,
     /* File access */

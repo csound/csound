@@ -1,7 +1,7 @@
 /*
   diskin2.c:
 
-  Copyright (C) 2005 Istvan Varga
+  Copyright (C) 2005 Istvan Varga, (C) 2013 - 2026 V Lazzarini
 
   This file is part of Csound.
 
@@ -290,8 +290,7 @@ int32_t soundin(CSOUND *csound, DISKIN2 *p){
 }
 
 static uintptr_t diskin_io_thread(void *p);
-static int32_t diskin2_cleanup(CSOUND *csound, void *p);
-int32_t csoundCircularBufferGetSize(CSOUND *csound, void *p); 
+static int32_t diskin2_cleanup(CSOUND *csound, void *p); 
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
 {
@@ -420,7 +419,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
         we also make sure size is compatible
       */
     if(p->cb == NULL ||
-       csoundCircularBufferGetSize(csound,p->cb)) {
+       csound->GetSizeCircularBuffer(csound,p->cb) < numelem) {
        p->cb = csound->CreateCircularBuffer(csound,
                                     numelem, sizeof(MYFLT));
     }
@@ -1544,7 +1543,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
         we also make sure size is compatible
       */
     if(p->cb == NULL ||
-       csoundCircularBufferGetSize(csound,p->cb)) {
+       csound->GetSizeCircularBuffer(csound,p->cb) < numelem) {
        p->cb = csound->CreateCircularBuffer(csound,
                                     numelem, sizeof(MYFLT));
     }
