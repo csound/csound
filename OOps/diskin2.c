@@ -477,7 +477,6 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
                                                "DISKIN_THREAD_START")) == 0) {
       void **thread = csound->QueryGlobalVariable(csound, "DISKIN_PTHREAD");
       *thread = csound->CreateThread(diskin_io_thread, *top);
-      printf("thread start\n");
       *start = 1;
     }
 #endif
@@ -549,7 +548,7 @@ int32_t diskin2_async_deinit(CSOUND *csound, DISKIN2 *p){
       return NOTOK;
     int i = 0;
     current = *top;
-    while(current != (DISKIN2 *)p) {
+    while(current != p) {
       prv = current;
       current = current->nxt;      
     }
@@ -1372,7 +1371,7 @@ void diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p) {
     {
       /* write to circular buffer */
       int32_t lc, mc=0, nc=nsmps*p->nChannels;
-      int32_t *start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
+      int32_t *start = csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START_ARRAY");
       do{
         lc = csound->WriteCircularBuffer(csound, p->cb, &aOut[mc], nc);
         nc -= lc;
