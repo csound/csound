@@ -12,6 +12,7 @@ instr 1
  chnset i1, "init"
 endin
 
+
 instr 2
 
 S1[] chnget "string"

@@ -530,7 +530,7 @@ static void array_free_var_mem(void* csnd, void* p) {
     if (dat->allocated > 0 && dat->data != NULL) {
         const CS_TYPE* arrayType = dat->arrayType;
 
-        if (arrayType->freeVariableMemory != NULL) {
+        if (arrayType && arrayType->freeVariableMemory != NULL) {
             MYFLT* mem = dat->data;
             size_t memMyfltSize = 0;
             // Compute element count without trusting dat->sizes pointer, which may be shared/aliased

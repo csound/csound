@@ -334,8 +334,12 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
       if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
         csound->Free(csound, entry->hints.attributes);
         if(!entry->varmem_is_external &&
-           entry->var && entry->var->memBlock)
-          csound->Free(csound, entry->var->memBlock);
+           entry->var && entry->var->memBlock) {
+          if(entry->var->varType->freeVariableMemory != NULL)
+            entry->var->varType->freeVariableMemory(csound, &(entry->var->memBlock->value));
+          else
+            csound->Free(csound, entry->var->memBlock);
+        }  
         if(entry->var)
           csound->Free(csound, entry->var);
       }
