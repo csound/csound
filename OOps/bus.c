@@ -333,7 +333,8 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
 
       if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
         csound->Free(csound, entry->hints.attributes);
-        if(entry->var && entry->var->memBlock)
+        if(!entry->varmem_is_external &&
+           entry->var && entry->var->memBlock)
           csound->Free(csound, entry->var->memBlock);
         if(entry->var)
           csound->Free(csound, entry->var);
@@ -412,7 +413,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       return NULL;
     }
     pp->var->memBlock = (CS_VAR_MEM *)
-        csound->Calloc(csound, sizeof(CS_TYPE *) +
+        csound->Calloc(csound, CS_VAR_TYPE_OFFSET  +
                        pp->var->memBlockSize);
     if(pp->var->memBlock == NULL) {
       csound->Message(csound, "failed to allocate memory for channel %s\n",
@@ -428,14 +429,21 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       csoundFree(csound, pp);
       return NULL;
     }
-    
-    if (pp->var->initializeVariableMemory != NULL)
-      pp->var->initializeVariableMemory(csound, pp->var,
+   
+    if (pp->var->initializeVariableMemory != NULL &&
+         // bypass memory init for string channels 
+        (type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_STRING_CHANNEL)
+         pp->var->initializeVariableMemory(csound, pp->var,
                                         &(pp->var->memBlock->value));
+
+    // for string channels, initialise it here instead
     if ((type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_STRING_CHANNEL) {
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
       dat->size = 128;
       dat->data = csound->Calloc(csound, 128*sizeof(char));
+      // these are currently unused but we initialise them here
+      dat->timestamp = 0;
+      dat->refcount = 0; 
     }
   } // otherwise setup is incomplete, will be finished up later
   csoundSpinLockInit(&pp->lock);
@@ -486,7 +494,7 @@ const char *csoundGetChannelVarTypeName(CSOUND *csound, const char *name) {
 
 const CS_TYPE *csoundGetChannelVarType(CSOUND *csound, const char *name) {
   CHNENTRY *pp = find_channel(csound, name);
-  if(pp)
+  if(pp && pp->var)
     return pp->var->varType;
   else return NULL;
 }
@@ -753,7 +761,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     
     // allocate memory
     pp->var->memBlock = (CS_VAR_MEM *) csoundCalloc(csound, pp->var->memBlockSize
-                                                    + sizeof(CS_TYPE *));
+                                                    + CS_VAR_TYPE_OFFSET);
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       csound->InitError(csound, "memory allocation failure");
       return NULL;
@@ -1574,6 +1582,8 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     csound->Free(csound, chn->var->memBlock);
   /* point to the arg var */
   chn->var->memBlock = var->memBlock;
+  /* set the flag to mark this */
+  chn->varmem_is_external = 1;
 
   /* if control channel, set additional parameters */
   if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
@@ -2949,6 +2959,12 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
   return OK;
 }
 
+/**
+   Like csoundGetChannelPtr() this function *is not* threadsafe by
+   default. This is not an issue as we have that behaviour in the
+   API for over twenty years (it is not a new departure).
+   However, unlike csoundGetChannelPtr(), this is const-safe (read-only access)
+*/
 const CS_VARIABLE *csoundGetChannel(CSOUND *csound, const char *name) { 
   CHNENTRY *pp = find_channel(csound, name);
   if(pp && pp->var) return pp->var;

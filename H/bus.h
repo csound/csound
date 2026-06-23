@@ -68,6 +68,7 @@ extern "C" {
     spin_lock_t lock;      /* Multi-thread protection */
     int32_t     type;
     CS_VARIABLE  *var;     /* channel data */
+    int32_t     varmem_is_external;
     char        name[1];
   } CHNENTRY;
 
