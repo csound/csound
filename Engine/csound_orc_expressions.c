@@ -101,8 +101,12 @@ char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
         snprintf(s, 16, "#%c%d[]", type[1], argCount);
         add_array_arg(csound, s,  NULL, 1, typeTable);
       } else { // type[]
+        size_t typeLen = strlen(type);
+        char *baseType = (typeLen >= 2) ? cs_strndup(csound, type, typeLen - 2)
+                                        : csoundStrdup(csound, type);
         snprintf(s, 16, "#%c%d[]", type[0], argCount);
-        add_array_arg(csound, s,  type, 1, typeTable);
+        add_array_arg(csound, s,  baseType, 1, typeTable);
+        csound->Free(csound, baseType);
       }
     }
     else {

@@ -28,6 +28,15 @@ typedef struct {
     MYFLT   *r, *a;
 } AEVAL;
 
+static inline CS_VARIABLE *array_element_create_variable(CSOUND *csound,
+                                                         const CS_TYPE *arrayType,
+                                                         INSDS *ctx)
+{
+    void *typeArg = (arrayType && arrayType->userDefinedType)
+                      ? (void *)arrayType : NULL;
+    return arrayType->createVariable(csound, typeArg, ctx);
+}
+
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx)
 {
     size_t ss;
@@ -43,7 +52,11 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
           csound->Die(csound, "tabinit: arrayType is NULL");
           return;
         }
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, ctx);
+        CS_VARIABLE* var = array_element_create_variable(csound, p->arrayType, ctx);
+        if (UNLIKELY(var == NULL)) {
+          csound->Die(csound, "tabinit: could not create array element variable");
+          return;
+        }
         p->arrayMemberSize = var->memBlockSize;
         ss = (size_t)p->arrayMemberSize * (size_t)size;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
@@ -73,7 +86,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
         p->allocated = ss;
         // Initialize only the newly added struct elements if it's UDT
         if (p->arrayType && p->arrayType->userDefinedType) {
-          CS_VARIABLE* var2 = p->arrayType->createVariable(csound, NULL, ctx);
+          CS_VARIABLE* var2 = array_element_create_variable(csound, p->arrayType, ctx);
           if (var2 && var2->initializeVariableMemory) {
             char *base = (char*)p->data;
             size_t blockSize = (size_t)var2->memBlockSize;
@@ -121,7 +134,11 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
                          ? (int32_t)(p->allocated / (size_t)p->arrayMemberSize)
                          : 0;
     if (p->data == NULL) {
-      CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, NULL);
+      CS_VARIABLE* var = array_element_create_variable(csound, p->arrayType, NULL);
+      if (UNLIKELY(var == NULL)) {
+        csound->Die(csound, "tabinit_like: could not create array element variable");
+        return;
+      }
       p->arrayMemberSize = var->memBlockSize;
       size_t bytes = (size_t)p->arrayMemberSize * (size_t)elemCount;
       p->data = (MYFLT*)csound->Calloc(csound, bytes);
@@ -153,7 +170,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
         p->allocated = bytes;
         // Initialize only the newly added struct elements if it's UDT
         if (p->arrayType && p->arrayType->userDefinedType) {
-          CS_VARIABLE* var2 = p->arrayType->createVariable(csound, NULL, NULL);
+          CS_VARIABLE* var2 = array_element_create_variable(csound, p->arrayType, NULL);
           if (var2 && var2->initializeVariableMemory) {
             char *base = (char*)p->data;
             size_t blockSize = (size_t)var2->memBlockSize;
