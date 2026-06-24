@@ -189,11 +189,11 @@ static void array_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
        This check is done BEFORE any allocations to prevent memory leaks. */
     if (aSrc && aSrc->arrayType && aSrc->arrayType->userDefinedType) {
         /* Free any existing destination storage before creating alias */
-        if (aDest->sizes != NULL) {
+        if (aDest->allocated && aDest->sizes != NULL) {
             cs->Free(cs, aDest->sizes);
             aDest->sizes = NULL;
         }
-        if (aDest->data != NULL) {
+        if (aDest->allocated && aDest->data != NULL) {
             cs->Free(cs, aDest->data);
             aDest->data = NULL;
         }
@@ -557,10 +557,12 @@ static void array_free_var_mem(void* csnd, void* p) {
                     elemCount *= (size_t)dat->sizes[i];
                 }
             }
-
-            for (i = 0; i < elemCount; i++) {
+            
+            if(dat->allocated > 0) {
+              for (i = 0; i < elemCount; i++) {
                 arrayType->freeVariableMemory(csound,
                                               mem + (i * memMyfltSize));
+              }
             }
         }
 

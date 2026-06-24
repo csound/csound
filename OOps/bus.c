@@ -2461,13 +2461,21 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
   if(adat->data == NULL) {
     if(adat_chn->data == NULL)
       return csound->InitError(csound, "array channel not allocated\n");
-    else tabinit_like(csound, adat, adat_chn);
+    else {
+      int32_t err = tabinit_like(csound, adat, adat_chn);
+      if(err)
+         return csound->InitError(csound, "error creating array variable\n");
+    }
   }
 
   if(adat_chn->data == NULL) {
     if(adat->data == NULL)
       return csound->InitError(csound, "array variable not allocated\n");
-    else tabinit_like(csound, adat_chn, adat);
+    else {
+       int32_t err = tabinit_like(csound, adat_chn, adat);
+       if(err)
+         return csound->InitError(csound, "error creating array channel\n");
+    }    
   }
   return OK;
 }

@@ -28,7 +28,7 @@ typedef struct {
     MYFLT   *r, *a;
 } AEVAL;
 
-static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx)
+static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx)
 {
     size_t ss;
     int32_t oldCount = (p->allocated > 0 && p->arrayMemberSize > 0)
@@ -41,9 +41,10 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
     if (p->data == NULL) {
         if (UNLIKELY(p->arrayType == NULL)) {
           csound->Die(csound, "tabinit: arrayType is NULL");
-          return;
+          return CSOUND_ERROR;
         }
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, ctx);
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, p->arrayType, ctx);
+        if(var == NULL) return CSOUND_ERROR;
         p->arrayMemberSize = var->memBlockSize;
         ss = (size_t)p->arrayMemberSize * (size_t)size;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
@@ -94,17 +95,18 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size, INSDS *ctx
         }
     }
     if (p->dimensions==1) p->sizes[0] = size;
+    return CSOUND_SUCCESS;
 }
 
-static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
+static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
 {
     uint32_t elemCount = 1;
     if(p->data == tp->data) {
-        return;
+        return CSOUND_SUCCESS;
     }
     // Additional safety check: if p and tp are the same ARRAYDAT structure, don't modify
     if(p == tp) {
-        return;
+        return CSOUND_SUCCESS;
     }
     if (p->dimensions != tp->dimensions) {
       p->sizes = (int32_t*)csound->ReAlloc(csound, p->sizes,
@@ -121,7 +123,8 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
                          ? (int32_t)(p->allocated / (size_t)p->arrayMemberSize)
                          : 0;
     if (p->data == NULL) {
-      CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, NULL);
+      CS_VARIABLE* var = p->arrayType->createVariable(csound, p->arrayType, NULL);
+      if(var == NULL) return CSOUND_ERROR;
       p->arrayMemberSize = var->memBlockSize;
       size_t bytes = (size_t)p->arrayMemberSize * (size_t)elemCount;
       p->data = (MYFLT*)csound->Calloc(csound, bytes);
@@ -173,6 +176,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, const ARRAYDAT *tp)
         }
       }
     }
+    return CSOUND_SUCCESS;
 }
 
 static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *q)

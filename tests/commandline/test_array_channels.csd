@@ -17,31 +17,31 @@ instr 2
 
 S1[] chnget "string"
 if strcmp("one", S1[0]) != 0 then
-  print "first string not matched\n"
+  print "first string not matched"
   exitnow(-1)
 elseif strcmp("two", S1[1]) != 0 then
-  print "second string not matched\n"
+  print "second string not matched"
   exitnow(-1)
 elseif strcmp("three", S1[2]) != 0 then
-  print "third string not matched\n"
+  print "third string not matched"
   exitnow(-1)
 else
-  print "all strings in channel correctly matched\n"
+  print "all strings in channel correctly matched"
 endif
 
 
 i1[] chnget "init"
 if i1[0] != 1 then
-  print "first number not matched\n"
+  print "first number not matched"
   exitnow(-1)
 elseif i1[1] != 2 then
-  print "second number not matched\n"
+  print "second number not matched"
   exitnow(-1)
 elseif i1[2] != 3 then
-  print "third number not matched\n"
+  print "third number not matched"
   exitnow(-1)
 else
-  print "all numbers in init channel correctly matched\n"
+  print "all numbers in init channel correctly matched"
 endif
 
 k1[] chnget "init"
@@ -57,6 +57,7 @@ elseif k1[2] != 3 then
 else
   printks "all k numbers in init channel correctly matched\n", 1
 endif
+turnoff
 endin
 
 instr 3
@@ -77,6 +78,7 @@ if real(arr1[0]) == real(arr[0]) then
 else
   exitnowk(-1)
 endif
+turnoff
 endin
 
 instr 5
@@ -98,7 +100,42 @@ while i < 2 do
  od
  i+=1
 od
+printks "all matrix items correctly matched\n",1
+turnoff
 endin
+
+struct duo var1:i, var2:i
+
+instr 6
+arr:duo[] init 2
+arr[0].var1 = 1
+arr[0].var2 = 2
+arr[1].var1 = 3
+arr[1].var2 = 4
+
+chnset arr, "structs"
+arr2:duo[] chnget "structs"
+i:k = 0
+while i < 2 do
+ var1:k =  arr[i].var1
+ var2:k =  arr2[i].var1
+ if var1 != var2 then
+    printks "struct var1 not matched for index %d\n",1,i
+    exitnowk(-1)
+ endif
+ var1 =  arr[i].var2
+ var2 =  arr2[i].var2
+ if var1 != var2 then
+    printks "struct var1 not matched for index %d\n",1,i
+    exitnowk(-1)
+ endif
+
+i+=1
+od
+printks "all struct array items correctly matched\n",1
+turnoff
+endin
+
 
 </CsInstruments>
 
@@ -108,6 +145,7 @@ i2 0 1
 i3 0 1
 i4 0 1
 i5 0 1
+i6 0 1
 </CsScore>
 </CsoundSynthesizer>
 
