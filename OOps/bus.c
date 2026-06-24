@@ -318,30 +318,33 @@ PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
   } else return NULL;
 }
 
+
+static void delete_channel_varmem(CSOUND *csound, CHNENTRY* entry) {
+  if(!entry->varmem_is_external &&
+     entry->var &&
+     entry->var->memBlock) {
+    // if the variable has a free function, use it
+    if(entry->var->varType->freeVariableMemory != NULL)
+      entry->var->varType->freeVariableMemory(csound,
+                                              &(entry->var->memBlock->value));
+    // now free the varmem block
+    csound->Free(csound, entry->var->memBlock);
+  }  
+}
+
 static int32_t delete_channel_db(CSOUND *csound, void *p){
   CONS_CELL *head, *values;
   IGN(p);
   if (csound->chn_db == NULL) {
     return 0;
   }
-
   head = values = cs_hash_table_values(csound, csound->chn_db);
-
   if (head != NULL) {
     while(values != NULL) {
       CHNENTRY* entry = values->value;
-
       if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
         csound->Free(csound, entry->hints.attributes);
-        if(!entry->varmem_is_external &&
-           entry->var && entry->var->memBlock) {
-          // if the variable has a free function, use it
-          if(entry->var->varType->freeVariableMemory != NULL)
-            entry->var->varType->freeVariableMemory(csound,
-                                                    &(entry->var->memBlock->value));
-          // now free the varmem block
-          csound->Free(csound, entry->var->memBlock);
-        }  
+        delete_channel_varmem(csound, entry);
         if(entry->var)
           csound->Free(csound, entry->var);
       }
@@ -349,7 +352,6 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
     }
     cs_cons_free(csound, head);
   }
-
   cs_hash_table_mfree_complete(csound, csound->chn_db);
   csound->chn_db = NULL;
   return 0;
@@ -1583,9 +1585,8 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     return csound->InitError(csound, "failed to create channel storage for type %s\n",
                              var->varType->varTypeName);
   
-  /* Free any existing chn var memBlock */
-  if(chn->var->memBlock)
-    csound->Free(csound, chn->var->memBlock);
+  /* Free any existing chn var memBlock allocated earlier */
+  delete_channel_varmem(csound, chn);
   /* point to the arg var */
   chn->var->memBlock = var->memBlock;
   /* set the flag to mark this */
