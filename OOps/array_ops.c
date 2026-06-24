@@ -3424,19 +3424,25 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
   int32_t i, arrayTotalSize, memMyfltSize;
 
-
-
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
     return csound->InitError(csound, "%s", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
                p->src->dimensions != p->dst->dimensions))
     return csound->InitError(csound, "%s",
                              Str("array-variable dimensions do not match"));
+  if (p->dst->arrayType == NULL)
+    p->dst->arrayType = p->src->arrayType;
   if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
     return csound->InitError(csound, "%s",
                              Str("array-variable types do not match"));
 
   if (p->src == p->dst) return OK;
+
+  if (p->src->arrayType && p->src->arrayType->userDefinedType) {
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                p->dst, p->src, p->h.insdshead);
+    return OK;
+  }
 
   arrayTotalSize = get_array_total_size(p->src);
   memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
@@ -3481,6 +3487,15 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
   if (p->dst->arrayType == NULL)
     p->dst->arrayType = p->src->arrayType;
 
+  if (p->src->arrayType && p->src->arrayType->userDefinedType) {
+    if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
+      return csound->InitError(csound, "%s",
+                               Str("array-variable types do not match"));
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                p->dst, p->src, p->h.insdshead);
+    return OK;
+  }
+
   // Propagate dimensions and sizes so downstream ops can rely on them
   if (p->src->dimensions > 0) {
     int32_t dim = p->src->dimensions;
@@ -3508,11 +3523,19 @@ int32_t tabcopyk(CSOUND *csound, TABCPY *p)
                p->src->dimensions != p->dst->dimensions))
     return csound->PerfError(csound,&(p->h), "%s",
                              Str("array-variable dimensions do not match"));
+  if (p->dst->arrayType == NULL)
+    p->dst->arrayType = p->src->arrayType;
   if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
     return csound->PerfError(csound, &(p->h), "%s",
                              Str("array-variable types do not match"));
 
   if (p->src == p->dst) return OK;
+
+  if (p->src->arrayType && p->src->arrayType->userDefinedType) {
+    CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
+                                p->dst, p->src, p->h.insdshead);
+    return OK;
+  }
 
   arrayTotalSize = get_array_total_size(p->src);
   memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);

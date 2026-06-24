@@ -624,9 +624,13 @@ int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
       return csound->PerfError(csound, &(p->h), "Struct member %d is NULL", i);
     }
 
-    // For now, assume all members are scalars (MYFLT)
-    // In a full implementation, we'd need to handle different member types
-    member->value = *p->args[i];
+    if (member->varType && member->varType->copyValue) {
+      member->varType->copyValue(csound, member->varType,
+                                 (void*)&member->value, (void*)p->args[i],
+                                 p->h.insdshead);
+    } else {
+      member->value = *p->args[i];
+    }
   }
 
   return OK;
