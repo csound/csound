@@ -1283,6 +1283,8 @@ struct CSOUND_ {
   int32_t (*WriteCircularBuffer)(CSOUND *, void *, const void *, int32_t);
   int32_t (*CheckCircularBuffer)(CSOUND *, void *, int32_t);
   int32_t (*PeekCircularBuffer)(CSOUND *, void *, void *, int32_t);
+  int32_t (*GetSizeCircularBuffer)(CSOUND *, void *);
+  int32_t (*GetElementSizeCircularBuffer)(CSOUND *, void *);  
   void (*FlushCircularBuffer)(CSOUND *, void *);
   void (*DestroyCircularBuffer)(CSOUND *, void *);
   /**@}*/

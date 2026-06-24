@@ -93,6 +93,22 @@ extern "C" {
    */
   PUBLIC int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag);
 
+  /**
+   * Get the allocated number of items in a circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @returns the number of elements allocated in the circular buffer
+   */
+  PUBLIC int32_t csoundGetSizeCircularBuffer(CSOUND *csound, void *p);
+
+  /**
+   * Get the allocated space for each item in a circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @returns the size of each element in bytes
+   */
+  PUBLIC int32_t csoundGetElementSizeCircularBuffer(CSOUND *csound, void *p);
+  
   
   /**
    * Free circular buffer
