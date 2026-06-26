@@ -363,7 +363,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   });
 
   options["env"]["csoundWasiJsDebugCallback"] = () => {
-    messagePort.post({ kcycle: true });
+    messagePort.post({ debugCallback: true });
   };
 
   options["env"]["printDebugCallback"] = (offset, length) => {

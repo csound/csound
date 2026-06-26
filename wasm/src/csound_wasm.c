@@ -244,6 +244,8 @@ int csoundResetWasi(CSOUND *csound) {
 
 __attribute__((used))
 void csoundSetDebugCallbackWasi(CSOUND *csound) {
+  /* csoundDebuggerInit is idempotent — safe to call even if already
+     initialized or if called multiple times. */
   csoundDebuggerInit(csound);
   csoundSetDebugCallback(csound, &csoundWasiCDebugCallback, NULL);
 }

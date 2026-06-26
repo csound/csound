@@ -65,7 +65,7 @@ export class PublicEventAPI {
       "renderEnded",
       "onAudioNodeCreated",
       "message",
-      "kcycle",
+      "debugCallback",
     ]);
   }
 
@@ -125,8 +125,8 @@ export class PublicEventAPI {
     this.eventEmitter.emit("message", log);
   }
 
-  triggerKcycle() {
-    this.eventEmitter.emit("kcycle");
+  triggerDebugCallback() {
+    this.eventEmitter.emit("debugCallback");
   }
 
   decorateAPI(exportApi) {

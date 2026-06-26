@@ -64,6 +64,8 @@ void csoundDebuggerBreakpointReached(CSOUND *csound)
 
  void csoundDebuggerInit(CSOUND *csound)
 {
+    /* Idempotent: do nothing if already initialized */
+    if (csound->csdebug_data != NULL) return;
     csdebug_data_t *data =
       (csdebug_data_t *) csound->Malloc(csound, sizeof(csdebug_data_t));
     data->bkpt_anchor = (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
