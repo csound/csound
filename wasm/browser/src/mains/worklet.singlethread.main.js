@@ -374,6 +374,11 @@ class SingleThreadAudioWorkletMainThread {
       }
     }
 
+    this.exportApi["enableDebugCallback"] = async () => {
+      const fn = this.exportApi["setDebugCallbackWasi"];
+      return typeof fn === "function" ? await fn() : -1;
+    };
+
     return this.exportApi;
   }
 }

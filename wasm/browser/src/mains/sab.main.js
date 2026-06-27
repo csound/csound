@@ -600,6 +600,12 @@ class SharedArrayBufferMainThread {
         }
       }
     }
+
+    this.exportApi["enableDebugCallback"] = async () => {
+      const fn = this.exportApi["setDebugCallbackWasi"];
+      return typeof fn === "function" ? await fn() : -1;
+    };
+
     log(`PUBLIC API Generated and stored`)();
   }
 }

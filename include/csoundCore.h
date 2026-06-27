@@ -1775,6 +1775,8 @@ struct CSOUND_ {
   int32_t modules_loaded;
   MYFLT _system_sr;
   void *csdebug_data; /* debugger data */
+  void (*debug_cb)(CSOUND *, void *); /* per-k-cycle debug callback, set via csoundSetDebugCallback() */
+  void *debug_cb_data;               /* userdata for debug_cb */
 
   int32_t score_parser;
   int32_t print_version;

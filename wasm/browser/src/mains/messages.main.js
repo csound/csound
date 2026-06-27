@@ -27,6 +27,10 @@ export const messageEventHandler = (worker) => (event) => {
           : event.data.log,
       );
     }
+  } else if (event.data.debugCallback) {
+    if (worker && worker.publicEvents && worker.publicEvents.triggerDebugCallback) {
+      worker.publicEvents.triggerDebugCallback();
+    }
   } else if (event.data["playStateChange"] && worker && worker["onPlayStateChange"]) {
     worker["onPlayStateChange"](event.data["playStateChange"]);
   }
