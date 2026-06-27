@@ -119,6 +119,12 @@ export const csoundPerformKsmps = (wasm) => (csound) => wasm.exports["csoundPerf
 
 csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;";
 
+export const csoundSetDebugCallbackWasi = (wasm) => (csound) =>
+  wasm.exports["csoundSetDebugCallbackWasi"](csound);
+
+csoundSetDebugCallbackWasi["toString"] = () =>
+  "setDebugCallbackWasi = async (csound) => undefined;";
+
 /**
  * Dummy function to enable stop mechanism
  * @function

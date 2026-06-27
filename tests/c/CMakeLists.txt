@@ -14,6 +14,7 @@ if(BUILD_TESTS)
   add_executable(unittests
         channel_tests.cpp
         csound_data_structures_test.cpp
+        csound_debug_callback_test.cpp
         csound_debugger_test.cpp
         csound_message_buffer_test.cpp
         csound_option_parser_test.cpp

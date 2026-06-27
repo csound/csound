@@ -81,7 +81,14 @@ declare type PublicEvents =
   | "renderStarted"
   | "renderEnded"
   | "onAudioNodeCreated"
-  | "message";
+  | "message"
+  /**
+   * @property "debugCallback" - fired after every k-cycle when the Csound debugger
+   * is active (requires enableDebugCallback() to have been called before performance
+   * starts). Use csound.on("debugCallback", cb) to inspect instrument variables in
+   * real time via the debugger API.
+   */
+  | "debugCallback";
 
 /**
  * CsoundObj API.
@@ -158,6 +165,14 @@ declare interface CsoundObj {
     eventName: PublicEvents,
     listener: EventEmitter.EventListener<PublicEvents, any>,
   ) => EventEmitter;
+  /**
+   * Enables the per-k-cycle debug callback.
+   * Initializes the Csound debugger (if not already initialized) and registers
+   * the internal callback that emits a "debugCallback" event after every k-cycle.
+   * Must be called before csound.start() for reliable behaviour.
+   * Once enabled, subscribe with: csound.on("debugCallback", () => { ... })
+   */
+  enableDebugCallback: () => Promise<void>;
   /**
    * CsoundFilesystem
    */

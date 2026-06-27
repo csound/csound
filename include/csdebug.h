@@ -154,6 +154,22 @@ extern "C" {
  * see csoundSetBreakpointCallback() */
 typedef void (*breakpoint_cb_t) (CSOUND *, debug_bkpt_info_t *, void *userdata);
 
+/** Debug k-cycle callback function type
+ *
+ * Called after every k-cycle when the debugger is active (kperf_debug),
+ * after all instruments have run, before audio output is sent.
+ * Use csoundDebugGetInstrInstances() and csoundDebugGetVariables() inside
+ * the callback to inspect active instrument variables in real time.
+ * The callback must return quickly — it fires from within the performance
+ * loop.
+ *
+ * Unlike the breakpoint callback, this callback is non-stopping: Csound
+ * continues performance normally after the callback returns.
+ *
+ * Requires csoundDebuggerInit() to have been called first.
+ */
+typedef void (*debug_cb_t)(CSOUND *csound, void *userdata);
+
 typedef struct csdebug_data_s {
     void *bkpt_buffer; /* for passing breakpoints to the running engine */
     void *cmd_buffer;     /* for passing commands to the running engine */
@@ -300,6 +316,38 @@ PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
 PUBLIC void csoundDebugFreeVariables(CSOUND *csound,
                                      debug_variable_t *varHead);
 
+
+/** Set a per-k-cycle debug callback
+ *
+ * Registers a function that will be called after every k-cycle when the
+ * debugger is active, once all active instrument instances have been
+ * processed and before the audio output buffer is sent. This provides a
+ * non-stopping hook into the debug performance loop suitable for real-time
+ * variable inspection.
+ *
+ * Requires csoundDebuggerInit() to have been called first — the callback
+ * only fires inside kperf_debug().
+ *
+ * Inside the callback, csoundDebugGetInstrInstances() and
+ * csoundDebugGetVariables() can be used to read the current state of all
+ * active instruments.
+ *
+ * Pass NULL for cb to remove a previously set callback.
+ *
+ * @param csound   Csound instance pointer
+ * @param cb       pointer to callback function (NULL to remove)
+ * @param userdata pointer to user data passed back to the callback
+ */
+PUBLIC void csoundSetDebugCallback(CSOUND *csound,
+                                   debug_cb_t cb, void *userdata);
+
+/** Remove the per-k-cycle debug callback
+ *
+ * Equivalent to calling csoundSetDebugCallback(csound, NULL, NULL).
+ *
+ * @param csound Csound instance pointer
+ */
+PUBLIC void csoundRemoveDebugCallback(CSOUND *csound);
 
 /**  @} */
 

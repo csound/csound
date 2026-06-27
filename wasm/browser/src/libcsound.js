@@ -28,6 +28,7 @@ import {
   csoundStart,
   csoundCompileCSD,
   csoundPerformKsmps,
+  csoundSetDebugCallbackWasi,
   csoundStop,
   csoundReset,
 } from "./modules/performance";
@@ -162,6 +163,7 @@ export const api = {
   csoundStart,
   csoundCompileCSD,
   csoundPerformKsmps,
+  csoundSetDebugCallbackWasi,
   csoundStop,
   csoundReset,
   // @module/attributes
