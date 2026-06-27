@@ -2976,7 +2976,7 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VARIABLE *va
   if(pp) {
     if(pp->var && pp->var->varType == var->varType) {
       csoundLockChannel(csound, name);
-      if(var && var->memblock)
+      if(var && var->memBlock)
        pp->var->varType->copyValue(csound, pp->var->varType, (&(pp->var->memBlock->value)),
                                   &(var->memBlock->value), NULL);
       csoundUnlockChannel(csound,name);
