@@ -342,13 +342,15 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
   if (head != NULL) {
     while(values != NULL) {
       CHNENTRY* entry = values->value;
-      if ((entry->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL) {
+      if (entry->hints.attributes) {
+        // free hints.attributes if allocated
         csound->Free(csound, entry->hints.attributes);
-        delete_channel_varmem(csound, entry);
-        if(entry->var)
-          csound->Free(csound, entry->var);
       }
-      values = values->next;
+     delete_channel_varmem(csound, entry);
+     if(entry->var) {
+        csound->Free(csound, entry->var);
+     }
+     values = values->next;
     }
     cs_cons_free(csound, head);
   }
@@ -363,14 +365,6 @@ static inline CHNENTRY *find_channel(CSOUND *csound, const char *name){
   }
   return NULL;
 }
-
-/*
-void set_channel_data_ptr(CSOUND *csound,
-                          const char *name, void *ptr, int32_t newSize){
-  find_channel(csound, name)->data = (MYFLT *) ptr;
-  find_channel(csound, name)->datasize = newSize;
-}
-*/
 
 static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
                                            const char *name, int32_t type){
@@ -431,12 +425,6 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
       return NULL;
     }
     pp->var->memBlock->varType = pp->var->varType;
-    if (UNLIKELY(pp->var->memBlock == NULL)) {
-      csound->InitError(csound, "memory allocation failure");
-      csoundFree(csound, pp->var);
-      csoundFree(csound, pp);
-      return NULL;
-    }
    
     if (pp->var->initializeVariableMemory != NULL &&
          // bypass memory init for string channels 
@@ -539,7 +527,9 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
   CHNENTRY  *pp;
   pp = find_channel(csound, name);
   
-  if (pp == NULL) return 0;
+  if (pp == NULL // no channel
+      && pp->var == NULL) // no variable data created
+    return 0; 
   else {
     if ((pp->type & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
@@ -1712,7 +1702,8 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
   int32_t index = 0;
   p->arraySize = arr->sizes[0];
   p->channels = (STRINGDAT*) arr->data;
-  p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // VL: surely an array of pointers?
+  p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*));
+  // VL: surely an array of pointers?
   tabinit(csound, p->arrayDat, p->arraySize,  p->h.insdshead);
 
   int32_t err;
@@ -2983,9 +2974,10 @@ const CS_VARIABLE *csoundGetChannel(CSOUND *csound, const char *name) {
 int32_t csoundSetChannel(CSOUND *csound, const char *name, const CS_VARIABLE *var) { 
   CHNENTRY *pp = find_channel(csound, name);
   if(pp) {
-    if(pp->var && pp->var->varType ==  var->varType) {
+    if(pp->var && pp->var->varType == var->varType) {
       csoundLockChannel(csound, name);
-      pp->var->varType->copyValue(csound, pp->var->varType, (&(pp->var->memBlock->value)),
+      if(var && var->memblock)
+       pp->var->varType->copyValue(csound, pp->var->varType, (&(pp->var->memBlock->value)),
                                   &(var->memBlock->value), NULL);
       csoundUnlockChannel(csound,name);
       return CSOUND_SUCCESS;
