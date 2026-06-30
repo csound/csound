@@ -483,21 +483,26 @@ static void kcycle_cb_test(CSOUND *csound, void *userdata)
     (void)csound;
 }
 
-TEST_F (DebuggerTests, testKcycleCallbackWithoutDebuggerInit)
+TEST_F (DebuggerTests, testDebugCallbackFiresEachKcycle)
 {
     int32_t i;
     kcycle_count = 0;
 
+    /* The per-k-cycle debug callback only fires from kperf_debug, which is
+       installed by csoundDebuggerInit(). Without it the plain kperf runs and
+       the callback never fires. */
     csoundCompileOrc(csound, "instr 1\nkval init 1\nendin\n", 0);
     csoundStart(csound);
+    csoundDebuggerInit(csound);
+    csoundSetDebugCallback(csound, kcycle_cb_test, &kcycle_count);
     csoundEventString(csound, "i 1 0 1", 0);
-    csoundSetKcycleCallback(csound, kcycle_cb_test, &kcycle_count);
 
     for (i = 0; i < 8; i++) {
         csoundPerformKsmps(csound);
     }
 
-    csoundRemoveKcycleCallback(csound);
+    csoundRemoveDebugCallback(csound);
+    csoundDebuggerClean(csound);
     ASSERT_GT(kcycle_count, 0);
 }
 

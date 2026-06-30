@@ -96,6 +96,26 @@ typedef struct debug_udo_frame_s {
     struct debug_udo_frame_s *next;
 } debug_udo_frame_t;
 
+/** f-signal (PVSDAT) metadata, filled by csoundDebugSerializeFsig(). */
+typedef struct debug_fsig_info_s {
+    int32_t N;             /* FFT size */
+    int32_t NB;            /* number of bins = N/2 + 1 */
+    int32_t overlap;       /* hop size */
+    int32_t winsize;       /* analysis window size */
+    int32_t wintype;       /* window type */
+    int32_t format;        /* PVS analysis format (0 = PVS_AMP_FREQ) */
+    uint32_t framecount;   /* increments when a new analysis frame is ready */
+    int32_t sliding;       /* 1 = source frame is MYFLT (sliding), 0 = float32 */
+} debug_fsig_info_t;
+
+/** Numeric array (ARRAYDAT) metadata, filled by csoundDebugSerializeArray(). */
+typedef struct debug_array_info_s {
+    int32_t dimensions;        /* number of array dimensions */
+    int32_t arrayMemberSize;   /* bytes per element */
+    int32_t totalElements;     /* total MYFLT values in the flat data */
+    char elementTypeName[16];  /* element type name, e.g. "k", "a", "i" */
+} debug_array_info_t;
+
 typedef struct {
     debug_instr_t *breakpointInstr;
     debug_variable_t *instrVarList;
@@ -345,6 +365,62 @@ PUBLIC debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
 /** Free list from csoundDebugGetUdoFrames() */
 PUBLIC void csoundDebugFreeUdoFrames(CSOUND *csound,
                                      debug_udo_frame_t *frameHead);
+
+
+/** Get the list of global variables (orchestra-wide symbols)
+ *
+ * Enumerates every variable in csound->engineState.varPool — the global pool
+ * holding gk*, ga*, gi*, gS*, gf*, global arrays, and Csound's internal
+ * globals (sr, kr, ksmps, ...). Returns a debug_variable_t linked list in the
+ * same format as csoundDebugGetVariables(): for scalar/audio/string types the
+ * data pointer is ready to read; for "f" it points to a PVSDAT and for "["
+ * to an ARRAYDAT (decode these with csoundDebugSerializeFsig() /
+ * csoundDebugSerializeArray()).
+ *
+ * Unlike instrument-local variables, each global has its own storage block,
+ * so the data pointers are taken from var->memBlock (not a shared lclbas).
+ *
+ * Returns NULL if the global pool is not available (before compilation).
+ * data pointers are borrowed; free the list with csoundDebugFreeVariables().
+ * Not thread-safe; call from the k-cycle callback or between k-cycles.
+ */
+PUBLIC debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound);
+
+/** Serialize an f-signal (PVSDAT) analysis frame into a flat float buffer
+ *
+ * varData must point to a PVSDAT, as provided by csoundDebugGetVariables() or
+ * csoundDebugGetGlobalVariables() for a variable of type "f". The current
+ * analysis frame is written to outBuf as 2*NB interleaved float32 values
+ * (amp0, freq0, amp1, freq1, ...), regardless of whether the source frame is
+ * float32 (normal) or MYFLT (sliding). For sliding analysis the most recent
+ * sub-frame in the ksmps block is used.
+ *
+ * infoOut (may be NULL) receives the frame metadata.
+ *
+ * Returns the total number of float values available (2*NB) and copies
+ * min(2*NB, bufMax) of them. Returns 0 (and sets NB=0) when the frame has not
+ * been allocated yet (frame.auxp == NULL, e.g. before the first analysis run)
+ * or on invalid input.
+ */
+PUBLIC int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
+                                        float *outBuf, int32_t bufMax,
+                                        debug_fsig_info_t *infoOut);
+
+/** Serialize a numeric array (ARRAYDAT) into a flat MYFLT buffer
+ *
+ * varData must point to an ARRAYDAT, as provided by csoundDebugGetVariables()
+ * or csoundDebugGetGlobalVariables() for a variable of type "[". The flat
+ * element data is copied to outBuf. Non-numeric arrays (e.g. S[] or f[])
+ * return 0 with elementTypeName set so the caller can skip them.
+ *
+ * infoOut (may be NULL) receives the array shape and element type.
+ *
+ * Returns the total number of MYFLT values available and copies
+ * min(total, bufMax) of them. Returns 0 on invalid/empty input.
+ */
+PUBLIC int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
+                                         MYFLT *outBuf, int32_t bufMax,
+                                         debug_array_info_t *infoOut);
 
 
 /** Set a per-k-cycle debug callback

@@ -25,6 +25,7 @@
 
 #include "csdebug.h"
 #include "udo.h"
+#include "pstream.h"   /* PVSDAT / CMPLX layout for csoundDebugSerializeFsig */
 
 int32_t kperf(CSOUND *csound);
 int32_t kperf_debug(CSOUND *csound);  
@@ -332,14 +333,33 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
     }
 }
 
-static debug_variable_t *csoundDebugGetVariablesFromPool(
-    CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas)
+/* Build a debug_variable_t list from a variable pool.
+ *
+ * For instrument-local pools (isGlobal == 0) each variable's storage is at
+ * lclbas + memBlockIndex. For the global pool (isGlobal == 1) each variable
+ * owns its own storage block, reached through var->memBlock->value (lclbas is
+ * unused / NULL). Both paths use the same type dispatch:
+ *   i/k/a/r -> MYFLT(s) read in place
+ *   S       -> STRINGDAT, data points to the C string
+ *   f       -> PVSDAT*,   decode with csoundDebugSerializeFsig()
+ *   [       -> ARRAYDAT*, decode with csoundDebugSerializeArray()
+ */
+static debug_variable_t *csoundDebugBuildVarList(
+    CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas, int32_t isGlobal)
 {
     debug_variable_t *head = NULL;
     debug_variable_t *debug_var = NULL;
     CS_VARIABLE *var = varPoolHead;
     while (var) {
         void *varmem = NULL;
+        MYFLT *base = NULL;
+        if (isGlobal) {
+            if (var->memBlock != NULL) {
+                base = (MYFLT *) &var->memBlock->value;
+            }
+        } else {
+            base = lclbas + var->memBlockIndex;
+        }
         if (!head) {
             head = csound->Malloc(csound, sizeof(debug_variable_t));
             debug_var = head;
@@ -350,17 +370,25 @@ static debug_variable_t *csoundDebugGetVariablesFromPool(
         debug_var->next = NULL;
         debug_var->name = var->varName;
         debug_var->typeName = var->varType->varTypeName;
-        if (strcmp(debug_var->typeName, "i") == 0
+        if (base == NULL) {
+            varmem = NULL;
+        } else if (strcmp(debug_var->typeName, "i") == 0
                 || strcmp(debug_var->typeName, "k") == 0
                 || strcmp(debug_var->typeName, "a") == 0
                 || strcmp(debug_var->typeName, "r") == 0
                 ) {
-            varmem = lclbas + var->memBlockIndex;
+            varmem = base;
         } else if (strcmp(debug_var->typeName, "S") == 0) {
-            STRINGDAT *strdata = (STRINGDAT *) (lclbas + var->memBlockIndex);
+            STRINGDAT *strdata = (STRINGDAT *) base;
             varmem = &strdata->data[0];
+        } else if (strcmp(debug_var->typeName, "f") == 0) {
+            /* base is the PVSDAT struct itself */
+            varmem = (void *) base;
+        } else if (strcmp(debug_var->typeName, "[") == 0) {
+            /* base is the ARRAYDAT struct itself */
+            varmem = (void *) base;
         } else {
-            csound->Message(csound, "csoundDebugGetVarData() unknown data type.\n");
+            varmem = NULL;
         }
         debug_var->data = varmem;
         var = var->next;
@@ -371,8 +399,21 @@ static debug_variable_t *csoundDebugGetVariablesFromPool(
  debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
                                                  debug_instr_t *instr)
 {
-    return csoundDebugGetVariablesFromPool(csound, instr->varPoolHead,
-                                           instr->lclbas);
+    return csoundDebugBuildVarList(csound, instr->varPoolHead,
+                                   instr->lclbas, 0);
+}
+
+debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
+{
+    CS_VAR_POOL *pool;
+    if (csound == NULL) {
+        return NULL;
+    }
+    pool = csound->engineState.varPool;
+    if (pool == NULL) {
+        return NULL;
+    }
+    return csoundDebugBuildVarList(csound, pool->head, NULL, 1);
 }
 
 static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p)
@@ -413,8 +454,8 @@ static void csoundDebugAppendUdoFrame(
     frame->depth = depth;
     frame->frameIndex = frameIndex;
     if (udo_ip->instr != NULL && udo_ip->instr->varPool != NULL) {
-        frame->varList = csoundDebugGetVariablesFromPool(
-            csound, udo_ip->instr->varPool->head, udo_ip->lclbas);
+        frame->varList = csoundDebugBuildVarList(
+            csound, udo_ip->instr->varPool->head, udo_ip->lclbas, 0);
     } else {
         frame->varList = NULL;
     }
@@ -487,6 +528,130 @@ void csoundDebugFreeUdoFrames(CSOUND *csound, debug_udo_frame_t *frameHead)
         varHead = varHead->next;
         csound->Free(csound, oldvar);
     }
+}
+
+int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
+                                 float *outBuf, int32_t bufMax,
+                                 debug_fsig_info_t *infoOut)
+{
+    PVSDAT *fsig = (PVSDAT *) varData;
+    int32_t NB, total, n, i;
+
+    if (infoOut != NULL) {
+        memset(infoOut, 0, sizeof(debug_fsig_info_t));
+    }
+    if (fsig == NULL) {
+        return 0;
+    }
+    NB = (int32_t) fsig->NB;
+    /* pvsanal only sets NB in the sliding-analysis path; the normal (non-sliding)
+       generate_frame leaves it at 0. The frame is always N+2 floats = 2*(N/2+1),
+       so derive the bin count from N when NB is unset. */
+    if (NB <= 0 && fsig->N > 0) {
+        NB = (int32_t) (fsig->N / 2) + 1;
+    }
+    if (infoOut != NULL) {
+        infoOut->N         = (int32_t) fsig->N;
+        infoOut->NB        = NB;
+        infoOut->overlap   = (int32_t) fsig->overlap;
+        infoOut->winsize   = (int32_t) fsig->winsize;
+        infoOut->wintype   = (int32_t) fsig->wintype;
+        infoOut->format    = (int32_t) fsig->format;
+        infoOut->framecount = (uint32_t) fsig->framecount;
+        infoOut->sliding   = (int32_t) fsig->sliding;
+    }
+    /* Frame not allocated yet (e.g. before first pvsanal run). */
+    if (fsig->frame.auxp == NULL || NB <= 0) {
+        if (infoOut != NULL) {
+            infoOut->NB = 0;
+        }
+        return 0;
+    }
+
+    total = 2 * NB;   /* interleaved amp/freq */
+    if (outBuf == NULL || bufMax <= 0) {
+        return total;   /* report size only */
+    }
+    n = (total < bufMax) ? total : bufMax;
+
+    if (fsig->sliding) {
+        /* Sliding analysis: frame.auxp is CMPLX[ksmps * NB]. Use the most
+           recent sub-frame (last sample of the block). CMPLX is {re=amp,
+           im=freq} stored as MYFLT. */
+        uint32_t ksmps = csound->ksmps;
+        CMPLX *base;
+        if (ksmps < 1) {
+            ksmps = 1;
+        }
+        base = ((CMPLX *) fsig->frame.auxp) + (size_t) NB * (ksmps - 1);
+        for (i = 0; i < n; i++) {
+            int32_t bin = i >> 1;
+            outBuf[i] = (i & 1) ? (float) base[bin].im : (float) base[bin].re;
+        }
+    } else {
+        /* Normal analysis: frame.auxp is float[2*NB] interleaved amp/freq. */
+        float *frame = (float *) fsig->frame.auxp;
+        for (i = 0; i < n; i++) {
+            outBuf[i] = frame[i];
+        }
+    }
+    return total;
+}
+
+int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
+                                  MYFLT *outBuf, int32_t bufMax,
+                                  debug_array_info_t *infoOut)
+{
+    ARRAYDAT *adat = (ARRAYDAT *) varData;
+    const char *elemType = NULL;
+    int32_t total, n, i, d, elements, perMember;
+    (void) csound;
+
+    if (infoOut != NULL) {
+        memset(infoOut, 0, sizeof(debug_array_info_t));
+    }
+    if (adat == NULL || adat->arrayType == NULL) {
+        return 0;
+    }
+    elemType = adat->arrayType->varTypeName;
+    if (infoOut != NULL) {
+        infoOut->dimensions = (int32_t) adat->dimensions;
+        infoOut->arrayMemberSize = (int32_t) adat->arrayMemberSize;
+        if (elemType != NULL) {
+            strncpy(infoOut->elementTypeName, elemType,
+                    sizeof(infoOut->elementTypeName) - 1);
+        }
+    }
+    /* Only numeric arrays (i/k/a) serialize to flat MYFLT. S[]/f[] return 0. */
+    if (elemType == NULL ||
+        (strcmp(elemType, "i") != 0 && strcmp(elemType, "k") != 0 &&
+         strcmp(elemType, "a") != 0)) {
+        return 0;
+    }
+    if (adat->data == NULL || adat->sizes == NULL || adat->dimensions <= 0) {
+        return 0;
+    }
+
+    elements = 1;
+    for (d = 0; d < adat->dimensions; d++) {
+        elements *= adat->sizes[d];
+    }
+    perMember = (int32_t) (adat->arrayMemberSize / (int32_t) sizeof(MYFLT));
+    if (perMember < 1) {
+        perMember = 1;
+    }
+    total = elements * perMember;
+    if (infoOut != NULL) {
+        infoOut->totalElements = total;
+    }
+    if (outBuf == NULL || bufMax <= 0) {
+        return total;   /* report size only */
+    }
+    n = (total < bufMax) ? total : bufMax;
+    for (i = 0; i < n; i++) {
+        outBuf[i] = adat->data[i];
+    }
+    return total;
 }
 
 inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps) {
