@@ -416,14 +416,21 @@ debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound)
     return csoundDebugBuildVarList(csound, pool->head, NULL, 1);
 }
 
-static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p)
+static UOPCODE *csoundDebugUdoChainNext(UOPCODE *p, INSDS *parent_ip)
 {
-    INSDS *udo_ip;
-    if (p == NULL || p->ip == NULL) {
+    UOPCODE *next;
+    if (p == NULL || p->ip == NULL || parent_ip == NULL) {
         return NULL;
     }
-    udo_ip = p->ip;
-    return (UOPCODE *)udo_ip->opcod_deact;
+    /* UDO linking stores the older sibling in p->ip->opcod_deact at call
+       time, but that field becomes the head of nested UDO calls once the
+       sub-instance runs. Only follow it while it still points at a sibling
+       on parent_ip (same parent_ip as this chain). */
+    next = (UOPCODE *)p->ip->opcod_deact;
+    if (next != NULL && next->parent_ip != parent_ip) {
+        next = NULL;
+    }
+    return next;
 }
 
 static const char *csoundDebugUdoName(UOPCODE *p)
@@ -478,7 +485,7 @@ static void csoundDebugCollectUdoFrames(
 {
     UOPCODE *p;
     for (p = (UOPCODE *)ip->opcod_deact; p != NULL;
-         p = csoundDebugUdoChainNext(p)) {
+         p = csoundDebugUdoChainNext(p, ip)) {
         INSDS *udo_ip = p->ip;
         if (udo_ip == NULL) {
             continue;

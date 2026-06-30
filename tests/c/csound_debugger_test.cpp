@@ -657,25 +657,27 @@ TEST_F (DebuggerTests, testUdoFramesNestedDepth)
 TEST_F (DebuggerTests, testUdoFramesRecursiveSelfCall)
 {
     const char *orc =
-        "opcode selfCall, k, k\n"
-        "  kIn xin\n"
-        "  if kIn <= 1 kgoto leaf\n"
-        "  kDeeper selfCall kIn - 1\n"
-        "  kOut = kDeeper + 1\n"
-        "  kgoto done\n"
+        "opcode selfCall, k, kpp\n"
+        "  kIn, iDepth, iCnt xin\n"
+        "  if (iCnt >= iDepth) goto leaf\n"
+        "  kChild selfCall kIn, iDepth, iCnt + 1\n"
+        "  kOut = kChild\n"
+        "  goto done\n"
         "leaf:\n"
         "  kOut = 1\n"
         "done:\n"
         "  xout kOut\n"
         "endop\n"
         "instr 1\n"
-        "  kResult selfCall 3\n"
+        "  kResult selfCall 0, 3, 0\n"
         "endin\n";
 
-    csoundCompileOrc(csound, orc, 0);
+    int32_t compileErr = csoundCompileOrc(csound, orc, 0);
+    ASSERT_EQ(compileErr, 0);
     csoundStart(csound);
     csoundEventString(csound, "i 1 0 1", 0);
-    csoundPerformKsmps(csound);
+    int32_t perfErr = csoundPerformKsmps(csound);
+    ASSERT_EQ(perfErr, 0);
 
     debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
     ASSERT_NE(instrs, nullptr);
