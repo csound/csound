@@ -654,3 +654,47 @@ TEST_F (DebuggerTests, testUdoFramesNestedDepth)
     csoundDebugFreeInstrInstances(csound, instrs);
 }
 
+TEST_F (DebuggerTests, testUdoFramesRecursiveSelfCall)
+{
+    const char *orc =
+        "opcode selfCall, k, k\n"
+        "  kIn xin\n"
+        "  if kIn <= 1 kgoto leaf\n"
+        "  kDeeper selfCall kIn - 1\n"
+        "  kOut = kDeeper + 1\n"
+        "  kgoto done\n"
+        "leaf:\n"
+        "  kOut = 1\n"
+        "done:\n"
+        "  xout kOut\n"
+        "endop\n"
+        "instr 1\n"
+        "  kResult selfCall 3\n"
+        "endin\n";
+
+    csoundCompileOrc(csound, orc, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    csoundPerformKsmps(csound);
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs);
+    ASSERT_NE(frames, nullptr);
+
+    int32_t frameCount = 0;
+    int32_t maxDepth = -1;
+    for (debug_udo_frame_t *f = frames; f != NULL; f = f->next) {
+        frameCount++;
+        ASSERT_STREQ(f->udoName, "selfCall");
+        if (f->depth > maxDepth) {
+            maxDepth = f->depth;
+        }
+    }
+    ASSERT_GE(frameCount, 3);
+    ASSERT_GE(maxDepth, 2);
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
