@@ -586,7 +586,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         half sample to the right, if M is even); aLen is half the
         true window length (rounded down).  If the window duration
         is longer than the transform (M > N), then the window is
-        multiplied by a sin(x)/x function to meet the condition:
+        multiplied by a SIN(x)/x function to meet the condition:
         aWin[Ni] = 0 for i != 0.  In either case, the
         window is renormalized so that the phase vocoder amplitude
         estimates are properly scaled.  */
@@ -607,9 +607,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
 
     if (M > N) {
       if (Meven)
-        *aWin *= (MYFLT)N * (MYFLT) sin(HALFPI/(MYDBL)N) /( HALFPI_F);
+        *aWin *= (MYFLT)N * (MYFLT) SIN(HALFPI/(MYDBL)N) /( HALFPI_F);
       for (i = 1; i <= aLen; i++)
-        aWin[i] *= (MYFLT) (N * sin(PI * ((MYDBL) i + 0.5 * (MYDBL) Meven)
+        aWin[i] *= (MYFLT) (N * SIN(PI * ((MYDBL) i + 0.5 * (MYDBL) Meven)
                                     / (MYDBL) N)
                             / (PI * (i + 0.5 * (MYDBL) Meven)));
       for (i = 1; i <= aLen; i++)
@@ -663,9 +663,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
         sWin[-i] = sWin[i - Leven];
 
       if (Leven)
-        *sWin *= (MYFLT) (I * sin(HALFPI/(MYDBL) I) / (HALFPI));
+        *sWin *= (MYFLT) (I * SIN(HALFPI/(MYDBL) I) / (HALFPI));
       for (i = 1; i <= sLen; i++)
-        sWin[i] *= (MYFLT)(I * sin(PI * ((MYDBL) i + 0.5 * (MYDBL) Leven)
+        sWin[i] *= (MYFLT)(I * SIN(PI * ((MYDBL) i + 0.5 * (MYDBL) Leven)
                                    / (MYDBL) I)
                            / (PI * ((MYDBL) i + 0.5 * (MYDBL) Leven)));
       for (i = 1; i <= sLen; i++)
@@ -1223,13 +1223,13 @@ static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 
     if (even) {
       for (i = 0; i < winLen; i++)
-        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * ((MYDBL)i + 0.5)));
+        win[i] = (MYFLT) (0.54 + 0.46 * COS(ftmp * ((MYDBL)i + 0.5)));
       win[winLen] = FL(0.0);
     }
     else {
       win[0] = FL(1.0);
       for (i = 1; i <= winLen; i++)
-        win[i] = (MYFLT) (0.54 + 0.46 * cos(ftmp * (MYDBL)i));
+        win[i] = (MYFLT) (0.54 + 0.46 * COS(ftmp * (MYDBL)i));
     }
 }
 

@@ -83,7 +83,7 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
   for (i = 0; i < n; i++) {
     MYDBL  frac, tmp;
     int32_t     pos;
-    frac = modf(fpos, &tmp);
+    frac = MODF(fpos, &tmp);
     pos = (int32_t) tmp;
     buf[i] = ftable[pos] + ((ftable[pos + 1] - ftable[pos]) * (MYFLT) frac);
     fpos += inc;
@@ -133,8 +133,8 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
       (2*NB)*sizeof(MYDBL) > (uint32_t)p->trig.size)
     csound->AuxAlloc(csound,(2*NB)*sizeof(MYDBL),&p->trig);
   {
-    MYDBL dc = cos(TWOPI/(MYDBL)N);
-    MYDBL ds = sin(TWOPI/(MYDBL)N);
+    MYDBL dc = COS(TWOPI/(MYDBL)N);
+    MYDBL ds = SIN(TWOPI/(MYDBL)N);
     MYDBL *c = (MYDBL *)(p->trig.auxp);
     MYDBL *s = c+NB;
     p->cosine = c;
@@ -142,11 +142,11 @@ int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
     c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as csoundAuxalloc zeros
     /*
       direct computation of c and s may be better for large n
-      c[i] = cos(2*PI*i/n);
-      s[i] = sin(2*PI*i/n);
+      c[i] = COS(2*PI*i/n);
+      s[i] = SIN(2*PI*i/n);
       if (i % 16 == 15) {
-      c[i] = cos(2*PI*(i+1)/n);
-      s[i] = sin(2*PI*(i+1)/n);
+      c[i] = COS(2*PI*(i+1)/n);
+      s[i] = SIN(2*PI*(i+1)/n);
     */
     for (i=1; i<NB; i++) {
       c[i] = dc*c[i-1] - ds*s[i-1];
@@ -224,10 +224,10 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
     MYDBL dN = (MYDBL)N;
     /*  sinc function */
     if (Mf)
-      *analwinhalf *= (MYFLT)(dN * sin(HALFPI/dN) / (HALFPI));
+      *analwinhalf *= (MYFLT)(dN * SIN(HALFPI/dN) / (HALFPI));
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf + i) *= (MYFLT)
-        (dN * sin((MYDBL)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
+        (dN * SIN((MYDBL)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf - i) = *(analwinhalf + i - Mf);
   }
@@ -377,7 +377,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p) {
 
 static inline MYDBL mod2Pi(MYDBL x)
 {
-  x = fmod(x,TWOPI);
+  x = FMOD(x,TWOPI);
   if (x <= -PI) {
     return x + TWOPI;
   }
@@ -726,11 +726,11 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
 
     // sinc function
     if (Mf) {
-      *analwinhalf *= (MYFLT)(dN * sin(HALFPI/dN) / ( HALFPI));
+      *analwinhalf *= (MYFLT)(dN * SIN(HALFPI/dN) / ( HALFPI));
     }
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf + i) *= (MYFLT)
-        (dN * sin((MYDBL)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
+        (dN * SIN((MYDBL)(PI*(i+0.5*Mf)/dN)) / (PI*(i+0.5*Mf)));
     for (i = 1; i <= halfwinsize; i++)
       *(analwinhalf - i) = *(analwinhalf + i - Mf);
 
@@ -747,10 +747,10 @@ int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
       *(synwinhalf - i) = *(synwinhalf + i - Lf);
 
     if (Lf)
-      *synwinhalf *= (MYFLT)(IO * sin((MYDBL)(HALFPI/IO)) / (HALFPI));
+      *synwinhalf *= (MYFLT)(IO * SIN((MYDBL)(HALFPI/IO)) / (HALFPI));
     for (i = 1; i <= halfwinsize; i++)
       *(synwinhalf + i) *= (MYFLT)
-        ((MYDBL)IO * sin((MYDBL)(PI*(i+0.5*Lf)/IO)) /
+        ((MYDBL)IO * SIN((MYDBL)(PI*(i+0.5*Lf)/IO)) /
          (PI*(i+0.5*(MYDBL)Lf)));
     for (i = 1; i <= halfwinsize; i++)
       *(synwinhalf - i) = *(synwinhalf + i - Lf);
@@ -1029,12 +1029,12 @@ static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
 
   if (even) {
     for (i=0; i<winLen; i++)
-      win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((MYDBL)i+0.5)));
+      win[i] = (MYFLT)(0.5 + 0.5 * COS(ftmp*((MYDBL)i+0.5)));
     win[winLen] = FL(0.0);
   }
   else {
     win[0] = FL(1.0);
     for (i=1; i<=winLen; i++)
-      win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(MYDBL)i));
+      win[i] = (MYFLT)(0.5 + 0.5 * COS(ftmp*(MYDBL)i));
   }
 }

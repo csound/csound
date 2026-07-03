@@ -901,14 +901,14 @@ int32_t int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 int32_t rnd1seed(CSOUND *csound, INM *p)
 {
   MYDBL intpart;
-  csound->rndfrac = modf(*p->ar, &intpart);
+  csound->rndfrac = MODF(*p->ar, &intpart);
   return OK;
 }
 
 int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) */
 {
   MYDBL intpart;
-  csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
+  csound->rndfrac = MODF(csound->rndfrac * rndmlt, &intpart);
   *p->r = *p->a * (MYFLT)csound->rndfrac;
   return OK;
 }
@@ -916,7 +916,7 @@ int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) 
 int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
 {
   MYDBL intpart;
-  csound->rndfrac = modf(csound->rndfrac * rndmlt, &intpart);
+  csound->rndfrac = MODF(csound->rndfrac * rndmlt, &intpart);
   *p->r = *p->a * (FL(2.0) * (MYFLT)csound->rndfrac - FL(1.0));
   return OK;
 }
@@ -1158,7 +1158,7 @@ int32_t octpch(CSOUND *csound, EVAL *p)
 {
   MYDBL fract, oct;
   MYDBL in = (MYDBL)*p->a;
-  fract = modf(in, &oct);
+  fract = MODF(in, &oct);
   fract *= EIPT3;
   *p->r = (MYFLT)(oct + fract);
   return OK;
@@ -1168,7 +1168,7 @@ int32_t pchoct(CSOUND *csound, EVAL *p)
 {
   MYDBL fract, oct;
   MYDBL in = (MYDBL)*p->a;
-  fract = modf(in, &oct);
+  fract = MODF(in, &oct);
   fract *= 0.12;
   *p->r = (MYFLT)(oct + fract);
   return OK;
@@ -1214,7 +1214,7 @@ int32_t cpspch(CSOUND *csound, EVAL *p)
   MYDBL in = (MYDBL)*p->a;
   MYDBL fract, oct;
   int32_t loct;
-  fract = modf(in, &oct);
+  fract = MODF(in, &oct);
   fract *= EIPT3;
   loct = (int32_t)MYFLT2LRND((oct + fract) * OCTRES);
   *p->r = (MYFLT)CPSOCTL(loct);
@@ -1246,7 +1246,7 @@ int32_t pchmidinn(CSOUND *csound, EVAL *p)
   /* Convert Midi Note number to 8ve.decimal format */
   octdec = ((MYDBL)*p->a / 12.0) + MIDINOTE0;
   /* then convert to 8ve.pc format */
-  fract = modf(octdec, &oct);
+  fract = MODF(octdec, &oct);
   fract *= 0.12;
   *p->r = (MYFLT)(oct + fract);
   return OK;
@@ -1257,7 +1257,7 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
   MYDBL  fract;
   MYDBL  loct;
 
-  fract = modf((MYDBL)*p->pc, &loct); /* Get octave */
+  fract = MODF((MYDBL)*p->pc, &loct); /* Get octave */
   if (*p->et > 0) {
     fract = pow((MYDBL)*p->cy, loct + (100.0*fract)/((MYDBL)*p->et));
     *p->r = (MYFLT)fract * *p->ref;
@@ -1285,7 +1285,7 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
   MYDBL  fract;
   MYDBL  loct;
 
-  fract = modf((MYDBL)*p->pc, &loct);        /* Get octave */
+  fract = MODF((MYDBL)*p->pc, &loct);        /* Get octave */
   if (*p->et > 0) {
     fract = pow(2.0, loct + (100.0*fract)/((MYDBL)*p->et));
     *p->r = (MYFLT)(fract * 1.02197503906); /* Refer to base frequency */

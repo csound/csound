@@ -435,7 +435,7 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
     if (*p->kest != p->prvest &&
         *p->kest != FL(0.0)) {    /* if new pitch estimate */
       MYFLT estperiod = CS_ESR / *p->kest;
-      MYDBL b = 2.0 - cos((MYDBL)(*p->kest * CS_TPIDSR));
+      MYDBL b = 2.0 - COS((MYDBL)(*p->kest * CS_TPIDSR));
       p->c2 = (MYFLT)(b - sqrt(b*b - 1.0)); /*   recalc lopass coefs */
       p->c1 = FL(1.0) - p->c2;
       p->prvest = *p->kest;

@@ -90,7 +90,7 @@ int32_t midinoteonpch(CSOUND *csound, MIDINOTEON *p)
     }
     pitch = (MYDBL)p->h.insdshead->m_pitch;
     octave = pitch / 12.0 + 3.0;
-    fraction = modf(octave, &integer);
+    fraction = MODF(octave, &integer);
     fraction *= 0.12;
     *p->xkey = (MYFLT)(integer + fraction);
     *p->xvelocity = p->h.insdshead->m_veloc;

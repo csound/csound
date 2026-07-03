@@ -926,7 +926,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     MYDBL octave = 0;
     MYDBL fraction = 0.0;
     value = value / FL(12.0) + FL(3.0);
-    fraction = modf(value, &octave);
+    fraction = MODF(value, &octave);
     fraction *= 0.12;
     value = octave + fraction;
     pfield->value = value;

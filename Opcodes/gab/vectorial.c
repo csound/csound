@@ -104,7 +104,7 @@ static int32_t mtable_k(CSOUND *csound,MTABLE *p)
       MYFLT     v1, v2 ;
       fndx = (*p->ixmode) ? *p->xndx * p->xbmul : *p->xndx;
       if (fndx >= len)
-        fndx = (MYFLT) fmod(fndx, len);
+        fndx = (MYFLT) FMOD(fndx, len);
       indx = (int64_t) fndx;
       fract = fndx - indx;
       indxp1 = (indx < len-1) ? (indx+1) * nargs : 0;
@@ -168,7 +168,7 @@ static int32_t mtable_a(CSOUND *csound,MTABLE *p)
         MYFLT   v1, v2 ;
         fndx = (ixmode) ? *xndx++ * xbmul : *xndx++;
         if (fndx >= len)
-          fndx = (MYFLT) fmod(fndx, len);
+          fndx = (MYFLT) FMOD(fndx, len);
         indx = (int64_t) fndx;
         fract = fndx - indx;
         indxp1 = (indx < len-1) ? (indx+1) * nargs : 0L;

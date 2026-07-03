@@ -119,7 +119,7 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
         p->nsmps = CS_KSMPS;
       }
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
-      oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
+      oct = LOG(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
       if (!IS_KSIG_ARG(p->signal)) {     /* for sr sampling:           */
         oct = ((int32_t)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
         hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
@@ -159,14 +159,14 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
         onedws = 1.0 / (windsiz-1);
         pidws = PI / (windsiz-1);
         for (k = -halfsiz; k<=halfsiz; k++) {        /*   with sines    */
-          a = cos(k * pidws);
+          a = COS(k * pidws);
           windamp = a * a;                           /*   times hanning */
           if (!hanning)
             windamp = 0.08 + 0.92 * windamp;         /*   or hamming    */
           windamp *= onedws;                         /*   scaled        */
           theta = k * curfrq;
-          *sinp++ = (MYFLT)(windamp * sin(theta));
-          *cosp++ = (MYFLT)(windamp * cos(theta));
+          *sinp++ = (MYFLT)(windamp * SIN(theta));
+          *cosp++ = (MYFLT)(windamp * COS(theta));
         }
         curfrq *= frqmlt;                        /*   step by log freq  */
       }
@@ -339,7 +339,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
       switch (p->dbout) {
       case 1:
         if (c < .001) c = .001;            /* and convert to db       */
-        c = 10.0 * log10(c);
+        c = 10.0 * LOG10(c);
         break;
       case 3:
         c = sqrt(c);                       /*    or root mag          */
@@ -433,14 +433,14 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*         onedws = 1.0 / windsiz; */
 /*         pidws = PI / windsiz; */
 /*         for (k=0; k<windsiz; k++) {                 /\*   with sines    *\/ */
-/*           a = sin(k * pidws); */
+/*           a = SIN(k * pidws); */
 /*           windamp = a * a;                        /\*   times hanning *\/ */
 /*           if (!hanning) */
 /*             windamp = 0.08 + 0.92 * windamp;    /\*   or hamming    *\/ */
 /*           windamp *= onedws;                      /\*   scaled        *\/ */
 /*           theta = k * curfrq; */
-/*           *sinp++ = windamp * sin(theta); */
-/*           *cosp++ = windamp * cos(theta); */
+/*           *sinp++ = windamp * SIN(theta); */
+/*           *cosp++ = windamp * COS(theta); */
 /*         } */
 /*         curfrq *= frqmlt;                     /\*   step by log freq  *\/ */
 /*       } */
@@ -514,7 +514,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 /*           c = sqrt(c);                    /\*    to  mag or db         *\/ */
 /*         else if (p->dbout == 1) { */
 /*           if (c < .001) c = .001; */
-/*           c = 10. * log10(c); */
+/*           c = 10. * LOG10(c); */
 /*         } */
 /*         *dftp++ = c;                       /\* store in out spectrum   *\/ */
 /*       } */

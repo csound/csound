@@ -398,8 +398,8 @@ static int32_t hetdyn(CSOUND *csound,
     for (smplno = 0; smplno < t->smpsin; smplno++) {
       //MYDBL phase = smplno * tpidelest;     /* do all quadrature calcs */
       ptr = t->adp;           /* at once and point to it */
-      cos_p[smplno] = (MYDBL)(ptr[smplno] * cos(smplno * tpidelest));
-      sin_p[smplno] = (MYDBL)(ptr[smplno] * sin(smplno * tpidelest));
+      cos_p[smplno] = (MYDBL)(ptr[smplno] * COS(smplno * tpidelest));
+      sin_p[smplno] = (MYDBL)(ptr[smplno] * SIN(smplno * tpidelest));
     }
 
     for (smplno = 0; smplno < t->smpsin - t->windsiz; smplno++) {
@@ -472,11 +472,11 @@ static void lpinit(HET *t) /* lowpass coefficient ititializer */
     sinterm = (MYFLT)sin(SQRTOF3*omega_c*t->delta_t*0.5);
     t->x1 = (MYFLT)(omega_c*t->delta_t*
                           (exp(-omega_c*t->delta_t) +
-                           exp(-omega_c*t->delta_t/2.0)
+                           EXP(-omega_c*t->delta_t/2.0)
                            * (-costerm + sinterm/SQRTOF3)));
     t->x2 = (MYFLT)(omega_c*t->delta_t*
                           (exp(-omega_c*t->delta_t) -
-                           exp(-3*omega_c*t->delta_t/2)
+                           EXP(-3*omega_c*t->delta_t/2)
                            * (costerm + sinterm/SQRTOF3)));
     t->yA = (-((MYFLT)exp(-omega_c*t->delta_t) +
             FL(2.0)*(MYFLT)exp(-omega_c*t->delta_t/2)*costerm));

@@ -1130,7 +1130,7 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
     }
     else {
       g_frqf = (f > FL(0.99999) ? 1. : f);
-      g_phf = fmod(1., g_frqf);
+      g_phf = FMOD(1., g_frqf);
       if(g_phf < 0.5) g_phf += g_frqf; /* VL ??? */
       g_phf = 1. - g_phf;
       while (g_phf != 0.) {
@@ -2748,17 +2748,17 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
   /* ar rbjeq asig, kfco, klvl, kQ, kS[, imode] */
 
   /* IV - Dec 28 2002: according to the original version by JMC, the formula */
-  /*   alpha = sin(omega) * sinh(1 / (2 * Q))                                */
+  /*   alpha = SIN(omega) * sinh(1 / (2 * Q))                                */
   /* should be used to calculate Q. However, according to my tests, it seems */
   /* to be wrong with low Q values, where this simplified code               */
-  /*   alpha = sin(omega) / (2 * Q)                                          */
+  /*   alpha = SIN(omega) / (2 * Q)                                          */
   /* was measured to be more accurate. It also makes the Q value for no      */
   /* resonance exactly sqrt(0.5) (as it would be expected), while the old    */
   /* version required a Q setting of about 0.7593 for no resonance.          */
   /* With Q >= 1, there is not much difference.                              */
   /* N.B.: the above apply to the lowpass and highpass filters only. For     */
   /* bandpass, band-reject, and peaking EQ, the modified formula is          */
-  /*   alpha = tan(omega / (2 * Q))                                          */
+  /*   alpha = TAN(omega / (2 * Q))                                          */
 
   /* Defining this macro selects the revised version, while commenting it    */
   /* out enables the original.                                               */
@@ -2799,7 +2799,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
       p->old_kcps = *(p->kcps);
       /* calculate variables that depend on freq., and are used by all modes */
       p->omega = (MYDBL) p->old_kcps * TWOPI / (MYDBL) CS_ESR;
-      p->cs = cos(p->omega);
+      p->cs = COS(p->omega);
       p->sn = sqrt(1.0 - p->cs * p->cs);
       //printf("**** (%d) p->cs = %f\n", __LINE__, p->cs);
     }
@@ -2865,7 +2865,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
         MYDBL  alpha;
         p->old_kQ = *(p->kQ);
 #ifdef IV_Q_CALC
-        alpha = tan(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
+        alpha = TAN(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
 #else
         alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
@@ -2888,7 +2888,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
         MYDBL  alpha;
         p->old_kQ = *(p->kQ);
 #ifdef IV_Q_CALC
-        alpha = tan(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
+        alpha = TAN(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
 #else
         alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif
@@ -2913,7 +2913,7 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
         sq = sqrt((MYDBL) (p->old_klvl = *(p->klvl)));
         //printf("*** (%d) p->old_klvl\n", __LINE__, p->old_klvl);
 #ifdef IV_Q_CALC
-        alpha = tan(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
+        alpha = TAN(p->omega * 0.5 / (MYDBL) p->old_kQ); /* IV - Dec 28 2002 */
 #else
         alpha = p->sn * sinh(0.5 / (MYDBL) p->old_kQ);
 #endif

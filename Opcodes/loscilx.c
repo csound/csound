@@ -510,7 +510,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
 /*   a: amplitude                                         */
 /*   f: frequency (-PI - PI)                              */
 /*   p: initial phase (0 - PI/2)                          */
-/*   c: 2.0 * cos(f) - 2.0                                */
+/*   c: 2.0 * COS(f) - 2.0                                */
 /* Output args:                                           */
 /*  *x: first output sample                               */
 /*  *v: coefficients for calculating next sample as       */
@@ -530,8 +530,8 @@ static inline void init_sine_gen(MYDBL a, MYDBL f, MYDBL p, MYDBL c,
 {
   MYDBL  y0, y1;             /* these should be MYDBLs */
   MYDBL xx, vv;
-  y0 = sin(p);
-  y1 = sin(p + f);
+  y0 = SIN(p);
+  y1 = SIN(p + f);
   xx = y0;
   vv = y1 - (c * y0) - y0;
   /* amp. scale */
@@ -581,7 +581,7 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
     MYDBL  tmp1, tmp2;
 
     pidwarp_d = PI * (MYDBL) p->warpFact;
-    c = 2.0 * cos(pidwarp_d) - 2.0;
+    c = 2.0 * COS(pidwarp_d) - 2.0;
     /* correct window for kwarp */
     tmp1 = tmp2 = (MYDBL) (p->winSize >> 1);
     tmp1 *= tmp1;
@@ -913,7 +913,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
     MYDBL  tmp1, tmp2;
 
     pidwarp_d = PI * (MYDBL) p->warpFact;
-    c = 2.0 * cos(pidwarp_d) - 2.0;
+    c = 2.0 * COS(pidwarp_d) - 2.0;
     /* correct window for kwarp */
     tmp1 = tmp2 = (MYDBL) (p->winSize >> 1);
     tmp1 *= tmp1;

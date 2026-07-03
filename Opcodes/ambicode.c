@@ -105,10 +105,10 @@ static void ambicode_set_coefficients(AMBIC *p)
 
     /* 1st order */
     {
-      MYDBL ck = cos(kbeta_rad);
-      p->x = cos(kalpha_rad) * ck;
-      p->y = sin(kalpha_rad) * ck;
-      p->z = sin(kbeta_rad);
+      MYDBL ck = COS(kbeta_rad);
+      p->x = COS(kalpha_rad) * ck;
+      p->y = SIN(kalpha_rad) * ck;
+      p->z = SIN(kbeta_rad);
     }
 
     /* 2nd order */
@@ -300,10 +300,10 @@ static void ambideco_set_coefficients(AMBID *p, MYDBL alpha, MYDBL beta,
 
     /* 1st order */
     {
-      MYDBL cbeta = cos(beta_rad);
-      p->x[index] = cos(alpha_rad) * cbeta;
-      p->y[index] = sin(alpha_rad) * cbeta;
-      p->z[index] = sin(beta_rad);
+      MYDBL cbeta = COS(beta_rad);
+      p->x[index] = COS(alpha_rad) * cbeta;
+      p->y[index] = SIN(alpha_rad) * cbeta;
+      p->z[index] = SIN(beta_rad);
     }
 
     /* 2nd order */

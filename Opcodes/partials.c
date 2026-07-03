@@ -241,7 +241,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
 
     /* take the logarithm of the magnitudes */
     for (i = 0; i < numbins; i++)
-      lmags[i] = log((MYDBL)mags[i]);
+      lmags[i] = LOG((MYDBL)mags[i]);
 
     for (i = 0; i < numbins - 1; i++) {
 
@@ -273,7 +273,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
       b = 1.0 - y1 / a;
 
       binex[i] = (MYDBL) (rmax - 1.0 + b / 2.0);
-      magex[i] = (MYDBL) exp(dtmp - a * b * b / 4.0);
+      magex[i] = (MYDBL) EXP(dtmp - a * b * b / 4.0);
     }
     /* Track allocation */
 
@@ -471,7 +471,7 @@ static int32_t partials_process(CSOUND * csound, _PARTS * p)
             MYFLT sin1 = mag1*SIN(pha1);
             MYFLT re = cos0 + frac*(cos1 - cos0);
             MYFLT im = sin0 + frac*(sin1 - sin0);
-            fout[i + 2] = atan2(im,re); /* phase (interpolated) */
+            fout[i + 2] = ATAN2(im,re); /* phase (interpolated) */
           }
           else
             fout[i + 2] = 0.f;

@@ -262,8 +262,8 @@ static int32_t resonr(CSOUND *csound, RESONZ *p)
       MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
-        r = exp((MYDBL)(bw * CS_MPIDSR));
-        c1 = 2.0 * r * cos((MYDBL)(cf * CS_TPIDSR));
+        r = EXP((MYDBL)(bw * CS_MPIDSR));
+        c1 = 2.0 * r * COS((MYDBL)(cf * CS_TPIDSR));
         c2 = r * r;
         if (p->scaletype == 1)
           scale = 1.0 - r;
@@ -330,8 +330,8 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
       MYFLT bw = asgw ? kbw[n] : *kbw;
       if (cf != lcf || bw != lbw) {
         lcf = cf; lbw = bw;
-        r = exp(-(MYDBL)(bw * CS_PIDSR));
-        c1 = 2.0 * r * cos((MYDBL)(CS_TPIDSR*cf));
+        r = EXP(-(MYDBL)(bw * CS_PIDSR));
+        c1 = 2.0 * r * COS((MYDBL)(CS_TPIDSR*cf));
         c2 = r * r;
         if (p->scaletype == 1)
           scale = (1.0 - c2) * 0.5;
@@ -560,8 +560,8 @@ static int32_t lp2(CSOUND *csound, LP2 *p)
 
     temp = (MYDBL)(CS_MPIDSR * kfco / kres);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((MYDBL) (kfco * CS_TPIDSR)) * exp(temp);
-    b = exp(temp+temp);
+    a = 2.0 * COS((MYDBL) (kfco * CS_TPIDSR)) * EXP(temp);
+    b = EXP(temp+temp);
     c = 1.0 - a + b;
 
     out  = p->out;
@@ -597,8 +597,8 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
 
     temp = (MYDBL)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
-    b = exp(temp+temp);
+    a = 2.0 * COS((MYDBL) (fco * CS_TPIDSR)) * EXP(temp);
+    b = EXP(temp+temp);
     c = 1.0 - a + b;
 
     out  = p->out;
@@ -616,8 +616,8 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
         res=resp[n]; fco=fcop[n];
         temp = (MYDBL)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
-        b = exp(temp+temp);
+        a = 2.0 * COS((MYDBL) (fco * CS_TPIDSR)) * EXP(temp);
+        b = EXP(temp+temp);
         c = 1.0 - a + b;
       }
       out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);
@@ -642,8 +642,8 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
 
     temp = (MYDBL)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
-    b = exp(temp+temp);
+    a = 2.0 * COS((MYDBL) (fco * CS_TPIDSR)) * EXP(temp);
+    b = EXP(temp+temp);
     c = 1.0 - a + b;
 
     out  = p->out;
@@ -661,8 +661,8 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
         res=resp[n];
         temp = (MYDBL)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
-        b = exp(temp+temp);
+        a = 2.0 * COS((MYDBL) (fco * CS_TPIDSR)) * EXP(temp);
+        b = EXP(temp+temp);
         c = 1.0 - a + b;
       }
       out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);
@@ -687,8 +687,8 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
 
     temp = (MYDBL)(CS_MPIDSR * fco / res);
       /* (-PI_F * kfco / (kres * CS_ESR)); */
-    a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
-    b = exp(temp+temp);
+    a = 2.0 * COS((MYDBL) (fco * CS_TPIDSR)) * EXP(temp);
+    b = EXP(temp+temp);
     c = 1.0 - a + b;
 
     out  = p->out;
@@ -706,8 +706,8 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
         fco=fcop[n];
         temp = (MYDBL)(CS_MPIDSR * fco / res);
         /* (-PI_F * kfco / (kres * CS_ESR)); */
-        a = 2.0 * cos((MYDBL) (fco * CS_TPIDSR)) * exp(temp);
-        b = exp(temp+temp);
+        a = 2.0 * COS((MYDBL) (fco * CS_TPIDSR)) * EXP(temp);
+        b = EXP(temp+temp);
         c = 1.0 - a + b;
       }
       out[n] = (MYFLT)(yn = a * ynm1 - b * ynm2 + c * (MYDBL)in[n]);

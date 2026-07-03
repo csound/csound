@@ -335,7 +335,7 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     int32_t j;
     MYFLT   *ar = p->ar, *asig;
     MYFLT   c3p1, c3t4, omc3, c2sqr;
-    MYFLT   *yt1, *yt2, c1, c2, c3, cosf;
+    MYFLT   *yt1, *yt2, c1, c2, c3, cosfr;
     MYDBL  cf;
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
@@ -362,15 +362,15 @@ static int32_t resony(CSOUND *csound, RESONY *p)
 
       for (j = 0; j < loop; j++) {
         if (flag)                     /* linear separation in hertz */
-          cosf = (MYFLT) cos((cf = (MYDBL) (*p->kcf * sep * j))
+          cosfr = (MYFLT) COS((cf = (MYDBL) (*p->kcf * sep * j))
                              * (MYDBL) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
-          cosf = (MYFLT) cos((cf = (MYDBL) (*p->kcf * pow(2.0, sep * j)))
+          cosfr = (MYFLT) COS((cf = (MYDBL) (*p->kcf * pow(2.0, sep * j)))
                              * (MYDBL) CS_TPIDSR);
         c3 = EXP(*p->kbw * (cf / *p->kcf) * CS_MTPIDSR);
         c3p1 = c3 + FL(1.0);
         c3t4 = c3 * FL(4.0);
-        c2 = c3t4 * cosf / c3p1;
+        c2 = c3t4 * cosfr / c3p1;
         c2sqr = c2 * c2;
         omc3 = FL(1.0) - c3;
         if (p->scale == 1)

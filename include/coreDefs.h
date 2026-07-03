@@ -28,7 +28,7 @@ extern "C" {
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
-#if defined(__SSE__) && !defined(EMSCRIPTEN) && !defined(FORCE_SINGLE_PRECISION)
+#if defined(__SSE__) && !defined(EMSCRIPTEN) 
 #include <xmmintrin.h>
 #ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040

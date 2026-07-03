@@ -134,8 +134,8 @@ int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 
     p->Maxphase_By_sr = 2.0 / sr;
     p->Max_Sweep_Freq = sr / (2.0 * p->Min_Sweep);      // range sr/8 - sr/200
-    p->Max_Sync_Freq = sr / (3.0 * log(p->Min_Sweep));  // range sr/4.1 - sr/13.8
-    p->Sync_Phase_Inc = 1.0 / log(p->Min_Sweep);
+    p->Max_Sync_Freq = sr / (3.0 * LOG(p->Min_Sweep));  // range sr/4.1 - sr/13.8
+    p->Sync_Phase_Inc = 1.0 / LOG(p->Min_Sweep);
 
     p->sync_sig = IS_ASIG_ARG(p->async_in) ? p->async_in : 0;
 
@@ -195,7 +195,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
         sweep_phase = 1.25;
       }
       if (sweep_phase > 2.0)
-        sweep_phase = fmod(sweep_phase, 2.0);
+        sweep_phase = FMOD(sweep_phase, 2.0);
 
       // Select segment and scale within
       if (sweep_phase < 1.0) {
@@ -246,7 +246,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
       }
 
       if (hardsync_phase) {
-        const MYDBL syncsweep = 0.5 * (1.0 - cos(hardsync_phase));
+        const MYDBL syncsweep = 0.5 * (1.0 - COS(hardsync_phase));
         freq += syncsweep * (Max_Sync_Freq - freq);
         hardsync_phase += hardsync_inc;
         if (hardsync_phase > PI) {
@@ -274,7 +274,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
       if (freq >= Max_Sweep_Freq)
       {
         // Continue from sweep_phase
-        *aout++ = cos(PI * sweep_phase);
+        *aout++ = COS(PI * sweep_phase);
         phase = sweep_phase;
         sweep_phase += phase_inc;
       }
@@ -287,13 +287,13 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
           1.0 - Clamp( neg_freq? -skew_sig[n] : skew_sig[n], -1.0, 1.0);
         const MYDBL midpoint = Clamp(skew, min_sweep, 2.0 - min_sweep);
 
-        // 1st half: Sweep down to cos(sweep_phase <= Pi) then
+        // 1st half: Sweep down to COS(sweep_phase <= Pi) then
         // flat -1 until phase >= midpoint
         if (sweep_phase < 1.0)
         {
           const MYDBL sweep_length = fmax(clip * midpoint, min_sweep);
 
-          *aout++ = cos(PI * sweep_phase);
+          *aout++ = COS(PI * sweep_phase);
           sweep_phase += fmin(phase_inc / sweep_length, Max_Sweep_Inc);
 
           // Handle fractional sweep_phase overshoot after sweep ends
@@ -329,7 +329,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
           *aout++ = -1.0;
         }
 
-        // 2nd half: Sweep up to cos(sweep_phase <= 2.Pi), 
+        // 2nd half: Sweep up to COS(sweep_phase <= 2.Pi), 
         // then flat +1 until phase >= 2
         else if (sweep_phase < 2.0)
         {
@@ -339,7 +339,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
             sweep_phase = 1.0 + fmin( fmin(phase - midpoint, phase_inc) /
                                         sweep_length, Max_Sweep_Inc);
           }
-          *aout++ = cos(PI * sweep_phase);
+          *aout++ = COS(PI * sweep_phase);
           sweep_phase += fmin(phase_inc / sweep_length, Max_Sweep_Inc);
           if (sweep_phase > 2.0) {
             const MYDBL flat_length = 2.0 - (midpoint + sweep_length);

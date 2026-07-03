@@ -25,7 +25,7 @@
 #include "ugens6.h"
 
 
-#define log001 (-FL(6.9078))    /* log(.001) */
+#define log001 (-FL(6.9078))    /* LOG(.001) */
 
 int32_t downset(CSOUND *csound, DOWNSAMP *p)
 {
@@ -760,7 +760,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
             if (UNLIKELY(++bufp >= bufend)) bufp = buf1;
             n1 -= w * w * (MYDBL)*bufp / d; d++;
           } while (--i);
-          out1[n] = (MYFLT)(n1 * sin(PI * x1) / PI);
+          out1[n] = (MYFLT)(n1 * SIN(PI * x1) / PI);
         }
         else {                                          /* integer sample */
           xpos = MYFLT2LRND((MYDBL)xpos + x1);         /* position */
@@ -953,10 +953,10 @@ int32_t comb(CSOUND *csound, COMB *p)
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
       /*
-       * The argument to exp() in the following is sometimes a small
+       * The argument to EXP() in the following is sometimes a small
        * enough negative number to result in a denormal (or worse)
        * on Alpha. So if the result would be less than 1.0e-16, we
-       * just say it's zero and don't call exp().  heh 981101
+       * just say it's zero and don't call EXP().  heh 981101
        */
       MYDBL exp_arg = (MYDBL)(log001 * *p->ilpt / p->prvt);
       if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */
@@ -998,10 +998,10 @@ int32_t invcomb(CSOUND *csound, COMB *p)
     if (p->prvt != *p->krvt) {
       p->prvt = *p->krvt;
       /*
-       * The argument to exp() in the following is sometimes a small
+       * The argument to EXP() in the following is sometimes a small
        * enough negative number to result in a denormal (or worse)
        * on Alpha. So if the result would be less than 1.0e-16, we
-       * just say it is zero and do not call exp().  heh 981101
+       * just say it is zero and do not call EXP().  heh 981101
        */
       MYDBL exp_arg = (MYDBL)(log001 * *p->ilpt / p->prvt);
       if (UNLIKELY(exp_arg < -36.8413615))    /* ln(1.0e-16) */

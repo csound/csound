@@ -80,7 +80,7 @@ static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       
 
       a = p->a;
       p->lkf = *p->kfc;
-      c = tan((MYDBL)(CS_PIDSR * p->lkf));
+      c = TAN((MYDBL)(CS_PIDSR * p->lkf));
 
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = -(a[1] + a[1]);
@@ -117,7 +117,7 @@ static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       
       MYDBL     *a, c;
       a = p->a;
       p->lkf = *p->kfc;
-      c = 1.0 / tan((MYDBL)(CS_PIDSR * p->lkf));
+      c = 1.0 / TAN((MYDBL)(CS_PIDSR * p->lkf));
       a[1] = 1.0 / ( 1.0 + ROOT2 * c + c * c);
       a[2] = a[1] + a[1];
       a[3] = a[1];

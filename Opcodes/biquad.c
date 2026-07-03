@@ -161,7 +161,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
     fcon  = 2.0*fco*(MYDBL)CS_ONEDSR; /* normalised freq. 0 to Nyquist */
     kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
     pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
-    scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
+    scale = EXP((1.0-pp1d2)*1.386249);      /* Scaling factor     */
     k     = res*scale;
   }
   if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
@@ -182,7 +182,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
       fcon  = 2.0*fco*(MYDBL)CS_ONEDSR; /* normalised frq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
       pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
-      scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
+      scale = EXP((1.0-pp1d2)*1.386249);      /* Scaling factor */
       k     = res*scale;
     }
     xn = (MYDBL)in[n] * dmax/zerodb;
@@ -265,7 +265,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
     if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       /* Only need to calculate once */
       MYDBL c = fqcadj/fco;    /* Filter constant c=1/Fco * adjustment */
-      MYDBL rez2 = rez/(1.0 + exp(fco/11000.0));
+      MYDBL rez2 = rez/(1.0 + EXP(fco/11000.0));
       MYDBL b;
       a    = c/rez2 - 1.0;      /* a depends on both Fco and Rez */
       csq  = c*c;               /* Precalculate c^2 */
@@ -285,7 +285,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             MYDBL theta = ATAN2(pi, p0);
             if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
             p0 = NEARONE * COS(theta);
-            //pi = NEARONE * sin(theta);
+            //pi = NEARONE * SIN(theta);
             b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
           }
         }
@@ -313,7 +313,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
         MYDBL c = fqcadj/fco;
-        MYDBL rez2 = rez/(1.0 + exp(fco/11000.0));
+        MYDBL rez2 = rez/(1.0 + EXP(fco/11000.0));
         MYDBL b;
         a    = c/rez2 - 1.0;  /* a depends on both Fco and Rez */
         csq  = c*c;           /* Precalculate c^2 */
@@ -334,7 +334,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
                                         "%s", Str("rezzy instability corrected"));
               //printf("b1, b2 = %f, %f ->", b1,b2);
               p0 = NEARONE * COS(theta);
-              //pi = NEARONE * sin(theta);
+              //pi = NEARONE * SIN(theta);
               b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
               //printf(" b1, b2 = %f, %f\n", b1, b2);
             }
@@ -978,7 +978,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           /* Low Shelf */
         case 1: {
           MYDBL sq = sqrt(2.0 * (MYDBL) p->prv_v);
-          k = tan(omega * 0.5);
+          k = TAN(omega * 0.5);
           kk = k * k;
           vkk = (MYDBL)p->prv_v * kk;
           p->b0 =  1.0 + sq * k + vkk;
@@ -992,7 +992,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           /* High Shelf */
         case 2: {
           MYDBL sq = sqrt(2.0 * (MYDBL) p->prv_v);
-          k = tan((PI - omega) * 0.5);
+          k = TAN((PI - omega) * 0.5);
           kk = k * k;
           vkk = (MYDBL)p->prv_v * kk;
           p->b0 =  1.0 + sq * k + vkk;
@@ -1005,7 +1005,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           break;
           /* Peaking EQ */
         default: {
-          k = tan(omega * 0.5);
+          k = TAN(omega * 0.5);
           kk = k * k;
           vk = (MYDBL)p->prv_v * k;
           vkdq = vk / (MYDBL)p->prv_q;
@@ -1394,7 +1394,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           fc  = fco1*(MYDBL)CS_ONEDSR*(44100.0/8.0);
         }
         x  = (MYDBL)in[n];
-        fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
+        fdbk = q*y/(1.0 + EXP(-3.0*y)*asym);
         y1  = y1 + ih*((x - y1)*fc - fdbk);
         d  = -0.1*y*20.0;
         ad  = (d*d*d + y2)*100.0*dist;
@@ -1440,8 +1440,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
       if ((p->rezcod == 0) && (p->fcocod == 0)) {
         theta = fco * (MYDBL)CS_TPIDSR;
-        sin2 = sin(theta) * 0.5;
-        cos2 = cos(theta);
+        sin2 = SIN(theta) * 0.5;
+        cos2 = COS(theta);
         beta = (rez - sin2) / (rez + sin2);
         gamma = (beta + 1.0) * cos2;
       }
@@ -1480,8 +1480,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
           }
           if ((p->rezcod == 1) || (p->fcocod == 1)) {
             theta = fco * (MYDBL) CS_TPIDSR;
-            sin2 = sin(theta) * 0.5;
-            cos2 = cos(theta);
+            sin2 = SIN(theta) * 0.5;
+            cos2 = COS(theta);
             beta = (rez - sin2) / (rez + sin2);
             gamma = (beta + 1.0) * cos2;
             alpha = (beta + 1.0 + chi*gamma) * 0.5;
@@ -1509,8 +1509,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
           }
           if ((p->rezcod == 1) || (p->fcocod == 1)) {
             theta = fco * (MYDBL) CS_TPIDSR;
-            sin2  = sin(theta) * 0.5;
-            cos2  = cos(theta);
+            sin2  = SIN(theta) * 0.5;
+            cos2  = COS(theta);
             beta  = (rez - sin2) / (rez + sin2);
             gamma = (beta + 1.0) * cos2;
             alpha = (beta + 1.0) * 0.5;
@@ -1537,8 +1537,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
           }
           if ((p->rezcod == 1) || (p->fcocod == 1)) {
             theta = fco * (MYDBL) CS_TPIDSR;
-            sin2 = sin(theta) * 0.5;
-            cos2 = cos(theta);
+            sin2 = SIN(theta) * 0.5;
+            cos2 = COS(theta);
             beta = (rez - sin2) / (rez + sin2);
             gamma = (beta + 1.0) * cos2;
           }
@@ -1681,17 +1681,17 @@ static int32_t vco(CSOUND *csound, VCO *p)
       if ((! asigtau) || (! asigf0)) {
         theta  = (TWOPI * f0val) / fs;
         if (*tau > FL(0.0)) {
-          r1     = exp(-1 / (*tau*fs));
+          r1     = EXP(-1 / (*tau*fs));
         } else {
           r1 = 0;
         }
-        x1     = cos(theta) * r1;
-        y1     = sin(theta) * r1;
+        x1     = COS(theta) * r1;
+        y1     = SIN(theta) * r1;
       }
 
       for(n = offset; n < nsmps; n++) {
         if (asigtau && tau[n] > FL(0.0)) {
-          r1 = exp(-1 / (tau[n]*fs));
+          r1 = EXP(-1 / (tau[n]*fs));
         } else {
           r1 = 0;
         }
@@ -1702,8 +1702,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
         }
         if (asigf0 || asigtau) {
           theta  = (TWOPI * f0val) / fs;
-          x1     = cos(theta) * r1;
-          y1     = sin(theta) * r1;
+          x1     = COS(theta) * r1;
+          y1     = SIN(theta) * r1;
         }
 
         MYFLT x_  = x;

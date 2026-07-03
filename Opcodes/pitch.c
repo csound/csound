@@ -70,7 +70,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
-    b = 2.0 - cos(10.0*(MYDBL)CS_TPIDSR);
+    b = 2.0 - COS(10.0*(MYDBL)CS_TPIDSR);
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor) p->prvq = 0.0;
@@ -106,7 +106,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
       p->ncoefs = ncoefs;
       dwnp->srate = CS_ESR;
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
-      oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
+      oct = LOG(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
       dwnp->looct = (MYFLT)(oct - nocts);     /* true oct val of lowest frq */
       locps = hicps / (1L << nocts);
       basfrq = hicps * 0.5;                   /* oct below retuned top */
@@ -136,12 +136,12 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
         onedws = 1.0 / (windsiz-1);
         pidws = PI / (windsiz-1);
         for (k = -halfsiz; k<=halfsiz; k++) {        /*   with sines    */
-          a = cos(k * pidws);
+          a = COS(k * pidws);
           windamp = 0.08 + 0.92 * a * a;             /*   times hamming */
           windamp *= onedws;                         /*   scaled        */
           theta = k * curfrq;
-          *sinp++ = (MYFLT)(windamp * sin(theta));
-          *cosp++ = (MYFLT)(windamp * cos(theta));
+          *sinp++ = (MYFLT)(windamp * SIN(theta));
+          *cosp++ = (MYFLT)(windamp * COS(theta));
         }
         curfrq *= frqmlt;                        /*   step by log freq  */
       }
@@ -1558,10 +1558,10 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
 /* x > 1:  f(x) = (a+1)/2                                       */
 /* JPff scaled this to a limit and a fraction                   */
 /* Method 1:                                                    */
-/* |x|<limit f(x) = limit * sin(pi x/(2*limit)                  */
+/* |x|<limit f(x) = limit * SIN(pi x/(2*limit)                  */
 /*           f(x) = limit * sign(x)                             */
 /* Method 2:                                                    */
-/* |x|<limit f(x) = limit * tanh(x/limit)/tanh(1)               */
+/* |x|<limit f(x) = limit * TANH(x/limit)/tanh(1)               */
 /*           f(x) = limit * sign(x)                             */
 /* ************************************************************ */
 
@@ -1705,7 +1705,7 @@ int32_t impulse(CSOUND *csound, IMPULSE *p)
 
 /* ********************************************************************** */
 /* Version of CMUSIC trans opcode                                         */
-/* creates y0 + (y1 - y0) * (1 - exp( t*alpha )) / (1 - exp(alpha))       */
+/* creates y0 + (y1 - y0) * (1 - EXP( t*alpha )) / (1 - EXP(alpha))       */
 /* or                                                                     */
 /*         y0 + (y1 - y0) * t if alpha is zero                            */
 /* ********************************************************************** */

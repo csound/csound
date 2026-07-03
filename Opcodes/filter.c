@@ -683,7 +683,7 @@ static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
       dx = ((FPMAX(abp,abm) > 0.0 ? Cdiv(Complex((MYDBL) m,0.0),gp)
            : RCmul(exp(log(1.0+abx)),
                    Complex(cos((MYDBL)iter),
-                           sin((MYDBL)iter)))));
+                           SIN((MYDBL)iter)))));
       x1 = Csub(*x,dx);
       if (x->r == x1.r && x->i == x1.i) return;
       if (iter % MT) *x = x1;

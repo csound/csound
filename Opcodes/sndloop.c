@@ -1233,7 +1233,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
           a  = (j ? fin[i] : (fexc[i] = ffr[i]));
           maxa = maxa < a ? a : maxa;
           if (a <= 0) a = 1e-20;
-          fenv[i/2] = log(a);
+          fenv[i/2] = LOG(a);
         }
         if (coefs < 1) coefs = 80;
         for (i=0; i < N; i+=2) {
@@ -1244,7 +1244,7 @@ static int32_t pvsvoc_process(CSOUND *csound, pvsvoc *p)
         for (i=coefs; i < N-coefs; i++) ceps[i] = 0.0;
         csound->ComplexFFT(csound, ceps, N/2);
         for (i=0; i < N; i+=2) {
-          fenv[i/2] = exp(ceps[i]);
+          fenv[i/2] = EXP(ceps[i]);
           maxe = maxe < fenv[i/2] ? fenv[i/2] : maxe;
         }
         if (maxe)

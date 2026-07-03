@@ -54,9 +54,9 @@ static int32_t    spat3d_init_window(CSOUND *csound, SPAT3D *p)
         d = 1.0;
       }
       else {
-        w = cos(PI * (d = (MYDBL) i) / (MYDBL) o);
+        w = COS(PI * (d = (MYDBL) i) / (MYDBL) o);
         d *= PI / (MYDBL) (p->oversamp);
-        d = w * w * sin(d) / d;
+        d = w * w * SIN(d) / d;
       }
       if (fabs(d) > 0.00000001) {       /* skip zero samples */
         p->window[j] = (MYFLT) d;       /* window value  */
@@ -80,7 +80,7 @@ static int32_t spat3d_init_eq(SPAT3D *p, SPAT3D_WALL *wstruct, MYFLT *ftable)
     omega = (MYDBL) ftable[0] * (MYDBL) CS_TPIDSR;       /* frequency */
     sq = sqrt(2.0 * (MYDBL) ftable[1]);                        /* level     */
 
-    k = tan((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
+    k = TAN((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
     vk = (MYDBL) ftable[1] * k; vkk = (MYDBL) ftable[1] * kk;
     vkdq = vk / (MYDBL) ftable[2];                             /* Q         */
 

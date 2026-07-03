@@ -984,7 +984,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     if(minphase)
                       {
                         /* store log magnitudes, 0 phases for ifft, do not
-                           allow log(0.0) */
+                           allow LOG(0.0) */
                         logmagl[i] = LOG(magl == FL(0.0) ? FL(0.00000001) : magl);
                         logmagr[i] = LOG(magr == FL(0.0) ? FL(0.00000001) : magr);
 

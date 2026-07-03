@@ -401,7 +401,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     *tp           = '\0';
     pchlow        = PITCHMIN;
     pchhigh       = PITCHMAX;
-    dPI           = atan2(0,-1);
+    dPI           = ATAN2(0,-1);
 
     /* Default is to store filter coefficients */
     storePoles = FALSE;
@@ -719,7 +719,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
           pi = polePart2[i];
           pm = hypot(pr, pi);
           if (pm!=0) {
-            pp = atan2(pi,pr);
+            pp = ATAN2(pi,pr);
             if (pp>dPI)
               pp = 2*dPI-pp;
           }
@@ -1027,8 +1027,8 @@ static void trigpo(MYFLT omega,
     np = n+1;
     for (k=0;  k<lpg->Hwind;  ++k) {
       yy = omega * (MYFLT)k;
-      wcos[k] = cos(yy);
-      wsin[k] = sin(yy);
+      wcos[k] = COS(yy);
+      wsin[k] = SIN(yy);
     }
     beta = gamma = 0.0;
     for (k=0;  k<lpg->Hwind;  ++k) {

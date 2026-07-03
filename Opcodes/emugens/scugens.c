@@ -153,8 +153,8 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
         p->y1   = y1 = y0 + b1 * (y1 - y0);
         *p->out = y1;
     } else {
-        // faust uses tau2pole = exp(-1 / (lag*sr))
-        b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
+        // faust uses tau2pole = EXP(-1 / (lag*sr))
+        b1 = lag == FL(0.0) ? FL(0.0) : EXP(LOG001 / (lag * p->sr));
         *p->out = y0 + b1 * (y1 - y0);
         p->lag = lag;
         p->y1 = y1;
@@ -211,8 +211,8 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
             out[n] = y1;
         }
     } else {
-        // faust uses tau2pole = exp(-1 / (lag*sr))
-        p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
+        // faust uses tau2pole = EXP(-1 / (lag*sr))
+        p->b1 = lag == FL(0.0) ? FL(0.0) : EXP(LOG001 / (lag * p->sr));
         MYFLT b1_slope = CALCSLOPE(p->b1, b1, nsmps);
         p->lag = lag;
         for (n=offset; n<nsmps; n++) {
@@ -297,10 +297,10 @@ lagud_k(CSOUND *csound, LagUD *p) {
         *(p->out) = y1;
     } else {
         MYFLT sr = p->sr;
-        // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
-        p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
+        // faust uses tau2pole = EXP(-1 / (lag*sr)), sc uses log(0.01)
+        p->b1u  = lagu == FL(0.0) ? FL(0.0) : EXP(LOG001 / (lagu * sr));
         p->lagu = lagu;
-        p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
+        p->b1d  = lagd == FL(0.0) ? FL(0.0) : EXP(LOG001 / (lagd * sr));
         p->lagd = lagd;
         if (y0 > y1)
             y1 = y0 + p->b1u * (y1 - y0);
@@ -354,11 +354,11 @@ lagud_a(CSOUND *csound, LagUD *p) {
         }
     } else {
         MYFLT sr = CS_ESR;
-        // faust uses tau2pole = exp(-1 / (lag*sr))
-        p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
+        // faust uses tau2pole = EXP(-1 / (lag*sr))
+        p->b1u = lagu == FL(0.0) ? FL(0.0) : EXP(LOG001 / (lagu * sr));
         MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps);
         p->lagu = lagu;
-        p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
+        p->b1d  = lagd == FL(0.0) ? FL(0.0) : EXP(LOG001 / (lagd * sr));
         MYFLT b1d_slope = CALCSLOPE(p->b1d, b1d, nsmps);
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {

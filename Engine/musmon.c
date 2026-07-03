@@ -212,7 +212,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
         csound->Message(csound, "      0  ");
         return;
       }
-      y = FL(20.0) * (MYFLT) log10((MYDBL) y);
+      y = FL(20.0) * (MYFLT) LOG10((MYDBL) y);
       if (csound->oparms->msglevel & 0x40) {
         if (UNLIKELY(y >= FL(0.0)))                     /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;

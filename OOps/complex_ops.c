@@ -613,7 +613,7 @@ int32_t complex_exp(CSOUND *csond, CXOP *p) {
    ans->imag = EXP(cmpx->real)*SIN(cmpx->imag);
    ans->isPolar = 0;
  } else {
-   // exp(Rexp(jw)) = exp(Rcos(w) + Rjsin(w)) = exp(Rcos(w))exp(jRsin(w))
+   // EXP(Rexp(jw)) = EXP(Rcos(w) + Rjsin(w)) = EXP(Rcos(w))exp(jRsin(w))
    ans->real = EXP(cmpx->real*COS(cmpx->imag));
    ans->imag = cmpx->real*SIN(cmpx->imag);
    ans->isPolar = 1;
@@ -629,7 +629,7 @@ int32_t complex_log(CSOUND *csond, CXOP *p) {
    ans->imag = ATAN2(cmpx->imag,cmpx->real);
    ans->isPolar = 0;
  } else {
-   //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
+   //log(Rexp(jw)) = LOG(R) + jw = HYPOT(log(R), w)*atan2(w, LOG(R))
    MYFLT logr = LOG(cmpx->real);
    ans->real = HYPOT(logr, cmpx->imag);
    ans->imag = ATAN2(cmpx->imag, logr);
@@ -1540,7 +1540,7 @@ int32_t complex_array_exp(CSOUND *csond, COPS1 *p) {
       ans[i].imag = EXP(cmpx[i].real)*SIN(cmpx[i].imag);
       ans[i].isPolar = 0;
     } else {
-      // exp(Rexp(jw)) = exp(Rcos(w) + Rjsin(w)) = exp(Rcos(w))exp(jRsin(w))
+      // EXP(Rexp(jw)) = EXP(Rcos(w) + Rjsin(w)) = EXP(Rcos(w))exp(jRsin(w))
       ans[i].real = EXP(cmpx[i].real*COS(cmpx[i].imag));
       ans[i].imag = cmpx[i].real*SIN(cmpx[i].imag);
       ans[i].isPolar = 1;
@@ -1559,7 +1559,7 @@ int32_t complex_array_log(CSOUND *csond, COPS1 *p) {
       ans[i].imag = ATAN2(cmpx[i].imag,cmpx[i].real);
       ans[i].isPolar = 0;
     } else {
-      //log(Rexp(jw)) = log(R) + jw = HYPOT(log(R), w)*atan2(w, log(R))
+      //log(Rexp(jw)) = LOG(R) + jw = HYPOT(log(R), w)*atan2(w, LOG(R))
       MYFLT logr;
       logr = LOG(cmpx[i].real);
       ans[i].real = HYPOT(logr, cmpx[i].imag);

@@ -232,13 +232,13 @@ static void fftmx(MYFLT *a, MYFLT *b,
     nt = inc*ntot;
     ks = inc*nspan;
 /******************* REPLACED MARCH 29: ***********************
-                                        rad = atan(1.0);
+                                        rad = ATAN(1.0);
 **************************************************************/
     rad = 0.785398163397448278900;
 /******************* REPLACED MARCH 29: ***********************
                                         s72 = rad/0.625;
-                                        c72 = cos(s72);
-                                        s72 = sin(s72);
+                                        c72 = COS(s72);
+                                        s72 = SIN(s72);
 **************************************************************/
     c72 = 0.309016994374947451270;
     s72 = 0.951056516295153531190;
@@ -282,11 +282,11 @@ static void fftmx(MYFLT *a, MYFLT *b,
  lbl40:
     dr = (8.0 * (MYDBL)jc)/((MYDBL)kspan);
 /*************************** APRIL 1991 POW & POW2 not WORKING.. REPLACE *******
-                    cd = 2.0 * (pow2 ( sin(0.5 * dr * rad)) );
+                    cd = 2.0 * (pow2 ( SIN(0.5 * dr * rad)) );
 *******************************************************************************/
-    xx =  sin(0.5 * dr * rad);
+    xx =  SIN(0.5 * dr * rad);
     cd = 2.0 * xx * xx;
-    sd = sin(dr * rad);
+    sd = SIN(dr * rad);
     kk = 1;
     if (nfac[++i]!=2) goto lbl110;
 /*
@@ -342,8 +342,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
     goto lbl40;
  lbl90:
     s1 = ((MYDBL)((kk-1)/jc)) * dr * rad;
-    c1 = cos(s1);
-    s1 = sin(s1);
+    c1 = COS(s1);
+    s1 = SIN(s1);
     mm = (k1/2 < mm+klim ? k1/2 : mm+klim);
     goto lbl80;
 /*
@@ -461,8 +461,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
     goto lbl170;
  lbl200:
     s1 = ((MYDBL)((kk-1)/jc)) * dr * rad;
-    c1 = cos(s1);
-    s1 = sin(s1);
+    c1 = COS(s1);
+    s1 = SIN(s1);
     mm = (kspan < mm+klim ? kspan : mm+klim);
     goto lbl140;
 
@@ -525,8 +525,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
     if (k==jf)  goto lbl250;
     jf = k;
     s1 = rad/(((MYDBL)(k))/8.0);
-    c1 = cos(s1);
-    s1 = sin(s1);
+    c1 = COS(s1);
+    s1 = SIN(s1);
     ck[jf] = FL(1.0);
     sk[jf] = FL(0.0);
     for (j=1; j<k ; j++) {
@@ -632,8 +632,8 @@ static void fftmx(MYFLT *a, MYFLT *b,
     goto lbl40;
  lbl340:
     s1 = ((MYDBL)((kk-1)/jc)) * dr * rad;
-    c2 = cos(s1);
-    s1 = sin(s1);
+    c2 = COS(s1);
+    s1 = SIN(s1);
     mm = (kspan < mm+klim ?  kspan :mm+klim);
     goto lbl320;
 
@@ -865,16 +865,16 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
     nk = (nf*inc) + 2;
     nh = nk/2;
 /*****************************
-        rad  = atan((MYDBL)1.0);
+        rad  = ATAN((MYDBL)1.0);
 ******************************/
     rad = 0.785398163397448278900;
     dr = -4.0/(MYDBL)(nf);
 /********************************** POW2 REMOVED APRIL 1991 *****************
                                 cd = 2.0 * (pow2(sin((MYDBL)0.5 * dr * rad)));
 *****************************************************************************/
-    xx = sin((MYDBL)0.5 * dr * rad);
+    xx = SIN((MYDBL)0.5 * dr * rad);
     cd = 2.0 * xx * xx;
-    sd = sin(dr * rad);
+    sd = SIN(dr * rad);
 /*
  * sin,cos values are re-initialised each lim steps
  */
@@ -910,10 +910,10 @@ static void reals_(CSOUND *csound, MYFLT *a, MYFLT *b, int32_t n, int32_t isn)
       else {
         mm +=lim;
         sn = ((MYFLT)ml) * dr * rad;
-        cn = cos(sn);
+        cn = COS(sn);
         if (isn>0)
           cn = -cn;
-        sn = sin(sn);
+        sn = SIN(sn);
       }
     }
     return;

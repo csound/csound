@@ -78,7 +78,7 @@ static int32_t follow(CSOUND *csound, FOL *p)
 */
 static int32_t envset(CSOUND *csound, ENV *p)
 {
-                                /* Note - 6.90775527898 -- log(0.001) */
+                                /* Note - 6.90775527898 -- LOG(0.001) */
     p->lastatt = *p->attack;
     if (p->lastatt<=FL(0.0))
       p->ga = EXP(- FL(69.0775527898)*CS_ONEDSR);

@@ -38,7 +38,7 @@ static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
   MYFLT *sweep = (MYFLT *) csound->Calloc(csound, len*sizeof(MYFLT));
   fi = pow(sr/2, 1./len);
   for(n = 0; n < len; n++) {
-    sweep[n] = sin(ph);
+    sweep[n] = SIN(ph);
     ph += scal*f;
     f *= fi;
   }

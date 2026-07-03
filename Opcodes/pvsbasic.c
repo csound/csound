@@ -1153,7 +1153,7 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
         if (cbin != 0)     {
           for (i=cbin-1;i < cbin+3 &&i < NB ; i++) {
             if (i-cfbin == 0) a = 1;
-            else a = sin(i-cfbin)/(i-cfbin);
+            else a = SIN(i-cfbin)/(i-cfbin);
             fout[i].re = amp*a*a*a;
             fout[i].im = freq;
           }
@@ -1186,7 +1186,7 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
         for (i=cbin-1,k = (cbin-1)<<1;i < cbin+3 &&i < framesize/2 ; i++, k+=2) {
           //k = i<<1;
           if (i-cfbin == 0) a = 1;
-          else a = sin(i-cfbin)/(i-cfbin);
+          else a = SIN(i-cfbin)/(i-cfbin);
           fout[k] = amp*a*a*a;
           fout[k+1] = freq;
         }
@@ -1343,8 +1343,8 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
     int32_t NB = p->fin->NB;
     ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
     ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
-    costh1 = 2.0 - cos(PI * ffa);
-    costh2 = 2.0 - cos(PI * ffr);
+    costh1 = 2.0 - COS(PI * ffa);
+    costh2 = 2.0 - COS(PI * ffr);
     coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
     coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
 
@@ -1361,13 +1361,13 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
       if (IS_ASIG_ARG(p->kfra)) {
         ffa = (MYDBL)  p->kfra[n];
         ffa = ffa < 0.0 ? 0.0 : (ffa > 1.0 ? 1.0 : ffa);
-        costh1 = 2.0 - cos(PI * ffa);
+        costh1 = 2.0 - COS(PI * ffa);
         coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
       }
       if (IS_ASIG_ARG(p->kfrf)) {
         ffr = (MYDBL)  p->kfrf[n];
         ffr = ffr < 0.0 ? 0.0 : (ffr > 1.0 ? 1.0 : ffr);
-        costh2 = 2.0 - cos(PI * ffr);
+        costh2 = 2.0 - COS(PI * ffr);
         coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
       }
       for (i=0; i<NB; i++) {
@@ -1389,8 +1389,8 @@ static int32_t pvsmoothprocess(CSOUND *csound, PVSMOOTH *p)
 
     ffa = ffa < FL(0.0) ? FL(0.0) : (ffa > FL(1.0) ? FL(1.0) : ffa);
     ffr = ffr < FL(0.0) ? FL(0.0) : (ffr > FL(1.0) ? FL(1.0) : ffr);
-    costh1 = 2.0 - cos(PI * ffa);
-    costh2 = 2.0 - cos(PI * ffr);
+    costh1 = 2.0 - COS(PI * ffa);
+    costh2 = 2.0 - COS(PI * ffr);
     coef1 = sqrt(costh1 * costh1 - 1.0) - costh1;
     coef2 = sqrt(costh2 * costh2 - 1.0) - costh2;
 

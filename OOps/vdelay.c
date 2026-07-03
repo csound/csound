@@ -888,7 +888,7 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
 
-#define LOG001  (-6.9077552789821370521)       /* log(.001) */
+#define LOG001  (-6.9077552789821370521)       /* LOG(.001) */
 
 static const int32_t smallprime[] = {
   2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
@@ -1092,7 +1092,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
         }
         p->c_time[i] = (MYFLT) c_time;
         n += c_time;
-        p->c_gain[i] = (MYFLT) exp((MYDBL)(LOG001 * (p->c_time[i]
+        p->c_gain[i] = (MYFLT) EXP((MYDBL)(LOG001 * (p->c_time[i]
                                                        * CS_ONEDSR)
                                              / (p->c_orggains[i] * *p->time)));
         p->g[i] = *p->hdif;
@@ -1124,7 +1124,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
             a_time += 2;
         }
         p->a_time[i] = (MYFLT) a_time;
-        p->a_gain[i] = (MYFLT) exp((MYDBL)(LOG001 * (p->a_time[i]
+        p->a_gain[i] = (MYFLT) EXP((MYDBL)(LOG001 * (p->a_time[i]
                                                        * CS_ONEDSR)
                                              / (p->a_orggains[i] * *p->time)));
         n += a_time;

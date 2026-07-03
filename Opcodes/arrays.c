@@ -441,10 +441,10 @@ static int32_t perf_logarray(CSOUND *csound, FFT *p) {
   out = p->out->data;
   if (LIKELY(bas))
     for (i=0;i<end;i++)
-      out[i] = log(in[i])*bas;
+      out[i] = LOG(in[i])*bas;
   else
     for (i=0;i<end;i++)
-      out[i] = log(in[i]);
+      out[i] = LOG(in[i]);
   return OK;
 }
 
@@ -570,7 +570,7 @@ static int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
     MYFLT coefs = *p->coefs;
     float *fin = (float *) p->fin->frame.auxp;
     for (i=j=0; i < N; i+=2, j++) {
-      ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
+      ceps[j] = LOG(fin[i] > 0.0 ? fin[i] : 1e-20);
     }
     ceps[N/2] = fin[N/2];
     csound->RealFFT(csound, p->setup, ceps);
@@ -604,7 +604,7 @@ static int32_t perf_ceps(CSOUND *csound, FFT *p) {
   MYFLT coefs = *((MYFLT *)p->in2);
   MYFLT *mags = (MYFLT *) p->in->data;
   for (i=0; i < siz; i++) {
-    ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
+    ceps[i] = LOG(mags[i] > 0.0 ? mags[i] : 1e-20);
   }
   ceps[siz] = mags[siz];
   csound->RealFFT(csound, p->setup, ceps);
@@ -635,7 +635,7 @@ static int32_t perf_iceps(CSOUND *csound, FFT *p) {
   memcpy(spec, p->in->data, siz*sizeof(MYFLT));
   csound->RealFFT(csound,p->setup,spec);
   for (i=0; i < siz; i++) {
-    out[i] = exp(spec[i]);
+    out[i] = EXP(spec[i]);
   }
   out[siz] = spec[siz];       /* Writes outside data allocated */
   return OK;

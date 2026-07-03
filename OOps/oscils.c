@@ -40,7 +40,7 @@
 /*            x = x + v                                   */
 /*          These values are calculated by:               */
 /*            x = y[0]                                    */
-/*            c = 2.0 * cos(f) - 2.0                      */
+/*            c = 2.0 * COS(f) - 2.0                      */
 /*            v = y[1] - (c + 1.0) * y[0]                 */
 /*          where y[0], and y[1] are the first, and       */
 /*          second sample of the sine wave to be          */
@@ -52,10 +52,10 @@ static void init_sine_gen(MYDBL a, MYDBL f, MYDBL p,
 {
     MYDBL  y0, y1;                 /* these should be MYDBLs */
 
-    y0 = sin(p);
-    y1 = sin(p + f);
+    y0 = SIN(p);
+    y1 = SIN(p + f);
     *x = y0;
-    *c = 2.0 * cos(f) - 2.0;
+    *c = 2.0 * COS(f) - 2.0;
     *v = y1 - *c * y0 - y0;
     /* amp. scale */
     *x *= a; *v *= a;

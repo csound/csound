@@ -925,7 +925,7 @@ static void init_layer3(mpadec_t mpadec)
       }
     }
     for (i = 0; i < 16; i++) {
-      MYFLT tmp = tan(i*M_PI/12.0);
+      MYFLT tmp = TAN(i*M_PI/12.0);
       mpa->tables.tan1_1[i] = tmp/(1.0 + tmp);
       mpa->tables.tan2_1[i] = 1.0/(1.0 + tmp);
       mpa->tables.tan1_2[i] = M_SQRT2*tmp/(1.0 + tmp);

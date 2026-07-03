@@ -209,9 +209,9 @@ void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
   /* length unattended */
   //MYFLT atorad = (TWOPI_F / FL(360.0));
   cvec->x = (MYFLT) (cos((MYDBL) (avec.azi * ATORAD)) *
-                     cos((MYDBL) (avec.ele * ATORAD)));
+                     COS((MYDBL) (avec.ele * ATORAD)));
   cvec->y = (MYFLT) (sin((MYDBL) (avec.azi * ATORAD)) *
-                     cos((MYDBL) (avec.ele * ATORAD)));
+                     COS((MYDBL) (avec.ele * ATORAD)));
   cvec->z = (MYFLT) (sin((MYDBL) (avec.ele * ATORAD)));
 }
 

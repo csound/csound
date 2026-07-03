@@ -569,7 +569,7 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
         } while (--terms);
         crossprods = sumraw * sumraw - sumsqr;
         RMS = SQRT(crossprods / p->ncross);
-    /*  coef = exp(log001 * lambda / npts);
+    /*  coef = EXP(log001 * lambda / npts);
         *xscale++ = coef / RMS / (NTERMS - 1);  */
         *xscale++ = FL(0.05)/ RMS / lambda;
       }

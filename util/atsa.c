@@ -113,7 +113,7 @@ typedef MYFLT mus_sample_t;
                                   3150.0, 3700.0, 4400.0, 5300.0, 6400.0,   \
                                   7700.0, 9500.0, 12000.0, 15500.0, 20000.0}
 
-//#define  AMP_DB(amp)  ((amp) != 0.0 ? (float) log10((amp) * 20.0) : -32767.0f)
+//#define  AMP_DB(amp)  ((amp) != 0.0 ? (float) LOG10((amp) * 20.0) : -32767.0f)
 //#define  DB_AMP(db)   ((float) pow(10.0, (db) / 20.0))
 
 /* data structures */
@@ -761,7 +761,7 @@ static MYDBL frq2bark(MYDBL frq, MYDBL *edges)
     band = find_band(frq, edges);
     lo_frq = edges[band];
     hi_frq = edges[band + 1];
-    return (1.0 + band + fabs(log10(frq / lo_frq) / log10(lo_frq / hi_frq)));
+    return (1.0 + band + fabs(log10(frq / lo_frq) / LOG10(lo_frq / hi_frq)));
 }
 
 /* find_band
@@ -862,18 +862,18 @@ static float *make_window(CSOUND *csound, int32_t win_type, int32_t win_size)
     for (i = 0; i < win_size; i++) {
       switch (win_type) {
       case BLACKMAN:           /* Blackman (3 term) */
-        buffer[i] = (float)(0.42 - 0.5 * cos(arg * i) + 0.08 * cos(arg * (i+i)));
+        buffer[i] = (float)(0.42 - 0.5 * COS(arg * i) + 0.08 * COS(arg * (i+i)));
         break;
       case BLACKMAN_H:         /* Blackman-Harris (4 term) */
         buffer[i] =(float)(
-            0.35875 - 0.48829 * cos(arg * i) + 0.14128 * cos(arg * (i+i)) -
-            0.01168 * cos(arg * (i+i+i)));
+            0.35875 - 0.48829 * COS(arg * i) + 0.14128 * COS(arg * (i+i)) -
+            0.01168 * COS(arg * (i+i+i)));
         break;
       case HAMMING:           /* Hamming */
-        buffer[i] = (float)(0.54 - 0.46 * cos(arg * i));
+        buffer[i] = (float)(0.54 - 0.46 * COS(arg * i));
         break;
       case VONHANN:           /* Von Hann ("hanning") */
-        buffer[i] = (float)(0.5 - 0.5 * cos(arg * i));
+        buffer[i] = (float)(0.5 - 0.5 * COS(arg * i));
         break;
       }
     }
@@ -1095,7 +1095,7 @@ static void to_polar(ATS_FFT *ats_fft, MYDBL *mags, MYDBL *phase, int32_t N,
       x = (MYDBL) ats_fft->data[k << 1];
       y = (MYDBL) ats_fft->data[(k << 1) + 1];
       mags[k] = norm * hypot(x, y);
-      phase[k] = ((x == 0.0 && y == 0.0) ? 0.0 : atan2(y, x));
+      phase[k] = ((x == 0.0 && y == 0.0) ? 0.0 : ATAN2(y, x));
     }
 }
 
@@ -1773,7 +1773,7 @@ static void synth_buffer(MYDBL a1, MYDBL a2, MYDBL f1, MYDBL f2,
     amp_inc = (a2 - a1) / (MYDBL) frame_samps;
     for (k = 0; k < frame_samps; k++) {
       int_pha = interp_phase(p1, f1, alpha, beta, k);
-      buffer[k] += amp * cos(int_pha);
+      buffer[k] += amp * COS(int_pha);
       amp += amp_inc;
     }
 }
@@ -2435,7 +2435,7 @@ static void set_av(CSOUND *csound, ATS_SOUND *sound);
  */
 static inline MYDBL amp2db(MYDBL amp)
 {
-    return (20.0 * log10(amp));
+    return (20.0 * LOG10(amp));
 }
 
 static inline MYDBL db2amp(MYDBL db)

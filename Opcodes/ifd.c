@@ -144,7 +144,7 @@ static int32_t ifd_init(CSOUND * csound, IFD * p)
   fac = TWOPI / (fftsize - 1.0);
 
   for (i = 0; i < fftsize; i++)
-    winf[i] = (MYFLT) (alpha - (1.0 - alpha) * cos(fac * i));
+    winf[i] = (MYFLT) (alpha - (1.0 - alpha) * COS(fac * i));
 
   p->norm = 0;
   for (i = 0; i < fftsize; i++) {
@@ -334,7 +334,7 @@ static int32_t tifd_init(CSOUND * csound, IFD * p)
   fac = TWOPI / (fftsize - 1.0);
 
   for (i = 0; i < fftsize; i++)
-    winf[i] = (MYFLT) (alpha - (1.0 - alpha) * cos(fac * i));
+    winf[i] = (MYFLT) (alpha - (1.0 - alpha) * COS(fac * i));
 
   p->norm = 0;
   for (i = 0; i < fftsize; i++) {

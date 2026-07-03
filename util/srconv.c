@@ -536,7 +536,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 
     invRin  =  FL(1.0) / Rin;
 
-    /* make window: the window is the product of a kaiser and a sin(x)/x */
+    /* make window: the window is the product of a kaiser and a SIN(x)/x */
     window = (float*) csound->Calloc(csound, (size_t) (M + 2) * sizeof(float));
     WinLen = (M-1)/2;
     window += WinLen;
@@ -546,7 +546,7 @@ static int32_t srconv(CSOUND *csound, int32_t argc, char **argv)
 
     for (i = 1; i <= WinLen; i++) {
       MYDBL  tmp = (MYDBL) N;
-      tmp = tmp * sin(PI * (MYDBL) i / tmp) / (PI * (MYDBL) i);
+      tmp = tmp * SIN(PI * (MYDBL) i / tmp) / (PI * (MYDBL) i);
       window[i] = (float) ((MYDBL) window[i] * tmp);
     }
 

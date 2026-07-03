@@ -1987,12 +1987,12 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
       for (n=offset; n<nsmps;n++) {
         /* calc sine wave */
-        sinewave = cos(phase);
+        sinewave = COS(phase);
         phase += inc;
 
         /* calc noise */
         if (i < 25) {
-          noise = nzamp * cos(p->noiphase[i]) *
+          noise = nzamp * COS(p->noiphase[i]) *
             randiats(csound, &(p->randinoise[i]));
           p->noiphase[i] += p->phaseinc[i];
         }
@@ -2014,7 +2014,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
       inc = TWOPI * freq * CS_ONEDSR;
       for (n=offset; n<nsmps;n++) {
         /* calc sine wave */
-        sinewave = cos(phase) * amp;
+        sinewave = COS(phase) * amp;
         phase += inc;
         /* calc output */
         ar[n] += csound->Get0dBFS(csound) * (MYFLT)sinewave * *p->ksinamp;

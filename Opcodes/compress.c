@@ -98,7 +98,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
 
     if (*p->kthresh != p->thresh) {             /* check for changes:   */
       p->thresh = *p->kthresh;
-      p->envthrsh = (MYFLT) exp((p->thresh+p->bias) * LOG10D20);
+      p->envthrsh = (MYFLT) EXP((p->thresh+p->bias) * LOG10D20);
     }
     if (*p->kloknee != p->loknee ||
         *p->khiknee != p->hiknee ||
@@ -107,7 +107,7 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
       p->loknee = *p->kloknee;
       p->hiknee = *p->khiknee;
       p->ratio = *p->kratio;
-      p->envlo = (MYFLT) exp((p->loknee+p->bias) * LOG10D20);
+      p->envlo = (MYFLT) EXP((p->loknee+p->bias) * LOG10D20);
       if ((p->kneespan = p->hiknee - p->loknee) < FL(0.0))
         p->kneespan = FL(0.0);
       if ((ratio = p->ratio) < FL(0.01))         /* expand max is 100 */
@@ -182,12 +182,12 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
         if (p->newenv) {                /*   calc dbenv & ampmul        */
           MYDBL dbenv, excess;
           p->newenv = 0;
-          dbenv = log(p->cenv + 0.001) / LOG10D20;      /* for softknee */
+          dbenv = LOG(p->cenv + 0.001) / LOG10D20;      /* for softknee */
           if ((excess = dbenv - (p->loknee+p->bias)) < p->kneespan)
-            p->ampmul = exp(p->kneecoef * excess * excess);
+            p->ampmul = EXP(p->kneecoef * excess * excess);
           else {
             excess -= p->kneespan;      /* or ratio line */
-            p->ampmul = p->kneemul * exp(p->ratcoef * excess);
+            p->ampmul = p->kneemul * EXP(p->ratcoef * excess);
           }
         }
         asig *= (MYFLT)p->ampmul;       /* and compress the asig */
@@ -215,7 +215,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((MYDBL) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
+    b = 2.0 - COS((MYDBL) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     p->min_rms = csound->Get0dBFS(csound) * DV32768;

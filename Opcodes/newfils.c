@@ -47,9 +47,9 @@ MYDBL fast_tanh(MYDBL x)
 
 static MYDBL TanH(MYDBL x)
 {
-  /* use the fact that tanh(-x) = - tanh(x)
+  /* use the fact that TANH(-x) = - TANH(x)
      and if x>~4 tanh is approx constant 1
-     and for small x tanh(x) =~ x
+     and for small x TANH(x) =~ x
      So giving a cheap approximation */
   int32_t sign = 1;
   if (x<0) sign=-1, x= -x;
@@ -110,7 +110,7 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = res;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -136,20 +136,20 @@ static int32_t moogladder_process(CSOUND *csound, moogladder *p)
       delay[0] = stg[0] = delay[0] + tune*(tanh(input*vt) - tanhstg[0]);
 #if 1
       input = stg[0];
-      stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*vt)) - tanhstg[1]);
+      stg[1] = delay[1] + tune*((tanhstg[0] = TANH(input*vt)) - tanhstg[1]);
       input = delay[1] = stg[1];
-      stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*vt)) - tanhstg[2]);
+      stg[2] = delay[2] + tune*((tanhstg[1] = TANH(input*vt)) - tanhstg[2]);
       input = delay[2] = stg[2];
       stg[3] = delay[3] + tune*((tanhstg[2] =
-                                 tanh(input*vt)) - tanh(delay[3]*vt));
+                                 TANH(input*vt)) - TANH(delay[3]*vt));
       delay[3] = stg[3];
 #else
       { int32_t k;
         for (k = 1; k < 4; k++) {
           input = stg[k-1];
           stg[k] = delay[k]
-            + tune*((tanhstg[k-1] = tanh(input*vt))
-                    - (k != 3 ? tanhstg[k] : tanh(delay[k]*vt)));
+            + tune*((tanhstg[k-1] = TANH(input*vt))
+                    - (k != 3 ? tanhstg[k] : TANH(delay[k]*vt)));
           delay[k] = stg[k];
         }
       }
@@ -192,7 +192,7 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = cres;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -221,7 +221,7 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
       /* frequency & amplitude correction  */
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-      tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+      tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldres = cres;
       p->oldacr = acr;
       p->oldtune = tune;
@@ -234,20 +234,20 @@ static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
       delay[0] = stg[0] = delay[0] + tune*(tanh(input*vt) - tanhstg[0]);
 #if 1
       input = stg[0];
-      stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*vt)) - tanhstg[1]);
+      stg[1] = delay[1] + tune*((tanhstg[0] = TANH(input*vt)) - tanhstg[1]);
       input = delay[1] = stg[1];
-      stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*vt)) - tanhstg[2]);
+      stg[2] = delay[2] + tune*((tanhstg[1] = TANH(input*vt)) - tanhstg[2]);
       input = delay[2] = stg[2];
       stg[3] = delay[3] + tune*((tanhstg[2] =
-                                 tanh(input*vt)) - tanh(delay[3]*vt));
+                                 TANH(input*vt)) - TANH(delay[3]*vt));
       delay[3] = stg[3];
 #else
       { int32_t k;
         for (k = 1; k < 4; k++) {
           input = stg[k-1];
           stg[k] = delay[k]
-            + tune*((tanhstg[k-1] = tanh(input*vt))
-                    - (k != 3 ? tanhstg[k] : tanh(delay[k]*vt)));
+            + tune*((tanhstg[k-1] = TANH(input*vt))
+                    - (k != 3 ? tanhstg[k] : TANH(delay[k]*vt)));
           delay[k] = stg[k];
         }
       }
@@ -291,7 +291,7 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = res;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -320,7 +320,7 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
       /* frequency & amplitude correction  */
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-      tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+      tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldacr = acr;
       p->oldtune = tune;
       res4 = 4.0*(MYDBL)res*acr;
@@ -332,20 +332,20 @@ static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
       delay[0] = stg[0] = delay[0] + tune*(tanh(input*vt) - tanhstg[0]);
 #if 1
       input = stg[0];
-      stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*vt)) - tanhstg[1]);
+      stg[1] = delay[1] + tune*((tanhstg[0] = TANH(input*vt)) - tanhstg[1]);
       input = delay[1] = stg[1];
-      stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*vt)) - tanhstg[2]);
+      stg[2] = delay[2] + tune*((tanhstg[1] = TANH(input*vt)) - tanhstg[2]);
       input = delay[2] = stg[2];
       stg[3] = delay[3] + tune*((tanhstg[2] =
-                                 tanh(input*vt)) - tanh(delay[3]*vt));
+                                 TANH(input*vt)) - TANH(delay[3]*vt));
       delay[3] = stg[3];
 #else
       { int32_t k;
         for (k = 1; k < 4; k++) {
           input = stg[k-1];
           stg[k] = delay[k]
-            + tune*((tanhstg[k-1] = tanh(input*vt))
-                    - (k != 3 ? tanhstg[k] : tanh(delay[k]*vt)));
+            + tune*((tanhstg[k-1] = TANH(input*vt))
+                    - (k != 3 ? tanhstg[k] : TANH(delay[k]*vt)));
           delay[k] = stg[k];
         }
       }
@@ -390,7 +390,7 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = cres;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -418,7 +418,7 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
       /* frequency & amplitude correction  */
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-      tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+      tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldres = cres = res[i];
       p->oldacr = acr;
       p->oldtune = tune;
@@ -431,20 +431,20 @@ static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
       delay[0] = stg[0] = delay[0] + tune*(tanh(input*vt) - tanhstg[0]);
 #if 1
       input = stg[0];
-      stg[1] = delay[1] + tune*((tanhstg[0] = tanh(input*vt)) - tanhstg[1]);
+      stg[1] = delay[1] + tune*((tanhstg[0] = TANH(input*vt)) - tanhstg[1]);
       input = delay[1] = stg[1];
-      stg[2] = delay[2] + tune*((tanhstg[1] = tanh(input*vt)) - tanhstg[2]);
+      stg[2] = delay[2] + tune*((tanhstg[1] = TANH(input*vt)) - tanhstg[2]);
       input = delay[2] = stg[2];
       stg[3] = delay[3] + tune*((tanhstg[2] =
-                                 tanh(input*vt)) - tanh(delay[3]*vt));
+                                 TANH(input*vt)) - TANH(delay[3]*vt));
       delay[3] = stg[3];
 #else
       { int32_t k;
         for (k = 1; k < 4; k++) {
           input = stg[k-1];
           stg[k] = delay[k]
-            + tune*((tanhstg[k-1] = tanh(input*vt))
-                    - (k != 3 ? tanhstg[k] : tanh(delay[k]*vt)));
+            + tune*((tanhstg[k-1] = TANH(input*vt))
+                    - (k != 3 ? tanhstg[k] : TANH(delay[k]*vt)));
           delay[k] = stg[k];
         }
       }
@@ -488,7 +488,7 @@ static int32_t moogladder2_process(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = res;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -569,7 +569,7 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = cres;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -598,7 +598,7 @@ static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
       /* frequency & amplitude correction  */
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-      tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+      tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldres = cres;
       p->oldacr = acr;
       p->oldtune = tune;
@@ -668,7 +668,7 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = res;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -697,7 +697,7 @@ static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
       /* frequency & amplitude correction  */
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-      tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+      tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldacr = acr;
       p->oldtune = tune;
       res4 = 4.0*(MYDBL)res*acr;
@@ -767,7 +767,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
     /* frequency & amplitude correction  */
     fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
     acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-    tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+    tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
     p->oldres = cres;
     p->oldacr = acr;
     p->oldtune = tune;
@@ -795,7 +795,7 @@ static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
       /* frequency & amplitude correction  */
       fcr = 1.8730*fc3 + 0.4955*fc2 - 0.6490*fc + 0.9988;
       acr = -3.9364*fc2 + 1.8409*fc + 0.9968;
-      tune = (1.0 - exp(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
+      tune = (1.0 - EXP(-(TWOPI*f*fcr))) / vt;   /* filter tuning  */
       p->oldres = cres = res[i];
       p->oldacr = acr;
       p->oldtune = tune;
@@ -960,7 +960,7 @@ static int32_t fofilter_process(CSOUND *csound,fofilter *p)
     if (frq != lfrq || rs != lrs || dc != ldc) {
       lfrq = frq; lrs = rs; ldc = dc;
       ang = (MYDBL)CS_TPIDSR*frq;         /* pole angle */
-      fsc = sin(ang) - 3.0;                      /* freq scl   */
+      fsc = SIN(ang) - 3.0;                      /* freq scl   */
       rrad1 =  pow(10.0, fsc/(dc*CS_ESR));  /* filter radii */
       rrad2 =  pow(10.0, fsc/(rs*CS_ESR));
     }
@@ -2253,15 +2253,15 @@ static int32_t calc_derivatives(CSOUND *csound, BOB *p, MYDBL *dstate,
   MYDBL sat = *p->sat;
   MYDBL satinv = 1.0/sat;
 
-  MYDBL satstate0 = sat * tanh(state[0] * satinv);
-  MYDBL satstate1 = sat * tanh(state[1] * satinv);
-  MYDBL satstate2 = sat * tanh(state[2] * satinv);
+  MYDBL satstate0 = sat * TANH(state[0] * satinv);
+  MYDBL satstate1 = sat * TANH(state[1] * satinv);
+  MYDBL satstate2 = sat * TANH(state[2] * satinv);
 
   dstate[0] = k *
-    (sat * tanh((in - res * state[3]) * satinv) - satstate0);
+    (sat * TANH((in - res * state[3]) * satinv) - satstate0);
   dstate[1] = k * (satstate0 - satstate1);
   dstate[2] = k * (satstate1 - satstate2);
-  dstate[3] = k * (satstate2 - (sat * tanh(state[3]*satinv)));
+  dstate[3] = k * (satstate2 - (sat * TANH(state[3]*satinv)));
 
   return OK;
 }

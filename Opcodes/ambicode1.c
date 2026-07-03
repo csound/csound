@@ -149,11 +149,11 @@ abformenc(CSOUND * csound, AMBIC * p) {
     elevation = (MYDBL)(*(p->kelevation)) * (PI / 180.0);
 
     /* Find direction cosines: */
-    x  = cos(elevation);
+    x  = COS(elevation);
     y  = x;
-    z  = sin(elevation);
-    x *= cos(angle);
-    y *= sin(angle);
+    z  = SIN(elevation);
+    x *= COS(angle);
+    y *= SIN(angle);
     x2 = x * x;
     y2 = y * y;
     z2 = z * z;
@@ -228,11 +228,11 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
     elevation = (MYDBL)(*(p->kelevation)) * (PI / 180.0);
 
     /* Find direction cosines: */
-    x  = cos(elevation);
+    x  = COS(elevation);
     y  = x;
-    z  = sin(elevation);
-    x *= cos(angle);
-    y *= sin(angle);
+    z  = SIN(elevation);
+    x *= COS(angle);
+    y *= SIN(angle);
     x2 = x * x;
     y2 = y * y;
     z2 = z * z;

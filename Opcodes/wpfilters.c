@@ -90,7 +90,7 @@ static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
         last_cut = cutoff;
 
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         MYDBL g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
@@ -164,7 +164,7 @@ static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
         last_cut = cutoff;
 
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         MYDBL g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
@@ -268,7 +268,7 @@ static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
         last_cut = cutoff;
 
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         g = wa * Tdiv2;
         g2 = g * g;
       }
@@ -362,7 +362,7 @@ static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
         last_cut = cutoff;
 
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         g = wa * Tdiv2;
         g2 = g * g;
       }
@@ -494,7 +494,7 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
         last_cut = cutoff;
 
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         g = wa * Tdiv2;
         G = g / (1.0 + g);
         G2 = G * G;
@@ -655,7 +655,7 @@ static int32_t diode_ladder_perf(CSOUND* csound,
         last_cut = cutoff;
 
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         MYDBL g = wa * Tdiv2;
         MYDBL gp1 = 1.0 + g;
         G4 = 0.5 * g / gp1;
@@ -702,10 +702,10 @@ static int32_t diode_ladder_perf(CSOUND* csound,
 
       // non-linear processing
       if (*p->nlp == 1.0) {
-        in = (1.0 / tanh(*p->saturation)) * tanh(*p->saturation * in);
+        in = (1.0 / TANH(*p->saturation)) * TANH(*p->saturation * in);
       }
       else if (*p->nlp == 2.0) {
-        in = tanh(*p->saturation * in);
+        in = TANH(*p->saturation * in);
       }
 
       // form input to loop
@@ -848,7 +848,7 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 
       if (cutoff != last_cut) {
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
@@ -875,7 +875,7 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
       MYDBL u = alpha * (lp1 + S35);
 
       if (nonlinear) {
-        u = tanh(u * saturation);
+        u = TANH(u * saturation);
       }
 
       // LPF2
@@ -988,7 +988,7 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
       if (cutoff != last_cut) {
         MYDBL wd = TWOPI * cutoff;
-        MYDBL wa = two_div_T * tan(wd * Tdiv2);
+        MYDBL wa = two_div_T * TAN(wd * Tdiv2);
         g = wa * Tdiv2;
         G = g / (1.0 + g);
       }
@@ -1017,7 +1017,7 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
       MYDBL y = K * u;
 
       if (nonlinear) {
-        y = tanh(y * saturation);
+        y = TANH(y * saturation);
       }
 
       // HPF2

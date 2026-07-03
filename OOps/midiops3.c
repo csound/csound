@@ -174,7 +174,7 @@
                                                                   \
                 /*----- init filtering coeffs*/                   \
         *yt1++ = FL(0.0);                                         \
-        b = (MYFLT)(2.0 - cos((MYDBL)(*(sld++)->ihp              \
+        b = (MYFLT)(2.0 - COS((MYDBL)(*(sld++)->ihp              \
                                        * CS_TPIDSR           \
                                        * CS_KSMPS)));        \
         *c2 = (MYFLT)(b - sqrt((MYDBL)(b * b - FL(1.0))));       \
@@ -526,7 +526,7 @@ if (UNLIKELY(chan  > 15))  {                                           \
                 MYFLT range = *max-*min;                                \
                 MYFLT base;                                             \
                 base= (MYFLT) pow(*max / *min, 1/range);                \
-                value = (MYFLT) (log(value/ *min) / log(base)) ;        \
+                value = (MYFLT) (log(value/ *min) / LOG(base)) ;        \
                 value /= range;                                         \
               }                                                         \
               break;                                                    \
@@ -692,7 +692,7 @@ int32_t sliderTable8(CSOUND *csound, SLIDER8t *p) /* GAB */
             MYFLT range = *max-*min;                                    \
             MYFLT base;                                                 \
             base= (MYFLT) pow(*max / *min, 1/range);                    \
-            value = (MYFLT) (log(value/ *min) / log(base)) ;            \
+            value = (MYFLT) (log(value/ *min) / LOG(base)) ;            \
             value /= range;                                             \
           }                                                             \
           break;                                                        \
@@ -711,7 +711,7 @@ int32_t sliderTable8(CSOUND *csound, SLIDER8t *p) /* GAB */
         chanblock[*slnum++] =  (MYFLT)((int32_t)(value * f7bit + FL(0.5))); \
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
-        b = (MYFLT)(2.0 - cos((MYDBL)(*(sld)->ihp *                    \
+        b = (MYFLT)(2.0 - COS((MYDBL)(*(sld)->ihp *                    \
                               CS_TPIDSR * CS_KSMPS)));             \
         *c2 = (MYFLT)(b - sqrt((MYDBL)(b * b - FL(1.0))));             \
         *c1++ = FL(1.0) - *c2++;                                        \

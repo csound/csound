@@ -169,7 +169,7 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
           p->m = 0; // rewind of pointer
           p->pwro = (p->pwr_[0] + p->pwr_[1] + p->pwr_[2] + p->pwr_[3])/numsmps;
           // momentary loudness of the segment - mono, LUFS
-          mloudness = -0.691 + 10 * log10(p->pwro);
+          mloudness = -0.691 + 10 * LOG10(p->pwro);
           *p->kmom = mloudness;
 
           // gating of momentary power
@@ -206,7 +206,7 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
                 p->pwroST += p->pwr_[3];
                 p->pwroST /= numsmpsST;
         // short-term loudness of the segment - mono, LUFS
-                *p->kst = -0.691 + 10 * log10(p->pwroST);
+                *p->kst = -0.691 + 10 * LOG10(p->pwroST);
                 p->pwr_ST[29] = p->pwr_[3];
                 for (z=0; z<29; z++){
                         p->pwr_ST[z] = p->pwr_ST[z+1];
@@ -325,7 +325,7 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
           p->pwro1 = (p->pwr_1[0] + p->pwr_1[1] + p->pwr_1[2] + p->pwr_1[3])/numsmps;
           p->pwro2 = (p->pwr_2[0] + p->pwr_2[1] + p->pwr_2[2] + p->pwr_2[3])/numsmps;
           // momentary loudness of the segment - mono, LUFS
-          mloudness = -0.691 + 10 * log10(p->pwro1 + p->pwro2);
+          mloudness = -0.691 + 10 * LOG10(p->pwro1 + p->pwro2);
           *p->kmom = mloudness;
           // gating of momentary power
           if (mloudness >= -70) {

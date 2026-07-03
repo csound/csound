@@ -92,7 +92,7 @@ int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
 
     b4 =  c3/C2;
 
-    tanh_xo= tanh(p->xo);
+    tanh_xo= TANH(p->xo);
 
     if (UNLIKELY(offset)) {
       memset(out1, '\0', offset*sizeof(MYFLT));

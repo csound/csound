@@ -690,7 +690,7 @@ static int32_t gen10(FGDATA *ff, FUNC *ftp)
       MYFLT *valp = &ff->e.p[hcnt + 4];
       if ((amp = *valp) != FL(0.0))         /* for non-0 amps,  */
         for (phs = 0, fp = ftp->ftable; fp <= finp; fp++) {
-          *fp += (MYFLT) sin(phs * tpdlen) * amp;         /* accum sin pts    */
+          *fp += (MYFLT) SIN(phs * tpdlen) * amp;         /* accum sin pts    */
           phs += hcnt;                                    /* phsinc is hno    */
           phs %= flen;
         }
@@ -728,10 +728,10 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       pdlen = PI_F / (MYFLT) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
         x = phs * pdlen;
-        denom = sin(x);
-        if (fabs(denom)<1.0e-10) //(!(denom = (MYFLT) sin(x)))
+        denom = SIN(x);
+        if (fabs(denom)<1.0e-10) //(!(denom = (MYFLT) SIN(x)))
           *fp++ = FL(1.0);
-        else *fp++ = ((MYFLT) sin(tnp1 * x) / denom - FL(1.0)) * scale;
+        else *fp++ = ((MYFLT) SIN(tnp1 * x) / denom - FL(1.0)) * scale;
       }
     }
     else {                                   /* complex "gbuzz" case */
@@ -753,7 +753,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
         x = (MYDBL) phs * tpdlen;
         numer = (MYFLT)cos(x*k) - r * (MYFLT)cos(x*km1) - rtn*(MYFLT)cos(x*kpn)
                 + rtnp1 * (MYFLT)cos(x*kpnm1);
-        if ((denom = rsqp1 - twor * (MYFLT) cos(x)) > FL(0.0001)
+        if ((denom = rsqp1 - twor * (MYFLT) COS(x)) > FL(0.0001)
             || denom < -FL(0.0001))
           *fp++ = numer / denom * scale;
         else *fp++ = FL(1.0);
@@ -780,7 +780,7 @@ static int32_t gen12(FGDATA *ff, FUNC *ftp)
         evenpowr *= tsquare;
         sum += *coefp * evenpowr;
       }
-      *fp++ = (MYFLT) log(sum);
+      *fp++ = (MYFLT) LOG(sum);
     }
     return OK;
 }
@@ -1000,7 +1000,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
       range = (MYFLT) (finish - start), j = start;
       while (j <= finish) {                      /* write the table */
         uint32_t ii;
-        f = (MYFLT)modf((fnlen*(j - start)/range), &i);
+        f = (MYFLT)MODF((fnlen*(j - start)/range), &i);
         ii = (unsigned int)i;
         //printf("***ii=%d f=%g\n", ii, f);
         if (ii==fnp->flen)
@@ -1113,10 +1113,10 @@ static int32_t gen20(FGDATA *ff, FUNC *ftp)
     case 9:                     /* Sinc */
         arg = TWOPI * varian / ff->flen;
         for (i = 0, x = -PI * varian; i < ((int32_t) ff->flen >> 1) ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * sin(x) / x);
+          ft[i] = (MYFLT) (xarg * SIN(x) / x);
         ft[i++] = (MYFLT) xarg;
         for (x = arg ; i <= (int32_t) ff->flen ; i++, x += arg)
-          ft[i] = (MYFLT) (xarg * sin(x) / x);
+          ft[i] = (MYFLT) (xarg * SIN(x) / x);
         return OK;
     default:
         return csoundFtError(ff, Str("No such window type!"));
@@ -1582,7 +1582,7 @@ static int32_t gen31(FGDATA *ff, FUNC *ftp)
       }
       if (UNLIKELY(p < FL(0.0))) p += FL(1.0);
       p *= TWOPI_F;
-      d_re = cos((MYDBL) p); d_im = sin((MYDBL) p);
+      d_re = COS((MYDBL) p); d_im = SIN((MYDBL) p);
       p_re = 1.0; p_im = 0.0;   /* init. phase */
       for (i = k = 0; (i < l1 && k <l2); i += (n << 1), k += 2) {
         /* mix to table */
@@ -1875,10 +1875,10 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
       }
       phs = TWOPI * (MYDBL) *(srcft++);                /* phase */
       /* calculate coeffs for fast sine oscillator */
-      y0 = sin(phs);           /* sample 0 */
-      y1 = sin(phs + frq);     /* sample 1 */
+      y0 = SIN(phs);           /* sample 0 */
+      y1 = SIN(phs + frq);     /* sample 1 */
       xn[i] = y0;
-      cn[i] = 2.0 * cos(frq) - 2.0;
+      cn[i] = 2.0 * COS(frq) - 2.0;
       vn[i] = y1 - cn[i] * y0 - y0;
       /* amp. scale */
       xn[i] *= amp; vn[i] *= amp;
@@ -2093,7 +2093,7 @@ static void generate_sine_tab(CSOUND *csound)
     ftp->lenmask = flen - 1;
     ftp->nchanls = 1;
     for (i = 1; i<ftp->flen; i++)
-      ftable[i] = (MYFLT) sin(i*tpdlen);
+      ftable[i] = (MYFLT) SIN(i*tpdlen);
     ftable[0] = ftable[ftp->flen] = FL(0.0);
     csound->sinetable = ftp;
     return;
@@ -2750,11 +2750,11 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     for (i = 2; i < npts2; i += 2) {
       MYDBL  ph;
       ph = (MYDBL) buf1[i >> 1] / TWOPI;
-      ph = TWOPI * modf(ph, &tmp);
+      ph = TWOPI * MODF(ph, &tmp);
       ph = (ph < 0.0 ? ph + PI : ph - PI);
       tmp = -((MYDBL) scaleFac * (MYDBL) obuf[i >> 1]);
-      buf2[i] = (MYFLT) (tmp * cos(ph));
-      buf2[i + 1] = (MYFLT) (tmp * sin(ph));
+      buf2[i] = (MYFLT) (tmp * COS(ph));
+      buf2[i + 1] = (MYFLT) (tmp * SIN(ph));
     }
     buf2[0] = scaleFac * obuf[0];
     buf2[1] = scaleFac * obuf[npts];

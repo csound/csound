@@ -610,7 +610,7 @@ static int32_t init(CSOUND *csound,
        window will work; a Hamming window is generally fine,
        but a Kaiser is also available.  If the window duration is
        longer than the transform (M > N), then the window is
-       multiplied by a sin(x)/x function to meet the condition:
+       multiplied by a SIN(x)/x function to meet the condition:
        analWindow[Ni] = 0 for i != 0.  In either case, the
        window is renormalised so that the phase vocoder amplitude
        estimates are properly scaled.  The maximum allowable
@@ -795,7 +795,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
           angleDif = FL(0.0);
 
         else {
-          rratio = atan2((MYDBL)imag,(MYDBL)real);
+          rratio = ATAN2((MYDBL)imag,(MYDBL)real);
           angleDif  = (MYFLT)((phase = rratio) - *oi);
           *oi = (MYFLT) phase;
         }
@@ -917,12 +917,12 @@ static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
 
     if (even) {
       for (i=0; i<winLen; i++)
-        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((MYDBL)i+0.5)));
+        win[i] = (MYFLT)(0.5 + 0.5 * COS(ftmp*((MYDBL)i+0.5)));
       win[winLen] = FL(0.0);
     }
     else {
       win[0] = FL(1.0);
       for (i=1; i<=winLen; i++)
-        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(MYDBL)i));
+        win[i] = (MYFLT)(0.5 + 0.5 * COS(ftmp*(MYDBL)i));
     }
 }

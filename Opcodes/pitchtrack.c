@@ -412,7 +412,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     for (i = 0, tmpb = (MYFLT *)p->prev.auxp; i < winsize + 4 * FLTLEN; i++)
       tmpb[i] = FL(0.0);
     for (i = 0, tmpb = (MYFLT *)p->sin.auxp; i < p->hopsize; i++)
-      tmpb[2*i] =   (MYFLT) cos((PI*i)/(winsize)),
+      tmpb[2*i] =   (MYFLT) COS((PI*i)/(winsize)),
         tmpb[2*i+1] = -(MYFLT)sin((PI*i)/(winsize));
 
     p->cnt = 0;
@@ -567,7 +567,7 @@ void update_coefs(PLLTRACK *p, MYDBL fr, MYDBL Q, BIQUAD *biquad, int32_t TYPE)
 
     switch(TYPE){
     case LP2:
-      k = tan(fr*CS_PIDSR);
+      k = TAN(fr*CS_PIDSR);
       ksq = k*k;
       ksqQ = ksq*Q;
       div = ksqQ+k+Q;
@@ -589,7 +589,7 @@ void update_coefs(PLLTRACK *p, MYDBL fr, MYDBL Q, BIQUAD *biquad, int32_t TYPE)
       break;
 
     case HP:
-      k = tan(CS_PIDSR*fr);
+      k = TAN(CS_PIDSR*fr);
       ksq = k*k;
       biquad->a0 = 1.0 / ( 1.0 + ROOT2 * k + ksq);
       biquad->a1 = -2.*biquad->a0;

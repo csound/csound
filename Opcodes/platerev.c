@@ -102,12 +102,12 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     p->t10 = -V*eta;
     p->t01 = -V*eta*alf*alf;
     for (qq=0; qq<p->nin; qq++) {
-      p->ci[qq] = cos((MYDBL)p->in_param[3*qq+2]);
-      p->si[qq] = sin((MYDBL)p->in_param[3*qq+2]);
+      p->ci[qq] = COS((MYDBL)p->in_param[3*qq+2]);
+      p->si[qq] = SIN((MYDBL)p->in_param[3*qq+2]);
     }
     for (qq=0; qq<p->nout; qq++) {
-      p->co[qq] = cos((MYDBL)p->out_param[3*qq+2]);
-      p->so[qq] = sin((MYDBL)p->out_param[3*qq+2]);
+      p->co[qq] = COS((MYDBL)p->out_param[3*qq+2]);
+      p->so[qq] = SIN((MYDBL)p->out_param[3*qq+2]);
     }
 
     return OK;
@@ -134,12 +134,12 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
     if (UNLIKELY(early)) nsmps -= early;
     for (qq=0; qq<(uint32_t)p->nin; qq++) {
       MYDBL delta = TWOPI*(MYDBL)p->in_param[3*qq]*dt;
-      cdi[qq] = cos(delta);
-      sdi[qq] = sin(delta);
+      cdi[qq] = COS(delta);
+      sdi[qq] = SIN(delta);
       wi[qq] = p->L*0.5*(MYDBL)p->in_param[3*qq+1];
       delta = TWOPI*(MYDBL)p->out_param[3*qq]*dt;
-      cdo[qq] = cos(delta);
-      sdo[qq] = sin(delta);
+      cdo[qq] = COS(delta);
+      sdo[qq] = SIN(delta);
       wo[qq] = (p->L*0.5)*(MYDBL)p->out_param[3*qq+1];
       if (UNLIKELY(offset)) memset(p->aout[qq], '\0', offset*sizeof(MYFLT));
       if (UNLIKELY(early)) memset(&p->aout[qq][nsmps], '\0', early*sizeof(MYFLT));

@@ -219,7 +219,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {
       p->prv_LPFreq = *(p->kLPFreq);
-      dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
+      dampFact = 2.0 - COS(p->prv_LPFreq * TWOPI / p->sampleRate);
       dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
     if (UNLIKELY(offset)) {
@@ -328,7 +328,7 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
     /* calculate tone filter coefficient if frequency changed */
     if (*(p->kLPFreq) != p->prv_LPFreq) {
       p->prv_LPFreq = *(p->kLPFreq);
-      dampFact = 2.0 - cos(p->prv_LPFreq * TWOPI / p->sampleRate);
+      dampFact = 2.0 - COS(p->prv_LPFreq * TWOPI / p->sampleRate);
       dampFact = p->dampFact = dampFact - sqrt(dampFact * dampFact - 1.0);
     }
     if (UNLIKELY(offset)) {

@@ -1108,8 +1108,8 @@ static void rffti1_ps(int32_t n, float *wa, int32_t *ifac)
       for (ii = 3; ii <= ido; ii += 2) {
         i += 2;
         fi += 1;
-        wa[i - 2] = cos(fi*argld);
-        wa[i - 1] = sin(fi*argld);
+        wa[i - 2] = COS(fi*argld);
+        wa[i - 1] = SIN(fi*argld);
       }
       is += ido;
     }
@@ -1143,8 +1143,8 @@ void cffti1_ps(int32_t n, float *wa, int32_t *ifac)
       for (ii = 4; ii <= idot; ii += 2) {
         i += 2;
         fi += 1;
-        wa[i-1] = cos(fi*argld);
-        wa[i] = sin(fi*argld);
+        wa[i-1] = COS(fi*argld);
+        wa[i] = SIN(fi*argld);
       }
       if (ip > 5) {
         wa[i1-1] = wa[i-1];
@@ -1236,8 +1236,8 @@ PFFFT_Setup *pffft_new_setup(int32_t N, pffft_transform_t transform) {
       int32_t j = k%SIMD_SZ;
       for (m=0; m < SIMD_SZ-1; ++m) {
         float A = -2*M_PI*(m+1)*k / N;
-        s->e[(2*(i*3 + m) + 0) * SIMD_SZ + j] = cos(A);
-        s->e[(2*(i*3 + m) + 1) * SIMD_SZ + j] = sin(A);
+        s->e[(2*(i*3 + m) + 0) * SIMD_SZ + j] = COS(A);
+        s->e[(2*(i*3 + m) + 1) * SIMD_SZ + j] = SIN(A);
       }
     }
     rffti1_ps(N/SIMD_SZ, s->twiddle, s->ifac);
@@ -1247,8 +1247,8 @@ PFFFT_Setup *pffft_new_setup(int32_t N, pffft_transform_t transform) {
       int32_t j = k%SIMD_SZ;
       for (m=0; m < SIMD_SZ-1; ++m) {
         float A = -2*M_PI*(m+1)*k / N;
-        s->e[(2*(i*3 + m) + 0)*SIMD_SZ + j] = cos(A);
-        s->e[(2*(i*3 + m) + 1)*SIMD_SZ + j] = sin(A);
+        s->e[(2*(i*3 + m) + 0)*SIMD_SZ + j] = COS(A);
+        s->e[(2*(i*3 + m) + 1)*SIMD_SZ + j] = SIN(A);
       }
     }
     cffti1_ps(N/SIMD_SZ, s->twiddle, s->ifac);

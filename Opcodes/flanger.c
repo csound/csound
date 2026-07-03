@@ -121,7 +121,7 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
     if (*p->filt_khp != p->prvhp) {
       MYDBL b;
       p->prvhp               = *p->filt_khp;
-      b                      = 2.0 - cos((MYDBL)(p->prvhp * CS_TPIDSR));
+      b                      = 2.0 - COS((MYDBL)(p->prvhp * CS_TPIDSR));
       p->c2                  = (MYFLT)(b - sqrt(b * b - 1.0));
       p->c1                  = FL(1.0) - p->c2;
     }
@@ -241,14 +241,14 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
     if (*p->filt_khp1 != p->prvhp1) {
       MYDBL b;
       p->prvhp1 = *p->filt_khp1;
-      b = 2.0 - cos((MYDBL)(p->prvhp1 * CS_TPIDSR));
+      b = 2.0 - COS((MYDBL)(p->prvhp1 * CS_TPIDSR));
       p->c2_1 = (MYFLT)(b - sqrt((b * b) - 1.0));
       p->c1_1 = FL(1.0) - p->c2_1;
     }
     if (*p->filt_khp2 != p->prvhp2) {
       MYDBL b;
       p->prvhp2 = *p->filt_khp2;
-      b = 2.0 - cos((MYDBL)(p->prvhp2 * CS_TPIDSR));
+      b = 2.0 - COS((MYDBL)(p->prvhp2 * CS_TPIDSR));
       p->c2_2 = (MYFLT)(b - sqrt((MYDBL)(b * b) - 1.0));
       p->c1_2 = FL(1.0) - p->c2_2;
     }

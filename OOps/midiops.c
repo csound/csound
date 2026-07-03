@@ -250,7 +250,7 @@ int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
     INSDS *lcurip = p->h.insdshead;
     MYDBL fract, oct, ioct;
     oct = lcurip->m_pitch / 12.0 + 3.0;
-    fract = modf(oct, &ioct);
+    fract = MODF(oct, &ioct);
     fract *= 0.12;
     *p->r = (MYFLT)(ioct + fract);
     return OK;
@@ -263,7 +263,7 @@ int32_t pchmidib(CSOUND *csound, MIDIKMB *p)
     MCHNBLK *xxx = csound->curip->m_chnbp;
     MYFLT bend = pitchbend_value(xxx);
     oct = (lcurip->m_pitch + (bend * p->scale)) / FL(12.0) + FL(3.0);
-    fract = modf(oct, &ioct);
+    fract = MODF(oct, &ioct);
     fract *= 0.12;
     *p->r = (MYFLT)(ioct + fract);
     return OK;

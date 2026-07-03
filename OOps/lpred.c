@@ -1154,7 +1154,7 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
   uint32_t    n, nsmps = CS_KSMPS;
   int32_t     j, k, ord = p->ord, mod = *p->imod;
   MYFLT       *ar,*asig;
-  MYDBL      c3p1, c3t4, omc3, c2sqr, cosf,cc2,cc3;
+  MYDBL      c3p1, c3t4, omc3, c2sqr, cosfr,cc2,cc3;
   MYDBL      *yt1, *yt2, c1 = 1.,*c2,*c3, x, *c2o, *c3o;
   MYFLT bw, cf;
   MYFLT kcnt = p->kcnt, prd = *p->iprd, interp, fmin = *p->kmin, fmax = *p->kmax;
@@ -1188,11 +1188,11 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
         cf = p->kparm->data[k];
         bw = p->kparm->data[k+1];
         if(cf > fmin && cf < fmax) {
-          cosf = cos(cf * (MYDBL)(CS_TPIDSR));
-          c3[j] = exp(bw * (MYDBL)(csound->mtpdsr));
+          cosfr = COS(cf * (MYDBL)(CS_TPIDSR));
+          c3[j] = EXP(bw * (MYDBL)(csound->mtpdsr));
           c3p1 = c3[j] + 1.0;
           c3t4 = c3[j] * 4.0;
-          c2[j] = c3t4 * cosf / c3p1;
+          c2[j] = c3t4 * cosfr / c3p1;
         }
       }
       cc2 = c2o[j] + (c2[j] - c2o[j])*interp;

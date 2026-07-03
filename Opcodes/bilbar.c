@@ -107,10 +107,10 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
     /*  boundary condition pair  1: clamped, 2: pivoting, 3: free */
     int32_t bcL = (int32_t)MYFLT2LONG(*p->kbcL);
     int32_t bcR = (int32_t)MYFLT2LONG(*p->kbcR);
-    MYDBL SINNW = sin(xofreq*step); /* these are to calculate sin/cos by */
-    MYDBL COSNW = cos(xofreq*step); /* formula rather than many calls    */
-    MYDBL SIN1W = sin(xofreq);      /* Wins in ksmps>4 */
-    MYDBL COS1W = cos(xofreq);
+    MYDBL SINNW = SIN(xofreq*step); /* these are to calculate sin/cos by */
+    MYDBL COSNW = COS(xofreq*step); /* formula rather than many calls    */
+    MYDBL SIN1W = SIN(xofreq);      /* Wins in ksmps>4 */
+    MYDBL COS1W = COS(xofreq);
     MYFLT *ar = p->ar;
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
@@ -170,8 +170,8 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
       /*  readouts */
 
       /*       xo = (1.0/3.0) + 0.5*sin(TWOPI*xofreq*(step+1)/CS_ESR); */
-      /* sin((N+1)w) = sin(Nw)cos(w) + cos(Nw)sin(w) */
-      /* cos((N+1)w) = cos(Nw)cos(w) - sin(Nw)sin(w) */
+      /* SIN((N+1)w) = SIN(Nw)cos(w) + COS(Nw)sin(w) */
+      /* COS((N+1)w) = COS(Nw)cos(w) - SIN(Nw)sin(w) */
       /* so can calculate sin on next line by iteration at less cost */
       /* But is xofreq were to change could be difficult! */
       /*      xo = 0.5 + 0.5*sin(TWOPI*xofreq*(step+1)/CS_ESR); */
@@ -379,21 +379,21 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     if (p->stereo) {
       MYDBL f1 = (*p->scanfreq - FL(0.5)* *p->scanspread)/CS_ESR;
       MYDBL f2 = (*p->scanfreq + FL(0.5)* *p->scanspread)/CS_ESR;
-      SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
-      COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
-      SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
-      COS1W = cos(f1*TWOPI);
-      SINNW2 = sin(f2*TWOPI*step);
-      COSNW2 = cos(f2*TWOPI*step);
-      SIN1W2 = sin(f2*TWOPI);
-      COS1W2 = cos(f2*TWOPI);
+      SINNW = SIN(f1*TWOPI*step); /* these are to calculate sin/cos by */
+      COSNW = COS(f1*TWOPI*step); /* formula rather than many calls    */
+      SIN1W = SIN(f1*TWOPI);      /* Wins in ksmps>4 */
+      COS1W = COS(f1*TWOPI);
+      SINNW2 = SIN(f2*TWOPI*step);
+      COSNW2 = COS(f2*TWOPI*step);
+      SIN1W2 = SIN(f2*TWOPI);
+      COS1W2 = COS(f2*TWOPI);
     }
     else {
       MYDBL f1 = *p->scanfreq/CS_ESR;
-      SINNW = sin(f1*TWOPI*step); /* these are to calculate sin/cos by */
-      COSNW = cos(f1*TWOPI*step); /* formula rather than many calls    */
-      SIN1W = sin(f1*TWOPI);      /* Wins in ksmps>4 */
-      COS1W = cos(f1*TWOPI);
+      SINNW = SIN(f1*TWOPI*step); /* these are to calculate sin/cos by */
+      COSNW = COS(f1*TWOPI*step); /* formula rather than many calls    */
+      SIN1W = SIN(f1*TWOPI);      /* Wins in ksmps>4 */
+      COS1W = COS(f1*TWOPI);
     }
 
     if (p->init) {
